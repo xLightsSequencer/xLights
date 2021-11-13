@@ -1797,6 +1797,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     th.detach();
     wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
 
+    UpdateLayoutSave();
+    UpdateControllerSave();
+
     logger_base.debug("xLightsFrame construction complete.");
 }
 
@@ -4140,6 +4143,8 @@ void xLightsFrame::SetFSEQFolder(bool useShow, const std::string& folder)
 
     SetXmlSetting("fseqDir", fseqDirectory);
     UnsavedRgbEffectsChanges = true;
+    UpdateLayoutSave();
+    UpdateControllerSave();
 
     logger_base.debug("FSEQ directory set to : %s.", (const char*)fseqDirectory.c_str());
 }
@@ -4172,6 +4177,8 @@ void xLightsFrame::SetRenderCacheFolder(bool useShow, const std::string& folder)
 
     SetXmlSetting("renderCacheDir", renderCacheDirectory);
     UnsavedRgbEffectsChanges = true;
+    UpdateLayoutSave();
+    UpdateControllerSave();
 
     logger_base.debug("Render Cache directory set to : %s.", (const char*)renderCacheDirectory.c_str());
 }
@@ -4204,6 +4211,8 @@ void xLightsFrame::SetBackupFolder(bool useShow, const std::string& folder)
 
     SetXmlSetting("backupDir", _backupDirectory);
     UnsavedRgbEffectsChanges = true;
+    UpdateLayoutSave();
+    UpdateControllerSave();
 
     logger_base.debug("Backup directory set to : %s.", (const char*)_backupDirectory.c_str());
 }
@@ -9956,6 +9965,8 @@ void xLightsFrame::SetDefaultSeqView(const wxString& view)
     _defaultSeqView = view;
     SetXmlSetting("defaultSeqView", view);
     UnsavedRgbEffectsChanges = true;
+    UpdateLayoutSave();
+    UpdateControllerSave();
 }
 
 wxArrayString xLightsFrame::GetSequenceViews()

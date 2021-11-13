@@ -114,6 +114,8 @@ void ColorManager::SetNewColor(std::string name, xlColor& color)
 void ColorManager::SetDirty()
 {
     xlights->UnsavedRgbEffectsChanges = true;
+    xlights->UpdateLayoutSave();
+    xlights->UpdateControllerSave();
 }
 
 xlColor ColorManager::GetColor(ColorNames name)

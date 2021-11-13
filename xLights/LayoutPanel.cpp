@@ -754,26 +754,15 @@ void LayoutPanel::Reset()
 }
 
 void LayoutPanel::SetDirtyHiLight(bool dirty) {
-#ifdef __WXOSX__
     if (dirty) {
-        ButtonSavePreview->SetBackgroundColour(wxColour(255,0,0));
         xlights->UnsavedRgbEffectsChanges = true;
-    } else {
-        ButtonSavePreview->SetBackgroundColour(wxTransparentColour);
     }
-    ButtonSavePreview->Refresh();
-#else
-    if (dirty) {
-        ButtonSavePreview->SetBackgroundColour(wxColour(255,108,108));
-        xlights->UnsavedRgbEffectsChanges = true;
-    } else {
-        ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    }
-#endif
 //    if (dirty)
 //    {
 //        xlights->RebuildControllerConfig(xlights->GetOutputManager(), &xlights->AllModels);
 //    }
+    xlights->UpdateLayoutSave();
+    xlights->UpdateControllerSave();
 }
 
 std::string LayoutPanel::GetCurrentPreview() const

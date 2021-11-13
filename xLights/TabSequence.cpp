@@ -369,6 +369,9 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         modelPreview->SetScaleBackgroundImage(layoutPanel->GetBackgroundScaledForSelectedPreview());
     }
 
+    UpdateLayoutSave();
+    UpdateControllerSave();
+
     return effectsFile.GetFullPath();
 }
 
@@ -518,6 +521,9 @@ void xLightsFrame::LoadEffectsFile()
 
     float elapsedTime = sw.Time() / 1000.0; //msec => sec
     SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), filename, elapsedTime));
+
+    UpdateLayoutSave();
+    UpdateControllerSave();
 }
 
 void xLightsFrame::LoadPerspectivesMenu(wxXmlNode* perspectivesNode)
@@ -712,6 +718,9 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         UnsavedRgbEffectsChanges = false;
     }
 
+    UpdateLayoutSave();
+    UpdateControllerSave();
+
     return true;
 }
 
@@ -720,6 +729,8 @@ void xLightsFrame::CreateDefaultEffectsXml()
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xrgb" );
     EffectsXml.SetRoot( root );
     UnsavedRgbEffectsChanges = true;
+    UpdateLayoutSave();
+    UpdateControllerSave();
 }
 
 // This ensures submodels are in the right order in the sequence elements after the user
@@ -829,6 +840,8 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
     _sequenceElements.RenameModelInViews(OldName, NewName);
 
     UnsavedRgbEffectsChanges = true;
+    UpdateLayoutSave();
+    UpdateControllerSave();
     return internalsChanged;
 }
 
@@ -874,6 +887,8 @@ bool xLightsFrame::RenameObject(const std::string OldName, const std::string& Ne
     internalsChanged = AllObjects.Rename(OldName, NewName);
 
     UnsavedRgbEffectsChanges = true;
+    UpdateLayoutSave();
+    UpdateControllerSave();
     return internalsChanged;
 }
 
@@ -1052,6 +1067,9 @@ void xLightsFrame::UpdateModelsList()
 
     layoutPanel->UpdateModelList(true);
     displayElementsPanel->UpdateModelsForSelectedView();
+
+    UpdateLayoutSave();
+    UpdateControllerSave();
 }
 
 void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone)

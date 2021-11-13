@@ -331,6 +331,8 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         PerspectivesNode->AddChild(p);
         mCurrentPerpective = p;
         UnsavedRgbEffectsChanges = true;
+        UpdateLayoutSave();
+        UpdateControllerSave();
     }
     else {
         wxString currentName = PerspectivesNode->GetAttribute("current");
@@ -2798,6 +2800,8 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
             MenuItemPerspectives->Check(perspectives[i].id, true);
         }
     }
+    UpdateLayoutSave();
+    UpdateControllerSave();
 }
 
 void xLightsFrame::LoadPerspective(wxCommandEvent& event)
@@ -2878,6 +2882,8 @@ void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
 {
     LoadPerspectivesMenu(PerspectivesNode);
     UnsavedRgbEffectsChanges = true;
+    UpdateLayoutSave();
+    UpdateControllerSave();
 }
 
 void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)

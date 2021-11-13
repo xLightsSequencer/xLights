@@ -1019,6 +1019,8 @@ public:
     void StartxFadeListener();
     wxString ProcessXFadeMessage(wxString msg);
     void ShowACLights();
+    void UpdateControllerSave();
+    void UpdateLayoutSave();
 
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
     void DoBackupPurge();

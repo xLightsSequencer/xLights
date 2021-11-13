@@ -329,6 +329,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     }
     else {
         UnsavedNetworkChanges = false;
+        UpdateControllerSave();
     }
 
     ShowDirectoryLabel->SetLabel(showDirectory);
@@ -782,12 +783,7 @@ void xLightsFrame::NetworkChange() {
 
     _outputManager.SomethingChanged();
     UnsavedNetworkChanges = true;
-#ifdef __WXOSX__
-    ButtonSaveSetup->SetBackgroundColour(wxColour(255, 0, 0));
-    ButtonSaveSetup->Refresh();
-#else
-    ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
-#endif
+    UpdateControllerSave();
 }
 
 void xLightsFrame::NetworkChannelsChange() {
@@ -826,16 +822,47 @@ bool xLightsFrame::SaveNetworksFile() {
 
     if (_outputManager.Save()) {
         UnsavedNetworkChanges = false;
+        UpdateControllerSave();
+        return true;
+    } else {
+        DisplayError(_("Unable to save network definition file"), this);
+        return false;
+    }
+}
+
+void xLightsFrame::UpdateControllerSave() {
+    if (UnsavedNetworkChanges || (IsControllersAndLayoutTabSaveLinked() && UnsavedRgbEffectsChanges)) {
+#ifdef __WXOSX__
+        ButtonSaveSetup->SetBackgroundColour(wxColour(255, 0, 0));
+        ButtonSaveSetup->Refresh();
+#else
+        ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
+#endif
+    } else {
 #ifdef __WXOSX__
         ButtonSaveSetup->SetBackgroundColour(wxTransparentColour);
         ButtonSaveSetup->Refresh();
 #else
         ButtonSaveSetup->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 #endif
-        return true;
+    }
+}
+
+void xLightsFrame::UpdateLayoutSave() {
+    if (UnsavedRgbEffectsChanges || (IsControllersAndLayoutTabSaveLinked() && UnsavedNetworkChanges)) {
+#ifdef __WXOSX__
+        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxColour(255, 0, 0));
+        ButtonSavePreview->Refresh();
+#else
+        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxColour(255, 108, 108));
+#endif
     } else {
-        DisplayError(_("Unable to save network definition file"), this);
-        return false;
+#ifdef __WXOSX__
+        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxTransparentColour);
+        ButtonSavePreview->Refresh();
+#else
+        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+#endif
     }
 }
 
@@ -845,6 +872,7 @@ void xLightsFrame::OnButtonSaveSetupClick(wxCommandEvent& event) {
     if (IsControllersAndLayoutTabSaveLinked()) {
         layoutPanel->SaveEffects();
     }
+    UpdateControllerSave();
 }
 
 void xLightsFrame::SetSyncUniverse(int syncUniverse) {
@@ -1194,6 +1222,9 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         //    layoutPanel->SaveEffects();
         //}
     }
+
+    UpdateControllerSave();
+    UpdateLayoutSave();
 
     // ensure all model groups have all valid model pointers
     AllModels.ResetModelGroups();

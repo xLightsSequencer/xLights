@@ -92,7 +92,6 @@ class LayoutPanel: public wxPanel
 
 		friend class ViewObjectPanel;
 
-    private:
 		//(*Declarations(LayoutPanel)
 		wxButton* ButtonSavePreview;
 		wxCheckBox* CheckBoxOverlap;
@@ -112,6 +111,8 @@ class LayoutPanel: public wxPanel
 		wxSplitterWindow* SplitterWindow2;
 		wxStaticText* StaticText1;
 		//*)
+
+    private:
 
 		wxScrolledWindow* ViewObjectWindow = nullptr;
 		wxScrolledWindow* ModelGroupWindow = nullptr;
