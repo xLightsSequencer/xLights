@@ -2693,9 +2693,23 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     std::string special;
     if (_controller->GetVendor() == "HinksPix" && _controller->GetModel() == "PRO") {
         if (m->GetSmartRemote() != 0) {
-            int port4 = (m->GetControllerPort() - 1) % 4 + 1;
-            int port16 = ((m->GetControllerPort() - 1) % 4) * 4 + ((m->GetSmartRemote() - 1) % 4) + 1;
-            special = wxString::Format("\nHinksPix 16 Port Long Range Port : %d\nHinksPix 4 Port Long Range Port : %d", port16, port4).ToStdString();
+            int absPort = m->GetControllerPort();
+            int absSM = m->GetSmartRemote();
+            std::string SMType = m->GetSmartRemoteType();
+            
+            if (mob->GetPort() != nullptr) {
+                absPort = mob->GetPort()->GetPort();
+                absSM = m->GetSmartRemoteForString(mob->GetString() + 1);
+                SMType = mob->GetPort()->GetSmartRemoteType(absSM);
+            }
+
+            int port4 = (absPort - 1) % 4 + 1;
+            int port16 = ((absPort - 1) % 4) * 4 + ((absSM - 1) % 4) + 1;
+            if (SMType.find("16") != std::string::npos && SMType.find("ac") == std::string::npos ) {
+                special = wxString::Format("\nHinksPix 16 Port Long Range Port : %d", port16).ToStdString();
+            } else {
+                special = wxString::Format("\nHinksPix 4 Port Long Range Port : %d", port4).ToStdString();
+            }
         }
     }
 

@@ -23,9 +23,9 @@ BreakBeforeBraces: Custom
 BraceWrapping:
   AfterEnum:       false
   AfterExternBlock: false
-  AfterClass:      false
+  AfterClass:      true
   AfterControlStatement: false
-  AfterFunction:   false
+  AfterFunction:   true
   AfterNamespace:  true
   AfterObjCDeclaration: false
   AfterStruct:     false
