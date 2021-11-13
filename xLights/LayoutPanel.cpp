@@ -7483,7 +7483,7 @@ void LayoutPanel::PreviewPrintImage()
 	class Printout : public wxPrintout
 	{
 	public:
-		Printout(xlGLCanvas *canvas) : m_canvas(canvas), m_image(nullptr), m_grabbedImage(false) {}
+		Printout(xlGLCanvas *canvas, bool invert) : _invert(invert), m_canvas(canvas) {}
 		virtual ~Printout() {
 			clearImage();
 		}
@@ -7503,6 +7503,19 @@ void LayoutPanel::PreviewPrintImage()
 			wxRect adjustedRect = scaledRect(m_canvas->getWidth(), m_canvas->getHeight(), rect.GetWidth(), rect.GetHeight());
 
 			m_image = m_canvas->GrabImage(wxSize(adjustedRect.GetWidth(), adjustedRect.GetHeight()));
+
+            // invert the image for printing
+            if (_invert && m_image != nullptr) {
+                unsigned char* imgdata = m_image->GetData();
+                unsigned int ch = m_image->HasAlpha() ? 4 : 3;
+                const int imgdata_size = m_image->GetWidth() * m_image->GetHeight() * ch;
+                for (auto i = 0; i < imgdata_size; i += ch) {
+                    imgdata[i] = 255 - imgdata[i];
+                    imgdata[i + 1] = 255 - imgdata[i + 1];
+                    imgdata[i + 2] = 255 - imgdata[i + 2];
+                }
+            }
+
 			m_grabbedImage = (m_image != nullptr);
 			return m_grabbedImage;
 		}
@@ -7528,12 +7541,13 @@ void LayoutPanel::PreviewPrintImage()
 
 		bool grabbedImage() const { return m_grabbedImage; }
 	protected:
-		xlGLCanvas *m_canvas;
-		wxImage *m_image;
-		bool m_grabbedImage;
+		xlGLCanvas *m_canvas = nullptr;
+		wxImage *m_image = nullptr;
+		bool m_grabbedImage = false;
+        bool _invert = false;
 	};
 
-	Printout printout(modelPreview);
+	Printout printout(modelPreview, true);
 
 	static wxPrintDialogData printDialogData;
 	wxPrinter printer(&printDialogData);
