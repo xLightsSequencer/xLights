@@ -266,7 +266,6 @@ private:
     xlVertexAccumulator *linesLocked = nullptr;
     xlVertexColorAccumulator *timingLines = nullptr;
     xlVertexColorAccumulator *backgrounds = nullptr;
-    xlVertexColorAccumulator *textBackgrounds = nullptr;
     xlVertexColorAccumulator *selectedBoxes = nullptr;
 
     xlVertexTextureAccumulator *texts = nullptr;

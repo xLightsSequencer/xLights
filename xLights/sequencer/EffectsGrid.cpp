@@ -5491,10 +5491,11 @@ void EffectsGrid::DrawLines(xlGraphicsContext *ctx) const
             isEvenLayer = !isEvenLayer;
         }
     }
+    float gridSize = 0.5f / translateToBacking(1.0);
     color = xlights->color_mgr.GetColor(ColorManager::COLOR_GRIDLINES);
     for (size_t row = 0; row < mSequenceElements->GetVisibleRowInformationSize(); row++) {
         y = (row + 1) * DEFAULT_ROW_HEADING_HEIGHT;
-        backgrounds->AddRectAsTriangles(x1, y - 0.25, x2, y + 0.25, color);
+        backgrounds->AddRectAsTriangles(x1, y - gridSize, x2, y + gridSize, color);
     }
 
     // Draw vertical lines
@@ -5503,7 +5504,7 @@ void EffectsGrid::DrawLines(xlGraphicsContext *ctx) const
     for (size_t x3 = 0; x3 < mWindowWidth; x3++) {
         // Draw hash marks
         if ((x3 + mStartPixelOffset) % (PIXELS_PER_MAJOR_HASH) == 0) {
-            backgrounds->AddRectAsTriangles(x3 - 0.25, y1, x3 + 0.25, y2, color);
+            backgrounds->AddRectAsTriangles(x3 - gridSize, y1, x3 + gridSize, y2, color);
         }
     }
 }
@@ -5762,7 +5763,7 @@ void EffectsGrid::DrawEffects(xlGraphicsContext *ctx)
                                 linesRight->AddVertex((x1 + x2) / 2.0 + sz, y);
                                 linesRight->AddVertex(x2, y);
 
-                                lines->AddRectAsLines(xl - 0.4, y - sz, xr + 0.4, y + sz);
+                                lines->AddRectAsLines(xl - 0.4, y - sz - 0.4, xr + 0.4, y + sz + 0.4);
                             } else if (x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT) {
                                 linesLeft->AddVertex(x1, y);
                                 linesLeft->AddVertex(x1 + (x / 2) - 1, y);
@@ -5778,7 +5779,7 @@ void EffectsGrid::DrawEffects(xlGraphicsContext *ctx)
                                                         effectIconLocations[e->GetEffectIndex()][1],
                                                         effectIconLocations[e->GetEffectIndex()][0] + 64.0f/512.0f,
                                                         effectIconLocations[e->GetEffectIndex()][1] + 64.0f/512.0f);
-                                lines->AddRectAsLines(xl - 0.4, y - sz, xr + 0.4, y + sz);
+                                lines->AddRectAsLines(xl - 0.4, y - sz - 0.4, xr + 0.4, y + sz + 0.4);
                             } else {
                                 linesCenter->AddVertex(x1, y);
                                 linesCenter->AddVertex(x2, y);
@@ -5821,7 +5822,6 @@ void EffectsGrid::DrawEffects(xlGraphicsContext *ctx)
     ctx->drawLines(selectedLinesDisabled->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED_DISABLED));
 
     ctx->drawLines(timingEffLines->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_TIMING_DEFAULT));
-    ctx->drawTriangles(textBackgrounds->Flush());
     ctx->enableBlending();
     ctx->drawLines(timingLines->Flush());
 
@@ -5949,10 +5949,6 @@ void EffectsGrid::DrawTimingEffects(int row)
             // Draw horizontal
             if (mode != SCREEN_L_R_OFF) {
                 int half_width = (x2 - x1) / 2;
-                linesLeft->AddVertex(x1, y);
-                linesLeft->AddVertex(x1 + half_width, y);
-                linesRight->AddVertex(x1 + half_width, y);
-                linesRight->AddVertex(x2, y);
                 if (eff->GetEffectName() != "" && (x2 - x1) > 20) {
                     int max_width = x2 - x1 - 18;
                     int text_width = font.widthOf(eff->GetEffectName(), factor) + 8;
@@ -5967,7 +5963,11 @@ void EffectsGrid::DrawTimingEffects(int row)
                     } else if (ri->layerIndex == 2) {
                         label_color = xlights->color_mgr.GetColor(ColorManager::COLOR_PHONEMES);
                     }
-                    textBackgrounds->AddRectAsTriangles(label_start, y1 - 2, label_start + width, y2 + 2, label_color);
+                    linesLeft->AddVertex(x1, y);
+                    linesLeft->AddVertex(label_start, y);
+                    linesRight->AddVertex(label_start + width, y);
+                    linesRight->AddVertex(x2, y);
+                    backgrounds->AddRectAsTriangles(label_start, y1 - 2, label_start + width, y2 + 2, label_color);
                     timingLines->AddRectAsLines(label_start - 0.4, y1 - 2 - 0.4, label_start + width + 0.4, y2 + 2 + 0.4, xlights->color_mgr.GetColor(ColorManager::COLOR_LABEL_OUTLINE));
 
                     // trim the text to fit
@@ -5976,6 +5976,11 @@ void EffectsGrid::DrawTimingEffects(int row)
                         name = name.substr(0, name.size() - 1);
                     }
                     font.populate(*texts, label_start + 4, y2 + toffset, name, factor);
+                } else {
+                    linesLeft->AddVertex(x1, y);
+                    linesLeft->AddVertex(x1 + half_width, y);
+                    linesRight->AddVertex(x1 + half_width, y);
+                    linesRight->AddVertex(x2, y);
                 }
             }
         }
@@ -6012,12 +6017,10 @@ void EffectsGrid::Draw()
         linesLocked = ctx->createVertexAccumulator();
         timingLines = ctx->createVertexColorAccumulator();
         backgrounds = ctx->createVertexColorAccumulator();
-        textBackgrounds = ctx->createVertexColorAccumulator();
         selectedBoxes = ctx->createVertexColorAccumulator();
         texts = ctx->createVertexTextureAccumulator();
         effectIcons = ctx->createVertexTextureAccumulator();
     } else {
-        textBackgrounds->Reset();
         timingLines->Reset();
         timingEffLines->Reset();
         selectedLinesFixed->Reset();
