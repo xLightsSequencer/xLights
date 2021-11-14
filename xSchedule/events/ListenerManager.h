@@ -58,4 +58,5 @@ class ListenerManager
         ScheduleManager* GetScheduleManager() const { return _scheduleManager; }
         void SetFrameMS(int frameMS);
         long GetStepMMSSOfset(int& hours, long hradj);
+        ListenerBase* GetListener(const std::string listener) const;
 };

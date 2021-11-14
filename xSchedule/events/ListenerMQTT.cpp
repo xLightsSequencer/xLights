@@ -64,6 +64,7 @@ void ListenerMQTT::StartProcess()
 
     if (_client.Connect(addr, false) || _client.WaitOnConnect(0, 500))
     {
+        logger_base.debug("ListenerMQTT connected to %s:%d", (const char*)_ip.c_str(), _port);
         uint8_t buffer[1444];
         memset(buffer, 0x00, sizeof(buffer));
         int index = 0;
@@ -112,6 +113,7 @@ void ListenerMQTT::StartProcess()
                 _isOk = true;
             }
         }
+        logger_base.debug("ListenerMQTT listening");
     }
 }
 
