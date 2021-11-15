@@ -109,6 +109,9 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
 
     _page = GetURL("/");
     if (!_page.empty()) {
+        if (_page.Contains("Existing user login")) {
+            logger_base.error("AlphaPix Webpage locked out by another computer");
+        }
         //AlphaPix 4 V2/V3 Classic
         //AlphaPix Flex Lighting Controller
         static wxRegEx modelregex("(\\d+) Port Ethernet to SPI Controller", wxRE_ADVANCED | wxRE_NEWLINE);
