@@ -39,14 +39,22 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c) : xlGraphicsCon
         encoder = nil;
     }
 }
+#include <wx/time.h>
 xlMetalGraphicsContext::~xlMetalGraphicsContext() {
     if (encoder != nil) {
-        [encoder endEncoding];
-        [buffer presentDrawable:drawable];
-        [buffer commit];
-        [drawable release];
+        @autoreleasepool {
+            [encoder endEncoding];
+            [buffer presentDrawable:drawable];
+            [buffer commit];
+            //[buffer waitUntilCompleted];
+
+            /*
+            [buffer waitUntilScheduled];
+            [drawable present];
+            [drawable release];
+            */
+        }
     }
-    //[buffer waitUntilCompleted];
 }
 
 bool xlMetalGraphicsContext::hasDrawable() {
@@ -529,25 +537,34 @@ public:
         // Create a private texture.
         @autoreleasepool {
             id<MTLTexture> srcTexture = texture;
+            int levels = [srcTexture mipmapLevelCount];
+            if (levels == 0) {
+                levels = 1;
+            }
             MTLTextureDescriptor *description = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
                                                                                                    width:textureSize.width
                                                                                                   height:textureSize.height
-                                                                                               mipmapped:false];
+                                                                                               mipmapped:(levels > 1 ? true : false)];
             description.storageMode = MTLStorageModePrivate;
             id <MTLTexture> privateTexture = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
             // Encode a blit pass to copy data from the source texture to the private texture.
             id<MTLCommandBuffer> bltBuffer = [wxMetalCanvas::getMTLCommandQueue() commandBuffer];
             id <MTLBlitCommandEncoder> blitCommandEncoder = [bltBuffer blitCommandEncoder];
             MTLOrigin textureOrigin = MTLOriginMake(0, 0, 0);
-            [blitCommandEncoder copyFromTexture:srcTexture
-                                    sourceSlice:0
-                                    sourceLevel:0
-                                   sourceOrigin:textureOrigin
-                                     sourceSize:textureSize
-                                      toTexture:privateTexture
-                               destinationSlice:0
-                               destinationLevel:0
-                              destinationOrigin:textureOrigin];
+            MTLSize size = MTLSizeMake(textureSize.width, textureSize.height, 1);
+            for (int l = 0; l < levels; l++ ) {
+                [blitCommandEncoder copyFromTexture:srcTexture
+                                        sourceSlice:0
+                                        sourceLevel:l
+                                       sourceOrigin:textureOrigin
+                                         sourceSize:size
+                                          toTexture:privateTexture
+                                   destinationSlice:0
+                                   destinationLevel:l
+                                  destinationOrigin:textureOrigin];
+                size.width /= 2;
+                size.height /= 2;
+            }
             [blitCommandEncoder endEncoding];
             [bltBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb) {
                 // Private texture is populated, we can release the srcBuffer
@@ -606,7 +623,7 @@ xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxImag
                                                                                         height:images[0].GetHeight()
                                                                                         mipmapped:true];
         txt->texture = [canvas->getMTLDevice() newTextureWithDescriptor:desc];
-
+        txt->textureSize = MTLSizeMake(images[0].GetWidth(), images[0].GetHeight(), 1);
 
         int levels = [txt->texture mipmapLevelCount];
         wxImage img;
@@ -626,6 +643,7 @@ xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxImag
             [txt->texture replaceRegion:region mipmapLevel:x withBytes:bytes bytesPerRow:rlen];
         }
         free(bytes);
+        txt->Finalize();
     }
     return txt;
 }

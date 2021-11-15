@@ -7483,7 +7483,7 @@ void LayoutPanel::PreviewPrintImage()
 	class Printout : public wxPrintout
 	{
 	public:
-		Printout(xlGLCanvas *canvas, bool invert) : _invert(invert), m_canvas(canvas) {}
+		Printout(ModelPreview *canvas, bool invert) : _invert(invert), m_canvas(canvas) {}
 		virtual ~Printout() {
 			clearImage();
 		}
@@ -7541,7 +7541,7 @@ void LayoutPanel::PreviewPrintImage()
 
 		bool grabbedImage() const { return m_grabbedImage; }
 	protected:
-		xlGLCanvas *m_canvas = nullptr;
+        ModelPreview *m_canvas = nullptr;
 		wxImage *m_image = nullptr;
 		bool m_grabbedImage = false;
         bool _invert = false;
