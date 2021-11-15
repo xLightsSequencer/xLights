@@ -113,7 +113,13 @@ void ListenerMQTT::StartProcess()
                 _isOk = true;
             }
         }
-        logger_base.debug("ListenerMQTT listening");
+        if (_isOk) {
+            logger_base.debug("ListenerMQTT listening");
+        }
+    }
+
+    if (!_isOk) {
+        logger_base.error("Failed to start MQTT Listener.");
     }
 }
 
@@ -125,6 +131,8 @@ bool ListenerMQTT::Subscribe(const std::string& topic)
 
     if (!_isOk)
     {
+        logger_base.warn("MQTT trying to subscribe to topic %s but listener not in a good state.", (const char*)topic.c_str());
+
         std::unique_lock<std::mutex> lock(_topicLock);
 
         if (std::find(begin(_toSubscribe), end(_toSubscribe), topic) == end(_toSubscribe))
@@ -158,9 +166,10 @@ bool ListenerMQTT::Subscribe(const std::string& topic)
 void ListenerMQTT::StopProcess()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("MQTT Listener stopping.");
     if (_client.IsConnected()) {
-        logger_base.info("MQTT Listener closed.");
         _client.Close();
+        logger_base.info("MQTT Listener closed.");
     }
     _isOk = false;
 }
@@ -180,10 +189,10 @@ void ListenerMQTT::Poll()
 
         if (_client.LastCount() > 0)
         {
-            //wxStopWatch sw;
-            //logger_base.debug("Trying to read MQTT packet.");
+            wxStopWatch sw;
+            logger_base.debug("Trying to read MQTT packet.");
             _client.Read(buffer, std::min((int)_client.LastCount(), (int)sizeof(buffer)));
-            //logger_base.debug(" Read done. %ldms", sw.Time());
+            logger_base.debug(" MQTT Read done. %ldms", sw.Time());
 
             if (_stop) return;
 
@@ -225,6 +234,8 @@ void ListenerMQTT::Poll()
                 if (Subscribe(_toSubscribe.front()))
                 {
                     _toSubscribe.pop_front();
+                } else {
+                    logger_base.debug("MQTT Failed to subscribe to %s", (const char*)_toSubscribe.front().c_str());
                 }
             }
         }
