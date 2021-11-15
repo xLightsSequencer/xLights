@@ -102,6 +102,7 @@ std::string BaseController::GetURL(const std::string& url, bool logresult, const
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
+        curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
 
         std::string response_string;
 
