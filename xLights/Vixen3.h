@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <wx/colour.h>
+#include <wx/gdicmn.h>
 #include <wx/xml/xml.h>
 
 #include <map>
@@ -40,6 +41,7 @@ public:
     std::string type;
     std::map<std::string, std::string> settings;
     std::vector<wxColor> colours;
+    std::vector<wxPoint> levelCurve;
 };
 
 class Vixen3 {

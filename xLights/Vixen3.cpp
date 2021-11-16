@@ -46,6 +46,14 @@ std::string VixenEffect::GetPalette() const
         res += ",C_CHECKBOX_Palette" + n + "=1";
     }
 
+    // More than two points for the Vixen level curve, generate a custom brightness value curve
+    if (levelCurve.size() > 2) {
+        res += ",C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Custom|Min=0.00|Max=400.00|RV=TRUE|Values=";
+        for (int i = 0; i < levelCurve.size(); i++) {
+            res += wxString::Format("%.2f:", levelCurve[i].x / 100) + wxString::Format("%.2f;", levelCurve[i].y / 100 / 4);
+        }
+    }
+
     return res;
 }
 
@@ -58,9 +66,16 @@ std::string VixenEffect::GetSettings() const
     }
     else if (type == "TwinkleData")
     {
-        res = "E_SLIDER_Twinkle_Steps=" + settings.at("AveragePulseTime");
+        res = "E_SLIDER_Twinkle_Steps=" + settings.at("AveragePulseTime") +
+              ",E_SLIDER_Twinkle_Count=" + settings.at("AverageCoverage");
     }
-    else if (type == "PulseData") {}
+    else if (type == "PulseData") {
+        // Only two points, set them as start and end intensity.  If more than two, a brightness curve will be generated
+        if (levelCurve.size() == 2) {
+            res = "E_TEXTCTRL_Eff_On_Start=" + wxString::Format("%d", levelCurve[0].y) +
+                  ",E_TEXTCTRL_Eff_On_End=" + wxString::Format("%d", levelCurve[1].y);
+        }
+    }
     else if (type == "Data") {}
     else if (type == "SetLevelData") {}
     else if (type == "WipeData") {}
@@ -627,6 +642,29 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                         // TODO we dont handle gradients yet so just push back the first colour
 
                                         e->colours.push_back(gradCol[0]);
+                                    }
+                                }
+                            }
+                        } 
+                        else if (nm == "LevelCurve") {
+                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                auto nm2 = nn->GetName().AfterFirst(':');
+                                if (nm2 == "Points") {
+                                    for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
+                                        auto nm3 = nnn->GetName().AfterFirst(':');
+                                        if (nm3 == "PointPair") {
+                                            int x = 0;
+                                            int y = 0;
+                                            for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
+                                                auto nm4 = nnnn->GetName();
+                                                if (nm4 == "X") {
+                                                    x = wxAtoi(nnnn->GetChildren()->GetContent());
+                                                } else if (nm4 == "Y") {
+                                                    y = wxAtoi(nnnn->GetChildren()->GetContent());
+                                                }
+                                            }
+                                            e->levelCurve.push_back(wxPoint(x, y));
+                                        }
                                     }
                                 }
                             }
