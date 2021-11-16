@@ -109,7 +109,7 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer98->Add(CheckBox_Faces_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT1, _("Use State as outline"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer98->Add(StaticText2, 1, wxALL|wxEXPAND, 5);
-	Choice1 = new wxChoice(this, ID_CHOICE_Faces_UseState, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_UseState"));
+	Choice1 = new BulkEditStateChoice(this, ID_CHOICE_Faces_UseState, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_UseState"));
 	FlexGridSizer98->Add(Choice1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);

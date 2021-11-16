@@ -153,7 +153,14 @@ BulkEditFaceChoice::BulkEditFaceChoice(wxWindow *parent, wxWindowID id, const wx
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditFaceChoice::OnRightDown, nullptr, this);
 }
 
-BulkEditCheckBox::BulkEditCheckBox(wxWindow *parent, wxWindowID id, const wxString &label, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : wxCheckBox(parent, id, label, pos, size, style, validator, name)
+BulkEditStateChoice::BulkEditStateChoice(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, int n, const wxString choices[], long style, const wxValidator& validator, const wxString& name) :
+    BulkEditChoice(parent, id, pos, size, n, choices, style, validator, name)
+{
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditStateChoice::OnRightDown, nullptr, this);
+}
+
+BulkEditCheckBox::BulkEditCheckBox(wxWindow* parent, wxWindowID id, const wxString& label, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name) :
+    wxCheckBox(parent, id, label, pos, size, style, validator, name)
 {
     _supportsBulkEdit = true;
     ID_CHECKBOX_BULKEDIT_CHECKED = wxNewId();
@@ -298,6 +305,19 @@ void BulkEditFaceChoice::OnRightDown(wxMouseEvent& event)
 {
     if (!_supportsBulkEdit) return;
     if (!IsBulkEditAvailable(GetParent(), true)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_CHOICE_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditChoice::OnChoicePopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditStateChoice::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit)
+        return;
+    if (!IsBulkEditAvailable(GetParent(), true))
+        return;
 
     wxMenu mnu;
     mnu.Append(ID_CHOICE_BULKEDIT, "Bulk Edit");
@@ -768,7 +788,10 @@ void BulkEditChoice::OnChoicePopup(wxCommandEvent& event)
         }
 
         wxSingleChoiceDialog dlg(GetParent(), "", label, choices);
-        dlg.SetSelection(GetSelection());
+        auto sel = GetSelection();
+        if (sel >= 0 && sel < choices.size()) {
+            dlg.SetSelection(sel);
+        }
         OptimiseDialogPosition(&dlg);
 
         if (dlg.ShowModal() == wxID_OK)
