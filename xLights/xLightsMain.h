@@ -1017,7 +1017,8 @@ public:
     void OnxFadeSocketEvent(wxSocketEvent & event);
     void OnxFadeServerEvent(wxSocketEvent & event);
     void StartxFadeListener();
-    wxString ProcessXFadeMessage(wxString msg);
+    wxString ProcessXFadeMessage(const wxString& msg);
+    std::string ProcessAutomation(const std::string& msg);
     void ShowACLights();
     void UpdateControllerSave();
     void UpdateLayoutSave();

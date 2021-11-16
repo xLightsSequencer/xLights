@@ -9050,11 +9050,14 @@ void xLightsFrame::OnxFadeServerEvent(wxSocketEvent & event)
     }
 }
 
-wxString xLightsFrame::ProcessXFadeMessage(wxString msg)
+wxString xLightsFrame::ProcessXFadeMessage(const wxString& msg)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (msg == "TURN_LIGHTS_ON")
+    if (msg.starts_with("{")) {
+        return ProcessAutomation(msg.ToStdString());
+    }
+    else if (msg == "TURN_LIGHTS_ON")
     {
         logger_base.debug("xFade turning lights on.");
         EnableOutputs(true);
@@ -9129,6 +9132,183 @@ wxString xLightsFrame::ProcessXFadeMessage(wxString msg)
 
     logger_base.debug("xFade invalid request.");
     return "ERROR_INVALID_REQUEST";
+}
+
+std::string xLightsFrame::ProcessAutomation(const std::string& msg)
+{
+    wxJSONValue val;
+    wxJSONReader reader;
+    if (reader.Parse(msg, &val) == 0) {
+        if (!val.HasMember("cmd")) {
+            return "{\"res\":504,\"msg\":\"Missing cmd.\"}";
+        } else {
+            auto cmd = val["cmd"].AsString();
+            if (cmd == "renderAll") {
+                if (CurrentSeqXmlFile == nullptr) {
+                    return "{\"res\":504,\"msg\":\"No sequence open.\"}";
+                }
+                RenderAll();
+                while (mRendering) {
+                    wxYield();
+                }
+                return "{\"res\":200,\"msg\":\"Rendered.\"}";
+
+            } else if (cmd == "loadSequence") {
+
+                auto seq = val["seq"].AsString();
+                if (!wxFile::Exists(seq)) {
+                    return "{\"res\":504,\"msg\":\"Sequence not found.\"}";
+                }
+                if (CurrentSeqXmlFile != nullptr && val["force"].AsString() != "true") {
+                    return "{\"res\":504,\"msg\":\"Sequence already open.\"}";
+                }
+                OpenSequence(seq, nullptr);
+                return "{\"res\":200,\"msg\":\"Sequence loaded.\"}";
+
+            } else if (cmd == "closeSequence") {
+
+                if (CurrentSeqXmlFile == nullptr) {
+                    if (val["quiet"].AsString() != "true") {
+                        return "{\"res\":504,\"msg\":\"No sequence open.\"}";
+                    }
+                    return "{\"res\":200,\"msg\":\"Sequence closed.\"}";
+                }
+   
+                AskCloseSequence();
+                return "{\"res\":200,\"msg\":\"Sequence closed.\"}";
+
+            } else if (cmd == "newSequence") {
+
+                if (CurrentSeqXmlFile != nullptr && val["force"].AsString() != "true") {
+                    return "{\"res\":504,\"msg\":\"Sequence already open.\"}";
+                }
+                NewSequence();
+                EnableSequenceControls(true);
+                return "{\"res\":200,\"msg\":\"Sequence created.\"}";
+
+            } else if (cmd == "saveSequence") {
+                if (CurrentSeqXmlFile == nullptr) {
+                    return "{\"res\":504,\"msg\":\"No sequence open.\"}";
+                }
+                SaveSequence();
+                return "{\"res\":200,\"msg\":\"Sequence saved.\"}";
+
+            } else if (cmd == "batchRender") {
+
+                wxArrayString files;
+                auto seqs = val["seqs"].AsArray();
+                for (size_t i = 0; i < seqs->Count(); i++) {
+                    auto seq = seqs->Item(i).AsString();
+                    if (!wxFile::Exists(seq)) {
+                        return wxString::Format("{\"res\":504,\"msg\":\"Sequence not found '%s'.\"}", seq);
+                    }
+                    files.push_back(seq);
+                }
+
+                _renderMode = true;
+                OpenRenderAndSaveSequences(files, false);
+
+                while (_renderMode) {
+                    wxYield();
+                }
+
+                return "{\"res\":200,\"msg\":\"Sequence batch rendered.\"}";
+
+            } else if (cmd == "uploadController") {
+                // TODO
+            } else if (cmd == "uploadFPPConfig") {
+                // TODO
+            } else if (cmd == "uploadFPPSequence") {
+                // TODO
+            } else if (cmd == "checkSequence") {
+                auto seq = val["seq"].AsString();
+                if (!wxFile::Exists(seq)) {
+                    return "{\"res\":504,\"msg\":\"Sequence not found.\"}";
+                }
+                wxArrayString files;
+                files.push_back(seq);
+                OpenAndCheckSequence(files, false);
+
+                return "{\"res\":200,\"msg\":\"Sequence checked.\"}";
+            } else if (cmd == "changeShowFolder") {
+                // TODO
+            } else if (cmd == "openController") {
+                // TODO
+            } else if (cmd == "openControllerProxy") {
+                // TODO
+            } else if (cmd == "runDiscovery") {
+                // TODO
+            } else if (cmd == "exportModel") {
+                // TODO
+            } else if (cmd == "exportModelAsCustom") {
+                // TODO
+            } else if (cmd == "exportModelsCSV") {
+                // TODO
+            } else if (cmd == "shiftAllEffects") {
+                // TODO
+            } else if (cmd == "shiftSelectedEffects") {
+                // TODO
+            } else if (cmd == "unselectEffects") {
+                // TODO
+            } else if (cmd == "selectEffectsOnModel") {
+                // TODO
+            } else if (cmd == "selectAllEffectsOnAllModels") {
+                // TODO
+            } else if (cmd == "renderAndExportModel") {
+                // TODO
+            } else if (cmd == "turnOnOutputToLights") {
+                // TODO
+            } else if (cmd == "turnOffOutputToLights") {
+                // TODO
+            } else if (cmd == "playSequence") {
+                // TODO
+            } else if (cmd == "printLayout") {
+                // TODO
+            } else if (cmd == "printWiring") {
+                // TODO
+            } else if (cmd == "exportLayoutImage") {
+                // TODO
+            } else if (cmd == "exportWiringImage") {
+                // TODO
+            } else if (cmd == "cleanupFileLocations") {
+                // TODO
+            } else if (cmd == "hinksPixExport") {
+                // TODO
+            } else if (cmd == "packageLogFiles") {
+                // TODO
+            } else if (cmd == "packageSequence") {
+                // TODO
+            } else if (cmd == "purgeDownloadCache") {
+                // TODO
+            } else if (cmd == "purgeRenderCache") {
+                // TODO
+            } else if (cmd == "convertSequence") {
+                // TODO
+            } else if (cmd == "prepareAudio") {
+                // TODO
+            } else if (cmd == "resetToDefaults") {
+                // TODO
+            } else if (cmd == "resetWindowLayout") {
+                // TODO
+            } else if (cmd == "setAudioVolume") {
+                // TODO
+            } else if (cmd == "setAudioSpeed") {
+                // TODO
+            } else if (cmd == "gotoZoom") {
+                // TODO
+            } else if (cmd == "newSequence") {
+                // TODO
+            } else if (cmd == "importSequence") {
+                // TODO
+            } else if (cmd == "getVersion") {
+                return wxString::Format("{\"res\":200,\"version\":\"%s\"}", GetDisplayVersionString());
+            } else {
+                return wxString::Format("{\"res\":504,\"msg\":\"Unknown command: '%s'.\"}", cmd);
+            }
+        }
+    } else {
+        return "{\"res\":504,\"msg\":\"Error parsing request.\"}";
+    }
 }
 
 void xLightsFrame::StartxFadeListener()
