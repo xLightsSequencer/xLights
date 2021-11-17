@@ -59,7 +59,7 @@ StatePanel::StatePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer98->AddGrowableCol(1);
 	StaticText14 = new wxStaticText(this, ID_STATICTEXT15, _("State Definition"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
 	FlexGridSizer98->Add(StaticText14, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_StateDefinitonChoice = new wxChoice(this, ID_CHOICE_State_StateDefinition, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_State_StateDefinition"));
+	Choice_StateDefinitonChoice = new BulkEditStateChoice(this, ID_CHOICE_State_StateDefinition, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_State_StateDefinition"));
 	FlexGridSizer98->Add(Choice_StateDefinitonChoice, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer47->Add(FlexGridSizer98, 1, wxALL|wxEXPAND, 2);
 	StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("States"));

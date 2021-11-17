@@ -521,12 +521,12 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
     }
 
     if (HasOneString(DisplayAs) && grid->GetPropertyByName("ModelStartChannel") != nullptr) {
-        grid->GetPropertyByName("ModelStartChannel")->Enable(GetControllerName() == "" && _controller == 0);
+        grid->GetPropertyByName("ModelStartChannel")->Enable(GetControllerName() == "" || _controller == 0);
     }
     else {
         if (grid->GetPropertyByName("ModelIndividualStartChannels") != nullptr) {
-            grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(parm1 > 1 && GetControllerName() == "" && _controller == 0);
-            if (parm1 > 1 && (GetControllerName() != "" || _controller != 0)) {
+            grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(parm1 > 1 && (GetControllerName() == "" || _controller == 0));
+            if (parm1 > 1 && (GetControllerName() != "" && _controller != 0)) {
                 grid->GetPropertyByName("ModelIndividualStartChannels")->SetHelpString("Individual start channels cannot be set if you have assigned a model to a controller rather than using start channels.");
             }
             else {
@@ -534,7 +534,7 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
             }
         }
         if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
-            grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(GetControllerName() == "" && _controller == 0);
+            grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(GetControllerName() == "" || _controller == 0);
         }
     }
 
@@ -677,15 +677,15 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         bool hasIndiv = ModelXml->GetAttribute("Advanced", "0") == "1";
         p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", hasIndiv));
         p->SetAttribute("UseCheckbox", true);
-        p->Enable(parm1 > 1 && GetControllerName() == "" && _controller == 0);
-        if (parm1 > 1 && (GetControllerName() != "" || _controller != 0)) {
+        p->Enable(parm1 > 1 && (GetControllerName() == "" || _controller == 0));
+        if (parm1 > 1 && (GetControllerName() != "" && _controller != 0)) {
             p->SetHelpString("Individual start channels cannot be set if you have assigned a model to a controller rather than using start channels.");
         }
         else {
             p->SetHelpString("");
         }
         sp = grid->AppendIn(p, new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel", "1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-        sp->Enable(GetControllerName() == "" && _controller == 0);
+        sp->Enable(GetControllerName() == "" || _controller == 0);
         if (hasIndiv) {
             int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
             for (int x = 0; x < c; x++) {
@@ -1451,7 +1451,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         if (grid->GetPropertyByName("ModelChain") != nullptr) {
-            grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "");
+            grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && _controller != 0);
         }
         UpdateControllerProperties(grid);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Controller");
@@ -2019,7 +2019,7 @@ void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
     wxPGProperty *p = grid->GetPropertyByName("ModelIndividualStartChannels");
     if (p != nullptr) {
         pg->Freeze();
-        p->Enable(GetControllerName() == "" && _controller == 0);
+        p->Enable(GetControllerName() == "" || _controller == 0);
         bool adv = p->GetValue().GetBool();
         if (adv) {
             int count = p->GetChildCount();
@@ -2041,7 +2041,7 @@ void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
                     ModelXml->AddAttribute(nm, val);
                 }
                 grid->AppendIn(p, new StartChannelProperty(this, count, nm, nm, val, modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-                p->Enable(GetControllerName() == "" && _controller == 0);
+                p->Enable(GetControllerName() == "" || _controller == 0);
                 count++;
             }
         } else if (p->GetChildCount() > 1) {
@@ -2064,7 +2064,7 @@ void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
                 sp->SetLabel("Start Channel");
             }
         }
-        p->Enable(parm1 > 1 && (GetControllerName() == "" || GetModelChain() == ""));
+        p->Enable(parm1 > 1 && (GetControllerName() == "" || _controller == 0 || GetModelChain() == ""));
         pg->Thaw();
         pg->RefreshGrid();
     }

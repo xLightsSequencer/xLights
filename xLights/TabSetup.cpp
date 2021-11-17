@@ -852,14 +852,14 @@ void xLightsFrame::UpdateLayoutSave() {
     if (UnsavedRgbEffectsChanges || (IsControllersAndLayoutTabSaveLinked() && UnsavedNetworkChanges)) {
 #ifdef __WXOSX__
         layoutPanel->ButtonSavePreview->SetBackgroundColour(wxColour(255, 0, 0));
-        ButtonSavePreview->Refresh();
+        layoutPanel->ButtonSavePreview->Refresh();
 #else
         layoutPanel->ButtonSavePreview->SetBackgroundColour(wxColour(255, 108, 108));
 #endif
     } else {
 #ifdef __WXOSX__
         layoutPanel->ButtonSavePreview->SetBackgroundColour(wxTransparentColour);
-        ButtonSavePreview->Refresh();
+        layoutPanel->ButtonSavePreview->Refresh();
 #else
         layoutPanel->ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 #endif

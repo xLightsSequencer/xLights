@@ -43,9 +43,9 @@ class FacesPanel: public xlEffectPanel
 		BulkEditChoice* Choice_Faces_TimingTrack;
 		BulkEditFaceChoice* Face_FaceDefinitonChoice;
 		BulkEditSlider* Slider_Faces_TransparentBlack;
+		BulkEditStateChoice* Choice1;
 		BulkEditTextCtrl* TextCtrl_Faces_TransparentBlack;
 		wxCheckBox* CheckBox_Fade;
-		wxChoice* Choice1;
 		wxChoice* Choice_Faces_Phoneme;
 		wxRadioButton* RadioButton1;
 		wxRadioButton* RadioButton2;

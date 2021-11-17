@@ -70,13 +70,12 @@ xlMetalCanvas::xlMetalCanvas(wxWindow *parent,
                              long style,
                              const wxString& name,
                              bool only2d)
-    : wxMetalCanvas(parent, id, pos, size, style, name),
+    : wxMetalCanvas(parent, id, pos, size, style, name, only2d),
 mWindowWidth(0),
 mWindowHeight(0),
 mWindowResized(false),
 mIsInitialized(false),
 mName(name),
-is3d(!only2d),
 fallback(nullptr)
 {
     if (!wxPlatformInfo::Get().CheckOSVersion(10, 14)) {
@@ -145,14 +144,13 @@ void xlMetalCanvas::Resized(wxSizeEvent& evt)
     Refresh();
 }
 
-
 void xlMetalCanvas::PrepareCanvas() {
     if (!mIsInitialized) {
         if (fallback) {
             fallback->PrepareCanvas();
         } else {
             //just make sure this will load
-            getPipelineState("singleColorProgram", "singleColorVertexShader", "singleColorFragmentShader");
+            getPipelineState("singleColorProgram", "singleColorVertexShader", "singleColorFragmentShader", false);
         }
         mIsInitialized = true;
     }

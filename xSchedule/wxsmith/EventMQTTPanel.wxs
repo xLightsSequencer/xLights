@@ -51,7 +51,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="ID_TEXTCTRL5" variable="TextCtrl_ClientId" member="yes">
-					<value>xSchedule</value>
+					<value>xScheduleEvent</value>
 					<handler function="OnTextCtrl_ClientIdText" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

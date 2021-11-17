@@ -32,6 +32,7 @@ public:
     double mapLogicalToAbsolute(double x) const;
 
     virtual bool drawingUsingLogicalSize() const;
+
 protected:
     DECLARE_EVENT_TABLE()
 
@@ -46,8 +47,6 @@ protected:
     int mWindowResized;
     bool mIsInitialized = false;
     wxString mName;
-    bool is3d;
-    
     xlGLCanvas *fallback;
 
 };
