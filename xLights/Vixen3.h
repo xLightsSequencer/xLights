@@ -41,7 +41,7 @@ public:
     std::string type;
     std::map<std::string, std::string> settings;
     std::vector<wxColor> colours;
-    std::vector<wxPoint> levelCurve;
+    std::vector<wxRealPoint> levelCurve;
 };
 
 class Vixen3 {

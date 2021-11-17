@@ -72,8 +72,8 @@ std::string VixenEffect::GetSettings() const
     else if (type == "PulseData") {
         // Only two points, set them as start and end intensity.  If more than two, a brightness curve will be generated
         if (levelCurve.size() == 2) {
-            res = "E_TEXTCTRL_Eff_On_Start=" + wxString::Format("%d", levelCurve[0].y) +
-                  ",E_TEXTCTRL_Eff_On_End=" + wxString::Format("%d", levelCurve[1].y);
+            res = "E_TEXTCTRL_Eff_On_Start=" + wxString::Format("%d", wxRound(levelCurve[0].y)) +
+                  ",E_TEXTCTRL_Eff_On_End=" + wxString::Format("%d", wxRound(levelCurve[1].y));
         }
     }
     else if (type == "Data") {}
@@ -653,8 +653,8 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                     for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
                                         auto nm3 = nnn->GetName().AfterFirst(':');
                                         if (nm3 == "PointPair") {
-                                            int x = 0;
-                                            int y = 0;
+                                            double x = 0;
+                                            double y = 0;
                                             for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
                                                 auto nm4 = nnnn->GetName();
                                                 if (nm4 == "X") {
@@ -663,7 +663,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                                     y = wxAtoi(nnnn->GetChildren()->GetContent());
                                                 }
                                             }
-                                            e->levelCurve.push_back(wxPoint(x, y));
+                                            e->levelCurve.push_back(wxRealPoint(x, y));
                                         }
                                     }
                                 }
