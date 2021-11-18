@@ -626,7 +626,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
                                 auto nm2 = nn->GetName().AfterFirst(':');
                                 if (nm2 == "_colors") {
-                                    e->palette.push_back(GetColorData(nn));
+                                    e->palette.push_back(ProcessColorData(nn));
                                 }
                             }
                         } 
@@ -662,7 +662,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
     }
 }
 
-std::vector<VixenColor> Vixen3::GetColorData(wxXmlNode* n)
+std::vector<VixenColor> Vixen3::ProcessColorData(wxXmlNode* n)
 {
     std::vector<VixenColor> vColor;
 

@@ -67,7 +67,7 @@ class Vixen3 {
     bool _systemFound = false;
 
     void ProcessNode(wxXmlNode* n, std::map<std::string, std::string>& models);
-    std::vector<VixenColor> GetColorData(wxXmlNode* n);
+    std::vector<VixenColor> ProcessColorData(wxXmlNode* n);
 
     public:
 
