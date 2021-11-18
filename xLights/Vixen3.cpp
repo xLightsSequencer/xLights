@@ -38,19 +38,35 @@ std::string VixenEffect::GetPalette() const
 {
     std::string res;
 
-    for (int i = 0; i < colours.size(); i++) {
+    for (int i = 0; i < palette.size(); i++) {
         wxString n = wxString::Format("%d", i + 1);
 
-        if (res != "") res += ",";
-        res += "C_BUTTON_Palette" + n + "=#" + wxString::Format("%02x%02x%02x", colours[i].Red(), colours[i].Green(), colours[i].Blue());
+        if (res != "")
+            res += ",";
+
+        if (palette[i].size() == 1) {
+            res += "C_BUTTON_Palette" + n + "=#" + wxString::Format("%02x%02x%02x",
+                    palette[i][0].color.Red(), palette[i][0].color.Green(), palette[i][0].color.Blue());
+        } else {
+            res += "C_BUTTON_Palette" + n + "=Active=TRUE|Id=ID_BUTTON_Palette" + n + "|Values=";
+            for (int ii = 0; ii < palette[i].size(); ii++) {
+                res += wxString::Format("x=%.3f^c=#%02x%02x%02x",
+                       palette[i][ii].position, palette[i][ii].color.Red(), palette[i][ii].color.Green(), palette[i][ii].color.Blue());
+                if (ii != palette[i].size() - 1)
+                    res += ";";
+            }
+            res += "|";
+        }
         res += ",C_CHECKBOX_Palette" + n + "=1";
     }
 
     // More than two points for the Vixen level curve, generate a custom brightness value curve
-    if (levelCurve.size() > 2) {
+    if (type == "PulseData" && levelCurve.size() > 2) {
         res += ",C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Custom|Min=0.00|Max=400.00|RV=TRUE|Values=";
         for (int i = 0; i < levelCurve.size(); i++) {
-            res += wxString::Format("%.2f:", levelCurve[i].x / 100) + wxString::Format("%.2f;", levelCurve[i].y / 100 / 4);
+            res += wxString::Format("%.2f:", levelCurve[i].x / 100) + wxString::Format("%.2f", levelCurve[i].y / 100 / 4);
+            if (i != levelCurve.size() - 1)
+                res += ";";
         }
     }
 
@@ -602,50 +618,20 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                     b = 255.0 * wxAtof(nn->GetChildren()->GetContent());
                                 }
                             }
-                            e->colours.push_back(wxColor(r, g, b));
+                            e->palette.push_back({ VixenColor(wxColor(r, g, b), 0) });
                         }
+
+                        // Single color gradient
                         else if (nm == "ColorGradient") {
                             for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
                                 auto nm2 = nn->GetName().AfterFirst(':');
                                 if (nm2 == "_colors") {
-                                    std::vector<wxColour> gradCol;
-                                    for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
-                                        auto nm3 = nnn->GetName().AfterFirst(':');
-                                        if (nm3 == "ColorPoint") {
-                                            for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
-                                                auto nm4 = nnnn->GetName().AfterFirst(':');
-                                                if (nm4 == "_color") {
-                                                    int x = 0;
-                                                    int y = 0;
-                                                    int z = 0;
-                                                    for (auto nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext()) {
-                                                        auto nm5 = nnnnn->GetName().AfterFirst(':');
-                                                        if (nm5 == "_x") {
-                                                            x = wxAtof(nnnnn->GetChildren()->GetContent());
-                                                        }
-                                                        else if (nm5 == "_y") {
-                                                            y = wxAtof(nnnnn->GetChildren()->GetContent());
-                                                        }
-                                                        else if (nm5 == "_z") {
-                                                            z = wxAtof(nnnnn->GetChildren()->GetContent());
-                                                        }
-                                                    }
-                                                    gradCol.push_back(ConvertXYZToColour(x, y, z));
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if (gradCol.size() == 1) {
-                                        e->colours.push_back(gradCol[0]);
-                                    }
-                                    else if (gradCol.size() > 1) {
-                                        // TODO we dont handle gradients yet so just push back the first colour
-
-                                        e->colours.push_back(gradCol[0]);
-                                    }
+                                    e->palette.push_back(GetColorData(nn));
                                 }
                             }
                         } 
+
+                        // Brightness curve
                         else if (nm == "LevelCurve") {
                             for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
                                 auto nm2 = nn->GetName().AfterFirst(':');
@@ -674,6 +660,43 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
             }
         }
     }
+}
+
+std::vector<VixenColor> Vixen3::GetColorData(wxXmlNode* n)
+{
+    std::vector<VixenColor> vColor;
+
+    for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+        auto nm3 = nn->GetName().AfterFirst(':');
+        if (nm3 == "ColorPoint") {
+            double x = 0;
+            double y = 0;
+            double z = 0;
+            double position = 0;
+
+            for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
+                auto nm4 = nnn->GetName().AfterFirst(':');
+                if (nm4 == "_color") {
+                    for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
+                        auto nm5 = nnnn->GetName().AfterFirst(':');
+                        if (nm5 == "_x") {
+                            x = wxAtof(nnnn->GetChildren()->GetContent());
+                        } else if (nm5 == "_y") {
+                            y = wxAtof(nnnn->GetChildren()->GetContent());
+                        } else if (nm5 == "_z") {
+                            z = wxAtof(nnnn->GetChildren()->GetContent());
+                        }
+                    }
+                } else if (nm4 == "_position") {
+                    position = wxAtof(nnn->GetChildren()->GetContent());
+                }
+            }
+            vColor.push_back(VixenColor(ConvertXYZToColour(x, y, z), position));
+        }
+    }
+
+    std::sort(vColor.begin(), vColor.end());
+    return (vColor);
 }
 
 std::list<std::string> Vixen3::GetModelsWithEffects() const

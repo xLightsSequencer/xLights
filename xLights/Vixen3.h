@@ -25,6 +25,18 @@ struct VixenTiming
     std::string label;
 };
 
+struct VixenColor
+{
+    VixenColor(wxColor c, float p) : color(c), position(p) { }
+    wxColor color;
+    float position;
+
+    bool operator<(const VixenColor& a) const
+    {
+        return position < a.position;
+    }
+};
+
 class VixenEffect
 {
 public:
@@ -40,7 +52,7 @@ public:
     std::string effectSettingsId;
     std::string type;
     std::map<std::string, std::string> settings;
-    std::vector<wxColor> colours;
+    std::vector<std::vector<VixenColor>> palette;
     std::vector<wxRealPoint> levelCurve;
 };
 
@@ -55,6 +67,7 @@ class Vixen3 {
     bool _systemFound = false;
 
     void ProcessNode(wxXmlNode* n, std::map<std::string, std::string>& models);
+    std::vector<VixenColor> GetColorData(wxXmlNode* n);
 
     public:
 
