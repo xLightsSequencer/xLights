@@ -47,7 +47,7 @@ public:
 private:
     static bool HW_ACCELERATION_ENABLED;
     bool readFrame(int timestampMS);
-    void reopenContext();
+    void reopenContext(bool allowHWDecoder = true);
     
     int _maxwidth = 0;
     int _maxheight = 0;

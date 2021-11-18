@@ -293,7 +293,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     _firstFramePos = -1;
 }
 
-void VideoReader::reopenContext() {
+void VideoReader::reopenContext(bool allowHWDecoder) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_codecContext != nullptr) {
         CleanupVideoToolbox(_codecContext, hwDecoderCache);
@@ -304,7 +304,7 @@ void VideoReader::reopenContext() {
 
     #if LIBAVFORMAT_VERSION_MAJOR > 57
     enum AVHWDeviceType type = AV_HWDEVICE_TYPE_NONE;
-    if (IsHardwareAcceleratedVideo()) {
+    if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
 #if defined(__WXMSW__)
         std::list<std::string> hwdecoders = { "dxva2" }; //{ "d3d11va", "dxva2", "cuda", "qsv" };
 #elif defined(__WXOSX__)
@@ -396,7 +396,7 @@ void VideoReader::reopenContext() {
         }
     }
     #endif
-    _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED);
+    _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED && allowHWDecoder);
 
     //  Init the decoders, with or without reference counting
     AVDictionary *opts = nullptr;
@@ -968,9 +968,7 @@ bool VideoReader::readFrame(int timestampMS) {
 
 AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 {
-#ifdef VIDEO_EXTRALOGGING
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-#endif
 
     if (!_valid || _frames == 0)
     {
@@ -1030,15 +1028,25 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 
                 // Decode video frame
                 int decodeCount = 0;
-                while (!_abort && avcodec_send_packet(_codecContext, &_packet)) {
-                    if (readFrame(timestampMS)) {
-                        firstframe = false;
-                        currenttime = _curPos;
+                int ret = avcodec_send_packet(_codecContext, &_packet);
+                while (!_abort && ret != 0) {
+                    if (ret != AVERROR(EAGAIN) && _videoToolboxAccelerated) {
+                        logger_base.debug("    Hardware video decoding failed for %s. Reverting to software decoding.", (const char*)_filename.c_str());
+                        reopenContext(false);
+                        Seek(timestampMS, false);
+                        currenttime = GetPos();
+                        ret = 0;
                     } else {
-                        decodeCount++;
-                        if (decodeCount == 100) {
-                            return nullptr;
+                        if (readFrame(timestampMS)) {
+                            firstframe = false;
+                            currenttime = _curPos;
+                        } else {
+                            decodeCount++;
+                            if (decodeCount == 100) {
+                                return nullptr;
+                            }
                         }
+                        ret = avcodec_send_packet(_codecContext, &_packet);
                     }
                 }
 
