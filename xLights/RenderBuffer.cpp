@@ -212,36 +212,27 @@ void RenderBuffer::AlphaBlend(const RenderBuffer& src)
 {
     if (src.BufferWi != BufferWi || src.BufferHt != BufferHt) return;
 
-    for (int y = 0; y < BufferHt; y++)
-    {
-        for (int x = 0; x < BufferWi; x++)
-        {
-            auto pnew = src.GetPixel(x, y);
-            auto pold = GetPixel(x, y);
-
-            if (pnew.alpha == 255 || pold == xlBLACK)
-            {
-                SetPixel(x, y, pnew);
-            }
-            else if (pnew.alpha > 0 && pnew != xlBLACK)
-            {
-                xlColor c;
-                int r = pnew.red + pold.red * (255 - pnew.alpha) / 255;
-                if (r > 255) r = 255;
-                c.red = r;
-                int g = pnew.green + pold.green * (255 - pnew.alpha) / 255;
-                if (g > 255) g = 255;
-                c.green = g;
-                int b = pnew.blue + pold.blue * (255 - pnew.alpha) / 255;
-                if (b > 255) b = 255;
-                c.blue = b;
-                int a = pnew.alpha + pold.alpha * (255 - pnew.alpha) / 255;
-                if (a > 255) a = 255;
-                c.alpha = a;
-                SetPixel(x, y, c);
-            }
+    parallel_for(0, GetPixelCount(), [&src, this](int idx) {
+        const auto &pnew = src.pixels[idx];
+        auto &pold = pixels[idx];
+        if (pnew.alpha == 255 || pold == xlBLACK) {
+            pold = pnew;
+        } else if (pnew.alpha > 0 && pnew != xlBLACK) {
+            xlColor c;
+            int r = pnew.red + pold.red * (255 - pnew.alpha) / 255;
+            if (r > 255) r = 255;
+            pold.red = r;
+            int g = pnew.green + pold.green * (255 - pnew.alpha) / 255;
+            if (g > 255) g = 255;
+            pold.green = g;
+            int b = pnew.blue + pold.blue * (255 - pnew.alpha) / 255;
+            if (b > 255) b = 255;
+            pold.blue = b;
+            int a = pnew.alpha + pold.alpha * (255 - pnew.alpha) / 255;
+            if (a > 255) a = 255;
+            pold.alpha = a;
         }
-    }
+    }, 2000);
 }
 
 inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
