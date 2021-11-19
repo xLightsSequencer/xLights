@@ -1,4 +1,6 @@
 
+"C:\Program Files (x86)\CodeBlocks\codeblocks.exe" --build --target=MinGW_Release       ..\..\xlDo\xlDO.cbp
+
 "C:\Program Files (x86)\CodeBlocks\codeblocks.exe" --build --target=MinGW_Release       ..\..\xSchedule\xSMSDaemon\xSMSDaemon.cbp
 
 "C:\Program Files (x86)\CodeBlocks\codeblocks.exe" --build --target=MinGW_Release       ..\..\xSchedule\RemoteFalcon\RemoteFalcon.cbp

@@ -34,6 +34,9 @@ static const wxCmdLineEntryDesc cmdLineDesc[] =
     { wxCMD_LINE_OPTION, "c", "Command", "The command to send.",
       wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL | wxCMD_LINE_NEEDS_SEPARATOR },
 
+    { wxCMD_LINE_OPTION, "s", "script", "Output a script file to access values.",
+      wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL | wxCMD_LINE_NEEDS_SEPARATOR },
+
     { wxCMD_LINE_OPTION, "p1", "Parameter1", "First template substitution parameter.",
       wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL | wxCMD_LINE_NEEDS_SEPARATOR },
     { wxCMD_LINE_OPTION, "p2", "Parameter2", "Second template substitution parameter.",
@@ -103,6 +106,42 @@ wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress, boo
     }
 }
 
+void Output(const std::string& script, const std::string& resp, bool verbose)
+{
+    if (script != "") {
+        wxFile f(script, wxFile::write);
+
+        if (f.IsOpened()) {
+
+            wxJSONValue val;
+            wxJSONReader reader;
+            if (reader.Parse(resp, &val) == 0) {
+                for (const auto& it : val.GetMemberNames()) {
+                    std::string set = "set";
+                    #ifndef __WXMSW__
+                        set = "EXPORT";
+                    #endif
+                    std::string c;
+                    if (val[it].IsString()) {
+                        c = wxString::Format("%s %s=%s\n", set, it, val[it].AsString());
+                    } else if (val[it].IsLong()) {
+                        c = wxString::Format("%s %s=%ld\n", set, it, val[it].AsLong());
+                    }
+                    f.Write(c);
+                    if (verbose)
+                        fprintf(stderr, "\u001b[36;1m%s\u001b[0m", (const char*)c.c_str());
+                }
+            } else {
+                fprintf(stderr, "\u001b[31;1mFailed to parse response %s.\u001b[0m\n", (const char*)resp.c_str());
+            }
+        } else {
+            fprintf(stderr, "\u001b[31;1mFailed to write to script file %s.\u001b[0m\n", (const char*)script.c_str());
+        }
+    }
+
+    wxPrintf(resp.c_str());
+}
+
 int main(int argc, char **argv)
 {
     wxApp::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE, "program");
@@ -114,6 +153,30 @@ int main(int argc, char **argv)
     wxString command;
     std::vector<wxString> parameters;
     parameters.resize(9);
+    wxString script;
+
+    #ifdef __WXMSW__
+    {
+        // Turn on coloured console handling
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        if (hOut == INVALID_HANDLE_VALUE) {
+            fprintf(stderr, "Error setting console mode.\n");
+            return 1;
+        }
+
+        DWORD dwMode = 0;
+        if (!GetConsoleMode(hOut, &dwMode)) {
+            fprintf(stderr, "Error setting console mode.\n");
+            return 1;
+        }
+
+        dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+        if (!SetConsoleMode(hOut, dwMode)) {
+            fprintf(stderr, "Error setting console mode.\n");
+            return 1;
+        }
+    }
+    #endif
 
     wxInitializer initializer;
     if ( !initializer )
@@ -156,6 +219,12 @@ int main(int argc, char **argv)
             if (parser.Found("i", &ip)) {
                 if (verbose) {
                     fprintf(stderr, "\u001b[36;1mConnecting to xLights on ip: %s.\u001b[0m\n", (const char*)ip.c_str());
+                }
+            }
+
+            if (parser.Found("s", &script)) {
+                if (verbose) {
+                    fprintf(stderr, "\u001b[36;1mCreating script: %s.\u001b[0m\n", (const char*)script.c_str());
                 }
             }
 
@@ -212,7 +281,7 @@ int main(int argc, char **argv)
     } else if (command == "") {
         char s[4096];
         memset(s, 0x00, sizeof(s));
-        fscanf(stdin, "%s", s);
+        fgets(s, sizeof(s)-1, stdin);
         command = wxString(s);
         if (verbose) {
             fprintf(stderr, "\u001b[36;1mCommand read from stdin: %s.\u001b[0m\n", (const char*)command.c_str());
@@ -230,6 +299,60 @@ int main(int argc, char **argv)
 
     if (verbose) {
         fprintf(stderr, "\u001b[32;1mCommand after parameter replacement: %s.\u001b[0m\n", (const char*)command.c_str());
+    }
+
+    {
+        wxJSONValue val;
+        wxJSONReader reader;
+        if (reader.Parse(command, &val) == 0) {
+            if (val["cmd"].AsString() == "startxLights") {
+
+                std::string params = " -a";
+                if (ab == 1)
+                    params = " -b";
+
+                if (val["ifNotRunning"].AsString() == "true") {
+                    if (xLightsRequest(ab, "{\"cmd\":\"getVersion\"}", ip, verbose) != "") {
+                        Output(script, "{\"res\":200,\"msg\":\"xLights was already running.\"}", verbose);
+                        return 0;
+                    }
+                }
+
+                long pid = 0;
+#ifdef LINUX
+                // Handle xschedule not in path
+                wxFileName f(wxStandardPaths::Get().GetExecutablePath());
+                wxString appPath(f.GetPath());
+                wxString cmdline(appPath + wxT("/xLights") + params);
+                pid = wxExecute(cmdline, wxEXEC_ASYNC, NULL, NULL);
+#else
+                pid = wxExecute("xLights.exe" + params);
+#endif
+
+                if (pid == 0) {
+                    fprintf(stderr, "\u001b[31;1mUnable to start xLights.\u001b[0m\n");
+                    return 1;
+                }
+
+                int loop = 0;
+                while (xLightsRequest(ab, "{\"cmd\":\"getVersion\"}", ip, verbose) == "") {
+
+                    // dont wait more than a minute
+                    if (loop++ > 60)
+                        break;
+
+                    wxSleep(1);
+                }
+
+                if (loop > 60) {
+                    fprintf(stderr, "\u001b[31;1mTimeout waiting for xLights to start.\u001b[0m\n");
+                    return 1;
+                }
+
+                Output(script, "{\"res\":200,\"msg\":\"xLights started.\"}", verbose);
+                return 0;
+            }
+        }
     }
 
     wxString resp = xLightsRequest(ab, command, ip, verbose);
@@ -256,6 +379,7 @@ int main(int argc, char **argv)
         }
     }
 
-    wxPrintf(resp);
+    Output(script, resp, verbose);
+
     return 0;
 }

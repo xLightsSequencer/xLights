@@ -724,6 +724,8 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_OPTION, "g", "opengl", "specify OpenGL version" },
         { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
         { wxCMD_LINE_SWITCH, "o", "on", "turn on output to lights" },
+        { wxCMD_LINE_SWITCH, "a", "aport", "turn on xFade A port" },
+        { wxCMD_LINE_SWITCH, "b", "bport", "turn on xFade B port" },
 #ifdef __LINUX__
         { wxCMD_LINE_SWITCH, "x", "xschedule", "run xschedule" },
         { wxCMD_LINE_SWITCH, "a", "xsmsdaemon", "run xsmsdaemon" },
@@ -781,6 +783,8 @@ bool xLightsApp::OnInit()
        SetAppName(wxT("xLights"));
 #endif
 
+    int ab = 0;
+
     wxCmdLineParser parser(cmdLineDesc, argc, argv);
     switch (parser.Parse()) {
     case -1:
@@ -822,6 +826,15 @@ bool xLightsApp::OnInit()
             logger_base.info("-s: Show directory set to %s.", (const char *)showDir.c_str());
             info += _("Setting show directory to ") + showDir + "\n";
         }
+
+        if (parser.Found("a")) {
+            logger_base.info("-a: A port enabled.");
+            ab = 1;
+        } else if (parser.Found("b")) {
+            logger_base.info("-b: B port enabled.");
+            ab = 2;
+        }
+
         if (parser.Found("m", &mediaDir)) {
             logger_base.info("-m: Media directory set to %s.", (const char *)mediaDir.c_str());
             info += _("Setting media directory to ") + mediaDir + "\n";
@@ -860,7 +873,7 @@ bool xLightsApp::OnInit()
     wxInitAllImageHandlers();
     if (wxsOK)
     {
-    	xLightsFrame* Frame = new xLightsFrame(nullptr);
+    	xLightsFrame* Frame = new xLightsFrame(nullptr, ab);
         if (Frame->CurrentDir == "") {
             logger_base.info("Show directory not set");
         }

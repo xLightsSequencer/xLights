@@ -70,22 +70,6 @@ static const std::string UDP_COL = "ID_UDPOUT_";
 static const std::string PLAYLIST_COL = "ID_PLAYLIST_";
 static const std::string UPLOAD_CONTROLLER_COL = "ID_CONTROLLER_";
 
-
-static inline int case_insensitive_match(std::string s1, std::string s2) {
-   //convert s1 and s2 into lower case strings
-   transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
-   transform(s2.begin(), s2.end(), s2.begin(), ::tolower);
-   if(s1.compare(s2) == 0)
-      return 1; //The strings are same
-   return 0; //not matched
-}
-static bool sortByName(FPP* i, FPP* j) {
-    return i->hostName < j->hostName;
-}
-static bool sortByIP(FPP* i, FPP* j) {
-    return i->ipAddress < j->ipAddress;
-}
-
 FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _outputManager = outputManager;
@@ -188,58 +172,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     prgs.Pulse("Discovering FPP Instances");
     prgs.Show();
 
-
-    std::list<std::string> startAddresses;
-    std::list<std::string> startAddressesForced;
-
-    wxConfigBase* config = wxConfigBase::Get();
-    wxString force;
-    if (config->Read("FPPConnectForcedIPs", &force)) {
-        wxArrayString ips = wxSplit(force, '|');
-        wxString newForce;
-        for (const auto &a : ips) {
-            startAddresses.push_back(a);
-            startAddressesForced.push_back(a);
-        }
-    }
-    // add existing controller IP's to the discovery, helps speed up
-    // discovery as well as makes it more reliable to discover those,
-    // particularly if on a different subnet.   This also helps
-    // make sure actually configured controllers are found
-    // so the FPP Connect dialog is more likely to
-    // have the entire list allowing the uploads to then entire
-    // show network to be easier to do
-    for (auto &it : outputManager->GetControllers()) {
-        auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr && eth->GetIP() != "") {
-            startAddresses.push_back(eth->GetIP());
-            if (eth->GetFPPProxy() != "") {
-                startAddresses.push_back(eth->GetFPPProxy());
-            }
-        }
-    }
-    
-    Discovery discovery(this, _outputManager);
-    FPP::PrepareDiscovery(discovery, startAddresses);
-    discovery.Discover();
-    FPP::MapToFPPInstances(discovery, instances, outputManager);
-    instances.sort(sortByIP);
-
-    wxString newForce = "";
-    for (const auto &a : startAddressesForced) {
-        for (const auto& fpp : instances) {
-            if (case_insensitive_match(a, fpp->hostName) || case_insensitive_match(a, fpp->ipAddress)) {
-                if (newForce != "") {
-                    newForce.append(",");
-                }
-                newForce.append(a);
-            }
-        }
-    }
-    if (newForce != force) {
-        config->Write("FPPConnectForcedIPs", newForce);
-        config->Flush();
-    }
+    instances = FPP::GetInstances(this, outputManager);
 
     prgs.Pulse("Checking for mounted media drives");
     CreateDriveList();
@@ -264,6 +197,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     prgs.Hide();
     GetFolderList(xLightsFrame::CurrentDir);
 
+    wxConfigBase* config = wxConfigBase::Get();
     if (config != nullptr) {
         int filterSelect = -1;
         wxString folderSelect = "";
@@ -846,6 +780,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED) {
+
             std::string fseq = CheckListBox_Sequences->GetItemText(item);
             std::string media = CheckListBox_Sequences->GetItemText(item, 2);
 

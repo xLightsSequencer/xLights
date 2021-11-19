@@ -11,6 +11,11 @@ Echo VS Community Detected
 cd ..
 cd ..
 
+cd xlDo
+msbuild.exe -m:10 xlDo.sln -p:Configuration="Release" -p:Platform="x86"
+if %ERRORLEVEL% NEQ 0 goto error
+cd ..
+
 cd xFade
 msbuild.exe -m:10 xFade.sln -p:Configuration="Release" -p:Platform="x86"
 if %ERRORLEVEL% NEQ 0 goto error

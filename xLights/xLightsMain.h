@@ -273,7 +273,7 @@ class xLightsFrame: public wxFrame
 {
 public:
 
-    xLightsFrame(wxWindow* parent,wxWindowID id = -1);
+    xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1);
     virtual ~xLightsFrame();
 
     enum PlayListIds
@@ -1377,6 +1377,7 @@ protected:
     void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors);
     void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
     void OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone);
+    std::string OpenAndCheckSequence(const std::string& origFilenames);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
@@ -1403,8 +1404,9 @@ public:
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();
-    void NewSequence();
+    void NewSequence(const std::string& media = "", uint32_t durationMS = 0);
     void SaveAsSequence();
+    void SaveAsSequence(const std::string& filename);
     void SetPasteByCell();
     void SetPasteByTime();
     void ShowSequenceSettings();
@@ -1633,7 +1635,7 @@ private:
     std::map<int, std::list<float>> LoadMusicXMLFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track);
     void CreateNotes(EffectLayer* el, std::map<int, std::list<float>>& notes, int interval, int frames);
     std::string CreateNotesLabel(const std::list<float>& notes) const;
-    void CheckSequence(bool display);
+    std::string CheckSequence(bool display);
     void ValidateEffectAssets();
     void CleanupRGBEffectsFileLocations();
     void CleanupSequenceFileLocations();

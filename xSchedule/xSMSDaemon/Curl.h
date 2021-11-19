@@ -527,7 +527,7 @@ public:
                 size_t t = file->Read(ptr, buffer_size);
                 totalWritten += t;
 
-                if (progress) {
+                if (progress != nullptr) {
                     size_t donePct = totalWritten;
                     donePct *= 1000;
                     donePct /= file->Length();
