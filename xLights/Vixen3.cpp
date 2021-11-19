@@ -34,6 +34,14 @@ wxColour ConvertXYZToColour(double x, double y, double z)
                    );
 }
 
+std::string BoolToIntStr (std::string str)
+{
+    if (str == "true")
+        return "1";
+    else
+        return "0";
+}
+
 std::string VixenEffect::GetPalette() const
 {
     std::string res;
@@ -76,15 +84,24 @@ std::string VixenEffect::GetPalette() const
 std::string VixenEffect::GetSettings() const
 {
     std::string res;
-
-    if (type == "PlasmaData")
-    {
+    if (type == "AlternatingData") {}
+    else if (type == "AudioData") {}
+    else if (type == "BarsData") {}
+    else if (type == "ButterflyData") {
+        res = "E_Butterfly_Chunks=" + settings.at("BackgroundChunks") +
+              ",E_Butterfly_Skip=" + settings.at("BackgroundSkips") +
+              ",E_SLIDER_Butterfly_Style=" + wxString(settings.at("ButterflyType")).AfterFirst('e').ToStdString() +
+              ",E_CHOICE_Butterfly_Direction=" + (settings.at("Direction") == "Forward" ? "0" : "1");
     }
-    else if (type == "TwinkleData")
-    {
-        res = "E_SLIDER_Twinkle_Steps=" + settings.at("AveragePulseTime") +
-              ",E_SLIDER_Twinkle_Count=" + settings.at("AverageCoverage");
-    }
+    else if (type == "ChaseData") {}
+    else if (type == "CirclesData") {}
+    else if (type == "Data") {}
+    else if (type == "FireData") {}
+    else if (type == "GarlandsData") {}
+    else if (type == "MeteorsData") {}
+    else if (type == "PictureData") {}
+    else if (type == "PinWheelData") {}
+    else if (type == "PlasmaData") {}
     else if (type == "PulseData") {
         // Only two points, set them as start and end intensity.  If more than two, a brightness curve will be generated
         if (levelCurve.size() == 2) {
@@ -92,31 +109,167 @@ std::string VixenEffect::GetSettings() const
                   ",E_TEXTCTRL_Eff_On_End=" + wxString::Format("%d", wxRound(levelCurve[1].y));
         }
     }
-    else if (type == "Data") {}
-    else if (type == "SetLevelData") {}
-    else if (type == "WipeData") {}
-    else if (type == "AlternatingData") {}
-    else if (type == "AudioData") {}
-    else if (type == "MeteorsData") {}
-    else if (type == "GarlandsData") {}
-    else if (type == "PictureData") {}
-    else if (type == "SpiralData") {}
-    else if (type == "PinWheelData") {}
-    else if (type == "ChaseData") {}
-    else if (type == "CirclesData") {}
-    else if (type == "BarsData") {}
-    else if (type == "TextData") {}
-    else if (type == "SpirographData") {}
-    else if (type == "FireData") {}
-    else if (type == "NutcrackerModuleData") {}
-    else if (type == "ButterflyData")
+    else if (type == "TwinkleData")
     {
-        res = "E_Butterfly_Chunks=" + settings.at("BackgroundChunks") +
-            ",E_Butterfly_Skip=" + settings.at("BackgroundSkips") +
-            ",E_SLIDER_Butterfly_Style=" + wxString(settings.at("ButterflyType")).AfterFirst('e').ToStdString() +
-            ",E_CHOICE_Butterfly_Direction=" + (settings.at("Direction") == "Forward" ? "0" : "1");
+        res = "E_SLIDER_Twinkle_Steps=" + settings.at("AveragePulseTime") +
+              ",E_SLIDER_Twinkle_Count=" + settings.at("AverageCoverage");
     }
-    else if (type == "SpinData") {}
+    else if (type == "SetLevelData") {}
+    else if (type == "SpinData") {}  
+    else if (type == "SpiralData") {}
+    else if (type == "SpirographData") {}
+    else if (type == "TextData") {}
+    else if (type == "WipeData") {}
+    else if (type == "NutcrackerModuleData") {
+        // TODO: Add color support
+        // knowncolor indexes - https://docs.microsoft.com/en-us/dotnet/api/system.drawing.knowncolor?view=net-6.0
+        // When 0, color is ARGB in decimal
+
+        std::string nc = settings.at("CurrentEffect");
+        std::string fit = BoolToIntStr(settings.at("FitToTime"));  // Not sure this can be mapped
+        int speed = wxAtoi(settings.at("Speed")); // Max of 20
+
+        // V3 Nutcracker wasn't spatially aware so switch render style
+        if (settings.at("StringOrienation") == "Vertical") {
+            res = "B_CHOICE_BufferStyle=Horizontal Per Model/Strand";
+        } else {
+            res = "B_CHOICE_BufferStyle=Vertical Per Model/Strand";
+        }
+
+        if (nc == "Bars") {
+            int i = wxAtoi(settings.at("Bars_Direction"));
+            std::string dir = "up";
+            if (i == 1) dir = "down";
+            else if (i == 2) dir = "expand";
+            else if (i == 3) dir = "compress";
+            else if (i == 4) dir = "Left";
+            else if (i == 5) dir = "Right";
+            else if (i == 6) dir = "H-expand";
+            else if (i == 7) dir = "H-compress";
+            else if (i == 8) dir = "Alternate Up";
+            else if (i == 9) dir = "Alternate Down";
+            else if (i == 10) dir = "Alternate Left";
+            else if (i == 11) dir = "Alternate Right";
+            res += ",E_CHECKBOX_Bars_3D=" + BoolToIntStr(settings.at("Bars_3D")) +
+                   ",E_CHECKBOX_Bars_Highlight=" + BoolToIntStr(settings.at("Bars_Highlight")) +
+                   ",E_CHOICE_Bars_Direction=" + dir +
+                   ",E_TEXTCTRL_Bars_BarCount=" + settings.at("Bars_PaletteRepeat");
+        } else if (nc == "Butterfly") {
+            res += ",E_Butterfly_Chunks=" + settings.at("Butterfly_BkgrdChunks") +
+                   ",E_Butterfly_Skip=" + settings.at("Butterfly_BkgrdSkip") +
+                   ",E_SLIDER_Butterfly_Speed=" + wxString::Format("%d", speed * 5); // max 100
+                   ",E_SLIDER_Butterfly_Style=" + settings.at("Butterfly_Style") +
+                   ",E_CHOICE_Butterfly_Direction=" + settings.at("Butterfly_Direction") +
+                   ",E_CHOICE_Butterfly_Colors=" + (settings.at("Butterfly_Colors") == "0" ? "Rainbow" : "Palette");
+        } else if (nc == "ColorWash") {
+            res += ",E_TEXTCTRL_ColorWash_Cycles=" + settings.at("ColorWash_Count") +
+                   ",E_CHECKBOX_ColorWash_HFade=" + BoolToIntStr(settings.at("ColorWash_FadeHorizontal")) +
+                   ",E_CHECKBOX_ColorWash_VFade=" + BoolToIntStr(settings.at("ColorWash_FadeVertical"));
+        } else if (nc == "Curtain") {
+            int i = wxAtoi(settings.at("Curtain_Edge"));
+            std::string edge = "left";
+            if (i == 1) edge = "center";
+            else if (i == 2) edge = "right";
+            else if (i == 3) edge = "bottom";
+            else if (i == 4) edge = "middle";
+            else if (i == 5) edge = "top";
+
+            i = wxAtoi(settings.at("Curtain_Effect"));
+            std::string effect = "open";
+            if (i == 1) effect = "close";
+            else if (i == 2) effect = "open then close";
+            else if (i == 3) effect = "close then open";
+            res += ",E_CHECKBOX_Curtain_Repeat=" + BoolToIntStr(settings.at("Curtain_Repeat")) +
+                   ",E_CHOICE_Curtain_Edge=" + edge +
+                   ",E_CHOICE_Curtain_Effect=" + effect +
+                   ",E_SLIDER_Curtain_Swag=" + settings.at("Curtain_SwagWidth");
+        } else if (nc == "Fire") {
+            res += ",E_SLIDER_Fire_Height=" + settings.at("Fire_Height") +
+                   ",E_SLIDER_Fire_HueShift=" + settings.at("Fire_Hue");
+        } else if (nc == "Fireworks") {
+            res += ",E_SLIDER_Fireworks_Count=" + settings.at("Fireworks_Particles") +
+                   ",E_SLIDER_Fireworks_Explosions=" + wxString::Format("%d", (wxAtoi(settings.at("Fireworks_Explosions")) / 2)) +
+                   ",E_SLIDER_Fireworks_Fade=" + settings.at("Fireworks_Fade") +
+                   ",E_SLIDER_Fireworks_Velocity=" + settings.at("Fireworks_Fade");
+        } else if (nc == "Garlands") {
+            res += ",E_SLIDER_Garlands_Spacing=" + settings.at("Garland_Spacing") +
+                   ",E_SLIDER_Garlands_Type=" + settings.at("Garland_Type");
+        } else if (nc == "Glediator") {
+            res += ",E_FILEPICKERCTRL_Glediator_Filename=" + settings.at("Glediator_Filename");
+        } else if (nc == "Life") {
+            res += ",E_SLIDER_Life_Count=" + settings.at("Life_CellsToStart") +
+                   ",E_SLIDER_Life_Seed=" + settings.at("Life_Type") +
+                   ",E_SLIDER_Life_Speed=" + wxString::Format("%d", wxRound(speed * 1.5)); // max 30
+        } else if (nc == "Meteors") {
+            int i = wxAtoi(settings.at("Meteor_Colors"));
+            std::string colors = "Rainbow";
+            if (i == 1) colors = "Range";
+            else if (i == 2) colors = "Palette";
+            res += ",E_CHOICE_Meteors_Type=" + colors +
+                   ",E_SLIDER_Meteors_Count=" + settings.at("Meteor_Count") +
+                   ",E_SLIDER_Meteors_Length=" + settings.at("Meteor_TrailLength") +
+                   ",E_SLIDER_Meteors_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+        } else if (nc == "Movie") {
+            res += ",E_FILEPICKERCTRL_Video_Filename=" + settings.at("Movie_DataPath");
+        } else if (nc == "Picture") {
+            int i = wxAtoi(settings.at("Picture_Direction"));
+            std::string dir = "left";
+            if (i == 1) dir = "right";
+            else if (i == 2) dir = "up";
+            else if (i == 3) dir = "down";
+            else if (i == 4) dir = "none";
+            else if (i == 5) dir = "up-left";
+            else if (i == 6) dir = "down-left";
+            else if (i == 7) dir = "up-right";
+            else if (i == 8) dir = "down-right";
+            else if (i == 9) dir = "peekaboo";
+            else if (i == 10) dir = "peekaboo 90";
+            else if (i == 11) dir = "peekaboo 180";
+            else if (i == 12) dir = "peekaboo 270";
+            else if (i == 13) dir = "wiggle";
+            res += ",E_CHOICE_Pictures_Direction=" + dir + 
+                   ",E_FILEPICKER_Pictures_Filename=" + settings.at("Picture_FileName") +
+                   ",E_TEXTCTRL_Pictures_Speed=" + settings.at("Picture_GifSpeed");
+        } else if (nc == "PictureTile") {
+            res += ",E_FILEPICKER_Pictures_Filename=" + settings.at("PictureTile_FileName");
+        } else if (nc == "Snowflakes") {
+            res += ",E_SLIDER_Snowflakes_Count=" + wxString::Format("%d", wxAtoi(settings.at("Snowflakes_Max")) * 5) + // max 20 in V3 / 100 in xLights
+                   ",E_SLIDER_Snowflakes_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)) + // max 50
+                   ",E_SLIDER_Snowflakes_Type=" + settings.at("Snowflakes_Type");
+        } else if (nc == "Snowstorm") {
+            res += ",E_SLIDER_Snowstorm_Count=" + settings.at("Snowstorm_MaxFlakes") +
+                   ",E_SLIDER_Snowstorm_Length=" + settings.at("Snowstorm_TrailLength") +
+                   ",E_SLIDER_Snowstorm_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+        } else if (nc == "Spirals") {
+            res += ",E_CHECKBOX_Spirals_3D=" + BoolToIntStr(settings.at("Spirals_3D")) +
+                   ",E_CHECKBOX_Spirals_Blend=" + BoolToIntStr(settings.at("Spirals_Blend")) +
+                   ",E_SLIDER_Spirals_Thickness=" + settings.at("Spirals_Thickness");
+        } else if (nc == "Spirograph") {
+            res += ",E_SLIDER_Spirograph_R=" + settings.at("Spirograph_ROuter") +
+                   ",E_SLIDER_Spirograph_d=" + settings.at("Spirograph_Distance") +
+                   ",E_SLIDER_Spirograph_r=" + settings.at("Spirograph_RInner") +
+                   ",E_TEXTCTRL_Spirograph_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+        } else if (nc == "Text") {
+            int i = wxAtoi(settings.at("Picture_Direction"));
+            std::string dir = "left";
+            if (i == 1) dir = "right";
+            else if (i == 2) dir = "up";
+            else if (i == 3) dir = "down";
+            else if (i == 4) dir = "none";
+            res += ",E_CHECKBOX_TextToCenter=" + BoolToIntStr(settings.at("Text_CenterStop")) +
+                   ",E_CHOICE_Text_Dir=" + dir +
+                   ",E_TEXTCTRL_Text=" + settings.at("Text_Line1") + "\n" + settings.at("Text_Line2") + "\n" + settings.at("Text_Line3") + "\n" + settings.at("Text_Line4") +
+                   ",E_TEXTCTRL_Text_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+        } else if (nc == "Tree") {
+            res += ",E_SLIDER_Tree_Branches=" + settings.at("Tree_Branches") +
+                   ",E_SLIDER_Tree_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+        } else if (nc == "Twinkles") {
+            res += ",E_CHECKBOX_Twinkle_Strobe=1" + BoolToIntStr(settings.at("Twinkles_Strobe")) +
+                   ",E_CHOICE_Twinkle_Style=Old Render Method" +
+                   ",E_SLIDER_Twinkle_Count=" + settings.at("Twinkles_Count") +
+                   ",E_SLIDER_Twinkle_Steps+" + settings.at("Twinkles_Steps");
+        }
+    }
 
     return res;
 }
@@ -171,7 +324,6 @@ std::string VixenEffect::GetXLightsType() const
     if (type == "VideoData") return "Video";
     if (type == "VUMeterData") return "VU Meter";
     if (type == "WaveData") return "Wave";
-    
     if (type == "Data")
     {
         logger_base.warn("Vixen3: Unable to convert Data effect ... inserting an On effect.");
@@ -179,10 +331,19 @@ std::string VixenEffect::GetXLightsType() const
     }
     if (type == "NutcrackerModuleData")
     {
-        logger_base.warn("Vixen3: Unable to convert NutcrackerModuleData effect ... inserting an off effect.");
-        return "Off"; // not sure what to do with this
+        auto nc = settings.at("CurrentEffect");
+        
+        if (nc == "ColorWash")
+            nc = "Color Wash";
+        else if (nc == "Movie")
+            nc = "Video";
+        else if (nc == "Picture" || nc == "PictureTile")
+            nc = "Pictures";
+        else if (nc == "Twinkles")
+            nc = "Twinkle";
+
+        return nc;
     }
-    
 
     logger_base.warn("Vixen3: Unknown effect %s ... inserting an off effect.", (const char*)type.c_str());
 
@@ -601,7 +762,16 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                 {
                     if (n->GetName().StartsWith("d2p1:") && n->GetChildren() != nullptr) {
                         auto nm = n->GetName().AfterFirst(':');
-                        e->settings[nm.ToStdString()] = n->GetChildren()->GetContent().ToStdString();
+                        if (nm == "NutcrackerData") {
+                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                auto nm2 = nn->GetName().AfterFirst(':');
+                                if (nn->GetChildren() != nullptr)
+                                    e->settings[nm2.ToStdString()] = nn->GetChildren()->GetContent().ToStdString();
+                            }
+                        } else {
+                            e->settings[nm.ToStdString()] = n->GetChildren()->GetContent().ToStdString();
+                        }
+
                         if (nm == "color") {
                             int r = 0;
                             int g = 0;

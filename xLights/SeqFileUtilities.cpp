@@ -4791,7 +4791,7 @@ void MapVixen3(Element* model, const Vixen3& vixen, const wxString& modelName, l
         long s = Vixen3::ConvertTiming(it.start + offset, frameMS);
         long e = Vixen3::ConvertTiming(it.end + offset, frameMS);
             
-        // Search for an empty layer or create as needed
+        // Vixen can have multiple effects in one time slot so add layers as needed
         EffectLayer* layer = nullptr;
         for (const auto& it : model->GetEffectLayers()) {
             if (!it->HasEffectsInTimeRange(s, e)) {
@@ -4981,7 +4981,6 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                         if (stre != nullptr) {
                             NodeLayer *nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
-                                //MapVixen3(effectManager, 0, nl, vixen, ns->_mapping, true, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
                                 MapVixen3(model, vixen, ns->_mapping, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
                             }
                         }
