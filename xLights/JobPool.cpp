@@ -268,13 +268,15 @@ void JobPoolWorker::ProcessJob(Job *job)
 		currentJob = job;
         
         std::string origName;
+        bool stn = false;
         if (job->SetThreadName()) {
             origName = OriginalThreadName();
             SetThreadName(job->GetName());
+            stn = true;
         }
         bool deleteWhenComplete = job->DeleteWhenComplete();
         RunInAutoReleasePool([job]() { job->Process(); });
-        if (job->SetThreadName()) {
+        if (stn) {
             SetThreadName(origName);
         }
         currentJob = nullptr;
