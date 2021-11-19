@@ -525,7 +525,6 @@ public:
     }
 
     bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
-
         wxStopWatch sw;
         bool effectsToUpdate = false;
         int numLayers = el->GetEffectLayerCount();
@@ -547,15 +546,13 @@ public:
                 info.effectStates[layer] = true;
             }
 
-            if (buffer->IsVariableSubBuffer(layer))
-            {
+            if (buffer->IsVariableSubBuffer(layer)) {
                 buffer->PrepareVariableSubBuffer(frame, layer);
             }
 
             bool persist = buffer->IsPersistent(layer);
             bool freeze = false;
-            if (ef != nullptr && buffer != nullptr)
-            {
+            if (ef != nullptr && buffer != nullptr) {
                 freeze = buffer->GetFreezeFrame(layer) != 999999 && buffer->GetFreezeFrame(layer) <= GetEffectFrame(ef, frame, mainBuffer->GetFrameTimeInMS());
             }
 
@@ -564,38 +561,29 @@ public:
             }
 
             bool suppress = false;
-            if (ef != nullptr && buffer != nullptr)
-            {
+            if (ef != nullptr && buffer != nullptr) {
                 suppress = buffer->GetSuppressUntil(layer) > GetEffectFrame(ef, frame, mainBuffer->GetFrameTimeInMS());
             }
 
             SetRenderingStatus(frame, &info.settingsMaps[layer], layer, strand, -1, true);
             bool b = info.effectStates[layer];
 
-            if (!freeze)
-            {
+            if (!freeze) {
                 // Mix canvas pre-loads the buffer with data from underlying layers
-                if (buffer->IsCanvasMix(layer) && layer < numLayers - 1)
-                {
+                if (buffer->IsCanvasMix(layer) && layer < numLayers - 1) {
                     auto vl = info.validLayers;
-                    if (info.settingsMaps[layer].Get("LayersSelected", "") != "")
-                    {
+                    if (info.settingsMaps[layer].Get("LayersSelected", "") != "") {
                         // remove from valid layers any layers we dont need to include
                         wxArrayString ls = wxSplit(info.settingsMaps[layer].Get("LayersSelected", ""), '|');
-                        for (int i = layer + 1; i < vl.size(); i++)
-                        {
-                            if (vl[i])
-                            {
+                        for (int i = layer + 1; i < vl.size(); i++) {
+                            if (vl[i]) {
                                 bool found = false;
-                                for (auto it = ls.begin(); !found && it != ls.end(); ++it)
-                                {
-                                    if (wxAtoi(*it) + layer + 1 == i)
-                                    {
+                                for (auto it = ls.begin(); !found && it != ls.end(); ++it) {
+                                    if (wxAtoi(*it) + layer + 1 == i) {
                                         found = true;
                                     }
                                 }
-                                if (!found)
-                                {
+                                if (!found) {
                                     vl[i] = false;
                                 }
                             }
@@ -625,13 +613,12 @@ public:
                 effectsToUpdate |= info.validLayers[layer];
                 info.effectStates[layer] = b;
 
-                if (suppress)
-                {
+                if (suppress) {
                     info.validLayers[layer] = false;
+                } else {
+                    buffer->HandleLayerBlurZoom(frame, layer);
                 }
-            }
-            else
-            {
+            } else {
                 info.validLayers[layer] = true;
                 info.effectStates[layer] = b;
                 effectsToUpdate = true;

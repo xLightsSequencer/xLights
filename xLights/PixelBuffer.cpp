@@ -1934,12 +1934,9 @@ static inline int roundInt(float r) {
 void PixelBufferClass::Blur(LayerInfo* layer, float offset)
 {
     int b;
-    if (layer->BlurValueCurve.IsActive())
-    {
+    if (layer->BlurValueCurve.IsActive()) {
         b = (int)layer->BlurValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-    }
-    else
-    {
+    } else {
         b = layer->blur;
     }
 
@@ -1948,42 +1945,44 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
     }
     if (b < 2) {
         return;
-    } else if (b > 2 && layer->BufferWi > 6 && layer->BufferHt > 6) {
-        int os = std::max((int)layer->buffer.pixelVector.size(), layer->BufferWi * layer->BufferHt);
-        int pixCount = layer->buffer.pixelVector.size();
-        std::vector<float> input;
-        input.resize(os * 4);
-        std::vector<float> tmp;
-        tmp.resize(os * 4);
-        //float * input = new float[pixCount * 4];
-        //float * tmp = new float[pixCount * 4];
-        for (int x = 0; x < pixCount; x++) {
-            const xlColor &c = layer->buffer.pixels[x];
-            input[x * 4] = c.red;
-            input[x * 4 + 1] = c.green;
-            input[x * 4 + 2] = c.blue;
-            input[x * 4 + 3] = c.alpha;
-        }
-        gaussBlur_4(input, tmp, layer->BufferWi, layer->BufferHt, b, pixCount);
+    }
+    if (b > 2 && layer->BufferWi > 6 && layer->BufferHt > 6) {
+        if (!GPURenderUtils::Blur(&layer->buffer, b)) {
+            GPURenderUtils::waitForRenderCompletion(&layer->buffer);
+            int os = std::max((int)layer->buffer.pixelVector.size(), layer->BufferWi * layer->BufferHt);
+            int pixCount = layer->buffer.pixelVector.size();
+            std::vector<float> input;
+            input.resize(os * 4);
+            std::vector<float> tmp;
+            tmp.resize(os * 4);
+            //float * input = new float[pixCount * 4];
+            //float * tmp = new float[pixCount * 4];
+            for (int x = 0; x < pixCount; x++) {
+                const xlColor &c = layer->buffer.pixels[x];
+                input[x * 4] = c.red;
+                input[x * 4 + 1] = c.green;
+                input[x * 4 + 2] = c.blue;
+                input[x * 4 + 3] = c.alpha;
+            }
+            gaussBlur_4(input, tmp, layer->BufferWi, layer->BufferHt, b, pixCount);
 
-        for (int x = 0; x < pixCount; x++) {
-            layer->buffer.pixels[x].Set(roundInt(tmp[x*4]),
-                                        roundInt(tmp[x*4 + 1]),
-                                        roundInt(tmp[x*4 + 2]),
-                                        roundInt(tmp[x*4 + 3]));
+            for (int x = 0; x < pixCount; x++) {
+                layer->buffer.pixels[x].Set(roundInt(tmp[x*4]),
+                                            roundInt(tmp[x*4 + 1]),
+                                            roundInt(tmp[x*4 + 2]),
+                                            roundInt(tmp[x*4 + 3]));
+            }
         }
-        //delete [] input;
-        //delete [] tmp;
     } else {
+        //small blur
+        GPURenderUtils::waitForRenderCompletion(&layer->buffer);
+
         int d;
         int u;
-        if (b % 2 == 0)
-        {
+        if (b % 2 == 0) {
             d = b / 2;
             u = (b - 1) / 2;
-        }
-        else
-        {
+        } else {
             d = (b - 1) / 2;
             u = (b - 1) / 2;
         }
@@ -2761,16 +2760,14 @@ void PixelBufferClass::RotateX(LayerInfo* layer, float offset)
     // Now do the rotation around a point on the x axis
 
     float xrotation = layer->xrotation;
-    if (layer->XRotationValueCurve.IsActive())
-    {
+    if (layer->XRotationValueCurve.IsActive()) {
         xrotation = layer->XRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
 
-    if (xrotation != 0 && xrotation != 360)
-    {
+    if (xrotation != 0 && xrotation != 360) {
+        GPURenderUtils::waitForRenderCompletion(&layer->buffer);
         int xpivot = layer->xpivot;
-        if (layer->XPivotValueCurve.IsActive())
-        {
+        if (layer->XPivotValueCurve.IsActive()) {
             xpivot = layer->XPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
 
@@ -2780,20 +2777,16 @@ void PixelBufferClass::RotateX(LayerInfo* layer, float offset)
         float sine = sin((xrotation + 90) * M_PI / 180);
         float pivot = xpivot * layer->buffer.BufferWi / 100;
 
-        for (int x = pivot; x < layer->buffer.BufferWi; ++x)
-        {
+        for (int x = pivot; x < layer->buffer.BufferWi; ++x) {
             float tox = sine * (x - pivot) + pivot;
-            for (int y = 0; y < layer->buffer.BufferHt; ++y)
-            {
+            for (int y = 0; y < layer->buffer.BufferHt; ++y) {
                 layer->buffer.SetPixel(tox, y, orig.GetPixel(x, y));
             }
         }
 
-        for (int x = pivot - 1; x >= 0; --x)
-        {
+        for (int x = pivot - 1; x >= 0; --x) {
             float tox = -1 * sine * (pivot - x) + pivot;
-            for (int y = 0; y < layer->buffer.BufferHt; ++y)
-            {
+            for (int y = 0; y < layer->buffer.BufferHt; ++y) {
                 layer->buffer.SetPixel(tox, y, orig.GetPixel(x, y));
             }
         }
@@ -2804,16 +2797,15 @@ void PixelBufferClass::RotateY(LayerInfo* layer, float offset)
 {
     // Now do the rotation around a point on the y axis
     float yrotation = layer->yrotation;
-    if (layer->YRotationValueCurve.IsActive())
-    {
+    if (layer->YRotationValueCurve.IsActive()) {
         yrotation = layer->YRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
 
-    if (yrotation != 0 && yrotation != 360)
-    {
+    if (yrotation != 0 && yrotation != 360) {
+        GPURenderUtils::waitForRenderCompletion(&layer->buffer);
+
         int ypivot = layer->ypivot;
-        if (layer->YPivotValueCurve.IsActive())
-        {
+        if (layer->YPivotValueCurve.IsActive()) {
             ypivot = layer->YPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
 
@@ -2823,20 +2815,16 @@ void PixelBufferClass::RotateY(LayerInfo* layer, float offset)
         float sine = sin((yrotation + 90) * M_PI / 180);
         float pivot = ypivot * layer->buffer.BufferHt / 100;
 
-        for (int y = pivot; y < layer->buffer.BufferHt; ++y)
-        {
+        for (int y = pivot; y < layer->buffer.BufferHt; ++y) {
             float toy = sine * (y - pivot) + pivot;
-            for (int x = 0; x < layer->buffer.BufferWi; ++x)
-            {
+            for (int x = 0; x < layer->buffer.BufferWi; ++x) {
                 layer->buffer.SetPixel(x, toy, orig.GetPixel(x, y));
             }
         }
 
-        for (int y = pivot - 1; y >= 0; --y)
-        {
+        for (int y = pivot - 1; y >= 0; --y) {
             float toy = -1 * sine * (pivot - y) + pivot;
-            for (int x = 0; x < layer->buffer.BufferWi; ++x)
-            {
+            for (int x = 0; x < layer->buffer.BufferWi; ++x) {
                 layer->buffer.SetPixel(x, toy, orig.GetPixel(x, y));
             }
         }
@@ -2847,49 +2835,42 @@ void PixelBufferClass::RotateZAndZoom(LayerInfo* layer, float offset)
 {
     // Do the Z axis rotate and zoom first
     float zoom = layer->zoom;
-    if (layer->ZoomValueCurve.IsActive())
-    {
+    if (layer->ZoomValueCurve.IsActive()) {
         zoom = layer->ZoomValueCurve.GetOutputValueAtDivided(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
     float rotations = layer->rotations;
     float rotationoffset = offset;
     float offsetperrotation = 1.0f;
-    if (layer->RotationsValueCurve.IsActive())
-    {
+    if (layer->RotationsValueCurve.IsActive()) {
         rotations = layer->RotationsValueCurve.GetOutputValueAtDivided(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
-    if (rotations > 0)
-    {
+    if (rotations > 0) {
         offsetperrotation = 1.0f / rotations;
     }
-    while (rotationoffset > offsetperrotation)
-    {
+    while (rotationoffset > offsetperrotation) {
         rotationoffset -= offsetperrotation;
     }
     rotationoffset *= rotations;
     float rotation = (float)layer->rotation / 100.0;
-    if (rotations > 0)
-    {
-        if (layer->RotationValueCurve.IsActive())
-        {
+    if (rotations > 0) {
+        if (layer->RotationValueCurve.IsActive()) {
             rotation = layer->RotationValueCurve.GetValueAt(rotationoffset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
     }
 
-    if (rotation != 0.0 || zoom != 1.0)
-    {
+    if (rotation != 0.0 || zoom != 1.0) {
+        GPURenderUtils::waitForRenderCompletion(&layer->buffer);
+
         static const float PI_2 = 6.283185307f;
         xlColor c;
         RenderBuffer orig(layer->buffer);
         int q = layer->zoomquality;
         int cx = layer->pivotpointx;
-        if (layer->PivotPointXValueCurve.IsActive())
-        {
+        if (layer->PivotPointXValueCurve.IsActive()) {
             cx = layer->PivotPointXValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
         int cy = layer->pivotpointy;
-        if (layer->PivotPointYValueCurve.IsActive())
-        {
+        if (layer->PivotPointYValueCurve.IsActive()) {
             cy = layer->PivotPointYValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
         float inc = 1.0 / (float)q;
@@ -2901,24 +2882,18 @@ void PixelBufferClass::RotateZAndZoom(LayerInfo* layer, float offset)
         float anglesin = sin(-angle);
 
         layer->buffer.Clear();
-        for (int x = 0; x < layer->BufferWi; x++)
-        {
-            for (int i = 0; i < q; i++)
-            {
-                for (int y = 0; y < layer->BufferHt; y++)
-                {
+        for (int x = 0; x < layer->BufferWi; x++) {
+            for (int i = 0; i < q; i++) {
+                for (int y = 0; y < layer->BufferHt; y++) {
                     orig.GetPixel(x, y, c);
-                    for (int j = 0; j < q; j++)
-                    {
+                    for (int j = 0; j < q; j++) {
                         float xx = (float)x + ((float)i * inc) - xoff;
                         float yy = (float)y + ((float)j * inc) - yoff;
                         float u = xoff + anglecos * xx * zoom + anglesin * yy * zoom;
-                        if (u >= 0 && u < layer->BufferWi)
-                        {
+                        if (u >= 0 && u < layer->BufferWi) {
                             float v = yoff + -anglesin * xx * zoom + anglecos * yy * zoom;
 
-                            if (v >= 0 && v < layer->BufferHt)
-                            {
+                            if (v >= 0 && v < layer->BufferHt) {
                                 layer->buffer.SetPixel(u, v, c);
                             }
                         }
@@ -2933,13 +2908,8 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
 {
     if (std::isinf(offset)) offset = 1.0;
 
-    wxArrayString order = wxSplit(layer->rotationorder, ',');
-
-    for (auto it = order.begin(); it != order.end(); ++it)
-    {
-        char c = it->Trim(false).ToStdString()[0];
-        switch(c)
-        {
+    for (auto &c : layer->rotationorder) {
+        switch(c) {
         case 'X':
             RotateX(layer, offset);
             break;
@@ -2995,31 +2965,34 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
     if (layers[layer]->buffer.BufferHt == 0) layers[layer]->buffer.BufferHt = 1;
 }
 
+void PixelBufferClass::HandleLayerBlurZoom(int EffectPeriod, int layer) {
+    int effStartPer, effEndPer;
+    layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
+    float offset = 0.0f;
+    if (effEndPer != effStartPer) {
+        offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
+    }
+    offset = std::min(offset, 1.0f);
+
+    if (layers[layer]->freezeAfterFrame > EffectPeriod - effStartPer) {
+        // do gausian blur
+        if (layers[layer]->BlurValueCurve.IsActive() || layers[layer]->blur > 1) {
+            Blur(layers[layer], offset);
+        }
+        RotoZoom(layers[layer], offset);
+    }
+    // All rendering is encoded, commit it so the GPU can start
+    GPURenderUtils::commitRenderBuffer(&layers[layer]->buffer);
+}
+
 void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers, int saveLayer)
 {
     int curStep;
 
-    // blur all the layers if necessary ... before the merge?
-    for (int layer = 0; layer < numLayers; layer++) {
-        int effStartPer, effEndPer;
-        GPURenderUtils::waitForRenderCompletion(&layers[layer]->buffer);
-        layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
-        float offset = 0.0f;
-        if (effEndPer != effStartPer) {
-            offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
-        }
-        offset = std::min(offset, 1.0f);
-
-        if (layers[layer]->freezeAfterFrame > EffectPeriod - effStartPer) {
-            // do gausian blur
-            if (layers[layer]->BlurValueCurve.IsActive() || layers[layer]->blur > 1) {
-                Blur(layers[layer], offset);
-            }
-            RotoZoom(layers[layer], offset);
-        }
-    }
-
     for(int ii=0; ii < numLayers; ii++) {
+        if (!validLayers[ii]) {
+            continue;
+        }
         if (layers[ii]->use_music_sparkle_count &&
             layers[ii]->buffer.GetMedia() != nullptr) {
             float f = 0.0;
@@ -3078,6 +3051,8 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
            layers[ii]->mask.clear();
         }
         layers[ii]->calculateNodeOutputParams(EffectPeriod);
+        
+        GPURenderUtils::waitForRenderCompletion(&layers[ii]->buffer);
     }
 
     // layer calculation and map to output

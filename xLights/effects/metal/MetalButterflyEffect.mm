@@ -68,7 +68,7 @@ public:
                       threadsPerThreadgroup:threadsPerThreadgroup];
 
             [computeEncoder endEncoding];
-            [commandBuffer commit];
+            rbcd->setDataLocation(MetalRenderBufferComputeData::GPU);
         }
         return true;
     }

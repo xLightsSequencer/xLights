@@ -15,6 +15,12 @@ public:
 
 class MetalRenderBufferComputeData {
 public:
+    enum CurrentDataLocation {
+        CPU,
+        GPU,
+        TEXTURE
+    };
+    
     MetalRenderBufferComputeData(RenderBuffer *rb, MetalPixelBufferComputeData *pixelBufferData);
     ~MetalRenderBufferComputeData();
 
@@ -24,13 +30,23 @@ public:
     static MetalRenderBufferComputeData *getMetalRenderBufferComputeData(RenderBuffer *);
 
     id<MTLCommandBuffer> getCommandBuffer();
-    id<MTLBuffer> getPixelBuffer();
+    
+    id<MTLBuffer> getPixelBuffer(bool sendToGPU = true);
+    id<MTLTexture> getPixelTexture();
+
+    void commit();
     void waitForCompletion();
+    
+    void setDataLocation(CurrentDataLocation dl) { currentDataLocation = dl; }
+    bool blur(int radius);
 private:
     RenderBuffer *renderBuffer;
     id<MTLCommandBuffer> commandBuffer;
     id<MTLBuffer> pixelBuffer;
+    id<MTLTexture> pixelTexture;
     int pixelBufferSize;
+    bool committed = false;
+    CurrentDataLocation currentDataLocation = CPU;
 };
 
 

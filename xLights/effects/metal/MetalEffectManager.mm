@@ -52,8 +52,18 @@ public:
             d->waitForCompletion();
         }
     }
-
-    virtual void doCopyGPUData(RenderBuffer *to, RenderBuffer *from) override {
+    virtual void doCommitRenderBuffer(RenderBuffer *c) override {
+        if (c->gpuRenderData) {
+            MetalRenderBufferComputeData *d = static_cast<MetalRenderBufferComputeData*>(c->gpuRenderData);
+            d->commit();
+        }
+    }
+    virtual bool doBlur(RenderBuffer *c, int radius) override {
+        if (c->gpuRenderData) {
+            MetalRenderBufferComputeData *d = static_cast<MetalRenderBufferComputeData*>(c->gpuRenderData);
+            return d->blur(radius);
+        }
+        return false;
     }
 
     bool isEnabled = true;

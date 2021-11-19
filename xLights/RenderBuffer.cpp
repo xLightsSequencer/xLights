@@ -1425,7 +1425,6 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     _textDrawingContext = buffer._textDrawingContext;
     _pathDrawingContext = buffer._pathDrawingContext;
     gpuRenderData = nullptr;
-    GPURenderUtils::copyGPUData(this, &buffer);
 }
 
 void RenderBuffer::Forget()
