@@ -43,13 +43,14 @@ public:
                 commandBuffer = nil;
                 return false;
             }
+            [computeEncoder setLabel:@"ButterflyEffect"];
             [computeEncoder setComputePipelineState:functions[style]];
 
             NSInteger dataSize = sizeof(data);
             [computeEncoder setBytes:&data length:dataSize atIndex:0];
 
             
-            id<MTLBuffer> bufferResult = rbcd->getPixelBuffer();
+            id<MTLBuffer> bufferResult = rbcd->getPixelBuffer(false); //we are going to completely overwrite
             if (bufferResult == nil) {
                 computeEncoder = nil;
                 commandBuffer = nil;

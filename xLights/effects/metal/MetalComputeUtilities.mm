@@ -37,6 +37,8 @@ MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
 id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer() {
     if (commandBuffer == nil) {
         commandBuffer = [[MetalComputeUtilities::INSTANCE.commandQueue commandBuffer] retain];
+        NSString* mn = [NSString stringWithUTF8String:renderBuffer->GetModelName().c_str()];
+        [commandBuffer setLabel:mn];
     }
     return commandBuffer;
 }
@@ -44,6 +46,9 @@ id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
     if (pixelBufferSize < renderBuffer->GetPixelCount()) {
         int bufferSize = renderBuffer->GetPixelCount() * 4;
         id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeManaged] retain];
+        std::string name = renderBuffer->GetModelName() + "PixelBuffer";
+        NSString* mn = [NSString stringWithUTF8String:name.c_str()];
+        [newBuffer setLabel:mn];
         memcpy(newBuffer.contents, renderBuffer->pixels, pixelBufferSize * 4);
         pixelBufferSize = renderBuffer->pixelVector.size();
         pixelBuffer = newBuffer;
@@ -56,6 +61,7 @@ id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
         NSUInteger bytesPerImage = bytesPerRow * renderBuffer->BufferHt;
         MTLSize size = MTLSizeMake(renderBuffer->BufferWi, renderBuffer->BufferHt, 1);
         id <MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
+        [blitCommandEncoder setLabel:@"CopyTextureToBuffer1"];
         [blitCommandEncoder copyFromTexture:pixelTexture
                                 sourceSlice:0
                                 sourceLevel:0
@@ -85,8 +91,13 @@ id<MTLTexture> MetalRenderBufferComputeData::getPixelTexture() {
                                                                                         height: renderBuffer->BufferHt
                                                                                      mipmapped: NO];
             d.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
+            d.storageMode = MTLStorageModePrivate;
             // Create the texture from the device by using the descriptor
             pixelTexture = [[MetalComputeUtilities::INSTANCE.device newTextureWithDescriptor:d] retain];
+            
+            std::string name = renderBuffer->GetModelName() + "PixelTexture";
+            NSString* mn = [NSString stringWithUTF8String:name.c_str()];
+            [pixelTexture setLabel:mn];
         }
     }
     if (currentDataLocation == GPU) {
@@ -94,6 +105,7 @@ id<MTLTexture> MetalRenderBufferComputeData::getPixelTexture() {
         NSUInteger bytesPerImage = bytesPerRow * renderBuffer->BufferHt;
         MTLSize size = MTLSizeMake(renderBuffer->BufferWi, renderBuffer->BufferHt, 1);
         id <MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
+        [blitCommandEncoder setLabel:@"CopyBufferToTexture"];
         [blitCommandEncoder copyFromBuffer:pixelBuffer
                               sourceOffset:0
                          sourceBytesPerRow:bytesPerRow
@@ -118,6 +130,8 @@ void MetalRenderBufferComputeData::commit() {
                 NSUInteger bytesPerImage = bytesPerRow * renderBuffer->BufferHt;
                 MTLSize size = MTLSizeMake(renderBuffer->BufferWi, renderBuffer->BufferHt, 1);
                 id <MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
+                [blitCommandEncoder setLabel:@"CopyTextureToBuffer2"];
+
                 [blitCommandEncoder copyFromTexture:pixelTexture
                                         sourceSlice:0
                                         sourceLevel:0
@@ -133,6 +147,7 @@ void MetalRenderBufferComputeData::commit() {
             if (currentDataLocation == GPU) {
                 //Sync from the buffer to the CPU
                 id <MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
+                [blitCommandEncoder setLabel:@"SyncBufferToCPU"];
                 [blitCommandEncoder synchronizeResource:pixelBuffer];
                 [blitCommandEncoder endEncoding];
                 currentDataLocation = CPU;
@@ -145,7 +160,6 @@ void MetalRenderBufferComputeData::commit() {
 
 
 void MetalRenderBufferComputeData::waitForCompletion() {
-    getCommandBuffer();
     if (commandBuffer != nil) {
         @autoreleasepool {
             commit();
@@ -163,7 +177,7 @@ bool MetalRenderBufferComputeData::blur(int radius) {
     }
     if (@available(macOS 10.13, *)) {
         @autoreleasepool {
-            getCommandBuffer();
+            id<MTLCommandBuffer> commandBuffer = getCommandBuffer();
             getPixelTexture();
             
             /*
@@ -176,6 +190,7 @@ bool MetalRenderBufferComputeData::blur(int radius) {
             MPSImageTent *gblur = [[MPSImageTent alloc] initWithDevice:MetalComputeUtilities::INSTANCE.device
                                                          kernelWidth:r
                                                         kernelHeight:r];
+            [gblur setLabel:@"Blur"];
 
             MPSCopyAllocator myAllocator = ^id <MTLTexture>( MPSKernel * __nonnull filter,
                                                             __nonnull id <MTLCommandBuffer> cmdBuf,
@@ -186,14 +201,15 @@ bool MetalRenderBufferComputeData::blur(int radius) {
                                                                                              width: sourceTexture.width
                                                                                             height: sourceTexture.height
                                                                                          mipmapped: NO];
-                d.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
-                id <MTLTexture> result = [[cmdBuf.device newTextureWithDescriptor: d] retain];
                 [sourceTexture release];
-                return result;
+                d.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
+                return [cmdBuf.device newTextureWithDescriptor: d];
             };
-            BOOL ok = [gblur encodeToCommandBuffer:getCommandBuffer()
+            [commandBuffer pushDebugGroup:@"Blur"];
+            BOOL ok = [gblur encodeToCommandBuffer:commandBuffer
                                     inPlaceTexture:&pixelTexture
                              fallbackCopyAllocator:myAllocator];
+            [commandBuffer popDebugGroup];
             [gblur release];
             return ok;
         }
@@ -221,6 +237,7 @@ MetalComputeUtilities::MetalComputeUtilities() {
                 [d release];
             }
         }
+        [devices release];
         if (device == nil) {
             device = MTLCreateSystemDefaultDevice();
         }
@@ -241,11 +258,13 @@ MetalComputeUtilities::MetalComputeUtilities() {
             NSLog(@"Library error: %@", libraryError);
             return;
         }
+        [library setLabel:@"EffectComputeFunctionsLibrary"];
 
         commandQueue = [device newCommandQueue];
         if (!commandQueue) {
             return;
         }
+        [commandQueue setLabel:@"MetalEffectCommandQueue"];
         enabled = true;
     }
 }
@@ -261,8 +280,18 @@ id<MTLComputePipelineState> MetalComputeUtilities::FindComputeFunction(const cha
     NSString *fname = @(name);
     id<MTLFunction> function = [library newFunctionWithName:fname];
     NSError *error = NULL;
-    id<MTLComputePipelineState> ps = [device newComputePipelineStateWithFunction:function error:&error];
+    
+    MTLComputePipelineDescriptor *desc = [MTLComputePipelineDescriptor new];
+    desc.computeFunction = function;
+    desc.label = fname;
+    
+    //id<MTLComputePipelineState> ps = [device newComputePipelineStateWithFunction:function error:&error];
+    id<MTLComputePipelineState> ps = [device newComputePipelineStateWithDescriptor:desc
+                                                                           options:MTLPipelineOptionNone
+                                                                        reflection:nil
+                                                                             error:&error];
     [function release];
+    [desc release];
     if (!ps) {
         NSLog(@"Library error: %@", error);
     }
