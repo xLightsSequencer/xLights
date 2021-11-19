@@ -31,49 +31,51 @@ public:
     }
 
     bool Render(int style, ButterflyData &data, RenderBuffer &buffer) {
-        @autoreleasepool {
-            MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
+        if (@available(macOS 10.13, *)) {
+            @autoreleasepool {
+                MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
 
-            id<MTLCommandBuffer> commandBuffer = rbcd->getCommandBuffer();
-            if (commandBuffer == nil) {
-                return false;
+                id<MTLCommandBuffer> commandBuffer = rbcd->getCommandBuffer();
+                if (commandBuffer == nil) {
+                    return false;
+                }
+                id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+                if (computeEncoder == nil) {
+                    commandBuffer = nil;
+                    return false;
+                }
+                [computeEncoder setLabel:@"ButterflyEffect"];
+                [computeEncoder setComputePipelineState:functions[style]];
+
+                NSInteger dataSize = sizeof(data);
+                [computeEncoder setBytes:&data length:dataSize atIndex:0];
+
+                
+                id<MTLBuffer> bufferResult = rbcd->getPixelBuffer(false); //we are going to completely overwrite
+                if (bufferResult == nil) {
+                    computeEncoder = nil;
+                    commandBuffer = nil;
+                    return false;
+                }
+
+                [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
+
+                NSInteger maxThreads = functions[style].maxTotalThreadsPerThreadgroup;
+                dataSize = data.width * data.height;
+                NSInteger threads = std::min(dataSize, maxThreads);
+                MTLSize gridSize = MTLSizeMake(dataSize, 1, 1);
+                MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
+
+                [computeEncoder dispatchThreads:gridSize
+                          threadsPerThreadgroup:threadsPerThreadgroup];
+
+                [computeEncoder endEncoding];
+                rbcd->setDataLocation(MetalRenderBufferComputeData::GPU);
             }
-            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
-            if (computeEncoder == nil) {
-                commandBuffer = nil;
-                return false;
-            }
-            [computeEncoder setLabel:@"ButterflyEffect"];
-            [computeEncoder setComputePipelineState:functions[style]];
-
-            NSInteger dataSize = sizeof(data);
-            [computeEncoder setBytes:&data length:dataSize atIndex:0];
-
-            
-            id<MTLBuffer> bufferResult = rbcd->getPixelBuffer(false); //we are going to completely overwrite
-            if (bufferResult == nil) {
-                computeEncoder = nil;
-                commandBuffer = nil;
-                return false;
-            }
-
-            [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
-
-            NSInteger maxThreads = functions[style].maxTotalThreadsPerThreadgroup;
-            dataSize = data.width * data.height;
-            NSInteger threads = std::min(dataSize, maxThreads);
-            MTLSize gridSize = MTLSizeMake(dataSize, 1, 1);
-            MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
-
-            [computeEncoder dispatchThreadgroups:gridSize
-                      threadsPerThreadgroup:threadsPerThreadgroup];
-
-            [computeEncoder endEncoding];
-            rbcd->setDataLocation(MetalRenderBufferComputeData::GPU);
+            return true;
         }
-        return true;
+        return false;
     }
-
     std::array<id<MTLComputePipelineState>, 11> functions;
 };
 

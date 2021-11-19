@@ -232,9 +232,7 @@ MetalComputeUtilities::MetalComputeUtilities() {
         NSArray *devices = MTLCopyAllDevices();
         for (id d in devices) {
             if ([d isRemovable]) {
-                device = d;
-            } else {
-                [d release];
+                device = [d retain];
             }
         }
         [devices release];
