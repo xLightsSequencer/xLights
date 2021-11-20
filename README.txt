@@ -12,25 +12,26 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2021.38 November 20, 2021
-   -- bug (keith) Fix auto layout models does not correctly handle model after one with start nulls if it has none.
-   -- bug (dkulp) Fix v2 smart receivers not being selectable for FPP capes based on ttyS serial outputs
-   -- bug (dkulp) Fix rare crash-inducing race condition in the JobPool
-   -- bug (dkulp) M1Pro/Max fails to decode some mp4 files, detect and fallback to software decoding
-   -- bug (scott) Fix some issues if a controller that a model is assigned to is no longer available preventing it from being assigned to a new controller
-   -- bug (scott) Fix issues with new curl lib and some controllers on latest Linux/OSX
-   -- bug (keith) Invert layout when printing
-   -- bug (keith) FV3 splits not calculated correctly if dummy pixels required.
-   -- bug (keith) Display controller connection properties consistently.
-   -- bug (keith) Have save buttons when linked show red if either layout or controllers need saving
-   -- bug (dkulp) Fix vertical grid lines on non-Retina displays
-   -- bug (scott) Fix HinksPix port display for multistring models
    -- enh (keith) Add auto layout for J1Sys
    -- enh (keith) Add segment measures to Polyline
    -- enh (keith) Make state on faces and state effect bulk editable
    -- enh (dkulp) Use multi-cores for Lines effect to speed up rendering
    -- enh (dkulp) Add "Blur" to Experimental GPU/Metal Rendering Engine
    -- enh (dkulp) Bunch more optimizations to Butterfly for Experimental GPU/Metal Rendering Engine
+   -- bug (dkulp) Fix v2 smart receivers not being selectable for FPP capes based on ttyS serial outputs
+   -- bug (dkulp) Fix rare crash-inducing race condition in the JobPool
+   -- bug (dkulp) M1Pro/Max fails to decode some mp4 files, detect and fallback to software decoding
+   -- bug (dkulp) Fix vertical grid lines on non-Retina displays
    -- bug (dkulp) Revert back to OpenGL on OSX until all views can be converted to Metal to reduce vsync contention
+   -- bug (scott) Fix some issues if a controller that a model is assigned to is no longer available preventing it 
+                  from being assigned to a new controller
+   -- bug (scott) Fix issues with new curl lib and some controllers on latest Linux/OSX
+   -- bug (scott) Fix HinksPix port display for multistring models
+   -- bug (keith) Fix auto layout models does not correctly handle model after one with start nulls if it has none.
+   -- bug (keith) Invert layout when printing
+   -- bug (keith) FV3 splits not calculated correctly if dummy pixels required.
+   -- bug (keith) Display controller connection properties consistently.
+   -- bug (keith) Have save buttons when linked show red if either layout or controllers need saving
 2021.37 November 12, 2021
    -- enh (dkulp) Add LED Panel output to Pi based FPP controller types
    -- bug (dkulp) Fix Life effect not rendering past first frame
