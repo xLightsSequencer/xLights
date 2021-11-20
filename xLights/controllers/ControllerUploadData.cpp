@@ -570,8 +570,8 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
         else {
             wxASSERT(current != nullptr);
             if ((brightness != -9999 && current->_brightness != brightness) ||
-                (startNullPixels != -9999) ||
-                (endNullPixels != -9999) ||
+                (startNullPixels != -9999 || (startNullPixels == -9999 && current->_startNullPixels != 0)) ||
+                (endNullPixels != -9999 || (endNullPixels == -9999 && current->_endNullPixels != 0)) ||
                 (current->_smartRemote != smartRemote) ||
                 (reverse == "unknown" && current->_reverse == "Reverse") ||
                 (reverse != "unknown" && (current->_reverse != reverse || current->_reverse == "Reverse")) ||
