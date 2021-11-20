@@ -84,9 +84,40 @@ std::string VixenEffect::GetPalette() const
 std::string VixenEffect::GetSettings() const
 {
     std::string res;
-    if (type == "AlternatingData") {}
+    if (type == "AlternatingData") {
+        res = "B_CHOICE_BufferStyle=Single Line,E_SLIDER_Marquee_Band_Size=" + settings.at("GroupLevel");       
+    }
     else if (type == "AudioData") {}
-    else if (type == "BarsData") {}
+    else if (type == "BarsData") {
+        // Up/Down and Left/Right are backwards in V3
+        auto s = settings.at("Direction");
+        std::string dir = "down";
+        if (s == "Moves Down") dir = "up";
+        else if (s == "Expands") dir = "expand";
+        else if (s == "Compresses") dir = "compress";
+        else if (s == "Moves Left") dir = "Right";
+        else if (s == "Moves Right") dir = "Left";
+        else if (s == "Horizontal Expand") dir = "H-expand";
+        else if (s == "Horizontal Compress") dir = "H-compress";
+        else if (s == "Alternate Up") dir = "Alternate Down";
+        else if (s == "Alternate Down") dir = "Alternate Up";
+        else if (s == "Alternate Left") dir = "Alternate Right";
+        else if (s == "Alternate Right") dir = "Alternate Left";
+
+        if (settings.at("TargetPositioning") == "Strings") {
+            if (settings.at("Orienation") == "Vertical") {
+                res = "B_CHOICE_BufferStyle=Horizontal Per Model/Strand,";
+            } else {
+                res = "B_CHOICE_BufferStyle=Vertical Per Model/Strand,";
+            }
+        }
+
+        res += "E_CHECKBOX_Bars_3D=" + settings.at("Show3D") +
+               ",E_CHECKBOX_Bars_Highlight=" + settings.at("Highlight") +
+               ",E_CHOICE_Bars_Direction=" + dir +
+               ",E_SLIDER_Bars_BarCount=" + wxString::Format("%d", std::min(wxAtoi(settings.at("Repeat")), 5)) +
+               ",E_TEXTCTRL_Bars_Cycles=" + settings.at("Speed");
+    }
     else if (type == "ButterflyData") {
         res = "E_Butterfly_Chunks=" + settings.at("BackgroundChunks") +
               ",E_Butterfly_Skip=" + settings.at("BackgroundSkips") +
@@ -279,71 +310,77 @@ std::string VixenEffect::GetXLightsType() const
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (type == "AlternatingData") return "Marquee";
-    if (type == "CandleData") return "Candle";
-    if (type == "ChaseData") return "Single Strand";
-    if (type == "DissolveData")
-    {
-        logger_base.warn("Vixen3: Unable to convert DissolveData effect ... inserting an off effect.");
-        return "Off"; // not sure what to do with this
-    }
-    if (type == "LipSyncData") return "Faces";
-    if (type == "PulseData") return "On";
-    if (type == "SetLevelData") return "On";
-    if (type == "SpinData")
-    {
-        logger_base.warn("Vixen3: Unable to convert SpinData effect ... inserting an Pinwheel effect.");
-        return "Pinwheel";
-    }
-    if (type == "StrobeData") return "Strobe";
-    if (type == "TwinkleData") return "Twinkle";
-    if (type == "WipeData") return "Color Wash";
     if (type == "BarsData") return "Bars";
     if (type == "BorderData") return "Marquee";
     if (type == "ButterflyData") return "Butterfly";
+    if (type == "CandleData") return "Candle";
+    if (type == "ChaseData") return "Single Strand";
     if (type == "CirclesData") return "Circles";
     if (type == "ColorWashData") return "Color Wash";
     if (type == "CurtainData") return "Curtain";
+    if (type == "Data") {
+        logger_base.warn("Vixen3: Unable to convert Data effect ... inserting an On effect.");
+        return "On"; // this should go to timing
+    }
+    if (type == "DissolveData") {
+        logger_base.warn("Vixen3: Unable to convert DissolveData effect ... inserting an off effect.");
+        return "Off"; // not sure what to do with this
+    }
     if (type == "FireData") return "Fire";
     if (type == "FireworksData") return "Fireworks";
     if (type == "GarlandsData") return "Garlands";
     if (type == "GlediatorData") return "Glediator";
     if (type == "LifeData") return "Life";
+    if (type == "LipSyncData") return "Faces";
     if (type == "LiquidData") return "Liquid";
     if (type == "MeteorsData") return "Meteors";
+    if (type == "MorphData") {
+        logger_base.warn("Vixen3: Morph color import not supported.");
+        return "Morph";
+    }
+    if (type == "NutcrackerModuleData") {
+        logger_base.warn("Vixen3: Nutcracker color import not supported.");
+        auto nc = settings.at("CurrentEffect");
+        if (nc == "ColorWash") nc = "Color Wash";
+        else if (nc == "Movie") nc = "Video";
+        else if (nc == "Picture") nc = "Pictures";
+        else if (nc == "PictureTile") nc = "Pictures";
+        else if (nc == "Twinkles") nc = "Twinkle";
+        return nc;
+    }
+
     if (type == "PictureData") return "Pictures";
     if (type == "PinWheelData") return "Pinwheel";
     if (type == "PlasmaData") return "Plasma";
-    if (type == "ShapesData") return "Shape";
+    if (type == "PulseData") return "On";
+    if (type == "SetLevelData") return "On";
+    if (type == "ShapesData") {
+        logger_base.warn("Vixen3: Shapes color import not supported.");
+        return "Shape";
+    }
     if (type == "ShockwaveData") return "Shockwave";
-    if (type == "SnowflakesData") return "Snowflakes";
+    if (type == "SnowflakesData") {
+        logger_base.warn("Vixen3: Snowflakes color import not supported.");
+        return "Snowflakes";
+    }
     if (type == "SnowStormData") return "Snowstorm";
+    if (type == "SpinData") {
+        logger_base.warn("Vixen3: Unable to convert SpinData effect ... inserting an Pinwheel effect.");
+        return "Pinwheel";
+    }
     if (type == "SpiralData") return "Spirals";
     if (type == "SpirographData") return "Spirograph";
+    if (type == "StrobeData") return "Strobe";
     if (type == "TextData") return "Text";
-    if (type == "TreeData") return "Tree";
+    if (type == "TreeData") {
+        logger_base.warn("Vixen3: Tree color import not supported.");
+        return "Tree";
+    }
+    if (type == "TwinkleData") return "Twinkle";
     if (type == "VideoData") return "Video";
     if (type == "VUMeterData") return "VU Meter";
     if (type == "WaveData") return "Wave";
-    if (type == "Data")
-    {
-        logger_base.warn("Vixen3: Unable to convert Data effect ... inserting an On effect.");
-        return "On"; // this should go to timing
-    }
-    if (type == "NutcrackerModuleData")
-    {
-        auto nc = settings.at("CurrentEffect");
-        
-        if (nc == "ColorWash")
-            nc = "Color Wash";
-        else if (nc == "Movie")
-            nc = "Video";
-        else if (nc == "Picture" || nc == "PictureTile")
-            nc = "Pictures";
-        else if (nc == "Twinkles")
-            nc = "Twinkle";
-
-        return nc;
-    }
+    if (type == "WipeData") return "Color Wash";
 
     logger_base.warn("Vixen3: Unknown effect %s ... inserting an off effect.", (const char*)type.c_str());
 
