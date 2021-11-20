@@ -45,7 +45,7 @@ id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer() {
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
     if (pixelBufferSize < renderBuffer->GetPixelCount()) {
         int bufferSize = renderBuffer->GetPixelCount() * 4;
-        id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeManaged] retain];
+        id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeShared] retain];
         std::string name = renderBuffer->GetModelName() + "PixelBuffer";
         NSString* mn = [NSString stringWithUTF8String:name.c_str()];
         [newBuffer setLabel:mn];
@@ -53,7 +53,7 @@ id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
         pixelBufferSize = renderBuffer->pixelVector.size();
         pixelBuffer = newBuffer;
         renderBuffer->pixels = static_cast<xlColor*>(pixelBuffer.contents);
-        currentDataLocation = CPU;
+        currentDataLocation = BUFFER;
     }
     if (currentDataLocation == TEXTURE) {
         //use GPU to copy over to Buffer
@@ -61,7 +61,7 @@ id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
         NSUInteger bytesPerImage = bytesPerRow * renderBuffer->BufferHt;
         MTLSize size = MTLSizeMake(renderBuffer->BufferWi, renderBuffer->BufferHt, 1);
         id <MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
-        [blitCommandEncoder setLabel:@"CopyTextureToBuffer1"];
+        [blitCommandEncoder setLabel:@"CopyTextureToBuffer"];
         [blitCommandEncoder copyFromTexture:pixelTexture
                                 sourceSlice:0
                                 sourceLevel:0
@@ -72,13 +72,7 @@ id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
                      destinationBytesPerRow:bytesPerRow
                    destinationBytesPerImage:bytesPerImage];
         [blitCommandEncoder endEncoding];
-        currentDataLocation = GPU;
-    }
-    if (sendToGPU && currentDataLocation == CPU) {
-        int bufferSize = renderBuffer->GetPixelCount() * 4;
-        NSRange rng = NSMakeRange(0, bufferSize);
-        [pixelBuffer didModifyRange:rng];
-        currentDataLocation = GPU;
+        currentDataLocation = BUFFER;
     }
     return pixelBuffer;
 }
@@ -100,7 +94,7 @@ id<MTLTexture> MetalRenderBufferComputeData::getPixelTexture() {
             [pixelTexture setLabel:mn];
         }
     }
-    if (currentDataLocation == GPU) {
+    if (currentDataLocation == BUFFER) {
         NSUInteger bytesPerRow = 4 * renderBuffer->BufferWi;
         NSUInteger bytesPerImage = bytesPerRow * renderBuffer->BufferHt;
         MTLSize size = MTLSizeMake(renderBuffer->BufferWi, renderBuffer->BufferHt, 1);
@@ -130,7 +124,7 @@ void MetalRenderBufferComputeData::commit() {
                 NSUInteger bytesPerImage = bytesPerRow * renderBuffer->BufferHt;
                 MTLSize size = MTLSizeMake(renderBuffer->BufferWi, renderBuffer->BufferHt, 1);
                 id <MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
-                [blitCommandEncoder setLabel:@"CopyTextureToBuffer2"];
+                [blitCommandEncoder setLabel:@"CopyTextureToBufferForCommit"];
 
                 [blitCommandEncoder copyFromTexture:pixelTexture
                                         sourceSlice:0
@@ -142,15 +136,7 @@ void MetalRenderBufferComputeData::commit() {
                              destinationBytesPerRow:bytesPerRow
                            destinationBytesPerImage:bytesPerImage];
                 [blitCommandEncoder endEncoding];
-                currentDataLocation = GPU;
-            }
-            if (currentDataLocation == GPU) {
-                //Sync from the buffer to the CPU
-                id <MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
-                [blitCommandEncoder setLabel:@"SyncBufferToCPU"];
-                [blitCommandEncoder synchronizeResource:pixelBuffer];
-                [blitCommandEncoder endEncoding];
-                currentDataLocation = CPU;
+                currentDataLocation = BUFFER;
             }
         }
         [commandBuffer commit];

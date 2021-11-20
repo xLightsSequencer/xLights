@@ -51,7 +51,7 @@ public:
                 [computeEncoder setBytes:&data length:dataSize atIndex:0];
 
                 
-                id<MTLBuffer> bufferResult = rbcd->getPixelBuffer(false); //we are going to completely overwrite
+                id<MTLBuffer> bufferResult = rbcd->getPixelBuffer();
                 if (bufferResult == nil) {
                     computeEncoder = nil;
                     commandBuffer = nil;
@@ -70,7 +70,6 @@ public:
                           threadsPerThreadgroup:threadsPerThreadgroup];
 
                 [computeEncoder endEncoding];
-                rbcd->setDataLocation(MetalRenderBufferComputeData::GPU);
             }
             return true;
         }

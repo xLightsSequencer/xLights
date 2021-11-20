@@ -16,8 +16,7 @@ public:
 class MetalRenderBufferComputeData {
 public:
     enum CurrentDataLocation {
-        CPU,
-        GPU,
+        BUFFER,
         TEXTURE
     };
     
@@ -46,7 +45,7 @@ private:
     id<MTLTexture> pixelTexture;
     int pixelBufferSize;
     bool committed = false;
-    CurrentDataLocation currentDataLocation = CPU;
+    CurrentDataLocation currentDataLocation = BUFFER;
 };
 
 

@@ -56,8 +56,6 @@ kernel void ButterflyEffectStyle1(constant ButterflyData &data,
         } else {
             result[index] = getMultiColorBlend(data, h, false);
         }
-    } else {
-        result[index] = uchar4{0, 0, 0 ,0};
     }
 }
 kernel void ButterflyEffectStyle2(constant ButterflyData &data,
@@ -82,8 +80,6 @@ kernel void ButterflyEffectStyle2(constant ButterflyData &data,
         } else {
             result[index] = getMultiColorBlend(data, h, false);
         }
-    } else {
-        result[index] = uchar4{0, 0, 0 ,0};
     }
 }
 kernel void ButterflyEffectStyle3(constant ButterflyData &data,
@@ -109,8 +105,6 @@ kernel void ButterflyEffectStyle3(constant ButterflyData &data,
         } else {
             result[index] = getMultiColorBlend(data, h, false);
         }
-    } else {
-        result[index] = uchar4{0, 0, 0 ,0};
     }
 }
 kernel void ButterflyEffectStyle4(constant ButterflyData &data,
@@ -136,8 +130,6 @@ kernel void ButterflyEffectStyle4(constant ButterflyData &data,
         } else {
             result[index] = getMultiColorBlend(data, h, false);
         }
-    } else {
-        result[index] = uchar4{0, 0, 0 ,0};
     }
 }
 kernel void ButterflyEffectStyle5(constant ButterflyData &data,
@@ -162,7 +154,5 @@ kernel void ButterflyEffectStyle5(constant ButterflyData &data,
         } else {
             result[index] = getMultiColorBlend(data, h, false);
         }
-    } else {
-        result[index] = uchar4{0, 0, 0 ,0};
     }
 }
