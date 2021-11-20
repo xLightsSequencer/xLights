@@ -135,8 +135,10 @@ void ControllerCaps::LoadControllers() {
                                 auto& c = v[controller];
                                 for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
                                     if (nnn->GetName() == "Variant") {
-                                        auto base = nnn->GetAttribute("Base");
-                                        merge(abstracts, base, nnn);
+                                        if (nnn->HasAttribute("Base")) {
+                                            auto base = nnn->GetAttribute("Base");
+                                            merge(abstracts, base, nnn);
+                                        }
                                         c.push_back(new ControllerCaps(vendor, controller, nnn));
                                     }
                                 }

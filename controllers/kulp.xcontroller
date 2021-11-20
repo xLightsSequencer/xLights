@@ -139,7 +139,7 @@
             <fppSerialPort1>ttyS2</fppSerialPort1>
         </Variant>
     </Controller>
-        <Controller Name="K8-B-Scroller">
+    <Controller Name="K8-B-Scroller">
         <Variant Name="" ID="K8-B-Scroller" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>12</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>

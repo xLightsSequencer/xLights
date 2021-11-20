@@ -82,10 +82,10 @@
             <Protocol>Pixelnet-Open</Protocol>
             <Protocol>Renard</Protocol>
         </SerialProtocols>
-        <SmartRecieverTypes>
+        <SmartRemoteTypes>
             <Type>falcon_v1</Type>
             <Type>fpp_v2</Type>
-        </SmartRecieverTypes>
+        </SmartRemoteTypes>
         <fppStringFileName>co-bbbStrings</fppStringFileName>
     </AbstractVariant>
 	<Controller Name="LED Panels">
@@ -297,7 +297,7 @@
         </Variant>
     </Controller>
     <Controller Name="Mirage">
-        <Variant Name="No Recievers" ID="Mirage" Base="FPP:FPPStringCapeTTYs">
+        <Variant Name="No Receivers" ID="Mirage" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>24</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>3</fpp>
@@ -307,7 +307,7 @@
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
-        <Variant Name="One Reciever" ID="Mirage1Diff" Base="FPP:FPPStringCapeTTYs">
+        <Variant Name="One Receiver" ID="Mirage1Diff" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>28</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>4</fpp>
@@ -318,7 +318,7 @@
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
-        <Variant Name="Two Recievers" ID="Mirage2Diff" Base="FPP:FPPStringCapeTTYs">
+        <Variant Name="Two Receivers" ID="Mirage2Diff" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>32</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>5</fpp>
@@ -330,7 +330,7 @@
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
-        <Variant Name="Three Recievers" ID="Mirage3Diff" Base="FPP:FPPStringCapeTTYs">
+        <Variant Name="Three Receivers" ID="Mirage3Diff" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>36</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>6</fpp>
@@ -343,7 +343,7 @@
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
-        <Variant Name="Four Recievers" ID="Mirage4Diff" Base="FPP:FPPStringCapeTTYs">
+        <Variant Name="Four Receivers" ID="Mirage4Diff" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>40</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>7</fpp>
@@ -357,7 +357,7 @@
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
-        <Variant Name="Five Recievers" ID="Mirage5Diff" Base="FPP:FPPStringCapeTTYs">
+        <Variant Name="Five Receivers" ID="Mirage5Diff" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>44</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>8</fpp>
