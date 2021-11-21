@@ -1072,6 +1072,47 @@ void xLightsFrame::UpdateModelsList()
     UpdateControllerSave();
 }
 
+std::string xLightsFrame::OpenAndCheckSequence(const std::string& origFilename)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::string file;
+
+    if (origFilename != "") {
+
+        EnableSequenceControls(false);
+
+        wxString seq = origFilename;
+
+        printf("Processing file %s\n", (const char*)seq.c_str());
+        logger_base.debug("Batch Check sequence processing file %s\n", (const char*)seq.c_str());
+        OpenSequence(seq, nullptr);
+        EnableSequenceControls(false);
+
+        // if the fseq directory is not the show directory then ensure the fseq folder is set right
+        if (fseqDirectory != showDirectory) {
+            if (!ObtainAccessToURL(fseqDirectory)) {
+                wxMessageBox("Could not obtain read/write access to FSEQ directory " + fseqDirectory + ". " + "Try re-selecting the FSEQ directory in Preferences.", "Error",
+                             wxOK | wxICON_ERROR);
+            }
+            wxFileName fn(xlightsFilename);
+            fn.SetPath(fseqDirectory);
+            xlightsFilename = fn.GetFullPath();
+        }
+
+        SetStatusText(_("Checking sequence ") + xlightsFilename + _("."));
+
+        file = CheckSequence(true);
+
+        _checkSequenceMode = false;
+        EnableSequenceControls(true);
+        logger_base.debug("Check sequence done.");
+        CloseSequence();
+    }
+
+    return file;
+}
+
 void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1402,12 +1443,11 @@ void xLightsFrame::SetSequenceTiming(int timingMS)
 
 void xLightsFrame::SaveAsSequence()
 {
-   if (_seqData.NumFrames() == 0)
-    {
+    if (_seqData.NumFrames() == 0) {
         DisplayError("You must open a sequence first!", this);
         return;
     }
-    wxString NewFilename;
+    wxString newFilename;
     wxFileDialog fd(this,
                     "Choose filename to Save Sequence:",
                     CurrentDir,
@@ -1416,24 +1456,26 @@ void xLightsFrame::SaveAsSequence()
                     wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     bool ok;
-    do
-    {
-        if (fd.ShowModal() != wxID_OK)
-        {
+    do {
+        if (fd.ShowModal() != wxID_OK) {
             return;
         }
         // validate inputs
-        NewFilename=fd.GetPath();
-        NewFilename.Trim();
-        ok=true;
-        if (NewFilename.IsEmpty())
-        {
-            ok=false;
+        newFilename = fd.GetPath();
+        newFilename.Trim();
+        ok = true;
+        if (newFilename.IsEmpty()) {
+            ok = false;
             DisplayError("File name cannot be empty", this);
         }
-    }
-    while (!ok);
-    wxFileName oName(NewFilename);
+    } while (!ok);
+
+    SaveAsSequence(newFilename);
+}
+
+void xLightsFrame::SaveAsSequence(const std::string& filename)
+{
+    wxFileName oName(filename);
     oName.SetExt("fseq");
     DisplayXlightsFilename(oName.GetFullPath());
 
@@ -1444,22 +1486,21 @@ void xLightsFrame::SaveAsSequence()
     CurrentSeqXmlFile->SetFullName(oName.GetFullName());
     _renderCache.SetSequence(renderCacheDirectory, oName.GetName());
     SaveSequence();
-    SetTitle(xlights_base_name + xlights_qualifier + " - " + NewFilename);
+    SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);
 }
 
 void xLightsFrame::RenderAll()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!_seqData.IsValidData())
-    {
+    if (!_seqData.IsValidData()) {
         logger_base.warn("Aborting render all because sequence data has not been initialised.");
         return;
     }
 
     mRendering = true;
     EnableSequenceControls(false);
-	wxYield(); // ensure all controls are disabled.
+    wxYield();      // ensure all controls are disabled.
     wxStopWatch sw; // start a stopwatch timer
 
     ProgressBar->Show();
@@ -1471,14 +1512,14 @@ void xLightsFrame::RenderAll()
     logger_base.info("   iseq below effects done.");
     ProgressBar->SetValue(10);
     RenderGridToSeqData([this, sw] {
-        static log4cpp::Category &logger_base2 = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category& logger_base2 = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base2.info("   Effects done.");
         ProgressBar->SetValue(90);
-        RenderIseqData(false, nullptr);  // render ISEQ layers above the Nutcracker layer
+        RenderIseqData(false, nullptr); // render ISEQ layers above the Nutcracker layer
         logger_base2.info("   iseq above effects done. Render all complete.");
         ProgressBar->SetValue(100);
-        float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
-        wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);
+        float elapsedTime = sw.Time() / 1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
+        wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"), elapsedTime);
         CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
         mRendering = false;
         EnableSequenceControls(true);

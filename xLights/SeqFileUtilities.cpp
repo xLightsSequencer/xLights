@@ -91,7 +91,7 @@ void xLightsFrame::AddAllModelsToSequence()
     _sequenceElements.AddMissingModelsToSequence(models_to_add);
 }
 
-void xLightsFrame::NewSequence()
+void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS)
 {
     // close any open sequences
     if (!CloseSequence()) {
@@ -107,7 +107,7 @@ void xLightsFrame::NewSequence()
         CurrentSeqXmlFile->setSupportsModelBlending(false);
     }
 
-    SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT(""),_defaultSeqView, true);
+    SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT(""),_defaultSeqView, true, media, durationMS);
     setting_dlg.Fit();
     int ret_code = setting_dlg.ShowModal();
     if (ret_code == wxID_CANCEL) {

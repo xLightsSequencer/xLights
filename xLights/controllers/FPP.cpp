@@ -3282,3 +3282,62 @@ bool FPP::ValidateProxy(const std::string& to, const std::string& via)
     }
     return false;
 }
+
+std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
+{
+    std::list<FPP*> instances;
+
+    std::list<std::string> startAddresses;
+    std::list<std::string> startAddressesForced;
+
+    wxConfigBase* config = wxConfigBase::Get();
+    wxString force;
+    if (config->Read("FPPConnectForcedIPs", &force)) {
+        wxArrayString ips = wxSplit(force, '|');
+        wxString newForce;
+        for (const auto& a : ips) {
+            startAddresses.push_back(a);
+            startAddressesForced.push_back(a);
+        }
+    }
+    // add existing controller IP's to the discovery, helps speed up
+    // discovery as well as makes it more reliable to discover those,
+    // particularly if on a different subnet.   This also helps
+    // make sure actually configured controllers are found
+    // so the FPP Connect dialog is more likely to
+    // have the entire list allowing the uploads to then entire
+    // show network to be easier to do
+    for (auto& it : outputManager->GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth != nullptr && eth->GetIP() != "") {
+            startAddresses.push_back(eth->GetIP());
+            if (eth->GetFPPProxy() != "") {
+                startAddresses.push_back(eth->GetFPPProxy());
+            }
+        }
+    }
+
+    Discovery discovery(frame, outputManager);
+    FPP::PrepareDiscovery(discovery, startAddresses);
+    discovery.Discover();
+    FPP::MapToFPPInstances(discovery, instances, outputManager);
+    instances.sort(sortByIP);
+
+    wxString newForce = "";
+    for (const auto& a : startAddressesForced) {
+        for (const auto& fpp : instances) {
+            if (case_insensitive_match(a, fpp->hostName) || case_insensitive_match(a, fpp->ipAddress)) {
+                if (newForce != "") {
+                    newForce.append(",");
+                }
+                newForce.append(a);
+            }
+        }
+    }
+    if (newForce != force) {
+        config->Write("FPPConnectForcedIPs", newForce);
+        config->Flush();
+    }
+
+    return instances;
+}

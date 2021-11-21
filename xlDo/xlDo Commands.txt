@@ -1,0 +1,61 @@
+
+Start xLights
+    {"cmd:"startxLights", "ifNotRunning":"true|false"}
+    
+Render all (assumes an open sequence)
+    {"cmd":"renderAll"}
+
+Load a sequence
+    {"cmd":"loadSequence", "seq":"filename", "promptIssues":"true|false"}
+    
+Close a sequence
+    {"cmd":"closeSequence", "quiet":"true|false"}
+    
+    Quiet when true will return success even if no sequence was open
+    This command will fail if the sequence has unsaved changes
+
+New Sequence    
+    {"cmd":"newSequence", "force":"true|false", "mediaFile":"media filename", "durationSecs":30}
+    
+    If force is not true then this command will fail if there is a sequence already open
+    If mediaFile is blank then durationSecs is the length of the animation opened
+    If mediaFile is not blank then sequence is created for the audio
+
+Save Sequence
+    {"cmd":"saveSequence", "seq":"filename"}
+
+    If seq is blank then it will save the sequence using the name it was opened with
+
+Batch Render Named Sequences
+    {"cmd":"batchRender", "seqs":["filename"], "promptIssues":"true|false"}
+    
+Upload controller configuration
+    {"cmd":"uploadController", "ip":"ip address"}
+
+Upload FPP configuration
+    {"cmd":"uploadFPPConfig", "ip":"ip address", "udp":"all|proxy|", "models":"true|false", "map":"true|false"}
+    
+    If models is true then the models are uploaded to FPP
+    If map is true then the virtual display map is uploaded to FPP
+
+Upload Sequence to FPP/Falcon V4/Pixel Stick
+    {"cmd":"uploadSequence", "ip":"ip address", "media":"true|false", "format":"v1|v2std|v2zlib|v2uncompressedsparse|v2uncompressed|v2stdsparse|v2zlibsparse", "seq":"xsq filename"}
+
+Check sequence
+    {"cmd":"checkSequence", "seq":"xsq filename"}
+
+    Open and check a sequence
+    
+Change Show Folder
+    {"cmd":"changeShowFolder", "folder":"show folder"}
+
+Open Controller
+    {"cmd":"openController", "ip":"ip address"}
+
+    Opens the controller in a browser
+    
+Get xLights Version
+    {"cmd":"getVersion"}
+
+    Gets the xLights version
+
