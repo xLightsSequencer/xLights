@@ -272,7 +272,6 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
                 wxString appPath(f.GetPath());
                 wxString cmdline(appPath + wxT("/xLights") + params + " &");
                 
-                printf("%s\n", (const char *)cmdline.c_str());
                 if (system((const char *)cmdline.c_str()) < 0) {
                     fprintf(stderr, "\u001b[31;1mUnable to start xLights.\u001b[0m\n");
                     return 1;
@@ -286,7 +285,6 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
                 idx = p.find_last_of('/');
                 p = p.substr(0, idx);
                 wxString s = "open -a " + p + " --args " + params;
-                printf("%s\n", (const char *)s.c_str());
                 if (system(s.c_str()) < 0) {
                     fprintf(stderr, "\u001b[31;1mUnable to start xLights.\u001b[0m\n");
                     return 1;
