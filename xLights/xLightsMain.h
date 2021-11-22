@@ -973,7 +973,6 @@ public:
     long DragRowIdx;
     //wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges = false;
-    bool UnsavedPlaylistChanges = false;
     int mSavedChangeCount = 0;
     int mLastAutosaveCount = 0;
     wxDateTime starttime;
@@ -1610,6 +1609,7 @@ private:
     void SequenceReplaySection(wxCommandEvent& event);
     void TogglePlay(wxCommandEvent& event);
     void ExportModel(wxCommandEvent& event);
+    bool DoExportModel(unsigned int startFrame, unsigned int endFrame, const std::string& model, const std::string& fn, const std::string& fmt, bool doRender);
     void ShowDisplayElements(wxCommandEvent& event);
     void ShowHidePreviewWindow(wxCommandEvent& event);
     void ShowHideAllPreviewWindows(wxCommandEvent& event);

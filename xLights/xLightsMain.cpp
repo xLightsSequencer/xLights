@@ -1299,7 +1299,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     UnsavedNetworkChanges = false;
 
     UnsavedRgbEffectsChanges = false;
-    UnsavedPlaylistChanges = false;
     mStoredLayoutGroup = "Default";
 
     modelsChangeCount = 0;
@@ -9153,7 +9152,6 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
         } else {
             auto cmd = val["cmd"].AsString();
             if (cmd == "renderAll") {
-
                 if (CurrentSeqXmlFile == nullptr) {
                     return "{\"res\":504,\"msg\":\"No sequence open.\"}";
                 }
@@ -9164,11 +9162,11 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 return "{\"res\":200,\"msg\":\"Rendered.\"}";
 
             } else if (cmd == "loadSequence") {
-
                 auto seq = val["seq"].AsString();
                 if (!wxFile::Exists(seq)) {
                     return "{\"res\":504,\"msg\":\"Sequence not found.\"}";
                 }
+
                 if (CurrentSeqXmlFile != nullptr && val["force"].AsString() != "true") {
                     return "{\"res\":504,\"msg\":\"Sequence already open.\"}";
                 }
@@ -9181,7 +9179,6 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 return "{\"res\":200,\"msg\":\"Sequence loaded.\"}";
 
             } else if (cmd == "closeSequence") {
-
                 if (CurrentSeqXmlFile == nullptr) {
                     if (val["quiet"].AsString() != "true") {
                         return "{\"res\":504,\"msg\":\"No sequence open.\"}";
@@ -9189,21 +9186,59 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                     return "{\"res\":200,\"msg\":\"Sequence closed.\"}";
                 }
 
+                auto force = val["force"].AsString() == "true";
+
                 if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
-                    return "{\"res\":504,\"msg\":\"Sequence has unsaved changes.\"}";
+                    if (force) {
+                        mSavedChangeCount = _sequenceElements.GetChangeCount();
+                    } else {
+                        return "{\"res\":504,\"msg\":\"Sequence has unsaved changes.\"}";
+                    }
                 }
 
                 AskCloseSequence();
                 return "{\"res\":200,\"msg\":\"Sequence closed.\"}";
 
-            } else if (cmd == "newSequence") {
+            } else if (cmd == "closexLights") {
+                auto force = val["force"].AsString() == "true";
 
+                if (CurrentSeqXmlFile != nullptr && mSavedChangeCount != _sequenceElements.GetChangeCount()) {
+                    if (force) {
+                        mSavedChangeCount = _sequenceElements.GetChangeCount();
+                    } else {
+                        return "{\"res\":504,\"msg\":\"Sequence has unsaved changes.\"}";
+                    }
+                }
+
+                if (UnsavedRgbEffectsChanges) {
+                    if (force) {
+                        UnsavedRgbEffectsChanges = false;
+                    } else {
+                        return "{\"res\":504,\"msg\":\"Layout has unsaved changes.\"}";
+                    }
+                }
+
+                if (UnsavedNetworkChanges) {
+                    if (force) {
+                        UnsavedNetworkChanges = false;
+                    } else {
+                        return "{\"res\":504,\"msg\":\"Controller has unsaved changes.\"}";
+                    }
+                }
+
+                wxCloseEvent evt;
+                wxPostEvent(this, evt);
+
+                return "{\"res\":200,\"msg\":\"xLights closed.\"}";
+
+            } else if (cmd == "newSequence") {
                 if (CurrentSeqXmlFile != nullptr && val["force"].AsString() != "true") {
                     return "{\"res\":504,\"msg\":\"Sequence already open.\"}";
                 }
 
                 auto media = val["mediaFile"].AsString();
-                if (media == "null") media = "";
+                if (media == "null")
+                    media = "";
                 auto duration = val["durationSecs"].AsLong() * 1000;
 
                 NewSequence(media, duration);
@@ -9211,7 +9246,6 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 return "{\"res\":200,\"msg\":\"Sequence created.\"}";
 
             } else if (cmd == "saveSequence") {
-
                 if (CurrentSeqXmlFile == nullptr) {
                     return "{\"res\":504,\"msg\":\"No sequence open.\"}";
                 }
@@ -9230,7 +9264,6 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 return "{\"res\":200,\"msg\":\"Sequence saved.\"}";
 
             } else if (cmd == "batchRender") {
-
                 wxArrayString files;
                 auto seqs = val["seqs"].AsArray();
                 for (size_t i = 0; i < seqs->Count(); i++) {
@@ -9256,7 +9289,6 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 return "{\"res\":200,\"msg\":\"Sequence batch rendered.\"}";
 
             } else if (cmd == "uploadController") {
-
                 auto ip = val["ip"].AsString();
                 Controller* c = _outputManager.GetControllerWithIP(ip);
                 if (c == nullptr) {
@@ -9283,7 +9315,6 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 return wxString::Format("{\"res\":504,\"msg\":\"Upload to controller %s failed.\"}", ip);
 
             } else if (cmd == "uploadFPPConfig") {
-
                 auto ip = val["ip"].AsString();
                 auto udp = val["udp"].AsString();
                 auto models = val["models"].AsString();
@@ -9331,7 +9362,6 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 return wxString::Format("{\"res\":200,\"msg\":\"Uploaded to FPP %s.\"}", ip);
 
             } else if (cmd == "uploadSequence") {
-
                 bool res = true;
                 auto ip = val["ip"].AsString();
                 auto media = (val["media"].AsString() == "true");
@@ -9428,9 +9458,7 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                         fpp->ClearTempFile();
                     }
                     delete seq;
-                }
-                else
-                {
+                } else {
                     return "{\"res\":504,\"msg\":\"Failed to generate FSEQ.\"}";
                 }
 
@@ -9441,7 +9469,6 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 return "{\"res\":200,\"msg\":\"Sequence uploaded.\"}";
 
             } else if (cmd == "checkSequence") {
-
                 auto seq = val["seq"].AsString();
                 if (!wxFile::Exists(seq)) {
                     return "{\"res\":504,\"msg\":\"Sequence not found.\"}";
@@ -9451,10 +9478,35 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 return wxString::Format("{\"res\":200,\"msg\":\"Sequence checked.\",\"output\":\"%s\"}", file);
 
             } else if (cmd == "changeShowFolder") {
-
                 auto shw = val["folder"].AsString();
                 if (!wxDir::Exists(shw)) {
                     return wxString::Format("{\"res\":504,\"msg\":\"Folder %s does not exist.\"}", shw);
+                }
+
+                auto force = val["force"].AsString() == "true";
+
+                if (CurrentSeqXmlFile != nullptr && mSavedChangeCount != _sequenceElements.GetChangeCount()) {
+                    if (force) {
+                        mSavedChangeCount = _sequenceElements.GetChangeCount();
+                    } else {
+                        return "{\"res\":504,\"msg\":\"Sequence has unsaved changes.\"}";
+                    }
+                }
+
+                if (UnsavedRgbEffectsChanges) {
+                    if (force) {
+                        UnsavedRgbEffectsChanges = false;
+                    } else {
+                        return "{\"res\":504,\"msg\":\"Layout has unsaved changes.\"}";
+                    }
+                }
+
+                if (UnsavedNetworkChanges) {
+                    if (force) {
+                        UnsavedNetworkChanges = false;
+                    } else {
+                        return "{\"res\":504,\"msg\":\"Controller has unsaved changes.\"}";
+                    }
                 }
 
                 displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
@@ -9464,16 +9516,29 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 return wxString::Format("{\"res\":200,\"msg\":\"Show folder changed to %s.\"}", shw);
 
             } else if (cmd == "openController") {
-
                 auto ip = val["ip"].AsString();
                 ::wxLaunchDefaultBrowser(ip);
-      
+
                 return "{\"res\":200,\"msg\":\"Controller opened.\"}";
 
             } else if (cmd == "openControllerProxy") {
-                return "{\"res\":504,\"msg\":\"Not implemented.\"}";
-                // TODO
-                // ip of the controller whose proxy we are to open
+                auto ip = val["ip"].AsString();
+                auto controller = _outputManager.GetControllerWithIP(ip);
+
+                if (controller == nullptr) {
+                    return "{\"res\":504,\"msg\":\"Controller not found.\"}";
+                }
+
+                auto proxy = controller->GetFPPProxy();
+
+                if (proxy == "") {
+                    return "{\"res\":504,\"msg\":\"Controller has no proxy.\"}";
+                }
+
+                ::wxLaunchDefaultBrowser(proxy);
+
+                return "{\"res\":200,\"msg\":\"Proxy opened.\"}";
+
             } else if (cmd == "runDiscovery") {
                 return "{\"res\":504,\"msg\":\"Not implemented.\"}";
                 // TODO
@@ -9486,10 +9551,18 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 // TODO
                 // pass in name of the file to write to ... pass back the name of the file written to
             } else if (cmd == "exportModelsCSV") {
-                return "{\"res\":504,\"msg\":\"Not implemented.\"}";
-                // MEDIUM PRIORITY
-                // TODO
-                // pass in name of the file to write to ... pass back the name of the file written to
+                auto filename = val["filename"].AsString();
+
+                if (filename == "" || filename == "null") {
+                    wxFileName f;
+                    f.AssignTempFileName("Models_");
+                    filename = f.GetFullPath();
+                }
+
+                ExportModels(filename);
+
+                return wxString::Format("{\"res\":200,\"msg\":\"Models Exported.\",\"output\":\"%s\"}", filename);
+
             } else if (cmd == "shiftAllEffects") {
                 return "{\"res\":504,\"msg\":\"Not implemented.\"}";
                 // TODO
@@ -9506,11 +9579,52 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
             } else if (cmd == "selectAllEffectsOnAllModels") {
                 return "{\"res\":504,\"msg\":\"Not implemented.\"}";
                 // TODO
-            } else if (cmd == "renderAndExportModel") {
-                return "{\"res\":504,\"msg\":\"Not implemented.\"}";
-                // MEDIUM PRIORITY
-                // TODO
-                // pass in model, format
+            } else if (cmd == "exportModel") {
+                if (CurrentSeqXmlFile == nullptr) {
+                    return "{\"res\":504,\"msg\":\"Sequence not open.\"}";
+                }
+
+                auto model = val["model"].AsString();
+                if (AllModels.GetModel(model) == nullptr) {
+                    return "{\"res\":504,\"msg\":\"Unknown model.\"}";
+                }
+
+                auto filename = val["filename"].AsString();
+                auto format = val["format"].AsString();
+
+                if (format == "lsp") {
+                    format = "LSP";
+                } else if (format == "lorclipboard") {
+                    format = "Lcb";
+                } else if (format == "lorclipboards5") {
+                    format = "LcbS5";
+                } else if (format == "vixenroutine") {
+                    format = "Vir";
+                } else if (format == "hls") {
+                    format = "HLS";
+                } else if (format == "eseq") {
+                    format = "FPP";
+                } else if (format == "eseqcompressed") {
+                    format = "FPPCompressed";
+                } else if (format == "avicompressed") {
+                    format = "Com";
+                } else if (format == "aviuncompressed") {
+                    format = "Unc";
+                } else if (format == "minleon") {
+                    format = "Min";
+                } else if (format == "gif") {
+                    format = "GIF";
+                } else {
+                    return "{\"res\":504,\"msg\":\"Unknown format.\"}";
+                }
+
+                if (DoExportModel(0, 0, model, filename, format, false)) {
+                    return "{\"res\":200,\"msg\":\"Model exported.\"}";
+
+                } else {
+                    return "{\"res\":504,\"msg\":\"Failed to export.\"}";
+                }
+
             } else if (cmd == "turnOnOutputToLights") {
                 return "{\"res\":504,\"msg\":\"Not implemented.\"}";
                 // TODO

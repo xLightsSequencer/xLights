@@ -9,10 +9,15 @@ Load a sequence
     {"cmd":"loadSequence", "seq":"filename", "promptIssues":"true|false"}
     
 Close a sequence
-    {"cmd":"closeSequence", "quiet":"true|false"}
+    {"cmd":"closeSequence", "quiet":"true|false", "force":"true|false"}
     
     Quiet when true will return success even if no sequence was open
     This command will fail if the sequence has unsaved changes
+
+Close xLights
+    {"cmd":"closexLights", "force":"true|false"}
+
+    if force is not true then it will fail if anything is unsaved
 
 New Sequence    
     {"cmd":"newSequence", "force":"true|false", "mediaFile":"media filename", "durationSecs":30}
@@ -47,7 +52,7 @@ Check sequence
     Open and check a sequence
     
 Change Show Folder
-    {"cmd":"changeShowFolder", "folder":"show folder"}
+    {"cmd":"changeShowFolder", "folder":"show folder", "force":"true|false"}
 
 Open Controller
     {"cmd":"openController", "ip":"ip address"}
@@ -59,3 +64,11 @@ Get xLights Version
 
     Gets the xLights version
 
+Export Models CSV
+    {"cmd":"exportModels", "filename":"file to create"}
+
+Export Model
+    {"cmd":"exportModel", "filename":"file to create", "model":"model to export", "format":"lsp|lorclipboard|lorclipboards5|vixenroutine|hls|eseq|eseqcompressed|avicompressed|aviuncompressed|minleon|gif"}
+    
+    This assumes the rendered model data is up to date
+    
