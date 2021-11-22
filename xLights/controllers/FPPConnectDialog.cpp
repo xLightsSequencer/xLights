@@ -53,6 +53,9 @@ const long FPPConnectDialog::ID_FPP_INSTANCE_LIST = wxNewId();
 static const long ID_POPUP_MNU_SORT_NAME = wxNewId();
 static const long ID_POPUP_MNU_SORT_IP = wxNewId();
 
+#define SORT_SEQ_NAME_COL 0
+#define SORT_SEQ_TIME_COL 1
+#define SORT_SEQ_MEDIA_COL 2
 
 BEGIN_EVENT_TABLE(FPPConnectDialog,wxDialog)
 	//(*EventTable(FPPConnectDialog)
@@ -155,9 +158,12 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     CheckListBox_Sequences->AppendColumn("Media", wxCOL_WIDTH_AUTOSIZE,
                                          wxALIGN_LEFT,
                                          wxCOL_RESIZABLE | wxCOL_SORTABLE);
-    CheckListBox_Sequences->SetSortColumn(0, true);
-    
-    
+
+    wxConfigBase* config = wxConfigBase::Get();
+    auto seqSortCol = config->ReadLong("xLightsFPPConnectSequenceSortCol", SORT_SEQ_NAME_COL);
+    auto seqSortOrder = config->ReadBool("xLightsFPPConnectSequenceSortOrder", true);
+    CheckListBox_Sequences->SetSortColumn(seqSortCol, seqSortOrder);
+        
     FlexGridSizer2->Replace(CheckListBoxHolder, CheckListBox_Sequences, true);
     
     CheckListBoxHolder->Destroy();
@@ -197,7 +203,6 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     prgs.Hide();
     GetFolderList(xLightsFrame::CurrentDir);
 
-    wxConfigBase* config = wxConfigBase::Get();
     if (config != nullptr) {
         int filterSelect = -1;
         wxString folderSelect = "";
@@ -238,6 +243,7 @@ void FPPConnectDialog::OnLocationPopupClick(wxCommandEvent &evt) {
         PopulateFPPInstanceList();
     }
 }
+
 void FPPConnectDialog::LocationPopupMenu(wxContextMenuEvent& event) {
     wxMenu mnu;
     mnu.Append(ID_POPUP_MNU_SORT_NAME, "Sort by Hostname");
@@ -447,6 +453,13 @@ void FPPConnectDialog::OnPopup(wxCommandEvent &event)
 
 FPPConnectDialog::~FPPConnectDialog()
 {
+    unsigned int sortCol = SORT_SEQ_NAME_COL;
+    bool ascendingOrder = 1;
+    wxConfigBase* config = wxConfigBase::Get();
+    CheckListBox_Sequences->GetSortColumn(&sortCol, &ascendingOrder);
+    config->Write("xLightsFPPConnectSequenceSortCol", sortCol);
+    config->Write("xLightsFPPConnectSequenceSortOrder", ascendingOrder);
+
 	//(*Destroy(FPPConnectDialog)
 	//*)
 
