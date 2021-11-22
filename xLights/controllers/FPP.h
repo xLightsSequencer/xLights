@@ -121,7 +121,7 @@ class FPP : public BaseController
     static bool ValidateProxy(const std::string& to, const std::string& via);
 
     static void TypeIDtoControllerType(int typeId, FPP* inst);
-    static std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager);
+    static std::list<FPP*> GetInstances(wxWindow* frame, OutputManager* outputManager);
 
 #ifndef DISCOVERYONLY
     static wxJSONValue CreateModelMemoryMap(ModelManager* allmodels);
