@@ -140,7 +140,7 @@ RemoteFalconMain.h: RemoteFalconOptions.h RemoteFalconApp.h
 
 RemoteFalconSettingsDialog.cpp: RemoteFalconSettingsDialog.h RemoteFalconOptions.h xSchedule.h
 
-xSchedule.h: RemoteFalconApp.h
+xSchedule.h: RemoteFalconApp.h RemoteFalconOptions.h
 
 RemoteFalconOptions.cpp: RemoteFalconOptions.h
 

@@ -29,6 +29,7 @@
 #include "UtilFunctions.h"
 #include "TraceLog.h"
 #include "ExternalHooks.h"
+#include "automation/automation.h"
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
@@ -330,6 +331,15 @@ int main(int argc, char **argv)
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
 
+    wxApp::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE, "program");
+    if (argc > 1) {
+        std::string argv1 = &argv[1][1];
+        if (argv1 == "xlDo") {
+            return DoXLDoCommands(argc - 1, &argv[1]);
+        }
+    }
+    
+    
     logger_base.info("Main: Starting wxWidgets ...");
     int rc =  wxEntry(argc, argv);
     logger_base.info("Main: wxWidgets exited with rc=" + wxString::Format("%d", rc));
@@ -728,7 +738,7 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "b", "bport", "turn on xFade B port" },
 #ifdef __LINUX__
         { wxCMD_LINE_SWITCH, "x", "xschedule", "run xschedule" },
-        { wxCMD_LINE_SWITCH, "a", "xsmsdaemon", "run xsmsdaemon" },
+        { wxCMD_LINE_SWITCH, "xs", "xsmsdaemon", "run xsmsdaemon" },
         { wxCMD_LINE_SWITCH, "c", "xcapture", "run xcapture" },
         { wxCMD_LINE_SWITCH, "f", "xfade", "run xfade" },
 #endif
@@ -749,12 +759,12 @@ bool xLightsApp::OnInit()
        wxString cmdlineF(appPath+wxT("/xFade"));
        wxString cmdlineM(appPath+wxT("/xSMSDaemon"));
         for (int i=1; i< argc;i++) {
-            if (strncmp(argv[i].c_str(), "-x", 2) == 0) {
+            if (strncmp(argv[i].c_str(), "-xs", 2) == 0) {
+                run_xsmsdaemon = TRUE;
+            } else if (strncmp(argv[i].c_str(), "-x", 2) == 0) {
                 run_xschedule = TRUE;
             } else if (strncmp(argv[i].c_str(), "-c", 2) == 0) {
                 run_xcapture = TRUE;
-            } else if (strncmp(argv[i].c_str(), "-a", 2) == 0) {
-                run_xsmsdaemon = TRUE;
             } else if (strncmp(argv[i].c_str(), "-f", 2) == 0) {
                 run_xfade = TRUE;
             } else {

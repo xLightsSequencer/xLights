@@ -151,14 +151,14 @@
   <ItemGroup>
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
-    <ClCompile Include="automation.cpp" />
+    <ClCompile Include="..\xLights\automation\automation.cpp" />
     <ClCompile Include="xlDo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonval.h" />
     <ClInclude Include="..\xSchedule\wxJSON\json_defs.h" />
-    <ClInclude Include="automation.h" />
+    <ClInclude Include="..\xLights\automation\automation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

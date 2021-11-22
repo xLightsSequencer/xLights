@@ -12,12 +12,14 @@
 
 #include "../opengl/xlGLCanvas.h"
 #include "wx/osx/private.h"
+#include "../xlGraphicsBase.h"
 
 BEGIN_EVENT_TABLE(xlMetalCanvas, wxMetalCanvas)
     EVT_SIZE(xlMetalCanvas::Resized)
     EVT_ERASE_BACKGROUND(xlMetalCanvas::OnEraseBackGround)  // Override to do nothing on this event
 END_EVENT_TABLE()
 
+#if !defined(FORCE_OPENGL_BASE)
 
 @interface wxNSCustomOpenGLView : NSOpenGLView
 {
@@ -63,6 +65,8 @@ END_EVENT_TABLE()
 
 @end
 
+#endif
+
 xlMetalCanvas::xlMetalCanvas(wxWindow *parent,
                              wxWindowID id,
                              const wxPoint& pos,
@@ -78,6 +82,7 @@ mIsInitialized(false),
 mName(name),
 fallback(nullptr)
 {
+#if !defined(FORCE_OPENGL_BASE)
     if (!wxPlatformInfo::Get().CheckOSVersion(10, 14)) {
         //We need a Metal supported graphics card.  Only 10.14 guarentees that so
         //If we aren't on 10.14 or better, we'll fall back to OpenGL
@@ -92,6 +97,7 @@ fallback(nullptr)
         MacPostControlCreate(pos, size);
         fallback->SetPeer(new wxWidgetCocoaImpl( this, v, wxWidgetImpl::Widget_UserKeyEvents | wxWidgetImpl::Widget_UserMouseEvents ));
     }
+#endif
 }
 
 

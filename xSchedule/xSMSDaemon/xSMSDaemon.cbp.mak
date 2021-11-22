@@ -174,6 +174,10 @@ MagicWord.cpp: MagicWord.h SMSMessage.h xSMSDaemonApp.h
 
 SMSMessage.h: Curl.h
 
+Curl.h: curl.h
+
+curl.h: curl.h
+
 xSMSDaemonApp.cpp: xSMSDaemonMain.h xSMSDaemonApp.h
 
 xSMSDaemonMain.h: SMSService.h SMSDaemonOptions.h xSMSDaemonApp.h

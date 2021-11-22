@@ -225,7 +225,6 @@ MetalComputeUtilities::MetalComputeUtilities() {
         if (device == nil) {
             device = MTLCreateSystemDefaultDevice();
         }
-        NSLog(@"Using Metal Device: %@", [device name]);
         if (device.argumentBuffersSupport == MTLArgumentBuffersTier1) {
             device = nil;
             return;

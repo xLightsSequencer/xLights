@@ -734,6 +734,9 @@
 		<Unit filename="WiringDialog.cpp" />
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="automation/automation.cpp" />
+		<Unit filename="automation/automation.h" />
+		<Unit filename="automation/xLightsAutomations.cpp" />
 		<Unit filename="cad/CADModel.cpp" />
 		<Unit filename="cad/CADModel.h" />
 		<Unit filename="cad/CADPoint.h" />

@@ -255,6 +255,7 @@
 			<Add directory="$(#wx)/include" />
 		</ResourceCompiler>
 		<Unit filename="xlDo.cpp" />
+        <Unit filename="../xLights/automation/automation.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonreader.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonreader.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonval.cpp" />
