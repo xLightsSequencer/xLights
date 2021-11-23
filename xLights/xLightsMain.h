@@ -1092,10 +1092,10 @@ public:
     const wxString& UserEMAIL() const { return _userEmail; }
     void SetUserEMAIL(const wxString &e);
 
-    const wxString& LinkedSave() const { return _linkedSave; }
+    const wxString& GetLinkedSave() const { return _linkedSave; }
     void SetLinkedSave(const wxString& e);
 
-    const wxString& LinkedControllerUpload() const { return _linkedControllerUpload; }
+    const wxString& GetLinkedControllerUpload() const { return _linkedControllerUpload; }
     void SetLinkedControllerUpload(const wxString& e);
 
     int SaveFSEQVersion() const { return _fseqVersion; }

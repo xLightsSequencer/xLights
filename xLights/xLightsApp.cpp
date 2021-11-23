@@ -29,7 +29,10 @@
 #include "UtilFunctions.h"
 #include "TraceLog.h"
 #include "ExternalHooks.h"
+
+#ifndef __WXMSW__
 #include "automation/automation.h"
+#endif
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
@@ -331,6 +334,7 @@ int main(int argc, char **argv)
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
 
+    #ifndef __WXMSW__
     wxApp::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE, "program");
     if (argc > 1) {
         std::string argv1 = &argv[1][1];
@@ -338,7 +342,7 @@ int main(int argc, char **argv)
             return DoXLDoCommands(argc - 1, &argv[1]);
         }
     }
-    
+    #endif
     
     logger_base.info("Main: Starting wxWidgets ...");
     int rc =  wxEntry(argc, argv);
