@@ -128,7 +128,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     //repurpose ShaderCheckbox for GPU rendering
     if (isMetalComputeSupported()) {
         ShaderCheckbox->SetLabel("Experimental GPU Rendering");
-        ShaderCheckbox->SetToolTip("Some effects (currently just Butterfly type 1) can be rendered on the GPU if this is enabled. This is HIGHLY experimental at this point.");
+        ShaderCheckbox->SetToolTip("Some effects (currently just Butterfly and Blur) can be rendered on the GPU if this is enabled. This is HIGHLY experimental at this point.");
     } else {
         ShaderCheckbox->Hide();
     }
@@ -168,7 +168,7 @@ bool OtherSettingsPanel::TransferDataToWindow() {
 #else
     ShaderCheckbox->SetValue(frame->ShadersOnBackgroundThreads());
 #endif
-    eMailTextControl->SetValue(frame->UserEMAIL());
+    eMailTextControl->ChangeValue(frame->UserEMAIL());
 	Choice_LinkSave->SetStringSelection(frame->GetLinkedSave());
 	Choice_LinkControllerUpload->SetStringSelection(frame->GetLinkedControllerUpload());
 	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
