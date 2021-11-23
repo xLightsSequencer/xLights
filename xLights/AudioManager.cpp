@@ -1798,7 +1798,9 @@ void AudioManager::PrepareFrameData(bool separateThread)
 {
     //if frame data is already being processed, wait for that one to finish, otherwise
     //_prepFrameData will get overwritten with a new future and the old will be lost
-    if (_prepFrameData.valid()) _prepFrameData.wait();
+    if (_prepFrameData.valid()) {
+        _prepFrameData.wait();
+    }
 	if (separateThread) {
         if (!_frameDataPrepared || _frameDataPreparedForInterval != _intervalMS) {
             _prepFrameData = std::async(std::launch::async, [this]() {DoPrepareFrameData(); });
@@ -2143,7 +2145,9 @@ AudioManager::~AudioManager()
     }
 
     // wait for async tasks to finish
-    _loadingAudio.wait();
+    if (_loadingAudio.valid()) {
+        _loadingAudio.wait();
+    }
     if (_prepFrameData.valid()) _prepFrameData.wait();
 
     if (_pcmdata != nullptr) {
