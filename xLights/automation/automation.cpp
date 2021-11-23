@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "automation.h"
 
 #include "wx/wx.h"
@@ -9,15 +19,19 @@
 #include "../../xSchedule/wxJSON/jsonreader.h"
 
 #include <wx/sckaddr.h>
+
 #ifdef __WXMSW__
+
 #include <wx/socket.h>
-typedef xlDoSocket wxSocketClient
+
+typedef wxSocketClient xlDoSocket;
+
 bool DoConnect(xlDoSocket &sock, const wxString& ipAddress, int port)  {
     wxIPV4address addr;
     addr.Hostname(ipAddress);
     addr.Service(port);
 
-    retrun sock.Connect(addr));
+    return sock.Connect(addr);
 }
 
 #else
@@ -313,6 +327,9 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
                 }
 
                 xlDo_Output(script, "{\"res\":200,\"msg\":\"xLights started.\"}", verbose);
+
+                wxSleep(5); // sleep briefly to give xLights a chance to start properly so any subsequent commands work ok
+
                 return 0;
             }
         }

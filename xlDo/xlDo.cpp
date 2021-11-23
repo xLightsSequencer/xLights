@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
 
@@ -38,5 +48,11 @@ int main(int argc, char **argv)
     }
     #endif
     
-    return DoXLDoCommands(argc, argv)
+    wxInitializer initializer;
+    if (!initializer) {
+        fprintf(stderr, "\u001b[31;1mFailed to initialize the wxWidgets library, aborting.\u001b[0m\n");
+        return 1;
+    }
+
+    return DoXLDoCommands(argc, argv);
 }
