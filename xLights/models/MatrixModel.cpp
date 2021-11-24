@@ -92,6 +92,8 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
 void MatrixModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     grid->Append(new wxEnumProperty("Direction", "MatrixStyle", MATRIX_STYLES, vMatrix ? 1 : 0));
+    wxPGProperty *p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
+    p->SetEditor("CheckBox");
 }
 
 int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -144,6 +146,14 @@ int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::OnPropertyGridChange::MatrixStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::MatrixStart");
+        return 0;
+    } else if (event.GetPropertyName() == "AlternateNodes") {
+        ModelXml->DeleteAttribute("AlternateNodes");
+        ModelXml->AddAttribute("AlternateNodes", event.GetPropertyValue().GetBool() ? "true" : "false");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::AlternateNodes");
         return 0;
     }
 
@@ -209,6 +219,7 @@ void MatrixModel::InitSingleChannelModel()
 }
 
 void MatrixModel::InitModel() {
+    _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
     if (DisplayAs == "Vert Matrix") {
         InitVMatrix();
     } else if (DisplayAs == "Horiz Matrix") {
@@ -299,8 +310,24 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
                 int idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
                 Nodes[idx]->ActChan = strandStartChan[x] + y*chanPerNode;
                 Nodes[idx]->Coords[0].bufX=IsLtoR ? x : NumStrands-x-1;
-                Nodes[idx]->Coords[0].bufY= isBotToTop == (segmentnum % 2 == 0) ? y:PixelsPerStrand-y-1;
                 Nodes[idx]->StringNum=stringnum;
+                if (_alternateNodes) {
+                  if (isBotToTop) {
+                    if (y + 1 <= (PixelsPerStrand + 1) / 2) {
+                      Nodes[idx]->Coords[0].bufY = y * 2;
+                    } else {
+                      Nodes[idx]->Coords[0].bufY = ((PixelsPerStrand - (y + 1)) * 2 + 1);
+                    }
+                  } else {
+                    if (y + 1 <= (PixelsPerStrand + 1) / 2) {
+                      Nodes[idx]->Coords[0].bufY = (PixelsPerStrand - 1) - (y * 2);
+                    } else {
+                      Nodes[idx]->Coords[0].bufY = (PixelsPerStrand - 1) - ((PixelsPerStrand - (y + 1)) * 2 + 1);
+                    }
+                  }
+                } else {
+                  Nodes[idx]->Coords[0].bufY= isBotToTop == (segmentnum % 2 == 0) ? y:PixelsPerStrand-y-1;
+                }
             }
         }
         CopyBufCoord2ScreenCoord();
@@ -400,6 +427,7 @@ void MatrixModel::ExportXlightsModel()
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
     wxString da = ModelXml->GetAttribute("DisplayAs");
+    wxString an = ModelXml->GetAttribute("AlternateNodes", "false");
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<matrixmodel \n");
     f.Write(wxString::Format("name=\"%s\" ", name));
@@ -416,6 +444,7 @@ void MatrixModel::ExportXlightsModel()
     f.Write(wxString::Format("Dir=\"%s\" ", dir));
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
