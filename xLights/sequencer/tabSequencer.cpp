@@ -506,7 +506,11 @@ void xLightsFrame::CheckForValidModels()
 
     bool mapall = false;
     if (missingModelCount > 7) {
-        auto msg = wxString::Format("Sequence you are opening contains %d models which are not in your layout. We suggest you import this sequence instead. Do you want to continue to open it?", (int)missingModelCount);
+        std::string seqName = "No Name";
+        if (CurrentSeqXmlFile != nullptr) {
+            seqName = CurrentSeqXmlFile->GetFullName();
+        }
+        auto msg = wxString::Format("Sequence you are opening '%s' contains %d models which are not in your layout. We suggest you import this sequence instead. Do you want to continue to open it?", seqName, (int)missingModelCount);
         if (wxMessageBox(msg, "Many missing models in this sequence", wxYES_NO) == wxNO) {
             mapall = true;
         }
