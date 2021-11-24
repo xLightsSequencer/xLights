@@ -682,6 +682,12 @@ void PlayListItemFSEQVideo::Start(long stepLengthMS)
         }
     }
 
+    if (_audioManager != nullptr) {
+        if (_volume != -1) {
+            _audioManager->SetVolume(_volume);
+        }
+    }
+
     // create the window
     if (_useMediaPlayer) {
         if (_frame == nullptr) {

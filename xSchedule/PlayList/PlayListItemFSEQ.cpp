@@ -555,20 +555,21 @@ void PlayListItemFSEQ::Start(long stepLengthMS)
     // load the audio
     LoadFiles();
 
-    if (_fseqFile != nullptr)
-    {
+    if (_fseqFile != nullptr) {
         _fseqFile->prepareRead({ { 0, _fseqFile->getMaxChannel() + 1 } });
     }
 
-    if (ControlsTiming() && _audioManager != nullptr)
-    {
-        if (_delay == 0)
-        {
+    if (ControlsTiming() && _audioManager != nullptr) {
+        if (_delay == 0) {
             _audioManager->Play(0, _audioManager->LengthMS());
-        }
-        else
-        {
+        } else {
             _audioManager->Seek(0);
+        }
+    }
+
+    if (_audioManager != nullptr) {
+        if (_volume != -1) {
+            _audioManager->SetVolume(_volume);
         }
     }
 
