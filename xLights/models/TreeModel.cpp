@@ -36,6 +36,7 @@ TreeModel::~TreeModel()
 }
 
 void TreeModel::InitModel() {
+    _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
     wxStringTokenizer tkz(DisplayAs, " ");
     wxString token = tkz.GetNextToken();
 
@@ -365,6 +366,9 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
+
+    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
+    p->SetEditor("CheckBox");
 }
 
 void TreeModel::ExportXlightsModel()
@@ -393,9 +397,11 @@ void TreeModel::ExportXlightsModel()
     wxString tp = ModelXml->GetAttribute("TreePerspective", "0.2");
     wxString tr = ModelXml->GetAttribute("TreeRotation", "3");
     wxString tsr = ModelXml->GetAttribute("TreeSpiralRotations", "0.0");
-
+    wxString an = ModelXml->GetAttribute("AlternateNodes", "false");
     wxString v = xlights_version_string;
+
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<treemodel \n");
+    f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
     f.Write(wxString::Format("name=\"%s\" ", name));
     f.Write(wxString::Format("parm1=\"%s\" ", p1));
     f.Write(wxString::Format("parm2=\"%s\" ", p2));
@@ -471,6 +477,7 @@ void TreeModel::ImportXlightsModel(std::string const& filename, xLightsFrame* xl
             wxString pc = root->GetAttribute("PixelCount");
             wxString pt = root->GetAttribute("PixelType");
             wxString psp = root->GetAttribute("PixelSpacing");
+            wxString an = root->GetAttribute("AlternateNodes");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
@@ -495,6 +502,7 @@ void TreeModel::ImportXlightsModel(std::string const& filename, xLightsFrame* xl
             SetProperty("PixelCount", pc);
             SetProperty("PixelType", pt);
             SetProperty("PixelSpacing", psp);
+            SetProperty("AlternateNodes", an);
 
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             GetModelScreenLocation().Write(ModelXml);

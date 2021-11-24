@@ -43,5 +43,6 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void InitHMatrix();
     
         bool vMatrix = false;
+        bool _alternateNodes = false;
     private:
 };
