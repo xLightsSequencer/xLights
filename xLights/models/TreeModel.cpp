@@ -367,7 +367,7 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
 
-    wxPGProperty *p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
+    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
     p->SetEditor("CheckBox");
 }
 
