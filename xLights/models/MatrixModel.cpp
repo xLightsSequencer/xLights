@@ -498,6 +498,7 @@ void MatrixModel::ImportXlightsModel(std::string const& filename, xLightsFrame* 
             wxString pc = root->GetAttribute("PixelCount");
             wxString pt = root->GetAttribute("PixelType");
             wxString psp = root->GetAttribute("PixelSpacing");
+            wxString an = root->GetAttribute("AlternateNodes");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
@@ -518,6 +519,7 @@ void MatrixModel::ImportXlightsModel(std::string const& filename, xLightsFrame* 
             SetProperty("PixelCount", pc);
             SetProperty("PixelType", pt);
             SetProperty("PixelSpacing", psp);
+            SetProperty("AlternateNodes", an);
 
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             GetModelScreenLocation().Write(ModelXml);
