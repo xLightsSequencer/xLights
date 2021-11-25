@@ -551,6 +551,7 @@
     <ClCompile Include="RenderProgressDialog.cpp" />
     <ClCompile Include="ResizeImageDialog.cpp" />
     <ClCompile Include="SaveChangesDialog.cpp" />
+    <ClCompile Include="ScriptsDialog.cpp" />
     <ClCompile Include="SelectPanel.cpp" />
     <ClCompile Include="SelectTimingsDialog.cpp" />
     <ClCompile Include="SeqElementMismatchDialog.cpp" />
@@ -992,6 +993,7 @@
     <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="ResizeImageDialog.h" />
     <ClInclude Include="SaveChangesDialog.h" />
+    <ClInclude Include="ScriptsDialog.h" />
     <ClInclude Include="SelectPanel.h" />
     <ClInclude Include="SelectTimingsDialog.h" />
     <ClInclude Include="SeqElementMismatchDialog.h" />

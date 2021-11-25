@@ -918,6 +918,7 @@
     <ClCompile Include="graphics\xlFontInfo.cpp" />
     <ClCompile Include="automation\automation.cpp" />
     <ClCompile Include="automation\xLightsAutomations.cpp" />
+    <ClCompile Include="ScriptsDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1848,6 +1849,7 @@
     <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
     <ClInclude Include="graphics\xlFontInfo.h" />
     <ClInclude Include="automation\automation.h" />
+    <ClInclude Include="ScriptsDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

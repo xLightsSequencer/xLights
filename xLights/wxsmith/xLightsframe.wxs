@@ -1149,6 +1149,10 @@
 					<label>HinksPix Export</label>
 					<handler function="OnMenuItemHinksPixExportSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MENU_RUN_SCRIPT" variable="MenuItemRunScript" member="yes">
+					<label>Run Scripts</label>
+					<handler function="OnMenuItemRunScriptSelected" entry="EVT_MENU" />
+				</object>
 				<object class="separator" />
 				<object class="wxMenuItem" name="ID_EXPORT_MODELS" variable="mExportModelsMenuItem" member="yes">
 					<label>E&amp;xport Models</label>

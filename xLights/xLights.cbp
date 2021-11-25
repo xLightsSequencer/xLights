@@ -1218,6 +1218,8 @@
 			<Option target="64bit MinGW_Release" />
 			<Option target="64bit MinGW_Debug" />
 		</Unit>
+		<Unit filename="sequencer/ScriptsDialog.cpp" />
+		<Unit filename="sequencer/ScriptsDialog.h" />
 		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
 		<Unit filename="sequencer/DragEffectBitmapButton.h" />
 		<Unit filename="sequencer/Effect.cpp" />
@@ -1399,6 +1401,7 @@
 		<Unit filename="wxsmith/RenderProgressDialog.wxs" />
 		<Unit filename="wxsmith/ResizeImageDialog.wxs" />
 		<Unit filename="wxsmith/RipplePanel.wxs" />
+		<Unit filename="wxsmith/ScriptsDialog.wxs" />
 		<Unit filename="wxsmith/SaveChangesDialog.wxs" />
 		<Unit filename="wxsmith/SelectPanel.wxs" />
 		<Unit filename="wxsmith/SelectTimingsDialog.wxs" />
@@ -1655,6 +1658,7 @@
 					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MediaImportOptionsDialog.wxs" src="MediaImportOptionsDialog.cpp" hdr="MediaImportOptionsDialog.h" fwddecl="0" i18n="1" name="MediaImportOptionsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ScriptsDialog.wxs" src="ScriptsDialog.cpp" hdr="ScriptsDialog.h" fwddecl="0" i18n="1" name="ScriptsDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

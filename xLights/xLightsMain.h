@@ -81,6 +81,7 @@
 #include "OutputModelManager.h"
 #include "models/Model.h"
 #include "SequencePackage.h"
+#include "ScriptsDialog.h"
 
 class wxDebugReport;
 
@@ -581,6 +582,7 @@ public:
     void OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent& event);
     void OnMenuItem_xScannerSelected(wxCommandEvent& event);
     void OnButton_OpenProxyClick(wxCommandEvent& event);
+    void OnMenuItemRunScriptSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -706,6 +708,7 @@ public:
     static const long ID_MENU_FPP_CONNECT;
     static const long ID_MNU_BULKUPLOAD;
     static const long ID_MENU_HINKSPIX_EXPORT;
+    static const long ID_MENU_RUN_SCRIPT;
     static const long ID_EXPORT_MODELS;
     static const long ID_MNU_EXPORT_EFFECTS;
     static const long ID_MNU_EXPORT_CONTROLLER_CONNECTIONS;
@@ -855,6 +858,7 @@ public:
     wxMenuItem* MenuItemEffectAssistWindow;
     wxMenuItem* MenuItemHinksPixExport;
     wxMenuItem* MenuItemLoadEditPerspective;
+    wxMenuItem* MenuItemRunScript;
     wxMenuItem* MenuItemSelectEffect;
     wxMenuItem* MenuItemShiftEffects;
     wxMenuItem* MenuItemShiftSelectedEffects;
@@ -1557,6 +1561,7 @@ private:
     EffectsPanel* EffectsPanel1 = nullptr;
     SelectPanel *_selectPanel = nullptr;
     SequenceVideoPanel* sequenceVideoPanel = nullptr;
+    std::unique_ptr<ScriptsDialog> _scriptsDialog;
     int mMediaLengthMS;
 
     bool mSequencerInitialize = false;

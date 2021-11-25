@@ -226,6 +226,7 @@ const long xLightsFrame::ID_MENU_BATCH_RENDER = wxNewId();
 const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
 const long xLightsFrame::ID_MNU_BULKUPLOAD = wxNewId();
 const long xLightsFrame::ID_MENU_HINKSPIX_EXPORT = wxNewId();
+const long xLightsFrame::ID_MENU_RUN_SCRIPT = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_CONTROLLER_CONNECTIONS = wxNewId();
@@ -842,6 +843,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Menu1->Append(MenuItemBulkControllerUpload);
     MenuItemHinksPixExport = new wxMenuItem(Menu1, ID_MENU_HINKSPIX_EXPORT, _("HinksPix Export"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItemHinksPixExport);
+    MenuItemRunScript = new wxMenuItem(Menu1, ID_MENU_RUN_SCRIPT, _("Run Scripts"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItemRunScript);
     Menu1->AppendSeparator();
     mExportModelsMenuItem = new wxMenuItem(Menu1, ID_EXPORT_MODELS, _("E&xport Models"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(mExportModelsMenuItem);
@@ -1102,6 +1105,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(ID_MENU_FPP_CONNECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
     Connect(ID_MNU_BULKUPLOAD,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBulkControllerUploadSelected);
     Connect(ID_MENU_HINKSPIX_EXPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemHinksPixExportSelected);
+    Connect(ID_MENU_RUN_SCRIPT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRunScriptSelected);
     Connect(ID_EXPORT_MODELS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmExportModelsMenuItemSelected);
     Connect(ID_MNU_EXPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportEffectsSelected);
     Connect(ID_MNU_EXPORT_CONTROLLER_CONNECTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected);
@@ -1369,6 +1373,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
     modelPreview = layoutPanel->GetMainPreview();
     logger_base.debug("LayoutPanel setup done.");
+
+
 
 
     playIcon = wxBitmap(control_play_blue_icon);
@@ -10119,4 +10125,12 @@ void xLightsFrame::ReplaceModelWithModelFixGroups(const std::string& oldModel, c
             mg->ModelRenamed(newModel, oldModel);
         }
     }
+}
+
+void xLightsFrame::OnMenuItemRunScriptSelected(wxCommandEvent& event)
+{
+    if (!_scriptsDialog) {
+        _scriptsDialog = std::make_unique<ScriptsDialog>(this);
+    }
+    _scriptsDialog->Show();
 }
