@@ -1218,8 +1218,8 @@
 			<Option target="64bit MinGW_Release" />
 			<Option target="64bit MinGW_Debug" />
 		</Unit>
-		<Unit filename="sequencer/ScriptsDialog.cpp" />
-		<Unit filename="sequencer/ScriptsDialog.h" />
+		<Unit filename="ScriptsDialog.cpp" />
+		<Unit filename="ScriptsDialog.h" />
 		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
 		<Unit filename="sequencer/DragEffectBitmapButton.h" />
 		<Unit filename="sequencer/Effect.cpp" />
