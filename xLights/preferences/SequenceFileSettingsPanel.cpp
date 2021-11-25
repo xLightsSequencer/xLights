@@ -101,6 +101,7 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	FSEQVersionChoice->SetSelection( FSEQVersionChoice->Append(_("V2 ZSTD (Default)")) );
 	FSEQVersionChoice->Append(_("V2 Uncompressed"));
 	FSEQVersionChoice->Append(_("V2 ZLIB"));
+    FSEQVersionChoice->Append(_("V2 ZSTD/sparse"));
 	GridBagSizer1->Add(FSEQVersionChoice, wxGBPosition(8, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Render Cache Directory"));
 	CheckBox_RenderCache = new wxCheckBox(this, ID_CHECKBOX6, _("Use Show Folder"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));

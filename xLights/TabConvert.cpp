@@ -1473,7 +1473,19 @@ void xLightsFrame:: ReadXlightsFile(const wxString& FileName, wxString *mediaFil
     f.Close();
 }
 
-void xLightsFrame:: WriteFalconPiFile(const wxString& filename)
+static void addRanges(Model *m, std::map<uint32_t, uint32_t> &ranges) {
+    ModelGroup *grp = dynamic_cast<ModelGroup*>(m);
+    if (grp != nullptr) {
+        for (auto m2 : grp->Models()) {
+            addRanges(m2, ranges);
+        }
+    } else {
+        uint32_t cur = ranges[m->GetFirstChannel()];
+        ranges[m->GetFirstChannel()] = std::max(m->GetChanCount(), cur);
+    }
+}
+
+void xLightsFrame::WriteFalconPiFile(const wxString& filename, bool allowSparse)
 {
     ConvertParameters write_params(filename,                                     // filename
                                    _seqData,                                      // sequence data object
@@ -1485,6 +1497,45 @@ void xLightsFrame:: WriteFalconPiFile(const wxString& filename)
                                    &mediaFilename, // media filename
                                    nullptr,
                                    filename);
+    
+    if (allowSparse) {
+        std::map<uint32_t, uint32_t> ranges;
+        int numElements = _sequenceElements.GetElementCount();
+        for(int i = 0; i < numElements; ++i) {
+            Element* element = _sequenceElements.GetElement(i);
+            if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                std::string modelName = element->GetModelName();
+                Model *m = this->GetModel(modelName);
+                addRanges(m, ranges);
+            }
+        }
+        
+        uint32_t gapEliminate = 0; // set if we want to eliminate gaps
+        std::pair<uint32_t, uint32_t> cur(INT_MAX, INT_MAX);
+        for (auto& a : ranges) {
+            if (cur.first == INT_MAX) {
+                cur.first = a.first;
+                cur.second = a.second;
+            } else {
+                if (a.first <= (cur.first + cur.second + gapEliminate)) {
+                    // overlap or within 1025 channels of an overlap, need to combine
+                    // if the two ranges are "close" (wthin 1025 channels) we'll combine
+                    // as the overhead of doing ranges wouldn't benefit with a small gap
+                    uint32_t max = cur.first + cur.second - 1;
+                    uint32_t amax = a.first + a.second - 1;
+                    max = std::max(max, amax);
+                    cur.second = max - cur.first + 1;
+                } else {
+                    write_params.ranges.push_back(cur);
+                    cur.first = a.first;
+                    cur.second = a.second;
+                }
+            }
+        }
+        if (cur.first != INT_MAX) {
+            write_params.ranges.push_back(cur);
+        }
+    }
 
     FileConverter::WriteFalconPiFile(write_params);
 }

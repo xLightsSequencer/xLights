@@ -1277,13 +1277,11 @@ void xLightsFrame::SaveSequence()
 
     std::unique_lock<std::mutex> lock(saveLock);
 
-    if (xlightsFilename.IsEmpty())
-    {
+    if (xlightsFilename.IsEmpty()) {
         wxString NewFilename;
 
         wxString startname = CurrentSeqXmlFile->GetName();
-        if (startname.IsEmpty() && !CurrentSeqXmlFile->GetMediaFile().empty() )
-        {
+        if (startname.IsEmpty() && !CurrentSeqXmlFile->GetMediaFile().empty()) {
             startname = wxFileName(CurrentSeqXmlFile->GetMediaFile()).GetName();
         }
 
@@ -1295,18 +1293,15 @@ void xLightsFrame::SaveSequence()
                         wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
         bool ok;
-        do
-        {
-            if (fd.ShowModal() != wxID_OK)
-            {
+        do {
+            if (fd.ShowModal() != wxID_OK) {
                 return;
             }
             // validate inputs
             NewFilename=fd.GetPath();
             NewFilename.Trim();
             ok=true;
-            if (NewFilename.IsEmpty())
-            {
+            if (NewFilename.IsEmpty()) {
                 ok=false;
                 DisplayError("File name cannot be empty", this);
             }
@@ -1350,8 +1345,7 @@ void xLightsFrame::SaveSequence()
     CurrentSeqXmlFile->Save(_sequenceElements);
     logger_base.info("XSQ file done.");
 
-    if (mBackupOnSave)
-    {
+    if (mBackupOnSave) {
         DoBackup(false);
     }
 
@@ -1399,7 +1393,7 @@ void xLightsFrame::SaveSequence()
 
             SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
             WriteFalconPiFile(xlightsFilename);
-            logger_base.info("fseq file done.");
+            logger_base.info("fseq file done.", true);
             DisplayXlightsFilename(xlightsFilename);
             float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
             wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
@@ -1414,7 +1408,7 @@ void xLightsFrame::SaveSequence()
     wxString display_name;
     if (mSaveFseqOnSave) {
         SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
-        WriteFalconPiFile(xlightsFilename);
+        WriteFalconPiFile(xlightsFilename, true);
         logger_base.info("fseq file done.");
         DisplayXlightsFilename(xlightsFilename);
         display_name = xlightsFilename;

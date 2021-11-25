@@ -124,6 +124,7 @@
 						<item>V2 ZSTD (Default)</item>
 						<item>V2 Uncompressed</item>
 						<item>V2 ZLIB</item>
+                        <item>V2 ZSTD/sparse</item>
 					</content>
 					<selection>1</selection>
 					<handler function="OnFSEQVersionChoiceSelect" entry="EVT_CHOICE" />

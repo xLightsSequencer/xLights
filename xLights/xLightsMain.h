@@ -1276,7 +1276,7 @@ public:
     void WriteLSPFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf, int cpn);  //      LSP UserPatterns.xml
     void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = nullptr);
     void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg);
-    void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
+    void WriteFalconPiFile(const wxString& filename, bool allowSparse = true); //  Falcon Pi Player *.fseq
     OutputManager* GetOutputManager() { return &_outputManager; };
     OutputModelManager* GetOutputModelManager() { return&_outputModelManager; }
     void WriteGIFForPreset(const std::string& preset);
