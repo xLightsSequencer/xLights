@@ -31,6 +31,7 @@
 #include "../UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
+#include <thread>
 
 #pragma region V4
 

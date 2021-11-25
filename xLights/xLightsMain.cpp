@@ -34,6 +34,7 @@
 
 #include <cctype>
 #include <cstring>
+#include <thread>
 
 #include "xLightsMain.h"
 #include "SplashDialog.h"

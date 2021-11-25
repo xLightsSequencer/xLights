@@ -13,6 +13,7 @@
 #include <map>
 #include <string.h>
 #include <cctype>
+#include <thread>
 
 #include <curl/curl.h>
 
