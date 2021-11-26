@@ -97,8 +97,8 @@ void StarModel::GetBufferSize(const std::string& type, const std::string& camera
         AdjustForTransform(transform, BufferWi, BufferHi);
     }
     else if (SingleChannel || SingleNode) {
-        BufferWi = GetNumStrands();
-        BufferHi = 1;
+        BufferHi = GetNumStrands();
+        BufferWi = 1;
         AdjustForTransform(transform, BufferWi, BufferHi);
     }
     else {
@@ -162,13 +162,13 @@ void StarModel::InitRenderBufferNodes(const std::string& type,
         // and all nodes should point to one cell.
         // Without this change effects like twinkle do really strange things
         Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
-        BufferWi = Nodes.size();
-        BufferHi = 1;
+        BufferHi = Nodes.size();
+        BufferWi = 1;
         int x = 0;
         for (auto& it : Nodes) {
             for (auto& it2 : it->Coords) {
-                it2.bufX = x;
-                it2.bufY = 0;
+                it2.bufX = 0;
+                it2.bufY = x;
             }
             x++;
         }
