@@ -50,6 +50,7 @@
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
+    #pragma comment(lib, "libcurl_debug.lib")
     #pragma comment(lib, "wxbase31ud.lib")
     #pragma comment(lib, "wxbase31ud_net.lib")
     #pragma comment(lib, "wxmsw31ud_core.lib")
@@ -71,6 +72,7 @@
     #pragma comment(lib, "liquidfund.lib")
     #pragma comment(lib, "libzstdd_static_VS.lib")
 #else
+    #pragma comment(lib, "libcurl.lib")
     #pragma comment(lib, "wxbase31u.lib")
     #pragma comment(lib, "wxbase31u_net.lib")
     #pragma comment(lib, "wxmsw31u_core.lib")
@@ -92,7 +94,6 @@
     #pragma comment(lib, "liquidfun.lib")
     #pragma comment(lib, "libzstd_static_VS.lib")
 #endif
-#pragma comment(lib, "libcurl.lib")
 #pragma comment(lib, "z.lib")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "WS2_32.Lib")
