@@ -21,6 +21,18 @@
 #include "../controllers/Falcon.h"
 #include "../../xSchedule/wxJSON/jsonreader.h"
 #include "../../xSchedule/wxJSON/jsonwriter.h"
+#include "../UtilFunctions.h"
+
+std::string xLightsFrame::FindSequence(const std::string& seq)
+{
+    if (wxFile::Exists(seq))
+        return seq;
+
+    if (wxFile::Exists(CurrentDir + wxFileName::GetPathSeparator() + seq))
+        return CurrentDir + wxFileName::GetPathSeparator() + seq;
+    
+    return "";
+}
 
 std::string xLightsFrame::ProcessAutomation(const std::string& msg)
 {
@@ -43,7 +55,8 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
 
             } else if (cmd == "loadSequence") {
                 auto seq = val["seq"].AsString();
-                if (!wxFile::Exists(seq)) {
+                seq = FindSequence(seq);
+                if (seq == "") {
                     return "{\"res\":504,\"msg\":\"Sequence not found.\"}";
                 }
 
@@ -148,8 +161,9 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 auto seqs = val["seqs"].AsArray();
                 for (size_t i = 0; i < seqs->Count(); i++) {
                     auto seq = seqs->Item(i).AsString();
-                    if (!wxFile::Exists(seq)) {
-                        return wxString::Format("{\"res\":504,\"msg\":\"Sequence not found '%s'.\"}", seq);
+                    seq = FindSequence(seq);
+                    if (seq == "") {
+                        return wxString::Format("{\"res\":504,\"msg\":\"Sequence not found '%s'.\"}", seqs->Item(i).AsString());
                     }
                     files.push_back(seq);
                 }
@@ -246,10 +260,15 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 auto ip = val["ip"].AsString();
                 auto media = (val["media"].AsString() == "true");
                 auto format = val["format"].AsString();
-                auto fseq = val["seq"].AsString();
+                auto xsq = val["seq"].AsString();
+                xsq = FindSequence(xsq);
 
-                fseq = xLightsXmlFile::GetFSEQForXSQ(fseq, GetFseqDirectory());
-                auto m2 = xLightsXmlFile::GetMediaForXSQ(fseq, CurrentDir, GetMediaFolders());
+                if (xsq == "") {
+                    return "{\"res\":504,\"msg\":\"Sequence not found.\"}";
+                }
+
+                auto fseq = xLightsXmlFile::GetFSEQForXSQ(xsq, GetFseqDirectory());
+                auto m2 = xLightsXmlFile::GetMediaForXSQ(xsq, CurrentDir, GetMediaFolders());
 
                 if (!wxFile::Exists(fseq)) {
                     return "{\"res\":504,\"msg\":\"Unable to find sequence FSEQ file.\"}";
@@ -350,12 +369,14 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
 
             } else if (cmd == "checkSequence") {
                 auto seq = val["seq"].AsString();
-                if (!wxFile::Exists(seq)) {
+                seq = FindSequence(seq);
+                if (seq == "")
+                {
                     return "{\"res\":504,\"msg\":\"Sequence not found.\"}";
                 }
                 auto file = OpenAndCheckSequence(seq.ToStdString());
 
-                return wxString::Format("{\"res\":200,\"msg\":\"Sequence checked.\",\"output\":\"%s\"}", file);
+                return wxString::Format("{\"res\":200,\"msg\":\"Sequence checked.\",\"output\":\"%s\"}", JSONSafe(file));
 
             } else if (cmd == "changeShowFolder") {
                 auto shw = val["folder"].AsString();
@@ -441,7 +462,7 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
 
                 ExportModels(filename);
 
-                return wxString::Format("{\"res\":200,\"msg\":\"Models Exported.\",\"output\":\"%s\"}", filename);
+                return wxString::Format("{\"res\":200,\"msg\":\"Models Exported.\",\"output\":\"%s\"}", JSONSafe(filename));
 
             } else if (cmd == "shiftAllEffects") {
                 return "{\"res\":504,\"msg\":\"Not implemented.\"}";

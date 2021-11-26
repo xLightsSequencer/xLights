@@ -3721,7 +3721,7 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     RecalcModels();
 
     // check the current sequence to ensure this analysis is in the log
-    CheckSequence(false);
+    CheckSequence(false, false);
 
     logger_base.debug("Dumping registry configuration:");
     wxConfigBase* config = wxConfigBase::Get();
@@ -4600,7 +4600,7 @@ bool compare_modelstartchannel(const Model* first, const Model* second)
     return firstmodelstart < secondmodelstart;
 }
 
-std::string xLightsFrame::CheckSequence(bool display)
+std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -4615,7 +4615,7 @@ std::string xLightsFrame::CheckSequence(bool display)
     wxFile f;
     wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
 
-    if (display) {
+    if (writeToFile || displayInEditor) {
         f.Open(filename, wxFile::write);
         if (!f.IsOpened()) {
             DisplayError("Unable to create results file for Check Sequence. Aborted.", this);
@@ -6151,22 +6151,22 @@ std::string xLightsFrame::CheckSequence(bool display)
     if (f.IsOpened()) {
         f.Close();
 
-        wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
-        if (ft != nullptr) {
-            wxString command = ft->GetOpenCommand(filename);
+        if (displayInEditor) {
+            wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+            if (ft != nullptr) {
+                wxString command = ft->GetOpenCommand(filename);
 
-            if (command == "") {
+                if (command == "") {
+                    DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
+                } else {
+                    logger_base.debug("Viewing xLights Check Sequence results %s. Command: '%s'", (const char*)filename.c_str(), (const char*)command.c_str());
+                    wxUnsetEnv("LD_PRELOAD");
+                    wxExecute(command);
+                }
+                delete ft;
+            } else {
                 DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
             }
-            else {
-                logger_base.debug("Viewing xLights Check Sequence results %s. Command: '%s'", (const char*)filename.c_str(), (const char*)command.c_str());
-                wxUnsetEnv("LD_PRELOAD");
-                wxExecute(command);
-            }
-            delete ft;
-        }
-        else {
-            DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
         }
     }
 
@@ -6284,12 +6284,12 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& 
 
         bool renderCache = _enableRenderCache == "Enabled" || (_enableRenderCache == "Locked Only" && ef->IsLocked());
         std::list<std::string> warnings = re->CheckEffectSettings(sm, CurrentSeqXmlFile->GetMedia(), AllModels.GetModel(modelName), ef, renderCache);
-        for (auto s = warnings.begin(); s != warnings.end(); ++s) {
-            LogAndWrite(f, *s);
-            if (s->find("WARN:") != std::string::npos) {
+        for (const auto& s : warnings) {
+            LogAndWrite(f, s);
+            if (s.find("WARN:") != std::string::npos) {
                 warncount++;
             }
-            else if (s->find("ERR:") != std::string::npos) {
+            else if (s.find("ERR:") != std::string::npos) {
                 errcount++;
             }
         }
@@ -6412,7 +6412,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t&
 
 void xLightsFrame::OnMenuItemCheckSequenceSelected(wxCommandEvent& event)
 {
-    CheckSequence(true);
+    CheckSequence(true, true);
 }
 
 void xLightsFrame::OnMenuItem_Help_ForumSelected(wxCommandEvent& event)

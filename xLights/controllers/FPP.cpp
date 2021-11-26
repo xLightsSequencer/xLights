@@ -685,9 +685,10 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     }
 
     bool cancelled = false;
-    progressDialog->SetTitle("FPP Upload");
+    if (progressDialog != nullptr) progressDialog->SetTitle("FPP Upload");
     logger_base.debug("FPP upload via http of %s.", (const char*)filename.c_str());
-    cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
+    if (progressDialog != nullptr)
+        cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
     int lastDone = 0;
 
     std::string ct = "Content-Type: application/octet-stream";
@@ -805,7 +806,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
         logger_base.warn("Curl did not upload file:  %d   %s", response_code, error);
         messages.push_back("ERROR Uploading file: " + filename + "     CURL response: " + std::to_string(i) + " - " + error);
     }
-    cancelled |= !progressDialog->Update(1000);
+    if (progressDialog != nullptr) cancelled |= !progressDialog->Update(1000);
     logger_base.info("FPPConnect Upload file %s  - Return: %d - RC: %d - File: %s", fullUrl.c_str(), i, response_code, filename.c_str());
 
     return data.cancelled | cancelled;
@@ -817,10 +818,13 @@ bool FPP::copyFile(const std::string &filename,
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
-    progressDialog->SetTitle("FPP Upload");
-    logger_base.debug("FPP upload via file copy of %s.", (const char*)filename.c_str());
-    cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
-    progressDialog->Show();
+    if (progressDialog != nullptr) {
+        progressDialog->SetTitle("FPP Upload");
+        logger_base.debug("FPP upload via file copy of %s.", (const char*)filename.c_str());
+        cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
+        progressDialog->Show();
+    }
+
     wxFile in;
     in.Open(file);
 
@@ -843,20 +847,24 @@ bool FPP::copyFile(const std::string &filename,
                 done += read;
 
                 int prgs = done * 1000 / length;
-                cancelled |= !progressDialog->Update(prgs);
-                if (!cancelled) {
-                    cancelled = progressDialog->WasCancelled();
+                if (progressDialog != nullptr) {
+                    cancelled |= !progressDialog->Update(prgs);
+                    if (!cancelled) {
+                        cancelled = progressDialog->WasCancelled();
+                    }
                 }
             }
-            cancelled |= !progressDialog->Update(1000);
+            if (progressDialog != nullptr) cancelled |= !progressDialog->Update(1000);
             in.Close();
             out.Close();
         } else {
-            cancelled |= !progressDialog->Update(1000);
+            if (progressDialog != nullptr)
+                cancelled |= !progressDialog->Update(1000);
             logger_base.warn("   Copy of file %s failed ... target file %s could not be opened.", (const char *)file.c_str(), (const char *)target.c_str());
         }
     } else {
-        cancelled |= !progressDialog->Update(1000);
+        if (progressDialog != nullptr)
+            cancelled |= !progressDialog->Update(1000);
         logger_base.warn("   Copy of file %s failed ... file could not be opened.", (const char *)file.c_str());
     }
     return cancelled;

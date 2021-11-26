@@ -800,6 +800,20 @@ bool IsVersionOlder(const std::string &compare, const std::string &version)
     return false;
 }
 
+std::string JSONSafe(const std::string& s)
+{
+    std::string safe;
+    for (auto& c : s) {
+        if (c == '\\')
+            safe += "\\\\";
+        else if (c == '"')
+            safe += "\\\"";
+        else
+            safe += c;
+    }
+    return safe;
+}
+
 void SaveInt(const std::string& tag, int value)
 {
     wxConfigBase* config = wxConfigBase::Get();

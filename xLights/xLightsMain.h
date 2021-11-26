@@ -1021,6 +1021,7 @@ public:
     void OnxFadeServerEvent(wxSocketEvent & event);
     void StartxFadeListener();
     wxString ProcessXFadeMessage(const wxString& msg);
+    std::string FindSequence(const std::string& seq);
     std::string ProcessAutomation(const std::string& msg);
     void ShowACLights();
     void UpdateControllerSave();
@@ -1640,7 +1641,7 @@ private:
     std::map<int, std::list<float>> LoadMusicXMLFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track);
     void CreateNotes(EffectLayer* el, std::map<int, std::list<float>>& notes, int interval, int frames);
     std::string CreateNotesLabel(const std::list<float>& notes) const;
-    std::string CheckSequence(bool display);
+    std::string CheckSequence(bool displayInEditor, bool writeToFile);
     void ValidateEffectAssets();
     void CleanupRGBEffectsFileLocations();
     void CleanupSequenceFileLocations();

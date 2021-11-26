@@ -1102,7 +1102,7 @@ std::string xLightsFrame::OpenAndCheckSequence(const std::string& origFilename)
 
         SetStatusText(_("Checking sequence ") + xlightsFilename + _("."));
 
-        file = CheckSequence(true);
+        file = CheckSequence(false, true);
 
         _checkSequenceMode = false;
         EnableSequenceControls(true);
@@ -1169,7 +1169,7 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
 
     SetStatusText(_("Checking sequence ") + xlightsFilename + _("."));
 
-    CheckSequence(true);
+    CheckSequence(true, true);
     CallAfter(&xLightsFrame::OpenAndCheckSequence, fileNames, exitOnDone);
 }
 
