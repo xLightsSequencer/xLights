@@ -180,6 +180,7 @@ std::vector<uint8_t> ControllerSerial::Encode(const std::string& s)
 ControllerSerial::ControllerSerial(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir) {
     _type = node->GetAttribute("Protocol");
     _serialOutput = dynamic_cast<SerialOutput*>(_outputs.front());
+    _serialOutput->SetId(GetId());
     InitialiseTypes(_type == OUTPUT_xxxSERIAL);
     SetSpeed(wxAtoi(node->GetAttribute("Speed")));
     SetPrefix(node->GetAttribute("Prefix"));
@@ -195,6 +196,7 @@ ControllerSerial::ControllerSerial(OutputManager* om) : Controller(om) {
     _name = om->UniqueName("Serial_");
     _serialOutput = new DMXOutput();
     _serialOutput->SetChannels(512);
+    _serialOutput->SetId(GetId());
     _outputs.push_back(_serialOutput);
     _type = OUTPUT_DMX;
     SetPort(_outputManager->GetFirstUnusedCommPort());
@@ -382,6 +384,7 @@ void ControllerSerial::SetProtocol(const std::string& type)
         o->SetBaudRate(_speed);
         _speed = o->GetBaudRate(); // because the old speed may have been overridden
         o->SetChannels(c);
+        o->SetId(_id);
 
         if (_serialOutput == _outputs.front()) {
             _outputs.pop_front();
@@ -400,7 +403,9 @@ void ControllerSerial::SetId(int id) {
         dynamic_cast<DDPOutput*>(GetFirstOutput())->SetId(id);
     }
     _serialOutput->SetId(id);
+    _serialOutput->SetUniverse(id);
 }
+
 std::string ControllerSerial::GetFPPProxy() const {
     if (_fppProxy != "") return _fppProxy;
     return _outputManager->GetGlobalFPPProxy();
