@@ -65,8 +65,7 @@ ButtonControl::ButtonControl(wxXmlNode* n)
     _tooltip = "";
     _type = LOOKUPTYPE::LTDISABLED;
 
-    if (n->GetName() == "Button")
-    {
+    if (n->GetName() == "Button") {
         _element = n->GetAttribute("Element", "").ToStdString();
         _layer = wxAtoi(n->GetAttribute("Layer", "-1"));
         _time = wxAtoi(n->GetAttribute("Time", "-1"));
@@ -92,20 +91,15 @@ wxXmlNode* ButtonControl::Save()
 
 void ButtonControl::SelectEffect(MainSequencer* sequencer)
 {
-    if (sequencer != nullptr)
-    {
+    if (sequencer != nullptr) {
         Effect* e = nullptr;
-        if (_type == LOOKUPTYPE::LTDESCRIPTION)
-        {
+        if (_type == LOOKUPTYPE::LTDESCRIPTION) {
             e = sequencer->SelectEffectUsingDescription(_description);
-        }
-        else if (_type == LOOKUPTYPE::LTMLT)
-        {
+        } else if (_type == LOOKUPTYPE::LTMLT) {
             e = sequencer->SelectEffectUsingElementLayerTime(_element, _layer - 1, _time);
         }
 
-        if (e != nullptr)
-        {
+        if (e != nullptr) {
             sequencer->PanelEffectGrid->RaiseSelectedEffectChanged(e, false, true);
         }
     }
@@ -119,23 +113,22 @@ BEGIN_EVENT_TABLE(JukeboxPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-JukeboxPanel::JukeboxPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+JukeboxPanel::JukeboxPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
-	//(*Initialize(JukeboxPanel)
-	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
-	GridSizer1 = new wxGridSizer(0, 5, 0, 0);
-	SetSizer(GridSizer1);
-	GridSizer1->Fit(this);
-	GridSizer1->SetSizeHints(this);
+    //(*Initialize(JukeboxPanel)
+    Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
+    GridSizer1 = new wxGridSizer(0, 5, 0, 0);
+    SetSizer(GridSizer1);
+    GridSizer1->Fit(this);
+    GridSizer1->SetSizeHints(this);
 
-	Connect(wxEVT_SIZE,(wxObjectEventFunction)&JukeboxPanel::OnResize);
-	//*)
+    Connect(wxEVT_SIZE, (wxObjectEventFunction)&JukeboxPanel::OnResize);
+    //*)
 
     GridSizer1->SetCols(5);
-    for (int i = 0; i < JUKEBOXBUTTONS; i++)
-    {
+    for (int i = 0; i < JUKEBOXBUTTONS; i++) {
         wxButton* button = new wxButton(this, wxID_ANY, wxString::Format("%d", i + 1), wxDefaultPosition, wxSize(BUTTONWIDTH, BUTTONHEIGHT),
-            0, wxDefaultValidator, _T("ID_BITMAPBUTTON_JB") + wxString::Format("%d", i + 1));
+                                        0, wxDefaultValidator, _T("ID_BITMAPBUTTON_JB") + wxString::Format("%d", i + 1));
         button->SetMinSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
         button->SetMaxSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
         GridSizer1->Add(button, 1, wxALL | wxEXPAND);
@@ -157,22 +150,20 @@ JukeboxPanel::JukeboxPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 
 JukeboxPanel::~JukeboxPanel()
 {
-	//(*Destroy(JukeboxPanel)
-	//*)
+    //(*Destroy(JukeboxPanel)
+    //*)
 
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
-    {
-        SetButtonTooltip(it->second->_number, "");
-        delete it->second;
+    for (const auto& it : _buttons) {
+        SetButtonTooltip(it.second->_number, "");
+        delete it.second;
     }
 }
 
 wxXmlNode* JukeboxPanel::Save()
 {
     auto res = new wxXmlNode(wxXML_ELEMENT_NODE, "Jukebox");
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
-    {
-        res->AddChild((*it).second->Save());
+    for (const auto& it : _buttons) {
+        res->AddChild(it.second->Save());
     }
 
     return res;
@@ -181,14 +172,10 @@ wxXmlNode* JukeboxPanel::Save()
 void JukeboxPanel::SetButtonTooltip(int b, std::string tooltip)
 {
     wxWindow* button = FindWindowByLabel(wxString::Format("%d", b), this);
-    if (button != nullptr)
-    {
-        if (tooltip == "")
-        {
+    if (button != nullptr) {
+        if (tooltip == "") {
             button->UnsetToolTip();
-        }
-        else
-        {
+        } else {
             button->SetToolTip(tooltip);
         }
     }
@@ -196,17 +183,14 @@ void JukeboxPanel::SetButtonTooltip(int b, std::string tooltip)
 
 void JukeboxPanel::Load(wxXmlNode* node)
 {
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
-    {
-        SetButtonTooltip(it->second->_number, "");
-        delete it->second;
+    for (const auto& it : _buttons) {
+        SetButtonTooltip(it.second->_number, "");
+        delete it.second;
     }
     _buttons.clear();
 
-    if (node->GetName() == "Jukebox")
-    {
-        for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext())
-        {
+    if (node->GetName() == "Jukebox") {
+        for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
             ButtonControl* b = new ButtonControl(n);
             _buttons[b->_number] = b;
             SetButtonTooltip(b->_number, b->_tooltip);
@@ -217,12 +201,9 @@ void JukeboxPanel::Load(wxXmlNode* node)
 
 void JukeboxPanel::PlayItem(int item)
 {
-    if (_buttons.find(item) != _buttons.end())
-    {
+    if (_buttons.find(item) != _buttons.end()) {
         _buttons[item]->SelectEffect(xLightsApp::GetFrame()->GetMainSequencer());
-    }
-    else
-    {
+    } else {
         xLightsApp::GetFrame()->GetMainSequencer()->UnselectAllEffects();
         xLightsApp::GetFrame()->SetPlayStatus(PLAY_TYPE_STOPPED);
         xLightsApp::GetFrame()->UnselectEffect();
@@ -239,7 +220,8 @@ void JukeboxPanel::OnResize(wxSizeEvent& event)
         return;
     }
 
-    if (wsz.GetWidth() < 10) return;
+    if (wsz.GetWidth() < 10)
+        return;
 
     double cols = wsz.GetWidth() * JUKEBOXBUTTONS;
     cols /= std::max(wsz.GetHeight(), 1);
@@ -262,35 +244,28 @@ void JukeboxPanel::OnButtonRClick(wxContextMenuEvent& event)
     int button = wxAtoi(((wxButton*)event.GetEventObject())->GetLabel());
 
     ButtonControl* control = nullptr;
-    if (_buttons.find(button) != _buttons.end())
-    {
+    if (_buttons.find(button) != _buttons.end()) {
         control = _buttons[button];
     }
 
     LinkJukeboxButtonDialog dlg(this, button, control, xLightsApp::GetFrame()->GetMainSequencer());
     OptimiseDialogPosition(&dlg);
 
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        if (control != nullptr)
-        {
+    if (dlg.ShowModal() == wxID_OK) {
+        if (control != nullptr) {
             SetButtonTooltip(control->_number, "");
             delete control;
             control = nullptr;
             _buttons.erase(button);
         }
 
-        if (dlg.RadioButton_ED->GetValue() && dlg.Choice_Description->GetSelection() >= 0)
-        {
+        if (dlg.RadioButton_ED->GetValue() && dlg.Choice_Description->GetSelection() >= 0) {
             control = new ButtonControl(button, dlg.Choice_Description->GetStringSelection().ToStdString(), dlg.TextCtrl_Tooltip->GetValue().ToStdString());
-        }
-        else if (dlg.Choice_Model->GetSelection() >= 0)
-        {
+        } else if (dlg.Choice_Model->GetSelection() >= 0) {
             control = new ButtonControl(button, dlg.Choice_Model->GetStringSelection().ToStdString(), wxAtoi(dlg.Choice_Layer->GetStringSelection()), wxAtoi(dlg.Choice_Time->GetStringSelection()), dlg.TextCtrl_Tooltip->GetValue().ToStdString());
         }
 
-        if (control != nullptr)
-        {
+        if (control != nullptr) {
             _buttons[button] = control;
             SetButtonTooltip(control->_number, control->_tooltip);
         }
@@ -303,38 +278,61 @@ void JukeboxPanel::ValidateWindow()
 {
     auto children = GetChildren();
 
-    for (auto it = children.begin(); it != children.end(); ++it)
-    {
-        int b = wxAtoi((*it)->GetLabel());
+    for (const auto& it : children) {
+        int b = wxAtoi(it->GetLabel());
 
-        if (b > 0)
-        {
-            if (_buttons.find(b) != _buttons.end())
-            {
+        if (b > 0) {
+            if (_buttons.find(b) != _buttons.end()) {
                 // button has a control
-                (*it)->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-            }
-            else
-            {
-                (*it)->SetBackgroundColour(wxColour(255, 108, 108));
+                it->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+            } else {
+                it->SetBackgroundColour(wxColour(255, 108, 108));
             }
         }
     }
 }
 
-wxString JukeboxPanel::GetTooltips()
+wxString JukeboxPanel::GetTooltipsJSON() const
+{
+    wxString res = "[";
+    for (int i = 0; i < JUKEBOXBUTTONS; i++) {
+        if (i != 0)
+            res += ",";
+        if (_buttons.find(i + 1) != _buttons.end()) {
+            res += "\"" + _buttons.at(i + 1)->GetTooltip() + "\"";
+        } else {
+            res += "\"\"";
+        }
+    }
+    res += "]";
+    return res;
+}
+
+wxString JukeboxPanel::GetEffectPresentJSON() const
+{
+    wxString res = "[";
+    for (int i = 0; i < JUKEBOXBUTTONS; i++) {
+        if (i != 0)
+            res += ",";
+        if (_buttons.find(i + 1) != _buttons.end()) {
+            res += "1";
+        } else {
+            res += "0";
+        }
+    }
+    res += "]";
+    return res;
+}
+
+wxString JukeboxPanel::GetTooltips() const
 {
     wxString res = "|";
-    for (int i = 0; i < JUKEBOXBUTTONS; i++)
-    {
-            if (_buttons.find(i+1) != _buttons.end())
-            {
-        res += _buttons[i+1]->GetTooltip() + "|";
-            }
-            else
-            {
-                res += "|";
-            }
+    for (int i = 0; i < JUKEBOXBUTTONS; i++) {
+        if (_buttons.find(i + 1) != _buttons.end()) {
+            res += _buttons.at(i + 1)->GetTooltip() + "|";
+        } else {
+            res += "|";
+        }
     }
 
     return res;
@@ -343,16 +341,12 @@ wxString JukeboxPanel::GetTooltips()
 wxString JukeboxPanel::GetEffectPresent() const
 {
     wxString res = "|";
-    for (int i = 0; i < JUKEBOXBUTTONS; i++)
-    {
-            if (_buttons.find(i+1) != _buttons.end())
-            {
-        res += "TRUE|";
-            }
-            else
-            {
-                res += "|";
-            }
+    for (int i = 0; i < JUKEBOXBUTTONS; i++) {
+        if (_buttons.find(i + 1) != _buttons.end()) {
+            res += "TRUE|";
+        } else {
+            res += "|";
+        }
     }
 
     return res;

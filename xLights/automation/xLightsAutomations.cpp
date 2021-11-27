@@ -22,6 +22,8 @@
 #include "../../xSchedule/wxJSON/jsonreader.h"
 #include "../../xSchedule/wxJSON/jsonwriter.h"
 #include "../UtilFunctions.h"
+#include "../JukeboxPanel.h"
+#include "../outputs/E131Output.h"
 
 std::string xLightsFrame::FindSequence(const std::string& seq)
 {
@@ -370,8 +372,7 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
             } else if (cmd == "checkSequence") {
                 auto seq = val["seq"].AsString();
                 seq = FindSequence(seq);
-                if (seq == "")
-                {
+                if (seq == "") {
                     return "{\"res\":504,\"msg\":\"Sequence not found.\"}";
                 }
                 auto file = OpenAndCheckSequence(seq.ToStdString());
@@ -597,6 +598,51 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                 // TODO
             } else if (cmd == "getVersion") {
                 return wxString::Format("{\"res\":200,\"version\":\"%s\"}", GetDisplayVersionString());
+            } else if (cmd == "lightsOn") {
+                //logger_base.debug("xFade turning lights on.");
+                EnableOutputs(true);
+                return wxString::Format("{\"res\":200,\"msg\":\"Lights on\"}");
+            } else if (cmd == "lightsOff") {
+                //logger_base.debug("xFade turning lights off.");
+                DisableOutputs();
+                return wxString::Format("{\"res\":200,\"msg\":\"Lights off\"}");
+            } else if (cmd == "playJukebox") {
+                int button = val["button"].AsLong();
+                //logger_base.debug("xFade playing jukebox button %d.", button);
+
+                if (CurrentSeqXmlFile != nullptr) {
+                    jukeboxPanel->PlayItem(button);
+                    return wxString::Format("{\"res\":200,\"msg\":\"Played button %d\"}", button);
+                } else {
+                    //logger_base.error("    Error - sequence not open.");
+                    return "{\"res\":504,\"msg\":\"Sequence not open.\"}";
+                }
+            } else if (cmd == "getJukeboxButtonTooltips") {
+                if (CurrentSeqXmlFile != nullptr) {
+                    return "{\"res\":200, \"tooltips\":" + jukeboxPanel->GetTooltipsJSON() + "}";
+                } else {
+                    //logger_base.error("    Error - sequence not open.");
+                    return "{\"res\":504,\"msg\":\"Sequence not open.\"}";
+                }
+            } else if (cmd == "isJukeboxButtonEffectPresent") {
+                if (CurrentSeqXmlFile != nullptr) {
+                    return "{\"res\":200, \"effects\":" + jukeboxPanel->GetEffectPresentJSON() + "}";
+                } else {
+                    //logger_base.error("    Error - sequence not open.");
+                    return "{\"res\":504,\"msg\":\"Sequence not open.\"}";
+                }
+            } else if (cmd == "getOpenSequence") {
+                //logger_base.debug("xFade getting sequence name.");
+
+                if (CurrentSeqXmlFile != nullptr) {
+                    return "{\"res\":200, \"seq\":\"" + CurrentSeqXmlFile->GetName() + "\"}";
+                } else {
+                    //logger_base.error("    Error - sequence not open.");
+                    return "{\"res\":504,\"msg\":\"Sequence not open.\"}";
+                }
+            } else if (cmd == "getE131Tag") {
+                //logger_base.debug("xFade getting E1.31 tag.");
+                return "{\"res\":200, \"tag\":\"" + E131Output::GetTag() + "\"}";
             } else {
                 return wxString::Format("{\"res\":504,\"msg\":\"Unknown command: '%s'.\"}", cmd);
             }

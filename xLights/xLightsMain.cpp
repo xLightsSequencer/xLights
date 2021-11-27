@@ -2192,15 +2192,12 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
     // show/hide Layout Previews
     logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews");
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
-        LayoutGroup* grp = *it;
-        if (grp != nullptr) {
-            if (grp->GetMenuItem() == nullptr) {
-                logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
-            }
-            if (grp->GetMenuItem() && grp->GetMenuItem()->IsChecked()) {
-                grp->SetPreviewActive(show);
-            }
+    for (const auto& it : LayoutGroups) {
+        if (it->GetMenuItem() == nullptr) {
+            logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
+        }
+        if (it->GetMenuItem() && it->GetMenuItem()->IsChecked()) {
+            it->SetPreviewActive(show);
         }
     }
 
@@ -9072,6 +9069,7 @@ wxString xLightsFrame::ProcessXFadeMessage(const wxString& msg)
     if (msg.starts_with("{")) {
         return ProcessAutomation(msg.ToStdString());
     }
+    // These have automation equivalents and can be removed once xFade is updated
     else if (msg == "TURN_LIGHTS_ON")
     {
         logger_base.debug("xFade turning lights on.");
