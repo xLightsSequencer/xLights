@@ -72,3 +72,24 @@ Export Model
     
     This assumes the rendered model data is up to date
     
+Lights On
+    {"cmd":"lightsOn"}
+
+Lights Off
+    {"cmd":"lightsOff"}
+
+Play jukebox button
+    {"cmd":"playJukebox","button":1}
+    
+Get Jukebox tooltips
+    {"cmd":"getJukeboxButtonTooltips"}
+
+Get Jukebox buttons have effects
+    {"cmd":"getJukeboxButtonEffectPresent"}
+
+Get open sequence 
+    {"cmd":"getOpenSequence"}
+
+Get E131 Tag
+    {"cmd":"getE131Tag"}
+
