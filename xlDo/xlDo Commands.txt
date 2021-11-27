@@ -1,3 +1,6 @@
+WARNING:  This is extremely experimental and will likely be replaced with a proper REST
+  API in the not to distant future.   Plan accordingly.
+
 
 Start xLights
     {"cmd:"startxLights", "ifNotRunning":"true|false"}
