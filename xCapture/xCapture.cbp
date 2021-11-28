@@ -244,6 +244,11 @@
 		<Unit filename="../xLights/IPEntryDialog.h" />
 		<Unit filename="../xLights/UtilFunctions.cpp" />
 		<Unit filename="../xLights/UtilFunctions.h" />
+		<Unit filename="../xSchedule/wxJSON/jsonreader.cpp" />
+		<Unit filename="../xSchedule/wxJSON/jsonreader.h" />
+		<Unit filename="../xSchedule/wxJSON/jsonval.cpp" />
+		<Unit filename="../xSchedule/wxJSON/jsonval.h" />
+		<Unit filename="../xSchedule/wxJSON/json_defs.h" />
 		<Unit filename="../xLights/xLightsVersion.cpp" />
 		<Unit filename="../xLights/xLightsVersion.h" />
 		<Unit filename="ResultDialog.cpp" />
