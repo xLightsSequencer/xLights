@@ -26,6 +26,10 @@
 #include "xLightsVersion.h"
 #include "ExternalHooks.h"
 
+#include "../xSchedule/wxJSON/json_defs.h"
+#include "../xSchedule/wxJSON/jsonreader.h"
+#include "../xSchedule/wxJSON/jsonval.h"
+
 #include <mutex>
 
 #ifdef __WXMSW__
