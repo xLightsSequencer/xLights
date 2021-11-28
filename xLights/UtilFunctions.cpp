@@ -1338,9 +1338,11 @@ void OptimiseDialogPosition(wxDialog* dlg)
     EnsureWindowHeaderIsOnScreen(dlg);
 }
 
-wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress)
+wxJSONValue xLightsRequest(int xFadePort, const wxString& message, const wxString& ipAddress)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxString msg;
 
     wxSocketClient socket;
     wxIPV4address addr;
@@ -1358,14 +1360,22 @@ wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress)
             read = socket.LastReadCount();
             if (read == 0) wxMilliSleep(2);
         }
-        wxString msg((char*)buffer);
+        msg = wxString((char*)buffer);
         logger_base.debug("xLights sent response %s", (const char*)msg.c_str());
-        return msg;
     }
     else {
         logger_base.warn("Unable to connect to xLights on port %d", GetxFadePort(xFadePort));
-        return "ERROR_UNABLE_TO_CONNECT";
     }
+
+    if (msg == "") {
+        msg = "{\"res\":504,\"msg\":\"Unable to connect.\"}";
+    }
+
+    wxJSONValue result;
+    wxJSONReader reader;
+    reader.Parse(msg, &result);
+
+    return result;
 }
 
 void ViewTempFile(const wxString& content, const wxString& name, const wxString& type)

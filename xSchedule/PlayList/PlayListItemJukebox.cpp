@@ -8,14 +8,18 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <wx/wx.h>
+#include <wx/notebook.h>
+#include <wx/xml/xml.h>
+
 #include "PlayListItemJukebox.h"
 #include "PlayListItemJukeboxPanel.h"
-#include <wx/xml/xml.h>
-#include <wx/notebook.h>
-#include <log4cpp/Category.hh>
 #include "../xLights/UtilFunctions.h"
 
-PlayListItemJukebox::PlayListItemJukebox(wxXmlNode* node) : PlayListItem(node)
+#include <log4cpp/Category.hh>
+
+PlayListItemJukebox::PlayListItemJukebox(wxXmlNode* node) :
+    PlayListItem(node)
 {
     _started = false;
     _jukeboxButton = 1;
@@ -31,7 +35,8 @@ void PlayListItemJukebox::Load(wxXmlNode* node)
     _port = node->GetAttribute("Port", "A");
 }
 
-PlayListItemJukebox::PlayListItemJukebox() : PlayListItem()
+PlayListItemJukebox::PlayListItemJukebox() :
+    PlayListItem()
 {
     _type = "PLIJukebox";
     _started = false;
@@ -53,7 +58,7 @@ PlayListItem* PlayListItemJukebox::Copy() const
 
 wxXmlNode* PlayListItemJukebox::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
+    wxXmlNode* node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Button", wxString::Format("%d", _jukeboxButton));
     node->AddAttribute("Port", _port);
@@ -75,30 +80,28 @@ void PlayListItemJukebox::Configure(wxNotebook* notebook)
 
 std::string PlayListItemJukebox::GetNameNoTime() const
 {
-    if (_name != "") return _name;
+    if (_name != "")
+        return _name;
 
     return "Play xLights Jukebox Button";
 }
 
 void PlayListItemJukebox::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    if (ms >= _delay && !_started)
-    {
+    if (ms >= _delay && !_started) {
         _started = true;
 
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Launching xLights Jukebox Button %d.", _jukeboxButton);
 
-        wxString result = xLightsRequest(GetPort(), "TURN_LIGHTS_ON");
-        if (result != "SUCCESS")
-        {
-            logger_base.error("Failed to turn on output to lights: %s", (const char *)result.c_str());
+        wxJSONValue result = xLightsRequest(GetPort(), "{\"cmd\":\"lightsOn\"}");
+        if (result["res"].AsInt() != 200) {
+            logger_base.error("Failed to turn on output to lights: %s", (const char*)result["msg"].AsString().c_str());
         }
 
-        result = xLightsRequest(GetPort(), "PLAY_JUKEBOX_BUTTON " + wxString::Format("%d", _jukeboxButton));
-        if (result != "SUCCESS")
-        {
-            logger_base.error("Failed to send jukebox button press: %s", (const char *)result.c_str());
+        result = xLightsRequest(GetPort(), wxString::Format("{\"cmd\":\"playJukebox\",\"button\":%d}", _jukeboxButton));
+        if (result["res"].AsInt() != 200) {
+            logger_base.error("Failed to send jukebox button press: %s", (const char*)result["msg"].AsString().c_str());
         }
     }
 }

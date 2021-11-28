@@ -178,6 +178,8 @@
     <ClCompile Include="..\xLights\IPEntryDialog.cpp" />
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
+    <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
+    <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="ResultDialog.cpp" />
     <ClCompile Include="UniverseEntryDialog.cpp" />
     <ClCompile Include="xCaptureApp.cpp" />
@@ -187,6 +189,9 @@
     <ClInclude Include="..\xLights\IPEntryDialog.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
     <ClInclude Include="..\xLights\xLightsVersion.h" />
+    <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h" />
+    <ClInclude Include="..\xSchedule\wxJSON\jsonval.h" />
+    <ClInclude Include="..\xSchedule\wxJSON\json_defs.h" />
     <ClInclude Include="ResultDialog.h" />
     <ClInclude Include="UniverseEntryDialog.h" />
     <ClInclude Include="xCaptureApp.h" />

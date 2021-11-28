@@ -184,6 +184,8 @@
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\xLightsTimer.cpp" />
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
+    <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
+    <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxMIDI\src\wxMidi.cpp" />
     <ClCompile Include="..\xSchedule\wxMIDI\src\wxMidiDatabase.cpp" />
     <ClCompile Include="ArtNETReceiver.cpp" />
@@ -207,6 +209,9 @@
     <ClInclude Include="..\xLights\UtilFunctions.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />
     <ClInclude Include="..\xLights\xLightsVersion.h" />
+    <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h" />
+    <ClInclude Include="..\xSchedule\wxJSON\jsonval.h" />
+    <ClInclude Include="..\xSchedule\wxJSON\json_defs.h" />
     <ClInclude Include="..\xSchedule\wxMIDI\src\wxMidi.h" />
     <ClInclude Include="ArtNETReceiver.h" />
     <ClInclude Include="E131Receiver.h" />

@@ -13,6 +13,9 @@
 #include <wx/wx.h>
 #include <wx/socket.h>
 #include <wx/xml/xml.h>
+#include "../xSchedule/wxJSON/json_defs.h"
+#include "../xSchedule/wxJSON/jsonval.h"
+#include "../xSchedule/wxJSON/jsonreader.h"
 
 #include <string>
 #include <algorithm>
@@ -61,7 +64,7 @@ wxString FixEffectFileParameter(const wxString& paramname, const wxString& param
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
 int GetxFadePort(int xfp);
 void OptimiseDialogPosition(wxDialog* dlg);
-wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress = "127.0.0.1");
+wxJSONValue xLightsRequest(int xFadePort, const wxString& request, const wxString& ipAddress = "127.0.0.1");
 
 wxString ExpandNodes(const wxString& nodes);
 wxString CompressNodes(const wxString& nodes);

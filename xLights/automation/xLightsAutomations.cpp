@@ -624,7 +624,7 @@ std::string xLightsFrame::ProcessAutomation(const std::string& msg)
                     //logger_base.error("    Error - sequence not open.");
                     return "{\"res\":504,\"msg\":\"Sequence not open.\"}";
                 }
-            } else if (cmd == "isJukeboxButtonEffectPresent") {
+            } else if (cmd == "getJukeboxButtonEffectPresent") {
                 if (CurrentSeqXmlFile != nullptr) {
                     return "{\"res\":200, \"effects\":" + jukeboxPanel->GetEffectPresentJSON() + "}";
                 } else {

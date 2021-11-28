@@ -21,6 +21,8 @@
     <ClCompile Include="PacketData.cpp" />
     <ClCompile Include="UniverseData.cpp" />
     <ClCompile Include="ArtNETReceiver.cpp" />
+    <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
+    <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
@@ -43,6 +45,9 @@
     <ClInclude Include="ArtNETReceiver.h" />
     <ClInclude Include="UniverseData.h" />
     <ClInclude Include="..\xLights\MSWStackWalk.h" />
+    <ClInclude Include="..\xSchedule\wxJSON\json_defs.h" />
+    <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h" />
+    <ClInclude Include="..\xSchedule\wxJSON\jsonval.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

@@ -15,10 +15,11 @@
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/dir.h>
-#include <log4cpp/Category.hh>
 
 #include "../UtilFunctions.h"
 #include "../outputs/Controller.h"
+
+#include <log4cpp/Category.hh>
 
 #pragma region Static Functions
 std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> ControllerCaps::__controllers;
