@@ -1069,8 +1069,8 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         str.gamma = V4_ValidGamma(it->_gammaSet ? it->_gamma * 10 : gamma);
                         str.brightness = V4_ValidBrightness(it->_brightnessSet ? it->_brightness : defaultBrightness);
                         str.zigcount = 0;
-                        str.endNulls = it->_endNullPixelsSet ? it->_endNullPixels : endNulls;
-                        str.startNulls = it->_startNullPixelsSet ? it->_startNullPixels : startNulls;
+                        str.endNulls = it->_endNullPixelsSet ? it->_endNullPixels : 0;
+                        str.startNulls = it->_startNullPixelsSet ? it->_startNullPixels : 0;
                         str.colourOrder = it->_colourOrderSet ? V4_EncodeColourOrder(it->_colourOrder) : colourOrder;
                         str.direction = it->_reverseSet ? (it->_reverse == "F" ? 0 : 1) : direction;
                         str.group = it->_groupCountSet ? it->_groupCount : group;
@@ -2439,8 +2439,10 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     bool absoluteonebased = (controller->GetFirstOutput()->GetType() == OUTPUT_DDP && !dynamic_cast<DDPOutput*>(controller->GetFirstOutput())->IsKeepChannelNumbers());
     int32_t firstchannel = 1;
     if (absoluteonebased) firstchannel = controller->GetFirstOutput()->GetStartChannel();
-    int32_t firstchanneloncontroller = 1;
+    int32_t firstchanneloncontroller = firstchannel;
     if (controller->GetFirstOutput()->GetType() == OUTPUT_DDP && dynamic_cast<DDPOutput*>(controller->GetFirstOutput())->IsKeepChannelNumbers()) {
+        firstchanneloncontroller = controller->GetFirstOutput()->GetStartChannel();
+    } else {
         firstchanneloncontroller = controller->GetFirstOutput()->GetStartChannel();
     }
 
@@ -2594,7 +2596,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                     fs->nullPixels = vs->_startNullPixels;
                 }
                 else {
-                    fs->nullPixels = firstString->nullPixels;
+                    fs->nullPixels = 0;
                 }
                 if (vs->_gammaSet) {
                     fs->gamma = vs->_gamma;
@@ -2668,7 +2670,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                 for (int k = 0; k < 4; k++) {
                     RemoveNonSmartRemote(stringData, i * 4 + k);
                     for (int j = 0; j < maxRemote; j++) {
-                        EnsureSmartStringExists(stringData, i * 4 + k, j + 1, minuniverse, defaultBrightness, firstchannel);
+                        EnsureSmartStringExists(stringData, i * 4 + k, j + 1, minuniverse, defaultBrightness, firstchanneloncontroller);
                     }
                 }
             }
