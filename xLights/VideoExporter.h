@@ -64,7 +64,7 @@ public:
    const Params& outputParams() const { return _outParams; }
 
 protected:
-   void initializeVideo( const AVCodec* codec );
+   bool initializeVideo( const AVCodec* codec );
    void initializeAudio( const AVCodec* codec );
    void initializeFrames();
    void initializePackets();

@@ -133,12 +133,18 @@ void GenericVideoExporter::initialize()
     AVOutputFormat* fmt = ::av_guess_format( nullptr, _path.c_str(), nullptr );
     enum AVCodecID origGuess = fmt->video_codec;
     fmt->video_codec = AV_CODEC_ID_H264;
+    if (_outParams.height > 1080) {
+        //h264 technically only allows up to 1080p
+        fmt->video_codec = AV_CODEC_ID_H265;
+    }
     const AVCodec* videoCodec = ::avcodec_find_encoder( fmt->video_codec );
     if (videoCodec == nullptr) {
-        fmt->video_codec = AV_CODEC_ID_H265;
+        // try flipping back/forth to h264/h265 to see if that can be loaded
+        fmt->video_codec = fmt->video_codec == AV_CODEC_ID_H265 ? AV_CODEC_ID_H264 : AV_CODEC_ID_H265;
         videoCodec = ::avcodec_find_encoder( fmt->video_codec );
     }
     if (videoCodec == nullptr) {
+        //h264/h265 not working, stick with original guess (likely mpeg4)
         fmt->video_codec = origGuess;
         videoCodec = ::avcodec_find_encoder( fmt->video_codec );
     }
@@ -148,63 +154,81 @@ void GenericVideoExporter::initialize()
         audioCodec = ::avcodec_find_encoder(fmt->audio_codec);
     }
 
-   int status = ::avformat_alloc_output_context2( &_formatContext, fmt, nullptr, _path.c_str() );
-   if ( _formatContext == nullptr )
-      throw std::runtime_error( "VideoExporter - Error allocating output-context" );
+    int status = ::avformat_alloc_output_context2( &_formatContext, fmt, nullptr, _path.c_str() );
+    if ( _formatContext == nullptr )
+        throw std::runtime_error( "VideoExporter - Error allocating output-context" );
 
-   initializeVideo( videoCodec );
-   if (!_videoOnly) {
-       initializeAudio(audioCodec);
-   }
+    if (!initializeVideo(videoCodec)) {
+        //could not open the video encoder, downgrade to the original guess and try again
+        ::avformat_free_context(_formatContext);
+        _formatContext = nullptr;
+        fmt->video_codec = origGuess;
+        videoCodec = ::avcodec_find_encoder(fmt->video_codec);
+        status = ::avformat_alloc_output_context2(&_formatContext, fmt, nullptr, _path.c_str());
+        if ( _formatContext == nullptr ) {
+           throw std::runtime_error( "VideoExporter - Error allocating output-context" );
+        }
+        if (!initializeVideo(videoCodec)) {
+            throw std::runtime_error( "VideoExporter - Error opening video codec context" );
+        }
+    }
+    if (!_videoOnly) {
+        initializeAudio(audioCodec);
+    }
 
-   // Initialize frames and packets
-   initializeFrames();
-   initializePackets();
+    // Initialize frames and packets
+    initializeFrames();
+    initializePackets();
 
-   // Open file for output and write header
-   status = ::avio_open( &_formatContext->pb, _path.c_str(), AVIO_FLAG_WRITE );
-   if ( status < 0 )
-      throw std::runtime_error( "VideoExporter - Error opening output file" );
+    // Open file for output and write header
+    status = ::avio_open( &_formatContext->pb, _path.c_str(), AVIO_FLAG_WRITE );
+    if ( status < 0 )
+        throw std::runtime_error( "VideoExporter - Error opening output file" );
 
-   // prepare to write... don't trust ::avformat_init_output() telling you that
-   // a call to ::avformat_write_header() is unnecessary. If you don't call it,
-   // the stream(s) won't be packaged in an MP4 container. Also, the stream's
-   // time_base appears to be updated within this call.
-   status = ::avformat_write_header( _formatContext, nullptr );
-   if ( status < 0 )
-      throw std::runtime_error( "VideoExporter - Error writing file header" );
+    // prepare to write... don't trust ::avformat_init_output() telling you that
+    // a call to ::avformat_write_header() is unnecessary. If you don't call it,
+    // the stream(s) won't be packaged in an MP4 container. Also, the stream's
+    // time_base appears to be updated within this call.
+    status = ::avformat_write_header( _formatContext, nullptr );
+    if ( status < 0 )
+        throw std::runtime_error( "VideoExporter - Error writing file header" );
 
-   _ptsIncrement = _formatContext->streams[0]->time_base.den / _outParams.fps;
+    _ptsIncrement = _formatContext->streams[0]->time_base.den / _outParams.fps;
 }
 
-void GenericVideoExporter::initializeVideo( const AVCodec* codec )
+bool GenericVideoExporter::initializeVideo( const AVCodec* codec )
 {
-   AVStream* video_st = ::avformat_new_stream( _formatContext, nullptr );
-   video_st->time_base.num = 1;
-   video_st->time_base.den = _outParams.fps;
-   video_st->id = _formatContext->nb_streams - 1;
+    AVStream* video_st = ::avformat_new_stream( _formatContext, nullptr );
+    video_st->time_base.num = 1;
+    video_st->time_base.den = _outParams.fps;
+    video_st->id = _formatContext->nb_streams - 1;
 
-   _videoCodecContext = ::avcodec_alloc_context3( codec );
-   _videoCodecContext->time_base.num = 1;
-   _videoCodecContext->time_base.den = _outParams.fps;
-   _videoCodecContext->gop_size = 40/*12*/; // aka keyframe interval
-   _videoCodecContext->max_b_frames = 0;
-   _videoCodecContext->width = _outParams.width;
-   _videoCodecContext->height = _outParams.height;
-   _videoCodecContext->pix_fmt = static_cast<AVPixelFormat>( _outParams.pfmt );
-   if ( _formatContext->oformat->flags & AVFMT_GLOBALHEADER )
-      _videoCodecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+    _videoCodecContext = ::avcodec_alloc_context3( codec );
+    _videoCodecContext->time_base.num = 1;
+    _videoCodecContext->time_base.den = _outParams.fps;
+    _videoCodecContext->gop_size = 40/*12*/; // aka keyframe interval
+    _videoCodecContext->max_b_frames = 0;
+    _videoCodecContext->width = _outParams.width;
+    _videoCodecContext->height = _outParams.height;
+    _videoCodecContext->pix_fmt = static_cast<AVPixelFormat>( _outParams.pfmt );
+    if ( _formatContext->oformat->flags & AVFMT_GLOBALHEADER ) {
+        _videoCodecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+    }
 
-   ::av_opt_set( _videoCodecContext->priv_data, "preset", "fast", 0 );
-   ::av_opt_set( _videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN );
+    ::av_opt_set( _videoCodecContext->priv_data, "preset", "fast", 0 );
+    ::av_opt_set( _videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN );
 
-   int status = ::avcodec_open2( _videoCodecContext, nullptr, nullptr );
-   if ( status != 0 )
-      throw std::runtime_error( "VideoExporter - Error opening video codec context" );
+    int status = ::avcodec_open2( _videoCodecContext, nullptr, nullptr );
+    if ( status != 0 ) {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance( std::string("log_base") );
+        logger_base.info("VideoExporter - Error opening video codec context");
+        return false;
+    }
 
-   status = ::avcodec_parameters_from_context( video_st->codecpar, _videoCodecContext );
-   if ( status != 0 )
-      throw std::runtime_error( "VideoExporter - Error setting video stream parameters" );
+    status = ::avcodec_parameters_from_context( video_st->codecpar, _videoCodecContext );
+    if ( status != 0 )
+        throw std::runtime_error( "VideoExporter - Error setting video stream parameters" );
+    return true;
 }
 
 void GenericVideoExporter::initializeAudio( const AVCodec* codec )
