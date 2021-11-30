@@ -157,6 +157,7 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
         }
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30);
+        curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
         std::string buffer = "";
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
 

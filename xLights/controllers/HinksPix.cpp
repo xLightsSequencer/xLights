@@ -737,7 +737,7 @@ void HinksPix::CalculateSmartRecievers(UDControllerPort* stringData) {
             }
 
             int32_t chans = it->GetEndChannel() - it->GetStartChannel() + 1;
-            int pixs = chans / it->GetChannelsPerPixel();
+            int pixs = chans / std::max(it->GetChannelsPerPixel(),3);
             start_pixels += pixs;
             prevID = id;
         }
