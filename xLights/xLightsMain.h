@@ -111,6 +111,9 @@ class ZCPPOutput;
 class UDControllerPort;
 class Model;
 class ControllerEthernet;
+class HttpServer;
+class HttpConnection;
+class HttpRequest;
 
 // max number of most recently used show directories on the File menu
 #define MRUD_LENGTH 4
@@ -1001,9 +1004,7 @@ public:
     bool _ignoreVendorModelRecommendations = false;
     bool _purgeDownloadCacheOnStart = false;
     int _fseqVersion;
-    int _xFadePort;
     bool _wasMaximised = false;
-    wxSocketServer* _xFadeSocket = nullptr;
     bool _suspendRender = false;
     wxArrayString _randomEffectsToUse;
     Model* _presetModel = nullptr;
@@ -1014,15 +1015,15 @@ public:
 
     std::unique_ptr< wxAppProgressIndicator> _appProgress;
 
-    //void TryCreatePresetIcon(const std::string& preset);
+    HttpServer* _automationServer = nullptr;
+    int _xFadePort = 0;
+
+    void StartAutomationListener();
+    bool ProcessHttpRequest(HttpConnection &connection, HttpRequest &request);
+    std::string ProcessAutomation(const std::string& msg);
+    std::string FindSequence(const std::string& seq);
 
     void CollectUserEmail();
-    void OnxFadeSocketEvent(wxSocketEvent & event);
-    void OnxFadeServerEvent(wxSocketEvent & event);
-    void StartxFadeListener();
-    wxString ProcessXFadeMessage(const wxString& msg);
-    std::string FindSequence(const std::string& seq);
-    std::string ProcessAutomation(const std::string& msg);
     void ShowACLights();
     void UpdateControllerSave();
     void UpdateLayoutSave();

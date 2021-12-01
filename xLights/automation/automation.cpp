@@ -17,128 +17,9 @@
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include "../../xSchedule/wxJSON/jsonreader.h"
-
+#include "../../xSchedule/xSMSDaemon/Curl.h"
 #include <wx/sckaddr.h>
 
-#ifdef __WXMSW__
-
-#include <wx/socket.h>
-
-typedef wxSocketClient xlDoSocket;
-
-bool DoConnect(xlDoSocket &sock, const wxString& ipAddress, int port)  {
-    wxIPV4address addr;
-    addr.Hostname(ipAddress);
-    addr.Service(port);
-
-    return sock.Connect(addr);
-}
-
-#else
-//Linux and OSX cannot user wxSocketClient without a wxApp, mimic with raw sockets
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <netinet/tcp.h>
-
-class xlDoSocket {
-public:
-    xlDoSocket() {}
-    ~xlDoSocket() {}
-    
-    bool Connect(const char *ip, int port) {
-        struct sockaddr_in addr = {0};
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(port);
-        addr.sin_addr.s_addr = inet_addr(ip);
-        
-        sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        if (sock == -1) {
-            return false;
-        }
-        if (connect(sock, (struct sockaddr*) &addr, sizeof(addr)) == -1) {
-            close(sock);
-            sock = -1;
-            return false;
-        }
-        int flag = 1;
-        setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *) &flag, sizeof(int));
-        return true;
-    }
-    bool IsConnected() {
-        return sock != -1;;
-    }
-    void WriteMsg(const uint8_t *buffer, wxUint32 nbytes) {
-        uint8_t header[8] = { 0xad, 0xde, 0xed, 0xfe, 0, 0, 0 ,0 };
-        header[4] = (nbytes & 0xff);
-        header[5] = ((nbytes >> 8) & 0xff);
-        header[6] = ((nbytes >> 16) & 0xff);
-        header[7] = ((nbytes >> 24) & 0xff);
-        int i = send(sock, header, 8, 0);
-        if (i != 8) {
-            return;
-        }
-
-        i = send(sock, buffer, nbytes, 0);
-        int cur = i;
-        while (cur < nbytes) {
-            i = send(sock, &buffer[cur], nbytes - cur, 0);
-            cur += i;
-        }
-        
-        header[0] = (unsigned char) 0xed;
-        header[1] = (unsigned char) 0xfe;
-        header[2] = (unsigned char) 0xad;
-        header[3] = (unsigned char) 0xde;
-        header[4] = 0;
-        header[5] = 0;
-        header[6] = 0;
-        header[7] = 0;
-        i = send(sock, buffer, 8, 0);
-    }
-    void ReadMsg(uint8_t *buffer, wxUint32 nbytes) {
-        lastRead = 0;
-        uint8_t header[8];
-        int i = recv(sock, header, 8, 0);
-        uint32_t sig = (uint32_t)header[0];
-        sig |= (uint32_t)(header[1] << 8);
-        sig |= (uint32_t)(header[2] << 16);
-        sig |= (uint32_t)(header[3] << 24);
-        if (i == 8 && sig == 0xfeeddead) {
-            uint32_t len = (uint32_t)header[4];
-            len |= (uint32_t)(header[5] << 8);
-            len |= (uint32_t)(header[6] << 16);
-            len |= (uint32_t)(header[7] << 24);
-
-            int toRead = std::min(len, nbytes);
-            i = recv(sock, buffer, toRead, 0);
-            lastRead = i;
-            len -= lastRead;
-            nbytes -= lastRead;
-            while (i && len && nbytes > 0) {
-                int toRead = std::min(len, nbytes-lastRead);
-                i = recv(sock, &buffer[lastRead], toRead, 0);
-                lastRead += i;
-                len -= i;
-                nbytes -= i;
-            }
-            // read the footer
-            i = recv(sock, header, 8, 0);
-        }
-    }
-    int LastReadCount() {
-        return lastRead;
-    }
-
-    int sock = -1;
-    int lastRead = 0;
-};
-bool DoConnect(xlDoSocket &sock,  const wxString &ip, int port) {
-    return sock.Connect(ip.c_str(), port);
-}
-
-#endif
 
 #ifdef xlDO
 static int GetxFadePort(int xfp)
@@ -151,75 +32,44 @@ static int GetxFadePort(int xfp)
 #include "../UtilFunctions.h"
 #endif
 
-wxString xlDo_xLightsRequest(int xFadePort, wxString message, wxString ipAddress, bool verbose)
-{
-    xlDoSocket socket;
-    if (DoConnect(socket, ipAddress, GetxFadePort(xFadePort + 1))) {
-        if (verbose) {
-            fprintf(stderr, "\u001b[36;1mConnected to xLights.\u001b[0m\n");
-        }
-
-        socket.WriteMsg(message.c_str(), message.size() + 1);
-        uint8_t buffer[4096];
-        memset(buffer, 0x00, sizeof(buffer));
-        int read = 0;
-        while (read == 0 && socket.IsConnected()) {
-            socket.ReadMsg(buffer, sizeof(buffer) - 1);
-            read = socket.LastReadCount();
-            if (read == 0)
-                wxMilliSleep(2);
-        }
-        wxString msg;
-        if (socket.IsConnected()) {
-            msg = wxString((char*)buffer);
-            if (verbose) {
-                fprintf(stderr, "\u001b[32;1mResponse: %s\u001b[0m\n", (const char*)msg.c_str());
-            }
-        } else {
-            fprintf(stderr, "\u001b[31;1mFailed to get response from xLights.\u001b[0m\n");
-            return "";
-        }
-        return msg;
-    } else {
-        fprintf(stderr, "\u001b[31;1mCannot connect to xLights.\u001b[0m\n");
-        return "";
-    }
-}
-
-void xlDo_Output(const std::string& script, const std::string& resp, bool verbose)
+void xlDo_Output(const std::string& script, const std::string& resp, bool verbose, bool isJson)
 {
     if (script != "") {
         wxFile f(script, wxFile::write);
 
         if (f.IsOpened()) {
 
-            wxJSONValue val;
-            wxJSONReader reader;
-            if (reader.Parse(resp, &val) == 0) {
-                for (const auto& it : val.GetMemberNames()) {
-                    std::string set = "set";
-                    #ifndef __WXMSW__
-                        set = "EXPORT";
-                    #endif
-                    std::string c;
-                    if (val[it].IsString()) {
-                        c = wxString::Format("%s %s=%s\n", set, it, val[it].AsString());
-                    } else if (val[it].IsLong()) {
-                        c = wxString::Format("%s %s=%ld\n", set, it, val[it].AsLong());
+            if (isJson) {
+                wxJSONValue val;
+                wxJSONReader reader;
+                if (reader.Parse(resp, &val) == 0) {
+                    for (const auto& it : val.GetMemberNames()) {
+                        std::string set = "set";
+                        #ifndef __WXMSW__
+                            set = "EXPORT";
+                        #endif
+                        std::string c;
+                        if (val[it].IsString()) {
+                            c = wxString::Format("%s %s=%s\n", set, it, val[it].AsString());
+                        } else if (val[it].IsLong()) {
+                            c = wxString::Format("%s %s=%ld\n", set, it, val[it].AsLong());
+                        }
+                        f.Write(c);
+                        if (verbose)
+                            fprintf(stderr, "\u001b[36;1m%s\u001b[0m", (const char*)c.c_str());
                     }
-                    f.Write(c);
-                    if (verbose)
-                        fprintf(stderr, "\u001b[36;1m%s\u001b[0m", (const char*)c.c_str());
+                } else {
+                    fprintf(stderr, "\u001b[31;1mFailed to parse response %s.\u001b[0m\n", (const char*)resp.c_str());
                 }
             } else {
-                fprintf(stderr, "\u001b[31;1mFailed to parse response %s.\u001b[0m\n", (const char*)resp.c_str());
+                f.Write(resp);
             }
         } else {
             fprintf(stderr, "\u001b[31;1mFailed to write to script file %s.\u001b[0m\n", (const char*)script.c_str());
         }
     }
 
-    wxPrintf(resp.c_str());
+    wxPrintf("%s\n", resp.c_str());
 }
 
 int Automation(bool verbose, const std::string& ip, int ab, const std::string& templateFile, const std::string& cmd, const std::vector<wxString>& parameters, const std::string& script)
@@ -274,9 +124,11 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
                 if (ab == 1)
                     params = " -b";
 
+                std::string url = "http://" + ip + ":" + std::to_string(::GetxFadePort(ab + 1)) + "/getVersion";
                 if (val["ifNotRunning"].AsString() == "true") {
-                    if (xlDo_xLightsRequest(ab, "{\"cmd\":\"getVersion\"}", ip, verbose) != "") {
-                        xlDo_Output(script, "{\"res\":200,\"msg\":\"xLights was already running.\"}", verbose);
+                    std::string resp = Curl::HTTPSGet(url, command);
+                    if (resp != "") {
+                        xlDo_Output(script, "{\"res\":200,\"msg\":\"xLights was already running.\"}", verbose, false);
                         return 0;
                     }
                 }
@@ -313,12 +165,14 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
 
 
                 int loop = 0;
-                while (xlDo_xLightsRequest(ab, "{\"cmd\":\"getVersion\"}", ip, verbose) == "") {
+                std::string resp = Curl::HTTPSGet(url, command);
+                while (resp == "") {
                     // dont wait more than a minute
                     if (loop++ > 60)
                         break;
 
                     wxSleep(1);
+                    resp = Curl::HTTPSGet(url, command);
                 }
 
                 if (loop > 60) {
@@ -326,7 +180,7 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
                     return 1;
                 }
 
-                xlDo_Output(script, "{\"res\":200,\"msg\":\"xLights started.\"}", verbose);
+                xlDo_Output(script, "{\"res\":200,\"msg\":\"xLights started.\"}", verbose, true);
 
                 wxSleep(5); // sleep briefly to give xLights a chance to start properly so any subsequent commands work ok
 
@@ -334,12 +188,24 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
             }
         }
     }
+    std::string url = "http://" + ip + ":" + std::to_string(::GetxFadePort(ab + 1)) + "/";
+    std::string mime = "text/plain";
+    bool isJsonResp = false;
+    if (command[0] == '{') {
+        url += "xlDoAutomation";
+        mime = "application/json";
+        isJsonResp = true;
+    } else {
+        url += command;
+        command = "";
+    }
+    //30 minute timeout?  Some of the automations like batchRender may take a LONG time
+    std::string resp = command == "" ? Curl::HTTPSGet(url, "", "", 30*60) : Curl::HTTPSPost(url, command, "", "", mime, 30*60);
 
-    wxString resp = xlDo_xLightsRequest(ab, command, ip, verbose);
 
     if (resp == "") {
         return 1;
-    } else {
+    } else if (isJsonResp) {
         wxJSONValue val;
         wxJSONReader reader;
         if (reader.Parse(resp, &val) == 0) {
@@ -358,8 +224,8 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
             return 1;
         }
     }
+    xlDo_Output(script, resp, verbose, isJsonResp);
 
-    xlDo_Output(script, resp, verbose);
 
     return 0;
 }

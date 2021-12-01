@@ -99,6 +99,8 @@
 #include "GPURenderUtils.h"
 #include "ViewsModelsPanel.h"
 
+#include "../xSchedule/wxHTTPServer/wxhttpserver.h"
+
 // Linux needs this
 #include <wx/stdpaths.h>
 
@@ -1206,9 +1208,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(wxID_COPY, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
     Connect(wxID_PASTE, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
 
-    Connect(ID_XFADESOCKET, wxEVT_SOCKET, (wxObjectEventFunction)&xLightsFrame::OnxFadeSocketEvent);
-    Connect(ID_XFADESERVER, wxEVT_SOCKET, (wxObjectEventFunction)&xLightsFrame::OnxFadeServerEvent);
-
     SetPanelSequencerLabel("");
 
     _outputModelManager.SetFrame(this);
@@ -1557,9 +1556,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     }
 
     logger_base.debug("xFadePort: %s.", _xFadePort == 0 ? "Disabled" : ((_xFadePort == 1) ? "A" : "B"));
-    StartxFadeListener();
+    StartAutomationListener();
 
-    if (_xFadePort > 0 && _xFadeSocket == nullptr) {
+    if (_xFadePort > 0 && _automationServer == nullptr) {
         // try opening it on the other port
 
         if (_xFadePort == 1) {
@@ -1568,8 +1567,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
             _xFadePort = 1;
         }
 
-        StartxFadeListener();
-        if (_xFadePort > 0 && _xFadeSocket == nullptr) {
+        StartAutomationListener();
+        if (_xFadePort > 0 && _automationServer == nullptr) {
             // Give up
             _xFadePort = 0;
         }
@@ -1837,11 +1836,10 @@ xLightsFrame::~xLightsFrame()
     RenderStatusTimer.Stop();
     DrawingContext::CleanUp();
 
-    if (_xFadeSocket != nullptr)
-    {
-        _xFadeSocket->Close();
-        delete _xFadeSocket;
-        _xFadeSocket = nullptr;
+    if (_automationServer != nullptr) {
+        _automationServer->Stop();
+        delete _automationServer;
+        _automationServer = nullptr;
     }
 
     selectedEffect = nullptr;
@@ -8998,113 +8996,13 @@ void xLightsFrame::OnMenuItem_JukeboxSelected(wxCommandEvent& event)
 void xLightsFrame::SetXFadePort(int i)
 {
     _xFadePort = i;
-    StartxFadeListener();
-    if (_xFadeSocket == nullptr) {
+    StartAutomationListener();
+    if (_automationServer == nullptr) {
         // Give up
         _xFadePort = 0;
     }
 }
 
-void xLightsFrame::OnxFadeSocketEvent(wxSocketEvent & event)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    wxSocketBase* socket = event.GetSocket();
-    switch (event.GetSocketEvent())
-    {
-    case wxSOCKET_LOST:
-        logger_base.debug("xFade disconnected.");
-        break;
-    case wxSOCKET_INPUT:
-    {
-        wxByte buf[1534];
-        memset(buf, 0x00, sizeof(buf));
-        socket->Notify(false);
-        size_t n = socket->ReadMsg(buf, sizeof(buf) - 1).LastCount();
-        if (!n) {
-            logger_base.error("ERROR: failed to receive xFade data");
-            return;
-        }
-        wxString msg((char *)buf);
-        //logger_base.debug("xFade packet received.");
-        wxString response = ProcessXFadeMessage(msg);
-        socket->WriteMsg(response.c_str(), response.size() + 1);
-        socket->Notify(true);
-    }
-    break;
-    default:
-        logger_base.warn("OnxFadeSocketEvent: Unexpected event !");
-        break;
-    }
-}
-
-void xLightsFrame::OnxFadeServerEvent(wxSocketEvent & event)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    switch (event.GetSocketEvent())
-    {
-    case wxSOCKET_CONNECTION:
-    {
-        wxSocketBase * socket = _xFadeSocket->Accept(false);
-        if (socket != nullptr)
-        {
-            logger_base.debug("OnxFadeServerEvent: Client connected.");
-            socket->SetEventHandler(*((wxEvtHandler*)this), ID_XFADESOCKET);
-            socket->SetNotify(wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
-            socket->Notify(true);
-        }
-    }
-        break;
-    default:
-        logger_base.warn("OnxFadeServerEvent: Unexpected event !");
-        break;
-    }
-}
-
-wxString xLightsFrame::ProcessXFadeMessage(const wxString& msg)
-{
-    return ProcessAutomation(msg.ToStdString());
-}
-
-void xLightsFrame::StartxFadeListener()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (_xFadeSocket != nullptr)
-    {
-        _xFadeSocket->Close();
-        delete _xFadeSocket;
-        _xFadeSocket = nullptr;
-    }
-
-    if (_xFadePort == 0) return;
-
-    //Local address to bind to
-    wxIPV4address addr;
-    addr.AnyAddress();
-    addr.Service(::GetxFadePort(_xFadePort));
-    //create and bind to the address above
-    _xFadeSocket = new wxSocketServer(addr);
-
-    if (!_xFadeSocket->Ok())
-    {
-        logger_base.debug("xLights xFade could not listen on %d", ::GetxFadePort(_xFadePort));
-
-        delete _xFadeSocket;
-        _xFadeSocket = nullptr;
-        return;
-    }
-
-    logger_base.debug("xLights xFade listening on %d", ::GetxFadePort(_xFadePort));
-
-    //enable event handling
-    _xFadeSocket->SetEventHandler(*this, ID_XFADESERVER);
-    //Notify us about incoming data
-    _xFadeSocket->SetNotify(wxSOCKET_CONNECTION_FLAG);
-    //enable event handling
-    _xFadeSocket->Notify(true);
-}
 
 void xLightsFrame::OnMenuItemUserDictSelected(wxCommandEvent& event)
 {

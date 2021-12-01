@@ -7,6 +7,7 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
+#include <log4cpp/Category.hh>
 
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
@@ -22,8 +23,10 @@
 #include "../../xSchedule/wxJSON/jsonreader.h"
 #include "../../xSchedule/wxJSON/jsonwriter.h"
 #include "../UtilFunctions.h"
+#include "../xLightsApp.h"
 #include "../JukeboxPanel.h"
 #include "../outputs/E131Output.h"
+#include "../../xSchedule/wxHTTPServer/wxhttpserver.h"
 
 std::string xLightsFrame::FindSequence(const std::string& seq)
 {
@@ -34,6 +37,58 @@ std::string xLightsFrame::FindSequence(const std::string& seq)
         return CurrentDir + wxFileName::GetPathSeparator() + seq;
     
     return "";
+}
+static const char HTTP_ERROR_PAGE[] = "Could not process xLights Automation";
+static bool HttpRequestFunction(HttpConnection &connection, HttpRequest &request) {
+    return xLightsApp::__frame->ProcessHttpRequest(connection, request);
+}
+bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &request) {
+    wxString uri = request.URI();
+    if (uri == "/getVersion") {
+        HttpResponse resp(connection, request);
+        resp.MakeFromText(GetDisplayVersionString(), "text/plain");
+        connection.SendResponse(resp);
+        return true;
+    } else if (uri == "/xlDoAutomation") {
+        std::string respjson = ProcessAutomation(request.Data());
+        HttpResponse resp(connection, request);
+        resp.MakeFromText(respjson, "application/json");
+        connection.SendResponse(resp);
+        return true;
+    }
+    return false;
+}
+void xLightsFrame::StartAutomationListener()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_automationServer != nullptr) {
+        _automationServer->Stop();
+        delete _automationServer;
+        _automationServer = nullptr;
+    }
+
+    if (_xFadePort == 0) return;
+    
+    
+    HttpServer *server = new HttpServer();
+    HttpContext ctx;
+    ctx.Port = ::GetxFadePort(_xFadePort);
+    
+    ctx.RequestHandler = HttpRequestFunction;
+    ctx.MessageHandler = nullptr;
+
+    // default error pages content
+    ctx.ErrorPage400 = HTTP_ERROR_PAGE;
+    ctx.ErrorPage404 = HTTP_ERROR_PAGE;
+    
+    if (!server->Start(ctx)) {
+        logger_base.debug("xLights Automation could not listen on %d", ::GetxFadePort(_xFadePort));
+        delete server;
+        return;
+    }
+    logger_base.debug("xLights Automation listening on %d", ::GetxFadePort(_xFadePort));
+    _automationServer = server;
 }
 
 std::string xLightsFrame::ProcessAutomation(const std::string& msg)

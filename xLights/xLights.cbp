@@ -425,6 +425,17 @@
 		<Unit filename="../xFade/wxLED.h" />
 		<Unit filename="../xSchedule/md5.cpp" />
 		<Unit filename="../xSchedule/md5.h" />
+		<Unit filename="../xSchedule/wxHTTPServer/connection.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/context.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/message.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/pages.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/request.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/response.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/server.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/sha1.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/sha1.h" />
+		<Unit filename="../xSchedule/wxHTTPServer/status.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/wxhttpserver.h" />
 		<Unit filename="../xSchedule/wxJSON/json_defs.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonreader.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonreader.h" />
@@ -643,6 +654,8 @@
 		<Unit filename="SOIL.h" />
 		<Unit filename="SaveChangesDialog.cpp" />
 		<Unit filename="SaveChangesDialog.h" />
+		<Unit filename="ScriptsDialog.cpp" />
+		<Unit filename="ScriptsDialog.h" />
 		<Unit filename="SelectPanel.cpp" />
 		<Unit filename="SelectPanel.h" />
 		<Unit filename="SelectTimingsDialog.cpp" />
@@ -1218,8 +1231,6 @@
 			<Option target="64bit MinGW_Release" />
 			<Option target="64bit MinGW_Debug" />
 		</Unit>
-		<Unit filename="ScriptsDialog.cpp" />
-		<Unit filename="ScriptsDialog.h" />
 		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
 		<Unit filename="sequencer/DragEffectBitmapButton.h" />
 		<Unit filename="sequencer/Effect.cpp" />
@@ -1401,8 +1412,8 @@
 		<Unit filename="wxsmith/RenderProgressDialog.wxs" />
 		<Unit filename="wxsmith/ResizeImageDialog.wxs" />
 		<Unit filename="wxsmith/RipplePanel.wxs" />
-		<Unit filename="wxsmith/ScriptsDialog.wxs" />
 		<Unit filename="wxsmith/SaveChangesDialog.wxs" />
+		<Unit filename="wxsmith/ScriptsDialog.wxs" />
 		<Unit filename="wxsmith/SelectPanel.wxs" />
 		<Unit filename="wxsmith/SelectTimingsDialog.wxs" />
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />

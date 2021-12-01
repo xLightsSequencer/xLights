@@ -118,8 +118,8 @@ public:
 		RequestURITooLong = 414,
 		UnsupportedMediaType = 415,
 		RequestedRangeNotSatisfiable = 416,
-		ExpectationFailed = 417,
-		//I'm a teapot = 418,
+		ExpectationFailed = 417,		
+        TeaPot = 418, //I'm a teapot = 418,
 		UpgradeRequired = 426,
 		RetryWith = 449,
 		UnavailableForLegalReasons = 451,
@@ -235,6 +235,8 @@ class /* WXDLLIMPEXP_BASE */ HttpRequest
 public:
 	HttpRequest(HttpConnection &connection);
 	HttpRequest(HttpConnection &connection, const wxString &input);
+    
+    virtual ~HttpRequest() {}
 
 	virtual void Parse(const wxString &input);
 
@@ -273,6 +275,8 @@ class /* WXDLLIMPEXP_BASE */ HttpResponse
 public:
 	HttpResponse(HttpConnection &connection, HttpRequest &request, HttpStatus::HttpStatusCode code = HttpStatus::OK);
 	HttpResponse(HttpConnection &connection, HttpRequest &request, const wxString &fileName, const wxString &charset = wxEmptyString);
+    
+    virtual ~HttpResponse() {}
 
 	inline void AddHeader(const wxString &key, const wxString &value)
 	{ _headers.Add(key, value); }

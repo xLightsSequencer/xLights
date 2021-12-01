@@ -16,7 +16,7 @@
 #include <wx/socket.h>
 #include <wx/mimetype.h>
 #include <wx/display.h>
-
+#include <wx/protocol/http.h>
 
 #include <random>
 #include <time.h>
@@ -1346,35 +1346,27 @@ wxJSONValue xLightsRequest(int xFadePort, const wxString& message, const wxStrin
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    wxString msg;
-
-    wxSocketClient socket;
-    wxIPV4address addr;
-    addr.Hostname(ipAddress);
-    addr.Service(GetxFadePort(xFadePort));
-
-    if (socket.Connect(addr)) {
+    wxHTTP http;
+    if (http.Connect(ipAddress, GetxFadePort(xFadePort))) {
         logger_base.debug("Sending xLights message %s", (const char*)message.c_str());
-        socket.WriteMsg(message.c_str(), message.size() + 1);
-        uint8_t buffer[1534];
-        memset(buffer, 0x00, sizeof(buffer));
-        int read = 0;
-        while (read == 0) {
-            socket.ReadMsg(buffer, sizeof(buffer) - 1);
-            read = socket.LastReadCount();
-            if (read == 0) wxMilliSleep(2);
+        http.SetPostText("application/json", message);
+        
+        wxInputStream *in = http.GetInputStream("/xlDoAutomation");
+        int rc = http.GetResponse();
+        if (rc == 200) {
+            wxJSONValue result;
+            wxJSONReader reader;
+            reader.Parse(*in, &result);
+            return result;
         }
-        msg = wxString((char*)buffer);
-        logger_base.debug("xLights sent response %s", (const char*)msg.c_str());
-    }
-    else {
+        if (in) {
+            delete in;
+        }
+    } else {
         logger_base.warn("Unable to connect to xLights on port %d", GetxFadePort(xFadePort));
     }
 
-    if (msg == "") {
-        msg = "{\"res\":504,\"msg\":\"Unable to connect.\"}";
-    }
-
+    wxString msg = "{\"res\":504,\"msg\":\"Unable to connect.\"}";
     wxJSONValue result;
     wxJSONReader reader;
     reader.Parse(msg, &result);
