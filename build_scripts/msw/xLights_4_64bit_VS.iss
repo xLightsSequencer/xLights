@@ -112,7 +112,7 @@ Source: "../../bin64/swscale-5.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin64/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; libcurl
-Source: "../../bin64/libcurl.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/libcurl-x64.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; Added files for doing Papagayo effects
 Source: "../../bin/extended_dictionary"; DestDir: "{app}"

@@ -38,7 +38,6 @@
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-#pragma comment(lib, "libcurl_debug.lib")
 #pragma comment(lib, "wxbase31ud.lib")
 #pragma comment(lib, "wxbase31ud_net.lib")
 #pragma comment(lib, "wxmsw31ud_core.lib")
@@ -53,7 +52,6 @@
 #pragma comment(lib, "wxexpatd.lib")
 #pragma comment(lib, "log4cpplibd.lib")
 #else
-#pragma comment(lib, "libcurl.lib")
 #pragma comment(lib, "wxbase31u.lib")
 #pragma comment(lib, "wxbase31u_net.lib")
 #pragma comment(lib, "wxmsw31u_core.lib")
@@ -68,6 +66,7 @@
 #pragma comment(lib, "wxexpat.lib")
 #pragma comment(lib, "log4cpplib.lib")
 #endif
+#pragma comment(lib, "libcurl.dll.a")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "WS2_32.Lib")
 #pragma comment(lib, "comdlg32.lib")
