@@ -1035,7 +1035,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     int fastLevel = ZSTD_versionNumber() > 10305 ? -5 : 1;
 
     if (ctype == ::FSEQFile::CompressionType::zlib) {
-        clevel = 9;
+        clevel = 1; // 9;
     } else {
         if (model.find(" Zero") != std::string::npos
             || model.find("Pi Model A") != std::string::npos
