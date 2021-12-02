@@ -1,3 +1,60 @@
+
+xLights REST Automation API
+If the xFade service is enabled in the xLights preferences panel, an HTTP port is opened
+on port 49913 (for A) or 49914 (for B).  Currently xLights provides the following REST
+endpoints:
+
+GET /getVersion - Get xLights Version
+
+GET /openSequence - returns the currently open sequence
+
+GET /openSequence/My%20Sequence.xsq - opens the "My Sequence.xsq" sequence
+    Can have optional query params of:
+    force=true to force opening even if a current sequence is open
+    promptIssues=true to prompt for any issues during opening
+
+POST /openSequence - opens a sequence, the payload needs to be application/json:
+    {"seq":"My Sequence.xsq", "promptIssues":true|false, "force":true|false}
+
+GET /renderAll - renders the open sequence
+
+GET /closeSequence - closes the sequence
+    Can have optional query params of:
+    quiet=true don't report an error if a sequence isn't open
+    force=true to close even if there are unsaved changes
+
+GET /newSequence
+    Needs two query params:
+    duration=  Time in seconds
+    media= Media filename
+
+GET /saveSequence
+    seq=  Sequence name to save as, don't specify to use current name
+    
+GET /batchRender
+    seq_#=  # starts at 0 and increases, each sequence to render
+    
+GET /uploadController
+GET /uploadFPPConfig
+GET /uploadSequence
+GET /checkSequence
+GET /changeShowFolder
+GET /openController
+GET /openControllerProxy
+GET /exportModelsCSV
+GET /exportModel
+GET /closexLights
+GET /lightsOn
+GET /lightsOff
+GET /playJukebox
+GET /jukeboxButtonTooltips
+GET /jukeboxButtonEffectPresent
+GET /e131Tag
+
+
+POST /xlDoAutomation - runs one of the command JSON's below.
+
+
 WARNING:  This is extremely experimental and will likely be replaced with a proper REST
   API in the not to distant future.   Plan accordingly.
 

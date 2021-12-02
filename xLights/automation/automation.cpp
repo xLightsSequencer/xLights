@@ -200,7 +200,9 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
         command = "";
     }
     //30 minute timeout?  Some of the automations like batchRender may take a LONG time
-    std::string resp = command == "" ? Curl::HTTPSGet(url, "", "", 30*60) : Curl::HTTPSPost(url, command, "", "", mime, 30*60);
+    int responseCode = 0;
+    std::string resp = command == "" ? Curl::HTTPSGet(url, "", "", 30*60, {}, &responseCode)
+        : Curl::HTTPSPost(url, command, "", "", mime, 30*60, {}, &responseCode);
 
 
     if (resp == "") {
@@ -209,13 +211,17 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
         wxJSONValue val;
         wxJSONReader reader;
         if (reader.Parse(resp, &val) == 0) {
+            if (!val.HasMember("res") && responseCode != 0) {
+                val["res"] = (long)responseCode;
+                resp = "{\"res\":" + std::to_string(responseCode) + "," + resp.substr(1);
+            }
             if (!val.HasMember("res")) {
                 fprintf(stderr, "\u001b[31;1mxLights response missing result code: %s.\u001b[0m\n", (const char*)resp.c_str());
                 return 1;
             } else {
                 auto res = val["res"].AsLong();
                 if (res != 200) {
-                    fprintf(stderr, "\u001b[31;1mxLights response has error code: %d.\u001b[0m\n", (int)res);
+                    fprintf(stderr, "\u001b[31;1mxLights response has error code: %d.\u001b[0m %s\n", (int)res, (const char*)resp.c_str());
                     return 2;
                 }
             }

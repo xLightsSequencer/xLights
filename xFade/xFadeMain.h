@@ -62,8 +62,8 @@ class xFadeFrame : public wxFrame
     void AddFadeTimeButton(std::string label);
 
     std::map<int, UniverseData*> _universeData;
-    wxString _leftTag;
-    wxString _rightTag;
+    std::string _leftTag;
+    std::string _rightTag;
     Settings _settings;
     E131Receiver* _e131Receiver = nullptr;
     ArtNETReceiver* _artNETReceiver = nullptr;

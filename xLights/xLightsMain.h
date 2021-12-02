@@ -1020,7 +1020,13 @@ public:
 
     void StartAutomationListener();
     bool ProcessHttpRequest(HttpConnection &connection, HttpRequest &request);
-    std::string ProcessAutomation(const std::string& msg);
+    bool ProcessAutomation(std::vector<std::string> &paths,
+                           std::map<std::string, std::string> &params,
+                           const std::function<bool(const std::string &msg,
+                                                    const std::string &jsonKey,
+                                                    int responseCode,
+                                                    bool msgIsJSON)> &sendResponse);
+    std::string ProcessxlDoAutomation(const std::string& msg);
     std::string FindSequence(const std::string& seq);
 
     void CollectUserEmail();

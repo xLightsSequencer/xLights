@@ -187,11 +187,11 @@ void ScriptsDialog::Run_Script(wxString const& filepath)
     if (json.IsArray()) {
         for (int x = 0; x < json.Size(); x++) {
             wxJSONValue const& aj = json[x];
-            TextCtrl_Log->AppendText(_frame->ProcessAutomation(JSONtoString(aj)));
+            TextCtrl_Log->AppendText(_frame->ProcessxlDoAutomation(JSONtoString(aj)));
             TextCtrl_Log->AppendText("\n");
         }
     } else {
-        TextCtrl_Log->AppendText(_frame->ProcessAutomation(JSONtoString(json)));
+        TextCtrl_Log->AppendText(_frame->ProcessxlDoAutomation(JSONtoString(json)));
         TextCtrl_Log->AppendText("\n");
     }
 }

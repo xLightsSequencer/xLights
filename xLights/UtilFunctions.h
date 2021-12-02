@@ -65,6 +65,7 @@ int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &da
 int GetxFadePort(int xfp);
 void OptimiseDialogPosition(wxDialog* dlg);
 wxJSONValue xLightsRequest(int xFadePort, const wxString& request, const wxString& ipAddress = "127.0.0.1");
+bool xLightsRequest(std::string &result, int xFadePort, const wxString& request, const wxString& ipAddress = "127.0.0.1");
 
 wxString ExpandNodes(const wxString& nodes);
 wxString CompressNodes(const wxString& nodes);

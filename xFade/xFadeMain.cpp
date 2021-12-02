@@ -792,9 +792,8 @@ void xFadeFrame::PressJukeboxButton(int button, bool left)
     wxButton* b = GetJukeboxButton(button, panel);
 
     if (b != nullptr) {
-        wxJSONValue result = xLightsRequest(port, wxString::Format("{\"cmd\":\"playJukebox\",\"button\":%d}", button), ip);
-
-        if (result["res"].AsInt() == 200) {
+        std::string resultString;
+        if (xLightsRequest(resultString, port, "playJukebox?button=" + std::to_string(button), ip)) {
             auto buttons = panel->GetChildren();
             for (const auto& bb : buttons) {
                 ((wxButton*)bb)->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
@@ -985,28 +984,24 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             }
         }
 
-        result = xLightsRequest(1, "{\"cmd\":\"getE131Tag\"}", _settings._leftIP);
-        if (result["res"].AsInt() == 200) {
-            _leftTag = result["tag"].AsString();
-        } else {
+        if (!xLightsRequest(_leftTag, 1, "e131Tag", _settings._leftIP)) {
             _leftTag = "";
         }
         TextCtrl_LeftTag->SetValue(_leftTag);
         UniverseData::SetLeftTag(_leftTag);
 
-        result = xLightsRequest(1, "{\"cmd\":\"getOpenSequence\"}", _settings._leftIP);
-        if (result["res"].AsInt() == 200) {
-            TextCtrl_LeftSequence->SetValue(result["seq"].AsString());
-        } else {
-            TextCtrl_LeftSequence->SetValue("No sequence loaded.");
+        std::string resultString;
+        if (!xLightsRequest(resultString, 1, "openSequence", _settings._leftIP)) {
+            resultString = "No sequence loaded.";
         }
+        TextCtrl_LeftSequence->SetValue(resultString);
 
-        result = xLightsRequest(1, "{\"cmd\":\"lightsOn\"}", _settings._leftIP);
+        xLightsRequest(resultString, 1, "lightsOn", _settings._leftIP);
     } else {
         Panel_Left->Enable(false);
     }
 
-    result = xLightsRequest(2, "{\"cmd\":\"getJukeboxButtonTooltips\"}", _settings._leftIP);
+    result = xLightsRequest(2, "{\"cmd\":\"getJukeboxButtonTooltips\"}", _settings._rightIP);
     if (result["res"].AsInt() == 200) {
         Panel_Right->Enable(true);
 
@@ -1026,7 +1021,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             }
         }
 
-        result = xLightsRequest(2, "{\"cmd\":\"getJukeboxButtonEffectPresent\"}", _settings._leftIP);
+        result = xLightsRequest(2, "{\"cmd\":\"getJukeboxButtonEffectPresent\"}", _settings._rightIP);
         if (result["res"].AsInt() == 200) {
             auto bs = result["effects"].AsArray();
 
@@ -1046,23 +1041,18 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             }
         }
 
-        result = xLightsRequest(2, "{\"cmd\":\"getE131Tag\"}", _settings._leftIP);
-        if (result["res"].AsInt() == 200) {
-            _rightTag = result["tag"].AsString();
-        } else {
+        if (!xLightsRequest(_rightTag, 2, "e131Tag", _settings._rightIP)) {
             _rightTag = "";
         }
         TextCtrl_RightTag->SetValue(_rightTag);
         UniverseData::SetRightTag(_rightTag);
-
-        result = xLightsRequest(2, "{\"cmd\":\"getOpenSequence\"}", _settings._leftIP);
-        if (result["res"].AsInt() == 200) {
-            TextCtrl_RightSequence->SetValue(result["seq"].AsString());
-        } else {
-            TextCtrl_RightSequence->SetValue("No sequence loaded.");
+        
+        
+        std::string resultString;
+        if (!xLightsRequest(resultString, 2, "openSequence", _settings._rightIP)) {
+            resultString = "No sequence loaded.";
         }
-
-        result = xLightsRequest(2, "{\"cmd\":\"lightsOn\"}", _settings._rightIP);
+        TextCtrl_RightSequence->SetValue(resultString);
     } else {
         Panel_Right->Enable(false);
     }

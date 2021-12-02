@@ -87,7 +87,7 @@ public:
 //    }
 //#endif
 
-    static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {})
+    static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int *responseCode = nullptr)
     {
         static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
         logger_curl.info("URL: %s", url.c_str());
@@ -178,6 +178,10 @@ public:
                 logger_curl.debug("RESPONSE START ------");
                 logger_curl.debug(buffer.c_str());
                 logger_curl.debug("RESPONSE END ------");
+                
+                if (responseCode) {
+                    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, responseCode);
+                }
                 return buffer;
             }
         }
@@ -259,7 +263,7 @@ public:
         return "";
     }
 
-    static std::string HTTPSGet(const std::string& s, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {})
+    static std::string HTTPSGet(const std::string& s, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int *responseCode = nullptr)
     {
         static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -317,18 +321,18 @@ public:
                 curl_slist_free_all(headerlist);
             }
 
-            if (r != CURLE_OK)
-            {
+            if (r != CURLE_OK) {
                 const char* err = curl_easy_strerror(r);
                 if (err == nullptr) {
                     logger_base.error("Failure to access %s: %d.", (const char*)s.c_str(), r);
-                }
-                else {
+                } else {
                     logger_base.error("Failure to access %s: %d: %s.", (const char*)s.c_str(), r, err);
                 }
-            }
-            else
-            {
+            } else {
+                if (responseCode) {
+                    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, responseCode);
+                }
+
                 res = response_string;
                 logger_curl.debug("RESPONSE START ----------");
                 logger_curl.debug(res.substr(0, 4096).c_str());
