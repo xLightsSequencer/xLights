@@ -736,7 +736,7 @@ int Falcon::V4_EncodeInputProtocol(const std::string& protocol)
 int Falcon::V4_GetRebootSecs()
 {
     if (_ip == _v4status["I"].AsString()) {
-        return 5;
+        return 8;
     }
     else         {
         return 20;

@@ -7,7 +7,6 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
-#include <log4cpp/Category.hh>
 
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
@@ -27,6 +26,8 @@
 #include "../JukeboxPanel.h"
 #include "../outputs/E131Output.h"
 #include "../../xSchedule/wxHTTPServer/wxhttpserver.h"
+
+#include <log4cpp/Category.hh>
 
 std::string xLightsFrame::FindSequence(const std::string& seq)
 {
