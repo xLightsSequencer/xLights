@@ -1,11 +1,12 @@
 #include "Settings.h"
 #include <wx/string.h>
 #include <wx/socket.h>
-#include <log4cpp/Category.hh>
 
 #ifndef __WXOSX__
 #include "../xSchedule/wxMIDI/src/wxMidi.h"
 #endif
+
+#include <log4cpp/Category.hh>
 
 Settings::Settings(std::string settings)
 {

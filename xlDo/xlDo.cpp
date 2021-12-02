@@ -21,6 +21,15 @@
 
 #include "../xLights/automation/automation.h"
 
+#ifdef _MSC_VER
+    #ifdef _DEBUG
+        #pragma comment(lib, "log4cpplibd.lib")
+    #else
+        #pragma comment(lib, "log4cpplib.lib")
+    #endif
+    #pragma comment(lib, "libcurl.dll.a")
+#endif
+
 int main(int argc, char **argv)
 {
     wxApp::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE, "program");
