@@ -29,7 +29,7 @@ class LOROptimisedOutput : public LOROutput
     bool unit_id_in_use[256];
     uint8_t _curData[LOR_MAX_CHANNELS];
     LorControllers _controllers;
-    uint8_t _framesSinceForcedOutput = 0xFF;
+    //uint8_t _framesSinceForcedOutput = 0xFF;
     #pragma endregion Member Variables
 
     #pragma region Private Functions

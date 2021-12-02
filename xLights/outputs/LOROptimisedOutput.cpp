@@ -227,7 +227,7 @@ void LOROptimisedOutput::SetupHistory() {
 
 bool LOROptimisedOutput::Open()
 {
-    _framesSinceForcedOutput = 0xFF;
+    //_framesSinceForcedOutput = 0xFF;
     _changed = true;
     return LOROutput::Open();
 }
@@ -297,11 +297,11 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             bool frame_changed = false;
             bool color_mode[MAX_BANKS];
 
-            if (_framesSinceForcedOutput > LOR_FORCE_SEND_FRAMES) {
-                bank_changed = true;
-                frame_changed = true;
-            }
-            _framesSinceForcedOutput++;
+            //if (_framesSinceForcedOutput > LOR_FORCE_SEND_FRAMES) {
+            //    bank_changed = true;
+            //    frame_changed = true;
+            //}
+            //_framesSinceForcedOutput++;
 
             // gather all the data and compress common values on a per 16 channel bank basis
             int channels_to_process = channels_per_pass;
@@ -421,7 +421,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             if (frame_changed) {
                 d[idx++] = 0x0;
                 d[idx++] = 0x0;
-                _framesSinceForcedOutput = 0;
+                //_framesSinceForcedOutput = 0;
             }
 
             if (_serial != nullptr && frame_changed) {
@@ -487,6 +487,9 @@ void LOROptimisedOutput::AllOff() {
             unit_id++;
         }
     }
+
+    // we need to clear last sent
+    memset(_lastSent, 0x00, sizeof(_lastSent));
 
     SendHeartbeat();
     _lastheartbeat = _timer_msec;
