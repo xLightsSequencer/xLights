@@ -1733,8 +1733,6 @@ void Falcon::UploadStringPort(const std::string& request, bool final) {
 
 void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse, int defaultBrightness, int32_t firstchannel) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     int maxPort = 0;
     for (const auto& sd : stringData) {
         maxPort = std::max(maxPort, sd->port);

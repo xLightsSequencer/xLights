@@ -112,7 +112,9 @@ bool HttpServer::Stop()
 
 void HttpServer::OnServerEvent(wxSocketEvent& event)
 {
+#ifdef DETAILED_LOGGING
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#endif
     wxStopWatch sw;
 
     switch (event.GetSocketEvent())
@@ -169,7 +171,9 @@ void HttpServer::OnServerEvent(wxSocketEvent& event)
 
 void HttpServer::OnSocketEvent(wxSocketEvent& event)
 {
+#ifdef DETAILED_LOGGING
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#endif
     wxStopWatch sw;
 
 	switch(event.GetSocketEvent())
