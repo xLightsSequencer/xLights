@@ -223,7 +223,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             }
             files.push_back(seq);
             snum++;
-            auto seqs = params["seqs_" + std::to_string(snum)];
+            seqs = params["seqs_" + std::to_string(snum)];
         }
         auto oldPrompt = _promptBatchRenderIssues;
         _promptBatchRenderIssues = ReadBool(params["promptIssues"]);
