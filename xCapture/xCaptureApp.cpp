@@ -59,6 +59,7 @@
         #pragma comment(lib, "msvcprt.lib")
         #pragma comment(lib, "log4cpplib.lib")
     #endif
+    #pragma comment(lib, "libcurl.dll.a")
     #pragma comment(lib, "ImageHlp.Lib")
     #pragma comment(lib, "iphlpapi.lib")
     #pragma comment(lib, "WS2_32.Lib")
