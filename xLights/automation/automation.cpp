@@ -44,7 +44,7 @@ void xlDo_Output(const std::string& script, const std::string& resp, bool verbos
                 wxJSONReader reader;
                 if (reader.Parse(resp, &val) == 0) {
                     for (const auto& it : val.GetMemberNames()) {
-                        std::string set = "set";
+                        std::string set = "@set";
                         #ifndef __WXMSW__
                             set = "EXPORT";
                         #endif

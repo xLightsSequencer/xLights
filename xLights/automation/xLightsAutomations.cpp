@@ -307,7 +307,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         //if restart flag is now set, restart and recheck range
         fpp->Restart("", true);
 
-        return sendResponse("Uploaded to FPP '" + ip + "'.", "msg", 503, false);
+        return sendResponse("Uploaded to FPP '" + ip + "'.", "msg", 200, false);
     } else if (cmd == "uploadSequence") {
         bool res = true;
         auto ip = params["ip"];
@@ -639,6 +639,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &r
         if (reader.Parse(request.Data(), &val) == 0) {
             if (!val.HasMember("cmd")) {
                 HttpResponse resp(connection, request, (HttpStatus::HttpStatusCode)503);
+                resp.AddHeader("access-control-allow-origin", "*");
                 resp.MakeFromText("{\"res\":503,\"msg\":\"Missing cmd.\"}", MIME_JSON);
                 connection.SendResponse(resp);
                 return true;
@@ -682,6 +683,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &r
                                                    int responseCode,
                                                    bool isJson) {
         HttpResponse resp(connection, request, (HttpStatus::HttpStatusCode)responseCode);
+        resp.AddHeader("access-control-allow-origin", "*");
 
         if (accept == MIME_JSON) {
             if (isJson) {
