@@ -2619,8 +2619,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                     fs->pixels *= std::max(1, vs->_groupCount);
                 }
                 else {
-                    fs->groupCount = std::max(1, firstString->groupCount);
-                    fs->pixels *= std::max(1, firstString->groupCount);
+                    fs->groupCount = 1;
                 }
                 newStringData.push_back(fs);
             }
