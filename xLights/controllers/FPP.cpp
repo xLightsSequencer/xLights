@@ -1041,11 +1041,21 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
             || model.find("Pi Model A") != std::string::npos
             || model.find("Pi Model B") != std::string::npos) {
             clevel = fastLevel;
-        } else if (model.find("Beagle") != std::string::npos && channelCount > 50000) {
+        } else if (model.find("Beagle") != std::string::npos) {
             // lots of channels actually needed.  Possibly a P# panel or similar
             // where we'll need CPU to actually process the channels so
             // drop to lower compression, faster decommpression
-            clevel = channelCount > 30000 ? fastLevel : 1;
+            if (channelCount > 50000) {
+                clevel = fastLevel;
+            } else if (channelCount > 20000) {
+                if (fastLevel < 0) {
+                    clevel = -1;
+                } else {
+                    clevel = 1;
+                }
+            } else {
+                clevel = 2;
+            }
         }
     }
     outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype, clevel);
