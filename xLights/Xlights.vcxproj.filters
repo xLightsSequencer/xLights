@@ -914,6 +914,9 @@
     <ClCompile Include="graphics\opengl\Image_Loader.cpp">
       <Filter>graphics\opengl</Filter>
     </ClCompile>
+    <ClCompile Include="outputs\TwinklyOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
     <ClCompile Include="graphics\opengl\XlightsDrawable.cpp" />
     <ClCompile Include="graphics\xlFontInfo.cpp" />
     <ClCompile Include="automation\automation.cpp" />
@@ -1851,6 +1854,9 @@
     </ClInclude>
     <ClInclude Include="graphics\opengl\Image.h">
       <Filter>graphics\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\TwinklyOutput.h">
+      <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="graphics\opengl\Image_Loader.h">
       <Filter>graphics\opengl</Filter>

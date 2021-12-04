@@ -45,6 +45,7 @@ class Controller;
 #define OUTPUT_xxxETHERNET "xxx Ethernet"
 #define OUTPUT_OPC "OPC"
 #define OUTPUT_GENERICSERIAL "Generic Serial"
+#define OUTPUT_TWINKLY "Twinkly"
 #pragma endregion
 
 class Output

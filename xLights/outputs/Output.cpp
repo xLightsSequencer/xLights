@@ -32,6 +32,7 @@
 #include "GenericSerialOutput.h"
 #include "../UtilFunctions.h"
 #include "OutputManager.h"
+#include "TwinklyOutput.h"
 
 #include <log4cpp/Category.hh>
 
@@ -159,6 +160,9 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
     }
     else if (type == OUTPUT_xxxETHERNET) {
         return new xxxEthernetOutput(node);
+    } 
+    else if (type == OUTPUT_TWINKLY) {
+        return new TwinklyOutput(node);
     }
 
     logger_base.warn("Unknown network type %s ignored.", (const char *)type.c_str());

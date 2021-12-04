@@ -25,6 +25,7 @@
 #include "KinetOutput.h"
 #include "xxxEthernetOutput.h"
 #include "OPCOutput.h"
+#include "TwinklyOutput.h"
 #include "../controllers/ControllerCaps.h"
 #include "../models/ModelManager.h"
 #include "../xLightsMain.h"
@@ -67,6 +68,7 @@ void ControllerEthernet::InitialiseTypes(bool forceXXX) {
         if (SpecialOptions::GetOption("xxx") == "true" || forceXXX) {
             __types.Add(OUTPUT_xxxETHERNET);
         }
+        __types.Add(OUTPUT_TWINKLY);
     }
     else if (forceXXX) {
         bool found = false;
@@ -198,6 +200,9 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                 }
                 else if (_type == OUTPUT_OPC) {
                     _outputs.push_back(new OPCOutput());
+                } 
+                else if (_type == OUTPUT_TWINKLY) {
+                    _outputs.push_back(new TwinklyOutput());
                 }
                 _outputs.back()->SetIP(oldoutputs.front()->GetIP());
                 _outputs.back()->SetUniverse(it->GetUniverse());
