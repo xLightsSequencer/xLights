@@ -1,6 +1,10 @@
 #pragma once
 
 #include "IPOutput.h"
+#include <array>
+
+class wxJSONValue;
+class wxDatagramSocket;
 
 class TwinklyOutput : public IPOutput
 {
@@ -39,4 +43,20 @@ public:
 private:
     // A single twinkly connection may have unlimited channels
     static const int MAX_CHANNELS = 4 * 2000;
+    // A device on lac should respond quickly
+    static const int HTTP_TIMEOUT = 5;
+    static const int TOKEN_SIZE = 8;
+    static const short UDP_PORT = 7777;
+
+    // make an http call and returns a json
+    bool MakeCall(const std::string& method, const std::string& path, wxJSONValue& result, const char* body = nullptr);
+
+    bool ReloadToken();
+
+    std::string m_token;
+    std::array<char, TOKEN_SIZE> m_decodedToken;
+    std::vector<unsigned char> m_channelData;
+    wxDatagramSocket* _datagram = nullptr;
+
+    void OpenDatagram();
 };
