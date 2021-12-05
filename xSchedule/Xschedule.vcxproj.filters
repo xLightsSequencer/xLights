@@ -557,6 +557,9 @@
     <ClCompile Include="OutputProcessExcludeDim.cpp">
       <Filter>OutputProcessing</Filter>
     </ClCompile>
+    <ClCompile Include="..\xLights\outputs\TwinklyOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -1106,6 +1109,9 @@
     </ClInclude>
     <ClInclude Include="OutputProcessExcludeDim.h">
       <Filter>OutputProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\TwinklyOutput.h">
+      <Filter>Outputs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
