@@ -11,6 +11,30 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.39 December 5, 2021
+   -- enh (keith/dkulp) New REST/Scripting API for controlling xLights from scripts (work in progress)
+   -- enh (scott) Basic script/automation runner dialog
+   -- enh (keith) FPP Connect to remember column sort order
+   -- enh (Camden Narzt) Add alternate nodes ability to vertical matrix model/tree
+   -- enh (keith) Include sequence name when reporting excessive mmissing models
+   -- enh (dkulp) Add "V2 ZSTD/Sparse" to default save type in Preferences panel.  Can be used to create
+                  sparse sequences that only contain multiple specific model to act as effect sequences for FPP.
+   -- enh (keith) Update to latest libcurl on Windows to fix some FPP Connect crashes
+   -- enh (keith) Fix maximum generic serial payload size to 4096 bytes
+   -- bug (keith) FV3 copies group count from first virtual string when it shouldnt
+   -- bug (dkulp) Uploads to Beagles may not adjust to proper compression level
+   -- bug (keith) Fix Fv4 sequence upload at level 9 causes playback issues, reduce compression level
+   -- bug (keith) Fix some issues with LOR Optimised output would not send anything for long periods of time
+   -- bug (scott) Fix HinksPix SR AC Upload
+   -- bug (keith) Fix #id:sc not working for serial controllers
+   -- bug (keith) Fix Falcon upload of Start Nulls
+   -- bug (keith) After reconfiguring, give Fv4 controllers longer to reboot
+   -- bug (dkulp) Fix various effects that are rendering improperly on multi-layer stars
+   -- bug (dkulp) Fix layered arches to "Inside" layer is actually the inside layer
+   -- bug (dkulp) OSX/Linux Preferences "Other" tab settings getting wiped out when opening preferences again
+   -- bug (dkulp) Fix a semi-common crash in AudioManager when closing sequences
+   -- bug (dkulp) OSX - if opening the hardware video encoder for exporting preview video fails, try dropping to
+                        mpeg4 instead of h264/5
 2021.38 November 20, 2021
    -- enh (keith) Add auto layout for J1Sys
    -- enh (keith) Add segment measures to Polyline

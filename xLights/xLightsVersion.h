@@ -15,14 +15,14 @@
 #if __has_include("xlights_build_version.h")
 #include "xlights_build_version.h"
 #else
-static const wxString xlights_version_string  = "2021.38";
+static const wxString xlights_version_string  = "2021.39";
 #endif
 #ifdef DEBUG
 static const wxString xlights_qualifier       = " DEBUG";
 #else
 static const wxString xlights_qualifier       = ""; // " BETA,ALPHA,PROD";
 #endif
-static const wxString xlights_build_date      = "November 20, 2021";
+static const wxString xlights_build_date      = "December 5, 2021";
 	
 const wxString &GetBitness();
 wxString GetDisplayVersionString();
