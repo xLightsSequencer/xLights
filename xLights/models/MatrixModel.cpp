@@ -396,9 +396,27 @@ void MatrixModel::InitHMatrix() {
             for(int x=0; x<PixelsPerStrand; x++) {
                 idx=stringnum * PixelsPerString + segmentnum * PixelsPerStrand + x;
                 Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*chanPerNode + x*chanPerNode;
-                Nodes[idx]->Coords[0].bufX=IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand-x-1 : x;
+
                 Nodes[idx]->Coords[0].bufY= isBotToTop ? y :NumStrands-y-1;
                 Nodes[idx]->StringNum=stringnum;
+
+                if (_alternateNodes) {
+                    if (IsLtoR) {
+                        if (x + 1 <= (PixelsPerStrand + 1) / 2) {
+                            Nodes[idx]->Coords[0].bufX = x * 2;
+                        } else {
+                            Nodes[idx]->Coords[0].bufX = ((PixelsPerStrand - (x + 1)) * 2 + 1);
+                        }
+                    } else {
+                        if (x + 1 <= (PixelsPerStrand + 1) / 2) {
+                            Nodes[idx]->Coords[0].bufX = (PixelsPerStrand - 1) - (x * 2);
+                        } else {
+                            Nodes[idx]->Coords[0].bufX = (PixelsPerStrand - 1) - ((PixelsPerStrand - (x + 1)) * 2 + 1);
+                        }
+                    }
+                } else {
+                    Nodes[idx]->Coords[0].bufX = IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand - x - 1 : x;
+                }
             }
         }
         CopyBufCoord2ScreenCoord();
