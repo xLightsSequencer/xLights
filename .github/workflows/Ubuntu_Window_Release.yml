@@ -34,6 +34,14 @@ jobs:
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v1
       
+    - name: Download Inno
+      run: 
+        C:\msys64\usr\bin\wget.exe -q https://mlaan2.home.xs4all.nl/ispack/innosetup-6.2.0.exe -o ..\inno\inno.exe
+        
+    - name: Install Inno
+      working-directory: ..\inno\
+      run: innosetup-6.2.0.exe /verysilent /suppressmessageboxes /norestart      
+      
     - name: Download wxWidgets
       run: 
         git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2021.31b https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
