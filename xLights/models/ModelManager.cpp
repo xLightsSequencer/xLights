@@ -195,7 +195,7 @@ bool ModelManager::RenameInListOnly(const std::string& oldName, const std::strin
     return true;
 }
 
-bool ModelManager::IsModelOverlapping(Model* model) const
+bool ModelManager::IsModelOverlapping(const Model* model) const
 {
     int32_t start = model->GetFirstChannel(); //model->GetNumberFromChannelString(model->ModelStartChannel);
     int32_t end = start + model->GetChanCount() - 1;
@@ -461,6 +461,7 @@ bool ModelManager::RecalcStartChannels() const {
     wxStopWatch sw;
     bool changed = false;
     std::set<std::string> modelsDone;
+    std::set<std::string> modelsOnNoController;
 
     for (const auto& it : models) {
         it.second->CouldComputeStartChannel = false;
@@ -482,6 +483,9 @@ bool ModelManager::RecalcStartChannels() const {
                     changed = true;
                 }
             }
+            if (it.second->GetControllerName() == NO_CONTROLLER) {
+                modelsOnNoController.emplace(it.first);
+            }
         }
     }
 
@@ -499,7 +503,12 @@ bool ModelManager::RecalcStartChannels() const {
                 if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel)
                 {
                     std::string dependsOn = Trim(Trim(it.second->ModelStartChannel).substr(1, Trim(it.second->ModelStartChannel).find(':') - 1));
-                    if (modelsDone.find(dependsOn) != modelsDone.end())
+
+                    if (first == '>'  && modelsOnNoController.find(dependsOn) != modelsOnNoController.end()) {
+                        modelsOnNoController.emplace(it.first);
+                    }
+
+                    if (modelsDone.find(dependsOn) != modelsDone.end() && modelsOnNoController.find(dependsOn) == modelsOnNoController.end())
                     {
                         // the depends on model is done
                         modelsDone.emplace(it.first);
@@ -868,6 +877,15 @@ bool ModelManager::ReworkStartChannel() const
                         outputsChanged = true;
                     }
                 } else {
+
+                    // Handle controllers that must start serial outputs on a new universe and the first model is not DMX port 1
+                    // This relies on serial ports being added first to any controller channels
+                    if (itm == sortedmodels.front()) {
+                        if ((it->GetProtocol() == OUTPUT_E131 || it->GetProtocol() == OUTPUT_ARTNET) && caps && caps->NeedsFullUniverseForDMX()) {
+                            ch += itm->GetControllerDMXChannel() - 1;
+                        }
+                    }
+
                     // when chained the use next channel
                     if (last != "" && itm->GetControllerDMXChannel() == 0 &&
                         (itm->GetModelChain() == last ||
@@ -897,6 +915,16 @@ bool ModelManager::ReworkStartChannel() const
                         if (osc != itm->ModelStartChannel)
                         {
                             outputsChanged = true;
+                        }
+                    }
+
+                    // Handle controllers that must start serial outputs on a new universe last model does not consume the full universe
+                    if ((it->GetProtocol() == OUTPUT_E131 || it->GetProtocol() == OUTPUT_ARTNET) && caps && caps->NeedsFullUniverseForDMX()) {
+                        if (itm == sortedmodels.back()) {
+                            int unisize = it->GetFirstOutput()->GetChannels();
+                            if ((ch - 1) % unisize != 0) {
+                                ch += unisize - ((ch - 1) % unisize);
+                            }
                         }
                     }
                 }
@@ -933,7 +961,66 @@ bool ModelManager::ReworkStartChannel() const
             }
         }
     }
+
+    // now we want to deal with any models specified as being on "No Controller"
+    // first we need to work out the last used channel by all controllers and models other than those on No Controller
+    uint32_t lastChannel = 0;
+    for (const auto& it : outputManager->GetControllers()) {
+        lastChannel = std::max(lastChannel, (uint32_t)it->GetEndChannel());
+    }
+
+    std::list<std::string> modelsToSet;
+    {
+        std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+        for (auto itm : models) {
+            std::list<std::string> visited;
+            if (ModelHasNoDependencyOnNoController(itm.second, visited)) {
+                if (itm.second->GetControllerName() != NO_CONTROLLER) {
+                    lastChannel = std::max(lastChannel, itm.second->GetLastChannel() + 1);
+                } else {
+                    modelsToSet.push_back(itm.first);
+                }
+            }
+        }
+    }
+
+    // now we need to go through the models in a deterministic order and assign them ... so we sort them first
+    modelsToSet.sort();
+    for (const auto& it : modelsToSet) {
+        Model* m = GetModel(it);
+        auto osc = m->ModelStartChannel;
+        m->SetStartChannel(wxString::Format("%u", lastChannel + 1));
+        m->ClearIndividualStartChannels();
+        lastChannel += m->GetChanCount();
+        if (osc != m->ModelStartChannel) {
+            outputsChanged = true;
+        }
+    }
+
     return outputsChanged;
+}
+
+bool ModelManager::ModelHasNoDependencyOnNoController(Model* m, std::list<std::string>& visited) const {
+
+    if (std::find(visited.begin(), visited.end(), m->GetName()) != visited.end())
+        return false;
+
+    visited.push_back(m->GetName());
+
+    if (!m->CouldComputeStartChannel) // this should stop this looping forever due to chain loops
+        return false;
+
+    wxString sc = m->ModelStartChannel;
+    if (sc != "" && (sc[0] == '>' || sc[0] == '@')) {
+        std::string dependson = sc.substr(1).BeforeFirst(':');
+        Model* mm = GetModel(dependson);
+        if (mm != nullptr) {
+            if (mm->GetControllerName() == NO_CONTROLLER)
+                return false;
+            return ModelHasNoDependencyOnNoController(mm, visited);
+        }
+    }
+    return true;
 }
 
 bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) {
@@ -1258,6 +1345,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
     }
 
     model->SetControllerProtocol(protocol);
+    model->SetControllerName(NO_CONTROLLER);
 
     return model;
 }
@@ -1495,30 +1583,25 @@ std::string ModelManager::GenerateNewStartChannel( const std::string& lastModel 
     return startChannel;
 }
 
-void ModelManager::Delete(const std::string &name) {
-
+void ModelManager::Delete(const std::string& name) {
     // some layouts end up with illegal names
     std::string mn = Model::SafeModelName(name);
 
-    if( xlights->CurrentSeqXmlFile != nullptr )
-    {
+    if (xlights->CurrentSeqXmlFile != nullptr) {
         Element* elem_to_delete = xlights->GetSequenceElements().GetElement(mn);
-        if (elem_to_delete != nullptr)
-        {
+        if (elem_to_delete != nullptr) {
             // does model have any effects on it
             bool effects_exist = false;
-            for (size_t i = 0; i < elem_to_delete->GetEffectLayerCount() && !effects_exist; ++i)
-            {
+            for (size_t i = 0; i < elem_to_delete->GetEffectLayerCount() && !effects_exist; ++i) {
                 auto layer = elem_to_delete->GetEffectLayer(i);
-                if (layer->GetEffectCount() > 0)
-                {
+                if (layer->GetEffectCount() > 0) {
                     effects_exist = true;
                 }
             }
 
-            if (effects_exist)
-            {
-                if (wxMessageBox("Model '" + name + "' exists in the currently open sequence and has effects on it. Delete all effects and layers on this model?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) != wxYES) return;
+            if (effects_exist) {
+                if (wxMessageBox("Model '" + name + "' exists in the currently open sequence and has effects on it. Delete all effects and layers on this model?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) != wxYES)
+                    return;
             }
 
             // Delete the model from the sequencer grid and views
@@ -1529,14 +1612,14 @@ void ModelManager::Delete(const std::string &name) {
     // now delete the model
     for (auto it = models.begin(); it != models.end(); ++it) {
         if (it->first == mn) {
-            Model *model = it->second;
+            Model* model = it->second;
 
             if (model != nullptr) {
                 model->GetModelXml()->GetParent()->RemoveChild(model->GetModelXml());
 
                 for (auto& it2 : models) {
                     if (it2.second->GetDisplayAs() == "ModelGroup") {
-                        ModelGroup *group = (ModelGroup*)it2.second;
+                        ModelGroup* group = (ModelGroup*)it2.second;
                         group->ModelRemoved(mn);
                     }
                 }
@@ -1545,10 +1628,8 @@ void ModelManager::Delete(const std::string &name) {
 
                 // If models are chained to us then make their start channel ... our start channel
                 std::string chainedtous = wxString::Format(">%s:1", model->GetName()).ToStdString();
-                for (auto it3: models)
-                {
-                    if (it3.second->ModelStartChannel == chainedtous)
-                    {
+                for (auto it3 : models) {
+                    if (it3.second->ModelStartChannel == chainedtous) {
                         it3.second->SetStartChannel(model->ModelStartChannel);
                     }
                 }
@@ -1564,9 +1645,30 @@ void ModelManager::Delete(const std::string &name) {
 std::map<std::string, Model*>::const_iterator ModelManager::begin() const {
     return models.begin();
 }
+
 std::map<std::string, Model*>::const_iterator ModelManager::end() const {
     return models.end();
 }
+
 unsigned int ModelManager::size() const {
     return models.size();
+}
+
+bool ModelManager::IsModelShadowing(const Model* m) const {
+    for (const auto& it : models) {
+        if (it.second->GetShadowModelFor() == m->GetName()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::list<std::string> ModelManager::GetModelsShadowing(const Model* m) const {
+    std::list<std::string> res;
+    for (const auto& it : models) {
+        if (it.second->GetShadowModelFor() == m->GetName()) {
+            res.push_back(it.first);
+        }
+    }
+    return res;
 }

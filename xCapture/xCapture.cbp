@@ -135,7 +135,7 @@
 					<Add directory="../include" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
@@ -166,7 +166,7 @@
 					<Add directory="../include" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
@@ -244,6 +244,11 @@
 		<Unit filename="../xLights/IPEntryDialog.h" />
 		<Unit filename="../xLights/UtilFunctions.cpp" />
 		<Unit filename="../xLights/UtilFunctions.h" />
+		<Unit filename="../xSchedule/wxJSON/jsonreader.cpp" />
+		<Unit filename="../xSchedule/wxJSON/jsonreader.h" />
+		<Unit filename="../xSchedule/wxJSON/jsonval.cpp" />
+		<Unit filename="../xSchedule/wxJSON/jsonval.h" />
+		<Unit filename="../xSchedule/wxJSON/json_defs.h" />
 		<Unit filename="../xLights/xLightsVersion.cpp" />
 		<Unit filename="../xLights/xLightsVersion.h" />
 		<Unit filename="ResultDialog.cpp" />

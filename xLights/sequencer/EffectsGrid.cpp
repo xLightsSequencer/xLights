@@ -27,7 +27,6 @@
 #include "Effect.h"
 #include "EffectLayer.h"
 #include "EffectDropTarget.h"
-#include "../DrawGLUtils.h"
 #include "../RenderCommandEvent.h"
 #include "../BitmapCache.h"
 #include "../effects/RenderableEffect.h"
@@ -53,7 +52,7 @@
 #define EFFECT_RESIZE_RIGHT_EDGE            5
 #define TIMING_ALPHA (0x60)
 
-BEGIN_EVENT_TABLE(EffectsGrid, xlGLCanvas)
+BEGIN_EVENT_TABLE(EffectsGrid, GRAPHICS_BASE_CLASS)
 EVT_MOTION(EffectsGrid::mouseMoved)
 EVT_MAGNIFY(EffectsGrid::magnify)
 EVT_MOUSEWHEEL(EffectsGrid::mouseWheelMoved)
@@ -95,7 +94,7 @@ const long EffectsGrid::ID_GRID_MNU_ALIGN_END_TIMES_SHIFT = wxNewId();
 
 EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint& pos, const wxSize& size,
     long style, const wxString& name)
-    :xlGLCanvas(parent, id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS, "EffectGrid")
+    : GRAPHICS_BASE_CLASS(parent, id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS, "EffectGrid")
 {
     mParent = parent;
     mDragging = false;
@@ -140,7 +139,7 @@ void EffectsGrid::UnselectEffect(bool force)
         mSelectedEffect = nullptr;
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         mParent->ProcessWindowEvent(eventUnSelected);
-        Refresh(false);
+        Draw();
     }
 }
 
@@ -194,8 +193,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
                     if (wxMessageBox("Cannot Add Labels to a Fixed Timing Track.\nWould You Like to convert it to a Variable Timing Track First?", "Convert Fixed Timing Track First", wxYES_NO) == wxYES) {
                         TimingElement* te = dynamic_cast<TimingElement*>(selectedEffect->GetParentEffectLayer()->GetParentElement());
                         te->SetFixedTiming(0);
-                    }
-                    else {
+                    } else {
                         if (update_time > -1) {
                             UpdateTimePosition(update_time);
                         }
@@ -222,31 +220,27 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
                         te->SetFixedTiming(0);
                     }
                 }
-                Refresh();
-            }
-            else {
+                Draw();
+            } else {
                 if (update_time > -1) {
                     UpdateTimePosition(update_time);
                 }
             }
-        }
-        else {
+        } else {
             // we have double clicked on an effect - highlight that part of the waveform
             ((MainSequencer*)mParent)->PanelWaveForm->SetSelectedInterval(selectedEffect->GetStartTimeMS(), selectedEffect->GetEndTimeMS());
-            Refresh();
+            Draw();
             // and play it play mode is active
             if (mTimingPlayOnDClick) {
                 wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
                 wxPostEvent(mParent, playEvent);
-            }
-            else {
+            } else {
                 if (update_time > -1) {
                     UpdateTimePosition(update_time);
                 }
             }
         }
-    }
-    else {
+    } else {
         if (update_time > -1) {
             UpdateTimePosition(update_time);
         }
@@ -677,7 +671,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
             wxPostEvent(mParent, eventRowHeaderChanged);
         }
     }
-    Refresh();
+    Draw();
 }
 
 Effect* EffectsGrid::FillRandomEffects()
@@ -893,7 +887,7 @@ bool EffectsGrid::DragOver(int x, int y)
             }
         }
     }
-    Refresh(false);
+    Draw();
     return mDragDropping;
 }
 
@@ -904,7 +898,7 @@ void EffectsGrid::OnDrop(int x, int y)
         mDragDropping = false;
     }
 
-    Refresh(false);
+    Draw();
 }
 
 bool EffectsGrid::IsDroppingBetweenTimingMarks() const
@@ -994,15 +988,12 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
         //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         //logger_base.debug("EffectsGrid::mouseMoved sizing or moving effects.");
         Resize(event.GetX(), event.AltDown(), event.ControlDown());
-        Refresh(false);
-        Update();
-    }
-    else if (mDragging) {
+        Draw();
+    } else if (mDragging) {
         mDragEndX = event.GetX();
         mDragEndY = event.GetY();
         UpdateSelectionRectangle();
-        Refresh(false);
-        Update();
+        Draw();
     }
     else {
         if (!xlights->IsACActive() || rowIndex < mSequenceElements->GetNumberOfTimingRows()) {
@@ -1191,7 +1182,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     if (!event.ShiftDown()) {
         mCellRangeSelected = false;
         mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
-        Refresh();
+        Draw();
     }
     if (mSequenceElements == nullptr) {
         return;
@@ -1290,7 +1281,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
                 mSelectedEffect = selectedEffect;
             }
         }
-        Refresh(false);
+        Draw();
     }
 
     if (mResizingMode != EFFECT_RESIZE_NO) {
@@ -1298,10 +1289,9 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
             mResizing = true;
             mResizeEffectIndex = effectIndex;
             CaptureMouse();
-            Refresh(false);
+            Draw();
         }
-    }
-    else {
+    } else {
         if (!mDragging) {
             if (!event.ShiftDown() || (mDragStartX == -1)) {
                 mDragStartX = event.GetX();
@@ -1323,7 +1313,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
                 EstablishSelectionRectangle();
             }
             CaptureMouse();
-            Refresh(false);
+            Draw();
         }
     }
     UpdateZoomPosition(selectedTimeMS);
@@ -1343,8 +1333,7 @@ bool EffectsGrid::AreAllSelectedEffectsOnTheSameElement() const
         if (el->GetSelectedEffectCount() > 0) {
             if (selected == nullptr) {
                 selected = el->GetParentElement();
-            }
-            else {
+            } else {
                 if (selected != el->GetParentElement()) {
                     return false;
                 }
@@ -2646,7 +2635,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
                 mRangeStartCol = mRangeCursorCol;
                 mRangeEndCol = mRangeCursorCol;
             }
-            Refresh(false);
+            Draw();
         }
         mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
         mDropRow = mRangeCursorRow;
@@ -2681,15 +2670,13 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
                 if (mRangeCursorRow < mRangeEndRow) {
                     mRangeCursorRow++;
                     mRangeStartRow = mRangeCursorRow;
-                }
-                else {
+                } else {
                     if (mRangeEndRow < mSequenceElements->GetRowInformationSize() - 1) {
                         mRangeCursorRow++;
                         mRangeEndRow = mRangeCursorRow;
                     }
                 }
-            }
-            else {
+            } else {
                 if (mRangeCursorRow < mSequenceElements->GetRowInformationSize() - 1) {
                     mRangeCursorRow++;
                 }
@@ -2698,7 +2685,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
                 mRangeEndCol = mRangeCursorCol;
                 mRangeStartCol = mRangeCursorCol;
             }
-            Refresh(false);
+            Draw();
         }
         mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
         mDropRow = mRangeCursorRow;
@@ -2755,7 +2742,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
                     mRangeStartRow = mRangeCursorRow;
                     mRangeEndRow = mRangeCursorRow;
                 }
-                Refresh(false);
+                Draw();
             }
         }
         mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
@@ -2816,7 +2803,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
                     mRangeStartRow = mRangeCursorRow;
                 }
             }
-            Refresh(false);
+            Draw();
         }
         mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
         mDropRow = mRangeCursorRow;
@@ -2922,7 +2909,7 @@ bool EffectsGrid::DoACDraw(bool keyboard, ACTYPE typeOverride, ACSTYLE styleOver
         ACDraw(type, style, mode, intensity, a, b, std::min(startMS, endMS), std::max(startMS, endMS), std::min(mRangeStartRow, mRangeEndRow), std::max(mRangeStartRow, mRangeEndRow));
     }
 
-    Refresh();
+    Draw();
     sendRenderDirtyEvent();
 
     return true;
@@ -3099,7 +3086,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
 
         mResizing = false;
         mDragDropping = false;
-        Refresh(false);
+        Draw();
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
         mSequenceElements->get_undo_mgr().RemoveUnusedMarkers();
     }
@@ -3260,8 +3247,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
             if (mRangeEndRow > mRangeStartRow) {
                 mRangeEndRow--;
             }
-        }
-        else {
+        } else {
             if (mRangeStartRow > mSequenceElements->GetNumberOfTimingRows()) {
                 mRangeStartRow--;
                 mRangeEndRow--;
@@ -3270,9 +3256,8 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
         SetRCToolTip();
         UpdateSelectedEffects();
         MakeRowVisible(mRangeEndRow - mSequenceElements->GetNumberOfTimingRows());
-        Refresh(false);
-    }
-    else if (!MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow > 0) {
+        Draw();
+    } else if (!MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow > 0) {
         logger_base.debug("EffectsGrid::MoveSelectedEffectUp moving single effect.");
         int row = mSelectedRow - 1;
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
@@ -3297,18 +3282,16 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
                         RaiseSelectedEffectChanged(ef, false, true);
                         sendRenderDirtyEvent();
                         MakeRowVisible(mSelectedRow + mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetNumberOfTimingRows());
-                    }
-                    else {
+                    } else {
                         logger_base.warn("Problem adding effect when moving effect up %s", (const char*)mSelectedEffect->GetEffectName().c_str());
                     }
-                    Refresh(false);
+                    Draw();
                     return;
                 }
             }
             row--;
         }
-    }
-    else if (MultipleEffectsSelected()) {
+    } else if (MultipleEffectsSelected()) {
         logger_base.debug("EffectsGrid::MoveSelectedEffectUp moving multiple effects.");
 
         // check if its clear for all effects
@@ -3359,8 +3342,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
                             if (ef != nullptr) {
                                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el1->GetParentElement()->GetModelName(), el1->GetIndex(), ef->GetID());
                                 mSelectedEffect = ef;
-                            }
-                            else {
+                            } else {
                                 logger_base.warn("Error adding effect when moving multiple effects up %s", (const char*)eff->GetEffectName().c_str());
                             }
                         }
@@ -3374,7 +3356,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
             RaiseSelectedEffectChanged(mSelectedEffect, false, false);
             MakeRowVisible(mSelectedRow - mSequenceElements->GetNumberOfTimingRows() - 1);
             sendRenderDirtyEvent();
-            Refresh(false);
+            Draw();
         }
     }
 }
@@ -3403,7 +3385,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
         SetRCToolTip();
         UpdateSelectedEffects();
         MakeRowVisible(mRangeEndRow - mSequenceElements->GetNumberOfTimingRows() + 1);
-        Refresh(false);
+        Draw();
     }
     else if (!MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow >= 0) {
         logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving single effect.");
@@ -3431,18 +3413,16 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
                         RaiseSelectedEffectChanged(ef, false, true);
                         sendRenderDirtyEvent();
                         MakeRowVisible(mSelectedRow + mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetNumberOfTimingRows() + 1);
-                    }
-                    else {
+                    } else {
                         logger_base.warn("Error adding effect when moving effects down %s", (const char*)mSelectedEffect->GetEffectName().c_str());
                     }
-                    Refresh(false);
+                    Draw();
                     return;
                 }
             }
             row++;
         }
-    }
-    else if (MultipleEffectsSelected()) {
+    }  else if (MultipleEffectsSelected()) {
         logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving multiple effects.");
 
         // check if its clear for all effects
@@ -3508,7 +3488,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
             RaiseSelectedEffectChanged(mSelectedEffect, false, false);
             sendRenderDirtyEvent();
             MakeRowVisible(mSelectedRow - mSequenceElements->GetNumberOfTimingRows() + 1);
-            Refresh(false);
+            Draw();
         }
     }
 }
@@ -3538,7 +3518,7 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt)
             SetRCToolTip();
             UpdateSelectedEffects();
             MakeColVisible(mRangeEndCol);
-            Refresh(false);
+            Draw();
         }
     }
     else {
@@ -3626,7 +3606,7 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt)
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
 
         sendRenderDirtyEvent();
-        Refresh(false);
+        Draw();
     }
 }
 
@@ -3659,7 +3639,7 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift, bool control, bool alt)
             SetRCToolTip();
             UpdateSelectedEffects();
             MakeColVisible(mRangeStartCol);
-            Refresh(false);
+            Draw();
         }
     }
     else {
@@ -3750,7 +3730,7 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift, bool control, bool alt)
         }
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
 
-        Refresh(false);
+        Draw();
         sendRenderDirtyEvent();
     }
 }
@@ -4441,7 +4421,7 @@ Effect* EffectsGrid::OldPaste(const wxString& data, const wxString& pasteDataVer
         }
     }
 
-    Refresh();
+    Draw();
     return res;
 }
 
@@ -4851,7 +4831,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
         }
     }
 
-    Refresh();
+    Draw();
     return res;
 }
 
@@ -5112,7 +5092,7 @@ void EffectsGrid::ResizeSingleEffectMS(int timems)
         SetEffectStatusText(eff);
     }
 
-    Refresh(false);
+    Draw();
     // Move time line and waveform to new position
     UpdateZoomPosition(time);
 }
@@ -5480,33 +5460,16 @@ void EffectsGrid::SetStartPixelOffset(int offset)
     mStartPixelOffset = offset;
 }
 
-void EffectsGrid::InitializeGLCanvas()
-{
-    if (xlights == nullptr) return;
-    if (!IsShownOnScreen()) return;
-    SetCurrentGLContext();
-    CreateEffectIconTextures();
-    mIsInitialized = true;
-}
 
-void EffectsGrid::InitializeGLContext()
-{
-    SetCurrentGLContext();
-    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // Black Background
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    prepare2DViewport(0, 0, mWindowWidth, mWindowHeight);
-}
-
-void EffectsGrid::DrawLines() const
+void EffectsGrid::DrawLines(xlGraphicsContext *ctx) const
 {
     // Draw Horizontal lines
-    int x1 = 1;
+    int x1 = 0;
     int x2 = mWindowWidth - 1;
     int y;
     bool isEvenLayer = false;
 
-    DrawGLUtils::xlVertexAccumulator va;
-    va.PreAlloc(mSequenceElements->GetVisibleRowInformationSize() * 6);
+    backgrounds->PreAlloc(mSequenceElements->GetVisibleRowInformationSize() * 6);
 
     xlColor color(33, 33, 33);
     for (size_t row = 0; row < mSequenceElements->GetVisibleRowInformationSize(); row++) {
@@ -5518,25 +5481,21 @@ void EffectsGrid::DrawLines() const
             if (isEvenLayer) {
                 //Element is collapsed only one row should be shaded
                 int h = e->GetCollapsed() ? DEFAULT_ROW_HEADING_HEIGHT : DEFAULT_ROW_HEADING_HEIGHT * e->GetEffectLayerCount();
-                va.AddRect(x1, y, x2, y + h);
+                backgrounds->AddRectAsTriangles(x1, y, x2, y + h, color);
             }
             isEvenLayer = !isEvenLayer;
-        }
-        else if (ri->strandIndex != -1) {
+        } else if (ri->strandIndex != -1) {
             if (isEvenLayer) {
-                va.AddRect(x1, y, x2, y + DEFAULT_ROW_HEADING_HEIGHT);
+                backgrounds->AddRectAsTriangles(x1, y, x2, y + DEFAULT_ROW_HEADING_HEIGHT, color);
             }
             isEvenLayer = !isEvenLayer;
         }
     }
-    DrawGLUtils::Draw(va, color, GL_TRIANGLES);
-    va.Reset();
-
-    DrawGLUtils::SetLineWidth(0.2f);
+    float gridSize = 0.5f / translateToBacking(1.0);
+    color = xlights->color_mgr.GetColor(ColorManager::COLOR_GRIDLINES);
     for (size_t row = 0; row < mSequenceElements->GetVisibleRowInformationSize(); row++) {
         y = (row + 1) * DEFAULT_ROW_HEADING_HEIGHT;
-        va.AddVertex(x1, y);
-        va.AddVertex(x2, y);
+        backgrounds->AddRectAsTriangles(x1, y - gridSize, x2, y + gridSize, color);
     }
 
     // Draw vertical lines
@@ -5545,27 +5504,27 @@ void EffectsGrid::DrawLines() const
     for (size_t x3 = 0; x3 < mWindowWidth; x3++) {
         // Draw hash marks
         if ((x3 + mStartPixelOffset) % (PIXELS_PER_MAJOR_HASH) == 0) {
-            va.AddVertex(x3, y1);
-            va.AddVertex(x3, y2);
+            backgrounds->AddRectAsTriangles(x3 - gridSize, y1, x3 + gridSize, y2, color);
         }
     }
-
-    DrawGLUtils::Draw(va, xlights->color_mgr.GetColor(ColorManager::COLOR_GRIDLINES), GL_LINES);
-    DrawGLUtils::SetLineWidth(1.0f);
 }
 
-void EffectsGrid::DrawPlayMarker() const
+void EffectsGrid::DrawPlayMarker(xlGraphicsContext *ctx) const
 {
     xlColor play_line = xlRED;
     int play_pos = mTimeline->GetPlayMarker();
     if (play_pos > 0) {
-        DrawGLUtils::DrawLine(play_line, 255, play_pos, 0, play_pos, GetSize().y, 0.2f);
+        xlVertexAccumulator *va = ctx->createVertexAccumulator();
+        va->AddVertex(play_pos, 0);
+        va->AddVertex(play_pos, mWindowHeight);
+        ctx->drawLines(va, play_line);
+        delete va;
     }
 }
 
 int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Effect* e,
     int x1, int y1, int x2, int y2,
-    DrawGLUtils::xlAccumulator& backgrounds) const
+    xlVertexColorAccumulator *backgrounds) const
 {
     if (e->GetPaletteSize() == 0) {
         //if there are no colors selected, none of the "backgrounds" make sense.  Don't draw
@@ -5582,18 +5541,16 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
             StrandElement* se = dynamic_cast<StrandElement*>(ri->element);
             if (se != nullptr) {
                 colorMask = m->GetNodeMaskColor(se->GetStrand());
-            }
-            else {
+            } else {
                 colorMask = xlWHITE;
             }
-        }
-        else {
+        } else {
             if (wxString(m->GetStringType()).StartsWith("Single Color") || m->GetStringType() == "Node Single Color") {
                 colorMask = m->GetNodeMaskColor(0);
             }
         }
     }
-    int result = ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds, (colorMask.IsNilColor() ? nullptr : &colorMask), xlights->IsDrawRamps());
+    int result = ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, *backgrounds, (colorMask.IsNilColor() ? nullptr : &colorMask), xlights->IsDrawRamps());
 
     return result;
 }
@@ -5606,8 +5563,7 @@ float ComputeFontSize(int& toffset, const float factor)
         if (factor > 1.5) {
             fontSize = 9;
             toffset = 1;
-        }
-        else {
+        } else {
             fontSize = 10;
             toffset = 2;
         }
@@ -5615,34 +5571,33 @@ float ComputeFontSize(int& toffset, const float factor)
     return fontSize;
 }
 
-void EffectsGrid::DrawEffects()
+void EffectsGrid::DrawEffects(xlGraphicsContext *ctx)
 {
     int width = getWidth();
     for (int row = 0; row < mSequenceElements->GetVisibleRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
         if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             DrawTimingEffects(row);
-        }
-        else {
+        } else {
             wxString name = ri->element->GetName();
             EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(ri);
             if (effectLayer == nullptr) {
                 continue;
             }
-            lines.PreAlloc(effectLayer->GetEffectCount() * 16);
-            selectedLinesFixed.PreAlloc(effectLayer->GetEffectCount() * 16);
-            selectedLinesLocked.PreAlloc(effectLayer->GetEffectCount() * 16);
-            linesLocked.PreAlloc(effectLayer->GetEffectCount() * 16);
-            selectedLinesDisabled.PreAlloc(effectLayer->GetEffectCount() * 16);
-            linesDisabled.PreAlloc(effectLayer->GetEffectCount() * 16);
-            selectedLines.PreAlloc(effectLayer->GetEffectCount() * 16);
-            selectFocusLines.PreAlloc(16);
-            selectFocusLinesLocked.PreAlloc(16);
-            selectFocusLinesDisabled.PreAlloc(16);
+            lines->PreAlloc(effectLayer->GetEffectCount() * 16);
+            selectedLinesFixed->PreAlloc(effectLayer->GetEffectCount() * 16);
+            selectedLinesLocked->PreAlloc(effectLayer->GetEffectCount() * 16);
+            linesLocked->PreAlloc(effectLayer->GetEffectCount() * 16);
+            selectedLinesDisabled->PreAlloc(effectLayer->GetEffectCount() * 16);
+            linesDisabled->PreAlloc(effectLayer->GetEffectCount() * 16);
+            selectedLines->PreAlloc(effectLayer->GetEffectCount() * 16);
+            selectFocusLines->PreAlloc(16);
+            selectFocusLinesLocked->PreAlloc(16);
+            selectFocusLinesDisabled->PreAlloc(16);
 
-            DrawGLUtils::xlVertexAccumulator* linesRight;
-            DrawGLUtils::xlVertexAccumulator* linesLeft;
-            DrawGLUtils::xlVertexAccumulator* linesCenter;
+            xlVertexAccumulator* linesRight;
+            xlVertexAccumulator* linesLeft;
+            xlVertexAccumulator* linesCenter;
             int y1 = (row * DEFAULT_ROW_HEADING_HEIGHT) + 2;
             int y2 = ((row + 1) * DEFAULT_ROW_HEADING_HEIGHT) - 2;
             int y = (row * DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT / 2);
@@ -5674,7 +5629,7 @@ void EffectsGrid::DrawEffects()
                 int timems = seqData->NumFrames() * seqData->FrameTime();
                 xs.push_back(mTimeline->GetPositionFromTimeMS(timems));
 
-                backgrounds.PreAlloc(xs.size() * 6);
+                backgrounds->PreAlloc(xs.size() * 6);
                 float y1a = (row * DEFAULT_ROW_HEADING_HEIGHT) + 3;
                 float y2a = ((row + 1) * DEFAULT_ROW_HEADING_HEIGHT) - 3;
                 float x = mTimeline->GetPositionFromTimeMS(0);
@@ -5683,9 +5638,8 @@ void EffectsGrid::DrawEffects()
                     if (x2 >= 0) {
                         if (colors.size() < n) {
                             // that wont work
-                        }
-                        else {
-                            backgrounds.AddRect(x, y1a, x2, y2a, colors[n]);
+                        } else {
+                            backgrounds->AddRectAsTriangles(x, y1a, x2, y2a, colors[n]);
                         }
                     }
                     x = x2;
@@ -5714,47 +5668,42 @@ void EffectsGrid::DrawEffects()
                 if (e == mSelectedEffect) {
                     if (effectLayer->GetEffect(effectIndex)->IsRenderDisabled()) {
                         linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &linesDisabled : &selectFocusLinesDisabled;
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? linesDisabled : selectFocusLinesDisabled;
                         linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &linesDisabled : &selectFocusLinesDisabled;
-                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? &selectFocusLinesDisabled : &linesDisabled;
-                    }
-                    else if (effectLayer->GetEffect(effectIndex)->IsLocked()) {
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? linesDisabled : selectFocusLinesDisabled;
+                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? selectFocusLinesDisabled : linesDisabled;
+                    } else if (effectLayer->GetEffect(effectIndex)->IsLocked()) {
                         linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &linesLocked : &selectFocusLinesLocked;
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? linesLocked : selectFocusLinesLocked;
                         linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &linesLocked : &selectFocusLinesLocked;
-                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? &selectFocusLinesLocked : &linesLocked;
-                    }
-                    else {
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? linesLocked : selectFocusLinesLocked;
+                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? selectFocusLinesLocked : linesLocked;
+                    } else {
                         linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &lines : &selectFocusLines;
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? lines : selectFocusLines;
                         linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &lines : &selectFocusLines;
-                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? &selectFocusLines : &lines;
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? lines : selectFocusLines;
+                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? selectFocusLines : lines;
                     }
-                }
-                else {
+                } else {
                     if (effectLayer->GetEffect(effectIndex)->IsRenderDisabled()) {
                         linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &linesDisabled : &selectedLinesDisabled;
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? linesDisabled : selectedLinesDisabled;
                         linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &linesDisabled : &selectedLinesDisabled;
-                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? &selectedLinesDisabled : &linesDisabled;
-                    }
-                    else if (effectLayer->GetEffect(effectIndex)->IsLocked()) {
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? linesDisabled : selectedLinesDisabled;
+                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? selectedLinesDisabled : linesDisabled;
+                    } else if (effectLayer->GetEffect(effectIndex)->IsLocked()) {
                         linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &linesLocked : &selectedLinesLocked;
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? linesLocked : selectedLinesLocked;
                         linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &linesLocked : &selectedLinesLocked;
-                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? &selectedLinesLocked : &linesLocked;
-                    }
-                    else {
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? linesLocked : selectedLinesLocked;
+                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? selectedLinesLocked : linesLocked;
+                    } else {
                         linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &lines : &selectedLines;
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? lines : selectedLines;
                         linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &lines : &selectedLines;
-                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? &selectedLines : &lines;
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? lines : selectedLines;
+                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? selectedLines : lines;
                     }
                 }
 
@@ -5781,8 +5730,7 @@ void EffectsGrid::DrawEffects()
                                 linesLeft->AddVertex(x1, y1);
                                 linesLeft->AddVertex(x1, y2);
                             }
-                        }
-                        else {
+                        } else {
                             linesLeft->AddVertex(x1, y1);
                             linesLeft->AddVertex(x1, y2);
                         }
@@ -5803,7 +5751,11 @@ void EffectsGrid::DrawEffects()
                                 double xl = (x1 + x2) / 2.0 - sz;
                                 double xr = (x1 + x2) / 2.0 + sz;
 
-                                textures[m_EffectTextures[e->GetEffectIndex()]].AddFullTexture(xl, y - sz, xr, y + sz);
+                                effectIcons->AddTexture(xl, y - sz, xr, y + sz,
+                                                        effectIconLocations[e->GetEffectIndex()][0],
+                                                        effectIconLocations[e->GetEffectIndex()][1],
+                                                        effectIconLocations[e->GetEffectIndex()][0] + 64.0f/512.0f,
+                                                        effectIconLocations[e->GetEffectIndex()][1] + 64.0f/512.0f);
 
                                 linesLeft->AddVertex(x1, y);
                                 linesLeft->AddVertex((x1 + x2) / 2.0 - sz, y);
@@ -5811,9 +5763,8 @@ void EffectsGrid::DrawEffects()
                                 linesRight->AddVertex((x1 + x2) / 2.0 + sz, y);
                                 linesRight->AddVertex(x2, y);
 
-                                lines.AddLinesRect(xl - 0.4, y - sz, xr + 0.4, y + sz);
-                            }
-                            else if (x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT) {
+                                lines->AddRectAsLines(xl - 0.4, y - sz - 0.4, xr + 0.4, y + sz + 0.4);
+                            } else if (x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT) {
                                 linesLeft->AddVertex(x1, y);
                                 linesLeft->AddVertex(x1 + (x / 2) - 1, y);
 
@@ -5823,11 +5774,13 @@ void EffectsGrid::DrawEffects()
                                 float xl = x1 + (x / 2) - 1;
                                 float xr = x1 + (x / 2) + 1;
 
-                                textures[m_EffectTextures[e->GetEffectIndex()]].AddFullTexture(xl, y - sz, xr, y + sz);
-
-                                lines.AddLinesRect(xl - 0.4, y - sz, xr + 0.4, y + sz);
-                            }
-                            else {
+                                effectIcons->AddTexture(xl, y - sz, xr, y + sz,
+                                                        effectIconLocations[e->GetEffectIndex()][0],
+                                                        effectIconLocations[e->GetEffectIndex()][1],
+                                                        effectIconLocations[e->GetEffectIndex()][0] + 64.0f/512.0f,
+                                                        effectIconLocations[e->GetEffectIndex()][1] + 64.0f/512.0f);
+                                lines->AddRectAsLines(xl - 0.4, y - sz - 0.4, xr + 0.4, y + sz + 0.4);
+                            } else {
                                 linesCenter->AddVertex(x1, y);
                                 linesCenter->AddVertex(x2, y);
                             }
@@ -5842,107 +5795,74 @@ void EffectsGrid::DrawEffects()
                 int selected_timing_row = mSequenceElements->GetSelectedTimingRow();
                 if (selected_timing_row >= 0) {
                     highlight_color = xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(selected_timing_row)->colorIndex);
-                }
-                else {
+                }  else {
                     highlight_color = xlights->color_mgr.GetTimingColor(0);
                 }
                 highlight_color.alpha = TIMING_ALPHA;
-                selectedBoxes.AddRect(mDropStartX, y3, mDropStartX + mDropEndX - mDropStartX, y3 + DEFAULT_ROW_HEADING_HEIGHT, highlight_color);
+                selectedBoxes->AddRectAsTriangles(mDropStartX, y3, mDropStartX + mDropEndX - mDropStartX, y3 + DEFAULT_ROW_HEADING_HEIGHT, highlight_color);
                 mSequenceElements->GetXLightsFrame()->GetMainSequencer()->PanelRowHeadings->Refresh(false);
             }
         }
     }
-    backgrounds.Finish(GL_TRIANGLES);
-    DrawGLUtils::Draw(backgrounds);
-    for (auto it = textures.begin(); it != textures.end(); ++it) {
-        it->second.id = it->first;
-        DrawGLUtils::Draw(it->second, GL_TRIANGLES);
-        it->second.Reset();
-    }
-    DrawGLUtils::Draw(lines, xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_DEFAULT), GL_LINES);
-    DrawGLUtils::Draw(linesDisabled, xlights->color_mgr.GetColor(ColorManager::COLOR_DISABLED_EFFECT), GL_LINES);
-    DrawGLUtils::Draw(linesLocked, xlights->color_mgr.GetColor(ColorManager::COLOR_LOCKED_EFFECT), GL_LINES);
+    ctx->enableBlending();
+    ctx->drawTriangles(backgrounds->Flush());
+    ctx->disableBlending();
+    ctx->drawTexture(effectIcons->Flush(), effectIconTexture);
+    ctx->drawLines(lines->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_DEFAULT));
+    ctx->drawLines(linesDisabled->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_DISABLED_EFFECT));
+    ctx->drawLines(linesLocked->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_LOCKED_EFFECT));
 
-    DrawGLUtils::Draw(selectFocusLines, xlights->color_mgr.GetColor(ColorManager::COLOR_REFERENCE_EFFECT), GL_LINES);
-    DrawGLUtils::Draw(selectFocusLinesLocked, xlights->color_mgr.GetColor(ColorManager::COLOR_REFERENCE_EFFECT_LOCKED), GL_LINES);
-    DrawGLUtils::Draw(selectFocusLinesDisabled, xlights->color_mgr.GetColor(ColorManager::COLOR_REFERENCE_EFFECT_DISABLED), GL_LINES);
+    ctx->drawLines(selectFocusLines->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_REFERENCE_EFFECT));
+    ctx->drawLines(selectFocusLinesLocked->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_REFERENCE_EFFECT_LOCKED));
+    ctx->drawLines(selectFocusLinesDisabled->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_REFERENCE_EFFECT_DISABLED));
 
-    DrawGLUtils::Draw(selectedLines, xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED), GL_LINES);
-    DrawGLUtils::Draw(selectedLinesLocked, xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED_LOCKED), GL_LINES);
-    DrawGLUtils::Draw(selectedLinesFixed, xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED_FIXED), GL_LINES);
-    DrawGLUtils::Draw(selectedLinesDisabled, xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED_DISABLED), GL_LINES);
+    ctx->drawLines(selectedLines->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED));
+    ctx->drawLines(selectedLinesLocked->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED_LOCKED));
+    ctx->drawLines(selectedLinesFixed->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED_FIXED));
+    ctx->drawLines(selectedLinesDisabled->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED_DISABLED));
 
-    DrawGLUtils::SetLineWidth(2.0);
-    DrawGLUtils::Draw(timingEffLines, xlights->color_mgr.GetColor(ColorManager::COLOR_TIMING_DEFAULT), GL_LINES);
-    DrawGLUtils::Draw(textBackgrounds, GL_TRIANGLES);
-    DrawGLUtils::SetLineWidth(1.0);
-    DrawGLUtils::Draw(timingLines, GL_LINES, GL_BLEND);
+    ctx->drawLines(timingEffLines->Flush(), xlights->color_mgr.GetColor(ColorManager::COLOR_TIMING_DEFAULT));
+    ctx->enableBlending();
+    ctx->drawLines(timingLines->Flush());
 
-    float factor = translateToBacking(1.0);
-    int toffset;
-    float fontSize = ComputeFontSize(toffset, factor);
-
-    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-    DrawGLUtils::Draw(texts, fontSize, factor);
-    DrawGLUtils::Draw(selectedBoxes, GL_TRIANGLES, GL_BLEND);
-
-    textBackgrounds.Reset();
-    timingLines.Reset();
-    timingEffLines.Reset();
-    selectedLinesFixed.Reset();
-    selectedLinesLocked.Reset();
-    texts.Reset();
-    backgrounds.Reset();
-    selectedBoxes.Reset();
-    selectedLines.Reset();
-    selectFocusLines.Reset();
-    selectFocusLinesLocked.Reset();
-    selectFocusLinesDisabled.Reset();
-    selectedLinesDisabled.Reset();
-    linesDisabled.Reset();
-    linesLocked.Reset();
-
-    lines.Reset();
+    ctx->drawTexture(texts->Flush(), fontTexture);
+    ctx->drawTriangles(selectedBoxes->Flush());
+    ctx->disableBlending();
 }
 
-void EffectsGrid::DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, DrawGLUtils::xlAccumulator& backgrounds) const
+void EffectsGrid::DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator *backgrounds) const
 {
     if (xlights->IsSuppressFadeHints()) return;
     const SettingsMap& sm(e->GetSettings());
     int inTransitionEnd = 0, outTransitionStart = 0;
     double fadeInTime = sm.GetDouble("T_TEXTCTRL_Fadein");
-    if (fadeInTime != 0.)
-    {
+    if (fadeInTime != 0.) {
         double fadeInTimeMS = fadeInTime * 1000;
         int durationMS = e->GetEndTimeMS() - e->GetStartTimeMS();
-        if (durationMS > 0)
-        {
+        if (durationMS > 0) {
             double pct = std::min(fadeInTimeMS / durationMS, 1.);
             int width = int(pct * (x2 - x1));
             inTransitionEnd = x1 + width;
-            backgrounds.AddRect(x1, y1, inTransitionEnd, y1 + 2, xlGREEN);
-            backgrounds.AddRect(x1, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
+            backgrounds->AddRectAsTriangles(x1, y1, inTransitionEnd, y1 + 2, xlGREEN);
+            backgrounds->AddRectAsTriangles(x1, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
         }
     }
     double fadeOutTime = sm.GetDouble("T_TEXTCTRL_Fadeout");
-    if (fadeOutTime != 0.)
-    {
+    if (fadeOutTime != 0.) {
         double fadeOutTimeMS = fadeOutTime * 1000;
         int durationMS = e->GetEndTimeMS() - e->GetStartTimeMS();
-        if (durationMS > 0)
-        {
+        if (durationMS > 0) {
             double pct = std::min(fadeOutTimeMS / durationMS, 1.);
             int width = int(pct * (x2 - x1));
             outTransitionStart = x2 - width;
-            backgrounds.AddRect(outTransitionStart, y1, x2, y1 + 2, xlRED);
-            backgrounds.AddRect(outTransitionStart, y1 + 2, x2, y1 + 3, xlBLACK);
+            backgrounds->AddRectAsTriangles(outTransitionStart, y1, x2, y1 + 2, xlRED);
+            backgrounds->AddRectAsTriangles(outTransitionStart, y1 + 2, x2, y1 + 3, xlBLACK);
         }
     }
 
-    if (fadeInTime != 0. && fadeOutTime != 0. && inTransitionEnd > outTransitionStart)
-    {
-        backgrounds.AddRect(outTransitionStart, y1, inTransitionEnd, y1 + 2, xlYELLOW);
-        backgrounds.AddRect(outTransitionStart, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
+    if (fadeInTime != 0. && fadeOutTime != 0. && inTransitionEnd > outTransitionStart) {
+        backgrounds->AddRectAsTriangles(outTransitionStart, y1, inTransitionEnd, y1 + 2, xlYELLOW);
+        backgrounds->AddRectAsTriangles(outTransitionStart, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
     }
 }
 
@@ -5963,10 +5883,9 @@ void EffectsGrid::DrawTimingEffects(int row)
 
     int toffset = 0;
     float factor = translateToBacking(1.0);
-    float fontSize = ComputeFontSize(toffset, factor);
+    const xlFontInfo &font = xlFontInfo::FindFont(curFontSize);
 
-    for (int effectIndex = 0; effectIndex < effectLayer->GetEffectCount(); effectIndex++)
-    {
+    for (int effectIndex = 0; effectIndex < effectLayer->GetEffectCount(); effectIndex++) {
         Effect *eff = effectLayer->GetEffect(effectIndex);
 
         EFFECT_SCREEN_MODE mode = SCREEN_L_R_OFF;
@@ -5979,37 +5898,27 @@ void EffectsGrid::DrawTimingEffects(int row)
         mTimeline->GetPositionsFromTimeRange(eff->GetStartTimeMS(),
             eff->GetEndTimeMS(), mode, x1, x2, x3, x4);
 
-        DrawGLUtils::xlVertexAccumulator* linesLeft;
-        DrawGLUtils::xlVertexAccumulator* linesRight;
-        if (fixed)
-        {
-            linesLeft = &selectedLinesFixed;
-            linesRight = &selectedLinesFixed;
-            //DrawGLUtils::xlVertexAccumulator* linesCenter = &timingEffLines;
-        }
-        else if (eff->IsLocked())
-        {
+        xlVertexAccumulator* linesLeft;
+        xlVertexAccumulator* linesRight;
+        if (fixed) {
+            linesLeft = selectedLinesFixed;
+            linesRight = selectedLinesFixed;
+        } else if (eff->IsLocked()) {
             linesLeft = eff->GetSelected() == EFFECT_NOT_SELECTED ||
-                eff->GetSelected() == EFFECT_RT_SELECTED ? &timingEffLines : &selectedLinesLocked;
+                eff->GetSelected() == EFFECT_RT_SELECTED ? timingEffLines : selectedLinesLocked;
             linesRight = eff->GetSelected() == EFFECT_NOT_SELECTED ||
-                eff->GetSelected() == EFFECT_LT_SELECTED ? &timingEffLines : &selectedLinesLocked;
-            //DrawGLUtils::xlVertexAccumulator* linesCenter = eff->GetSelected() == EFFECT_SELECTED?&selectedLinesLocked:&timingEffLines;
-        }
-        else
-        {
+                eff->GetSelected() == EFFECT_LT_SELECTED ? timingEffLines : selectedLinesLocked;
+        } else {
             linesLeft = eff->GetSelected() == EFFECT_NOT_SELECTED ||
-                eff->GetSelected() == EFFECT_RT_SELECTED ? &timingEffLines : &selectedLines;
+                eff->GetSelected() == EFFECT_RT_SELECTED ? timingEffLines : selectedLines;
             linesRight = eff->GetSelected() == EFFECT_NOT_SELECTED ||
-                eff->GetSelected() == EFFECT_LT_SELECTED ? &timingEffLines : &selectedLines;
-            //DrawGLUtils::xlVertexAccumulator* linesCenter = eff->GetSelected() == EFFECT_SELECTED?&selectedLines:&timingEffLines;
+                eff->GetSelected() == EFFECT_LT_SELECTED ? timingEffLines : selectedLines;
         }
 
         if (mode != SCREEN_L_R_OFF) {
             // Draw Left line
-            if (mode == SCREEN_L_R_ON || mode == SCREEN_L_ON)
-            {
-                if (effectIndex > 0)
-                {
+            if (mode == SCREEN_L_R_ON || mode == SCREEN_L_ON) {
+                if (effectIndex > 0) {
                     // Draw left line if effect has different start time then previous effect or
                     // previous effect was not selected, or only left was selected
                     if (eff->GetStartTimeMS() != effectLayer->GetEffect(effectIndex - 1)->GetEndTimeMS() ||
@@ -6018,68 +5927,60 @@ void EffectsGrid::DrawTimingEffects(int row)
                         linesLeft->AddVertex(x1, y1);
                         linesLeft->AddVertex(x1, y2);
                     }
-                }
-                else
-                {
+                } else {
                     linesLeft->AddVertex(x1, y1);
                     linesLeft->AddVertex(x1, y2);
                 }
 
-                if (element->GetActive() && ri->layerIndex == 0)
-                {
-                    timingLines.AddVertex(x1, (row + 1)*DEFAULT_ROW_HEADING_HEIGHT, c);
-                    timingLines.AddVertex(x1, GetSize().y, c);
+                if (element->GetActive() && ri->layerIndex == 0) {
+                    timingLines->AddVertex(x1, (row + 1)*DEFAULT_ROW_HEADING_HEIGHT, c);
+                    timingLines->AddVertex(x1, GetSize().y, c);
                 }
             }
             // Draw Right line
-            if (mode == SCREEN_L_R_ON || mode == SCREEN_R_ON)
-            {
+            if (mode == SCREEN_L_R_ON || mode == SCREEN_R_ON) {
                 linesRight->AddVertex(x2, y1);
                 linesRight->AddVertex(x2, y2);
-                if (element->GetActive() && ri->layerIndex == 0)
-                {
-                    timingLines.AddVertex(x2, (row + 1)*DEFAULT_ROW_HEADING_HEIGHT, c);
-                    timingLines.AddVertex(x2, GetSize().y, c);
+                if (element->GetActive() && ri->layerIndex == 0) {
+                    timingLines->AddVertex(x2, (row + 1)*DEFAULT_ROW_HEADING_HEIGHT, c);
+                    timingLines->AddVertex(x2, GetSize().y, c);
                 }
             }
             // Draw horizontal
-            if (mode != SCREEN_L_R_OFF)
-            {
+            if (mode != SCREEN_L_R_OFF) {
                 int half_width = (x2 - x1) / 2;
-                linesLeft->AddVertex(x1, y);
-                linesLeft->AddVertex(x1 + half_width, y);
-                linesRight->AddVertex(x1 + half_width, y);
-                linesRight->AddVertex(x2, y);
                 if (eff->GetEffectName() != "" && (x2 - x1) > 20) {
                     int max_width = x2 - x1 - 18;
-                    int text_width = DrawGLUtils::GetTextWidth(fontSize, eff->GetEffectName(), factor) + 8;
+                    int text_width = font.widthOf(eff->GetEffectName(), factor) + 8;
                     int width = std::min(text_width, max_width);
                     int center = x1 + (x2 - x1) / 2;
                     int label_start = center - width / 2;
                     xlColor label_color = xlights->color_mgr.GetColor(ColorManager::COLOR_LABELS);
-                    if (ri->layerIndex == 0 && element->GetEffectLayerCount() > 1)
-                    {
+                    if (ri->layerIndex == 0 && element->GetEffectLayerCount() > 1) {
                         label_color = xlights->color_mgr.GetColor(ColorManager::COLOR_PHRASES);
-                    }
-                    else if (ri->layerIndex == 1)
-                    {
+                    } else if (ri->layerIndex == 1) {
                         label_color = xlights->color_mgr.GetColor(ColorManager::COLOR_WORDS);
-                    }
-                    else if (ri->layerIndex == 2)
-                    {
+                    } else if (ri->layerIndex == 2) {
                         label_color = xlights->color_mgr.GetColor(ColorManager::COLOR_PHONEMES);
                     }
-                    textBackgrounds.AddRect(label_start, y1 - 2, label_start + width, y2 + 2, label_color);
-                    timingLines.AddLinesRect(label_start - 0.4, y1 - 2 - 0.4, label_start + width + 0.4, y2 + 2 + 0.4, xlights->color_mgr.GetColor(ColorManager::COLOR_LABEL_OUTLINE));
+                    linesLeft->AddVertex(x1, y);
+                    linesLeft->AddVertex(label_start, y);
+                    linesRight->AddVertex(label_start + width, y);
+                    linesRight->AddVertex(x2, y);
+                    backgrounds->AddRectAsTriangles(label_start, y1 - 2, label_start + width, y2 + 2, label_color);
+                    timingLines->AddRectAsLines(label_start - 0.4, y1 - 2 - 0.4, label_start + width + 0.4, y2 + 2 + 0.4, xlights->color_mgr.GetColor(ColorManager::COLOR_LABEL_OUTLINE));
 
                     // trim the text to fit
                     auto name = eff->GetEffectName();
-                    while (name != "" && DrawGLUtils::GetTextWidth(fontSize, name, factor) > width)
-                    {
+                    while (name != "" && font.widthOf(name, factor) > width) {
                         name = name.substr(0, name.size() - 1);
                     }
-
-                    texts.AddVertex(label_start + 4, y2 + toffset, name);
+                    font.populate(*texts, label_start + 4, y2 + toffset, name, factor);
+                } else {
+                    linesLeft->AddVertex(x1, y);
+                    linesLeft->AddVertex(x1 + half_width, y);
+                    linesRight->AddVertex(x1 + half_width, y);
+                    linesRight->AddVertex(x2, y);
                 }
             }
         }
@@ -6094,111 +5995,185 @@ void EffectsGrid::render( wxPaintEvent& evt )
 
 void EffectsGrid::Draw()
 {
-    if(!IsShownOnScreen()) return;
-    if(!mIsInitialized) { InitializeGLCanvas(); }
+    if (!IsShownOnScreen()) return;
+
+    xlGraphicsContext *ctx = nullptr;
+    if (!mIsInitialized) {
+        PrepareCanvas();
+        ctx = PrepareContextForDrawing();
+        CreateEffectIconTextures(ctx);
+
+        //create all the accumulators
+        lines = ctx->createVertexAccumulator();
+        selectedLinesFixed = ctx->createVertexAccumulator();
+        selectedLinesLocked = ctx->createVertexAccumulator();
+        timingEffLines = ctx->createVertexAccumulator();
+        selectedLines = ctx->createVertexAccumulator();
+        selectFocusLines = ctx->createVertexAccumulator();
+        selectFocusLinesLocked = ctx->createVertexAccumulator();
+        selectFocusLinesDisabled = ctx->createVertexAccumulator();
+        selectedLinesDisabled = ctx->createVertexAccumulator();
+        linesDisabled = ctx->createVertexAccumulator();
+        linesLocked = ctx->createVertexAccumulator();
+        timingLines = ctx->createVertexColorAccumulator();
+        backgrounds = ctx->createVertexColorAccumulator();
+        selectedBoxes = ctx->createVertexColorAccumulator();
+        texts = ctx->createVertexTextureAccumulator();
+        effectIcons = ctx->createVertexTextureAccumulator();
+    } else {
+        timingLines->Reset();
+        timingEffLines->Reset();
+        selectedLinesFixed->Reset();
+        selectedLinesLocked->Reset();
+        texts->Reset();
+        backgrounds->Reset();
+        selectedBoxes->Reset();
+        selectedLines->Reset();
+        selectFocusLines->Reset();
+        selectFocusLinesLocked->Reset();
+        selectFocusLinesDisabled->Reset();
+        selectedLinesDisabled->Reset();
+        linesDisabled->Reset();
+        linesLocked->Reset();
+        lines->Reset();
+        effectIcons->Reset();
+    }
+
+    if (ctx == nullptr) {
+        ctx = PrepareContextForDrawing();
+        if (ctx == nullptr) {
+            return;
+        }
+    }
+    ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
     if (mWindowResized && mTimeline != nullptr) {
         mTimeline->RecalcEndTime();  // force a recalc of the Timeline end time so that timing effect positions will calculate correct during redraw
     }
-    SetCurrentGLContext();
-
-    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // Black Background
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
 
     if (mSequenceElements) {
-        DrawLines();
-        DrawEffects();
-        DrawPlayMarker();
+        float factor = translateToBacking(1.0);
+        int toffset;
+        float fontSize = ComputeFontSize(toffset, factor) * factor;
+        if (curFontSize != fontSize) {
+            if (fontTexture) {
+                delete fontTexture;
+            }
+            curFontSize = fontSize;
+            const xlFontInfo &font = xlFontInfo::FindFont(curFontSize);
+            fontTexture = ctx->createTextureForFont(font);
+        }
+
+        DrawLines(ctx);
+        DrawEffects(ctx);
+        DrawPlayMarker(ctx);
 
         bool has_timing_effects = (mSequenceElements->GetNumberOfActiveTimingEffects() > 0);
         if ((mDragging || mCellRangeSelected) && !mPartialCellSelected) {
             if (has_timing_effects && mRangeStartCol >= 0) {
-                DrawSelectedCells();
+                DrawSelectedCells(ctx);
             }
         }
         if (mDragging && !has_timing_effects) {
             int offset = (mDragStartRow - mSequenceElements->GetFirstVisibleModelRow()) * DEFAULT_ROW_HEADING_HEIGHT;
-            DrawGLUtils::DrawRectangle(xlights->color_mgr.GetColor(ColorManager::COLOR_GRID_DASHES),true,mDragStartX,mDragStartY+offset,mDragEndX,mDragEndY);
+            xlVertexAccumulator *va = ctx->createVertexAccumulator();
+            va->AddRectAsDashedLines(mDragStartX, mDragStartY + offset, mDragEndX, mDragEndY, translateToBacking(8));
+            ctx->drawLines(va, xlights->color_mgr.GetColor(ColorManager::COLOR_GRID_DASHES));
+            delete va;
         }
     }
-
-
-    LOG_GL_ERRORV(SwapBuffers());
+    FinishDrawing(ctx);
 }
 
-void EffectsGrid::DrawSelectedCells()
+void EffectsGrid::DrawSelectedCells(xlGraphicsContext *ctx)
 {
     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
     int start_row = mRangeStartRow;
     int end_row = mRangeEndRow;
     int start_col = mRangeStartCol;
     int end_col = mRangeEndCol;
-    if( start_row > end_row ) {
-        std::swap( start_row, end_row );
+    if (start_row > end_row) {
+        std::swap(start_row, end_row);
     }
-    if( start_col > end_col ) {
-        std::swap( start_col, end_col );
+    if (start_col > end_col) {
+        std::swap(start_col, end_col);
     }
-    if( tel->GetEffectCount() > 0 && end_col < tel->GetEffectCount() )
-    {
+    if (tel->GetEffectCount() > 0 && end_col < tel->GetEffectCount()) {
         int first_row = mSequenceElements->GetFirstVisibleModelRow();
         int adjusted_start_row = start_row - first_row;
         adjusted_start_row = std::max(adjusted_start_row, mSequenceElements->GetNumberOfTimingRows());
         int last_row = end_row-first_row;
-        if( last_row >= adjusted_start_row )
-        {
-            int start_x = mTimeline->GetPositionFromTimeMS(tel->GetEffect(start_col)->GetStartTimeMS())+1;
-            int end_x = mTimeline->GetPositionFromTimeMS(tel->GetEffect(end_col)->GetEndTimeMS())-1;
-            int start_y = adjusted_start_row*DEFAULT_ROW_HEADING_HEIGHT;
-            int end_y = last_row*DEFAULT_ROW_HEADING_HEIGHT;
+        if (last_row >= adjusted_start_row) {
+            int start_x = mTimeline->GetPositionFromTimeMS(tel->GetEffect(start_col)->GetStartTimeMS()) + 1;
+            int end_x = mTimeline->GetPositionFromTimeMS(tel->GetEffect(end_col)->GetEndTimeMS()) - 1;
+            int start_y = adjusted_start_row * DEFAULT_ROW_HEADING_HEIGHT;
+            int end_y = last_row * DEFAULT_ROW_HEADING_HEIGHT;
 
-             if( !xlights->IsACActive() ) {
+            xlVertexAccumulator *va = ctx->createVertexAccumulator();
+            if (!xlights->IsACActive()) {
                 xlColor highlight_color = xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
                 highlight_color.alpha = TIMING_ALPHA;
-                LOG_GL_ERRORV(glEnable(GL_BLEND));
-                DrawGLUtils::DrawFillRectangle(highlight_color,80,start_x,start_y,end_x-start_x,end_y-start_y+DEFAULT_ROW_HEADING_HEIGHT);
-                LOG_GL_ERRORV(glDisable(GL_BLEND));
+                va->AddRectAsTriangles(start_x, start_y, end_x, end_y + DEFAULT_ROW_HEADING_HEIGHT);
+                ctx->enableBlending();
+                xlColor c(highlight_color);
+                c.alpha = 80;
+                ctx->drawTriangles(va, c);
+                ctx->disableBlending();
             } else {
-                DrawGLUtils::DrawRectangle(xlWHITE,false,start_x,start_y,end_x,end_y+DEFAULT_ROW_HEADING_HEIGHT);
-                DrawGLUtils::DrawRectangle(xlWHITE,false,start_x+1,start_y+1,end_x-1,end_y-1+DEFAULT_ROW_HEADING_HEIGHT);
+                xlVertexAccumulator *va = ctx->createVertexAccumulator();
+                va->AddRectAsLines(start_x, start_y, end_x, end_y + DEFAULT_ROW_HEADING_HEIGHT);
+                va->AddRectAsLines(start_x + 1, start_y + 1, end_x - 1, end_y - 1 + DEFAULT_ROW_HEADING_HEIGHT);
+                ctx->drawLines(va, xlWHITE);
             }
+            delete va;
         }
     }
 }
 
-void EffectsGrid::CreateEffectIconTextures()
+void EffectsGrid::CreateEffectIconTextures(xlGraphicsContext *ctx)
 {
-    m_EffectTextures.resize(xlights->GetEffectManager().size());
+    std::vector<wxImage> images;
+    images.emplace_back(512, 512);
+    images.emplace_back(256, 256);
+    images.emplace_back(128, 128);
+    images[0].InitAlpha();
+    images[1].InitAlpha();
+    images[2].InitAlpha();
     for (int x = 0; x < xlights->GetEffectManager().size(); x++) {
         RenderableEffect *eff = xlights->GetEffectManager()[x];
-        DrawGLUtils::CreateOrUpdateTexture(eff->GetEffectIcon(64, true),
-                                           eff->GetEffectIcon(32, true),
-                                           eff->GetEffectIcon(16, true),
-                                           &m_EffectTextures[eff->GetId()]);
+        int xLoc = (x % 8) * 64;
+        int yLoc = x / 8 * 64;
 
-    }
-}
+        wxImage img = eff->GetEffectIcon(64, true).ConvertToImage();
+        if (img.GetWidth() != 64 || img.GetHeight() != 64) {
+            img = img.Rescale(64, 64, wxIMAGE_QUALITY_HIGH);
+        }
+        images[0].Paste(img, xLoc, yLoc);
+        img = eff->GetEffectIcon(32, true).ConvertToImage();
+        if (img.GetWidth() != 32 || img.GetHeight() != 32) {
+            img = img.Rescale(32, 32, wxIMAGE_QUALITY_HIGH);
+        }
+        images[1].Paste(img, xLoc / 2, yLoc / 2);
+        img = eff->GetEffectIcon(16, true).ConvertToImage();
+        if (img.GetWidth() != 16 || img.GetHeight() != 16) {
+            img = img.Rescale(16, 16, wxIMAGE_QUALITY_HIGH);
+        }
+        images[2].Paste(img, xLoc / 4, yLoc / 4);
 
-void EffectsGrid::DeleteEffectIconTextures()
-{
-    for (size_t x = 0; x < m_EffectTextures.size(); x++) {
-        glDeleteTextures(1,&m_EffectTextures[x]);
+        effectIconLocations[eff->GetId()][0] = ((float)xLoc) / 512.0f;
+        effectIconLocations[eff->GetId()][1] = ((float)yLoc) / 512.0f;
     }
-    m_EffectTextures.clear();
+    effectIconTexture = ctx->createTextureMipMaps(images);
 }
 
 void EffectsGrid::magnify(wxMouseEvent& event) {
     magSinceLast += event.GetMagnification();
-    if (magSinceLast > 0.05f)
-    {
+    if (magSinceLast > 0.05f) {
         wxCommandEvent eventZoom(EVT_ZOOM);
         eventZoom.SetInt(ZOOM_IN);
         wxPostEvent(mParent, eventZoom);
         magSinceLast = 0;
-    }
-    else if(magSinceLast < -0.05f)
-    {
+    } else if (magSinceLast < -0.05f) {
         wxCommandEvent eventZoom(EVT_ZOOM);
         eventZoom.SetInt(ZOOM_OUT);
         wxPostEvent(mParent, eventZoom);
@@ -6209,40 +6184,29 @@ void EffectsGrid::magnify(wxMouseEvent& event) {
 void EffectsGrid::mouseWheelMoved(wxMouseEvent& event)
 {
     magSinceLast = 0;
-    if (event.CmdDown())
-    {
+    if (event.CmdDown()) {
         int i = event.GetWheelRotation();
-        if (i < 0)
-        {
+        if (i < 0) {
             wxCommandEvent eventZoom(EVT_ZOOM);
             eventZoom.SetInt(ZOOM_OUT);
             wxPostEvent(mParent, eventZoom);
-        }
-        else
-        {
+        } else {
             wxCommandEvent eventZoom(EVT_ZOOM);
             eventZoom.SetInt(ZOOM_IN);
             wxPostEvent(mParent, eventZoom);
         }
-    }
-    else if(event.ShiftDown())
-    {
+    } else if (event.ShiftDown()) {
         int i = event.GetWheelRotation();
-        if (i < 0)
-        {
+        if (i < 0) {
             wxCommandEvent eventScroll(EVT_GSCROLL);
             eventScroll.SetInt(SCROLL_RIGHT);
             wxPostEvent(mParent, eventScroll);
-        }
-        else
-        {
+        } else {
             wxCommandEvent eventScroll(EVT_GSCROLL);
             eventScroll.SetInt(SCROLL_LEFT);
             wxPostEvent(mParent, eventScroll);
         }
-    }
-    else
-    {
+    } else {
         //cannot POST as we need the actual event to be processed inline
         //so we can tell the source of the event (trackpad vs mouse)
         GetParent()->GetEventHandler()->SafelyProcessEvent(event);
@@ -6306,11 +6270,9 @@ Element* EffectsGrid::GetActiveTimingElement() const
 {
     Element* returnValue=nullptr;
 
-    for (int row = 0; row<mSequenceElements->GetVisibleRowInformationSize(); row++)
-    {
+    for (int row = 0; row<mSequenceElements->GetVisibleRowInformationSize(); row++) {
         Element* e = mSequenceElements->GetVisibleRowInformation(row)->element;
-        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && dynamic_cast<TimingElement*>(e)->GetActive())
-        {
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && dynamic_cast<TimingElement*>(e)->GetActive()) {
             returnValue = e;
             break;
         }
@@ -6326,8 +6288,7 @@ void EffectsGrid::GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight
     toLeft = NO_MAX;
     toRight = NO_MAX;
 
-    for (int row = 0; row<mSequenceElements->GetVisibleRowInformationSize(); row++)
-    {
+    for (int row = 0; row<mSequenceElements->GetVisibleRowInformationSize(); row++) {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
         el->GetMaximumRangeOfMovementForSelectedEffects(left, right);
         toLeft = toLeft < left ? toLeft : left;
@@ -6343,8 +6304,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const
     ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
     if (!offset) {
-        for(int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
-        {
+        for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer A was NULL ... this is going to crash.");
             el->MoveAllSelectedEffects(deltaMS, mSequenceElements->get_undo_mgr());
@@ -6352,8 +6312,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const
     } else {
         int start_row = -1;
         int end_row = -1;
-        for(int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
-        {
+        for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer B was NULL ... this is going to crash.");
             if (el->GetSelectedEffectCount() > 0) {
@@ -6369,14 +6328,12 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const
             delta_step = deltaMS / (end_row - start_row);
         }
         delta_step = mTimeline->RoundToMultipleOfPeriod(delta_step, mSequenceElements->GetFrequency());
-        for (int row = start_row; row <= end_row; row++)
-        {
+        for (int row = start_row; row <= end_row; row++) {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             if (el != nullptr) {
                 if (mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_MOVE) {
                     el->MoveAllSelectedEffects(delta_step * (row - start_row), mSequenceElements->get_undo_mgr());
-                }
-                else {
+                } else {
                     el->MoveAllSelectedEffects(delta_step * (end_row - row), mSequenceElements->get_undo_mgr());
                 }
             }
@@ -6394,36 +6351,30 @@ void EffectsGrid::StretchAllSelectedEffects(int deltaMS, bool offset) const
     ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
     if (!offset) {
-        for (int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
-        {
+        for (int row = 0; row<mSequenceElements->GetRowInformationSize(); row++) {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             el->StretchAllSelectedEffects(deltaMS, mSequenceElements->get_undo_mgr());
         }
-    }
-    else {
+    } else {
         int start_row = -1;
         int end_row = -1;
-        for (int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
-        {
+        for (int row = 0; row<mSequenceElements->GetRowInformationSize(); row++) {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             if (el->GetSelectedEffectCount() > 0) {
                 if (start_row == -1) {
                     start_row = row;
-                }
-                else {
+                } else {
                     end_row = row;
                 }
             }
         }
         int delta_step = deltaMS / (end_row - start_row);
         delta_step = mTimeline->RoundToMultipleOfPeriod(delta_step, mSequenceElements->GetFrequency());
-        for (int row = start_row; row <= end_row; row++)
-        {
+        for (int row = start_row; row <= end_row; row++) {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             if (mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_MOVE) {
                 el->StretchAllSelectedEffects(delta_step*(row - start_row), mSequenceElements->get_undo_mgr());
-            }
-            else {
+            } else {
                 el->StretchAllSelectedEffects(delta_step*(end_row - row), mSequenceElements->get_undo_mgr());
             }
         }
@@ -6439,8 +6390,7 @@ void EffectsGrid::CutModelEffects(int row_number, bool allLayers)
         EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row_number);
         effectLayer->SelectAllEffects();
         effectLayer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-    }
-    else {
+    } else {
         Element* element = mSequenceElements->GetVisibleRowInformation(row_number)->element;
         for (int i = 0; i < element->GetEffectLayerCount(); i++) {
             EffectLayer* effectLayer = element->GetEffectLayer(i);
@@ -6452,13 +6402,11 @@ void EffectsGrid::CutModelEffects(int row_number, bool allLayers)
 
 void EffectsGrid::CopyModelEffects(int row_number, bool allLayers)
 {
-    if (!allLayers)
-    {
+    if (!allLayers) {
         mSequenceElements->UnSelectAllEffects();
         EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row_number);
         Effect* effect = effectLayer->GetEffect(0);
-        if (effect != nullptr)
-        {
+        if (effect != nullptr) {
             mDropStartTimeMS = effect->GetStartTimeMS();
             mRangeCursorRow = mRangeStartRow;
             mRangeCursorCol = mRangeStartCol;
@@ -6472,14 +6420,10 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers)
             mPartialCellSelected = true;
             mCellRangeSelected = false;
             SetRCToolTip();
-        }
-        else
-        {
+        } else {
             ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
         }
-    }
-    else
-    {
+    } else {
         Element* e = mSequenceElements->GetVisibleRowInformation(row_number)->element;
         mSequenceElements->UnSelectAllEffects();
         for (int i = 0; i < e->GetEffectLayerCount(); i++)
@@ -6502,12 +6446,9 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers)
 
 void EffectsGrid::PasteModelEffects(int row_number, bool allLayers)
 {
-    if (allLayers)
-    {
+    if (allLayers) {
         mDropRow = row_number - mSequenceElements->GetVisibleRowInformation(row_number)->layerIndex;
-    }
-    else
-    {
+    } else {
         mDropRow = row_number;
     }
     ((MainSequencer*)mParent)->Paste(true);

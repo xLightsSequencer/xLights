@@ -10,23 +10,10 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "xlGLCanvas.h"
+#include "graphics/opengl/xlGLCanvas.h"
 #include "BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class KaleidoscopePreview : public xlGLCanvas
-{
-public:
-   KaleidoscopePreview(wxWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
-               const wxSize &size=wxDefaultSize,
-               long style=0,
-               const wxString &name=wxPanelNameStr,
-               bool coreProfile = true);
-   virtual ~KaleidoscopePreview();
-
-protected:
-   void InitializeGLCanvas() override;
-};
 //(*Headers(KaleidoscopePanel)
 #include <wx/panel.h>
 class wxBitmapButton;

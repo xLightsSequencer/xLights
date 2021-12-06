@@ -416,8 +416,8 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccu
             float z1 = 0.0f;
             glm::vec4 v = m * glm::vec4(glm::vec3(x1, y1, 0.0f), 1.0f);
             x1 = v.x; y1 = v.y; z1 = v.z + 0.01;
-            va.AddTrianglesCircle(x1, y1, z1, 2.5, xlBLACK);
-            va.AddTrianglesCircle(x1, y1, z1+0.01, 2, pink);
+            va.AddCircleAsTriangles(x1, y1, z1, 2.5, xlBLACK);
+            va.AddCircleAsTriangles(x1, y1, z1+0.01, 2, pink);
             va.Finish(GL_TRIANGLES);
             va.AddVertex(x1 - 1.5, y1 + 1.5, z1+0.002, xlBLACK);
             va.AddVertex(x1 + 1.5, y1 - 1.5, z1+0.002, xlBLACK);

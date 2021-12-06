@@ -23,6 +23,7 @@
 #include "ControllerEthernet.h"
 #include "ControllerNull.h"
 #include "ControllerSerial.h"
+#include "../models/Model.h"
 
 #include <log4cpp/Category.hh>
 
@@ -291,16 +292,16 @@ bool Controller::ContainsChannels(uint32_t start, uint32_t end) const {
 }
 
 bool Controller::IsDirty() const {
-
-    if (_dirty) return _dirty;
+    if (_dirty)
+        return _dirty;
     for (const auto& it : _outputs) {
-        if (it->IsDirty()) return true;
+        if (it->IsDirty())
+            return true;
     }
     return false;
 }
 
 void Controller::ClearDirty() {
-
     _dirty = false;
     for (auto& it : _outputs) {
         it->ClearDirty();
@@ -308,8 +309,11 @@ void Controller::ClearDirty() {
 }
 
 void Controller::EnsureUniqueId() {
-
     _id = _outputManager->UniqueId();
+}
+
+void Controller::EnsureUniqueName() {
+    SetName(_outputManager->UniqueName(GetName()));
 }
 
 void Controller::SetAutoLayout(bool autoLayout) {
@@ -318,6 +322,7 @@ void Controller::SetAutoLayout(bool autoLayout) {
         _dirty = true;
     }
 }
+
 void Controller::SetAutoUpload(bool autoUpload) {
     if (_autoUpload != autoUpload) {
         _autoUpload = autoUpload;
@@ -561,7 +566,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
 
     if (name == "ControllerName") {
         auto cn = event.GetValue().GetString().Trim(true).Trim(false);
-        if (_outputManager->GetController(cn) != nullptr || cn == "") {
+        if (_outputManager->GetController(cn) != nullptr || cn == "" || cn == NO_CONTROLLER) {
             DisplayError("Controller name '" + cn + "' blank or already used. Controller names must be unique and non blank.");
             outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName");
             return false;
@@ -696,6 +701,15 @@ void Controller::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid)
             else {
                 p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
             }
+        }
+    }
+
+    p = propGrid->GetPropertyByName("ControllerName");
+    if (p != nullptr) {
+        if (!_outputManager->IsControllerNameUnique(name)) {
+            p->SetBackgroundColour(*wxRED);
+        } else {
+            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
 }

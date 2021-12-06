@@ -83,8 +83,6 @@ bool xlPasswordEntryDialog::StorePasswordForService(const std::string &service, 
 }
 #endif
 
-
-
 DiscoveredData::DiscoveredData(ControllerEthernet *e) {
     controller = e;
     ip = e->GetResolvedIP();
@@ -107,18 +105,21 @@ void DiscoveredData::SetVendor(const std::string &v) {
         controller->SetVendor(v);
     }
 }
+
 void DiscoveredData::SetVariant(const std::string &v) {
     variant = v;
     if (controller) {
         controller->SetVariant(v);
     }
 }
+
 void DiscoveredData::SetDescription(const std::string &s) {
     description = s;
     if (controller) {
         controller->SetDescription(s);
     }
 }
+
 void DiscoveredData::SetProxy(const std::string &p) {
     proxy = p;
     if (controller) {
@@ -126,21 +127,23 @@ void DiscoveredData::SetProxy(const std::string &p) {
     }
 }
 
-
 DiscoveredData::~DiscoveredData() {
     if (controller) {
         delete controller;
     }
 }
+
 static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
     if (data == nullptr) return 0;
     data->append((char*)ptr, size * nmemb);
     return size * nmemb;
 }
+
 Discovery::CurlData::CurlData(const std::string &h, const std::string &u, std::function<bool(int rc, const std::string &buffer, const std::string &errorBuffer)> & cb) : host(h), url(u), callback(cb) {
     errorBuffer = new char[CURL_ERROR_SIZE];
     curl = nullptr;
 }
+
 Discovery::CurlData::~CurlData() {
     curl_easy_cleanup(curl);
 }
@@ -165,15 +168,16 @@ void Discovery::CurlData::SetupCurl() {
     }
 }
 
-
 Discovery::DatagramData::DatagramData(int p, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)> & cb) : port(p) {
     callbacks.push_back(cb);
     Init("", p);
 }
+
 Discovery::DatagramData::DatagramData(const std::string &mc, int p, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)> & cb) : port(p) {
     callbacks.push_back(cb);
     Init(mc, p);
 }
+
 void Discovery::DatagramData::Init(const std::string &mc, int port) {
     wxIPV4address localaddr;
     localaddr.AnyAddress();

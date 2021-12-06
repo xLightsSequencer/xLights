@@ -67,6 +67,8 @@ public:
     void SetHeight(float h, bool ignoreLock = false);
     void SetDepth(float d, bool ignoreLock = false);
     bool Rotate(int axis, float factor);
+    void FlipHorizontal(bool ignoreLock = false);
+    void FlipVertical(bool ignoreLock = false);
 
     float GetTop();
     float GetBottom();
@@ -83,7 +85,7 @@ public:
 
     const std::string &Name() const { return name;}
     const std::string &GetName() const { return name;}
-    const std::string& GetDisplayAs(void) const { return DisplayAs; }
+    const std::string& GetDisplayAs() const { return DisplayAs; }
 
     wxXmlNode* GetModelXml() const;
     virtual void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false) = 0;

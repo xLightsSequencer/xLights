@@ -63,6 +63,7 @@ UDControllerPortModel::UDControllerPortModel(Model* m, Controller* controller, O
     _string = string;
     _protocol = _model->GetControllerProtocol();
     _smartRemote = _model->GetSmartRemoteForString(string+1);
+    _smartRemoteType = _model->GetSmartRemoteType();
 
     if (string == -1) {
         _startChannel = _model->GetNumberFromChannelString(_model->ModelStartChannel);
@@ -96,14 +97,14 @@ int UDControllerPortModel::GetChannelsPerPixel() const
     return _model->GetNodeChannelCount(_model->GetStringType());
 }
 
-int UDControllerPortModel::GetDMXChannelOffset() const 
+int UDControllerPortModel::GetDMXChannelOffset() const
 {
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("channel"))  return wxAtoi(node->GetAttribute("channel"));
     return 1;
 }
 
-int UDControllerPortModel::GetBrightness(int currentBrightness) const 
+int UDControllerPortModel::GetBrightness(int currentBrightness) const
 {
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("brightness"))  return wxAtoi(node->GetAttribute("brightness"));
@@ -133,7 +134,7 @@ char UDControllerPortModel::GetSmartRemoteLetter() const
 
 float UDControllerPortModel::GetAmps(int defaultBrightness) const
 {
-    return ((float)AMPS_PER_PIXEL * (Channels() / 3.0f) * GetBrightness(defaultBrightness)) / 100.0f;
+    return ((float)AMPS_PER_PIXEL * (Channels() / 3.0F) * GetBrightness(defaultBrightness)) / 100.0F;
 }
 
 int UDControllerPortModel::GetSmartTs(int currentSmartTs) const
@@ -157,7 +158,7 @@ std::string UDControllerPortModel::GetColourOrder(const std::string& currentColo
     return currentColourOrder;
 }
 
-std::string UDControllerPortModel::GetDirection(const std::string& currentDirection) const 
+std::string UDControllerPortModel::GetDirection(const std::string& currentDirection) const
 {
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("reverse"))  return wxAtoi(node->GetAttribute("reverse")) == 1 ? "Reverse" : "Forward";
@@ -168,7 +169,9 @@ int UDControllerPortModel::GetGroupCount(int currentGroupCount) const
 {
 
     wxXmlNode* node = _model->GetControllerConnection();
-    if (node->HasAttribute("groupCount"))  return wxAtoi(node->GetAttribute("groupCount"));
+    if (node->HasAttribute("groupCount")) {
+        return wxAtoi(node->GetAttribute("groupCount"));
+    }
     return currentGroupCount;
 }
 
@@ -198,7 +201,7 @@ void UDControllerPortModel::Dump() const {
 }
 
 
-bool UDControllerPortModel::Check(Controller* controller, const UDControllerPort* port, bool pixel, const ControllerCaps* rules, std::string& res) const {
+bool UDControllerPortModel::Check(Controller* controller, const ControllerCaps* rules, std::string& res) const {
 
     bool success = true;
     if (!ChannelsOnOutputs(controller->GetOutputs())) {
@@ -206,6 +209,23 @@ bool UDControllerPortModel::Check(Controller* controller, const UDControllerPort
     }
     if (_model->GetSmartRemote() + _model->GetSRMaxCascade() - 1 > rules->GetSmartRemoteCount()) {
         res += wxString::Format("ERR: Model %s has invalid smart remote %c with cascade of %d.\n", GetName(), _model->GetSmartRemoteLetter(), _model->GetSRMaxCascade());
+        success = false;
+    }
+    if (rules->GetMaxStartNullPixels() >= 0 && GetStartNullPixels(-1) > rules->GetMaxStartNullPixels()) {
+        res += wxString::Format("ERR: Model %s has too many start NULL pixels : %d. Maximum %d.\n", GetName(), GetStartNullPixels(-1), rules->GetMaxStartNullPixels());
+        success = false;
+    }
+    if (rules->GetMaxEndNullPixels() >= 0 && GetEndNullPixels(-1) > rules->GetMaxEndNullPixels()) {
+        res += wxString::Format("ERR: Model %s has too many end NULL pixels : %d. Maximum %d.\n", GetName(), GetEndNullPixels(-1), rules->GetMaxEndNullPixels());
+        success = false;
+    }
+    if (rules->GetMaxGroupPixels() >= 0 && GetGroupCount(-1) > rules->GetMaxGroupPixels()) {
+        res += wxString::Format("ERR: Model %s has too many grouped pixels : %d. Maximum %d.\n", GetName(), GetGroupCount(-1), rules->GetMaxGroupPixels());
+        success = false;
+    }
+    if (rules->GetMinGroupPixels() >= 0 && GetGroupCount(999) < rules->GetMinGroupPixels()) {
+        res += wxString::Format("ERR: Model %s has too few grouped pixels : %d. Minimum %d.\n", GetName(), GetGroupCount(999), rules->GetMinGroupPixels());
+        success = false;
     }
     return success;
 }
@@ -242,7 +262,7 @@ UDControllerPortModel* UDControllerPort::GetFirstModel() const
     return first;
 }
 
-UDControllerPortModel* UDControllerPort::GetLastModel() const 
+UDControllerPortModel* UDControllerPort::GetLastModel() const
 {
     if (_models.size() == 0) return nullptr;
     UDControllerPortModel* last = _models.front();
@@ -288,6 +308,8 @@ void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager*
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxASSERT(!ContainsModel(m, string));
 
+    _om = om;
+
     _models.push_back(new UDControllerPortModel(m, controller, om, string));
     if (_protocol == "") {
         _protocol = m->GetControllerProtocol();
@@ -303,7 +325,7 @@ void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager*
             ++it2;
 
             for (; it2 != _models.end(); ++it2) {
-                if ((*it2)->GetStartChannel() <= (*it)->GetEndChannel() && 
+                if ((*it2)->GetStartChannel() <= (*it)->GetEndChannel() &&
                     (*it)->GetSmartRemote() == (*it2)->GetSmartRemote()) {
                     // this model overlaps at least slightly
                     if ((*it2)->GetEndChannel() <= (*it)->GetEndChannel()) {
@@ -316,8 +338,8 @@ void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager*
                         _models.erase(it2);
                         erased = true;
                     }
-                    else if ((*it)->GetStartChannel() == (*it2)->GetStartChannel() && 
-                             (*it2)->GetEndChannel() > (*it)->GetEndChannel() && 
+                    else if ((*it)->GetStartChannel() == (*it2)->GetStartChannel() &&
+                             (*it2)->GetEndChannel() > (*it)->GetEndChannel() &&
                              (*it)->GetSmartRemote() == (*it2)->GetSmartRemote()) {
                         // i1 totally inside it2
                         logger_base.debug("CUD add model removed model %s as it totally overlaps with model %s",
@@ -390,7 +412,7 @@ bool UDControllerPort::SetAllModelsToValidProtocols(const std::vector<std::strin
                 if (GetType() == "PIXEL") {
                     np = ChooseBestControllerPixel(protocols, it->GetModel()->GetControllerProtocol());
                 }
-                else                     {
+                else {
                     np = ChooseBestControllerSerial(protocols, it->GetModel()->GetControllerProtocol());
                 }
                 if (np == it->GetModel()->GetControllerProtocol()) {
@@ -403,7 +425,7 @@ bool UDControllerPort::SetAllModelsToValidProtocols(const std::vector<std::strin
                         if (np == "") {
                             it->GetModel()->SetControllerProtocol(protocols.front());
                         }
-                        else                             {
+                        else {
                             it->GetModel()->SetControllerProtocol(np);
                         }
                         p = it->GetModel()->GetControllerProtocol();
@@ -436,7 +458,7 @@ bool UDControllerPort::ClearSmartRemoteOnAllModels()
     return changed;
 }
 
-// This ensures none of the models on a port overlap ... they are all chained 
+// This ensures none of the models on a port overlap ... they are all chained
 // I am a bit concerned that using this stops you overlapping things ... but really if you are going to overlap things
 // you shouldnt set the port as that is just going to cause grief.
 bool UDControllerPort::EnsureAllModelsAreChained()
@@ -444,8 +466,8 @@ bool UDControllerPort::EnsureAllModelsAreChained()
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool changed = false;
-    std::string last = "";
-    int lastsr = 0;
+    std::string last;
+    int lastsr{ 0 };
 
     for (const auto& it : _models)
     {
@@ -521,6 +543,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                     current->_universeStartChannel = it->GetUniverseStartChannel();
                     current->_channelsPerPixel = 3;
                     current->_smartRemote = sr;
+                    current->_smartRemoteType = it->GetSmartRemoteType();
                     current->_gammaSet = false;
                     current->_gamma = 0;
                     current->_startNullPixelsSet = false;
@@ -550,7 +573,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
             wxASSERT(current != nullptr);
             if ((brightness != -9999 && current->_brightness != brightness) ||
                 (startNullPixels != -9999) ||
-                (endNullPixels != -9999) ||
+                (endNullPixels != -9999 || (endNullPixels == -9999 && current->_endNullPixels != 0)) ||
                 (current->_smartRemote != smartRemote) ||
                 (reverse == "unknown" && current->_reverse == "Reverse") ||
                 (reverse != "unknown" && (current->_reverse != reverse || current->_reverse == "Reverse")) ||
@@ -573,6 +596,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                         current->_universeStartChannel = it->GetUniverseStartChannel();
                         current->_channelsPerPixel = 3;
                         current->_smartRemote = sr;
+                        current->_smartRemoteType = it->GetSmartRemoteType();
                         current->_gammaSet = false;
                         current->_gamma = 0;
                         current->_startNullPixelsSet = false;
@@ -612,6 +636,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
             current->_channelsPerPixel = it->GetChannelsPerPixel();
             if (current->_channelsPerPixel == 1) current->_channelsPerPixel = 3; // this happens if a channel block is dropped first on a port and we dont want that
             current->_smartRemote = it->GetSmartRemote();
+            current->_smartRemoteType = it->GetSmartRemoteType();
 
             if (gamma == -9999) {
                 current->_gammaSet = false;
@@ -748,7 +773,26 @@ int UDControllerPort::GetUniverse() const {
         return -1;
     }
     else {
-        return GetFirstModel()->GetUniverse();
+        if (_type == "Serial") {
+
+            if (_om == nullptr) {
+                wxASSERT(false);
+                return -1;
+            }
+
+            // need to offset the first DMX channel
+            auto abs = GetFirstModel()->GetStartChannel();
+            abs = abs - GetFirstModel()->GetDMXChannelOffset() + 1;
+            int32_t sc;
+            Output* o = _om->GetOutput(abs, sc);
+            if (o != nullptr) {
+                return o->GetUniverse();
+            }
+            return -1;
+        }
+        else {
+            return GetFirstModel()->GetUniverse();
+        }
     }
 }
 
@@ -758,7 +802,26 @@ int UDControllerPort::GetUniverseStartChannel() const {
         return -1;
     }
     else {
-        return GetFirstModel()->GetUniverseStartChannel();
+        if (_type == "Serial") {
+
+            if (_om == nullptr) {
+                wxASSERT(false);
+                return -1;
+            }
+
+            // need to offset the first DMX channel
+            auto abs = GetFirstModel()->GetStartChannel();
+            abs = abs - GetFirstModel()->GetDMXChannelOffset() + 1;
+            int32_t sc;
+            Output* o = _om->GetOutput(abs, sc);
+            if (o != nullptr) {
+                return sc;
+            }
+            return -1;
+        }
+        else {
+            return GetFirstModel()->GetUniverseStartChannel();
+        }
     }
 }
 
@@ -806,6 +869,45 @@ bool UDControllerPort::AtLeastOneModelIsNotUsingSmartRemote() const
     return false;
 }
 
+bool UDControllerPort::AllSmartRemoteTypesSame() const
+{
+    if(_models.size() < 2) {
+        return true;
+    }
+    
+    for (const auto& it : _models) {
+        if (it->GetSmartRemoteType() != _models.front()->GetSmartRemoteType()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool UDControllerPort::AllSmartRemoteTypesSame(int smartRemote) const {
+    std::string smType;
+
+    for (const auto& it : _models) {
+        if (it->GetSmartRemote() == smartRemote) {
+            if (smType.empty()) {
+                smType = it->GetSmartRemoteType();
+            } else if (it->GetSmartRemoteType() != smType) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+std::string UDControllerPort::GetSmartRemoteType(int smartRemote) const {
+
+    for (const auto& it : _models) {
+        if (it->GetSmartRemote() == smartRemote) {
+            return it->GetSmartRemoteType();
+        }
+    }
+    return "";
+}
+
 void UDControllerPort::Dump() const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -816,7 +918,7 @@ void UDControllerPort::Dump() const {
     }
 }
 
-bool UDControllerPort::Check(Controller* c, const UDController* controller, bool pixel, const ControllerCaps* rules, std::string& res) const {
+bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* rules, std::string& res) const {
 
     bool success = true;
 
@@ -839,6 +941,13 @@ bool UDControllerPort::Check(Controller* c, const UDController* controller, bool
         if (Channels() > rules->GetMaxPixelPortChannels()) {
             res += wxString::Format("ERR: Pixel port %d has %d nodes allocated but maximum is %d.\n", _port, (int)Channels() / 3, rules->GetMaxPixelPortChannels() / 3).ToStdString();
             success = false;
+        }
+
+        for (int i = 0; i < rules->GetSmartRemoteCount(); ++i) {
+            if (!AllSmartRemoteTypesSame(i + 1)) {
+                res += wxString::Format("ERR: Pixel port %d has different types of smart remotes types for %s.\n", _port, std::string(1, 'A' + i)).ToStdString();
+                success = false;
+            }
         }
     }
     else {
@@ -883,15 +992,28 @@ bool UDControllerPort::Check(Controller* c, const UDController* controller, bool
 
     for (const auto& it : _models) {
         // all models must be fully contained within the outputs on this controller
-        success &= it->Check(c, this, pixel, rules, res);
+        success &= it->Check(c, rules, res);
     }
 
     return success;
 }
 
-std::string UDControllerPort::ExportAsCSV(bool withDescription) const
-{
-    wxString line = wxString::Format("%s Port %d,",_type ,_port);
+std::string UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS const& settings) const {
+    wxString line = wxString::Format("%s Port %d", _type ,_port);
+    if ((settings & ExportSettings::SETTINGS_PORT_ABSADDRESS) && GetStartChannel() != -1) {
+        line += "(SC:" + std::to_string(GetStartChannel()) + ")";
+    }
+    if ((settings & ExportSettings::SETTINGS_PORT_UNIADDRESS) && GetUniverse() != -1) {
+        line += "(UNI:#" + std::to_string(GetUniverse()) + ":" + std::to_string(GetUniverseStartChannel()) + ")";
+    }
+    if ((settings & ExportSettings::SETTINGS_PORT_CHANNELS) && Channels() != 0) {
+        line += "(CHANS:" + std::to_string(Channels()) + ")";
+    }
+    if ((settings & ExportSettings::SETTINGS_PORT_PIXELS) && Channels() != 0) {
+        line += "(PIX:" + std::to_string(Channels() / 3) + ")";
+    }
+    line += ",";
+
     for (const auto& it : GetModels()) {
         if (it->GetSmartRemote() > 0) {
             char remote = it->GetSmartRemoteLetter();
@@ -900,8 +1022,21 @@ std::string UDControllerPort::ExportAsCSV(bool withDescription) const
             line += ":";
         }
         line += it->GetName();
-        if (withDescription && it->GetModel()->description != "") {
-            line += "(" + it->GetModel()->description + ")";
+        if ((settings & ExportSettings::SETTINGS_MODEL_DESCRIPTIONS) && it->GetModel()->description != "") {
+            line += "(DESP:" + it->GetModel()->description + ")";
+        }
+        if (settings & ExportSettings::SETTINGS_MODEL_ABSADDRESS) {
+            line += "(SC:" + std::to_string(it->GetStartChannel()) + ")";
+        }
+        if (settings & ExportSettings::SETTINGS_MODEL_UNIADDRESS) {
+            line += "(UNI:#" + std::to_string(it->GetUniverse()) + ":" + std::to_string(it->GetUniverseStartChannel()) + ")";
+        }
+        if (settings & ExportSettings::SETTINGS_MODEL_CHANNELS) {
+            line += "(CHANS:" + std::to_string(it->Channels()) + ")";
+        }
+        if (settings & ExportSettings::SETTINGS_MODEL_PIXELS)
+        {
+            line += "(PIX:" + std::to_string(it->Channels() / it->GetChannelsPerPixel()) + ")";
         }
         line += ",";
     }
@@ -943,7 +1078,7 @@ bool UDController::ModelProcessed(Model* m, int string) {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-UDController::UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check, bool eliminateOverlaps) :
+UDController::UDController(Controller* controller, OutputManager* om, ModelManager* mm, bool eliminateOverlaps) :
     _controller(controller), _outputManager(om), _modelManager(mm) {
 
     _ipAddress = _controller->GetColumn2Label();
@@ -1312,7 +1447,7 @@ bool UDController::HasPixelPort(int port) const {
     return false;
 }
 
-bool UDController::IsValid(ControllerCaps* rules) const {
+bool UDController::IsValid() const {
 
     for (const auto& it : _pixelPorts) {
         if (!it.second->IsValid()) return false;
@@ -1383,8 +1518,18 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     if (rules->GetMaxPixelPort() == 0 && _pixelPorts.size() > 0) {
         res += wxString::Format("ERR: Attempt to upload pixel port %d but this controller does not support pixel ports.\n", _pixelPorts.begin()->second->GetPort()).ToStdString();
         success = false;
-    } else {
+    }
+    else {
+        std::vector<int> blocksAreSmart;
+        blocksAreSmart.resize(100); // just add a lot ... lazy but i cant rely on may pixel port for the controller
+        for (auto& it : blocksAreSmart) {
+            it = 0;
+        }
         for (const auto& it : _pixelPorts) {
+
+            int block = (it.first - 1) / 4;
+            blocksAreSmart[block] += it.second->AtLeastOneModelIsUsingSmartRemote() ? 1 : 0;
+
             if (rules->SupportsVirtualStrings()) {
                 it.second->CreateVirtualStrings(rules->MergeConsecutiveVirtualStrings());
             }
@@ -1393,11 +1538,60 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
                 it.second->SetSeparateUniverses(((ControllerEthernet*)_controller)->IsUniversePerString());
             }
 
-            success &= it.second->Check(_controller, this, true, rules, res);
+            success &= it.second->Check(_controller, true, rules, res);
 
             if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxPixelPort()) {
                 res += wxString::Format("ERR: Pixel port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxPixelPort()).ToStdString();
                 success = false;
+            }
+        }
+
+        int prevBlock{-1};
+        std::vector<std::string> smType;
+        // try to detect errors with a mix of smart remote and non smart remote ports/models
+        for (const auto& it : _pixelPorts) {
+
+            int block = (it.first - 1) / 4;
+            
+            if (prevBlock != block) {
+                smType = std::vector<std::string>(rules->GetSmartRemoteCount(), "");
+                prevBlock = block;
+            }
+
+            if (blocksAreSmart[block] > 0) {
+                if (it.second->AtLeastOneModelIsNotUsingSmartRemote()){
+                    res += wxString::Format("ERR: Pixel port %d has a model configured not on a smart remote but this block of 4 ports has at least one model that is configured as on a smart remote.\n", it.second->GetPort()).ToStdString();
+                    success = false;
+                }
+
+                if (rules->AllSmartRemoteTypesPerPortMustBeSame()) {
+                    for (int i = 0; i < rules->GetSmartRemoteCount(); ++i) {
+                        if (smType[0].empty()) {
+                            smType[0] = it.second->GetSmartRemoteType(i + 1);
+                        } else if (it.second->GetSmartRemoteType(i + 1) != smType[0] && !it.second->GetSmartRemoteType(i + 1).empty()) {
+                            res += wxString::Format("ERR: Pixel Port:%d SRID:%s has different smart remotes types for this block of 4 ports.\n", it.second->GetPort(), std::string(1, 'A' + i)).ToStdString();
+                            success = false;
+                        }
+                    }
+                } else {
+                    for (int i = 0; i < rules->GetSmartRemoteCount(); ++i) {
+                        if (smType[i].empty()) {
+                            smType[i] = it.second->GetSmartRemoteType(i + 1);
+                        } else if (it.second->GetSmartRemoteType(i + 1) != smType[i] && !it.second->GetSmartRemoteType(i + 1).empty()) {
+                            res += wxString::Format("ERR: Pixel Port:%d SRID:%s has different smart remotes types for this block of 4 ports.\n", it.second->GetPort(), std::string(1, 'A' + i)).ToStdString();
+                            success = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        if(rules->AllSmartRemoteTypesPerPortMustBeSame()) {
+            for (const auto& it : _pixelPorts) {
+                if (!it.second->AllSmartRemoteTypesSame()){
+                    res += wxString::Format("ERR: Pixel port %d has a models not configured all as the same smart remote type.\n", it.second->GetPort()).ToStdString();
+                    success = false;
+                }
             }
         }
     }
@@ -1560,7 +1754,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         success = false;
     } else {
         for (const auto& it : _serialPorts) {
-            success &= it.second->Check(_controller, this, false, rules, res);
+            success &= it.second->Check(_controller, false, rules, res);
 
             if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxSerialPort()) {
                 res += wxString::Format("ERR: Serial port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxSerialPort()).ToStdString();
@@ -1580,34 +1774,33 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     return success;
 }
 
-std::vector<std::string> UDController::ExportAsCSV(bool withDescription)
-{
+std::vector<std::string> UDController::ExportAsCSV(ExportSettings::SETTINGS const& settings) {
     std::vector<std::string> lines;
     int columnSize = 0;
 
     for (int i = 1; i <= GetMaxPixelPort(); i++) {
         if (columnSize < GetControllerPixelPort(i)->GetModels().size())
             columnSize = GetControllerPixelPort(i)->GetModels().size();
-        lines.push_back(GetControllerPixelPort(i)->ExportAsCSV(withDescription));
+        lines.push_back(GetControllerPixelPort(i)->ExportAsCSV(settings));
 	}
 	lines.push_back("\n");
 	for (int i = 1; i <= GetMaxSerialPort(); i++) {
         if (columnSize < GetControllerSerialPort(i)->GetModels().size())
             columnSize = GetControllerSerialPort(i)->GetModels().size();
 
-        lines.push_back(GetControllerSerialPort(i)->ExportAsCSV(withDescription));
+        lines.push_back(GetControllerSerialPort(i)->ExportAsCSV(settings));
     }
     lines.push_back("\n");
     for (auto &vm : _virtualMatrixPorts) {
         if (columnSize < vm.second->GetModels().size())
             columnSize = vm.second->GetModels().size();
-        lines.push_back(vm.second->ExportAsCSV(withDescription));
+        lines.push_back(vm.second->ExportAsCSV(settings));
     }
     lines.push_back("\n");
     for (auto &vm : _ledPanelMatrixPorts) {
         if (columnSize < vm.second->GetModels().size())
             columnSize = vm.second->GetModels().size();
-        lines.push_back(vm.second->ExportAsCSV(withDescription));
+        lines.push_back(vm.second->ExportAsCSV(settings));
     }
 
     wxString header = "Output,";

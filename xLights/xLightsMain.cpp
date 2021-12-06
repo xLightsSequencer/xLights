@@ -34,6 +34,7 @@
 
 #include <cctype>
 #include <cstring>
+#include <thread>
 
 #include "xLightsMain.h"
 #include "SplashDialog.h"
@@ -94,6 +95,11 @@
 #include "TraceLog.h"
 #include "AboutDialog.h"
 #include "ExternalHooks.h"
+#include "ExportSettings.h"
+#include "GPURenderUtils.h"
+#include "ViewsModelsPanel.h"
+
+#include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -222,6 +228,7 @@ const long xLightsFrame::ID_MENU_BATCH_RENDER = wxNewId();
 const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
 const long xLightsFrame::ID_MNU_BULKUPLOAD = wxNewId();
 const long xLightsFrame::ID_MENU_HINKSPIX_EXPORT = wxNewId();
+const long xLightsFrame::ID_MENU_RUN_SCRIPT = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_CONTROLLER_CONNECTIONS = wxNewId();
@@ -450,9 +457,11 @@ void AddEffectToolbarButtons(EffectManager& manager, xlAuiToolBar* EffectsToolBa
     EffectsToolBar->Realize();
 }
 
-xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
-    _sequenceElements(this), AllModels(&_outputManager, this),
-    jobPool("RenderPool"), AllObjects(this),
+xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
+    _sequenceElements(this),
+    jobPool("RenderPool"),
+    AllModels(&_outputManager, this),
+    AllObjects(this),
     _presetSequenceElements(this), color_mgr(this)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -479,8 +488,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     Bind(EVT_SELECTED_EFFECT_CHANGED, &xLightsFrame::SelectedEffectChanged, this);
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
     wxHTTP::Initialize();
-
-    logger_base.debug("AA");
 
     //(*Initialize(xLightsFrame)
     wxBoxSizer* BoxSizer1;
@@ -838,6 +845,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     Menu1->Append(MenuItemBulkControllerUpload);
     MenuItemHinksPixExport = new wxMenuItem(Menu1, ID_MENU_HINKSPIX_EXPORT, _("HinksPix Export"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItemHinksPixExport);
+    MenuItemRunScript = new wxMenuItem(Menu1, ID_MENU_RUN_SCRIPT, _("Run Scripts"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItemRunScript);
     Menu1->AppendSeparator();
     mExportModelsMenuItem = new wxMenuItem(Menu1, ID_EXPORT_MODELS, _("E&xport Models"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(mExportModelsMenuItem);
@@ -1098,6 +1107,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     Connect(ID_MENU_FPP_CONNECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
     Connect(ID_MNU_BULKUPLOAD,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBulkControllerUploadSelected);
     Connect(ID_MENU_HINKSPIX_EXPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemHinksPixExportSelected);
+    Connect(ID_MENU_RUN_SCRIPT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRunScriptSelected);
     Connect(ID_EXPORT_MODELS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmExportModelsMenuItemSelected);
     Connect(ID_MNU_EXPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportEffectsSelected);
     Connect(ID_MNU_EXPORT_CONTROLLER_CONNECTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected);
@@ -1198,9 +1208,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     Connect(wxID_COPY, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
     Connect(wxID_PASTE, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
 
-    Connect(ID_XFADESOCKET, wxEVT_SOCKET, (wxObjectEventFunction)&xLightsFrame::OnxFadeSocketEvent);
-    Connect(ID_XFADESERVER, wxEVT_SOCKET, (wxObjectEventFunction)&xLightsFrame::OnxFadeServerEvent);
-
     SetPanelSequencerLabel("");
 
     _outputModelManager.SetFrame(this);
@@ -1296,7 +1303,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     UnsavedNetworkChanges = false;
 
     UnsavedRgbEffectsChanges = false;
-    UnsavedPlaylistChanges = false;
     mStoredLayoutGroup = "Default";
 
     modelsChangeCount = 0;
@@ -1366,6 +1372,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
 
     modelPreview = layoutPanel->GetMainPreview();
     logger_base.debug("LayoutPanel setup done.");
+
+
 
 
     playIcon = wxBitmap(control_play_blue_icon);
@@ -1446,7 +1454,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     }
     logger_base.debug("Perspectives loaded.");
 
-    config->Read("xLightsBackupSubdirectories", &_backupSubfolders, false);
+    config->Read("xLightsBackupSubdirectories", &_backupSubfolders, true);
     logger_base.debug("Backup subdirectories: %s.", toStr( _backupSubfolders ));
 
     config->Read("xLightsExcludePresetsPkgSeq", &_excludePresetsFromPackagedSequences, false);
@@ -1494,7 +1502,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
     logger_base.debug("Autosave perspectives: %s.", toStr( _autoSavePerspecive ));
 
-    config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
+    config->Read("xLightsRenderOnSave", &mRenderOnSave, false);
     logger_base.debug("Render on save: %s.", toStr( mRenderOnSave));
 
     config->Read("xLightsSaveFseqOnSave", &mSaveFseqOnSave, true);
@@ -1541,10 +1549,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     logger_base.debug("Autosave interval: %d.", mAutoSaveInterval);
 
     config->Read("xFadePort", &_xFadePort, 0);
-    logger_base.debug("xFadePort: %s.", _xFadePort == 0 ? "Disabled" : ((_xFadePort == 1) ? "A" : "B"));
-    StartxFadeListener();
 
-    if (_xFadePort > 0 && _xFadeSocket == nullptr) {
+    // overide ab setting from command line
+    if (ab != 0) {
+        _xFadePort = ab;
+    }
+
+    logger_base.debug("xFadePort: %s.", _xFadePort == 0 ? "Disabled" : ((_xFadePort == 1) ? "A" : "B"));
+    StartAutomationListener();
+
+    if (_xFadePort > 0 && _automationServer == nullptr) {
         // try opening it on the other port
 
         if (_xFadePort == 1) {
@@ -1553,8 +1567,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
             _xFadePort = 1;
         }
 
-        StartxFadeListener();
-        if (_xFadePort > 0 && _xFadeSocket == nullptr) {
+        StartAutomationListener();
+        if (_xFadePort > 0 && _automationServer == nullptr) {
             // Give up
             _xFadePort = 0;
         }
@@ -1753,6 +1767,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     MenuFile->Append(newInst);
 
     Connect(newInstId, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_NewXLightsInstance);
+
+
+    bool gpuRendering = false;
+    config->Read(_("xLightsGPURendering"), &gpuRendering, false);
+    GPURenderUtils::SetEnabled(gpuRendering);
 #else
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
@@ -1790,6 +1809,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     th.detach();
     wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
 
+    UpdateLayoutSave();
+    UpdateControllerSave();
+
     logger_base.debug("xLightsFrame construction complete.");
 }
 
@@ -1814,11 +1836,10 @@ xLightsFrame::~xLightsFrame()
     RenderStatusTimer.Stop();
     DrawingContext::CleanUp();
 
-    if (_xFadeSocket != nullptr)
-    {
-        _xFadeSocket->Close();
-        delete _xFadeSocket;
-        _xFadeSocket = nullptr;
+    if (_automationServer != nullptr) {
+        _automationServer->Stop();
+        delete _automationServer;
+        _automationServer = nullptr;
     }
 
     selectedEffect = nullptr;
@@ -1950,6 +1971,19 @@ void xLightsFrame::DoPostStartupCommands() {
         }
         if (_userEmail == "") CollectUserEmail();
         if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
+
+#ifdef __WXOSX__
+        wxConfigBase* config = wxConfigBase::Get();
+        if (!wxPlatformInfo::Get().CheckOSVersion(10, 14)) {
+            if (config->Read("MacOSUnsupportedVersionCheck", "") != xlights_version_string) {
+                config->Write("MacOSUnsupportedVersionCheck", xlights_version_string);
+                wxMessageBox("Your version of macOS will soon be unsupported.  It is strongly "
+                             "recommended to upgrade to at least macOS 10.14.",
+                             "MacOS Version",
+                             wxICON_WARNING| wxOK | wxCENTRE, this);
+            }
+        }
+#endif
     }
 }
 
@@ -2156,15 +2190,12 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
     // show/hide Layout Previews
     logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews");
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
-        LayoutGroup* grp = *it;
-        if (grp != nullptr) {
-            if (grp->GetMenuItem() == nullptr) {
-                logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
-            }
-            if (grp->GetMenuItem() && grp->GetMenuItem()->IsChecked()) {
-                grp->SetPreviewActive(show);
-            }
+    for (const auto& it : LayoutGroups) {
+        if (it->GetMenuItem() == nullptr) {
+            logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
+        }
+        if (it->GetMenuItem() && it->GetMenuItem()->IsChecked()) {
+            it->SetPreviewActive(show);
         }
     }
 
@@ -3685,7 +3716,7 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     RecalcModels();
 
     // check the current sequence to ensure this analysis is in the log
-    CheckSequence(false);
+    CheckSequence(false, false);
 
     logger_base.debug("Dumping registry configuration:");
     wxConfigBase* config = wxConfigBase::Get();
@@ -4120,6 +4151,8 @@ void xLightsFrame::SetFSEQFolder(bool useShow, const std::string& folder)
 
     SetXmlSetting("fseqDir", fseqDirectory);
     UnsavedRgbEffectsChanges = true;
+    UpdateLayoutSave();
+    UpdateControllerSave();
 
     logger_base.debug("FSEQ directory set to : %s.", (const char*)fseqDirectory.c_str());
 }
@@ -4152,6 +4185,8 @@ void xLightsFrame::SetRenderCacheFolder(bool useShow, const std::string& folder)
 
     SetXmlSetting("renderCacheDir", renderCacheDirectory);
     UnsavedRgbEffectsChanges = true;
+    UpdateLayoutSave();
+    UpdateControllerSave();
 
     logger_base.debug("Render Cache directory set to : %s.", (const char*)renderCacheDirectory.c_str());
 }
@@ -4184,6 +4219,8 @@ void xLightsFrame::SetBackupFolder(bool useShow, const std::string& folder)
 
     SetXmlSetting("backupDir", _backupDirectory);
     UnsavedRgbEffectsChanges = true;
+    UpdateLayoutSave();
+    UpdateControllerSave();
 
     logger_base.debug("Backup directory set to : %s.", (const char*)_backupDirectory.c_str());
 }
@@ -4558,7 +4595,7 @@ bool compare_modelstartchannel(const Model* first, const Model* second)
     return firstmodelstart < secondmodelstart;
 }
 
-void xLightsFrame::CheckSequence(bool display)
+std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -4573,11 +4610,11 @@ void xLightsFrame::CheckSequence(bool display)
     wxFile f;
     wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
 
-    if (display) {
+    if (writeToFile || displayInEditor) {
         f.Open(filename, wxFile::write);
         if (!f.IsOpened()) {
             DisplayError("Unable to create results file for Check Sequence. Aborted.", this);
-            return;
+            return "";
         }
     }
 
@@ -4901,10 +4938,7 @@ void xLightsFrame::CheckSequence(bool display)
             LogAndWrite(f, msg.ToStdString());
 
             std::string check;
-            UDController edc(it, &_outputManager, &AllModels, check, false);
-            if (check != "") {
-                LogAndWrite(f, check);
-            }
+            UDController edc(it, &_outputManager, &AllModels, false);
 
             check = "";
             auto fcr = ControllerCaps::GetControllerConfig(it->GetVendor(), it->GetModel(), it->GetVariant());
@@ -5973,6 +6007,7 @@ void xLightsFrame::CheckSequence(bool display)
             }
         }
 
+#ifndef __WXOSX__
         if (usesShader) {
             if (mainSequencer->PanelEffectGrid->GetCreatedVersion() < 3) {
                 wxString msg = wxString::Format("    ERR: Sequence has one or more shader effects but open GL version is lower than version 3 (%d). These effects will not render.", mainSequencer->PanelEffectGrid->GetCreatedVersion());
@@ -5980,6 +6015,7 @@ void xLightsFrame::CheckSequence(bool display)
                 errcount++;
             }
         }
+#endif
 
         if (videoCacheWarning) {
             LogAndWrite(f, "    WARN: Sequence has one or more video effects where render caching is turned off. This will render slowly.");
@@ -6110,24 +6146,26 @@ void xLightsFrame::CheckSequence(bool display)
     if (f.IsOpened()) {
         f.Close();
 
-        wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
-        if (ft != nullptr) {
-            wxString command = ft->GetOpenCommand(filename);
+        if (displayInEditor) {
+            wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+            if (ft != nullptr) {
+                wxString command = ft->GetOpenCommand(filename);
 
-            if (command == "") {
+                if (command == "") {
+                    DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
+                } else {
+                    logger_base.debug("Viewing xLights Check Sequence results %s. Command: '%s'", (const char*)filename.c_str(), (const char*)command.c_str());
+                    wxUnsetEnv("LD_PRELOAD");
+                    wxExecute(command);
+                }
+                delete ft;
+            } else {
                 DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
             }
-            else {
-                logger_base.debug("Viewing xLights Check Sequence results %s. Command: '%s'", (const char*)filename.c_str(), (const char*)command.c_str());
-                wxUnsetEnv("LD_PRELOAD");
-                wxExecute(command);
-            }
-            delete ft;
-        }
-        else {
-            DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
         }
     }
+
+    return filename;
 }
 
 void xLightsFrame::ValidateEffectAssets()
@@ -6241,12 +6279,12 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& 
 
         bool renderCache = _enableRenderCache == "Enabled" || (_enableRenderCache == "Locked Only" && ef->IsLocked());
         std::list<std::string> warnings = re->CheckEffectSettings(sm, CurrentSeqXmlFile->GetMedia(), AllModels.GetModel(modelName), ef, renderCache);
-        for (auto s = warnings.begin(); s != warnings.end(); ++s) {
-            LogAndWrite(f, *s);
-            if (s->find("WARN:") != std::string::npos) {
+        for (const auto& s : warnings) {
+            LogAndWrite(f, s);
+            if (s.find("WARN:") != std::string::npos) {
                 warncount++;
             }
-            else if (s->find("ERR:") != std::string::npos) {
+            else if (s.find("ERR:") != std::string::npos) {
                 errcount++;
             }
         }
@@ -6369,7 +6407,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t&
 
 void xLightsFrame::OnMenuItemCheckSequenceSelected(wxCommandEvent& event)
 {
-    CheckSequence(true);
+    CheckSequence(true, true);
 }
 
 void xLightsFrame::OnMenuItem_Help_ForumSelected(wxCommandEvent& event)
@@ -7036,7 +7074,7 @@ void xLightsFrame::OnMenuItemHinksPixExportSelected(wxCommandEvent& event)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
 
-    HinksPixExportDialog dlg(this, &_outputManager);
+    HinksPixExportDialog dlg(this, &_outputManager, &AllModels);
 
     dlg.ShowModal();
 }
@@ -8958,189 +8996,13 @@ void xLightsFrame::OnMenuItem_JukeboxSelected(wxCommandEvent& event)
 void xLightsFrame::SetXFadePort(int i)
 {
     _xFadePort = i;
-    StartxFadeListener();
-    if (_xFadeSocket == nullptr) {
+    StartAutomationListener();
+    if (_automationServer == nullptr) {
         // Give up
         _xFadePort = 0;
     }
 }
 
-void xLightsFrame::OnxFadeSocketEvent(wxSocketEvent & event)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    wxSocketBase* socket = event.GetSocket();
-    switch (event.GetSocketEvent())
-    {
-    case wxSOCKET_LOST:
-        logger_base.debug("xFade disconnected.");
-        break;
-    case wxSOCKET_INPUT:
-    {
-        wxByte buf[1534];
-        memset(buf, 0x00, sizeof(buf));
-        socket->Notify(false);
-        size_t n = socket->ReadMsg(buf, sizeof(buf) - 1).LastCount();
-        if (!n) {
-            logger_base.error("ERROR: failed to receive xFade data");
-            return;
-        }
-        wxString msg((char *)buf);
-        //logger_base.debug("xFade packet received.");
-        wxString response = ProcessXFadeMessage(msg);
-        socket->WriteMsg(response.c_str(), response.size() + 1);
-        socket->Notify(true);
-    }
-    break;
-    default:
-        logger_base.warn("OnxFadeSocketEvent: Unexpected event !");
-        break;
-    }
-}
-
-void xLightsFrame::OnxFadeServerEvent(wxSocketEvent & event)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    switch (event.GetSocketEvent())
-    {
-    case wxSOCKET_CONNECTION:
-    {
-        wxSocketBase * socket = _xFadeSocket->Accept(false);
-        if (socket != nullptr)
-        {
-            logger_base.debug("OnxFadeServerEvent: Client connected.");
-            socket->SetEventHandler(*((wxEvtHandler*)this), ID_XFADESOCKET);
-            socket->SetNotify(wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
-            socket->Notify(true);
-        }
-    }
-        break;
-    default:
-        logger_base.warn("OnxFadeServerEvent: Unexpected event !");
-        break;
-    }
-}
-
-wxString xLightsFrame::ProcessXFadeMessage(wxString msg)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (msg == "TURN_LIGHTS_ON")
-    {
-        logger_base.debug("xFade turning lights on.");
-        EnableOutputs(true);
-        return "SUCCESS";
-    }
-    else if (msg == "TURN_LIGHTS_OFF")
-    {
-        logger_base.debug("xFade turning lights off.");
-        DisableOutputs();
-        return "SUCCESS";
-    }
-    else if (msg.StartsWith("PLAY_JUKEBOX_BUTTON "))
-    {
-        int button = wxAtoi(msg.substr(sizeof("PLAY_JUKEBOX_BUTTON ") - 1));
-        logger_base.debug("xFade playing jukebox button %d.", button);
-
-        if (CurrentSeqXmlFile != nullptr)
-        {
-            jukeboxPanel->PlayItem(button);
-            return "SUCCESS";
-        }
-        else
-        {
-            logger_base.error("    Error - sequence not open.");
-            return "ERROR_SEQUENCE_NOT_OPEN";
-        }
-    }
-    else if (msg.StartsWith("GET_JUKEBOX_BUTTON_TOOLTIPS"))
-    {
-        if (CurrentSeqXmlFile != nullptr)
-        {
-            return "SUCCESS " + jukeboxPanel->GetTooltips();
-        }
-        else
-        {
-            logger_base.error("    Error - sequence not open.");
-            return "ERROR_SEQUENCE_NOT_OPEN";
-        }
-    }
-    else if (msg.StartsWith("GET_JUKEBOX_BUTTON_EFFECTPRESENT"))
-    {
-        if (CurrentSeqXmlFile != nullptr)
-        {
-            return "SUCCESS " + jukeboxPanel->GetEffectPresent();
-        }
-        else
-        {
-            logger_base.error("    Error - sequence not open.");
-            return "ERROR_SEQUENCE_NOT_OPEN";
-        }
-    }
-    else if (msg == "GET_SEQUENCE_NAME")
-    {
-        logger_base.debug("xFade getting sequence name.");
-
-        if (CurrentSeqXmlFile != nullptr)
-        {
-            return "SUCCESS " + CurrentSeqXmlFile->GetName();
-        }
-        else
-        {
-            logger_base.error("    Error - sequence not open.");
-            return "ERROR_SEQUENCE_NOT_OPEN";
-        }
-    }
-    else if (msg == "GET_E131_TAG")
-    {
-        logger_base.debug("xFade getting E1.31 tag.");
-
-        return "SUCCESS " + E131Output::GetTag();
-    }
-
-    logger_base.debug("xFade invalid request.");
-    return "ERROR_INVALID_REQUEST";
-}
-
-void xLightsFrame::StartxFadeListener()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (_xFadeSocket != nullptr)
-    {
-        _xFadeSocket->Close();
-        delete _xFadeSocket;
-        _xFadeSocket = nullptr;
-    }
-
-    if (_xFadePort == 0) return;
-
-    //Local address to bind to
-    wxIPV4address addr;
-    addr.AnyAddress();
-    addr.Service(::GetxFadePort(_xFadePort));
-    //create and bind to the address above
-    _xFadeSocket = new wxSocketServer(addr);
-
-    if (!_xFadeSocket->Ok())
-    {
-        logger_base.debug("xLights xFade could not listen on %d", ::GetxFadePort(_xFadePort));
-
-        delete _xFadeSocket;
-        _xFadeSocket = nullptr;
-        return;
-    }
-
-    logger_base.debug("xLights xFade listening on %d", ::GetxFadePort(_xFadePort));
-
-    //enable event handling
-    _xFadeSocket->SetEventHandler(*this, ID_XFADESERVER);
-    //Notify us about incoming data
-    _xFadeSocket->SetNotify(wxSOCKET_CONNECTION_FLAG);
-    //enable event handling
-    _xFadeSocket->Notify(true);
-}
 
 void xLightsFrame::OnMenuItemUserDictSelected(wxCommandEvent& event)
 {
@@ -9347,7 +9209,6 @@ void xLightsFrame::OnMenuItem_ZoomSelected(wxCommandEvent& event)
     //::wxLaunchDefaultBrowser("https://zoom.us/j/175801909");
     ::wxLaunchDefaultBrowser("https://zoom.us/j/175801909?pwd=ZU1hNzM5bjJpOGZ1d1BOb1BzMUFndz09");
 }
-
 
 void xLightsFrame::OnMenuItem_Generate2DPathSelected(wxCommandEvent& event)
 {
@@ -9937,6 +9798,8 @@ void xLightsFrame::SetDefaultSeqView(const wxString& view)
     _defaultSeqView = view;
     SetXmlSetting("defaultSeqView", view);
     UnsavedRgbEffectsChanges = true;
+    UpdateLayoutSave();
+    UpdateControllerSave();
 }
 
 wxArrayString xLightsFrame::GetSequenceViews()
@@ -9991,6 +9854,16 @@ void xLightsFrame::SetShadersOnBackgroundThreads(bool b) {
     config->Write("xLightsShadersOnBackgroundThreads", b);
 }
 
+bool xLightsFrame::UseGPURendering() const {
+    return GPURenderUtils::IsEnabled();
+}
+void xLightsFrame::SetUseGPURendering(bool b) {
+    GPURenderUtils::SetEnabled(b);
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsGPURendering", b);
+}
+
+
 void xLightsFrame::OnMenuItemBulkControllerUploadSelected(wxCommandEvent& event)
 {
     MultiControllerUploadDialog dlg(this);
@@ -10019,12 +9892,12 @@ void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent
     }
 
     auto controllers = GetOutputManager()->GetControllers();
+    ExportSettings::SETTINGS exportsettings = ExportSettings::GetSettings(this);
     for (const auto& it : controllers) {
-        std::string check;
-        UDController cud(it, &_outputManager, &AllModels, check, false);
+        UDController cud(it, &_outputManager, &AllModels, false);
         wxString const header = it->GetShortDescription() + "\n";
         f.Write(header);
-        std::vector<std::string> const lines = cud.ExportAsCSV(false);
+        std::vector<std::string> const lines = cud.ExportAsCSV(exportsettings);
         for (const auto& line : lines) {
             f.Write(line);
         }
@@ -10067,4 +9940,12 @@ void xLightsFrame::ReplaceModelWithModelFixGroups(const std::string& oldModel, c
             mg->ModelRenamed(newModel, oldModel);
         }
     }
+}
+
+void xLightsFrame::OnMenuItemRunScriptSelected(wxCommandEvent& event)
+{
+    if (!_scriptsDialog) {
+        _scriptsDialog = std::make_unique<ScriptsDialog>(this);
+    }
+    _scriptsDialog->Show();
 }

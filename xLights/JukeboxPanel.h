@@ -25,7 +25,9 @@ class ButtonControl
 {
 public:
 
-    enum LOOKUPTYPE { LTDESCRIPTION, LTMLT, LTDISABLED };
+    enum class LOOKUPTYPE { LTDESCRIPTION,
+                 LTMLT,
+                 LTDISABLED };
     int _number;
     std::string _description;
     LOOKUPTYPE _type;
@@ -62,7 +64,9 @@ class JukeboxPanel: public wxPanel
         wxXmlNode* Save();
         void Load(wxXmlNode* node);
         void PlayItem(int item);
-        wxString GetTooltips();
+        wxString GetTooltips() const;
+        wxString GetTooltipsJSON() const;
+        wxString GetEffectPresentJSON() const;
         wxString GetEffectPresent() const;
 
 		//(*Declarations(JukeboxPanel)

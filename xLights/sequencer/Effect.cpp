@@ -457,30 +457,29 @@ std::string Effect::GetSettingsAsString() const
     return mSettings.AsString();
 }
 
-void Effect::SetSettings(const std::string &settings, bool keepxsettings)
-{
+void Effect::SetSettings(const std::string& settings, bool keepxsettings) {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
+    auto old = GetSettingsAsString();
+
     SettingsMap x;
-    if (keepxsettings)
-    {
-        for (const auto& it : mSettings)
-        {
-            if (it.first.size() > 2 && it.first[0] == 'X' && it.first[1] == '_')
-            {
+    if (keepxsettings) {
+        for (const auto& it : mSettings) {
+            if (it.first.size() > 2 && it.first[0] == 'X' && it.first[1] == '_') {
                 x[it.first] = it.second;
             }
         }
     }
     mSettings.Parse(settings);
-    if (keepxsettings)
-    {
-        for (const auto& it : x)
-        {
+    if (keepxsettings) {
+        for (const auto& it : x) {
             mSettings[it.first] = it.second;
         }
     }
-    IncrementChangeCount();
+
+    if (old != GetSettingsAsString()) {
+        IncrementChangeCount();
+    }
 }
 
 void Effect::PressButton(RenderableEffect* re, const std::string& id)
@@ -637,15 +636,18 @@ std::string Effect::GetPaletteAsString() const
 void Effect::SetPalette(const std::string& i)
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
+
+    auto old = GetPaletteAsString();
+
     mPaletteMap.Parse(i);
     mColors.clear();
     mCC.clear();
-    IncrementChangeCount();
-    if (mPaletteMap.empty())
-    {
-        return;
+    if (!mPaletteMap.empty()) {
+        ParseColorMap(mPaletteMap, mColors, mCC);
     }
-    ParseColorMap(mPaletteMap, mColors, mCC);
+    if (old != GetPaletteAsString()) {
+        IncrementChangeCount();
+    }
 }
 
 // This only updates the colour palette ... preserving all the other colour settings

@@ -42,7 +42,7 @@ private:
     void RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, uint8_t alpha);
     void RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, uint8_t alpha);
     void RenderFaces(RenderBuffer& buffer, SequenceElements* elements, const std::string& faceDefintion,
-        const std::string& Phoneme, const std::string& track, const std::string& eyes, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha);
+                     const std::string& Phoneme, const std::string& track, const std::string& eyes, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState);
     std::string MakeKey(int bufferWi, int bufferHt, std::string dirstr, std::string picture, std::string stf);
     uint8_t CalculateAlpha(SequenceElements* elements, int leadFrames, bool fade, const std::string& timingTrack, RenderBuffer& buffer);
 };

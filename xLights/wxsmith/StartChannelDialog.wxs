@@ -22,6 +22,7 @@
 							<value>1</value>
 							<min>1</min>
 							<max>999999</max>
+							<handler function="OnStartChannelChange" entry="EVT_SPINCTRL" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -75,7 +76,9 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxChoice" name="ID_CHOICE4" variable="universeChoice" member="yes" />
+										<object class="wxChoice" name="ID_CHOICE4" variable="universeChoice" member="yes">
+											<handler function="OnuniverseChoiceSelect" entry="EVT_CHOICE" />
+										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
@@ -102,6 +105,7 @@
 										<object class="wxChoice" name="ID_CHOICE1" variable="ModelChoice" member="yes">
 											<selection>0</selection>
 											<minsize>100,-1d</minsize>
+											<handler function="OnModelChoiceSelect" entry="EVT_CHOICE" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
@@ -146,7 +150,9 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxChoice" name="ID_CHOICE5" variable="ChoiceController" member="yes" />
+								<object class="wxChoice" name="ID_CHOICE5" variable="ChoiceController" member="yes">
+									<handler function="OnChoiceControllerSelect" entry="EVT_CHOICE" />
+								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>

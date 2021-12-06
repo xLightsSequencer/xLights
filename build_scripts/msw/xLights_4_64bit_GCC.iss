@@ -59,6 +59,7 @@ Source: "../../bin64/xSchedule.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: ignoreversion recursesubdirs
 Source: "../../include\xSchedule64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../xSchedule/API Documentation.txt"; DestDir: "{app}"
 
 ; xCapture
 Source: "../../bin64/xCapture.exe"; DestDir: "{app}"
@@ -78,6 +79,10 @@ Source: "../../bin64/xFade.exe"; DestDir: "{app}"
 Source: "../../bin64/xFade.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xfade.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include/xfade64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+
+; xlDo
+Source: "../../bin64/xlDo.exe"; DestDir: "{app}"
+Source: "../../xlDo/xlDo Commands.txt"; DestDir: "{app}"
 
 ; xSMSDaemon
 Source: "../../bin64/xSMSDaemon.dll"; DestDir: "{app}"
@@ -118,7 +123,7 @@ Source: "../../bin64/swscale-5.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin64/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; libcurl
-Source: "../../bin64/libcurl.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/libcurl-x64.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; Added files for doing Papagayo effects
 Source: "../../bin/extended_dictionary"; DestDir: "{app}"

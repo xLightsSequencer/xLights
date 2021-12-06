@@ -11,11 +11,13 @@
 #include <wx/wx.h>
 
 #include "CommandManager.h"
+#ifndef EXCLUDE_COMMAND_VALIDATION
 #include "ScheduleManager.h"
 #include "PlayList/PlayList.h"
 #include "PlayList/PlayListStep.h"
 #include "Schedule.h"
 #include "PlayList/PlayListItem.h"
+#endif
 
 Command::Command(const std::string& name, int parms, const PARMTYPE* parmtypes, bool reqSelPL, bool reqSelPLS, bool reqSelSch, bool reqPlayPL, bool reqPlaySch, bool worksinslavemode, bool worksInQueuedMode, bool userSelectable, bool uiOnly)
 {
@@ -84,6 +86,7 @@ std::string Command::GetParametersTip() const
     return tip;
 }
 
+#ifndef EXCLUDE_COMMAND_VALIDATION
 bool Command::IsValid(wxString parms, PlayList* selectedPlayList, PlayListStep* selectedPlayListStep, Schedule* selectedSchedule, ScheduleManager* scheduleManager, wxString& msg, bool queuedMode) const
 {
     auto components = wxSplit(parms, ',');
@@ -236,6 +239,7 @@ bool Command::IsValid(wxString parms, PlayList* selectedPlayList, PlayListStep* 
 
     return true;
 }
+#endif
 
 Command* CommandManager::GetCommand(std::string name) const
 {

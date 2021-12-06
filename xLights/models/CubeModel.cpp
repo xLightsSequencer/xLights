@@ -1047,8 +1047,7 @@ void CubeModel::ExportXlightsModel()
     f.Close();
 }
 
-void CubeModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+void CubeModel::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
     wxXmlDocument doc(filename);
 
     if (doc.IsOk())

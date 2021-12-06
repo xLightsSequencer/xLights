@@ -54,8 +54,9 @@ StarModel::StarModel(wxXmlNode* node, const ModelManager& manager, bool zeroBase
 
     auto dir = node->GetAttribute("Dir", "");
     auto startSide = node->GetAttribute("StartSide", "");
+    auto startStartLocation = node->GetAttribute("StarStartLocation", "");
 
-    if (dir != "" || startSide != "") {
+    if (startStartLocation == "" && (dir != "" || startSide != "")) {
         if (dir == "") dir = "L";
         if (startSide == "") startSide = "B";
 
@@ -96,8 +97,8 @@ void StarModel::GetBufferSize(const std::string& type, const std::string& camera
         AdjustForTransform(transform, BufferWi, BufferHi);
     }
     else if (SingleChannel || SingleNode) {
-        BufferWi = GetNumStrands();
-        BufferHi = 1;
+        BufferHi = GetNumStrands();
+        BufferWi = 1;
         AdjustForTransform(transform, BufferWi, BufferHi);
     }
     else {
@@ -161,13 +162,13 @@ void StarModel::InitRenderBufferNodes(const std::string& type,
         // and all nodes should point to one cell.
         // Without this change effects like twinkle do really strange things
         Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
-        BufferWi = Nodes.size();
-        BufferHi = 1;
+        BufferHi = Nodes.size();
+        BufferWi = 1;
         int x = 0;
         for (auto& it : Nodes) {
             for (auto& it2 : it->Coords) {
-                it2.bufX = x;
-                it2.bufY = 0;
+                it2.bufX = 0;
+                it2.bufY = x;
             }
             x++;
         }
@@ -521,8 +522,7 @@ static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = {
 
 static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(12, TOP_BOT_LEFT_RIGHT_VALUES));
 
-void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
-{
+void StarModel::AddTypeProperties(wxPropertyGridInterface* grid) {
     wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
@@ -552,7 +552,7 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
         if (TOP_BOT_LEFT_RIGHT[i].GetText() == _starStartLocation) {
             ssl = i;
             break;
-        }        
+        }
     }
 
     grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, ssl));
@@ -563,11 +563,12 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Inner Layer %", "StarCenterPercent", innerPercent));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-
+    if (GetLayerSizeCount() > 1) {
+        p = grid->Append(new wxUIntProperty("Inner Layer %", "StarCenterPercent", innerPercent));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 100);
+        p->SetEditor("SpinCtrl");
+    }
 }
 
 int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
@@ -719,8 +720,7 @@ void StarModel::ExportXlightsModel()
     f.Close();
 }
 
-void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+void StarModel::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
     wxXmlDocument doc(filename);
 
     if (doc.IsOk()) {

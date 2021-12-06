@@ -66,6 +66,7 @@
 #pragma comment(lib, "wxexpat.lib")
 #pragma comment(lib, "log4cpplib.lib")
 #endif
+#pragma comment(lib, "libcurl.dll.a")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "WS2_32.Lib")
 #pragma comment(lib, "comdlg32.lib")
@@ -83,7 +84,6 @@
 #pragma comment(lib, "winspool.lib")
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "ImageHlp.Lib")
-#pragma comment(lib, "libcurl.lib")
 #endif
 
 IMPLEMENT_APP_NO_MAIN(RemoteFalconApp)

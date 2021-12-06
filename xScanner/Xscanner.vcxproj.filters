@@ -130,6 +130,9 @@
     </ClCompile>
     <ClCompile Include="MAC.cpp" />
     <ClCompile Include="ScanWork.cpp" />
+    <ClCompile Include="..\xLights\ExportSettings.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
@@ -270,6 +273,9 @@
     </ClInclude>
     <ClInclude Include="MAC.h" />
     <ClInclude Include="ScanWork.h" />
+    <ClInclude Include="..\xLights\ExportSettings.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

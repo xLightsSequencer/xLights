@@ -11,6 +11,8 @@
 #include <mutex>
 #include <atomic>
 
+#include "../xLights/outputs/OutputManager.h"
+
 // seed with ... xLights defined stuff
 // seed with networks we are attached to
 
@@ -79,22 +81,22 @@ public:
     }
 };
 
-typedef enum WorkType {
-    COMPUTER,
-    PING,
-    MAC,
-    DISCOVER,
-    HTTP,
-    FPP,
-    FALCON,
-    UNKNOWN
-} WorkType;
+enum class WorkType {
+    WTCOMPUTER,
+    WTPING,
+    WTMAC,
+    WTDISCOVER,
+    WTHTTP,
+    WTFPP,
+    WTFALCON,
+    WTUNKNOWN
+};
 
-typedef enum ThreadType {
+enum class ThreadType {
     TTPING,
     TTMAIN,
     TTOTHER
-} ThreadType;
+};
 
 class ScanThread : public wxThread
 {
@@ -116,7 +118,7 @@ public:
 class ScanWork {
 
 protected:
-    WorkType _type = WorkType::UNKNOWN;
+    WorkType _type = WorkType::WTUNKNOWN;
     wxWindow* GetFrameWindow();
     bool _terminate = false;
 
@@ -145,7 +147,7 @@ protected:
     void ProcessController(WorkManager& workManager, Controller* controller, const std::string& why);
 
 public:
-    ComputerWork() : ScanWork(WorkType::COMPUTER) { }
+    ComputerWork() : ScanWork(WorkType::WTCOMPUTER) { }
     virtual ~ComputerWork() {}
     virtual void DoWork(WorkManager& workManager, wxSocketClient* client) override;
 };
@@ -246,10 +248,10 @@ public:
     void AddWork(ScanWork* work)
     {
         switch (work->GetType())             {
-        case WorkType::HTTP:
+        case WorkType::WTHTTP:
             _queueHTTP.push(work);
             break;
-        case WorkType::PING:
+        case WorkType::WTPING:
             _queuePing.push(work);
             break;
         default:
@@ -309,7 +311,7 @@ protected:
     std::string _why;
 
 public:
-    PingWork(const std::string& ip, const std::string& why, const std::string& proxy = "") : ScanWork(WorkType::PING) { _ip = ip; _proxy = proxy; _why = why; }
+    PingWork(const std::string& ip, const std::string& why, const std::string& proxy = "") : ScanWork(WorkType::WTPING) { _ip = ip; _proxy = proxy; _why = why; }
     virtual ~PingWork() {}
     virtual void DoWork(WorkManager& workManager, wxSocketClient* client) override;
 };
@@ -321,15 +323,17 @@ protected:
     std::string _mac;
 
 public:
-    MACWork(const std::string& ip, const std::string& mac) : ScanWork(WorkType::MAC) { _ip = ip; _mac = mac; }
+    MACWork(const std::string& ip, const std::string& mac) : ScanWork(WorkType::WTMAC) { _ip = ip; _mac = mac; }
     virtual ~MACWork() {}
     virtual void DoWork(WorkManager& workManager, wxSocketClient* client) override;
 };
 
 class DiscoverWork : public ScanWork
 {
+    OutputManager _om;
+
 public:
-    DiscoverWork() : ScanWork(WorkType::DISCOVER) {}
+    DiscoverWork() : ScanWork(WorkType::WTDISCOVER) {}
     virtual ~DiscoverWork() {}
     virtual void DoWork(WorkManager& workManager, wxSocketClient* client) override;
 };
@@ -345,7 +349,7 @@ protected:
     std::string GetControllerTypeBasedOnPageContent(const std::string& page);
 
 public:
-    HTTPWork(const std::string& ip, int port = 80, const std::string& proxy = "") : ScanWork(WorkType::HTTP) { _ip = ip; _port = port; _proxy = proxy; }
+    HTTPWork(const std::string& ip, int port = 80, const std::string& proxy = "") : ScanWork(WorkType::WTHTTP) { _ip = ip; _port = port; _proxy = proxy; }
     virtual ~HTTPWork() {}
     virtual void DoWork(WorkManager& workManager, wxSocketClient* client) override;
     virtual bool IsMainThread() override { return true; }
@@ -366,7 +370,7 @@ protected:
     }
 
 public:
-    FPPWork(const std::string& ip, const std::string& proxy = "") : ScanWork(WorkType::FPP) { _ip = ip; _proxy = proxy; }
+    FPPWork(const std::string& ip, const std::string& proxy = "") : ScanWork(WorkType::WTFPP) { _ip = ip; _proxy = proxy; }
     virtual ~FPPWork() {}
     virtual void DoWork(WorkManager& workManager, wxSocketClient* client) override;
 };
@@ -378,7 +382,7 @@ protected:
     std::string _proxy;
 
 public:
-    FalconWork(const std::string& ip, const std::string& proxy = "") : ScanWork(WorkType::FPP) { _ip = ip; _proxy = proxy; }
+    FalconWork(const std::string& ip, const std::string& proxy = "") : ScanWork(WorkType::WTFPP) { _ip = ip; _proxy = proxy; }
     virtual ~FalconWork() {}
     virtual void DoWork(WorkManager& workManager, wxSocketClient* client) override;
 };
@@ -391,7 +395,7 @@ protected:
     int _port = 80;
 
 public:
-    xScheduleWork(const std::string& ip, int port = 80, const std::string& proxy = "") : ScanWork(WorkType::FPP) { _ip = ip; _proxy = proxy; _port = port; }
+    xScheduleWork(const std::string& ip, int port = 80, const std::string& proxy = "") : ScanWork(WorkType::WTFPP) { _ip = ip; _proxy = proxy; _port = port; }
     virtual ~xScheduleWork() {}
     virtual void DoWork(WorkManager& workManager, wxSocketClient* client) override;
 };

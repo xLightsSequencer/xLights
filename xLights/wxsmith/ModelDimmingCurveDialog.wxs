@@ -53,7 +53,7 @@
 												<min>-100</min>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -68,7 +68,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -88,7 +88,7 @@
 										<wildcard></wildcard>
 										<handler function="OnSingleFilePickerFileChanged" entry="EVT_FILEPICKER_CHANGED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -143,7 +143,7 @@
 														<min>-100</min>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -158,12 +158,12 @@
 													<option>1</option>
 												</object>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>1</border>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -208,7 +208,7 @@
 														<min>-100</min>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -223,12 +223,12 @@
 													<option>1</option>
 												</object>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>1</border>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -274,7 +274,7 @@
 														<min>-100</min>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -289,12 +289,12 @@
 													<option>1</option>
 												</object>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>1</border>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -321,7 +321,7 @@
 										<wildcard></wildcard>
 										<handler function="OnRGBFilePickerFileChanged" entry="EVT_FILEPICKER_CHANGED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -339,7 +339,7 @@
 										<wildcard></wildcard>
 										<handler function="OnRGBFilePickerFileChanged" entry="EVT_FILEPICKER_CHANGED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -357,7 +357,7 @@
 										<wildcard></wildcard>
 										<handler function="OnRGBFilePickerFileChanged" entry="EVT_FILEPICKER_CHANGED" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -366,7 +366,7 @@
 						<label>RGB From File</label>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -382,16 +382,15 @@
 									<object class="wxStaticBoxSizer" variable="RedPanelBox" member="no">
 										<label>Red</label>
 										<object class="sizeritem">
-											<object class="wxGLCanvas" name="ID_GLCANVAS2" subclass="DimmingCurvePanel" variable="redDCPanel" member="yes">
-												<mDepthSize>16</mDepthSize>
+											<object class="wxPanel" name="ID_REDDIMMINGPANEL" subclass="DimmingCurvePanel" variable="redDCPanel" member="yes">
 												<minsize>100,100</minsize>
-												<style>wxNO_BORDER</style>
+												<style>wxBORDER_NONE</style>
 											</object>
-											<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -411,16 +410,15 @@
 									<object class="wxStaticBoxSizer" variable="GreenPanelBox" member="no">
 										<label>Green</label>
 										<object class="sizeritem">
-											<object class="wxGLCanvas" name="ID_GLCANVAS1" subclass="DimmingCurvePanel" variable="greenDCPanel" member="yes">
-												<mDepthSize>16</mDepthSize>
+											<object class="wxPanel" name="ID_GREENDIMMINGPANEL" subclass="DimmingCurvePanel" variable="greenDCPanel" member="yes">
 												<minsize>100,100</minsize>
-												<style>wxNO_BORDER</style>
+												<style>wxBORDER_NONE</style>
 											</object>
-											<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -440,16 +438,15 @@
 									<object class="wxStaticBoxSizer" variable="BluePanelBox" member="no">
 										<label>Blue</label>
 										<object class="sizeritem">
-											<object class="wxGLCanvas" name="ID_GLCANVAS3" subclass="DimmingCurvePanel" variable="blueDCPanel" member="yes">
-												<mDepthSize>16</mDepthSize>
+											<object class="wxPanel" name="ID_BLUEDIMMINGPANEL" subclass="DimmingCurvePanel" variable="blueDCPanel" member="yes">
 												<minsize>100,100</minsize>
-												<style>wxNO_BORDER</style>
+												<style>wxBORDER_NONE</style>
 											</object>
-											<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -460,7 +457,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

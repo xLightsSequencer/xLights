@@ -39,7 +39,9 @@ class Command
     bool _uiOnly;
 	std::vector<PARMTYPE> _parmtype;
 	Command(const std::string& name, int parms, const PARMTYPE *parmtypes, bool reqSelPL, bool reqSelPLS, bool reqSelSch, bool reqPlayPL, bool reqPlaySch, bool worksInSlaveMode, bool worksInQueuedMode, bool userSelectable, bool uiOnly);
+#ifndef EXCLUDE_COMMAND_VALIDATION
     bool IsValid(wxString parms, PlayList* selectedPlayList, PlayListStep* selectedPlayListStep, Schedule* selectedSchedule, ScheduleManager* scheduleManager, wxString& msg, bool queueMode) const;
+#endif
     bool IsUserSelectable() const { return _userSelectable; }
     bool IsUIOnly() const { return _uiOnly; }
     std::string GetParametersTip() const;

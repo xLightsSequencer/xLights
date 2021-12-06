@@ -22,6 +22,7 @@ class PlayListItem;
 class wxWindow;
 class AudioManager;
 class PlayList;
+class ScheduleOptions;
 
 class PlayListStep
 {

@@ -113,6 +113,7 @@ public:
 
     virtual int GetId() const { return _id; }
     void EnsureUniqueId();
+    void EnsureUniqueName();
 
     const std::string &GetDescription() const { return _description; }
     void SetDescription(const std::string& description) { if (_description != description) { _description = description; _dirty = true; } }

@@ -25,7 +25,7 @@
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsXmlFile.h"
 #include "../Color.h"
-#include "../DrawGLUtils.h"
+#include "../graphics/opengl/DrawGLUtils.h"
 #include "../DimmingCurve.h"
 #include "../StrandNodeNamesDialog.h"
 #include "../ModelFaceDialog.h"
@@ -473,15 +473,13 @@ wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
     return lg;
 }
 
-void Model::Rename(std::string newName)
-{
+void Model::Rename(std::string const& newName) {
     name = Trim(newName);
     ModelXml->DeleteAttribute("name");
     ModelXml->AddAttribute("name", name);
 }
 
-void Model::SetStartChannel(std::string startChannel)
-{
+void Model::SetStartChannel(std::string const& startChannel) {
     //wxASSERT(!StartsWith(startChannel, "!:"));
 
     if (startChannel == ModelXml->GetAttribute("StartChannel", "xyzzy_kw")) return;
@@ -497,8 +495,7 @@ void Model::SetStartChannel(std::string startChannel)
     IncrementChangeCount();
 }
 
-void Model::SetProperty(wxString property, wxString value, bool apply)
-{
+void Model::SetProperty(wxString const& property, wxString const& value, bool apply) {
     if (ModelXml->HasAttribute(property))
     {
         ModelXml->DeleteAttribute(property);
@@ -524,12 +521,12 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
     }
 
     if (HasOneString(DisplayAs) && grid->GetPropertyByName("ModelStartChannel") != nullptr) {
-        grid->GetPropertyByName("ModelStartChannel")->Enable(GetControllerName() == "" && _controller == 0);
+        grid->GetPropertyByName("ModelStartChannel")->Enable(GetControllerName() == "" || _controller == 0);
     }
     else {
         if (grid->GetPropertyByName("ModelIndividualStartChannels") != nullptr) {
-            grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(parm1 > 1 && GetControllerName() == "" && _controller == 0);
-            if (parm1 > 1 && (GetControllerName() != "" || _controller != 0)) {
+            grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(parm1 > 1 && (GetControllerName() == "" || _controller == 0));
+            if (parm1 > 1 && (GetControllerName() != "" && _controller != 0)) {
                 grid->GetPropertyByName("ModelIndividualStartChannels")->SetHelpString("Individual start channels cannot be set if you have assigned a model to a controller rather than using start channels.");
             }
             else {
@@ -537,7 +534,7 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
             }
         }
         if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
-            grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(GetControllerName() == "" && _controller == 0);
+            grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(GetControllerName() == "" || _controller == 0);
         }
     }
 
@@ -653,7 +650,12 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
 
     _controller = 0;
     CONTROLLERS.clear();
-    CONTROLLERS.Add("Use Start Channel");
+    CONTROLLERS.Add(USE_START_CHANNEL);
+    CONTROLLERS.Add(NO_CONTROLLER);
+
+    if (GetControllerName() == NO_CONTROLLER) {
+        _controller = 1;
+    }
 
     for (const auto& it : outputManager->GetAutoLayoutControllerNames()) {
         if (GetControllerName() == it) {
@@ -675,15 +677,15 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         bool hasIndiv = ModelXml->GetAttribute("Advanced", "0") == "1";
         p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", hasIndiv));
         p->SetAttribute("UseCheckbox", true);
-        p->Enable(parm1 > 1 && GetControllerName() == "" && _controller == 0);
-        if (parm1 > 1 && (GetControllerName() != "" || _controller != 0)) {
+        p->Enable(parm1 > 1 && (GetControllerName() == "" || _controller == 0));
+        if (parm1 > 1 && (GetControllerName() != "" && _controller != 0)) {
             p->SetHelpString("Individual start channels cannot be set if you have assigned a model to a controller rather than using start channels.");
         }
         else {
             p->SetHelpString("");
         }
         sp = grid->AppendIn(p, new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel", "1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-        sp->Enable(GetControllerName() == "" && _controller == 0);
+        sp->Enable(GetControllerName() == "" || _controller == 0);
         if (hasIndiv) {
             int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
             for (int x = 0; x < c; x++) {
@@ -925,7 +927,7 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
 wxArrayString Model::GetSmartRemoteValues(int smartRemoteCount)
 {
     wxArrayString res;
-    res.push_back("None");
+    //res.push_back("None");
     for (int i = 0; i < smartRemoteCount; i++) {
         res.push_back(wxString((char)(65 + i)));
     }
@@ -973,23 +975,45 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
         if (smartRemoteCount != 0)
         {
             int sr = GetSmartRemote();
-            wxArrayString srv = GetSmartRemoteValues(smartRemoteCount);
-            grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", srv, wxArrayInt(), sr));
 
-            sp = grid->AppendIn(p, new wxBoolProperty("Cascade On Port", "CascadeOnPort", GetSRCascadeOnPort()));
+            sp = grid->AppendIn(p, new wxBoolProperty("Use Smart Remote", "UseSmartRemote", sr));
             sp->SetAttribute("UseCheckbox", true);
-            p->SetHelpString("When selected order is 1A 1B 1C etc. When not selected order is 1A 2A 3A 4A 1B etc.");
-            if (sr == 0) {
-                grid->DisableProperty(sp);
-            }
+            p->SetHelpString("Enable Smart Remote for this Model.");
 
-            sp = grid->AppendIn(p, new wxUIntProperty("Max Cascade Remotes", "MaxCascadeRemotes", GetSRMaxCascade()));
-            sp->SetAttribute("Min", 1);
-            sp->SetAttribute("Max", smartRemoteCount);
-            p->SetHelpString("This is the number of smart remotes on a chain to use so if start is B and this is 2 then B and C remotes will be used.");
-            sp->SetEditor("SpinCtrl");
-            if (sr == 0) {
-                grid->DisableProperty(sp);
+            if (sr != 0) {
+                if (GetSmartRemote() != 0) {
+                    auto const& srTypes = GetSmartRemoteTypes();
+                    if (srTypes.size() > 1) {
+                        wxArrayString srlist;
+                        for (auto const& typ : srTypes) {
+                            srlist.Add(typ);
+                        }
+                        grid->AppendIn(p, new wxEnumProperty("Smart Remote Type", "SmartRemoteType", srlist, wxArrayInt(), GetSmartRemoteTypeIndex(GetSmartRemoteType())));
+                    }
+                    else {
+                        std::string type = GetSmartRemoteType();
+                        auto smt = grid->AppendIn(p, new wxStringProperty("Smart Remote Type", "SmartRemoteType", type));
+                        smt->ChangeFlag(wxPG_PROP_READONLY, true);
+                        smt->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                    }
+                }
+
+                wxArrayString srv = GetSmartRemoteValues(smartRemoteCount);
+                grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", srv, wxArrayInt(), sr-1));
+
+                bool cop = GetSRCascadeOnPort();
+
+                sp = grid->AppendIn(p, new wxBoolProperty("Cascade On Port", "CascadeOnPort", cop));
+                sp->SetAttribute("UseCheckbox", true);
+                p->SetHelpString("When selected order is 1A 1B 1C etc. When not selected order is 1A 2A 3A 4A 1B etc.");
+
+                if (cop) {
+                    sp = grid->AppendIn(p, new wxUIntProperty("Max Cascade Remotes", "MaxCascadeRemotes", GetSRMaxCascade()));
+                    sp->SetAttribute("Min", 1);
+                    sp->SetAttribute("Max", smartRemoteCount);
+                    p->SetHelpString("This is the number of smart remotes on a chain to use so if start is B and this is 2 then B and C remotes will be used.");
+                    sp->SetEditor("SpinCtrl");
+                }
             }
         }
     }
@@ -1427,7 +1451,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         if (grid->GetPropertyByName("ModelChain") != nullptr) {
-            grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "");
+            grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && _controller != 0);
         }
         UpdateControllerProperties(grid);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Controller");
@@ -1493,15 +1517,31 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     } else if (event.GetPropertyName() == "Active") {
         SetActive(event.GetValue().GetBool());
         return 0;
+        
+    }
+    else if (event.GetPropertyName() == "UseSmartRemote") {
+        auto usr = event.GetValue().GetBool();
+        if (!usr)
+        {
+            SetSmartRemote(0);
+        }
+        else
+        {
+            SetSmartRemote(1);
+        }
+        return 0;
     } else if (event.GetPropertyName() == "SmartRemote") {
         int sr = wxAtoi(event.GetValue().GetString());
-        SetSmartRemote(sr);
+        SetSmartRemote(sr + 1);
         return 0;
     } else if (event.GetPropertyName() == "CascadeOnPort") {
         SetSRCascadeOnPort(event.GetValue().GetBool());
         return 0;
     } else if (event.GetPropertyName() == "MaxCascadeRemotes") {
         SetSRMaxCascade(event.GetValue().GetLong());
+        return 0;
+    } else if (event.GetPropertyName() == "SmartRemoteType") {
+        SetSmartRemoteType(GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString())));
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
         wxArrayString cp;
@@ -1979,7 +2019,7 @@ void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
     wxPGProperty *p = grid->GetPropertyByName("ModelIndividualStartChannels");
     if (p != nullptr) {
         pg->Freeze();
-        p->Enable(GetControllerName() == "" && _controller == 0);
+        p->Enable(GetControllerName() == "" || _controller == 0);
         bool adv = p->GetValue().GetBool();
         if (adv) {
             int count = p->GetChildCount();
@@ -2001,7 +2041,7 @@ void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
                     ModelXml->AddAttribute(nm, val);
                 }
                 grid->AppendIn(p, new StartChannelProperty(this, count, nm, nm, val, modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-                p->Enable(GetControllerName() == "" && _controller == 0);
+                p->Enable(GetControllerName() == "" || _controller == 0);
                 count++;
             }
         } else if (p->GetChildCount() > 1) {
@@ -2024,7 +2064,7 @@ void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
                 sp->SetLabel("Start Channel");
             }
         }
-        p->Enable(parm1 > 1 && (GetControllerName() == "" || GetModelChain() == ""));
+        p->Enable(parm1 > 1 && (GetControllerName() == "" || _controller == 0 || GetModelChain() == ""));
         pg->Thaw();
         pg->RefreshGrid();
     }
@@ -2429,20 +2469,19 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
         sc = sc.substr(sc.find(":") + 1);
         if (start[0] == '@' || start[0] == '<' || start[0] == '>') {
             int returnChannel = wxAtoi(sc);
+            bool chain = start[0] == '>';
             bool fromStart = start[0] == '@';
             start = Trim(start.substr(1, start.size()));
             if (start == GetName() && !CouldComputeStartChannel)
             {
                 valid = false;
                 output = 1;
-            }
-            else
-            {
+            } else {
                 if (start != GetName()) {
                     dependsonmodel = start;
                 }
-                Model *m = modelManager[start];
-                if (m != nullptr && m->CouldComputeStartChannel) {
+                Model* m = modelManager[start];
+                if (m != nullptr && m->CouldComputeStartChannel && (!chain || (chain && m->GetControllerName() != NO_CONTROLLER))) {
                     if (fromStart) {
                         int i = m->GetFirstChannel();
                         if (i == -1 && m == this && stringStartChan.size() > 0) {
@@ -2620,7 +2659,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
 
     SingleNode = HasSingleNode(StringType);
     int ncc = GetNodeChannelCount(StringType);
-    SingleChannel = (ncc == 1);
+    SingleChannel = (ncc == 1) && StringType != "Node Single Color";
     if (SingleNode) {
         rgbOrder = "RGB";
     }
@@ -2820,18 +2859,30 @@ std::string Model::GetControllerConnectionPortRangeString() const
     return ret;
 }
 
+bool compare_pairstring(const std::pair<std::string, std::string>& a, const std::pair<std::string, std::string>& b) {
+    return a.first > b.first;
+}
+
 std::string Model::GetControllerConnectionAttributeString() const
 {
     std::string ret;
+    std::list<std::pair<std::string, std::string>> props;
     wxXmlAttribute* att = GetControllerConnection()->GetAttributes();
     while (att != nullptr) {
         if (att->GetName() == "SmartRemote") {
-            ret += ":SmartRemote=" + DecodeSmartRemote(wxAtoi(att->GetValue()));
-        } else if (att->GetName() != "Port" && att->GetName() != "Protocol" && att->GetName() != "SRMaxCascade" && att->GetName() != "SRCascadeOnPort") {
-            ret += ":" + att->GetName() + "=" + att->GetValue();
+            props.push_back({"SmartRemote", DecodeSmartRemote(wxAtoi(att->GetValue()))});
+        } else if (att->GetName() != "Port" && att->GetName() != "Protocol" && att->GetName() != "SRMaxCascade" && att->GetName() != "SRCascadeOnPort" && att->GetName() != "SmartRemoteType") {
+            props.push_back({att->GetName(), att->GetValue()});
         }
         att = att->GetNext();
     }
+
+    // this adds the properties alphabetically
+    props.sort(compare_pairstring);
+    for (const auto& it : props) {
+        ret += ":" + it.first + "=" + it.second;
+    }
+
     return ret;
 }
 
@@ -3110,8 +3161,7 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
     return GetChannelInStartChannelFormat(outputManager, GetLastChannel() + 1);
 }
 
-std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, unsigned int channel)
-{
+std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, uint32_t channel) {
     std::list<std::string> visitedModels;
     visitedModels.push_back(GetName());
 
@@ -3713,6 +3763,24 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             factor = fx > fy ? fx : fy;
         }
 
+// I would love to add this to handle this scenario but this late in the year it seems too risky. To be honest I am somewhat surprised we never had something like this so maybe I am missing something.
+// See #2866 for a layout which shows when this can be a problem. He has a set of dense cubes on a really small scale within the layout.
+#ifdef EXPERIMENTAL
+        // if we have a dense model with lots of pixels but (int)(maxx - minx) and (int)(maxy - miny) are really small then it generates a render buffer that is quite small with lots of nodes in each cell
+        // We need a factor that scales up the screen locations to separate the pixels
+        // The empty space factor is the number of empty cells expected per filled cell in the average model ... of course in models where there are dense and sparse areas this wont necessarily be true
+        #define MODEL_EMPTY_SPACE_FACTOR 4.0
+        if (type == PER_PREVIEW && GetDisplayAs() != "ModelGroup" && factor == 1.0 && (newNodes.size() * (MODEL_EMPTY_SPACE_FACTOR + 1.0) > (maxX - minX) * (maxY - minY)))
+        {
+            float aspect = (maxX - minX) / (maxY - minY);
+            float x = std::sqrtf(newNodes.size() * (MODEL_EMPTY_SPACE_FACTOR + 1.0) * aspect);
+            factor = (maxX - minX) / x;
+            if (std::max((maxX - minX) / factor, (maxY - minY) / factor) > 400) // if this results in an overly large scaling ... ie a buffer > 400 in any dimension
+            {
+                factor = std::max((maxX - minX), (maxY - minY)) /  400; // work out a scaling that gives a 400x400 buffer
+            }
+        }
+#endif
 
         minX /= factor;
         maxX /= factor;
@@ -3819,6 +3887,10 @@ bool Model::FourChannelNodes() const
          Contains(StringType, "BRGW") ||
          Contains(StringType, "WBGR") ||
          Contains(StringType, "BGRW")));
+}
+
+std::list<std::string> Model::GetShadowedBy() const {
+    return GetModelManager().GetModelsShadowing(this);
 }
 
 // set size of Nodes vector and each Node's Coords vector
@@ -4780,7 +4852,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
                 } else {
                     ecolor.alpha = 0;
                 }
-                va.AddTrianglesCircle(sx, sy, ((float)pixelSize) / 2.0f, ccolor, ecolor);
+                va.AddCircleAsTriangles(sx, sy, ((float)pixelSize) / 2.0f, ccolor, ecolor);
             }
         }
     }
@@ -4927,7 +4999,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
                 } else {
                     ecolor.alpha = 0;
                 }
-                va.AddTrianglesCircle(sx, sy, sz, ((float)pixelSize) / 2.0f, ccolor, ecolor,
+                va.AddTranslatedCircleAsTriangles(sx, sy, sz, ((float)pixelSize) / 2.0f, ccolor, ecolor,
                                       [this](float &x, float &y, float &z) {
                                           GetModelScreenLocation().TranslatePoint(x, y, z);
                                       }, replaceVertices);
@@ -4948,7 +5020,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
         }
     }
 
-    if (wiring && vaLines.count > 0) {
+    if (wiring && vaLines.getCount() > 0) {
         vaLines.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
     }
     if (pixelStyle > 1) {
@@ -5202,7 +5274,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 if (lastPixelStyle != Nodes[n]->model->pixelStyle
                     || lastPixelSize != Nodes[n]->model->pixelSize) {
 
-                    if (va.count && (lastPixelStyle < 2 || Nodes[n]->model->pixelStyle < 2)) {
+                    if (va.getCount() && (lastPixelStyle < 2 || Nodes[n]->model->pixelStyle < 2)) {
 
                         if (lastPixelStyle > 1) {
                             va.Finish(GL_TRIANGLES);
@@ -5228,13 +5300,13 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                     } else {
                         ecolor.alpha = 0;
                     }
-                    va.AddTrianglesCircle((sx*scale)+(w/2), newsy, lastPixelSize*pointScale, ccolor, ecolor);
+                    va.AddCircleAsTriangles((sx*scale)+(w/2), newsy, lastPixelSize*pointScale, ccolor, ecolor);
                 }
             }
         }
-        if (va.count) {
-            if (va.count > maxVertexCount) {
-                maxVertexCount = va.count;
+        if (va.getCount()) {
+            if (va.getCount() > maxVertexCount) {
+                maxVertexCount = va.getCount();
             }
             if (lastPixelStyle > 1) {
                 va.Finish(GL_TRIANGLES);
@@ -6218,6 +6290,13 @@ char Model::GetSmartRemoteLetter() const
     return char('A' + l - 1);
 }
 
+char Model::GetSmartRemoteLetterForString(int string) const
+{
+    auto sr = GetSmartRemoteForString(string);
+    if (sr == 0) return ' ';
+    return char('A' + sr - 1);
+}
+
 // This sorts the special A->B->C and B->C first to ensure that anything on a particular smart remote comes after things that span multiple ports
 int Model::GetSortableSmartRemote() const
 {
@@ -6273,6 +6352,7 @@ void Model::SetSRCascadeOnPort(bool cascade)
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetSRCascadeOnPort");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetSRCascadeOnPort");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetSRCascadeOnPort");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::SetSRCascadeOnPort");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetSRCascadeOnPort");
         IncrementChangeCount();
     }
@@ -6314,11 +6394,27 @@ void Model::SetSmartRemote(int sr)
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetSmartRemote");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetSmartRemote");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetSmartRemote");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::SetSmartRemote");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetSmartRemote");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetSmartRemote");
         IncrementChangeCount();
     }
+}
+
+void Model::SetSmartRemoteType(const std::string& type) {
+    if (GetSmartRemoteType() != type) {
+        GetControllerConnection()->DeleteAttribute("SmartRemoteType");
+        if (!type.empty()) {
+            GetControllerConnection()->AddAttribute("SmartRemoteType", type);
+        }
+    }
+
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SmartRemoteType");
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SmartRemoteType");
+    AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SmartRemoteType");
+    AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SmartRemoteType");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::SmartRemoteType");
+    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SmartRemoteType");
+    IncrementChangeCount();
 }
 
 void Model::SetModelChain(const std::string& modelChain)
@@ -6456,15 +6552,14 @@ void Model::SetShadowModelFor(const std::string& shadowModelFor)
     IncrementChangeCount();
 }
 
-void Model::SetControllerName(const std::string& controller)
-{
+void Model::SetControllerName(const std::string& controller) {
     auto n = Trim(controller);
 
-    if (n == ModelXml->GetAttribute("Controller", "xyzzy_kw").Trim(true).Trim(false)) return;
+    if (n == ModelXml->GetAttribute("Controller", "xyzzy_kw").Trim(true).Trim(false))
+        return;
 
     ModelXml->DeleteAttribute("Controller");
-    if (n != "" && n != "Use Start Channel")
-    {
+    if (n != "" && n != USE_START_CHANNEL) {
         ModelXml->AddAttribute("Controller", n);
     }
     AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetControllerName");
@@ -6673,11 +6768,12 @@ std::list<std::string> Model::GetFaceFiles(const std::list<std::string>& facesUs
     return res;
 }
 
-bool Model::HasState(const std::string state) const
-{
+bool Model::HasState(std::string const& state) const {
     auto s = Lower(state);
     for (const auto& it : stateInfo) {
-        if (it.first == s) return true;
+        if (it.first == s) {
+            return true;
+        }
     }
     return false;
 }
@@ -6830,6 +6926,65 @@ bool Model::IsLEDPanelMatrixProtocol() const {
 }
 bool Model::IsVirtualMatrixProtocol() const {
     return GetControllerPort(1) != 0 && ::IsVirtualMatrixProtocol(GetControllerProtocol());
+}
+
+std::vector<std::string> Model::GetSmartRemoteTypes() const {
+    auto caps = GetControllerCaps();
+    if (caps == nullptr) {
+        return { "" };
+    }
+    return caps->GetSmartRemoteTypes();
+}
+
+std::string Model::GetSmartRemoteType() const {
+    auto types = GetSmartRemoteTypes();
+    if (types.empty()) {
+        return "";
+    }
+    std::string t = GetSmartRemoteTypes().front();
+    wxString s = GetControllerConnection()->GetAttribute("SmartRemoteType", t);
+
+    if (std::find(types.begin(), types.end(), s) == types.end()) {
+        return t;
+    }
+    return s;
+}
+
+int Model::GetSmartRemoteTypeIndex(const std::string& srType) const {
+    auto caps = GetControllerCaps();
+    int i = 0;
+    if (caps != nullptr) {
+        for (const auto& it : caps->GetSmartRemoteTypes()) {
+            if (srType == Lower(it)) {
+                return i;
+            }
+            i++;
+        }
+    }
+
+    return 0;
+}
+
+std::string Model::GetSmartRemoteTypeName(int idx) const {
+    auto caps = GetControllerCaps();
+    if (caps != nullptr) {
+        const auto srList = caps->GetSmartRemoteTypes();
+        if (idx < srList.size() && idx >= 0) {
+            auto it = srList.begin();
+            std::advance(it, idx);
+            return *it;
+        }
+    }
+
+    return std::string();
+}
+
+int Model::GetSmartRemoteCount() const {
+    auto caps = GetControllerCaps();
+    if (caps != nullptr) {
+        return caps->GetSmartRemoteCount();
+    }
+    return 3;
 }
 
 bool wxDropPatternProperty::ValidateValue(wxVariant& value, wxPGValidationInfo& validationInfo) const

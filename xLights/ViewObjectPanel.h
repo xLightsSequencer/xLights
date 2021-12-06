@@ -49,6 +49,8 @@ public:
     void PreviewObjectAlignVCenter();
     void PreviewObjectHDistribute();
     void PreviewObjectVDistribute();
+    void PreviewObjectFlipV();
+    void PreviewObjectFlipH();
 	void DeleteSelectedObject();
 	bool ObjectListHasFocus() { return TreeListViewObjects->HasFocus() || TreeListViewObjects->GetView()->HasFocus(); };
 

@@ -17,6 +17,7 @@ class wxXmlNode;
 class wxWindow;
 class PlayerWindow;
 class GIFImage;
+class ScheduleOptions;
 
 class PlayListItemImage : public PlayListItem
 {
@@ -39,7 +40,7 @@ public:
 
     #pragma region Constructors and Destructors
     PlayListItemImage(wxXmlNode* node);
-    PlayListItemImage();
+    PlayListItemImage(ScheduleOptions* options);
     virtual ~PlayListItemImage();
     virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors

@@ -1473,7 +1473,7 @@ void CustomModelDialog::Insert(int selRow, int selCol)
     long val;
     auto value = GetActiveGrid()->GetCellValue(selRow, selCol);
     value.ToCLong(&val);
-    wxNumberEntryDialog dlg(this, wxString::Format("Number of nodes to create a gap for prior to node %ld.", val), "Nodes to create a gap for", "Insert", 1, 1, 50);
+    wxNumberEntryDialog dlg(this, wxString::Format("Number of nodes to create a gap for prior to node %ld.", val), "Nodes to create a gap for", "Insert", 1, 1, 500);
     if (dlg.ShowModal() == wxID_OK)
     {
         auto toinsert = dlg.GetValue();

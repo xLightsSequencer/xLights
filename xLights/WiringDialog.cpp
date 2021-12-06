@@ -170,10 +170,10 @@ void WiringDialog::SetData(Model* model)
     {
         auto points = nodeList[i]->Coords;
 
-        for (auto it = points.begin(); it != points.end(); ++it)
+        for (const auto& it : points)
         {
-            float x = it->screenX;
-            float y = it->screenY;
+            float x = it.screenX;
+            float y = it.screenY;
 
             if (x < minx) minx = x;
             if (x > maxx) maxx = x;
@@ -197,12 +197,16 @@ void WiringDialog::SetData(Model* model)
             data.clear();
             stringnode = 1;
             string = model->GetNodeStringNumber(i);
+        } else if (model->GetDisplayAs() == "Custom") {
+            // because a custom mdoel can skip nodes we need to reverse engineer the node number
+            stringnode = 1 + (nodeList[i]->ActChan - nodeList[0]->ActChan) / nodeList[0]->GetChanCount();
         }
+
         auto points = nodeList[i]->Coords;
-        for (auto it = points.begin(); it != points.end(); ++it)
+        for (const auto& it : points)
         {
-            float x = it->screenX;
-            float y = it->screenY;
+            float x = it.screenX;
+            float y = it.screenY;
             x = x - minx;
             y = y - miny + 2;
             if (model->GetDisplayAs() != "Icicles")
@@ -227,11 +231,11 @@ void WiringDialog::SetData(wxGrid* grid, bool reverse)
     _points[0] = ExtractPoints(grid, reverse);
 
     _multilight = false;
-    for (auto itp = _points.begin(); itp != _points.end(); ++itp)
+    for (const auto& itp : _points)
     {
-        for (auto it = itp->second.begin(); it != itp->second.end(); ++it)
+        for (const auto& it : itp.second)
         {
-            if (it->second.size() > 1)
+            if (it.second.size() > 1)
             {
                 _multilight = true;
                 break;
@@ -271,8 +275,7 @@ int AdjustY(int y)
     return y + ADJUST_HEIGHT / 2.0;
 }
 
-void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxRealPoint>>>& points, int width, int height, bool printer)
-{
+void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxRealPoint>>>& points, int width, int height, bool printer) {
     wxMemoryDC dc;
     dc.SelectObject(bitmap);
 
@@ -281,22 +284,23 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
 
     dc.SetPen(wxPen(_selectedTheme.background));
     dc.SetBrush(wxBrush(_selectedTheme.background));
-    
+
     dc.DrawRectangle(wxPoint(0, 0), bitmap.GetScaledSize());
 
     int r = 0.6 * std::min(pageWidth / width / 2, pageHeight / height / 2);
-    if (r == 0) r = 1;
+    if (r == 0)
+        r = 1;
 
-    if (!printer)
-    {
-        if (r > 5) r = 5;
-        if (r < 3) r = 3;
+    if (!printer) {
+        if (r > 5)
+            r = 5;
+        if (r < 3)
+            r = 3;
     }
 
     int printScale = 1;
     int fontSize = _fontSize;
-    if (printer)
-    {
+    if (printer) {
         fontSize *= PRINTSCALE;
         printScale = PRINTSCALE;
     }
@@ -310,79 +314,65 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     }
 
     // draw the lines
-    for (auto itp = points.begin(); itp != points.end(); ++itp)
-    {
+    for (const auto& itp : points) {
         int last = -10;
         wxRealPoint lastpt = wxRealPoint(0.0, 0.0);
 
-        for (auto it = itp->second.begin(); it != itp->second.end(); ++it)
-        {
+        for (const auto& it : itp.second) {
             dc.SetBrush(wxBrush(_selectedTheme.wiringFill));
             dc.SetPen(wxPen(_selectedTheme.wiringOutline, penWidth));
 
-            int x = (width - it->second.front().x) * pageWidth / width;
-            if (!_rear)
-            {
+            int x = (width - it.second.front().x) * pageWidth / width;
+            if (!_rear) {
                 x = pageWidth - x + FRONT_X_ADJUST;
             }
-            int y = it->second.front().y * pageHeight / height;
+            int y = it.second.front().y * pageHeight / height;
 
-            if (it->first == last + 1)
-            {
+            if (it.first == last + 1) {
                 int lastx = (width - lastpt.x) * pageWidth / width;
-                if (!_rear)
-                {
+                if (!_rear) {
                     lastx = pageWidth - lastx + FRONT_X_ADJUST;
                 }
                 int lasty = lastpt.y * pageHeight / height;
-                dc.DrawLine((AdjustX(lastx, printer) * _zoom) + _start.x, (AdjustY(lasty) * _zoom) + _start.y, 
+                dc.DrawLine((AdjustX(lastx, printer) * _zoom) + _start.x, (AdjustY(lasty) * _zoom) + _start.y,
                             (AdjustX(x, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y);
             }
 
-            last = it->first;
-            lastpt = it->second.front();
+            last = it.first;
+            lastpt = it.second.front();
         }
     }
 
     // now the circles
-    for (auto itp = points.begin(); itp != points.end(); ++itp)
-    {
+    for (const auto& itp : points) {
         dc.SetBrush(wxBrush(_selectedTheme.nodeFill));
         dc.SetPen(wxPen(_selectedTheme.nodeOutline, penWidth));
 
-        for (auto it = itp->second.begin(); it != itp->second.end(); ++it)
-        {
-            int x = (width - it->second.front().x) * pageWidth / width;
-            if (!_rear)
-            {
+        for (const auto& it : itp.second) {
+            int x = (width - it.second.front().x) * pageWidth / width;
+            if (!_rear) {
                 x = pageWidth - x + FRONT_X_ADJUST;
             }
-            int y = it->second.front().y * pageHeight / height;
+            int y = it.second.front().y * pageHeight / height;
             dc.DrawCircle((AdjustX(x, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y, r);
         }
     }
 
     // render the text after the lines so the text is not drawn over
     int string = 1;
-    for (auto itp = points.begin(); itp != points.end(); ++itp)
-    {
-        for (auto it = itp->second.begin(); it != itp->second.end(); ++it)
-        {
-            int x = (width - it->second.front().x) * pageWidth / width;
-            if (!_rear)
-            {
+    for (const auto& itp : points) {
+        for (const auto& it : itp.second) {
+            int x = (width - it.second.front().x) * pageWidth / width;
+            if (!_rear) {
                 x = pageWidth - x + FRONT_X_ADJUST;
             }
-            int y = it->second.front().y * pageHeight / height;
+            int y = it.second.front().y * pageHeight / height;
 
             std::string label;
-            if(points.size() == 1)
-            {
-                label = wxString::Format("%d", it->first).ToStdString();
-            }
-            else
-            {
-                label = wxString::Format("%d:%d", string, it->first).ToStdString();
+            if (points.size() == 1) {
+                label = wxString::Format("%d", it.first).ToStdString();
+            } else {
+                label = wxString::Format("%d:%d", string, it.first).ToStdString();
             }
 
             if (printer) {

@@ -15,6 +15,10 @@
 #include <cstdint>
 #include <string>
 
+#if __has_include(<simd/simd.h>)
+#include <simd/simd.h>
+#endif
+
 class xlColor;
 class wxString;
 class ColorCurve;
@@ -238,6 +242,13 @@ public:
     xlColor(const wxString &str) {
         SetFromString(str);
     }
+
+#if __has_include(<simd/simd.h>)
+    simd_uchar4 asChar4() const {
+        return {red, green, blue, alpha};
+    }
+#endif
+
 };
 
 static const xlColor xlBLUE(0, 0, 255);

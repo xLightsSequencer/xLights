@@ -78,6 +78,7 @@ class RemoteFalconFrame : public wxFrame
     void SendPlaylists();
     void DoSendPlaylists();
     void GetAndPlaySong(const std::string& playing);
+    void GetAndPlayEffect();
 
 public:
 

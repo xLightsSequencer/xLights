@@ -14,10 +14,10 @@
 
 #include <wx/wx.h>
 
-#include "Image.h"
-#include "XlightsDrawable.h"
+#include "graphics/opengl/Image.h"
+#include "graphics/opengl/XlightsDrawable.h"
 #include "Color.h"
-#include "xlGLCanvas.h"
+#include "graphics/opengl/xlGLCanvas.h"
 #include "ViewpointMgr.h"
 #include "models/ModelManager.h"
 
@@ -147,13 +147,6 @@ protected:
     void AddGridToAccumulator(const glm::mat4& ViewScale);
     virtual void InitializeGLCanvas() override;
     virtual void InitializeGLContext() override;
-    virtual bool UsesVertexTextureAccumulator() override {return true;}
-    virtual bool UsesVertexColorAccumulator() override {return false;}
-    virtual bool UsesVertexAccumulator() override {return false;}
-    virtual bool UsesAddVertex() override {return true;}
-    virtual bool UsesVertex3Accumulator() override {return true;}
-    virtual bool UsesVertex3TextureAccumulator() override { return true; }
-    virtual bool UsesVertex3ColorAccumulator() override {return true;}
 
 private:
     void setupCameras();

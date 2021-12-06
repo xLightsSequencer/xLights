@@ -97,7 +97,7 @@ void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
 }
 
 int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                   DrawGLUtils::xlAccumulator &bg, xlColor* colorMask, bool ramp) 
+                                   xlVertexColorAccumulator &bg, xlColor* colorMask, bool ramp) 
 {
     if (ramp)
     {
@@ -140,7 +140,7 @@ int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int 
     else
     {
         if (e->HasBackgroundDisplayList()) {
-            DrawGLUtils::DrawDisplayList(x1, y1, x2 - x1, y2 - y1, e->GetBackgroundDisplayList(), bg);
+            e->GetBackgroundDisplayList().addToAccumulator(x1, y1, x2 - x1, y2 - y1, bg);
             return e->GetBackgroundDisplayList().iconSize;
         }
         xlColor start;

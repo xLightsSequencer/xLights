@@ -65,6 +65,7 @@
 #pragma comment(lib, "wxexpat.lib")
 #pragma comment(lib, "log4cpplib.lib")
 #endif
+#pragma comment(lib, "libcurl.dll.a")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "WS2_32.Lib")
 #pragma comment(lib, "comdlg32.lib")
@@ -82,7 +83,6 @@
 #pragma comment(lib, "winspool.lib")
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "ImageHlp.Lib")
-#pragma comment(lib, "libcurl.lib")
 #endif
 
 IMPLEMENT_APP_NO_MAIN(xSMSDaemonApp)
@@ -91,6 +91,11 @@ static std::string __showDir;
 static std::string __xScheduleURL;
 static bool __started = false;
 static p_xSchedule_Action __action;
+
+p_xSchedule_Action xSMSDaemonApp::GetAction()
+{
+    return __action;
+}
 
 static void WipeSettings()
 {
@@ -244,46 +249,56 @@ static void InitialiseLogging(bool fromMain)
         // we dont manipulate pixel data directly
     }
 
-extern "C" {
-    bool WXEXPORT xSchedule_Load(char* showDir) {
-        return xSMSDaemon_xSchedule_Load(showDir);
+    extern "C" {
+        bool WXEXPORT xSchedule_Load(char* showDir)
+        {
+            return xSMSDaemon_xSchedule_Load(showDir);
+        }
+        void WXEXPORT xSchedule_GetVirtualWebFolder(char* buffer, size_t bufferSize)
+        {
+            xSMSDaemon_xSchedule_GetVirtualWebFolder(buffer, bufferSize);
+        }
+        void WXEXPORT xSchedule_GetMenuLabel(char* buffer, size_t bufferSize)
+        {
+            xSMSDaemon_xSchedule_GetMenuLabel(buffer, bufferSize);
+        }
+        bool WXEXPORT xSchedule_HandleWeb(const char* command, const wchar_t* parameters, const wchar_t* data, const wchar_t* reference, wchar_t* response, size_t responseSize)
+        {
+            return xSMSDaemon_xSchedule_HandleWeb(command, parameters, data, reference, response, responseSize);
+        }
+        bool WXEXPORT xSchedule_Start(char* showDir, char* xScheduleURL, p_xSchedule_Action action)
+        {
+            return xSMSDaemon_xSchedule_Start(showDir, xScheduleURL, action);
+        }
+        void WXEXPORT xSchedule_Stop()
+        {
+            xSMSDaemon_xSchedule_Stop();
+        }
+        void WXEXPORT xSchedule_WipeSettings()
+        {
+            xSMSDaemon_xSchedule_WipeSettings();
+        }
+        void WXEXPORT xSchedule_Unload()
+        {
+            xSMSDaemon_xSchedule_Unload();
+        }
+        void WXEXPORT xSchedule_NotifyStatus(const char* status)
+        {
+            xSMSDaemon_xSchedule_NotifyStatus(status);
+        }
+        void WXEXPORT xSchedule_ManipulateBuffer(uint8_t* buffer, size_t bufferSize)
+        {
+            xSMSDaemon_xSchedule_ManipulateBuffer(buffer, bufferSize);
+        }
+        bool WXEXPORT xSchedule_FireEvent(const char* eventType, const char* eventParameter)
+        {
+            return xSMSDaemon_xSchedule_FireEvent(eventType, eventParameter);
+        }
+        bool WXEXPORT xSchedule_SendCommand(const char* command, const char* parameters, char* msg, size_t bufferSize)
+        {
+            return xSMSDaemon_xSchedule_SendCommand(command, parameters, msg, bufferSize);
+        }
     }
-    void WXEXPORT xSchedule_GetVirtualWebFolder(char* buffer, size_t bufferSize) {
-        xSMSDaemon_xSchedule_GetVirtualWebFolder(buffer, bufferSize);
-    }
-    void WXEXPORT xSchedule_GetMenuLabel(char* buffer, size_t bufferSize) {
-        xSMSDaemon_xSchedule_GetMenuLabel(buffer, bufferSize);
-    }
-    bool WXEXPORT xSchedule_HandleWeb(const char* command, const wchar_t* parameters, const wchar_t* data, const wchar_t* reference, wchar_t* response, size_t responseSize) {
-        return xSMSDaemon_xSchedule_HandleWeb(command, parameters, data, reference, response, responseSize);
-    }
-    bool WXEXPORT xSchedule_Start(char* showDir, char* xScheduleURL, p_xSchedule_Action action) {
-        return xSMSDaemon_xSchedule_Start(showDir, xScheduleURL, action);
-    }
-    void WXEXPORT xSchedule_Stop() {
-        xSMSDaemon_xSchedule_Stop();
-    }
-    void WXEXPORT xSchedule_WipeSettings() {
-        xSMSDaemon_xSchedule_WipeSettings();
-    }
-    void WXEXPORT xSchedule_Unload() {
-        xSMSDaemon_xSchedule_Unload();
-    }
-    void WXEXPORT xSchedule_NotifyStatus(const char* status) {
-        xSMSDaemon_xSchedule_NotifyStatus(status);
-    }
-    void WXEXPORT xSchedule_ManipulateBuffer(uint8_t* buffer, size_t bufferSize) {
-        xSMSDaemon_xSchedule_ManipulateBuffer(buffer, bufferSize);
-    }
-    bool WXEXPORT xSchedule_FireEvent(const char* eventType, const char* eventParameter)
-    {
-        return xSMSDaemon_xSchedule_FireEvent(eventType, eventParameter);
-    }																						
-    bool WXEXPORT xSchedule_SendCommand(const char* command, const char* parameters, char* msg, size_t bufferSize)
-    {
-        return xSMSDaemon_xSchedule_SendCommand(command, parameters, msg, bufferSize);
-    }
-}
 
 int xSMSDaemonApp::OnExit()
 {

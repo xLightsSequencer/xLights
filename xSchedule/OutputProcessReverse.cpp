@@ -42,7 +42,7 @@ wxXmlNode* OutputProcessReverse::Save()
     return res;
 }
 
-void OutputProcessReverse::Frame(uint8_t* buffer, size_t size)
+void OutputProcessReverse::Frame(uint8_t* buffer, size_t size, std::list<OutputProcess*>& processes)
 {
     if (_nodes < 2) return;
 

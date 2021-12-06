@@ -27,7 +27,7 @@
 #include "NewTimingDialog.h"
 #include "VAMPPluginDialog.h"
 #include "UtilFunctions.h"
-#include "xlGLCanvas.h"
+#include "graphics/opengl/xlGLCanvas.h"
 
 #include <log4cpp/Category.hh>
 

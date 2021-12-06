@@ -17,6 +17,7 @@
 
 class wxXmlNode;
 class AudioManager;
+class ScheduleOptions;
 
 class PlayListItem
 {
@@ -90,6 +91,7 @@ protected:
     virtual long GetFSEQChannels() const { return 0; }
     void SetStepLength(long stepLengthMS) { _stepLengthMS = stepLengthMS; }
     virtual bool SetPosition(size_t frame, size_t ms);
+    ScheduleOptions* GetOptions() const;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() = 0;

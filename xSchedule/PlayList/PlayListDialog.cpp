@@ -117,10 +117,11 @@ BEGIN_EVENT_TABLE(PlayListDialog,wxDialog)
     EVT_COMMAND(wxID_ANY, EVT_UPDATEITEMNAME, PlayListDialog::UpdateItemName)
 END_EVENT_TABLE()
 
-PlayListDialog::PlayListDialog(wxWindow* parent, OutputManager* outputManager, PlayList* playlist, wxWindowID id,const wxPoint& pos,const wxSize& size)
+PlayListDialog::PlayListDialog(wxWindow* parent, OutputManager* outputManager, PlayList* playlist, ScheduleOptions* options, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _outputManager = outputManager;
     _playlist = playlist;
+    _options = options;
 
 	//(*Initialize(PlayListDialog)
 	wxBoxSizer* BoxSizer1;
@@ -660,12 +661,12 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
 
     if (event.GetId() == ID_MNU_ADDVIDEO)
     {
-        PlayListItemVideo* pli = new PlayListItemVideo();
+        PlayListItemVideo* pli = new PlayListItemVideo(_options);
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDIMAGE)
     {
-        PlayListItemImage* pli = new PlayListItemImage();
+        PlayListItemImage* pli = new PlayListItemImage(_options);
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDJUKEBOX)
@@ -755,7 +756,7 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_MNU_ADDFSEQVIDEO)
     {
-        PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo(_outputManager);
+        PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo(_outputManager, _options);
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDTEST)
@@ -1049,7 +1050,7 @@ void PlayListDialog::OnDropFiles(wxDropFilesEvent& event)
             }
             else if (PlayListItemVideo::IsVideo(fn.GetExt().Lower().ToStdString()))
             {
-                PlayListItemVideo* video = new PlayListItemVideo();
+                PlayListItemVideo* video = new PlayListItemVideo(_options);
                 video->SetVideoFile(fn.GetFullPath().ToStdString());
                 PlayListStep* step = new PlayListStep();
                 step->AddItem(video);
@@ -1142,7 +1143,7 @@ void PlayListDialog::OnButton_FSEQVideoClick(wxCommandEvent& event)
 
         for (auto it = files.begin(); it != files.end(); ++it)
         {
-            PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo(_outputManager);
+            PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo(_outputManager, _options);
             pli->SetFSEQFileName(it->ToStdString());
             PlayListStep* pls = new PlayListStep();
             pls->AddItem(pli);

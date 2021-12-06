@@ -15,8 +15,19 @@
 #include <vector>
 #include <wx/wx.h>
 
+enum class EFFECT_MODE {
+    EM_PLAY_IMMEDIATELY,
+    EM_PLAY_ONLY_IF_IDLE,
+    EM_PLAY_IMMEDIATELY_LOOPED
+};
+
 class RemoteFalconOptions
 {
+    public:
+
+
+    protected:
+
     int _changeCount = 0;
     int _lastSavedChangeCount = 0;
 
@@ -27,6 +38,8 @@ class RemoteFalconOptions
     bool _immediatelyInterrupt = true;
     bool _clearQueueOnStart = true;
     bool _sendEnableDisable = false;
+    bool _effectPlaylist = false;
+    EFFECT_MODE _effectMode = EFFECT_MODE::EM_PLAY_IMMEDIATELY;
 
     public:
 
@@ -44,6 +57,26 @@ class RemoteFalconOptions
 
         bool IsEnableDisable() const { return _sendEnableDisable; }
         void SetEnableDisable(bool sendEnableDisable) { if (_sendEnableDisable != sendEnableDisable) { _sendEnableDisable = sendEnableDisable; _changeCount++; } }
+
+        bool IsEffectPlaylist() const {
+            return _effectPlaylist;
+        }
+        void SetEffectPlaylist(bool effectPlaylist) {
+            if (_effectPlaylist != effectPlaylist) {
+                _effectPlaylist = effectPlaylist;
+                _changeCount++;
+            }
+        }
+
+        EFFECT_MODE GetEffectMode() const {
+            return _effectMode;
+        }
+        void SetEffectMode(EFFECT_MODE effectMode) {
+            if (effectMode != _effectMode) {
+                _effectMode = effectMode;
+                _changeCount++;
+            }
+        }
 
         int GetLeadTime() const { return _leadTime; }
         void SetLeadTime(int leadTime) { if (leadTime != _leadTime) { _leadTime = leadTime; _changeCount++; } }

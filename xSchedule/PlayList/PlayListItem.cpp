@@ -46,6 +46,13 @@ bool PlayListItem::SetPosition(size_t frame, size_t ms)
     return true;
 }
 
+ScheduleOptions* PlayListItem::GetOptions() const
+{
+    ScheduleManager* sm = xScheduleFrame::GetScheduleManager();
+    if (sm == nullptr) return nullptr;
+    return sm->GetOptions();
+}
+
 void PlayListItem::Load(wxXmlNode* node)
 {
     _type = node->GetName();

@@ -224,7 +224,16 @@ void LOROptimisedOutput::SetupHistory() {
 #pragma endregion 
 
 #pragma region Frame Handling
-void LOROptimisedOutput::EndFrame(int suppressFrames) {
+
+bool LOROptimisedOutput::Open()
+{
+    //_framesSinceForcedOutput = 0xFF;
+    _changed = true;
+    return LOROutput::Open();
+}
+
+void LOROptimisedOutput::EndFrame(int suppressFrames)
+{
 
     if (!_enabled || _suspend) return;
 
@@ -255,6 +264,7 @@ void LOROptimisedOutput::SetOneChannel(int32_t channel, unsigned char data) {
     _curData[channel] = data;
 }
 
+#define LOR_FORCE_SEND_FRAMES 20
 void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
 
     log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -287,6 +297,12 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             bool frame_changed = false;
             bool color_mode[MAX_BANKS];
 
+            //if (_framesSinceForcedOutput > LOR_FORCE_SEND_FRAMES) {
+            //    bank_changed = true;
+            //    frame_changed = true;
+            //}
+            //_framesSinceForcedOutput++;
+
             // gather all the data and compress common values on a per 16 channel bank basis
             int channels_to_process = channels_per_pass;
             int chan_offset = 0;
@@ -295,7 +311,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             while (channels_to_process > 0) {
                 bool processed = false;
 
-                wxASSERT(cur_channel < sizeof(cur_channel));
+                wxASSERT(cur_channel < sizeof(_curData));
                 if ((data[cur_channel] > 0) && (data[cur_channel] < 0xFF)) {
                     wxASSERT(shift_offset < sizeof(color_mode));
                     color_mode[shift_offset] = true;
@@ -405,6 +421,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             if (frame_changed) {
                 d[idx++] = 0x0;
                 d[idx++] = 0x0;
+                //_framesSinceForcedOutput = 0;
             }
 
             if (_serial != nullptr && frame_changed) {
@@ -470,6 +487,9 @@ void LOROptimisedOutput::AllOff() {
             unit_id++;
         }
     }
+
+    // we need to clear last sent
+    memset(_lastSent, 0x00, sizeof(_lastSent));
 
     SendHeartbeat();
     _lastheartbeat = _timer_msec;

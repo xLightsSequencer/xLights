@@ -614,17 +614,8 @@ void HinksPix::UpdateUniverseControlerChannels(UDControllerPort* stringData, std
 }
 
 void HinksPix::UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode) const {
-    int dmxOffset = 1;
-    UDControllerPortModel* m = serialData->GetFirstModel();
-    if (m != nullptr) {
-        dmxOffset = m->GetDMXChannelOffset();
-        if (dmxOffset < 1 || dmxOffset > 512) {
-            dmxOffset = 1; // a value less than 1 makes no sense
-        }
-    }
-
     const int sc = serialData->GetStartChannel();
-    const int usc = serialData->GetUniverseStartChannel() - dmxOffset + 1; // it would be good if these functions behaved more like GetStartChannel does on serial ports
+    const int usc = serialData->GetUniverseStartChannel();
     int maxChan = serialData->GetEndChannel() - sc + 1;
 
     if (maxChan < 16) {
@@ -729,15 +720,24 @@ void HinksPix::CalculateSmartRecievers(UDControllerPort* stringData) {
                     smartOut->portStartPixel[subPort] = start_pixels;
                 } else {
                     auto& smartPort = _smartOutputs[expansionBoard][bank].emplace_back(id);
-                    //if (it->GetSmartRemoteType().find("16") != std::string::npos && ((id % 4) == 0 )){
-                    //    smartPort.type = 1;
-                    //}
+                    if (it->GetSmartRemoteType().find("16ac") != std::string::npos) {
+                        smartPort.type = 2;
+                        smartPort.portStartPixel = { 0, 0, 0, 0 };
+                    }
+                    else if (it->GetSmartRemoteType().find("16") != std::string::npos && ((id % 4) == 0)) {
+                        smartPort.type = 1;
+                        //fluff the Recievers
+                        _smartOutputs[expansionBoard][bank].emplace_back(id + 1);
+                        _smartOutputs[expansionBoard][bank].emplace_back(id + 2);
+                        _smartOutputs[expansionBoard][bank].emplace_back(id + 3);
+                    }
+                    
                     smartPort.portStartPixel[subPort] = start_pixels;
                 }
             }
 
             int32_t chans = it->GetEndChannel() - it->GetStartChannel() + 1;
-            int pixs = chans / it->GetChannelsPerPixel();
+            int pixs = chans / std::max(it->GetChannelsPerPixel(),3);
             start_pixels += pixs;
             prevID = id;
         }
@@ -1053,7 +1053,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     logger_base.info("Scanning models.");
 
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+    UDController cud(controller, outputManager, allmodels, false);
 
     //first check rules
     auto rules = ControllerCaps::GetControllerConfig(controller);
@@ -1175,6 +1175,8 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         //reboot
         logger_base.info("Rebooting Controller.");
         progress.Update(90, "Rebooting Controller.");
+        SendRebootController(worked);
+        wxMilliSleep(100);
         SendRebootController(worked);
     }
 

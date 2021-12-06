@@ -14,12 +14,12 @@
 #ifndef __WXMAC__
 #include <GL/gl.h>
 #ifdef _MSC_VER
-#include "GL\glext.h"
+#include "graphics\opengl\GL\glext.h"
 #else
 #include <GL/glext.h>
 #endif
 
-#include "xlGLCanvas.h"
+#include "graphics/opengl/xlGLCanvas.h"
 
 #include <memory>
 #include <iostream>
@@ -90,7 +90,7 @@ static bool canUseFramebufferObjects()
 
 #include "UtilFunctions.h"
 #include "OpenGLShaders.h"
-#include "DrawGLUtils.h"
+#include "graphics/opengl/DrawGLUtils.h"
 #include <log4cpp/Category.hh>
 
 #include "TraceLog.h"

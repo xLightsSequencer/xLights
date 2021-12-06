@@ -38,7 +38,7 @@ class SeqSettingsDialog: public wxDialog
     ConvertLogDialog* _plog;
 	public:
 
-		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_ = false);
+		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_ = false, const std::string& media = "", uint32_t durationMS = 0);
 		virtual ~SeqSettingsDialog();
 
         const std::string GetView() const {return selected_view;}
@@ -266,6 +266,7 @@ class SeqSettingsDialog: public wxDialog
 		void OnButton_Button_WizardDoneClick(wxCommandEvent& event);
 		void OnButton_ModelsChoiceNext(wxCommandEvent& event);
 		void OnViewSelect(wxCommandEvent& event);
+		void OnTextCtrl_Xml_Seq_DurationLoseFocus(wxFocusEvent& event);
 
         DECLARE_EVENT_TABLE()
 
@@ -312,4 +313,6 @@ class SeqSettingsDialog: public wxDialog
         bool ImportDataLayer(const wxString& filetypes, ConvertLogDialog* plog);
         void SetHash();
         void MediaLoad(wxFileName filename);
+		bool UpdateSequenceTiming();
+		void ValidateWindow();
 };

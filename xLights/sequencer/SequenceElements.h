@@ -97,6 +97,7 @@ public:
     int GetElementLayerCount(std::string elementName, std::list<int>* layers = nullptr);
     std::list<Effect*> GetElementLayerEffects(std::string elementName, int layer);
     bool IsValidEffect(Effect* e) const;
+    bool IsValidElement(Element* e) const;
     size_t GetHiddenTimingCount() const;
     void HideAllTimingTracks(bool hide);
 

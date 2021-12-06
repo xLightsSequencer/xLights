@@ -9,8 +9,7 @@
  **************************************************************/
 
 #include "xlGridCanvasPictures.h"
-#include "../../BitmapCache.h"
-#include "../../DrawGLUtils.h"
+
 #include <wx/filefn.h>
 #include <wx/filename.h>
 
@@ -42,15 +41,8 @@ xlGridCanvasPictures::xlGridCanvasPictures(wxWindow* parent, wxWindowID id, cons
     imageHeight(1),
     frame(0),
     maxmovieframes(0),
-    use_ping(true),
     scaleh(0.0),
     scalew(0.0),
-    imageGL_ping(nullptr),
-    imageGL_pong(nullptr),
-    mImage(nullptr),
-    mImageCopy(nullptr),
-    sprite(nullptr),
-    copy_sprite(nullptr),
     PictureName(wxEmptyString),
     NewPictureName(wxEmptyString),
     mPaintColor(xlRED),
@@ -69,36 +61,44 @@ xlGridCanvasPictures::xlGridCanvasPictures(wxWindow* parent, wxWindowID id, cons
     mEndCol(-1),
     mHoverSelection(false),
     mCopyAvailable(false),
-    mPasteCopy(false)
+    imagesValid(false),
+    imageTexture(nullptr),
+    imageCopy(nullptr)
 {
 }
 
 xlGridCanvasPictures::~xlGridCanvasPictures()
 {
     delete mSelectionColor;
+    if (imageTexture) {
+        delete imageTexture;
+    }
+    if (imageCopy) {
+        delete imageCopy;
+    }
 }
 
 void xlGridCanvasPictures::LoadAndProcessImage()
 {
-
     // process loading new image
-    if( mModified )
-    {
+    if (mModified) {
         PictureName = wxEmptyString;
         mModified = false;
     }
 
-    if ( NewPictureName != PictureName )
-    {
+    if (NewPictureName != PictureName) {
         wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
         imageCount = wxImage::GetImageCount(NewPictureName);
         imageIndex = 0;
-        if (!image.LoadFile(NewPictureName,wxBITMAP_TYPE_ANY,0))
-        {
+        if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
             image.Create(mColumns, mRows, true);
         }
-        if (!image.IsOk())
+        if (!image.IsOk()) {
             return;
+        }
+        if (image.HasMask() && !image.HasAlpha()) {
+            image.InitAlpha();
+        }
     }
     ProcessNewImage();
 }
@@ -110,37 +110,29 @@ void xlGridCanvasPictures::ProcessNewImage()
     eventImage.SetClientData(&NewPictureName);
     wxPostEvent(mMessageParent, eventImage);
 
-    int imgwidth=image.GetWidth();
-    int imght   =image.GetHeight();
+    int imgwidth = image.GetWidth();
+    int imght    = image.GetHeight();
 
     image_size = wxString::Format("Image Size: %d x %d", imgwidth, imght);
     wxCommandEvent eventImageSize(EVT_IMAGE_SIZE);
     eventImageSize.SetString(image_size);
     wxPostEvent(mMessageParent, eventImageSize);
 
-    if( imgwidth > mColumns || imght > mRows )
-    {
-        if( imageCount > 1 )
-        {
+    if (imgwidth > mColumns || imght > mRows) {
+        if (imageCount > 1) {
             img_mode = IMAGE_MULTIPLE_OVERSIZED;
-        }
-        else
-        {
+        } else {
             img_mode = IMAGE_SINGLE_OVERSIZED;
         }
-    }
-    else
-    {
-        if( imageCount > 1 )
-        {
+    } else {
+        if (imageCount > 1) {
             img_mode = IMAGE_MULTIPLE_FITS;
-        }
-        else
-        {
+        } else {
             img_mode = IMAGE_SINGLE_FITS;
         }
     }
-    Refresh(false);
+    imagesValid = false;
+    render();
 }
 
 void xlGridCanvasPictures::LoadImage()
@@ -155,7 +147,7 @@ void xlGridCanvasPictures::LoadImage()
                     wxFD_OPEN);
     int result = fd.ShowModal();
     wxString new_filename = fd.GetPath();
-    if( result == wxID_CANCEL || new_filename == "" ) {
+    if (result == wxID_CANCEL || new_filename == "") {
         return;
     }
     ObtainAccessToURL(new_filename.ToStdString());
@@ -180,29 +172,23 @@ void xlGridCanvasPictures::SaveAsImage()
                     wxFD_SAVE);
     int result = fd.ShowModal();
     wxString new_filename = fd.GetPath();
-    if( result == wxID_CANCEL || new_filename == "" ) {
+    if (result == wxID_CANCEL || new_filename == "") {
         return;
     }
     wxFileName file_check(new_filename);
-    if( file_check.GetExt() == "" )
-    {
+    if (file_check.GetExt() == "") {
         file_check.SetExt("png");
     }
     save_name = file_check.GetFullPath();
 
-    if( wxFile::Exists(save_name)) {
-        if( wxMessageBox("Are you sure you want to overwrite this image file?\n" + save_name, "Confirm Overwrite?", wxICON_QUESTION | wxYES_NO) == wxYES )
-        {
+    if (wxFile::Exists(save_name)) {
+        if (wxMessageBox("Are you sure you want to overwrite this image file?\n" + save_name, "Confirm Overwrite?", wxICON_QUESTION | wxYES_NO) == wxYES ) {
             PictureName = save_name;
             SaveImageToFile();
-        }
-        else
-        {
+        } else {
             return;
         }
-    }
-    else
-    {
+    } else {
         PictureName = save_name;
         SaveImageToFile();
     }
@@ -245,22 +231,16 @@ void xlGridCanvasPictures::ResizeImage()
                                  0,0,0);
                     break;
             }
-            if (sprite != nullptr) {
-                delete sprite;
-                sprite = nullptr;
-            }
             ProcessNewImage();
         }
     }
-
 }
 
 void xlGridCanvasPictures::SaveImage()
 {
     wxFileName save_file(PictureName);
     wxString save_name = PictureName;
-    if( save_file.GetFullName() == "NewImage.png" )
-    {
+    if (save_file.GetFullName() == "NewImage.png") {
         // prompt for new filename
         wxFileDialog fd(this,
                         "Choose filename to Save Image:",
@@ -270,30 +250,24 @@ void xlGridCanvasPictures::SaveImage()
                         wxFD_SAVE);
         int result = fd.ShowModal();
         wxString new_filename = fd.GetPath();
-        if( result == wxID_CANCEL || new_filename == "" ) {
+        if (result == wxID_CANCEL || new_filename == "") {
             return;
         }
         wxFileName file_check(new_filename);
-        if( file_check.GetExt() == "" )
-        {
+        if (file_check.GetExt() == "") {
             file_check.SetExt("png");
         }
         save_name = file_check.GetFullPath();
     }
 
-    if( wxFile::Exists(save_name)) {
-        if( wxMessageBox("Are you sure you want to overwrite this image file?\n" + save_name, "Confirm Overwrite?", wxICON_QUESTION | wxYES_NO) == wxYES )
-        {
+    if (wxFile::Exists(save_name)) {
+        if( wxMessageBox("Are you sure you want to overwrite this image file?\n" + save_name, "Confirm Overwrite?", wxICON_QUESTION | wxYES_NO) == wxYES ) {
             PictureName = save_name;
             SaveImageToFile();
-        }
-        else
-        {
+        } else {
             return;
         }
-    }
-    else
-    {
+    } else {
         PictureName = save_name;
         SaveImageToFile();
     }
@@ -314,10 +288,9 @@ void xlGridCanvasPictures::UpdateRenderedImage()
 {
     wxString settings = mEffect->GetSettingsAsString();
     wxArrayString all_settings = wxSplit(settings, ',');
-    for( int s = 0; s < all_settings.size(); s++ )
-    {
+    for (int s = 0; s < all_settings.size(); s++) {
         wxArrayString parts = wxSplit(all_settings[s], '=');
-        if( parts[0] == "E_FILEPICKER_Pictures_Filename" ) {
+        if (parts[0] == "E_FILEPICKER_Pictures_Filename") {
             parts[1] = PictureName;
         }
         all_settings[s] = wxJoin(parts, '=');
@@ -332,8 +305,7 @@ void xlGridCanvasPictures::UpdateRenderedImage()
 
 void xlGridCanvasPictures::CreateNewImage(wxString& image_dir)
 {
-    if( image_dir == wxEmptyString )
-    {
+    if (image_dir == wxEmptyString) {
         DisplayError("Error creating new image file.  Image Directory is not defined.");
         return;
     }
@@ -341,25 +313,19 @@ void xlGridCanvasPictures::CreateNewImage(wxString& image_dir)
     new_file.SetPath(image_dir);
     new_file.SetFullName("NewImage.png");
     NewPictureName = new_file.GetFullPath();
-    if( wxFile::Exists(NewPictureName)) {
+    if (wxFile::Exists(NewPictureName)) {
         ::wxRemoveFile(NewPictureName);
     }
     image.Create(mColumns, mRows, true);
     image.SaveFile(NewPictureName, wxBITMAP_TYPE_PNG);
 
-    if (!image.IsOk())
-    {
+    if (!image.IsOk()) {
+        imagesValid = false;
         DisplayError("Error creating image file!");
         return;
     }
     mModified = true;
     ProcessNewImage();
-}
-
-void xlGridCanvasPictures::ForceRefresh()
-{
-    NewPictureName = GetImageFilename();
-    LoadAndProcessImage();
 }
 
 void xlGridCanvasPictures::SetEffect(Effect* effect_)
@@ -368,13 +334,15 @@ void xlGridCanvasPictures::SetEffect(Effect* effect_)
 
     mEffect = effect_;
 
-    if (mEffect == nullptr) return;
-
+    if (mEffect == nullptr) {
+        return;
+    }
+    imagesValid = false;
     NewPictureName = GetImageFilename();
-
-    if( NewPictureName == "" ) return;
-
-    if( wxFile::Exists(NewPictureName)) {
+    if (NewPictureName == "") {
+        return;
+    }
+    if (wxFile::Exists(NewPictureName)) {
         LoadAndProcessImage();
     } else {
         missing_file = "File Not Found: " + NewPictureName;
@@ -389,10 +357,9 @@ wxString xlGridCanvasPictures::GetImageFilename()
 {
     wxString settings = mEffect->GetSettingsAsString();
     wxArrayString all_settings = wxSplit(settings, ',');
-    for( int s = 0; s < all_settings.size(); s++ )
-    {
+    for (int s = 0; s < all_settings.size(); s++) {
         wxArrayString parts = wxSplit(all_settings[s], '=');
-        if( parts[0] == "E_FILEPICKER_Pictures_Filename" ) {
+        if (parts[0] == "E_FILEPICKER_Pictures_Filename") {
             return parts[1];
         }
 
@@ -402,20 +369,18 @@ wxString xlGridCanvasPictures::GetImageFilename()
 
 void xlGridCanvasPictures::mouseRightDown(wxMouseEvent& event)
 {
-    if( !mLeftDown )
-    {
+    if (!mLeftDown) {
         mRightDown = true;
-        mouseDown(event.GetX(), event.GetY());
+        mouseDown(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()));
     }
 }
 
 void xlGridCanvasPictures::mouseLeftDown(wxMouseEvent& event)
 {
     SetFocus();
-    if( !mRightDown )
-    {
+    if (!mRightDown) {
         mLeftDown = true;
-        mouseDown(event.GetX(), event.GetY());
+        mouseDown(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()));
     }
 }
 
@@ -423,29 +388,27 @@ void xlGridCanvasPictures::mouseDown(int x, int y)
 {
     if (mEffect == nullptr) return;
 
-    if( img_mode == IMAGE_SINGLE_FITS )
-    {
-        int column =  GetCellFromPosition(x);
+    if (img_mode == IMAGE_SINGLE_FITS ) {
+        int column = GetCellFromPosition(x);
         int row = GetCellFromPosition(y);
-        if( column >= 0 && column < mColumns && row >= 0 && row < mRows )
-        {
+        if (column >= 0 && column < mColumns && row >= 0 && row < mRows) {
             int draw_row = mRows - row - 1;
             row = image.GetHeight() - draw_row - 1;
-            SetCurrentGLContext();
+            //SetCurrentGLContext();
             if (column < image.GetWidth() && draw_row < image.GetHeight()) {
-                if( mPaintMode == PAINT_PENCIL && !mRightDown ) {
-                    DrawGLUtils::UpdateTexturePixel(mImage->getID(), (double)column, (double)draw_row, mPaintColor, mImage->hasAlpha());
+                if (mPaintMode == PAINT_PENCIL && !mRightDown) {
+                    if (imageTexture) imageTexture->UpdatePixel(column, draw_row, mPaintColor, image.HasAlpha());
                     image.SetRGB(column, row, mPaintColor.red, mPaintColor.green, mPaintColor.blue);
-                    if( mImage->hasAlpha() ) {
+                    if (image.HasAlpha()) {
                         image.SetAlpha(column, row, mPaintColor.alpha);
                     }
-                } else if( (mPaintMode == PAINT_ERASER || mRightDown) && !mHoverSelection ) {
-                    DrawGLUtils::UpdateTexturePixel(mImage->getID(), (double)column, (double)draw_row, mEraseColor, mImage->hasAlpha());
+                } else if ((mPaintMode == PAINT_ERASER || mRightDown) && !mHoverSelection) {
+                    if (imageTexture) imageTexture->UpdatePixel(column, draw_row, mEraseColor, image.HasAlpha());
                     image.SetRGB(column, row, mEraseColor.red, mEraseColor.green, mEraseColor.blue);
-                    if( mImage->hasAlpha() ) {
+                    if (image.HasAlpha()) {
                         image.SetAlpha(column, row, mEraseColor.alpha);
                     }
-                } else if( mPaintMode == PAINT_EYEDROPPER && !mRightDown ) {
+                } else if (mPaintMode == PAINT_EYEDROPPER && !mRightDown) {
                     xlColor eyedrop_color;
                     eyedrop_color.red = image.GetRed(column, row);
                     eyedrop_color.green = image.GetGreen(column, row);
@@ -453,24 +416,20 @@ void xlGridCanvasPictures::mouseDown(int x, int y)
                     wxCommandEvent eventEyedrop(EVT_EYEDROPPER_COLOR);
                     eventEyedrop.SetInt(eyedrop_color.GetRGB());
                     wxPostEvent(mMessageParent, eventEyedrop);
-                } else if( mPaintMode == PAINT_SELECTCOPY ) {
-                    if( !mRightDown ) {
-                        if( !mHoverSelection )
-                        {
+                } else if (mPaintMode == PAINT_SELECTCOPY) {
+                    if (!mRightDown) {
+                        if (!mHoverSelection) {
                             mDragStartX = x;
                             mDragStartY = y;
                             mDragEndX = x;
                             mDragEndY = y;
                             CalcSelection();
                             mCopyAvailable = false;
-                        }
-                        else
-                        {
+                        } else {
                             mHoverDragCol = GetCellFromPosition(x);
                             mHoverDragRow = GetCellFromPosition(y);
                         }
-                    }
-                    else if( mHoverSelection ) {
+                    } else if (mHoverSelection) {
                         mDragStartX = -1;  // disables selection drawing
                         mEndCol = -1;
                         mCopyAvailable = false;
@@ -483,7 +442,7 @@ void xlGridCanvasPictures::mouseDown(int x, int y)
         mModified = true;
         mDragging = true;
         CaptureMouse();
-        Refresh(false);
+        render();
     }
 }
 
@@ -491,18 +450,13 @@ void xlGridCanvasPictures::mouseMoved(wxMouseEvent& event)
 {
     if (mEffect == nullptr) return;
 
-    int column =  GetCellFromPosition(event.GetX());
-    int row = GetCellFromPosition(event.GetY());
-    if( img_mode == IMAGE_SINGLE_FITS && column >= 0 && column < mColumns && row >= 0 && row < mRows )
-    {
-        if( mRightDown )
-        {
+    int column =  GetCellFromPosition(mapLogicalToAbsolute(event.GetX()));
+    int row = GetCellFromPosition(mapLogicalToAbsolute(event.GetY()));
+    if (img_mode == IMAGE_SINGLE_FITS && column >= 0 && column < mColumns && row >= 0 && row < mRows) {
+        if (mRightDown) {
             SetCursor(wxCURSOR_PAINT_BRUSH);
-        }
-        else
-        {
-            switch(mPaintMode)
-            {
+        } else {
+            switch(mPaintMode) {
             case PAINT_PENCIL:
                 SetCursor(wxCURSOR_PENCIL);
                 break;
@@ -513,15 +467,11 @@ void xlGridCanvasPictures::mouseMoved(wxMouseEvent& event)
                 SetCursor(wxCURSOR_BULLSEYE);
                 break;
             case PAINT_SELECTCOPY:
-                if( !mDragging )
-                {
-                    if( column >= mStartCol && column <= mEndCol && row >= mStartRow && row <= mEndRow )
-                    {
+                if (!mDragging) {
+                    if (column >= mStartCol && column <= mEndCol && row >= mStartRow && row <= mEndRow) {
                         SetCursor(wxCURSOR_HAND);
                         mHoverSelection = true;
-                    }
-                    else
-                    {
+                    } else {
                         SetCursor(wxCURSOR_CROSS);
                         mHoverSelection = false;
                     }
@@ -530,25 +480,24 @@ void xlGridCanvasPictures::mouseMoved(wxMouseEvent& event)
             }
         }
 
-        if( mDragging )
-        {
+        if (mDragging) {
             int draw_row = mRows - row - 1;
             row = image.GetHeight() - draw_row - 1;
-            SetCurrentGLContext();
+            //SetCurrentGLContext();
             if (column < image.GetWidth() && draw_row < image.GetHeight()) {
-                if( mPaintMode == PAINT_PENCIL && !mRightDown ) {
-                    DrawGLUtils::UpdateTexturePixel(mImage->getID(), (double)column, (double)draw_row, mPaintColor, mImage->hasAlpha());
+                if (mPaintMode == PAINT_PENCIL && !mRightDown) {
+                    if (imageTexture) imageTexture->UpdatePixel(column, draw_row, mPaintColor, image.HasAlpha());
                     image.SetRGB(column, row, mPaintColor.red, mPaintColor.green, mPaintColor.blue);
-                    if( mImage->hasAlpha() ) {
+                    if (image.HasAlpha()) {
                         image.SetAlpha(column, row, mPaintColor.alpha);
                     }
-                } else if( (mPaintMode == PAINT_ERASER || mRightDown) && !mHoverSelection ) {
-                    DrawGLUtils::UpdateTexturePixel(mImage->getID(), (double)column, (double)draw_row, mEraseColor, mImage->hasAlpha());
+                } else if ((mPaintMode == PAINT_ERASER || mRightDown) && !mHoverSelection) {
+                    if (imageTexture) imageTexture->UpdatePixel(column, draw_row, mEraseColor, image.HasAlpha());
                     image.SetRGB(column, row, mEraseColor.red, mEraseColor.green, mEraseColor.blue);
-                    if( mImage->hasAlpha() ) {
+                    if (image.HasAlpha()) {
                         image.SetAlpha(column, row, mEraseColor.alpha);
                     }
-                } else if( mPaintMode == PAINT_EYEDROPPER && !mRightDown ) {
+                } else if (mPaintMode == PAINT_EYEDROPPER && !mRightDown) {
                     xlColor eyedrop_color;
                     eyedrop_color.red = image.GetRed(column, row);
                     eyedrop_color.green = image.GetGreen(column, row);
@@ -556,25 +505,19 @@ void xlGridCanvasPictures::mouseMoved(wxMouseEvent& event)
                     wxCommandEvent eventEyedrop(EVT_EYEDROPPER_COLOR);
                     eventEyedrop.SetClientData(&eyedrop_color);
                     wxPostEvent(mMessageParent, eventEyedrop);
-                } else if( mPaintMode == PAINT_SELECTCOPY && !mRightDown ) {
-                    if( !mHoverSelection )
-                    {
-                        mDragEndX = event.GetX();
-                        mDragEndY = event.GetY();
+                } else if (mPaintMode == PAINT_SELECTCOPY && !mRightDown) {
+                    if (!mHoverSelection) {
+                        mDragEndX = mapLogicalToAbsolute(event.GetX());
+                        mDragEndY = mapLogicalToAbsolute(event.GetY());
                         CalcSelection();
-                    }
-                    else
-                    {
-                        ProcessHoverDrag(column, row);
+                    } else {
+                        ProcessHoverDrag(column, GetCellFromPosition(mapLogicalToAbsolute(event.GetY())));
                     }
                 }
             }
-            Refresh(false);
-            Update();
+            render();
         }
-    }
-    else
-    {
+    } else {
         SetCursor(wxCURSOR_DEFAULT);
     }
 }
@@ -592,8 +535,7 @@ void xlGridCanvasPictures::mouseRightUp(wxMouseEvent& event)
 void xlGridCanvasPictures::mouseUp()
 {
     if (mEffect == nullptr) return;
-    if (mDragging)
-    {
+    if (mDragging) {
         ReleaseMouse();
         mDragging = false;
     }
@@ -601,97 +543,79 @@ void xlGridCanvasPictures::mouseUp()
     mLeftDown = false;
 }
 
-void xlGridCanvasPictures::InitializeGLContext()
-{
-    SetCurrentGLContext();
-
-    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
-    LOG_GL_ERRORV(glEnable(GL_BLEND));
-    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-}
 
 void xlGridCanvasPictures::render( wxPaintEvent& event )
 {
-    if(!IsShownOnScreen()) return;
-    if(!mIsInitialized) { InitializeGLCanvas(); }
-
-    InitializeGLContext();
-
-    if( mEffect != nullptr )
-    {
-        DrawPicturesEffect();
-        DrawBaseGrid();
-        DrawSelection();
+    wxPaintDC dc(this);
+    render();
+}
+void xlGridCanvasPictures::render()
+{
+    if (!IsShownOnScreen()) {
+        return;
     }
-    SwapBuffers();
+    if (!mIsInitialized) {
+        PrepareCanvas();
+    }
+
+    xlGraphicsContext *ctx = PrepareContextForDrawing();
+    if (ctx == nullptr) {
+        return;
+    }
+    ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
+
+    if (mEffect != nullptr) {
+        DrawPicturesEffect(ctx);
+        DrawBaseGrid(ctx);
+        DrawSelection(ctx);
+    }
+    FinishDrawing(ctx);
 }
 
-void xlGridCanvasPictures::DrawPicturesEffect()
+void xlGridCanvasPictures::DrawPicturesEffect(xlGraphicsContext *ctx)
 {
-    if( NewPictureName == "" ) return;
-    if( NewPictureName != PictureName || sprite == nullptr || mPasteCopy)
-    {
-        if (sprite != nullptr) {
-            delete sprite;
-        }
-        if( use_ping )
-        {
-            imageGL_ping = new Image(image);
-            sprite = new xLightsDrawable(imageGL_ping);
-            imageWidth = imageGL_ping->width;
-            imageHeight = imageGL_ping->height;
-            mImage = imageGL_ping;
-        }
-        else
-        {
-            imageGL_pong = new Image(image);
-            sprite = new xLightsDrawable(imageGL_pong);
-            imageWidth = imageGL_pong->width;
-            imageHeight = imageGL_pong->height;
-            mImage = imageGL_pong;
-        }
-        sprite->setFlip(false, false);
+    if (NewPictureName == "") {
+        return;
     }
-    sprite->scale(mCellSize, mCellSize);
-    sprite->setHotspot(-1, -mRows - 1 + imageHeight);
+    if (NewPictureName != PictureName || !imagesValid) {
+        if (imageTexture) {
+            delete imageTexture;
+        }
+        if (imageCopy) {
+            delete imageCopy;
+            imageCopy = nullptr;
+        }
+        imageTexture = ctx->createTexture(image);
 
-    DrawGLUtils::PushMatrix();
-
-    if( mPaintMode != PAINT_SELECTCOPY || !mCopyAvailable )
-    {
-        sprite->render();
+        if (mCopyAvailable) {
+            imageCopy = ctx->createTexture(image_copy);
+        }
     }
-    else
-    {
-        LOG_GL_ERRORV(glColor4f(1.0f, 1.0f, 1.0f, 0.8f));
-        LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));   // textures
-        sprite->render();
-        LOG_GL_ERRORV(glColor4f(1.0f, 1.0f, 1.0f, 0.5f));
-        LOG_GL_ERRORV(glEnable(GL_BLEND));
-        LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-        copy_sprite->render();
-        LOG_GL_ERRORV(glDisable(GL_BLEND));
-        LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+    if (imageTexture == nullptr) {
+        return;
+    }
+    float mCellSize = getCellSize();
+    float offset = mapLogicalToAbsolute(5.0);
+
+    ctx->enableBlending();
+    float mrow = mRows - image.GetHeight();
+    float starty = offset + mrow * mCellSize;
+    ctx->drawTexture(imageTexture, offset, starty, offset + mCellSize * image.GetWidth(), starty + mCellSize * image.GetHeight(),
+                     0, 0, 1, 1,
+                     false);
+    if (imageCopy) {
+        float startx = offset + mStartCol * mCellSize;
+        float starty = offset + mStartRow * mCellSize;
+
+        ctx->drawTexture(imageCopy, startx, starty,
+                         startx + mCellSize * image_copy.GetWidth() - 1.0,
+                         starty + mCellSize * image_copy.GetHeight() - 1.0,
+                         0, 0, 1, 1,
+                         false);
     }
 
-    DrawGLUtils::PopMatrix();
 
-    if( NewPictureName != PictureName || mPasteCopy)
-    {
-        mPasteCopy = false;
-        if( use_ping ) {
-            if (imageGL_pong != nullptr) {
-                delete imageGL_pong;
-            }
-            use_ping = false;
-        } else {
-            if (imageGL_ping != nullptr) {
-                delete imageGL_ping;
-            }
-            use_ping = true;
-        }
+    if (NewPictureName != PictureName) {
         PictureName = NewPictureName;
     }
 }
@@ -702,111 +626,124 @@ void xlGridCanvasPictures::CalcSelection()
     mStartRow = GetCellFromPosition(mDragStartY);
     mEndCol = GetCellFromPosition(mDragEndX);
     mEndRow = GetCellFromPosition(mDragEndY);
-    if( mStartRow > mEndRow ) {
-        std::swap( mStartRow, mEndRow );
+    if (mStartRow > mEndRow) {
+        std::swap(mStartRow, mEndRow);
     }
-    if( mStartCol > mEndCol ) {
-        std::swap( mStartCol, mEndCol );
+    if (mStartCol > mEndCol) {
+        std::swap(mStartCol, mEndCol);
     }
 }
-void xlGridCanvasPictures::DrawSelection()
+void xlGridCanvasPictures::DrawSelection(xlGraphicsContext *ctx)
 {
-    if( mPaintMode == PAINT_SELECTCOPY && mDragStartX > 0 ) {
-        int start_x = (mStartCol+1)*mCellSize;
-        int start_y = (mStartRow+1)*mCellSize;
-        int height = mCellSize * (mEndRow-mStartRow+1);
-        int width = mCellSize * (mEndCol-mStartCol+1);
-        LOG_GL_ERRORV(glEnable(GL_BLEND));
-        DrawGLUtils::DrawFillRectangle(*mSelectionColor,70,start_x,start_y,width,height);
-        DrawGLUtils::DrawRectangle(xlYELLOW,true,start_x,start_y,start_x+width,start_y+height);
-        LOG_GL_ERRORV(glDisable(GL_BLEND));
+    if (mPaintMode == PAINT_SELECTCOPY && mDragStartX > 0) {
+        float mCellSize = getCellSize();
+        float offset = mapLogicalToAbsolute(5.0);
+
+        int start_x = ((float)mStartCol) * mCellSize + offset;
+        int start_y = ((float)mStartRow) * mCellSize + offset;
+        int height = mCellSize * (mEndRow - mStartRow + 1);
+        int width = mCellSize * (mEndCol - mStartCol + 1);
+
+        if (mCopyAvailable) {
+            width = mCellSize * image_copy.GetWidth();
+            height = mCellSize * image_copy.GetHeight();
+        }
+
+        auto *va = ctx->createVertexAccumulator();
+        va->AddRectAsTriangles(start_x, start_y, start_x + width, start_y + height);
+        xlColor c = *mSelectionColor;
+        c.alpha = 70;
+
+        ctx->enableBlending();
+        ctx->drawTriangles(va, c);
+        va->Reset();
+        va->AddRectAsDashedLines(start_x, start_y, start_x + width, start_y + height, mapLogicalToAbsolute(8.0));
+        ctx->drawLines(va, xlYELLOW);
+
+        ctx->disableBlending();
+        delete va;
     }
 }
 
 void xlGridCanvasPictures::ProcessHoverDrag(int column, int row)
 {
-    if( column > mHoverDragCol )
-    {
+    float mCellSize = getCellSize();
+    if (column > mHoverDragCol) {
         int columns_to_move = column - mHoverDragCol;
-        if( mEndCol + columns_to_move < mColumns )
-        {
+        if (mEndCol + columns_to_move < mColumns) {
             mDragStartX += mCellSize*columns_to_move;
             mDragEndX += mCellSize*columns_to_move;
             mHoverDragCol += columns_to_move;
         }
-    }
-    else if( column < mHoverDragCol )
-    {
+    } else if (column < mHoverDragCol) {
         int columns_to_move = mHoverDragCol - column;
-        if( mStartCol - columns_to_move >= 0 )
-        {
+        if (mStartCol - columns_to_move >= 0) {
             mDragStartX -= mCellSize*columns_to_move;
             mDragEndX -= mCellSize*columns_to_move;
             mHoverDragCol -= columns_to_move;
         }
     }
-    if( row > mHoverDragRow )
-    {
+    if (row > mHoverDragRow) {
         int rows_to_move = row - mHoverDragRow;
-        if( mEndRow + rows_to_move < mRows )
-        {
+        if (mEndRow + rows_to_move < mRows) {
             mDragStartY += mCellSize*rows_to_move;
             mDragEndY += mCellSize*rows_to_move;
             mHoverDragRow += rows_to_move;
         }
-    }
-    else if( row < mHoverDragRow )
-    {
+    } else if (row < mHoverDragRow) {
         int rows_to_move = mHoverDragRow - row;
-        if( mStartRow - rows_to_move >= 0 )
-        {
+        if (mStartRow - rows_to_move >= 0) {
             mDragStartY -= mCellSize*rows_to_move;
             mDragEndY -= mCellSize*rows_to_move;
             mHoverDragRow -= rows_to_move;
         }
     }
     CalcSelection();
-    if( mCopyAvailable )
-    {
-        copy_sprite->setHotspot(-1 - mStartCol, -1 - mStartRow);
-    }
 }
 
 void xlGridCanvasPictures::Copy()
 {
-    SetCurrentGLContext();
-
-    if (mImageCopy != nullptr) {
-        delete mImageCopy;
+    int srow = mStartRow - image.GetHeight();
+    int erow = mEndRow - image.GetHeight();
+    if (srow < 0) {
+        srow = 0;
+    }
+    if (erow < 0) {
+        return;
     }
 
-    int height = mEndRow-mStartRow+1;
-    int width = mEndCol-mStartCol+1;
+    int height = erow - srow + 1;
+    int width = mEndCol - mStartCol + 1;
 
     wxRect rect;
     rect.x = mStartCol;
-    rect.y = mStartRow;
+    rect.y = srow;
     rect.width = width;
     rect.height = height;
 
     image_copy = image.GetSubImage(rect);
-    mImageCopy = new Image(image_copy);
-    if (copy_sprite != nullptr) {
-        delete copy_sprite;
+    imagesValid = false;
+    if (image_copy.IsOk()) {
+        mCopyAvailable = true;
     }
-    copy_sprite = new xLightsDrawable(mImageCopy);
-    copy_sprite->setHotspot(-1 - mStartCol, -1 - mStartRow);
-    copy_sprite->setFlip(false, false);
-    mCopyAvailable = true;
 }
 
 void xlGridCanvasPictures::Paste()
 {
-    if( mCopyAvailable )
-    {
-        image.Paste(image_copy, mStartCol, mStartRow);
-        mPasteCopy = true;
-        Refresh(false);
-        Update();
+    if (mCopyAvailable) {
+        int srow = mStartRow - image.GetHeight();
+        image.Paste(image_copy, mStartCol, srow);
+        mCopyAvailable = false;
+        imagesValid = false;
+        render();
+    }
+}
+
+void xlGridCanvasPictures::Cancel()
+{
+    if (mCopyAvailable) {
+        mCopyAvailable = false;
+        imagesValid = false;
+        render();
     }
 }

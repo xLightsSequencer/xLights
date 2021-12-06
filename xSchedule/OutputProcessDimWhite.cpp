@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "OutputProcessDimWhite.h"
+#include "OutputProcessExcludeDim.h"
 #include <wx/xml/xml.h>
 
 OutputProcessDimWhite::OutputProcessDimWhite(OutputManager* outputManager, wxXmlNode* node) : OutputProcess(outputManager, node)
@@ -64,7 +65,7 @@ void OutputProcessDimWhite::BuildDimTable()
     }
 }
 
-void OutputProcessDimWhite::Frame(uint8_t* buffer, size_t size)
+void OutputProcessDimWhite::Frame(uint8_t* buffer, size_t size, std::list<OutputProcess*>& processes)
 {
     if (!_enabled) return;
     if (_dim == 100) return;
@@ -73,15 +74,37 @@ void OutputProcessDimWhite::Frame(uint8_t* buffer, size_t size)
 
     size_t nodes = std::min(_nodes, (size - (sc - 1)) / 3);
 
-    for (int i = 0; i < nodes; i++)
-    {
-        uint8_t* p = buffer + (sc - 1) + (i * 3);
+    auto ed = GetExcludeDim(processes, sc, sc + nodes * 3 - 1);
 
-        if (*p == *(p+1) && *p == *(p+2))
-        {
-            *p = _dimTable[*p];
-            *(p + 1) = *p;
-            *(p + 2) = *p;
+    if (ed.size() == 0) { // do the common easy stuff fast
+        for (size_t i = 0; i < nodes; i++) {
+            uint8_t* p = buffer + (sc - 1) + (i * 3);
+
+            if (*p == *(p + 1) && *p == *(p + 2)) {
+                *p = _dimTable[*p];
+                *(p + 1) = *p;
+                *(p + 2) = *p;
+            }
+        }
+    }
+    else {
+        auto exclude = ed.begin();
+        for (size_t i = 0; i < nodes; i++) {
+            size_t c = (sc - 1) + (i * 3);
+
+            while (exclude != ed.end() && c > (*exclude)->GetLastExcludeChannel() - 1) ++exclude;
+
+            bool ex = (exclude != ed.end() && c >= (*exclude)->GetFirstExcludeChannel() - 1);
+
+            if (!ex) {
+                uint8_t* p = buffer + (sc - 1) + (i * 3);
+
+                if (*p == *(p + 1) && *p == *(p + 2)) {
+                    *p = _dimTable[*p];
+                    *(p + 1) = *p;
+                    *(p + 2) = *p;
+                }
+            }
         }
     }
 }

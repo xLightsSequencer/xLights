@@ -51,6 +51,7 @@
     </AbstractVariant>
     <AbstractVariant Name="BaseFalconV3Settings" Base="Falcon:BaseFalconSettings">
         <SupportsSmartRemotes>3</SupportsSmartRemotes>
+        <AllSmartRemoteTypesPerPortMustBeSame/>
         <MaxPixelPortChannels>3072</MaxPixelPortChannels>
         <InputProtocols>
             <Protocol>e131</Protocol>
@@ -59,6 +60,9 @@
             <Protocol>ddp</Protocol>
         </InputProtocols>
 		<NeedsDDPInputUpload/>
+        <SmartRemoteTypes>
+            <Type>falcon_v1</Type>
+        </SmartRemoteTypes>
     </AbstractVariant>
 	<Controller Name="F4V2">
 		<Variant Name="No Expansion Board" Base="Falcon:BaseFalconV2Settings">
@@ -159,7 +163,11 @@
         <SupportsAutoLayout/>
         <MergeConsecutiveVirtualStrings/>
         <SupportsPixelPortEndNullPixels/>
-
+        <MaxStartNulls>20</MaxStartNulls>
+        <MaxEndNulls>20</MaxEndNulls>
+        <MaxGroup>10</MaxGroup>
+        <MinGroup>1</MinGroup>
+        <AllSmartRemoteTypesPerPortMustBeSame/>
         <MaxInputUniverses>192</MaxInputUniverses>
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
         <SerialProtocols>
@@ -190,6 +198,9 @@
             <Protocol>ddp</Protocol>
             <Protocol>zcpp</Protocol>
         </InputProtocols>
+        <SmartRemoteTypes>
+            <Type>falcon_v2</Type>
+        </SmartRemoteTypes>
     </AbstractVariant>
 	<Controller Name="F16V4">
 		<Variant Name="16 Local Ports" Base="Falcon:BaseV4FalconSettings">

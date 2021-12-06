@@ -31,6 +31,7 @@
 #include "../UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
+#include <thread>
 
 #pragma region V4
 
@@ -60,7 +61,7 @@ std::vector<std::string> Falcon::V4_GetMediaFiles()
             const wxJSONInternalArray* parr = outParams["F"].AsArray();
 
             for (size_t i = 0; i < parr->Count(); i++) {
-                res.push_back(parr->Item(i).AsString());
+                res.push_back(parr->Item(i)["f"].AsString());
             }
 
             batch++;
@@ -735,7 +736,7 @@ int Falcon::V4_EncodeInputProtocol(const std::string& protocol)
 int Falcon::V4_GetRebootSecs()
 {
     if (_ip == _v4status["I"].AsString()) {
-        return 5;
+        return 8;
     }
     else         {
         return 20;
@@ -1068,8 +1069,8 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         str.gamma = V4_ValidGamma(it->_gammaSet ? it->_gamma * 10 : gamma);
                         str.brightness = V4_ValidBrightness(it->_brightnessSet ? it->_brightness : defaultBrightness);
                         str.zigcount = 0;
-                        str.endNulls = it->_endNullPixelsSet ? it->_endNullPixels : endNulls;
-                        str.startNulls = it->_startNullPixelsSet ? it->_startNullPixels : startNulls;
+                        str.endNulls = it->_endNullPixelsSet ? it->_endNullPixels : 0;
+                        str.startNulls = it->_startNullPixelsSet ? it->_startNullPixels : 0;
                         str.colourOrder = it->_colourOrderSet ? V4_EncodeColourOrder(it->_colourOrder) : colourOrder;
                         str.direction = it->_reverseSet ? (it->_reverse == "F" ? 0 : 1) : direction;
                         str.group = it->_groupCountSet ? it->_groupCount : group;
@@ -1191,7 +1192,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     logger_base.info("Scanning models.");
 
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+    UDController cud(controller, outputManager, allmodels, false);
 
     auto caps = ControllerCaps::GetControllerConfig(controller);
 
@@ -1418,7 +1419,7 @@ public:
     }
 };
 
-#define MINIMUMPIXELS 0
+#define MINIMUMPIXELS 1
 void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse, int defaultBrightness, int32_t firstchannel) const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1563,7 +1564,7 @@ void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int
         FalconString* string = new FalconString(defaultBrightness);
         string->startChannel = firstchannel;
         string->virtualStringIndex = 0;
-        string->pixels = 1;
+        string->pixels = MINIMUMPIXELS;
         string->protocol = 0;
         string->universe = minuniverse;
         string->description = "";
@@ -1732,50 +1733,10 @@ void Falcon::UploadStringPort(const std::string& request, bool final) {
 
 void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse, int defaultBrightness, int32_t firstchannel) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     int maxPort = 0;
     for (const auto& sd : stringData) {
         maxPort = std::max(maxPort, sd->port);
     }
-
-    // fill in missing smart ports
-    int quads = (maxPort + 3) / 4;
-    for (int i = 0; i < quads; i++) {
-        int maxRemote = 0;
-        for (int j = 0; j < 4; j++) {
-            for (const auto& it : stringData) {
-                if (it->port == i * 4 + j) {
-                    if (it->smartRemote != 0) {
-                        maxRemote = std::max(maxRemote, it->smartRemote);
-                    }
-                }
-            }
-        }
-
-        if (maxRemote > 0) {
-            for (int k = 0; k < 4; k++) {
-                RemoveNonSmartRemote(stringData, i * 4 + k);
-                for (int j = 0; j < maxRemote; j++) {
-                    EnsureSmartStringExists(stringData, i * 4 + k, j + 1, minuniverse, defaultBrightness, firstchannel);
-                }
-            }
-        }
-    }
-
-    // Sort strings in the right order
-    std::sort(begin(stringData), end(stringData), [](FalconString* a, FalconString* b) {
-        return *a > *b;
-        });
-
-    // reindex the string data
-    int i = 0;
-    for (auto& it : stringData) {
-        it->index = i++;
-    }
-
-    logger_base.debug("Final string data for upload.");
-    DumpStringData(stringData);
 
     int S = stringData.size();
     int m = 0;
@@ -2269,12 +2230,12 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
 
                 if (res) {
                     if (ismp3) {
-                        progress->Update(0, "Converting to WAV file.");
+                        if (progress != nullptr) progress->Update(0, "Converting to WAV file.");
                         wxSleep(1);
                         int p = 0;
                         while (p != 100) {
                             p = V4_GetConversionProgress();
-                            progress->Update(p * 10, "Converting to WAV file.");
+                            if (progress != nullptr) progress->Update(p * 10, "Converting to WAV file.");
                             if (p != 100) wxSleep(5);
                         }
                     }
@@ -2456,7 +2417,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     logger_base.info("Scanning models.");
 
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+    UDController cud(controller, outputManager, allmodels, false);
 
     auto caps = ControllerCaps::GetControllerConfig(controller);
     bool success = true;
@@ -2476,8 +2437,10 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     bool absoluteonebased = (controller->GetFirstOutput()->GetType() == OUTPUT_DDP && !dynamic_cast<DDPOutput*>(controller->GetFirstOutput())->IsKeepChannelNumbers());
     int32_t firstchannel = 1;
     if (absoluteonebased) firstchannel = controller->GetFirstOutput()->GetStartChannel();
-    int32_t firstchanneloncontroller = 1;
+    int32_t firstchanneloncontroller = firstchannel;
     if (controller->GetFirstOutput()->GetType() == OUTPUT_DDP && dynamic_cast<DDPOutput*>(controller->GetFirstOutput())->IsKeepChannelNumbers()) {
+        firstchanneloncontroller = controller->GetFirstOutput()->GetStartChannel();
+    } else {
         firstchanneloncontroller = controller->GetFirstOutput()->GetStartChannel();
     }
 
@@ -2631,7 +2594,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                     fs->nullPixels = vs->_startNullPixels;
                 }
                 else {
-                    fs->nullPixels = firstString->nullPixels;
+                    fs->nullPixels = 0;
                 }
                 if (vs->_gammaSet) {
                     fs->gamma = vs->_gamma;
@@ -2656,8 +2619,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                     fs->pixels *= std::max(1, vs->_groupCount);
                 }
                 else {
-                    fs->groupCount = std::max(1, firstString->groupCount);
-                    fs->pixels *= std::max(1, firstString->groupCount);
+                    fs->groupCount = 1;
                 }
                 newStringData.push_back(fs);
             }
@@ -2679,6 +2641,48 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     // delete any read strings we didnt keep
     for (const auto& d : toDelete) {
         delete d;
+    }
+
+    // fill in missing smart ports
+    {
+        int mp = 0;
+        for (const auto& sd : stringData) {
+            mp = std::max(mp, sd->port);
+        }
+
+        int quads = (mp + 3) / 4;
+        for (int i = 0; i < quads; i++) {
+            int maxRemote = 0;
+            for (int j = 0; j < 4; j++) {
+                for (const auto& it : stringData) {
+                    if (it->port == i * 4 + j) {
+                        if (it->smartRemote != 0) {
+                            maxRemote = std::max(maxRemote, it->smartRemote);
+                        }
+                    }
+                }
+            }
+
+            if (maxRemote > 0) {
+                for (int k = 0; k < 4; k++) {
+                    RemoveNonSmartRemote(stringData, i * 4 + k);
+                    for (int j = 0; j < maxRemote; j++) {
+                        EnsureSmartStringExists(stringData, i * 4 + k, j + 1, minuniverse, defaultBrightness, firstchanneloncontroller);
+                    }
+                }
+            }
+        }
+
+        // Sort strings in the right order
+        std::sort(begin(stringData), end(stringData), [](FalconString* a, FalconString* b) {
+            return *a > *b;
+        });
+
+        // reindex the string data
+        int i = 0;
+        for (auto& it : stringData) {
+            it->index = i++;
+        }
     }
 
     logger_base.debug("Virtual strings created.");
@@ -2768,13 +2772,13 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             success = false;
             check += "ERROR: Total pixels exceeded maximum allowed on a pixel port: " + wxString::Format("%d", maxPixels).ToStdString() + "\n";
             if (largestDaughter2Port >= 0) {
-                check += wxString::Format("       Bank 1 Port %d, Bank 2 Port %d, Bank 3 Port %d\n", largestMainPort, largestDaughter1Port, largestDaughter2Port);
+                check += wxString::Format("       Bank 1 Port %d=%d, Bank 2 Port %d=%d, Bank 3 Port %d=%d\n", largestMainPort, maxMain, largestDaughter1Port, maxDaughter1, largestDaughter2Port, maxDaughter2);
             }
             else if (largestDaughter1Port >= 0) {
-                check += wxString::Format("       Bank 1 Port %d, Bank 2 Port %d\n", largestMainPort, largestDaughter1Port);
+                check += wxString::Format("       Bank 1 Port %d=%d, Bank 2 Port %d=%d\n", largestMainPort, maxMain, largestDaughter1Port, maxDaughter1);
             }
             else                 {
-                check += wxString::Format("       Bank 1 Port %d\n", largestMainPort);
+                check += wxString::Format("       Bank 1 Port %d=%d\n", largestMainPort, maxMain);
             }
 
             logger_base.warn("ERROR: Total pixels exceeded maximum allowed on a pixel port: %d", maxPixels);
@@ -2888,10 +2892,20 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             DisplayWarning("Upload warnings:\n" + check);
         }
 
-        std::string uri = "btnSave=Save";
+        bool sendSerial = false;
+
+        std::string uri = "a=";
+        if (_usingAbsolute) {
+            uri += "0";
+        }
+        else {
+            uri += "1";
+        }
+        uri += "&btnSave=Save";
 
         for (int sp = 1; sp <= cud.GetMaxSerialPort(); sp++) {
             if (cud.HasSerialPort(sp)) {
+                sendSerial = true;
                 UDControllerPort* port = cud.GetControllerSerialPort(sp);
                 int sc = port->GetStartChannel();
                 logger_base.info("Serial Port %d Protocol %s Start Channel %d.", sp, (const char*)port->GetProtocol().c_str(), sc);
@@ -2901,7 +2915,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             }
         }
 
-        if (uri != "")
+        if (sendSerial)
         {
             PutURL("/SerialOutputs.htm", uri);
         }
@@ -2909,7 +2923,13 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     else {
         if (caps->GetMaxSerialPort() > 0 && UDController::IsError(check)) {
             DisplayError("Not uploaded due to errors.\n" + check);
+            check = "";
         }
+    }
+
+    if (!success && check != "") {
+        DisplayError("Not uploaded due to errors.\n" + check);
+        check = "";
     }
 
     if (doProgress) progress->Update(100, "Done.");

@@ -307,6 +307,13 @@ void PlayListItemAudio::Start(long stepLengthMS)
             _audioManager->Seek(0);
         }
     }
+
+    if (_audioManager != nullptr) {
+        if (_volume != -1) {
+            _audioManager->SetVolume(_volume);
+        }
+    }
+
     _currentFrame = 0;
 }
 

@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "OutputProcessGamma.h"
+#include "OutputProcessExcludeDim.h"
 #include <wx/xml/xml.h>
 
 OutputProcessGamma::OutputProcessGamma(OutputManager* outputManager, wxXmlNode* node) : OutputProcess(outputManager, node)
@@ -89,7 +90,7 @@ void OutputProcessGamma::BuildGammaData(uint8_t data[], float gamma)
     }
 }
 
-void OutputProcessGamma::Frame(uint8_t* buffer, size_t size)
+void OutputProcessGamma::Frame(uint8_t* buffer, size_t size, std::list<OutputProcess*>& processes)
 {
     if (!_enabled) return;
     if (_gamma == 1.0) return;
@@ -99,21 +100,48 @@ void OutputProcessGamma::Frame(uint8_t* buffer, size_t size)
 
     size_t nodes = std::min(_nodes, (size - (sc - 1)) / 3);
 
-    for (int i = 0; i < nodes; i++)
-    {
-        uint8_t* p = buffer + (sc - 1) + (i * 3);
+    auto ed = GetExcludeDim(processes, sc, sc + nodes * 3 - 1);
 
-        if (_gamma != 0.0)
-        {
-            *p = _gammaData[*p];
-            *(p+1) = _gammaData[*(p+1)];
-            *(p+2) = _gammaData[*(p+2)];
+    if (ed.size() == 0) { // do the common easy stuff fast
+
+        for (size_t i = 0; i < nodes; i++) {
+            uint8_t* p = buffer + (sc - 1) + (i * 3);
+
+            if (_gamma != 0.0) {
+                *p = _gammaData[*p];
+                *(p + 1) = _gammaData[*(p + 1)];
+                *(p + 2) = _gammaData[*(p + 2)];
+            }
+            else {
+                *p = _gammaDataR[*p];
+                *(p + 1) = _gammaDataG[*(p + 1)];
+                *(p + 2) = _gammaDataB[*(p + 2)];
+            }
         }
-        else
-        {
-            *p = _gammaDataR[*p];
-            *(p + 1) = _gammaDataG[*(p + 1)];
-            *(p + 2) = _gammaDataB[*(p + 2)];
+    }
+    else {
+        auto exclude = ed.begin();
+        for (size_t i = 0; i < nodes; i++) {
+            size_t c = (sc - 1) + (i * 3);
+
+            while (exclude != ed.end() && c > (*exclude)->GetLastExcludeChannel() - 1) ++exclude;
+
+            bool ex = (exclude != ed.end() && c >= (*exclude)->GetFirstExcludeChannel() - 1);
+
+            if (!ex) {
+                uint8_t* p = buffer + (sc - 1) + (i * 3);
+
+                if (_gamma != 0.0) {
+                    *p = _gammaData[*p];
+                    *(p + 1) = _gammaData[*(p + 1)];
+                    *(p + 2) = _gammaData[*(p + 2)];
+                }
+                else {
+                    *p = _gammaDataR[*p];
+                    *(p + 1) = _gammaDataG[*(p + 1)];
+                    *(p + 2) = _gammaDataB[*(p + 2)];
+                }
+            }
         }
     }
 }

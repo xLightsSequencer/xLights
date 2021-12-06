@@ -1,0 +1,1 @@
+{"cmd":"batchRender", "seqs":["aaa.xsq", "bbb.xsq", "ccc.xsq"], "promptIssues":"false"}

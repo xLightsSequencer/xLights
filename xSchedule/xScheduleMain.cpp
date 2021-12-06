@@ -1441,14 +1441,14 @@ void xScheduleFrame::UpdateTree() const
 
     auto pls = __schedule->GetPlayLists();
 
-    for (auto it = pls.begin(); it != pls.end(); ++it)
+    for (const auto& it : pls)
     {
-        auto pl = TreeCtrl_PlayListsSchedules->AppendItem(root, (*it)->GetName(), -1, -1, new MyTreeItemData(*it));
+        auto pl = TreeCtrl_PlayListsSchedules->AppendItem(root, it->GetName(), -1, -1, new MyTreeItemData(it));
 
-        auto schedules = (*it)->GetSchedules();
-        for (auto it2 = schedules.begin(); it2 != schedules.end(); ++it2)
+        auto schedules = it->GetSchedules();
+        for (const auto& it2 : schedules)
         {
-            TreeCtrl_PlayListsSchedules->AppendItem(pl, GetScheduleName(*it2, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(*it2));
+            TreeCtrl_PlayListsSchedules->AppendItem(pl, GetScheduleName(it2, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(it2));
         }
         TreeCtrl_PlayListsSchedules->Expand(pl);
     }
@@ -1460,11 +1460,11 @@ void xScheduleFrame::UpdateTree() const
 
 std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const
 {
-    for (auto it = active.begin(); it != active.end(); ++it)
+    for (const auto& it : active)
     {
-        if ((*it)->GetSchedule()->GetId() == schedule->GetId())
+        if (it->GetSchedule()->GetId() == schedule->GetId())
         {
-            if ((*it)->IsStopped())
+            if (it->IsStopped())
             {
                 return schedule->GetName() + " [Stopped]";
             }
@@ -1473,11 +1473,11 @@ std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<
 
     if (schedule->GetNextTriggerTime() == "NOW!")
     {
-        for (auto it = active.begin(); it != active.end(); ++it)
+        for (const auto& it : active)
         {
-            if ((*it)->GetSchedule()->GetId() == schedule->GetId())
+            if (it->GetSchedule()->GetId() == schedule->GetId())
             {
-                return schedule->GetName() + " [NOW until " + (*it)->GetSchedule()->GetNextEndTime() + "]"; // +wxString::Format(" Id:%i", schedule->GetId()).ToStdString();
+                return schedule->GetName() + " [NOW until " + it->GetSchedule()->GetNextEndTime() + "]"; // +wxString::Format(" Id:%i", schedule->GetId()).ToStdString();
             }
         }
     }
@@ -3031,7 +3031,7 @@ void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
 void xScheduleFrame::AddPlayList(bool forceadvanced)
 {
     PlayList* playlist = new PlayList();
-    if (playlist->Configure(this, __schedule->GetOutputManager(), forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) == nullptr)
+    if (playlist->Configure(this, __schedule->GetOutputManager(), __schedule->GetOptions(), forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) == nullptr)
     {
         delete playlist;
     }
@@ -3069,7 +3069,7 @@ void xScheduleFrame::EditSelectedItem(bool forceadvanced)
     if (IsPlayList(treeitem))
     {
         PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-        if (playlist->Configure(this, __schedule->GetOutputManager(), forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) != nullptr)
+        if (playlist->Configure(this, __schedule->GetOutputManager(), __schedule->GetOptions(), forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) != nullptr)
         {
             TreeCtrl_PlayListsSchedules->SetItemText(treeitem, playlist->GetName());
         }
@@ -3320,19 +3320,40 @@ void xScheduleFrame::UpdateUI(bool force)
                 case Output::PINGSTATE::PING_OPEN:
                 case Output::PINGSTATE::PING_OPENED:
                 case Output::PINGSTATE::PING_WEBOK:
-                    ListView_Ping->SetItemBackgroundColour(item, *wxGREEN);
+                    if (it->IsInactive()) {
+                        ListView_Ping->SetItemBackgroundColour(item, wxColour(180,255,180));
+                    }
+                    else {
+                        ListView_Ping->SetItemBackgroundColour(item, *wxGREEN);
+                    }
                     ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     break;
                 case Output::PINGSTATE::PING_ALLFAILED:
-                    ListView_Ping->SetItemBackgroundColour(item, *wxRED);
-                    ListView_Ping->SetItemTextColour(item, *wxWHITE);
+                    if (it->IsInactive()) {
+                        ListView_Ping->SetItemBackgroundColour(item, wxColour(255, 180, 180));
+                        ListView_Ping->SetItemTextColour(item, *wxBLACK);
+                    }
+                    else {
+                        ListView_Ping->SetItemBackgroundColour(item, *wxRED);
+                        ListView_Ping->SetItemTextColour(item, *wxWHITE);
+                    }
                     break;
                 case Output::PINGSTATE::PING_UNAVAILABLE:
-                    ListView_Ping->SetItemTextColour(item, *wxBLACK);
+                    if (it->IsInactive()) {
+                        ListView_Ping->SetItemTextColour(item, *wxLIGHT_GREY);
+                    }
+                    else {
+                        ListView_Ping->SetItemTextColour(item, *wxBLACK);
+                    }
                     ListView_Ping->SetItemBackgroundColour(item, *wxWHITE);
                     break;
                 case Output::PINGSTATE::PING_UNKNOWN:
-                    ListView_Ping->SetItemBackgroundColour(item, wxColour(255, 128, 0));
+                    if (it->IsInactive()) {
+                        ListView_Ping->SetItemBackgroundColour(item, wxColour(255, 180, 128));
+                    }
+                    else {
+                        ListView_Ping->SetItemBackgroundColour(item, wxColour(255, 128, 0));
+                    }
                     ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     break;
                 }
@@ -3513,7 +3534,7 @@ void xScheduleFrame::OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event)
     }
 
     auto vmatrices = __schedule->GetOptions()->GetVirtualMatrices();
-    VirtualMatricesDialog dlg(this, __schedule->GetOutputManager(), vmatrices);
+    VirtualMatricesDialog dlg(this, __schedule->GetOutputManager(), vmatrices, __schedule->GetOptions());
 
     if (dlg.ShowModal() == wxID_OK)
     {

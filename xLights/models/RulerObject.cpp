@@ -13,10 +13,10 @@
 #include <wx/propgrid/advprops.h>
 
 #include "RulerObject.h"
-#include "DrawGLUtils.h"
+#include "graphics/opengl/DrawGLUtils.h"
 #include "ModelPreview.h"
 #include "Model.h"
-#include "../DrawGLUtils.h"
+#include "../graphics/opengl/DrawGLUtils.h"
 
 RulerObject* RulerObject::__rulerObject = nullptr;
 

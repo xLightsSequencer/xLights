@@ -19,7 +19,7 @@ class Voip_ms : public SMSService
 
     public:
 
-        Voip_ms(const SMSDaemonOptions& options) : SMSService(options) {}
+        Voip_ms(SMSDaemonOptions* options) : SMSService(options) {}
 
         virtual bool SendSMS(const std::string& number, const std::string& message) override
 		{
@@ -104,7 +104,7 @@ class Voip_ms : public SMSService
                                 wxString timestamp = m.Get("date", defaultValue).AsString();
                                 wxString::const_iterator end;
                                 msg._timestamp.ParseFormat(timestamp, "%Y-%m-%d %H:%M:%S", &end);
-                                msg._timestamp += wxTimeSpan(0, _options.GetTimezoneAdjust());
+                                msg._timestamp += wxTimeSpan(0, _options->GetTimezoneAdjust());
                                 wxASSERT(end == timestamp.end());
                                 msg._from = m.Get("contact", defaultValue).AsString().ToStdString();
                                 msg._rawMessage = m.Get("message", defaultValue).AsString().ToStdString();

@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "VideoWindowPositionDialog.h"
+#include "../ScheduleOptions.h"
 
 //(*InternalHeaders(VideoWindowPositionDialog)
 #include <wx/intl.h>
@@ -23,6 +24,8 @@ const long VideoWindowPositionDialog::ID_STATICTEXT2 = wxNewId();
 const long VideoWindowPositionDialog::ID_CHECKBOX1 = wxNewId();
 const long VideoWindowPositionDialog::ID_STATICTEXT3 = wxNewId();
 const long VideoWindowPositionDialog::ID_SPINCTRL1 = wxNewId();
+const long VideoWindowPositionDialog::ID_BUTTON2 = wxNewId();
+const long VideoWindowPositionDialog::ID_BUTTON3 = wxNewId();
 const long VideoWindowPositionDialog::ID_BUTTON1 = wxNewId();
 //*)
 
@@ -31,12 +34,15 @@ BEGIN_EVENT_TABLE(VideoWindowPositionDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-VideoWindowPositionDialog::VideoWindowPositionDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size, const wxSize& matrixSize, bool useMatrixSize, int matrixMultiplier)
+VideoWindowPositionDialog::VideoWindowPositionDialog(wxWindow* parent, ScheduleOptions* options, wxWindowID id,const wxPoint& pos,const wxSize& size, const wxSize& matrixSize, bool useMatrixSize, int matrixMultiplier)
 {
+    _options = options;
     _matrixSize = matrixSize;
+
 	//(*Initialize(VideoWindowPositionDialog)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -48,7 +54,7 @@ VideoWindowPositionDialog::VideoWindowPositionDialog(wxWindow* parent,wxWindowID
 	StaticText_Position = new wxStaticText(this, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText_Position, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_SetSizeBasedOnMatrix = new wxCheckBox(this, ID_CHECKBOX1, _("Set size basd on matrix size"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_SetSizeBasedOnMatrix->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_SetSizeBasedOnMatrix, 0, wxEXPAND, 5);
@@ -58,6 +64,12 @@ VideoWindowPositionDialog::VideoWindowPositionDialog(wxWindow* parent,wxWindowID
 	SpinCtrl_SizeMultiplier->SetValue(_T("1"));
 	FlexGridSizer2->Add(SpinCtrl_SizeMultiplier, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	Button_ApplyDefault = new wxButton(this, ID_BUTTON2, _("Apply Default"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	FlexGridSizer3->Add(Button_ApplyDefault, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_MakeDefault = new wxButton(this, ID_BUTTON3, _("Make Default"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	FlexGridSizer3->Add(Button_MakeDefault, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer1->Add(Button_ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
@@ -66,6 +78,8 @@ VideoWindowPositionDialog::VideoWindowPositionDialog(wxWindow* parent,wxWindowID
 
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&VideoWindowPositionDialog::OnCheckBox_SetSizeBasedOnMatrixClick);
 	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&VideoWindowPositionDialog::OnSpinCtrl_SizeMultiplierChange);
+	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoWindowPositionDialog::OnButton_ApplyDefaultClick);
+	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoWindowPositionDialog::OnButton_MakeDefaultClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoWindowPositionDialog::OnButton_OkClick);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&VideoWindowPositionDialog::OnResize);
 	//*)
@@ -147,11 +161,13 @@ void VideoWindowPositionDialog::OnButton_OkClick(wxCommandEvent& event)
 void VideoWindowPositionDialog::OnResize(wxSizeEvent& event)
 {
     SetWindowPositionText();
+    ValidateWindow();
 }
 
 void VideoWindowPositionDialog::OnMove(wxMoveEvent& event)
 {
     SetWindowPositionText();
+    ValidateWindow();
 }
 
 void VideoWindowPositionDialog::SetWindowPositionText()
@@ -163,24 +179,35 @@ void VideoWindowPositionDialog::SetWindowPositionText()
 
 void VideoWindowPositionDialog::ValidateWindow()
 {
-    if (_matrixSize.GetWidth() == -1)
-    {
+    if (_matrixSize.GetWidth() == -1) {
         SetWindowStyle(GetWindowStyle() | wxRESIZE_BORDER);
         SpinCtrl_SizeMultiplier->Disable();
         CheckBox_SetSizeBasedOnMatrix->Disable();
     }
-    else
-    {
+    else {
         CheckBox_SetSizeBasedOnMatrix->Enable();
-        if (CheckBox_SetSizeBasedOnMatrix->GetValue())
-        {
+        if (CheckBox_SetSizeBasedOnMatrix->GetValue()) {
             SetWindowStyle(GetWindowStyle() & ~wxRESIZE_BORDER);
             SpinCtrl_SizeMultiplier->Enable();
         }
-        else
-        {
+        else {
             SetWindowStyle(GetWindowStyle() | wxRESIZE_BORDER);
             SpinCtrl_SizeMultiplier->Disable();
+        }
+    }
+
+    if (CheckBox_SetSizeBasedOnMatrix->GetValue()) {
+        Button_ApplyDefault->Enable(false);
+        Button_MakeDefault->Enable(false);
+    }
+    else {
+        if (_options->GetDefaultVideoPos() != GetDesiredPosition() || _options->GetDefaultVideoSize() != GetDesiredSize()) {
+            Button_ApplyDefault->Enable();
+            Button_MakeDefault->Enable();
+        }
+        else {
+            Button_ApplyDefault->Enable(false);
+            Button_MakeDefault->Enable(false);
         }
     }
 }
@@ -191,11 +218,27 @@ void VideoWindowPositionDialog::OnCheckBox_SetSizeBasedOnMatrixClick(wxCommandEv
     {
         SetSize(200, 100);
     }
-    ValidateWindow();
     SetWindowPositionText();
+    ValidateWindow();
 }
 
 void VideoWindowPositionDialog::OnSpinCtrl_SizeMultiplierChange(wxSpinEvent& event)
 {
     SetWindowPositionText();
+    ValidateWindow();
+}
+
+void VideoWindowPositionDialog::OnButton_ApplyDefaultClick(wxCommandEvent& event)
+{
+    Move(_options->GetDefaultVideoPos());
+    SetSize(_options->GetDefaultVideoSize());
+    ValidateWindow();
+    SetWindowPositionText();
+}
+
+void VideoWindowPositionDialog::OnButton_MakeDefaultClick(wxCommandEvent& event)
+{
+    _options->SetDefaultVideoSize(GetDesiredSize());
+    _options->SetDefaultVideoPos(GetDesiredPosition());
+    ValidateWindow();
 }

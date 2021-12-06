@@ -61,7 +61,6 @@ const long ControllerModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 
 const long ControllerModelDialog::CONTROLLERModel_PRINT = wxNewId();
 const long ControllerModelDialog::CONTROLLERModel_SAVE_CSV = wxNewId();
-const long ControllerModelDialog::CONTROLLERModel_SAVE_CSV_DESCRIPTION = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNELCHAIN = wxNewId();
@@ -71,6 +70,7 @@ const long ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT = wxNewId();
 const long ControllerModelDialog::CONTROLLER_BRIGHTNESS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR = wxNewId();
 const long ControllerModelDialog::CONTROLLER_REMOVEALLMODELS = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerModelDialog,wxDialog)
 	//(*EventTable(ControllerModelDialog)
@@ -347,7 +347,7 @@ int GetPort() const { return _port; }
 virtual std::string GetType() const override { return "PORT"; }
 virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped) override
 {
-    
+
     auto origBrush = dc.GetBrush();
     auto origPen = dc.GetPen();
     auto origText = dc.GetTextForeground();
@@ -432,6 +432,9 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
     if (_type == PORTTYPE::PIXEL || _type == PORTTYPE::SERIAL) {
         mnu.Append(ControllerModelDialog::CONTROLLER_PROTOCOL, "Set Protocol");
     }
+    if (_caps != nullptr && (_type == PORTTYPE::PIXEL) && _caps->SupportsSmartRemotes() && (_caps->GetSmartRemoteTypes().size() > 1)) {
+        mnu.Append(ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE, "Set Smart Remote Type");
+    }
     mnu.Append(ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS, "Remove all models from port");
     if (_caps != nullptr && ((_type == PORTTYPE::PIXEL && _caps->GetMaxPixelPort() > 1) || (_type == PORTTYPE::SERIAL && _caps->GetMaxSerialPort() > 1))) {
         mnu.Append(ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT, "Move all models to port");
@@ -453,7 +456,9 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
             if (port) {
                 for (const auto& it : port->GetModels()) {
                     it->GetModel()->SetModelChain("");
-                    it->GetModel()->SetControllerName("");
+                    if (it->GetModel()->GetControllerName() != "") {
+                        it->GetModel()->SetControllerName(NO_CONTROLLER);
+                    }
                     it->GetModel()->SetControllerPort(0);
                 }
             }
@@ -549,6 +554,20 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
                 }
             }
             return true;
+        } else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE) {
+            if (_caps != nullptr) {
+                wxArrayString choices;
+                auto types = _caps->GetSmartRemoteTypes();
+                std::transform(types.begin(), types.end(), std::back_inserter(choices),
+                               [](auto const& str) { return str; });
+                wxSingleChoiceDialog dlg(parent, "Port Smart Remote Type", "Smart Remote Type", choices);
+                if (dlg.ShowModal() == wxID_OK) {
+                    for (const auto& it : GetUDPort()->GetModels()) {
+                        it->GetModel()->SetSmartRemoteType(choices[dlg.GetSelection()]);
+                    }
+                }
+                return true;
+            }
         }
         return false;
     }
@@ -564,6 +583,8 @@ protected:
     int _string = 0;
     UDControllerPort* _port = nullptr;
     int _virtualString;
+    bool _isShadow = false;
+
 public:
     ModelCMObject(UDControllerPort* port, int virtualString, const std::string& name, const std::string displayName, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, double scale) :
         BaseCMObject(cud, caps, location, size, style, scale), _mm(mm), _port(port), _virtualString(virtualString) {
@@ -576,11 +597,15 @@ public:
         if (name != displayName) {
             _string = wxAtoi(AfterLast(displayName, '-')) -1;
         }
+        if (GetModel() != nullptr) {
+            _isShadow = GetModel()->GetShadowModelFor() != "" || GetModel()->GetModelManager().IsModelShadowing(GetModel());
+        }
     }
 
     std::string GetName() const { return _name; }
     std::string GetDisplayName() const { return _displayName; }
     int GetVirtualString() const { return _virtualString; }
+    int GetString() const { return _string; }
     UDControllerPort* GetPort() const { return _port; }
     bool NameStartsWith(char c) {
         if (_name == "") return false;
@@ -624,7 +649,7 @@ public:
                 dc.SetPen(__modelOutlinePen);
             }
         }
-        
+
         if (udcpm != nullptr) {
 
             int maxSR = 15;
@@ -697,6 +722,9 @@ public:
 
         wxSize sz = _size;
         sz = sz.Scale(scale, scale);
+        if (_isShadow) {
+            dc.SetPen(wxPen(dc.GetPen().GetColour(), dc.GetPen().GetWidth(), wxPENSTYLE_LONG_DASH));
+        }
         dc.DrawRectangle(location + offset, sz);
         if (_over == HITLOCATION::LEFT) {
             dc.SetPen(__dropTargetPen);
@@ -777,10 +805,25 @@ public:
                 int srcount = _caps->GetSmartRemoteCount();
 
                 auto mi = srMenu->AppendRadioItem(wxNewId(), "None");
-                if (GetModel()->GetSmartRemote() == 0) mi->Check();
+                if (GetModel()->GetSmartRemote() == 0)
+                    mi->Check();
                 for (int i = 0; i < srcount; i++) {
                     mi = srMenu->AppendRadioItem(wxNewId(), wxString(char(65 + i)));
-                    if (GetModel()->GetSmartRemote() == i+1) mi->Check();
+                    if (GetModel()->GetSmartRemote() == i + 1)
+                        mi->Check();
+                }
+
+                if (_caps->GetSmartRemoteTypes().size() > 1) {
+                    wxMenu* srType = new wxMenu();
+                    for (auto const& smtype : _caps->GetSmartRemoteTypes()) {
+                        mi = srType->AppendRadioItem(wxNewId(), smtype);
+                        if (GetModel()->GetSmartRemoteType() == smtype) {
+                            mi->Check();
+                        }
+                    }
+                    srMenu->AppendSeparator();
+                    srMenu->AppendSubMenu(srType, "Type");
+                    srType->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
                 }
                 srMenu->AppendSeparator();
                 mi = srMenu->AppendCheckItem(ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT, "Cascade Down Port");
@@ -812,7 +855,7 @@ public:
             mnu.AppendSeparator();
             mnu.Append(ControllerModelDialog::CONTROLLER_DMXCHANNEL, "Set Channel");
             mnu.Append(ControllerModelDialog::CONTROLLER_DMXCHANNELCHAIN, "Set Channel and Chain");
-        }        
+        }
     }
 
     virtual bool HandlePopup(wxWindow* parent, wxCommandEvent& event, int id) override {
@@ -856,9 +899,26 @@ public:
             GetModel()->ClearControllerBrightness();
             return true;
         }
-        else         {
+        else{
             wxString label = ((wxMenu*)event.GetEventObject())->GetLabelText(id);
-            if (label == "None") {
+            auto const types = GetModel()->GetSmartRemoteTypes();
+            if (std::find(types.begin(), types.end(), label.ToStdString()) 
+                != types.end()) {
+
+                int const port = GetModel()->GetControllerPort();
+                int const sm = GetModel()->GetSmartRemote();
+                int lowPort = (((port - 1)/ 4 ) * 4) + 1;
+                int highPort = lowPort + 3 < _cud->GetMaxPixelPort() ? lowPort + 3 : _cud->GetMaxPixelPort();
+                for (int i = lowPort; i <= highPort; i++) {
+                    for (const auto& it : _cud->GetControllerPixelPort(i)->GetModels()) {
+                        if(it->GetModel()->GetSmartRemote() == sm ) {
+                            it->GetModel()->SetSmartRemoteType(label);
+                        }
+                    }
+                }
+                return true;
+            }
+            else if (label == "None") {
                 GetModel()->SetSmartRemote(0);
                 return true;
             }
@@ -976,7 +1036,7 @@ ControllerModelPrintout::ControllerModelPrintout(ControllerModelDialog* controll
     _paper_type(wxPAPER_LETTER),
     _max_x(600),
     _max_y(800),
-    _box_size(boxSize), 
+    _box_size(boxSize),
     _panel_size(panelSize)
 { }
 
@@ -1336,10 +1396,7 @@ void ControllerModelDialog::ReloadModels()
         if (it.second->GetDisplayAs() != "ModelGroup") {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
-                 ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || 
-                                                                                     _controller->GetName() == it.second->GetControllerName() || 
-                                                                                     it.second->GetControllerName() == "" ||
-                                                                                     _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) || 
+                 ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
                   _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
                 _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, 0), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS, _scale));
             }
@@ -1509,7 +1566,7 @@ void ControllerModelDialog::ReloadModels()
     PanelModels->Refresh();
 }
 
-void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event) 
+void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1518,10 +1575,7 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
         PrintScreen();
     }
     else if (id == CONTROLLERModel_SAVE_CSV) {
-        SaveCSV(false);
-    }
-    else if (id == CONTROLLERModel_SAVE_CSV_DESCRIPTION) {
-        SaveCSV(true);
+        SaveCSV();
     }
     else if (id == CONTROLLER_REMOVEALLMODELS) {
 
@@ -1533,7 +1587,9 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
                 if (_autoLayout) {
 
                     m->GetModel()->SetModelChain("");
-                    m->GetModel()->SetControllerName("");
+                    if (m->GetModel()->GetControllerName() != "") {
+                        m->GetModel()->SetControllerName(NO_CONTROLLER);
+                    }
                 }
                 m->GetModel()->SetControllerPort(0);
             }
@@ -1621,7 +1677,7 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
     return bitmap;
 }
 
-void ControllerModelDialog::SaveCSV(bool withDescription) {
+void ControllerModelDialog::SaveCSV() {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _controller->GetShortDescription(), wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
@@ -1636,7 +1692,7 @@ void ControllerModelDialog::SaveCSV(bool withDescription) {
 
     wxString const header = _controller->GetShortDescription() + "\n";
     f.Write(header);
-    std::vector<std::string> const lines = _cud->ExportAsCSV(withDescription);
+    std::vector<std::string> const lines = _cud->ExportAsCSV(ExportSettings::GetSettings(this));
     for (const auto& line : lines) {
         f.Write(line);
     }
@@ -2028,7 +2084,9 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                 nextFrom->SetModelChain(m->GetModelChain());
             }
 
-            m->SetControllerName("");
+            if (m->GetControllerName() != "") {
+                m->SetControllerName(NO_CONTROLLER);
+            }
             m->SetModelChain("");
         }
         m->SetControllerPort(0);
@@ -2262,7 +2320,7 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
             auto m = dynamic_cast<ModelCMObject*>(it);
             if (m->IsMain()) {
 
-                // when a model is clicked on then it becomes the last dropped 
+                // when a model is clicked on then it becomes the last dropped
                 if (_lastDropped != m->GetModel()) {
 
                     // redraw the model that used to be last dropped
@@ -2466,16 +2524,12 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
     }
 
     if (port->GetVirtualStringCount() <= 1 || virtualString < 0 || (_caps != nullptr && !_caps->MergeConsecutiveVirtualStrings())) {
+
         if (port->GetModelCount() > 0 && port->Channels() > 0) {
             sc = wxString::Format("Start Channel: %d (#%d:%d)\nChannels: %d (Pixels %d)",
                 port->GetStartChannel(),
                 port->GetUniverse(),
-                // There is a risk this will be negative ... under auto layout that should not happen often ... but it could
-                // to fix i would need to get the absolute ... apply the dmx adjustment then go back to the output manager to get the Universe/startChannel
-                // Given this is just a tooltip I am going to do without it for now
-                // An example where it could occur. 2 serial ports in use. First one uses say 500 of 512 channels. Second has first model on start channel 20 ... so absolute channel 520
-                // would be in the 2nd universe at sc 8. 8 - 20 + 1 = -11 ... not valid
-                port->GetType() == "PIXEL" ? port->GetUniverseStartChannel() : port->GetUniverseStartChannel() - port->GetFirstModel()->GetDMXChannelOffset() + 1,
+                port->GetUniverseStartChannel(),
                 port->Channels(),
                 (int)std::ceil((float)port->Channels() / 3.0)
             );
@@ -2527,17 +2581,28 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     std::string baud;
     int startUniverse;
     int endUniverse;
+    bool isSubsequentString = false;
 
     auto m = mob->GetModel();
-    if (m == nullptr) return "";
+    if (m == nullptr && mob->GetString() > 0)         {
+        // this is a 2nd+ string on a model
+        isSubsequentString = true;
+        m = _mm->GetModel(mob->GetName());
+        if (m == nullptr) return "";
+    }
 
     wxString sr;
     if (m->GetSmartRemote() != 0) {
-       sr = "Smart Remote: ";
-       sr += m->GetSmartRemoteLetter();
-       sr += wxString::Format("\nSmart Remote Cascade Down Port: %s", toStr(m->GetSRCascadeOnPort()));
-       sr += wxString::Format("\nSmart Remote Cascade Length: %d", m->GetSRMaxCascade());
-       sr += "\n";
+        sr = "Smart Remote: ";
+        sr += m->GetSmartRemoteLetterForString(mob->GetString()+1);
+        if (!isSubsequentString) {
+            sr += wxString::Format("\nSmart Remote Type: %s", m->GetSmartRemoteType());
+            sr += wxString::Format("\nSmart Remote Cascade Down Port: %s", toStr(m->GetSRCascadeOnPort()));
+            if(m->GetSRCascadeOnPort()) {
+                sr += wxString::Format("\nSmart Remote Cascade Length: %d", m->GetSRMaxCascade());
+            }
+        }
+        sr += "\n";
     }
 
     _xLights->GetControllerDetailsForChannel(m->GetFirstChannel() + 1, controllerName, type, protocol, description,
@@ -2545,6 +2610,17 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
 
     if (m->IsShadowModel()) {
         shadow = "Shadowing '" + m->GetShadowModelFor() + "'\n";
+    } else {
+        auto shadows = m->GetShadowedBy();
+        if (shadows.size() > 0) {
+            std::string sh;
+            for (const auto& it : shadows) {
+                if (sh != "")
+                    sh += ", ";
+                sh += it;
+            }
+            shadow = "Shadowed By: " + sh + "\n";
+        }
     }
 
     std::string mdescription;
@@ -2559,6 +2635,17 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     std::string stringSettings;
     if (m->IsSerialProtocol()) {
         dmx = wxString::Format("\nChannel %d", m->GetControllerDMXChannel());
+        UDControllerPortModel* udm = mob->GetUDModel();
+        if (udm != nullptr) {
+            auto ep = dynamic_cast<ControllerEthernet*>(_controller);
+            if (ep != nullptr) {
+                if (m->GetStartChannelInDisplayFormat(om)[0] != '#' && (ep->GetProtocol() == OUTPUT_E131 || ep->GetProtocol() == OUTPUT_ARTNET)) {
+                    usc = wxString::Format(" [#%d:%d]",
+                        udm->GetUniverse(),
+                        udm->GetUniverseStartChannel());
+                }
+            }
+        }
     } else if (m->IsMatrixProtocol()) {
         // Any extra matrix properties to display?
     } else {
@@ -2606,21 +2693,49 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     std::string special;
     if (_controller->GetVendor() == "HinksPix" && _controller->GetModel() == "PRO") {
         if (m->GetSmartRemote() != 0) {
-            int port4 = m->GetControllerPort() % 4;
-            int port16 = ((m->GetControllerPort() - 1) % 4) * 4 + ((m->GetSmartRemote() - 1) % 4) + 1;
-            special = wxString::Format("\nHinksPix 16 Port Long Range Port : %d\nHinksPix 4 Port Long Range Port : %d", port16, port4).ToStdString();
+            int absPort = m->GetControllerPort();
+            int absSM = m->GetSmartRemote();
+            std::string SMType = m->GetSmartRemoteType();
+            
+            if (mob->GetPort() != nullptr) {
+                absPort = mob->GetPort()->GetPort();
+                absSM = m->GetSmartRemoteForString(mob->GetString() + 1);
+                SMType = mob->GetPort()->GetSmartRemoteType(absSM);
+            }
+
+            int port4 = (absPort - 1) % 4 + 1;
+            int port16 = ((absPort - 1) % 4) * 4 + ((absSM - 1) % 4) + 1;
+            if (SMType.find("16") != std::string::npos && SMType.find("ac") == std::string::npos ) {
+                special = wxString::Format("\nHinksPix 16 Port Long Range Port : %d", port16).ToStdString();
+            } else {
+                special = wxString::Format("\nHinksPix 4 Port Long Range Port : %d", port4).ToStdString();
+            }
         }
     }
 
+    std::string sccc;
+    if (isSubsequentString) {
+        if (usc != "") {
+            sccc = wxString::Format("Start Channel: %s\n", usc).ToStdString();
+        }
+    }
+    else {
+        sccc = wxString::Format("Start Channel: %s%s\nEnd Channel %s\n", m->GetStartChannelInDisplayFormat(om), usc, m->GetLastChannelInStartChannelFormat(om)).ToStdString();
+    }
+
+    std::string mc;
+    if (!isSubsequentString) {
+        mc = wxString::Format("Model Chain : % s\n", m->GetModelChain() == "" ? "Beginning" : m->GetModelChain()).ToStdString();
+    }
+
     if (_autoLayout) {
-        return wxString::Format("Name: %s\n%sController Name: %s\nModel Chain: %s\nStart Channel: %s%s\nEnd Channel %s\nStrings %d\n%sPort: %d\nProtocol: %s%s%s%s%s",
-            mob->GetDisplayName(), shadow, controllerName, m->GetModelChain() == "" ? "Beginning" : m->GetModelChain(), m->GetStartChannelInDisplayFormat(om), usc,
-            m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special).ToStdString();
+        return wxString::Format("Name: %s\n%sController Name: %s\n%s%sStrings %d\n%sPort: %d\nProtocol: %s%s%s%s%s",
+            mob->GetDisplayName(), shadow, controllerName, mc, sccc,
+            m->GetNumPhysicalStrings(), sr, mob->GetPort() != nullptr ? mob->GetPort()->GetPort() : 0, m->GetControllerProtocol(), dmx, mdescription, stringSettings, special).ToStdString();
     } else {
-        return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\nStart Channel: %s%s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s%s",
-            mob->GetDisplayName(), shadow, controllerName, universe, m->GetStartChannelInDisplayFormat(om), usc, m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special).ToStdString();
+        return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\n%sStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s%s",
+            mob->GetDisplayName(), shadow, controllerName, universe, sccc,
+            m->GetNumPhysicalStrings(), sr, mob->GetPort() != nullptr ? mob->GetPort()->GetPort() : 0, m->GetControllerProtocol(), dmx, mdescription, stringSettings, special).ToStdString();
     }
 }
 
@@ -2692,7 +2807,6 @@ void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
     wxMenu mnu;
     mnu.Append(CONTROLLERModel_PRINT, "Print");
     mnu.Append(CONTROLLERModel_SAVE_CSV, "Save As CSV...");
-    mnu.Append(CONTROLLERModel_SAVE_CSV_DESCRIPTION, "Save As CSV with Description...");
 
     if (_cud->HasModels()) {
         mnu.Append(CONTROLLER_REMOVEALLMODELS, "Remove all models from controller");
@@ -2956,9 +3070,9 @@ void ControllerModelDialog::OnPanelModelsLeftDClick(wxMouseEvent& event)
         }
         ReloadModels();
 
-        for (const auto& it : _controllers)             {
+        for (const auto& it : _controllers) {
             cm = dynamic_cast<ModelCMObject*>(it);
-            if (cm != nullptr && cm->GetName() == m)                 {
+            if (cm != nullptr && cm->GetName() == m) {
                 EnsureSelectedModelIsVisible(cm);
                 break;
             }

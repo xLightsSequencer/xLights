@@ -12,9 +12,9 @@
 
 #include <wx/file.h>
 #include <vector>
-#include "../../Image.h"
 #include "../tiny_obj_loader.h"
-#include "../../DrawGLUtils.h"
+#include "../../graphics/opengl/DrawGLUtils.h"
+#include "../../graphics/opengl/Image.h"
 
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;

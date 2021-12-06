@@ -42,7 +42,7 @@ wxXmlNode* OutputProcessDeadChannel::Save()
     return res;
 }
 
-void OutputProcessDeadChannel::Frame(uint8_t* buffer, size_t size)
+void OutputProcessDeadChannel::Frame(uint8_t* buffer, size_t size, std::list<OutputProcess*>& processes)
 {
     if (!_enabled) return;
 

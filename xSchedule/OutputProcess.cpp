@@ -11,6 +11,7 @@
 #include "OutputProcess.h"
 #include <wx/xml/xml.h>
 #include "OutputProcessDim.h"
+#include "OutputProcessExcludeDim.h"
 #include "OutputProcessDimWhite.h"
 #include "OutputProcessThreeToFour.h"
 #include "OutputProcessSet.h"
@@ -76,6 +77,30 @@ size_t OutputProcess::GetStartChannelAsNumber()
     return _sc;
 }
 
+bool compare_excluderanges(const OutputProcessExcludeDim* first, const OutputProcessExcludeDim* second)
+{
+    return first->GetStartChannel() > second->GetStartChannel();
+}
+
+std::list<OutputProcessExcludeDim*> OutputProcess::GetExcludeDim(std::list<OutputProcess*>& processes, size_t sc, size_t ec)
+{
+    std::list<OutputProcessExcludeDim*> res;
+
+    for (const auto& it : processes) {
+        auto ed = dynamic_cast<OutputProcessExcludeDim*>(it);
+        if (ed != nullptr) {
+            if (ed->Contains(sc, ec)) {
+                res.push_back(ed);
+            }
+        }
+    }
+
+    // sort them so it is easier to process
+    res.sort(compare_excluderanges);
+
+    return res;
+}
+
 void OutputProcess::Save(wxXmlNode* node)
 {
     node->AddAttribute("StartChannel", _startChannel);
@@ -91,6 +116,10 @@ OutputProcess* OutputProcess::CreateFromXml(OutputManager* outputManager, wxXmlN
     if (node->GetName() == "OPDim")
     {
         return new OutputProcessDim(outputManager, node);
+    }
+    else if (node->GetName() == "OPExcludeDim")
+    {
+        return new OutputProcessExcludeDim(outputManager, node);
     }
     else if (node->GetName() == "OPDimWhite")
     {

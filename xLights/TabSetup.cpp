@@ -329,6 +329,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     }
     else {
         UnsavedNetworkChanges = false;
+        UpdateControllerSave();
     }
 
     ShowDirectoryLabel->SetLabel(showDirectory);
@@ -782,12 +783,7 @@ void xLightsFrame::NetworkChange() {
 
     _outputManager.SomethingChanged();
     UnsavedNetworkChanges = true;
-#ifdef __WXOSX__
-    ButtonSaveSetup->SetBackgroundColour(wxColour(255, 0, 0));
-    ButtonSaveSetup->Refresh();
-#else
-    ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
-#endif
+    UpdateControllerSave();
 }
 
 void xLightsFrame::NetworkChannelsChange() {
@@ -826,16 +822,47 @@ bool xLightsFrame::SaveNetworksFile() {
 
     if (_outputManager.Save()) {
         UnsavedNetworkChanges = false;
+        UpdateControllerSave();
+        return true;
+    } else {
+        DisplayError(_("Unable to save network definition file"), this);
+        return false;
+    }
+}
+
+void xLightsFrame::UpdateControllerSave() {
+    if (UnsavedNetworkChanges || (IsControllersAndLayoutTabSaveLinked() && UnsavedRgbEffectsChanges)) {
+#ifdef __WXOSX__
+        ButtonSaveSetup->SetBackgroundColour(wxColour(255, 0, 0));
+        ButtonSaveSetup->Refresh();
+#else
+        ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
+#endif
+    } else {
 #ifdef __WXOSX__
         ButtonSaveSetup->SetBackgroundColour(wxTransparentColour);
         ButtonSaveSetup->Refresh();
 #else
         ButtonSaveSetup->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 #endif
-        return true;
+    }
+}
+
+void xLightsFrame::UpdateLayoutSave() {
+    if (UnsavedRgbEffectsChanges || (IsControllersAndLayoutTabSaveLinked() && UnsavedNetworkChanges)) {
+#ifdef __WXOSX__
+        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxColour(255, 0, 0));
+        layoutPanel->ButtonSavePreview->Refresh();
+#else
+        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxColour(255, 108, 108));
+#endif
     } else {
-        DisplayError(_("Unable to save network definition file"), this);
-        return false;
+#ifdef __WXOSX__
+        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxTransparentColour);
+        layoutPanel->ButtonSavePreview->Refresh();
+#else
+        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+#endif
     }
 }
 
@@ -845,6 +872,7 @@ void xLightsFrame::OnButtonSaveSetupClick(wxCommandEvent& event) {
     if (IsControllersAndLayoutTabSaveLinked()) {
         layoutPanel->SaveEffects();
     }
+    UpdateControllerSave();
 }
 
 void xLightsFrame::SetSyncUniverse(int syncUniverse) {
@@ -1195,6 +1223,9 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         //}
     }
 
+    UpdateControllerSave();
+    UpdateLayoutSave();
+
     // ensure all model groups have all valid model pointers
     AllModels.ResetModelGroups();
 
@@ -1290,6 +1321,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
             if (!updated) {
                 // we need to ensure the id is still unique
                 it->EnsureUniqueId();
+                it->EnsureUniqueName();
                 _outputManager.AddController(it);
                 discovered->controller = nullptr;
                 found = true;
@@ -2082,8 +2114,7 @@ void xLightsFrame::OnButtonVisualiseClick(wxCommandEvent& event)
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
     auto controller = _outputManager.GetController(name);
     if (controller != nullptr) {
-        std::string check;
-        UDController cud(controller, &_outputManager, &AllModels, check, true);
+        UDController cud(controller, &_outputManager, &AllModels, true);
         ControllerModelDialog dlg(this, &cud, &AllModels, controller);
         dlg.ShowModal();
     }
@@ -2155,10 +2186,10 @@ void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event)
                 wxMessageBox("FPP " + controller->GetFPPProxy() + " is either not online or does not have this controller in its proxy table.");
             }
         }
-
-        if (UploadInputToController(controller)) {
+        wxString message;
+        if (UploadInputToController(controller, message)) {
             if (IsControllerUploadLinked() && ButtonUploadOutput->IsEnabled()) {
-                UploadOutputToController(controller);
+                UploadOutputToController(controller, message);
             }
         }
     }
@@ -2183,22 +2214,23 @@ void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
         }
 
         bool ok = true;
+        wxString message;
         auto caps = GetControllerCaps(controller->GetName());
         if (IsControllerUploadLinked() && caps != nullptr && caps->SupportsInputOnlyUpload()) {
             SetStatusText("Uploading inputs and outputs.");
-            ok = UploadInputToController(controller);
+            ok = UploadInputToController(controller, message);
         } else {
             SetStatusText("Uploading outputs");
         }
 
-        if (ok) UploadOutputToController(controller);
+        if (ok) UploadOutputToController(controller, message);
     }
 
     SetCursor(wxCURSOR_ARROW);
 }
 
-bool xLightsFrame::UploadInputToController(Controller* controller)
-{
+bool xLightsFrame::UploadInputToController(Controller* controller, wxString &message) {
+    message.clear();
     bool res = false;
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2226,40 +2258,41 @@ bool xLightsFrame::UploadInputToController(Controller* controller)
                 if (bc->IsConnected()) {
                     if (bc->SetInputUniverses(controller, this)) {
                         logger_base.debug("Attempt to upload controller inputs successful on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
-                        SetStatusText(vendor + " Input Upload complete.");
+                        message = vendor + " Input Upload complete.";
                         res = true;
                     }
                     else {
                         logger_base.error("Attempt to upload controller inputs failed on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
-                        SetStatusText(vendor + " Input Upload failed.");
+                        message = vendor + " Input Upload failed.";
                     }
                 }
                 else {
-                    SetStatusText(vendor + " Input Upload Failed. Unable to connect");
+                    message = vendor + " Input Upload Failed. Unable to connect";
                 }
                 delete bc;
             }
             else {
                 logger_base.error("Unable to create base controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
-                SetStatusText(vendor + " Input Upload not supported.");
+                message = vendor + " Input Upload not supported.";
             }
         }
         else {
             // This controller does not support uploads
             logger_base.error("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
-            SetStatusText("Upload not supported.");
+            message = "Upload inputs not supported.";
         }
     }
     else {
         logger_base.error("Unable to find controller capabilities info.");
-        SetStatusText("Upload not supported.");
+        message = "Unable to find controller capabilities info.";
         wxASSERT(false);
     }
+    SetStatusText(message);
     return res;
 }
 
-bool xLightsFrame::UploadOutputToController(Controller* controller) {
-
+bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& message) {
+    message.clear();
     bool res = false;
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2287,26 +2320,28 @@ bool xLightsFrame::UploadOutputToController(Controller* controller) {
             if (bc != nullptr) {
                 if (bc->IsConnected()) {
                     if (bc->SetOutputs(&AllModels, &_outputManager, controller, this)) {
-                        SetStatusText(vendor + " Output Upload Complete.");
+                        message = vendor + " Output Upload Complete.";
                         res = true;
                     } else {
-                        SetStatusText(vendor + " Output Upload Failed.");
+                        message = vendor + " Output Upload Failed.";
                     }
                 } else {
-                    SetStatusText(vendor + " Output Upload Failed. Unable to connect");
+                    message = vendor + " Output Upload Failed. Unable to connect";
                 }
                 delete bc;
             } else {
-                SetStatusText(vendor + " Output Upload Failed.");
+                message = vendor + " Output Upload Failed.";
             }
         } else {
             logger_base.error("Controller does not support upload.");
+            message = "Controller does not support upload.";
         }
     } else {
         logger_base.error("Unable to find controller capabilities info.");
+        message = "Unable to find controller capabilities info.";
         wxASSERT(false);
     }
-
+    SetStatusText(message);
     return res;
 }
 #pragma endregion
@@ -2500,8 +2535,7 @@ void xLightsFrame::SetModelData(ControllerEthernet* controller, ModelManager* mo
 
     auto zcpp = dynamic_cast<ZCPPOutput*>(controller->GetFirstOutput());
 
-    std::string check;
-    UDController cud(controller, outputManager, modelManager, check, false);
+    UDController cud(controller, outputManager, modelManager, false);
 
     long baseStart = zcpp->GetStartChannel();
 

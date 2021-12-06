@@ -12,9 +12,11 @@
 
 #include "wx/wx.h"
 
-#include "../xlGLCanvas.h"
 #include <vector>
 #include <string>
+
+#include "graphics/xlGraphicsBase.h"
+#include "graphics/xlGraphicsContext.h"
 
 #include "../AudioManager.h"
 
@@ -38,7 +40,7 @@ enum DRAG_MODE {
     DRAG_RIGHT_EDGE
 };
 
-class Waveform : public xlGLCanvas
+class Waveform : public GRAPHICS_BASE_CLASS
 {
     public:
 		int OpenfileMedia(AudioManager* media, wxString& error);
@@ -48,7 +50,7 @@ class Waveform : public xlGLCanvas
         static int GetSmallSize() { return 37; };
         void SetZoomLevel(int level);
         int GetZoomLevel() const;
-        void SetGLSize(int w, int h);
+        void SetWaveFormSize(int h);
 
         int SetStartPixelOffset(int startPixel);
         int GetStartPixelOffset() const;
@@ -72,13 +74,13 @@ class Waveform : public xlGLCanvas
             float max;
         };
 
+        virtual xlColor ClearBackgroundColor() const override;
+
+        void render();
+
+
     protected:
-		virtual void InitializeGLContext() override;
-        virtual void InitializeGLCanvas() override;
-        virtual bool UsesVertexTextureAccumulator() override {return false;}
-        virtual bool UsesVertexColorAccumulator() override {return true;}
-        virtual bool UsesVertexAccumulator() override {return true;}
-        virtual bool UsesAddVertex() override {return false;}
+        xlVertexAccumulator *border = nullptr;
 
     private:
       	DECLARE_EVENT_TABLE()
@@ -118,8 +120,8 @@ class Waveform : public xlGLCanvas
 
         public:
 
-            mutable DrawGLUtils::xlVertexAccumulator background;
-            mutable DrawGLUtils::xlVertexAccumulator outline;
+            mutable std::unique_ptr<xlVertexAccumulator> background;
+            mutable std::unique_ptr<xlVertexAccumulator> outline;
             mutable int lastRenderStart;
             mutable int lastRenderSize;
             std::vector<MINMAX> MinMaxs;
@@ -136,7 +138,10 @@ class Waveform : public xlGLCanvas
                 _highNote = highNote;
             }
             WaveView(int ZoomLevel) { }
-            virtual ~WaveView() { }
+
+            WaveView(WaveView && v) = default;
+
+            virtual ~WaveView();
 
             int GetZoomLevel() const { return  mZoomLevel; }
             AUDIOSAMPLETYPE GetType() const { return _type; }
@@ -145,9 +150,9 @@ class Waveform : public xlGLCanvas
             void SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media, AUDIOSAMPLETYPE type, int lowNote, int highNote);
         };
 
-        void DrawWaveView(const WaveView &wv);
+
+        void DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv);
         void Paint( wxPaintEvent& event );
-        void renderGL();
         void UpdateMousePosition(int time);
       	void mouseMoved(wxMouseEvent& event);
         void mouseWheelMoved(wxMouseEvent& event);
@@ -158,6 +163,8 @@ class Waveform : public xlGLCanvas
         void OnGridPopup(wxCommandEvent& event);
         void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
         void mouseLeftWindow(wxMouseEvent& event);
+
+        float translateOffset(float f);
 
         std::vector<WaveView> views;
 };

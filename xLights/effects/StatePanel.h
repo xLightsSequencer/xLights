@@ -42,7 +42,7 @@ class StatePanel: public xlEffectPanel
 		BulkEditChoice* Choice_State_Color;
 		BulkEditChoice* Choice_State_Mode;
 		BulkEditChoice* Choice_State_TimingTrack;
-		wxChoice* Choice_StateDefinitonChoice;
+		BulkEditStateChoice* Choice_StateDefinitonChoice;
 		wxChoice* Choice_State_State;
 		wxRadioButton* RadioButton1;
 		wxRadioButton* RadioButton2;

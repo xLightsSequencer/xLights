@@ -24,6 +24,7 @@ class VideoReader;
 class CachedVideoReader;
 class OutputManager;
 class FSEQFile;
+class ScheduleOptions;
 
 class PlayListItemFSEQVideo : public PlayListItem
 {
@@ -70,7 +71,7 @@ public:
 
     #pragma region Constructors and Destructors
     PlayListItemFSEQVideo(OutputManager* outputManager, wxXmlNode* node);
-    PlayListItemFSEQVideo(OutputManager* outputManager);
+    PlayListItemFSEQVideo(OutputManager* outputManager, ScheduleOptions* options);
     virtual ~PlayListItemFSEQVideo();
     virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors

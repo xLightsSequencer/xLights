@@ -61,38 +61,47 @@ std::string ESPixelStick::GetWSResponse() {
 }
 
 
-std::string ESPixelStick::DecodeStringPortProtocol(std::string protocol) {
-
+std::string ESPixelStick::DecodeStringPortProtocol(std::string const& protocol) const {
     wxString p(protocol);
     p = p.Lower();
-    if (p == "ws2811") return "0";
-    if (p == "gece") return "1";
+    if (p == "ws2811") {
+        return "0";
+    }
+    if (p == "gece"){
+        return "1";
+    }
     return "null";
 }
 
-std::string ESPixelStick::DecodeSerialPortProtocol(std::string protocol) {
-
+std::string ESPixelStick::DecodeSerialPortProtocol(std::string const& protocol) const {
     // This is not right as I dont actually have a board that supports this
     wxString p(protocol);
     p = p.Lower();
 
-    if (p == "dmx") return "null";
-    if (p == "renard") return "null";
+    if (p == "dmx") {
+        return "null";
+    }
+    if (p == "renard") {
+        return "null";
+    }
     return "null";
 }
 
-std::string ESPixelStick::DecodeSerialSpeed(std::string protocol) {
-
+std::string ESPixelStick::DecodeSerialSpeed(std::string const& protocol) const {
     // This is not right as I dont actually have a board that supports this
     wxString p(protocol);
     p = p.Lower();
 
-    if (p == "dmx") return "null";
-    if (p == "renard") return "null";
+    if (p == "dmx") {
+        return "null";
+    }
+    if (p == "renard") {
+        return "null";
+    }
     return "null";
 }
 
-std::string ESPixelStick::GetFromJSON(std::string section, std::string key, std::string json) {
+std::string ESPixelStick::GetFromJSON(std::string const& section, std::string const& key, std::string const& json) const {
     //skip over the "G2" header or whatever
     for (int x = 0; x < json.size(); x++) {
         if (json[x] == '{' || json[x] == '[') {
@@ -138,7 +147,7 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
         reader.Parse(config, &origJson);
         bool changed = false;
         wxJSONValue inputConfig = origJson["get"]["input_config"]; //get the input_config element
-        
+
         std::list<Output*> outputs = controller->GetOutputs();
         if (outputs.size() > 6) {
             DisplayError(wxString::Format("Attempt to upload %d universes to ESPixelStick controller but only 6 are supported.", outputs.size()).ToStdString());
@@ -191,14 +200,14 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
         } else if (type == "DDP") {
             //nothing to do for DDP
         }
-        
+
         if (changed) {
             wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
             wxString message;
-            
+
             wxJSONValue newJson;
             newJson["cmd"]["set"]["input"]["input_config"] = inputConfig;
-            
+
             writer.Write(newJson, message);
             message.Replace(" : ", ":");
             if (_wsClient.Send(message)) {
@@ -284,7 +293,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
     logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+    UDController cud(controller, outputManager, allmodels, false);
     auto rules = ControllerCaps::GetControllerConfig(controller);
     bool success = cud.Check(rules, check);
     cud.Dump();
@@ -298,31 +307,31 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
         reader.Parse(config, &origJson);
         bool changed = false;
         wxJSONValue outputConfig = origJson["get"]["output_config"]; //get the output_config element
-        
+
         for (int x = 0; x < cud.GetMaxPixelPort(); x++) {
             UDControllerPort* port = cud.GetControllerPixelPort(x + 1);
-            std::string proto = MapV4Type(port->GetProtocol());
-            std::string pixels = std::to_string(port->Pixels());
-            int brightness = 100;
-            std::string gamma = "1";
-            std::string colorOrder = "rgb";
-            std::string groupCount = "1";
-            std::string startNulls = "0";
-            std::string endNulls = "0";
+            std::string const proto = MapV4Type(port->GetProtocol());
+            std::string const pixels = std::to_string(port->Pixels());
+            int brightness{ -1 };
+            float gamma{ -1.0F };
+            std::string colorOrder;
+            int groupCount{ -1 };
+            int startNulls{ -1 };
+            int endNulls{ -1 };
             auto s = port->GetModels().front();
             if (s) {
-                brightness = s->GetBrightness(100);
-                colorOrder = MapV4ColorOrder(s->GetColourOrder("rgb"));
-                gamma = std::to_string(s->GetGamma(1.0));
-                int gc = s->GetGroupCount(1);
+                brightness = s->GetBrightness(-1);
+                colorOrder = MapV4ColorOrder(s->GetColourOrder(""));
+                gamma = s->GetGamma(-1.0F);
+                int gc = s->GetGroupCount(-1);
                 if (gc == 0) {
                     gc = 1;
                 }
-                groupCount = std::to_string(gc);
-                startNulls = std::to_string(s->GetStartNullPixels(0));
-                endNulls = std::to_string(s->GetEndNullPixels(0));
+                groupCount = gc;
+                startNulls = s->GetStartNullPixels(-1);
+                endNulls = s->GetEndNullPixels(-1);
             }
-            
+
             std::string outidx = std::to_string(x);
             std::string curIdx = std::to_string(outputConfig["channels"][outidx]["type"].AsInt());
             if (outputConfig["channels"][outidx][curIdx]["type"].AsString() != proto) {
@@ -341,49 +350,71 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 }
             }
             if (proto == "WS2811" || proto == "TM1814") {
-                if (gamma != outputConfig["channels"][outidx][curIdx]["gamma"].AsString()) {
-                    changed = true;
-                    outputConfig["channels"][outidx][curIdx]["gamma"] = gamma;
+                if (gamma > -1.0F) {
+                    if (gamma < 1.0F) {
+                        gamma = 1.0F;
+                    }
+                    if (gamma > 5.0F) {
+                        gamma = 5.0F;
+                    }
+                    std::string const s_gamma = std::to_string(gamma);
+                    if (s_gamma != outputConfig["channels"][outidx][curIdx]["gamma"].AsString()) {
+                        changed = true;
+                        outputConfig["channels"][outidx][curIdx]["gamma"] = s_gamma;
+                    }
                 }
-                int b = brightness;
-                if (b > 100) {
-                    b = 100;
-                }
+                if (brightness != -1) {
+                    int b = brightness;
+                    if (b > 100) {
+                        b = 100;
+                    }
 
-                std::string b2 = std::to_string(b);
-                if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
-                    changed = true;
-                    outputConfig["channels"][outidx][curIdx]["brightness"] = b2;
+                    std::string const b2 = std::to_string(b);
+                    if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
+                        changed = true;
+                        outputConfig["channels"][outidx][curIdx]["brightness"] = b2;
+                    }
                 }
-                if (colorOrder != outputConfig["channels"][outidx][curIdx]["color_order"].AsString()) {
+                if (!colorOrder.empty() && colorOrder != outputConfig["channels"][outidx][curIdx]["color_order"].AsString()) {
                     changed = true;
                     outputConfig["channels"][outidx][curIdx]["color_order"] = colorOrder;
                 }
-                if (groupCount != outputConfig["channels"][outidx][curIdx]["group_size"].AsString()) {
-                    changed = true;
-                    outputConfig["channels"][outidx][curIdx]["group_size"] = groupCount;
+                if (groupCount != -1) {
+                    std::string const s_groupCount = std::to_string(groupCount);
+                    if (s_groupCount != outputConfig["channels"][outidx][curIdx]["group_size"].AsString()) {
+                        changed = true;
+                        outputConfig["channels"][outidx][curIdx]["group_size"] = s_groupCount;
+                    }
                 }
-                if (startNulls != outputConfig["channels"][outidx][curIdx]["prependnullcount"].AsString()) {
-                    changed = true;
-                    outputConfig["channels"][outidx][curIdx]["prependnullcount"] = startNulls;
+                if (startNulls != -1) {
+                    std::string const s_startNulls = std::to_string(startNulls);
+                    if (s_startNulls != outputConfig["channels"][outidx][curIdx]["prependnullcount"].AsString()) {
+                        changed = true;
+                        outputConfig["channels"][outidx][curIdx]["prependnullcount"] = s_startNulls;
+                    }
                 }
-                if (endNulls != outputConfig["channels"][outidx][curIdx]["appendnullcount"].AsString()) {
-                    changed = true;
-                    outputConfig["channels"][outidx][curIdx]["appendnullcount"] = endNulls;
+                if (endNulls != -1) {
+                    std::string const s_endNulls = std::to_string(endNulls);
+                    if (s_endNulls != outputConfig["channels"][outidx][curIdx]["appendnullcount"].AsString()) {
+                        changed = true;
+                        outputConfig["channels"][outidx][curIdx]["appendnullcount"] = s_endNulls;
+                    }
                 }
                 if (pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
                     changed = true;
                     outputConfig["channels"][outidx][curIdx]["pixel_count"] = pixels;
                 }
             } else if (proto == "GECE") {
-                int b = brightness;
-                if (b > 100) {
-                    b = 100;
-                }
-                std::string b2 = std::to_string(b);
-                if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
-                    changed = true;
-                    outputConfig["channels"][outidx][curIdx]["brightness"] = b2;
+                if (brightness != -1) {
+                    int b = brightness;
+                    if (b > 100) {
+                        b = 100;
+                    }
+                    std::string const b2 = std::to_string(b);
+                    if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
+                        changed = true;
+                        outputConfig["channels"][outidx][curIdx]["brightness"] = b2;
+                    }
                 }
 
                 if (pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
@@ -422,10 +453,10 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
         if (changed) {
             wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
             wxString message;
-            
+
             wxJSONValue newJson;
             newJson["cmd"]["set"]["output"]["output_config"] = outputConfig;
-            
+
             writer.Write(newJson, message);
             message.Replace(" : ", ":");
 
@@ -443,7 +474,7 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
     logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+    UDController cud(controller, outputManager, allmodels, false);
 
     auto rules = ControllerCaps::GetControllerConfig(controller);
     bool success = cud.Check(rules, check);
@@ -466,7 +497,7 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
         wxJSONValue origJson;
         wxJSONReader reader;
         reader.Parse(config, &origJson);
-        
+
         wxJSONValue newJson;
         //copy stuff over to act as defaults
         newJson["device"] = origJson["device"];
@@ -509,8 +540,8 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
                 }
             }
             if (brightness > 0) {
-                float bval = brightness;
-                bval /= 100.0f;
+                float bval = (float)brightness;
+                bval /= 100.0F;
                 newJson["pixel"]["briteVal"] = bval;
             }
         }

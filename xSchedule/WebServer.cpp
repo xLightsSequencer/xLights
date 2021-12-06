@@ -53,14 +53,12 @@ void WebServer::GeneratePass()
 
 void RemoveFromValid(HttpConnection& connection)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // remove any existing entry for this machine ... one logged in entry per machine
-    for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it)
-    {
+    for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it) {
         wxArrayString li = wxSplit(*it, '|');
-        if (li[0] == connection.Address().IPAddress())
-        {
-            logger_base.debug("Security: Removing ip %s.", (const char *)li[0].c_str());
+        if (li[0] == connection.Address().IPAddress()) {
+            logger_base.debug("Security: Removing ip %s.", (const char*)li[0].c_str());
             __Loggedin.remove(*it);
             break;
         }
@@ -71,12 +69,10 @@ void UpdateValid(HttpConnection& connection)
 {
     if (__password == "") return; // no password ... always logged in
 
-    for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it)
-    {
+    for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it) {
         wxArrayString li = wxSplit(*it, '|');
 
-        if (li[0] == connection.Address().IPAddress())
-        {
+        if (li[0] == connection.Address().IPAddress()) {
             li[1] = wxDateTime::Now().FormatISOCombined();
             *it = li[0] + "|" + li[1];
             return;
@@ -86,15 +82,13 @@ void UpdateValid(HttpConnection& connection)
 
 void AddToValid(HttpConnection& connection)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // remove any existing entry for this machine ... one logged in entry per machine
-    for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it)
-    {
+    for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it) {
         wxArrayString li = wxSplit(*it, '|');
-        if (li[0] == connection.Address().IPAddress())
-        {
-            logger_base.debug("Security: Removing ip %s.", (const char *)li[0].c_str());
+        if (li[0] == connection.Address().IPAddress()) {
+            logger_base.debug("Security: Removing ip %s.", (const char*)li[0].c_str());
             __Loggedin.remove(*it);
             break;
         }
@@ -102,7 +96,7 @@ void AddToValid(HttpConnection& connection)
 
     wxString security = connection.Address().IPAddress() + "|" + wxDateTime::Now().FormatISOCombined();
 
-    logger_base.debug("Security: Adding record %s.", (const char *)security.c_str());
+    logger_base.debug("Security: Adding record %s.", (const char*)security.c_str());
     __Loggedin.push_back(security);
 }
 
@@ -113,7 +107,7 @@ bool IsValidPass(const std::string& pass)
 
 bool CheckLoggedIn(HttpConnection& connection, const std::string& pass)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (__password == "") return true; // no password ... always logged in
 
@@ -121,28 +115,23 @@ bool CheckLoggedIn(HttpConnection& connection, const std::string& pass)
 
     // remove old logins
     std::list<wxString> toremove;
-    for (const auto& it : __Loggedin)
-    {
+    for (const auto& it : __Loggedin) {
         wxArrayString li = wxSplit(it, '|');
         wxDateTime lastused;
         lastused.ParseISOCombined(li[1]);
-        if (wxDateTime::Now() - lastused > __loginTimeout * 60000)
-        {
-            logger_base.debug("Security: Removing ip %s due to timout.", (const char *)li[0].c_str());
+        if (wxDateTime::Now() - lastused > __loginTimeout * 60000) {
+            logger_base.debug("Security: Removing ip %s due to timout.", (const char*)li[0].c_str());
             toremove.push_back(it);
         }
     }
-    for (const auto& it : toremove)
-    {
+    for (const auto& it : toremove) {
         __Loggedin.remove(it);
     }
 
-    for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it)
-    {
+    for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it) {
         wxArrayString li = wxSplit(*it, '|');
 
-        if (li[0] == connection.Address().IPAddress())
-        {
+        if (li[0] == connection.Address().IPAddress()) {
             li[1] = wxDateTime::Now().FormatISOCombined();
             *it = li[0] + "|" + li[1];
             return true;
@@ -159,28 +148,21 @@ std::map<wxString, wxString> ParseURI(wxString uri)
     wxString s(uri);
     wxString q = s.AfterFirst('?');
 
-    if (q != "")
-    {
+    if (q != "") {
         wxArrayString p = wxSplit(q, '&');
 
-        for (auto it = p.begin(); it != p.end(); ++it)
-        {
+        for (auto it = p.begin(); it != p.end(); ++it) {
             wxArrayString x = wxSplit(*it, '=');
-            if (x.Count() >= 2)
-            {
+            if (x.Count() >= 2) {
                 wxString key = x[0];
 
                 res[key] = "";
-                for (auto it2 = x.begin(); it2 != x.end(); ++it2)
-                {
-                    if (it2 == x.begin())
-                    {
+                for (auto it2 = x.begin(); it2 != x.end(); ++it2) {
+                    if (it2 == x.begin()) {
                         // ignore the key
                     }
-                    else
-                    {
-                        if (res[key] != "")
-                        {
+                    else {
+                        if (res[key] != "") {
                             res[key] += "=";
                         }
                         res[key] += *it2;
@@ -193,47 +175,44 @@ std::map<wxString, wxString> ParseURI(wxString uri)
     return res;
 }
 
-wxString ProcessCommand(HttpConnection &connection, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference, const std::string& pass)
+wxString ProcessCommand(HttpConnection& connection, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference, const std::string& pass)
 {
     wxStopWatch sw;
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!CheckLoggedIn(connection, pass))
-    {
-        return "{\"result\":\"not logged in\",\"command\":\""+
-         command + "\",\"reference\":\"" +
+    if (!CheckLoggedIn(connection, pass)) {
+        return "{\"result\":\"not logged in\",\"command\":\"" +
+            command + "\",\"reference\":\"" +
             reference + "\",\"ip\":\"" +
-                connection.Address().IPAddress() + "\"}";
+            connection.Address().IPAddress() + "\"}";
     }
 
 #ifdef DETAILED_LOGGING
-    logger_base.info("xScheduleCommand received command = '%s' parameters = '%s'.", (const char *)command.c_str(), (const char *)parameters.c_str());
+    logger_base.info("xScheduleCommand received command = '%s' parameters = '%s'.", (const char*)command.c_str(), (const char*)parameters.c_str());
 #endif
 
     wxString result;
     size_t rate = 0;
     wxString msg = "";
-    if (xScheduleFrame::GetScheduleManager()->Action(command, parameters, data, nullptr, nullptr, nullptr, rate, msg))
-    {
+    if (xScheduleFrame::GetScheduleManager()->Action(command, parameters, data, nullptr, nullptr, nullptr, rate, msg)) {
         wxCommandEvent event(EVT_FRAMEMS);
         event.SetInt(rate);
         wxPostEvent(wxGetApp().GetTopWindow(), event);
 
-        result = "{\"result\":\"ok\",\"reference\":\""+
-            reference+"\",\"command\":\""+
-            command+"\"}";
+        result = "{\"result\":\"ok\",\"reference\":\"" +
+            reference + "\",\"command\":\"" +
+            command + "\"}";
 
 #ifdef DETAILED_LOGGING
         logger_base.info("    Time %ld.", sw.Time());
 #endif
     }
-    else
-    {
-        result = "{\"result\":\"failed\",\"command\":\""+
+    else {
+        result = "{\"result\":\"failed\",\"command\":\"" +
             command + "\",\"reference\":\"" +
             reference + "\",\"message\":\"" +
-                   msg + "\"}";
-        logger_base.info("Command command=%s parameters=%s result='%s'. Time %ld.", (const char *)command.c_str(), (const char*)parameters.c_str(), (const char *)msg.c_str(), sw.Time());
+            msg + "\"}";
+        logger_base.info("Command command=%s parameters=%s result='%s'. Time %ld.", (const char*)command.c_str(), (const char*)parameters.c_str(), (const char*)msg.c_str(), sw.Time());
     }
 
     return result;
@@ -244,8 +223,7 @@ wxString ProcessPluginRequest(HttpConnection& connection, const wxString& plugin
     wxStopWatch sw;
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!CheckLoggedIn(connection, pass))
-    {
+    if (!CheckLoggedIn(connection, pass)) {
         return "{\"result\":\"not logged in\",\"command\":\"" +
             command + "\",\"ip\":\"" +
             connection.Address().IPAddress() + "\"}";
@@ -258,14 +236,13 @@ wxString ProcessPluginRequest(HttpConnection& connection, const wxString& plugin
     return ((xScheduleFrame*)wxTheApp->GetTopWindow())->ProcessPluginRequest(plugin, command, parameters, data, reference);
 }
 
-wxString ProcessQuery(HttpConnection &connection, const wxString& query, const wxString& parameters, const wxString& reference, const std::string& pass)
+wxString ProcessQuery(HttpConnection& connection, const wxString& query, const wxString& parameters, const wxString& reference, const std::string& pass)
 {
     wxStopWatch sw;
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!CheckLoggedIn(connection, pass))
-    {
-        return "{\"result\":\"not logged in\",\"query\":\""+
+    if (!CheckLoggedIn(connection, pass)) {
+        return "{\"result\":\"not logged in\",\"query\":\"" +
             query + "\",\"reference\":\"" +
             reference + "\",\"ip\":\"" +
             connection.Address().IPAddress() + "\"}";
@@ -275,188 +252,167 @@ wxString ProcessQuery(HttpConnection &connection, const wxString& query, const w
 #ifndef DETAILED_LOGGING
     if (query != "GetPlayingStatus")
 #endif
-        logger_base.info("xScheduleQuery received query = '%s' parameters = '%s'.", (const char *)query.c_str(), (const char *)parameters.c_str());
+        logger_base.info("xScheduleQuery received query = '%s' parameters = '%s'.", (const char*)query.c_str(), (const char*)parameters.c_str());
 
     wxString result = "";
     wxString msg;
-    if (xScheduleFrame::GetScheduleManager()->Query(query, parameters, result, msg, connection.Address().IPAddress(), reference))
-    {
+    if (xScheduleFrame::GetScheduleManager()->Query(query, parameters, result, msg, connection.Address().IPAddress(), reference)) {
 #ifndef DETAILED_LOGGING
         if (query != "GetPlayingStatus")
 #endif
-            logger_base.info("    data = '%s'. Time = %ld.", (const char *)result.c_str(), sw.Time());
+            logger_base.info("    data = '%s'. Time = %ld.", (const char*)result.c_str(), sw.Time());
     }
-    else
-    {
-        result = "{\"result\":\"failed\",\"query\":\""+
+    else {
+        result = "{\"result\":\"failed\",\"query\":\"" +
             query + "\",\"reference\":\"" +
             reference + "\",\"message\":\"" +
             msg + "\"}";
-        logger_base.info("    data = '' : '%s'. Time = %ld.", (const char *)result.c_str(), sw.Time());
+        logger_base.info("    data = '' : '%s'. Time = %ld.", (const char*)result.c_str(), sw.Time());
     }
 
     return result;
 }
 
-wxString ProcessXyzzy(HttpConnection &connection, const wxString& command, const wxString& parameters, const wxString& reference, const std::string& pass)
+wxString ProcessXyzzy(HttpConnection& connection, const wxString& command, const wxString& parameters, const wxString& reference, const std::string& pass)
 {
     wxStopWatch sw;
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxString result;
     wxString msg;
-    if (xScheduleFrame::GetScheduleManager()->DoXyzzy(command, parameters, msg, reference))
-    {
+    if (xScheduleFrame::GetScheduleManager()->DoXyzzy(command, parameters, msg, reference)) {
         result = msg;
 #ifdef DETAILED_LOGGING
-        logger_base.info("xyzzy command=%s parameters=%s result='%s'. Time %ld.", (const char *)command.c_str(), (const char*)parameters.c_str(), (const char *)msg.c_str(), sw.Time());
+        logger_base.info("xyzzy command=%s parameters=%s result='%s'. Time %ld.", (const char*)command.c_str(), (const char*)parameters.c_str(), (const char*)msg.c_str(), sw.Time());
 #endif
     }
-    else
-    {
-        result = "{\"result\":\"failed\",\"xyzzy\":\""+
+    else {
+        result = "{\"result\":\"failed\",\"xyzzy\":\"" +
             command + "\",\"reference\":\"" +
             reference + "\",\"message\":\"" +
             msg + "\"}";
-        logger_base.info("xyzzy command=%s parameters=%s result='%s'. Time %ld.", (const char *)command.c_str(), (const char*)parameters.c_str(), (const char *)msg.c_str(), sw.Time());
+        logger_base.info("xyzzy command=%s parameters=%s result='%s'. Time %ld.", (const char*)command.c_str(), (const char*)parameters.c_str(), (const char*)msg.c_str(), sw.Time());
     }
 
     return result;
 }
 
-wxString ProcessLogin(HttpConnection &connection, const wxString& credential, const wxString& reference)
+wxString ProcessLogin(HttpConnection& connection, const wxString& credential, const wxString& reference)
 {
     wxStopWatch sw;
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxString result;
-    if (__password != "")
-    {
+    if (__password != "") {
         wxString cred = connection.Address().IPAddress() + __password;
 
         // calculate md5 hash
         wxString hash = md5(cred);
 
-        if (hash == credential)
-        {
+        if (hash == credential) {
             // this is a valid login
             AddToValid(connection);
-            result = "{\"result\":\"ok\",\"reference\":\""+reference+"\",\"command\":\"login\"}";
+            result = "{\"result\":\"ok\",\"reference\":\"" + reference + "\",\"command\":\"login\"}";
 
             // THIS SHOULD BE REMOVED
             //logger_base.debug("Security: Login %s success.", (const char *)credential.c_str());
 
-            logger_base.debug("Security: Login success %s. Time %ld.", (const char *)connection.Address().IPAddress().c_str(), sw.Time());
+            logger_base.debug("Security: Login success %s. Time %ld.", (const char*)connection.Address().IPAddress().c_str(), sw.Time());
         }
-        else
-        {
+        else {
             // not a valid login
             // THIS SHOULD BE REMOVED
             //logger_base.debug("Security: Login failed - credential was %s for %s when it should have been %s.", (const char *)credential.c_str(), (const char *)cred.c_str(), (const char *)hash.c_str());
 
             RemoveFromValid(connection);
 
-            result = "{\"result\":\"failed\",\"command\":\"login\",\"message\":\"Login failed.\",\"reference\":\""+reference+"\",\"ip\":\"" + connection.Address().IPAddress() + "\"}";
-            logger_base.debug("Security: Login failed. data = '%s'. Time = %ld.", (const char *)result.c_str(), sw.Time());
+            result = "{\"result\":\"failed\",\"command\":\"login\",\"message\":\"Login failed.\",\"reference\":\"" + reference + "\",\"ip\":\"" + connection.Address().IPAddress() + "\"}";
+            logger_base.debug("Security: Login failed. data = '%s'. Time = %ld.", (const char*)result.c_str(), sw.Time());
         }
     }
-    else
-    {
-        result = "{\"result\":\"ok\",\"command\":\"login\",\"reference\":\""+reference+"\"}";
+    else {
+        result = "{\"result\":\"ok\",\"command\":\"login\",\"reference\":\"" + reference + "\"}";
     }
 
     return result;
 }
 
-wxString ProcessStash(HttpConnection &connection, const wxString& command, const wxString& key, wxString& data, const wxString& reference, const std::string& pass)
+wxString ProcessStash(HttpConnection& connection, const wxString& command, const wxString& key, wxString& data, const wxString& reference, const std::string& pass)
 {
     wxStopWatch sw;
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!CheckLoggedIn(connection, pass))
-    {
-        return "{\"result\":\"not logged in\",\"stash\":\""+
+    if (!CheckLoggedIn(connection, pass)) {
+        return "{\"result\":\"not logged in\",\"stash\":\"" +
             command + "\",\"reference\":\"" +
             reference + "\",\"ip\":\"" +
             connection.Address().IPAddress() + "\"}";
     }
 
-    logger_base.info("xScheduleStash received command = '%s' key = '%s'.", (const char *)command.c_str(), (const char *)key.c_str());
+    logger_base.info("xScheduleStash received command = '%s' key = '%s'.", (const char*)command.c_str(), (const char*)key.c_str());
 
     wxString result;
-    if (wxString(command).Lower() == "store")
-    {
-        logger_base.info("    data = '%s'.", (const char *)data.c_str());
+    if (wxString(command).Lower() == "store") {
+        logger_base.info("    data = '%s'.", (const char*)data.c_str());
 
-        if (key == "GetModels")
-        {
+        if (key == "GetModels") {
             result = "{\"result\":\"failed\",\"stash\":\"" +
                 command + "\",\"reference\":\"" +
                 reference + "\",\"message\":\"Unable to store under key 'GetModels'. This is a reserved key.\"}";
-            logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
+            logger_base.info("    data = '%s'. Time = %ld.", (const char*)data.c_str(), sw.Time());
         }
-        else
-        {
+        else {
             // now store it in a file
             wxString msg = "";
-            if (xScheduleFrame::GetScheduleManager()->StoreData(key, data, msg))
-            {
+            if (xScheduleFrame::GetScheduleManager()->StoreData(key, data, msg)) {
 #ifdef DETAILED_LOGGING
                 logger_base.info("    Time %ld.", sw.Time());
 #endif
                 result = "{\"result\":\"ok\",\"reference\":\"" + reference + "\",\"stash\":\"" + command + "\"}";
             }
-            else
-            {
+            else {
                 result = "{\"result\":\"failed\",\"stash\":\"" +
                     command + "\",\"reference\":\"" +
                     reference + "\",\"message\":\"" +
                     msg + "\"}";
-                logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
+                logger_base.info("    data = '%s'. Time = %ld.", (const char*)data.c_str(), sw.Time());
             }
         }
     }
-    else if (wxString(command).Lower() == "retrieve")
-    {
+    else if (wxString(command).Lower() == "retrieve") {
         wxString msg = "";
-        if (xScheduleFrame::GetScheduleManager()->RetrieveData(key, data, msg))
-        {
-            logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
+        if (xScheduleFrame::GetScheduleManager()->RetrieveData(key, data, msg)) {
+            logger_base.info("    data = '%s'. Time = %ld.", (const char*)data.c_str(), sw.Time());
             result = "";
         }
-        else
-        {
-            result = "{\"result\":\"failed\",\"stash\":\""+
-                command + "\",\"reference\":\"" +
-                reference+"\",\"message\":\"" +
-                msg + "\"}";
-            logger_base.info("    data = '' : '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
-        }
-    }
-    else if (wxString(command).Lower() == "retrievejson")
-    {
-        wxString msg = "";
-        if (xScheduleFrame::GetScheduleManager()->RetrieveData(key, data, msg))
-        {
-            logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
-            result = "{\"reference\":\"" + reference +
-                     "\",\"key\":\"" + key + "\",\"value\":[" + data + "]}";
-        }
-        else
-        {
+        else {
             result = "{\"result\":\"failed\",\"stash\":\"" +
                 command + "\",\"reference\":\"" +
                 reference + "\",\"message\":\"" +
                 msg + "\"}";
-            logger_base.info("    data = '' : '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
+            logger_base.info("    data = '' : '%s'. Time = %ld.", (const char*)data.c_str(), sw.Time());
         }
     }
-    else
-    {
-        result = "{\"result\":\"failed\",\"stash\":\""+
-            command+"\",\"reference\":\""+
-            reference+"\",\"message\":\"Unknown stash command.\"}";
-        logger_base.info("    '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
+    else if (wxString(command).Lower() == "retrievejson") {
+        wxString msg = "";
+        if (xScheduleFrame::GetScheduleManager()->RetrieveData(key, data, msg)) {
+            logger_base.info("    data = '%s'. Time = %ld.", (const char*)data.c_str(), sw.Time());
+            result = "{\"reference\":\"" + reference +
+                "\",\"key\":\"" + key + "\",\"value\":[" + data + "]}";
+        }
+        else {
+            result = "{\"result\":\"failed\",\"stash\":\"" +
+                command + "\",\"reference\":\"" +
+                reference + "\",\"message\":\"" +
+                msg + "\"}";
+            logger_base.info("    data = '' : '%s'. Time = %ld.", (const char*)data.c_str(), sw.Time());
+        }
+    }
+    else {
+        result = "{\"result\":\"failed\",\"stash\":\"" +
+            command + "\",\"reference\":\"" +
+            reference + "\",\"message\":\"Unknown stash command.\"}";
+        logger_base.info("    '%s'. Time = %ld.", (const char*)data.c_str(), sw.Time());
     }
     return result;
 }
@@ -700,13 +656,11 @@ void MyMessageHandler(HttpConnection& connection, WebSocketMessage& message)
 
     xScheduleFrame::GetScheduleManager()->WebRequestReceived();
 
-    if (message.Type() == WebSocketMessage::Text)
-    {
+    if (message.Type() == WebSocketMessage::Text) {
         wxString result;
         wxString text((char*)message.Content().GetData(), message.Content().GetDataLen());
 
-        if (text != "")
-        {
+        if (text != "") {
             logger_base.info("Received " + text);
 
             // construct the JSON root object
@@ -721,8 +675,7 @@ void MyMessageHandler(HttpConnection& connection, WebSocketMessage& message)
             if (numErrors > 0) {
                 logger_base.error("The JSON document is not well-formed: " + text);
                 const wxArrayString& errors = reader.GetErrors();
-                for (auto it = errors.begin(); it != errors.end(); ++it)
-                {
+                for (auto it = errors.begin(); it != errors.end(); ++it) {
                     logger_base.error("    " + std::string(it->c_str()));
                 }
                 WebSocketMessage wsm("{\"result\":\"failed\",\"message\":\"JSON message not well formed.\"}");
@@ -736,8 +689,7 @@ void MyMessageHandler(HttpConnection& connection, WebSocketMessage& message)
             // extract the type of request
             wxString type = root.Get("Type", defaultValue).AsString().Lower();
 
-            if (type == "command")
-            {
+            if (type == "command") {
                 wxString c = root.Get("Command", defaultValue).AsString();
                 wxString p = root.Get("Parameters", defaultValue).AsString();
                 wxString d = root.Get("Data", defaultValue).AsString();
@@ -745,52 +697,44 @@ void MyMessageHandler(HttpConnection& connection, WebSocketMessage& message)
                 wxString pass = root.Get("Pass", defaultValue).AsString();
                 result = ProcessCommand(connection, c, p, d, r, pass);
             }
-            else if (type == "query")
-            {
+            else if (type == "query") {
                 wxString q = root.Get("Query", defaultValue).AsString();
                 wxString p = root.Get("Parameters", defaultValue).AsString();
                 wxString r = root.Get("Reference", defaultValue).AsString();
                 wxString pass = root.Get("Pass", defaultValue).AsString();
                 result = ProcessQuery(connection, q, p, r, pass);
             }
-            else if (type == "xyzzy2")
-            {
+            else if (type == "xyzzy2") {
                 wxString c = root.Get("c", defaultValue).AsString();
                 wxString p = root.Get("p", defaultValue).AsString();
                 wxString r = root.Get("r", defaultValue).AsString();
                 result = ProcessXyzzy(connection, c + "2", p, r, "");
             }
-            else if (type == "xyzzy")
-            {
+            else if (type == "xyzzy") {
                 wxString c = root.Get("c", defaultValue).AsString();
                 wxString p = root.Get("p", defaultValue).AsString();
                 wxString r = root.Get("r", defaultValue).AsString();
                 result = ProcessXyzzy(connection, c, p, r, "");
             }
-            else if (type == "login")
-            {
+            else if (type == "login") {
                 wxString c = root.Get("Credential", defaultValue).AsString();
                 wxString r = root.Get("Reference", defaultValue).AsString();
                 result = ProcessLogin(connection, c, r);
             }
-            else if (type == "stash")
-            {
+            else if (type == "stash") {
                 wxString c = root.Get("Command", defaultValue).AsString();
                 wxString k = root.Get("Key", defaultValue).AsString();
                 wxString d = root.Get("Data", defaultValue).AsString();
                 wxString r = root.Get("Reference", defaultValue).AsString();
                 wxString pass = root.Get("Pass", defaultValue).AsString();
                 result = ProcessStash(connection, c, k, d, r, pass);
-                if (result == "")
-                {
+                if (result == "") {
                     result = d;
                 }
             }
-            else
-            {
+            else {
                 plugin = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetWebPluginRequest(type);
-                if (plugin != "")
-                {
+                if (plugin != "") {
                     wxString c = root.Get("Command", defaultValue).AsString();
                     wxString p = root.Get("Parameters", defaultValue).AsString();
                     wxString d = root.Get("Data", defaultValue).AsString();
@@ -798,8 +742,7 @@ void MyMessageHandler(HttpConnection& connection, WebSocketMessage& message)
                     wxString pass = root.Get("Pass", defaultValue).AsString();
                     result = ProcessPluginRequest(connection, plugin, c, p, d, r, pass);
                 }
-                else
-                {
+                else {
                     wxString r = root.Get("Reference", defaultValue).AsString();
                     WebSocketMessage wsm("{\"result\":\"failed\",\"reference\":\"" + r + "\",\"message\":\"Unknown request type or plugin not running.\"}");
                     connection.SendMessage(wsm);
@@ -807,16 +750,14 @@ void MyMessageHandler(HttpConnection& connection, WebSocketMessage& message)
                 }
             }
         }
-        else
-        {
+        else {
             result = "{\"result\":\"failed\",\"reference\":\"\",\"message\":\"Empty request.\"}";
         }
 
         WebSocketMessage wsm(result);
         connection.SendMessage(wsm);
     }
-    else if (message.Type() == WebSocketMessage::Binary)
-    {
+    else if (message.Type() == WebSocketMessage::Binary) {
         logger_base.info("Received <binary>");
         WebSocketMessage wsm("{\"result\":\"failed\",\"message\":\"Binary web sockets not supported.\"}");
         connection.SendMessage(wsm);
@@ -826,24 +767,19 @@ void MyMessageHandler(HttpConnection& connection, WebSocketMessage& message)
 void WebServer::SendMessageToAllWebSockets(const wxString& message)
 {
     static bool reentry = false;
-    if (reentry)
-    {
+    if (reentry) {
         return;
     }
     reentry = true;
 
-    for (auto it = _connections.begin(); it != _connections.end(); ++it)
-    {
-        if ((*it).second->IsWebSocket())
-        {
+    for (const auto& it : _connections) {
+        if (it.second->IsWebSocket()) {
             WebSocketMessage wsm(message);
-            if (it->second->SendMessage(wsm))
-            {
-                UpdateValid(*it->second);
+            if (it.second->SendMessage(wsm)) {
+                UpdateValid(*it.second);
             }
-            else
-            {
-                RemoveFromValid(*it->second);
+            else {
+                RemoveFromValid(*it.second);
             }
         }
     }
@@ -853,10 +789,8 @@ void WebServer::SendMessageToAllWebSockets(const wxString& message)
 
 bool WebServer::IsSomeoneListening() const
 {
-    for (auto it : _connections)
-    {
-        if (it.second->IsWebSocket())
-        {
+    for (auto it : _connections) {
+        if (it.second->IsWebSocket()) {
             return true;
         }
     }
@@ -865,10 +799,10 @@ bool WebServer::IsSomeoneListening() const
 
 void WebServer::SetAllowUnauthenticatedPagesToBypassLogin(bool allowUnauthPages)
 {
-    if (!allowUnauthPages)         {
+    if (!allowUnauthPages) {
         __validPass = "";
     }
-    else if (__validPass == "")         {
+    else if (__validPass == "") {
         GeneratePass();
     }
 }
@@ -878,19 +812,18 @@ WebServer::WebServer(int port, bool apionly, const wxString& password, int mins,
     __apiOnly = apionly; // put this in a global.
     __password = password;
     __loginTimeout = mins;
-    __defaultPage = defaultPage;
+    if (defaultPage != "") __defaultPage = defaultPage;
     SetAllowUnauthenticatedPagesToBypassLogin(allowUnauthPages);
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     HttpContext context;
     context.Port = port;
     context.RequestHandler = MyRequestHandler;
     context.MessageHandler = MyMessageHandler;
 
-    if (!Start(context))
-    {
+    if (!Start(context)) {
         logger_base.error("Error starting web server.");
         wxMessageBox("Error starting web server. You may already have a program listening on port " + wxString::Format(wxT("%i"), port));
     }
@@ -919,5 +852,5 @@ void WebServer::SetPassword(const wxString& password)
 
 void WebServer::SetDefaultPage(const std::string& defaultPage)
 {
-    __defaultPage = defaultPage;
+    if (defaultPage != "") __defaultPage = defaultPage;
 }

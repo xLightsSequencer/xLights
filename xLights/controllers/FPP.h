@@ -4,6 +4,7 @@
 #include <map>
 #include <set>
 #include <algorithm>
+#include <string>
 
 #include "../models/ModelManager.h"
 #include "ControllerUploadData.h"
@@ -120,7 +121,8 @@ class FPP : public BaseController
     static bool ValidateProxy(const std::string& to, const std::string& via);
 
     static void TypeIDtoControllerType(int typeId, FPP* inst);
-    
+    static std::list<FPP*> GetInstances(wxWindow* frame, OutputManager* outputManager);
+
 #ifndef DISCOVERYONLY
     static wxJSONValue CreateModelMemoryMap(ModelManager* allmodels);
     static std::string CreateVirtualDisplayMap(ModelManager* allmodels, bool center0);
@@ -188,3 +190,23 @@ private:
 
     bool sysInfoLoaded = false;
 };
+
+static inline int case_insensitive_match(std::string s1, std::string s2)
+{
+    //convert s1 and s2 into lower case strings
+    transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
+    transform(s2.begin(), s2.end(), s2.begin(), ::tolower);
+    if (s1.compare(s2) == 0)
+        return 1; //The strings are same
+    return 0;     //not matched
+}
+
+static inline bool sortByName(const FPP* i, const FPP* j)
+{
+    return i->hostName < j->hostName;
+}
+
+static inline bool sortByIP(const FPP* i, const FPP* j)
+{
+    return i->ipAddress < j->ipAddress;
+}

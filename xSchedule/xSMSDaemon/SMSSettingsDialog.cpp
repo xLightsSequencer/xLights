@@ -1,4 +1,5 @@
 #include "SMSSettingsDialog.h"
+#include "MagicWordsDialog.h"
 
 //(*InternalHeaders(SMSSettingsDialog)
 #include <wx/intl.h>
@@ -56,6 +57,7 @@ const long SMSSettingsDialog::ID_STATICTEXT13 = wxNewId();
 const long SMSSettingsDialog::ID_TEXTCTRL8 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT14 = wxNewId();
 const long SMSSettingsDialog::ID_TEXTCTRL9 = wxNewId();
+const long SMSSettingsDialog::ID_BUTTON3 = wxNewId();
 const long SMSSettingsDialog::ID_BUTTON1 = wxNewId();
 const long SMSSettingsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -196,6 +198,9 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	FlexGridSizer3->Add(StaticText14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_RejectMessage = new wxTextCtrl(this, ID_TEXTCTRL9, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL9"));
 	FlexGridSizer3->Add(TextCtrl_RejectMessage, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_MagicWords = new wxButton(this, ID_BUTTON3, _("Setup Magic Words"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	FlexGridSizer3->Add(Button_MagicWords, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -214,6 +219,7 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	Connect(ID_TEXTCTRL3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SMSSettingsDialog::OnTextCtrl_TwilioTokenText);
 	Connect(ID_TEXTCTRL5,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SMSSettingsDialog::OnTextCtrl_TwilioPhoneText);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SMSSettingsDialog::OnCheckBox_UsePurgoMalumClick);
+	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SMSSettingsDialog::OnButton_MagicWordsClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SMSSettingsDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SMSSettingsDialog::OnButton_CancelClick);
 	//*)
@@ -333,7 +339,8 @@ void SMSSettingsDialog::ValidateWindow()
         StaticText_Token->SetLabel("API Secret");
         TextCtrl_Token->Enable();
         TextCtrl_User->Enable();
-        if (TextCtrl_TargetMatrix->GetValue() == "" ||
+		StaticText_SID->Enable();
+		if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_User->GetValue() == "" ||
             TextCtrl_SID->GetValue() == "" ||
             TextCtrl_Token->GetValue() == "")
@@ -353,7 +360,8 @@ void SMSSettingsDialog::ValidateWindow()
 
         TextCtrl_Token->Disable();
         TextCtrl_User->Enable();
-        if (TextCtrl_TargetMatrix->GetValue() == "" ||
+		StaticText_SID->Enable();
+		if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_User->GetValue() == "" ||
             TextCtrl_SID->GetValue() == "")
         {
@@ -370,7 +378,8 @@ void SMSSettingsDialog::ValidateWindow()
         StaticText_SID->SetLabel("API Key SID");
         StaticText_Token->SetLabel("Auth Token");
 
-        TextCtrl_User->Enable();
+		TextCtrl_SID->Enable();
+		TextCtrl_User->Enable();
         TextCtrl_Token->Enable();
         if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_Token->GetValue() == "" ||
@@ -424,4 +433,11 @@ void SMSSettingsDialog::OnCheckBox_UsePurgoMalumClick(wxCommandEvent& event)
 void SMSSettingsDialog::OnChoice_SMSServiceSelect(wxCommandEvent& event)
 {
     ValidateWindow();
+}
+
+void SMSSettingsDialog::OnButton_MagicWordsClick(wxCommandEvent& event)
+{
+	MagicWordsDialog dlg(this, _options);
+	dlg.ShowModal();
+	ValidateWindow();
 }

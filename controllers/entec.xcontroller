@@ -1,0 +1,268 @@
+<Vendor Name="Entec">
+	<Controller Name="Pixelator Mini PX1-8D">
+		<Variant Name="">
+			<SupportsPixelPortGrouping/>
+			<SupportsPixelPortColourOrder/>
+			<MaxInputUniverses>16</MaxInputUniverses>
+			<MaxPixelPort>8</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
+			<MinInputUniverseChannels>510</MinInputUniverseChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>apa104</Protocol>
+				<Protocol>sk6812</Protocol>
+				<Protocol>tlc5973</Protocol>
+				<Protocol>tm1804</Protocol>
+				<Protocol>tm1812</Protocol>
+				<Protocol>ucs1903</Protocol>
+				<Protocol>ucs2903</Protocol>
+				<Protocol>ucs2904</Protocol>
+				<Protocol>ucs8903</Protocol>
+				<Protocol>ucs8904</Protocol>
+				<Protocol>9pdot</Protocol>
+				<Protocol>9pdot (16)</Protocol>
+				<Protocol>spxl</Protocol>
+				<Protocol>spxl (16)</Protocol>
+			</PixelProtocols>
+			<SerialProtocols/>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+            <SerialProtocols/>
+		</Variant>
+	</Controller>
+	<Controller Name="OCTO">
+		<Variant Name="">
+			<MaxInputUniverses>8</MaxInputUniverses>
+			<MaxPixelPort>2</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
+			<MinInputUniverseChannels>510</MinInputUniverseChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>apa102</Protocol>
+				<Protocol>apa104</Protocol>
+				<Protocol>sk6812</Protocol>
+				<Protocol>tm1804</Protocol>
+				<Protocol>tm1812</Protocol>
+				<Protocol>tm1814</Protocol>
+				<Protocol>ucs1903</Protocol>
+				<Protocol>ucs2903</Protocol>
+				<Protocol>ucs2904</Protocol>
+				<Protocol>ucs8903</Protocol>
+				<Protocol>ucs8904</Protocol>
+				<Protocol>9pdot</Protocol>
+				<Protocol>9pdot (16)</Protocol>
+				<Protocol>spxl</Protocol>
+				<Protocol>spxl (16)</Protocol>
+			</PixelProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+            <SerialProtocols/>
+        </Variant>
+    </Controller>
+	<Controller Name="Pixel OCTO">
+		<Variant Name="">
+			<MaxInputUniverses>8</MaxInputUniverses>
+			<MaxPixelPort>2</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
+			<MinInputUniverseChannels>510</MinInputUniverseChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>apa102</Protocol>
+				<Protocol>apa104</Protocol>
+				<Protocol>sk6812</Protocol>
+				<Protocol>tm1804</Protocol>
+				<Protocol>tm1812</Protocol>
+				<Protocol>tm1814</Protocol>
+				<Protocol>ucs1903</Protocol>
+				<Protocol>ucs2903</Protocol>
+				<Protocol>ucs2904</Protocol>
+				<Protocol>ucs8903</Protocol>
+				<Protocol>ucs8904</Protocol>
+				<Protocol>9pdot</Protocol>
+				<Protocol>9pdot (16)</Protocol>
+				<Protocol>spxl</Protocol>
+				<Protocol>spxl (16)</Protocol>
+			</PixelProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+            <SerialProtocols/>
+        </Variant>
+    </Controller>
+	<Controller Name="Pixel TRITON">
+		<Variant Name="">
+			<MaxInputUniverses>8</MaxInputUniverses>
+			<MaxPixelPort>2</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
+			<MinInputUniverseChannels>510</MinInputUniverseChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>apa104</Protocol>
+				<Protocol>sk6812</Protocol>
+				<Protocol>tm1804</Protocol>
+				<Protocol>tm1812</Protocol>
+				<Protocol>tm1814</Protocol>
+				<Protocol>ucs1903</Protocol>
+				<Protocol>ucs2903</Protocol>
+				<Protocol>ucs2904</Protocol>
+				<Protocol>ucs8903</Protocol>
+				<Protocol>ucs8904</Protocol>
+				<Protocol>9pdot</Protocol>
+				<Protocol>9pdot (16)</Protocol>
+				<Protocol>spxl</Protocol>
+				<Protocol>spxl (16)</Protocol>
+			</PixelProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+            <SerialProtocols/>
+        </Variant>
+    </Controller>
+	<Controller Name="Pixelator">
+		<Variant Name="">
+			<MaxInputUniverses>48</MaxInputUniverses>
+			<MaxPixelPort>24</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
+			<MinInputUniverseChannels>510</MinInputUniverseChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>apa104</Protocol>
+				<Protocol>sk6812</Protocol>
+				<Protocol>tm1804</Protocol>
+				<Protocol>tm1812</Protocol>
+				<Protocol>tm1814</Protocol>
+				<Protocol>ucs1903</Protocol>
+				<Protocol>ucs2903</Protocol>
+				<Protocol>ucs2904</Protocol>
+				<Protocol>ucs8903</Protocol>
+				<Protocol>ucs8904</Protocol>
+				<Protocol>9pdot</Protocol>
+				<Protocol>9pdot (16)</Protocol>
+				<Protocol>spxl</Protocol>
+				<Protocol>spxl (16)</Protocol>
+			</PixelProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+            <SerialProtocols/>
+        </Variant>
+    </Controller>
+	<Controller Name="Pixelator Mini">
+		<Variant Name="">
+			<MaxInputUniverses>16</MaxInputUniverses>
+			<MaxPixelPort>8</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
+			<MinInputUniverseChannels>510</MinInputUniverseChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>apa104</Protocol>
+				<Protocol>sk6812</Protocol>
+				<Protocol>tlc5973</Protocol>
+				<Protocol>tm1804</Protocol>
+				<Protocol>tm1812</Protocol>
+				<Protocol>ucs1903</Protocol>
+				<Protocol>ucs2903</Protocol>
+				<Protocol>ucs2904</Protocol>
+				<Protocol>ucs8903</Protocol>
+				<Protocol>ucs8904</Protocol>
+				<Protocol>9pdot</Protocol>
+				<Protocol>9pdot (16)</Protocol>
+				<Protocol>spxl</Protocol>
+				<Protocol>spxl (16)</Protocol>
+			</PixelProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+            <SerialProtocols/>
+        </Variant>
+    </Controller>
+	<Controller Name="Pixel Port">
+		<Variant Name="">
+			<SupportsPixelPortGrouping/>
+			<SupportsPixelPortColourOrder/>
+			<MaxInputUniverses>2</MaxInputUniverses>
+			<MaxPixelPort>1</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
+			<MinInputUniverseChannels>510</MinInputUniverseChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>apa104</Protocol>
+				<Protocol>sk6812</Protocol>
+				<Protocol>tm1804</Protocol>
+				<Protocol>tm1812</Protocol>
+				<Protocol>ucs1903</Protocol>
+				<Protocol>ucs2903</Protocol>
+				<Protocol>ucs2904</Protocol>
+				<Protocol>9pdot</Protocol>
+				<Protocol>9pdot (16)</Protocol>
+			</PixelProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+            <SerialProtocols/>
+        </Variant>
+    </Controller>
+	<Controller Name="Pixie Driver">
+		<Variant Name="">
+			<MaxPixelPort>2</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>900</MaxPixelPortChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>apa104</Protocol>
+				<Protocol>sk6812</Protocol>
+				<Protocol>tm1804</Protocol>
+				<Protocol>tm1812</Protocol>
+				<Protocol>ucs1903</Protocol>
+				<Protocol>ucs2903</Protocol>
+				<Protocol>ucs2904</Protocol>
+				<Protocol>ucs8903</Protocol>
+				<Protocol>ucs8904</Protocol>
+				<Protocol>9pdot</Protocol>
+				<Protocol>spxl</Protocol>
+			</PixelProtocols>
+			<InputProtocols/>
+            <SerialProtocols>
+				<Protocol>dmx</Protocol>
+			</SerialProtocols>
+        </Variant>
+    </Controller>
+</Vendor>

@@ -12,6 +12,7 @@
 #include "VirtualMatrix.h"
 #include "VirtualMatrixDialog.h"
 #include "../xLights/outputs/OutputManager.h"
+#include "ScheduleOptions.h"
 
 //(*InternalHeaders(VirtualMatricesDialog)
 #include <wx/intl.h>
@@ -32,9 +33,10 @@ BEGIN_EVENT_TABLE(VirtualMatricesDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-VirtualMatricesDialog::VirtualMatricesDialog(wxWindow* parent, OutputManager* outputManager, std::list<VirtualMatrix*>* vmatrices,wxWindowID id,const wxPoint& pos,const wxSize& size) : _vmatrices(vmatrices)
+VirtualMatricesDialog::VirtualMatricesDialog(wxWindow* parent, OutputManager* outputManager, std::list<VirtualMatrix*>* vmatrices, ScheduleOptions* options, wxWindowID id,const wxPoint& pos,const wxSize& size) : _vmatrices(vmatrices)
 {
     _outputManager = outputManager;
+    _options = options;
 
 	//(*Initialize(VirtualMatricesDialog)
 	wxFlexGridSizer* FlexGridSizer2;
@@ -206,14 +208,14 @@ void VirtualMatricesDialog::DoAdd()
     int height = 16;
     bool topMost = true;
     std::string rotation = "";
-    wxSize size(300, 300);
-    wxPoint location(0, 0);
+    wxSize size = _options->GetDefaultVideoSize();
+    wxPoint location = _options->GetDefaultVideoPos();
     std::string startChannel = "1";
     std::string quality = "";
     bool useMatrixSize = false;
     int matrixMultiplier = 1;
 
-    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier);
+    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier, _options);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -284,7 +286,7 @@ void VirtualMatricesDialog::DoEdit()
         useMatrixSize = true;
     }
 
-    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier);
+    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier, _options);
 
     if (dlg.ShowModal() == wxID_OK)
     {

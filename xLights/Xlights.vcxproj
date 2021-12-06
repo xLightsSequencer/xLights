@@ -28,14 +28,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -43,7 +43,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -51,7 +51,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -119,6 +119,7 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
       <GenerateMapFile>false</GenerateMapFile>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -137,6 +138,7 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateMapFile>false</GenerateMapFile>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>xLightsApp64.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -169,6 +171,7 @@
       <Profile>true</Profile>
       <GenerateMapFile>true</GenerateMapFile>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -191,6 +194,7 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateMapFile>true</GenerateMapFile>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>xLightsApp64.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -204,11 +208,22 @@
   <ItemGroup>
     <ClCompile Include="..\xFade\wxLED.cpp" />
     <ClCompile Include="..\xSchedule\md5.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\connection.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\context.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\message.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\pages.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\request.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\response.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\server.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\sha1.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\status.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="AlignmentDialog.cpp" />
+    <ClCompile Include="automation\automation.cpp" />
+    <ClCompile Include="automation\xLightsAutomations.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditColourPickerDialog.cpp" />
     <ClCompile Include="BulkEditControls.cpp" />
@@ -267,9 +282,19 @@
     <ClCompile Include="effects\ServoEffect.cpp" />
     <ClCompile Include="effects\ServoPanel.cpp" />
     <ClCompile Include="EmailDialog.cpp" />
+    <ClCompile Include="ExportSettings.cpp" />
     <ClCompile Include="FontManager.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="GenerateLyricsDialog.cpp" />
+    <ClCompile Include="GPURenderUtils.cpp" />
+    <ClCompile Include="graphics\opengl\DrawGLUtils.cpp" />
+    <ClCompile Include="graphics\opengl\DrawGLUtils31.cpp" />
+    <ClCompile Include="graphics\opengl\Image.cpp" />
+    <ClCompile Include="graphics\opengl\Image_Loader.cpp" />
+    <ClCompile Include="graphics\opengl\xlGLCanvas.cpp" />
+    <ClCompile Include="graphics\opengl\XlightsDrawable.cpp" />
+    <ClCompile Include="graphics\xlFontInfo.cpp" />
+    <ClCompile Include="graphics\xlGraphicsAccumulators.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
@@ -335,8 +360,6 @@
     <ClCompile Include="DataLayer.cpp" />
     <ClCompile Include="DimmingCurve.cpp" />
     <ClCompile Include="DimmingCurvePanel.cpp" />
-    <ClCompile Include="DrawGLUtils.cpp" />
-    <ClCompile Include="DrawGLUtils31.cpp" />
     <ClCompile Include="outputs\Controller.cpp" />
     <ClCompile Include="outputs\ControllerEthernet.cpp" />
     <ClCompile Include="outputs\ControllerNull.cpp" />
@@ -445,8 +468,6 @@
     <ClCompile Include="FileConverter.cpp" />
     <ClCompile Include="FlickerFreeBitmapButton.cpp" />
     <ClCompile Include="GenerateCustomModelDialog.cpp" />
-    <ClCompile Include="Image.cpp" />
-    <ClCompile Include="Image_Loader.cpp" />
     <ClCompile Include="JobPool.cpp" />
     <ClCompile Include="KeyBindings.cpp" />
     <ClCompile Include="kiss_fft\kiss_fft.c" />
@@ -543,6 +564,7 @@
     <ClCompile Include="RenderProgressDialog.cpp" />
     <ClCompile Include="ResizeImageDialog.cpp" />
     <ClCompile Include="SaveChangesDialog.cpp" />
+    <ClCompile Include="ScriptsDialog.cpp" />
     <ClCompile Include="SelectPanel.cpp" />
     <ClCompile Include="SelectTimingsDialog.cpp" />
     <ClCompile Include="SeqElementMismatchDialog.cpp" />
@@ -625,10 +647,8 @@
     <ClCompile Include="xlColorCanvas.cpp" />
     <ClCompile Include="xlColorPicker.cpp" />
     <ClCompile Include="xlColorPickerFields.cpp" />
-    <ClCompile Include="xlGLCanvas.cpp" />
     <ClCompile Include="xlGridCanvas.cpp" />
     <ClCompile Include="xLightsApp.cpp" />
-    <ClCompile Include="XlightsDrawable.cpp" />
     <ClCompile Include="xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="xLightsMain.cpp" />
     <ClCompile Include="xLightsTimer.cpp" />
@@ -642,9 +662,12 @@
     <ClInclude Include="..\include\models\modelimages.h" />
     <ClInclude Include="..\xFade\wxLED.h" />
     <ClInclude Include="..\xSchedule\md5.h" />
+    <ClInclude Include="..\xSchedule\wxHTTPServer\sha1.h" />
+    <ClInclude Include="..\xSchedule\wxHTTPServer\wxhttpserver.h" />
     <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
     <ClInclude Include="AboutDialog.h" />
     <ClInclude Include="AlignmentDialog.h" />
+    <ClInclude Include="automation\automation.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditColourPickerDialog.h" />
     <ClInclude Include="BulkEditControls.h" />
@@ -701,9 +724,19 @@
     <ClInclude Include="effects\WarpPanel.h" />
     <ClInclude Include="EffectTimingDialog.h" />
     <ClInclude Include="EmailDialog.h" />
+    <ClInclude Include="ExportSettings.h" />
     <ClInclude Include="FontManager.h" />
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
+    <ClInclude Include="graphics\opengl\DrawGLUtils.h" />
+    <ClInclude Include="graphics\opengl\Image.h" />
+    <ClInclude Include="graphics\opengl\Image_Loader.h" />
+    <ClInclude Include="graphics\opengl\xlGLCanvas.h" />
+    <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
+    <ClInclude Include="graphics\xlFontInfo.h" />
+    <ClInclude Include="graphics\xlGraphicsAccumulators.h" />
+    <ClInclude Include="graphics\xlGraphicsBase.h" />
+    <ClInclude Include="graphics\xlGraphicsContext.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
     <ClInclude Include="LORPreview.h" />
@@ -779,7 +812,6 @@
     <ClInclude Include="DataLayer.h" />
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
-    <ClInclude Include="DrawGLUtils.h" />
     <ClInclude Include="outputs\ControllerEthernet.h" />
     <ClInclude Include="outputs\ControllerNull.h" />
     <ClInclude Include="outputs\ControllerSerial.h" />
@@ -882,9 +914,7 @@
     <ClInclude Include="FileConverter.h" />
     <ClInclude Include="FlickerFreeBitmapButton.h" />
     <ClInclude Include="GenerateCustomModelDialog.h" />
-    <ClInclude Include="Image.h" />
     <ClInclude Include="Images_png.h" />
-    <ClInclude Include="Image_Loader.h" />
     <ClInclude Include="JobPool.h" />
     <ClInclude Include="KeyBindings.h" />
     <ClInclude Include="LayoutGroup.h" />
@@ -978,6 +1008,7 @@
     <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="ResizeImageDialog.h" />
     <ClInclude Include="SaveChangesDialog.h" />
+    <ClInclude Include="ScriptsDialog.h" />
     <ClInclude Include="SelectPanel.h" />
     <ClInclude Include="SelectTimingsDialog.h" />
     <ClInclude Include="SeqElementMismatchDialog.h" />
@@ -1066,10 +1097,8 @@
     <ClInclude Include="xlColorPicker.h" />
     <ClInclude Include="xlColorPickerFields.h" />
     <ClInclude Include="xlCustomControl.h" />
-    <ClInclude Include="xlGLCanvas.h" />
     <ClInclude Include="xlGridCanvas.h" />
     <ClInclude Include="xLightsApp.h" />
-    <ClInclude Include="XlightsDrawable.h" />
     <ClInclude Include="xLightsImportChannelMapDialog.h" />
     <ClInclude Include="xLightsMain.h" />
     <ClInclude Include="xLightsTimer.h" />

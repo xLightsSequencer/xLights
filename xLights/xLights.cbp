@@ -2,7 +2,7 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="xLights 4.0" />
+		<Option title="xLights" />
 		<Option pch_mode="0" />
 		<Option compiler="gcc" />
 		<Build>
@@ -425,6 +425,17 @@
 		<Unit filename="../xFade/wxLED.h" />
 		<Unit filename="../xSchedule/md5.cpp" />
 		<Unit filename="../xSchedule/md5.h" />
+		<Unit filename="../xSchedule/wxHTTPServer/connection.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/context.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/message.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/pages.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/request.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/response.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/server.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/sha1.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/sha1.h" />
+		<Unit filename="../xSchedule/wxHTTPServer/status.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/wxhttpserver.h" />
 		<Unit filename="../xSchedule/wxJSON/json_defs.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonreader.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonreader.h" />
@@ -500,9 +511,6 @@
 		<Unit filename="DragColoursBitmapButton.h" />
 		<Unit filename="DragValueCurveBitmapButton.cpp" />
 		<Unit filename="DragValueCurveBitmapButton.h" />
-		<Unit filename="DrawGLUtils.cpp" />
-		<Unit filename="DrawGLUtils.h" />
-		<Unit filename="DrawGLUtils31.cpp" />
 		<Unit filename="EffectAssist.cpp" />
 		<Unit filename="EffectAssist.h" />
 		<Unit filename="EffectIconPanel.cpp" />
@@ -513,13 +521,14 @@
 		<Unit filename="EffectTimingDialog.h" />
 		<Unit filename="EffectTreeDialog.cpp" />
 		<Unit filename="EffectTreeDialog.h" />
-		<Unit filename="Effects.h" />
 		<Unit filename="EffectsPanel.cpp" />
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="EmailDialog.cpp" />
 		<Unit filename="EmailDialog.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
+		<Unit filename="ExportSettings.cpp" />
+		<Unit filename="ExportSettings.h" />
 		<Unit filename="FSEQFile.cpp" />
 		<Unit filename="FSEQFile.h" />
 		<Unit filename="FileConverter.cpp" />
@@ -528,6 +537,8 @@
 		<Unit filename="FlickerFreeBitmapButton.h" />
 		<Unit filename="FontManager.cpp" />
 		<Unit filename="FontManager.h" />
+		<Unit filename="GPURenderUtils.cpp" />
+		<Unit filename="GPURenderUtils.h" />
 		<Unit filename="GenerateCustomModelDialog.cpp" />
 		<Unit filename="GenerateCustomModelDialog.h" />
 		<Unit filename="GenerateLyricsDialog.cpp" />
@@ -536,10 +547,6 @@
 		<Unit filename="HousePreviewPanel.h" />
 		<Unit filename="IPEntryDialog.cpp" />
 		<Unit filename="IPEntryDialog.h" />
-		<Unit filename="Image.cpp" />
-		<Unit filename="Image.h" />
-		<Unit filename="Image_Loader.cpp" />
-		<Unit filename="Image_Loader.h" />
 		<Unit filename="Images_png.h" />
 		<Unit filename="ImportPreviewsModelsDialog.cpp" />
 		<Unit filename="ImportPreviewsModelsDialog.h" />
@@ -597,7 +604,6 @@
 		<Unit filename="MultiControllerUploadDialog.h" />
 		<Unit filename="MusicXML.cpp" />
 		<Unit filename="MusicXML.h" />
-		<Unit filename="NetInfo.h" />
 		<Unit filename="NewTimingDialog.cpp" />
 		<Unit filename="NewTimingDialog.h" />
 		<Unit filename="NodeSelectGrid.cpp" />
@@ -625,11 +631,10 @@
 		<Unit filename="PhonemeDictionary.h" />
 		<Unit filename="PixelBuffer.cpp" />
 		<Unit filename="PixelBuffer.h" />
-		<Unit filename="Pixels.cpp" />
-		<Unit filename="Pixels.h" />
 		<Unit filename="PixelTestDialog.cpp" />
 		<Unit filename="PixelTestDialog.h" />
-		<Unit filename="PlayerFrame.h" />
+		<Unit filename="Pixels.cpp" />
+		<Unit filename="Pixels.h" />
 		<Unit filename="PreviewPane.cpp" />
 		<Unit filename="PreviewPane.h" />
 		<Unit filename="RemapDMXChannelsDialog.cpp" />
@@ -646,10 +651,11 @@
 		<Unit filename="RenderProgressDialog.h" />
 		<Unit filename="ResizeImageDialog.cpp" />
 		<Unit filename="ResizeImageDialog.h" />
-		<Unit filename="RgbEffects.h" />
 		<Unit filename="SOIL.h" />
 		<Unit filename="SaveChangesDialog.cpp" />
 		<Unit filename="SaveChangesDialog.h" />
+		<Unit filename="ScriptsDialog.cpp" />
+		<Unit filename="ScriptsDialog.h" />
 		<Unit filename="SelectPanel.cpp" />
 		<Unit filename="SelectPanel.h" />
 		<Unit filename="SelectTimingsDialog.cpp" />
@@ -740,8 +746,10 @@
 		<Unit filename="VsaImportDialog.h" />
 		<Unit filename="WiringDialog.cpp" />
 		<Unit filename="WiringDialog.h" />
-		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="automation/automation.cpp" />
+		<Unit filename="automation/automation.h" />
+		<Unit filename="automation/xLightsAutomations.cpp" />
 		<Unit filename="cad/CADModel.cpp" />
 		<Unit filename="cad/CADModel.h" />
 		<Unit filename="cad/CADPoint.h" />
@@ -783,10 +791,10 @@
 		<Unit filename="controllers/Pixlite16.h" />
 		<Unit filename="controllers/SanDevices.cpp" />
 		<Unit filename="controllers/SanDevices.h" />
-		<Unit filename="controllers/WebSocketClient.cpp" />
-		<Unit filename="controllers/WebSocketClient.h" />
 		<Unit filename="controllers/WLED.cpp" />
 		<Unit filename="controllers/WLED.h" />
+		<Unit filename="controllers/WebSocketClient.cpp" />
+		<Unit filename="controllers/WebSocketClient.h" />
 		<Unit filename="effects/BarsEffect.cpp" />
 		<Unit filename="effects/BarsEffect.h" />
 		<Unit filename="effects/BarsPanel.cpp" />
@@ -1010,6 +1018,23 @@
 		<Unit filename="effects/assist/xlGridCanvasMorph.h" />
 		<Unit filename="effects/assist/xlGridCanvasPictures.cpp" />
 		<Unit filename="effects/assist/xlGridCanvasPictures.h" />
+		<Unit filename="graphics/opengl/DrawGLUtils.cpp" />
+		<Unit filename="graphics/opengl/DrawGLUtils.h" />
+		<Unit filename="graphics/opengl/DrawGLUtils31.cpp" />
+		<Unit filename="graphics/opengl/Image.cpp" />
+		<Unit filename="graphics/opengl/Image.h" />
+		<Unit filename="graphics/opengl/Image_Loader.cpp" />
+		<Unit filename="graphics/opengl/Image_Loader.h" />
+		<Unit filename="graphics/opengl/XlightsDrawable.cpp" />
+		<Unit filename="graphics/opengl/XlightsDrawable.h" />
+		<Unit filename="graphics/opengl/xlGLCanvas.cpp" />
+		<Unit filename="graphics/opengl/xlGLCanvas.h" />
+		<Unit filename="graphics/xlFontInfo.cpp" />
+		<Unit filename="graphics/xlFontInfo.h" />
+		<Unit filename="graphics/xlGraphicsAccumulators.cpp" />
+		<Unit filename="graphics/xlGraphicsAccumulators.h" />
+		<Unit filename="graphics/xlGraphicsBase.h" />
+		<Unit filename="graphics/xlGraphicsContext.h" />
 		<Unit filename="kiss_fft/kiss_fft.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -1388,6 +1413,7 @@
 		<Unit filename="wxsmith/ResizeImageDialog.wxs" />
 		<Unit filename="wxsmith/RipplePanel.wxs" />
 		<Unit filename="wxsmith/SaveChangesDialog.wxs" />
+		<Unit filename="wxsmith/ScriptsDialog.wxs" />
 		<Unit filename="wxsmith/SelectPanel.wxs" />
 		<Unit filename="wxsmith/SelectTimingsDialog.wxs" />
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
@@ -1459,8 +1485,6 @@
 		<Unit filename="xlColorPicker.h" />
 		<Unit filename="xlColorPickerFields.cpp" />
 		<Unit filename="xlColorPickerFields.h" />
-		<Unit filename="xlGLCanvas.cpp" />
-		<Unit filename="xlGLCanvas.h" />
 		<Unit filename="xlGridCanvas.cpp" />
 		<Unit filename="xlGridCanvas.h" />
 		<Unit filename="xlLockButton.cpp" />
@@ -1645,6 +1669,7 @@
 					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MediaImportOptionsDialog.wxs" src="MediaImportOptionsDialog.cpp" hdr="MediaImportOptionsDialog.h" fwddecl="0" i18n="1" name="MediaImportOptionsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ScriptsDialog.wxs" src="ScriptsDialog.cpp" hdr="ScriptsDialog.h" fwddecl="0" i18n="1" name="ScriptsDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

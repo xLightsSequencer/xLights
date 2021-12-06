@@ -47,7 +47,7 @@ wxXmlNode* OutputProcessThreeToFour::Save()
     return res;
 }
 
-void OutputProcessThreeToFour::Frame(uint8_t* buffer, size_t size)
+void OutputProcessThreeToFour::Frame(uint8_t* buffer, size_t size, std::list<OutputProcess*>& processes)
 {
     if (!_enabled) return;
 

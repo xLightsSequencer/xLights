@@ -111,6 +111,7 @@ class SyncManager
         void Start(int mode, REMOTEMODE remoteMode);
         void Stop();
         bool IsSlave() const { return _remote != nullptr; }
+        bool IsTimecodeSlave() const;
         bool IsFPPRemoteOrMaster() const;
         bool IsMaster(SYNCMODE mode) const;
         void SendStop() const;

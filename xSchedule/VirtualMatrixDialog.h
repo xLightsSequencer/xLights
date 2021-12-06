@@ -22,6 +22,7 @@
  //*)
 
 class OutputManager;
+class ScheduleOptions;
 
 class VirtualMatrixDialog : public wxDialog
 {
@@ -39,10 +40,11 @@ class VirtualMatrixDialog : public wxDialog
     OutputManager* _outputManager;
     wxSize _tempSize;
     wxPoint _tempLocation;
+    ScheduleOptions* _options = nullptr;
 
 public:
 
-    VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& _startChannel, bool& useMatrixSize, int& matrixMultiplier, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& _startChannel, bool& useMatrixSize, int& matrixMultiplier, ScheduleOptions* options, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~VirtualMatrixDialog();
 
     //(*Declarations(VirtualMatrixDialog)

@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 /***************************************************************
  * This source files comes from the xLights project
@@ -24,17 +24,17 @@ class ESPixelStick : public BaseController
     #pragma endregion
 
     #pragma region Private Functions
-    std::string DecodeStringPortProtocol(std::string protocol);
-    std::string DecodeSerialPortProtocol(std::string protocol);
-    std::string DecodeSerialSpeed(std::string protocol);
+    std::string DecodeStringPortProtocol(std::string const& protocol) const;
+    std::string DecodeSerialPortProtocol(std::string const& protocol) const;
+    std::string DecodeSerialSpeed(std::string const& protocol) const;
 
-    std::string GetFromJSON(std::string section, std::string key, std::string json);
+    std::string GetFromJSON(std::string const& section, std::string const& key, std::string const& json) const;
     #pragma endregion
 
     bool SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
     bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
 
-    
+
     std::string GetWSResponse();
 public:
     #pragma region Constructors and Destructors
@@ -48,7 +48,7 @@ public:
     virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) override;
     virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
-    
+
     virtual bool UsesHTTP() const override { return false; }
     #pragma endregion
 };

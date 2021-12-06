@@ -46,6 +46,7 @@
 #include "wxJSON/jsonreader.h"
 #include "../xLights/VideoReader.h"
 #include "../xLights/outputs/Controller.h"
+#include "OutputProcessExcludeDim.h"
 
 #include <memory>
 
@@ -772,24 +773,13 @@ void ScheduleManager::AllOff()
     // apply any output processing
     for (const auto& it : _outputProcessing)
     {
-        it->Frame(_buffer, _outputManager->GetTotalChannels());
+        it->Frame(_buffer, _outputManager->GetTotalChannels(), _outputProcessing);
     }
 
-    if (_brightness < 100)
-    {
-        if (_brightness != _lastBrightness)
-        {
-            _lastBrightness = _brightness;
-            CreateBrightnessArray();
-        }
-
-        uint8_t* pb = _buffer;
-        for (int i = 0; i < _outputManager->GetTotalChannels(); ++i)
-        {
-            *pb = _brightnessArray[*pb];
-            pb++;
-        }
-    }
+    //if (_brightness < 100)
+    //{
+    //    ApplyBrightness();
+    //}
 
     for (const auto& it : *GetOptions()->GetVirtualMatrices())
     {
@@ -798,6 +788,42 @@ void ScheduleManager::AllOff()
 
     _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
     _outputManager->EndFrame();
+}
+
+void ScheduleManager::ApplyBrightness()
+{
+    if (_brightness == 100) return;
+
+    if (_brightness != _lastBrightness) {
+        _lastBrightness = _brightness;
+        CreateBrightnessArray();
+    }
+
+    auto totalChannels = _outputManager->GetTotalChannels();
+
+    auto ed = OutputProcess::GetExcludeDim(_outputProcessing, 1, totalChannels);
+
+    if (ed.size() == 0) { // handle the simple case fast
+        uint8_t* pb = _buffer;
+        for (size_t i = 0; i < totalChannels; ++i) {
+            *pb = _brightnessArray[*pb];
+            pb++;
+        }
+    }
+    else {
+        auto exclude = ed.begin();
+        uint8_t* pb = _buffer;
+        for (size_t i = 0; i < totalChannels; ++i) {
+
+            while (exclude != ed.end() && i > (*exclude)->GetLastExcludeChannel() - 1) ++exclude;
+            bool ex = (exclude != ed.end() && i >= (*exclude)->GetFirstExcludeChannel() - 1);
+
+            if (!ex) {
+                *pb = _brightnessArray[*pb];
+            }
+            pb++;
+        }
+    }
 }
 
 int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
@@ -839,23 +865,12 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
         // apply any output processing
         for (const auto& it : _outputProcessing)
         {
-            it->Frame(_buffer, totalChannels);
+            it->Frame(_buffer, totalChannels, _outputProcessing);
         }
 
         if (outputframe && _brightness < 100)
         {
-            if (_brightness != _lastBrightness)
-            {
-                _lastBrightness = _brightness;
-                CreateBrightnessArray();
-            }
-
-            uint8_t* pb = _buffer;
-            for (int i = 0; i < totalChannels; ++i)
-            {
-                *pb = _brightnessArray[*pb];
-                pb++;
-            }
+            ApplyBrightness();
         }
 
         for (const auto& it : *GetOptions()->GetVirtualMatrices())
@@ -985,33 +1000,21 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
                 // apply any output processing
                 for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
                 {
-                    (*it)->Frame(_buffer, totalChannels);
+                    (*it)->Frame(_buffer, totalChannels, _outputProcessing);
                 }
 
                 logger_frame.debug("Frame: Output processing done %ldms", sw.Time());
 
                 if (outputframe && _brightness < 100)
                 {
-                    if (_brightness != _lastBrightness)
-                    {
-                        _lastBrightness = _brightness;
-                        CreateBrightnessArray();
-                    }
-
-                    uint8_t* pb = _buffer;
-                    for (int i = 0; i < totalChannels; ++i)
-                    {
-                        *pb = _brightnessArray[*pb];
-                        pb++;
-                    }
+                    ApplyBrightness();
                 }
 
                 logger_frame.debug("Frame: Brightness done %ldms", sw.Time());
 
-                auto vm = GetOptions()->GetVirtualMatrices();
-                for (auto it = vm->begin(); it != vm->end(); ++it)
+                for (const auto& it : *GetOptions()->GetVirtualMatrices())
                 {
-                    (*it)->Frame(_buffer, totalChannels);
+                    it->Frame(_buffer, totalChannels);
                 }
 
                 logger_frame.debug("Frame: Virtual matrices done %ldms", sw.Time());
@@ -1101,31 +1104,19 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
                 }
 
                 // apply any output processing
-                for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+                for (const auto& it : _outputProcessing)
                 {
-                    (*it)->Frame(_buffer, totalChannels);
+                    it->Frame(_buffer, totalChannels, _outputProcessing);
                 }
 
                 if (outputframe && _brightness < 100)
                 {
-                    if (_brightness != _lastBrightness)
-                    {
-                        _lastBrightness = _brightness;
-                        CreateBrightnessArray();
-                    }
-
-                    uint8_t* pb = _buffer;
-                    for (int i = 0; i < totalChannels; ++i)
-                    {
-                        *pb = _brightnessArray[*pb];
-                        pb++;
-                    }
+                    ApplyBrightness();
                 }
 
-                auto vm = GetOptions()->GetVirtualMatrices();
-                for (auto it = vm->begin(); it != vm->end(); ++it)
+                for (const auto& it : *GetOptions()->GetVirtualMatrices())
                 {
-                    (*it)->Frame(_buffer, totalChannels);
+                    it->Frame(_buffer, totalChannels);
                 }
 
                 _listenerManager->ProcessFrame(_buffer, totalChannels);
@@ -1169,23 +1160,12 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
                     // apply any output processing
                     for (auto it2 = _outputProcessing.begin(); it2 != _outputProcessing.end(); ++it2)
                     {
-                        (*it2)->Frame(_buffer, totalChannels);
+                        (*it2)->Frame(_buffer, totalChannels, _outputProcessing);
                     }
 
                     if (outputframe && _brightness < 100)
                     {
-                        if (_brightness != _lastBrightness)
-                        {
-                            _lastBrightness = _brightness;
-                            CreateBrightnessArray();
-                        }
-
-                        uint8_t* pb = _buffer;
-                        for (int i = 0; i < totalChannels; ++i)
-                        {
-                            *pb = _brightnessArray[*pb];
-                            pb++;
-                        }
+                        ApplyBrightness();
                     }
 
                     for (auto it2 :*GetOptions()->GetVirtualMatrices())
@@ -1457,6 +1437,7 @@ int ScheduleManager::CheckSchedule()
             if (toUnsuspend != nullptr) {
                 logger_base.info("   Unsuspending playlist %s due to schedule %s.", (const char*)toUnsuspend->GetPlayList()->GetNameNoTime().c_str(), (const char*)toUnsuspend->GetSchedule()->GetName().c_str());
                 framems = toUnsuspend->GetPlayList()->Suspend(false);
+                toUnsuspend->GetSchedule()->DidFire();
             }
         }
         else {
@@ -5280,7 +5261,7 @@ void ScheduleManager::ImportxLightsSchedule(const std::string& filename)
                                 }
                                 else if (PlayListItemVideo::IsVideo(ext))
                                 {
-                                    PlayListItemVideo* pli = new PlayListItemVideo();
+                                    PlayListItemVideo* pli = new PlayListItemVideo(_scheduleOptions);
                                     pli->SetVideoFile(base + "/" + itemname);
                                     pli->SetDelay(delay * 1000);
                                     step->AddItem(pli);

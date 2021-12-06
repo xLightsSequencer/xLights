@@ -12,7 +12,7 @@
 
 #include <vector>
 #include "ViewObject.h"
-#include "Image.h"
+#include "graphics/opengl/Image.h"
 #include "tiny_obj_loader.h"
 
 class ModelPreview;

@@ -10,23 +10,11 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "xlGLCanvas.h"
+#include "graphics/opengl/xlGLCanvas.h"
 #include "BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-class WarpPreview : public xlGLCanvas
-{
-public:
-   WarpPreview(wxWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
-               const wxSize &size=wxDefaultSize,
-               long style=0,
-               const wxString &name=wxPanelNameStr,
-               bool coreProfile = true);
-   virtual ~WarpPreview();
 
-protected:
-   void InitializeGLCanvas() override;
-};
 //(*Headers(WarpPanel)
 #include <wx/bmpbuttn.h>
 #include <wx/choice.h>

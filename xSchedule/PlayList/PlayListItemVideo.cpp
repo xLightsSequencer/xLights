@@ -22,6 +22,7 @@
 #include "../../xLights/UtilFunctions.h"
 #include "PlayerFrame.h"
 #include "PlayerWindow.h"
+#include "../ScheduleOptions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -39,10 +40,6 @@ PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
     _window = nullptr;
     _frame = nullptr;
     _videoFile = "";
-    _origin.x = 0;
-    _origin.y = 0;
-    _size.SetWidth(300);
-    _size.SetHeight(300);
     _durationMS = 0;
     PlayListItemVideo::Load(node);
 }
@@ -67,7 +64,7 @@ void PlayListItemVideo::Load(wxXmlNode* node)
     _videoFile = node->GetAttribute("VideoFile", "");
     _videoFile = FixFile("", _videoFile);
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
-    _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
+    _size = wxSize(wxAtoi(node->GetAttribute("W", "300")), wxAtoi(node->GetAttribute("H", "300")));
     _fadeInMS = wxAtoi(node->GetAttribute("FadeInMS", "0"));
     _fadeOutMS = wxAtoi(node->GetAttribute("FadeOutMS", "0"));
     _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
@@ -78,7 +75,7 @@ void PlayListItemVideo::Load(wxXmlNode* node)
     _useMediaPlayer = (node->GetAttribute("UseMediaPlayer", "FALSE") == "TRUE");
 }
 
-PlayListItemVideo::PlayListItemVideo() : PlayListItem()
+PlayListItemVideo::PlayListItemVideo(ScheduleOptions* options) : PlayListItem()
 {
     _type = "PLIVideo";
     _fadeInMS = 0;
@@ -93,16 +90,16 @@ PlayListItemVideo::PlayListItemVideo() : PlayListItem()
     _window = nullptr;
     _frame = nullptr;
     _videoFile = "";
-    _origin.x = 0;
-    _origin.y = 0;
+    if (options != nullptr) {
+        _origin = options->GetDefaultVideoPos();
+        _size = options->GetDefaultVideoSize();
+    }
     _durationMS = 0;
-    _size.SetWidth(300);
-    _size.SetHeight(300);
 }
 
 PlayListItem* PlayListItemVideo::Copy() const
 {
-    PlayListItemVideo* res = new PlayListItemVideo();
+    PlayListItemVideo* res = new PlayListItemVideo((ScheduleOptions*)nullptr);
     res->_origin = _origin;
     res->_fadeInMS = _fadeInMS;
     res->_fadeOutMS = _fadeOutMS;

@@ -496,7 +496,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
     if (!hide_body)
     {
         if (dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP || dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS) {
-            va.AddTrianglesCircle(sx, sy, sz, scale * sf, ccolor, ccolor);
+            va.AddCircleAsTriangles(sx, sy, sz, scale * sf, ccolor, ccolor);
 
             // draw angle line
             dmxPoint p1(0, -1, sx, sy, scale, angle);
@@ -514,8 +514,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
 
             // draw tilt marker
             dmxPoint marker(tilt_pos, 0, sx, sy, 1.0, angle);
-            va.AddTrianglesCircle(marker.x, marker.y, sz, scale * sf * 0.22, black, black);
-            va.AddTrianglesCircle(marker.x, marker.y, sz, scale * sf * 0.20, marker_color, marker_color);
+            va.AddCircleAsTriangles(marker.x, marker.y, sz, scale * sf * 0.22, black, black);
+            va.AddCircleAsTriangles(marker.x, marker.y, sz, scale * sf * 0.20, marker_color, marker_color);
         }
         else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE || dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS) {
             // draw head
@@ -543,8 +543,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
             va.AddVertex(p5.x, p5.y, sz, ccolor);
 
             // draw base
-            va.AddTrianglesCircle(sx, sy, sz, scale * sf * 0.6, base_color, base_color);
-            va.AddRect(sx - scale * sf * 0.6, sy, sx + scale * sf * 0.6, sy - scale * sf * 2, sz, base_color);
+            va.AddCircleAsTriangles(sx, sy, sz, scale * sf * 0.6, base_color, base_color);
+            va.AddRectAsTriangles(sx - scale * sf * 0.6, sy, sx + scale * sf * 0.6, sy - scale * sf * 2, sz, base_color);
 
             // draw pan marker
             dmxPoint p7(7, 2, sx, sy, scale, pan_angle);
@@ -578,8 +578,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
         int stepy = (int)(radius * 0.15f);
         int gapy = (int)(radius * 0.1f);
         if (gapy < 1) gapy = 1;
-        va.AddRect(sx + bars_deltax - gapy - 2, sy + bars_deltay + gapy + 2, sx + bars_deltax + radius + gapy + 2, sy + bars_deltay - (stepy + gapy) * (NodeCount - 1) - stepy - gapy - 2, sz, ccolor);
-        va.AddRect(sx + bars_deltax - gapy, sy + bars_deltay + gapy, sx + bars_deltax + radius + gapy, sy + bars_deltay - (stepy + gapy) * (NodeCount - 1) - stepy - gapy, sz, black);
+        va.AddRectAsTriangles(sx + bars_deltax - gapy - 2, sy + bars_deltay + gapy + 2, sx + bars_deltax + radius + gapy + 2, sy + bars_deltay - (stepy + gapy) * (NodeCount - 1) - stepy - gapy - 2, sz, ccolor);
+        va.AddRectAsTriangles(sx + bars_deltax - gapy, sy + bars_deltay + gapy, sx + bars_deltax + radius + gapy, sy + bars_deltay - (stepy + gapy) * (NodeCount - 1) - stepy - gapy, sz, black);
         for (int i = 1; i <= NodeCount; ++i) {
             Nodes[i - 1]->GetColor(proxy);
             float val = (float)proxy.red;
@@ -605,7 +605,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
             else {
                 proxy = ccolor;
             }
-            va.AddRect(sx + bars_deltax, sy + bars_deltay - (stepy + gapy) * (i - 1), sx + bars_deltax + offsetx, sy + bars_deltay - (stepy + gapy) * (i - 1) - stepy, sz, proxy);
+            va.AddRectAsTriangles(sx + bars_deltax, sy + bars_deltay - (stepy + gapy) * (i - 1), sx + bars_deltax + offsetx, sy + bars_deltay - (stepy + gapy) * (i - 1) - stepy, sz, proxy);
         }
     }
 
@@ -1014,8 +1014,7 @@ void DmxMovingHead::ExportXlightsModel()
     f.Close();
 }
 
-void DmxMovingHead::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+void DmxMovingHead::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
     // We have already loaded gdtf properties
     if (EndsWith(filename, "gdtf")) return;
 

@@ -551,6 +551,12 @@
     <ClCompile Include="..\xLights\controllers\Falcon.cpp" />
     <ClCompile Include="..\xLights\controllers\BaseController.cpp" />
     <ClCompile Include="wxJSON\jsonwriter.cpp" />
+    <ClCompile Include="ExcludeDimDialog.cpp">
+      <Filter>OutputProcessing</Filter>
+    </ClCompile>
+    <ClCompile Include="OutputProcessExcludeDim.cpp">
+      <Filter>OutputProcessing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -1095,6 +1101,12 @@
     <ClInclude Include="..\xLights\controllers\Falcon.h" />
     <ClInclude Include="..\xLights\controllers\BaseController.h" />
     <ClInclude Include="wxJSON\jsonwriter.h" />
+    <ClInclude Include="ExcludeDimDialog.h">
+      <Filter>OutputProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="OutputProcessExcludeDim.h">
+      <Filter>OutputProcessing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">

@@ -795,6 +795,15 @@ long ListenerManager::GetStepMMSSOfset(int& hours, long hradj)
     return res;
 }
 
+ListenerBase* ListenerManager::GetListener(const std::string listener) const
+{
+    for (const auto& it : _listeners) {
+        if (listener == it->GetType())
+            return it;
+    }
+    return nullptr;
+}
+
 void ListenerManager::SetFrameMS(int frameMS)
 {
     for (auto it: _listeners)

@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "Model.h"
-#include "../Image.h"
+#include "../graphics/opengl/Image.h"
 
 class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {

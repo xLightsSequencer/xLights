@@ -37,7 +37,7 @@ class DmxServo : public DmxModel
         virtual void DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active);
 
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
         int transparency;
         float brightness;

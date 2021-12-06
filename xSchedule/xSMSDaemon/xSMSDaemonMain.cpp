@@ -611,7 +611,7 @@ void xSMSDaemonFrame::LoadOptions()
         }
         else
         {
-            _smsService->Reset(_options);
+            _smsService->Reset(&_options);
         }
     }
 
@@ -619,19 +619,19 @@ void xSMSDaemonFrame::LoadOptions()
     {
         if (_options.GetSMSService() == "Bandwidth")
         {
-            _smsService = std::make_unique<Bandwidth>(_options);
+            _smsService = std::make_unique<Bandwidth>(&_options);
         }
         else if (_options.GetSMSService() == "Voip.ms")
         {
-            _smsService = std::make_unique<Voip_ms>(_options);
+            _smsService = std::make_unique<Voip_ms>(&_options);
         }
         else if (_options.GetSMSService() == "Twilio")
         {
-            _smsService = std::make_unique<Twilio>(_options);
+            _smsService = std::make_unique<Twilio>(&_options);
         }
         else if (_options.GetSMSService() == "Test")
         {
-            _smsService = std::make_unique<TestService>(_options);
+            _smsService = std::make_unique<TestService>(&_options);
         }
     }
 

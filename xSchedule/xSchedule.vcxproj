@@ -28,14 +28,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -43,14 +43,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -295,6 +295,7 @@
     <ClCompile Include="events\ListenerOSC.cpp" />
     <ClCompile Include="events\ListenerSerial.cpp" />
     <ClCompile Include="events\ListenerSMPTE.cpp" />
+    <ClCompile Include="ExcludeDimDialog.cpp" />
     <ClCompile Include="ExtraIPDialog.cpp" />
     <ClCompile Include="ExtraIPsDialog.cpp" />
     <ClCompile Include="FPPRemotesDialog.cpp" />
@@ -309,6 +310,7 @@
     <ClCompile Include="OutputProcessDeadChannel.cpp" />
     <ClCompile Include="OutputProcessDim.cpp" />
     <ClCompile Include="OutputProcessDimWhite.cpp" />
+    <ClCompile Include="OutputProcessExcludeDim.cpp" />
     <ClCompile Include="OutputProcessGamma.cpp" />
     <ClCompile Include="OutputProcessingDialog.cpp" />
     <ClCompile Include="OutputProcessRemap.cpp" />
@@ -529,6 +531,7 @@
     <ClInclude Include="events\ListenerOSC.h" />
     <ClInclude Include="events\ListenerSerial.h" />
     <ClInclude Include="events\ListenerSMPTE.h" />
+    <ClInclude Include="ExcludeDimDialog.h" />
     <ClInclude Include="ExtraIPDialog.h" />
     <ClInclude Include="ExtraIPsDialog.h" />
     <ClInclude Include="FPPRemotesDialog.h" />
@@ -544,6 +547,7 @@
     <ClInclude Include="OutputProcessDeadChannel.h" />
     <ClInclude Include="OutputProcessDim.h" />
     <ClInclude Include="OutputProcessDimWhite.h" />
+    <ClInclude Include="OutputProcessExcludeDim.h" />
     <ClInclude Include="OutputProcessGamma.h" />
     <ClInclude Include="OutputProcessingDialog.h" />
     <ClInclude Include="OutputProcessRemap.h" />

@@ -20,6 +20,7 @@ class PlayerWindow;
 class PlayerFrame;
 class VideoReader;
 class CachedVideoReader;
+class ScheduleOptions;
 
 class PlayListItemVideo : public PlayListItem
 {
@@ -50,7 +51,7 @@ public:
 
     #pragma region Constructors and Destructors
     PlayListItemVideo(wxXmlNode* node);
-    PlayListItemVideo();
+    PlayListItemVideo(ScheduleOptions* options);
     virtual ~PlayListItemVideo();
     virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors

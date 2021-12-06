@@ -32,10 +32,12 @@ enum class controller_connection_bulkedit
 	CEBE_CONTROLLERENDNULLNODES,
 	CEBE_CONTROLLERBRIGHTNESS,
     CEBE_SMARTREMOTE,
-    CEBE_CONTROLLERPROTOCOL
+    CEBE_CONTROLLERPROTOCOL,
+    CEBE_SMARTREMOTETYPE
 };
 
 class wxXmlNode;
+class Model;
 
 class ControllerConnectionDialog: public wxDialog
 {
@@ -73,7 +75,7 @@ class ControllerConnectionDialog: public wxDialog
 
         wxSpinCtrlDouble *Gamma;
     
-        void Set(wxXmlNode *controllerConnection);
+        void Set(Model *m);
         void Get(wxXmlNode *controllerConnection);
 
 	protected:

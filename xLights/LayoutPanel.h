@@ -92,7 +92,6 @@ class LayoutPanel: public wxPanel
 
 		friend class ViewObjectPanel;
 
-    private:
 		//(*Declarations(LayoutPanel)
 		wxButton* ButtonSavePreview;
 		wxCheckBox* CheckBoxOverlap;
@@ -112,6 +111,8 @@ class LayoutPanel: public wxPanel
 		wxSplitterWindow* SplitterWindow2;
 		wxStaticText* StaticText1;
 		//*)
+
+    private:
 
 		wxScrolledWindow* ViewObjectWindow = nullptr;
 		wxScrolledWindow* ModelGroupWindow = nullptr;
@@ -166,6 +167,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERPROTOCOL;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT;
+        static const long ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE;
         static const long ID_PREVIEW_BULKEDIT_PREVIEW;
         static const long ID_PREVIEW_BULKEDIT_DIMMINGCURVES;
         static const long ID_PREVIEW_ALIGN_TOP;
@@ -215,6 +217,8 @@ class LayoutPanel: public wxPanel
         static const long ID_ADD_DMX_FLOODAREA;
         static const long ID_PREVIEW_MODEL_CAD_EXPORT;
         static const long ID_PREVIEW_LAYOUT_DXF_EXPORT;
+        static const long ID_PREVIEW_FLIP_HORIZONTAL;
+        static const long ID_PREVIEW_FLIP_VERTICAL;
 
 	public:
 
@@ -385,6 +389,8 @@ class LayoutPanel: public wxPanel
         void PreviewModelHDistribute();
         void PreviewModelVDistribute();
         void PreviewModelResize(bool sameWidth, bool sameHeight);
+        void PreviewModelFlipV();
+        void PreviewModelFlipH();
         Model *CreateNewModel(const std::string &type) const;
 
         bool _firstTreeLoad = true;

@@ -15,6 +15,8 @@
 #include <wx/wx.h>
 #include <wx/progdlg.h>
 #include <wx/file.h>
+#include <wx/filename.h>
+#include <wx/url.h>
 
 #include <string>
 
@@ -85,7 +87,7 @@ public:
 //    }
 //#endif
 
-    static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {})
+    static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int *responseCode = nullptr)
     {
         static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
         logger_curl.info("URL: %s", url.c_str());
@@ -176,6 +178,10 @@ public:
                 logger_curl.debug("RESPONSE START ------");
                 logger_curl.debug(buffer.c_str());
                 logger_curl.debug("RESPONSE END ------");
+                
+                if (responseCode) {
+                    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, responseCode);
+                }
                 return buffer;
             }
         }
@@ -257,7 +263,7 @@ public:
         return "";
     }
 
-    static std::string HTTPSGet(const std::string& s, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {})
+    static std::string HTTPSGet(const std::string& s, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int *responseCode = nullptr)
     {
         static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -315,18 +321,18 @@ public:
                 curl_slist_free_all(headerlist);
             }
 
-            if (r != CURLE_OK)
-            {
+            if (r != CURLE_OK) {
                 const char* err = curl_easy_strerror(r);
                 if (err == nullptr) {
                     logger_base.error("Failure to access %s: %d.", (const char*)s.c_str(), r);
-                }
-                else {
+                } else {
                     logger_base.error("Failure to access %s: %d: %s.", (const char*)s.c_str(), r, err);
                 }
-            }
-            else
-            {
+            } else {
+                if (responseCode) {
+                    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, responseCode);
+                }
+
                 res = response_string;
                 logger_curl.debug("RESPONSE START ----------");
                 logger_curl.debug(res.substr(0, 4096).c_str());
@@ -474,25 +480,23 @@ public:
     }
 
     struct HTTPFileUploadData {
-        HTTPFileUploadData() : file(nullptr), data(nullptr), progress(nullptr), dataSize(0), curPos(0),
-            postData(nullptr), postDataSize(0), totalWritten(0), lastDone(0), cancelled(false)
-        {
-        }
 
-        uint8_t* data;
-        size_t dataSize;
-        size_t curPos;
+        HTTPFileUploadData() { }
 
-        wxFile* file;
+        uint8_t* data = nullptr;
+        size_t dataSize = 0;
+        size_t curPos = 0;
 
-        uint8_t* postData;
-        size_t postDataSize;
+        wxFile* file = nullptr;
 
-        wxProgressDialog* progress;
+        uint8_t* postData = nullptr;
+        size_t postDataSize = 0;
+
+        wxProgressDialog* progress = nullptr;
         std::string progressString;
-        size_t totalWritten;
-        size_t lastDone;
-        bool cancelled;
+        size_t totalWritten = 0;
+        size_t lastDone = 0;
+        bool cancelled = false;
 
         size_t readData(void* ptr, size_t buffer_size)
         {
@@ -527,7 +531,7 @@ public:
                 size_t t = file->Read(ptr, buffer_size);
                 totalWritten += t;
 
-                if (progress) {
+                if (progress != nullptr) {
                     size_t donePct = totalWritten;
                     donePct *= 1000;
                     donePct /= file->Length();
@@ -580,7 +584,7 @@ public:
         bool cancelled = false;
         logger_base.debug("Upload via http of %s.", (const char*)filename.c_str());
         dlg->SetTitle("HTTP Upload");
-        cancelled |= !dlg->Update(0, "Transferring " + file + " to " + url);
+        cancelled |= !dlg->Update(0, "Transferring " + wxFileName(file).GetFullName() + " to " + wxURL(url).GetServer());
         int lastDone = 0;
 
         CURL* curl = curl_easy_init();
@@ -656,7 +660,7 @@ public:
             curl_easy_setopt(curl, CURLOPT_READFUNCTION, http_file_upload_callback);
             curl_easy_setopt(curl, CURLOPT_READDATA, &data);
 
-            data.progressString = "Transferring " + filename + " to " + url;
+            data.progressString = "Transferring " + wxFileName(filename).GetFullName() + " to " + wxURL(url).GetServer();
             data.lastDone = lastDone;
 
             int i = curl_easy_perform(curl);

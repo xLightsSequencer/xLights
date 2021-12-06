@@ -16,6 +16,7 @@
 
 class wxXmlNode;
 class OutputManager;
+class ScheduleOptions;
 
 typedef enum {VM_NORMAL, VM_90, VM_270, VM_FLIP_HORIZONTAL, VM_FLIP_VERTICAL } VMROTATION;
 
@@ -50,7 +51,7 @@ public:
         VirtualMatrix(OutputManager* outputManager, wxXmlNode* n);
         VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, int swsQuality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier);
         VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, const std::string& rotation, const std::string& quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier);
-        VirtualMatrix(OutputManager* outputManager);
+        VirtualMatrix(OutputManager* outputManager, ScheduleOptions* options);
         virtual ~VirtualMatrix() {}
         void Frame(uint8_t*buffer, size_t size);
         void AllOff();

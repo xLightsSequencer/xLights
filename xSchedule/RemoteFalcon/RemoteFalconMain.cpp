@@ -593,8 +593,54 @@ void RemoteFalconFrame::GetAndPlaySong(const std::string& playing)
             if (result == "{\"result\":\"ok\"}") {
                 AddMessage("Asking remote falcon to take the song off the queue as it is now playing.");
                 AddMessage("    " + _remoteFalcon->UpdatePlaylistQueue());
+            } else {
+                AddMessage("Asking remote falcon to take the song off the queue as it caused an error.");
+                AddMessage("    " + _remoteFalcon->UpdatePlaylistQueue());
             }
-            else {
+        }
+    }
+}
+
+void RemoteFalconFrame::GetAndPlayEffect() {
+    if (_remoteFalcon == nullptr)
+        return;
+
+    AddMessage("Asking remote falcon for the effect we should be playing.");
+    std::string song;
+
+    if (_mode == "voting") {
+        song = _remoteFalcon->FetchHighestVotedPlaylist();
+    } else {
+        song = _remoteFalcon->FetchCurrentPlaylistFromQueue();
+    }
+    AddMessage("    " + song);
+
+    wxJSONReader reader;
+    wxJSONValue val;
+    reader.Parse(song, &val);
+
+    std::string nextSong = "";
+    if (!val.IsNull()) {
+        if (_mode == "voting") {
+            if (!val["winningPlaylist"].IsNull()) {
+                nextSong = val["winningPlaylist"].AsString();
+            }
+        } else {
+            if (!val["nextPlaylist"].IsNull()) {
+                nextSong = val["nextPlaylist"].AsString();
+            }
+        }
+    }
+
+    if (nextSong != "" && nextSong != "null") {
+        AddMessage("Asking xSchedule to play effect " + nextSong);
+        auto result = xSchedule::PlayEffect(_playlist, nextSong, _options.GetEffectMode());
+        if (_mode != "voting") {
+            AddMessage("    " + result);
+            if (result == "{\"result\":\"ok\"}") {
+                AddMessage("Asking remote falcon to take the song off the queue as it is now playing.");
+                AddMessage("    " + _remoteFalcon->UpdatePlaylistQueue());
+            } else {
                 AddMessage("Asking remote falcon to take the song off the queue as it caused an error.");
                 AddMessage("    " + _remoteFalcon->UpdatePlaylistQueue());
             }
@@ -643,12 +689,16 @@ void RemoteFalconFrame::DoNotifyStatus(const std::string& status)
                     }
                 }
 
-                if (
-                    (queueLength == 0 && _options.GetImmediatelyInterrupt()) || // if immediately interrupt then we always ask for the next song
-                    (queueLength == 1 && lefts <= _options.GetLeadTime()) || // if there is a song in the queue then dont ask until it is almost done
-                    (queueLength == 0 && !_options.GetImmediatelyInterrupt() && lefts <= _options.GetLeadTime()) // if there is nothing in the queue but we are to gracefully interrupt then wait until the current song is almost done
+                if (_options.IsEffectPlaylist()) {
+                    GetAndPlayEffect();
+                } else {
+                    if (
+                        (queueLength == 0 && _options.GetImmediatelyInterrupt()) ||                                  // if immediately interrupt then we always ask for the next song
+                        (queueLength == 1 && lefts <= _options.GetLeadTime()) ||                                     // if there is a song in the queue then dont ask until it is almost done
+                        (queueLength == 0 && !_options.GetImmediatelyInterrupt() && lefts <= _options.GetLeadTime()) // if there is nothing in the queue but we are to gracefully interrupt then wait until the current song is almost done
                     ) {
-                    GetAndPlaySong(playing);
+                        GetAndPlaySong(playing);
+                    }
                 }
             }
             else                 {

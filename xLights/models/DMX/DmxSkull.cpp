@@ -929,10 +929,10 @@ void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2,
         va.AddVertex(p16m.x, p16m.y, ccolor);
 
         // Draw Eyes
-        va.AddTrianglesCircle(left_eye_socket.x, left_eye_socket.y, scale * sf * 0.25, black, black);
-        va.AddTrianglesCircle(right_eye_socket.x, right_eye_socket.y, scale * sf * 0.25, black, black);
-        va.AddTrianglesCircle(left_eye.x, left_eye.y, scale * sf * 0.10, eye_color, eye_color);
-        va.AddTrianglesCircle(right_eye.x, right_eye.y, scale * sf * 0.10, eye_color, eye_color);
+        va.AddCircleAsTriangles(left_eye_socket.x, left_eye_socket.y, scale * sf * 0.25, black, black);
+        va.AddCircleAsTriangles(right_eye_socket.x, right_eye_socket.y, scale * sf * 0.25, black, black);
+        va.AddCircleAsTriangles(left_eye.x, left_eye.y, scale * sf * 0.10, eye_color, eye_color);
+        va.AddCircleAsTriangles(right_eye.x, right_eye.y, scale * sf * 0.10, eye_color, eye_color);
 
     }
     va.Finish(GL_TRIANGLES);
@@ -1020,8 +1020,7 @@ void DmxSkull::ExportXlightsModel()
     f.Close();
 }
 
-void DmxSkull::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+void DmxSkull::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
     // We have already loaded gdtf properties
     if (EndsWith(filename, "gdtf")) return;
 

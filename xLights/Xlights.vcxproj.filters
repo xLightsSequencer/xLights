@@ -29,8 +29,6 @@
     <ClCompile Include="DataLayer.cpp" />
     <ClCompile Include="DimmingCurve.cpp" />
     <ClCompile Include="DimmingCurvePanel.cpp" />
-    <ClCompile Include="DrawGLUtils.cpp" />
-    <ClCompile Include="DrawGLUtils31.cpp" />
     <ClCompile Include="EffectAssist.cpp" />
     <ClCompile Include="EffectIconPanel.cpp" />
     <ClCompile Include="EffectListDialog.cpp" />
@@ -47,8 +45,6 @@
     <ClCompile Include="FileConverter.cpp" />
     <ClCompile Include="FlickerFreeBitmapButton.cpp" />
     <ClCompile Include="GenerateCustomModelDialog.cpp" />
-    <ClCompile Include="Image.cpp" />
-    <ClCompile Include="Image_Loader.cpp" />
     <ClCompile Include="JobPool.cpp" />
     <ClCompile Include="KeyBindings.cpp" />
     <ClCompile Include="kiss_fft\kiss_fft.c" />
@@ -135,10 +131,8 @@
     <ClCompile Include="xlColorCanvas.cpp" />
     <ClCompile Include="xlColorPicker.cpp" />
     <ClCompile Include="xlColorPickerFields.cpp" />
-    <ClCompile Include="xlGLCanvas.cpp" />
     <ClCompile Include="xlGridCanvas.cpp" />
     <ClCompile Include="xLightsApp.cpp" />
-    <ClCompile Include="XlightsDrawable.cpp" />
     <ClCompile Include="xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="xLightsMain.cpp" />
     <ClCompile Include="xLightsTimer.cpp" />
@@ -900,6 +894,40 @@
     </ClCompile>
     <ClCompile Include="Pixels.cpp" />
     <ClCompile Include="LORPreview.cpp" />
+    <ClCompile Include="ExportSettings.cpp" />
+    <ClCompile Include="GPURenderUtils.cpp" />
+    <ClCompile Include="graphics\opengl\DrawGLUtils.cpp">
+      <Filter>graphics\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\opengl\DrawGLUtils31.cpp">
+      <Filter>graphics\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\opengl\xlGLCanvas.cpp">
+      <Filter>graphics\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\xlGraphicsAccumulators.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\opengl\Image.cpp">
+      <Filter>graphics\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\opengl\Image_Loader.cpp">
+      <Filter>graphics\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\opengl\XlightsDrawable.cpp" />
+    <ClCompile Include="graphics\xlFontInfo.cpp" />
+    <ClCompile Include="automation\automation.cpp" />
+    <ClCompile Include="automation\xLightsAutomations.cpp" />
+    <ClCompile Include="ScriptsDialog.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\connection.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\context.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\message.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\pages.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\request.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\response.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\server.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\sha1.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\status.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -931,7 +959,6 @@
     <ClInclude Include="DataLayer.h" />
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
-    <ClInclude Include="DrawGLUtils.h" />
     <ClInclude Include="EffectAssist.h" />
     <ClInclude Include="EffectIconPanel.h" />
     <ClInclude Include="EffectListDialog.h" />
@@ -943,9 +970,7 @@
     <ClInclude Include="FileConverter.h" />
     <ClInclude Include="FlickerFreeBitmapButton.h" />
     <ClInclude Include="GenerateCustomModelDialog.h" />
-    <ClInclude Include="Image.h" />
     <ClInclude Include="Images_png.h" />
-    <ClInclude Include="Image_Loader.h" />
     <ClInclude Include="JobPool.h" />
     <ClInclude Include="KeyBindings.h" />
     <ClInclude Include="LayoutGroup.h" />
@@ -1032,10 +1057,8 @@
     <ClInclude Include="xlColorPicker.h" />
     <ClInclude Include="xlColorPickerFields.h" />
     <ClInclude Include="xlCustomControl.h" />
-    <ClInclude Include="xlGLCanvas.h" />
     <ClInclude Include="xlGridCanvas.h" />
     <ClInclude Include="xLightsApp.h" />
-    <ClInclude Include="XlightsDrawable.h" />
     <ClInclude Include="xLightsImportChannelMapDialog.h" />
     <ClInclude Include="xLightsMain.h" />
     <ClInclude Include="xLightsTimer.h" />
@@ -1810,6 +1833,34 @@
     </ClInclude>
     <ClInclude Include="Pixels.h" />
     <ClInclude Include="LORPreview.h" />
+    <ClInclude Include="ExportSettings.h" />
+    <ClInclude Include="graphics\opengl\DrawGLUtils.h">
+      <Filter>graphics\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\opengl\xlGLCanvas.h">
+      <Filter>graphics\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\xlGraphicsBase.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\xlGraphicsContext.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\xlGraphicsAccumulators.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\opengl\Image.h">
+      <Filter>graphics\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\opengl\Image_Loader.h">
+      <Filter>graphics\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
+    <ClInclude Include="graphics\xlFontInfo.h" />
+    <ClInclude Include="automation\automation.h" />
+    <ClInclude Include="ScriptsDialog.h" />
+    <ClInclude Include="..\xSchedule\wxHTTPServer\sha1.h" />
+    <ClInclude Include="..\xSchedule\wxHTTPServer\wxhttpserver.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -1835,6 +1886,12 @@
     </Filter>
     <Filter Include="cad">
       <UniqueIdentifier>{1096ad9f-b290-43d7-9267-5716023074ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="graphics">
+      <UniqueIdentifier>{91803950-314a-4700-8d29-8be91f8a217d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="graphics\opengl">
+      <UniqueIdentifier>{6a3bbe99-6c51-4b5c-a7af-1e8d44671419}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

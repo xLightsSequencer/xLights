@@ -13,6 +13,7 @@
 #include <map>
 #include <string.h>
 #include <cctype>
+#include <thread>
 
 #include <curl/curl.h>
 
@@ -450,7 +451,7 @@ void FPP::LoadPlaylists(std::list<std::string> &playlists) {
 }
 
 bool FPP::IsMultiSyncEnabled(){
-    if (IsVersionAtLeast(5, 0) && !IsDrive()) {
+    if (IsVersionAtLeast(5, 0) && !IsDrive() && mode == "player") {
         wxJSONValue val;
         if (GetURLAsJSON("/api/settings/MultiSyncEnabled", val)) {
             if (val.HasMember("value")) {
@@ -684,9 +685,10 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     }
 
     bool cancelled = false;
-    progressDialog->SetTitle("FPP Upload");
+    if (progressDialog != nullptr) progressDialog->SetTitle("FPP Upload");
     logger_base.debug("FPP upload via http of %s.", (const char*)filename.c_str());
-    cancelled |= !progressDialog->Update(0, "Transferring " + filename + " to " + ipAddress);
+    if (progressDialog != nullptr)
+        cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
     int lastDone = 0;
 
     std::string ct = "Content-Type: application/octet-stream";
@@ -759,6 +761,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     wxFile fileobj(fullFileName);
     if (!usingJqUpload) {
         std::string cl = "Content-Length: " + std::to_string(fileobj.Length());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, fileobj.Length());
         chunk = curl_slist_append(chunk, cl.c_str());
     }
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
@@ -803,7 +806,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
         logger_base.warn("Curl did not upload file:  %d   %s", response_code, error);
         messages.push_back("ERROR Uploading file: " + filename + "     CURL response: " + std::to_string(i) + " - " + error);
     }
-    cancelled |= !progressDialog->Update(1000);
+    if (progressDialog != nullptr) cancelled |= !progressDialog->Update(1000);
     logger_base.info("FPPConnect Upload file %s  - Return: %d - RC: %d - File: %s", fullUrl.c_str(), i, response_code, filename.c_str());
 
     return data.cancelled | cancelled;
@@ -815,10 +818,13 @@ bool FPP::copyFile(const std::string &filename,
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
-    progressDialog->SetTitle("FPP Upload");
-    logger_base.debug("FPP upload via file copy of %s.", (const char*)filename.c_str());
-    cancelled |= !progressDialog->Update(0, "Transferring " + filename + " to " + ipAddress);
-    progressDialog->Show();
+    if (progressDialog != nullptr) {
+        progressDialog->SetTitle("FPP Upload");
+        logger_base.debug("FPP upload via file copy of %s.", (const char*)filename.c_str());
+        cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
+        progressDialog->Show();
+    }
+
     wxFile in;
     in.Open(file);
 
@@ -841,20 +847,24 @@ bool FPP::copyFile(const std::string &filename,
                 done += read;
 
                 int prgs = done * 1000 / length;
-                cancelled |= !progressDialog->Update(prgs);
-                if (!cancelled) {
-                    cancelled = progressDialog->WasCancelled();
+                if (progressDialog != nullptr) {
+                    cancelled |= !progressDialog->Update(prgs);
+                    if (!cancelled) {
+                        cancelled = progressDialog->WasCancelled();
+                    }
                 }
             }
-            cancelled |= !progressDialog->Update(1000);
+            if (progressDialog != nullptr) cancelled |= !progressDialog->Update(1000);
             in.Close();
             out.Close();
         } else {
-            cancelled |= !progressDialog->Update(1000);
+            if (progressDialog != nullptr)
+                cancelled |= !progressDialog->Update(1000);
             logger_base.warn("   Copy of file %s failed ... target file %s could not be opened.", (const char *)file.c_str(), (const char *)target.c_str());
         }
     } else {
-        cancelled |= !progressDialog->Update(1000);
+        if (progressDialog != nullptr)
+            cancelled |= !progressDialog->Update(1000);
         logger_base.warn("   Copy of file %s failed ... file could not be opened.", (const char *)file.c_str());
     }
     return cancelled;
@@ -1025,17 +1035,27 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     int fastLevel = ZSTD_versionNumber() > 10305 ? -5 : 1;
 
     if (ctype == ::FSEQFile::CompressionType::zlib) {
-        clevel = 9;
+        clevel = 1; // 9;
     } else {
         if (model.find(" Zero") != std::string::npos
             || model.find("Pi Model A") != std::string::npos
             || model.find("Pi Model B") != std::string::npos) {
             clevel = fastLevel;
-        } else if (model.find("Beagle") != std::string::npos && channelCount > 50000) {
+        } else if (model.find("Beagle") != std::string::npos) {
             // lots of channels actually needed.  Possibly a P# panel or similar
             // where we'll need CPU to actually process the channels so
             // drop to lower compression, faster decommpression
-            clevel = channelCount > 30000 ? fastLevel : 1;
+            if (channelCount > 50000) {
+                clevel = fastLevel;
+            } else if (channelCount > 20000) {
+                if (fastLevel < 0) {
+                    clevel = -1;
+                } else {
+                    clevel = 1;
+                }
+            } else {
+                clevel = 2;
+            }
         }
     }
     outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype, clevel);
@@ -1839,7 +1859,7 @@ bool FPP::UploadPanelOutputs(ModelManager* allmodels,
         return false;
     }
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+    UDController cud(controller, outputManager, allmodels, false);
     bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
 
     wxJSONValue origJson;
@@ -1900,7 +1920,7 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
         return false;
     }
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+    UDController cud(controller, outputManager, allmodels, false);
     bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
     bool changed = false;
     wxJSONValue origJson;
@@ -2050,11 +2070,11 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("FPP Serial Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
 
-    std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+    UDController cud(controller, outputManager, allmodels, false);
     if (cud.GetMaxSerialPort() == 0) {
         return false;
     }
+    std::string check;
     cud.Check(rules, check);
     cud.Dump();
 
@@ -2159,9 +2179,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("FPP Pixel Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
-
-    std::string check;
-    UDController cud(controller, outputManager, allmodels, check, false);
+        
+    UDController cud(controller, outputManager, allmodels, false);
 
     if (cud.GetMaxPixelPort() == 0 && cud.GetMaxSerialPort() == 0) {
         return false;
@@ -2170,6 +2189,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     if (fppFileName == "") {
         fppFileName = "co-bbbStrings";
     }
+    std::string check;
     cud.Check(rules, check);
     cud.Dump();
 
@@ -2334,9 +2354,19 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vsname += "B";
                 } else if (pvs->_smartRemote == 3) {
                     vsname += "C";
+                } else if (pvs->_smartRemote == 4) {
+                    vsname += "D";
+                } else if (pvs->_smartRemote == 5) {
+                    vsname += "E";
+                } else if (pvs->_smartRemote == 6) {
+                    vsname += "F";
                 }
                 if (pvs->_smartRemote >= 1) {
-                    stringData["outputs"][port->GetPort() - 1]["differentialType"] = 1;
+                    if (pvs->_smartRemoteType.find("v2") != std::string::npos) {
+                        stringData["outputs"][port->GetPort() - 1]["differentialType"] = 4;
+                    } else {
+                        stringData["outputs"][port->GetPort() - 1]["differentialType"] = 1;
+                    }
                 }
 
                 stringData["outputs"][port->GetPort() - 1][vsname].Append(vs);
@@ -2365,16 +2395,30 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         if ((x & 0x3) == 0) {
             //need to check the group of 4 to see if we need a smartRemote or not
             int remoteType = 0;
+            bool remoteTypeV2 = false;
             for (int z = 0; z < 4; z++) {
                 if ((x + z) < maxport) {
-                    if (stringData["outputs"][x+z].HasMember("virtualStringsC")) {
+                    if (stringData["outputs"][x + z].HasMember("virtualStringsF")) {
+                        remoteType = std::max(remoteType, 6);
+                    } else if (stringData["outputs"][x + z].HasMember("virtualStringsE")) {
+                        remoteType = std::max(remoteType, 5);
+                    } else if (stringData["outputs"][x + z].HasMember("virtualStringsD")) {
+                        remoteType = std::max(remoteType, 4);
+                    } else if (stringData["outputs"][x + z].HasMember("virtualStringsC")) {
                         remoteType = std::max(remoteType, 3);
                     } else if (stringData["outputs"][x+z].HasMember("virtualStringsB")) {
                         remoteType = std::max(remoteType, 2);
                     } else if (stringData["outputs"][x+z].HasMember("differentialType")) {
                         remoteType = std::max(remoteType, 1);
                     }
+                    if (stringData["outputs"][x + z].HasMember("differentialType") && 
+                        stringData["outputs"][x + z]["differentialType"].AsLong() > 3) {
+                        remoteTypeV2 = true;
+                    }
                 }
+            }
+            if (remoteTypeV2) {
+                remoteType += 3;
             }
             if (remoteType) {
                 for (int z = 0; z < 4; z++) {
@@ -3036,13 +3080,17 @@ void FPP::PrepareDiscovery(Discovery &discovery) {
         wxArrayString ips = wxSplit(force, '|');
         wxString newForce;
         for (auto& a : ips) {
-            startAddresses.push_back(a);
+            if (a != "") {
+                startAddresses.push_back(a);
+            }
         }
     }
     for (auto &it : discovery.GetOutputManager()->GetControllers()) {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
         if (eth != nullptr) {
-            startAddresses.push_back(eth->GetIP());
+            if (eth->GetIP() != "") {
+                startAddresses.push_back(eth->GetIP());
+            }
             if (eth->GetFPPProxy() != "") {
                 startAddresses.push_back(eth->GetFPPProxy());
             }
@@ -3050,7 +3098,6 @@ void FPP::PrepareDiscovery(Discovery &discovery) {
     }
     PrepareDiscovery(discovery, startAddresses);
 }
-
 
 void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing) {
     uint8_t buffer[512] = { 'F', 'P', 'P', 'D', 0x04};
@@ -3253,4 +3300,63 @@ bool FPP::ValidateProxy(const std::string& to, const std::string& via)
         }
     }
     return false;
+}
+
+std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
+{
+    std::list<FPP*> instances;
+
+    std::list<std::string> startAddresses;
+    std::list<std::string> startAddressesForced;
+
+    wxConfigBase* config = wxConfigBase::Get();
+    wxString force;
+    if (config->Read("FPPConnectForcedIPs", &force)) {
+        wxArrayString ips = wxSplit(force, '|');
+        wxString newForce;
+        for (const auto& a : ips) {
+            startAddresses.push_back(a);
+            startAddressesForced.push_back(a);
+        }
+    }
+    // add existing controller IP's to the discovery, helps speed up
+    // discovery as well as makes it more reliable to discover those,
+    // particularly if on a different subnet.   This also helps
+    // make sure actually configured controllers are found
+    // so the FPP Connect dialog is more likely to
+    // have the entire list allowing the uploads to then entire
+    // show network to be easier to do
+    for (auto& it : outputManager->GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth != nullptr && eth->GetIP() != "") {
+            startAddresses.push_back(eth->GetIP());
+            if (eth->GetFPPProxy() != "") {
+                startAddresses.push_back(eth->GetFPPProxy());
+            }
+        }
+    }
+
+    Discovery discovery(frame, outputManager);
+    FPP::PrepareDiscovery(discovery, startAddresses);
+    discovery.Discover();
+    FPP::MapToFPPInstances(discovery, instances, outputManager);
+    instances.sort(sortByIP);
+
+    wxString newForce = "";
+    for (const auto& a : startAddressesForced) {
+        for (const auto& fpp : instances) {
+            if (case_insensitive_match(a, fpp->hostName) || case_insensitive_match(a, fpp->ipAddress)) {
+                if (newForce != "") {
+                    newForce.append(",");
+                }
+                newForce.append(a);
+            }
+        }
+    }
+    if (newForce != force) {
+        config->Write("FPPConnectForcedIPs", newForce);
+        config->Flush();
+    }
+
+    return instances;
 }

@@ -63,6 +63,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _lateStartingScheduleUsesTime = node->GetAttribute("LateStartingScheduleUsesTime", "FALSE") == "TRUE";
     _disableOutputOnPingFailure = node->GetAttribute("DisableOutputOnPingFailure", "FALSE") == "TRUE";
     _useStepMMSSTimecodeFormat = node->GetAttribute("StepMMSSTimecodeFormat", "FALSE") == "TRUE";
+    _remoteTimecodeStepAdvance = node->GetAttribute("RemoteTimecodeStepAdvance", "FALSE") == "TRUE";
 
 #ifdef __WXMSW__
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
@@ -80,6 +81,11 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _defaultPage = node->GetAttribute("DefaultPage", "index.html");
     _allowUnauth = node->GetAttribute("AllowUnauth", "FALSE") == "TRUE";
     _city = node->GetAttribute("City", "Sydney");
+    auto pair = ParsePair(node->GetAttribute("DefaultVideoPos", "0|0"), { 0, 0 });
+    _defaultVideoPos = wxPoint(pair.first, pair.second);
+    pair = ParsePair(node->GetAttribute("DefaultVideoSize", "300|300"), { 300, 300 });
+    _defaultVideoSize = wxSize(pair.first, pair.second);
+
     if (_city == "") _city = "Sydney"; // we always want to have a city and this is the best place to be :)
 
     for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
@@ -182,6 +188,20 @@ void ScheduleOptions::AddButton(const std::string& label, const std::string& com
     _buttons.push_back(b);
 }
 
+std::pair<int, int> ScheduleOptions::ParsePair(const std::string& value, const std::pair<int, int>& def)
+{
+    auto cc = wxSplit(value, '|');
+    if (cc.size() == 2) {
+        return { wxAtoi(cc[0]), wxAtoi(cc[1]) };
+    }
+    return def;
+}
+
+std::string ScheduleOptions::SerialisePair(int a, int b)
+{
+    return wxString::Format("%d|%d", a, b).ToStdString();
+}
+
 int ScheduleOptions::EncodeSMPTEMode(const std::string& mode)
 {
     if (mode == "24 FPS") {
@@ -256,6 +276,7 @@ ScheduleOptions::ScheduleOptions()
     _minimiseUIUpdates = false;
     _retryOutputOpen = false;
     _useStepMMSSTimecodeFormat = false;
+    _remoteTimecodeStepAdvance = false;
     _suppressAudioOnRemotes = true;
     _sendBackgroundWhenNotRunning = false;
     _advancedMode = false;
@@ -264,6 +285,8 @@ ScheduleOptions::ScheduleOptions()
     _MIDITimecodeFormat = TIMECODEFORMAT::F24;
     _MIDITimecodeOffset = 0;
     _SMPTEMode = 3;
+    _defaultVideoPos = { 0,0 };
+    _defaultVideoSize = { 100, 100 };
 }
 
 ScheduleOptions::~ScheduleOptions()
@@ -301,6 +324,8 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("RemoteLatency", wxString::Format("%d", _remoteLatency));
     res->AddAttribute("RemoteAcceptableJitter", wxString::Format("%d", _remoteAcceptableJitter));
     res->AddAttribute("SMPTEMode", wxString::Format("%d", _SMPTEMode));
+    res->AddAttribute("DefaultVideoSize", SerialisePair(_defaultVideoSize.x, _defaultVideoSize.y));
+    res->AddAttribute("DefaultVideoPos", SerialisePair(_defaultVideoPos.x, _defaultVideoPos.y));
     if (IsSync()) {
         res->AddAttribute("Sync", "TRUE");
     }
@@ -321,6 +346,11 @@ wxXmlNode* ScheduleOptions::Save()
     if (_useStepMMSSTimecodeFormat) {
         res->AddAttribute("StepMMSSTimecodeFormat", "TRUE");
     }
+
+    if (_remoteTimecodeStepAdvance) {
+        res->AddAttribute("RemoteTimecodeStepAdvance", "TRUE");
+    }
+
     if (_hardwareAcceleratedVideo) {
         res->AddAttribute("HardwareAcceleratedVideo", "TRUE");
     }

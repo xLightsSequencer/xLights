@@ -11,14 +11,14 @@
  **************************************************************/
 
  //(*Headers(DimDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/spinctrl.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
-//*)
+ #include <wx/button.h>
+ #include <wx/checkbox.h>
+ #include <wx/dialog.h>
+ #include <wx/sizer.h>
+ #include <wx/spinctrl.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 class OutputManager;
 
@@ -40,18 +40,18 @@ class DimDialog: public wxDialog
 		virtual ~DimDialog();
 
 		//(*Declarations(DimDialog)
-		wxStaticText* StaticText_StartChannel;
-		wxCheckBox* CheckBox_Enabled;
-		wxButton* Button_Ok;
-		wxTextCtrl* TextCtrl_Description;
-		wxSpinCtrl* SpinCtrl_Channels;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
 		wxButton* Button_Cancel;
+		wxButton* Button_Ok;
+		wxCheckBox* CheckBox_Enabled;
 		wxSpinCtrl* SpinCtrl_Brightness;
-		wxTextCtrl* TextCtrl_StartChannel;
+		wxSpinCtrl* SpinCtrl_Channels;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText_StartChannel;
+		wxTextCtrl* TextCtrl_Description;
+		wxTextCtrl* TextCtrl_StartChannel;
 		//*)
 
 	protected:

@@ -12,7 +12,7 @@
 				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 					<cols>2</cols>
 					<growablecols>1</growablecols>
-					<growablerows>6</growablerows>
+					<growablerows>8</growablerows>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText_Token" member="yes">
 							<label>Token:</label>
@@ -82,6 +82,34 @@
 						<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_SendEnableDisable" member="yes">
 							<label>Enable/Disable Remote Falcon Website</label>
 						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_PlayAsOverlay" member="yes">
+							<label>Play as an overlay effect</label>
+							<handler function="OnCheckBox_PlayAsOverlayClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+							<label>Effect mode:</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE2" variable="Choice_OverlayEffectMode" member="yes" />
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>

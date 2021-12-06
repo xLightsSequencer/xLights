@@ -21,7 +21,7 @@ class TwinkleEffect : public RenderableEffect
         virtual bool needToAdjustSettings(const std::string& version) override;
         virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, DrawGLUtils::xlAccumulator &backgrounds, xlColor* colorMask, bool ramps) override;
+        virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) override;
     protected:
         virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:

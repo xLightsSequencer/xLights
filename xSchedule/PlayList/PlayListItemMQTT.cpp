@@ -45,10 +45,10 @@ public:
         addr.Hostname(_brokerIP);
         addr.Service(_port);
 
-        logger_base.debug("Connecting to broker.");
+        logger_base.debug("PlayListMQTT Connecting to broker %s:%d.", (const char*)_brokerIP.c_str(), _port);
         if (client.Connect(addr, false) || client.WaitOnConnect(0, 500))
         {
-            logger_base.debug("    Connected.");
+            logger_base.debug("    PlayListMQTT Connected to MQTT Broker.");
             uint8_t buffer[1444];
             memset(buffer, 0x00, sizeof(buffer));
             int index = 0;
@@ -75,7 +75,7 @@ public:
             }
             PlayListItemMQTT::EncodeInt(&buffer[1], index - 2); // set the packet length
 
-            logger_base.debug("    Sending connect packet.");
+            logger_base.debug("    PlayListMQTT Sending connect packet.");
             client.Write(buffer, index);
             wxASSERT(client.LastWriteCount() == index);
             memset(buffer, 0x00, sizeof(buffer));
@@ -83,10 +83,10 @@ public:
             client.Read(buffer, std::min((int)client.LastCount(), (int)sizeof(buffer)));
             if (client.GetLastIOReadSize() > 0)
             {
-                logger_base.debug("    Response received.");
+                logger_base.debug("    PlayListMQTT Response received.");
                 if ((buffer[0] & 0xF0) >> 4 == 2)
                 {
-                    logger_base.debug("    Connected ok.");
+                    logger_base.debug("    PlayListMQTT Connected ok.");
                     int used = 0;
                     unsigned char* pdata = PlayListItemMQTT::PrepareData(_data, used);
 
@@ -104,27 +104,28 @@ public:
                     index += used;
                     client.Write(buffer, index);
                     wxASSERT(client.LastWriteCount() == index);
-                    logger_base.info("MQTT Sent.");
+                    logger_base.info("PlayListMQTT MQTT Sent.");
                     client.WaitForRead(0, 500);
                     client.Read(buffer, std::min((int)client.LastCount(), (int)sizeof(buffer)));
                 }
                 else
                 {
-                    logger_base.error("Illegal response from MQTT broker for connect.");
+                    logger_base.error("PlayListMQTT Illegal response from MQTT broker for connect.");
                 }
             }
             else
             {
-                logger_base.error("No response from MQTT broker for connect.");
+                logger_base.error("PlayListMQTT No response from MQTT broker for connect.");
             }
+            logger_base.debug("    PlayListMQTT Disconnecting from MQTT Broker.");
             client.Close();
         }
         else
         {
-            logger_base.error("Unable to connect to MQTT broker.");
+            logger_base.error("PlayListMQTT Unable to connect to MQTT broker.");
         }
 
-        logger_base.debug("PlayListMQTT thread done.");
+        logger_base.debug("PlayListMQTT thread done");
 
         return nullptr;
     }

@@ -130,6 +130,8 @@ class xLightsXmlFile : public wxFileName
         bool NeedsTimesCorrected() const;
         void ConvertToFixedPointTiming();
         void SetMetaMP3Tags();
+        static std::string GetFSEQForXSQ(const std::string& xsq, const std::string& fseqDirectory);
+        static std::string GetMediaForXSQ(const std::string& xsq, const std::string& showDir, const std::list<std::string> mediaFolders);
 
         void SetRenderMode(const wxString& mode);
         wxString GetRenderMode();

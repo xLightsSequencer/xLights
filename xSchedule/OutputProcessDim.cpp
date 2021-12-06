@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "OutputProcessDim.h"
+#include "OutputProcessExcludeDim.h"
 #include <wx/xml/xml.h>
 
 OutputProcessDim::OutputProcessDim(OutputManager* outputManager, wxXmlNode* node) : OutputProcess(outputManager, node)
@@ -65,7 +66,7 @@ wxXmlNode* OutputProcessDim::Save()
     return res;
 }
 
-void OutputProcessDim::Frame(uint8_t* buffer, size_t size)
+void OutputProcessDim::Frame(uint8_t* buffer, size_t size, std::list<OutputProcess*>& processes)
 {
     if (!_enabled) return;
     if (_dim == 100) return;
@@ -74,14 +75,34 @@ void OutputProcessDim::Frame(uint8_t* buffer, size_t size)
 
     size_t chs = std::min(_channels, size - (sc - 1));
 
-    if (_dim == 0)
-    {
-        memset(buffer + sc - 1, 0x00, chs);
-        return;
-    }
+    auto ed = GetExcludeDim(processes, sc, sc + chs - 1);
 
-    for (int i = 0; i < chs; i++)
-    {
-        *(buffer + i + sc - 1) = _dimTable[*(buffer + i + sc - 1)];
+    if (ed.size() == 0) { // do the common easy stuff fast
+        if (_dim == 0) {
+            memset(buffer + sc - 1, 0x00, chs);
+        }
+        else {
+            for (size_t i = 0; i < chs; i++) {
+                *(buffer + i + sc - 1) = _dimTable[*(buffer + i + sc - 1)];
+            }
+        }
+    }
+    else {
+        auto exclude = ed.begin();
+        for (size_t i = sc - 1; i < sc + chs - 1; i++) {
+
+            while (exclude != ed.end() && i > (*exclude)->GetLastExcludeChannel() - 1) ++exclude;
+
+            bool ex = (exclude != ed.end() && i >= (*exclude)->GetFirstExcludeChannel() - 1);
+
+            if (!ex) {
+                if (_dim == 0) {
+                    *(buffer + i + sc - 1) = 0;
+                }
+                else {
+                    *(buffer + i + sc - 1) = _dimTable[*(buffer + i + sc - 1)];
+                }
+            }
+        }
     }
 }

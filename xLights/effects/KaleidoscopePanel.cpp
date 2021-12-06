@@ -45,24 +45,6 @@ const long KaleidoscopePanel::ID_VALUECURVE_Kaleidoscope_Rotation = wxNewId();
 const long KaleidoscopePanel::IDD_TEXTCTRL_Kaleidoscope_Rotation = wxNewId();
 //*)
 
-KaleidoscopePreview::KaleidoscopePreview( wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name, bool coreProfile)
-   : xlGLCanvas( parent, id, pos, size, style, name, coreProfile )
-{
-
-}
-
-KaleidoscopePreview::~KaleidoscopePreview()
-{
-
-}
-
-void KaleidoscopePreview::InitializeGLCanvas()
-{
-   SetCurrentGLContext();
-
-   mIsInitialized = true;
-}
-
 BEGIN_EVENT_TABLE(KaleidoscopePanel,wxPanel)
 	//(*EventTable(KaleidoscopePanel)
 	//*)

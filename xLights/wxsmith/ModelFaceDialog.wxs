@@ -254,6 +254,8 @@
 																<content>
 																	<item>Centered</item>
 																	<item>Scaled</item>
+																	<item>Scale Keep Aspect Ratio</item>
+																	<item>Scale Keep Aspect Ratio Crop</item>
 																</content>
 																<selection>0</selection>
 																<handler function="OnMatricImagePlacementChoiceSelect" entry="EVT_CHOICE" />

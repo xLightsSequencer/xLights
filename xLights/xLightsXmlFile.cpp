@@ -20,6 +20,7 @@
 #include <zstd.h>
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
+#include "../include/spxml-0.5/spxmlevent.hpp"
 
 #include "xLightsXmlFile.h"
 #include "xLightsMain.h"
@@ -2963,6 +2964,109 @@ void xLightsXmlFile::SetMetaMP3Tags()
         SetHeaderInfo(ARTIST, audio->Artist());
         SetHeaderInfo(ALBUM, audio->Album());
     }
+}
+
+std::string xLightsXmlFile::GetFSEQForXSQ(const std::string& xsq, const std::string& fseqDirectory)
+{
+    if (!wxFile::Exists(xsq))
+        return "";
+
+    wxFileName fn(xsq);
+    fn.SetExt("fseq");
+
+    if (!wxFile::Exists(fn.GetFullPath())) {
+        fn.SetPath(fseqDirectory);
+
+        if (!wxFile::Exists(fn.GetFullPath())) {
+            return "";
+        }
+    }
+
+    return fn.GetFullPath();
+}
+
+std::string xLightsXmlFile::GetMediaForXSQ(const std::string& xsq, const std::string& showDir, const std::list<std::string> mediaFolders)
+{
+    if (!wxFile::Exists(xsq))
+        return "";
+
+    static const int BUFFER_SIZE = 1024 * 12;
+    std::vector<char> buf(BUFFER_SIZE); //12K buffer
+
+    wxFile doc(xsq);
+    SP_XmlPullParser* parser = new SP_XmlPullParser();
+    size_t read = doc.Read(&buf[0], BUFFER_SIZE);
+    parser->append(&buf[0], read);
+    SP_XmlPullEvent* event = parser->getNext();
+    int done = 0;
+    int count = 0;
+    bool isMedia = false;
+    std::string mediaName;
+
+    while (!done) {
+        if (!event) {
+            size_t read2 = doc.Read(&buf[0], BUFFER_SIZE);
+            if (read2 == 0) {
+                done = true;
+            } else {
+                parser->append(&buf[0], read2);
+            }
+        } else {
+            switch (event->getEventType()) {
+            case SP_XmlPullEvent::eEndDocument:
+                done = true;
+                break;
+            case SP_XmlPullEvent::eStartTag: {
+                SP_XmlStartTagEvent* stagEvent = (SP_XmlStartTagEvent*)event;
+                wxString NodeName = wxString::FromAscii(stagEvent->getName());
+                count++;
+                if (NodeName == "mediaFile") {
+                    isMedia = true;
+                } else {
+                    isMedia = false;
+                }
+                if (count == 100) {
+                    //media file will be very early in the file, dont waste time;
+                    done = true;
+                }
+            } break;
+            case SP_XmlPullEvent::eCData:
+                if (isMedia) {
+                    SP_XmlCDataEvent* stagEvent = (SP_XmlCDataEvent*)event;
+                    mediaName = wxString::FromAscii(stagEvent->getText()).ToStdString();
+                    done = true;
+                }
+                break;
+            }
+        }
+        if (!done) {
+            event = parser->getNext();
+        }
+    }
+    delete parser;
+
+    if (mediaName != "") {
+        if (!wxFile::Exists(mediaName)) {
+            wxFileName fn(mediaName);
+            for (auto& md : mediaFolders) {
+                std::string tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
+                if (wxFile::Exists(tmn)) {
+                    mediaName = tmn;
+                    break;
+                }
+            }
+            if (!wxFile::Exists(mediaName)) {
+                const std::string fixedMN = FixFile(showDir, mediaName);
+                if (!wxFile::Exists(fixedMN)) {
+                    mediaName = "";
+                } else {
+                    mediaName = fixedMN;
+                }
+            }
+        }
+    }
+
+    return mediaName;
 }
 
 void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, xLightsFrame* xLightsParent)

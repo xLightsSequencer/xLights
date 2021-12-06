@@ -119,7 +119,6 @@ class ControllerModelDialog: public wxDialog
 
         static const long CONTROLLERModel_PRINT;
 		static const long CONTROLLERModel_SAVE_CSV;
-		static const long CONTROLLERModel_SAVE_CSV_DESCRIPTION;
 		static const long CONTROLLER_REMOVEALLMODELS;
 		static const long CONTROLLER_DMXCHANNEL;
 		static const long CONTROLLER_CASCADEDOWNPORT;
@@ -129,6 +128,7 @@ class ControllerModelDialog: public wxDialog
 		static const long CONTROLLER_MOVEMODELSTOPORT;
 		static const long CONTROLLER_BRIGHTNESS;
 		static const long CONTROLLER_BRIGHTNESSCLEAR;
+        static const long CONTROLLER_SMARTREMOTETYPE;
 
 		wxBitmap RenderPicture(int startY, int startX, int width, int height, wxString const& pageName);
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);
@@ -198,7 +198,7 @@ class ControllerModelDialog: public wxDialog
 		void ScrollToKey(int keyCode);
 		void OnKeyDown(wxKeyEvent& event);
 		void PrintScreen();
-		void SaveCSV(bool withDescription);
+		void SaveCSV();
 		double getFontSize();
 		void EnsureSelectedModelIsVisible(ModelCMObject* cm);
 

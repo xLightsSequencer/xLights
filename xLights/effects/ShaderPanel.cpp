@@ -29,6 +29,26 @@
 #include <wx/artprov.h>
 #include <wx/progdlg.h>
 
+
+#ifndef __WXOSX__
+class ShaderPreview : public xlGLCanvas
+{
+public:
+    ShaderPreview(wxWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
+                  const wxSize &size=wxDefaultSize,
+                  long style=0,
+                  const wxString &name=wxPanelNameStr,
+                  bool coreProfile = true) : xlGLCanvas(parent, id, pos, size, style, name, coreProfile) {
+    }
+    virtual ~ShaderPreview() {}
+
+    void InitializeGLContext() override {
+        SetCurrentGLContext();
+    }
+};
+#endif
+
+
 //(*IdInit(ShaderPanel)
 const long ShaderPanel::ID_STATICTEXT1 = wxNewId();
 const long ShaderPanel::ID_0FILEPICKERCTRL_IFS = wxNewId();
@@ -53,23 +73,6 @@ const long ShaderPanel::IDD_SLIDER_Shader_Zoom = wxNewId();
 const long ShaderPanel::ID_VALUECURVE_Shader_Zoom = wxNewId();
 const long ShaderPanel::ID_TEXTCTRL_Shader_Zoom = wxNewId();
 //*)
-
-ShaderPreview::ShaderPreview(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name, bool coreProfile)
-    : xlGLCanvas(parent, id, pos, size, style, name, coreProfile)
-{
-
-}
-
-ShaderPreview::~ShaderPreview()
-{
-
-}
-
-void ShaderPreview::InitializeGLContext()
-{
-    // should just be doing init stuff?
-    SetCurrentGLContext();
-}
 
 const long ShaderPanel::ID_CANVAS = wxNewId();
 
@@ -166,9 +169,11 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     BitmapButton_Shader_Offset_Y->GetValue()->SetLimits(SHADER_OFFSET_Y_MIN, SHADER_OFFSET_Y_MAX);
     BitmapButton_Shader_Zoom->GetValue()->SetLimits(SHADER_ZOOM_MIN, SHADER_ZOOM_MAX);
 
-    _preview = new ShaderPreview(this, ID_CANVAS);
-
     ValidateWindow();
+
+#ifndef __WXOSX__
+    _preview = new ShaderPreview(this, ID_CANVAS);
+#endif
 }
 
 ShaderPanel::~ShaderPanel()

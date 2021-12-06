@@ -9,6 +9,7 @@
 			<MaxSerialPort>4</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+            <NeedsFullUniverseForSerial/>
 			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -48,9 +49,7 @@
 			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>sm16716</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>lor</Protocol>
@@ -73,9 +72,7 @@
 			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>sm16716</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>lor</Protocol>
@@ -98,9 +95,7 @@
 			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>sm16716</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>lor</Protocol>
@@ -123,9 +118,7 @@
 			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>sm16716</Protocol>
+				<Protocol>lor optimised</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>lor</Protocol>
@@ -319,6 +312,26 @@
 				<Protocol>dmx</Protocol>
 				<Protocol>lor</Protocol>
 				<Protocol>lor optimised</Protocol>
+			</InputProtocols>
+		</Variant>
+	</Controller>
+	<Controller Name="PixieLink">
+		<Variant Name="">
+			<SupportsUniversePerString/>
+			<!--SupportsUpload/-->
+			<MaxInputUniverses>192</MaxInputUniverses>
+			<MaxPixelPort>96</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+			<SupportsAutoLayout/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
 			</InputProtocols>
 		</Variant>
 	</Controller>

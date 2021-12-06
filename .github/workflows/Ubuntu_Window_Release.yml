@@ -25,14 +25,17 @@ jobs:
            
          
   build-windows:
-   runs-on: windows-latest
+   runs-on: windows-2022
 
    steps:
     - name: Checkout
       uses: actions/checkout@master
 
     - name: Setup msbuild
-      uses: microsoft/setup-msbuild@v1
+      uses: microsoft/setup-msbuild@v1     
+            
+    - name: install Inno
+      run: choco install innosetup
       
     - name: install inno wxWidgets
       run: choco install innosetup

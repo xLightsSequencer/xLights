@@ -50,7 +50,7 @@ class GalaxyEffect : public RenderableEffect
     
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                         DrawGLUtils::xlAccumulator &backgrounds, xlColor* colorMask, bool ramps) override;
+                                         xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) override;
         virtual void SetDefaultParameters() override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
         virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }

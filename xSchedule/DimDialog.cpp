@@ -43,9 +43,9 @@ DimDialog::DimDialog(wxWindow* parent, OutputManager* outputManager, std::string
     _outputManager = outputManager;
 
 	//(*Initialize(DimDialog)
-	wxFlexGridSizer* FlexGridSizer2;
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 
 	Create(parent, id, _("Dim"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);

@@ -65,6 +65,7 @@ class xLightsFrame;
 class Effect;
 class SettingsMap;
 class SequenceElements;
+class MetalRenderBufferComputeData;
 
 
 class DrawingContext {
@@ -487,8 +488,20 @@ public:
     int ModelBufferHt = 1;
     int ModelBufferWi = 1;  // size of the buffer
 
-    xlColorVector pixels; // this is the calculation buffer
-    xlColorVector tempbuf;
+private:
+    xlColorVector pixelVector; // this is the calculation buffer
+    xlColorVector tempbufVector;
+    xlColor *pixels = nullptr;
+    xlColor *tempbuf = nullptr;
+
+    friend class MetalRenderBufferComputeData;
+public:
+    uint32_t GetPixelCount() { return pixelVector.size(); }
+    xlColor *GetPixels() { return pixels; }
+    xlColor *GetTempBuf() { return tempbuf; }
+    void CopyTempBufToPixels();
+    void CopyPixelsToTempBuf();
+
     PaletteClass palette;
     bool _nodeBuffer = false;
 
@@ -513,6 +526,9 @@ public:
     std::map<int, EffectRenderCache*> infoCache;
     int tempInt = 0;
     int tempInt2 = 0;
+
+    //place for GPU Renderers to attach extra data/objects it needs
+    void *gpuRenderData = nullptr;
 
 private:
     friend class PixelBufferClass;

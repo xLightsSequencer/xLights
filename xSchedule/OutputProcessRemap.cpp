@@ -47,7 +47,7 @@ wxXmlNode* OutputProcessRemap::Save()
     return res;
 }
 
-void OutputProcessRemap::Frame(uint8_t* buffer, size_t size)
+void OutputProcessRemap::Frame(uint8_t* buffer, size_t size, std::list<OutputProcess*>& processes)
 {
     size_t sc = GetStartChannelAsNumber();
 

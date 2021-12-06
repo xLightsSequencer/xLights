@@ -272,14 +272,7 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_StartNullNodes->Hide();
         break;
     case controller_connection_bulkedit::CEBE_SMARTREMOTE:
-
-        Choice_SmartRemote->AppendString("None");
-        //static int smartRemoteCount = 16;
-        for (int i = 0; i < 16; i++) {
-            Choice_SmartRemote->AppendString( wxString(char(65 + i)));
-        }
-        Choice_SmartRemote->SetSelection(0);
-
+    case controller_connection_bulkedit::CEBE_SMARTREMOTETYPE:
         StaticText1->Hide();
         StaticText2->Hide();
         Choice_Protocol->Hide();
@@ -423,88 +416,110 @@ void ControllerConnectionDialog::OnButton_CancelClick(wxCommandEvent& event)
     EndDialog(wxID_CANCEL);
 }
 
-void ControllerConnectionDialog::Set(wxXmlNode* node) {
-    if (node != nullptr) {
+void ControllerConnectionDialog::Set(Model* m) {
+    if (m != nullptr) {
+        auto node = m->GetControllerConnection();
+        if (node != nullptr) {
+            _protocol = node->GetAttribute("Protocol", "ws2811");
+            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION ||
+                _type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT ||
+                _type == controller_connection_bulkedit::CEBE_CONTROLLERPROTOCOL) {
+                _protocol.UpperCase();
+                Choice_Protocol->SetStringSelection(_protocol);
+            }
 
-        _protocol = node->GetAttribute("Protocol", "ws2811");
-        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION ||
-            _type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT ||
-            _type == controller_connection_bulkedit::CEBE_CONTROLLERPROTOCOL) {
-            _protocol.UpperCase();
-            Choice_Protocol->SetStringSelection(_protocol);
-        }
+            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION ||
+                _type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT) {
+                SpinCtrl_Port->SetValue(wxAtoi(node->GetAttribute("Port", "1")));
+            }
 
-        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION ||
-            _type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT) {
-            SpinCtrl_Port->SetValue(wxAtoi(node->GetAttribute("Port", "1")));
-        }
+            if (IsPixelProtocol(_protocol)) {
+                if (_type == controller_connection_bulkedit::CEBE_CONTROLLERBRIGHTNESS) {
+                    if (node->HasAttribute("brightness")) {
+                        CheckBox_Brightness->SetValue(true);
+                        Brightness->Enable(true);
+                        Brightness->SetValue(wxAtoi(node->GetAttribute("brightness")));
+                    }
+                }
+                if (_type == controller_connection_bulkedit::CEBE_CONTROLLERGAMMA) {
+                    if (node->HasAttribute("gamma")) {
+                        CheckBox_Gamma->SetValue(true);
+                        Gamma->Enable(true);
+                        Gamma->SetValue(wxAtof(node->GetAttribute("gamma")));
+                    }
+                }
+                if (_type == controller_connection_bulkedit::CEBE_CONTROLLERSTARTNULLNODES) {
+                    if (node->HasAttribute("nullNodes")) {
+                        CheckBox_StartNullNodes->SetValue(true);
+                        StartNullNodes->Enable(true);
+                        StartNullNodes->SetValue(wxAtoi(node->GetAttribute("nullNodes")));
+                    }
+                }
+                if (_type == controller_connection_bulkedit::CEBE_CONTROLLERENDNULLNODES) {
+                    if (node->HasAttribute("endNullNodes")) {
+                        CheckBox_EndNullNodes->SetValue(true);
+                        EndNullNodes->Enable(true);
+                        EndNullNodes->SetValue(wxAtoi(node->GetAttribute("endNullNodes")));
+                    }
+                }
+                if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCOLOURORDER) {
+                    if (node->HasAttribute("colorOrder")) {
+                        CheckBox_ColorOrder->SetValue(true);
+                        ColorOrder->Enable(true);
+                        ColorOrder->SetStringSelection(node->GetAttribute("colorOrder"));
+                    }
+                }
+                if (_type == controller_connection_bulkedit::CEBE_CONTROLLERDIRECTION) {
+                    if (node->HasAttribute("reverse")) {
+                        CheckBox_PixelDirection->SetValue(true);
+                        PixelDirection->Enable(true);
+                        PixelDirection->SetSelection(wxAtoi(node->GetAttribute("reverse")));
+                    }
+                }
+                if (_type == controller_connection_bulkedit::CEBE_CONTROLLERGROUPCOUNT) {
+                    if (node->HasAttribute("groupCount")) {
+                        CheckBox_GroupCount->SetValue(true);
+                        GroupCount->Enable(true);
+                        GroupCount->SetValue(wxAtoi(node->GetAttribute("groupCount")));
+                    }
+                }
+                if (_type == controller_connection_bulkedit::CEBE_SMARTREMOTE) {
 
-        if (IsPixelProtocol(_protocol)) {
-            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERBRIGHTNESS) {
-                if (node->HasAttribute("brightness")) {
-                    CheckBox_Brightness->SetValue(true);
-                    Brightness->Enable(true);
-                    Brightness->SetValue(wxAtoi(node->GetAttribute("brightness")));
+                    Choice_SmartRemote->AppendString("None");
+                    int smartRemoteCount = m->GetSmartRemoteCount();
+                    for (int i = 0; i < smartRemoteCount; i++) {
+                        Choice_SmartRemote->AppendString(wxString(char(65 + i)));
+                    }
+                    Choice_SmartRemote->SetSelection(0);
+
+                    if (node->HasAttribute("SmartRemote")) {
+                        Choice_SmartRemote->SetSelection(wxAtoi(node->GetAttribute("SmartRemote")));
+                    }
+                }
+                if (_type == controller_connection_bulkedit::CEBE_SMARTREMOTETYPE) {
+
+                    SmartRemote->SetLabelText("SmartRemote Type");
+                    for (auto const& type: m->GetSmartRemoteTypes()) {
+                        Choice_SmartRemote->AppendString(type);
+                    }
+                    Choice_SmartRemote->SetSelection(0);
+
+                    if (node->HasAttribute("SmartRemoteType")) {
+                        Choice_SmartRemote->SetStringSelection(node->GetAttribute("SmartRemoteType"));
+                    }
                 }
             }
-            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERGAMMA) {
-                if (node->HasAttribute("gamma")) {
-                    CheckBox_Gamma->SetValue(true);
-                    Gamma->Enable(true);
-                    Gamma->SetValue(wxAtof(node->GetAttribute("gamma")));
-                }
+            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION ||
+                _type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT) {
+                Choice_Protocol->SetFocus();
+                Choice_Protocol->SetFocusFromKbd();
+                SpinCtrl_Port->SetFocus();
+                SpinCtrl_Port->SetFocusFromKbd();
             }
-            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERSTARTNULLNODES) {
-                if (node->HasAttribute("nullNodes")) {
-                    CheckBox_StartNullNodes->SetValue(true);
-                    StartNullNodes->Enable(true);
-                    StartNullNodes->SetValue(wxAtoi(node->GetAttribute("nullNodes")));
-                }
+            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERPROTOCOL) {
+                Choice_Protocol->SetFocus();
+                Choice_Protocol->SetFocusFromKbd();
             }
-            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERENDNULLNODES) {
-                if (node->HasAttribute("endNullNodes")) {
-                    CheckBox_EndNullNodes->SetValue(true);
-                    EndNullNodes->Enable(true);
-                    EndNullNodes->SetValue(wxAtoi(node->GetAttribute("endNullNodes")));
-                }
-            }
-            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCOLOURORDER) {
-                if (node->HasAttribute("colorOrder")) {
-                    CheckBox_ColorOrder->SetValue(true);
-                    ColorOrder->Enable(true);
-                    ColorOrder->SetStringSelection(node->GetAttribute("colorOrder"));
-                }
-            }
-            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERDIRECTION) {
-                if (node->HasAttribute("reverse")) {
-                    CheckBox_PixelDirection->SetValue(true);
-                    PixelDirection->Enable(true);
-                    PixelDirection->SetSelection(wxAtoi(node->GetAttribute("reverse")));
-                }
-            }
-            if (_type == controller_connection_bulkedit::CEBE_CONTROLLERGROUPCOUNT) {
-                if (node->HasAttribute("groupCount")) {
-                    CheckBox_GroupCount->SetValue(true);
-                    GroupCount->Enable(true);
-                    GroupCount->SetValue(wxAtoi(node->GetAttribute("groupCount")));
-                }
-            }
-            if (_type == controller_connection_bulkedit::CEBE_SMARTREMOTE) {
-                if (node->HasAttribute("SmartRemote")) {
-                    Choice_SmartRemote->SetSelection(wxAtoi(node->GetAttribute("SmartRemote")));
-                }
-            }
-        }
-        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION || 
-            _type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT) {
-            Choice_Protocol->SetFocus();
-            Choice_Protocol->SetFocusFromKbd();
-            SpinCtrl_Port->SetFocus();
-            SpinCtrl_Port->SetFocusFromKbd();
-        }
-        if (_type == controller_connection_bulkedit::CEBE_CONTROLLERPROTOCOL) {
-            Choice_Protocol->SetFocus();
-            Choice_Protocol->SetFocusFromKbd();
         }
     }
 }
@@ -560,6 +575,11 @@ void ControllerConnectionDialog::Get(wxXmlNode* node) {
         if (_type == controller_connection_bulkedit::CEBE_CONTROLLERDIRECTION) {
             node->DeleteAttribute("reverse");
             if (CheckBox_PixelDirection->IsChecked()) node->AddAttribute("reverse", wxString::Format("%d", PixelDirection->GetSelection()));
+        }
+
+        if (_type == controller_connection_bulkedit::CEBE_SMARTREMOTETYPE) {
+            node->DeleteAttribute("SmartRemoteType");
+            node->AddAttribute("SmartRemoteType", Choice_SmartRemote->GetStringSelection());
         }
     }
 //    xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnectionDialog::Get");

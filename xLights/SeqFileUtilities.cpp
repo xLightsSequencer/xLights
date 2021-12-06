@@ -91,7 +91,7 @@ void xLightsFrame::AddAllModelsToSequence()
     _sequenceElements.AddMissingModelsToSequence(models_to_add);
 }
 
-void xLightsFrame::NewSequence()
+void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS)
 {
     // close any open sequences
     if (!CloseSequence()) {
@@ -107,7 +107,7 @@ void xLightsFrame::NewSequence()
         CurrentSeqXmlFile->setSupportsModelBlending(false);
     }
 
-    SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT(""),_defaultSeqView, true);
+    SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT(""),_defaultSeqView, true, media, durationMS);
     setting_dlg.Fit();
     int ret_code = setting_dlg.ShowModal();
     if (ret_code == wxID_CANCEL) {
@@ -550,7 +550,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         float elapsedTime = sw.Time()/1000.0; //msec => sec
         SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
-        SetTitle(xlights_base_name + " - " + filename);
+        SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);
 
         EnableSequenceControls(true);
         Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
@@ -1009,13 +1009,13 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxArrayString filters;
-    filters.push_back("All|*.xsq;*.sup;*.lms;*.lpe;*.las;*.loredit;*.xml;*.hlsdata;*.vix;*.tim;*.msq;*.vsa;*.zip");
+    filters.push_back("All|*.xsq;*.sup;*.lms;*.lpe;*.las;*.loredit;*.xml;*.hlsdata;*.vix;*.tim;*.msq;*.vsa;*.zip;*.piz");
     filters.push_back("SuperStar File (*.sup)|*.sup");
     filters.push_back("LOR Music Sequences (*.lms)|*.lms");
     filters.push_back("LOR Pixel Editor Sequences (*.lpe)|*.lpe");
     filters.push_back("LOR Animation Sequences (*.las)|*.las");
     filters.push_back("LOR S5(*.loredit)|*.loredit");
-    filters.push_back("xLights Sequence Package (*.zip)|*.zip");
+    filters.push_back("xLights Sequence Package (*.zip;*.piz)|*.zip;*.piz");
     filters.push_back("xLights Sequence (*.xsq)|*.xsq");
     filters.push_back("Old xLights Sequence (*.xml)|*.xml");
     filters.push_back("HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata");
@@ -1093,8 +1093,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
         }
         else if (ext == "vix") {
             ImportVix(fn);
-        }
-        else if (ext == "xml" || ext == "xsq" || ext == "zip") {
+        } else if (ext == "xml" || ext == "xsq" || ext == "zip" || ext == "piz") {
             ImportXLights(fn);
         }
         else if (ext == "msq") {

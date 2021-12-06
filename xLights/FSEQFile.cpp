@@ -351,6 +351,15 @@ void FSEQFile::initializeFromFSEQ(const FSEQFile& fseq) {
     m_seqStepTime = fseq.m_seqStepTime;
     m_variableHeaders = fseq.m_variableHeaders;
     m_uniqueId = fseq.m_uniqueId;
+    
+    if (fseq.getVersionMajor() >= 2) {
+        const V2FSEQFile *v2 = dynamic_cast<const V2FSEQFile*>(&fseq);
+        if (!v2->m_sparseRanges.empty()) {
+            for (auto &a : v2->m_sparseRanges) {
+                m_seqChannelCount = std::max(m_seqChannelCount, (a.first + a.second));
+            }
+        }
+    }
 }
 
 

@@ -26,7 +26,7 @@ Usage:       HTTPS
 Link:        https://curl.haxx.se/libcurl/
 Source:      https://github.com/curl/curl
 Last Pulled: Feb13, 2019
-Version:     7.64.0 [latest available as at Jan 2021 is 7.74.0]
+Version:     7.80.0 [latest available as at Nov 2021 is 7.80.0]
 License:     MIT Style but more complex
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 

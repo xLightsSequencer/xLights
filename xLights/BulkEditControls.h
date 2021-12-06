@@ -226,6 +226,15 @@ public:
     void OnRightDown(wxMouseEvent& event);
 };
 
+class BulkEditStateChoice : public BulkEditChoice
+{
+public:
+    BulkEditStateChoice(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, int n = 0, const wxString choices[] = NULL, long style = 0, const wxValidator& validator = wxDefaultValidator, const wxString& name = wxChoiceNameStr);
+    virtual ~BulkEditStateChoice()
+    {}
+    void OnRightDown(wxMouseEvent& event);
+};
+
 class BulkEditValueCurveButton : public ValueCurveButton
 {
 protected:

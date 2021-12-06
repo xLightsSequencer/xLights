@@ -27,6 +27,7 @@
 #include "../EffectsPanel.h"
 #include "../ExternalHooks.h"
 #include "../effects/RenderableEffect.h"
+#include "../graphics/xlGraphicsBase.h"
 
 #include <log4cpp/Category.hh>
 
@@ -88,24 +89,20 @@ void MainSequencer::SetHandlers(wxWindow *window)
     }
 }
 
-class TimeDisplayControl : public xlGLCanvas
+class TimeDisplayControl : public GRAPHICS_BASE_CLASS
 {
 public:
     TimeDisplayControl(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                        const wxSize &size=wxDefaultSize, long style=0)
-    : xlGLCanvas(parent, id, pos, size, style, "TimeDisplay") {
+    : GRAPHICS_BASE_CLASS(parent, id, pos, size, style, "TimeDisplay") {
         _time = "Time: 00:00:00";
         _selected = "";
         _fps = "";
-        _fontSize = 14;
+        newFontSize = 14;
+        fontSize = 0;
+        SetColors();
     }
     virtual ~TimeDisplayControl(){};
-
-    virtual void SetLabels(const wxString &time, const wxString &fps) {
-        _fps = fps;
-        _time = time;
-        renderGL();
-    }
 
     void SetGLSize(int w, int h) {
         SetMinSize(wxSize(w, h));
@@ -115,99 +112,112 @@ public:
         if (h == -1) h = size.GetHeight();
 
         SetSize(w, h);
-        mWindowHeight = h;
-        mWindowWidth = w;
-        mWindowResized = true;
-        h = UnScaleWithSystemDPI(h);
         if (h > 50) {
-            _fontSize = 14;
+            newFontSize = 14;
         } else if (h > 36) {
-            _fontSize = 10;
+            newFontSize = 10;
         } else if (h > 25) {
-            _fontSize = 8;
+            newFontSize = 8;
         } else {
-            _fontSize = 6;
+            newFontSize = 6;
         }
         Refresh();
-        renderGL();
     }
 
-    void SetSelected(const wxString &sel)
-    {
+    void SetSelected(const wxString &sel) {
         _selected = sel;
-        renderGL();
+        Refresh();
+    }
+    void SetLabels(const wxString &time, const wxString &fps) {
+        _fps = fps;
+        _time = time;
+        render();
     }
 
     protected:
     DECLARE_EVENT_TABLE()
     void Paint( wxPaintEvent& event ) {
-        renderGL();
+        wxPaintDC dc(this);
+        render();
     }
 
-    virtual bool UsesVertexTextureAccumulator() override {return true;}
-    virtual bool UsesVertexColorAccumulator() override {return false;}
-    virtual bool UsesVertexAccumulator() override {return false;}
-    virtual bool UsesAddVertex() override {return false;}
-    void InitializeGLContext() override {
-        SetCurrentGLContext();
-        if (bgColorInvalid) {
-            wxColor c = wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE);
-            AdjustColorToDeviceColorspace(c, bgColor.red, bgColor.green, bgColor.blue, bgColor.alpha);
-            bgColorInvalid = false;
-        }
-        
-        LOG_GL_ERRORV(glClearColor(((float)bgColor.Red())/255.0f,
-                                   ((float)bgColor.Green())/255.0f,
-                                   ((float)bgColor.Blue())/255.0f, 1.0f));
-        LOG_GL_ERRORV(glDisable(GL_BLEND));
-        LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
-        LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-        prepare2DViewport(0, 0, mWindowWidth, mWindowHeight);
+    virtual xlColor ClearBackgroundColor() const override {
+        return bgColor;
+    }
+
+    void SetColors() {
+        wxColor c = wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE);
+        AdjustColorToDeviceColorspace(c, bgColor.red, bgColor.green, bgColor.blue, bgColor.alpha);
+        fgColor = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT);
     }
     void OnSysColourChanged(wxSysColourChangedEvent& event) {
         event.Skip();
-        bgColorInvalid = true;
+        SetColors();
         Refresh();
     }
-    void renderGL()
+public:
+    void render()
     {
         if(!IsShownOnScreen()) return;
-        if(!mIsInitialized) { InitializeGLCanvas(); }
+        if(!mIsInitialized) {
+            PrepareCanvas();
+        }
 
-        InitializeGLContext();
+        xlGraphicsContext *ctx = PrepareContextForDrawing();
+        if (ctx == nullptr) {
+            return;
+        }
+        ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
-        _va.color = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT);
+        float fs = translateToBacking(fontSize);
+        if (newFontSize != fontSize) {
+            if (fontTexture) {
+                delete fontTexture;
+                fontTexture = nullptr;
+            }
+            fontSize = newFontSize;
+            fs = translateToBacking(fontSize);
+            const xlFontInfo &fi = xlFontInfo::FindFont((int)fs);
+            fontTexture = ctx->createTextureForFont(fi);
+        }
+        const xlFontInfo &fi = xlFontInfo::FindFont(fs);
 #define LINEGAP 1.2
-        float fs = ScaleWithSystemDPI(_fontSize);
-        float y = fs * LINEGAP;
-        _va.AddVertex(5, y, _time);
-        y += fs * LINEGAP;
+        xlVertexTextureAccumulator *vta = ctx->createVertexTextureAccumulator();
+        float x = mapLogicalToAbsolute(5);
+        float perLine = mapLogicalToAbsolute(fontSize) * LINEGAP;
+        float y = perLine;
+        float factor = drawingUsingLogicalSize() ? translateToBacking(1.0) : 1.0;
+        fi.populate(*vta, x, y, _time, factor);
+        y += perLine;
         // only display FPS if we have room
-        if ((y + fs * LINEGAP <= mWindowHeight)
+        if ((y + perLine <= mWindowHeight)
             || (_selected == "" && y <= mWindowHeight)) {
-            _va.AddVertex(5, y, _fps);
-            y += fs * LINEGAP;
+            fi.populate(*vta, x, y, _fps, factor);
+            y += perLine;
         }
         if (y <= mWindowHeight) {
-            _va.AddVertex(5, y, _selected);
+            fi.populate(*vta, x, y, _selected, factor);
         }
-        float factor = translateToBacking(1.0);
-        DrawGLUtils::Draw(_va, fs, factor);
-        SwapBuffers();
-        _va.Reset();
+        ctx->enableBlending();
+        ctx->drawTexture(vta, fontTexture, fgColor);
+        delete vta;
+        FinishDrawing(ctx);
     }
 
 private:
-    bool bgColorInvalid = true;
     xlColor bgColor;
-    DrawGLUtils::xlVertexTextAccumulator _va;
+    xlColor fgColor;
+    xlTexture *fontTexture = nullptr;
+
     std::string _time;
     std::string _fps;
     std::string _selected;
-    int _fontSize;
+
+    int fontSize = 0;
+    int newFontSize = 14;
 };
 
-BEGIN_EVENT_TABLE(TimeDisplayControl, xlGLCanvas)
+BEGIN_EVENT_TABLE(TimeDisplayControl, GRAPHICS_BASE_CLASS)
 EVT_PAINT(TimeDisplayControl::Paint)
 EVT_SYS_COLOUR_CHANGED(TimeDisplayControl::OnSysColourChanged)
 END_EVENT_TABLE()
@@ -353,7 +363,7 @@ void MainSequencer::UpdateEffectGridVerticalScrollBar()
     int thumbSize = mSequenceElements->GetMaxModelsDisplayed();
     ScrollBarEffectsVertical->SetScrollbar(position,thumbSize,range,pageSize);
     ScrollBarEffectsVertical->Refresh();
-    PanelEffectGrid->Refresh();
+    PanelEffectGrid->Draw();
     PanelRowHeadings->Refresh();
 }
 
@@ -366,24 +376,19 @@ void MainSequencer::UpdateTimeDisplay(int time_ms, float fps)
     seconds = seconds % 60;
     wxString play_time = wxString::Format("Time: %d:%02d.%02d", minutes, seconds, msec);
     wxString fpsStr;
-    if (fps >= 0)
-    {
+    if (fps >= 0) {
         fpsStr = wxString::Format("FPS: %5.1f", fps);
     }
-    if (timeDisplay != nullptr)
-    {
+    if (timeDisplay != nullptr) {
         timeDisplay->SetLabels(play_time, fpsStr);
     }
 }
 
 void MainSequencer::UpdateSelectedDisplay(int selected)
 {
-    if (selected == 0)
-    {
+    if (selected == 0) {
         timeDisplay->SetSelected("");
-    }
-    else
-    {
+    } else {
         timeDisplay->SetSelected(wxString::Format("Selected: %s", FORMATTIME(selected)));
     }
 }
@@ -945,7 +950,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                    mSequenceElements->get_undo_mgr().CanUndo() ) {
                     mSequenceElements->get_undo_mgr().UndoLastStep();
                     PanelEffectGrid->ClearSelection();
-                    PanelEffectGrid->Refresh();
+                    PanelEffectGrid->Draw();
                     PanelEffectGrid->sendRenderDirtyEvent();
                 }
                 event.StopPropagation();
@@ -959,7 +964,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                    mSequenceElements->get_undo_mgr().CanRedo() ) {
                     mSequenceElements->get_undo_mgr().RedoLastStep();
                     PanelEffectGrid->ClearSelection();
-                    PanelEffectGrid->Refresh();
+                    PanelEffectGrid->Draw();
                     PanelEffectGrid->sendRenderDirtyEvent();
                 }
                 event.StopPropagation();
@@ -1123,7 +1128,7 @@ void MainSequencer::DoUndo(wxCommandEvent& event) {
     if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanUndo() ) {
         mSequenceElements->get_undo_mgr().UndoLastStep();
         PanelEffectGrid->ClearSelection();
-        PanelEffectGrid->Refresh();
+        PanelEffectGrid->Draw();
         PanelEffectGrid->sendRenderDirtyEvent();
     }
 }
@@ -1134,14 +1139,14 @@ void MainSequencer::DoRedo(wxCommandEvent& event) {
     if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanRedo() ) {
         mSequenceElements->get_undo_mgr().RedoLastStep();
         PanelEffectGrid->ClearSelection();
-        PanelEffectGrid->Refresh();
+        PanelEffectGrid->Draw();
         PanelEffectGrid->sendRenderDirtyEvent();
     }
 }
 
 void MainSequencer::SetLargeWaveform()
 {
-    PanelWaveForm->SetGLSize(-1, Waveform::GetLargeSize());
+    PanelWaveForm->SetWaveFormSize(Waveform::GetLargeSize());
     timeDisplay->SetGLSize(-1, Waveform::GetLargeSize() - 22);
     Layout();
     PanelWaveForm->Refresh();
@@ -1150,7 +1155,7 @@ void MainSequencer::SetLargeWaveform()
 
 void MainSequencer::SetSmallWaveform()
 {
-    PanelWaveForm->SetGLSize(-1, Waveform::GetSmallSize());
+    PanelWaveForm->SetWaveFormSize(Waveform::GetSmallSize());
     timeDisplay->SetGLSize(-1, Waveform::GetSmallSize() - 22);
     Layout();
     PanelWaveForm->Refresh();
@@ -1161,9 +1166,7 @@ void MainSequencer::GetPresetData(wxString& copy_data)
 {
     if (PanelEffectGrid->IsACActive()) {
         GetACEffectsData(copy_data);
-    }
-    else
-    {
+    } else {
         GetSelectedEffectsData(copy_data);
     }
 }
@@ -1731,7 +1734,7 @@ void MainSequencer::OnScrollBarEffectsHorizontalScrollLineDown(wxScrollEvent& ev
 
 void MainSequencer::HorizontalScrollChanged( wxCommandEvent& event)
 {
-    int position = ScrollBarEffectsHorizontal->GetThumbPosition();
+    int position = ScrollBarEffectsHorizontal->IsEnabled() ? ScrollBarEffectsHorizontal->GetThumbPosition() : 0;
     int timeLength = PanelTimeLine->GetTimeLength();
     int startTime = (int)(((double)position/(double)timeLength) * (double)timeLength);
     PanelTimeLine->SetStartTimeMS(startTime);
@@ -1774,12 +1777,11 @@ void MainSequencer::TimelineChanged( wxCommandEvent& event)
     PanelWaveForm->SetZoomLevel(tla->ZoomLevel);
     PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
     UpdateTimeDisplay(tla->CurrentTimeMS, -1);
+    PanelTimeLine->Refresh();
     PanelTimeLine->Update();
-    PanelWaveForm->Refresh();
-    PanelWaveForm->Update();
+    PanelWaveForm->render();
     PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
-    PanelEffectGrid->Refresh();
-    PanelEffectGrid->Update();
+    PanelEffectGrid->Draw();
     UpdateEffectGridHorizontalScrollBar();
     delete tla;
 }
@@ -1793,25 +1795,20 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
     //printf("%d\n", PanelTimeLine->GetStartPixelOffset());
     PanelTimeLine->Refresh();
     PanelTimeLine->Update();
-    PanelWaveForm->Refresh();
-    PanelWaveForm->Update();
+    PanelWaveForm->render();
     PanelEffectGrid->SetStartPixelOffset(PanelTimeLine->GetStartPixelOffset());
-    PanelEffectGrid->Refresh();
-    PanelEffectGrid->Update();
-
+    PanelEffectGrid->Draw();
 
     int zoomLevel = PanelTimeLine->GetZoomLevel();
-    int maxZoomLevel = PanelTimeLine->GetMaxZoomLevel();
-    if(zoomLevel == maxZoomLevel)
-    {
+    int maxZoomLevel = PanelTimeLine->GetMaxZoomLevel(); 
+    if (zoomLevel >= maxZoomLevel) {
         // Max Zoom so scrollbar is same size as window.
         int range = PanelTimeLine->GetSize().x;
         int pageSize =range;
         int thumbSize = range;
         ScrollBarEffectsHorizontal->SetScrollbar(0,thumbSize,range,pageSize);
-    }
-    else
-    {
+        ScrollBarEffectsHorizontal->Disable();
+    } else {
         int startTime;
         int endTime;
         int range = PanelTimeLine->GetTimeLength();
@@ -1822,15 +1819,14 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
         int pageSize = thumbSize;
         int position = startTime;
         ScrollBarEffectsHorizontal->SetScrollbar(position,thumbSize,range,pageSize);
+        ScrollBarEffectsHorizontal->Enable();
     }
-
     ScrollBarEffectsHorizontal->Refresh();
 }
 
 void MainSequencer::TagAllSelectedEffects()
 {
-    for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
-    {
+    for(int row=0;row<mSequenceElements->GetRowInformationSize();row++) {
         EffectLayer* el = mSequenceElements->GetEffectLayer(row);
         el->TagAllSelectedEffects();
     }
@@ -1850,14 +1846,11 @@ void MainSequencer::RestorePosition()
 {
     if (mSequenceElements == nullptr) return;
 
-    if (_savedTopModel != "")
-    {
+    if (_savedTopModel != "") {
         PanelTimeLine->RestorePosition();
         Element* elem = mSequenceElements->GetElement(_savedTopModel);
-        if (elem != nullptr)
-        {
-            for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
-            {
+        if (elem != nullptr) {
+            for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
                 EffectLayer* el = mSequenceElements->GetEffectLayer(row);
                 if (el->GetParentElement()->GetModelName() == elem->GetName()) {
                     ScrollToRow(row - mSequenceElements->GetNumberOfTimingRows());

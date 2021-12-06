@@ -25,6 +25,7 @@
 #include "../Parallel.h"
 
 #include <random>
+#include <cmath>
 
 static std::random_device rd;
 static std::default_random_engine eng{ rd() };
@@ -99,22 +100,46 @@ void TwinkleEffect::adjustSettings(const std::string& version, Effect* effect, b
     }
 }
 
+static inline void addLineAsTriangles(xlVertexColorAccumulator &bg,
+                                      float x1, float y1,
+                                      float x2, float y2,
+                                      const xlColor &c,
+                                      bool h = false) {
+
+    float diffy = std::abs(y2 - y1);
+    float diffx = std::abs(x2 - x1);
+
+    if (h || (diffy < diffx)) {
+        bg.AddVertex(x1, y1, c);
+        bg.AddVertex(x1, y1 + 0.5f, c);
+        bg.AddVertex(x2, y2, c);
+
+        bg.AddVertex(x1, y1 + 0.5f, c);
+        bg.AddVertex(x2, y2, c);
+        bg.AddVertex(x2, y2 + 0.5f, c);
+    } else {
+        bg.AddVertex(x1, y1, c);
+        bg.AddVertex(x1 + 0.5f, y1, c);
+        bg.AddVertex(x2, y2, c);
+
+        bg.AddVertex(x1 + 0.5f, y1, c);
+        bg.AddVertex(x2, y2, c);
+        bg.AddVertex(x2 + 0.5f, y2, c);
+    }
+}
+
 int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-    DrawGLUtils::xlAccumulator &bg, xlColor* colorMask, bool ramp)
+                                        xlVertexColorAccumulator &bg, xlColor* colorMask, bool ramp)
 {
-    if (ramp)
-    {
+    if (ramp) {
         float endi;
         float starti;
         std::string vcs = e->GetPaletteMap().Get("C_VALUECURVE_Brightness", "");
-        if (vcs == "")
-        {
+        if (vcs == "") {
             starti = e->GetPaletteMap().GetInt("C_SLIDER_Brightness", 100);
             if (starti > 100) starti = 100;
             endi = starti;
-        }
-        else
-        {
+        } else {
             ValueCurve vc(vcs);
             starti = vc.GetOutputValueAt(0.0, e->GetStartTimeMS(), e->GetEndTimeMS());
             if (starti > 100) starti = 100;
@@ -128,74 +153,32 @@ int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2,
         int height = y2 - y1;
         float starty = (float)y2 - starti * (float)height / 100.0f;
         float endy = (float)y2 - endi * (float)height / 100.0f;
+
+
+        addLineAsTriangles(bg, x1, starty, x1, y2, color);
+        addLineAsTriangles(bg, x2 - 0.25f, y2, x2 - 0.25f, endy, color);
+        addLineAsTriangles(bg, x1, y2, x2, y2, color, true);
+        addLineAsTriangles(bg, x1, starty, x2 + 0.25f, endy, color, true);
+
         float m = float(endy - starty) / float(x2 - x1);
-
         const int gap = 10;
-
-        bg.Finish(GL_TRIANGLES);
-        bg.AddVertex(x1, starty, color);
-        bg.AddVertex(x1, y2, color);
-        bg.AddVertex(x1, y2, color);
-        bg.AddVertex(x2, y2, color);
-        bg.AddVertex(x2, y2, color);
-        bg.AddVertex(x2, endy, color);
-        bg.AddVertex(x2, endy, color);
-        bg.AddVertex(x1, starty, color);
-
         int lastx = x1;
+
         for (int x = x1 + gap; x < x2; x += gap) {
             float newY = m * (x - x1 - gap) + starty;
             float newY2 = m * (x - x1) + starty;
-            bg.AddVertex(x-gap, newY, color);
-            bg.AddVertex(x, y2, color);
-            bg.AddVertex(x, newY2, color);
-            bg.AddVertex(x-gap, y2, color);
+            addLineAsTriangles(bg, x-gap, newY, x, y2, color);
+            addLineAsTriangles(bg, x, newY2, x-gap, y2, color);
             lastx = x;
-
-            // draw a second outline
-            float ylow1 = y2 + 1;
-            float ylow2 = y2 + 1;
-            if (ylow1 > newY) ylow1 = newY;
-            if (ylow2 > newY2) ylow2 = newY2;
-            bg.AddVertex(x - gap, ylow1, color);
-            bg.AddVertex(x, ylow2, color);
-
-            float yhigh1 = newY - 1;
-            float yhigh2 = newY2 - 1;
-            if (yhigh1 < y2) yhigh1 = y2;
-            if (yhigh2 < y2) yhigh2 = y2;
-            bg.AddVertex(x - gap, yhigh1, color);
-            bg.AddVertex(x, yhigh2, color);
         }
 
         // fill in the end
-        if (lastx != x2)
-        {
+        if (lastx != x2) {
             float newY = m * (lastx - x1) + starty;
             float newY2 = m * (x2-x1) + starty;
-            bg.AddVertex(lastx, newY, color);
-            bg.AddVertex(x2, y2, color);
-            bg.AddVertex(x2, newY2, color);
-            bg.AddVertex(lastx, y2, color);
-
-            // draw a second outline
-            float ylow1 = y2 + 1;
-            float ylow2 = y2 + 1;
-            if (ylow1 > newY) ylow1 = newY;
-            if (ylow2 > newY2) ylow2 = newY2;
-            bg.AddVertex(lastx, ylow1, color);
-            bg.AddVertex(x2, ylow2, color);
-
-            float yhigh1 = newY - 1;
-            float yhigh2 = newY2 - 1;
-            if (yhigh1 < y2) yhigh1 = y2;
-            if (yhigh2 < y2) yhigh2 = y2;
-            bg.AddVertex(lastx, yhigh1, color);
-            bg.AddVertex(x2, yhigh2, color);
+            addLineAsTriangles(bg, lastx, newY, x2 - 0.5, y2, color);
+            addLineAsTriangles(bg, x2 - 0.5, newY2, lastx, y2, color);
         }
-
-        bg.Finish(GL_LINES);
-
         return 2;
     }
 

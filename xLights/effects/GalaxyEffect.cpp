@@ -38,7 +38,7 @@ xlEffectPanel *GalaxyEffect::CreatePanel(wxWindow *parent) {
 }
 
 int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                       DrawGLUtils::xlAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
+                                       xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
     int head_duration = e->GetSettings().GetInt("E_SLIDER_Galaxy_Duration", 20);
     int num_colors = e->GetPaletteSize();
     xlColor head_color = e->GetPalette()[0];
@@ -46,7 +46,7 @@ int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
     int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
     if( x_mid > x1 )
     {
-        backgrounds.AddHBlendedRectangle(head_color, head_color, x1, y1+1, x_mid, y2-1);
+        backgrounds.AddHBlendedRectangleAsTriangles(x1, y1+1, x_mid, y2-1, head_color, head_color);
     }
     int color_length = (x2 - x_mid) / num_colors;
     for(int i = 0; i < num_colors; i++ )
@@ -58,7 +58,7 @@ int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
             c1.ApplyMask(colorMask);
             xlColor c2 = e->GetPalette()[i];
             c2.ApplyMask(colorMask);
-            backgrounds.AddHBlendedRectangle(c1, c2, cx1, y1+4, x2, y2-4);
+            backgrounds.AddHBlendedRectangleAsTriangles(cx1, y1+4, x2, y2-4, c1, c2);
         }
         else
         {
@@ -66,7 +66,7 @@ int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
             c1.ApplyMask(colorMask);
             xlColor c2 = e->GetPalette()[i + 1];
             c2.ApplyMask(colorMask);
-            backgrounds.AddHBlendedRectangle(c1, c2, cx1, y1+4, cx1+color_length, y2-4);
+            backgrounds.AddHBlendedRectangleAsTriangles(cx1, y1+4, cx1+color_length, y2-4, c1, c2);
         }
     }
     return 2; // draw small icon

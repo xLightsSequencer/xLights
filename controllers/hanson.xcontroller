@@ -113,6 +113,7 @@
 			<SupportsVirtualStrings/>
 			<SupportsAutoLayout/>
             <SupportsPixelPortEndNullPixels/>
+			<SupportsLEDPanelMatrix/>
             <SupportsVirtualMatrix/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -203,7 +204,7 @@
 		</Variant>
 	</Controller>
 	<Controller Name="oPi8">
-		<Variant Name="" ID="oPi8" Base="FPP:LED Panels">
+		<Variant Name="" ID="oPi8" Base="FPP:BaseFPPSettings">
 			<NoWebUI/>
 			<SupportsAutoLayout/>
 			<MaxInputUniverses>34</MaxInputUniverses>

@@ -19,49 +19,59 @@
 #include <wx/stattext.h>
 //*)
 
-class VideoWindowPositionDialog: public wxDialog
+class ScheduleOptions;
+
+class VideoWindowPositionDialog : public wxDialog
 {
-    wxSize _matrixSize;
-    void ValidateWindow();
+	wxSize _matrixSize;
+	ScheduleOptions* _options = nullptr;
 
-	public:
+	void ValidateWindow();
 
-		VideoWindowPositionDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize, const wxSize& matrixSize = wxSize(-1, -1), bool useMatrixSize = false, int matrixMultiplier = 1);
-		virtual ~VideoWindowPositionDialog();
-        wxSize GetDesiredSize() const;
-        wxPoint GetDesiredPosition() const;
+public:
 
-		//(*Declarations(VideoWindowPositionDialog)
-		wxButton* Button_ok;
-		wxCheckBox* CheckBox_SetSizeBasedOnMatrix;
-		wxSpinCtrl* SpinCtrl_SizeMultiplier;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText_Position;
-		//*)
+	VideoWindowPositionDialog(wxWindow* parent, ScheduleOptions* options, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, const wxSize& matrixSize = wxSize(-1, -1), bool useMatrixSize = false, int matrixMultiplier = 1);
+	virtual ~VideoWindowPositionDialog();
+	wxSize GetDesiredSize() const;
+	wxPoint GetDesiredPosition() const;
 
-	protected:
+	//(*Declarations(VideoWindowPositionDialog)
+	wxButton* Button_ApplyDefault;
+	wxButton* Button_MakeDefault;
+	wxButton* Button_ok;
+	wxCheckBox* CheckBox_SetSizeBasedOnMatrix;
+	wxSpinCtrl* SpinCtrl_SizeMultiplier;
+	wxStaticText* StaticText1;
+	wxStaticText* StaticText2;
+	wxStaticText* StaticText_Position;
+	//*)
 
-		//(*Identifiers(VideoWindowPositionDialog)
-		static const long ID_STATICTEXT1;
-		static const long ID_STATICTEXT2;
-		static const long ID_CHECKBOX1;
-		static const long ID_STATICTEXT3;
-		static const long ID_SPINCTRL1;
-		static const long ID_BUTTON1;
-		//*)
+protected:
 
-	private:
+	//(*Identifiers(VideoWindowPositionDialog)
+	static const long ID_STATICTEXT1;
+	static const long ID_STATICTEXT2;
+	static const long ID_CHECKBOX1;
+	static const long ID_STATICTEXT3;
+	static const long ID_SPINCTRL1;
+	static const long ID_BUTTON2;
+	static const long ID_BUTTON3;
+	static const long ID_BUTTON1;
+	//*)
 
-		//(*Handlers(VideoWindowPositionDialog)
-		void OnButton_OkClick(wxCommandEvent& event);
-		void OnResize(wxSizeEvent& event);
-		void OnCheckBox_SetSizeBasedOnMatrixClick(wxCommandEvent& event);
-		void OnSpinCtrl_SizeMultiplierChange(wxSpinEvent& event);
-		//*)
+private:
 
-        void OnMove(wxMoveEvent& event);
-        void SetWindowPositionText();
+	//(*Handlers(VideoWindowPositionDialog)
+	void OnButton_OkClick(wxCommandEvent& event);
+	void OnResize(wxSizeEvent& event);
+	void OnCheckBox_SetSizeBasedOnMatrixClick(wxCommandEvent& event);
+	void OnSpinCtrl_SizeMultiplierChange(wxSpinEvent& event);
+	void OnButton_ApplyDefaultClick(wxCommandEvent& event);
+	void OnButton_MakeDefaultClick(wxCommandEvent& event);
+	//*)
 
-		DECLARE_EVENT_TABLE()
+	void OnMove(wxMoveEvent& event);
+	void SetWindowPositionText();
+
+	DECLARE_EVENT_TABLE()
 };

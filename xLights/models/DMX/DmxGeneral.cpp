@@ -127,8 +127,8 @@ void DmxGeneral::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va
 	ApplyTransparency(green, trans, trans);
 	ApplyTransparency(blue, trans, trans);
 
-	va.AddRect(sx - bar_gap - 2 - width / 2, sy - bar_gap - 2 - height / 2, sx + width + bar_gap + 2 - width / 2, sy + height - bar_gap + 2 - height / 2, sz, ccolor);
-    va.AddRect(sx - bar_gap - width / 2, sy - bar_gap - height / 2, sx + width + bar_gap - width / 2, sy + height - bar_gap - height / 2, sz, black);
+	va.AddRectAsTriangles(sx - bar_gap - 2 - width / 2, sy - bar_gap - 2 - height / 2, sx + width + bar_gap + 2 - width / 2, sy + height - bar_gap + 2 - height / 2, sz, ccolor);
+    va.AddRectAsTriangles(sx - bar_gap - width / 2, sy - bar_gap - height / 2, sx + width + bar_gap - width / 2, sy + height - bar_gap - height / 2, sz, black);
 
     for (int i = 1; i <= nodeCount; ++i) {
 		Nodes[i - 1]->GetColor(proxy);
@@ -149,7 +149,7 @@ void DmxGeneral::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va
 		else {
 			proxy = ccolor;
 		}
-		va.AddRect(sx - width / 2.0, sy + (bar_gap + bar_height) * (nodeCount - i + 1.0) - height / 2.0, sx + offsetx - width / 2.0, sy + (bar_gap + bar_height) * (nodeCount - i + 1.0) - bar_height - height / 2.0, sz, proxy);
+		va.AddRectAsTriangles(sx - width / 2.0, sy + (bar_gap + bar_height) * (nodeCount - i + 1.0) - height / 2.0, sx + offsetx - width / 2.0, sy + (bar_gap + bar_height) * (nodeCount - i + 1.0) - bar_height - height / 2.0, sz, proxy);
 	}
 
     va.Finish(GL_TRIANGLES);
@@ -216,8 +216,7 @@ void DmxGeneral::ExportXlightsModel()
     f.Close();
 }
 
-void DmxGeneral::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+void DmxGeneral::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
     // We have already loaded gdtf properties
     if (EndsWith(filename, "gdtf")) return;
 

@@ -12,7 +12,7 @@
 
 #include <vector>
 #include <glm/mat3x3.hpp>
-#include "../DrawGLUtils.h"
+#include "../graphics/opengl/DrawGLUtils.h"
 
 class BezierCurve
 {

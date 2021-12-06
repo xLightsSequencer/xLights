@@ -52,6 +52,7 @@ public:
     xLightsFrame* xLightsFrm = nullptr;
     ConvertDialog* convertDialog = nullptr;
     ConvertLogDialog* convertLogDialog = nullptr;
+    std::vector<std::pair<uint32_t, uint32_t>> ranges;
 
     void SetStatusText(wxString msg);
     void ConversionError(wxString msg);

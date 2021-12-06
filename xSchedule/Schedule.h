@@ -44,6 +44,7 @@ class Schedule
     int _onOffsetMins = 0;
     int _offOffsetMins = 0;
     bool _hardStop = false;
+    wxDateTime _lastFired;
 
     void SetTime(wxDateTime& toset, std::string city, wxDateTime time, std::string timeString, int offset) const;
     bool IsOkDOW(const wxDateTime& date);
@@ -120,4 +121,5 @@ class Schedule
         wxDateTime GetNextTriggerDateTime();
         static std::string GetNextNthDay(int nthDay, int nthDayOffset);
         bool ShouldFire() const;
+        void DidFire();
 };

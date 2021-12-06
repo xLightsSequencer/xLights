@@ -21,11 +21,14 @@
 
 class VirtualMatrix;
 class OutputManager;
+class ScheduleOptions;
 
 class VirtualMatricesDialog: public wxDialog
 {
     std::list<VirtualMatrix*>* _vmatrices;
-    OutputManager* _outputManager;
+    OutputManager* _outputManager = nullptr;
+	ScheduleOptions* _options = nullptr;
+
     void ValidateWindow();
     void DoAdd();
     void DoDelete();
@@ -34,7 +37,7 @@ class VirtualMatricesDialog: public wxDialog
 
 	public:
 
-		VirtualMatricesDialog(wxWindow* parent, OutputManager* outputManager, std::list<VirtualMatrix*>* vmatrices, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		VirtualMatricesDialog(wxWindow* parent, OutputManager* outputManager, std::list<VirtualMatrix*>* vmatrices, ScheduleOptions* options, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~VirtualMatricesDialog();
 
 		//(*Declarations(VirtualMatricesDialog)

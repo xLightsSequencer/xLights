@@ -18,6 +18,8 @@
 #include <set>
 #include <vector>
 
+#include "../ExportSettings.h"
+
 class UDControllerPort;
 class UDController;
 class Model;
@@ -39,6 +41,7 @@ class UDControllerPortModel
     int32_t _universeStartChannel = -1;
     std::string _protocol;
     int _smartRemote = -1;
+    std::string _smartRemoteType;
     #pragma endregion
 
     #pragma region Private Functions
@@ -74,6 +77,7 @@ public:
 
     int GetSmartRemote() const { return _smartRemote; }
     char GetSmartRemoteLetter() const;
+    std::string GetSmartRemoteType() { return _smartRemoteType; }
 
     float GetAmps(int defaultBrightness) const;
     int GetSmartTs(int currentTs) const;
@@ -94,7 +98,7 @@ public:
 
     void Dump() const;
 
-    bool Check(Controller* controller, const UDControllerPort* port, bool pixel, const ControllerCaps* rules, std::string& res) const;
+    bool Check(Controller* controller, const ControllerCaps* rules, std::string& res) const;
     #pragma endregion
 };
 
@@ -129,6 +133,7 @@ struct UDVirtualString
     int _ts = 0;
     std::string _reverse;
     int _channelsPerPixel = -1;
+    std::string _smartRemoteType;
     std::list<UDControllerPortModel*> _models;
 };
 
@@ -143,6 +148,7 @@ class UDControllerPort
     std::list<UDVirtualString*> _virtualStrings;
     std::string _type;
     bool _separateUniverses = false;
+    OutputManager* _om = nullptr;
     #pragma endregion
 
 	public:
@@ -196,23 +202,26 @@ class UDControllerPort
 
     std::string GetProtocol() const { return _protocol; }
     bool IsPixelProtocol() const;
-	
+
     float GetAmps(int defaultBrightness) const;
 
     std::string GetPortName() const;
 	int GetPort() const { return _port; }
-    
+
     bool IsValid() const { return _valid; }
-    void SetInvalid() { _valid = false; }    
+    void SetInvalid() { _valid = false; }
     std::string GetInvalidReason() const { return _invalidReason; }
     bool AtLeastOneModelIsUsingSmartRemote() const;
     bool AtLeastOneModelIsNotUsingSmartRemote() const;
+    [[nodiscard]] bool AllSmartRemoteTypesSame() const;
+    [[nodiscard]] bool AllSmartRemoteTypesSame(int smartRemote) const;
+    [[nodiscard]] std::string GetSmartRemoteType(int smartRemote) const;
 
     void SetSeparateUniverses(bool sep) { _separateUniverses = sep; }
 
     void Dump() const;
-    bool Check(Controller* c, const UDController* controller, bool pixel, const ControllerCaps* rules, std::string& res) const;
-    std::string ExportAsCSV(bool withDescription) const;
+    bool Check(Controller* c, bool pixel, const ControllerCaps* rules, std::string& res) const;
+    [[nodiscard]] std::string ExportAsCSV(ExportSettings::SETTINGS const& settings) const;
     #pragma endregion
 };
 
@@ -237,13 +246,13 @@ class UDController
     #pragma endregion
 
     void ClearPorts();
-	
+
     public:
 
     static bool IsError(const std::string& check);
 
     #pragma region Constructors and Destructors
-    UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check, bool eliminateOverlaps);
+    UDController(Controller* controller, OutputManager* om, ModelManager* mm, bool eliminateOverlaps);
 	~UDController();
     void Rescan(bool eliminateOverlaps);
     #pragma endregion
@@ -275,13 +284,13 @@ class UDController
     bool SetAllModelsToValidProtocols(const std::vector<std::string>& pixelProtocols, const std::vector<std::string>& serialProtocols, bool allsame);
     bool ClearSmartRemoteOnAllModels();
 
-    bool IsValid(ControllerCaps* rules) const;
+    bool IsValid() const;
     void Dump() const;
     bool Check(const ControllerCaps* rules, std::string& res);
-    std::vector<std::string> ExportAsCSV(bool withDescription);
-        
+    [[nodiscard]] std::vector<std::string> ExportAsCSV(ExportSettings::SETTINGS const& settings);
+
     Output* GetFirstOutput() const;
-    
+
     const std::list<Model *> GetNoConnectionModels() const { return _noConnectionModels; }
     #pragma endregion
 };

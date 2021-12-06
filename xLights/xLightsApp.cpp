@@ -30,6 +30,10 @@
 #include "TraceLog.h"
 #include "ExternalHooks.h"
 
+#ifndef __WXMSW__
+#include "automation/automation.h"
+#endif
+
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
 #include <log4cpp/Configurator.hh>
@@ -88,7 +92,7 @@
     #pragma comment(lib, "liquidfun.lib")
     #pragma comment(lib, "libzstd_static_VS.lib")
 #endif
-#pragma comment(lib, "libcurl.lib")
+#pragma comment(lib, "libcurl.dll.a")
 #pragma comment(lib, "z.lib")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "WS2_32.Lib")
@@ -114,7 +118,6 @@
 #pragma comment(lib, "swresample.lib")
 #pragma comment(lib, "SDL2.lib")
 #pragma comment(lib, "swscale.lib")
-#pragma comment(lib, "libcurl.lib")
 #pragma comment(lib, "z.lib")
 #endif
 
@@ -330,6 +333,16 @@ int main(int argc, char **argv)
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
 
+    #ifndef __WXMSW__
+    wxApp::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE, "program");
+    if (argc > 1) {
+        std::string argv1 = &argv[1][1];
+        if (argv1 == "xlDo") {
+            return DoXLDoCommands(argc - 1, &argv[1]);
+        }
+    }
+    #endif
+    
     logger_base.info("Main: Starting wxWidgets ...");
     int rc =  wxEntry(argc, argv);
     logger_base.info("Main: wxWidgets exited with rc=" + wxString::Format("%d", rc));
@@ -724,9 +737,11 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_OPTION, "g", "opengl", "specify OpenGL version" },
         { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
         { wxCMD_LINE_SWITCH, "o", "on", "turn on output to lights" },
+        { wxCMD_LINE_SWITCH, "a", "aport", "turn on xFade A port" },
+        { wxCMD_LINE_SWITCH, "b", "bport", "turn on xFade B port" },
 #ifdef __LINUX__
         { wxCMD_LINE_SWITCH, "x", "xschedule", "run xschedule" },
-        { wxCMD_LINE_SWITCH, "a", "xsmsdaemon", "run xsmsdaemon" },
+        { wxCMD_LINE_SWITCH, "xs", "xsmsdaemon", "run xsmsdaemon" },
         { wxCMD_LINE_SWITCH, "c", "xcapture", "run xcapture" },
         { wxCMD_LINE_SWITCH, "f", "xfade", "run xfade" },
 #endif
@@ -747,12 +762,12 @@ bool xLightsApp::OnInit()
        wxString cmdlineF(appPath+wxT("/xFade"));
        wxString cmdlineM(appPath+wxT("/xSMSDaemon"));
         for (int i=1; i< argc;i++) {
-            if (strncmp(argv[i].c_str(), "-x", 2) == 0) {
+            if (strncmp(argv[i].c_str(), "-xs", 2) == 0) {
+                run_xsmsdaemon = TRUE;
+            } else if (strncmp(argv[i].c_str(), "-x", 2) == 0) {
                 run_xschedule = TRUE;
             } else if (strncmp(argv[i].c_str(), "-c", 2) == 0) {
                 run_xcapture = TRUE;
-            } else if (strncmp(argv[i].c_str(), "-a", 2) == 0) {
-                run_xsmsdaemon = TRUE;
             } else if (strncmp(argv[i].c_str(), "-f", 2) == 0) {
                 run_xfade = TRUE;
             } else {
@@ -780,6 +795,8 @@ bool xLightsApp::OnInit()
        // Set App Name for when running via appimage
        SetAppName(wxT("xLights"));
 #endif
+
+    int ab = 0;
 
     wxCmdLineParser parser(cmdLineDesc, argc, argv);
     switch (parser.Parse()) {
@@ -822,6 +839,15 @@ bool xLightsApp::OnInit()
             logger_base.info("-s: Show directory set to %s.", (const char *)showDir.c_str());
             info += _("Setting show directory to ") + showDir + "\n";
         }
+
+        if (parser.Found("a")) {
+            logger_base.info("-a: A port enabled.");
+            ab = 1;
+        } else if (parser.Found("b")) {
+            logger_base.info("-b: B port enabled.");
+            ab = 2;
+        }
+
         if (parser.Found("m", &mediaDir)) {
             logger_base.info("-m: Media directory set to %s.", (const char *)mediaDir.c_str());
             info += _("Setting media directory to ") + mediaDir + "\n";
@@ -860,7 +886,7 @@ bool xLightsApp::OnInit()
     wxInitAllImageHandlers();
     if (wxsOK)
     {
-    	xLightsFrame* Frame = new xLightsFrame(nullptr);
+    	xLightsFrame* Frame = new xLightsFrame(nullptr, ab);
         if (Frame->CurrentDir == "") {
             logger_base.info("Show directory not set");
         }

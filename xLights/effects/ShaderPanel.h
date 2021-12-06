@@ -10,26 +10,12 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "xlGLCanvas.h"
+#include "graphics/opengl/xlGLCanvas.h"
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
 class ShaderConfig;
 class SequenceEelements;
-
-class ShaderPreview : public xlGLCanvas
-{
-public:
-   ShaderPreview(wxWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
-                 const wxSize &size=wxDefaultSize,
-                 long style=0,
-                 const wxString &name=wxPanelNameStr,
-                 bool coreProfile = true);
-   virtual ~ShaderPreview();
-
-protected:
-   void InitializeGLContext() override;
-};
 
 //(*Headers(ShaderPanel)
 #include <wx/bmpbuttn.h>
@@ -106,9 +92,12 @@ class ShaderPanel: public xlEffectPanel
 		static const long ID_TEXTCTRL_Shader_Zoom;
 		//*)
 
-		ShaderPreview *   _preview;
 		static const long ID_CANVAS;
-      friend class ShaderEffect;
+
+#ifndef __WXOSX__
+        xlGLCanvas *_preview;
+#endif
+        friend class ShaderEffect;
 
 	private:
 

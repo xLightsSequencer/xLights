@@ -43,7 +43,7 @@ bool SeqPkgImportOptions::IsImportActive() const {
 
 void SeqPkgImportOptions::SetDir(MediaTargetDir dirType, const std::string &dirPath, bool saveAsDefault) {
     _mediaDirs[dirType] = dirPath;
-    
+
     if (saveAsDefault) {
         _defaultDirs[dirType] = dirPath;
     }
@@ -55,7 +55,7 @@ std::string SeqPkgImportOptions::GetDir(MediaTargetDir dirType) {
 
 void SeqPkgImportOptions::RestoreDefaults() {
     _mediaDirs.clear();
-    
+
     for (const auto& dir : _defaultDirs) {
         _mediaDirs[dir.first] = dir.second;
     }
@@ -64,7 +64,7 @@ void SeqPkgImportOptions::RestoreDefaults() {
 SequencePackage::SequencePackage(const wxFileName& fileName, xLightsFrame* xlights) {
     _xlights = xlights;
 
-    if (fileName.GetExt() == "zip") {
+    if (fileName.GetExt() == "zip" || fileName.GetExt() == "piz") {
         _xsqOnly = false;
         _pkgFile = fileName;
     } else {
@@ -83,19 +83,19 @@ SequencePackage::~SequencePackage() {
 void SequencePackage::InitDefaultImportOptions() {
     // Set default target media directories based on a few assumptions. User
     // can still change these in the Mapping Dialog to whatever they would like.
-    
+
     std::string showFolder = _xlights->GetShowDirectory();
 
     // always default faces/shaders to default download folder as they tend to be reused
     _importOptions.SetDir(MediaTargetDir::FACES_DIR, wxString::Format("%s%c%s", showFolder, PATH_SEP, SUBFLD_FACES), true);
     _importOptions.SetDir(MediaTargetDir::SHADERS_DIR, wxString::Format("%s%c%s", showFolder, PATH_SEP, SUBFLD_SHADERS), true);
-    
-    
+
+
     wxFileName targetXsq(_xlights->GetSeqXmlFileName());
     wxString targetDir = targetXsq.GetPath();
-    
+
     wxString mediaBaseFolder;
-    
+
     if (targetDir.ToStdString() != showFolder) {
         // target xsq is not at the root of show folder, assume user manages show folder
         // with a subfolder per sequence as Gil noted
@@ -117,12 +117,12 @@ void SequencePackage::Extract() {
     if (_xsqOnly) {
         return;
     }
-    
+
     wxProgressDialog prog("Extract Package", "Extracting Sequence Package...", 100, _xlights, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     prog.Show();
-    
+
     wxFileInputStream fis(_pkgFile.GetFullPath());
-    
+
     if (!fis.IsOk()) {
         logger_base.error("Could not open the Sequence Package '%s'", (const char*)_pkgFile.GetFullName().c_str());
         prog.Update(100);
@@ -134,7 +134,7 @@ void SequencePackage::Extract() {
 
     wxZipInputStream zis(fis);
     std::unique_ptr<wxZipEntry> upZe;
-    
+
     if (!zis.IsOk()) {
         logger_base.error("Could not open the zip file '%s'", (const char*)_pkgFile.GetFullName().c_str());
         prog.Update(100);
@@ -149,21 +149,30 @@ void SequencePackage::Extract() {
 
     // start extracting each entry
     upZe.reset(zis.GetNextEntry());
-        
+
     prog.Update(10);
     int numEntryProcessed = 0;
     int progStep = (int)(std::floor(90 / zis.GetTotalEntries()));
-    
+
     while (upZe != nullptr) {
         wxString fnEntry = wxString::Format("%s%c%s", _tempDir.GetFullPath(), wxFileName::GetPathSeparator(), upZe->GetName());
+
+        if (fnEntry.Contains("__MACOSX")) {
+            logger_base.debug("   skipping MACOS Folder %s.", (const char*)fnEntry.c_str());
+            upZe.reset(zis.GetNextEntry());
+            continue;
+        }
+
 #ifdef __WXMSW__
         //folder with spaces at begin and end breaks temp folder paths
         fnEntry.Replace(" " + wxString(wxFileName::GetPathSeparator()), wxFileName::GetPathSeparator());
         fnEntry.Replace(wxString(wxFileName::GetPathSeparator()) + " ", wxFileName::GetPathSeparator());
+
+
 #endif
         wxFileName fnOutput;
         upZe->IsDir() ? fnOutput.AssignDir(fnEntry) : fnOutput.Assign(fnEntry);
-        
+
         logger_base.debug("   Extracting %s to %s.", (const char*)fnEntry.c_str(), (const char*)fnOutput.GetFullPath().c_str());
 
         // Create output dir in temp if needed
@@ -173,7 +182,7 @@ void SequencePackage::Extract() {
 
         // handle file output
         if (!upZe->IsDir()) {
-            
+
             if (!zis.CanRead()) {
                 logger_base.error("Could not read file from package '%s'", (const char *)upZe->GetName().c_str());
             }
@@ -221,20 +230,20 @@ void SequencePackage::Extract() {
                 fos.Close();
             }
         }
-        
+
         numEntryProcessed++;
         prog.Update(10 + progStep * numEntryProcessed);
 
         // get next zip entry
         upZe.reset(zis.GetNextEntry());
     }
-    
+
     // seems silly but if we don't call this twice the dialog sticks around after
     // this method has completed if the main app is busy, for example opening another
     // modal dialog like Mapping Dialog
     prog.Update(100);
     prog.Update(100);
-    
+
     if (!_xsqFile.IsOk() || !_xsqFile.Exists()) {
         logger_base.error("No sequence file found in package '%s'", (const char*)_pkgFile.GetFullName().c_str());
     } else {
@@ -306,10 +315,10 @@ std::list<std::string> SequencePackage::GetMissingMedia() {
 std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer *target) {
     auto settings = mappedEffect->GetSettings();
     wxString effName = mappedEffect->GetEffectName();
-    
+
     wxString settingEffectFile = wxEmptyString;
     wxString targetMediaFolder = wxEmptyString;
-    
+
     if (effName == "Pictures") {
         settingEffectFile = "E_FILEPICKER_Pictures_Filename";
         targetMediaFolder = _importOptions.GetDir(MediaTargetDir::IMAGES_DIR);
@@ -328,7 +337,7 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
             ImportFaceInfo(mappedEffect, target, faceName);
         }
     }
-    
+
     if (!settingEffectFile.IsEmpty()) {
         wxString settingPath = settings.Get(settingEffectFile, "");
 
@@ -340,10 +349,10 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
         } else {
             picFilePath = wxFileName(settingPath);
         }
-        
+
         // import the asset if we have it, otherwise track it as missing
         wxFileName fileToCopy = _media[picFilePath.GetFullName()];
-        
+
         if (fileToCopy.IsOk() && fileToCopy.Exists()) {
             wxFileName copiedAsset = CopyMediaToTarget(targetMediaFolder, fileToCopy);
             settings.erase(settingEffectFile);
@@ -353,22 +362,22 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
             _missingMedia.push_back(picFilePath.GetFullName().ToStdString());
         }
     }
-    
+
     return settings.AsString();
 }
 
 void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, const std::string& faceName) {
-    
+
     auto targetModelName = target->GetParentElement()->GetModelName();
     auto srcModelName = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetModelName();
     Model* targetModel = _xlights->AllModels[targetModelName];
-    
+
     const auto& faceInfo = targetModel->faceInfo.find(faceName);
     if (faceInfo != targetModel->faceInfo.end()) {
         // face already defined don't overwrite it
         return;
     }
-    
+
     wxXmlDocument srcRgbEffects;
     if (_rgbEffects.IsOk()) {
         wxXmlNode* modelsNode = nullptr;
@@ -394,15 +403,15 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, 
                     if (modelChild->GetName() == "faceInfo") {
                         wxString name = modelChild->GetAttribute("Name", "");
                         wxString type = modelChild->GetAttribute("Type", "");
-                        
+
                         // only import if type is matrix
                         if ((name == faceName || faceName == "Default") && type == "Matrix") {
                             wxXmlNode* newFaceInfo = new wxXmlNode(wxXML_ELEMENT_NODE, "faceInfo");
-                            
+
                             for (wxXmlAttribute* attr = modelChild->GetAttributes(); attr != nullptr; attr = attr->GetNext()) {
                                 wxString attrName = attr->GetName();
                                 wxString attrValue = attr->GetValue();
-                                
+
                                 // import files
                                 if (attrName.Left(5) == "Mouth" || attrName.Left(4) == "Eyes") {
                                     if (attrValue != wxEmptyString) {
@@ -414,27 +423,27 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, 
                                         } else {
                                             faceFile = wxFileName(attrValue);
                                         }
-                                        
+
                                         // import the asset if we have it, otherwise track it as missing
                                         wxFileName fileToCopy = _media[faceFile.GetFullName()];
-                                        
+
                                         if (fileToCopy.IsOk() && fileToCopy.Exists()) {
                                             wxFileName copiedAsset = CopyMediaToTarget(_importOptions.GetDir(MediaTargetDir::FACES_DIR), fileToCopy);
                                             newFaceInfo->AddAttribute(attrName, copiedAsset.GetFullPath());
                                         } else {
                                             _missingMedia.push_back(fileToCopy.GetFullName().ToStdString());
                                         }
-                                        
+
                                     }
                                 } else {
                                     newFaceInfo->AddAttribute(attrName, attrValue);
                                 }
                             }
-                            
+
                             targetModel->AddFace(newFaceInfo);
                             targetModel->IncrementChangeCount();
                             _modelsChanged = true;
-                            
+
                             break;
                         }
                     }
@@ -446,18 +455,18 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, 
 
 wxFileName SequencePackage::CopyMediaToTarget(const std::string& targetFolder, const wxFileName& mediaToCopy) {
     wxFileName targetFile = wxString::Format("%s%c%s", targetFolder, PATH_SEP, mediaToCopy.GetFullName());
-    
+
     // Only import if file doesn't alrady exist in target folder
     if (!targetFile.Exists()) {
         // make sure dir exists first
         if (!wxDirExists(targetFile.GetPath())) {
             wxFileName::Mkdir(targetFile.GetPath(), wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
         }
-        
+
         // now copy the asset
         wxCopyFile(mediaToCopy.GetFullPath(), targetFile.GetFullPath());
     }
-    
+
     return targetFile;
 }
 

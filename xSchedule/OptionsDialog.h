@@ -48,6 +48,7 @@ class OptionsDialog: public wxDialog
 		wxButton* Button_ButtonDelete;
 		wxButton* Button_ButtonEdit;
 		wxButton* Button_Cancel;
+		wxButton* Button_DefaultWindowLocation;
 		wxButton* Button_Export;
 		wxButton* Button_Import;
 		wxButton* Button_Ok;
@@ -67,6 +68,7 @@ class OptionsDialog: public wxDialog
 		wxCheckBox* CheckBox_SongMMSSFormat;
 		wxCheckBox* CheckBox_SuppressAudioOnRemotes;
 		wxCheckBox* CheckBox_Sync;
+		wxCheckBox* CheckBox_TimecodeWaitForNextSong;
 		wxChoice* Choice1;
 		wxChoice* Choice_ARTNetTimeCodeFormat;
 		wxChoice* Choice_AudioDevice;
@@ -112,6 +114,7 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHECKBOX14;
 		static const long ID_CHECKBOX15;
 		static const long ID_CHECKBOX16;
+		static const long ID_CHECKBOX17;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTVIEW1;
 		static const long ID_BUTTON5;
@@ -145,6 +148,7 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHOICE3;
 		static const long ID_STATICTEXT10;
 		static const long ID_CHOICE5;
+		static const long ID_BUTTONDEFAULTWINODOWLOC;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -165,6 +169,7 @@ class OptionsDialog: public wxDialog
 		void OnButton_ImportClick(wxCommandEvent& event);
 		void OnButton_ExportClick(wxCommandEvent& event);
 		void OnCheckBox1Click(wxCommandEvent& event);
+		void OnButton_DefaultWindowLocationClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

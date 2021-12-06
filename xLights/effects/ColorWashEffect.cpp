@@ -40,17 +40,17 @@ ColorWashEffect::~ColorWashEffect()
 }
 
 int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                          DrawGLUtils::xlAccumulator &bg, xlColor* colorMask, bool ramps) {
+                                          xlVertexColorAccumulator &bg, xlColor* colorMask, bool ramps) {
     if (e->HasBackgroundDisplayList()) {
-        DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList(), bg);
+        e->GetBackgroundDisplayList().addToAccumulator(x1, y1, x2-x1, y2-y1, bg);
         return e->GetBackgroundDisplayList().iconSize;
     }
     if (e->GetSettings().GetBool("E_CHECKBOX_ColorWash_CircularPalette")) {
         xlColorVector map(e->GetPalette());
         map.push_back(map[0]);
-        bg.AddHBlendedRectangle(map, x1, y1, x2, y2, colorMask);
+        bg.AddHBlendedRectangleAsTriangles(x1, y1, x2, y2, colorMask, 0, map);
     } else {
-        bg.AddHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2, colorMask);
+        bg.AddHBlendedRectangleAsTriangles(x1, y1, x2, y2, colorMask, 0, e->GetPalette());
     }
     return 2;
 }

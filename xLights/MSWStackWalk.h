@@ -107,7 +107,7 @@ wxString windows_get_stacktrace(void* data)
                     long long addr = 0;
                     sscanf(comp[2].c_str(), "%llx", &addr);
 
-                    auto l = wxString::Format("%016llx\t\t%s\t%s", addr - (uint64_t)hModule, comp[ln], comp[1]);
+                    auto l = wxString::Format("%016llx\t\t%s\t%s", addr - (uint64_t)preferedLoadAddress, comp[ln], comp[1]);
                     mapLines.Add(l);
                     //logger_base.debug("Map file line: %s", (const char *)line.c_str());
                 }
@@ -126,7 +126,7 @@ wxString windows_get_stacktrace(void* data)
 
     extern EXCEPTION_POINTERS* wxGlobalSEInformation;
     uint64_t except = (uint64_t)wxGlobalSEInformation->ExceptionRecord->ExceptionAddress;
-    logger_base.debug("Exception address: 0x%016llx", except - (uint64_t)hModule);
+    logger_base.debug("Exception address: 0x%016llx", except);
 
     MyStackWalk sw(mapLines);
     sw.WalkFromException();

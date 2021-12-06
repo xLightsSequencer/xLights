@@ -607,6 +607,15 @@ std::list<std::string> OutputManager::GetAutoLayoutControllerNames() const {
     return res;
 }
 
+bool OutputManager::IsControllerNameUnique(const std::string& name) const {
+    int count = 0;
+    for (const auto& it : _controllers) {
+        if (it->GetName() == name)
+            count++;
+    }
+    return count <= 1;
+}
+
 #pragma endregion
 
 #pragma region Output Management

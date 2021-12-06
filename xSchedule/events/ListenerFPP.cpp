@@ -278,8 +278,9 @@ void ListenerFPP::Poll()
                 } else if (cp->pktType == CTRL_PKT_BLANK) {
                     //FIXME - blank data
                 } else if (cp->pktType == CTRL_PKT_PING) {
-                    if (buffer[8] == 1) { //1 is discover
-                        char           outBuf[512];
+                    if (buffer[8] == 1 || buffer[15] == 0) 
+                    { //1 is discover
+                        uint8_t outBuf[512];
                         memset(outBuf, 0, sizeof(outBuf));
                         
                         ControlPkt    *cpkt = (ControlPkt*)outBuf;
@@ -288,16 +289,17 @@ void ListenerFPP::Poll()
                         cpkt->fppd[2]      = 'P';
                         cpkt->fppd[3]      = 'D';
                         cpkt->pktType        = CTRL_PKT_PING;
-                        cpkt->extraDataLen   = 214; // v2 ping length
+                        cpkt->extraDataLen   = 294; // v3 ping length
                         
-                        unsigned char *ed = (unsigned char*)(outBuf + 7);
+                        uint8_t* ed = (uint8_t*)(outBuf + 7);
                         
-                        int majorVersion = 2019;
-                        int minorVersion = 17;
+                        auto v = wxSplit(xlights_version_string, '.');
+                        int majorVersion = wxAtoi(v[0]);
+                        int minorVersion = wxAtoi(v[1]);
                         
-                        ed[0]  = 2; // ping version 2
+                        ed[0]  = 3; // ping version 2
                         ed[1]  = 0; // 0 = ping, 1 = discover
-                        ed[2]  = 0xC1; // xLigths type
+                        ed[2]  = 0xC1; // xLights type
                         ed[3]  = (majorVersion & 0xFF00) >> 8;
                         ed[4]  = (majorVersion & 0x00FF);
                         ed[5]  = (minorVersion & 0xFF00) >> 8;
@@ -319,10 +321,15 @@ void ListenerFPP::Poll()
                         strncpy((char *)(ed + 118), "xSchedule", 41);
                         //strncpy((char *)(ed + 159), sysInfo.ranges.c_str(), 41);
                         
+                        wxString r = wxString::Format("%d.%d.%d.255", (uint8_t)buffer[15], (uint8_t)buffer[16], (uint8_t)buffer[17]);
                         wxIPV4address remoteAddr;
-                        remoteAddr.Hostname("255.255.255.255");
+                        if (buffer[15] == 0) {
+                            remoteAddr.Hostname("255.255.255.255");
+                        } else {
+                            remoteAddr.Hostname(r);
+                        }
                         remoteAddr.Service(FPP_CTRL_PORT);
-                        _socket->SendTo(remoteAddr, outBuf, 214 + 7);
+                        _socket->SendTo(remoteAddr, outBuf, 294 + 7);
                     }
                 }
             }

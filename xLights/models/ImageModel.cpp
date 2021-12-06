@@ -251,7 +251,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 
         DrawGLUtils::Draw(va);
         DrawGLUtils::Draw(tva);
-        maxVertexCount = std::max(va.count, tva.count);
+        maxVertexCount = std::max(va.getCount(), tva.getCount());
         preview->EndDrawing();
     }
 }

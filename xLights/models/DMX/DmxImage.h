@@ -11,8 +11,8 @@
  **************************************************************/
 
 #include <vector>
-#include "../../Image.h"
-#include "../../DrawGLUtils.h"
+#include "../../graphics/opengl/Image.h"
+#include "../../graphics/opengl/DrawGLUtils.h"
 
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;

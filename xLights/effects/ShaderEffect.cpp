@@ -19,7 +19,7 @@
 #ifndef __WXOSX__
     #include <GL/gl.h>
     #ifdef _MSC_VER
-        #include "GL\glext.h"
+        #include "graphics\opengl\GL\glext.h"
     #else
         #include <GL/glext.h>
     #endif
@@ -1098,7 +1098,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     } else {
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
         LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, s_rbTex));
-        LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &buffer.pixels[0]));
+        LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, buffer.GetPixels()));
     }
 
     LOG_GL_ERRORV(glBindVertexArray(s_vertexArrayId));
@@ -1234,8 +1234,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     LOG_GL_ERRORV(glBindVertexArray(0));
     LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
-    xlColorVector& cv(buffer.pixels);
-    LOG_GL_ERRORV(glReadPixels(0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &cv[0]));
+    LOG_GL_ERRORV(glReadPixels(0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, buffer.GetPixels()));
     if (!CanRenderOnBackgroundThread(eff, SettingsMap, buffer)) {
         LOG_GL_ERRORV(glUseProgram(0));
     }

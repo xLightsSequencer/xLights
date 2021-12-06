@@ -15,10 +15,11 @@
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/dir.h>
-#include <log4cpp/Category.hh>
 
 #include "../UtilFunctions.h"
 #include "../outputs/Controller.h"
+
+#include <log4cpp/Category.hh>
 
 #pragma region Static Functions
 std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> ControllerCaps::__controllers;
@@ -135,8 +136,10 @@ void ControllerCaps::LoadControllers() {
                                 auto& c = v[controller];
                                 for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
                                     if (nnn->GetName() == "Variant") {
-                                        auto base = nnn->GetAttribute("Base");
-                                        merge(abstracts, base, nnn);
+                                        if (nnn->HasAttribute("Base")) {
+                                            auto base = nnn->GetAttribute("Base");
+                                            merge(abstracts, base, nnn);
+                                        }
                                         c.push_back(new ControllerCaps(vendor, controller, nnn));
                                     }
                                 }
@@ -408,6 +411,11 @@ bool ControllerCaps::SupportsSerialInputProtols() const
     return false;
 }
 
+bool ControllerCaps::NeedsFullUniverseForDMX() const
+{
+    return DoesXmlNodeExist(_config, "NeedsFullUniverseForSerial");
+}
+
 bool ControllerCaps::SupportsPixelPortNullPixels() const {
 
     return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortNullPixels");
@@ -501,6 +509,26 @@ int ControllerCaps::GetBankSize() const
     return wxAtoi(GetXmlNodeContent(_config, "BankSize", "16"));
 }
 
+int ControllerCaps::GetMaxStartNullPixels() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "MaxStartNulls", "-1"));
+}
+
+int ControllerCaps::GetMaxEndNullPixels() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "MaxEndNulls", "-1"));
+}
+
+int ControllerCaps::GetMaxGroupPixels() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "MaxGroup", "-1"));
+}
+
+int ControllerCaps::GetMinGroupPixels() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "MinGroup", "-1"));
+}
+
 bool ControllerCaps::IsValidPixelProtocol(const std::string& protocol) const {
 
     auto pp = GetPixelProtocols();
@@ -577,6 +605,21 @@ std::string ControllerCaps::GetID() const {
     return name.ToStdString();
 }
 
+std::vector<std::string> ControllerCaps::GetSmartRemoteTypes() const {
+    if (!SupportsSmartRemotes()) {
+        return { "" };
+    }
+    auto types = GetXmlNodeListContent(_config, "SmartRemoteTypes", "Type");
+    if (types.empty()) {
+        types.emplace_back("");
+    }
+    return types;
+}
+
+bool ControllerCaps::AllSmartRemoteTypesPerPortMustBeSame() const {
+
+    return DoesXmlNodeExist(_config, "AllSmartRemoteTypesPerPortMustBeSame");
+}
 
 std::string ControllerCaps::GetCustomPropertyByPath(const std::string name, const std::string& def) const {
 
@@ -592,7 +635,13 @@ void ControllerCaps::Dump() const
     if (SupportsInputOnlyUpload()) logger_base.debug("   Supports input only upload.");
     if (SupportsLEDPanelMatrix()) logger_base.debug("   Supports LED panel matrices.");
     if (SupportsVirtualStrings()) logger_base.debug("   Supports virtual strings.");
-    if (SupportsSmartRemotes()) logger_base.debug("   Supports smart remotes.");
+    if (SupportsSmartRemotes()) {
+        logger_base.debug("   Supports smart remotes.");
+        logger_base.debug("   Supported smart remotes types:");
+        for (auto const& it : GetSmartRemoteTypes()) {
+            logger_base.debug("      " + it);
+        }
+    }
     if (SupportsMultipleSimultaneousOutputProtocols()) logger_base.debug("   Supports multiple simultaneous output protocols.");
     if (AllInputUniversesMustBeSameSize()) logger_base.debug("   All input universes must be the same size.");
     if (UniversesMustBeInNumericalOrder()) logger_base.debug("   All input universes must be in numerical order.");

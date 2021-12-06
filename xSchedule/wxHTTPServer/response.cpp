@@ -124,6 +124,6 @@ void HttpResponse::MakeFromCode(HttpStatus::HttpStatusCode code /*= HttpStatus::
 		_content.AppendData(buffer.data(), buffer.length());
 
 		_headers.Add("Content-Type", "text/html; utf-8");
-		_headers.Add("Content-Length", wxString::Format("%i", (long)_content.GetDataLen()));
+		_headers.Add("Content-Length", wxString::Format("%zu", (long)_content.GetDataLen()));
 	}
 }

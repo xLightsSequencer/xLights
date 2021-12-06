@@ -11,10 +11,10 @@
  **************************************************************/
 
 #include "wx/wx.h"
-#include "xlGLCanvas.h"
+#include "graphics/xlGraphicsBase.h"
 #include "DimmingCurve.h"
 
-class DimmingCurvePanel : public xlGLCanvas
+class DimmingCurvePanel : public GRAPHICS_BASE_CLASS
 {
     public:
         DimmingCurvePanel(wxWindow* parent,
@@ -22,28 +22,20 @@ class DimmingCurvePanel : public xlGLCanvas
                           const wxPoint& pos = wxDefaultPosition,
                           const wxSize& size = wxDefaultSize,
                           long style = 0,
-                          const wxString& name = wxGLCanvasName,
-                          int glFlags[] = nullptr
-                          );
+                          const wxString& name = "");
         virtual ~DimmingCurvePanel();
     
-    
-        virtual void InitializeGLContext();
         void render(wxPaintEvent& event);
     
         void SetDimmingCurve(DimmingCurve *c, int channel);
     
-    
-        virtual bool UsesVertexTextureAccumulator() {return false;}
-        virtual bool UsesVertexColorAccumulator() {return false;}
-        virtual bool UsesVertexAccumulator() {return true;}
-        virtual bool UsesAddVertex() {return false;}
-
     protected:
     private:
         DimmingCurve *curve;
         int channel;
-    
-    
+
+        xlVertexAccumulator *boxVertices;
+        xlVertexAccumulator *curveVertices;
+
     DECLARE_EVENT_TABLE()
 };

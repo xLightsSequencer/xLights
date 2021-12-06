@@ -2040,7 +2040,7 @@ void ConvertDialog::DoConversion(const wxString& Filename, const wxString& Outpu
         oName.SetExt(wxString("fseq"));
         wxString fullpath = oName.GetFullPath();
         AppendConvertStatus(wxString("Writing FSEQ file\n"));
-        _parent->WriteFalconPiFile(fullpath);
+        _parent->WriteFalconPiFile(fullpath, false);
         AppendConvertStatus(wxString("Finished writing new file: ") + fullpath + wxString("\n"));
     }
 #ifndef FPP

@@ -103,8 +103,9 @@ public:
             return effects.size();
         }
     protected:
-    private:
+        RenderableEffect *createEffect(RGB_EFFECTS_e eff);
         void add(RenderableEffect *eff);
+    private:
 
         mutable std::map<std::string, RenderableEffect *> effectsByName;
         std::vector<RenderableEffect *> effects;

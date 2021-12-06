@@ -27,6 +27,9 @@ const long RemoteFalconSettingsDialog::ID_CHOICE1 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_CHECKBOX1 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_CHECKBOX2 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_CHECKBOX3 = wxNewId();
+const long RemoteFalconSettingsDialog::ID_CHECKBOX4 = wxNewId();
+const long RemoteFalconSettingsDialog::ID_STATICTEXT4 = wxNewId();
+const long RemoteFalconSettingsDialog::ID_CHOICE2 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_STATICTEXT2 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_SPINCTRL1 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_STATICTEXT3 = wxNewId();
@@ -62,7 +65,7 @@ RemoteFalconSettingsDialog::RemoteFalconSettingsDialog(wxWindow* parent, RemoteF
 	FlexGridSizer1->AddGrowableRow(0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer3->AddGrowableCol(1);
-	FlexGridSizer3->AddGrowableRow(6);
+	FlexGridSizer3->AddGrowableRow(8);
 	StaticText_Token = new wxStaticText(this, ID_STATICTEXT5, _("Token:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer3->Add(StaticText_Token, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_Token = new wxTextCtrl(this, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD, wxDefaultValidator, _T("ID_TEXTCTRL3"));
@@ -83,6 +86,14 @@ RemoteFalconSettingsDialog::RemoteFalconSettingsDialog(wxWindow* parent, RemoteF
 	CheckBox_SendEnableDisable = new wxCheckBox(this, ID_CHECKBOX3, _("Enable/Disable Remote Falcon Website"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	CheckBox_SendEnableDisable->SetValue(false);
 	FlexGridSizer3->Add(CheckBox_SendEnableDisable, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_PlayAsOverlay = new wxCheckBox(this, ID_CHECKBOX4, _("Play as an overlay effect"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
+	CheckBox_PlayAsOverlay->SetValue(false);
+	FlexGridSizer3->Add(CheckBox_PlayAsOverlay, 1, wxALL|wxEXPAND, 2);
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Effect mode:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer3->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_OverlayEffectMode = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	FlexGridSizer3->Add(Choice_OverlayEffectMode, 1, wxALL|wxEXPAND, 2);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Time to grab next song (seconds):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer3->Add(StaticText2, 1, wxALL|wxEXPAND, 2);
 	SpinCtrl_LeadTime = new wxSpinCtrl(this, ID_SPINCTRL1, _T("5"), wxDefaultPosition, wxDefaultSize, 0, 1, 20, 5, _T("ID_SPINCTRL1"));
@@ -105,6 +116,7 @@ RemoteFalconSettingsDialog::RemoteFalconSettingsDialog(wxWindow* parent, RemoteF
 
 	Connect(ID_TEXTCTRL3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&RemoteFalconSettingsDialog::OnTextCtrl_TokenText);
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&RemoteFalconSettingsDialog::OnChoice_PlaylistsSelect);
+	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&RemoteFalconSettingsDialog::OnCheckBox_PlayAsOverlayClick);
 	Connect(ID_CHECKLISTBOX1,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&RemoteFalconSettingsDialog::OnCheckListBox_PlaylistsToggled);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RemoteFalconSettingsDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RemoteFalconSettingsDialog::OnButton_CancelClick);
@@ -113,6 +125,10 @@ RemoteFalconSettingsDialog::RemoteFalconSettingsDialog(wxWindow* parent, RemoteF
 	Connect(ID_CHECKLISTBOX1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&RemoteFalconSettingsDialog::OnPreviewRightDown);
 
 	SetEscapeId(ID_BUTTON2);
+
+	Choice_OverlayEffectMode->AppendString("Immediate");
+    Choice_OverlayEffectMode->AppendString("Immediate Looped");
+    Choice_OverlayEffectMode->AppendString("Immediate If Idle");
 
 	int sel = -1;
 	_playlists = xSchedule::GetPlaylists();
@@ -132,6 +148,8 @@ RemoteFalconSettingsDialog::RemoteFalconSettingsDialog(wxWindow* parent, RemoteF
 	CheckBox_ClearQueue->SetValue(options->GetClearQueueOnStart());
 	SpinCtrl_LeadTime->SetValue(options->GetLeadTime());
 	CheckBox_SendEnableDisable->SetValue(options->IsEnableDisable());
+    CheckBox_PlayAsOverlay->SetValue(options->IsEffectPlaylist());
+    Choice_OverlayEffectMode->SetSelection((int)options->GetEffectMode());
 
 	ValidateWindow();
 }
@@ -179,6 +197,8 @@ void RemoteFalconSettingsDialog::OnButton_OkClick(wxCommandEvent& event)
 	_options->SetImmediatelyInterrupt(CheckBox_ImmediatelyInterrupt->IsChecked());
 	_options->SetClearQueueOnStart(CheckBox_ClearQueue->IsChecked());
 	_options->SetEnableDisable(CheckBox_SendEnableDisable->IsChecked());
+    _options->SetEffectPlaylist(CheckBox_PlayAsOverlay->IsChecked());
+    _options->SetEffectMode((EFFECT_MODE)Choice_OverlayEffectMode->GetSelection());
 
 	wxArrayInt checked;
 	CheckListBox_Playlists->GetCheckedItems(checked);
@@ -204,6 +224,13 @@ void RemoteFalconSettingsDialog::OnButton_CancelClick(wxCommandEvent& event)
 
 void RemoteFalconSettingsDialog::ValidateWindow()
 {
+    if (CheckBox_PlayAsOverlay->IsChecked()) {
+        Choice_OverlayEffectMode->Enable();
+	}
+	else {
+        Choice_OverlayEffectMode->Enable(false);
+	}
+
 	wxArrayInt checked;
 	CheckListBox_Playlists->GetCheckedItems(checked);
     if (TextCtrl_Token->GetValue() == "" || Choice_Playlists->GetStringSelection() == "" || checked.size() == 0)
@@ -227,6 +254,11 @@ void RemoteFalconSettingsDialog::OnChoice_PlaylistsSelect(wxCommandEvent& event)
 }
 
 void RemoteFalconSettingsDialog::OnCheckListBox_PlaylistsToggled(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void RemoteFalconSettingsDialog::OnCheckBox_PlayAsOverlayClick(wxCommandEvent& event)
 {
     ValidateWindow();
 }

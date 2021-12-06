@@ -25,6 +25,7 @@
 #include "../../xLights/UtilFunctions.h"
 #include "../../xLights/outputs/OutputManager.h"
 #include "PlayerFrame.h"
+#include "../ScheduleOptions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -47,10 +48,6 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager, wxXml
     _frame = nullptr;
     _videoFile = "";
     _videoLength = 0;
-    _origin.x = 0;
-    _origin.y = 0;
-    _size.SetWidth(300);
-    _size.SetHeight(300);
     _sc = 0;
     _channels = 0;
     _startChannel = "1";
@@ -223,7 +220,7 @@ void PlayListItemFSEQVideo::LoadFiles(bool doCache)
     LoadAudio();
 }
 
-PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager) : PlayListItem()
+PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager, ScheduleOptions* options) : PlayListItem()
 {
     _type = "PLIFSEQVideo";
     _outputManager = outputManager;
@@ -254,15 +251,15 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager) : Pla
     _window = nullptr;
     _frame = nullptr;
     _videoFile = "";
-    _origin.x = 0;
-    _origin.y = 0;
-    _size.SetWidth(300);
-    _size.SetHeight(300);
+    if (options != nullptr) {
+        _origin = options->GetDefaultVideoPos();
+        _size = options->GetDefaultVideoSize();
+    }
 }
 
 PlayListItem* PlayListItemFSEQVideo::Copy() const
 {
-    PlayListItemFSEQVideo* res = new PlayListItemFSEQVideo(_outputManager);
+    PlayListItemFSEQVideo* res = new PlayListItemFSEQVideo(_outputManager, (ScheduleOptions*)nullptr);
     PlayListItem::Copy(res);
     res->_cachedAudioFilename = _cachedAudioFilename;
     res->_outputManager = _outputManager;
@@ -682,6 +679,12 @@ void PlayListItemFSEQVideo::Start(long stepLengthMS)
         }
         else {
             _audioManager->Seek(0);
+        }
+    }
+
+    if (_audioManager != nullptr) {
+        if (_volume != -1) {
+            _audioManager->SetVolume(_volume);
         }
     }
 

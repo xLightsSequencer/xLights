@@ -12,6 +12,7 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>2040‬</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
+            <NeedsFullUniverseForSerial/>
 			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -43,6 +44,7 @@
 			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
 			<SupportsAutoLayout/>
+            <NeedsFullUniverseForSerial/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>

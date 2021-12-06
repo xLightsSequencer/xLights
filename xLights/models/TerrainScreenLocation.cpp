@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "TerrianScreenLocation.h"
-#include "../DrawGLUtils.h"
+#include "../graphics/opengl/DrawGLUtils.h"
 #include <wx/xml/xml.h>
 #include "../support/VectorMath.h"
 

@@ -20,6 +20,7 @@
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemAudio.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../ScheduleOptions.h"
 
 #include <wx/xml/xml.h>
 #include <wx/menu.h>
@@ -58,11 +59,12 @@ BEGIN_EVENT_TABLE(PlayListSimpleDialog,wxDialog)
 END_EVENT_TABLE()
 
 
-PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, OutputManager* outputManager, PlayList* playlist, wxWindowID id,const wxPoint& pos,const wxSize& size)
+PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, OutputManager* outputManager, PlayList* playlist, ScheduleOptions* options, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _outputManager = outputManager;
     _playlist = playlist;
+    _options = options;
 
 	//(*Initialize(PlayListSimpleDialog)
 	wxBoxSizer* BoxSizer1;
@@ -604,7 +606,7 @@ void PlayListSimpleDialog::OnDropFiles(wxDropFilesEvent& event)
             }
             else if (PlayListItemVideo::IsVideo(fn.GetExt().Lower().ToStdString()))
             {
-                PlayListItemFSEQVideo* video = new PlayListItemFSEQVideo(_outputManager);
+                PlayListItemFSEQVideo* video = new PlayListItemFSEQVideo(_outputManager, _options);
                 video->SetVideoFile(fn.GetFullPath().ToStdString());
                 PlayListStep* step = new PlayListStep();
                 step->AddItem(video);
@@ -705,7 +707,7 @@ void PlayListSimpleDialog::OnButton_FSEQVideoClick(wxCommandEvent& event)
 
         for (auto it = files.begin(); it != files.end(); ++it)
         {
-            PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo(_outputManager);
+            PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo(_outputManager, _options);
             pli->SetFSEQFileName(it->ToStdString());
             PlayListStep* pls = new PlayListStep();
             pls->AddItem(pli);

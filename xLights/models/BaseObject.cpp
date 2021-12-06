@@ -203,6 +203,24 @@ bool BaseObject::Rotate(int axis, float factor) {
     return b;
 }
 
+void BaseObject::FlipHorizontal(bool ignoreLock) {
+    if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) {
+        return;
+    }
+    GetBaseObjectScreenLocation().Rotate(Y_AXIS, 180.0);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
+void BaseObject::FlipVertical(bool ignoreLock) {
+    if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) {
+        return;
+    }
+    GetBaseObjectScreenLocation().Rotate(X_AXIS, 180.0);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
 float BaseObject::GetTop() {
     return GetBaseObjectScreenLocation().GetTop();
 }
