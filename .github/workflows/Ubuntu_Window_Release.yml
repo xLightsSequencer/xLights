@@ -37,9 +37,6 @@ jobs:
     - name: install Inno
       run: choco install innosetup
       
-    - name: install inno wxWidgets
-      run: choco install innosetup
-      
     - name: Download wxWidgets
       run: 
         git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2021.31b https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
