@@ -40,7 +40,7 @@ jobs:
         
     - name: Install Inno
       working-directory: ..\
-      run: innosetup-6.2.0.exe /verysilent /suppressmessageboxes /norestart      
+      run: inno.exe /verysilent /suppressmessageboxes /norestart      
       
     - name: Download wxWidgets
       run: 
