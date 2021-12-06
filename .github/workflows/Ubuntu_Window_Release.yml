@@ -45,9 +45,9 @@ jobs:
       working-directory: ..\wxWidgets\
       run: msbuild /m .\build\msw\wx_vc16.sln /p:Configuration="Release" /p:Platform="x64"
       
-    - name: Build xDo
-      working-directory: xDo
-      run: msbuild xDo.sln /m /p:Configuration="Release" /p:Platform="x64"
+    - name: Build xlDo
+      working-directory: xlDo
+      run: msbuild xlDo.sln /m /p:Configuration="Release" /p:Platform="x64"
       
     - name: Build xFade
       working-directory: xFade
