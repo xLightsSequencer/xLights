@@ -38,6 +38,10 @@ jobs:
       run: 
         C:\msys64\usr\bin\wget.exe -q https://mlaan2.home.xs4all.nl/ispack/innosetup-6.2.0.exe -o ..\inno.exe
         
+    - name: list Inno
+      working-directory: ..\
+      run: dir.exe   
+        
     - name: Install Inno
       working-directory: ..\
       run: inno.exe /verysilent /suppressmessageboxes /norestart      
