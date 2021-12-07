@@ -387,8 +387,7 @@ void TimingPanel::OnResize(wxSizeEvent& event)
 }
 
 void TimingPanel::SetDefaultControls(const Model *model, bool optionbased) {
-    if (!optionbased || CheckBox_ResetTimingPanel->GetValue())
-    {
+    if (!optionbased || CheckBox_ResetTimingPanel->GetValue()) {
         _layersSelected = "";
         CheckBox_LayerMorph->SetValue(false);
         Choice_LayerMethod->SetStringSelection("Normal");
@@ -428,8 +427,7 @@ wxString TimingPanel::GetTimingString()
                               Choice_LayerMethod->GetString(Choice_LayerMethod->GetSelection()));
     }
 
-    if (CheckBox_Canvas->GetValue())
-    {
+    if (CheckBox_Canvas->GetValue()) {
         s += "T_CHECKBOX_Canvas=1,";
         if (_layersSelected.length() > 0) {
             s += "T_LayersSelected=";
@@ -438,13 +436,11 @@ wxString TimingPanel::GetTimingString()
         }
     }
 
-	if (SpinCtrl_FreezeEffectAtFrame->GetValue() != 999999)
-	{
+	if (SpinCtrl_FreezeEffectAtFrame->GetValue() != 999999) {
 		s += wxString::Format("T_SPINCTRL_FreezeEffectAtFrame=%d,", SpinCtrl_FreezeEffectAtFrame->GetValue());
 	}
 
-	if (SpinCtrl_SuppressEffectUntil->GetValue() != 0)
-	{
+    if (SpinCtrl_SuppressEffectUntil->GetValue() != 0) {
 		s += wxString::Format("T_SPINCTRL_SuppressEffectUntil=%d,", SpinCtrl_SuppressEffectUntil->GetValue());
 	}
 
@@ -468,15 +464,12 @@ wxString TimingPanel::GetTimingString()
         }
 
         ValueCurve *pVC = BitmapButton_In_Transition_Adjust->GetValue();
-        if ( pVC->IsActive() )
-         {
+        if (pVC->IsActive()) {
             std::string vc( BitmapButton_In_Transition_Adjust->GetValue()->Serialise() );
             s += wxString::Format( "T_VALUECURVE_In_Transition_Adjust=%s,", wxString( vc.c_str() ) );
-         }
-         else if ( Slider_In_Adjust->IsEnabled() )
-         {
+        } else if (Slider_In_Adjust->IsEnabled()) {
             s+=wxString::Format( "T_SLIDER_In_Transition_Adjust=%d,", Slider_In_Adjust->GetValue() );
-         }
+        }
     }
     // Fade Out
     if ("" != TextCtrl_Fadeout->GetValue()
@@ -494,13 +487,10 @@ wxString TimingPanel::GetTimingString()
         }
 
         ValueCurve *pVC = BitmapButton_Out_Transition_Adjust->GetValue();
-        if ( pVC->IsActive() )
-        {
+        if (pVC->IsActive()) {
            std::string vc( BitmapButton_Out_Transition_Adjust->GetValue()->Serialise() );
            s += wxString::Format( "T_VALUECURVE_Out_Transition_Adjust=%s,", wxString( vc.c_str() ) );
-        }
-        else if ( Slider_Out_Adjust->IsEnabled() )
-        {
+        } else if (Slider_Out_Adjust->IsEnabled()) {
            s += wxString::Format( "T_SLIDER_Out_Transition_Adjust=%d,", Slider_Out_Adjust->GetValue() );
         }
     }
@@ -557,16 +547,15 @@ void TimingPanel::OnButton_LayersClick(wxCommandEvent& event)
     LayerSelectDialog dlg(this, _startLayer, _endLayer, _layersSelected, _layerWithEffect);
     OptimiseDialogPosition(&dlg);
 
-    if (dlg.ShowModal() == wxID_OK)
-    {
+    if (dlg.ShowModal() == wxID_OK) {
         _layersSelected = dlg.GetSelectedLayers();
+        FireChangeEvent();
     }
 }
 
 void TimingPanel::OnChoice_LayerMethodSelect(wxCommandEvent& event)
 {
-    if (Choice_LayerMethod->GetStringSelection() == "Canvas")
-    {
+    if (Choice_LayerMethod->GetStringSelection() == "Canvas") {
         // need to post event so it can call us back with the right number of layers
         wxCommandEvent eventUpdateEffect(EVT_UPDATE_EFFECT);
         wxPostEvent(GetParent(), eventUpdateEffect);
@@ -577,12 +566,9 @@ void TimingPanel::OnChoice_LayerMethodSelect(wxCommandEvent& event)
 
 void TimingPanel::ValidateWindow()
 {
-    if (CheckBox_Canvas->GetValue() && _startLayer != -1)
-    {
+    if (CheckBox_Canvas->GetValue() && _startLayer != -1) {
         Button_Layers->Enable(true);
-    }
-    else
-    {
+    } else {
         _layersSelected = "";
         Button_Layers->Enable(false);
     }
@@ -591,17 +577,17 @@ void TimingPanel::ValidateWindow()
 	bool outEnable = (wxAtof(TextCtrl_Fadeout->GetValue()) != 0.0);
 	auto inTransitionType = Choice_In_Transition_Type->GetStringSelection();
 
-	if (!inEnable || std::find(transitions_noReverse.cbegin(), transitions_noReverse.cend(), inTransitionType) != transitions_noReverse.cend())
+    if (!inEnable || std::find(transitions_noReverse.cbegin(), transitions_noReverse.cend(), inTransitionType) != transitions_noReverse.cend()) {
 		CheckBox_In_Reverse->Disable();
-	else
+    } else {
 		CheckBox_In_Reverse->Enable();
+    }
 
 	if (!inEnable || std::find(transitions_noAdjust.cbegin(), transitions_noAdjust.cend(), inTransitionType) != transitions_noAdjust.cend()) {
 		Slider_In_Adjust->Disable();
 		BitmapButton_In_Transition_Adjust->Disable();
 		TextCtrl_In_Adjust->Disable();
-	}
-	else {
+	} else {
 		Slider_In_Adjust->Enable();
 		BitmapButton_In_Transition_Adjust->Enable();
 		TextCtrl_In_Adjust->Enable();
@@ -619,8 +605,7 @@ void TimingPanel::ValidateWindow()
 		Slider_Out_Adjust->Disable();
 		BitmapButton_Out_Transition_Adjust->Disable();
 		TextCtrl_Out_Adjust->Disable();
-	}
-	else {
+	} else {
 		Slider_Out_Adjust->Enable();
 		BitmapButton_Out_Transition_Adjust->Enable();
 		TextCtrl_Out_Adjust->Enable();
