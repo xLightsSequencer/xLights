@@ -836,13 +836,18 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
         }
 
         wxString drive = GetChoiceValue(DISK_COL + rowStr);
+        
+        //try to fix path
+        wxFileName dirname( drive, "" );
+        drive = dirname.GetPath();
 
         if (drive.IsEmpty()) {
             error = true;
             errorMsg = wxString::Format("No USB Drive Set for '%s'", hix->GetName());
             continue;
         }
-        if (!ObtainAccessToURL(drive)) {
+        if (!ObtainAccessToURL(drive) || !createTestFile(drive))
+        {
             wxDirDialog dlg(this, "Select SD Directory", drive, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
             if (dlg.ShowModal() == wxID_OK) {
                 drive = dlg.GetPath();
@@ -1347,6 +1352,26 @@ void HinksPixExportDialog::AddInstanceHeader(const wxString& h) {
     BoxSizer1->Fit(Panel1);
     BoxSizer1->SetSizeHints(Panel1);
     HinkControllerSizer->Add(Panel1, 1, wxALL | wxEXPAND, 0);
+}
+
+bool HinksPixExportDialog::createTestFile(wxString const& drive) const {
+#ifdef __WXOSX__
+    wxFile f;
+    wxString const filename = drive + wxFileName::GetPathSeparator() + "test.seh";
+
+    f.Open(filename, wxFile::write);
+
+    if (f.IsOpened()) {
+        f.Write("test\r\n");
+        f.Close();
+        
+        wxRemoveFile(filename);
+        return true;
+    }
+    return false;
+#else
+    return true;
+#endif
 }
 
 bool HinksPixExportDialog::GetCheckValue(const wxString& col) const {
