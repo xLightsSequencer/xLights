@@ -16,6 +16,7 @@
 #include <wx/stdpaths.h>
 #include <wx/config.h>
 #include <wx/version.h>
+#include <wx/dirdlg.h>
 
 #include <stdlib.h>     /* srand */
 #include <time.h>       /* time */
@@ -612,7 +613,15 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
         if (showDir == old) showDir = "";
     }
     if (showDir != "" && showDir != __frame->showDirectory) {
-        ObtainAccessToURL(showDir);
+        if (!ObtainAccessToURL(showDir)) {
+            wxDirDialog dlg(__frame, "Select Show Directory", showDir,  wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+            if (dlg.ShowModal() == wxID_OK) {
+                showDir = dlg.GetPath();
+            }
+            if (!ObtainAccessToURL(showDir)) {
+                return;
+            }
+        }
         __frame->SetDir(showDir, false);
     }
     if (__frame) {
