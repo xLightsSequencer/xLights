@@ -18,7 +18,8 @@
 #include "../../Color.h"
 #include <glm/mat4x4.hpp>
 #include <glm/mat3x3.hpp>
-
+#include <glm/mat3x3.hpp>
+#include <glm/fwd.hpp>
 #include "../xlGraphicsContext.h"
 
 class xlGLCanvas;
