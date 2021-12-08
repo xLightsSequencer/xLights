@@ -12,7 +12,7 @@
 
 #include <wx/file.h>
 #include <vector>
-#include "../tiny_obj_loader.h"
+#include "../../graphics/tiny_obj_loader.h"
 #include "../../graphics/opengl/DrawGLUtils.h"
 #include "../../graphics/opengl/Image.h"
 

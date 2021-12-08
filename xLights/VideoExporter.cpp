@@ -34,27 +34,20 @@ extern "C"
 namespace
 {
    // initialize to solid color (varies with each frame)
-   bool getVideo( uint8_t* buf, int bufSize, unsigned frameIndex )
-   {
+   bool getVideo(AVFrame *f, uint8_t* buf, int bufSize, unsigned frameIndex ) {
       uint8_t* ptr = buf;
       enum Color { Red, Green, Blue } color = Color( frameIndex % 3 );
       int n = bufSize / 3;
-      for ( int i = 0; i < n; ++i )
-      {
-         if ( color == Red )
-         {
+      for ( int i = 0; i < n; ++i ) {
+         if (color == Red) {
             *ptr++ = 0xff;
             *ptr++ = 0x00;
             *ptr++ = 0x00;
-         }
-         else if ( color == Green )
-         {
+         } else if (color == Green) {
             *ptr++ = 0x00;
             *ptr++ = 0xff;
             *ptr++ = 0x00;
-         }
-         else
-         {
+         } else {
             *ptr++ = 0x00;
             *ptr++ = 0x00;
             *ptr++ = 0xff;
@@ -64,32 +57,19 @@ namespace
    }
 
    // initialize to silence
-   bool getAudio( float* leftCh, float *rightCh, int frameSize )
-   {
-      std::memset( leftCh, 0, frameSize * sizeof( float ) );
-      std::memset( rightCh, 0, frameSize * sizeof( float ) );
+   bool getAudio(float* leftCh, float *rightCh, int frameSize) {
+      std::memset(leftCh, 0, frameSize * sizeof(float));
+      std::memset(rightCh, 0, frameSize * sizeof(float));
 
       return true;
    }
 
-   bool queryForCancel()
-   {
+   bool queryForCancel() {
       return false;
    }
 
-   void progressReporter( int )
-   {
-
+   void progressReporter( int ) {
    }
-
-   //void my_av_log_callback( void* ptr, int level, const char*fmt, va_list vargs )
-   //{
-   //   char message[2048];
-   //   if ( level <= 16 )
-   //   {
-   //      ::vsnprintf( message, 2048, fmt, vargs );
-   //   }
-   //}
 }
 
 GenericVideoExporter::GenericVideoExporter( const std::string& outPath, const Params& inParams, bool videoOnly/*=false*/ )
@@ -97,25 +77,22 @@ GenericVideoExporter::GenericVideoExporter( const std::string& outPath, const Pa
    , _inParams( inParams )
    , _videoOnly( videoOnly )
 {
-   if ( inParams.pfmt != AV_PIX_FMT_RGB24 )
-      throw std::runtime_error( "VideoExporter - expecting RGB24 input!" );
+    _outParams = inParams;
 
-   _outParams = inParams;
+    // MP4/MOV has some restrictions on width... apparently it's common
+    // with FFmpeg to just enforce even-number width and height
+    if ( _outParams.width % 2 )
+        ++_outParams.width;
+    if ( _outParams.height % 2 )
+        ++_outParams.height;
 
-   // MP4/MOV has some restrictions on width... apparently it's common
-   // with FFmpeg to just enforce even-number width and height
-   if ( _outParams.width % 2 )
-      ++_outParams.width;
-   if ( _outParams.height % 2 )
-      ++_outParams.height;
+    // We're outputing an H.264 / AAC MP4 file; most players only support profiles with 4:2:0 compression
+    _outParams.pfmt = AV_PIX_FMT_YUV420P;
 
-   // We're outputing an H.264 / AAC MP4 file; most players only support profiles with 4:2:0 compression
-   _outParams.pfmt = AV_PIX_FMT_YUV420P;
-
-   _getVideo = getVideo;
-   _getAudio = getAudio;
-   _queryForCancel = queryForCancel;
-   _progressReporter = progressReporter;
+    _getVideo = getVideo;
+    _getAudio = getAudio;
+    _queryForCancel = queryForCancel;
+    _progressReporter = progressReporter;
 
    //::av_log_set_callback( my_av_log_callback );
 }
@@ -211,12 +188,18 @@ bool GenericVideoExporter::initializeVideo( const AVCodec* codec )
     _videoCodecContext->width = _outParams.width;
     _videoCodecContext->height = _outParams.height;
     _videoCodecContext->pix_fmt = static_cast<AVPixelFormat>( _outParams.pfmt );
+    _videoCodecContext->thread_count = 8;
+    if (codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
+        _videoCodecContext->pix_fmt = AV_PIX_FMT_VIDEOTOOLBOX;
+        ::av_opt_set( _videoCodecContext->priv_data, "q:v", "60", AV_OPT_SEARCH_CHILDREN );
+    } else {
+        ::av_opt_set( _videoCodecContext->priv_data, "preset", "fast", 0 );
+        ::av_opt_set( _videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN );
+    }
     if ( _formatContext->oformat->flags & AVFMT_GLOBALHEADER ) {
         _videoCodecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     }
 
-    ::av_opt_set( _videoCodecContext->priv_data, "preset", "fast", 0 );
-    ::av_opt_set( _videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN );
 
     int status = ::avcodec_open2( _videoCodecContext, nullptr, nullptr );
     if ( status != 0 ) {
@@ -259,48 +242,58 @@ void GenericVideoExporter::initializeAudio( const AVCodec* codec )
 
 void GenericVideoExporter::initializeFrames()
 {
-   // Note: _swsContext does not do any scaling in the case where we need to pad out
-   //       the width/height; may just get an extra black column or row
-   _colorConversionFrame = ::av_frame_alloc();
-   _colorConversionFrame->width = _outParams.width;
-   _colorConversionFrame->height = _outParams.height;
-   _colorConversionFrame->format = _inParams.pfmt;
-   int status = ::av_frame_get_buffer( _colorConversionFrame, 1 );
-   if ( status != 0 )
-      throw std::runtime_error( "VideoExporter - Error initializing color-conversion frame" );
+    int status = 0;
+    _videoFrame = ::av_frame_alloc();
+    _videoFrame->width = _outParams.width;
+    _videoFrame->height = _outParams.height;
+    _videoFrame->format = _outParams.pfmt;
+    status = ::av_frame_get_buffer( _videoFrame, 0 );
+#ifdef __WXOSX__
+    if (_videoCodecContext->codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
+        //this is using videotoolbox, we can pass image in directly, no conversion needed
+        _videoFrame->format = AV_PIX_FMT_VIDEOTOOLBOX;
+    }
+#endif
+    if (status != 0) {
+       throw std::runtime_error( "VideoExporter - Error initializing video frame" );
+    }
+    _videoFrame->pts = 0LL;
 
-   _videoFrame = ::av_frame_alloc();
-   _videoFrame->width = _outParams.width;
-   _videoFrame->height = _outParams.height;
-   _videoFrame->format = _outParams.pfmt;
-   status = ::av_frame_get_buffer( _videoFrame, 0 );
-   if ( status != 0 )
-      throw std::runtime_error( "VideoExporter - Error initializing video frame" );
-   _videoFrame->pts = 0LL;
+    // Note: _swsContext does not do any scaling in the case where we need to pad out
+    //       the width/height; may just get an extra black column or row
+    if (_inParams.pfmt == AV_PIX_FMT_RGB24) {
+        _colorConversionFrame = ::av_frame_alloc();
+        _colorConversionFrame->width = _outParams.width;
+        _colorConversionFrame->height = _outParams.height;
+        _colorConversionFrame->format = _inParams.pfmt;
+        status = ::av_frame_get_buffer( _colorConversionFrame, 1 );
+        if (status != 0) {
+            throw std::runtime_error( "VideoExporter - Error initializing color-conversion frame" );
+        }
+        int flags = SWS_FAST_BILINEAR; // doesn't matter too much since we're just doing a colorspace conversion
+        AVPixelFormat inPfmt = static_cast<AVPixelFormat>( _inParams.pfmt );
+        AVPixelFormat outPfmt = static_cast<AVPixelFormat>( _outParams.pfmt );
 
-   int flags = SWS_FAST_BILINEAR; // doesn't matter too much since we're just doing a colorspace conversion
-   AVPixelFormat inPfmt = static_cast<AVPixelFormat>( _inParams.pfmt );
-   AVPixelFormat outPfmt = static_cast<AVPixelFormat>( _outParams.pfmt );
-
-   _swsContext = ::sws_getContext( _outParams.width, _outParams.height, inPfmt,
-                                   _outParams.width, _outParams.height, outPfmt,
-                                   flags, nullptr, nullptr, nullptr );
-   if ( _swsContext == nullptr )
-      throw std::runtime_error( "VideoExporter - Error initializing color-converter" );
-
-   if ( _audioCodecContext != nullptr )
-   {
-      _audioFrame = ::av_frame_alloc();
-      _audioFrame->format = AV_SAMPLE_FMT_FLTP;
-      _audioFrame->nb_samples = _audioCodecContext->frame_size;
-      _audioFrame->channel_layout = AV_CH_LAYOUT_STEREO;
-      _audioFrame->channels = 2;
-      _audioFrame->sample_rate = _outParams.audioSampleRate;
-      status = ::av_frame_get_buffer( _audioFrame, 0 );
-      if ( status != 0 )
-         throw std::runtime_error( "VideoExporter - Error initializing audio frame" );
-      _audioFrame->pts = 0LL;
-   }
+        _swsContext = ::sws_getContext( _outParams.width, _outParams.height, inPfmt,
+                                        _outParams.width, _outParams.height, outPfmt,
+                                        flags, nullptr, nullptr, nullptr );
+        if (_swsContext == nullptr) {
+           throw std::runtime_error( "VideoExporter - Error initializing color-converter" );
+        }
+    }
+    if ( _audioCodecContext != nullptr ) {
+        _audioFrame = ::av_frame_alloc();
+        _audioFrame->format = AV_SAMPLE_FMT_FLTP;
+        _audioFrame->nb_samples = _audioCodecContext->frame_size;
+        _audioFrame->channel_layout = AV_CH_LAYOUT_STEREO;
+        _audioFrame->channels = 2;
+        _audioFrame->sample_rate = _outParams.audioSampleRate;
+        status = ::av_frame_get_buffer( _audioFrame, 0 );
+        if (status != 0) {
+            throw std::runtime_error( "VideoExporter - Error initializing audio frame" );
+        }
+        _audioFrame->pts = 0LL;
+    }
 }
 
 void GenericVideoExporter::initializePackets()
@@ -474,8 +467,7 @@ void GenericVideoExporter::cleanup()
    if ( _videoCodecContext != nullptr )
       ::avcodec_free_context( &_videoCodecContext );
 
-   if ( _swsContext != nullptr )
-   {
+   if ( _swsContext != nullptr ) {
       ::sws_freeContext( _swsContext );
       _swsContext = nullptr;
    }
@@ -483,34 +475,42 @@ void GenericVideoExporter::cleanup()
 
 int GenericVideoExporter::pushVideoUntilPacketFilled( int index )
 {
-   int status = 0;
+    int status = 0;
 
-   uint8_t* data[] = { _colorConversionFrame->data[0], nullptr, nullptr, nullptr };
-   int stride[] = { _colorConversionFrame->linesize[0], 0, 0, 0 };
-   int frameHeight = _colorConversionFrame->height;
-   int frameSize = stride[0] * frameHeight;
+    uint8_t* data[] = { nullptr, nullptr, nullptr, nullptr };
+    int stride[] = { 0, 0, 0, 0 };
+    int frameHeight = 0;
+    int frameSize = stride[0] * frameHeight;
+    
+    if (_colorConversionFrame) {
+        data[0] = _colorConversionFrame->data[0];
+        stride[0] = _colorConversionFrame->linesize[0];
+        frameHeight = _colorConversionFrame->height;
+        frameSize = stride[0] * frameHeight;
+    }
+    do {
+        if (_getVideo( _videoFrame, data[0], frameSize, index++ )) {
+            int height = ::sws_scale( _swsContext, data, stride, 0, frameHeight, _videoFrame->data, _videoFrame->linesize );
+            if (height != _videoCodecContext->height) {
+                throw std::runtime_error( "VideoExporter - color conversion error" );
+            }
+        }
 
-   do
-   {
-      _getVideo( data[0], frameSize, index++ );
+        status = ::avcodec_send_frame(_videoCodecContext, _videoFrame);
+        if (status < 0) {
+            throw std::runtime_error( "VideoExporter - error sending video frame to compresssor" );
+        }
+        _videoFrame->pts += _ptsIncrement;
 
-      int height = ::sws_scale( _swsContext, data, stride, 0, frameHeight, _videoFrame->data, _videoFrame->linesize );
-      if ( height != _videoCodecContext->height )
-         throw std::runtime_error( "VideoExporter - color conversion error" );
-
-      status = ::avcodec_send_frame( _videoCodecContext, _videoFrame );
-      if ( status < 0 )
-         throw std::runtime_error( "VideoExporter - error sending video frame to compresssor" );
-      _videoFrame->pts += _ptsIncrement;
-
-      status = ::avcodec_receive_packet( _videoCodecContext, _videoPacket );
-      if ( status == AVERROR( EAGAIN ) )
-         continue;
-      if ( status < 0 )
-         throw std::runtime_error( "VideoExporter - error receiving compressed video" );
-   } while ( status != 0 );
-
-   return index;
+        status = ::avcodec_receive_packet( _videoCodecContext, _videoPacket );
+        if (status == AVERROR( EAGAIN )) {
+            continue;
+        }
+        if (status < 0) {
+            throw std::runtime_error( "VideoExporter - error receiving compressed video" );
+        }
+    } while ( status != 0 );
+    return index;
 }
 
 void GenericVideoExporter::pushAudioUntilPacketFilled()
@@ -542,16 +542,15 @@ void GenericVideoExporter::pushAudioUntilPacketFilled()
 
 namespace
 {
-    GenericVideoExporter::Params makeParams( int width, int height, int fps, int audioSampleRate )
-    {
-        GenericVideoExporter::Params p =
-        {
+    GenericVideoExporter::Params makeParams( int width, int height, int fps, int audioSampleRate ) {
+        GenericVideoExporter::Params p = {
             AV_PIX_FMT_RGB24,
             width,
             height,
             fps,
             audioSampleRate
         };
+        
         return p;
     }
 }

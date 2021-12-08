@@ -214,7 +214,7 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
     if (sy > maxy) maxy = sy;
 
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(sva, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+        //GetModelScreenLocation().DrawHandles(sva, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
     }
 }
 
@@ -241,7 +241,7 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accum
     DrawModelOnWindow(preview, tva, c, sx, sy, sz, !allowSelected);
 
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(sva, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
+        //GetModelScreenLocation().DrawHandles(sva, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
     }
 }
 

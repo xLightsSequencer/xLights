@@ -56,6 +56,7 @@
 #include "../effects/EffectPanelUtils.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
+#include "../models/ModelGroup.h"
 
 #include <log4cpp/Category.hh>
 
@@ -2257,7 +2258,6 @@ void xLightsFrame::StartOutputTimer() {
     //printf("Timer started - StartOutputTimer %d\n", playType);
 }
 
-
 bool xLightsFrame::TimerRgbSeq(long msec)
 {
     //check if there are models that depend on timing tracks or similar that need to be rendered
@@ -2315,8 +2315,47 @@ bool xLightsFrame::TimerRgbSeq(long msec)
         return true;
     }
 
-    if (playType == PLAY_TYPE_MODEL) {
+    
+    StartGraphicsSyncPoint();
 
+#if 0
+    std::array<uint32_t, 20> timePoints;
+    int currTimePoint = 0;
+#define DO_PRINT_TIMINGS
+#define RecordTimingCheckpoint() timePoints[currTimePoint++] = wxGetUTCTimeMillis().GetLo()
+#else
+#define RecordTimingCheckpoint()
+#endif
+
+    RecordTimingCheckpoint();
+    int frame = curt / _seqData.FrameTime();
+    if (frame < _seqData.NumFrames()) {
+        //have the frame, copy from SeqData
+        if (playModel != nullptr) {
+            int nn = playModel->GetNodeCount();
+            for (int node = 0; node < nn; node++) {
+                int start = playModel->NodeStartChannel(node);
+                wxASSERT(start < _seqData.NumChannels());
+                playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
+            }
+        }
+        TimerOutput(frame);
+        if (playModel != nullptr) {
+            playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
+        }
+        RecordTimingCheckpoint();
+        _housePreviewPanel->GetModelPreview()->Render(&_seqData[frame][0]);
+        RecordTimingCheckpoint();
+
+        for (const auto& it : PreviewWindows) {
+            if (it->GetActive()) {
+                it->Render(&_seqData[frame][0]);
+            }
+        }
+        RecordTimingCheckpoint();
+    }
+    
+    if (playType == PLAY_TYPE_MODEL) {
         int current_play_time;
 		if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING) {
 			current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
@@ -2360,8 +2399,9 @@ bool xLightsFrame::TimerRgbSeq(long msec)
             }
         }
 
-        //static wxLongLong ms = wxGetUTCTimeMillis();
+        RecordTimingCheckpoint();
         mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
+        RecordTimingCheckpoint();
         if (mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time)) {
             mainSequencer->PanelWaveForm->UpdatePlayMarker();
             mainSequencer->PanelWaveForm->CheckNeedToScroll();
@@ -2369,39 +2409,21 @@ bool xLightsFrame::TimerRgbSeq(long msec)
             wxASSERT(CurrentSeqXmlFile->GetFrameMS() != 0);
             _housePreviewPanel->SetPositionFrames(current_play_time / CurrentSeqXmlFile->GetFrameMS());
         }
-
+        RecordTimingCheckpoint();
         sequenceVideoPanel->UpdateVideo( current_play_time );
-
-        //wxLongLong me = wxGetUTCTimeMillis();
-        //printf("%d     %d    %d\n", (me-ms).GetLo(), SeqData.FrameTime(), Timer1.GetInterval());
-        //ms = me;
+        RecordTimingCheckpoint();
     }
-
-    int frame = curt / _seqData.FrameTime();
-    if (frame < _seqData.NumFrames()) {
-        //have the frame, copy from SeqData
-        if (playModel != nullptr) {
-            int nn = playModel->GetNodeCount();
-            for (int node = 0; node < nn; node++) {
-                int start = playModel->NodeStartChannel(node);
-                wxASSERT(start < _seqData.NumChannels());
-                playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
-            }
-        }
-        TimerOutput(frame);
-        if (playModel != nullptr) {
-            playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
-        }
-
-        _housePreviewPanel->GetModelPreview()->Render(&_seqData[frame][0]);
-
-        for (const auto& it : PreviewWindows) {
-            if (it->GetActive()) {
-                it->Render(&_seqData[frame][0]);
-            }
-        }
+    EndGraphicsSyncPoint();
+#ifdef DO_PRINT_TIMINGS
+    timePoints[currTimePoint++] = wxGetUTCTimeMillis().GetLo();
+    printf("Frame %d \n", frame);
+    for (int x = 1; x < currTimePoint; x++) {
+        int r = timePoints[x];
+        int d = timePoints[x] - timePoints[x - 1];
+        int dt = timePoints[x] - timePoints[0];
+        printf("   %d:   %d      %d   %d\n", x, r, d, dt);
     }
-
+#endif
     return true;
 }
 

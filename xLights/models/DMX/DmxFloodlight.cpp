@@ -18,6 +18,9 @@
 #include "../../xLightsMain.h"
 #include "../../xLightsVersion.h"
 
+
+#include "graphics/opengl/DrawGLUtils.h"
+
 DmxFloodlight::DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     : DmxModel(node, manager, zeroBased), beam_length(1)
 {

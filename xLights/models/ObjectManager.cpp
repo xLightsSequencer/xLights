@@ -36,24 +36,16 @@ std::string ObjectManager::GenerateObjectName(const std::string& candidateName) 
     static wxRegEx underscoreRegex("_[0-9]+$", wxRE_ADVANCED);
     static wxRegEx spaceRegex(" [0-9]+$", wxRE_ADVANCED);
     static wxRegEx nilRegex("[A-Za-z][0-9]+$", wxRE_ADVANCED);
-    if (dashRegex.Matches(candidateName))
-    {
+    if (dashRegex.Matches(candidateName)) {
         base = wxString(candidateName).BeforeLast('-');
-    }
-    else if (underscoreRegex.Matches(candidateName))
-    {
+    } else if (underscoreRegex.Matches(candidateName)) {
         base = wxString(candidateName).BeforeLast('_');
         sep = '_';
-    }
-    else if (spaceRegex.Matches(candidateName))
-    {
+    } else if (spaceRegex.Matches(candidateName)) {
         base = wxString(candidateName).BeforeLast(' ');
         sep = ' ';
-    }
-    else if (nilRegex.Matches(candidateName))
-    {
-        while (base != "" && std::isdigit(base[base.size() - 1]))
-        {
+    } else if (nilRegex.Matches(candidateName)) {
+        while (base != "" && std::isdigit(base[base.size() - 1])) {
             base = base.substr(0, base.size() - 1);
         }
         sep = 'x';
@@ -62,16 +54,12 @@ std::string ObjectManager::GenerateObjectName(const std::string& candidateName) 
     // We start at 2 assuming if we are adding multiple then the user will typically rename the first one number one.
     int seq = 2;
 
-    for (;;)
-    {
+    for (;;) {
         std::string tryName = base;
 
-        if (sep == 'x')
-        {
+        if (sep == 'x') {
             tryName += std::to_string(seq++);
-        }
-        else
-        {
+        } else {
             tryName += sep + std::to_string(seq++);
         }
 

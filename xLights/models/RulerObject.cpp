@@ -13,10 +13,9 @@
 #include <wx/propgrid/advprops.h>
 
 #include "RulerObject.h"
-#include "graphics/opengl/DrawGLUtils.h"
 #include "ModelPreview.h"
 #include "Model.h"
-#include "../graphics/opengl/DrawGLUtils.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 
 RulerObject* RulerObject::__rulerObject = nullptr;
 
@@ -81,35 +80,36 @@ int RulerObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     return ViewObject::OnPropertyGridChange(grid, event);
 }
 
-void RulerObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
-{
+bool RulerObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 
-    if (!IsActive()) { return; }
+    if (!IsActive()) { return true; }
 
     xlColor colour = xlColor(255,0,255);
 
     auto start = screenLocation.GetPoint1();
     auto end = screenLocation.GetPoint2();
     
-    screenLocation.SetRenderSize(std::abs(start.x - end.x), std::abs(start.y - end.y), std::abs(start.z - end.z));  
-
-    LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-    tva3.AddVertex(start.x, start.y, start.z, colour);
-    tva3.AddVertex(end.x, end.y, end.z, colour);
-    tva3.Finish(GL_LINES, GL_LINE_SMOOTH, 3.0f);
+    screenLocation.SetRenderSize(std::abs(start.x - end.x), std::abs(start.y - end.y), std::abs(start.z - end.z));
+    
+    auto vac = transparent->getAccumulator();
+    int startVert = vac->getCount();
+    
+    vac->AddVertex(start.x, start.y, start.z, colour);
+    vac->AddVertex(end.x, end.y, end.z, colour);
+    transparent->addStep([transparent, vac, startVert](xlGraphicsContext *ctx) {
+        ctx->drawLines(vac, startVert, 2);
+    });
 
     GetObjectScreenLocation().SetScaleMatrix(glm::vec3(1.0, 1.0, 1.0));
-    //GetObjectScreenLocation().UpdateBoundingBox(10,10,10);
     static_cast<TwoPointScreenLocation&>(screenLocation).UpdateBoundingBox();
 
     if ((Selected || Highlighted) && allowSelected) {
-        GetObjectScreenLocation().DrawHandles(va3, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), false);
-        // THis is dodgy. The UpdateBoundingBox call actually creates a box which does not really encompass the line
-        // so i cheat and draw one that does here ... but that is not how it behaves. Need some help from Gil here.
-        static_cast<TwoPointScreenLocation>(screenLocation).DrawBoundingBox(tva3);
+        GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
     }
+    return true;
 }
+
 
 std::string RulerObject::GetUnitDescription()
 {

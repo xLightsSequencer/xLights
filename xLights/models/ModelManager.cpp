@@ -272,6 +272,11 @@ void ModelManager::ResetModelGroups() const
             ((ModelGroup*)(it.second))->ResetModels();
         }
     }
+    for (const auto& it : models) {
+        if (it.second != nullptr && it.second->GetDisplayAs() == "ModelGroup") {
+            ((ModelGroup*)(it.second))->CheckForChanges();
+        }
+    }
 }
 
 std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol) const

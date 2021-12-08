@@ -13,7 +13,6 @@
 #include <wx/propgrid/advprops.h>
 
 #include "ImageObject.h"
-#include "graphics/opengl/DrawGLUtils.h"
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
 #include "xLightsMain.h"
@@ -79,6 +78,7 @@ int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         ObtainAccessToURL(_imageFile);
         ModelXml->DeleteAttribute("Image");
         ModelXml->AddAttribute("Image", _imageFile);
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ImageObject::OnPropertyGridChange::Image");
         //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ImageObject::OnPropertyGridChange::Image");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Image");
@@ -87,6 +87,7 @@ int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         transparency = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
         ModelXml->AddAttribute("Transparency", wxString::Format("%d", transparency));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ImageObject::OnPropertyGridChange::Transparency");
         //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ImageObject::OnPropertyGridChange::Transparency");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Transparency");
@@ -95,6 +96,7 @@ int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         brightness = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Brightness");
         ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ImageObject::OnPropertyGridChange::Brightness");
         //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ImageObject::OnPropertyGridChange::Transparency");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Transparency");
@@ -104,9 +106,8 @@ int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     return ViewObject::OnPropertyGridChange(grid, event);
 }
 
-void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
-{
-    if( !IsActive() ) { return; }
+bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
+    if( !IsActive() ) { return true; }
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool exists = false;
@@ -119,12 +120,19 @@ void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, 
                 (const char *)GetName().c_str(),
                 (const char *)_imageFile.c_str(),
                 (const char *)preview->GetName().c_str());
-            _images[preview->GetName().ToStdString()] = new Image(_imageFile);
-
-            width = (_images[preview->GetName().ToStdString()])->width;
-            height = (_images[preview->GetName().ToStdString()])->height;
-            screenLocation.SetRenderSize(width, height, 10.0f);
-            exists = true;
+            wxImage image(_imageFile);
+            if (image.IsOk()) {
+                xlTexture *t = ctx->createTexture(image);
+                t->SetName(GetName());
+                t->Finalize();
+                _images[preview->GetName().ToStdString()] = t;
+                width = image.GetWidth();
+                height = image.GetHeight();
+                screenLocation.SetRenderSize(width, height, 10.0f);
+                exists = true;
+            } else {
+                exists = false;
+            }
         }
     } else {
         exists = true;
@@ -148,44 +156,53 @@ void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, 
     GetObjectScreenLocation().TranslatePoint(x3, y3, z3);
     GetObjectScreenLocation().TranslatePoint(x4, y4, z4);
 
-    GetObjectScreenLocation().UpdateBoundingBox(width, height, 5.0f);  // FIXME: Modify to only call this when position changes
+    GetObjectScreenLocation().UpdateBoundingBox(width, height, 5.0f);
 
     if (exists) {
-        Image* image = _images[preview->GetName().ToStdString()];
-
-        float tx1 = 0;
-        float tx2 = image->tex_coord_x;
-
-        DrawGLUtils::xl3Accumulator &va = transparency == 0 ? va3 : tva3;
+        xlTexture* image = _images[preview->GetName().ToStdString()];
+        xlGraphicsProgram *program = transparency == 0 ? solid : transparent;
+        xlVertexTextureAccumulator *va = ctx->createVertexTextureAccumulator();
         
-        va.PreAllocTexture(6);
-        va.AddTextureVertex(x1, y1, z1, tx1, -0.5 / (image->textureHeight));
-        va.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
-        va.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
-        va.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
-        va.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
-        va.AddTextureVertex(x3, y3, z3, tx2, image->tex_coord_y);
-        int alpha = (100.0 - transparency) * 255.0 / 100.0;
-        va.FinishTextures(GL_TRIANGLES, image->getID(), alpha, brightness);
+        va->PreAlloc(6);
+        va->AddVertex(x1, y1, z1, 0.0, 1.0);
+        va->AddVertex(x4, y4, z4, 1.0, 1.0);
+        va->AddVertex(x2, y2, z2, 0.0, 0.0);
+        va->AddVertex(x2, y2, z2, 0.0, 0.0);
+        va->AddVertex(x4, y4, z4, 1.0, 1.0);
+        va->AddVertex(x3, y3, z3, 1.0, 0.0);
+        float a = (100.0 - transparency) * 255.0 / 100.0;
+        uint8_t alpha = a;
+
+        program->addStep([=](xlGraphicsContext *ctx) {
+            ctx->drawTexture(va, image, brightness, alpha, 0, va->getCount());
+            delete va;
+        });
     } else {
-        va3.AddVertex(x1, y1, z1, *wxRED);
-        va3.AddVertex(x2, y2, z2, *wxRED);
-        va3.AddVertex(x2, y2, z2, *wxRED);
-        va3.AddVertex(x3, y3, z3, *wxRED);
-        va3.AddVertex(x3, y3, z3, *wxRED);
-        va3.AddVertex(x4, y4, z4, *wxRED);
-        va3.AddVertex(x4, y4, z4, *wxRED);
-        va3.AddVertex(x1, y1, z1, *wxRED);
-        va3.AddVertex(x1, y1, z1, *wxRED);
-        va3.AddVertex(x3, y3, z3, *wxRED);
-        va3.AddVertex(x2, y2, z2, *wxRED);
-        va3.AddVertex(x4, y4, z4, *wxRED);
-        va3.Finish(GL_LINES, GL_LINE_SMOOTH, 5.0f);
+        auto vac = solid->getAccumulator();
+        int startVert = vac->getCount();
+        
+        vac->AddVertex(x1, y1, z1, *wxRED);
+        vac->AddVertex(x2, y2, z2, *wxRED);
+        vac->AddVertex(x2, y2, z2, *wxRED);
+        vac->AddVertex(x3, y3, z3, *wxRED);
+        vac->AddVertex(x3, y3, z3, *wxRED);
+        vac->AddVertex(x4, y4, z4, *wxRED);
+        vac->AddVertex(x4, y4, z4, *wxRED);
+        vac->AddVertex(x1, y1, z1, *wxRED);
+        vac->AddVertex(x1, y1, z1, *wxRED);
+        vac->AddVertex(x3, y3, z3, *wxRED);
+        vac->AddVertex(x2, y2, z2, *wxRED);
+        vac->AddVertex(x4, y4, z4, *wxRED);
+        int end = vac->getCount();
+        solid->addStep([solid, vac, startVert, end](xlGraphicsContext *ctx) {
+            ctx->drawLines(vac, startVert, end - startVert);
+        });
     }
 
     if ((Selected || Highlighted) && allowSelected) {
-        GetObjectScreenLocation().DrawHandles(va3, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
+        GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
     }
+    return true;
 }
 
 std::list<std::string> ImageObject::CheckModelSettings()
@@ -206,10 +223,8 @@ std::list<std::string> ImageObject::CheckModelSettings()
 bool ImageObject::CleanupFileLocations(xLightsFrame* frame)
 {
     bool rc = false;
-    if (wxFile::Exists(_imageFile))
-    {
-        if (!frame->IsInShowFolder(_imageFile))
-        {
+    if (wxFile::Exists(_imageFile)) {
+        if (!frame->IsInShowFolder(_imageFile)) {
             _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
             ModelXml->DeleteAttribute("Image");
             ModelXml->AddAttribute("Image", _imageFile);
@@ -217,15 +232,13 @@ bool ImageObject::CleanupFileLocations(xLightsFrame* frame)
             rc = true;
         }
     }
-
     return BaseObject::CleanupFileLocations(frame) || rc;
 }
 
 std::list<std::string> ImageObject::GetFileReferences()
 {
     std::list<std::string> res;
-    if (wxFile::Exists(_imageFile))
-    {
+    if (wxFile::Exists(_imageFile)) {
         res.push_back(_imageFile);
     }
     return res;

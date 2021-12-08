@@ -93,7 +93,7 @@ public:
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
 
-    virtual void IncrementChangeCount() { ++changeCount;};
+    virtual void IncrementChangeCount() { ++changeCount; uiObjectsInvalid = true; };
 
 	void AddOffset(double deltax, double deltay, double deltaz);
     void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
@@ -117,6 +117,8 @@ protected:
     std::string layout_group;
     unsigned long changeCount = 0;
     bool _active = true;
+    
+    bool uiObjectsInvalid = true;
 
 private:
 };

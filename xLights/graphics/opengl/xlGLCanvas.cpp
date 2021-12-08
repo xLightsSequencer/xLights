@@ -24,6 +24,7 @@ END_EVENT_TABLE()
 #include <wx/msgdlg.h>
 #include <log4cpp/Category.hh>
 #include "Image.h"
+#include "../xlMesh.h"
 
 static const int DEPTH_BUFFER_BITS[] = {32, 24, 16, 12, 10, 8};
 
@@ -132,60 +133,6 @@ static bool hasOpenGL3FramebufferObjects()
 }
 #endif
 
-xlGLCanvas::CaptureHelper::~CaptureHelper()
-{
-    if (tmpBuf != nullptr)
-    {
-        delete[] tmpBuf;
-        tmpBuf = nullptr;
-    }
-}
-
-bool xlGLCanvas::CaptureHelper::ToRGB(unsigned char *buf, unsigned int bufSize, bool padToEvenDims/*=false*/)
-{
-    int w = width * contentScaleFactor;
-    int h = height * contentScaleFactor;
-
-    bool padWidth = padToEvenDims && (w % 2);
-    bool padHeight = padToEvenDims && (h % 2);
-    int widthWithPadding = padWidth ? (w + 1) : w;
-    int heightWithPadding = padHeight ? (h + 1) : h;
-    unsigned int reqSize = widthWithPadding * 3 * heightWithPadding;
-    if (bufSize < reqSize)
-        return false;
-
-    if (tmpBuf == nullptr)
-    {
-        typedef unsigned char uchar;
-        tmpBuf = new uchar[w * 4 * h];
-    }
-
-    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
-
-    unsigned char *dst = buf;
-    if (padHeight)
-    {
-        memset(dst, 0, widthWithPadding * 3);
-        dst += widthWithPadding * 3;
-    }
-    for (int y = h - 1; y >= 0; --y)
-    {
-        const unsigned char *src = tmpBuf + 4 * w * y;
-        for (int x = 0; x < w; ++x, src += 4, dst += 3)
-        {
-            dst[0] = src[0];
-            dst[1] = src[1];
-            dst[2] = src[2];
-        }
-        if (padWidth)
-        {
-            dst[0] = dst[1] = dst[2] = 0x00;
-            dst += 3;
-        }
-    }
-
-    return true;
-}
 
 static int tempZDepth = 0;
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint& pos,
@@ -468,7 +415,7 @@ wxImage* xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
         glBindFramebuffer(GL_FRAMEBUFFER, fbID);
         glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbID);
 
-        render(wxSize(width, height));
+        render();
 
         glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
 
@@ -700,8 +647,11 @@ class GLGraphicsContext : public xlGraphicsContext {
 public:
     class xlGLTexture : public xlTexture {
     public:
-        xlGLTexture() : xlTexture(), flip(false) {}
-        xlGLTexture(const wxImage &i) : image(i), flip(true) {}
+        xlGLTexture() : xlTexture() {}
+        xlGLTexture(const wxImage &i) {
+            wxImage img = i.Mirror(false);
+            image.load(img, false, false);
+        }
         virtual ~xlGLTexture() {
         }
 
@@ -710,21 +660,27 @@ public:
         }
 
         Image image;
-        bool flip;
     };
 
-    GLGraphicsContext(xlGLCanvas *c) : canvas(c) {}
+    GLGraphicsContext(xlGLCanvas *c) : xlGraphicsContext(c), canvas(c) {}
     virtual ~GLGraphicsContext() {}
 
 
     virtual xlVertexAccumulator *createVertexAccumulator() override {
-        return new DrawGLUtils::xlVertexAccumulator();
+        DrawGLUtils::xlVertexAccumulator *r = new DrawGLUtils::xlVertexAccumulator();
+        r->SetCoordsPerVertex(3);
+        return r;
     }
     virtual xlVertexColorAccumulator *createVertexColorAccumulator() override {
-        return new DrawGLUtils::xlVertexColorAccumulator();
+        DrawGLUtils::xlVertexColorAccumulator *r = new DrawGLUtils::xlVertexColorAccumulator();
+        r->SetCoordsPerVertex(3);
+        return r;
     }
+
     virtual xlVertexTextureAccumulator *createVertexTextureAccumulator() override {
-        return new DrawGLUtils::xlVertexTextureAccumulator();
+        DrawGLUtils::xlVertexTextureAccumulator *r = new DrawGLUtils::xlVertexTextureAccumulator();
+        r->SetCoordsPerVertex(3);
+        return r;
     }
     virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) override {
         xlGLTexture *t = new xlGLTexture();
@@ -748,117 +704,358 @@ public:
         return new xlGLTexture(image);
     }
     virtual xlTexture *createTextureForFont(const xlFontInfo &font) override {
-        return createTexture(font.getImage().Mirror(false));
+        return createTexture(font.getImage());
+    }
+    virtual xlGraphicsProgram *createGraphicsProgram() override {
+        return new xlGraphicsProgram(createVertexColorAccumulator());
     }
 
 
     //drawing methods
-    virtual void drawLines(xlVertexAccumulator *vac, const xlColor &c) override {
+    virtual xlGraphicsContext* drawLines(xlVertexAccumulator *vac, const xlColor &c, int start = 0, int count = -1) override {
         DrawGLUtils::xlVertexAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexAccumulator*>(vac);
-        DrawGLUtils::Draw(*v, c, GL_LINES, enableCapabilities);
+        DrawGLUtils::Draw(*v, c, GL_LINES, isBlending ? GL_LINE_SMOOTH : enableCapabilities, start, count);
+        return this;
     }
-    virtual void drawLineStrip(xlVertexAccumulator *vac, const xlColor &c) override {
+    virtual xlGraphicsContext* drawLineStrip(xlVertexAccumulator *vac, const xlColor &c, int start = 0, int count = -1) override {
         DrawGLUtils::xlVertexAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexAccumulator*>(vac);
-        DrawGLUtils::Draw(*v, c, GL_LINE_STRIP, enableCapabilities);
+        DrawGLUtils::Draw(*v, c, GL_LINE_STRIP, isBlending ? GL_LINE_SMOOTH : enableCapabilities, start, count);
+        return this;
     }
-    virtual void drawTriangles(xlVertexAccumulator *vac, const xlColor &c) override {
+    virtual xlGraphicsContext* drawTriangles(xlVertexAccumulator *vac, const xlColor &c, int start = 0, int count = -1) override {
         DrawGLUtils::xlVertexAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexAccumulator*>(vac);
-        DrawGLUtils::Draw(*v, c, GL_TRIANGLES, enableCapabilities);
+        DrawGLUtils::Draw(*v, c, GL_TRIANGLES, enableCapabilities, start, count);
+        return this;
     }
-    virtual void drawTriangleStrip(xlVertexAccumulator *vac, const xlColor &c) override {
+    virtual xlGraphicsContext* drawTriangleStrip(xlVertexAccumulator *vac, const xlColor &c, int start = 0, int count = -1) override {
         DrawGLUtils::xlVertexAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexAccumulator*>(vac);
-        DrawGLUtils::Draw(*v, c, GL_TRIANGLE_STRIP, enableCapabilities);
+        DrawGLUtils::Draw(*v, c, GL_TRIANGLE_STRIP, enableCapabilities, start, count);
+        return this;
+    }
+    virtual xlGraphicsContext* drawPoints(xlVertexAccumulator *vac, const xlColor &c, float pointSize, bool smoothPoints, int start = 0, int count = -1) override {
+        DrawGLUtils::xlVertexAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexAccumulator*>(vac);
+        LOG_GL_ERRORV(glPointSize(pointSize));
+        DrawGLUtils::Draw(*v, c, GL_POINTS, smoothPoints ? GL_POINT_SMOOTH : enableCapabilities, start, count);
+        return this;
     }
 
-    virtual void drawLines(xlVertexColorAccumulator *vac) override {
+    virtual xlGraphicsContext* drawLines(xlVertexColorAccumulator *vac, int start = 0, int count = -1) override {
         DrawGLUtils::xlVertexColorAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexColorAccumulator*>(vac);
-        DrawGLUtils::Draw(*v, GL_LINES, enableCapabilities);
+        DrawGLUtils::Draw(*v, GL_LINES, isBlending ? GL_LINE_SMOOTH : enableCapabilities, start, count);
+        return this;
     }
-    virtual void drawLineStrip(xlVertexColorAccumulator *vac) override {
+    virtual xlGraphicsContext* drawLineStrip(xlVertexColorAccumulator *vac, int start = 0, int count = -1) override {
         DrawGLUtils::xlVertexColorAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexColorAccumulator*>(vac);
-        DrawGLUtils::Draw(*v, GL_LINE_STRIP, enableCapabilities);
+        DrawGLUtils::Draw(*v, GL_LINE_STRIP, isBlending ? GL_LINE_SMOOTH : enableCapabilities, start, count);
+        return this;
     }
-    virtual void drawTriangles(xlVertexColorAccumulator *vac) override {
+    virtual xlGraphicsContext* drawTriangles(xlVertexColorAccumulator *vac, int start = 0, int count = -1) override {
         DrawGLUtils::xlVertexColorAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexColorAccumulator*>(vac);
-        DrawGLUtils::Draw(*v, GL_TRIANGLES, enableCapabilities);
+        DrawGLUtils::Draw(*v, GL_TRIANGLES, enableCapabilities, start, count);
+        return this;
     }
-    virtual void drawTriangleStrip(xlVertexColorAccumulator *vac) override {
+    virtual xlGraphicsContext* drawTriangleStrip(xlVertexColorAccumulator *vac, int start = 0, int count = -1) override {
         DrawGLUtils::xlVertexColorAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexColorAccumulator*>(vac);
-        DrawGLUtils::Draw(*v, GL_TRIANGLE_STRIP, enableCapabilities);
+        DrawGLUtils::Draw(*v, GL_TRIANGLE_STRIP, enableCapabilities, start, count);
+        return this;
+    }
+    virtual xlGraphicsContext* drawPoints(xlVertexColorAccumulator *vac, float pointSize, bool smoothPoints, int start = 0, int count = -1) override {
+        DrawGLUtils::xlVertexColorAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexColorAccumulator*>(vac);
+        LOG_GL_ERRORV(glPointSize(pointSize));
+        DrawGLUtils::Draw(*v, GL_POINTS, smoothPoints ? GL_POINT_SMOOTH : enableCapabilities, start, count);
+        return this;
     }
 
-    virtual void drawTexture(xlTexture *texture,
+    class glVertexIndexedColorAccumulator : public xlVertexIndexedColorAccumulator {
+    public:
+        virtual void Reset() override {
+            vac.Reset();
+        }
+        virtual void PreAlloc(unsigned int i) override {
+            vac.PreAlloc(i);
+            colorIndexes.reserve(i);
+        };
+        virtual void AddVertex(float x, float y, float z, uint32_t cIdx) override {
+            vac.AddVertex(x, y, z, xlBLACK);
+            colorIndexes.push_back(cIdx);
+        }
+        virtual uint32_t getCount() override { return vac.getCount(); }
+
+        virtual void SetColorCount(int c) override {
+            colors.resize(c);
+        }
+        virtual uint32_t GetColorCount() override { return colors.size(); }
+        virtual void SetColor(uint32_t idx, const xlColor &c) override {
+            colors[idx] = c;
+        }
+        
+        // mark this as ready to be copied to graphics card, after finalize,
+        // vertices cannot be added, but if mayChange is set, the vertex/color
+        // data can change via SetVertex and then flushed to push the
+        // new data to the graphics card
+        virtual void Finalize(bool mayChangeVertices, bool mayChangeColors) override {
+            for (int x = 0; x < colorIndexes.size(); x++) {
+                vac.SetVertex(x, colors[colorIndexes[x]]);
+            }
+            vac.Finalize(mayChangeVertices, mayChangeColors);
+        }
+        virtual void SetVertex(uint32_t vertex, float x, float y, float z, uint32_t cIdx) override  {
+            vac.SetVertex(vertex, x, y, z);
+            colorIndexes[vertex] = cIdx;
+        }
+        virtual void SetVertex(uint32_t vertex, float x, float y, float z) override {
+            vac.SetVertex(vertex, x, y, z);
+        }
+        virtual void SetVertex(uint32_t vertex, uint32_t cIdx) override {
+            colorIndexes[vertex] = cIdx;
+        }
+        virtual void FlushRange(uint32_t start, uint32_t len) override {
+            vac.FlushRange(start, len);
+        }
+        virtual void FlushColors(uint32_t start, uint32_t len) override {
+            for (int x = start; x < std::min((uint32_t)colorIndexes.size(), start + len); x++) {
+                vac.SetVertex(x, colors[colorIndexes[x]]);
+            }
+            vac.FlushRange(0, getCount());
+        }
+        
+        DrawGLUtils::xlVertex3ColorAccumulator vac;
+        std::vector<uint32_t> colorIndexes;
+        std::vector<xlColor> colors;
+    };
+    virtual xlVertexIndexedColorAccumulator *createVertexIndexedColorAccumulator() override {
+        return new glVertexIndexedColorAccumulator();
+    }
+    virtual xlGraphicsContext* drawLines(xlVertexIndexedColorAccumulator *vac, int start = 0, int count = -1) override {
+        glVertexIndexedColorAccumulator *va = (glVertexIndexedColorAccumulator*)vac;
+        drawLines(&va->vac, start, count);
+        return this;
+    }
+    virtual xlGraphicsContext* drawLineStrip(xlVertexIndexedColorAccumulator *vac, int start = 0, int count = -1) override {
+        glVertexIndexedColorAccumulator *va = (glVertexIndexedColorAccumulator*)vac;
+        drawLineStrip(&va->vac, start, count);
+        return this;
+    }
+    virtual xlGraphicsContext* drawTriangles(xlVertexIndexedColorAccumulator *vac, int start = 0, int count = -1) override {
+        glVertexIndexedColorAccumulator *va = (glVertexIndexedColorAccumulator*)vac;
+        drawTriangles(&va->vac, start, count);
+        return this;
+    }
+    virtual xlGraphicsContext* drawTriangleStrip(xlVertexIndexedColorAccumulator *vac, int start = 0, int count = -1) override {
+        glVertexIndexedColorAccumulator *va = (glVertexIndexedColorAccumulator*)vac;
+        drawTriangleStrip(&va->vac, start, count);
+        return this;
+    }
+    virtual xlGraphicsContext* drawPoints(xlVertexIndexedColorAccumulator *vac, float pointSize, bool smoothPoints, int start = 0, int count = -1) override {
+        glVertexIndexedColorAccumulator *va = (glVertexIndexedColorAccumulator*)vac;
+        drawPoints(&va->vac, pointSize, smoothPoints, start, count);
+        return this;
+    }
+
+    
+    virtual xlGraphicsContext* drawTexture(xlTexture *texture,
                              float x, float y, float x2, float y2,
                              float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0,
-                             bool nearest = true) override {
+                             bool nearest = true,
+                             int brightness = 100, int alpha = 255) override {
         xlGLTexture *t = (xlGLTexture*)texture;
         tx *= t->image.tex_coord_x;
         ty *= t->image.tex_coord_y;
         tx2 *= t->image.tex_coord_x;
         ty2 *= t->image.tex_coord_y;
-        if (t->flip) {
-            std::swap(ty, ty2);
-        }
-        if (enableCapabilities) {
-            glEnable(enableCapabilities);
-        }
-        DrawGLUtils::DrawTexture(t->image.getID(), x, y, x2, y2, tx, ty, tx2, ty2);
-        if (enableCapabilities) {
-            glDisable(enableCapabilities);
-        }
+        DrawGLUtils::xlVertexTextureAccumulator vta(t->image.getID(), (uint8_t)alpha);
+        vta.brightness = brightness;
+        vta.AddVertex(x, y, tx, ty);
+        vta.AddVertex(x, y2, tx, ty2);
+        vta.AddVertex(x2, y2, tx2, ty2);
+        vta.AddVertex(x, y, tx, ty);
+        vta.AddVertex(x2, y2, tx2, ty2);
+        vta.AddVertex(x2, y, tx2, ty);
+        DrawGLUtils::Draw(vta, GL_TRIANGLES, enableCapabilities);
+        return this;
     }
-    virtual void drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture) override {
+    virtual xlGraphicsContext* drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, int brightness, uint8_t alpha, int start, int count) override {
         DrawGLUtils::xlVertexTextureAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexTextureAccumulator*>(vac);
+        v->brightness = brightness;
+        v->alpha = alpha;
+        
         xlGLTexture *t = (xlGLTexture*)texture;
         v->id = t->image.getID();
         v->forceColor = false;
-        DrawGLUtils::Draw(*v, GL_TRIANGLES, enableCapabilities);
+        DrawGLUtils::Draw(*v, GL_TRIANGLES, enableCapabilities, start, count);
+        return this;
     }
-    virtual void drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, const xlColor &c) override {
+    virtual xlGraphicsContext* drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, const xlColor &c, int start = 0, int count = -1) override {
         DrawGLUtils::xlVertexTextureAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexTextureAccumulator*>(vac);
         xlGLTexture *t = (xlGLTexture*)texture;
         v->id = t->image.getID();
         v->forceColor = true;
         v->color = c;
-        DrawGLUtils::Draw(*v, GL_TRIANGLES, enableCapabilities);
+        DrawGLUtils::Draw(*v, GL_TRIANGLES, enableCapabilities, start, count);
+        return this;
     }
 
-    virtual void enableBlending(bool e = true) override {
-        if (e) {
-            enableCapabilities = GL_BLEND;
-        } else {
-            enableCapabilities = 0;
+    class xlGLMesh : public xlMesh {
+    public:
+        xlGLMesh(const std::string &file, GLGraphicsContext *ctx) : xlMesh(ctx, file) {
+            mesh = DrawGLUtils::createMesh();
+            for (auto &s : objects.GetShapes()) {
+                if (!s.mesh.indices.empty()) {
+                    for (int idx = 0; idx < s.mesh.material_ids.size(); idx++) {
+                        float vert[3][3];
+                        float norms[3][3];
+                        float tc[3][2];
+                        GLint texture = -1;
+                        uint8_t color[3][4];
+                        
+                        if (this->materials[s.mesh.material_ids[idx]].texture) {
+                            xlGLTexture *t = (xlGLTexture*)this->materials[s.mesh.material_ids[idx]].texture;
+                            texture = t->image.getID();
+                        }
+                        xlColor c = this->materials[s.mesh.material_ids[idx]].color;
+
+                        for (int x = 0; x < 3; x++) {
+                            tinyobj::index_t vi = s.mesh.indices[idx*3 + x];
+                            vert[x][0] = objects.GetAttrib().vertices[vi.vertex_index * 3];
+                            vert[x][1] = objects.GetAttrib().vertices[vi.vertex_index * 3 + 1];
+                            vert[x][2] = objects.GetAttrib().vertices[vi.vertex_index * 3 + 2];
+
+                            norms[x][0] = objects.GetAttrib().normals[vi.normal_index * 3];
+                            norms[x][1] = objects.GetAttrib().normals[vi.normal_index * 3 + 1];
+                            norms[x][2] = objects.GetAttrib().normals[vi.normal_index * 3 + 2];
+
+                            tc[x][0] = objects.GetAttrib().texcoords[vi.texcoord_index * 2];
+                            tc[x][1] = objects.GetAttrib().texcoords[vi.texcoord_index * 2 + 1];
+                            
+                            color[x][0] = c.red;
+                            color[x][1] = c.green;
+                            color[x][2] = c.blue;
+                            color[x][3] = c.alpha;
+                        }
+                        mesh->addSurface(vert, tc, norms, color, texture);
+                    }
+                }
+                if (!s.lines.indices.empty()) {
+                    for (int idx = 0 ; idx < s.lines.indices.size(); idx += 2) {
+                        float vert[2][3];
+                        for (int x = 0; x < 2; x++) {
+                            tinyobj::index_t vi = s.lines.indices[idx + x];
+                            vert[x][0] = objects.GetAttrib().vertices[vi.vertex_index * 3];
+                            vert[x][1] = objects.GetAttrib().vertices[vi.vertex_index * 3 + 1];
+                            vert[x][2] = objects.GetAttrib().vertices[vi.vertex_index * 3 + 2];
+                        }
+                        mesh->addLine(vert);
+                    }
+                }
+                /*
+                if (!s.points.indices.empty()) {
+                    xlMetalSubMesh *sm = new xlMetalSubMesh();
+                    sm->name = s.name;
+                    sm->type = MTLPrimitiveTypePoint;
+                    sm->startIndex = indexes.size();
+                    for (auto &idx : s.points.indices) {
+                        indexes.push_back(getOrAddIndex(indexMap, input, idx));
+                    }
+                    sm->count = indexes.size() - sm->startIndex;
+                    subMeshes.push_back(sm);
+                }
+                 */
+            }
         }
+        virtual ~xlGLMesh() {
+            if (mesh) {
+                delete mesh;
+            }
+        }
+        
+        DrawGLUtils::xl3DMesh* mesh = nullptr;
+    };
+    virtual xlMesh *loadMeshFromObjFile(const std::string &file) override {
+        return new xlGLMesh(file, this);
+    }
+    virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness) override {
+        xlGLMesh *glm = (xlGLMesh*)mesh;
+        if (glm->mesh) {
+            DrawGLUtils::xlAccumulator vac;
+            vac.AddMesh(glm->mesh, false, brightness, false);
+            DrawGLUtils::Draw(vac);
+        }
+        return this;
+    }
+    virtual xlGraphicsContext* drawMeshTransparents(xlMesh *mesh, int brightness) override {
+        xlGLMesh *glm = (xlGLMesh*)mesh;
+        if (glm->mesh) {
+            DrawGLUtils::xlAccumulator vac;
+            vac.AddMesh(glm->mesh, false, brightness, true);
+            DrawGLUtils::Draw(vac);
+        }
+        return this;
+    }
+    virtual xlGraphicsContext* drawMeshWireframe(xlMesh *mesh, int brightness) override {
+        xlGLMesh *glm = (xlGLMesh*)mesh;
+        if (glm->mesh) {
+            DrawGLUtils::xlAccumulator vac;
+            vac.AddMesh(glm->mesh, true, brightness, false);
+            DrawGLUtils::Draw(vac);
+        }
+        return this;
+    }
+
+    virtual xlGraphicsContext* enableBlending(bool e = true) override {
+        if (e) {
+            LOG_GL_ERRORV(glEnable(GL_BLEND));
+            LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+            LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
+        } else {
+            LOG_GL_ERRORV(glDisable(GL_BLEND));
+        }
+        isBlending = e;
+        return this;
     }
 
     // Setup the Viewport
-    void SetViewport(int x1, int y1, int x2, int y2, bool is3D) override {
+    xlGraphicsContext* SetViewport(int x1, int y1, int x2, int y2, bool is3D) override {
         if (is3D) {
             DrawGLUtils::SetViewport3D(*canvas, x1, y1, x2, y2);
         } else {
             DrawGLUtils::SetViewport(*canvas, x1, y1, x2, y2);
         }
+        return this;
     }
 
 
     //manipulating the matrices
-    virtual void PushMatrix() override {
+    virtual xlGraphicsContext* PushMatrix() override {
         DrawGLUtils::PushMatrix();
+        return this;
     }
-    virtual void PopMatrix() override {
+    virtual xlGraphicsContext* PopMatrix() override {
         DrawGLUtils::PopMatrix();
+        return this;
     }
-    virtual void Translate(float x, float y, float z) override {
+    virtual xlGraphicsContext* Translate(float x, float y, float z) override {
         DrawGLUtils::Translate(x, y, z);
+        return this;
     }
-    virtual void Rotate(float angle, float x, float y, float z) override {
+    virtual xlGraphicsContext* Rotate(float angle, float x, float y, float z) override {
         DrawGLUtils::Rotate(angle, x, y, z);
+        return this;
     }
-    virtual void Scale(float w, float h, float z) override {
+    virtual xlGraphicsContext* Scale(float w, float h, float z) override {
         DrawGLUtils::Scale(w, h, z);
+        return this;
+    }
+    virtual xlGraphicsContext* SetCamera(const glm::mat4 &m) override {
+        DrawGLUtils::SetCamera(m);
+        return this;
+    }
+    virtual xlGraphicsContext* SetModelMatrix(const glm::mat4 &m) override {
+        DrawGLUtils::SetModelMatrix(m);
+        return this;
     }
 
     int enableCapabilities = 0;
+    bool isBlending = false;
     xlGLCanvas *canvas;
 };
 
@@ -889,7 +1086,43 @@ xlGraphicsContext* xlGLCanvas::PrepareContextForDrawing(const xlColor &bg) {
 
     return new GLGraphicsContext(this);
 }
-void xlGLCanvas::FinishDrawing(xlGraphicsContext* ctx) {
-    SwapBuffers();
+void xlGLCanvas::FinishDrawing(xlGraphicsContext* ctx, bool display) {
+    if (display) {
+        SwapBuffers();
+    }
     delete ctx;
+}
+
+bool xlGLCanvas::getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int bufferSize) {
+    bool padWidth = (w % 2);
+    bool padHeight = (h % 2);
+    int widthWithPadding = padWidth ? (w + 1) : w;
+    int heightWithPadding = padHeight ? (h + 1) : h;
+    unsigned int reqSize = widthWithPadding * 3 * heightWithPadding;
+    if (bufferSize < reqSize) {
+        return false;
+    }
+    uint8_t *tmpBuf = new uint8_t[w * 4 * h];
+    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
+
+    unsigned char *dst = buffer;
+    if (padHeight) {
+        memset(dst, 0, widthWithPadding * 3);
+        dst += widthWithPadding * 3;
+    }
+    for (int y = h - 1; y >= 0; --y) {
+        const unsigned char *src = tmpBuf + 4 * w * y;
+        for (int x = 0; x < w; ++x, src += 4, dst += 3) {
+            dst[0] = src[0];
+            dst[1] = src[1];
+            dst[2] = src[2];
+        }
+        if (padWidth) {
+            dst[0] = dst[1] = dst[2] = 0x00;
+            dst += 3;
+        }
+    }
+    delete [] tmpBuf;
+    
+    return true;
 }

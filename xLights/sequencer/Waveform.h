@@ -77,7 +77,7 @@ class Waveform : public GRAPHICS_BASE_CLASS
 
         virtual xlColor ClearBackgroundColor() const override;
 
-        void render();
+        void render() override;
 
 
     protected:

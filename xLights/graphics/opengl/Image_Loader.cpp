@@ -67,32 +67,31 @@ GLuint loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureWi
     textureWidth  = imageWidth;
     textureHeight = imageHeight;
     scaledH = scaledW = false;
-    if( (int)power_of_two_that_gives_correct_width != power_of_two_that_gives_correct_width ||
-       (int)power_of_two_that_gives_correct_height != power_of_two_that_gives_correct_height)
-    {
+    
+    if (useForcePowerOfTwo) {
         textureWidth=(int)std::pow( 2.0, (int)(std::ceil(power_of_two_that_gives_correct_width)) );
         textureHeight=(int)std::pow( 2.0, (int)(std::ceil(power_of_two_that_gives_correct_height)) );
-        while (textureWidth > maxSize) {
-            //we have to scale down, we'll use the entire texture and have opengl scale it to the appropriate aspect ratio
-            scaledW = true;
-            textureWidth /= 2;
-        }
-        while (textureHeight > maxSize) {
-            //we have to scale down, we'll use the entire texture and have opengl scale it to the appropriate aspect ratio
-            scaledH = true;
-            textureHeight /= 2;
-        }
-        if (useForcePowerOfTwo) {
-            scaledW = true;
-            scaledH = true;
-            imageWidth = textureWidth;
-            imageHeight = textureHeight;
-        }
-        if (scaledH || scaledW) {
-            img->Rescale(scaledW ? textureWidth : imageWidth,
-                         scaledH ? textureHeight : imageHeight,
-                         wxIMAGE_QUALITY_HIGH);
-        }
+    }
+    while (textureWidth > maxSize) {
+        //we have to scale down, we'll use the entire texture and have opengl scale it to the appropriate aspect ratio
+        scaledW = true;
+        textureWidth /= 2;
+    }
+    while (textureHeight > maxSize) {
+        //we have to scale down, we'll use the entire texture and have opengl scale it to the appropriate aspect ratio
+        scaledH = true;
+        textureHeight /= 2;
+    }
+    if (useForcePowerOfTwo) {
+        scaledW = true;
+        scaledH = true;
+        imageWidth = textureWidth;
+        imageHeight = textureHeight;
+    }
+    if (scaledH || scaledW) {
+        img->Rescale(scaledW ? textureWidth : imageWidth,
+                     scaledH ? textureHeight : imageHeight,
+                     wxIMAGE_QUALITY_HIGH);
     }
 
     // note: must make a local copy before passing the data to OpenGL, as GetData() returns RGB

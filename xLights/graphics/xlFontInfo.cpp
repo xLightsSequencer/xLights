@@ -41,6 +41,7 @@ bool xlFontInfo::valid() const {
 }
 
 bool xlFontInfo::init(int size) {
+    this->size = size;
     switch (size) {
         CASEFONT(10);
         CASEFONT(12);

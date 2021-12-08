@@ -6164,6 +6164,8 @@ void EffectsGrid::CreateEffectIconTextures(xlGraphicsContext *ctx)
         effectIconLocations[eff->GetId()][1] = ((float)yLoc) / 512.0f;
     }
     effectIconTexture = ctx->createTextureMipMaps(images);
+    effectIconTexture->SetName("EffectIcons");
+    effectIconTexture->Finalize();
 }
 
 void EffectsGrid::magnify(wxMouseEvent& event) {

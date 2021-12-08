@@ -25,7 +25,6 @@
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsXmlFile.h"
 #include "../Color.h"
-#include "../graphics/opengl/DrawGLUtils.h"
 #include "../DimmingCurve.h"
 #include "../StrandNodeNamesDialog.h"
 #include "../ModelFaceDialog.h"
@@ -119,6 +118,11 @@ static void clearUnusedProtocolProperties(wxXmlNode* node)
     }
 }
 
+static const std::string EFFECT_PREVIEW_CACHE("ModelPreviewEffectCache");
+static const std::string MODEL_PREVIEW_CACHE_2D("ModelPreviewCache3D");
+static const std::string MODEL_PREVIEW_CACHE_3D("ModelPreviewCache2D");
+
+
 Model::Model(const ModelManager& manager) : modelDimmingCurve(nullptr),
 parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
 StrobeRate(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
@@ -136,6 +140,7 @@ rgbwHandlingType(0), BufferDp(0), _controller(0), modelTagColour(*wxBLACK)
 
 Model::~Model()
 {
+    deleteUIObjects();
     if (modelDimmingCurve != nullptr) {
         delete modelDimmingCurve;
     }
@@ -4693,7 +4698,6 @@ wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y, ModelPrevi
     return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes, preview);
 }
 
-//#define SUPPRESSCOLOURTRANSPARENCY
 void Model::ApplyTransparency(xlColor& color, int transparency, int blackTransparency) const
 {
     if (color == xlBLACK) {
@@ -4702,14 +4706,6 @@ void Model::ApplyTransparency(xlColor& color, int transparency, int blackTranspa
         int i = std::floor(t);
         color.alpha = i > 255 ? 255 : (i < 0 ? 0 : i);
     } else {
-#ifdef SUPPRESSCOLOURTRANSPARENCY
-        if (transparency) {
-            float t = 100.0f - transparency;
-            t *= 2.55f;
-            int i = std::floor(t);
-            color.alpha = i > 255 ? 255 : (i < 0 ? 0 : i);
-        }
-#else
         int maxCol = std::max(color.red, std::max(color.green, color.blue));
         int colorAlpha = 255;
         if (transparency) {
@@ -4728,12 +4724,12 @@ void Model::ApplyTransparency(xlColor& color, int transparency, int blackTranspa
         }
         color.alpha = colorAlpha;
     }
-#endif
 }
 
-// display model using colors stored in each node
-// used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float& maxy, bool is_3d, const xlColor *c, bool allowSelected, bool highlightFirst) {
+void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d,
+                                  const xlColor* c, bool allowSelected, bool wiring, bool highlightFirst, int highlightpixel,
+                                  float *boundingBox) {
+    
     if (!IsActive() && preview->IsNoCurrentModel()) { return; }
     size_t NodeCount = Nodes.size();
     xlColor color;
@@ -4747,290 +4743,218 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     preview->GetVirtualCanvasSize(w, h);
 
     ModelScreenLocation& screenLocation = GetModelScreenLocation();
-
     screenLocation.PrepareToDraw(is_3d, allowSelected);
-    //UpdateBoundgingBox depends on "matrix" which is set in PrepareToDraw
-    screenLocation.UpdateBoundingBox(Nodes);  // FIXME: Temporary...really only want to do this when something causes a boundary change
-
-    size_t vcount = 0;
-    for (const auto& it : Nodes) {
-        vcount += it.get()->Coords.size();
+    screenLocation.UpdateBoundingBox(Nodes);
+    
+    const std::string &cacheKey = is_3d ? MODEL_PREVIEW_CACHE_3D : MODEL_PREVIEW_CACHE_2D;
+    if (uiObjectsInvalid) {
+        deleteUIObjects();
     }
-    if (pixelStyle > 1) {
-        int f = pixelSize;
-        if (pixelSize < 16) {
-            f = 16;
+    bool created = false;
+    auto cache = uiCaches[cacheKey];
+    // nothing in the cache is dependent on preview size/rotation/etc..., the cached program is
+    // size indepentent and thus can be re-used
+    if (cache == nullptr) {
+        cache = new PreviewGraphicsCacheInfo();
+        uiCaches[cacheKey] = cache;
+        created = true;
+        
+        size_t vcount = 0;
+        for (const auto& it : Nodes) {
+            vcount += it.get()->Coords.size();
         }
-        vcount = vcount * f * 3;
-    }
-    if (vcount > maxVertexCount) {
-        maxVertexCount = vcount;
-    }
-    bool needTransparent = false;
-    if (pixelStyle == 3 || transparency != 0 || blackTransparency != 0) {
-        needTransparent = true;
-    }
-    DrawGLUtils::xlAccumulator &va = needTransparent ? tva : sva;
-    va.PreAlloc(maxVertexCount);
-
-    int first = 0;
-    int last = NodeCount;
-    int buffFirst = -1;
-    int buffLast = -1;
-    bool left = true;
-
-    while (first < last) {
-
-        if (highlightFirst && Nodes.size() > 1) {
-            if (first == 0) {
-                color = xlCYAN;
+        if (pixelStyle > 1) {
+            int f = pixelSize;
+            if (pixelSize < 16) {
+                f = 16;
             }
-            else {
-                color = saveColor;
-            }
+            vcount = vcount * f * 3;
         }
-
-        int n;
-        if (left) {
-            n = first;
-            first++;
-            if (NodeRenderOrder() == 1) {
-                if (buffFirst == -1) {
-                    buffFirst = Nodes[n]->Coords[0].bufX;
-                }
-                if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
-                    left = false;
-                }
-            }
-        } else {
-            last--;
-            n = last;
-            if (buffLast == -1) {
-                buffLast = Nodes[n]->Coords[0].bufX;
-            }
-            if (last > 0 && buffFirst != Nodes[last - 1]->Coords[0].bufX) {
-                left = true;
-            }
+        if (vcount > maxVertexCount) {
+            maxVertexCount = vcount;
         }
-
-        if (c == nullptr) {
-            Nodes[n]->GetColor(color);
-            if (Nodes[n]->model->modelDimmingCurve != nullptr) {
-                Nodes[n]->model->modelDimmingCurve->reverse(color);
-            }
-            if (Nodes[n]->model->StrobeRate) {
-                int r = rand() % 5;
-                if (r != 0) {
-                    color = xlBLACK;
-                }
-            }
+        bool needTransparent = false;
+        if (pixelStyle == 3 || transparency != 0 || blackTransparency != 0) {
+            needTransparent = true;
         }
+        cache->isTransparent = needTransparent;
+        cache->program = ctx->createGraphicsProgram();
+        cache->vica = ctx->createVertexIndexedColorAccumulator();
+        cache->vica->SetName(GetName() + (is_3d ? " - 3DPreview" : " - 2DPreview"));
+        cache->vica->PreAlloc(vcount);
+        cache->vica->SetColorCount(pixelStyle == 3 ? NodeCount * 2 : NodeCount);
 
-        size_t CoordCount=GetCoordCount(n);
-        for(size_t c2=0; c2 < CoordCount; c2++) {
-            // draw node on screen
-            float sx = Nodes[n]->Coords[c2].screenX;;
-            float sy = Nodes[n]->Coords[c2].screenY;
-            float sz = Nodes[n]->Coords[c2].screenZ;
-            GetModelScreenLocation().TranslatePoint(sx, sy, sz);
-
-            if (sx < minx) minx = sx;
-            if (sy < miny) miny = sy;
-            if (sx > maxx) maxx = sx;
-            if (sy > maxy) maxy = sy;
-
-            if (pixelStyle < 2) {
-                xlColor c3(color);
-                ApplyTransparency(c3, transparency, blackTransparency);
-                va.AddVertex(sx, sy, c3);
-            } else {
-                xlColor ccolor(color);
-                xlColor ecolor(color);
-                ApplyTransparency(ccolor, transparency, blackTransparency);
-                if (pixelStyle == 2) {
-                    ecolor = ccolor;
-                } else {
-                    ecolor.alpha = 0;
-                }
-                va.AddCircleAsTriangles(sx, sy, ((float)pixelSize) / 2.0f, ccolor, ecolor);
-            }
+        float modelPixelSize = pixelSize;
+        //pixelSize is in world coordinate sizes, not model size.  Thus, we need to reverse the matrices to
+        //get the size to use for the pixelStyle 3/4 that use triangles
+        if (pixelStyle >= 2) {
+            modelPixelSize = preview->calcPixelSize(pixelSize);
+            
+            float x1 = -1, y1 = -1, z1 = -1;
+            float x2 = 1, y2 = 1, z2 = 1;
+            GetModelScreenLocation().TranslatePoint(x1, y1, z1);
+            GetModelScreenLocation().TranslatePoint(x2, y2, z2);
+            
+            glm::vec3 a = glm::vec3(x2, y2, z2) - glm::vec3(x1, y1, z1);
+            float length = std::max(std::max(a.x, a.y), a.z);
+            modelPixelSize /= std::abs(length);
         }
-    }
-    if (pixelStyle > 1) {
-        va.Finish(GL_TRIANGLES);
-    } else {
-        va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
-    }
-    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
-    }
-}
-
-// display model using colors stored in each node
-// used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d, const xlColor *c, bool allowSelected, bool wiring, bool highlightFirst, int highlightpixel) {
-    if (!IsActive() && preview->IsNoCurrentModel()) { return; }
-    size_t NodeCount = Nodes.size();
-    xlColor color;
-    if (c != nullptr) {
-        color = *c;
-    }
-
-    int w, h;
-    preview->GetVirtualCanvasSize(w, h);
-
-     ModelScreenLocation& screenLocation = GetModelScreenLocation();
-
-    screenLocation.UpdateBoundingBox(Nodes);  // FIXME: Temporary...really only want to do this when something causes a boundary change
-    screenLocation.PrepareToDraw(is_3d, allowSelected);
-
-    unsigned int vcount = 0;
-    for (const auto& it : Nodes) {
-        vcount += it.get()->Coords.size();
-    }
-
-    if (pixelStyle > 1) {
-        int f = pixelSize;
-        if (pixelSize < 16) {
-            f = 16;
-        }
-        vcount = vcount * f * 3;
-    }
-    if (vcount > maxVertexCount) {
-        maxVertexCount = vcount;
-    }
-    bool needTransparent = false;
-    if (pixelStyle == 3 || transparency != 0 || blackTransparency != 0) {
-        needTransparent = true;
-    }
-
-    DrawGLUtils::xl3Accumulator& va = needTransparent ? tva : sva;
-    va.PreAlloc(maxVertexCount);
-
-    DrawGLUtils::xl3Accumulator& vaLines = lva;
-    vaLines.PreAlloc(2*maxVertexCount);
-
-    int first = 0;
-    int last = NodeCount;
-    int buffFirst = -1;
-    int buffLast = -1;
-    bool left = true;
-
-    float lastX = -99999999.0f;
-    float lastY = -99999999.0f;
-    float lastZ = -99999999.0f;
-    uint32_t lastChan = 0;
-    xlColor cLine(0x49, 0x80, 0x49);
-
-    bool replaceVertices = allowSelected && GroupSelected && DisplayAs == "SubModel";
-    bool firstNode = true;
-
-    while (first < last) {
-        int n;
-        if (left) {
-            n = first;
-            first++;
-            if (NodeRenderOrder() == 1) {
-                if (buffFirst == -1) {
-                    buffFirst = Nodes[n]->Coords[0].bufX;
-                }
-                if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
-                    left = false;
-                }
-            }
-        } else {
-            last--;
-            n = last;
-            if (buffLast == -1) {
-                buffLast = Nodes[n]->Coords[0].bufX;
-            }
-            if (last > 0 && buffFirst != Nodes[last - 1]->Coords[0].bufX) {
-                left = true;
-            }
-        }
-        if (c == nullptr) {
-            Nodes[n]->GetColor(color);
-            if (Nodes[n]->model->modelDimmingCurve != nullptr) {
-                Nodes[n]->model->modelDimmingCurve->reverse(color);
-            }
-            if (Nodes[n]->model->StrobeRate) {
-                int r = rand() % 5;
-                if (r != 0) {
-                    color = xlBLACK;
-                }
-            }
-        }
-        size_t CoordCount=GetCoordCount(n);
-        for (size_t c2=0; c2 < CoordCount; c2++) {
-            // draw node on screen
-            float sx = Nodes[n]->Coords[c2].screenX;;
-            float sy = Nodes[n]->Coords[c2].screenY;
-            float sz = Nodes[n]->Coords[c2].screenZ;
-
-            if (pixelStyle < 2) {
-                GetModelScreenLocation().TranslatePoint(sx, sy, sz);
-
-                xlColor c3(color);
-
-                if (n + 1 == highlightpixel) {
-                    c3 = xlMAGENTA;
-                } else  if (firstNode && highlightFirst && Nodes.size() > 1) {
-                    c3 = xlCYAN;
-                }
-
-                ApplyTransparency(c3, transparency, blackTransparency);
-                va.AddVertex(sx, sy, sz, c3, replaceVertices);
-            } else {
-                xlColor ccolor(color);
-                xlColor ecolor(color);
-
-                if (n+1 == highlightpixel) {
-                    ccolor = xlMAGENTA;
-                    ecolor = xlMAGENTA;
-                }
-                else if (firstNode && highlightFirst && Nodes.size() > 1) {
-                    ccolor = xlCYAN;
-                    ecolor = xlCYAN;
-                }
-
-                ApplyTransparency(ccolor, transparency, blackTransparency);
-                if (pixelStyle == 2) {
-                    ecolor = ccolor;
-                } else {
-                    ecolor.alpha = 0;
-                }
-                va.AddTranslatedCircleAsTriangles(sx, sy, sz, ((float)pixelSize) / 2.0f, ccolor, ecolor,
-                                      [this](float &x, float &y, float &z) {
-                                          GetModelScreenLocation().TranslatePoint(x, y, z);
-                                      }, replaceVertices);
-            }
-            firstNode = false;
-            if (wiring) {
-                if (Nodes[n]->ActChan == lastChan + 3) {
-                    if (lastX != 99999999.0) {
-                        vaLines.AddVertex(lastX, lastY, lastZ, cLine, false);
-                        vaLines.AddVertex(sx, sy, sz, cLine, false);
+        
+        
+        int first = 0;
+        int last = NodeCount;
+        int buffFirst = -1;
+        int buffLast = -1;
+        bool left = true;
+        int lastChan = -999;
+        while (first < last) {
+            int n;
+            if (left) {
+                n = first;
+                first++;
+                if (NodeRenderOrder() == 1) {
+                    if (buffFirst == -1) {
+                        buffFirst = Nodes[n]->Coords[0].bufX;
+                    }
+                    if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
+                        left = false;
                     }
                 }
-                lastX = sx;
-                lastY = sy;
-                lastZ = sz;
-                lastChan = Nodes[n]->ActChan;
+            } else {
+                last--;
+                n = last;
+                if (buffLast == -1) {
+                    buffLast = Nodes[n]->Coords[0].bufX;
+                }
+                if (last > 0 && buffFirst != Nodes[last - 1]->Coords[0].bufX) {
+                    left = true;
+                }
+            }
+
+            size_t CoordCount=GetCoordCount(n);
+            for(size_t c2=0; c2 < CoordCount; c2++) {
+                // draw node on screen
+                float sx = Nodes[n]->Coords[c2].screenX;
+                float sy = Nodes[n]->Coords[c2].screenY;
+                float sz = Nodes[n]->Coords[c2].screenZ;
+
+                if (n == 0 && c2 == 0) {
+                    cache->boundingBox[0] = sx;
+                    cache->boundingBox[1] = sy;
+                    cache->boundingBox[2] = sz;
+                    cache->boundingBox[3] = sx;
+                    cache->boundingBox[4] = sy;
+                    cache->boundingBox[5] = sz;
+                } else {
+                    cache->boundingBox[0] = std::min(sx, cache->boundingBox[0]);
+                    cache->boundingBox[1] = std::min(sy, cache->boundingBox[1]);
+                    cache->boundingBox[2] = std::min(sz, cache->boundingBox[2]);
+                    cache->boundingBox[3] = std::max(sx, cache->boundingBox[3]);
+                    cache->boundingBox[4] = std::max(sy, cache->boundingBox[4]);
+                    cache->boundingBox[5] = std::max(sz, cache->boundingBox[5]);
+                }
+                if (pixelStyle < 2) {
+                    cache->vica->AddVertex(sx, sy, sz, n);
+                } else {
+                    int eidx = n;
+                    if (pixelStyle == 3) {
+                        eidx += NodeCount;
+                    }
+                    cache->vica->AddCircleAsTriangles(sx, sy, sz, ((float)modelPixelSize) / 2.0f, n, eidx, pixelSize);
+                }
+            }
+            
+            lastChan = Nodes[n]->ActChan;
+        }
+        cache->program->addStep([=](xlGraphicsContext *ctx) {
+            if (pixelStyle > 1) {
+                ctx->drawTriangles(cache->vica, 0, cache->vica->getCount());
+            } else {
+                ModelPreview *preview = (ModelPreview *)ctx->getWindow();
+                float pointSize = preview->calcPixelSize(pixelSize);
+                ctx->drawPoints(cache->vica, pointSize, pixelStyle == 1, 0, cache->vica->getCount());
+            }
+        });
+    }
+    for (int n = 0; n < NodeCount; n++) {
+        if (n+1 == highlightpixel) {
+            color = xlMAGENTA;
+        } else if (highlightFirst && Nodes.size() > 1) {
+            if (n == 0) {
+                color = xlCYAN;
+            } else {
+                color = saveColor;
+            }
+        } else if (c == nullptr) {
+            Nodes[n]->GetColor(color);
+            if (Nodes[n]->model->modelDimmingCurve != nullptr) {
+                Nodes[n]->model->modelDimmingCurve->reverse(color);
+            }
+            if (Nodes[n]->model->StrobeRate) {
+                int r = rand() % 5;
+                if (r != 0) {
+                    color = xlBLACK;
+                }
             }
         }
+        ApplyTransparency(color, transparency, blackTransparency);
+        cache->vica->SetColor(n, color);
+        if (pixelStyle == 3) {
+            xlColor c2(color);
+            c2.alpha = 0;
+            cache->vica->SetColor(n + NodeCount, c2);
+        }
     }
+    if (created) {
+        cache->vica->Finalize(false, true);
+    } else {
+        cache->vica->FlushColors(0, pixelStyle == 3 ? NodeCount * 2 : NodeCount);
+    }
+    if (boundingBox) {
+        boundingBox[0] = cache->boundingBox[0];
+        boundingBox[1] = cache->boundingBox[1];
+        boundingBox[2] = cache->boundingBox[2];
+        boundingBox[3] = cache->boundingBox[3];
+        boundingBox[4] = cache->boundingBox[4];
+        boundingBox[5] = cache->boundingBox[5];
+    }
+    xlGraphicsProgram *p =  cache->isTransparent ? transparentProgram : solidProgram;
+    if (wiring && NodeCount > 1 && cache->va == nullptr) {
+        cache->va = ctx->createVertexAccumulator();
+        cache->va->SetName(GetName() + (is_3d ? " - 3DPWiring" : " - 2DWiring"));
+        cache->va->PreAlloc(NodeCount);
+        for (int x = 0; x < NodeCount; x++) {
+            float sx = Nodes[x]->Coords[0].screenX;
+            float sy = Nodes[x]->Coords[0].screenY;
+            float sz = Nodes[x]->Coords[0].screenZ;
+            cache->va->AddVertex(sx, sy, sz);
+        }
+        cache->va->Finalize(false);
+    }
+    
+    p->addStep([=](xlGraphicsContext *ctx) {
+        // cache has the model in model coordinates
+        // we need to scale/translate/etc.... to world
+        ctx->PushMatrix();
+        if (!is_3d) {
+            //not 3d, flatten to the 0 plane
+            ctx->Scale(1.0, 1.0, 0.0);
+        }
+        GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+        cache->program->runSteps(ctx);
+        if (wiring) {
+            ctx->drawLineStrip(cache->va, xlColor(0x49, 0x80, 0x49));
+        }
+        ctx->PopMatrix();
+    });
+    
 
-    if (wiring && vaLines.getCount() > 0) {
-        vaLines.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
-    }
-    if (pixelStyle > 1) {
-        va.Finish(GL_TRIANGLES);
-    }
-    else {
-        va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
-    }
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
+        if (is_3d) {
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+        } else {
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+        }
     }
 }
 
@@ -5166,73 +5090,172 @@ bool Model::IsMultiCoordsPerNode() const
 
 void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     if (!IsActive() && preview->IsNoCurrentModel()) { return; }
-    bool success = preview->StartDrawing(pointSize);
+    
+    bool mustEnd = false;
+    xlGraphicsContext *ctx = preview->getCurrentGraphicsContext();
+    if (ctx == nullptr) {
+        bool success = preview->StartDrawing(pointSize);
+        if (success) {
+            ctx = preview->getCurrentGraphicsContext();
+            mustEnd = true;
+        }
+    }
 
-    if(success) {
+    if (ctx) {
+        if (uiObjectsInvalid) {
+            deleteUIObjects();
+        }
+
         int w, h;
         preview->GetSize(&w, &h);
-
+        
+        size_t NodeCount = Nodes.size();
+        bool created = false;
+        
+        int renderWi = GetModelScreenLocation().RenderWi;
+        int renderHi = GetModelScreenLocation().RenderHt;
+        
+        float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
+        float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
+        float scale = scaleY < scaleX ? scaleY : scaleX;
         float ml, mb;
         GetMinScreenXY(ml, mb);
         ml += GetModelScreenLocation().RenderWi / 2;
         mb += GetModelScreenLocation().RenderHt / 2;
+        
+        auto cache = uiCaches[EFFECT_PREVIEW_CACHE];
+        // nothing in the cache is dependent on preview size, the cached program is
+        // size indepentent and thus can be re-used unless the models rendeWi/Hi
+        // changes (which should trigger the uiObjectsInvalid and clear
+        // the cache anyway)
+        if (cache == nullptr
+            || cache->renderWi != renderWi
+            || cache->renderHi != renderHi) {
 
-        float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
-        float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
-        float scale=scaleY < scaleX ? scaleY : scaleX;
+            if (cache != nullptr) {
+                delete cache;
+            }
+            cache = new PreviewGraphicsCacheInfo();
+            uiCaches[EFFECT_PREVIEW_CACHE] = cache;
+            
+            cache->width = w;
+            cache->height = h;
+            cache->renderWi = renderWi;
+            cache->renderHi = renderHi;
+            
+            created = true;
 
-        float pointScale = scale;
-        if (pointScale > 2.5) {
-            pointScale = 2.5;
-        }
-        if (pointScale > GetModelScreenLocation().RenderHt) {
-            pointScale = GetModelScreenLocation().RenderHt;
-        }
-        if (pointScale > GetModelScreenLocation().RenderWi) {
-            pointScale = GetModelScreenLocation().RenderWi;
-        }
-
-        LOG_GL_ERRORV(glPointSize(preview->calcPixelSize(pixelSize*pointScale)));
-        int lastPixelStyle = pixelStyle;
-        int lastPixelSize = pixelSize;
-
-        // layer calculation and map to output
-        size_t NodeCount = Nodes.size();
-        unsigned int vcount = 0;
-        for (const auto& it : Nodes) {
-            vcount += it.get()->Coords.size();
-        }
-        if (vcount > maxVertexCount) {
-            maxVertexCount = vcount;
-        }
-        DrawGLUtils::xlAccumulator va(maxVertexCount);
-        int first = 0; int last = NodeCount;
-        int buffFirst = -1; int buffLast = -1;
-        bool left = true;
-        while (first < last) {
-            int n;
-            if (left) {
-                n = first;
-                first++;
-                if (NodeRenderOrder() == 1) {
-                    if (buffFirst == -1) {
-                        buffFirst = Nodes[n]->Coords[0].bufX;
-                    }
-                    if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
-                        left = false;
-                    }
-                }
-            } else {
-                last--;
-                n = last;
-                if (buffLast == -1) {
-                    buffLast = Nodes[n]->Coords[0].bufX;
-                }
-                if (last > 0 && buffFirst != Nodes[last - 1]->Coords[0].bufX) {
-                    left = true;
-                }
+            float pointScale = scale;
+            if (pointScale > 2.5) {
+                pointScale = 2.5;
+            }
+            if (pointScale > GetModelScreenLocation().RenderHt) {
+                pointScale = GetModelScreenLocation().RenderHt;
+            }
+            if (pointScale > GetModelScreenLocation().RenderWi) {
+                pointScale = GetModelScreenLocation().RenderWi;
             }
 
+            int lastPixelStyle = pixelStyle;
+            int lastPixelSize = pixelSize;
+
+            // layer calculation and map to output
+            unsigned int vcount = 0;
+            for (const auto& it : Nodes) {
+                vcount += it.get()->Coords.size();
+            }
+            if (vcount > maxVertexCount) {
+                maxVertexCount = vcount;
+            }
+
+            cache->vica = ctx->createVertexIndexedColorAccumulator();
+            cache->vica->SetName(GetName() + " - Preview");
+            cache->program = ctx->createGraphicsProgram();
+
+            cache->vica->SetColorCount(NodeCount * 2); //upper one is for the clear edges of blended circles
+            cache->vica->PreAlloc(maxVertexCount);
+
+            int startVertex = 0;
+            
+            int first = 0; int last = NodeCount;
+            int buffFirst = -1; int buffLast = -1;
+            bool left = true;
+            while (first < last) {
+                int n;
+                if (left) {
+                    n = first;
+                    first++;
+                    if (NodeRenderOrder() == 1) {
+                        if (buffFirst == -1) {
+                            buffFirst = Nodes[n]->Coords[0].bufX;
+                        }
+                        if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
+                            left = false;
+                        }
+                    }
+                } else {
+                    last--;
+                    n = last;
+                    if (buffLast == -1) {
+                        buffLast = Nodes[n]->Coords[0].bufX;
+                    }
+                    if (last > 0 && buffFirst != Nodes[last - 1]->Coords[0].bufX) {
+                        left = true;
+                    }
+                }
+
+                size_t CoordCount=GetCoordCount(n);
+                for(size_t c=0; c < CoordCount; c++) {
+                    // draw node on screen
+                    float newsx = Nodes[n]->Coords[c].screenX;
+                    float newsy = Nodes[n]->Coords[c].screenY;
+
+                    if (lastPixelStyle != Nodes[n]->model->pixelStyle
+                        || lastPixelSize != Nodes[n]->model->pixelSize) {
+
+                        if (cache->vica->getCount() && (lastPixelStyle < 2 || Nodes[n]->model->pixelStyle < 2)) {
+                            int count = cache->vica->getCount();
+                            cache->program->addStep([=](xlGraphicsContext *ctx) {
+                                if (lastPixelStyle > 1) {
+                                    ctx->drawTriangles(cache->vica, startVertex, count);
+                                } else {
+                                    ModelPreview *preview = (ModelPreview *)ctx->getWindow();
+                                    float pointSize = preview->calcPixelSize(lastPixelSize * pointScale);
+                                    ctx->drawPoints(cache->vica, pointSize, lastPixelStyle == 1, startVertex, count - startVertex);
+                                }
+                            });
+                            startVertex = count;
+                        }
+                        lastPixelStyle = Nodes[n]->model->pixelStyle;
+                        lastPixelSize = Nodes[n]->model->pixelSize;
+                    }
+
+                    if (lastPixelStyle < 2) {
+                        cache->vica->AddVertex(newsx, newsy, n);
+                    } else {
+                        uint32_t ecolor = n;
+                        if (lastPixelStyle == 3) {
+                            ecolor += NodeCount;
+                        }
+                        cache->vica->AddCircleAsTriangles(newsx, newsy, 0, lastPixelSize*pointScale, n, ecolor);
+                    }
+                }
+            }
+            if (cache->vica->getCount() > startVertex) {
+                int count = cache->vica->getCount();
+                cache->program->addStep([=](xlGraphicsContext *ctx) {
+                    if (lastPixelStyle > 1) {
+                        ctx->drawTriangles(cache->vica, startVertex, count);
+                    } else {
+                        ModelPreview *preview = (ModelPreview *)ctx->getWindow();
+                        float pointSize = preview->calcPixelSize(lastPixelSize * pointScale);
+                        ctx->drawPoints(cache->vica, pointSize, lastPixelStyle == 1, startVertex, count - startVertex);
+                    }
+                });
+            }
+        }
+        int maxFlush = NodeCount;
+        for (int n = 0; n < NodeCount; n++) {
             xlColor color;
             Nodes[n]->GetColor(color);
             if (Nodes[n]->model->modelDimmingCurve != nullptr) {
@@ -5244,78 +5267,42 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                     color = xlBLACK;
                 }
             }
-            size_t CoordCount=GetCoordCount(n);
-            for(size_t c=0; c < CoordCount; c++) {
-                // draw node on screen
-                float sx = Nodes[n]->Coords[c].screenX;
-                float sy = Nodes[n]->Coords[c].screenY;
-
-                if (ml < 0)
-                {
-                    sx -= ml;
-                }
-                if (mb < 0)
-                {
-                    sy -= mb;
-                }
-
-                if (!GetModelScreenLocation().IsCenterBased()) {
-                    sx -= GetModelScreenLocation().RenderWi / 2.0;
-                    sy *= GetModelScreenLocation().GetVScaleFactor();
-                    if (GetModelScreenLocation().GetVScaleFactor() < 0) {
-                        sy += GetModelScreenLocation().RenderHt / 2.0;
-                    } else {
-                        sy -= GetModelScreenLocation().RenderHt / 2.0;
-                    }
-                }
-                float newsy = ((sy*scale)+(h/2));
-
-
-                if (lastPixelStyle != Nodes[n]->model->pixelStyle
-                    || lastPixelSize != Nodes[n]->model->pixelSize) {
-
-                    if (va.getCount() && (lastPixelStyle < 2 || Nodes[n]->model->pixelStyle < 2)) {
-
-                        if (lastPixelStyle > 1) {
-                            va.Finish(GL_TRIANGLES);
-                        } else {
-                            va.Finish(GL_POINTS, lastPixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(lastPixelSize * pointScale));
-                        }
-                    }
-                    lastPixelStyle = Nodes[n]->model->pixelStyle;
-                    lastPixelSize = Nodes[n]->model->pixelSize;
-                }
-
-                if (lastPixelStyle < 2) {
-                    xlColor c2(color);
-                    ApplyTransparency(c2, Nodes[n]->model->transparency, Nodes[n]->model->blackTransparency);
-                    sx = (sx*scale)+(w/2);
-                    va.AddVertex(sx, newsy, c2);
-                } else {
-                    xlColor ccolor(color);
-                    xlColor ecolor(color);
-                    ApplyTransparency(ccolor, Nodes[n]->model->transparency, Nodes[n]->model->blackTransparency);
-                    if (lastPixelStyle == 2) {
-                        ecolor = color;
-                    } else {
-                        ecolor.alpha = 0;
-                    }
-                    va.AddCircleAsTriangles((sx*scale)+(w/2), newsy, lastPixelSize*pointScale, ccolor, ecolor);
-                }
+            xlColor c2(color);
+            ApplyTransparency(c2, Nodes[n]->model->transparency, Nodes[n]->model->blackTransparency);
+            cache->vica->SetColor(n, c2);
+            if (Nodes[n]->model->pixelStyle == 3) {
+                c2.alpha = 0;
+                cache->vica->SetColor(n + NodeCount, c2);
+                maxFlush = n + NodeCount;
             }
         }
-        if (va.getCount()) {
-            if (va.getCount() > maxVertexCount) {
-                maxVertexCount = va.getCount();
-            }
-            if (lastPixelStyle > 1) {
-                va.Finish(GL_TRIANGLES);
-            } else {
-                va.Finish(GL_POINTS, lastPixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(lastPixelSize * pointScale));
-            }
-            DrawGLUtils::Draw(va);
+        if (created) {
+            cache->vica->Finalize(false, true);
+        } else {
+            cache->vica->FlushColors(0, maxFlush);
         }
-        preview->EndDrawing();
+        
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+            // cache has the model in model coordinates
+            // we need to scale/translate/etc.... to world
+            ctx->PushMatrix();
+            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Scale(scale, scale, 1.0);
+            if (!GetModelScreenLocation().IsCenterBased()) {
+                ctx->Translate(-GetModelScreenLocation().RenderWi / 2.0,
+                               GetModelScreenLocation().GetVScaleFactor() < 0 ?
+                                    GetModelScreenLocation().RenderHt / 2.0 :
+                                    -GetModelScreenLocation().RenderHt / 2.0,
+                               0.0f);
+                ctx->Scale(1.0, GetModelScreenLocation().GetVScaleFactor(), 1.0);
+            }
+            cache->program->runSteps(ctx);
+            ctx->PopMatrix();
+        });
+        if (mustEnd) {
+            preview->EndDrawing();
+        }
     }
 }
 
@@ -6986,6 +6973,23 @@ int Model::GetSmartRemoteCount() const {
     }
     return 3;
 }
+
+
+Model::PreviewGraphicsCacheInfo::~PreviewGraphicsCacheInfo() {
+    if (vica) delete vica;
+    if (program) delete program;
+    if (vca) delete vca;
+    if (va) delete va;
+};
+void Model::deleteUIObjects() {
+    for (auto &a : uiCaches) {
+        delete a.second;
+    }
+    uiCaches.clear();
+    uiObjectsInvalid = false;
+}
+
+
 
 bool wxDropPatternProperty::ValidateValue(wxVariant& value, wxPGValidationInfo& validationInfo) const
 {

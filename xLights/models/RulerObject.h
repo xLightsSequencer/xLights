@@ -34,7 +34,7 @@ public:
 
     int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-    virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected = false) override;
+    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
 	static RulerObject* GetRuler() { return __rulerObject; }
 	static int GetUnits() { if (__rulerObject != nullptr) return __rulerObject->_units; return RULER_UNITS_M; }

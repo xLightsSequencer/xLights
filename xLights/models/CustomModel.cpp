@@ -335,7 +335,9 @@ void CustomModel::InitModel()
     if (_depth < 1) _depth = 1;
 
     screenLocation.SetRenderSize(parm1, parm2, _depth);
-    screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D
+    if (_depth > 1) {
+        screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D
+    }
 }
 
 void CustomModel::SetCustomWidth(long w)

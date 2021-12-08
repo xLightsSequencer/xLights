@@ -16,6 +16,9 @@
 
 class wxImage;
 
+extern "C" {
+   struct AVFrame;
+}
 
 class xlGLCanvas
     : public wxGLCanvas
@@ -47,26 +50,13 @@ class xlGLCanvas
 
         void DisplayWarning(const wxString &msg);
 
-		  // Grab a copy of the front buffer (at window dimensions by default); it's the
-		  // caller's responsibility to delete the image when done with it
-		  wxImage *GrabImage( wxSize size = wxSize(0,0) );
+		// Grab a copy of the front buffer (at window dimensions by default); it's the
+		// caller's responsibility to delete the image when done with it
+		wxImage *GrabImage( wxSize size = wxSize(0,0) );
+        void captureNextFrame(int w, int h) {}
+        bool getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int bufferSize);
 
-		  virtual void render( const wxSize& = wxSize(0,0) ) {};
-
-		  class CaptureHelper
-		  {
-		  public:
-			  // note: width & height without content-scale factor
-			  CaptureHelper(int i_width, int i_height, double i_contentScaleFactor) : width(i_width), height(i_height), contentScaleFactor(i_contentScaleFactor), tmpBuf(nullptr) {};
-			  virtual ~CaptureHelper();
-
-			  bool ToRGB(unsigned char *buf, unsigned int bufSize, bool padToEvenDims=false);
-		  protected:
-			  const int width;
-			  const int height;
-			  const double contentScaleFactor;
-			  unsigned char *tmpBuf;
-		  };
+        virtual void render() {};
     
         int GetZDepth() const { return m_zDepth;}
         static wxGLContext *GetSharedContext() { return m_sharedContext; }
@@ -78,7 +68,7 @@ class xlGLCanvas
         virtual void PrepareCanvas();
         virtual xlGraphicsContext* PrepareContextForDrawing();
         virtual xlGraphicsContext* PrepareContextForDrawing(const xlColor &bg);
-        virtual void FinishDrawing(xlGraphicsContext* ctx);
+        virtual void FinishDrawing(xlGraphicsContext* ctx, bool display = true);
         void Resized(wxSizeEvent& evt);
 
     protected:
@@ -99,9 +89,9 @@ class xlGLCanvas
 
         DrawGLUtils::xlGLCacheInfo *cache = nullptr;
 
+        bool is3d = false;
     private:
         int _ver = 0;
-        bool is3d = false;
         wxString _name;
         wxGLContext* m_context = nullptr;
         bool m_coreProfile = false;

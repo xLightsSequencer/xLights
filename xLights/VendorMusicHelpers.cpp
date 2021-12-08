@@ -29,8 +29,9 @@ std::string MSLSequenceLyric::GetExt() const
         return "xtiming";
     case MSLTYPE::MSL_SEQUENCE:
         return "xsq";
+    default:
+        return wxFileName(_downloadFile.GetFullName()).GetExt();
 	}
-    return wxFileName(_downloadFile.GetFullName()).GetExt();
 }
 
 MSLSequenceLyric::MSLSequenceLyric(wxXmlNode* n, MSLVendor* vendor)

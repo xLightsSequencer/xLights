@@ -72,6 +72,10 @@ namespace DrawGLUtils
         uint32_t _max;
         uint32_t coordsPerVertex;
 
+        void SetCoordsPerVertex(unsigned int c) {
+            coordsPerVertex = c;
+            DoRealloc(_max);
+        }
     protected:
         void DoReset() { count = 0; }
         void DoPreAlloc(unsigned int i) {
@@ -112,12 +116,6 @@ namespace DrawGLUtils
         virtual ~xlVertexAccumulatorBase()
         {
             if (vertices != nullptr) free(vertices);
-        }
-
-        void SetCoordsPerVertex(unsigned int c)
-        {
-            coordsPerVertex = c;
-            DoRealloc(_max);
         }
     };
 
@@ -335,11 +333,13 @@ namespace DrawGLUtils
         virtual void AddVertex(float x, float y, float z, float tx, float ty) override {
             PreAlloc(1);
             int i = count * coordsPerVertex;
+            int ti = count * 2;
             vertices[i] = x;
-            tvertices[i] = tx;
+            tvertices[ti] = tx;
             i++;
+            ti++;
             vertices[i] = y;
-            tvertices[i] = ty;
+            tvertices[ti] = ty;
             if (coordsPerVertex == 3) {
                 vertices[i + 1] = z;
             }
@@ -548,9 +548,9 @@ namespace DrawGLUtils
 
         virtual bool IsCoreProfile() { return false; }
         virtual void SetCurrent();
-        virtual void Draw(xlVertexAccumulator& va, const xlColor& color, int type, int enableCapability = 0) = 0;
-        virtual void Draw(xlVertexColorAccumulator& va, int type, int enableCapability = 0) = 0;
-        virtual void Draw(xlVertexTextureAccumulator& va, int type, int enableCapability = 0) = 0;
+        virtual void Draw(xlVertexAccumulator& va, const xlColor& color, int type, int enableCapability = 0, int start = 0, int count = -1) = 0;
+        virtual void Draw(xlVertexColorAccumulator& va, int type, int enableCapability = 0, int start = 0, int count = -1) = 0;
+        virtual void Draw(xlVertexTextureAccumulator& va, int type, int enableCapability = 0, int start = 0, int count = -1) = 0;
 
         virtual void Draw(xlAccumulator& va) = 0;
 
@@ -563,7 +563,8 @@ namespace DrawGLUtils
 
         virtual void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) = 0;
         virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y, int zDepth) = 0;
-        virtual void SetCamera(glm::mat4& view_matrix) = 0;
+        virtual void SetCamera(const glm::mat4& view_matrix) = 0;
+        virtual void SetModelMatrix(const glm::mat4& model_matrix) = 0;
         virtual void PushMatrix() = 0;
         virtual void PopMatrix() = 0;
         virtual void Translate(float x, float y, float z) = 0;
@@ -588,7 +589,8 @@ namespace DrawGLUtils
 
     void SetViewport(xlGLCanvas& win, int x1, int y1, int x2, int y2);
     void SetViewport3D(xlGLCanvas& win, int x1, int y1, int x2, int y2);
-    void SetCamera(glm::mat4& view_matrix);
+    void SetCamera(const glm::mat4& view_matrix);
+    void SetModelMatrix(const glm::mat4& model_matrix);
     void PushMatrix();
     void PopMatrix();
     void Translate(float x, float y, float z);
@@ -604,11 +606,11 @@ namespace DrawGLUtils
 
     void Draw(xlAccumulator& va);
     void Draw(xl3Accumulator& va);
-    void Draw(xlVertexAccumulator& va, const xlColor& color, int type, int enableCapability = 0);
-    void Draw(xlVertexColorAccumulator& va, int type, int enableCapability = 0);
-    void Draw(xlVertexTextureAccumulator& va, int type, int enableCapability = 0);
+    void Draw(xlVertexAccumulator& va, const xlColor& color, int type, int enableCapability = 0, int start = 0, int count = -1);
+    void Draw(xlVertexColorAccumulator& va, int type, int enableCapability = 0, int start = 0, int count = -1);
+    void Draw(xlVertexTextureAccumulator& va, int type, int enableCapability = 0, int start = 0, int count = -1);
+    void Draw(xlVertex3Accumulator& va, const xlColor& color, int type, int enableCapability = 0, int start = 0, int count = -1);
     void Draw(xlVertexTextAccumulator& va, int size, float factor);
-    void Draw(xlVertex3Accumulator& va, const xlColor& color, int type, int enableCapability = 0);
 
     xl3DMesh* createMesh();
 

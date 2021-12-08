@@ -26,6 +26,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
+#include "tiny_obj_loader.h"
+
 Mesh::Mesh(wxXmlNode* node, wxString _name)
  : node_xml(node), _objFile(""), base_name(_name)
 {
@@ -483,7 +485,8 @@ void Mesh::loadObject(BaseObject* base) {
         wxFileName fn(_objFile);
         std::string base_path = fn.GetPath();
         std::string err;
-        tinyobj::LoadObj(&attrib, &shapes, &lines, &materials, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
+        std::string warn;
+        tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
         logger_base.debug("    Loaded.");
 
         // Append `default` material

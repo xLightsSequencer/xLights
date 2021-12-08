@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "Shapes.h"
-#include "../graphics/opengl/DrawGLUtils.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "../support/VectorMath.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
@@ -671,20 +671,24 @@ void BezierCurve3D::check_min_max(float &minX, float &maxX, float &minY, float &
     }
 }
 
-void BezierCurve3D::DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator &va)
+
+extern void DrawBoundingBoxLines(const xlColor &c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, xlVertexColorAccumulator &va);
+
+
+void BezierCurve3D::DrawBoundingBox(const xlColor &c, xlVertexColorAccumulator *va)
 {
     if (!matrix_valid) {
         UpdateMatrices();
     }
-    DrawGLUtils::DrawBoundingBox(c, points[sub_segment].aabb_min, points[sub_segment].aabb_max, *points[sub_segment].mod_matrix2d, va);
+    DrawBoundingBoxLines(c, points[sub_segment].aabb_min, points[sub_segment].aabb_max, *points[sub_segment].mod_matrix2d, *va);
 }
 
-void BezierCurve3D::DrawBoundingBoxes(xlColor c, DrawGLUtils::xl3Accumulator &va)
+void BezierCurve3D::DrawBoundingBoxes(const xlColor &c, xlVertexColorAccumulator *va)
 {
     if (!matrix_valid) {
         UpdateMatrices();
     }
     for (int i = 0; i < num_points - 1; ++i) {
-        DrawGLUtils::DrawBoundingBox(c, points[i].aabb_min, points[i].aabb_max, *points[i].mod_matrix, va);
+        DrawBoundingBoxLines(c, points[i].aabb_min, points[i].aabb_max, *points[i].mod_matrix, *va);
     }
 }
