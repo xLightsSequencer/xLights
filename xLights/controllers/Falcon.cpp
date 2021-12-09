@@ -486,6 +486,7 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
         wxJSONValue outParams;
         if (CallFalconV4API("S", "SP", batch, res.size(), batch * FALCON_V4_SEND_STRING_BATCH_SIZE, p, finalCall, outBatch, reboot, outParams) == 200) {
             batch++;
+            wxMilliSleep(50);
         }
         else {
             success = false;
