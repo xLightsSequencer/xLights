@@ -449,7 +449,7 @@ bool Schedule::ShouldFire() const
     }
     else if (_fireFrequency == "Fire every 30 minutes") {
         fire = false;
-        if (minute == start.GetMinute() || minute == (start.GetMinute() + 30) % 60 ||
+        if ((minute == start.GetMinute() || minute == (start.GetMinute() + 30) % 60) &&
             gap.IsLongerThan(wxTimeSpan(0, 29, 59, 9999)) &&
             gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0, 29, 59, 9999))) {
             fire = true;
@@ -458,8 +458,8 @@ bool Schedule::ShouldFire() const
     else if (_fireFrequency == "Fire every 20 minutes") {
         fire = false;
         if ((minute == start.GetMinute() || minute == (start.GetMinute() + 20) % 60 ||
-            minute == (start.GetMinute() + 40) % 60 ||
-            gap.IsLongerThan(wxTimeSpan(0, 19, 59, 9999))) &&
+            minute == (start.GetMinute() + 40) % 60) &&
+            gap.IsLongerThan(wxTimeSpan(0, 19, 59, 9999)) &&
             gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0, 19, 59, 9999))) {
             fire = true;
         }
@@ -467,8 +467,8 @@ bool Schedule::ShouldFire() const
     else if (_fireFrequency == "Fire every 15 minutes") {
         fire = false;
         if ((minute == start.GetMinute() || minute == (start.GetMinute() + 15) % 60 ||
-            minute == (start.GetMinute() + 30) % 60 || minute == (start.GetMinute() + 45) % 60 ||
-            gap.IsLongerThan(wxTimeSpan(0, 14, 59, 9999))) &&
+            minute == (start.GetMinute() + 30) % 60 || minute == (start.GetMinute() + 45) % 60) &&
+            gap.IsLongerThan(wxTimeSpan(0, 14, 59, 9999)) &&
             gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0, 14, 59, 9999))) {
             fire = true;
         }
@@ -477,8 +477,8 @@ bool Schedule::ShouldFire() const
         fire = false;
         if ((minute == start.GetMinute() || minute == (start.GetMinute() + 10) % 60 ||
             minute == (start.GetMinute() + 20) % 60 || minute == (start.GetMinute() + 30) % 60 ||
-            minute == (start.GetMinute() + 40) % 60 || minute == (start.GetMinute() + 50) % 60 ||
-            gap.IsLongerThan(wxTimeSpan(0, 9, 59, 9999))) &&
+            minute == (start.GetMinute() + 40) % 60 || minute == (start.GetMinute() + 50) % 60) &&
+            gap.IsLongerThan(wxTimeSpan(0, 9, 59, 9999)) &&
             gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0, 9, 59, 9999))) {
             fire = true;
         }
@@ -490,8 +490,8 @@ bool Schedule::ShouldFire() const
             minute == (start.GetMinute() + 20) % 60 || minute == (start.GetMinute() + 25) % 60 ||
             minute == (start.GetMinute() + 30) % 60 || minute == (start.GetMinute() + 35) % 60 ||
             minute == (start.GetMinute() + 40) % 60 || minute == (start.GetMinute() + 45) % 60 ||
-            minute == (start.GetMinute() + 50) % 60 || minute == (start.GetMinute() + 55) % 60 ||
-            gap.IsLongerThan(wxTimeSpan(0, 4, 59, 9999))) &&
+            minute == (start.GetMinute() + 50) % 60 || minute == (start.GetMinute() + 55) % 60) &&
+            gap.IsLongerThan(wxTimeSpan(0, 4, 59, 9999)) &&
             gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0, 4, 59, 9999))) {
             fire = true;
         }
