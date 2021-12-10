@@ -1040,11 +1040,6 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
                     _config._dmxUniverse[sp - 1] = port->GetUniverse();
                     _config._dmxOn[sp - 1] = 0x01; // turn it on
-
-                    port->CreateVirtualStrings(true);
-                    if (port->GetVirtualStringCount() > 1) {
-                        check += wxString::Format("WARN: Serial port %d has model settings that can't be uploaded.\n", sp);
-                    }
                 }
             }
         }
