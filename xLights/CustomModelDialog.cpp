@@ -90,6 +90,7 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE10 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE50 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE99 = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_EXPANDSPACE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERFWD1 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERBKWD1 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERFWDALL = wxNewId();
@@ -1653,6 +1654,66 @@ bool CustomModelDialog::CheckScale(std::list<wxPoint>& points, float scale) cons
     return true;
 }
 
+void CustomModelDialog::ExpandSpace()
+{
+    int width = _grids[0]->GetNumberCols();
+    int height = _grids[0]->GetNumberRows();
+    int firstRow = 999999;
+    int lastRow = -999999;
+    int firstCol = 999999;
+    int lastCol = -999999;
+
+    for (auto grid : _grids) {
+        for (int c = 0; c < grid->GetNumberCols(); c++) {
+            for (int r = 0; r < grid->GetNumberRows(); r++) {
+                if (!grid->GetCellValue(r, c).IsEmpty()) {
+                    if (r < firstRow)
+                        firstRow = r;
+                    if (r > lastRow)
+                        lastRow = r;
+                    if (c < firstCol)
+                        firstCol = c;
+                    if (c > lastCol)
+                        lastCol = c;
+                }
+            }
+        }
+    }
+
+    if (firstRow == 999999)
+        return; // no pixels
+
+    int usedWidth = lastCol - firstCol + 1;
+    int usedHeight = lastRow - firstRow + 1;
+
+    if (usedWidth == width || usedHeight == height || usedWidth == 1 || usedHeight == 1)
+        return; // nothing to do already expanded
+
+    double expandBy = std::min((double)width / (double)usedWidth, (double)height / (double)usedHeight);
+
+    for (auto grid : _grids) {
+        std::list<std::tuple<uint32_t, uint32_t, std::string>> points;
+        for (int c = 0; c < grid->GetNumberCols(); c++) {
+            for (int r = 0; r < grid->GetNumberRows(); r++) {
+                if (!grid->GetCellValue(r, c).IsEmpty()) {
+                    auto v = grid->GetCellValue(r, c);
+
+                    uint32_t newr = (r - firstRow) * expandBy;
+                    uint32_t newc = (c - firstCol) * expandBy;
+
+                    points.push_back({ newr, newc, v.ToStdString() });
+
+                    grid->SetCellValue(r, c, "");
+                }
+            }
+        }
+
+        for (auto& it : points) {
+            grid->SetCellValue(std::get<0>(it), std::get<1>(it), std::get<2>(it));
+        }
+    }
+}
+
 void CustomModelDialog::ShrinkSpace(float min)
 {
     TrimSpace();
@@ -1973,127 +2034,73 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
 {
     _changed = true;
     int id = event.GetId();
-    if (id == CUSTOMMODELDLGMNU_CUT)
-    {
+    if (id == CUSTOMMODELDLGMNU_CUT) {
         CutOrCopyToClipboard(true);
-    }
-    else if (id == CUSTOMMODELDLGMNU_COPY)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_COPY) {
         CutOrCopyToClipboard(false);
-    }
-    else if (id == CUSTOMMODELDLGMNU_PASTE)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_PASTE) {
         Paste();
-    }
-    else if (id == CUSTOMMODELDLGMNU_DELETE)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_DELETE) {
         DeleteCells();
-    }
-    else if (id == CUSTOMMODELDLGMNU_FLIPH)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_FLIPH) {
         FlipHorizontal();
-    }
-    else if (id == CUSTOMMODELDLGMNU_FLIPV)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_FLIPV) {
         FlipVertical();
-    }
-    else if (id == CUSTOMMODELDLGMNU_ROTATE90)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_ROTATE90) {
         Rotate90();
-    }
-    else if (id == CUSTOMMODELDLGMNU_ROTATE)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_ROTATE) {
         Rotate();
-    }
-    else if (id == CUSTOMMODELDLGMNU_REVERSE)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_REVERSE) {
         Reverse();
-    }
-    else if (id == CUSTOMMODELDLGMNU_SHIFT)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_SHIFT) {
         Shift();
-    }
-    else if (id == CUSTOMMODELDLGMNU_SHIFTSELECTED)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_SHIFTSELECTED) {
         ShiftSelected();
-    }
-    else if (id == CUSTOMMODELDLGMNU_INSERT)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_INSERT) {
         Insert(_selRow, _selCol);
-    }
-    else if (id == CUSTOMMODELDLGMNU_COMPRESS)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_COMPRESS) {
         Compress();
-    }
-    else if (id == CUSTOMMODELDLGMNU_FIND) {
+    } else if (id == CUSTOMMODELDLGMNU_FIND) {
         Find();
-    }
-    else if (id == CUSTOMMODELDLGMNU_FINDLAST) {
+    } else if (id == CUSTOMMODELDLGMNU_FINDLAST) {
         FindLast();
-    }
-    else if (id == CUSTOMMODELDLGMNU_MAKESINGLENODE) {
+    } else if (id == CUSTOMMODELDLGMNU_MAKESINGLENODE) {
         MakeSingleNode();
-    }
-    else if (id == CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE) {
         TrimSpace();
-    }
-    else if (id == CUSTOMMODELDLGMNU_SHRINKSPACE10)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_SHRINKSPACE10) {
         ShrinkSpace(0.9f);
-    }
-    else if (id == CUSTOMMODELDLGMNU_SHRINKSPACE50)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_SHRINKSPACE50) {
         ShrinkSpace(0.5f);
-    }
-    else if (id == CUSTOMMODELDLGMNU_SHRINKSPACE99)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_SHRINKSPACE99) {
         ShrinkSpace(0.01f);
-    }
-    else if (id == CUSTOMMODELDLGMNU_COPYLAYERFWD1)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_EXPANDSPACE) {
+        ExpandSpace();
+    } else if (id == CUSTOMMODELDLGMNU_COPYLAYERFWD1) {
         CopyLayer(true, 1);
-    }
-    else if (id == CUSTOMMODELDLGMNU_COPYLAYERBKWD1)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_COPYLAYERBKWD1) {
         CopyLayer(false, 1);
-    }
-    else if (id == CUSTOMMODELDLGMNU_COPYLAYERFWDALL)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_COPYLAYERFWDALL) {
         CopyLayer(true, -1);
-    }
-    else if (id == CUSTOMMODELDLGMNU_COPYLAYERBKWDALL)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_COPYLAYERBKWDALL) {
         CopyLayer(false, -1);
-    }
-    else if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLLAYERS)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLLAYERS) {
         for (int i = 0; i < Notebook1->GetPageCount(); i++) {
             CreateSubmodelFromLayer(i + 1);
         }
-    }
-    else if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMLAYER)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMLAYER) {
         CreateSubmodelFromLayer(Notebook1->GetSelection() + 1);
-    }
-    else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLLAYERS)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLLAYERS) {
         for (int i = 0; i < Notebook1->GetPageCount(); i++) {
             CreateMinimalSubmodelFromLayer(i + 1);
         }
-    }
-    else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMLAYER)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMLAYER) {
         CreateMinimalSubmodelFromLayer(Notebook1->GetSelection() + 1);
-    }
-    else if (id == CUSTOMMODELDLGMNU_WIREHORIZONTALLEFT ||
-            id == CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_WIREHORIZONTALLEFT ||
+               id == CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT) {
         WireSelectedHorizontal(id);
-    }
-    else if (id == CUSTOMMODELDLGMNU_WIREVERTICALTOP ||
-            id == CUSTOMMODELDLGMNU_WIREVERTICALBOTTOM)
-    {
+    } else if (id == CUSTOMMODELDLGMNU_WIREVERTICALTOP ||
+               id == CUSTOMMODELDLGMNU_WIREVERTICALBOTTOM) {
         WireSelectedVertical(id);
     }
 }
@@ -2622,6 +2629,7 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE10, "Shrink Space - Max 10%");
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE50, "Shrink Space - Max 50%");
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE99, "Shrink Space - Max 99%");
+    mnu.Append(CUSTOMMODELDLGMNU_EXPANDSPACE, "Expand to use Space");
     mnu.Append(CUSTOMMODELDLGMNU_MAKESINGLENODE, "Convert to Single Node");
     if (SpinCtrl_Depth->GetValue() > 1)
     {

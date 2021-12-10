@@ -93,6 +93,7 @@ class CustomModelDialog: public wxDialog
     static const long CUSTOMMODELDLGMNU_SHRINKSPACE10;
     static const long CUSTOMMODELDLGMNU_SHRINKSPACE50;
     static const long CUSTOMMODELDLGMNU_SHRINKSPACE99;
+    static const long CUSTOMMODELDLGMNU_EXPANDSPACE;
     static const long CUSTOMMODELDLGMNU_COPYLAYERFWD1;
     static const long CUSTOMMODELDLGMNU_COPYLAYERBKWD1;
     static const long CUSTOMMODELDLGMNU_COPYLAYERFWDALL;
@@ -259,6 +260,7 @@ class CustomModelDialog: public wxDialog
 		bool AdjustNodeBy(int node, int adjust);
         void TrimSpace();
         void ShrinkSpace(float min);
+        void ExpandSpace();
         void AddPage();
         void RemovePage();
         CopyPasteGrid* GetActiveGrid() const;
