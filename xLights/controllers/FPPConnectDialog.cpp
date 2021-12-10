@@ -36,6 +36,7 @@ const long FPPConnectDialog::ID_STATICTEXT1 = wxNewId();
 const long FPPConnectDialog::ID_CHOICE_FILTER = wxNewId();
 const long FPPConnectDialog::ID_STATICTEXT2 = wxNewId();
 const long FPPConnectDialog::ID_CHOICE_FOLDER = wxNewId();
+const long FPPConnectDialog::ID_STATICTEXT3 = wxNewId();
 const long FPPConnectDialog::ID_PANEL2 = wxNewId();
 const long FPPConnectDialog::ID_PANEL1 = wxNewId();
 const long FPPConnectDialog::ID_SPLITTERWINDOW1 = wxNewId();
@@ -102,7 +103,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer2 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(1);
-	FlexGridSizer3 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 5, 0, 0);
+	FlexGridSizer3->AddGrowableCol(4);
 	StaticText1 = new wxStaticText(Panel1, ID_STATICTEXT1, _("Filter:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	ChoiceFilter = new wxChoice(Panel1, ID_CHOICE_FILTER, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FILTER"));
@@ -113,6 +115,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer3->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	ChoiceFolder = new wxChoice(Panel1, ID_CHOICE_FOLDER, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FOLDER"));
 	FlexGridSizer3->Add(ChoiceFolder, 1, wxALL|wxEXPAND, 5);
+	Selected_Label = new wxStaticText(Panel1, ID_STATICTEXT3, _("Selected: 0"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer3->Add(Selected_Label, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2->Add(FlexGridSizer3, 1, wxEXPAND, 0);
 	CheckListBoxHolder = new wxPanel(Panel1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	CheckListBoxHolder->SetMinSize(wxSize(-1,100));
@@ -148,7 +152,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     CheckListBox_Sequences = new wxTreeListCtrl(Panel1, wxID_ANY,
                                                 wxDefaultPosition, wxDefaultSize,
                                                 wxTL_CHECKBOX | wxTL_MULTIPLE, "ID_TREELISTVIEW_SEQUENCES");
-    CheckListBox_Sequences->SetMinSize(wxSize(-1,100));
+    Connect(CheckListBox_Sequences->GetId(), wxEVT_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)&FPPConnectDialog::OnSequenceListToggled);
+    CheckListBox_Sequences->SetMinSize(wxSize(-1, 100));
     CheckListBox_Sequences->AppendColumn("Sequence", wxCOL_WIDTH_AUTOSIZE,
                                          wxALIGN_LEFT,
                                          wxCOL_RESIZABLE | wxCOL_SORTABLE);
@@ -230,6 +235,29 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
+
+    UpdateSeqCount();
+}
+
+void FPPConnectDialog::UpdateSeqCount()
+{
+    uint32_t items = 0;
+    uint32_t selected = 0;
+
+    auto item = CheckListBox_Sequences->GetFirstItem();
+    while (item.IsOk()) {
+        items++;
+        if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED)
+            selected++;
+        item = CheckListBox_Sequences->GetNextItem(item);
+    }
+
+    Selected_Label->SetLabel(wxString::Format("Selected: %u/%u", selected, items));
+}
+
+void FPPConnectDialog::OnSequenceListToggled(wxDataViewEvent& event)
+{
+    UpdateSeqCount();
 }
 
 void FPPConnectDialog::OnLocationPopupClick(wxCommandEvent &evt) {
@@ -449,6 +477,7 @@ void FPPConnectDialog::OnPopup(wxCommandEvent &event)
         }
         item = CheckListBox_Sequences->GetNextItem(item);
     }
+    UpdateSeqCount();
 }
 
 FPPConnectDialog::~FPPConnectDialog()

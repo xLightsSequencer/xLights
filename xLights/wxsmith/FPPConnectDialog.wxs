@@ -28,7 +28,8 @@
 							<growablerows>1</growablerows>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-									<cols>4</cols>
+									<cols>5</cols>
+									<growablecols>4</growablecols>
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 											<label>Filter:</label>
@@ -62,6 +63,14 @@
 										<object class="wxChoice" name="ID_CHOICE_FOLDER" variable="ChoiceFolder" member="yes">
 											<selection>0</selection>
 											<handler function="OnChoiceFolderSelect" entry="EVT_CHOICE" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT3" variable="Selected_Label" member="yes">
+											<label>Selected: 0</label>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
