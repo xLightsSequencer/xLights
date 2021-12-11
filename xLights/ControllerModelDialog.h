@@ -201,6 +201,7 @@ class ControllerModelDialog: public wxDialog
 		void SaveCSV();
 		double getFontSize();
 		void EnsureSelectedModelIsVisible(ModelCMObject* cm);
+        bool MaybeSetSmartRemote(wxKeyEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };

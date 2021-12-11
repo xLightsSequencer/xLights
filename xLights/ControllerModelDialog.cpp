@@ -2371,9 +2371,63 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
     }
 }
 
+bool ControllerModelDialog::MaybeSetSmartRemote(wxKeyEvent& event)
+{
+    if (!event.ControlDown() && !!event.CmdDown())
+        return false;
+
+    int keyCode = event.GetKeyCode();
+    if (keyCode >= 65 && keyCode <= 90)
+        keyCode += 32;
+
+    int remote = 0;
+    if (keyCode == 32) {
+        // this will set to none
+    } else if (keyCode >= 97 && keyCode <= 127) {
+        remote = keyCode - 32 - 64;
+    }
+    else {
+        return false;
+    }
+
+    if (_lastDropped != nullptr && _lastDropped->GetControllerCaps()->SupportsSmartRemotes() && remote <= _lastDropped->GetControllerCaps()->GetSmartRemoteCount()) {
+        _lastDropped->SetSmartRemote(remote);
+
+        while (!_xLights->DoAllWork()) {
+            // dont get into a redraw loop from here
+            _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        }
+        ReloadModels();
+
+        return true;
+    } 
+
+    return false;
+}
+
 void ControllerModelDialog::OnPanelControllerKeyDown(wxKeyEvent& event)
 {
-    ScrollToKey(event.GetKeyCode());
+    if (!MaybeSetSmartRemote(event))
+    {
+        ScrollToKey(event.GetKeyCode());
+    }
+    event.Skip();
+}
+
+void ControllerModelDialog::OnKeyDown(wxKeyEvent& event)
+{
+    if (!MaybeSetSmartRemote(event))
+    {
+        ScrollToKey(event.GetKeyCode());
+    }
+    event.Skip();
+}
+
+void ControllerModelDialog::OnPanelModelsKeyDown(wxKeyEvent& event)
+{
+    if (!MaybeSetSmartRemote(event)) {
+        ScrollToKey(event.GetKeyCode());
+    }
     event.Skip();
 }
 
@@ -3000,18 +3054,6 @@ void ControllerModelDialog::ScrollToKey(int keyCode)
             break;
         }
     }
-}
-
-void ControllerModelDialog::OnKeyDown(wxKeyEvent& event)
-{
-    ScrollToKey(event.GetKeyCode());
-    event.Skip();
-}
-
-void ControllerModelDialog::OnPanelModelsKeyDown(wxKeyEvent& event)
-{
-    ScrollToKey(event.GetKeyCode());
-    event.Skip();
 }
 
 void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event) {
