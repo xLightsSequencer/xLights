@@ -2359,6 +2359,13 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
 
                 wxDropSource dragSource(this, dragCursor, dragCursor, dragCursor);
 
+                if (PanelController->GetToolTipText() != "") {
+                    PanelController->SetToolTip("");
+                }
+                if (PanelModels->GetToolTipText() != "") {
+                    PanelModels->SetToolTip("");
+                }
+
                 _dragging = dynamic_cast<ModelCMObject*>(it);
 
                 dragSource.SetData(dragData);
@@ -2373,7 +2380,7 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
 
 bool ControllerModelDialog::MaybeSetSmartRemote(wxKeyEvent& event)
 {
-    if (!event.ControlDown() && !!event.CmdDown())
+    if (!event.ControlDown() && !event.CmdDown())
         return false;
 
     int keyCode = event.GetKeyCode();
@@ -3081,6 +3088,13 @@ void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event) {
 
             _dragging = dynamic_cast<ModelCMObject*>(it);
 
+            if (PanelController->GetToolTipText() != "") {
+                PanelController->SetToolTip("");
+            }
+            if (PanelModels->GetToolTipText() != "") {
+                PanelModels->SetToolTip("");
+            }
+
             dragSource.SetData(dragData);
             dragSource.DoDragDrop(wxDragMove);
 
@@ -3183,6 +3197,7 @@ void ControllerModelDialog::OnPanelModelsMouseMove(wxMouseEvent& event) {
 
     std::string tt = "";
     if (_dragging == nullptr) {
+
         for (const auto& it : _models) {
             bool ishit = it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE;
 
