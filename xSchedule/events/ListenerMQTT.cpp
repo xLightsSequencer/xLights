@@ -62,6 +62,11 @@ void ListenerMQTT::StartProcess()
     addr.Hostname(_ip);
     addr.Service(_port);
 
+    //int keepalive = 60;
+    //if (!_client.SetOption(SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive))) {
+    //    logger_base.error("Failed to set MQTT Socket keepalive.");
+    //}
+
     if (_client.Connect(addr, false) || _client.WaitOnConnect(0, 500))
     {
         logger_base.debug("ListenerMQTT connected to %s:%d", (const char*)_ip.c_str(), _port);
