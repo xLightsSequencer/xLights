@@ -869,14 +869,15 @@ std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr,
     return wxString::Format("%d|%d|%s|%s|%s", bufferWi, bufferHt, dirstr, picture, stf).ToStdString();
 }
 
-void FacesEffect::RenderFaces(RenderBuffer &buffer,
-    SequenceElements *elements, const std::string &faceDef,
-    const std::string& Phoneme, const std::string &trackName,
-    const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState)
+void FacesEffect::RenderFaces(RenderBuffer& buffer,
+                              SequenceElements* elements, const std::string& faceDef,
+                              const std::string& Phoneme, const std::string& trackName,
+                              const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState)
 {
-    if (alpha == 0) return; // if alpha is zero dont bother.
+    if (alpha == 0)
+        return; // if alpha is zero dont bother.
 
-    FacesRenderCache *cache = (FacesRenderCache*)buffer.infoCache[id];
+    FacesRenderCache* cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new FacesRenderCache();
         buffer.infoCache[id] = cache;
@@ -889,9 +890,9 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     }
     std::string eyes = eyesIn;
 
-    Element *track = elements->GetElement(trackName);
+    Element* track = elements->GetElement(trackName);
     std::recursive_timed_mutex tmpLock;
-    std::recursive_timed_mutex *lock = &tmpLock;
+    std::recursive_timed_mutex* lock = &tmpLock;
     if (track != nullptr) {
         lock = &track->GetChangeLock();
     }
@@ -906,12 +907,9 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     }
 
     // if this is a submodel find the parent so we can find the face definition there
-    if (model_info->GetDisplayAs() == "SubModel")
-    {
+    if (model_info->GetDisplayAs() == "SubModel") {
         model_info = ((SubModel*)model_info)->GetParent();
-    }
-    else if (model_info->GetDisplayAs() == "ModelGroup")
-    {
+    } else if (model_info->GetDisplayAs() == "ModelGroup") {
         return;
     }
 
@@ -930,7 +928,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     }
 
     bool found = true;
-    std::map<std::string, std::map<std::string, std::string> >::iterator it = model_info->faceInfo.find(definition);
+    auto it = model_info->faceInfo.find(definition);
     if (it == model_info->faceInfo.end()) {
         //not found
         found = false;
@@ -939,16 +937,14 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         if ("Coro" == definition && model_info->faceInfo.find("SingleNode") != model_info->faceInfo.end()) {
             definition = "SingleNode";
             found = true;
-        }
-        else if ("SingleNode" == definition && model_info->faceInfo.find("Coro") != model_info->faceInfo.end()) {
+        } else if ("SingleNode" == definition && model_info->faceInfo.find("Coro") != model_info->faceInfo.end()) {
             definition = "Coro";
             found = true;
-        }
-        else if (definition != "Default" && definition != "Rendered" && definition != "") {
+        } else if (definition != "Default" && definition != "Rendered" && definition != "" && definition != "Matrix") {
             std::string firstFace = "";
-            for (const auto& it : model_info->faceInfo) {
-                if (it.first != "") {
-                    firstFace = it.first;
+            for (const auto& it2 : model_info->faceInfo) {
+                if (it2.first != "") {
+                    firstFace = it2.first;
                     break;
                 }
             }
@@ -968,22 +964,17 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
 
     if ("Coro" == modelType || "SingleNode" == modelType) {
         type = 0;
-    }
-    else if ("NodeRange" == modelType) {
+    } else if ("NodeRange" == modelType) {
         type = 1;
-    }
-    else if ("Rendered" == definition || "Default" == definition || "" == definition) {
+    } else if ("Rendered" == definition || "Default" == definition || "" == definition) {
         type = 2;
     }
 
-    if (buffer.curEffStartPer == buffer.curPeriod)
-    {
-        if (modelType != "Matrix" && modelType != "Rendered" && modelType != "Default")
-        {
-            if (buffer.isTransformed)
-            {
-                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                logger_base.warn("Faces effect starting at %dms until %dms on model %s has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char *)buffer.cur_model.c_str());
+    if (buffer.curEffStartPer == buffer.curPeriod) {
+        if (modelType != "Matrix" && modelType != "Rendered" && modelType != "Default") {
+            if (buffer.isTransformed) {
+                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("Faces effect starting at %dms until %dms on model %s has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char*)buffer.cur_model.c_str());
             }
         }
     }
@@ -999,27 +990,23 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                     cache->nextBlinkTime += intRand(4500, 5500);
                     cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
                     eyes = "Closed";
-                }
-                else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
+                } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
                     eyes = "Closed";
-                }
-                else {
+                } else {
                     eyes = "Open";
                 }
             }
-        }
-        else {
+        } else {
             int startms = -1;
             int endms = -1;
 
-            EffectLayer *layer = track->GetEffectLayer(2);
+            EffectLayer* layer = track->GetEffectLayer(2);
             std::unique_lock<std::recursive_mutex> locker2(layer->GetLock());
             int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
-            Effect *ef = layer->GetEffectByTime(time);
+            Effect* ef = layer->GetEffectByTime(time);
             if (ef == nullptr) {
                 phoneme = "rest";
-            }
-            else {
+            } else {
                 startms = ef->GetStartTimeMS();
                 endms = ef->GetEndTimeMS();
                 phoneme = ef->GetEffectName();
@@ -1033,8 +1020,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                             endms = ef->GetStartTimeMS();
                             if (x > 0) {
                                 startms = layer->GetEffect(x - 1)->GetEndTimeMS();
-                            }
-                            else {
+                            } else {
                                 startms = 0;
                             }
                         }
@@ -1049,40 +1035,32 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                         //also don't want it right at the end
                         if ((tmp + 130) > endms) {
                             cache->nextBlinkTime = (startms + endms) / 2;
-                        }
-                        else {
+                        } else {
                             cache->nextBlinkTime = tmp;
                         }
-                    }
-                    else {
+                    } else {
                         //roughly every 5 seconds we'll blink
                         cache->nextBlinkTime += intRand(4500, 5500);
                         cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
                         eyes = "Closed";
                     }
-                }
-                else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
+                } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
                     eyes = "Closed";
-                }
-                else {
+                } else {
                     eyes = "Open";
                 }
             }
         }
-    }
-    else if (phoneme == "rest" || phoneme == "(off)")
-    {
+    } else if (phoneme == "rest" || phoneme == "(off)") {
         if ("Auto" == eyes) {
             if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                 //roughly every 5 seconds we'll blink
                 cache->nextBlinkTime += intRand(4500, 5500);
                 cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
                 eyes = "Closed";
-            }
-            else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
+            } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
                 eyes = "Closed";
-            }
-            else {
+            } else {
                 eyes = "Open";
             }
         }
@@ -1101,7 +1079,6 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     std::vector<std::string> todo;
     std::vector<xlColor> colors;
     if (p != "(off)") {
-
         todo.push_back("Mouth-" + p);
         colorOffset = 1;
         if (customColor) {
@@ -1109,13 +1086,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             colors.push_back(color);
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
@@ -1130,13 +1105,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             colors.push_back(color);
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
@@ -1147,13 +1120,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             if (buffer.palette.Size() > colorOffset + 3) {
                 buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
             }
@@ -1167,34 +1138,29 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             if (buffer.palette.Size() > colorOffset + 4) {
                 buffer.palette.GetColor(colorOffset + 4, color); //use sixth colour
             }
             colors.push_back(color);
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
-    }
-    else if (eyes == "Closed") {
+    } else if (eyes == "Closed") {
         todo.push_back("Eyes-Closed");
         if (customColor) {
             std::string cname = model_info->faceInfo[definition]["Eyes-Closed-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             colors.push_back(color);
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
@@ -1205,13 +1171,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             if (buffer.palette.Size() > colorOffset + 3) {
                 buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
             }
@@ -1225,21 +1189,18 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             if (buffer.palette.Size() > colorOffset + 4) {
                 buffer.palette.GetColor(colorOffset + 4, color); //use sixth colour
             }
             colors.push_back(color);
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
-    }
-    else if (eyes == "(off)") {
+    } else if (eyes == "(off)") {
         //no eyes
     }
     if (buffer.palette.Size() > (1 + colorOffset)) {
@@ -1252,13 +1213,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.insert(colors.begin(), xlWHITE);
                 colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.insert(colors.begin(), xlColor(cname));
                 colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
             }
-        }
-        else {
+        } else {
             colors.insert(colors.begin(), color);
             colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
         }
@@ -1273,13 +1232,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.insert(colors.begin(), xlWHITE);
                 colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.insert(colors.begin(), xlColor(cname));
                 colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
             }
-        }
-        else {
+        } else {
             colors.insert(colors.begin(), color);
             colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
         }
@@ -1300,13 +1257,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         }
         std::string key = "Mouth-" + p + "-Eyes";
         std::string picture = "";
-        if (model_info->faceInfo[definition].find(key + e) != model_info->faceInfo[definition].end())
-        {
+        if (model_info->faceInfo[definition].find(key + e) != model_info->faceInfo[definition].end()) {
             picture = model_info->faceInfo[definition][key + e];
         }
         if (picture == "" && e == "Closed") {
-            if (model_info->faceInfo[definition].find(key + "Open") != model_info->faceInfo[definition].end())
-            {
+            if (model_info->faceInfo[definition].find(key + "Open") != model_info->faceInfo[definition].end()) {
                 picture = model_info->faceInfo[definition][key + "Open"];
             }
         }
@@ -1314,34 +1269,27 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         std::string stf = "Scale To Fit";
         if (model_info->faceInfo[definition]["ImagePlacement"] == "Centered") {
             stf = "No Scaling";
-        } else if (model_info->faceInfo[definition]["ImagePlacement"] == "Scale Keep Aspect Ratio" || 
-            model_info->faceInfo[definition]["ImagePlacement"] == "Scale Keep Aspect Ratio Crop") {
+        } else if (model_info->faceInfo[definition]["ImagePlacement"] == "Scale Keep Aspect Ratio" ||
+                   model_info->faceInfo[definition]["ImagePlacement"] == "Scale Keep Aspect Ratio Crop") {
             stf = model_info->faceInfo[definition]["ImagePlacement"];
         }
         RenderBuffer* crb = cache->GetImage(MakeKey(buffer.BufferWi, buffer.BufferHt, dirstr, picture, stf));
-        if (crb == nullptr)
-        {
+        if (crb == nullptr) {
             crb = new RenderBuffer(buffer);
-            PicturesEffect::Render(*crb, dirstr, picture, 0, 0, 0, 0, 0, 0, 100, 100, stf, false, false, false, true, false, false, 0);  // set for scale to fit
+            PicturesEffect::Render(*crb, dirstr, picture, 0, 0, 0, 0, 0, 0, 100, 100, stf, false, false, false, true, false, false, 0); // set for scale to fit
             cache->AddImage(MakeKey(buffer.BufferWi, buffer.BufferHt, dirstr, picture, stf), crb);
         }
 
-        for (int y = 0; y < buffer.BufferHt; y++)
-        {
-            for (int x = 0; x < buffer.BufferWi; x++)
-            {
-                if (transparentBlack)
-                {
+        for (int y = 0; y < buffer.BufferHt; y++) {
+            for (int x = 0; x < buffer.BufferWi; x++) {
+                if (transparentBlack) {
                     auto c = crb->GetPixel(x, y);
                     int level = c.Red() + c.Green() + c.Blue();
-                    if (level > transparentBlackLevel)
-                    {
+                    if (level > transparentBlackLevel) {
                         c.alpha = ((int)alpha * c.alpha) / 255;
                         buffer.SetPixel(x, y, c);
                     }
-                }
-                else
-                {
+                } else {
                     auto c = crb->GetPixel(x, y);
                     c.alpha = ((int)alpha * c.alpha) / 255;
                     buffer.SetPixel(x, y, c);
@@ -1350,10 +1298,9 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         }
     }
     for (size_t t = 0; t < todo.size(); t++) {
-
-        if (shimmer && StartsWith(todo[t], "Mouth-"))
-        {
-            if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0) continue;
+        if (shimmer && StartsWith(todo[t], "Mouth-")) {
+            if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0)
+                continue;
         }
         std::string channels = model_info->faceInfo[definition][todo[t]];
         wxStringTokenizer wtkz(channels, ",");
@@ -1366,19 +1313,16 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                     int n = it2->second;
                     buffer.SetNodePixel(n, colors[t], true);
                 }
-            }
-            else if (type == 1) {
+            } else if (type == 1) {
                 int start, end;
                 if (valstr.Contains("-")) {
                     int idx = valstr.Index('-');
                     start = wxAtoi(valstr.Left(idx));
                     end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
-                    if (end < start)
-                    {
+                    if (end < start) {
                         std::swap(start, end);
                     }
-                }
-                else {
+                } else {
                     start = end = wxAtoi(valstr);
                 }
                 if (start > end) {
@@ -1425,7 +1369,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                                 for (int n = start; n <= end; n++) {
                                     buffer.SetNodePixel(n, colour, true);
                                 }
-                            }                            
+                            }
                         }
                     }
                 }
