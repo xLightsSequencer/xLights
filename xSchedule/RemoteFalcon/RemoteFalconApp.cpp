@@ -66,7 +66,7 @@
 #pragma comment(lib, "wxexpat.lib")
 #pragma comment(lib, "log4cpplib.lib")
 #endif
-#pragma comment(lib, "libcurl.dll.a")
+#pragma comment(lib, "libcurl.dll")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "WS2_32.Lib")
 #pragma comment(lib, "comdlg32.lib")
