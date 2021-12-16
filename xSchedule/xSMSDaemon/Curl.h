@@ -150,6 +150,10 @@ public:
                 curl_easy_setopt(curl, CURLOPT_USERPWD, sAuth.c_str());
             }
 
+            // This prevents us verifying the remote site certificate ... not thrilled about that but without it https calls are failing on windows.
+            // This may be because of the library we are including ... really not sure. Right now RemoteFalcon will not work without this.
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false); 
+
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
             std::string buffer = "";
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
@@ -183,6 +187,9 @@ public:
                     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, responseCode);
                 }
                 return buffer;
+            }
+            else {
+                logger_curl.error("Curl post failed: %d", res);
             }
         }
 
@@ -257,6 +264,8 @@ public:
                 logger_curl.debug(buffer.c_str());
                 logger_curl.debug("RESPONSE END ----------");
                 return buffer;
+            } else {
+                logger_curl.error("Curl post failed: %d", res);
             }
         }
 
