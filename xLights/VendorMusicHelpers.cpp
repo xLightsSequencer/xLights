@@ -22,6 +22,17 @@ bool MSLSequenceLyric::InCategory(std::string category)
     return false;
 }
 
+std::string MSLSequenceLyric::GetExt() const
+{
+	switch (_type) {
+    case MSLTYPE::MSL_LYRIC:
+        return "xtiming";
+    case MSLTYPE::MSL_SEQUENCE:
+        return "xsq";
+	}
+    return wxFileName(_downloadFile.GetFullName()).GetExt();
+}
+
 MSLSequenceLyric::MSLSequenceLyric(wxXmlNode* n, MSLVendor* vendor)
 {
 	_vendor = vendor;

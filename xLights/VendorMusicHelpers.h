@@ -63,6 +63,7 @@ public:
     std::string GetDescription() const;
     std::string Download(std::string folder);
     bool InCategory(std::string category);
+    std::string GetExt() const;
 };
 
 class MSLVendor
