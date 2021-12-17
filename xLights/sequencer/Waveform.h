@@ -63,6 +63,7 @@ class Waveform : public GRAPHICS_BASE_CLASS
 
         void UpdatePlayMarker();
         void CheckNeedToScroll() const;
+        void ForceRedraw();
 
         Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                 const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
@@ -91,6 +92,7 @@ class Waveform : public GRAPHICS_BASE_CLASS
         //wxWindow* mMainWindow;
         int mStartPixelOffset;
         int mCurrentWaveView;
+        bool _doubleHeight = false;
         //int mMediaTrackSize;
         int mFrequency;
         int mZoomLevel;
@@ -108,6 +110,7 @@ class Waveform : public GRAPHICS_BASE_CLASS
         static const long ID_WAVE_MNU_ALTO;
         static const long ID_WAVE_MNU_CUSTOM;
         static const long ID_WAVE_MNU_NONVOCALS;
+        static const long ID_WAVE_MNU_DOUBLEHEIGHT;
 
         class WaveView
         {
@@ -120,11 +123,12 @@ class Waveform : public GRAPHICS_BASE_CLASS
 
         public:
 
-            mutable std::unique_ptr<xlVertexAccumulator> background;
-            mutable std::unique_ptr<xlVertexAccumulator> outline;
-            mutable int lastRenderStart;
-            mutable int lastRenderSize;
+            mutable std::unique_ptr<xlVertexAccumulator> background = nullptr;
+            mutable std::unique_ptr<xlVertexAccumulator> outline = nullptr;
+            mutable int lastRenderStart = -1;
+            mutable int lastRenderSize = 0;
             std::vector<MINMAX> MinMaxs;
+            mutable bool _doubleHeight = false;
 
             WaveView(int ZoomLevel, float SamplesPerPixel, AudioManager* media, AUDIOSAMPLETYPE type, int lowNote, int highNote)
             {
@@ -137,12 +141,21 @@ class Waveform : public GRAPHICS_BASE_CLASS
                 _lowNote = lowNote;
                 _highNote = highNote;
             }
-            WaveView(int ZoomLevel) { }
+            WaveView(int ZoomLevel)
+            {
+                mZoomLevel = ZoomLevel;
+                lastRenderStart = -1;
+                lastRenderSize = 0;
+            }
 
             WaveView(WaveView && v) = default;
 
             virtual ~WaveView();
 
+            void ForceRedraw()
+            {
+                lastRenderStart = -1;
+            }
             int GetZoomLevel() const { return  mZoomLevel; }
             AUDIOSAMPLETYPE GetType() const { return _type; }
             int GetLowNote() const { return _lowNote; }
