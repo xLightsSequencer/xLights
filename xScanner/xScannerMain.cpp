@@ -87,6 +87,29 @@ BEGIN_EVENT_TABLE(xScannerFrame,wxFrame)
     //*)
 END_EVENT_TABLE()
 
+class ControllerData : public wxClientData
+{
+    TITLE_PRIORITY _tp = TITLE_PRIORITY::TP_NONE;
+
+public:
+    ControllerData(TITLE_PRIORITY tp) :
+    wxClientData()
+    {
+        _tp = tp;
+    }
+    ControllerData() :
+        wxClientData()
+    {}
+    bool IsHigherPriority(TITLE_PRIORITY tp) const
+    {
+        return tp < _tp;
+    }
+    void SetTitlePriority(TITLE_PRIORITY tp)
+    {
+        _tp = tp;
+    }
+};
+
 xScannerFrame::xScannerFrame(wxWindow* parent, bool singleThreaded, wxWindowID id)
 {
     // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -183,6 +206,7 @@ wxTreeListItem xScannerFrame::GetSubnetItem(const std::string& subnet)
         if (_tree->GetItemText(a, 0) == subnet) return a;
     }
     auto item = _tree->AppendItem(_tree->GetRootItem(), subnet);
+    _tree->SetItemData(item, new ControllerData());
     return item;
 }
 
@@ -230,9 +254,11 @@ wxTreeListItem xScannerFrame::GetIPItem(const std::string& ip, bool create)
         wxTreeListItem ti;
         if (previous.IsOk())             {
             ti = _tree->InsertItem(subnet, previous, ip);
+            _tree->SetItemData(ti, new ControllerData());
         }
         else             {
             ti = _tree->AppendItem(subnet, ip);
+            _tree->SetItemData(ti, new ControllerData());
         }
         if (count == 0) {
             _tree->Expand(subnet);
@@ -251,7 +277,20 @@ wxTreeListItem xScannerFrame::AddItemUnderParent(wxTreeListItem& parent, const s
     }
     auto ti = _tree->AppendItem(parent, label);
     _tree->SetItemText(ti, 1, value);
+    _tree->SetItemData(ti, new ControllerData());
     return ti;
+}
+
+void xScannerFrame::UpdateDeviceTitle(wxTreeListCtrl* tree, wxTreeListItem& ti, TITLE_PRIORITY tp, const std::string& name)
+{
+    if (name != "") {
+        auto cd = dynamic_cast<ControllerData*>(tree->GetItemData(ti));
+
+        if (cd != nullptr && cd->IsHigherPriority(tp)) {
+            tree->SetItemText(ti, 1, name);
+            cd->SetTitlePriority(tp);
+        }
+    }
 }
 
 void xScannerFrame::ProcessComputerResult(std::list<std::pair<std::string, std::string>>& res)
@@ -270,9 +309,7 @@ void xScannerFrame::ProcessComputerResult(std::list<std::pair<std::string, std::
         auto item = GetIPItem(it);
 
         if (item.IsOk()) {
-            if (GetItem(res, "Computer Name") != "") {
-                _tree->SetItemText(item, 1, GetItem(res, "Computer Name"));
-            }
+            UpdateDeviceTitle(_tree, item, TITLE_PRIORITY::TP_COMPUTER_NAME, GetItem(res, "Computer Name"));
             AddItemUnderParentIfNotBlank(item, "xLights Show Folder", GetItem(res, "xLights Show Folder"));
             AddItemUnderParentIfNotBlank(item, "xLights FPP Global Proxy", GetItem(res, "xLights Global FPP Proxy"));
             AddItemUnderParentIfNotBlank(item, "xSchedule Show Folder", GetItem(res, "xSchedule Show Folder"));
@@ -334,13 +371,11 @@ void xScannerFrame::ProcessControllerResult(std::list<std::pair<std::string, std
     if (item.IsOk()) {
         auto vmv = GetItem(res, "Vendor") + ":" + GetItem(res, "Model") + ":" + GetItem(res, "Variant");
         if (vmv != "::") {
-            _tree->SetItemText(item, 1, vmv);
+            UpdateDeviceTitle(_tree, item, TITLE_PRIORITY::TP_CONTROLLER_VMV, vmv);
             AddItemUnderParent(item, "Vendor/Model/Variant", vmv);
         }
         AddItemUnderParent(item, "Active", GetItem(res, "Active"));
-        if (GetItem(res, "Name") != "") {
-            _tree->SetItemText(item, 1, GetItem(res, "Name"));
-        }
+        UpdateDeviceTitle(_tree, item, TITLE_PRIORITY::TP_CONTROLLER_NAME, GetItem(res, "Name"));
         AddItemUnderParentIfNotBlank(item, "Description", GetItem(res, "Description"));
         AddItemUnderParentIfNotBlank(item, "Protocol", GetItem(res, "Protocol"));
         AddItemUnderParentIfNotBlank(item, "Universes/Id", GetItem(res, "Universes/Id"));
@@ -370,13 +405,9 @@ void xScannerFrame::ProcessHTTPResult(std::list<std::pair<std::string, std::stri
     if (item.IsOk()) {
         AddItemUnderParentIfNotBlank(item, "Web", GetItem(res, "Web"));
         auto controller = GetItem(res, "Controller");
-        if (controller != "" && _tree->GetItemText(item, 1) == "") {
-            _tree->SetItemText(item, 1, controller);
-        }
+        UpdateDeviceTitle(_tree, item, TITLE_PRIORITY::TP_HTTP_CONTROLLER, controller);
         auto title = GetItem(res, "Title");
-        if (title != "" && _tree->GetItemText(item, 1) == "") {
-            _tree->SetItemText(item, 1, title);
-        }
+        UpdateDeviceTitle(_tree, item, TITLE_PRIORITY::TP_HTTP_TITLE, title);
         AddItemUnderParentIfNotBlank(item, "Controller", controller);
         AddItemUnderParentIfNotBlank(item, "Web title", title);
         _tree->SetItemText(item, 2, ""); // it must be online so remove OFFLINE if it is there
@@ -407,9 +438,7 @@ void xScannerFrame::ProcessFPPResult(std::list<std::pair<std::string, std::strin
         auto item = GetIPItem(ip);
 
         if (item.IsOk()) {
-            if (_tree->GetItemText(item, 1) == "")                 {
-                _tree->SetItemText(item, 1, "FPP");
-            }
+            UpdateDeviceTitle(_tree, item, TITLE_PRIORITY::TP_CONTROLLER_FPP, "FPP");
             AddItemUnderParentIfNotBlank(item, "Version", GetItem(res, "Version"));
             AddItemUnderParentIfNotBlank(item, "Mode", GetItem(res, "Mode"));
             AddItemUnderParentIfNotBlank(item, "Sending Data", GetItem(res, "Sending Data"));
@@ -467,7 +496,7 @@ void xScannerFrame::ProcessFalconResult(std::list<std::pair<std::string, std::st
                 else                     {
                     name = "Falcon " + name;
                 }
-                _tree->SetItemText(item, 1, name);
+                UpdateDeviceTitle(_tree, item, TITLE_PRIORITY::TP_CONTROLLER_FALCON, name);
 
                 AddItemUnderParentIfNotBlank(item, "Name", GetItem(res, "Name"));
                 AddItemUnderParentIfNotBlank(item, "Model", GetItem(res, "Model"));
@@ -508,7 +537,7 @@ void xScannerFrame::ProcessFalconResult(std::list<std::pair<std::string, std::st
                 else {
                     name = "Falcon " + name;
                 }
-                _tree->SetItemText(item, 1, name);
+                UpdateDeviceTitle(_tree, item, TITLE_PRIORITY::TP_CONTROLLER_FALCON, name);
 
                 AddItemUnderParentIfNotBlank(item, "Name", GetItem(res, "Name"));
                 AddItemUnderParentIfNotBlank(item, "Model", GetItem(res, "Model"));
@@ -543,10 +572,8 @@ void xScannerFrame::ProcessMACResult(std::list<std::pair<std::string, std::strin
     if (item.IsOk())
     {
         auto vendor = GetItem(res, "MAC Vendor");
-        if (vendor != "" && vendor != "MAC Lookup Unavailable") {
-            if (_tree->GetItemText(item, 1) == "")                 {
-                _tree->SetItemText(item, 1, vendor);
-            }
+        if (vendor != "MAC Lookup Unavailable") {
+            UpdateDeviceTitle(_tree, item, TITLE_PRIORITY::TP_MAC, vendor);
         }
         AddItemUnderParentIfNotBlank(item, "MAC", GetItem(res, "MAC"));
         AddItemUnderParentIfNotBlank(item, "MAC Vendor", vendor);
@@ -570,7 +597,7 @@ void xScannerFrame::ProcessDiscoverResult(std::list<std::pair<std::string, std::
             name = GetItem(res, "Vendor") + ":" + GetItem(res, "Model");
         }
         if (name != ":") {
-            _tree->SetItemText(item, 1, name);
+            UpdateDeviceTitle(_tree, item, TITLE_PRIORITY::TP_DISCOVER, name);
         }
         AddItemUnderParentIfNotBlank(item, "Name", GetItem(res, "Name"));
         AddItemUnderParentIfNotBlank(item, "Vendor", GetItem(res, "Vendor"));
@@ -595,9 +622,7 @@ void xScannerFrame::ProcessxScheduleResult(std::list<std::pair<std::string, std:
 
     if (item.IsOk()) {
 
-        if (_tree->GetItemText(item, 1) == "") {
-            _tree->SetItemText(item, 1, "xSchedule");
-        }
+        UpdateDeviceTitle(_tree, item, TITLE_PRIORITY::TP_XSCHEDULE, "xSchedule");
 
         AddItemUnderParentIfNotBlank(item, "xSchedule Port", GetItem(res, "Port"));
         AddItemUnderParentIfNotBlank(item, "xSchedule Version", GetItem(res, "Version"));

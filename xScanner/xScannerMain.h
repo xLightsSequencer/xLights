@@ -42,6 +42,20 @@ class wxProgressDialog;
 
 wxDECLARE_EVENT(EVT_SCANPROGRESS, wxCommandEvent);
 
+enum class TITLE_PRIORITY {
+    TP_XSCHEDULE,
+    TP_COMPUTER_NAME,
+    TP_CONTROLLER_NAME,
+    TP_CONTROLLER_FALCON,
+    TP_CONTROLLER_VMV,
+    TP_DISCOVER,
+    TP_CONTROLLER_FPP,
+    TP_HTTP_CONTROLLER,
+    TP_HTTP_TITLE,
+    TP_MAC,
+    TP_NONE
+};
+
 class xScannerFrame : public wxFrame
 {
     std::pair<std::string, std::string> nullPair = { "","" };
@@ -57,7 +71,8 @@ class xScannerFrame : public wxFrame
     std::list<std::string> GetStartsWith(std::list<std::pair<std::string, std::string>>& res, const std::string& prefix);
 
     void ValidateWindow();
-    //void AddIP(wxTreeListItem ti, const IPObject& ip);
+    void UpdateDeviceTitle(wxTreeListCtrl* tree, wxTreeListItem& ti, TITLE_PRIORITY tp, const std::string& name);
+        //void AddIP(wxTreeListItem ti, const IPObject& ip);
 
 public:
 
