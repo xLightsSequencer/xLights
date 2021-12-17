@@ -98,7 +98,7 @@ void SingleStrandEffect::SetDefaultParameters()
 
 bool SingleStrandEffect::needToAdjustSettings(const std::string& version) {
     // give the base class a chance to adjust any settings
-    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2020.57", version);
+    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2021.40", version);
 }
 
 void SingleStrandEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
@@ -114,6 +114,17 @@ void SingleStrandEffect::adjustSettings(const std::string& version, Effect* effe
             if (val == "Dual Bounce") {
                 settings["E_CHOICE_Chase_Type1"] = "Dual Chase";
             }
+        }
+    }
+    if (IsVersionOlder("2021.40", version)) {
+        SettingsMap& sm = effect->GetSettings();
+        wxString rzRotations = sm.Get("E_VALUECURVE_Chase_Rotations", "");
+        if (rzRotations.Contains("VALUECURVE") && !rzRotations.Contains("RV=TRUE")) {
+            ValueCurve vc;
+            vc.SetLimits(1, 500);
+            vc.Deserialise(rzRotations);
+            sm["E_VALUECURVE_Chase_Rotations"] = vc.Serialise();
+            wxASSERT(vc.IsRealValue());
         }
     }
 }
