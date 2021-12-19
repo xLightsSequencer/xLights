@@ -1715,7 +1715,13 @@ xlGraphicsContext* xlMetalGraphicsContext::SetModelMatrix(const glm::mat4 &m) {
     frameDataChanged = true;
     return this;
 }
-
+xlGraphicsContext* xlMetalGraphicsContext::ApplyMatrix(const glm::mat4 &m) {
+    simd::float4x4 *vm = (simd::float4x4*)glm::value_ptr(m);
+    frameData.MVP = matrix_multiply(frameData.MVP, *vm);
+    frameData.modelMatrix = matrix_multiply(frameData.modelMatrix, *vm);
+    frameDataChanged = true;
+    return this;
+}
 
 xlGraphicsContext* xlMetalGraphicsContext::Translate(float x, float y, float z) {
     simd::float4x4 m = matrix4x4_translation(x, y, z);

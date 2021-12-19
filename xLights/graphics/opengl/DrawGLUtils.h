@@ -565,6 +565,7 @@ namespace DrawGLUtils
         virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y, int zDepth) = 0;
         virtual void SetCamera(const glm::mat4& view_matrix) = 0;
         virtual void SetModelMatrix(const glm::mat4& model_matrix) = 0;
+        virtual void ApplyMatrix(const glm::mat4& model_matrix) = 0;
         virtual void PushMatrix() = 0;
         virtual void PopMatrix() = 0;
         virtual void Translate(float x, float y, float z) = 0;
@@ -591,6 +592,7 @@ namespace DrawGLUtils
     void SetViewport3D(xlGLCanvas& win, int x1, int y1, int x2, int y2);
     void SetCamera(const glm::mat4& view_matrix);
     void SetModelMatrix(const glm::mat4& model_matrix);
+    void ApplyMatrix(const glm::mat4& model_matrix);
     void PushMatrix();
     void PopMatrix();
     void Translate(float x, float y, float z);

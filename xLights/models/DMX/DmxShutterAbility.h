@@ -10,6 +10,8 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#include "../Model.h"
+
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
 class BaseObject;
@@ -28,6 +30,9 @@ class DmxShutterAbility
         int GetShutterThreshold() { return shutter_threshold; }
 
     protected:
+        bool IsShutterOpen(const std::vector<NodeBaseClassPtr> &Nodes) const;
+
+    
         int shutter_channel;
         int shutter_threshold;
 

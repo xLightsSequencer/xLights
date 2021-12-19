@@ -635,6 +635,9 @@ public:
     virtual void SetModelMatrix(const glm::mat4& model_matrix) override {
         LOG_GL_ERRORV(glMultMatrixf(glm::value_ptr(model_matrix)));
     }
+    virtual void ApplyMatrix(const glm::mat4& model_matrix) override {
+        LOG_GL_ERRORV(glMultMatrixf(glm::value_ptr(model_matrix)));
+    }
 
 
     void PushMatrix() override {
@@ -743,6 +746,9 @@ void DrawGLUtils::SetCamera(const glm::mat4& view_matrix) {
 }
 void DrawGLUtils::SetModelMatrix(const glm::mat4& mmatrix) {
     currentCache->SetModelMatrix(mmatrix);
+}
+void DrawGLUtils::ApplyMatrix(const glm::mat4& mmatrix) {
+    currentCache->ApplyMatrix(mmatrix);
 }
 void DrawGLUtils::PushMatrix() {
     currentCache->PushMatrix();

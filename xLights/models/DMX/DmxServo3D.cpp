@@ -626,7 +626,7 @@ void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumu
         }
         servo_matrix[i] = Identity;
         motion_matrix[i] = Identity;
-        servos[i]->FillMotionMatrix(servo_pos[i], servo_matrix[i]);
+        //servos[i]->FillMotionMatrix(servo_pos[i], servo_matrix[i]);
     }
 
     // Determine motion mesh linkages

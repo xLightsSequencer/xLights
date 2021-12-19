@@ -40,6 +40,7 @@ public:
     virtual xlGraphicsContext* PopMatrix() = 0;
     virtual xlGraphicsContext* Translate(float x, float y, float z) = 0;
     virtual xlGraphicsContext* Rotate(float angle, float x, float y, float z) = 0;
+    virtual xlGraphicsContext* ApplyMatrix(const glm::mat4 &m) = 0;
     virtual xlGraphicsContext* Scale(float w, float h, float z) = 0;
     virtual xlGraphicsContext* SetCamera(const glm::mat4 &m) = 0;
     virtual xlGraphicsContext* SetModelMatrix(const glm::mat4 &m) = 0;

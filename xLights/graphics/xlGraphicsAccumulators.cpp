@@ -163,18 +163,20 @@ void xlVertexColorAccumulator::AddCircleAsLines(float cx, float cy, float r, con
 }
 
 void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float radius, const xlColor &color) {
-    AddCircleAsTriangles(cx, cy, 0.0f, radius, color, color);
+    AddCircleAsTriangles(cx, cy, 0.0f, radius, color, color, 0.0);
 }
 
 void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float radius, const xlColor &center, const xlColor &edge) {
-    AddCircleAsTriangles(cx, cy, 0.0f, radius, center, edge);
+    AddCircleAsTriangles(cx, cy, 0.0f, radius, center, edge, 0.0);
 }
 
 void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor &color) {
-    AddCircleAsTriangles(cx, cy, cz, radius, color, color);
+    AddCircleAsTriangles(cx, cy, cz, radius, color, color, 0.0);
 }
-
 void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor &center, const xlColor &edge) {
+    AddCircleAsTriangles(cx, cy, cz, radius, center, edge, 0.0);
+}
+void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor& center, const xlColor& edge, float depthRatio) {
     int num_segments = radius;
     if (num_segments < 16) {
         num_segments = 16;
@@ -186,9 +188,10 @@ void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz
 
     float x = radius;//we start at angle = 0
     float y = 0;
+    float z = depthRatio * radius;
 
     for(int ii = 0; ii < num_segments; ii++) {
-        AddVertex(x + cx, y + cy, cz, edge);
+        AddVertex(x + cx, y + cy, cz + z, edge);
         //calculate the tangential vector
         //remember, the radial vector is (x, y)
         //to get the tangential vector we flip those coordinates and negate one of them
@@ -200,7 +203,7 @@ void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz
         y += ty * tangetial_factor;
         x *= radial_factor;
         y *= radial_factor;
-        AddVertex(x + cx, y + cy, cz, edge);
+        AddVertex(x + cx, y + cy, cz + z, edge);
         AddVertex(cx, cy, cz, center);
     }
 }

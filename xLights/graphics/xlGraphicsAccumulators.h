@@ -92,6 +92,7 @@ public:
     void AddCircleAsTriangles(float cx, float cy, float radius, const xlColor& center, const xlColor& edge);
     void AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor& color);
     void AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor& center, const xlColor& edge);
+    void AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor& center, const xlColor& edge, float depthRatio);
 
     void AddCubeAsTriangles(float x, float y, float z, float width, const xlColor &color);
     void AddSphereAsTriangles(float x, float y, float z, float radius, const xlColor &color);

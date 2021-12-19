@@ -687,12 +687,14 @@ void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2,
         glm::mat4 eye_y_matrix = Identity;
 
         // Fill motion matrices
+        /*
         if (has_jaw) jaw_servo->FillMotionMatrix(jaw_pos, jaw_matrix);
         if (has_pan) pan_servo->FillMotionMatrix(pan_pos, pan_matrix);
         if (has_tilt) tilt_servo->FillMotionMatrix(tilt_pos, tilt_matrix);
         if (has_nod) nod_servo->FillMotionMatrix(nod_pos, nod_matrix);
         if (has_eye_lr) eye_lr_servo->FillMotionMatrix(eye_x_pos, eye_x_matrix);
         if (has_eye_ud) eye_ud_servo->FillMotionMatrix(eye_y_pos, eye_y_matrix);
+        */
 
         // Adjust scaling to render size of 1
         float jaw_pivot_y = 3.3f;;

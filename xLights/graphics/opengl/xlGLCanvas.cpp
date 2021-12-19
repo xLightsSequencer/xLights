@@ -1053,6 +1053,10 @@ public:
         DrawGLUtils::SetModelMatrix(m);
         return this;
     }
+    virtual xlGraphicsContext* ApplyMatrix(const glm::mat4 &m) override {
+        DrawGLUtils::ApplyMatrix(m);
+        return this;
+    }
 
     int enableCapabilities = 0;
     bool isBlending = false;

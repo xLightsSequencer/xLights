@@ -14,6 +14,7 @@
 
 #include "DmxShutterAbility.h"
 #include "../BaseObject.h"
+#include "../../Color.h"
 
 DmxShutterAbility::DmxShutterAbility()
 : shutter_channel(0), shutter_threshold(1)
@@ -57,4 +58,20 @@ int DmxShutterAbility::OnShutterPropertyGridChange(wxPropertyGridInterface *grid
          return 0;
      }
      return -1;
+}
+
+bool DmxShutterAbility::IsShutterOpen(const std::vector<NodeBaseClassPtr> &Nodes) const {
+    // determine if shutter is open for floods that support it
+    bool shutter_open = true;
+    if (shutter_channel > 0 && shutter_channel <= Nodes.size()) {
+        xlColor proxy;
+        Nodes[shutter_channel - 1]->GetColor(proxy);
+        int shutter_value = proxy.red;
+        if (shutter_value >= 0) {
+            shutter_open = shutter_value >= shutter_threshold;
+        } else {
+            shutter_open = shutter_value <= std::abs(shutter_threshold);
+        }
+    }
+    return shutter_open;
 }

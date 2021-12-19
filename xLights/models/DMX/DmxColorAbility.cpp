@@ -84,3 +84,37 @@ int DmxColorAbility::OnColorPropertyGridChange(wxPropertyGridInterface *grid, wx
     }
     return -1;
 }
+void DmxColorAbility::GetColor(xlColor &color, int transparency, int blackTransparency, bool allowSelected,
+                               const xlColor *c, const std::vector<NodeBaseClassPtr> &Nodes) const {
+    xlColor beam_color(xlWHITE);
+    if (c != nullptr) {
+        beam_color = *c;
+    } else if (!allowSelected) {
+        if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
+            xlColor proxy = xlBLACK;
+            if (white_channel > 0) {
+                Nodes[white_channel - 1]->GetColor(proxy);
+                beam_color = proxy;
+            }
+
+            if (proxy == xlBLACK) {
+                Nodes[red_channel - 1]->GetColor(proxy);
+                beam_color.red = proxy.red;
+                Nodes[green_channel - 1]->GetColor(proxy);
+                beam_color.green = proxy.red;
+                Nodes[blue_channel - 1]->GetColor(proxy);
+                beam_color.blue = proxy.red;
+            }
+        }
+        else if (white_channel > 0) {
+            xlColor proxy;
+            Nodes[white_channel - 1]->GetColor(proxy);
+            beam_color.red = proxy.red;
+            beam_color.green = proxy.red;
+            beam_color.blue = proxy.red;
+        }
+    }
+    int trans = beam_color == xlBLACK ? blackTransparency : transparency;
+    Model::ApplyTransparency(beam_color, trans, trans);
+    color = beam_color;
+}

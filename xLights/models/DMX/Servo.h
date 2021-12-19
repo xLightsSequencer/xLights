@@ -41,7 +41,7 @@ class Servo
         float GetPivotOffsetZ() const { return pivot_offset_z; }
         bool IsTranslate() const;
         bool IsRotate() const;
-        void FillMotionMatrix(float& servo_pos, glm::mat4& motion_matrix);
+        void FillMotionMatrix(float servo_pos, glm::mat4& motion_matrix);
         float GetPosition(int channel_value);
         bool Is16Bit() { return _16bit; }
         Servo* GetLink() { return link; }
@@ -75,5 +75,6 @@ class Servo
         float offset_scale;
         bool is_2d;
         Servo* link;
+        BaseObject* base;
 };
 

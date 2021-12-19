@@ -1263,6 +1263,15 @@ public:
             matrix = new glm::mat4(m);
         }
     }
+    void ApplyMatrix(const glm::mat4 &m) override {
+        if (matrix) {
+            glm::mat4 tm = *matrix * m;
+            delete matrix;
+            matrix = new glm::mat4(tm);
+        } else {
+            matrix = new glm::mat4(m);
+        }
+    }
 
 
 protected:

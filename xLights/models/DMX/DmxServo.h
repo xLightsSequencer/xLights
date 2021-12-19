@@ -15,38 +15,40 @@
 class DmxImage;
 class Servo;
 
-class DmxServo : public DmxModel
-{
-    public:
-        DmxServo(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
-        virtual ~DmxServo();
+class DmxServo : public DmxModel {
+public:
+    DmxServo(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+    virtual ~DmxServo();
 
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active) override;
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active) override;
+    virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                      xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
+                                      const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
+                                      bool highlightFirst = false, int highlightpixel = 0,
+                                      float *boundingBox = nullptr) override;
+    virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+    virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-        Servo* GetAxis(int num) { return num < num_servos ? servos[num] : servos[0]; }
-        int GetNumServos() { return num_servos; }
+    Servo* GetAxis(int num) { return num < num_servos ? servos[num] : servos[0]; }
+    int GetNumServos() { return num_servos; }
 
-    protected:
-        virtual void InitModel() override;
-        void Clear();
+protected:
+    virtual void InitModel() override;
+    void Clear();
 
-        virtual void DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active);
+    void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *program, const xlColor* c, bool active);
+    virtual void ExportXlightsModel() override;
+    virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
-        virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+    int transparency;
+    float brightness;
 
-        int transparency;
-        float brightness;
-
-    private:
-        bool update_node_names;
-        int num_servos;
-        bool _16bit;
-        std::vector<DmxImage*> static_images;
-        std::vector<DmxImage*> motion_images;
-        std::vector<Servo*> servos;
+private:
+    bool update_node_names;
+    int num_servos;
+    bool _16bit;
+    std::vector<DmxImage*> static_images;
+    std::vector<DmxImage*> motion_images;
+    std::vector<Servo*> servos;
 };
