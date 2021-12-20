@@ -11,6 +11,27 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2021.40 December 20, 2021
+   -- enh (scott) Add alternate node support to horizontal matrix
+   -- enh (keith) Add a selected count on FPP connect
+   -- enh (keith) Detect when user tries to use AC mode without a suitable timing track
+   -- enh (keith) Add ability to stretch custom model data to grid size
+   -- enh (keith) Add Ctrl A-x + space to fast set smart remote of selected model in visualiser
+   -- enh (keith) Add support for double height of waveform (without increasing display height)
+   -- bug (scott) Fix hinks export on OSX
+   -- bug (keith) Fix polyphonic transcription does not display notes
+   -- bug (keith) Fix race condition sometimes experiences uploading to F48V4
+   -- bug (keith) Fix ripple effect xcentre affects the ripple amount
+   -- bug (keith) Fix a pixlite serial port upload error where there is a gap in used channels
+   -- bug (keith) Fix xSchedule refire frequency fires immediately if started late
+   -- bug (keith) Fix tooltip lingers after you start to drag model in visualiser
+   -- bug (keith) Dont defaul matrix faces
+   -- bug (keith) Fix xSchedule Remote Falcon API calls failing
+   -- bug (keith) Fix sequences and lyric tracks download with wrong file extension on OSX
+   -- bug (keith) Fix device naming is inconsistent between xScanner scans
+   -- bug (keith) Fix an old value curve on Single strand reports upgrade issue
+   -- bug (dkulp) Fix doublie clicking on xsq directory access issues
+   -- bug (dkulp) Fix canvas layer changes not always detected   
 2021.39 December 5, 2021
    -- enh (keith/dkulp) New REST/Scripting API for controlling xLights from scripts (work in progress)
    -- enh (scott) Basic script/automation runner dialog
