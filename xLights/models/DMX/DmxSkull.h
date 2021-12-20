@@ -22,9 +22,15 @@ class DmxSkull : public DmxModel, public DmxColorAbility
         DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
         virtual ~DmxSkull();
 
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active) override;
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                      xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
+                                      const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
+                                      bool highlightFirst = false, int highlightpixel = 0,
+                                      float *boundingBox = nullptr) override;
+        virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
+        void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
 
+    
         virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
         virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
@@ -72,7 +78,6 @@ class DmxSkull : public DmxModel, public DmxColorAbility
         };
 
         virtual void InitModel() override;
-        void DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2, DrawGLUtils::xl3Accumulator& va3, const xlColor* c, float& sx, float& sy, bool active, bool is_3d);
 
         void FixObjFile(wxXmlNode* node, const std::string& objfile);
         void AddServo(Servo** _servo, const std::string& name, int type, const std::string& style);

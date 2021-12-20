@@ -59,6 +59,7 @@ xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(c
                 materials[idx].color.Set(128, 128, 128, (uint8_t)dissolve);
             }
         }
+        materials[idx].origColor = materials[idx].color;
         idx++;
     }
     
@@ -83,4 +84,19 @@ xlMesh::~xlMesh() {
 }
 
 
+void xlMesh::SetMaterialColor(const std::string materialName, const xlColor *c) {
+    for (auto &m : materials) {
+        if (m.name == materialName) {
+            if (c) {
+                m.color = *c;
+                m.forceColor = true;
+                materialsNeedResyncing = true;
+            } else {
+                m.forceColor = false;
+                m.color = m.origColor;
+                materialsNeedResyncing = true;
+            }
+        }
+    }
+}
 

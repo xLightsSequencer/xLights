@@ -441,8 +441,8 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
             glm::mat4 head_motion_matrix = base_motion_matrix * glm::rotate(Identity, glm::radians(tilt_angle), glm::vec3(0.0f, 0.0f, 1.0f));
 
             // Draw Meshs
-            base_mesh->Draw(this, preview, va3, base_matrix, base_motion_matrix, false, 0, 0, 0, false, false);
-            head_mesh->Draw(this, preview, va3, base_matrix, head_motion_matrix, false, 0, 0, 0, true, false);
+            //base_mesh->Draw(this, preview, va3, base_matrix, base_motion_matrix, false, 0, 0, 0, false, false);
+            //head_mesh->Draw(this, preview, va3, base_matrix, head_motion_matrix, false, 0, 0, 0, true, false);
         }
         else
         {

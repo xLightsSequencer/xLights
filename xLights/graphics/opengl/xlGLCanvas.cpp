@@ -898,6 +898,21 @@ public:
     class xlGLMesh : public xlMesh {
     public:
         xlGLMesh(const std::string &file, GLGraphicsContext *ctx) : xlMesh(ctx, file) {
+            create3DMesh(ctx);
+        }
+        virtual ~xlGLMesh() {
+            if (mesh) {
+                delete mesh;
+            }
+        }
+        void create3DMesh(GLGraphicsContext *ctx) {
+            if (mesh != nullptr && !materialsNeedResyncing) {
+                return;
+            }
+            if (mesh) {
+                delete mesh;
+            }
+            materialsNeedResyncing = false;
             mesh = DrawGLUtils::createMesh();
             for (auto &s : objects.GetShapes()) {
                 if (!s.mesh.indices.empty()) {
@@ -908,7 +923,7 @@ public:
                         GLint texture = -1;
                         uint8_t color[3][4];
                         
-                        if (this->materials[s.mesh.material_ids[idx]].texture) {
+                        if (this->materials[s.mesh.material_ids[idx]].texture && !this->materials[s.mesh.material_ids[idx]].forceColor) {
                             xlGLTexture *t = (xlGLTexture*)this->materials[s.mesh.material_ids[idx]].texture;
                             texture = t->image.getID();
                         }
@@ -962,12 +977,6 @@ public:
                  */
             }
         }
-        virtual ~xlGLMesh() {
-            if (mesh) {
-                delete mesh;
-            }
-        }
-        
         DrawGLUtils::xl3DMesh* mesh = nullptr;
     };
     virtual xlMesh *loadMeshFromObjFile(const std::string &file) override {

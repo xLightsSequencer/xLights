@@ -1264,17 +1264,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
     for (auto sm : xlm->subMeshes) {
         int mid = sm->material;
         if (xlm->GetMaterial(mid).color.alpha == 255) {
-            if (xlm->GetMaterial(mid).texture) {
-                if (lastIsSolid) {
-                    lastIsSolid = false;
-                    [encoder setRenderPipelineState:texturePS];
-                }
-                xlMetalTexture *t = (xlMetalTexture*)xlm->GetMaterial(mid).texture;
-                if (t != lastTexture) {
-                    [encoder setFragmentTexture:t->texture atIndex:BufferIndexTexturePositions];
-                    lastTexture = t;
-                }
-            } else {
+            if (!xlm->GetMaterial(mid).texture || xlm->GetMaterial(mid).forceColor) {
                 if (!lastIsSolid) {
                     lastIsSolid = true;
                     [encoder setRenderPipelineState:solidPS];
@@ -1286,6 +1276,16 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
                 if (!simd_equal(color, frameData.fragmentColor)) {
                     frameData.fragmentColor = color;
                     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
+                }
+            } else {
+                if (lastIsSolid) {
+                    lastIsSolid = false;
+                    [encoder setRenderPipelineState:texturePS];
+                }
+                xlMetalTexture *t = (xlMetalTexture*)xlm->GetMaterial(mid).texture;
+                if (t != lastTexture) {
+                    [encoder setFragmentTexture:t->texture atIndex:BufferIndexTexturePositions];
+                    lastTexture = t;
                 }
             }
             // Draw the submesh.

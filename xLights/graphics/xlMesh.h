@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "../Color.h"
 #include "tiny_obj_loader.h"
 #include "xlGraphicsContext.h"
 
@@ -27,6 +28,8 @@ public:
         std::string name;
         xlTexture *texture = nullptr;
         xlColor color = xlBLACK;
+        bool forceColor = false;
+        xlColor origColor = xlBLACK;
     };
     
     const Material& GetMaterial(int idx) const { return materials[idx]; }
@@ -38,6 +41,8 @@ public:
     float GetXMax() const { return xMax; }
     float GetYMax() const { return yMax; }
     float GetZMax() const { return zMax; }
+    
+    void SetMaterialColor(const std::string materialName, const xlColor *c);
 protected:
     std::string name;
     
@@ -48,6 +53,7 @@ protected:
     bool objectsLoaded;
     
     std::vector<Material> materials;
+    bool materialsNeedResyncing = false;
     
     float xMin = 9999999;
     float yMin = 9999999;

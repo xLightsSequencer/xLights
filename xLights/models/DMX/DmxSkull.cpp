@@ -585,31 +585,116 @@ float DmxSkull::GetServoPos(Servo* _servo, bool active) {
     return servo_pos;
 }
 
-void DmxSkull::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active) {
+
+
+void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                      xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is_3d,
+                                      const xlColor* c, bool allowSelected, bool wiring,
+                                      bool highlightFirst, int highlightpixel,
+                                      float *boundingBox) {
     if (!IsActive()) return;
 
-    DrawGLUtils::xl3Accumulator dummy;
-    DrawModel(preview, va, dummy, c, sx, sy, active, false);
+    screenLocation.PrepareToDraw(is_3d, allowSelected);
+    screenLocation.UpdateBoundingBox(Nodes);
+    
+    
+    sprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PushMatrix();
+        if (!is_3d) {
+            //not 3d, flatten to the 0 plane
+            ctx->Scale(1.0, 1.0, 0.000001);
+        }
+        GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+    });
+    tprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PushMatrix();
+        if (!is_3d) {
+            //not 3d, flatten to the 0 plane
+            ctx->Scale(1.0, 1.0, 0.000001);
+        }
+        GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+    });
+    DrawModel(preview, ctx, sprogram, tprogram, is_3d, !allowSelected, c);
+    sprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PopMatrix();
+    });
+    tprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PopMatrix();
+    });
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
+        if (is_3d) {
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+        } else {
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+        }
+    }
+}
+void DmxSkull::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
+    if (!IsActive() && preview->IsNoCurrentModel()) { return; }
+    
+    bool mustEnd = false;
+    xlGraphicsContext *ctx = preview->getCurrentGraphicsContext();
+    if (ctx == nullptr) {
+        bool success = preview->StartDrawing(pointSize);
+        if (success) {
+            ctx = preview->getCurrentGraphicsContext();
+            mustEnd = true;
+        }
+    }
+    if (ctx) {
+        int w, h;
+        preview->GetSize(&w, &h);
+        float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
+        float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
+        
+        float aspect = screenLocation.GetScaleX();
+        aspect /= screenLocation.GetScaleY();
+        if (scaleY < scaleX) {
+            scaleX = scaleY * aspect;
+        } else {
+            scaleY = scaleX / aspect;
+        }
+        float ml, mb;
+        GetMinScreenXY(ml, mb);
+        ml += GetModelScreenLocation().RenderWi / 2;
+        mb += GetModelScreenLocation().RenderHt / 2;
+        
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PushMatrix();
+            ctx->Scale(1.0, 1.0, 0.00001);
+            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Scale(scaleX, scaleY, 1.0);
+        });
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PushMatrix();
+            ctx->Scale(1.0, 1.0, 0.00001);
+            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Scale(scaleX, scaleY, 1.0);
+        });
+        DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), false, true, nullptr);
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PopMatrix();
+        });
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PopMatrix();
+        });
+    }
+    if (mustEnd) {
+        preview->EndDrawing();
+    }
 }
 
-void DmxSkull::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active) {
-    if (!IsActive()) return;
-
-    DrawGLUtils::xlAccumulator dummy;
-    DrawModel(preview, dummy, va, c, sx, sy, active, true);
-}
-
-void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2, DrawGLUtils::xl3Accumulator& va3, const xlColor *c, float &sx, float &sy, bool active, bool is_3d)
-{
+void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c) {
+    
     size_t NodeCount=Nodes.size();
-    DrawGLUtils::xlAccumulator& va = is_3d ? va3 : va2;
 
     // crash protection
     if( eye_brightness_channel > NodeCount ||
         red_channel > NodeCount ||
         green_channel > NodeCount ||
-        blue_channel > NodeCount )
-    {
+        blue_channel > NodeCount ) {
         return;
     }
 
@@ -635,26 +720,9 @@ void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2,
     float radius = (float)(dmx_size) / 2.0f;
     xlColor color_angle;
 
+    GetColor(eye_color, transparency, blackTransparency, !active, c, Nodes);
+    
     int trans = color == xlBLACK ? blackTransparency : transparency;
-    if (has_color) {
-        if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
-            xlColor proxy;
-            Nodes[red_channel - 1]->GetColor(proxy);
-            eye_color.red = proxy.red;
-            Nodes[green_channel - 1]->GetColor(proxy);
-            eye_color.green = proxy.red;
-            Nodes[blue_channel - 1]->GetColor(proxy);
-            eye_color.blue = proxy.red;
-        }
-    }
-    else {
-        eye_color = xlWHITE;
-    }
-    if( (eye_color.red == 0 && eye_color.green == 0 && eye_color.blue == 0) || !active ) {
-        eye_color = xlWHITE;
-    } else {
-        ApplyTransparency(eye_color, trans, trans);
-    }
     ApplyTransparency(ccolor, trans, trans);
     ApplyTransparency(base_color, trans, trans);
     ApplyTransparency(base_color2, trans, trans);
@@ -671,7 +739,7 @@ void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2,
     eye_x_pos = GetServoPos(eye_lr_servo, active && has_eye_lr) + (active ? eye_lr_orient : 0.0f);
     eye_y_pos = GetServoPos(eye_ud_servo, active && has_eye_ud) + (active ? eye_ud_orient : 0.0f);
 
-    if (is_3d) {
+    if (is3d) {
         glm::mat4 Identity = glm::mat4(1.0f);
         glm::vec3 scaling = GetModelScreenLocation().GetScaleMatrix();
         glm::mat4 scalingMatrix = glm::scale(Identity, scaling);
@@ -687,14 +755,12 @@ void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2,
         glm::mat4 eye_y_matrix = Identity;
 
         // Fill motion matrices
-        /*
         if (has_jaw) jaw_servo->FillMotionMatrix(jaw_pos, jaw_matrix);
         if (has_pan) pan_servo->FillMotionMatrix(pan_pos, pan_matrix);
         if (has_tilt) tilt_servo->FillMotionMatrix(tilt_pos, tilt_matrix);
         if (has_nod) nod_servo->FillMotionMatrix(nod_pos, nod_matrix);
         if (has_eye_lr) eye_lr_servo->FillMotionMatrix(eye_x_pos, eye_x_matrix);
         if (has_eye_ud) eye_ud_servo->FillMotionMatrix(eye_y_pos, eye_y_matrix);
-        */
 
         // Adjust scaling to render size of 1
         float jaw_pivot_y = 3.3f;;
@@ -723,12 +789,12 @@ void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2,
         eye_x_matrix = eye_x_matrix * eye_y_matrix;
         eye_l_mesh->SetColor(eye_color, "EyeColor");
         eye_r_mesh->SetColor(eye_color, "EyeColor");
-        head_mesh->Draw(this, preview, va3, base_matrix, head_matrix, false, 0, 0, 0, false, false);
-        jaw_mesh->Draw(this, preview, va3, head_base, jaw_matrix, false, 0, jaw_pivot_y, jaw_pivot_z, true, false);
-        eye_l_mesh->Draw(this, preview, va3, head_base, eye_x_matrix, false, 0, 0, 0, false, false);
-        eye_r_mesh->Draw(this, preview, va3, head_base, eye_x_matrix, false, 0, 0, 0, false, false);
-    }
-    else {
+        head_mesh->Draw(this, preview, sprogram, tprogram, head_matrix, false, 0, 0, 0, false, false);
+        jaw_mesh->Draw(this, preview,  sprogram, tprogram, jaw_matrix, false, 0, jaw_pivot_y, jaw_pivot_z, true, false);
+        eye_l_mesh->Draw(this, preview, sprogram, tprogram, eye_x_matrix, false, 0, 0, 0, false, false);
+        eye_r_mesh->Draw(this, preview, sprogram, tprogram, eye_x_matrix, false, 0, 0, 0, false, false);
+    } else {
+        /*
         float eye_range_of_motion = 3.8f;
         float eye_lr_rom = has_eye_lr ? -eye_lr_servo->GetRangeOfMotion() : -70.0f;
         float eye_ud_rom = has_eye_ud ? -eye_ud_servo->GetRangeOfMotion() : -70.0f;
@@ -741,8 +807,7 @@ void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2,
             nod_pos = 0.5f;
             eye_x_pos = 0.5f * eye_range_of_motion - eye_range_of_motion / 2.0;
             eye_y_pos = 0.5f * eye_range_of_motion - eye_range_of_motion / 2.0;
-        }
-        else {
+        } else {
             jaw_pos = -jaw_pos / 5.0f - 0.5f;
             eye_x_pos = (eye_x_pos - eye_lr_orient) / eye_lr_rom * eye_range_of_motion - eye_range_of_motion / 2.0;
             eye_y_pos = (eye_y_pos - eye_ud_orient) / eye_ud_rom * eye_range_of_motion - eye_range_of_motion / 2.0;
@@ -935,9 +1000,8 @@ void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2,
         va.AddCircleAsTriangles(right_eye_socket.x, right_eye_socket.y, scale * sf * 0.25, black, black);
         va.AddCircleAsTriangles(left_eye.x, left_eye.y, scale * sf * 0.10, eye_color, eye_color);
         va.AddCircleAsTriangles(right_eye.x, right_eye.y, scale * sf * 0.10, eye_color, eye_color);
-
+        */
     }
-    va.Finish(GL_TRIANGLES);
 }
 
 void DmxSkull::ExportXlightsModel()

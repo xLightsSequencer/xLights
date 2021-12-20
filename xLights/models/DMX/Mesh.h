@@ -12,9 +12,9 @@
 
 #include <wx/file.h>
 #include <vector>
+#include <glm/glm.hpp>
 #include "../../graphics/tiny_obj_loader.h"
-#include "../../graphics/opengl/DrawGLUtils.h"
-#include "../../graphics/opengl/Image.h"
+#include "../../Color.h"
 
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
@@ -22,9 +22,9 @@ class wxXmlNode;
 class BaseObject;
 
 class ModelPreview;
-namespace DrawGLUtils {
-    class xl3DMesh;
-}
+class xlGraphicsContext;
+class xlGraphicsProgram;
+class xlMesh;
 
 class Mesh
 {
@@ -40,7 +40,7 @@ public:
 
     int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
-    void Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, glm::mat4& base_matrix, glm::mat4& motion_matrix,
+    void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, glm::mat4& motion_matrix,
         bool show_empty, float pivot_offset_x = 0, float pivot_offset_y = 0, float pivot_offset_z = 0, bool rotation = false, bool use_pivot = false);
 
     void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
@@ -67,7 +67,7 @@ public:
 
 protected:
 
-    void loadObject(BaseObject* base);
+    void loadObject(BaseObject* base, xlGraphicsContext *ctx);
     void uncacheDisplayObjects();
 
 private:
@@ -98,15 +98,10 @@ private:
     float rscale = 1.0f;
     wxString base_name;
 
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::map<std::string, Image*> textures;
-    std::vector<int> lines;
     float bmin[3] = { 0.0, 0.0, 0.0 };
     float bmax[3] = { 0.0, 0.0, 0.0 };
 
-    DrawGLUtils::xl3DMesh* mesh3d = nullptr;
     Mesh* link = nullptr;
+    xlMesh *mesh3d = nullptr;
 };
 
