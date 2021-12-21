@@ -18,9 +18,6 @@
 #include "../../xLightsMain.h"
 #include "../../xLightsVersion.h"
 
-
-#include "graphics/opengl/DrawGLUtils.h"
-
 DmxFloodlight::DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     : DmxModel(node, manager, zeroBased), beam_length(1)
 {
@@ -95,7 +92,7 @@ void DmxFloodlight::InitModel() {
     shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
     shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
     beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "1.0"));
-    screenLocation.SetRenderSize(1, 1);
+    screenLocation.SetRenderSize(1, 1, 1);
 }
 
 void DmxFloodlight::GetColors(xlColor &center, xlColor &edge, bool allowSelected, const xlColor *c) {

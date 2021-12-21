@@ -204,7 +204,7 @@ void DmxServo::InitModel() {
 
     DmxModel::InitModel();
     DisplayAs = "DmxServo";
-    screenLocation.SetRenderSize(1, 1);
+    screenLocation.SetRenderSize(1, 1, 1);
 
     // clear any extras
     while (servos.size() > num_servos) {

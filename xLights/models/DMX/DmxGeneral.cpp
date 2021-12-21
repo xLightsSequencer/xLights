@@ -63,7 +63,7 @@ void DmxGeneral::InitModel() {
     blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "0"));
     white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
 
-    screenLocation.SetRenderSize(1, 1);
+    screenLocation.SetRenderSize(1, 1, 1);
 }
 
 

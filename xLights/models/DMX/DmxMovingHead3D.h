@@ -21,20 +21,19 @@ class DmxMovingHead3D : public DmxMovingHead
         DmxMovingHead3D(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~DmxMovingHead3D();
 
+    
+        virtual void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c) override;
+
     protected:
         virtual void SetFromXml(wxXmlNode* ModelNode, bool zb) override;
         virtual void InitModel() override;
 
         virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active) override;
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active) override;
-
         virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
         virtual float GetDefaultBeamWidth() const override { return 1.5f; }
 
     private:
-        void DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2, DrawGLUtils::xl3Accumulator& va3, const xlColor* c, float& sx, float& sy, float& sz, bool active, bool is_3d);
 
         Mesh* base_mesh = nullptr;
         Mesh* head_mesh = nullptr;

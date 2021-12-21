@@ -25,6 +25,7 @@ END_EVENT_TABLE()
 #include <log4cpp/Category.hh>
 #include "Image.h"
 #include "../xlMesh.h"
+#include "DrawGLUtils.h"
 
 static const int DEPTH_BUFFER_BITS[] = {32, 24, 16, 12, 10, 8};
 
@@ -984,6 +985,7 @@ public:
     }
     virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness) override {
         xlGLMesh *glm = (xlGLMesh*)mesh;
+        glm->create3DMesh(this);
         if (glm->mesh) {
             DrawGLUtils::xlAccumulator vac;
             vac.AddMesh(glm->mesh, false, brightness, false);
@@ -993,6 +995,7 @@ public:
     }
     virtual xlGraphicsContext* drawMeshTransparents(xlMesh *mesh, int brightness) override {
         xlGLMesh *glm = (xlGLMesh*)mesh;
+        glm->create3DMesh(this);
         if (glm->mesh) {
             DrawGLUtils::xlAccumulator vac;
             vac.AddMesh(glm->mesh, false, brightness, true);
@@ -1002,6 +1005,7 @@ public:
     }
     virtual xlGraphicsContext* drawMeshWireframe(xlMesh *mesh, int brightness) override {
         xlGLMesh *glm = (xlGLMesh*)mesh;
+        glm->create3DMesh(this);
         if (glm->mesh) {
             DrawGLUtils::xlAccumulator vac;
             vac.AddMesh(glm->mesh, true, brightness, false);

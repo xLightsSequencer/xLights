@@ -99,7 +99,7 @@ void Mesh::Init(BaseObject* base, bool set_size) {
         width = wxAtof(node_xml->GetAttribute("Width", "1.0f"));
         height = wxAtof(node_xml->GetAttribute("Height", "1.0f"));
         depth = wxAtof(node_xml->GetAttribute("Depth", "1.0f"));
-        base->GetBaseObjectScreenLocation().SetRenderSize(width * scalex, height * scaley, depth * scalez);
+        base->GetBaseObjectScreenLocation().SetRenderSize(width, height, depth);
     }
 }
 
@@ -366,10 +366,22 @@ void Mesh::loadObject(BaseObject* base, xlGraphicsContext *ctx) {
         height = mesh3d->GetYMax() - mesh3d->GetYMin();
         depth = mesh3d->GetZMax() - mesh3d->GetZMin();
         obj_loaded = true;
+        
+        std::string name = base->GetName() + ":" + base_name;
+        mesh3d->SetName(name);
     }
 }
-void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, glm::mat4& motion_matrix,
-    bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z, bool rotation, bool use_pivot)
+bool Mesh::GetExists(BaseObject* base, xlGraphicsContext *ctx) {
+    if (!obj_loaded) {
+        loadObject(base, ctx);
+        base->GetBaseObjectScreenLocation().SetSupportsZScaling(true);  // set here instead of constructor so model creation doesn't go up like a tree
+    }
+    return mesh3d != nullptr;
+}
+
+void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram,
+                glm::mat4& base_matrix, glm::mat4& motion_matrix,
+                bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z, bool rotation, bool use_pivot)
 {
     if (!obj_loaded) {
         loadObject(base, preview->getCurrentGraphicsContext());
@@ -388,9 +400,9 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *spro
         if (rotation) {
             glm::mat4 pivotToZero = glm::translate(Identity, glm::vec3(-pivot_offset_x, -pivot_offset_y, -pivot_offset_z));
             glm::mat4 pivotBack = glm::translate(Identity, glm::vec3(pivot_offset_x, pivot_offset_y, pivot_offset_z));
-            m = translationMatrix * pivotBack * motion_matrix * pivotToZero * glm::toMat4(rotate_quat) * scalingMatrix;
+            m = base_matrix * translationMatrix * pivotBack * motion_matrix * pivotToZero * glm::toMat4(rotate_quat) * scalingMatrix;
         } else {
-            m = translationMatrix * motion_matrix * glm::toMat4(rotate_quat) * scalingMatrix;
+            m = base_matrix * translationMatrix * motion_matrix * glm::toMat4(rotate_quat) * scalingMatrix;
         }
 
         if (controls_size) {
@@ -472,11 +484,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *spro
             tprogram->addStep([=](xlGraphicsContext *ctx) {
                 ctx->PushMatrix();
                 ctx->ApplyMatrix(m);
-                if (mesh_only) {
-                    ctx->drawMeshWireframe(mesh3d, this->brightness);
-                } else {
-                    ctx->drawMeshSolids(mesh3d, this->brightness);
-                }
+                ctx->drawMeshTransparents(mesh3d, this->brightness);
                 if (end != start) {
                     if (rotation) {
                         ctx->Translate(pivot_offset_x, pivot_offset_y, 0.0f);

@@ -138,10 +138,14 @@ public:
     void render() override;
     
     bool drawingUsingLogicalSize() const override { return true; }
-    
+    virtual bool RequiresDepthBuffer() const override { return true; }
+
     xlGraphicsContext *getCurrentGraphicsContext() { return currentContext; }
     xlGraphicsProgram *getCurrentSolidProgram() { return solidProgram; }
     xlGraphicsProgram *getCurrentTransparentProgram() { return transparentProgram; }
+    
+    
+
 protected:
     void AddGridToAccumulator(const glm::mat4& ViewScale);
 

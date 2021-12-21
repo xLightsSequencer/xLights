@@ -10,12 +10,11 @@
 
 #include "SequenceVideoPreview.h"
 
-//#include "DrawGLUtils.h"
-
 #include <wx/dcclient.h>
 #include <wx/panel.h>
 
 #include <libavutil/frame.h>
+#include "graphics/opengl/DrawGLUtils.h"
 
 BEGIN_EVENT_TABLE( SequenceVideoPreview, xlGLCanvas )
 EVT_PAINT( SequenceVideoPreview::paint )

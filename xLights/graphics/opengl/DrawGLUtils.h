@@ -88,11 +88,11 @@ namespace DrawGLUtils
         {
             vertices = (float*)realloc(vertices, sizeof(float) * newMax * coordsPerVertex);
         }
-        xlVertexAccumulatorBase() : count(0), _max(64), coordsPerVertex(2)
+        xlVertexAccumulatorBase() : count(0), _max(64), coordsPerVertex(3)
         {
             vertices = (float*)malloc(sizeof(float) * _max * coordsPerVertex);
         }
-        xlVertexAccumulatorBase(unsigned int m) : count(0), _max(m), coordsPerVertex(2)
+        xlVertexAccumulatorBase(unsigned int m) : count(0), _max(m), coordsPerVertex(3)
         {
             vertices = (float*)malloc(sizeof(float) * _max * coordsPerVertex);
         }

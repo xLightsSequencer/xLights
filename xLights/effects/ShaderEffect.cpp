@@ -75,6 +75,7 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 #include "../../xSchedule/wxJSON/jsonreader.h"
+#include "graphics/opengl/DrawGLUtils.h"
 
 #include <wx/regex.h>
 

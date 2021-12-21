@@ -20,8 +20,13 @@ class DmxSkulltronix : public DmxModel, public DmxColorAbility, public DmxPanTil
         DmxSkulltronix(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~DmxSkulltronix();
 
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active) override;
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                      xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
+                                      const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
+                                      bool highlightFirst = false, int highlightpixel = 0,
+                                      float *boundingBox = nullptr) override;
+        virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
+        void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;

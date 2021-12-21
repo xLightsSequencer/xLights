@@ -353,6 +353,9 @@ public:
     void SetScaleZ(float z) {
         scalez = z;
     }
+    float GetScaleZ() const {
+        return scalez;
+    }
 
     void SetRotation(int r) {
         rotatez = r;

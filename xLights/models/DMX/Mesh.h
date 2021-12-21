@@ -33,15 +33,17 @@ public:
     virtual ~Mesh();
 
     void Init(BaseObject* base, bool set_size);
-    bool GetExists() { return !_objFile.empty(); }
+    bool GetExists(BaseObject* base, xlGraphicsContext *ctx);
+    bool HasObjFile() const { return !_objFile.empty(); }
 
     void AddTypeProperties(wxPropertyGridInterface* grid);
     void UpdateTypeProperties(wxPropertyGridInterface* grid) {}
 
     int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
-    void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, glm::mat4& motion_matrix,
-        bool show_empty, float pivot_offset_x = 0, float pivot_offset_y = 0, float pivot_offset_z = 0, bool rotation = false, bool use_pivot = false);
+    void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram,
+              glm::mat4& base_matrix, glm::mat4& motion_matrix,
+              bool show_empty, float pivot_offset_x = 0, float pivot_offset_y = 0, float pivot_offset_z = 0, bool rotation = false, bool use_pivot = false);
 
     void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
     void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;

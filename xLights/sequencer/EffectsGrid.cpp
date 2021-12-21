@@ -6004,7 +6004,7 @@ void EffectsGrid::Draw()
         CreateEffectIconTextures(ctx);
 
         //create all the accumulators
-        lines = ctx->createVertexAccumulator();
+        lines = ctx->createVertexAccumulator()->SetName("Lines");
         selectedLinesFixed = ctx->createVertexAccumulator();
         selectedLinesLocked = ctx->createVertexAccumulator();
         timingEffLines = ctx->createVertexAccumulator();
@@ -6013,13 +6013,13 @@ void EffectsGrid::Draw()
         selectFocusLinesLocked = ctx->createVertexAccumulator();
         selectFocusLinesDisabled = ctx->createVertexAccumulator();
         selectedLinesDisabled = ctx->createVertexAccumulator();
-        linesDisabled = ctx->createVertexAccumulator();
-        linesLocked = ctx->createVertexAccumulator();
-        timingLines = ctx->createVertexColorAccumulator();
-        backgrounds = ctx->createVertexColorAccumulator();
-        selectedBoxes = ctx->createVertexColorAccumulator();
-        texts = ctx->createVertexTextureAccumulator();
-        effectIcons = ctx->createVertexTextureAccumulator();
+        linesDisabled = ctx->createVertexAccumulator()->SetName("DisabledLines");
+        linesLocked = ctx->createVertexAccumulator()->SetName("LockedLined");
+        timingLines = ctx->createVertexColorAccumulator()->SetName("TimingLines");
+        backgrounds = ctx->createVertexColorAccumulator()->SetName("EffectBackgrounds");
+        selectedBoxes = ctx->createVertexColorAccumulator()->SetName("SelectedBoxes");
+        texts = ctx->createVertexTextureAccumulator()->SetName("TextLabels");
+        effectIcons = ctx->createVertexTextureAccumulator()->SetName("EffectIcons");
     } else {
         timingLines->Reset();
         timingEffLines->Reset();

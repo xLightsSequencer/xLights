@@ -14,7 +14,7 @@ public:
     xlVertexAccumulator() {}
     virtual ~xlVertexAccumulator() {}
     
-    void SetName(const std::string &n) { name = n; }
+    xlVertexAccumulator *SetName(const std::string &n) { name = n; return this; }
     const std::string &GetName() const { return name; }
 
     virtual void Reset() {}
@@ -53,7 +53,7 @@ public:
     xlVertexColorAccumulator() {}
     virtual ~xlVertexColorAccumulator() {}
     
-    void SetName(const std::string &n) { name = n; }
+    xlVertexColorAccumulator *SetName(const std::string &n) { name = n; return this; }
     const std::string &GetName() const { return name; }
 
     virtual void Reset() {}
@@ -92,7 +92,7 @@ public:
     void AddCircleAsTriangles(float cx, float cy, float radius, const xlColor& center, const xlColor& edge);
     void AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor& color);
     void AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor& center, const xlColor& edge);
-    void AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor& center, const xlColor& edge, float depthRatio);
+    void AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor& center, const xlColor& edge, float depthRatio, int numSegments = -1);
 
     void AddCubeAsTriangles(float x, float y, float z, float width, const xlColor &color);
     void AddSphereAsTriangles(float x, float y, float z, float radius, const xlColor &color);
@@ -105,7 +105,7 @@ public:
     xlVertexIndexedColorAccumulator() {}
     virtual ~xlVertexIndexedColorAccumulator() {}
     
-    void SetName(const std::string &n) { name = n; }
+    xlVertexIndexedColorAccumulator *SetName(const std::string &n) { name = n;  return this; }
     const std::string &GetName() const { return name; }
 
     virtual void Reset() {}
@@ -147,7 +147,7 @@ public:
     xlVertexTextureAccumulator() {}
     virtual ~xlVertexTextureAccumulator() {}
     
-    void SetName(const std::string &n) { name = n; }
+    xlVertexTextureAccumulator *SetName(const std::string &n) { name = n; return this; }
     const std::string &GetName() const { return name; }
 
     virtual void Reset() {}
@@ -193,7 +193,7 @@ public:
     xlTexture() {}
     virtual ~xlTexture() {}
     
-    void SetName(const std::string &n) { name = n; }
+    xlTexture *SetName(const std::string &n) { name = n; return this; }
     const std::string &GetName() const { return name; }
 
     // mark the texture as immutable

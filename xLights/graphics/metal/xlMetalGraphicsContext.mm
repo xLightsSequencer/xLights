@@ -46,12 +46,12 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
 
         int width = [localTarget width];
         int height = [localTarget height];
-        if (c->usesMSAA() || c->Is3D()) {
+        if (c->usesMSAA()) {
             renderPass.colorAttachments[0].resolveTexture = renderPass.colorAttachments[0].texture;
             renderPass.colorAttachments[0].storeAction = MTLStoreActionMultisampleResolve;
             renderPass.colorAttachments[0].texture = c->getMSAATexture(width, height);
         }
-        if (c->Is3D()) {
+        if (c->RequiresDepthBuffer()) {
             renderPass.depthAttachment.texture = c->getDepthTexture(width, height);
             renderPass.depthAttachment.clearDepth = 1.0;
             renderPass.depthAttachment.loadAction = MTLLoadActionClear;
@@ -60,7 +60,7 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
         
         encoder = [buffer renderCommandEncoderWithDescriptor:renderPass];
         
-        if (c->Is3D()) {
+        if (c->RequiresDepthBuffer()) {
             [encoder setDepthStencilState:c->getDepthStencilState()];
         }
         
@@ -1655,7 +1655,7 @@ xlGraphicsContext* xlMetalGraphicsContext::SetViewport(int topleft_x, int toplef
     y = std::min(bottomright_y, topleft_y);
     x2 = bottomright_x;
     y2 = std::max(bottomright_y,topleft_y);
-    float zMax = 1.0;
+    float zMax = 0.0;
     double w = std::max(x, x2) - std::min(x, x2);
     double h = std::max(y, y2) - std::min(y, y2);
     if (is3D) {

@@ -12,12 +12,16 @@
 
 #include "wx/glcanvas.h"
 #include "../xlGraphicsContext.h"
-#include "DrawGLUtils.h"
+
 
 class wxImage;
 
 extern "C" {
    struct AVFrame;
+}
+
+namespace DrawGLUtils {
+class xlGLCacheInfo;
 }
 
 class xlGLCanvas
@@ -70,6 +74,8 @@ class xlGLCanvas
         virtual xlGraphicsContext* PrepareContextForDrawing(const xlColor &bg);
         virtual void FinishDrawing(xlGraphicsContext* ctx, bool display = true);
         void Resized(wxSizeEvent& evt);
+
+        virtual bool RequiresDepthBuffer() const { return false; }
 
     protected:
       	DECLARE_EVENT_TABLE()

@@ -547,13 +547,13 @@ void DmxServo3d::InitModel() {
     bool last_exists = false;
     for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
         (*it)->Init(this, !last_exists);
-        last_exists = (*it)->GetExists();
+        last_exists = (*it)->HasObjFile();
     }
 
-    last_exists = num_static > 0 ? static_meshs[0]->GetExists() : false;
+    last_exists = num_static > 0 ? static_meshs[0]->HasObjFile() : false;
     for (auto it = motion_meshs.begin(); it != motion_meshs.end(); ++it) {
         (*it)->Init(this, !last_exists);
-        last_exists = (*it)->GetExists();
+        last_exists = (*it)->HasObjFile();
     }
 
     // renumber servo changed if number of bits changed
@@ -704,7 +704,7 @@ void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGrap
 
     // Draw Static Meshs
     for (int i = 0; i < num_static; ++i) {
-        static_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, i < num_motion ? !motion_meshs[i]->GetExists() : false, 0, 0, 0, false, false);
+        static_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, Identity, i < num_motion ? !motion_meshs[i]->GetExists(this, ctx) : false, 0, 0, 0, false, false);
     }
 
     // Get servo positions and fill motion matrices
@@ -761,7 +761,7 @@ void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGrap
 
     // Draw Motion Meshs
     for (int i = 0; i < num_motion; ++i) {
-        motion_meshs[i]->Draw(this, preview, sprogram, tprogram, motion_matrix[i], i < num_static ? !static_meshs[i]->GetExists() : false,
+        motion_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, motion_matrix[i], i < num_static ? !static_meshs[i]->GetExists(this, ctx) : false,
             servos[i]->GetPivotOffsetX(), servos[i]->GetPivotOffsetY(), servos[i]->GetPivotOffsetZ(), servos[i]->IsRotate() && show_pivot, !active);
     }
 }

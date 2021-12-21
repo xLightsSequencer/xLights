@@ -176,8 +176,11 @@ void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz
 void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor &center, const xlColor &edge) {
     AddCircleAsTriangles(cx, cy, cz, radius, center, edge, 0.0);
 }
-void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor& center, const xlColor& edge, float depthRatio) {
-    int num_segments = radius;
+void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor& center, const xlColor& edge, float depthRatio, int numSegments) {
+    int num_segments = numSegments;
+    if (num_segments == -1) {
+        num_segments = radius;
+    }
     if (num_segments < 16) {
         num_segments = 16;
     }
