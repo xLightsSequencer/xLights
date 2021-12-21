@@ -40,6 +40,8 @@ public:
     virtual void AllOff() override;
 #pragma endregion
 
+    bool GetLayout(wxJSONValue& result, bool& reportError);
+
 private:
     // A single twinkly connection may have unlimited channels
     static const int MAX_CHANNELS = 4 * 2000;
@@ -52,6 +54,8 @@ private:
     bool MakeCall(const std::string& method, const std::string& path, wxJSONValue& result, const char* body = nullptr);
 
     bool ReloadToken();
+
+    static size_t CurlWriteFunction(void* ptr, size_t size, size_t nmemb, std::string* data);
 
     std::string m_token;
     std::array<char, TOKEN_SIZE> m_decodedToken;

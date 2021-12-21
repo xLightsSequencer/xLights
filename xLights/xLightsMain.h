@@ -586,6 +586,7 @@ public:
     void OnMenuItem_xScannerSelected(wxCommandEvent& event);
     void OnButton_OpenProxyClick(wxCommandEvent& event);
     void OnMenuItemRunScriptSelected(wxCommandEvent& event);
+    void OnButtonControllerDownloadTwinklyLayoutClick(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -668,6 +669,7 @@ public:
     static const long ID_BITMAPBUTTON2;
     static const long ID_PANEL2;
     static const long ID_BUTTON1;
+    static const long ID_BUTTON13;
     static const long ID_BUTTON2;
     static const long ID_BUTTON4;
     static const long ID_BUTTON7;
@@ -813,6 +815,7 @@ public:
     wxButton* ButtonAddControllerNull;
     wxButton* ButtonAddControllerSerial;
     wxButton* ButtonControllerDelete;
+    wxButton* ButtonControllerDownloadTwinklyLayout;
     wxButton* ButtonDiscover;
     wxButton* ButtonOpen;
     wxButton* ButtonSaveSetup;

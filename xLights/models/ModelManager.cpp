@@ -20,6 +20,7 @@
 #include "ChannelBlockModel.h"
 #include "CircleModel.h"
 #include "TreeModel.h"
+#include "TwinklyModel.h"
 #include "CubeModel.h"
 #include "CustomModel.h"
 #include "DMX/DmxGeneral.h"
@@ -1339,6 +1340,8 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("parm2", "80");
         node->AddAttribute("DropPattern", "3,4,5,4");
         model = new IciclesModel(node, *this, false);
+    } else if (type == "Twinkly Layout") {
+        model = new TwinklyModel(node, *this, false);
     } else {
         DisplayError(wxString::Format("'%s' is not a valid model type for model '%s'", type, node->GetAttribute("name")).ToStdString());
         return nullptr;
@@ -1461,6 +1464,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         model = new MatrixModel(node, *this, zeroBased);
     } else if (type == "Spinner") {
         model = new SpinnerModel(node, *this, zeroBased);
+    } else if (type == "Twinkly Layout") {
+        model = new TwinklyModel(node, *this, false);
     } else {
         DisplayError(wxString::Format("'%s' is not a valid model type for model '%s'", type, node->GetAttribute("name")).ToStdString());
         return nullptr;

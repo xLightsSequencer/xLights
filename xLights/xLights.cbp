@@ -1137,6 +1137,8 @@
 		<Unit filename="models/TerrianScreenLocation.h" />
 		<Unit filename="models/TreeModel.cpp" />
 		<Unit filename="models/TreeModel.h" />
+		<Unit filename="models/TwinklyModel.cpp" />
+		<Unit filename="models/TwinklyModel.h" />
 		<Unit filename="models/ViewObject.cpp" />
 		<Unit filename="models/ViewObject.h" />
 		<Unit filename="models/ViewObjectManager.cpp" />

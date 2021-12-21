@@ -337,6 +337,7 @@
     <ClCompile Include="models\RulerObject.cpp" />
     <ClCompile Include="models\TerrainScreenLocation.cpp" />
     <ClCompile Include="models\TerrianObject.cpp" />
+    <ClCompile Include="models\TwinklyModel.cpp" />
     <ClCompile Include="models\ViewObject.cpp" />
     <ClCompile Include="models\ViewObjectManager.cpp" />
     <ClCompile Include="models\WholeHouseModel.cpp" />
@@ -780,6 +781,7 @@
     <ClInclude Include="models\TerrianObject.h" />
     <ClInclude Include="models\TerrianScreenLocation.h" />
     <ClInclude Include="models\tiny_obj_loader.h" />
+    <ClInclude Include="models\TwinklyModel.h" />
     <ClInclude Include="models\ViewObject.h" />
     <ClInclude Include="models\ViewObjectManager.h" />
     <ClInclude Include="models\WholeHouseModel.h" />

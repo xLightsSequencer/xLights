@@ -58,6 +58,9 @@
 #include "../xFade/wxLED.h"
 
 #include <log4cpp/Category.hh>
+#include <outputs/TwinklyOutput.h>
+#include <models/TwinklyModel.h>
+#include <LayoutPanel.h>
 
 const long xLightsFrame::ID_List_Controllers = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDETHERNET = wxNewId();
@@ -1576,6 +1579,8 @@ void xLightsFrame::SetControllersProperties() {
         ButtonOpen->Enable(false);
         ButtonControllerDelete->Enable(false);
         LedPing->Disable();
+        ButtonControllerDownloadTwinklyLayout->Hide();
+        FlexGridSizerSetupControllerButtons->Layout();
 
         if (_outputManager.GetGlobalFPPProxy() != "") {
             Button_OpenProxy->Enable();
@@ -1675,6 +1680,13 @@ void xLightsFrame::SetControllersProperties() {
 
             // one item selected - display selected controller properties
             controller->AddProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
+
+            if (controller->GetProtocol() == OUTPUT_TWINKLY) {
+                ButtonControllerDownloadTwinklyLayout->Show();
+            } else {
+                ButtonControllerDownloadTwinklyLayout->Hide();
+            }
+            FlexGridSizerSetupControllerButtons->Layout();
         }
     }
 
@@ -2132,6 +2144,51 @@ void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event)
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "DeleteSelectedControllers");
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DeleteSelectedControllers");
+    }
+}
+
+void xLightsFrame::OnButtonControllerDownloadTwinklyLayoutClick(wxCommandEvent& event)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    auto selections = GetSelectedControllerNames();
+
+    if (selections.size() == 1) {
+        auto controller = _outputManager.GetController(selections.front());
+        logger_base.debug("Downloading twinkly layout from " + controller->GetName());
+
+        int outputCount = controller->GetOutputCount();
+        if (controller != nullptr && controller->GetProtocol() == OUTPUT_TWINKLY && outputCount > 0) {
+            TwinklyOutput* output = dynamic_cast<TwinklyOutput*>(controller->GetOutput(0));
+            if (output != nullptr) {
+                SetCursor(wxCURSOR_WAIT);
+                wxJSONValue layout;
+                bool reportError;
+                if (!output->GetLayout(layout, reportError)) {
+                    if (OutputManager::IsInteractive() && reportError) {
+                        wxMessageBox(_("An error occurred"), "Error!", wxOK);
+                    }
+                    SetCursor(wxCURSOR_DEFAULT);
+                    return;
+                }
+                // create and initialize a new model
+                TwinklyModel* model = dynamic_cast<TwinklyModel*>(AllModels.CreateDefaultModel("Twinkly Layout", std::to_string(output->GetStartChannel())));
+                wxASSERT(model != nullptr);
+                if (!model->SetLayout(layout)) {
+                    wxMessageBox(_("Cannot read json from twinkly"), "Error!", wxOK);
+                    AllModels.Delete(model->GetName());
+                    SetCursor(wxCURSOR_DEFAULT);
+                    return;
+                }
+                model->SetLayoutGroup("Default");
+                model->SetControllerPort(1);
+                model->UpdateXmlWithScale();
+                model->SetControllerName(controller->GetName());
+                AllModels.AddModel(model);
+                layoutPanel->UnSelectAllModels();
+                layoutPanel->SelectModel(model, true);
+                SetCursor(wxCURSOR_DEFAULT);
+            }
+        }
     }
 }
 

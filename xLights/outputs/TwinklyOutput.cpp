@@ -2,6 +2,7 @@
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 #include "../xSchedule/wxJSON/jsonreader.h"
+#include <curl/curl.h>
 #include <log4cpp/Category.hh>
 #include <wx/base64.h>
 #include <wx/protocol/http.h>
@@ -206,7 +207,6 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
 
     wxInputStream* httpStream = http.GetInputStream(path);
     logger_base.error("Twinkly: Http response: " + std::to_string(http.GetResponse()));
-    http.Close();
 
     if (http.GetError() != wxPROTO_NOERR) {
         wxDELETE(httpStream);
@@ -217,6 +217,7 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
     wxStringOutputStream out_stream(&res);
     httpStream->Read(out_stream);
     wxDELETE(httpStream);
+    http.Close();
 
     wxJSONReader reader;
     wxString str(res);
@@ -300,3 +301,62 @@ void TwinklyOutput::OpenDatagram()
     }
 }
 #pragma endregion
+
+size_t TwinklyOutput::CurlWriteFunction(void* ptr, size_t size, size_t nmemb, std::string* data)
+{
+    if (data == nullptr)
+        return 0;
+    data->append((char*)ptr, size * nmemb);
+    return size * nmemb;
+}
+
+bool TwinklyOutput::GetLayout(wxJSONValue& result, bool& reportError)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    reportError = true;
+
+    // use curl as chunked text may break wxHTTP
+    auto curl = curl_easy_init();
+    wxASSERT(curl);
+
+    auto url = std::string("http://") + _ip + "/xled/v1/led/layout/full";
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (long)2);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)2);
+
+    std::string buffer = "";
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWriteFunction);
+
+    CURLcode ret = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+    if (ret == CURLE_OPERATION_TIMEDOUT) {
+        wxMessageBox(wxString::Format("Twinkly device not found at %s", _ip), "Error!", wxOK);
+        reportError = false;
+        return false;
+    }
+    if (ret != CURLE_OK) {
+        return false;
+    }
+
+    wxJSONReader reader;
+    wxString str(buffer);
+    if (reader.Parse(str, &result)) {
+        wxString result;
+        auto errors = reader.GetErrors();
+        for (int i = 0; i < errors.GetCount(); i++) {
+            result.Append(errors.Item(i)).Append(", ");
+        }
+        logger_base.error("Twinkly: Returned json is not valid: " + result);
+        return false;
+    }
+
+    int32_t code;
+    if (!result.Get("code", "").AsInt32(code) || code != 1000) {
+        logger_base.error("Twinkly: Server returned: " + std::to_string(code));
+        return false;
+    }
+
+    return true;
+}
