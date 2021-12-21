@@ -188,6 +188,7 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Twinkly: Invoke " + method + " http://" + _ip + path);
 
+    // todo: use curl
     wxHTTP http;
     http.SetTimeout(HTTP_TIMEOUT);
     if (!http.Connect(_ip, 80)) {
@@ -207,6 +208,7 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
 
     wxInputStream* httpStream = http.GetInputStream(path);
     logger_base.error("Twinkly: Http response: " + std::to_string(http.GetResponse()));
+    http.Close();
 
     if (http.GetError() != wxPROTO_NOERR) {
         wxDELETE(httpStream);
@@ -217,7 +219,6 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
     wxStringOutputStream out_stream(&res);
     httpStream->Read(out_stream);
     wxDELETE(httpStream);
-    http.Close();
 
     wxJSONReader reader;
     wxString str(res);
