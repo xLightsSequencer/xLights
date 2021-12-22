@@ -200,6 +200,10 @@ public:
     virtual void Finalize() {}
 
     virtual void UpdatePixel(int x, int y, const xlColor &c, bool copyAlpha) = 0;
+    virtual void UpdateData(uint8_t *data, bool bgr, bool alpha) = 0;
+    
+    //platform specific data, possibly something like VideoToolbox or similar
+    virtual void UpdateData(void *data, const std::string &type) {}
     
 protected:
     std::string name;

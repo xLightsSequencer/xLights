@@ -22,6 +22,7 @@ public:
     virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) override;
     virtual xlTexture *createTextureMipMaps(const std::vector<wxImage> &images) override;
     virtual xlTexture *createTexture(const wxImage &image) override;
+    virtual xlTexture *createTexture(int w, int h, bool bgr, bool alpha) override;
     virtual xlTexture *createTextureForFont(const xlFontInfo &font) override;
     virtual xlGraphicsProgram *createGraphicsProgram() override;
     virtual xlMesh *loadMeshFromObjFile(const std::string &file) override;

@@ -85,9 +85,11 @@ void VideoReader::InitHWAcceleration() {
     InitVideoToolboxAcceleration();
 }
 
-VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/, bool wantAlpha, bool bgr)
+VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/,
+                         bool wantAlpha, bool bgr, bool wantsHWType)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _wantsHWType = wantsHWType;
     _maxwidth = maxwidth;
     _maxheight = maxheight;
     _filename = filename;
@@ -651,7 +653,12 @@ bool VideoReader::readFrame(int timestampMS) {
             #endif
             bool hardwareScaled = false;
             if (IsVideoToolboxAcceleratedFrame(_srcFrame)) {
-                hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2, hwDecoderCache);
+                if (_wantsHWType) {
+                    hardwareScaled = true;
+                    std::swap(_dstFrame2, _srcFrame);
+                } else {
+                    hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2, hwDecoderCache);
+                }
             }
 
             if (!hardwareScaled) {

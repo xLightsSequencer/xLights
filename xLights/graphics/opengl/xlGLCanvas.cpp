@@ -644,6 +644,7 @@ void xlGLCanvas::PrepareCanvas() {
 }
 
 
+//#define GL_CLAMP_TO_EDGE 0x812F
 class GLGraphicsContext : public xlGraphicsContext {
 public:
     class xlGLTexture : public xlTexture {
@@ -653,14 +654,47 @@ public:
             wxImage img = i.Mirror(false);
             image.load(img, false, false);
         }
+
+        xlGLTexture(int w, int h, bool bgr, bool alpha) {
+            this->alpha = alpha;
+            GLuint _texId;
+            LOG_GL_ERRORV( glGenTextures( 1, &_texId ) );
+            LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, _texId ) );
+
+            GLuint tp = bgr ? GL_BGRA : GL_RGBA;
+            LOG_GL_ERRORV( glTexImage2D( GL_TEXTURE_2D, 0, tp, w, h, 0, tp, GL_UNSIGNED_BYTE, nullptr ) );
+            LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ) );
+            LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ) );
+            LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE ) );
+            LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE ) );
+
+            LOG_GL_ERRORV( ::glBindTexture( GL_TEXTURE_2D, 0 ) );
+            image.width = w;
+            image.height = h;
+            image.setID(_texId);
+        }
         virtual ~xlGLTexture() {
         }
 
         virtual void UpdatePixel(int x, int y, const xlColor &c, bool copyAlpha) override {
             DrawGLUtils::UpdateTexturePixel(image.getID(), (double)x, (double)y, c, copyAlpha);
         }
+        virtual void UpdateData(uint8_t *data, bool bgr, bool alpha) override {
+            LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, image.getID() ) );
+            if (bgr && alpha) {
+                LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, GL_BGRA, GL_UNSIGNED_BYTE, data ) );
+            } else if (bgr && !alpha) {
+                LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, GL_BGR, GL_UNSIGNED_BYTE, data ) );
+            } else if (!bgr && alpha) {
+                LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, GL_RGBA, GL_UNSIGNED_BYTE, data ) );
+            } else if (!bgr && !alpha) {
+                LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, image.width, image.height, GL_RGB, GL_UNSIGNED_BYTE, data ) );
+            }
+            LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, 0 ) );
+        }
 
         Image image;
+        bool alpha = true;
     };
 
     GLGraphicsContext(xlGLCanvas *c) : xlGraphicsContext(c), canvas(c) {}
@@ -703,6 +737,9 @@ public:
     }
     virtual xlTexture *createTexture(const wxImage &image) override {
         return new xlGLTexture(image);
+    }
+    virtual xlTexture *createTexture(int w, int h, bool bgr, bool alpha) override {
+        return new xlGLTexture(w, h, bgr, alpha);
     }
     virtual xlTexture *createTextureForFont(const xlFontInfo &font) override {
         return createTexture(font.getImage());

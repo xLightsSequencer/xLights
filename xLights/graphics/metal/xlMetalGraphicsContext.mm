@@ -851,6 +851,8 @@ static void getImageBytes(const wxImage &img, uint8_t *bytes) {
     }
 }
 
+extern void VideoToolboxCopyToTexture(CIImage *image, id<MTLTexture> texture);
+
 class xlMetalTexture : public xlTexture {
 public:
     xlMetalTexture() : xlTexture(), texture(nil) {
@@ -858,6 +860,23 @@ public:
     xlMetalTexture(const wxImage &image) : xlTexture(), texture(nil) {
         LoadImage(image);
     }
+    xlMetalTexture(int w, int h, bool bgr, bool alpha) {
+        @autoreleasepool {
+            MTLPixelFormat pf = bgr? MTLPixelFormatBGRA8Unorm : MTLPixelFormatRGBA8Unorm;
+            this->alpha = alpha;
+            
+            MTLTextureDescriptor *description = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:pf
+                                                                                                   width:w
+                                                                                                  height:h
+                                                                                               mipmapped:false];
+            description.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead;
+            texture = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
+
+            textureSize = MTLSizeMake(w, h, 1);
+        }
+    }
+    
+    
     virtual ~xlMetalTexture() {
         if (texture) {
             [texture release];
@@ -873,6 +892,7 @@ public:
                                                                                                    width:w
                                                                                                   height:h
                                                                                                mipmapped:false];
+            description.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead;
             id <MTLTexture> srcTexture = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
             uint8_t *bytes = (uint8_t *)malloc(w * h * 4);
             getImageBytes(image, bytes);
@@ -889,6 +909,52 @@ public:
             free(bytes);
         }
     }
+    virtual void UpdateData(uint8_t *data, bool bgr, bool alpha) override {
+        MTLPixelFormat pf = [texture pixelFormat];
+        bool srcBGR = pf == MTLPixelFormatBGRA8Unorm;
+        uint8_t *setData = data;
+        int rlen = textureSize.width * 4;
+        if (!alpha || srcBGR != bgr) {
+            setData = new uint8_t[rlen * textureSize.height];
+            uint8_t *src = data;
+            uint8_t *dst = setData;
+            for (int x = 0; x < (rlen * textureSize.height); x += 4) {
+                dst[1] = src[1];
+                if (bgr != srcBGR) {
+                    dst[0] = src[2];
+                    dst[2] = src[0];
+                } else {
+                    dst[0] = src[0];
+                    dst[2] = src[2];
+                }
+                if (alpha) {
+                    dst[3] = src[3];
+                    src += 4;
+                } else {
+                    dst[3] = 255;
+                    src += 3;
+                }
+                dst += 4;
+            }
+        }
+        MTLRegion region = {0, 0, 0, textureSize.width, textureSize.height , 1};
+        [texture replaceRegion:region mipmapLevel:0 withBytes:setData bytesPerRow:rlen];
+        if (setData != data) {
+            delete [] setData;
+        }
+    }
+    virtual void UpdateData(void *data, const std::string &type) override {
+        if (type == "vt") {
+            @autoreleasepool {
+                CVPixelBufferRef pixbuf = (CVPixelBufferRef)data;
+                CIImage *image = [CIImage imageWithCVImageBuffer:pixbuf];
+                image = [image imageByApplyingCGOrientation: kCGImagePropertyOrientationDownMirrored];
+                VideoToolboxCopyToTexture(image, texture);
+            }
+        }
+    }
+
+
     void Finalize() override {
         // Create a private texture.
         @autoreleasepool {
@@ -957,6 +1023,7 @@ public:
 
     id<MTLTexture> texture;
     MTLSize textureSize;
+    bool alpha = true;
 };
 
 xlVertexAccumulator *xlMetalGraphicsContext::createVertexAccumulator() {
@@ -1024,6 +1091,10 @@ xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image, bool pvt,
 xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image) {
     return createTexture(image, false, "");
 }
+xlTexture *xlMetalGraphicsContext::createTexture(int w, int h, bool bgr, bool alpha) {
+    return new xlMetalTexture(w, h, bgr, alpha);
+}
+
 xlTexture *xlMetalGraphicsContext::createTextureForFont(const xlFontInfo &font) {
     std::string n = "Font-" + std::to_string(font.getSize());
     return createTexture(font.getImage(), true, n);

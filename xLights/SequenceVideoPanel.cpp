@@ -61,9 +61,13 @@ void SequenceVideoPanel::SetMediaPath(const std::string& path)
         bool isHWAccel = VideoReader::IsHardwareAcceleratedVideo();
         // if using hardware acceleration, keep it in the native BGRA format
         // to avoid some byte reordering, extra copies, etc...
-        _videoReader.reset(new VideoReader(path, 0, 0, true, true, isHWAccel, isHWAccel));
-        if (_videoReader->IsValid())
-        {
+        bool wantsHWType = false;
+#if __WXOSX__
+        wantsHWType = isHWAccel;
+#endif
+        
+        _videoReader.reset(new VideoReader(path, 0, 0, true, true, isHWAccel, isHWAccel, wantsHWType));
+        if (_videoReader->IsValid()) {
             _isValidVideo = true;
             _videoWidth = _videoReader->GetWidth();
             _videoHeight = _videoReader->GetHeight();
