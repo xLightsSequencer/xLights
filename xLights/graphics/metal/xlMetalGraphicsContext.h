@@ -86,6 +86,7 @@ public:
 
     bool isValid();
     id<CAMetalDrawable> getDrawable() { return drawable; }
+    id<MTLCommandBuffer> getCommandBuffer() { return buffer; }
 protected:
     xlMetalCanvas *canvas;
     id<MTLCommandBuffer> buffer;

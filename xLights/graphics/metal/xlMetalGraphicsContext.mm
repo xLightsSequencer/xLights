@@ -851,7 +851,7 @@ static void getImageBytes(const wxImage &img, uint8_t *bytes) {
     }
 }
 
-extern void VideoToolboxCopyToTexture(CIImage *image, id<MTLTexture> texture);
+extern void VideoToolboxCopyToTexture(CIImage *image, id<MTLTexture> texture, id<MTLCommandBuffer> cmdBuf);
 
 class xlMetalTexture : public xlTexture {
 public:
@@ -943,13 +943,17 @@ public:
             delete [] setData;
         }
     }
-    virtual void UpdateData(void *data, const std::string &type) override {
+    virtual void UpdateData(xlGraphicsContext *ctx, void *data, const std::string &type) override {
         if (type == "vt") {
             @autoreleasepool {
+                //xlMetalGraphicsContext *mctx = (xlMetalGraphicsContext*)ctx;
                 CVPixelBufferRef pixbuf = (CVPixelBufferRef)data;
                 CIImage *image = [CIImage imageWithCVImageBuffer:pixbuf];
                 image = [image imageByApplyingCGOrientation: kCGImagePropertyOrientationDownMirrored];
-                VideoToolboxCopyToTexture(image, texture);
+                
+                id<MTLCommandBuffer> buffer = [wxMetalCanvas::getMTLCommandQueue() commandBuffer];
+                VideoToolboxCopyToTexture(image, texture, buffer);
+                [buffer commit];
             }
         }
     }

@@ -75,7 +75,7 @@ void SequenceVideoPreview::Render( AVFrame *frame )
     } else if (frame->format == AV_PIX_FMT_RGB24) {
         _texture->UpdateData(frame->data[0] , false, false);
     } else if (frame->format == AV_PIX_FMT_VIDEOTOOLBOX) {
-        _texture->UpdateData(frame->data[3], "vt");
+        _texture->UpdateData(ctx, frame->data[3], "vt");
     }
 #ifndef  __WXMSW__
     else if (frame->format == AV_PIX_FMT_BGR24) {

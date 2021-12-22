@@ -62,7 +62,7 @@ void SequenceVideoPanel::SetMediaPath(const std::string& path)
         // if using hardware acceleration, keep it in the native BGRA format
         // to avoid some byte reordering, extra copies, etc...
         bool wantsHWType = false;
-#if __WXOSX__
+#ifdef XL_DRAWING_WITH_METAL
         wantsHWType = isHWAccel;
 #endif
         
@@ -78,20 +78,20 @@ void SequenceVideoPanel::SetMediaPath(const std::string& path)
 
 void SequenceVideoPanel::UpdateVideo( int ms )
 {
-   if ( !_isValidVideo || !IsShownOnScreen() )
-      return;
+    if ( !_isValidVideo || !IsShownOnScreen() )
+        return;
 
-   int clampedTime = std::min( ms, _videoLength );
+    int clampedTime = std::min( ms, _videoLength );
 
-   AVFrame *frame = _videoReader->GetNextFrame( clampedTime );
-   if ( frame != nullptr )
-   _videoPreview->Render( frame );
+    AVFrame *frame = _videoReader->GetNextFrame( clampedTime );
+    if ( frame != nullptr ) {
+        _videoPreview->Render( frame );
+    }
 }
 
 void SequenceVideoPanel::Resized( wxSizeEvent& evt )
 {
-   if ( _videoPreview )
-   {
+   if ( _videoPreview ) {
       _videoPreview->Move( 0, 0 );
       _videoPreview->SetSize( evt.GetSize() );
    }

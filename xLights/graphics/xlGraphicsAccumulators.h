@@ -203,7 +203,7 @@ public:
     virtual void UpdateData(uint8_t *data, bool bgr, bool alpha) = 0;
     
     //platform specific data, possibly something like VideoToolbox or similar
-    virtual void UpdateData(void *data, const std::string &type) {}
+    virtual void UpdateData(xlGraphicsContext *ctx, void *data, const std::string &type) {}
     
 protected:
     std::string name;
