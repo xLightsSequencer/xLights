@@ -113,7 +113,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         bool force = false;
         bool prompt = false;
         
-        if (params["_METHOD"] == "POST") {
+        if (params["_METHOD"] == "POST" && !params["_DATA"].empty()) {
             wxString fname = params["_DATA"];
             wxJSONValue val;
             wxJSONReader reader;
@@ -601,6 +601,19 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
     } else if (cmd == "e131Tag" || cmd == "getE131Tag") {
         return sendResponse(E131Output::GetTag(), "tag", 200, false);
+    } else if (cmd == "addEthernetController") {
+        auto c = new ControllerEthernet(&_outputManager);
+        //c->SetProtocol(params["protocol"]);
+        c->SetIP(params["ip"]);
+        c->SetId(1);
+        c->EnsureUniqueId();
+        c->SetName(params["name"]);
+        _outputManager.AddController(c);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Automation:ADDETHERNET");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "Automation:ADDETHERNET");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Automation:ADDETHERNET", nullptr, c);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Automation:ADDETHERNET");
+        return sendResponse("Added Ethernet Controller", "msg", 200, false);
     }
 
     return false;

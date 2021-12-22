@@ -133,6 +133,9 @@
     <ClCompile Include="..\xLights\ExportSettings.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
+    <ClCompile Include="..\xLights\automation\automation.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
@@ -274,6 +277,9 @@
     <ClInclude Include="MAC.h" />
     <ClInclude Include="ScanWork.h" />
     <ClInclude Include="..\xLights\ExportSettings.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\automation\automation.h">
       <Filter>xLights</Filter>
     </ClInclude>
   </ItemGroup>

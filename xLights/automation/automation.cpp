@@ -108,6 +108,9 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
     }
 
     for (uint8_t i = 0; i < 9; i++) {
+        if (i >= parameters.size()) {
+            break;
+        }
         command.Replace(wxString::Format("%%P%d", i + 1), parameters[i], true);
     }
 

@@ -183,6 +183,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\xLights\automation\automation.cpp" />
     <ClCompile Include="..\xLights\controllers\BaseController.cpp" />
     <ClCompile Include="..\xLights\controllers\ControllerCaps.cpp" />
     <ClCompile Include="..\xLights\controllers\Falcon.cpp" />
@@ -233,6 +234,7 @@
     <ClCompile Include="xScannerMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\xLights\automation\automation.h" />
     <ClInclude Include="..\xLights\controllers\BaseController.h" />
     <ClInclude Include="..\xLights\controllers\ControllerCaps.h" />
     <ClInclude Include="..\xLights\controllers\Falcon.h" />
