@@ -994,10 +994,15 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
                 if (selected_timing == "Metronome")
                 {
                     int base_timing = xml_file->GetFrameMS();
-                    wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
+                    wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, 1, 60000);
                     if (dlg.ShowModal() == wxID_OK)
                     {
                         int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
+
+                        if ( ms < base_timing )
+                        {
+                            ms = base_timing;
+                        }
 
                         if (ms != dlg.GetValue())
                         {

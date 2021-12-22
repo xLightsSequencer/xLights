@@ -41,7 +41,7 @@ CustomTimingDialog::CustomTimingDialog(wxWindow* parent,wxWindowID id,const wxPo
 	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Frame interval (msec):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_Interval = new wxSpinCtrl(this, ID_SPINCTRL_Interval, _T("33"), wxDefaultPosition, wxDefaultSize, 0, 15, 1000, 33, _T("ID_SPINCTRL_Interval"));
+	SpinCtrl_Interval = new wxSpinCtrl(this, ID_SPINCTRL_Interval, _T("33"), wxDefaultPosition, wxDefaultSize, 0, 1, 1000, 33, _T("ID_SPINCTRL_Interval"));
 	SpinCtrl_Interval->SetValue(_T("33"));
 	FlexGridSizer1->Add(SpinCtrl_Interval, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_FPS = new wxTextCtrl(this, ID_TEXTCTRL_FPS, _("33.30 fps"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_FPS"));
@@ -95,6 +95,11 @@ void CustomTimingDialog::UpdateFPS()
     if( init )
     {
         int spin_value = SpinCtrl_Interval->GetValue();
+        if ( spin_value < 15 )
+        {
+            spin_value = 15;
+            SpinCtrl_Interval->SetValue(spin_value);
+        }
         TextCtrl_FPS->SetValue(wxString::Format("%.2f fps", 1000.0 / spin_value));
     }
 }
