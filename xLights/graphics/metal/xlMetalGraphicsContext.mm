@@ -27,6 +27,11 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
 
     if (localTarget != nil) {
         buffer = [c->getMTLCommandQueue() commandBuffer];
+        
+        std::string n2 = c->getName() + " CommandBuffer";
+        NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+        [buffer setLabel:n];
+        
         MTLRenderPassDescriptor *renderPass = [[MTLRenderPassDescriptor alloc] init];
 
         renderPass.colorAttachments[0].texture = localTarget;
@@ -59,6 +64,9 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
         }
         
         encoder = [buffer renderCommandEncoderWithDescriptor:renderPass];
+        n2 = c->getName() + " Encoder";
+        n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+        [encoder setLabel:n];
         
         if (c->RequiresDepthBuffer()) {
             [encoder setDepthStencilState:c->getDepthStencilState()];
@@ -995,9 +1003,7 @@ public:
                 size.width /= 2;
                 size.height /= 2;
             }
-            if (@available(macOS 10.14, *)) {
-                [blitCommandEncoder optimizeContentsForGPUAccess:privateTexture];
-            }
+            [blitCommandEncoder optimizeContentsForGPUAccess:privateTexture];
             [blitCommandEncoder endEncoding];
             [bltBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb) {
                 // Private texture is populated, we can release the srcBuffer

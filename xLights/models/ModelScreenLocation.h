@@ -121,7 +121,7 @@ protected:
     virtual void DeleteHandle(int handle) = 0;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) = 0;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) = 0;
-    void UpdateBoundingBox(float width, float height, float depth);
+    virtual void UpdateBoundingBox(float width, float height, float depth);
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
     virtual void AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor = 1.0) const = 0;
@@ -314,6 +314,7 @@ public:
     virtual void DeleteHandle(int handle) override {}
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
+    virtual void UpdateBoundingBox(float width, float height, float depth) override;
 
     virtual std::string GetDimension(float factor = 1.0) const override;
     virtual void AddDimensionProperties(wxPropertyGridInterface* grid, float factor = 1.0) const override;

@@ -117,7 +117,7 @@ void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
     screenLocation.PrepareToDraw(is_3d, allowSelected);
-    screenLocation.UpdateBoundingBox(Nodes);
+    screenLocation.UpdateBoundingBox(1, 1, 1);
     
     // determine if shutter is open for floods that support it
     bool shutter_open = allowSelected || IsShutterOpen(Nodes);

@@ -24,17 +24,9 @@ class DmxGeneral : public DmxModel, public DmxColorAbility
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-        virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
-                                          xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
-                                          const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
-                                          bool highlightFirst = false, int highlightpixel = 0,
-                                          float *boundingBox = nullptr) override;
-        virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
-
     
     protected:
         virtual void InitModel() override;
-        virtual void DrawModel(xlVertexColorAccumulator *vac, const xlColor *c, bool allowSelected);
 
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;

@@ -45,6 +45,8 @@ class xlGLCanvas
             return _ver;
         }
 
+        const std::string &getName() const { return _name; }
+    
         int getWidth() const { return mWindowWidth; }
         int getHeight() const { return mWindowHeight; }
 
@@ -98,7 +100,7 @@ class xlGLCanvas
         bool is3d = false;
     private:
         int _ver = 0;
-        wxString _name;
+        std::string _name;
         wxGLContext* m_context = nullptr;
         bool m_coreProfile = false;
         int  m_zDepth = 0;

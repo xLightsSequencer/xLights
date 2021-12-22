@@ -51,7 +51,7 @@ public:
             msaaDesc.textureType = MTLTextureType2DMultisample;
             msaaDesc.sampleCount = canvas->getMSAASampleCount();
             msaaTexture = [canvas->getMTLDevice() newTextureWithDescriptor:msaaDesc];
-            std::string n = canvas->GetName() + "-MSAATexture";
+            std::string n = canvas->getName() + "-MSAATexture";
             NSString *ns = [NSString stringWithCString:n.c_str() encoding:[NSString defaultCStringEncoding]];
             [msaaTexture setLabel:ns];
         }
@@ -93,7 +93,7 @@ public:
             depthBufferDescriptor.textureType = MTLTextureType2DMultisample;
             depthBufferDescriptor.sampleCount = canvas->getMSAASampleCount();
             depthTexture = [canvas->getMTLDevice() newTextureWithDescriptor:depthBufferDescriptor];
-            std::string n = canvas->GetName() + "-DepthBuffer";
+            std::string n = canvas->getName() + "-DepthBuffer";
             NSString *ns = [NSString stringWithCString:n.c_str() encoding:[NSString defaultCStringEncoding]];
             [depthTexture setLabel:ns];
         }

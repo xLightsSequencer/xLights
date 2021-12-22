@@ -4700,20 +4700,22 @@ wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y, ModelPrevi
 
 void Model::ApplyTransparency(xlColor& color, int transparency, int blackTransparency)
 {
+    int colorAlpha = 255;
     if (color == xlBLACK) {
-        float t = 100.0f - blackTransparency;
-        t *= 2.55f;
-        int i = std::floor(t);
-        color.alpha = i > 255 ? 255 : (i < 0 ? 0 : i);
-    } else {
+        if (blackTransparency) {
+            float t = 100.0f - blackTransparency;
+            t *= 2.55f;
+            int i = std::floor(t);
+            colorAlpha = i > 255 ? 255 : (i < 0 ? 0 : i);
+        }
+    } else if (transparency || blackTransparency){
         int maxCol = std::max(color.red, std::max(color.green, color.blue));
-        int colorAlpha = 255;
         if (transparency) {
             float t = 100.0f - transparency;
             t *= 2.55f;
             colorAlpha = std::floor(t);
         }
-        if (maxCol < 64) {
+        if (maxCol < 64 && blackTransparency) {
             //if we're getting close to black, we'll start migrating toward the black's transparency setting
             float t = 100.0f - blackTransparency;
             t *= 2.55f;
@@ -4722,8 +4724,8 @@ void Model::ApplyTransparency(xlColor& color, int transparency, int blackTranspa
             t /= 64;
             colorAlpha = std::floor(t);
         }
-        color.alpha = colorAlpha;
     }
+    color.alpha = colorAlpha;
 }
 
 void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d,
@@ -4744,7 +4746,6 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
 
     ModelScreenLocation& screenLocation = GetModelScreenLocation();
     screenLocation.PrepareToDraw(is_3d, allowSelected);
-    screenLocation.UpdateBoundingBox(Nodes);
     
     const std::string &cacheKey = is_3d ? MODEL_PREVIEW_CACHE_3D : MODEL_PREVIEW_CACHE_2D;
     if (uiObjectsInvalid) {
@@ -4755,6 +4756,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
     // nothing in the cache is dependent on preview size/rotation/etc..., the cached program is
     // size indepentent and thus can be re-used
     if (cache == nullptr) {
+        screenLocation.UpdateBoundingBox(Nodes);
         cache = new PreviewGraphicsCacheInfo();
         uiCaches[cacheKey] = cache;
         created = true;

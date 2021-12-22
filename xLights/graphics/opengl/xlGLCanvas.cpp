@@ -147,7 +147,7 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint& pos,
     m_context(nullptr),
     cache(nullptr),
     m_coreProfile(true),
-    _name(name),
+    _name(name.ToStdString()),
     m_zDepth(only2d ? 0 : tempZDepth),
     is3d(!only2d)
 {
@@ -226,7 +226,7 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent,
     m_context(nullptr),
     cache(nullptr),
     m_coreProfile(true),
-    _name(name),
+    _name(name.ToStdString()),
     m_zDepth(0)
 {
     log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));

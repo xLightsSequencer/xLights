@@ -595,7 +595,7 @@ void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ct
     if (!IsActive()) return;
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
-    screenLocation.UpdateBoundingBox(Nodes);    
+    screenLocation.UpdateBoundingBox(1, 1, 1);
     
     sprogram->addStep([=](xlGraphicsContext *ctx) {
         ctx->PushMatrix();
@@ -767,7 +767,6 @@ void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
         jaw_mesh->SetRenderScaling(scale);
         eye_l_mesh->SetRenderScaling(scale);
         eye_r_mesh->SetRenderScaling(scale);
-        GetBaseObjectScreenLocation().UpdateBoundingBox(head_mesh->GetWidth(), head_mesh->GetHeight(), head_mesh->GetDepth());  // FIXME: Modify to only call this when position changes
         eye_l_mesh->SetOffsetX(-1.0f * scale);
         eye_l_mesh->SetOffsetY(4.5f * scale);
         eye_l_mesh->SetOffsetZ(3.2f * scale);

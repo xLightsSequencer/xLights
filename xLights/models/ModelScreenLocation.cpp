@@ -1236,6 +1236,9 @@ void BoxedScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> 
         }
     }
 }
+void BoxedScreenLocation::UpdateBoundingBox(float width, float height, float depth) {
+    ModelScreenLocation::UpdateBoundingBox(width, height, depth);
+}
 
 void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     centerx = worldPos_x;

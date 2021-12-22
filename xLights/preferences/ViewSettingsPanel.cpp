@@ -22,6 +22,7 @@
 
 #include <wx/preferences.h>
 #include "../xLightsMain.h"
+#include "../graphics/xlGraphicsBase.h"
 
 
 //(*IdInit(ViewSettingsPanel)
@@ -114,6 +115,10 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnPlayControlsCheckBoxClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnHousePreviewCheckBoxClick);
 	//*)
+    
+#ifdef XL_DRAWING_WITH_METAL
+    StaticBoxSizer1->Show(false);
+#endif
 }
 
 ViewSettingsPanel::~ViewSettingsPanel()

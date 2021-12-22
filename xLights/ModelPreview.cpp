@@ -778,9 +778,12 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
         EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
         Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
     }
-
+#ifdef XL_DRAWING_WITH_METAL
+    renderOrder = 0;
+#else
     wxConfigBase* config = wxConfigBase::Get();
     config->Read("OGLRenderOrder", &renderOrder, 0);
+#endif
     is3d = false;
 }
 
@@ -803,8 +806,12 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
     Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
 
+#ifdef XL_DRAWING_WITH_METAL
+    renderOrder = 0;
+#else
     wxConfigBase* config = wxConfigBase::Get();
     config->Read("OGLRenderOrder", &renderOrder, 0);
+#endif
     is3d = false;
 }
 
@@ -1016,7 +1023,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
     mWindowResized = false;
 
     currentContext->enableBlending();
-    currentContext->pushDebugContext(GetName() + " - Prepare");
+    currentContext->pushDebugContext(getName() + " - Prepare");
     solidProgram = currentContext->createGraphicsProgram();
     transparentProgram = currentContext->createGraphicsProgram();
 
@@ -1135,7 +1142,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
 void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
 {
     currentContext->popDebugContext();
-    currentContext->pushDebugContext(GetName() + " - Draw");
+    currentContext->pushDebugContext(getName() + " - Draw");
     if (is3d) {
         switch (renderOrder) {
             // 0 or 1 is preferred depending if you want floods shining ONTO glass windows (0) or through (1)
