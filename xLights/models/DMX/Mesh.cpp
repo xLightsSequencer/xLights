@@ -26,7 +26,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-#include "tiny_obj_loader.h"
+#include "../../graphics/tiny_obj_loader.h"
 #include "../../graphics/xlMesh.h"
 #include "../../graphics/xlGraphicsContext.h"
 

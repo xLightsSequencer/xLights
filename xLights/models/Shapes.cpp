@@ -15,6 +15,7 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/mat3x3.hpp>
 #include <glm/gtx/rotate_vector.hpp>
+#include <wx/math.h>
 
 BezierCurve::BezierCurve()
 : steps(25), old_steps(-1), width(1), height(1), num_points(0), ren_width(1.0f), matrix_valid(false)

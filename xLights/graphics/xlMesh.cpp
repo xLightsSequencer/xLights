@@ -4,6 +4,7 @@
 #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "xlMesh.h"
 
+#include <algorithm>
 #include <log4cpp/Category.hh>
 #include <wx/filename.h>
 
