@@ -547,6 +547,9 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
         for (int x = 0; x < 6; x++) {
             ports.Add("ttyUSB" + std::to_string(x));
         }
+        for (int x = 0; x < 6; x++) {
+            ports.Add("ttyACM" + std::to_string(x));
+        }
         ports.Add("ttyAMA0");
         /*
          FIXME - coming soon
