@@ -151,6 +151,7 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts() {
     res.push_back("/dev/ttyACM2");
     res.push_back("/dev/ttyACM3");
     res.push_back("/dev/ttyACM4");
+    res.push_back("/dev/ttyACM5");
 #endif
 
     return res;
