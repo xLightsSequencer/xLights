@@ -1397,6 +1397,8 @@ protected:
     void StopNow();
     bool ShowFolderIsInBackup(const std::string showdir);
     bool ShowFolderIsInProgramFiles(const std::string showdir);
+    std::string PackageSequence(bool showDialogs = true);
+    std::string PackageDebugFiles(bool showDialogs = true);
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;

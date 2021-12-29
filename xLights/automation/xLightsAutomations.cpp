@@ -608,13 +608,39 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         c->SetId(1);
         c->EnsureUniqueId();
         c->SetName(params["name"]);
+        auto const vendors = ControllerCaps::GetVendors(c->GetType());
+        if (std::find(vendors.begin(), vendors.end(), params["vendor"]) != vendors.end()) {
+            c->SetVendor(params["vendor"]);
+            auto models = ControllerCaps::GetModels(c->GetType(), params["vendor"]);
+            if (std::find(models.begin(), models.end(), params["model"]) != models.end()) {
+                c->SetModel(params["model"]);
+                auto variants = ControllerCaps::GetVariants(c->GetType(), params["vendor"], params["model"]);
+                if (std::find(variants.begin(), variants.end(), params["variant"]) != variants.end()) {
+                    c->SetVariant(params["variant"]);
+                }
+            }
+        }
+        
         _outputManager.AddController(c);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Automation:ADDETHERNET");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "Automation:ADDETHERNET");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Automation:ADDETHERNET", nullptr, c);
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Automation:ADDETHERNET");
         return sendResponse("Added Ethernet Controller", "msg", 200, false);
+    
+    } else if (cmd == "packageSequence") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        auto const filename = PackageSequence(false);
+        std::string response = wxString::Format("{\"msg\":\"Sequence Packaged.\",\"output\":\"%s\"}", JSONSafe(filename));
+        return sendResponse(response, "", 200, true);
+    } else if (cmd == "packageLogFiles") {
+        auto const filename = PackageDebugFiles(false);
+        std::string response = wxString::Format("{\"msg\":\"Log Files Packaged.\",\"output\":\"%s\"}", JSONSafe(filename));
+        return sendResponse(response, "", 200, true);
     }
+
 
     return false;
 }
@@ -878,14 +904,6 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
                 // TODO
             } else if (cmd == "hinksPixExport") {
                 return "{\"res\":504,\"msg\":\"Not implemented.\"}";
-                // TODO
-            } else if (cmd == "packageLogFiles") {
-                return "{\"res\":504,\"msg\":\"Not implemented.\"}";
-                // MEDIUM PRIORITY
-                // TODO
-            } else if (cmd == "packageSequence") {
-                return "{\"res\":504,\"msg\":\"Not implemented.\"}";
-                // MEDIUM PRIORITY
                 // TODO
             } else if (cmd == "purgeDownloadCache") {
                 return "{\"res\":504,\"msg\":\"Not implemented.\"}";
