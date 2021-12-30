@@ -55,6 +55,7 @@ protected:
     bool _autoSize = true;                    // controller flexes the number of outputs to meet the needs of xLights
     bool _fullxLightsControl = true;          // when true on upload xLights wipes all other config
     int _defaultBrightnessUnderFullControl = 100; // brightness to use when controllers dont have anything on a port
+    float _defaultGammaUnderFullControl = 1.0F; // Gamma to use when controllers dont have anything on a port
     std::list<Output*> _outputs;               // the outputs on the controller
     ACTIVESTATE _active = ACTIVESTATE::ACTIVE; // output to controller is active
 
@@ -125,6 +126,9 @@ public:
 
     void SetDefaultBrightnessUnderFullControl(int brightness) { if (_defaultBrightnessUnderFullControl != brightness) { _defaultBrightnessUnderFullControl = brightness; _dirty = true; } }
     int GetDefaultBrightnessUnderFullControl() const { return _defaultBrightnessUnderFullControl; }
+
+    void SetDefaultGammaUnderFullControl(float Gamma) { if (_defaultGammaUnderFullControl != Gamma) { _defaultGammaUnderFullControl = Gamma; _dirty = true; } }
+    float GetDefaultGammaUnderFullControl() const { return _defaultGammaUnderFullControl; }
 
     bool IsEnabled() const { return std::any_of(begin(_outputs), end(_outputs), [](Output* o) { return o->IsEnabled(); }); }
     void Enable(bool enable) { for (auto& it : _outputs) { it->Enable(enable); } }

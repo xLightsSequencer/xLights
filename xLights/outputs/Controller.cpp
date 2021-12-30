@@ -497,6 +497,12 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
             p->SetAttribute("Max", 100);
             p->SetEditor("SpinCtrl");
             p->SetHelpString("This option will set the brightness of all ports to this value unless specifically overriden by a model.");
+
+            p = propertyGrid->Append(new wxFloatProperty("Default Port Gamma", "DefaultGammaUnderFullxLightsControl", GetDefaultGammaUnderFullControl()));
+            p->SetAttribute("Min", 0.1F);
+            p->SetAttribute("Max", 5.0F);
+            p->SetEditor("SpinCtrlDouble");
+            p->SetHelpString("This option will set the Gamma of all ports to this value unless specifically overriden by a model.");
         }
     }
 
@@ -632,6 +638,11 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
     else if (name == "DefaultBrightnessUnderFullxLightsControl") {
         SetDefaultBrightnessUnderFullControl(event.GetValue().GetLong());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::DefaultBrightnessUnderFullxLightsControl");
+        return true;
+    }
+    else if (name == "DefaultGammaUnderFullxLightsControl") {
+        SetDefaultGammaUnderFullControl(event.GetValue().GetDouble());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::DefaultGammaUnderFullxLightsControl");
         return true;
     }
     else if (name == "Vendor") {
