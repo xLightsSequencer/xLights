@@ -107,7 +107,7 @@ void RulerObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, 
         GetObjectScreenLocation().DrawHandles(va3, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), false);
         // THis is dodgy. The UpdateBoundingBox call actually creates a box which does not really encompass the line
         // so i cheat and draw one that does here ... but that is not how it behaves. Need some help from Gil here.
-        static_cast<TwoPointScreenLocation>(screenLocation).DrawBoundingBox(tva3);
+        static_cast<TwoPointScreenLocation>(screenLocation).DodgyDrawBoundingBox(tva3);
     }
 }
 
@@ -130,6 +130,13 @@ float RulerObject::Measure(float length)
 {
     if (__rulerObject == nullptr) return 0.0;
     return length * __rulerObject->GetPerUnit();
+}
+
+float RulerObject::UnMeasure(float length)
+{
+    if (__rulerObject == nullptr)
+        return 0.0;
+    return length / __rulerObject->GetPerUnit();
 }
 
 float RulerObject::Measure(glm::vec3 p1, glm::vec3 p2)

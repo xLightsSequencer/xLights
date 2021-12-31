@@ -27,22 +27,6 @@
 #define END_HANDLE             2
 #define SHEAR_HANDLE           3
 
-#define X_AXIS 0
-#define Y_AXIS 1
-#define Z_AXIS 2
-
-#define TOOL_TRANSLATE 0
-#define TOOL_SCALE     1
-#define TOOL_ROTATE    2
-#define TOOL_XY_TRANS  3
-#define NUM_TOOLS      4
-#define TOOL_ELEVATE   5  // special tool so don't include in normal tool rotation
-
-#define UPGRADE_NOT_NEEDED 0
-#define UPGRADE_SKIPPED    1
-#define UPGRADE_EXEC_DONE  2
-#define UPGRADE_EXEC_READ  3
-
 // Lower 20 bits reserved to store handle positions and these
 // constants are modifiers to indicate special handles
 #define HANDLE_MASK    0x00FFFFF
@@ -80,11 +64,35 @@ protected:
     float GetAxisHeadLength(float zoom, int scale) const;
     float GetAxisRadius(float zoom, int scale) const;
     float GetRectHandleWidth(float zoom, int scale) const;
-
     public:
-    virtual void Read(wxXmlNode *node) = 0;
+
+    enum class MSLAXIS {
+        X_AXIS,
+        Y_AXIS,
+        Z_AXIS,
+        NO_AXIS
+    };
+
+    enum class MSLTOOL {
+        TOOL_TRANSLATE,
+        TOOL_SCALE,
+        TOOL_ROTATE,
+        TOOL_XY_TRANS,
+        TOOL_ELEVATE,
+        TOOL_NONE
+    };
+
+    enum class MSLUPGRADE {
+        MSLUPGRADE_NOT_NEEDED,
+        MSLUPGRADE_SKIPPED,
+        MSLUPGRADE_EXEC_DONE,
+        MSLUPGRADE_EXEC_READ
+    };
+
+    MSLAXIS NextAxis(MSLAXIS axis);
+    virtual void Read(wxXmlNode* node) = 0;
     virtual void Write(wxXmlNode *node) = 0;
-    virtual int CheckUpgrade(wxXmlNode *node) = 0;
+    virtual MSLUPGRADE CheckUpgrade(wxXmlNode *node) = 0;
     void Reload() { rotation_init = true; }
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const = 0;
@@ -102,7 +110,7 @@ protected:
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) = 0;
     virtual void MouseDown(bool value) { mouse_down = value; }
 
-    virtual bool Rotate(int axis, float factor) = 0;
+    virtual bool Rotate(MSLAXIS axis, float factor) = 0;
     virtual bool Scale(const glm::vec3& factor) = 0;
 
     virtual void SelectHandle(int handle) = 0;
@@ -173,8 +181,11 @@ protected:
     float GetRenderHt() const { return RenderHt; }
     float GetRenderWi() const { return RenderWi; }
     float GetRenderDp() const { return RenderDp; }
-    float RenderHt, RenderWi, RenderDp;  // size of the rendered output
-    int previewW, previewH;
+    float RenderHt = 0.0f;
+    float RenderWi = 0.0f;
+    float RenderDp = 0.0f; // size of the rendered output
+    int previewW = -1;
+    int previewH = -1;
 
     struct xlPoint {
         float x;
@@ -186,16 +197,30 @@ protected:
     void SetDefaultMatrices() const;  // for models that draw themselves
     virtual void SetActiveHandle(int handle);
     int GetActiveHandle() const { return active_handle; }
-    virtual void SetActiveAxis(int axis);
-    int GetActiveAxis() const { return active_axis; }
-    virtual void AdvanceAxisTool() { axis_tool += 1; axis_tool %= (NUM_TOOLS-1); }
-    virtual void SetAxisTool(int mode) { axis_tool = mode; }
-    int GetAxisTool() const { return axis_tool; }
+    virtual void SetActiveAxis(MSLAXIS axis);
+    MSLAXIS GetActiveAxis() const { return active_axis; }
+    virtual void AdvanceAxisTool()
+    {
+        switch (axis_tool) {
+        case MSLTOOL::TOOL_TRANSLATE:
+            axis_tool = MSLTOOL::TOOL_SCALE;
+            break;
+        case MSLTOOL::TOOL_SCALE:
+            axis_tool = MSLTOOL::TOOL_ROTATE;
+            break;
+        case MSLTOOL::TOOL_ROTATE:
+        default:
+            axis_tool = MSLTOOL::TOOL_TRANSLATE;
+            break;
+        }
+    }
+    virtual void SetAxisTool(MSLTOOL mode) { axis_tool = mode; }
+    MSLTOOL GetAxisTool() const { return axis_tool; }
     bool DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch);
     void DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const;
     void TranslateVector(glm::vec3& point) const;
     virtual int GetDefaultHandle() const { return CENTER_HANDLE; }
-    virtual int GetDefaultTool() const { return TOOL_TRANSLATE; }
+    virtual MSLTOOL GetDefaultTool() const { return MSLTOOL::TOOL_TRANSLATE; }
     virtual void MouseOverHandle(int handle);
     int GetNumSelectableHandles() const { return mSelectableHandles; }
     virtual bool IsXYTransHandle() const { return false; }
@@ -227,48 +252,48 @@ protected:
     virtual ~ModelScreenLocation() {};
     virtual wxCursor CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const;
 
-    mutable float worldPos_x;
-    mutable float worldPos_y;
-    mutable float worldPos_z;
-    mutable float scalex;
-    mutable float scaley;
-    mutable float scalez;
-    float rotatex;
-    float rotatey;
-    float rotatez;
+    mutable float worldPos_x = 0.0f;
+    mutable float worldPos_y = 0.0f;
+    mutable float worldPos_z = 0.0f;
+    mutable float scalex = 1.0f;
+    mutable float scaley = 1.0f;
+    mutable float scalez = 1.0f;
+    float rotatex = 0.0f;
+    float rotatey = 0.0f;
+    float rotatez = 0.0f;
     mutable glm::mat4 ModelMatrix;
     mutable glm::mat4 TranslateMatrix;
     mutable glm::quat rotate_quat;
-    mutable glm::vec3 aabb_min;
-    mutable glm::vec3 aabb_max;
+    mutable glm::vec3 aabb_min = glm::vec3(0.0f);
+    mutable glm::vec3 aabb_max = glm::vec3(0.0f);
 
     // used for handle movement
-    glm::vec3 saved_intersect;
-    glm::vec3 saved_position;
-    glm::vec3 saved_size;
-    glm::vec3 saved_scale;
-    glm::vec3 saved_rotate;
-    glm::vec3 drag_delta;
-    glm::vec3 angles;
+    glm::vec3 saved_intersect = glm::vec3(0.0f);
+    glm::vec3 saved_position = glm::vec3(0.0f);
+    glm::vec3 saved_size = glm::vec3(0.0f);
+    glm::vec3 saved_scale = glm::vec3(1.0f);
+    glm::vec3 saved_rotate = glm::vec3(0.0);
+    glm::vec3 drag_delta = glm::vec3(0.0);
+    glm::vec3 angles = glm::vec3(0.0);
 
-    mutable bool draw_3d;
+    mutable bool draw_3d = false;
 
     mutable std::vector<glm::vec3> handle_aabb_min;
     mutable std::vector<glm::vec3> handle_aabb_max;
     mutable std::vector<xlPoint> mHandlePosition;
-    mutable glm::vec3 active_handle_pos;
-    int mSelectableHandles;
-    bool _locked;
-    int active_handle;
-    int highlighted_handle;
-    int active_axis;
-    int axis_tool;
-    int tool_size;
-    bool supportsZScaling;
-    bool createWithDepth;
-    bool _startOnXAxis;
-    bool rotation_init;
-    bool mouse_down;
+    mutable glm::vec3 active_handle_pos = glm::vec3(0.0f);
+    int mSelectableHandles = 0;
+    bool _locked = false;
+    int active_handle = -1;
+    int highlighted_handle = -1;
+    MSLAXIS active_axis = MSLAXIS::NO_AXIS;
+    MSLTOOL axis_tool = MSLTOOL::TOOL_TRANSLATE;
+    int tool_size = 1;
+    bool supportsZScaling = false;
+    bool createWithDepth =  false;
+    bool _startOnXAxis = false;
+    bool rotation_init = true;
+    bool mouse_down = false;
 };
 
 //Default location that uses a bounding box - 4 corners and a rotate handle
@@ -279,7 +304,7 @@ public:
 
     virtual void Read(wxXmlNode *node) override;
     virtual void Write(wxXmlNode *node) override;
-    virtual int CheckUpgrade(wxXmlNode *node) override;
+    virtual MSLUPGRADE CheckUpgrade(wxXmlNode *node) override;
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
@@ -291,7 +316,7 @@ public:
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale, bool drawBounding = true) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
-    virtual bool Rotate(int axis, float factor) override;
+    virtual bool Rotate(MSLAXIS axis, float factor) override;
     virtual bool Scale(const glm::vec3& factor) override;
 
     virtual void SelectHandle(int handle) override {}
@@ -383,7 +408,7 @@ public:
     float GetScaleY() { return scaley; }
 
     virtual int GetDefaultHandle() const override { return CENTER_HANDLE; }
-    virtual int GetDefaultTool() const override { return TOOL_SCALE; }
+    virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_SCALE; }
     float GetCentreX() const { return centerx; }
     float GetCentreY() const { return centery; }
     float GetCentreZ() const { return centerz; }
@@ -408,7 +433,7 @@ public:
 
     virtual void Read(wxXmlNode *node) override;
     virtual void Write(wxXmlNode *node) override;
-    virtual int CheckUpgrade(wxXmlNode *node) override;
+    virtual MSLUPGRADE CheckUpgrade(wxXmlNode *node) override;
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
@@ -420,7 +445,7 @@ public:
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale, bool drawBounding = true) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
-    virtual bool Rotate(int axis, float factor) override;
+    virtual bool Rotate(MSLAXIS axis, float factor) override;
     virtual bool Scale(const glm::vec3& factor) override;
     virtual void SelectHandle(int handle) override {}
     virtual int GetSelectedHandle() const override {return -1;}
@@ -469,35 +494,36 @@ public:
     virtual float GetMDepth() const override;
     virtual void SetMDepth(float d) override;
     virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle) override;
-    void DrawBoundingBox(DrawGLUtils::xl3Accumulator& va) const;
+    void DodgyDrawBoundingBox(DrawGLUtils::xl3Accumulator& va) const;
     void UpdateBoundingBox();
 
     virtual float GetYShear() const {return 0.0;}
 
     virtual int GetDefaultHandle() const override { return END_HANDLE; }
-    virtual int GetDefaultTool() const override { return TOOL_TRANSLATE; }
+    virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_TRANSLATE; }
 
     virtual void SetActiveHandle(int handle) override;
     virtual void AdvanceAxisTool() override;
-    virtual void SetAxisTool(int mode) override;
+    virtual void SetAxisTool(MSLTOOL mode) override;
 
     glm::vec3 GetPoint1() const { return origin; }
     glm::vec3 GetPoint2() const { return point2; }
 
 protected:
-    float x2, y2, z2;
+    float x2 = 0.0f;
+    float y2 = 0.0f;
+    float z2 = 0.0f;
     mutable glm::vec3 origin;
-    mutable glm::vec3 point2;
+    mutable glm::vec3 point2 = glm::vec3(0.0f);
     mutable glm::vec3 saved_point;
-    mutable glm::vec3 center;
-    mutable float length;
-    float saved_angle;
-    bool minMaxSet;
+    mutable glm::vec3 center = glm::vec3(0.0f);
+    mutable float length = 0;
+    float saved_angle = 0.0f;
+    bool minMaxSet = false;
 
-    wxXmlNode *old;
+    wxXmlNode *old = nullptr;
     mutable glm::mat4 matrix;
 };
-
 
 class ThreePointScreenLocation : public TwoPointScreenLocation {
 public:
@@ -551,22 +577,22 @@ public:
     }
 
     virtual int GetDefaultHandle() const override { return END_HANDLE; }
-    virtual int GetDefaultTool() const override { return TOOL_TRANSLATE; }
+    virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_TRANSLATE; }
 
     virtual void SetActiveHandle(int handle) override;
     virtual void AdvanceAxisTool() override;
-    virtual void SetAxisTool(int mode) override;
-    virtual void SetActiveAxis(int axis) override;
+    virtual void SetAxisTool(MSLTOOL mode) override;
+    virtual void SetActiveAxis(MSLAXIS axis) override;
     virtual bool IsXYTransHandle() const override { return active_handle == SHEAR_HANDLE; }
 
 private:
-    bool modelHandlesHeight;
-    bool supportsAngle;
-    bool supportsShear;
+    bool modelHandlesHeight = false;
+    bool supportsAngle = false;
+    bool supportsShear = false;
     mutable glm::mat4 shearMatrix;
-    float height;
-    int angle;
-    float shear;
+    float height = 1.0f;
+    int angle = 0;
+    float shear = 0.0f;
 };
 
 //Location that uses multiple points
@@ -577,7 +603,7 @@ public:
 
     virtual void Read(wxXmlNode* node) override;
     virtual void Write(wxXmlNode* node) override;
-    virtual int CheckUpgrade(wxXmlNode* node) override;
+    virtual MSLUPGRADE CheckUpgrade(wxXmlNode* node) override;
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float& x, float& y, float& z) const override;
@@ -592,7 +618,7 @@ public:
     virtual void DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator& va) const override; // useful for hit test debugging
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
-    virtual bool Rotate(int axis, float factor) override;
+    virtual bool Rotate(MSLAXIS axis, float factor) override;
     virtual bool Scale(const glm::vec3& factor) override;
     virtual void SelectHandle(int handle) override;
     virtual int GetSelectedHandle() const override { return selected_handle; }
@@ -643,12 +669,12 @@ public:
     virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle) override;
 
     virtual int GetDefaultHandle() const override { return END_HANDLE; }
-    virtual int GetDefaultTool() const override { return TOOL_XY_TRANS; }
+    virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_XY_TRANS; }
     virtual float GetYShear() const { return 0.0; }
     virtual void SetActiveHandle(int handle) override;
     virtual void AdvanceAxisTool() override;
-    virtual void SetAxisTool(int mode) override;
-    virtual void SetActiveAxis(int axis) override;
+    virtual void SetAxisTool(MSLTOOL mode) override;
+    virtual void SetActiveAxis(MSLAXIS axis) override;
 
 protected:
     struct xlPolyPoint {

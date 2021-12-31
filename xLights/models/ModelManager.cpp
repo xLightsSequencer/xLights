@@ -1467,7 +1467,7 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
     }
     model->GetModelScreenLocation().previewW = previewW;
     model->GetModelScreenLocation().previewH = previewH;
-    if (model->GetModelScreenLocation().CheckUpgrade(node) == UPGRADE_EXEC_READ) {
+    if (model->GetModelScreenLocation().CheckUpgrade(node) == ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_EXEC_READ) {
         model->GetModelScreenLocation().Read(node);
     }
     return model;

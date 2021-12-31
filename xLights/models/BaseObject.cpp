@@ -194,7 +194,8 @@ void BaseObject::SetDcenterPos(float pos) {
     IncrementChangeCount();
 }
 
-bool BaseObject::Rotate(int axis, float factor) {
+bool BaseObject::Rotate(ModelScreenLocation::MSLAXIS axis, float factor)
+{
     if (GetBaseObjectScreenLocation().IsLocked()) return false;
 
     bool b = GetBaseObjectScreenLocation().Rotate(axis, factor);
@@ -207,7 +208,7 @@ void BaseObject::FlipHorizontal(bool ignoreLock) {
     if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) {
         return;
     }
-    GetBaseObjectScreenLocation().Rotate(Y_AXIS, 180.0);
+    GetBaseObjectScreenLocation().Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, 180.0);
     GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
@@ -216,7 +217,7 @@ void BaseObject::FlipVertical(bool ignoreLock) {
     if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) {
         return;
     }
-    GetBaseObjectScreenLocation().Rotate(X_AXIS, 180.0);
+    GetBaseObjectScreenLocation().Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, 180.0);
     GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
