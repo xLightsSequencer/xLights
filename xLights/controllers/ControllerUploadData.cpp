@@ -1012,8 +1012,7 @@ std::string UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS const& settin
     if ((settings & ExportSettings::SETTINGS_PORT_PIXELS) && Channels() != 0 && _type != "Serial") {
         line += "(PIX:" + std::to_string(Channels() / 3) + ")";
     }
-    if (settings & ExportSettings::SETTINGS_PORT_CURRENT && _type != "Serial" )
-        {
+    if (settings & ExportSettings::SETTINGS_PORT_CURRENT && _type != "Serial" ) {
         line += wxString::Format("(CUR:%0.2fA)", GetAmps(brightness));
     }
     line += ",";
