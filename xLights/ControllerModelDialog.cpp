@@ -1694,7 +1694,7 @@ void ControllerModelDialog::SaveCSV() {
 
     wxString const header = _controller->GetShortDescription() + "\n";
     f.Write(header);
-    std::vector<std::string> const lines = _cud->ExportAsCSV(ExportSettings::GetSettings(this));
+    std::vector<std::string> const lines = _cud->ExportAsCSV(ExportSettings::GetSettings(this), _controller->GetDefaultBrightnessUnderFullControl());
     for (const auto& line : lines) {
         f.Write(line);
     }

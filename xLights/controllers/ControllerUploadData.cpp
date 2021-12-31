@@ -998,7 +998,7 @@ bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* ru
     return success;
 }
 
-std::string UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS const& settings) const {
+std::string UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS const& settings, float brightness) const {
     wxString line = wxString::Format("%s Port %d", _type ,_port);
     if ((settings & ExportSettings::SETTINGS_PORT_ABSADDRESS) && GetStartChannel() != -1) {
         line += "(SC:" + std::to_string(GetStartChannel()) + ")";
@@ -1009,8 +1009,12 @@ std::string UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS const& settin
     if ((settings & ExportSettings::SETTINGS_PORT_CHANNELS) && Channels() != 0) {
         line += "(CHANS:" + std::to_string(Channels()) + ")";
     }
-    if ((settings & ExportSettings::SETTINGS_PORT_PIXELS) && Channels() != 0) {
+    if ((settings & ExportSettings::SETTINGS_PORT_PIXELS) && Channels() != 0 && _type != "Serial") {
         line += "(PIX:" + std::to_string(Channels() / 3) + ")";
+    }
+    if (settings & ExportSettings::SETTINGS_PORT_CURRENT && _type != "Serial" )
+        {
+        line += wxString::Format("(CUR:%0.2fA)", GetAmps(brightness));
     }
     line += ",";
 
@@ -1034,9 +1038,12 @@ std::string UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS const& settin
         if (settings & ExportSettings::SETTINGS_MODEL_CHANNELS) {
             line += "(CHANS:" + std::to_string(it->Channels()) + ")";
         }
-        if (settings & ExportSettings::SETTINGS_MODEL_PIXELS)
+        if (settings & ExportSettings::SETTINGS_MODEL_PIXELS && _type != "Serial")
         {
             line += "(PIX:" + std::to_string(it->Channels() / it->GetChannelsPerPixel()) + ")";
+        }
+        if (settings & ExportSettings::SETTINGS_MODEL_CURRENT && _type != "Serial") {
+            line += wxString::Format("(CUR:%0.2fA)", it->GetAmps(brightness));
         }
         line += ",";
     }
@@ -1774,33 +1781,33 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     return success;
 }
 
-std::vector<std::string> UDController::ExportAsCSV(ExportSettings::SETTINGS const& settings) {
+std::vector<std::string> UDController::ExportAsCSV(ExportSettings::SETTINGS const& settings, float brightness) {
     std::vector<std::string> lines;
     int columnSize = 0;
 
     for (int i = 1; i <= GetMaxPixelPort(); i++) {
         if (columnSize < GetControllerPixelPort(i)->GetModels().size())
             columnSize = GetControllerPixelPort(i)->GetModels().size();
-        lines.push_back(GetControllerPixelPort(i)->ExportAsCSV(settings));
+        lines.push_back(GetControllerPixelPort(i)->ExportAsCSV(settings, brightness));
 	}
 	lines.push_back("\n");
 	for (int i = 1; i <= GetMaxSerialPort(); i++) {
         if (columnSize < GetControllerSerialPort(i)->GetModels().size())
             columnSize = GetControllerSerialPort(i)->GetModels().size();
 
-        lines.push_back(GetControllerSerialPort(i)->ExportAsCSV(settings));
+        lines.push_back(GetControllerSerialPort(i)->ExportAsCSV(settings, brightness));
     }
     lines.push_back("\n");
     for (auto &vm : _virtualMatrixPorts) {
         if (columnSize < vm.second->GetModels().size())
             columnSize = vm.second->GetModels().size();
-        lines.push_back(vm.second->ExportAsCSV(settings));
+        lines.push_back(vm.second->ExportAsCSV(settings, brightness));
     }
     lines.push_back("\n");
     for (auto &vm : _ledPanelMatrixPorts) {
         if (columnSize < vm.second->GetModels().size())
             columnSize = vm.second->GetModels().size();
-        lines.push_back(vm.second->ExportAsCSV(settings));
+        lines.push_back(vm.second->ExportAsCSV(settings, brightness));
     }
 
     wxString header = "Output,";

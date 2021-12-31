@@ -221,7 +221,7 @@ class UDControllerPort
 
     void Dump() const;
     bool Check(Controller* c, bool pixel, const ControllerCaps* rules, std::string& res) const;
-    [[nodiscard]] std::string ExportAsCSV(ExportSettings::SETTINGS const& settings) const;
+    [[nodiscard]] std::string ExportAsCSV(ExportSettings::SETTINGS const& settings, float brightness) const;
     #pragma endregion
 };
 
@@ -287,7 +287,7 @@ class UDController
     bool IsValid() const;
     void Dump() const;
     bool Check(const ControllerCaps* rules, std::string& res);
-    [[nodiscard]] std::vector<std::string> ExportAsCSV(ExportSettings::SETTINGS const& settings);
+    [[nodiscard]] std::vector<std::string> ExportAsCSV(ExportSettings::SETTINGS const& settings, float brightness);
 
     Output* GetFirstOutput() const;
 

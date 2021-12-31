@@ -26,11 +26,13 @@ namespace ExportSettings
         choices.Add("Port Universe Start Channel");
         choices.Add("Port Channel Count");
         choices.Add("Port Pixel Count");
+        choices.Add("Port Current");
         choices.Add("Model Description");
         choices.Add("Model Start Channel");
         choices.Add("Model Universe Start Channel");
         choices.Add("Model Channel Count");
         choices.Add("Model Pixel Count");
+        choices.Add("Model Current");
 
         wxMultiChoiceDialog dlg(parent, "Export to CSV Options", "Fields to Include", choices);
         //OptimiseDialogPosition(&dlg);
