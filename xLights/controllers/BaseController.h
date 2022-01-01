@@ -33,8 +33,8 @@ protected:
     #pragma endregion
 
     #pragma region Protected Functions
-    std::string GetURL(const std::string& url, bool logresult = true, const std::string& username = "", const std::string& password = "");
-    std::string PutURL(const std::string& url, const std::string& request, bool logresult = true, const std::string& username = "", const std::string& password = "", const std::string& contentType = "x-www-form-urlencoded");
+    std::string GetURL(const std::string& url, const std::string& username = "", const std::string& password = "");
+    std::string PutURL(const std::string& url, const std::string& request, const std::string& username = "", const std::string& password = "", const std::string& contentType = "x-www-form-urlencoded");
     #pragma endregion
 
 public:
@@ -61,11 +61,11 @@ public:
     #pragma endregion
     
     #pragma region Getters and Setters
-    bool IsConnected() const { return _connected; };
+    [[nodiscard]] bool IsConnected() const { return _connected; };
 
-    virtual const std::string &GetModel() const { return _model; }
-    virtual const std::string &GetVersion() const { return _version; }
-    virtual std::string GetFullName() const { return _model + ((_version == "") ? _("") : (_(" ") + _version)); }
+    [[nodiscard]] virtual const std::string &GetModel() const { return _model; }
+    [[nodiscard]] virtual const std::string &GetVersion() const { return _version; }
+    [[nodiscard]] virtual std::string GetFullName() const { return _model + ((_version == "") ? _("") : (_(" ") + _version)); }
 
 #ifndef DISCOVERYONLY
     virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) { return false; }
@@ -75,7 +75,7 @@ public:
     virtual bool ResetAfterOutput(OutputManager* outputManager, Controller* controller, wxWindow* parent) { return false; }
 #endif
 
-    virtual bool UsesHTTP() const = 0;
+    [[nodiscard]] virtual bool UsesHTTP() const = 0;
     
     #pragma endregion
 };

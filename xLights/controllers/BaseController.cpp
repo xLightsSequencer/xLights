@@ -92,7 +92,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
 #pragma endregion
 
 #pragma region Protected Functions
-std::string BaseController::GetURL(const std::string& url, bool logresult, const std::string& username, const std::string& password) {
+std::string BaseController::GetURL(const std::string& url, const std::string& username, const std::string& password) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string res;
@@ -106,7 +106,7 @@ std::string BaseController::GetURL(const std::string& url, bool logresult, const
 
         std::string response_string;
 
-        if (username != "")
+        if (!username.empty())
         {
             curl_easy_setopt(curl, CURLOPT_USERNAME, (const char*)username.c_str());
             curl_easy_setopt(curl, CURLOPT_PASSWORD, (const char*)password.c_str());
@@ -130,7 +130,7 @@ std::string BaseController::GetURL(const std::string& url, bool logresult, const
     return res;
 }
 
-std::string BaseController::PutURL(const std::string& url, const std::string& request, bool logresult, const std::string& username, const std::string& password, const std::string& contentType) {
+std::string BaseController::PutURL(const std::string& url, const std::string& request, const std::string& username, const std::string& password, const std::string& contentType) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -167,9 +167,7 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
         if (ret == CURLE_OK) {
             return buffer;
         }
-        else {
-            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));
-        }
+        logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));        
     }
 
     return "";
