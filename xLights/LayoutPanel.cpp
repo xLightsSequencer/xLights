@@ -6406,6 +6406,10 @@ void LayoutPanel::ReplaceModel()
                 modelToReplaceItWith->SetControllerProtocol(replaceModel->GetControllerProtocol());
                 modelToReplaceItWith->SetControllerPort(replaceModel->GetControllerPort());
                 modelToReplaceItWith->SetControllerName(replaceModel->GetControllerName());
+                modelToReplaceItWith->SetSmartRemote(replaceModel->GetSmartRemote());
+                modelToReplaceItWith->SetSmartRemoteType(replaceModel->GetSmartRemoteType());
+                modelToReplaceItWith->SetSRMaxCascade(replaceModel->GetSRMaxCascade());
+                modelToReplaceItWith->SetSRCascadeOnPort(replaceModel->GetSRCascadeOnPort());
             }
         }
 
