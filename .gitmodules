@@ -20,6 +20,3 @@
 	path = macOS
 	url = https://github.com/xLightsSequencer/xLights-macOS.git
 	branch = main
-[submodule "dependencies/libxlsxwriter"]
-	path = dependencies/libxlsxwriter
-	url = https://github.com/jmcnamara/libxlsxwriter.git
