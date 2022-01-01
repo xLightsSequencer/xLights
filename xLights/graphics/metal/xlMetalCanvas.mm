@@ -292,12 +292,12 @@ bool xlMetalCanvas::getFrameForExport(int w, int h, AVFrame *f, uint8_t *buffer,
     if (captureBuffer == nullptr || captureBuffer->buffer == nil) {
         return true;
     }
+    static CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     uint8_t *src = (uint8_t*)captureBuffer->buffer.contents;
     uint8_t *dst = buffer;
     
     if (f->format == AV_PIX_FMT_VIDEOTOOLBOX) {
         @autoreleasepool {
-            CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
             NSMutableDictionary *dict = [[NSMutableDictionary alloc]init];
             [dict setObject:(__bridge id)colorSpace  forKey:kCIImageColorSpace];
             
@@ -305,6 +305,8 @@ bool xlMetalCanvas::getFrameForExport(int w, int h, AVFrame *f, uint8_t *buffer,
             CIImage *i2 = [image imageByApplyingCGOrientation:kCGImagePropertyOrientationDownMirrored];
                         
             VideoToolboxCreateFrame(i2, f);
+            
+            [dict release];
         }
         return false;
     }
