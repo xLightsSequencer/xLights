@@ -108,7 +108,7 @@
 #include "../include/control-pause-blue-icon.xpm"
 #include "../include/control-play-blue-icon.xpm"
 
-#include "include/xlsxwriter.h"
+#include <xlsxwriter.h>
 
 //(*InternalHeaders(xLightsFrame)
 #include <wx/artprov.h>

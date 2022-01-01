@@ -197,7 +197,7 @@
 					<Add directory="outputs" />
 					<Add directory="xLights" />
 					<Add directory="xLights/models" />
-					<Add directory="../dependencies/libxlsxwriter" />
+					<Add directory="../dependencies/libxlsxwriter/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -246,7 +246,7 @@
 					<Add directory="outputs" />
 					<Add directory="xLights" />
 					<Add directory="xLights/models" />
-					<Add directory="../dependencies/libxlsxwriter" />
+					<Add directory="../dependencies/libxlsxwriter/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />

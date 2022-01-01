@@ -338,7 +338,12 @@ int main(int argc, char **argv)
 
     #ifndef __WXMSW__
     wxApp::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE, "program");
-    if (argc > 1) {
+    wxString binName(argv[0]);
+
+    if (binName.EndsWith("xlDo")) {
+        //symlink xlDo to xLights
+        return DoXLDoCommands(argc, argv);
+    } else if (argc > 1) {
         std::string argv1 = &argv[1][1];
         if (argv1 == "xlDo") {
             return DoXLDoCommands(argc - 1, &argv[1]);

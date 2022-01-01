@@ -218,8 +218,7 @@ int TerrianScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool 
 
             int point = handle - 1;
             if (point < mPos.size()) {
-                switch (active_axis) {
-                case MSLAXIS::Y_AXIS:
+                if (active_axis == MSLAXIS::Y_AXIS) {
                     mPos[point] = newy;
                     if (tool_size > 1) {
                         int row = point / num_points_wide;
@@ -239,12 +238,10 @@ int TerrianScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool 
                             }
                         }
                     }
-                    break;
                 }
             }
         }
-    }
-    else {
+    } else {
         BoxedScreenLocation::MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
     }
     return 1;

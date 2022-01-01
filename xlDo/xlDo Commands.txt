@@ -1,8 +1,12 @@
 
 xLights REST Automation API
 If the xFade service is enabled in the xLights preferences panel, an HTTP port is opened
-on port 49913 (for A) or 49914 (for B).  Currently xLights provides the following REST
-endpoints:
+on port 49913 (for A) or 49914 (for B).
+
+Important note:  GET requests require the parameters to have any spaces escaped with %20
+and cannot support / in parameters.
+
+Currently xLights provides the following REST endpoints:
 
 GET /getVersion - Get xLights Version
 
