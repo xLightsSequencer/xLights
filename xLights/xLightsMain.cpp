@@ -108,6 +108,8 @@
 #include "../include/control-pause-blue-icon.xpm"
 #include "../include/control-play-blue-icon.xpm"
 
+#include "include/xlsxwriter.h"
+
 //(*InternalHeaders(xLightsFrame)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -2409,7 +2411,7 @@ void xLightsFrame::OnCheckBoxLightOutputClick(wxCommandEvent& event)
 }
 
 //factored out from below so it can be reused by play/pause button -DJ
-void xLightsFrame::StopNow(void)
+void xLightsFrame::StopNow()
 {
     int actTab = Notebook1->GetSelection();
 	if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetMedia() != nullptr)
@@ -3777,7 +3779,7 @@ std::string xLightsFrame::PackageDebugFiles(bool showDialog)
     AddDebugFilesToReport(report);
 
     // export the models to an easy to read file
-    wxString filename = wxFileName::CreateTempFileName("Models") + ".csv";
+    wxString filename = wxFileName::CreateTempFileName("Models") + ".xlsx";
     ExportModels(filename);
     wxFileName fn(filename);
     report.AddFile(fn.GetFullPath(), "All Models");
@@ -4107,7 +4109,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
         return;
     }
 
-    std::string errors = "";
+    std::string errors;
     BackupDirectory(CurrentDir, newDir, newDir, false, errors);
 
     if (errors != "") {
@@ -4122,7 +4124,7 @@ void xLightsFrame::SetMediaFolders(const std::list<std::string>& folders)
 
     wxString setting;
     mediaDirectories.clear();
-    for (auto& dir : folders) {
+    for (auto const& dir : folders) {
         ObtainAccessToURL(dir);
         mediaDirectories.push_back(dir);
         logger_base.debug("Adding Media directory: %s.", (const char*)dir.c_str());
@@ -4286,52 +4288,54 @@ void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)
     DoAltBackup();
 }
 
-void xLightsFrame::ExportModels(wxString filename)
+void xLightsFrame::ExportModels(wxString const& filename)
 {
-    wxFile f(filename);
-
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
     // make sure everything is up to date
-    if (Notebook1->GetSelection() != LAYOUTTAB)
+    if (Notebook1->GetSelection() != LAYOUTTAB) {
         layoutPanel->UnSelectAllModels();
+    }
     RecalcModels();
+
+    constexpr double FACTOR = 1.3;
 
     uint32_t minchannel = 99999999;
     int32_t maxchannel = -1;
 
-    const std::string modelTitle = _("Model Name,Shadowing,Description,Display As,Dimensions,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,#Universe(or id):Start Channel,End Channel No,Default Buffer W x H,Preview,Controller Ports,Connection Protocol,Connection Attributes,Controller Name,Controller Type,Protocol,Controller Description,IP,Baud,Universe/Id,Universe Channel,Controller Channel,Active\n");
-    //int cols = wxSplit(modelTitle, ',').size();
-    f.Write(modelTitle);
+    lxw_workbook* workbook = workbook_new(filename.c_str());
+    lxw_worksheet* modelsheet = workbook_add_worksheet(workbook, "Models");
+    lxw_worksheet* groupsheet = workbook_add_worksheet(workbook, "Groups");
+    lxw_worksheet* controllersheet = workbook_add_worksheet(workbook, "Controllers");
+    lxw_worksheet* totalsheet = workbook_add_worksheet(workbook, "Totals");
 
-    for (auto m : AllModels) {
+    lxw_format* header_format = workbook_add_format(workbook);
+    format_set_border(header_format, LXW_BORDER_MEDIUM);
+    format_set_bold(header_format);
+
+    lxw_format* format = workbook_add_format(workbook);
+    format_set_border(format, LXW_BORDER_THIN);
+
+    auto write_worksheet_string = [FACTOR](lxw_worksheet* sheet, int row, int col, std::string text, lxw_format* format, std::map<int, double>& col_widths) { 
+        worksheet_write_string(sheet, row, col, text.c_str(), format);
+        col_widths[col] = std::max(text.size() + FACTOR, col_widths[col]);
+    }; 
+
+    const std::vector<std::string> model_header_cols{ "Model Name", "Shadowing", "Description", "Display As", "Dimensions", "String Type", "String Count", "Node Count", "Light Count", "Est Current (Amps)", "Channels Per Node", "Channel Count", "Start Channel", "Start Channel No", "#Universe(or id):Start Channel", "End Channel No", "Default Buffer W x H", "Preview", "Controller Ports", "Connection Protocol", "Connection Attributes", "Controller Name", "Controller Type", "Protocol", "Controller Description", "IP", "Baud", "Universe/Id", "Universe Channel", "Controller Channel", "Active" };
+
+    std::map<int, double> _model_col_widths;
+    for (int i = 0; i < model_header_cols.size(); i++) {
+
+        worksheet_write_string(modelsheet, 0, i, model_header_cols[i].c_str(), header_format);
+        _model_col_widths[i] = model_header_cols[i].size() + FACTOR; //estimate column width
+    }
+
+    int modelCount = 0;
+    int row = 1;
+    //models
+    for (auto const& m : AllModels) {
         Model* model = m.second;
-        if (model->GetDisplayAs() == "ModelGroup") {
-            ModelGroup* mg = static_cast<ModelGroup*>(model);
-            std::string models;
-            for (const auto& it : mg->ModelNames()) {
-                if (models == "") {
-                    models = it;
-                }
-                else {
-                    models += ", " + it;
-                }
-            }
-            int w, h;
-            model->GetBufferSize("Default", "2D", "None", w, h);
-            f.Write(wxString::Format("\"%s\",,\"%s\",\"%s\",,,,,,,,,,,,,%d x %d,%s\n",
-                model->name,
-                models.c_str(), // No description ... use list of models
-                model->GetDisplayAs(),
-                w, h,
-                model->GetLayoutGroup()
-            ));
-        }
-        else {
-            wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
+        if (model->GetDisplayAs() != "ModelGroup") {
+            modelCount++;
+            wxString const stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
             uint32_t ch = model->GetFirstChannel() + 1;
             std::string type, description, ip, universe, inactive, baud, protocol, controllername;
             int32_t channeloffset;
@@ -4339,16 +4343,15 @@ void xLightsFrame::ExportModels(wxString filename)
             int stuc = 0;
             GetControllerDetailsForChannel(ch, controllername, type, protocol, description, channeloffset, ip, universe, inactive, baud, stu, stuc);
 
-            std::string current = "";
+            std::string current;
 
-            wxString stype = wxString(model->GetStringType());
+            wxString const stype = wxString(model->GetStringType());
 
             int32_t lightcount = (long)(model->GetNodeCount() * model->GetLightsPerNode());
             if (!stype.Contains("Node")) {
                 if (model->GetNodeCount() == 1) {
                     lightcount = model->GetCoordCount(0);
-                }
-                else {
+                } else {
                     lightcount = model->NodesPerString() * model->GetLightsPerNode();
                 }
             }
@@ -4359,44 +4362,45 @@ void xLightsFrame::ExportModels(wxString filename)
 
             int w, h;
             model->GetBufferSize("Default", "2D", "None", w, h);
+            write_worksheet_string(modelsheet, row, 0, model->name, format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 1, model->GetShadowModelFor(), format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 2, model->description, format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 3, model->GetDisplayAs(), format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 4, model->GetDimension(), format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 5, model->GetStringType(), format, _model_col_widths);
+            worksheet_write_number(modelsheet, row, 6, model->GetNumPhysicalStrings(), format);
+            worksheet_write_number(modelsheet, row, 7, model->GetNodeCount(), format);
+            worksheet_write_number(modelsheet, row, 8, lightcount, format);
+            worksheet_write_number(modelsheet, row, 9, (float)lightcount * AMPS_PER_PIXEL, format);
+            worksheet_write_number(modelsheet, row, 10, model->GetChanCountPerNode(), format);
+            worksheet_write_number(modelsheet, row, 11, model->GetActChanCount(), format);
+            write_worksheet_string(modelsheet, row, 12, stch, format, _model_col_widths);
+            worksheet_write_number(modelsheet, row, 13, ch, format);
+            write_worksheet_string(modelsheet, row, 14, wxString::Format("#%i:%i", stu, stuc), format, _model_col_widths);
+            worksheet_write_number(modelsheet, row, 15, model->GetLastChannel() + 1, format);
+            write_worksheet_string(modelsheet, row, 16, wxString::Format("%i x %i", w, h), format, _model_col_widths);
 
-            // I had to split this because wxString::Format can only process 31 variables
-            std::string outRec = wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%i,%i,%i,%s,%i,%i,%s,%i,#%i:%i,%i,%i x %i",
-                EscapeCSV(model->name),
-                EscapeCSV(model->GetShadowModelFor()),
-                EscapeCSV(model->description),
-                EscapeCSV(model->GetDisplayAs()),
-                model->GetDimension(),
-                model->GetStringType(),
-                model->GetNumPhysicalStrings(),
-                model->GetNodeCount(),
-                lightcount,
-                current,
-                model->GetChanCountPerNode(),
-                model->GetActChanCount(),
-                stch,
-                ch,
-                stu, stuc,
-                model->GetLastChannel() + 1,
-                w, h);
+            write_worksheet_string(modelsheet, row, 17, model->GetLayoutGroup(), format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 18, model->GetControllerConnectionPortRangeString(), format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 19, model->GetControllerProtocol(), format, _model_col_widths);
+            wxString con_attributes = model->GetControllerConnectionAttributeString();
+            con_attributes.Replace(":", ",");
+            if (con_attributes.StartsWith(",")) {
+                con_attributes.Remove(0, 1);
+            }
+            write_worksheet_string(modelsheet, row, 20, con_attributes, format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 21, controllername, format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 22, type, format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 23, protocol, format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 24, description, format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 25, ip, format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 26, baud, format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 27, universe, format, _model_col_widths);
+            worksheet_write_number(modelsheet, row, 28, stuc, format);
+            worksheet_write_number(modelsheet, row, 29, channeloffset, format);
+            write_worksheet_string(modelsheet, row, 30, inactive, format, _model_col_widths);
+            ++row;
 
-            outRec += wxString::Format(",\"%s\",%s,%s,%s,\"%s\",%s,%s,\"%s\",%s,%s,%s,%i,%i,%s\n",
-                EscapeCSV(model->GetLayoutGroup()),
-                model->GetControllerConnectionPortRangeString(),
-                model->GetControllerProtocol(),
-                model->GetControllerConnectionAttributeString(),
-                EscapeCSV(controllername),
-                type,
-                protocol,
-                EscapeCSV(description),
-                ip,
-                baud,
-                universe,
-                stuc,
-                channeloffset,
-                inactive);
-
-            f.Write(outRec);
             if (ch < minchannel) {
                 minchannel = ch;
             }
@@ -4405,6 +4409,80 @@ void xLightsFrame::ExportModels(wxString filename)
                 maxchannel = lastch;
             }
         }
+    }
+    //set column widths
+    for (auto const& [col, width] : _model_col_widths) {
+        worksheet_set_column(modelsheet, col, col, width, NULL);
+    }
+
+    std::map<int, double> _group_col_widths;
+    const std::vector<std::string> groupHeader{ "Group Name", "Models", "Models Count", "Default Buffer W x H", "Preview" };
+    for (int i = 0; i < groupHeader.size(); i++) {
+        worksheet_write_string(groupsheet, 0, i, groupHeader[i].c_str(), header_format);
+        _group_col_widths[i] = groupHeader[i].size() + FACTOR; //estimate column width
+    }
+
+    int groupCount = 0;
+    row = 1;
+    for (auto const& m : AllModels) {
+        Model* model = m.second;
+        if (model->GetDisplayAs() == "ModelGroup") {
+            groupCount++;
+            ModelGroup* mg = static_cast<ModelGroup*>(model);
+            std::string models;
+            for (const auto& it : mg->ModelNames()) {
+                if (models.empty()) {
+                    models = it;
+                } else {
+                    models += ", " + it;
+                }
+            }
+            int w, h;
+            model->GetBufferSize("Default", "2D", "None", w, h);
+
+            write_worksheet_string(groupsheet, row, 0, model->name, format, _group_col_widths);
+            write_worksheet_string(groupsheet, row, 1, models, format, _group_col_widths);
+            worksheet_write_number(groupsheet, row, 2, mg->ModelNames().size(), format);
+            write_worksheet_string(groupsheet, row, 3, wxString::Format("%d x %d", w, h), format, _group_col_widths);
+            write_worksheet_string(groupsheet, row, 4, model->GetLayoutGroup(), format, _group_col_widths);
+            ++row;
+        }
+    }
+    for (auto const& [col, width] : _group_col_widths) {
+        worksheet_set_column(groupsheet, col, col, width, NULL);
+    }
+
+    row = 1;
+    std::map<int, double> _controller_col_widths;
+
+    auto control_cols = OutputManager::GetExportHeaders();
+    
+    for (int i = 0; i < control_cols.size(); i++) {
+        worksheet_write_string(controllersheet, 0, i, control_cols[i].c_str(), header_format);
+        _controller_col_widths[i] = control_cols[i].size() + FACTOR; //estimate column width
+    }
+
+    for (const auto& it : _outputManager.GetControllers()) {
+        auto scolumns = it->GetExport();
+        auto columns = wxSplit(scolumns, ',');
+        for (int j = 0; j < columns.size(); j++) {
+            write_worksheet_string(controllersheet, row, j, columns[j], format, _controller_col_widths);
+        }
+        ++row;
+        for (auto it2 : it->GetOutputs()) {
+            auto s = it2->GetExport();
+            if (!s.empty()) {
+                auto scolumns2 = it2->GetExport();
+                auto columns2 = wxSplit(scolumns2, ',');
+                for (int k = 0; k < columns2.size(); k++) {
+                    write_worksheet_string(controllersheet, row, k, columns2[k], format, _controller_col_widths);
+                }
+                row++;
+            }
+        }
+    }
+    for (auto const& [col, width] : _controller_col_widths) {
+        worksheet_set_column(controllersheet, col, col, width, NULL);
     }
 
     uint32_t bulbs = 0;
@@ -4418,7 +4496,7 @@ void xLightsFrame::ExportModels(wxString filename)
         int* chused = (int*)malloc((maxchannel - minchannel + 1) * sizeof(int));
         memset(chused, 0x00, (maxchannel - minchannel + 1) * sizeof(int));
 
-        for (auto m : AllModels) {
+        for (auto const& m : AllModels) {
             Model* model = m.second;
             if (model->GetDisplayAs() != "ModelGroup") {
                 int ch = model->GetFirstChannel() + 1;
@@ -4450,7 +4528,9 @@ void xLightsFrame::ExportModels(wxString filename)
                 }
                 else {
                     int den = model->GetChanCountPerNode();
-                    if (den == 0) den = 1;
+                    if (den == 0) {
+                        den = 1;
+                    }
                     bulbs += uniquechannels / den * model->GetLightsPerNode();
                 }
             }
@@ -4465,38 +4545,38 @@ void xLightsFrame::ExportModels(wxString filename)
         free(chused);
     }
 
-    f.Write("\n");
+    worksheet_write_string(totalsheet, 0, 0, "Model Count", format);
+    worksheet_write_number(totalsheet, 0, 1, modelCount, format);
+    worksheet_write_string(totalsheet, 1, 0, "Group Count", format);
+    worksheet_write_number(totalsheet, 1, 1, groupCount, format);
+    worksheet_write_string(totalsheet, 2, 0, "First Used Channel", format);
+    worksheet_write_number(totalsheet, 2, 1, minchannel, format);
+    worksheet_write_string(totalsheet, 3, 0, "Last Used Channel", format);
+    worksheet_write_number(totalsheet, 3, 1, maxchannel, format);
+    worksheet_write_string(totalsheet, 4, 0, "Actual Used Channel", format);
+    worksheet_write_number(totalsheet, 4, 1, usedchannels, format);
+    worksheet_write_string(totalsheet, 5, 0, "Bulbs", format);
+    worksheet_write_number(totalsheet, 5, 1, bulbs, format);
 
-    f.Write(wxString::Format("\"Model Count\",%i\n", (uint32_t)AllModels.size()));
-    f.Write(wxString::Format("\"First Used Channel\",%i\n", minchannel));
-    f.Write(wxString::Format("\"Last Used Channel\",%i\n", maxchannel));
-    f.Write(wxString::Format("\"Actual Used Channel\",%i\n", usedchannels));
-    f.Write(wxString::Format("\"Bulbs\",%i\n", bulbs));
+    worksheet_set_column(totalsheet, 0, 0, 25, NULL);
 
-    f.Write("\n");
-    f.Write("\n");
-
-    f.Write(_outputManager.GetExportHeader() + "\n");
-    for (const auto& it : _outputManager.GetControllers()) {
-        f.Write(it->GetExport() + "\n");
-        for (const auto& it2 : it->GetOutputs()) {
-            auto s = it2->GetExport();
-            if (s != "") f.Write(it2->GetExport() + "\n");
-        }
+    lxw_error error = workbook_close(workbook);
+    if (error) {
+        DisplayError(wxString::Format("Unable to create Spreadsheet, Error %d = %s\n", error, lxw_strerror(error)).ToStdString());
     }
-
-    f.Close();
 }
 
 void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "Export Models", wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "Export Models", wxEmptyString, "Export files (*.xlsx)|*.xlsx", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty()) {
+        return;
+    }
 
     ExportModels(filename);
-    SetStatusText("Model CSV saved at " + filename);
+    SetStatusText("Model Spreadsheet saved at " + filename);
 }
 
 void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
@@ -6646,7 +6726,7 @@ void xLightsFrame::OnMenuItem_ExportEffectsSelected(wxCommandEvent& event)
     SetStatusText("Effects CSV saved at " + filename);
 }
 
-void xLightsFrame::ExportEffects(wxString filename)
+void xLightsFrame::ExportEffects(wxString const& filename)
 {
     wxFile f(filename);
 
@@ -9887,32 +9967,73 @@ void xLightsFrame::OnMenuItem_KeyBindingsSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent& event)
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "Controller_Connections", wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "Controller_Connections", wxEmptyString, "Export files (*.xlsx)|*.xlsx", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-    if (filename.IsEmpty()) return;
-
-    wxFile f(filename);
-
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    if (filename.IsEmpty()) {
         return;
     }
 
     auto controllers = GetOutputManager()->GetControllers();
     ExportSettings::SETTINGS exportsettings = ExportSettings::GetSettings(this);
+
+    lxw_workbook* workbook = workbook_new(filename.c_str());
+    lxw_worksheet* worksheet = workbook_add_worksheet(workbook, NULL);
+
+    lxw_format* header_format = workbook_add_format(workbook);
+    format_set_align(header_format, LXW_ALIGN_CENTER);
+    format_set_align(header_format, LXW_ALIGN_VERTICAL_CENTER);
+    format_set_bold(header_format);
+    format_set_bg_color(header_format, LXW_COLOR_YELLOW);
+    format_set_border(header_format, LXW_BORDER_THIN);
+    
+    lxw_format* first_format = workbook_add_format(workbook);
+    format_set_border(first_format, LXW_BORDER_MEDIUM);
+    format_set_bold(first_format);
+
+    lxw_format* format = workbook_add_format(workbook);
+    format_set_border(format, LXW_BORDER_THIN);
+
+    int row = 0;
+    std::map<int, double> _col_widths;
+
     for (const auto& it : controllers) {
         UDController cud(it, &_outputManager, &AllModels, false);
-        wxString const header = it->GetShortDescription() + "\n";
-        f.Write(header);
-        std::vector<std::string> const lines = cud.ExportAsCSV(exportsettings, it->GetDefaultBrightnessUnderFullControl());
+        int columSize = 0;
+        std::vector < std::vector<std::string>> const lines = cud.ExportAsCSV(exportsettings, it->GetDefaultBrightnessUnderFullControl(), columSize);
+
+        worksheet_merge_range(worksheet, row, 0, row, columSize, it->GetShortDescription().c_str(), header_format);
+        ++row;
+        auto lformat = first_format;
+
         for (const auto& line : lines) {
-            f.Write(line);
+            for (int i = 1; i <= columSize;++i) {
+                worksheet_write_blank(worksheet, row, i, lformat);
+            }
+            int col = 0;
+            for (auto const& column : line) {
+                if (column.empty()) {
+                    continue;
+                }
+                worksheet_write_string(worksheet, row, col, column.c_str(), lformat); 
+                double width = column.size() + 1.3;//estimate column width
+                if (_col_widths[col] < width) {
+                    _col_widths[col] = width;
+                    worksheet_set_column(worksheet, col, col, width, NULL);
+                }
+                ++col;
+            }
+            ++row;
+            lformat = format;
         }
-        f.Write("\n");
+        row+=2;
+    }
+    lxw_error error = workbook_close(workbook);
+    if (error) {
+        DisplayError(wxString::Format("Unable to create Spreadsheet, Error %d = %s\n", error, lxw_strerror(error)).ToStdString());
+        return;
     }
 
-    f.Close();
-    SetStatusText("Controller Connections CSV saved at " + filename);
+    SetStatusText("Controller Connections spreadsheet saved to " + filename);
 }
 
 void xLightsFrame::OnMenuItem_xScannerSelected(wxCommandEvent& event)

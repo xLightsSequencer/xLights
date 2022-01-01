@@ -96,7 +96,7 @@ std::string ControllerNull::GetChannelMapping(int32_t ch) const {
 }
 
 std::string ControllerNull::GetExport() const {
-    return wxString::Format("%s,%ld,%ld,%s,NULL,,,,\"%s\",%d,%ld,%s,,%s",
+    return wxString::Format("%s,%ld,%ld,%s,NULL,,,,\"%s\",%d,%ld,%s,,%s,%s,,,%s",
         GetName(),
         GetStartChannel(),
         GetEndChannel(),
@@ -105,7 +105,9 @@ std::string ControllerNull::GetExport() const {
         GetId(),
         GetChannels(),
         (IsActive() ? _("") : _("DISABLED")),
-        (IsAutoSize() ? _("AutoSize") : _(""))
+        (IsAutoSize() ? _("AutoSize") : _("")),
+        (IsAutoLayout() ? _("AutoLayout") : _("")),
+        GetFPPProxy()
     );
 }
 #pragma endregion
