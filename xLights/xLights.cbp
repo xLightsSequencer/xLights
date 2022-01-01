@@ -197,6 +197,7 @@
 					<Add directory="outputs" />
 					<Add directory="xLights" />
 					<Add directory="xLights/models" />
+					<Add directory="../dependencies/libxlsxwriter" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -210,6 +211,7 @@
 					<Add option="-lz" />
 					<Add option="-lzstd" />
 					<Add library="../lib/linux/libliquidfun.a" />
+					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Release">
@@ -244,6 +246,7 @@
 					<Add directory="outputs" />
 					<Add directory="xLights" />
 					<Add directory="xLights/models" />
+					<Add directory="../dependencies/libxlsxwriter" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -257,6 +260,7 @@
 					<Add option="-lz" />
 					<Add option="-lzstd" />
 					<Add library="../lib/linux/libliquidfun.a" />
+					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
 				</Linker>
 			</Target>
 			<Target title="64bit MinGW_Release">
