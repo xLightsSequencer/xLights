@@ -102,6 +102,11 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                                                               const std::string &jsonKey,
                                                               int responseCode,
                                                               bool msgIsJSON)> &sendResponse) {
+
+    if (paths.size() == 0) {
+        return sendResponse("No command", "msg", 503, false);
+    }
+
     std::string cmd = paths[0];
     if (cmd == "getVersion") {
         return sendResponse(GetDisplayVersionString(), "version", 200, false);
@@ -137,7 +142,14 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         if (fname.empty()) {
             if (CurrentSeqXmlFile != nullptr) {
-                return sendResponse(CurrentSeqXmlFile->GetName(), "seq", 200, false);
+                std::string response = wxString::Format("{\"seq\":\"%s\",\"fullseq\":\"%s\",\"media\":\"%s\",\"len\":%u,\"framems\":%u}",
+                                                        JSONSafe(CurrentSeqXmlFile->GetName()),
+                                                        JSONSafe(CurrentSeqXmlFile->GetFullPath()),
+                                                        JSONSafe(CurrentSeqXmlFile->GetMediaFile()),
+                                                        CurrentSeqXmlFile->GetSequenceDurationMS(),
+                                                        CurrentSeqXmlFile->GetFrameMS());
+
+                return sendResponse(response, "", 200, true);
             } else {
                 return sendResponse("Sequence not open.", "msg", 503, false);
             }
@@ -153,7 +165,14 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             _promptBatchRenderIssues = prompt; // off by default
             OpenSequence(seq, nullptr);
             _promptBatchRenderIssues = oldPrompt;
-            return sendResponse(CurrentSeqXmlFile->GetName(), "seq", 200, false);
+            std::string response = wxString::Format("{\"seq\":\"%s\",\"fullseq\":\"%s\",\"media\":\"%s\",\"len\":%u,\"framems\":%u}",
+                                                    JSONSafe(CurrentSeqXmlFile->GetName()),
+                                                    JSONSafe(CurrentSeqXmlFile->GetFullPath()),
+                                                    JSONSafe(CurrentSeqXmlFile->GetMediaFile()),
+                                                    CurrentSeqXmlFile->GetSequenceDurationMS(),
+                                                    CurrentSeqXmlFile->GetFrameMS());
+
+            return sendResponse(response, "", 200, true);
         }
     } else if (cmd == "closeSequence") {
         if (CurrentSeqXmlFile == nullptr) {
@@ -468,7 +487,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         auto ip = params["ip"];
         ::wxLaunchDefaultBrowser(ip);
 
-        return "{\"res\":200,\"msg\":\"Controller opened.\"}";
+        return sendResponse("Controller opened", "msg", 200, false);
 
     } else if (cmd == "openControllerProxy") {
         auto ip = params["ip"];
