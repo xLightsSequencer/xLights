@@ -26,6 +26,7 @@
 #include "../JukeboxPanel.h"
 #include "../outputs/E131Output.h"
 #include "../../xSchedule/wxHTTPServer/wxhttpserver.h"
+#include <wx/uri.h>
 
 #include <log4cpp/Category.hh>
 
@@ -47,19 +48,6 @@ static bool HttpRequestFunction(HttpConnection &connection, HttpRequest &request
 static wxString MIME_JSON = "application/json";
 static wxString MIME_TEXT = "text/plain";
 
-static std::string UnEscapeURI(const std::string &s) {
-    int idx = s.find("%20");
-    if (idx != std::string::npos) {
-        std::string ns = s.substr(0, idx) + " " + s.substr(idx + 3);
-        idx = ns.find("%20", idx + 1);
-        while (idx != std::string::npos) {
-            ns = ns.substr(0, idx) + " " + ns.substr(idx + 3);
-            idx = ns.find("%20", idx + 1);
-        }
-        return ns;
-    }
-    return s;
-}
 static std::map<std::string, std::string> ParseParams(const wxString &params) {
     std::map<std::string, std::string> p;
     std::string np = params;
@@ -78,7 +66,7 @@ static std::map<std::string, std::string> ParseParams(const wxString &params) {
             value = np2.substr(idx + 1);
             np2 = np2.substr(0, idx);
         }
-        p[np2] = UnEscapeURI(value);
+        p[np2] = wxURI::Unescape(value);
     }
     return p;
 }
@@ -113,7 +101,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
     } else if (cmd == "openSequence" || cmd == "getOpenSequence" || cmd == "loadSequence") {
         wxString fname = "";
         if (paths.size() > 1) {
-            fname = UnEscapeURI(paths[1]);
+            fname = wxURI::Unescape(paths[1]);
         }
         bool force = false;
         bool prompt = false;
@@ -681,10 +669,10 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &r
     }
     while (uri.find('/') != std::string::npos) {
         wxString p = uri.substr(0, uri.find('/'));
-        paths.push_back(UnEscapeURI(p));
+        paths.push_back(wxURI::Unescape(p));
         uri = uri.substr(uri.find('/') + 1);
     }
-    paths.push_back(UnEscapeURI(uri));
+    paths.push_back(wxURI::Unescape(uri));
 
     wxString accept = request["Accept"];
     if (paths[0] == "xlDoAutomation") {
