@@ -12,6 +12,7 @@
 
 #include <string>
 #include "../OutputModelManager.h"
+#include "ModelScreenLocation.h"
 #include <glm/mat3x3.hpp>
 
 class xLightsFrame;
@@ -66,7 +67,7 @@ public:
     void SetWidth(float w, bool ignoreLock = false);
     void SetHeight(float h, bool ignoreLock = false);
     void SetDepth(float d, bool ignoreLock = false);
-    bool Rotate(int axis, float factor);
+    bool Rotate(ModelScreenLocation::MSLAXIS axis, float factor);
     void FlipHorizontal(bool ignoreLock = false);
     void FlipVertical(bool ignoreLock = false);
 

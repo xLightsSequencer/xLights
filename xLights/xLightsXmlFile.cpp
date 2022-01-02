@@ -1799,6 +1799,10 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
             }
         }
     }
+
+    if (GetSequenceLoaded()) {
+        GetTimingList(xLightsParent->GetSequenceElements());
+    }
 }
 
 wxString RemoveTabs(const wxString& s, size_t tabs)

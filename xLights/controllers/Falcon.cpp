@@ -37,7 +37,7 @@
 
 std::string Falcon::SendToFalconV4(std::string msg)
 {
-    return PutURL("/api", msg, true, "", "", "application/json");
+    return PutURL("/api", msg, "", "", "application/json");
 }
 
 std::vector<std::string> Falcon::V4_GetMediaFiles()

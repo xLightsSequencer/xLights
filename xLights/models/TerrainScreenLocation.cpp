@@ -23,12 +23,12 @@
 #define NUM_TERRAIN_HANDLES   861   // default number of points for a 40x20 grid
 
 TerrianScreenLocation::TerrianScreenLocation()
-    : BoxedScreenLocation(NUM_TERRAIN_HANDLES+ 9), num_points_wide(41), num_points_deep(21),
-    edit_active(false)
+    : BoxedScreenLocation(NUM_TERRAIN_HANDLES+ 9)
 {
     mSelectableHandles = NUM_TERRAIN_HANDLES;
     handle_aabb_max.resize(NUM_TERRAIN_HANDLES);
     handle_aabb_min.resize(NUM_TERRAIN_HANDLES);
+    num_points = num_points_wide * num_points_deep;
 }
 
 bool TerrianScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const {
@@ -124,30 +124,29 @@ bool TerrianScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
     xlColor Box3dColor = xlWHITE;
     if (_locked) Box3dColor = xlREDTRANSLUCENT;
 
-    minX = -x_offset * scalex - BOUNDING_RECT_OFFSET;
-    maxX = x_offset * scalex + BOUNDING_RECT_OFFSET;
-    minY = y_min * scaley - BOUNDING_RECT_OFFSET;
-    maxY = y_max * scaley + BOUNDING_RECT_OFFSET;
-    minZ = -z_offset * scalez - BOUNDING_RECT_OFFSET;
-    maxZ = z_offset * scalez + BOUNDING_RECT_OFFSET;
+    float minX = -x_offset * scalex - BOUNDING_RECT_OFFSET;
+    float maxX = x_offset * scalex + BOUNDING_RECT_OFFSET;
+    float minY = y_min * scaley - BOUNDING_RECT_OFFSET;
+    float maxY = y_max * scaley + BOUNDING_RECT_OFFSET;
+    float minZ = -z_offset * scalez - BOUNDING_RECT_OFFSET;
+    float maxZ = z_offset * scalez + BOUNDING_RECT_OFFSET;
 
     startVert = va->getCount();
     if (active_handle != -1) {
         active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
         DrawAxisTool(active_handle_pos, program, zoom, scale);
         startVert = va->getCount();
-        if (active_axis != -1) {
-            switch (active_axis)
-            {
-            case X_AXIS:
+        if (active_axis != MSLAXIS::NO_AXIS) {
+            switch (active_axis) {
+            case MSLAXIS::X_AXIS:
                 va->AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
                 va->AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
                 break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
                 va->AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                 va->AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                 break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
                 va->AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUETRANSLUCENT);
                 va->AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
                 break;
@@ -260,7 +259,7 @@ int TerrianScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool 
     if (_locked) return 0;
 
     if (handle != CENTER_HANDLE) {
-        if (axis_tool == TOOL_ELEVATE) {
+        if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
             if (latch) {
                 saved_position.y = active_handle_pos.y;
             }
@@ -274,8 +273,7 @@ int TerrianScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool 
 
             int point = handle - 1;
             if (point < mPos.size()) {
-                switch (active_axis) {
-                case Y_AXIS:
+                if (active_axis == MSLAXIS::Y_AXIS) {
                     mPos[point] = newy;
                     if (tool_size > 1) {
                         int row = point / num_points_wide;
@@ -295,7 +293,6 @@ int TerrianScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool 
                             }
                         }
                     }
-                    break;
                 }
             }
         }
@@ -312,14 +309,13 @@ void TerrianScreenLocation::SetActiveHandle(int handle)
     SetAxisTool(axis_tool);  // run logic to disallow certain tools
 }
 
-void TerrianScreenLocation::SetAxisTool(int mode)
+void TerrianScreenLocation::SetAxisTool(MSLTOOL mode)
 {
     if (active_handle > 0) {
-        axis_tool = TOOL_ELEVATE;
+        axis_tool = MSLTOOL::TOOL_ELEVATE;
     } else {
-        if (axis_tool == TOOL_ELEVATE)
-        {
-            axis_tool = TOOL_TRANSLATE;
+        if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
+            axis_tool = MSLTOOL::TOOL_TRANSLATE;
         }
         ModelScreenLocation::SetAxisTool(mode);
     }
@@ -328,19 +324,19 @@ void TerrianScreenLocation::SetAxisTool(int mode)
 void TerrianScreenLocation::AdvanceAxisTool()
 {
     if (active_handle > 0) {
-        axis_tool = TOOL_ELEVATE;
+        axis_tool = MSLTOOL::TOOL_ELEVATE;
     } else {
         ModelScreenLocation::AdvanceAxisTool();
     }
 }
 
-void TerrianScreenLocation::SetActiveAxis(int axis)
+void TerrianScreenLocation::SetActiveAxis(MSLAXIS axis)
 {
     if (active_handle > 0) {
-        if (axis != -1) {
-            active_axis = Y_AXIS;
+        if (axis != MSLAXIS::NO_AXIS) {
+            active_axis = MSLAXIS::Y_AXIS;
         } else {
-            active_axis = -1;
+            active_axis = MSLAXIS::NO_AXIS;
         }
     } else {
         ModelScreenLocation::SetActiveAxis(axis);
@@ -408,4 +404,3 @@ void TerrianScreenLocation::Write(wxXmlNode* node) {
     }
     node->AddAttribute("PointData", point_data);
 }
-

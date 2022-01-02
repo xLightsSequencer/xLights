@@ -128,7 +128,7 @@ std::string J1Sys::BuildStringPort(bool active, int string, char protocol, int s
 
 void J1Sys::ResetStringOutputs() {
 
-    PutURL("/protect/stringConfig.htm", "", true, _username, _password);
+    PutURL("/protect/stringConfig.htm", "", _username, _password);
 }
 
 void J1Sys::ReadCurrentConfig(std::vector<J1SysPixelOutput>& j) {
@@ -211,7 +211,7 @@ std::string J1Sys::BuildSerialPort(bool active, int port, char protocol, int spe
 void J1Sys::ResetSerialOutputs() {
 
     if (_outputs == 12) {
-        PutURL("/protect/portConfig.htm", "", true, _username, _password);
+        PutURL("/protect/portConfig.htm", "", _username, _password);
     }
 }
 
@@ -348,7 +348,7 @@ bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManag
     }
 
     std::string request = wxString::Format("an=0&e1en=%d&anen=%d", (e131) ? 1 : 0, (artnet) ? 1 : 0).ToStdString();
-    std::string res = PutURL("/protect/ipConfig.htm", request, true, _username, _password);
+    std::string res = PutURL("/protect/ipConfig.htm", request, _username, _password);
     if (res != "" && !StartsWith(res, "401 "))
     {
         return true;
@@ -503,7 +503,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
         }
 
         if (requestString != "") {
-            std::string res = PutURL("/protect/stringConfig.htm", requestString, true, _username, _password);
+            std::string res = PutURL("/protect/stringConfig.htm", requestString, _username, _password);
             if (res == "") {
                 success = false;
             }
@@ -562,7 +562,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
         }
 
         if (requestString != "") {
-            std::string res = PutURL("/protect/portConfig.htm", requestString, true, _username, _password);
+            std::string res = PutURL("/protect/portConfig.htm", requestString, _username, _password);
             if (res == "") {
                 success = false;
             }

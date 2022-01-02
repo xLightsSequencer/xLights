@@ -60,6 +60,7 @@ class xScannerFrame : public wxFrame
 {
     std::pair<std::string, std::string> nullPair = { "","" };
     wxTreeListCtrl* _tree = nullptr;
+    wxTreeListItem _item;
     WorkManager _workManager;
     void Scan();
     std::string GetItem(std::list<std::pair<std::string, std::string>>& res, const std::string& label);
@@ -73,6 +74,8 @@ class xScannerFrame : public wxFrame
     void ValidateWindow();
     void UpdateDeviceTitle(wxTreeListCtrl* tree, wxTreeListItem& ti, TITLE_PRIORITY tp, const std::string& name);
         //void AddIP(wxTreeListItem ti, const IPObject& ip);
+
+    void AddtoxLights(wxTreeListItem& item);
 
 public:
 
@@ -120,6 +123,7 @@ private:
 
         static const long ID_MNU_EXPORT;
         static const long ID_MNU_RESCAN;
+        static const long ID_MNU_ADDTOXLIGHTS;
 
         //(*Declarations(xScannerFrame)
         wxMenu Menu1;

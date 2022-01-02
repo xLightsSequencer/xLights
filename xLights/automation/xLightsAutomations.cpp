@@ -26,6 +26,7 @@
 #include "../JukeboxPanel.h"
 #include "../outputs/E131Output.h"
 #include "../../xSchedule/wxHTTPServer/wxhttpserver.h"
+#include <wx/uri.h>
 
 #include <log4cpp/Category.hh>
 
@@ -47,19 +48,6 @@ static bool HttpRequestFunction(HttpConnection &connection, HttpRequest &request
 static wxString MIME_JSON = "application/json";
 static wxString MIME_TEXT = "text/plain";
 
-static std::string UnEscapeURI(const std::string &s) {
-    int idx = s.find("%20");
-    if (idx != std::string::npos) {
-        std::string ns = s.substr(0, idx) + " " + s.substr(idx + 3);
-        idx = ns.find("%20", idx + 1);
-        while (idx != std::string::npos) {
-            ns = ns.substr(0, idx) + " " + ns.substr(idx + 3);
-            idx = ns.find("%20", idx + 1);
-        }
-        return ns;
-    }
-    return s;
-}
 static std::map<std::string, std::string> ParseParams(const wxString &params) {
     std::map<std::string, std::string> p;
     std::string np = params;
@@ -78,7 +66,7 @@ static std::map<std::string, std::string> ParseParams(const wxString &params) {
             value = np2.substr(idx + 1);
             np2 = np2.substr(0, idx);
         }
-        p[np2] = UnEscapeURI(value);
+        p[np2] = wxURI::Unescape(value);
     }
     return p;
 }
@@ -102,18 +90,23 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                                                               const std::string &jsonKey,
                                                               int responseCode,
                                                               bool msgIsJSON)> &sendResponse) {
+
+    if (paths.size() == 0) {
+        return sendResponse("No command", "msg", 503, false);
+    }
+
     std::string cmd = paths[0];
     if (cmd == "getVersion") {
         return sendResponse(GetDisplayVersionString(), "version", 200, false);
     } else if (cmd == "openSequence" || cmd == "getOpenSequence" || cmd == "loadSequence") {
         wxString fname = "";
         if (paths.size() > 1) {
-            fname = UnEscapeURI(paths[1]);
+            fname = wxURI::Unescape(paths[1]);
         }
         bool force = false;
         bool prompt = false;
         
-        if (params["_METHOD"] == "POST") {
+        if (params["_METHOD"] == "POST" && !params["_DATA"].empty()) {
             wxString fname = params["_DATA"];
             wxJSONValue val;
             wxJSONReader reader;
@@ -137,7 +130,14 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         if (fname.empty()) {
             if (CurrentSeqXmlFile != nullptr) {
-                return sendResponse(CurrentSeqXmlFile->GetName(), "seq", 200, false);
+                std::string response = wxString::Format("{\"seq\":\"%s\",\"fullseq\":\"%s\",\"media\":\"%s\",\"len\":%u,\"framems\":%u}",
+                                                        JSONSafe(CurrentSeqXmlFile->GetName()),
+                                                        JSONSafe(CurrentSeqXmlFile->GetFullPath()),
+                                                        JSONSafe(CurrentSeqXmlFile->GetMediaFile()),
+                                                        CurrentSeqXmlFile->GetSequenceDurationMS(),
+                                                        CurrentSeqXmlFile->GetFrameMS());
+
+                return sendResponse(response, "", 200, true);
             } else {
                 return sendResponse("Sequence not open.", "msg", 503, false);
             }
@@ -153,7 +153,14 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             _promptBatchRenderIssues = prompt; // off by default
             OpenSequence(seq, nullptr);
             _promptBatchRenderIssues = oldPrompt;
-            return sendResponse(CurrentSeqXmlFile->GetName(), "seq", 200, false);
+            std::string response = wxString::Format("{\"seq\":\"%s\",\"fullseq\":\"%s\",\"media\":\"%s\",\"len\":%u,\"framems\":%u}",
+                                                    JSONSafe(CurrentSeqXmlFile->GetName()),
+                                                    JSONSafe(CurrentSeqXmlFile->GetFullPath()),
+                                                    JSONSafe(CurrentSeqXmlFile->GetMediaFile()),
+                                                    CurrentSeqXmlFile->GetSequenceDurationMS(),
+                                                    CurrentSeqXmlFile->GetFrameMS());
+
+            return sendResponse(response, "", 200, true);
         }
     } else if (cmd == "closeSequence") {
         if (CurrentSeqXmlFile == nullptr) {
@@ -468,7 +475,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         auto ip = params["ip"];
         ::wxLaunchDefaultBrowser(ip);
 
-        return "{\"res\":200,\"msg\":\"Controller opened.\"}";
+        return sendResponse("Controller opened", "msg", 200, false);
 
     } else if (cmd == "openControllerProxy") {
         auto ip = params["ip"];
@@ -601,7 +608,46 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
     } else if (cmd == "e131Tag" || cmd == "getE131Tag") {
         return sendResponse(E131Output::GetTag(), "tag", 200, false);
+    } else if (cmd == "addEthernetController") {
+        auto c = new ControllerEthernet(&_outputManager);
+        //c->SetProtocol(params["protocol"]);
+        c->SetIP(params["ip"]);
+        c->SetId(1);
+        c->EnsureUniqueId();
+        c->SetName(params["name"]);
+        auto const vendors = ControllerCaps::GetVendors(c->GetType());
+        if (std::find(vendors.begin(), vendors.end(), params["vendor"]) != vendors.end()) {
+            c->SetVendor(params["vendor"]);
+            auto models = ControllerCaps::GetModels(c->GetType(), params["vendor"]);
+            if (std::find(models.begin(), models.end(), params["model"]) != models.end()) {
+                c->SetModel(params["model"]);
+                auto variants = ControllerCaps::GetVariants(c->GetType(), params["vendor"], params["model"]);
+                if (std::find(variants.begin(), variants.end(), params["variant"]) != variants.end()) {
+                    c->SetVariant(params["variant"]);
+                }
+            }
+        }
+        
+        _outputManager.AddController(c);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Automation:ADDETHERNET");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "Automation:ADDETHERNET");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Automation:ADDETHERNET", nullptr, c);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Automation:ADDETHERNET");
+        return sendResponse("Added Ethernet Controller", "msg", 200, false);
+    
+    } else if (cmd == "packageSequence") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        auto const filename = PackageSequence(false);
+        std::string response = wxString::Format("{\"msg\":\"Sequence Packaged.\",\"output\":\"%s\"}", JSONSafe(filename));
+        return sendResponse(response, "", 200, true);
+    } else if (cmd == "packageLogFiles") {
+        auto const filename = PackageDebugFiles(false);
+        std::string response = wxString::Format("{\"msg\":\"Log Files Packaged.\",\"output\":\"%s\"}", JSONSafe(filename));
+        return sendResponse(response, "", 200, true);
     }
+
 
     return false;
 }
@@ -623,10 +669,10 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &r
     }
     while (uri.find('/') != std::string::npos) {
         wxString p = uri.substr(0, uri.find('/'));
-        paths.push_back(UnEscapeURI(p));
+        paths.push_back(wxURI::Unescape(p));
         uri = uri.substr(uri.find('/') + 1);
     }
-    paths.push_back(UnEscapeURI(uri));
+    paths.push_back(wxURI::Unescape(uri));
 
     wxString accept = request["Accept"];
     if (paths[0] == "xlDoAutomation") {
@@ -865,14 +911,6 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
                 // TODO
             } else if (cmd == "hinksPixExport") {
                 return "{\"res\":504,\"msg\":\"Not implemented.\"}";
-                // TODO
-            } else if (cmd == "packageLogFiles") {
-                return "{\"res\":504,\"msg\":\"Not implemented.\"}";
-                // MEDIUM PRIORITY
-                // TODO
-            } else if (cmd == "packageSequence") {
-                return "{\"res\":504,\"msg\":\"Not implemented.\"}";
-                // MEDIUM PRIORITY
                 // TODO
             } else if (cmd == "purgeDownloadCache") {
                 return "{\"res\":504,\"msg\":\"Not implemented.\"}";

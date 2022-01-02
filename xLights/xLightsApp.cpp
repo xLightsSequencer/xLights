@@ -71,6 +71,7 @@
     #pragma comment(lib, "msvcprtd.lib")
     #pragma comment(lib, "liquidfund.lib")
     #pragma comment(lib, "libzstdd_static_VS.lib")
+    #pragma comment(lib, "xlsxwriterd.lib")
 #else
     #pragma comment(lib, "wxbase31u.lib")
     #pragma comment(lib, "wxbase31u_net.lib")
@@ -92,6 +93,7 @@
     #pragma comment(lib, "msvcprt.lib")
     #pragma comment(lib, "liquidfun.lib")
     #pragma comment(lib, "libzstd_static_VS.lib")
+    #pragma comment(lib, "xlsxwriter.lib")
 #endif
 #pragma comment(lib, "libcurl.dll.a")
 #pragma comment(lib, "z.lib")
@@ -336,7 +338,12 @@ int main(int argc, char **argv)
 
     #ifndef __WXMSW__
     wxApp::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE, "program");
-    if (argc > 1) {
+    wxString binName(argv[0]);
+
+    if (binName.EndsWith("xlDo")) {
+        //symlink xlDo to xLights
+        return DoXLDoCommands(argc, argv);
+    } else if (argc > 1) {
         std::string argv1 = &argv[1][1];
         if (argv1 == "xlDo") {
             return DoXLDoCommands(argc - 1, &argv[1]);

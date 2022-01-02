@@ -1397,6 +1397,8 @@ protected:
     void StopNow();
     bool ShowFolderIsInBackup(const std::string showdir);
     bool ShowFolderIsInProgramFiles(const std::string showdir);
+    std::string PackageSequence(bool showDialogs = true);
+    std::string PackageDebugFiles(bool showDialogs = true);
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;
@@ -1638,8 +1640,8 @@ private:
     void LoadSequencer(xLightsXmlFile& xml_file);
     void DoLoadPerspective(wxXmlNode *p);
     void CheckForValidModels();
-    void ExportModels(wxString filename);
-    void ExportEffects(wxString filename);
+    void ExportModels(wxString const& filename);
+    void ExportEffects(wxString const& filename);
     int ExportElement(wxFile& f, Element* e, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
     int ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
     std::map<int, std::list<float>> LoadPolyphonicTranscription(AudioManager* audio, int intervalMS);

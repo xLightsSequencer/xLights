@@ -418,9 +418,9 @@ void OutputManager::RegisterSentPacket() {
     }
 }
 
-std::string OutputManager::GetExportHeader() {
-
-    return "Controller Name,Start Absolute,End Absolute,Type,Protocol,IP,Comm Port,Baud Rate,Description,Universe/Id,Channels,Active,Suppress Duplicates,Auto Size,FPP Proxy";
+std::vector<std::string> OutputManager::GetExportHeaders()
+{
+    return { "Controller Name", "Start Absolute", "End Absolute", "Type", "Protocol", "IP", "Comm Port", "Baud Rate", "Description", "Universe/Id", "Channels", "Active", "Suppress Duplicates", "Auto Size", "Auto Layout", "Auto Upload", "Full xLights Control", "FPP Proxy" };
 }
 #pragma endregion
 

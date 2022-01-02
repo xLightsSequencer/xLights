@@ -435,9 +435,9 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
     if (_caps != nullptr && (_type == PORTTYPE::PIXEL) && _caps->SupportsSmartRemotes() && (_caps->GetSmartRemoteTypes().size() > 1)) {
         mnu.Append(ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE, "Set Smart Remote Type");
     }
-    mnu.Append(ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS, "Remove all models from port");
+    mnu.Append(ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS, "Remove All Models From Port");
     if (_caps != nullptr && ((_type == PORTTYPE::PIXEL && _caps->GetMaxPixelPort() > 1) || (_type == PORTTYPE::SERIAL && _caps->GetMaxSerialPort() > 1))) {
-        mnu.Append(ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT, "Move all models to port");
+        mnu.Append(ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT, "Move All Models To Port");
     }
 }
 
@@ -467,7 +467,7 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
             int max = _caps->GetMaxPixelPort();
             if (_type == PORTTYPE::SERIAL) max = _caps->GetMaxSerialPort();
 
-            wxNumberEntryDialog dlg(parent, "Enter the port to move the models to", "Port", "Port", GetPort(), 1, max);
+            wxNumberEntryDialog dlg(parent, "Enter The Port To Move The Models To", "Port", "Port", GetPort(), 1, max);
             if (dlg.ShowModal() == wxID_OK) {
                 if (_type == PORTTYPE::SERIAL) {
                     auto from = _cud->GetControllerSerialPort(GetPort());
@@ -1578,7 +1578,9 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
         SaveCSV();
     }
     else if (id == CONTROLLER_REMOVEALLMODELS) {
-
+        if (wxMessageBox("Are you sure You want to remove all the models from this Controller?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
+            return;
+        }
         logger_base.debug("removing all models from controller.");
         for (const auto& it : _controllers) {
             ModelCMObject* m = dynamic_cast<ModelCMObject*>(it);
@@ -1692,9 +1694,14 @@ void ControllerModelDialog::SaveCSV() {
 
     wxString const header = _controller->GetShortDescription() + "\n";
     f.Write(header);
-    std::vector<std::string> const lines = _cud->ExportAsCSV(ExportSettings::GetSettings(this));
+    int columSize = 0;
+    std::vector<std::vector<std::string>> const lines = _cud->ExportAsCSV(ExportSettings::GetSettings(this), _controller->GetDefaultBrightnessUnderFullControl(), columSize);
     for (const auto& line : lines) {
-        f.Write(line);
+        for (const auto& col : line) {
+            f.Write(col);
+            f.Write(',');
+        }
+        f.Write('\n');
     }
     f.Close();
 }
@@ -2870,7 +2877,7 @@ void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
     mnu.Append(CONTROLLERModel_SAVE_CSV, "Save As CSV...");
 
     if (_cud->HasModels()) {
-        mnu.Append(CONTROLLER_REMOVEALLMODELS, "Remove all models from controller");
+        mnu.Append(CONTROLLER_REMOVEALLMODELS, "Remove All Models From Controller");
     }
 
     BaseCMObject* cm = GetControllerCMObjectAt(mouse, adjustedMouse);

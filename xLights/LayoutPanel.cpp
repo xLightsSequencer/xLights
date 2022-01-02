@@ -2494,7 +2494,7 @@ void LayoutPanel::SelectBaseObject3D()
                 // I think the selected model might not be a model in some undo situations
                 if (selectedModel != nullptr) {
                     selectedModel->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
-                    selectedModel->GetBaseObjectScreenLocation().SetActiveAxis(-1);
+                    selectedModel->GetBaseObjectScreenLocation().SetActiveAxis(ModelScreenLocation::MSLAXIS::NO_AXIS);
                 }
             }
             else {
@@ -2502,7 +2502,7 @@ void LayoutPanel::SelectBaseObject3D()
                 // I think the selected model might not be a view object in some undo situations
                 if (selectedViewObject != nullptr) {
                     selectedViewObject->GetObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
-                    selectedViewObject->GetObjectScreenLocation().SetActiveAxis(-1);
+                    selectedViewObject->GetObjectScreenLocation().SetActiveAxis(ModelScreenLocation::MSLAXIS::NO_AXIS);
                 }
             }
             highlightedBaseObject = selectedBaseObject;
@@ -3052,7 +3052,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     // an axis was selected
                     if (selectedBaseObject != nullptr) {
                         int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
-                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveAxis(m_over_handle & 0xff);
+                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveAxis((ModelScreenLocation::MSLAXIS)(m_over_handle & 0xff));
                         selectedBaseObject->GetBaseObjectScreenLocation().MouseOverHandle(-1);
                         bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
                         // this is designed to pretend the control and shift keys are down when creating models to
@@ -3408,7 +3408,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 
     if (is_3d && m_mouse_down) {
         if (selectedBaseObject != nullptr) {
-            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveAxis(-1);
+            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveAxis(ModelScreenLocation::MSLAXIS::NO_AXIS);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewLeftDown");
         }
         modelPreview->SetCameraView(0, 0, true);
@@ -3631,11 +3631,11 @@ void LayoutPanel::OnPreviewRotateGesture(wxRotateGestureEvent& event) {
                 delta += 360;
             }
 
-            int axis = 2;  //default is around z axis
+            ModelScreenLocation::MSLAXIS axis = ModelScreenLocation::MSLAXIS::Z_AXIS; //default is around z axis
             if (wxGetKeyState(WXK_SHIFT)) {
-                axis = 0;
+                axis = ModelScreenLocation::MSLAXIS::X_AXIS;
             } else if (wxGetKeyState(WXK_CONTROL)) {
-                axis = 1;
+                axis = ModelScreenLocation::MSLAXIS::Y_AXIS;
             }
             if (selectedBaseObject->Rotate(axis, delta)) {
                 SetupPropGrid(selectedBaseObject);
@@ -3860,7 +3860,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                     CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, std::to_string(active_handle));
                 }
                 bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
-                if (selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == TOOL_ROTATE) {
+                if (selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == ModelScreenLocation::MSLTOOL::TOOL_ROTATE) {
                     SetMouseStateForModels(true);
                 }
                 // this is designed to pretend the control and shift keys are down when creating models to
@@ -3874,7 +3874,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewMouseMove3D");
                 //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewMouseMove3D");
                 if (selectedModelCnt > 1 || selectedViewObjectCnt > 1) {
-                    if( selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == TOOL_TRANSLATE ) {
+                    if (selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE) {
                         glm::vec3 new_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
                         glm::vec3 pos_offset = new_centerpos - last_centerpos;
                         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
@@ -3894,8 +3894,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                             }
                         }
                         last_centerpos = new_centerpos;
-                    }
-                    else if( selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == TOOL_ROTATE ) {
+                    } else if (selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == ModelScreenLocation::MSLTOOL::TOOL_ROTATE) {
                         glm::vec3 new_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
                         glm::vec3 rotate_offset = new_worldrotate - last_worldrotate;
                         glm::vec3 active_handle_position = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandlePosition();
@@ -3925,7 +3924,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                         }
                         last_worldrotate = new_worldrotate;
                     }
-                    if (selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == TOOL_SCALE) {
+                    if (selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == ModelScreenLocation::MSLTOOL::TOOL_SCALE) {
                         glm::vec3 new_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
                         if (last_worldscale.x == 0 || last_worldscale.y == 0 || last_worldscale.z == 0) {
                             logger_base.crit("This is not going to end well last_world_scale has a zero parameter and we are about to divide using it.");
@@ -6405,6 +6404,10 @@ void LayoutPanel::ReplaceModel()
                 modelToReplaceItWith->SetControllerProtocol(replaceModel->GetControllerProtocol());
                 modelToReplaceItWith->SetControllerPort(replaceModel->GetControllerPort());
                 modelToReplaceItWith->SetControllerName(replaceModel->GetControllerName());
+                modelToReplaceItWith->SetSmartRemote(replaceModel->GetSmartRemote());
+                modelToReplaceItWith->SetSmartRemoteType(replaceModel->GetSmartRemoteType());
+                modelToReplaceItWith->SetSRMaxCascade(replaceModel->GetSRMaxCascade());
+                modelToReplaceItWith->SetSRCascadeOnPort(replaceModel->GetSRCascadeOnPort());
             }
         }
 

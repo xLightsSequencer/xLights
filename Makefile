@@ -20,7 +20,7 @@ WXWIDGETS_TAG=xlights_2021.31b
 
 .NOTPARALLEL:
 
-all: wxwidgets31 log4cpp cbp2make linkliquid makefile subdirs
+all: wxwidgets31 log4cpp cbp2make linkliquid libxlsxwriter makefile subdirs
 
 #############################################################################
 
@@ -41,6 +41,13 @@ linkliquid:
 			then ln -s libliquidfun.a.x86_64 lib/linux/libliquidfun.a; \
 			else ln -s libliquidfun.a.`uname -m` lib/linux/libliquidfun.a; \
 		fi; \
+	fi
+
+libxlsxwriter: FORCE
+	@printf "Linking libxlsxwriter\n"
+	@if test ! -e dependencies/libxlsxwriter/lib/libxlsxwriter.a; \
+		then cd dependencies/libxlsxwriter; \
+		${MAKE} -s; \
 	fi
 
 log4cpp: FORCE

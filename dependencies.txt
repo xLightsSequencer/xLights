@@ -200,3 +200,13 @@ Last Pulled: 2019-09-27
 Version:     1.3.1 [Latest version as at Jan 2021 is 1.3.1 released Apr 2019]
 License:     GNU Lesser GPL2
 Strategy:    Header added to repository. static libraries added for windows
+
+Library:     libxlsxwriter
+Usage:       write SpreadSheet files
+Link:        https://github.com/jmcnamara/libxlsxwriter
+Source:      https://github.com/jmcnamara/libxlsxwriter
+Last Pulled:
+Version:	 [latest version available as at Jan 2022 is 1.1.4 released Oct 2021]
+License:     BSD
+Strategy:    added as git submodule, build lib with cMake or make
+

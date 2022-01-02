@@ -13,8 +13,9 @@
 #include <wx/thread.h>
 
 #include <list>
-#include <string>
 #include <map>
+#include <string>
+#include <vector>
 
 class wxWindow;
 class wxXmlNode;
@@ -82,7 +83,7 @@ public:
     static void SetRetryOpen(bool retryOpen) { _isRetryOpen = retryOpen; }
     static bool IsInteractive() { return _isInteractive; }
     static void SetInteractive(bool interactive) { _isInteractive = interactive; }
-    static std::string GetExportHeader();
+    static std::vector<std::string> GetExportHeaders();
     #pragma endregion 
 
     #pragma region Controller Management

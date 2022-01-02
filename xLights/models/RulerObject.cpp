@@ -132,6 +132,13 @@ float RulerObject::Measure(float length)
     return length * __rulerObject->GetPerUnit();
 }
 
+float RulerObject::UnMeasure(float length)
+{
+    if (__rulerObject == nullptr)
+        return 0.0;
+    return length / __rulerObject->GetPerUnit();
+}
+
 float RulerObject::Measure(glm::vec3 p1, glm::vec3 p2)
 {
 	if (__rulerObject == nullptr) return 0.0;

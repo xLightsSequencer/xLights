@@ -247,7 +247,7 @@ int TerrianObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
             GetObjectScreenLocation().SetEdit(true);
         } else {
             GetObjectScreenLocation().SetActiveHandle(0);
-            GetObjectScreenLocation().SetAxisTool(TOOL_TRANSLATE);
+            GetObjectScreenLocation().SetAxisTool(ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE);
             GetObjectScreenLocation().SetEdit(false);
         }
         IncrementChangeCount();

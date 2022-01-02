@@ -527,21 +527,23 @@ void ControllerEthernet::SetExpanded(bool expanded)
 
 std::string ControllerEthernet::GetExport() const {
 
-    return wxString::Format("%s,%d,%d,%s,%s,%s,,,\"%s\",%s,%d,%s,%s,%s,%s",
-        GetName(),
-        GetStartChannel(),
-        GetEndChannel(),
-        GetVMV(),
-        GetProtocol(),
-        GetIP(),
-        GetDescription(),
-        GetColumn3Label(),
-        GetChannels(),
-        (IsActive() ? _("") : _("DISABLED")),
-        (IsSuppressDuplicateFrames() ? _("SuppressDuplicates") : _("")),
-        (IsAutoSize() ? _("AutoSize") : _("")),
-        GetFPPProxy()
-    );
+    return wxString::Format("%s,%d,%d,%s,%s,%s,,,\"%s\",%s,%d,%s,%s,%s,%s,%s,%s,%s",
+                            GetName(),
+                            GetStartChannel(),
+                            GetEndChannel(),
+                            GetVMV(),
+                            GetProtocol(),
+                            GetIP(),
+                            GetDescription(),
+                            GetColumn3Label(),
+                            GetChannels(),
+                            (IsActive() ? _("") : _("DISABLED")),
+                            (IsSuppressDuplicateFrames() ? _("SuppressDuplicates") : _("")),
+                            (IsAutoSize() ? _("AutoSize") : _("")),
+                            (IsAutoLayout() ? _("AutoLayout") : _("")),
+                            (IsAutoUpload() ? _("AutoUpload") : _("")),
+                            (IsFullxLightsControl() ? _("FullxLightsControl") : _("")),
+                            GetFPPProxy());
 }
 
 void ControllerEthernet::SetTransientData(int32_t& startChannel, int& nullnumber) {

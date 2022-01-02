@@ -174,20 +174,9 @@ glm::vec3 ModelScreenLocation::GetHandlePosition(int handle) const
     return glm::vec3(mHandlePosition[handle].x, mHandlePosition[handle].y, mHandlePosition[handle].z);
 }
 
-ModelScreenLocation::ModelScreenLocation(int sz)
-: RenderWi(0), RenderHt(0), RenderDp(0), previewW(-1), previewH(-1),
-  worldPos_x(0.0f), worldPos_y(0.0f), worldPos_z(0.0f),
-  scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz),
-  active_handle_pos(glm::vec3(0.0f)), rotatex(0.0f), rotatey(0.0f), rotatez(0.0f),
-  ModelMatrix(Identity), aabb_min(0.0f), aabb_max(0.0f), saved_intersect(0.0f),
-  saved_position(0.0f), saved_size(0.0f), saved_scale(1.0f), saved_rotate(0.0f),
-  active_handle(-1), highlighted_handle(-1), active_axis(-1), axis_tool(TOOL_TRANSLATE),
-  tool_size(1), supportsZScaling(false), _startOnXAxis(false), rotation_init(true),
-  mouse_down(false)
+ModelScreenLocation::ModelScreenLocation(int sz) :
+    ModelMatrix(Identity), mHandlePosition(sz)
 {
-    mSelectableHandles = 0;
-    draw_3d = false;
-    _locked = false;
 }
 
 void ModelScreenLocation::SetRenderSize(float NewWi, float NewHt, float NewDp) {
@@ -219,10 +208,25 @@ void ModelScreenLocation::AdjustRenderSize(float NewWi, float NewHt, float NewDp
     }
 }
 
-void ModelScreenLocation::SetActiveAxis(int axis)
+ModelScreenLocation::MSLAXIS ModelScreenLocation::NextAxis(MSLAXIS axis)
 {
-    if (axis_tool == TOOL_ROTATE && axis != -1) {
-        active_axis = (axis + 1) % (NUM_TOOLS-1);
+    switch (axis) {
+    case MSLAXIS::X_AXIS:
+        return MSLAXIS::Y_AXIS;
+    case MSLAXIS::Y_AXIS:
+        return MSLAXIS::Z_AXIS;
+    case MSLAXIS::Z_AXIS:
+        return MSLAXIS::X_AXIS;
+    default:
+        break;
+    }
+    return MSLAXIS::X_AXIS;
+}
+
+void ModelScreenLocation::SetActiveAxis(MSLAXIS axis)
+{
+    if (axis_tool == MSLTOOL::TOOL_ROTATE && axis != MSLAXIS::NO_AXIS) {
+        active_axis = NextAxis(axis);
     }
     else {
         active_axis = axis;
@@ -335,7 +339,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
     int num_points = 18;
     float os = (float)GetRectHandleWidth(zoom, scale);
 
-    if (axis_tool == TOOL_TRANSLATE) {
+    if (axis_tool == MSLTOOL::TOOL_TRANSLATE) {
         xlColor ax1c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlRED;
         xlColor ax2c = (highlighted_handle == HANDLE_AXIS + 1) ? xlYELLOW : xlGREEN;
         xlColor ax3c = (highlighted_handle == HANDLE_AXIS + 2) ? xlYELLOW : xlBLUE;
@@ -367,7 +371,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
         program->addStep([program, vac, startVertex, count](xlGraphicsContext *ctx) {
             ctx->drawTriangles(vac, startVertex, count);
         });
-    } else if (axis_tool == TOOL_SCALE) {
+    } else if (axis_tool == MSLTOOL::TOOL_SCALE) {
         xlColor ax1c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlRED;
         xlColor ax2c = (highlighted_handle == HANDLE_AXIS+1) ? xlYELLOW : xlGREEN;
         xlColor ax3c = (highlighted_handle == HANDLE_AXIS+2) ? xlYELLOW : xlBLUE;
@@ -379,7 +383,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
         program->addStep([program, vac, startVertex, count](xlGraphicsContext *ctx) {
             ctx->drawTriangles(vac, startVertex, count - startVertex);
         });
-    } else if (axis_tool == TOOL_ROTATE) {
+    } else if (axis_tool == MSLTOOL::TOOL_ROTATE) {
         xlColor ax1c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlGREEN;
         xlColor ax2c = (highlighted_handle == HANDLE_AXIS+1) ? xlYELLOW : xlBLUE;
         xlColor ax3c = (highlighted_handle == HANDLE_AXIS+2) ? xlYELLOW : xlRED;
@@ -413,7 +417,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             ctx->drawLines(vac, startVertex, triangleStart - startVertex);
             ctx->drawTriangles(vac, triangleStart, count - triangleStart);
         });
-    } else if (axis_tool == TOOL_XY_TRANS) {
+    } else if (axis_tool == MSLTOOL::TOOL_XY_TRANS) {
         xlColor a1c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlRED;
         xlColor a2c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlGREEN;
         float arrow_length = GetAxisArrowLength(zoom, scale) / 2.0f;
@@ -466,7 +470,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             ctx->drawTriangles(vac, triangeVertex, count - triangeVertex);
         });
 
-    } else if (axis_tool == TOOL_ELEVATE) {
+    } else if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
         xlColor ax2c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlGREEN;
         float tip = pos.y + GetAxisArrowLength(zoom, scale);
         for (size_t i = 0; i < num_points; i++) {
@@ -486,8 +490,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
         });
 
     }
-
-    if (axis_tool == TOOL_TRANSLATE || axis_tool == TOOL_SCALE) {
+    if (axis_tool == MSLTOOL::TOOL_TRANSLATE || axis_tool == MSLTOOL::TOOL_SCALE) {
         startVertex = vac->getCount();
         vac->AddVertex(pos.x + os, pos.y, pos.z, xlRED);
         vac->AddVertex(pos.x + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale), pos.y, pos.z, xlRED);
@@ -520,21 +523,21 @@ void ModelScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) 
 
     if( angle.y != 0.0f ) {
         float offset = angle.y;
-        Rotate(Y_AXIS, offset);
+        Rotate(MSLAXIS::Y_AXIS, offset);
         rotate_point(position.x, position.z, glm::radians(-offset), posx, posz);
         SetHcenterPos(posx);
         SetDcenterPos(posz);
     }
     else if( angle.x != 0.0f ) {
         float offset = angle.x;
-        Rotate(X_AXIS, offset);
+        Rotate(MSLAXIS::X_AXIS, offset);
         rotate_point(position.y, position.z, glm::radians(offset), posy, posz);
         SetVcenterPos(posy);
         SetDcenterPos(posz);
     }
     else if( angle.z != 0.0f ) {
         float offset = angle.z;
-        Rotate(Z_AXIS, offset);
+        Rotate(MSLAXIS::Z_AXIS, offset);
         rotate_point(position.x, position.y, glm::radians(offset), posx, posy);
         SetHcenterPos(posx);
         SetVcenterPos(posy);
@@ -602,17 +605,17 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
     glm::vec3 normal(0.0f);
     glm::vec3 intersect(0.0f);
 
-    if (axis_tool == TOOL_ROTATE) {
+    if (axis_tool == MSLTOOL::TOOL_ROTATE) {
         switch (active_axis) {
-        case X_AXIS:
+        case MSLAXIS::X_AXIS:
             normal = glm::vec3(saved_position.x + GetAxisArrowLength(zoom, scale), 0.0f, 0.0f);
             point = glm::vec3(saved_position.x, 0.0f, 0.0f);
             break;
-        case Y_AXIS:
+        case MSLAXIS::Y_AXIS:
             normal = glm::vec3(0.0f, saved_position.y + GetAxisArrowLength(zoom, scale), 0.0f);
             point = glm::vec3(0.0f, saved_position.y, 0.0f);
             break;
-        case Z_AXIS:
+        case MSLAXIS::Z_AXIS:
             normal = glm::vec3(0.0f, 0.0f, saved_position.z + GetAxisArrowLength(zoom, scale));
             point = glm::vec3(0.0f, 0.0f, saved_position.z);
             break;
@@ -622,12 +625,12 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
         }
     } else {
         switch (active_axis) {
-        case Z_AXIS:
+        case MSLAXIS::Z_AXIS:
             normal = glm::vec3(0.0f, saved_position.y + GetAxisArrowLength(zoom, scale), 0.0f);
             point = glm::vec3(0.0f, saved_position.y, 0.0f);
             break;
-        case X_AXIS:
-        case Y_AXIS:
+        case MSLAXIS::X_AXIS:
+        case MSLAXIS::Y_AXIS:
             normal = glm::vec3(0.0f, 0.0f, saved_position.z + GetAxisArrowLength(zoom, scale));
             point = glm::vec3(0.0f, 0.0f, saved_position.z);
             break;
@@ -713,7 +716,7 @@ wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, gl
     handle = NO_HANDLE;
 
     // test for a selected axis first
-    int num_axis_handles = (axis_tool == TOOL_XY_TRANS || axis_tool == TOOL_ELEVATE) ? 1 : 3;
+    int num_axis_handles = (axis_tool == MSLTOOL::TOOL_XY_TRANS || axis_tool == MSLTOOL::TOOL_ELEVATE) ? 1 : 3;
     glm::vec3 axisbb_min[3];
     glm::vec3 axisbb_max[3];
     if (IsXYTransHandle()) {
@@ -837,7 +840,7 @@ BoxedScreenLocation::BoxedScreenLocation(int points)
 {
 }
 
-int BoxedScreenLocation::CheckUpgrade(wxXmlNode *node)
+ModelScreenLocation::MSLUPGRADE BoxedScreenLocation::CheckUpgrade(wxXmlNode* node)
 {
     // check for upgrade to world positioning
     int version = wxAtoi(node->GetAttribute("versionNumber", "0"));
@@ -845,7 +848,7 @@ int BoxedScreenLocation::CheckUpgrade(wxXmlNode *node)
         // skip first upgrade call since preview size is not set
         node->DeleteAttribute("versionNumber");
         node->AddAttribute("versionNumber", "2");
-        return UPGRADE_SKIPPED;
+        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_SKIPPED;
     }
     else if (version == 2) {
         if (node->HasAttribute("offsetXpct")) {
@@ -893,7 +896,7 @@ int BoxedScreenLocation::CheckUpgrade(wxXmlNode *node)
             rotate_quat = glm::quat_cast(rz * ry * rx);
             rotation_init = false;
         }
-        return UPGRADE_EXEC_DONE;
+        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_EXEC_DONE;
     }
     else if (version == 3) {
         node->DeleteAttribute("versionNumber");
@@ -912,14 +915,14 @@ int BoxedScreenLocation::CheckUpgrade(wxXmlNode *node)
         glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
         rotate_quat = glm::quat_cast(rx * ry * rz);
         rotation_init = false;
-        return UPGRADE_NOT_NEEDED;
+        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED;
     }
-    return UPGRADE_NOT_NEEDED;
+    return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED;
 }
 
 void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
-    int upgrade_result = CheckUpgrade(ModelNode);
-    if (upgrade_result == UPGRADE_NOT_NEEDED) {
+    ModelScreenLocation::MSLUPGRADE upgrade_result = CheckUpgrade(ModelNode);
+    if (upgrade_result == ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED) {
         worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "200.0"));
         worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
         worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
@@ -1143,16 +1146,16 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
             if (supportsZScaling && !_startOnXAxis) {
                 // what we do here is define a position at origin so that the DragHandle function will calculate the intersection
                 // of the mouse click with the ground plane
-                active_axis = Z_AXIS;
+                active_axis = MSLAXIS::Z_AXIS;
                 saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
                 DragHandle(preview, x, y, true);
                 worldPos_x = saved_intersect.x;
                 worldPos_y = RenderHt / 2.0f;
                 worldPos_z = saved_intersect.z;
                 handle = CENTER_HANDLE;
-                active_axis = Y_AXIS;
+                active_axis = MSLAXIS::Y_AXIS;
             } else {
-                active_axis = X_AXIS;
+                active_axis = MSLAXIS::X_AXIS;
                 saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
                 DragHandle(preview, x, y, true);
                 worldPos_x = saved_intersect.x;
@@ -1163,7 +1166,7 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
         } else {
             handle = R_BOT_HANDLE;
             saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-            active_axis = Y_AXIS;
+            active_axis = MSLAXIS::Y_AXIS;
             DragHandle(preview, x, y, true);
             worldPos_x = saved_intersect.x;
             worldPos_y = saved_intersect.y;
@@ -1478,18 +1481,18 @@ bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, in
         });
 
         DrawAxisTool(active_handle_pos, program, zoom, scale);
-        if (active_axis != -1) {
+        if (active_axis != MSLAXIS::NO_AXIS) {
             startVertex = vac->getCount();
             switch (active_axis) {
-            case X_AXIS:
+            case MSLAXIS::X_AXIS:
                 vac->AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
                 vac->AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
                 break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
                 vac->AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                 vac->AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                 break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
                 vac->AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUETRANSLUCENT);
                 vac->AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
                 break;
@@ -1510,16 +1513,16 @@ bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, in
 
 void BoxedScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
 {
-    wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Width", "RealWidth", RulerObject::MeasureDescription(GetMWidth())));
-    prop->ChangeFlag(wxPG_PROP_READONLY, true);
-    prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    prop = propertyEditor->Append(new wxStringProperty("Height", "RealHeight", RulerObject::MeasureDescription(GetMHeight())));
-    prop->ChangeFlag(wxPG_PROP_READONLY, true);
-    prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Width (%s)", RulerObject::GetUnitDescription()), "RealWidth", RulerObject::Measure(GetRestorableMWidth())));
+    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Min", 0.01);
+    prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight", RulerObject::Measure(GetRestorableMHeight())));
+    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Min", 0.01);
     if (supportsZScaling) {
-        prop = propertyEditor->Append(new wxStringProperty("Depth", "RealDepth", RulerObject::MeasureDescription(GetMDepth())));
-        prop->ChangeFlag(wxPG_PROP_READONLY, true);
-        prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Depth (%s)", RulerObject::GetUnitDescription()), "RealDepth", RulerObject::Measure(GetRestorableMDepth())));
+        prop->SetAttribute("Precision", 2);
+        prop->SetAttribute("Min", 0.01);
     }
 }
 
@@ -1693,8 +1696,37 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     else if (_locked && "RotateZ" == name) {
         event.Veto();
         return 0;
-    }
-    else if ("Locked" == name)
+    } else if (!_locked && "RealWidth" == name) {
+        SetMWidth(RulerObject::UnMeasure(event.GetValue().GetDouble()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
+        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
+    } else if (_locked && "RealWidth" == name) {
+        event.Veto();
+        return 0;
+    } else if (!_locked && "RealHeight" == name) {
+        SetMHeight(RulerObject::UnMeasure(event.GetValue().GetDouble()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
+        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
+    } else if (_locked && "RealHeight" == name) {
+        event.Veto();
+        return 0;
+    } else if (!_locked && "RealDepth" == name) {
+        SetMDepth(RulerObject::UnMeasure(event.GetValue().GetDouble()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
+        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
+    } else if (_locked && "RealDepth" == name) {
+        event.Veto();
+        return 0;
+    } else if ("Locked" == name)
     {
         _locked = event.GetValue().GetBool();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::Locked");
@@ -1705,19 +1737,22 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     return 0;
 }
 
-bool BoxedScreenLocation::Rotate(int axis, float factor) {
+bool BoxedScreenLocation::Rotate(MSLAXIS axis, float factor)
+{
     if (_locked) return false;
 
     glm::quat rot;
     switch (axis) {
-    case X_AXIS:
+    case MSLAXIS::X_AXIS:
         rot = glm::angleAxis(glm::radians(factor), glm::vec3(1.0f, 0.0f, 0.0f));
         break;
-    case Y_AXIS:
+    case MSLAXIS::Y_AXIS:
         rot = glm::angleAxis(glm::radians(factor), glm::vec3(0.0f, 1.0f, 0.0f));
         break;
-    case Z_AXIS:
+    case MSLAXIS::Z_AXIS:
         rot = glm::angleAxis(glm::radians(factor), glm::vec3(0.0f, 0.0f, 1.0f));
+        break;
+    default:
         break;
     }
  
@@ -1751,58 +1786,60 @@ int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool Sh
 
     if (handle == CENTER_HANDLE) {
 
-        if (axis_tool == TOOL_TRANSLATE) {
+        if (axis_tool == MSLTOOL::TOOL_TRANSLATE) {
             switch (active_axis)
             {
-            case X_AXIS:
+            case MSLAXIS::X_AXIS:
                 worldPos_x = saved_position.x + drag_delta.x;
                 break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
                 worldPos_y = saved_position.y + drag_delta.y;
                 break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
                 worldPos_z = saved_position.z + drag_delta.z;
                 break;
+            default:
+                break;
             }
-        }
-        else if (axis_tool == TOOL_ROTATE) {
+        } else if (axis_tool == MSLTOOL::TOOL_ROTATE) {
             glm::vec3 start_vector = saved_intersect - saved_position;
             glm::vec3 end_vector = start_vector + drag_delta;
             switch (active_axis)
             {
-            case X_AXIS:
+            case MSLAXIS::X_AXIS:
             {
                 double start_angle = atan2(start_vector.y, start_vector.z) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
                 double total_change = end_angle - start_angle;
                 double delta = angles.x - total_change;
                 angles.x = total_change;
-                Rotate(X_AXIS, delta);
+                Rotate(MSLAXIS::X_AXIS, delta);
             }
                 break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
             {
                 double start_angle = atan2(start_vector.x, start_vector.z) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.x, end_vector.z) * 180.0 / M_PI;
                 double total_change = end_angle - start_angle;
                 double delta = angles.y - total_change;
                 angles.y = total_change;
-                Rotate(Y_AXIS, -delta);
+                Rotate(MSLAXIS::Y_AXIS, -delta);
             }
                 break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
             {
                 double start_angle = atan2(start_vector.y, start_vector.x) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.y, end_vector.x) * 180.0 / M_PI;
                 double total_change = end_angle - start_angle;
                 double delta = angles.z - total_change;
                 angles.z = total_change;
-                Rotate(Z_AXIS, -delta);
+                Rotate(MSLAXIS::Z_AXIS, -delta);
             }
                 break;
+            default:
+                break;
             }
-        }
-        else if (axis_tool == TOOL_SCALE) {
+        } else if (axis_tool == MSLTOOL::TOOL_SCALE) {
             float change_x = ((saved_size.x*saved_scale.x + drag_delta.x) / (saved_size.x*saved_scale.x));
             float change_y = ((saved_size.y*saved_scale.y + drag_delta.y) / (saved_size.y*saved_scale.y));
             float change_z = ((saved_size.z*saved_scale.z + drag_delta.z) / (saved_size.z*saved_scale.z));
@@ -1810,26 +1847,28 @@ int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool Sh
             if (CtrlKeyPressed) {
                 switch (active_axis)
                 {
-                case X_AXIS:
+                case MSLAXIS::X_AXIS:
                     scalex = saved_scale.x * change_x;
                     if (scale_z) {
                         scalez = scalex;
                     }
                     scaley = saved_scale.y * change_x;
                     break;
-                case Y_AXIS:
+                case MSLAXIS::Y_AXIS:
                     scaley = saved_scale.y * change_y;
                     scalex = saved_scale.x * change_y;
                     if (scale_z) {
                         scalez = saved_scale.x * change_y;
                     }
                     break;
-                case Z_AXIS:
+                case MSLAXIS::Z_AXIS:
                     if (scale_z) {
                         scalez = saved_scale.z * change_z;
                     }
                     scalex = saved_scale.z * change_z;
                     scaley = saved_scale.y * change_z;
+                    break;
+                default:
                     break;
                 }
                 if (ShiftKeyPressed) {
@@ -1840,7 +1879,7 @@ int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool Sh
             else {
                 switch (active_axis)
                 {
-                case X_AXIS:
+                case MSLAXIS::X_AXIS:
                     scalex = saved_scale.x * change_x;
                     if (ShiftKeyPressed) {
                         if (scale_z) {
@@ -1851,20 +1890,22 @@ int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool Sh
                         }
                     }
                     break;
-                case Y_AXIS:
+                case MSLAXIS::Y_AXIS:
                     scaley = saved_scale.y * change_y;
                     if (ShiftKeyPressed) {
                         float current_bottom = saved_position.y - (saved_scale.y * RenderHt / 2.0f);
                         worldPos_y = current_bottom + (scaley * RenderHt / 2.0f);
                     }
                     break;
-                case Z_AXIS:
+                case MSLAXIS::Z_AXIS:
                     if (scale_z) {
                         scalez = saved_scale.z * change_z;
                     }
                     if (ShiftKeyPressed) {
                         scalex = saved_scale.z * change_z;
                     }
+                    break;
+                default:
                     break;
                 }
             }
@@ -2058,13 +2099,8 @@ void BoxedScreenLocation::SetBack(float z) {
     worldPos_z = z + (RenderWi * scalez / 2.0f);
 }
 
-TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3),
-    point2(glm::vec3(0.0f)), center(glm::vec3(0.0f)), minMaxSet(false), old(nullptr)
+TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3)
 {
-    x2 = 0;
-    y2 = 0;
-    z2 = 0;
-    saved_angle = 0;
     mSelectableHandles = 3;
     handle_aabb_min.push_back(glm::vec3(0.0f));
     handle_aabb_min.push_back(glm::vec3(0.0f));
@@ -2077,7 +2113,7 @@ TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3),
 TwoPointScreenLocation::~TwoPointScreenLocation() {
 }
 
-int TwoPointScreenLocation::CheckUpgrade(wxXmlNode *node)
+ModelScreenLocation::MSLUPGRADE TwoPointScreenLocation::CheckUpgrade(wxXmlNode* node)
 {
     // check for upgrade to world positioning
     int version = wxAtoi(node->GetAttribute("versionNumber", "0"));
@@ -2085,7 +2121,7 @@ int TwoPointScreenLocation::CheckUpgrade(wxXmlNode *node)
         // skip first upgrade call since preview size is not set
         node->DeleteAttribute("versionNumber");
         node->AddAttribute("versionNumber", "2");
-        return UPGRADE_SKIPPED;
+        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_SKIPPED;
     } else if (version == 2) {
         if (node->HasAttribute("X1")) {  // Two Point model
             float old_x1 = wxAtof(node->GetAttribute("X1", "0"));
@@ -2115,14 +2151,14 @@ int TwoPointScreenLocation::CheckUpgrade(wxXmlNode *node)
         }
         node->DeleteAttribute("versionNumber");
         node->AddAttribute("versionNumber", CUR_MODEL_POS_VER);
-        return UPGRADE_EXEC_DONE;
+        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_EXEC_DONE;
     }
-    return UPGRADE_NOT_NEEDED;
+    return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED;
 }
 
 void TwoPointScreenLocation::Read(wxXmlNode *ModelNode) {
-    int upgrade_result = CheckUpgrade(ModelNode);
-    if (upgrade_result == UPGRADE_NOT_NEEDED) {
+    ModelScreenLocation::MSLUPGRADE upgrade_result = CheckUpgrade(ModelNode);
+    if (upgrade_result == ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED) {
         worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "0.0"));
         worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
         worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
@@ -2324,23 +2360,22 @@ void TwoPointScreenLocation::SetActiveHandle(int handle)
     SetAxisTool(axis_tool);  // run logic to disallow certain tools
 }
 
-void TwoPointScreenLocation::SetAxisTool(int mode)
+void TwoPointScreenLocation::SetAxisTool(MSLTOOL mode)
 {
-    if (mode != TOOL_SCALE && mode != TOOL_XY_TRANS) {
+    if (mode != MSLTOOL::TOOL_SCALE && mode != MSLTOOL::TOOL_XY_TRANS) {
         axis_tool = mode;
     }
     else {
-        axis_tool = TOOL_TRANSLATE;
+        axis_tool = MSLTOOL::TOOL_TRANSLATE;
     }
 }
 
 void TwoPointScreenLocation::AdvanceAxisTool()
 {
-    axis_tool += 1;
-    if (axis_tool == TOOL_SCALE) {
-        axis_tool += 1;
+    ModelScreenLocation::AdvanceAxisTool();
+    if (axis_tool == MSLTOOL::TOOL_SCALE) {
+        ModelScreenLocation::AdvanceAxisTool();
     }
-    axis_tool %= (NUM_TOOLS-1);
 }
 
 bool TwoPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const {
@@ -2454,7 +2489,7 @@ bool TwoPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom,
         if (!_locked) {
             active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
             DrawAxisTool(active_handle_pos, program, zoom, scale);
-            if (active_axis != -1) {
+            if (active_axis != MSLAXIS::NO_AXIS) {
                 startLines = va->getCount();
                 if (active_handle == SHEAR_HANDLE) {
                     va->AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
@@ -2463,17 +2498,19 @@ bool TwoPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom,
                     va->AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                 } else {
                     switch (active_axis) {
-                    case X_AXIS:
+                    case MSLAXIS::X_AXIS:
                         va->AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
                         va->AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
                         break;
-                    case Y_AXIS:
+                    case MSLAXIS::Y_AXIS:
                         va->AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                         va->AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                         break;
-                    case Z_AXIS:
+                    case MSLAXIS::Z_AXIS:
                         va->AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUETRANSLUCENT);
                         va->AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
+                        break;
+                    default:
                         break;
                     }
                 }
@@ -2564,21 +2601,22 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
 
     if (handle == CENTER_HANDLE) {
 
-        if (axis_tool == TOOL_TRANSLATE) {
+        if (axis_tool == MSLTOOL::TOOL_TRANSLATE) {
             switch (active_axis)
             {
-            case X_AXIS:
+            case MSLAXIS::X_AXIS:
                 worldPos_x = saved_point.x + drag_delta.x;
                 break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
                 worldPos_y = saved_point.y + drag_delta.y;
                 break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
                 worldPos_z = saved_point.z + drag_delta.z;
                 break;
+            default:
+                break;
             }
-        }
-        else if (axis_tool == TOOL_ROTATE) {
+        } else if (axis_tool == MSLTOOL::TOOL_ROTATE) {
             double angle = 0.0f;
             float new_angle = 0.0f;
             glm::vec3 start_vector = saved_intersect - saved_position;
@@ -2586,7 +2624,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
 
             switch (active_axis)
             {
-            case X_AXIS:
+            case MSLAXIS::X_AXIS:
             {
                 double start_angle = atan2(start_vector.y, start_vector.z) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
@@ -2595,7 +2633,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 new_angle = saved_angle - angle;
             }
             break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
             {
                 double start_angle = atan2(start_vector.x, start_vector.z) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.x, end_vector.z) * 180.0 / M_PI;
@@ -2604,7 +2642,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 new_angle = saved_angle - angle;
             }
             break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
             {
                 double start_angle = atan2(start_vector.y, start_vector.x) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.y, end_vector.x) * 180.0 / M_PI;
@@ -2613,26 +2651,29 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 new_angle = angle - saved_angle;
             }
             break;
+            default:
+                break;
             }
             TwoPointScreenLocation::Rotate(active_axis, new_angle);
             saved_angle = angle;
-        }
-        else if (axis_tool == TOOL_SCALE) {
+        } else if (axis_tool == MSLTOOL::TOOL_SCALE) {
             double delta = 0.0f;
             glm::vec3 scaling = glm::vec3(1.0f);
             switch (active_axis)
             {
-            case X_AXIS:
+            case MSLAXIS::X_AXIS:
                 delta = (drag_delta.x - saved_position.x) * 2.0f;
                 scaling.x = (length + delta) / length;
                 break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
                 delta = (drag_delta.y - saved_position.y) * 2.0f;
                 scaling.y = (length + delta) / length;
                 break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
                 delta = (drag_delta.z - saved_position.z) * 2.0f;
                 scaling.z = (length + delta) / length;
+                break;
+            default:
                 break;
             }
             saved_position = drag_delta;
@@ -2641,24 +2682,25 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
     }
     else if (handle == START_HANDLE) {
 
-        if (axis_tool == TOOL_TRANSLATE) {
+        if (axis_tool == MSLTOOL::TOOL_TRANSLATE) {
             switch (active_axis)
             {
-            case X_AXIS:
+            case MSLAXIS::X_AXIS:
                 worldPos_x = saved_position.x + drag_delta.x;
                 x2 = saved_point.x - drag_delta.x;
                 break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
                 worldPos_y = saved_position.y + drag_delta.y;
                 y2 = saved_point.y - drag_delta.y;
                 break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
                 worldPos_z = saved_position.z + drag_delta.z;
                 z2 = saved_point.z - drag_delta.z;
                 break;
+            default:
+                break;
             }
-        }
-        else if (axis_tool == TOOL_ROTATE) {
+        } else if (axis_tool == MSLTOOL::TOOL_ROTATE) {
             double angle = 0.0f;
             glm::vec3 start_vector = saved_intersect - saved_position;
             glm::vec3 end_vector = start_vector + drag_delta;
@@ -2669,7 +2711,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
 
             switch (active_axis)
             {
-            case X_AXIS:
+            case MSLAXIS::X_AXIS:
             {
                 double start_angle = atan2(start_vector.y, start_vector.z) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
@@ -2679,7 +2721,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(1.0f, 0.0f, 0.0f));
             }
             break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
             {
                 double start_angle = atan2(start_vector.x, start_vector.z) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.x, end_vector.z) * 180.0 / M_PI;
@@ -2689,7 +2731,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(0.0f, 1.0f, 0.0f));
             }
             break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
             {
                 double start_angle = atan2(start_vector.y, start_vector.x) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.y, end_vector.x) * 180.0 / M_PI;
@@ -2699,6 +2741,8 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(0.0f, 0.0f, 1.0f));
             }
             break;
+            default:
+                break;
             }
             end_pt = glm::vec3(translateBack * Rotate * translateToOrigin* glm::vec4(end_pt, 1.0f));
             x2 = end_pt.x - worldPos_x;
@@ -2709,21 +2753,22 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
     }
     else if (handle == END_HANDLE) {
 
-        if (axis_tool == TOOL_TRANSLATE) {
+        if (axis_tool == MSLTOOL::TOOL_TRANSLATE) {
             switch (active_axis)
             {
-            case X_AXIS:
+            case MSLAXIS::X_AXIS:
                 x2 = saved_point.x + drag_delta.x;
                 break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
                 y2 = saved_point.y + drag_delta.y;
                 break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
                 z2 = saved_point.z + drag_delta.z;
                 break;
+            default:
+                break;
             }
-        }
-        else if (axis_tool == TOOL_ROTATE) {
+        } else if (axis_tool == MSLTOOL::TOOL_ROTATE) {
             double angle = 0.0f;
             glm::vec3 start_vector = saved_intersect - saved_position;
             glm::vec3 end_vector = start_vector + drag_delta;
@@ -2735,7 +2780,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
 
             switch (active_axis)
             {
-            case X_AXIS:
+            case MSLAXIS::X_AXIS:
             {
                 double start_angle = atan2(start_vector.y, start_vector.z) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
@@ -2745,7 +2790,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(1.0f, 0.0f, 0.0f));
             }
             break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
             {
                 double start_angle = atan2(start_vector.x, start_vector.z) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.x, end_vector.z) * 180.0 / M_PI;
@@ -2755,7 +2800,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(0.0f, 1.0f, 0.0f));
             }
             break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
             {
                 double start_angle = atan2(start_vector.y, start_vector.x) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.y, end_vector.x) * 180.0 / M_PI;
@@ -2765,6 +2810,8 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(0.0f, 0.0f, 1.0f));
             }
             break;
+            default:
+                break;
             }
             start_pt = glm::vec3(translateBack * Rotate * translateToOrigin* glm::vec4(start_pt, 1.0f));
             worldPos_x = start_pt.x;
@@ -2833,7 +2880,7 @@ int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool S
 wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
     if (preview != nullptr) {
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-        active_axis = X_AXIS;
+        active_axis = MSLAXIS::X_AXIS;
         DragHandle(preview, x, y, true);
         worldPos_x = saved_intersect.x;
         worldPos_y = saved_intersect.y;
@@ -2855,9 +2902,10 @@ wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, c
 
 void TwoPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
 {
-    wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Length", "RealLength", RulerObject::MeasureLengthDescription(origin, point2)));
-    prop->ChangeFlag(wxPG_PROP_READONLY, true);
-    prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", RulerObject::Measure(origin, point2)));
+    //prop->ChangeFlag(wxPG_PROP_READONLY, true);
+    prop->SetAttribute("Precision", 2);
+    //prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 }
 
 std::string TwoPointScreenLocation::GetDimension(float factor) const
@@ -3031,8 +3079,22 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     else if (_locked && "ModelZ2" == name) {
         event.Veto();
         return 0;
-    }
-    else if ("Locked" == name)
+    } else if (!_locked && "RealLength" == name) {
+        auto origLen = RulerObject::UnMeasure(RulerObject::Measure(origin, point2));
+        auto len = RulerObject::UnMeasure(event.GetValue().GetDouble());
+        x2 = (x2 * len) / origLen;
+        y2 = (y2 * len) / origLen;
+        z2 = (z2 * len) / origLen;
+
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::RealLength");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::RealLength");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::RealLength");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::RealLength");
+        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
+    } else if (_locked && "RealLength" == name) {
+        event.Veto();
+        return 0;
+    } else if ("Locked" == name)
     {
         _locked = event.GetValue().GetBool();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::Locked");
@@ -3053,7 +3115,7 @@ void TwoPointScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angl
         float posz = GetDcenterPos();
 
         float offset = angle.y;
-        Rotate(Y_AXIS, -offset);
+        Rotate(MSLAXIS::Y_AXIS, -offset);
         rotate_point(position.x, position.z, glm::radians(-offset), posx, posz);
         SetHcenterPos(posx);
         SetDcenterPos(posz);
@@ -3107,7 +3169,7 @@ void TwoPointScreenLocation::UpdateBoundingBox()
     aabb_max = glm::vec3(c2.x, c2.y, c2.z);
 }
 
-bool TwoPointScreenLocation::Rotate(int axis, float factor) {
+bool TwoPointScreenLocation::Rotate(MSLAXIS axis, float factor) {
     if (_locked) return false;
     glm::vec3 start_pt = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
     glm::vec3 end_pt = glm::vec3(x2 + worldPos_x, y2 + worldPos_y, z2 + worldPos_z);
@@ -3115,23 +3177,18 @@ bool TwoPointScreenLocation::Rotate(int axis, float factor) {
     glm::mat4 translateBack = glm::translate(Identity, center);
     glm::mat4 rot_mat = Identity;
 
-    switch (axis)
-    {
-    case X_AXIS:
-    {
+    switch (axis) {
+    case MSLAXIS::X_AXIS:
         rot_mat = glm::rotate(Identity, glm::radians(factor), glm::vec3(1.0f, 0.0f, 0.0f));
-    }
-    break;
-    case Y_AXIS:
-    {
+        break;
+    case MSLAXIS::Y_AXIS:
         rot_mat = glm::rotate(Identity, glm::radians(-factor), glm::vec3(0.0f, 1.0f, 0.0f));
-    }
-    break;
-    case Z_AXIS:
-    {
+        break;
+    case MSLAXIS::Z_AXIS:
         rot_mat = glm::rotate(Identity, glm::radians(factor), glm::vec3(0.0f, 0.0f, 1.0f));
-    }
-    break;
+        break;
+    default:
+        break;
     }
     start_pt = glm::vec3(translateBack * rot_mat * translateToOrigin* glm::vec4(start_pt, 1.0f));
     end_pt = glm::vec3(translateBack * rot_mat * translateToOrigin* glm::vec4(end_pt, 1.0f));
@@ -3327,7 +3384,8 @@ void TwoPointScreenLocation::SetMHeight(float h)
     y2  = h;
 }
 
-ThreePointScreenLocation::ThreePointScreenLocation(): height(1.0), modelHandlesHeight(false), supportsShear(false), supportsAngle(false), angle(0), shear(0.0) {
+ThreePointScreenLocation::ThreePointScreenLocation()
+{
     mHandlePosition.resize(4);
     handle_aabb_max.resize(4);
     handle_aabb_min.resize(4);
@@ -3342,16 +3400,16 @@ wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y,
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
         if (mSelectableHandles > 3 && supportsAngle && preview->Is3D()) {
             // place Arch models on the ground in 3D mode
-            active_axis = Z_AXIS;
+            active_axis = MSLAXIS::Z_AXIS;
             DragHandle(preview, x, y, true);
             worldPos_x = saved_intersect.x;
             worldPos_y = 0.0f;
             worldPos_z = saved_intersect.z;
-            active_axis = X_AXIS;
+            active_axis = MSLAXIS::X_AXIS;
             point2 = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
         }
         else {
-            active_axis = X_AXIS;
+            active_axis = MSLAXIS::X_AXIS;
             DragHandle(preview, x, y, true);
             worldPos_x = saved_intersect.x;
             worldPos_y = saved_intersect.y;
@@ -3405,10 +3463,11 @@ void ThreePointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* p
 {
     TwoPointScreenLocation::AddDimensionProperties(propertyEditor, 1.0);
     float width = RulerObject::Measure(origin, point2);
-    wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Height", "RealHeight", 
-                                                                     RulerObject::PrescaledMeasureDescription((width * height) / 2.0 * factor)
+    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight", 
+                                                                     RulerObject::Measure((width * height) / 2.0 * factor * 100.0)
                                                                     ));
     prop->ChangeFlag(wxPG_PROP_READONLY, true);
+    prop->SetAttribute("Precision", 2);
     prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 }
 
@@ -3606,10 +3665,10 @@ void ThreePointScreenLocation::SetActiveHandle(int handle)
     SetAxisTool(axis_tool);  // run logic to disallow certain tools
 }
 
-void ThreePointScreenLocation::SetAxisTool(int mode)
+void ThreePointScreenLocation::SetAxisTool(MSLTOOL mode)
 {
     if (active_handle == SHEAR_HANDLE) {
-        axis_tool = TOOL_XY_TRANS;
+        axis_tool = MSLTOOL::TOOL_XY_TRANS;
     } else {
         TwoPointScreenLocation::SetAxisTool(mode);
     }
@@ -3618,19 +3677,19 @@ void ThreePointScreenLocation::SetAxisTool(int mode)
 void ThreePointScreenLocation::AdvanceAxisTool()
 {
     if (active_handle == SHEAR_HANDLE) {
-        axis_tool = TOOL_XY_TRANS;
+        axis_tool = MSLTOOL::TOOL_XY_TRANS;
     } else {
         TwoPointScreenLocation::AdvanceAxisTool();
     }
 }
 
-void ThreePointScreenLocation::SetActiveAxis(int axis)
+void ThreePointScreenLocation::SetActiveAxis(MSLAXIS axis)
 {
     if (active_handle == SHEAR_HANDLE) {
-        if (axis != -1) {
-            active_axis = X_AXIS;
+        if (axis != MSLAXIS::NO_AXIS) {
+            active_axis = MSLAXIS::X_AXIS;
         } else {
-            active_axis = -1;
+            active_axis = MSLAXIS::NO_AXIS;
         }
     } else {
         ModelScreenLocation::SetActiveAxis(axis);
@@ -3833,7 +3892,7 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
 
         if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
 
-        if (axis_tool == TOOL_XY_TRANS) {
+        if (axis_tool == MSLTOOL::TOOL_XY_TRANS) {
             glm::vec3 a = point2 - origin;
             glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
             glm::mat4 inv_rotation = glm::inverse(rotationMatrix);
@@ -3903,7 +3962,7 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
         }
     }
     else if (handle == CENTER_HANDLE ) {
-        if (axis_tool == TOOL_ROTATE) {
+        if (axis_tool == MSLTOOL::TOOL_ROTATE) {
             if (latch) {
                 saved_angle = 0.0f;
                 saved_position = center;
@@ -3911,7 +3970,7 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
             }
             glm::vec3 start_vector = saved_intersect - saved_position;
             glm::vec3 end_vector = start_vector + drag_delta;
-            if (active_axis == X_AXIS) {
+            if (active_axis == MSLAXIS::X_AXIS) {
                 double start_angle = atan2(start_vector.y, start_vector.z) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
                 double angle = end_angle - start_angle;
@@ -4095,7 +4154,7 @@ void PolyPointScreenLocation::SetCurve(int seg_num, bool create)
     }
 }
 
-int PolyPointScreenLocation::CheckUpgrade(wxXmlNode* node)
+ModelScreenLocation::MSLUPGRADE PolyPointScreenLocation::CheckUpgrade(wxXmlNode* node)
 {
     // check for upgrade to world positioning
     int version = wxAtoi(node->GetAttribute("versionNumber", "0"));
@@ -4135,7 +4194,7 @@ int PolyPointScreenLocation::CheckUpgrade(wxXmlNode* node)
         }
         node->DeleteAttribute("versionNumber");
         node->AddAttribute("versionNumber", "2");
-        return UPGRADE_SKIPPED;
+        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_SKIPPED;
     }
     else if (version == 2) {
         if (node->HasAttribute("NumPoints")) {
@@ -4196,15 +4255,15 @@ int PolyPointScreenLocation::CheckUpgrade(wxXmlNode* node)
         }
         node->DeleteAttribute("versionNumber");
         node->AddAttribute("versionNumber", CUR_MODEL_POS_VER);
-        return UPGRADE_EXEC_READ;
+        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_EXEC_READ;
     }
-    return UPGRADE_NOT_NEEDED;
+    return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED;
 }
 
 void PolyPointScreenLocation::Read(wxXmlNode* ModelNode)
 {
-    int upgrade_result = CheckUpgrade(ModelNode);
-    if (upgrade_result == UPGRADE_NOT_NEEDED) {
+    ModelScreenLocation::MSLUPGRADE upgrade_result = CheckUpgrade(ModelNode);
+    if (upgrade_result == ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED) {
         worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "0.0"));
         if (isnan(worldPos_x)) worldPos_x = 0.0;
         worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
@@ -4803,17 +4862,17 @@ void PolyPointScreenLocation::SetActiveHandle(int handle)
     SetAxisTool(axis_tool);  // run logic to disallow certain tools
 }
 
-void PolyPointScreenLocation::SetAxisTool(int mode)
+void PolyPointScreenLocation::SetAxisTool(MSLTOOL mode)
 {
     if (active_handle == CENTER_HANDLE) {
         ModelScreenLocation::SetAxisTool(mode);
     }
     else {
-        if (mode == TOOL_TRANSLATE || mode == TOOL_XY_TRANS) {
+        if (mode == MSLTOOL::TOOL_TRANSLATE || mode == MSLTOOL::TOOL_XY_TRANS) {
             axis_tool = mode;
         }
         else {
-            axis_tool = TOOL_TRANSLATE;
+            axis_tool = MSLTOOL::TOOL_TRANSLATE;
         }
     }
 }
@@ -4824,11 +4883,11 @@ void PolyPointScreenLocation::AdvanceAxisTool()
         ModelScreenLocation::AdvanceAxisTool();
     }
     else {
-        axis_tool = TOOL_TRANSLATE;
+        axis_tool = MSLTOOL::TOOL_TRANSLATE;
     }
 }
 
-void PolyPointScreenLocation::SetActiveAxis(int axis)
+void PolyPointScreenLocation::SetActiveAxis(MSLAXIS axis)
 {
    ModelScreenLocation::SetActiveAxis(axis);
 }
@@ -5015,25 +5074,27 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
                 active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
             }
             DrawAxisTool(active_handle_pos, program, zoom, scale);
-            if (active_axis != -1) {
-                if (axis_tool == TOOL_XY_TRANS) {
+            if (active_axis != MSLAXIS::NO_AXIS) {
+                if (axis_tool == MSLTOOL::TOOL_XY_TRANS) {
                     vac->AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
                     vac->AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
                     vac->AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                     vac->AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                 }
                 switch (active_axis) {
-                case X_AXIS:
+                case MSLAXIS::X_AXIS:
                     vac->AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
                     vac->AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
                     break;
-                case Y_AXIS:
+                case MSLAXIS::Y_AXIS:
                     vac->AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                     vac->AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                     break;
-                case Z_AXIS:
+                case MSLAXIS::Z_AXIS:
                     vac->AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUETRANSLUCENT);
                     vac->AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
+                    break;
+                default:
                     break;
                 }
                 count = vac->getCount();
@@ -5239,7 +5300,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
 
     if (handle != CENTER_HANDLE) {
 
-        if (axis_tool == TOOL_TRANSLATE) {
+        if (axis_tool == MSLTOOL::TOOL_TRANSLATE) {
             if (latch) {
                 saved_position.x = active_handle_pos.x;
                 saved_position.y = active_handle_pos.y;
@@ -5264,14 +5325,16 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
                 int seg = handle & HANDLE_MASK;
                 if (seg < mPos.size()) {
                     switch (active_axis) {
-                    case X_AXIS:
+                    case MSLAXIS::X_AXIS:
                         mPos[seg].cp0.x = newx;
                         break;
-                    case Y_AXIS:
+                    case MSLAXIS::Y_AXIS:
                         mPos[seg].cp0.y = newy;
                         break;
-                    case Z_AXIS:
+                    case MSLAXIS::Z_AXIS:
                         mPos[seg].cp0.z = newz;
+                        break;
+                    default:
                         break;
                     }
                     if (mPos[seg].curve != nullptr) mPos[seg].curve->set_cp0(mPos[seg].cp0.x, mPos[seg].cp0.y, mPos[seg].cp0.z);
@@ -5281,14 +5344,16 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
                 int seg = handle & HANDLE_MASK;
                 if (seg < mPos.size()) {
                     switch (active_axis) {
-                    case X_AXIS:
+                    case MSLAXIS::X_AXIS:
                         mPos[seg].cp1.x = newx;
                         break;
-                    case Y_AXIS:
+                    case MSLAXIS::Y_AXIS:
                         mPos[seg].cp1.y = newy;
                         break;
-                    case Z_AXIS:
+                    case MSLAXIS::Z_AXIS:
                         mPos[seg].cp1.z = newz;
+                        break;
+                    default:
                         break;
                     }
                     if (mPos[seg].curve != nullptr) mPos[seg].curve->set_cp1(mPos[seg].cp1.x, mPos[seg].cp1.y, mPos[seg].cp1.z);
@@ -5299,21 +5364,22 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
                 int point = handle - 1;
                 if (point < mPos.size()) {
                     switch (active_axis) {
-                    case X_AXIS:
+                    case MSLAXIS::X_AXIS:
                         mPos[point].x = newx;
                         break;
-                    case Y_AXIS:
+                    case MSLAXIS::Y_AXIS:
                         mPos[point].y = newy;
                         break;
-                    case Z_AXIS:
+                    case MSLAXIS::Z_AXIS:
                         mPos[point].z = newz;
+                        break;
+                    default:
                         break;
                     }
                 }
                 FixCurveHandles();
             }
-        }
-        else if (axis_tool == TOOL_XY_TRANS) {
+        } else if (axis_tool == MSLTOOL::TOOL_XY_TRANS) {
             if (latch && mHandlePosition.size() > 1) {
                 saved_position.x = mHandlePosition[1].x * scalex + worldPos_x;
                 saved_position.y = mHandlePosition[1].y * scaley + worldPos_y;
@@ -5338,24 +5404,25 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
 
     }
     else {
-        if (axis_tool == TOOL_TRANSLATE) {
+        if (axis_tool == MSLTOOL::TOOL_TRANSLATE) {
             if (latch) {
                 saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
             }
             if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
             switch (active_axis) {
-            case X_AXIS:
+            case MSLAXIS::X_AXIS:
                 worldPos_x = saved_position.x + drag_delta.x;
                 break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
                 worldPos_y = saved_position.y + drag_delta.y;
                 break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
                 worldPos_z = saved_position.z + drag_delta.z;
                 break;
+            default:
+                break;
             }
-        }
-        else if (axis_tool == TOOL_ROTATE) {
+        } else if (axis_tool == MSLTOOL::TOOL_ROTATE) {
             if (latch) {
                 center.x = mHandlePosition[CENTER_HANDLE].x;
                 center.y = mHandlePosition[CENTER_HANDLE].y;
@@ -5370,7 +5437,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             glm::vec3 end_vector = start_vector + drag_delta;
 
             switch (active_axis) {
-            case X_AXIS:
+            case MSLAXIS::X_AXIS:
             {
                 double start_angle = atan2(start_vector.y, start_vector.z) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
@@ -5379,7 +5446,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
                 new_angle = saved_angle - angle;
             }
             break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
             {
                 double start_angle = atan2(start_vector.x, start_vector.z) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.x, end_vector.z) * 180.0 / M_PI;
@@ -5388,7 +5455,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
                 new_angle = angle - saved_angle;
             }
             break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
             {
                 double start_angle = atan2(start_vector.y, start_vector.x) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.y, end_vector.x) * 180.0 / M_PI;
@@ -5397,12 +5464,13 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
                 new_angle = angle - saved_angle;
             }
             break;
+            default:
+                break;
             }
             rotate_pt = center;
             Rotate(active_axis, new_angle);
             saved_angle = angle;
-        }
-        else if (axis_tool == TOOL_SCALE) {
+        } else if (axis_tool == MSLTOOL::TOOL_SCALE) {
             if (latch) {
                 saved_position = glm::vec3(mHandlePosition[0].x, mHandlePosition[0].y, mHandlePosition[0].z);
                 saved_point = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
@@ -5418,14 +5486,16 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             if (ShiftKeyPressed) {
                 float change = 1.0f;
                 switch (active_axis) {
-                case X_AXIS:
+                case MSLAXIS::X_AXIS:
                     change = change_x;
                     break;
-                case Y_AXIS:
+                case MSLAXIS::Y_AXIS:
                     change = change_y;
                     break;
-                case Z_AXIS:
+                case MSLAXIS::Z_AXIS:
                     change = change_z;
+                    break;
+                default:
                     break;
                 }
                 float new_half_size_x = (saved_position.x - saved_point.x) * change;
@@ -5448,7 +5518,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             }
 
             switch (active_axis) {
-            case X_AXIS:
+            case MSLAXIS::X_AXIS:
             {
                 float new_half_size_x = (saved_position.x - saved_point.x) * change_x;
                 if (new_half_size_x < 0.0f) return 0;
@@ -5459,7 +5529,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
                 }
             }
             break;
-            case Y_AXIS:
+            case MSLAXIS::Y_AXIS:
             {
                 float new_half_size_y = (saved_position.y - saved_point.y) * change_y;
                 if (new_half_size_y < 0.0f) return 0;
@@ -5470,7 +5540,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
                 }
             }
             break;
-            case Z_AXIS:
+            case MSLAXIS::Z_AXIS:
             {
                 float new_half_size_z = (saved_position.z - saved_point.z) * change_z;
                 if (new_half_size_z < 0.0f) return 0;
@@ -5481,6 +5551,8 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
                 }
             }
             break;
+            default:
+                break;
             }
         }
     }
@@ -5757,7 +5829,7 @@ wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, 
     if (preview != nullptr) {
         zoom = preview->GetCameraZoomForHandles();
         scale = preview->GetHandleScale();
-        active_axis = X_AXIS;
+        active_axis = MSLAXIS::X_AXIS;
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
         DragHandle(preview, x, y, true);
         worldPos_x = saved_intersect.x;
@@ -5812,8 +5884,9 @@ void PolyPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* pr
         len += RulerObject::Measure(last, mPos[i].AsVector());
         last = mPos[i].AsVector();
     }
-    wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Length", "RealLength", RulerObject::PrescaledMeasureDescription(len)));
+    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", RulerObject::Measure(len * 100)));
     prop->ChangeFlag(wxPG_PROP_READONLY, true);
+    prop->SetAttribute("Precision", 2);
     prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     
     last = mPos[0].AsVector();
@@ -5821,10 +5894,9 @@ void PolyPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* pr
         len = RulerObject::Measure(last, mPos[i].AsVector());
         last = mPos[i].AsVector();
 
-        auto seg = wxString::Format("Segment %d", i);
-        prop = propertyEditor->Append(new wxStringProperty(seg, seg, RulerObject::PrescaledMeasureDescription(len)));
-        prop->ChangeFlag(wxPG_PROP_READONLY, true);
-        prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        auto seg = wxString::Format("Segment %d (%s)", i, RulerObject::GetUnitDescription());
+        prop = propertyEditor->Append(new wxFloatProperty(seg, "REAL" + seg, RulerObject::Measure(len * 100)));
+        prop->SetAttribute("Precision", 2);
     }
 }
 
@@ -5881,7 +5953,38 @@ void PolyPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface 
 
 int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
-    if( name.length() > 6 ) {
+    if (StartsWith(name, "REALSegment ")) {
+        if (_locked)
+        {
+            event.Veto();
+            return 0;
+        }
+        else {
+            auto o = name.find(" ", 12);
+            selected_handle = wxAtoi(name.substr(12, o - 12)) - 1;
+
+            float oldLen = 0.0f;
+            oldLen = RulerObject::UnMeasure(RulerObject::Measure(mPos[selected_handle].AsVector(), mPos[selected_handle + 1].AsVector()));
+            float len = RulerObject::UnMeasure(event.GetValue().GetDouble());
+
+            float dx = (mPos[selected_handle + 1].x - mPos[selected_handle].x) * len / oldLen - (mPos[selected_handle + 1].x - mPos[selected_handle].x);
+            float dy = (mPos[selected_handle + 1].y - mPos[selected_handle].y) * len / oldLen - (mPos[selected_handle + 1].y - mPos[selected_handle].y);
+            float dz = (mPos[selected_handle + 1].z - mPos[selected_handle].z) * len / oldLen - (mPos[selected_handle + 1].z - mPos[selected_handle].z);
+
+            for (auto i = selected_handle + 1; i < mPos.size(); i++) {
+                mPos[i].x += dx;
+                mPos[i].y += dy;
+                mPos[i].z += dz;
+            }
+
+            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
+            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
+            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
+            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
+            return 0;
+        }
+    }
+    else if( name.length() > 6 ) {
         selected_handle = wxAtoi(name.substr(6, name.length()-6)) - 1;
         selected_segment = -1;
         if (!_locked && name.find("ModelX") != std::string::npos) {
@@ -5939,19 +6042,20 @@ void PolyPointScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 ang
     rotate_pt = position;
      if (angle.y != 0.0f) {
         float offset = angle.y;
-        Rotate(Y_AXIS, offset);
+         Rotate(MSLAXIS::Y_AXIS, offset);
     }
     else if (angle.x != 0.0f) {
         float offset = angle.x;
-        Rotate(X_AXIS, offset);
+        Rotate(MSLAXIS::X_AXIS, offset);
     }
     else if (angle.z != 0.0f) {
         float offset = angle.z;
-        Rotate(Z_AXIS, offset);
+        Rotate(MSLAXIS::Z_AXIS, offset);
     }
 }
 
-bool PolyPointScreenLocation::Rotate(int axis, float factor) {
+bool PolyPointScreenLocation::Rotate(MSLAXIS axis, float factor)
+{
     if (_locked) return false;
 
     // Rotate all the points
@@ -5962,21 +6066,23 @@ bool PolyPointScreenLocation::Rotate(int axis, float factor) {
 
     switch (axis)
     {
-    case X_AXIS:
+    case MSLAXIS::X_AXIS:
     {
         Rotate = glm::rotate(Identity, glm::radians(factor), glm::vec3(1.0f, 0.0f, 0.0f));
     }
     break;
-    case Y_AXIS:
+    case MSLAXIS::Y_AXIS:
     {
         Rotate = glm::rotate(Identity, glm::radians(factor), glm::vec3(0.0f, 1.0f, 0.0f));
     }
     break;
-    case Z_AXIS:
+    case MSLAXIS::Z_AXIS:
     {
         Rotate = glm::rotate(Identity, glm::radians(factor), glm::vec3(0.0f, 0.0f, 1.0f));
     }
     break;
+    default:
+        break;
     }
 
     pt = glm::vec3(translateBack * Rotate * translateToOrigin * glm::vec4(pt, 1.0f));

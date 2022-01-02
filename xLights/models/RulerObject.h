@@ -41,6 +41,7 @@ public:
 	static std::string GetUnitDescription();
     static float Measure(glm::vec3 p1, glm::vec3 p2);
     static float Measure(float length);
+    static float UnMeasure(float length);
     static float MeasureWidth(glm::vec3 p1, glm::vec3 p2);
 	static float MeasureHeight(glm::vec3 p1, glm::vec3 p2);
 	static float MeasureDepth(glm::vec3 p1, glm::vec3 p2);

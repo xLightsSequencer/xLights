@@ -498,7 +498,7 @@ Output::PINGSTATE ControllerSerial::Ping()
 
 std::string ControllerSerial::GetExport() const {
 
-    return wxString::Format("%s,%d,%d,%s,%s,,%s,%d,\"%s\",%d,%ld,%s,%s,%s",
+    return wxString::Format("%s,%d,%d,%s,%s,,%s,%d,\"%s\",%d,%ld,%s,%s,%s,%s,%s,,%s",
         GetName(),
         GetStartChannel(),
         GetEndChannel(),
@@ -511,7 +511,10 @@ std::string ControllerSerial::GetExport() const {
         GetChannels(),
         (IsActive() ? _("") : _("DISABLED")),
         (IsSuppressDuplicateFrames() ? _("SuppressDuplicates") : _("")),
-        (IsAutoSize() ? _("AutoSize") : _(""))
+        (IsAutoSize() ? _("AutoSize") : _("")),
+        (IsAutoLayout() ? _("AutoLayout") : _("")),
+        (IsAutoUpload() ? _("AutoUpload") : _("")),
+        GetFPPProxy()
     );
 }
 #pragma endregion
@@ -546,6 +549,9 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
         }
         for (int x = 0; x < 6; x++) {
             ports.Add("ttyUSB" + std::to_string(x));
+        }
+        for (int x = 0; x < 6; x++) {
+            ports.Add("ttyACM" + std::to_string(x));
         }
         ports.Add("ttyAMA0");
         /*

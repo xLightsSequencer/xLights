@@ -998,51 +998,58 @@ bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* ru
     return success;
 }
 
-std::string UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS const& settings) const {
-    wxString line = wxString::Format("%s Port %d", _type ,_port);
+std::vector<std::string> UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS const& settings, float brightness) const
+{
+    std::vector<std::string> columns;
+    std::string port = wxString::Format("%s Port %d", _type, _port);
     if ((settings & ExportSettings::SETTINGS_PORT_ABSADDRESS) && GetStartChannel() != -1) {
-        line += "(SC:" + std::to_string(GetStartChannel()) + ")";
+        port += "(SC:" + std::to_string(GetStartChannel()) + ")";
     }
     if ((settings & ExportSettings::SETTINGS_PORT_UNIADDRESS) && GetUniverse() != -1) {
-        line += "(UNI:#" + std::to_string(GetUniverse()) + ":" + std::to_string(GetUniverseStartChannel()) + ")";
+        port += "(UNI:#" + std::to_string(GetUniverse()) + ":" + std::to_string(GetUniverseStartChannel()) + ")";
     }
     if ((settings & ExportSettings::SETTINGS_PORT_CHANNELS) && Channels() != 0) {
-        line += "(CHANS:" + std::to_string(Channels()) + ")";
+        port += "(CHANS:" + std::to_string(Channels()) + ")";
     }
-    if ((settings & ExportSettings::SETTINGS_PORT_PIXELS) && Channels() != 0) {
-        line += "(PIX:" + std::to_string(Channels() / 3) + ")";
+    if ((settings & ExportSettings::SETTINGS_PORT_PIXELS) && Channels() != 0 && _type != "Serial") {
+        port += "(PIX:" + std::to_string(Channels() / 3) + ")";
     }
-    line += ",";
+    if (settings & ExportSettings::SETTINGS_PORT_CURRENT && _type != "Serial" ) {
+        port += wxString::Format("(CUR:%0.2fA)", GetAmps(brightness));
+    }
+    columns.push_back(port);
 
     for (const auto& it : GetModels()) {
+        std::string model;
         if (it->GetSmartRemote() > 0) {
             char remote = it->GetSmartRemoteLetter();
-            line += "Remote ";
-            line += remote;
-            line += ":";
+            model += "Remote ";
+            model += remote;
+            model += ":";
         }
-        line += it->GetName();
+        model += it->GetName();
         if ((settings & ExportSettings::SETTINGS_MODEL_DESCRIPTIONS) && it->GetModel()->description != "") {
-            line += "(DESP:" + it->GetModel()->description + ")";
+            model += "(DESP:" + it->GetModel()->description + ")";
         }
         if (settings & ExportSettings::SETTINGS_MODEL_ABSADDRESS) {
-            line += "(SC:" + std::to_string(it->GetStartChannel()) + ")";
+            model += "(SC:" + std::to_string(it->GetStartChannel()) + ")";
         }
         if (settings & ExportSettings::SETTINGS_MODEL_UNIADDRESS) {
-            line += "(UNI:#" + std::to_string(it->GetUniverse()) + ":" + std::to_string(it->GetUniverseStartChannel()) + ")";
+            model += "(UNI:#" + std::to_string(it->GetUniverse()) + ":" + std::to_string(it->GetUniverseStartChannel()) + ")";
         }
         if (settings & ExportSettings::SETTINGS_MODEL_CHANNELS) {
-            line += "(CHANS:" + std::to_string(it->Channels()) + ")";
+            model += "(CHANS:" + std::to_string(it->Channels()) + ")";
         }
-        if (settings & ExportSettings::SETTINGS_MODEL_PIXELS)
-        {
-            line += "(PIX:" + std::to_string(it->Channels() / it->GetChannelsPerPixel()) + ")";
+        if (settings & ExportSettings::SETTINGS_MODEL_PIXELS && _type != "Serial") {
+            model += "(PIX:" + std::to_string(it->Channels() / it->GetChannelsPerPixel()) + ")";
         }
-        line += ",";
+        if (settings & ExportSettings::SETTINGS_MODEL_CURRENT && _type != "Serial") {
+            model += wxString::Format("(CUR:%0.2fA)", it->GetAmps(brightness));
+        }
+        columns.push_back(model);
     }
 
-    line += "\n";
-    return line;
+    return columns;
 }
 #pragma endregion
 
@@ -1774,40 +1781,39 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     return success;
 }
 
-std::vector<std::string> UDController::ExportAsCSV(ExportSettings::SETTINGS const& settings) {
-    std::vector<std::string> lines;
-    int columnSize = 0;
+std::vector<std::vector<std::string>> UDController::ExportAsCSV(ExportSettings::SETTINGS const& settings, float brightness, int& columnSize)
+{
+    std::vector<std::vector<std::string>> lines;
+    columnSize = 0;
 
     for (int i = 1; i <= GetMaxPixelPort(); i++) {
         if (columnSize < GetControllerPixelPort(i)->GetModels().size())
             columnSize = GetControllerPixelPort(i)->GetModels().size();
-        lines.push_back(GetControllerPixelPort(i)->ExportAsCSV(settings));
+        lines.push_back(GetControllerPixelPort(i)->ExportAsCSV(settings, brightness));
 	}
-	lines.push_back("\n");
 	for (int i = 1; i <= GetMaxSerialPort(); i++) {
         if (columnSize < GetControllerSerialPort(i)->GetModels().size())
             columnSize = GetControllerSerialPort(i)->GetModels().size();
 
-        lines.push_back(GetControllerSerialPort(i)->ExportAsCSV(settings));
+        lines.push_back(GetControllerSerialPort(i)->ExportAsCSV(settings, brightness));
     }
-    lines.push_back("\n");
+
     for (auto &vm : _virtualMatrixPorts) {
         if (columnSize < vm.second->GetModels().size())
             columnSize = vm.second->GetModels().size();
-        lines.push_back(vm.second->ExportAsCSV(settings));
+        lines.push_back(vm.second->ExportAsCSV(settings, brightness));
     }
-    lines.push_back("\n");
+
     for (auto &vm : _ledPanelMatrixPorts) {
         if (columnSize < vm.second->GetModels().size())
             columnSize = vm.second->GetModels().size();
-        lines.push_back(vm.second->ExportAsCSV(settings));
+        lines.push_back(vm.second->ExportAsCSV(settings, brightness));
     }
 
-    wxString header = "Output,";
+    std::vector<std::string> header({ "Output" });
     for (int i = 1; i <= columnSize; i++) {
-        header += wxString::Format("Model %d,", i);
+        header.push_back( wxString::Format("Model %d", i));
     }
-    header += "\n";
 
     lines.insert(lines.begin(), header);
     return lines;
