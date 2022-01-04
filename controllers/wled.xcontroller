@@ -78,6 +78,11 @@
             <MaxSerialPort>0</MaxSerialPort>
             <Port1>2</Port1>
         </Variant>
+        <Variant Name="E1-WiFi Mini" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>4</Port1>
+        </Variant>
     </Controller>
     <Controller Name="E8-WiFi">
         <Variant Name="" Base="WLED:BaseWLEDSettings">
