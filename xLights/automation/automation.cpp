@@ -46,11 +46,11 @@ void xlDo_Output(const std::string& script, const std::string& resp, bool verbos
                     for (const auto& it : val.GetMemberNames()) {
                         std::string set = "@set";
                         #ifndef __WXMSW__
-                            set = "EXPORT";
+                            set = "export";
                         #endif
                         std::string c;
                         if (val[it].IsString()) {
-                            c = wxString::Format("%s %s=%s\n", set, it, val[it].AsString());
+                            c = wxString::Format("%s %s=\"%s\"\n", set, it, val[it].AsString());
                         } else if (val[it].IsLong()) {
                             c = wxString::Format("%s %s=%ld\n", set, it, val[it].AsLong());
                         }
