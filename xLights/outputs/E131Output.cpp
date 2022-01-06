@@ -260,7 +260,7 @@ std::string E131Output::GetLongDescription() const {
 
 std::string E131Output::GetExport() const {
 
-    return wxString::Format(",%ld,%ld,,%s,%s,,,,%d,%i",
+    return wxString::Format(",%d,%d,,%s,%s,,,,%d,%d",
         GetStartChannel(),
         GetEndChannel(),
         GetType(),

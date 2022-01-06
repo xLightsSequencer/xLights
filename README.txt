@@ -11,6 +11,22 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.01 January 6, 2022
+   NOTE: This will be the last version to support macOS 10.12 and 10.13.   Future builds will
+         require macOS 10.14 or newer.
+   -- enh (keith) Small models in groups may use render buffers that are too small and cause pixelation.  Fixes #2866
+   -- enh (scott) Change export of models/controller connections to xls file instead of csv
+   -- enh (scott) Copy Smart Remote settings on Replace Model with model
+   -- enh (sslupsky) controller: add support for default gamma
+   -- enh (keith) Make model dimensions editable in real world units
+   -- enh (scott) added packageSequence and packageLogFiles automation
+   -- enh (scott) Added Remove All Models conformation dialog
+   -- enh (cjd) Add ttyACM* devices (fixes #3016)
+   -- enh (scott) download package sequence as zip file
+   -- bug (keith) Fix FV3 does not reset zigzag when configuring a port
+   -- bug (keith) Fix #3040 xlDo does not unescape some characters
+   -- bug (keith) Fix #3045 ... add more sequence properties to getOpenSequence call
+   -- bug (scott) regenerate timingList after importing timing tracks
 2021.40 December 20, 2021
    -- enh (scott) Add alternate node support to horizontal matrix
    -- enh (keith) Add a selected count on FPP connect
