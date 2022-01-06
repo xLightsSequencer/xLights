@@ -59,7 +59,7 @@ Source: "../../bin64/xSchedule.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: ignoreversion recursesubdirs
 Source: "../../include\xSchedule64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "../../xSchedule/API Documentation.txt"; DestDir: "{app}"
+Source: "../../documentation/xSchedule API Documentation.txt"; DestDir: "{app}"
 
 ; xCapture
 Source: "../../bin64/xCapture.exe"; DestDir: "{app}"
@@ -82,7 +82,7 @@ Source: "../../include/xfade64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xlDo
 Source: "../../bin64/xlDo.exe"; DestDir: "{app}"
-Source: "../../xlDo/xlDo Commands.txt"; DestDir: "{app}"
+Source: "../../documentation/xlDo Commands.txt"; DestDir: "{app}"
 
 ; xSMSDaemon
 Source: "../../bin64/xSMSDaemon.dll"; DestDir: "{app}"
