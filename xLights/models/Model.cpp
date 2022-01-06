@@ -3766,14 +3766,13 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         // if we have a dense model with lots of pixels but (int)(maxx - minx) and (int)(maxy - miny) are really small then it generates a render buffer that is quite small with lots of nodes in each cell
         // We need a factor that scales up the screen locations to separate the pixels
         // The empty space factor is the number of empty cells expected per filled cell in the average model ... of course in models where there are dense and sparse areas this wont necessarily be true
-        #define MODEL_EMPTY_SPACE_FACTOR 4.0
-        if (type == PER_PREVIEW && GetDisplayAs() != "ModelGroup" && factor == 1.0 && (newNodes.size() * (MODEL_EMPTY_SPACE_FACTOR + 1.0) > (maxX - minX) * (maxY - minY)))
-        {
+        #define MODEL_EMPTY_SPACE_FACTOR 4.0f
+        if (type == PER_PREVIEW && GetDisplayAs() != "ModelGroup" && factor == 1.0 && (newNodes.size() * (MODEL_EMPTY_SPACE_FACTOR + 1.0) > (maxX - minX) * (maxY - minY))) {
             float aspect = (maxX - minX) / (maxY - minY);
-            float x = std::sqrtf(newNodes.size() * (MODEL_EMPTY_SPACE_FACTOR + 1.0) * aspect);
+            float mx = ((float)newNodes.size()) * (MODEL_EMPTY_SPACE_FACTOR + 1.0f) * aspect;
+            float x = std::sqrt(mx);
             factor = (maxX - minX) / x;
-            if (std::max((maxX - minX) / factor, (maxY - minY) / factor) > 400) // if this results in an overly large scaling ... ie a buffer > 400 in any dimension
-            {
+            if (std::max((maxX - minX) / factor, (maxY - minY) / factor) > 400) { // if this results in an overly large scaling ... ie a buffer > 400 in any dimension
                 factor = std::max((maxX - minX), (maxY - minY)) /  400; // work out a scaling that gives a 400x400 buffer
             }
         }
