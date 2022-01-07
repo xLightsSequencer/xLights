@@ -1039,6 +1039,8 @@
 		<Unit filename="graphics/xlGraphicsAccumulators.h" />
 		<Unit filename="graphics/xlGraphicsBase.h" />
 		<Unit filename="graphics/xlGraphicsContext.h" />
+		<Unit filename="graphics/xlMesh.cpp" />
+		<Unit filename="graphics/xlMesh.h" />
 		<Unit filename="kiss_fft/kiss_fft.c">
 			<Option compilerVar="CC" />
 		</Unit>
