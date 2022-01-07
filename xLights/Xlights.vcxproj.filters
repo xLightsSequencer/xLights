@@ -928,6 +928,9 @@
     <ClCompile Include="..\xSchedule\wxHTTPServer\server.cpp" />
     <ClCompile Include="..\xSchedule\wxHTTPServer\sha1.cpp" />
     <ClCompile Include="..\xSchedule\wxHTTPServer\status.cpp" />
+    <ClCompile Include="graphics\xlMesh.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1861,6 +1864,12 @@
     <ClInclude Include="ScriptsDialog.h" />
     <ClInclude Include="..\xSchedule\wxHTTPServer\sha1.h" />
     <ClInclude Include="..\xSchedule\wxHTTPServer\wxhttpserver.h" />
+    <ClInclude Include="graphics\tiny_obj_loader.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\xlMesh.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

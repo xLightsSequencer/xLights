@@ -131,6 +131,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG; __WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/D "NOMINMAX"</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -295,6 +296,7 @@
     <ClCompile Include="graphics\opengl\XlightsDrawable.cpp" />
     <ClCompile Include="graphics\xlFontInfo.cpp" />
     <ClCompile Include="graphics\xlGraphicsAccumulators.cpp" />
+    <ClCompile Include="graphics\xlMesh.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
@@ -733,10 +735,12 @@
     <ClInclude Include="graphics\opengl\Image_Loader.h" />
     <ClInclude Include="graphics\opengl\xlGLCanvas.h" />
     <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
+    <ClInclude Include="graphics\tiny_obj_loader.h" />
     <ClInclude Include="graphics\xlFontInfo.h" />
     <ClInclude Include="graphics\xlGraphicsAccumulators.h" />
     <ClInclude Include="graphics\xlGraphicsBase.h" />
     <ClInclude Include="graphics\xlGraphicsContext.h" />
+    <ClInclude Include="graphics\xlMesh.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
     <ClInclude Include="LORPreview.h" />

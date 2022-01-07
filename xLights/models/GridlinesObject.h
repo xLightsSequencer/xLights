@@ -13,6 +13,7 @@
 #include "ViewObject.h"
 
 class ModelPreview;
+class xlVertexColorAccumulator;
 
 class GridlinesObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 {
@@ -27,7 +28,8 @@ public:
 
     int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-    virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected = false) override;
+    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
+
 
 protected:
 
@@ -37,4 +39,6 @@ private:
     int width;
     int height;
     bool hasAxis;
+    
+    xlVertexColorAccumulator *grid;
 };

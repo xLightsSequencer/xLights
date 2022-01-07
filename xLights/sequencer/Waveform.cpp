@@ -482,8 +482,8 @@ void Waveform::DrawWaveView(xlGraphicsContext* ctx, const WaveView& wv)
             float pixelOffset = translateOffset(mStartPixelOffset);
 
             if (wv.background.get() == nullptr) {
-                wv.background = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator());
-                wv.outline = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator());
+                wv.background = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator()->SetName("WaveFill"));
+                wv.outline = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator()->SetName("WaveLines"));
             }
             wv.background->Reset();
             wv.outline->Reset();

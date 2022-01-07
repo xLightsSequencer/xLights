@@ -50,12 +50,10 @@ class PreviewCamera;
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-namespace DrawGLUtils {
-    class xlAccumulator;
-    class xl3Accumulator;
-}
-
 class BezierCurveCubic3D;
+class xlGraphicsProgram;
+class xlGraphicsContext;
+class xlVertexColorAccumulator;
 
 class ModelScreenLocation
 {
@@ -97,6 +95,7 @@ protected:
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const = 0;
     virtual void TranslatePoint(float &x, float &y, float &z) const = 0;
+    virtual void ApplyModelViewMatrices(xlGraphicsContext *ctx) const = 0;
 
     virtual std::string GetDimension(float factor = 1.0) const = 0;
     virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const = 0;
@@ -104,8 +103,13 @@ protected:
     virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const = 0;
     virtual wxCursor CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const;
-    virtual void DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom, int scale) const = 0;
-    virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale, bool drawBounding) const = 0;
+
+    //new drawing code
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const { return false; };
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const { return false; };
+    void DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *program, float zoom, int scale) const;
+
+    
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) = 0;
     virtual void MouseDown(bool value) { mouse_down = value; }
@@ -125,8 +129,7 @@ protected:
     virtual void DeleteHandle(int handle) = 0;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) = 0;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) = 0;
-    virtual void DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator &va) const; // useful for hit test debugging
-    void UpdateBoundingBox(float width, float height, float depth);
+    virtual void UpdateBoundingBox(float width, float height, float depth);
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
     virtual void AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor = 1.0) const = 0;
@@ -217,7 +220,6 @@ protected:
     virtual void SetAxisTool(MSLTOOL mode) { axis_tool = mode; }
     MSLTOOL GetAxisTool() const { return axis_tool; }
     bool DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch);
-    void DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const;
     void TranslateVector(glm::vec3& point) const;
     virtual int GetDefaultHandle() const { return CENTER_HANDLE; }
     virtual MSLTOOL GetDefaultTool() const { return MSLTOOL::TOOL_TRANSLATE; }
@@ -240,7 +242,9 @@ protected:
     glm::vec3 GetRotation() const { return glm::vec3(rotatex, rotatey, rotatez); }
     glm::quat GetRotationQuat() const { return rotate_quat; }
     glm::vec3 GetScaleMatrix() const { return glm::vec3(scalex, scaley, scalez); }
-    void SetScaleMatrix(const glm::vec3& scale) const { scalex = scale.x; scaley = scale.y; scalez = scale.z; }
+    void SetScaleMatrix(const glm::vec3& scale) const {
+        scalex = scale.x; scaley = scale.y; scalez = scale.z;
+    }
     glm::vec3 GetCenterPosition() const { return glm::vec3(GetHcenterPos(), GetVcenterPos(), GetDcenterPos()); }
     glm::vec3 GetActiveHandlePosition() const { return active_handle_pos; }
     virtual glm::vec3 GetHandlePosition(int handle) const;
@@ -308,12 +312,16 @@ public:
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
+    virtual void ApplyModelViewMatrices(xlGraphicsContext *ctx) const override;
 
     virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const override;
-    virtual void DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom, int scale) const override;
-    virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale, bool drawBounding = true) const override;
+    
+    //new drawing code
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const override;
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const override;
+
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual bool Rotate(MSLAXIS axis, float factor) override;
@@ -331,6 +339,7 @@ public:
     virtual void DeleteHandle(int handle) override {}
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
+    virtual void UpdateBoundingBox(float width, float height, float depth) override;
 
     virtual std::string GetDimension(float factor = 1.0) const override;
     virtual void AddDimensionProperties(wxPropertyGridInterface* grid, float factor = 1.0) const override;
@@ -369,6 +378,9 @@ public:
     }
     void SetScaleZ(float z) {
         scalez = z;
+    }
+    float GetScaleZ() const {
+        return scalez;
     }
 
     void SetRotation(int r) {
@@ -437,12 +449,17 @@ public:
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
+    virtual void ApplyModelViewMatrices(xlGraphicsContext *ctx) const override;
 
     virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const override;
-    virtual void DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom, int scale) const override;
-    virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale, bool drawBounding = true) const override;
+    
+    //new drawing code
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const override;
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const override;
+    virtual void DrawBoundingBox(xlVertexColorAccumulator *vac) const;
+
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual bool Rotate(MSLAXIS axis, float factor) override;
@@ -494,7 +511,6 @@ public:
     virtual float GetMDepth() const override;
     virtual void SetMDepth(float d) override;
     virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle) override;
-    void DodgyDrawBoundingBox(DrawGLUtils::xl3Accumulator& va) const;
     void UpdateBoundingBox();
 
     virtual float GetYShear() const {return 0.0;}
@@ -537,14 +553,16 @@ public:
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
-    virtual void DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator &va) const override; // useful for hit test debugging
     virtual std::string GetDimension(float factor = 1.0) const override;
 
     virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
-    virtual void DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom, int scale) const override;
-    virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale, bool drawBounding = true) const override;
+    
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const override;
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const override;
+    virtual void DrawBoundingBox(xlVertexColorAccumulator *vac) const override;
+
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual float GetVScaleFactor() const override;
@@ -607,15 +625,17 @@ public:
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float& x, float& y, float& z) const override;
+    virtual void ApplyModelViewMatrices(xlGraphicsContext *ctx) const override;
 
     virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const override;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int& handle, int x, int y) const override;
     virtual wxCursor CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const override;
-    virtual void DrawHandles(DrawGLUtils::xlAccumulator& va, float zoom, int scale) const override;
-    virtual void DrawHandles(DrawGLUtils::xl3Accumulator& va, float zoom, int scale, bool drawBounding = true) const override;
-    virtual void DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator& va) const override; // useful for hit test debugging
+
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const override;
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const override;
+
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual bool Rotate(MSLAXIS axis, float factor) override;

@@ -613,10 +613,14 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                 "in vec2 UV;\n"
                 "out vec4 color;\n"
                 "uniform sampler2D tex;\n"
-                "uniform int RenderType;\n"
+                "uniform int RenderType = 0;\n"
                 "void main(){\n"
                 "    vec4 c = texture(tex, UV);\n"
-                "    color = vec4(c.r*fragmentColor.r, c.g*fragmentColor.g, c.b*fragmentColor.b, c.a*fragmentColor.a);\n"
+                "    if (RenderType == 0) {\n"
+                "        color = vec4(c.r*fragmentColor.r, c.g*fragmentColor.g, c.b*fragmentColor.b, c.a*fragmentColor.a);\n"
+                "    } else {\n"
+                "        color = vec4(fragmentColor.rgb, c.a * fragmentColor.a);\n"
+                "    }\n"
                 "}\n", 3);
             res &= texture3Program.valid;
 
@@ -837,11 +841,17 @@ public:
 
     virtual bool IsCoreProfile() override { return true;}
 
-    void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) override {
+    void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability, int start = 0, int count = -1) override {
         if (va.count == 0) {
             return;
         }
-
+        int c = count;
+        if (c < 0) {
+            c = va.count - start;
+        }
+        if (c <= 0) {
+            return;
+        }
         ShaderProgram *program = &singleColorProgram;
         if (va.coordsPerVertex == 3) {
             program = &singleColor3Program;
@@ -867,7 +877,7 @@ public:
         } else if (enableCapability > 0) {
             LOG_GL_ERRORV(glEnable(enableCapability));
         }
-        LOG_GL_ERRORV(glDrawArrays(type, offset0, va.count));
+        LOG_GL_ERRORV(glDrawArrays(type, offset0 + start, c));
         if (type == GL_POINTS && enableCapability == 0x0B10) {
             program->SetRenderType(0);
             LOG_GL_ERRORV(glPointSize(ps));
@@ -1017,11 +1027,17 @@ public:
             texturep->UnbindBuffer(2);
         }
     }
-    void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
+    void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability, int start = 0, int count = -1) override {
         if (va.count == 0) {
             return;
         }
-
+        int c = count;
+        if (c < 0) {
+            c = va.count - start;
+        }
+        if (c <= 0) {
+            return;
+        }
         ShaderProgram *program = &normalProgram;
         if (va.coordsPerVertex == 3) {
             program = &normal3Program;
@@ -1048,7 +1064,7 @@ public:
                 program->SetRenderType(enableCapability);
             }
         }
-        LOG_GL_ERRORV(glDrawArrays(type, offset0, va.count));
+        LOG_GL_ERRORV(glDrawArrays(type, offset0 + start, c));
         if (type == GL_POINTS && enableCapability == 0x0B10) {
             program->SetRenderType(0);
             LOG_GL_ERRORV(glPointSize(ps));
@@ -1061,8 +1077,15 @@ public:
         program->UnbindBuffer(0);
         program->UnbindBuffer(1);
     }
-    void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability) override {
+    void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability, int start = 0, int count = -1) override {
         if (va.count == 0) {
+            return;
+        }
+        int c = count;
+        if (c < 0) {
+            c = va.count - start;
+        }
+        if (c <= 0) {
             return;
         }
         ShaderProgram *program = &textureProgram;
@@ -1092,13 +1115,14 @@ public:
                                       ((float)va.color.alpha) / 255.0f));
         } else {
             program->SetRenderType(0);
-            LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)va.alpha)/255.0));
+            float brightness = va.brightness / 100.0f;
+            LOG_GL_ERRORV(glUniform4f(cid, brightness, brightness, brightness, ((float)va.alpha)/255.0));
         }
 
         if (enableCapability > 0) {
             LOG_GL_ERRORV(glEnable(enableCapability));
         }
-        LOG_GL_ERRORV(glDrawArrays(type, offset0, va.count));
+        LOG_GL_ERRORV(glDrawArrays(type, offset0 + start, c));
         if (enableCapability > 0) {
             LOG_GL_ERRORV(glDisable(enableCapability));
         }
@@ -1176,7 +1200,7 @@ public:
         matrix = new glm::mat4(m);
     }
 
-    virtual void SetCamera(glm::mat4& view_matrix) override {
+    virtual void SetCamera(const glm::mat4& view_matrix) override {
         *matrix = *matrix * view_matrix;
     }
 
@@ -1228,6 +1252,24 @@ public:
         } else {
             glm::mat4 tm = glm::scale(glm::mat4(1.0f), glm::vec3(w, h, z));
             matrix = new glm::mat4(tm);
+        }
+    }
+    void SetModelMatrix(const glm::mat4 &m) override {
+        if (matrix) {
+            glm::mat4 tm = *matrix * m;
+            delete matrix;
+            matrix = new glm::mat4(tm);
+        } else {
+            matrix = new glm::mat4(m);
+        }
+    }
+    void ApplyMatrix(const glm::mat4 &m) override {
+        if (matrix) {
+            glm::mat4 tm = *matrix * m;
+            delete matrix;
+            matrix = new glm::mat4(tm);
+        } else {
+            matrix = new glm::mat4(m);
         }
     }
 

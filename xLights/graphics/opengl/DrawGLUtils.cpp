@@ -465,8 +465,15 @@ public:
         LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
     }
 
-    void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) override {
+    void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability, int start = 0, int count = -1) override {
         if (va.count == 0) {
+            return;
+        }
+        int c = count;
+        if (c < 0) {
+            c = va.count - start;
+        }
+        if (c <= 0) {
             return;
         }
         if (enableCapability != 0) {
@@ -475,17 +482,25 @@ public:
         LOG_GL_ERRORV(glColor4ub(color.Red(), color.Green(), color.Blue(), color.Alpha()));
         LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
         LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
-        LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+        LOG_GL_ERRORV(glDrawArrays(type, start, c));
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
         if (enableCapability != 0) {
             LOG_GL_ERRORV(glDisable(enableCapability));
         }
     }
 
-    void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
+    void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability, int start = 0, int count = -1) override {
         if (va.count == 0) {
             return;
         }
+        int c = count;
+        if (c < 0) {
+            c = va.count - start;
+        }
+        if (c <= 0) {
+            return;
+        }
+
         if (enableCapability != 0) {
             LOG_GL_ERRORV(glEnable(enableCapability));
         }
@@ -494,7 +509,7 @@ public:
 
         LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
         LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
-        LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+        LOG_GL_ERRORV(glDrawArrays(type, start, c));
 
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
         LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
@@ -502,8 +517,15 @@ public:
             LOG_GL_ERRORV(glDisable(enableCapability));
         }
     }
-    void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability) override {
+    void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability, int start = 0, int count = -1) override {
         if (va.count == 0) {
+            return;
+        }
+        int c = count;
+        if (c < 0) {
+            c = va.count - start;
+        }
+        if (c <= 0) {
             return;
         }
         if (enableCapability != 0) {
@@ -543,7 +565,7 @@ public:
                                     ((float)va.color.blue) / 255.0f,
                                     ((float)va.color.alpha) / 255.0f));
 
-            LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+            LOG_GL_ERRORV(glDrawArrays(type, start, c));
 
 
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, tem);
@@ -565,11 +587,11 @@ public:
                 intensity = 0;
             }
             LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, intensity));
-            LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+            LOG_GL_ERRORV(glDrawArrays(type, start, c));
             LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
         } else {
             LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
-            LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+            LOG_GL_ERRORV(glDrawArrays(type, start, c));
         }
 
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
@@ -607,9 +629,16 @@ public:
         LOG_GL_ERRORV(glLoadIdentity());
     }
 
-    virtual void SetCamera(glm::mat4& view_matrix) override {
+    virtual void SetCamera(const glm::mat4& view_matrix) override {
         LOG_GL_ERRORV(glMultMatrixf(glm::value_ptr(view_matrix)));
     }
+    virtual void SetModelMatrix(const glm::mat4& model_matrix) override {
+        LOG_GL_ERRORV(glMultMatrixf(glm::value_ptr(model_matrix)));
+    }
+    virtual void ApplyMatrix(const glm::mat4& model_matrix) override {
+        LOG_GL_ERRORV(glMultMatrixf(glm::value_ptr(model_matrix)));
+    }
+
 
     void PushMatrix() override {
         LOG_GL_ERRORV(glPushMatrix());
@@ -666,7 +695,10 @@ void DrawGLUtils::DestroyCache(xlGLCacheInfo *cache) {
 }
 
 bool DrawGLUtils::IsCoreProfile() {
-    return currentCache->IsCoreProfile();
+    if (currentCache) {
+        return currentCache->IsCoreProfile();
+    }
+    return false;
 }
 
 void DrawGLUtils::SetLineWidth(float i) {
@@ -689,6 +721,12 @@ void DrawGLUtils::SetViewport(xlGLCanvas &win, int topleft_x, int topleft_y, int
     int h = std::max(y, y2) - std::min(y, y2);
     LOG_GL_ERRORV(glViewport(x,y,w,h));
     currentCache->Ortho(topleft_x, topleft_y, bottomright_x, bottomright_y);
+    
+    if (win.RequiresDepthBuffer()) {
+        LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+    }
 }
 
 void DrawGLUtils::SetViewport3D(xlGLCanvas &win, int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) {
@@ -705,10 +743,18 @@ void DrawGLUtils::SetViewport3D(xlGLCanvas &win, int topleft_x, int topleft_y, i
     currentCache->Perspective(topleft_x, topleft_y, bottomright_x, bottomright_y, depth);
 	LOG_GL_ERRORV(glClearColor(0,0,0,0));   // background color
 	LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 }
 
-void DrawGLUtils::SetCamera(glm::mat4& view_matrix) {
+void DrawGLUtils::SetCamera(const glm::mat4& view_matrix) {
 	currentCache->SetCamera(view_matrix);
+}
+void DrawGLUtils::SetModelMatrix(const glm::mat4& mmatrix) {
+    currentCache->SetModelMatrix(mmatrix);
+}
+void DrawGLUtils::ApplyMatrix(const glm::mat4& mmatrix) {
+    currentCache->ApplyMatrix(mmatrix);
 }
 void DrawGLUtils::PushMatrix() {
     currentCache->PushMatrix();
@@ -731,27 +777,27 @@ void DrawGLUtils::Scale(float w, float h, float z) {
 }
 
 void DrawGLUtils::Draw(xlAccumulator &va) {
-    currentCache->Draw(va);
+    if (currentCache) currentCache->Draw(va);
 }
 
 void DrawGLUtils::Draw(xl3Accumulator &va) {
-    currentCache->Draw(va);
+    if (currentCache) currentCache->Draw(va);
 }
 
-void DrawGLUtils::Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) {
-    currentCache->Draw(va, color, type, enableCapability);
+void DrawGLUtils::Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability, int start, int count) {
+    currentCache->Draw(va, color, type, enableCapability, start, count);
 }
 
-void DrawGLUtils::Draw(xlVertexColorAccumulator &va, int type, int enableCapability) {
-    currentCache->Draw(va, type, enableCapability);
+void DrawGLUtils::Draw(xlVertexColorAccumulator &va, int type, int enableCapability, int start, int count) {
+    currentCache->Draw(va, type, enableCapability, start, count);
 }
 
-void DrawGLUtils::Draw(xlVertexTextureAccumulator &va, int type, int enableCapability) {
-    currentCache->Draw(va, type, enableCapability);
+void DrawGLUtils::Draw(xlVertexTextureAccumulator &va, int type, int enableCapability, int start, int count) {
+    currentCache->Draw(va, type, enableCapability, start, count);
 }
 
-void DrawGLUtils::Draw(xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability) {
-	currentCache->Draw(va, color, type, enableCapability);
+void DrawGLUtils::Draw(xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability, int start, int count) {
+	currentCache->Draw(va, color, type, enableCapability, start, count);
 }
 
 DrawGLUtils::xl3DMesh *DrawGLUtils::createMesh() {

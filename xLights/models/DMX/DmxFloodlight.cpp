@@ -92,115 +92,37 @@ void DmxFloodlight::InitModel() {
     shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
     shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
     beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "1.0"));
-    screenLocation.SetRenderSize(1, 1);
+    screenLocation.SetRenderSize(1, 1, 1);
 }
 
-void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
-{
-    if (!IsActive()) return;
-
-    // determine if shutter is open for floods that support it
-    bool shutter_open = true;
-    if (shutter_channel > 0 && shutter_channel <= Nodes.size() && active) {
-        xlColor proxy;
-        Nodes[shutter_channel - 1]->GetColor(proxy);
-        int shutter_value = proxy.red;
-        if (shutter_value >= 0) {
-            shutter_open = shutter_value >= shutter_threshold;
-        }
-        else {
-            shutter_open = shutter_value <= std::abs(shutter_threshold);
-        }
-    }
-
-    size_t NodeCount=Nodes.size();
-
-    if( red_channel > NodeCount ||
-        green_channel > NodeCount ||
-        blue_channel > NodeCount ||
-        white_channel > NodeCount )
-    {
-        return;
-    }
-
-	xlColor color;
-	xlColor ecolor;
-	xlColor beam_color(xlWHITE);
-	if (c != nullptr) {
-		color = *c;
-		ecolor = *c;
-	}
-
-	int trans = color == xlBLACK ? blackTransparency : transparency;
-	if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
-
-        xlColor proxy = xlBLACK;
-        if (white_channel > 0)
-        {
-            Nodes[white_channel - 1]->GetColor(proxy);
-            beam_color = proxy;
-        }
-
-        if (proxy == xlBLACK)
-        {
-            Nodes[red_channel - 1]->GetColor(proxy);
-            beam_color.red = proxy.red;
-            Nodes[green_channel - 1]->GetColor(proxy);
-            beam_color.green = proxy.red;
-            Nodes[blue_channel - 1]->GetColor(proxy);
-            beam_color.blue = proxy.red;
-        }
-	}
-    else if (white_channel > 0)
-    {
-        xlColor proxy;
-        Nodes[white_channel - 1]->GetColor(proxy);
-        beam_color.red = proxy.red;
-        beam_color.green = proxy.red;
-        beam_color.blue = proxy.red;
-    }
-
-	if (!active) {
-		beam_color = color;
-	}
-
-	ApplyTransparency(beam_color, trans, trans);
-    if (pixelStyle == 2) {
-        ecolor = beam_color;
-    } else {
-        ecolor.alpha = 0;
-    }
-
-    float rh = ((BoxedScreenLocation)screenLocation).GetMWidth();
-    float rw = ((BoxedScreenLocation)screenLocation).GetMHeight();
-	float min_size = (float)(std::min(rh, rw));
-
-    if (shutter_open) {
-        va.AddCircleAsTriangles(sx, sy, min_size / 2.0f, beam_color, ecolor);
-        va.Finish(GL_TRIANGLES);
+void DmxFloodlight::GetColors(xlColor &center, xlColor &edge, bool allowSelected, const xlColor *c) {
+    GetColor(center, transparency, blackTransparency, allowSelected, c, Nodes);
+    edge = center;
+    if (pixelStyle != 2) {
+        edge.alpha = 0;
     }
 }
+void DmxFloodlight::DrawModel(xlVertexColorAccumulator *vac, xlColor &center, xlColor &edge, float beam_length) {
+    vac->AddCircleAsTriangles(0, 0, 0, 0.5, center, edge, beam_length);
+}
 
-void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active)
-{
+
+void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                         xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d,
+                                         const xlColor* c, bool allowSelected, bool wiring,
+                                         bool highlightFirst, int highlightpixel,
+                                         float *boundingBox) {
     if (!IsActive()) return;
 
+    int w, h;
+    preview->GetVirtualCanvasSize(w, h);
+    screenLocation.PrepareToDraw(is_3d, allowSelected);
+    screenLocation.UpdateBoundingBox(1, 1, 1);
+    
     // determine if shutter is open for floods that support it
-    bool shutter_open = true;
-    if (shutter_channel > 0 && shutter_channel <= Nodes.size() && active) {
-        xlColor proxy;
-        Nodes[shutter_channel - 1]->GetColor(proxy);
-        int shutter_value = proxy.red;
-        if (shutter_value >= 0) {
-            shutter_open = shutter_value >= shutter_threshold;
-        }
-        else {
-            shutter_open = shutter_value <= std::abs(shutter_threshold);
-        }
-    }
-
+    bool shutter_open = allowSelected || IsShutterOpen(Nodes);
+    
     size_t NodeCount = Nodes.size();
-
     if (red_channel > NodeCount ||
         green_channel > NodeCount ||
         blue_channel > NodeCount ||
@@ -209,61 +131,93 @@ void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
         return;
     }
 
-    xlColor color;
-    xlColor ecolor;
-    xlColor beam_color(xlWHITE);
-    if (c != nullptr) {
-        color = *c;
-        ecolor = *c;
-    }
+    xlColor center, edge;
+    GetColors(center, edge, allowSelected, c);
 
-    int trans = color == xlBLACK ? blackTransparency : transparency;
-    if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
-
-        xlColor proxy = xlBLACK;
-        if (white_channel > 0) {
-            Nodes[white_channel - 1]->GetColor(proxy);
-            beam_color = proxy;
-        }
-
-        if (proxy == xlBLACK) {
-            Nodes[red_channel - 1]->GetColor(proxy);
-            beam_color.red = proxy.red;
-            Nodes[green_channel - 1]->GetColor(proxy);
-            beam_color.green = proxy.red;
-            Nodes[blue_channel - 1]->GetColor(proxy);
-            beam_color.blue = proxy.red;
-        }
-    }
-    else if (white_channel > 0) {
-        xlColor proxy;
-        Nodes[white_channel - 1]->GetColor(proxy);
-        beam_color.red = proxy.red;
-        beam_color.green = proxy.red;
-        beam_color.blue = proxy.red;
-    }
-
-    if (!active) {
-        beam_color = color;
-    }
-
-    ApplyTransparency(beam_color, trans, trans);
-    if (pixelStyle == 2) {
-        ecolor = beam_color;
-    } else {
-        ecolor.alpha = 0;
-    }
-
-
+    // beam length doesn't use the zscale, it draws out of our normal bounding box
+    // we need to calculate a length
     float rh = ((BoxedScreenLocation)screenLocation).GetMWidth();
     float rw = ((BoxedScreenLocation)screenLocation).GetMHeight();
     float min_size = (float)(std::min(rh, rw));
 
-    glm::quat rotation = GetModelScreenLocation().GetRotationQuat();
-
     if (shutter_open) {
-        va.AddRotatedCircleAsTriangles(sx, sy, sz, rotation, min_size / 2.0f, beam_color, ecolor, beam_length);
-        va.Finish(GL_TRIANGLES);
+        auto *vac = transparentProgram->getAccumulator();
+        int start = vac->getCount();
+        DrawModel(vac, center, edge, is_3d ? beam_length * min_size : 0);
+        int end = vac->getCount();
+        transparentProgram->addStep([=](xlGraphicsContext*ctx) {
+            ctx->PushMatrix();
+            if (!is_3d) {
+                //not 3d, flatten to the 0 plane
+                ctx->Scale(1.0, 1.0, 0.0);
+            }
+            GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+            ctx->drawTriangles(vac, start, end - start);
+            ctx->PopMatrix();
+        });
+    }
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
+        if (is_3d) {
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+        } else {
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+        }
+    }
+}
+void DmxFloodlight::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
+    if (!IsActive() && preview->IsNoCurrentModel()) { return; }
+    
+    bool shutter_open = IsShutterOpen(Nodes);
+    if (!shutter_open) {
+        return;
+    }
+    bool mustEnd = false;
+    xlGraphicsContext *ctx = preview->getCurrentGraphicsContext();
+    if (ctx == nullptr) {
+        bool success = preview->StartDrawing(pointSize);
+        if (success) {
+            ctx = preview->getCurrentGraphicsContext();
+            mustEnd = true;
+        }
+    }
+    if (ctx) {
+        xlColor center, edge;
+        GetColors(center, edge, false, nullptr);
+        xlGraphicsProgram *p = preview->getCurrentTransparentProgram();
+        auto vac = p->getAccumulator();
+        int start = vac->getCount();
+        DrawModel(vac, center, edge, 0);
+        int end = vac->getCount();
+        
+        int w, h;
+        preview->GetSize(&w, &h);
+        float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
+        float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
+        
+        float aspect = screenLocation.GetScaleX();
+        aspect /= screenLocation.GetScaleY();
+        if (scaleY < scaleX) {
+            scaleX = scaleY * aspect;
+        } else {
+            scaleY = scaleX / aspect;
+        }
+        float ml, mb;
+        GetMinScreenXY(ml, mb);
+        ml += GetModelScreenLocation().RenderWi / 2;
+        mb += GetModelScreenLocation().RenderHt / 2;
+        
+        p->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PushMatrix();
+            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Scale(scaleX, scaleY, 1.0);
+
+            ctx->drawTriangles(vac, start, end - start);
+            ctx->PopMatrix();
+        });
+    }
+    if (mustEnd) {
+        preview->EndDrawing();
     }
 }
 

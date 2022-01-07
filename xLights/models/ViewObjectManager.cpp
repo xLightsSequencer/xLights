@@ -56,19 +56,15 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
 
     if (type == "Gridlines") {
         view_object = new GridlinesObject(node, *this);
-    }
-    else if (type == "Ruler") {
+    } else if (type == "Ruler") {
         view_object = new RulerObject(node, *this);
     } else if (type == "Image") {
         view_object = new ImageObject(node, *this);
-    }
-    else if (type == "Mesh") {
+    } else if (type == "Mesh") {
         view_object = new MeshObject(node, *this);
-    }
-    else if (type == "Terrian") {
+    } else if (type == "Terrian") {
         view_object = new TerrianObject(node, *this);
-    }
-    else {
+    } else {
         wxMessageBox(type + " is not a valid type for View Object " + node->GetAttribute("name"));
         return nullptr;
     }
@@ -82,21 +78,15 @@ ViewObject* ViewObjectManager::CreateObject(wxXmlNode *node) const {
     ViewObject *view_object = nullptr;
     if (type == "Gridlines") {
         view_object = new GridlinesObject(node, *this);
-    }
-    else if (type == "Ruler") {
+    } else if (type == "Ruler") {
         view_object = new RulerObject(node, *this);
-    }
-    else if (type == "Image") {
+    } else if (type == "Image") {
         view_object = new ImageObject(node, *this);
-    }
-    else if (type == "Mesh") {
+    } else if (type == "Mesh") {
         view_object = new MeshObject(node, *this);
-    }
-    else if (type == "Terrian") {
+    } else if (type == "Terrian") {
         view_object = new TerrianObject(node, *this);
-    }
-    else
-    {
+    } else {
         wxASSERT(false);
     }
     return view_object;
@@ -131,8 +121,7 @@ void ViewObjectManager::AddViewObject(ViewObject *view_object) {
 
 void ViewObjectManager::clear() {
     for (auto it = view_objects.begin(); it != view_objects.end(); ++it) {
-        if (it->second != nullptr)
-        {
+        if (it->second != nullptr) {
             delete it->second;
             it->second = nullptr;
         }
@@ -161,11 +150,9 @@ ViewObject *ViewObjectManager::createAndAddObject(wxXmlNode *node) {
 
 void ViewObjectManager::Delete(const std::string &name) {
 
-    if( xlights->CurrentSeqXmlFile != nullptr )
-    {
+    if (xlights->CurrentSeqXmlFile != nullptr) {
         Element* elem_to_delete = xlights->GetSequenceElements().GetElement(name);
-        if (elem_to_delete != nullptr)
-        {
+        if (elem_to_delete != nullptr) {
             // Delete the object from the sequencer grid and views
             xlights->GetSequenceElements().DeleteElement(name);
         }

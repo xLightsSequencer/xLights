@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "xlGraphicsContext.h"
 
 void xlVertexAccumulator::AddRectAsLines(float x1, float y1, float x2, float y2) {
     PreAlloc(8);
@@ -162,19 +163,58 @@ void xlVertexColorAccumulator::AddCircleAsLines(float cx, float cy, float r, con
 }
 
 void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float radius, const xlColor &color) {
-    AddCircleAsTriangles(cx, cy, 0.0f, radius, color, color);
+    AddCircleAsTriangles(cx, cy, 0.0f, radius, color, color, 0.0);
 }
 
 void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float radius, const xlColor &center, const xlColor &edge) {
-    AddCircleAsTriangles(cx, cy, 0.0f, radius, center, edge);
+    AddCircleAsTriangles(cx, cy, 0.0f, radius, center, edge, 0.0);
 }
 
 void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor &color) {
-    AddCircleAsTriangles(cx, cy, cz, radius, color, color);
+    AddCircleAsTriangles(cx, cy, cz, radius, color, color, 0.0);
 }
-
 void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor &center, const xlColor &edge) {
-    int num_segments = radius;
+    AddCircleAsTriangles(cx, cy, cz, radius, center, edge, 0.0);
+}
+void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz, float radius, const xlColor& center, const xlColor& edge, float depthRatio, int numSegments) {
+    int num_segments = numSegments;
+    if (num_segments == -1) {
+        num_segments = radius;
+    }
+    if (num_segments < 16) {
+        num_segments = 16;
+    }
+    PreAlloc(num_segments * 4);
+    float theta = 2 * 3.1415926 / float(num_segments);
+    float tangetial_factor = std::tan(theta);//calculate the tangential factor
+    float radial_factor = std::cos(theta);//calculate the radial factor
+
+    float x = radius;//we start at angle = 0
+    float y = 0;
+    float z = depthRatio * radius;
+
+    for(int ii = 0; ii < num_segments; ii++) {
+        AddVertex(x + cx, y + cy, cz + z, edge);
+        //calculate the tangential vector
+        //remember, the radial vector is (x, y)
+        //to get the tangential vector we flip those coordinates and negate one of them
+        float tx = -y;
+        float ty = x;
+
+        //add the tangential vector
+        x += tx * tangetial_factor;
+        y += ty * tangetial_factor;
+        x *= radial_factor;
+        y *= radial_factor;
+        AddVertex(x + cx, y + cy, cz + z, edge);
+        AddVertex(cx, cy, cz, center);
+    }
+}
+void xlVertexIndexedColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz, float radius, uint32_t center, uint32_t edge, int numSegments) {
+    int num_segments = numSegments;
+    if (num_segments == -1) {
+        num_segments = radius;
+    }
     if (num_segments < 16) {
         num_segments = 16;
     }
@@ -204,6 +244,69 @@ void xlVertexColorAccumulator::AddCircleAsTriangles(float cx, float cy, float cz
     }
 }
 
+void xlVertexColorAccumulator::AddCubeAsTriangles(float x, float y, float z, float width, const xlColor &color) {
+    float halfwidth = width / 2.0f;
+
+    // front
+    AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+
+    AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    AddVertex(x - halfwidth, y - halfwidth, z + halfwidth, color);
+    AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+
+    // back
+    AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
+    AddVertex(x + halfwidth, y + halfwidth, z - halfwidth, color);
+    AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
+
+    AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
+    AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
+    AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
+
+    // left side
+    AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    AddVertex(x - halfwidth, y - halfwidth, z + halfwidth, color);
+    AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
+
+    AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
+    AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
+
+    // right side
+    AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+    AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
+
+    AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    AddVertex(x + halfwidth, y + halfwidth, z - halfwidth, color);
+    AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
+
+    // top side
+    AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
+
+    AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
+    AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    AddVertex(x + halfwidth, y + halfwidth, z - halfwidth, color);
+
+    // bottom side
+    AddVertex(x - halfwidth, y - halfwidth, z + halfwidth, color);
+    AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+    AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
+
+    AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+    AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
+    AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
+}
+
+void xlVertexColorAccumulator::AddSphereAsTriangles(float x, float y, float z, float radius, const xlColor &color) {
+    // FIXME:  draw a square until I get a good sphere routine
+    AddCubeAsTriangles(x, y, z, radius*2, color);
+}
+
 
 void xlDisplayList::addToAccumulator(float xOffset, float yOffset,
                                      float width, float height,
@@ -216,4 +319,26 @@ void xlDisplayList::addToAccumulator(float xOffset, float yOffset,
     for (const auto &item : *this) {
         bg.AddVertex(xOffset + item.x * width, yOffset + item.y * height, item.color);
     }
+}
+
+
+
+xlGraphicsProgram::xlGraphicsProgram(xlVertexColorAccumulator *a) : accumulator(a) {
+    
+}
+xlGraphicsProgram::~xlGraphicsProgram() {
+    if (accumulator) {
+        delete accumulator;
+    }
+}
+void xlGraphicsProgram::runSteps(xlGraphicsContext *ctx) {
+    if (accumulator) {
+        accumulator->Finalize(false,  false);
+    }
+    for (auto &a : steps) {
+        a(ctx);
+    }
+}
+xlVertexColorAccumulator *xlGraphicsProgram::getAccumulator() {
+    return accumulator;
 }

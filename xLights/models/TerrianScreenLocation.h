@@ -12,6 +12,8 @@
 
 #include "ModelScreenLocation.h"
 
+class xlGraphicsProgram;
+
 //Default location that uses a terrain grid with handles that can adjust in elevation
 class TerrianScreenLocation : public BoxedScreenLocation {
 public:
@@ -20,7 +22,8 @@ public:
 
     virtual void Read(wxXmlNode* node) override;
     virtual void Write(wxXmlNode* node) override;
-    virtual void DrawHandles(DrawGLUtils::xl3Accumulator& va, float zoom, int scale, bool drawBounding = true) const override;
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding = true) const override;
+    
     virtual wxCursor CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
 

@@ -156,8 +156,7 @@ public:
         Refresh();
     }
 public:
-    void render()
-    {
+    void render() override {
         if(!IsShownOnScreen()) return;
         if(!mIsInitialized) {
             PrepareCanvas();

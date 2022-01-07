@@ -204,7 +204,7 @@ void DmxServo::InitModel() {
 
     DmxModel::InitModel();
     DisplayAs = "DmxServo";
-    screenLocation.SetRenderSize(1, 1);
+    screenLocation.SetRenderSize(1, 1, 1);
 
     // clear any extras
     while (servos.size() > num_servos) {
@@ -374,8 +374,85 @@ void DmxServo::InitModel() {
     update_node_names = false;
 }
 
-void DmxServo::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)
-{
+void DmxServo::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                    xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d,
+                                    const xlColor* c, bool allowSelected, bool wiring,
+                                    bool highlightFirst, int highlightpixel,
+                                    float *boundingBox) {
+    if (!IsActive()) return;
+
+    screenLocation.PrepareToDraw(is_3d, allowSelected);
+    screenLocation.UpdateBoundingBox(Nodes);
+    
+    
+    xlGraphicsProgram *program = transparentProgram;
+    program->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PushMatrix();
+        if (!is_3d) {
+            //not 3d, flatten to the 0 plane
+            ctx->Scale(1.0, 1.0, 0.0);
+        }
+        GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+    });
+    DrawModel(preview, ctx, program, c, !allowSelected);
+    program->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PopMatrix();
+    });
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
+        if (is_3d) {
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+        } else {
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+        }
+    }
+}
+void DmxServo::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
+    if (!IsActive() && preview->IsNoCurrentModel()) { return; }
+    
+    bool mustEnd = false;
+    xlGraphicsContext *ctx = preview->getCurrentGraphicsContext();
+    if (ctx == nullptr) {
+        bool success = preview->StartDrawing(pointSize);
+        if (success) {
+            ctx = preview->getCurrentGraphicsContext();
+            mustEnd = true;
+        }
+    }
+    if (ctx) {
+        int w, h;
+        preview->GetSize(&w, &h);
+        float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
+        float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
+        
+        float aspect = screenLocation.GetScaleX();
+        aspect /= screenLocation.GetScaleY();
+        if (scaleY < scaleX) {
+            scaleX = scaleY * aspect;
+        } else {
+            scaleY = scaleX / aspect;
+        }
+        float ml, mb;
+        GetMinScreenXY(ml, mb);
+        ml += GetModelScreenLocation().RenderWi / 2;
+        mb += GetModelScreenLocation().RenderHt / 2;
+        
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PushMatrix();
+            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Scale(scaleX, scaleY, 1.0);
+        });
+        DrawModel(preview, ctx, preview->getCurrentTransparentProgram(), nullptr, true);
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PopMatrix();
+        });
+    }
+    if (mustEnd) {
+        preview->EndDrawing();
+    }
+}
+
+void DmxServo::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *program, const xlColor* c, bool active) {
     // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);
     if (min_channels > Nodes.size()) {
@@ -385,62 +462,31 @@ void DmxServo::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, 
         return;
     }
     for (auto it = servos.begin(); it != servos.end(); ++it) {
-        if ((*it)->GetChannel() > Nodes.size())
-        {
+        if ((*it)->GetChannel() > Nodes.size()) {
             return;
         }
     }
 
-    // this if statement scales the motion image(s) so that is has the same size ratio as the original images
-    for (auto it = motion_images.begin(); it != motion_images.end(); ++it) {
-        if ((*it)->ImageSelected() && (*it)->GetExists() && static_images[0]->GetExists()) {
-            if (static_images[0]->GetWidth() != 0) {
-                float new_scale = (float)(*it)->GetWidth() / (float)static_images[0]->GetWidth();
-                (*it)->SetScaleX(new_scale, this);
-                (*it)->SetScaleY(new_scale, this);
-                (*it)->ClearImageSelected();
-            }
-        }
-    }
-
     float servo_pos[SUPPORTED_SERVOS] = { 0.0f };
-    glm::mat4 Identity = glm::mat4(1.0f);
-    glm::mat4 scalingMatrix = glm::scale(Identity, GetModelScreenLocation().GetScaleMatrix());
-    glm::mat4 translateMatrix = glm::translate(Identity, GetModelScreenLocation().GetWorldPosition());
-    glm::quat rotateQuat = GetModelScreenLocation().GetRotationQuat();
-    glm::mat4 base_matrix = translateMatrix * glm::toMat4(rotateQuat) * scalingMatrix;
-
 
     for (int i = 0; i < servos.size(); ++i) {
-        glm::mat4 motion_matrix = Identity;
-        static_images[i]->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, !motion_images[i]->GetExists(), 0, 0, false, false);
+        //need to layer the images via slight Z offsets or they blend together and don't appear.
+        glm::mat4 motionMatrix = glm::mat4(1.0f);
+        motionMatrix = glm::translate(motionMatrix, glm::vec3(0, 0, 0.2 * float(i)));
+        static_images[i]->Draw(this, preview, program, motionMatrix, transparency, brightness, !motion_images[i]->GetExists(), 0, 0, false, false);
         if (servos[i]->GetChannel() > 0 && active) {
             servo_pos[i] = servos[i]->GetPosition(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
-            if (servos[i]->IsTranslate()) {
-                glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
-                servo_pos[i] /= scale.x;
-            }
         }
-        servos[i]->FillMotionMatrix(servo_pos[i], motion_matrix);
-        motion_images[i]->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, !static_images[i]->GetExists(),
-            servos[i]->GetPivotOffsetX(), servos[i]->GetPivotOffsetY(), servos[i]->IsRotate(), !active);
+        servos[i]->FillMotionMatrix(servo_pos[i], motionMatrix);
+        motionMatrix = glm::translate(motionMatrix, glm::vec3(0, 0, 0.2 * float(i) + 0.1));
+        motion_images[i]->Draw(this, preview, program, motionMatrix,
+                               transparency, brightness, !static_images[i]->GetExists(),
+                               servos[i]->GetPivotOffsetX(), servos[i]->GetPivotOffsetY(),
+                               servos[i]->IsRotate(), !active);
     }
 
 }
 
-void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)
-{
-    if (!IsActive()) return;
-
-    DrawModel(preview, va, c, sx, sy, active);
-}
-
-void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
-{
-    if (!IsActive()) return;
-
-    DrawModel(preview, va, c, sx, sy, active);
-}
 
 void DmxServo::ExportXlightsModel()
 {

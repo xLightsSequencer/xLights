@@ -13,7 +13,6 @@
 #include <wx/propgrid/advprops.h>
 #include <vector>
 #include "TerrianObject.h"
-#include "graphics/opengl/DrawGLUtils.h"
 #include "ModelPreview.h"
 #include "Model.h"
 #include "RulerObject.h"
@@ -24,7 +23,7 @@ TerrianObject::TerrianObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _imageFile(""), spacing(50), gridColor(xlColor(0,128, 0)),
    width(1000.0f), height(10.0f), depth(1000.0f), editTerrian(false), hide_image(false),
    hide_grid(false), brush_size(1), img_width(1), img_height(1), 
-   transparency(0), brightness(100.0f)
+   transparency(0), brightness(100.0f), grid(nullptr), texture(nullptr)
 {
     screenLocation.SetSupportsZScaling(true);
     SetFromXml(node);
@@ -34,6 +33,15 @@ TerrianObject::~TerrianObject()
 {
     for (auto it = _images.begin(); it != _images.end(); ++it) {
         delete it->second;
+    }
+
+    if (texture != nullptr) {
+        delete texture;
+        texture = nullptr;
+    }
+    if (grid != nullptr) {
+        delete grid;
+        grid = nullptr;
     }
 }
 
@@ -142,107 +150,107 @@ int TerrianObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         ObtainAccessToURL(_imageFile);
         ModelXml->DeleteAttribute("Image");
         ModelXml->AddAttribute("Image", _imageFile);
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrianObject::OnPropertyGridChange::Image");
         //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrianObject::OnPropertyGridChange::Image");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrianObject::OnPropertyGridChange::Image");
         return 0;
-    }
-    else if ("Transparency" == event.GetPropertyName()) {
+    } else if ("Transparency" == event.GetPropertyName()) {
         transparency = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
         ModelXml->AddAttribute("Transparency", wxString::Format("%d", transparency));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrianObject::OnPropertyGridChange::Transparency");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrianObject::OnPropertyGridChange::Transparency");
         return 0;
-    }
-    else if ("Brightness" == event.GetPropertyName()) {
+    } else if ("Brightness" == event.GetPropertyName()) {
         brightness = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Brightness");
         ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrianObject::OnPropertyGridChange::Brightness");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrianObject::OnPropertyGridChange::Transparency");
         return 0;
-    }
-    else if ("TerrianLineSpacing" == event.GetPropertyName()) {
+    } else if ("TerrianLineSpacing" == event.GetPropertyName()) {
         spacing = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("TerrianLineSpacing");
         ModelXml->AddAttribute("TerrianLineSpacing", wxString::Format("%d", spacing));
         if (grid->GetPropertyByName("RealSpacing") != nullptr && RulerObject::GetRuler() != nullptr) {
             grid->GetPropertyByName("RealSpacing")->SetValueFromString(RulerObject::PrescaledMeasureDescription(RulerObject::Measure(spacing)));
         }
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrianObject::OnPropertyGridChange::TerrianLineSpacing");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrianObject::OnPropertyGridChange::TerrianLineSpacing");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrianObject::OnPropertyGridChange::TerrianLineSpacing");
         return 0;
-    }
-    else if ("TerrianWidth" == event.GetPropertyName()) {
+    } else if ("TerrianWidth" == event.GetPropertyName()) {
         width = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("TerrianWidth");
         ModelXml->AddAttribute("TerrianWidth", wxString::Format("%d", width));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrianObject::OnPropertyGridChange::TerrianWidth");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrianObject::OnPropertyGridChange::TerrianWidth");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrianObject::OnPropertyGridChange::TerrianWidth");
         return 0;
-    }
-    else if ("TerrianDepth" == event.GetPropertyName()) {
+    } else if ("TerrianDepth" == event.GetPropertyName()) {
         depth = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("TerrianDepth");
         ModelXml->AddAttribute("TerrianDepth", wxString::Format("%d", depth));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrianObject::OnPropertyGridChange::TerrianDepth");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrianObject::OnPropertyGridChange::TerrianDepth");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrianObject::OnPropertyGridChange::TerrianDepth");
         return 0;
-    }
-    else if ("gridColor" == event.GetPropertyName()) {
+    } else if ("gridColor" == event.GetPropertyName()) {
         wxPGProperty *p = grid->GetPropertyByName("gridColor");
         wxColour c;
         c << p->GetValue();
         gridColor = c;
         ModelXml->DeleteAttribute("gridColor");
         ModelXml->AddAttribute("gridColor", gridColor);
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrianObject::OnPropertyGridChange::gridColor");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrianObject::OnPropertyGridChange::gridColor");
         return 0;
-    }
-    else if ("HideGrid" == event.GetPropertyName()) {
+    } else if ("HideGrid" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("HideGrid");
         hide_grid = event.GetValue().GetBool();
         if (hide_grid) {
             ModelXml->AddAttribute("HideGrid", "1");
         }
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrianObject::OnPropertyGridChange::HideGrid");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrianObject::OnPropertyGridChange::HideGrid");
         return 0;
-    }
-    else if ("HideImage" == event.GetPropertyName()) {
+    } else if ("HideImage" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("HideImage");
         hide_image = event.GetValue().GetBool();
         if (hide_image) {
             ModelXml->AddAttribute("HideImage", "1");
         }
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrianObject::OnPropertyGridChange::HideImage");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrianObject::OnPropertyGridChange::HideImage");
         return 0;
-    }
-    else if ("TerrianBrushSize" == event.GetPropertyName()) {
+    } else if ("TerrianBrushSize" == event.GetPropertyName()) {
         brush_size = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("TerrianBrushSize");
         ModelXml->AddAttribute("TerrianBrushSize", wxString::Format("%d", brush_size));
         GetObjectScreenLocation().SetToolSize(brush_size);
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrianObject::OnPropertyGridChange::TerrianBrushSize");
         return 0;
-    }
-    else if (event.GetPropertyName() == "TerrianEdit") {
+    } else if (event.GetPropertyName() == "TerrianEdit") {
         editTerrian = event.GetValue().GetBool();
         if (editTerrian) {
             GetObjectScreenLocation().SetActiveHandle(NO_HANDLE);
             GetObjectScreenLocation().SetEdit(true);
-        }
-        else {
+        } else {
             GetObjectScreenLocation().SetActiveHandle(0);
             GetObjectScreenLocation().SetAxisTool(ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE);
             GetObjectScreenLocation().SetEdit(false);
         }
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::TerrianEdit");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::TerrianEdit");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::TerrianEdit");
@@ -252,9 +260,8 @@ int TerrianObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
     return ViewObject::OnPropertyGridChange(grid, event);
 }
 
-void TerrianObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
-{
-    if (!IsActive()) { return; }
+bool TerrianObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
+    if (!IsActive()) { return true; }
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool exists = false;
@@ -263,115 +270,149 @@ void TerrianObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3
 
     if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
         if (wxFileExists(_imageFile)) {
-            logger_base.debug("Loading terrian image %s file %s for preview %s.",
-                (const char*)GetName().c_str(),
-                (const char*)_imageFile.c_str(),
-                (const char*)preview->GetName().c_str());
-            _images[preview->GetName().ToStdString()] = new Image(_imageFile);
-
-            img_width = (_images[preview->GetName().ToStdString()])->width;
-            img_height = (_images[preview->GetName().ToStdString()])->height;
-            exists = true;
+            logger_base.debug("Loading image model %s file %s for preview %s.",
+                (const char *)GetName().c_str(),
+                (const char *)_imageFile.c_str(),
+                (const char *)preview->GetName().c_str());
+            wxImage image(_imageFile);
+            if (image.IsOk()) {
+                xlTexture *t = ctx->createTexture(image);
+                t->SetName(GetName());
+                t->Finalize();
+                _images[preview->GetName().ToStdString()] = t;
+                img_width = image.GetWidth();
+                img_height = image.GetHeight();
+                screenLocation.SetRenderSize(width, height, 10.0f);
+                exists = true;
+            } else {
+                exists = false;
+            }
         }
-    }
-    else {
+    } else {
         exists = true;
     }
 
-    float sx,sy,sz;
-
-	va3.PreAlloc(width / spacing * 12);
-	va3.PreAlloc(depth / spacing * 12);
-
-    screenLocation.SetRenderSize(width, 10.0f, depth);
-
-	xlColor xaxis = xlColor(128,0,0);
-	xlColor yaxis = xlColor(0,0,128);
-
-    // Draw the Gridlines
-    std::vector<float>& mPos = *reinterpret_cast<std::vector<float>*>(GetObjectScreenLocation().GetRawData());
-    std::vector<glm::vec3> pos;
-    pos.resize(num_points);
-    float x_offset = (num_points_wide - 1) * spacing / 2;
-    float z_offset = (num_points_deep - 1) * spacing / 2;
-    for (int j = 0; j < num_points_deep; ++j) {
-        for (int i = 0; i < num_points_wide; ++i) {
-            int abs_point = j * num_points_wide + i;
-            sx = i * spacing - x_offset;
-            sz = j * spacing - z_offset;
-            sy = mPos[abs_point];
-            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-            pos[abs_point] = glm::vec3(sx, sy, sz);
+    if (uiObjectsInvalid || texture == nullptr) {
+        if (texture != nullptr) {
+            delete texture;
+            texture = nullptr;
         }
-    }
+        if (grid != nullptr) {
+            delete grid;
+            grid = nullptr;
+        }
 
-    if (!hide_grid) {
+        float sx,sy,sz;
+        screenLocation.SetRenderSize(width, height, depth);
+
+        std::vector<float>& mPos = *reinterpret_cast<std::vector<float>*>(GetObjectScreenLocation().GetRawData());
+        std::vector<glm::vec3> pos;
+        pos.resize(num_points);
+        float x_offset = (num_points_wide - 1) * spacing / 2;
+        float z_offset = (num_points_deep - 1) * spacing / 2;
         for (int j = 0; j < num_points_deep; ++j) {
-            for (int i = 0; i < num_points_wide - 1; ++i) {
+            for (int i = 0; i < num_points_wide; ++i) {
                 int abs_point = j * num_points_wide + i;
-                va3.AddVertex(pos[abs_point].x, pos[abs_point].y, pos[abs_point].z, gridColor);
-                va3.AddVertex(pos[abs_point + 1].x, pos[abs_point + 1].y, pos[abs_point + 1].z, gridColor);
+                sx = i * spacing - x_offset;
+                sz = j * spacing - z_offset;
+                sy = mPos[abs_point];
+                GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+                pos[abs_point] = glm::vec3(sx, sy, sz);
             }
         }
+        
+        if (!hide_grid) {
+            grid = ctx->createVertexAccumulator();
+            grid->SetName(GetName() + "_GridLines");
+            grid->PreAlloc(width / spacing * 12 + depth / spacing * 12);
+            // Draw the Gridlines
+            for (int j = 0; j < num_points_deep; ++j) {
+                for (int i = 0; i < num_points_wide - 1; ++i) {
+                    int abs_point = j * num_points_wide + i;
+                    grid->AddVertex(pos[abs_point].x, pos[abs_point].y, pos[abs_point].z);
+                    grid->AddVertex(pos[abs_point + 1].x, pos[abs_point + 1].y, pos[abs_point + 1].z);
+                }
+            }
 
-        for (int i = 0; i < num_points_wide; ++i) {
+            for (int i = 0; i < num_points_wide; ++i) {
+                for (int j = 0; j < num_points_deep - 1; ++j) {
+                    int abs_point = j * num_points_wide + i;
+                    grid->AddVertex(pos[abs_point].x, pos[abs_point].y, pos[abs_point].z);
+                    grid->AddVertex(pos[abs_point + num_points_wide].x, pos[abs_point + num_points_wide].y, pos[abs_point + num_points_wide].z);
+                }
+            }
+            grid->Finalize(false);
+        }
+
+        if (exists && !hide_image) {
+            // Draw the Texture
+            if (transparency == 0) {
+                texture = ctx->createVertexTextureAccumulator();
+            } else {
+                texture = ctx->createVertexTextureAccumulator();
+            }
+            texture->SetName(GetName() + "_Image");
+            texture->PreAlloc(width / spacing * 12 + depth / spacing * 12);
+
+            float x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4;
+            float delta_x = 1.0f / (num_points_wide - 1);
+            float delta_y = 1.0f / (num_points_deep - 1);
+
+            float tx1, tx2, ty1, ty2;
+            texture->PreAlloc((num_points_deep-1)*(num_points_wide-1)*6);
+
             for (int j = 0; j < num_points_deep - 1; ++j) {
-                int abs_point = j * num_points_wide + i;
-                va3.AddVertex(pos[abs_point].x, pos[abs_point].y, pos[abs_point].z, gridColor);
-                va3.AddVertex(pos[abs_point + num_points_wide].x, pos[abs_point + num_points_wide].y, pos[abs_point + num_points_wide].z, gridColor);
+                for (int i = 0; i < num_points_wide - 1; ++i) {
+                    int abs_point = j * num_points_wide + i;
+                    x1 = pos[abs_point].x;
+                    x2 = pos[abs_point + num_points_wide].x;
+                    x3 = pos[abs_point + num_points_wide + 1].x;
+                    x4 = pos[abs_point + 1].x;
+                    y1 = pos[abs_point].y;
+                    y2 = pos[abs_point + num_points_wide].y;
+                    y3 = pos[abs_point + num_points_wide + 1].y;
+                    y4 = pos[abs_point + 1].y;
+                    z1 = pos[abs_point].z;
+                    z2 = pos[abs_point + num_points_wide].z;
+                    z3 = pos[abs_point + num_points_wide + 1].z;
+                    z4 = pos[abs_point + 1].z;
+                    tx1 = i * delta_x;
+                    tx2 = (i + 1) * delta_x;
+                    ty1 = j * delta_y;
+                    ty2 = (j + 1) * delta_y;
+                    texture->AddVertex(x1, y1, z1, tx1, ty1);
+                    texture->AddVertex(x4, y4, z4, tx2, ty1);
+                    texture->AddVertex(x2, y2, z2, tx1, ty2);
+                    texture->AddVertex(x2, y2, z2, tx1, ty2);
+                    texture->AddVertex(x4, y4, z4, tx2, ty1);
+                    texture->AddVertex(x3, y3, z3, tx2, ty2);
+                }
             }
+            texture->Finalize(false, false);
         }
-        va3.Finish(GL_LINES, GL_LINE_SMOOTH);
     }
-
-    // Draw the Texture
-    if (exists && !hide_image) {
-        float x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4;
-        Image* image = _images[preview->GetName().ToStdString()];
-        float delta_x = image->tex_coord_x / (num_points_wide - 1);
-        float delta_y = image->tex_coord_y / (num_points_deep - 1);
-
-        float tx1, tx2, ty1, ty2;
-
-        DrawGLUtils::xl3Accumulator& va = transparency == 0 ? va3 : tva3;
-
-        va.PreAllocTexture((num_points_deep-1)*(num_points_wide-1)*6);
-
-        for (int j = 0; j < num_points_deep - 1; ++j) {
-            for (int i = 0; i < num_points_wide - 1; ++i) {
-                int abs_point = j * num_points_wide + i;
-                x1 = pos[abs_point].x;
-                x2 = pos[abs_point + num_points_wide].x;
-                x3 = pos[abs_point + num_points_wide + 1].x;
-                x4 = pos[abs_point + 1].x;
-                y1 = pos[abs_point].y;
-                y2 = pos[abs_point + num_points_wide].y;
-                y3 = pos[abs_point + num_points_wide + 1].y;
-                y4 = pos[abs_point + 1].y;
-                z1 = pos[abs_point].z;
-                z2 = pos[abs_point + num_points_wide].z;
-                z3 = pos[abs_point + num_points_wide + 1].z;
-                z4 = pos[abs_point + 1].z;
-                tx1 = i * delta_x;
-                tx2 = (i + 1) * delta_x;
-                ty1 = (num_points_deep - j - 1) * delta_y;
-                ty2 = (num_points_deep - j - 2) * delta_y;
-                va.AddTextureVertex(x1, y1, z1, tx1, ty1);
-                va.AddTextureVertex(x4, y4, z4, tx2, ty1);
-                va.AddTextureVertex(x2, y2, z2, tx1, ty2);
-                va.AddTextureVertex(x2, y2, z2, tx1, ty2);
-                va.AddTextureVertex(x4, y4, z4, tx2, ty1);
-                va.AddTextureVertex(x3, y3, z3, tx2, ty2);
-            }
+    if (grid) {
+        solid->addStep([=](xlGraphicsContext *ctx) {
+            ctx->drawLines(grid, gridColor);
+        });
+    }
+    if (texture) {
+        xlTexture *image = _images[preview->GetName().ToStdString()];
+        if (transparency == 0) {
+            solid->addStep([=](xlGraphicsContext *ctx) {
+                ctx->drawTexture(texture, image, brightness, 255, 0, texture->getCount());
+            });
+        } else {
+            transparent->addStep([=](xlGraphicsContext *ctx) {
+                int alpha = (100.0 - transparency) * 255.0 / 100.0;
+                ctx->drawTexture(texture, image, brightness, alpha, 0, texture->getCount());
+            });
         }
-
-        int alpha = (100.0 - transparency) * 255.0 / 100.0;
-        va.FinishTextures(GL_TRIANGLES, image->getID(), alpha, brightness);
     }
-
-    GetObjectScreenLocation().UpdateBoundingBox(width, height, depth);  // FIXME: Modify to only call this when position changes
+    GetObjectScreenLocation().UpdateBoundingBox(width, height, depth);
 
     if ((Selected || Highlighted) && allowSelected) {
-        GetObjectScreenLocation().DrawHandles(va3, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
+        GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
     }
+    return true;
 }

@@ -10,9 +10,9 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <vector>
-#include "../../graphics/opengl/Image.h"
-#include "../../graphics/opengl/DrawGLUtils.h"
+#include <map>
+#include "../../graphics/xlGraphicsAccumulators.h"
+#include <glm/glm.hpp>
 
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
@@ -35,10 +35,10 @@ class DmxImage
 
         int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
-        void Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccumulator& va,
-            glm::mat4& base_matrix, glm::mat4& motion_matrix,
-            int transparency, float brightness, bool only_image,
-            float pivot_offset_x, float pivot_offset_y, bool rotation, bool use_pivot);
+        void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *pg,
+                  glm::mat4 &motion_matrix,
+                  int transparency, float brightness, bool only_image,
+                  float pivot_offset_x, float pivot_offset_y, bool rotation, bool use_pivot);
 
         void SetOffsetZ(float value, BaseObject* base);
         bool ImageSelected() const { return image_selected; }
@@ -58,7 +58,7 @@ class DmxImage
         std::string _imageFile;
         int width;
         int height;
-        std::map<std::string, Image*> _images;
+        std::map<std::string, xlTexture*> _images;
         bool obj_exists;
         bool image_selected;
 

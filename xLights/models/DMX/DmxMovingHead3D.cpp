@@ -49,92 +49,6 @@ DmxMovingHead3D::~DmxMovingHead3D()
 const double PI = 3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
-class dmxPoint {
-
-public:
-    float x;
-    float y;
-
-    dmxPoint(float x_, float y_, int cx_, int cy_, float scale_, float angle_)
-        : x(x_), y(y_), cx(cx_), cy(cy_), scale(scale_)
-    {
-        float s = RenderBuffer::sin(ToRadians(angle_));
-        float c = RenderBuffer::cos(ToRadians(angle_));
-
-        // scale point
-        x *= scale;
-        y *= scale;
-
-        // rotate point
-        float xnew = x * c - y * s;
-        float ynew = x * s + y * c;
-
-        // translate point
-        x = xnew + cx;
-        y = ynew + cy;
-    }
-
-private:
-    float cx;
-    float cy;
-    float scale;
-};
-
-class dmxPoint3 {
-
-public:
-    float x;
-    float y;
-    float z;
-
-    dmxPoint3(float x_, float y_, float z_, int cx_, int cy_, float scale_, float pan_angle_, float tilt_angle_, float nod_angle_ = 0.0)
-        : x(x_), y(y_), z(z_)
-    {
-        float pan_angle = wxDegToRad(pan_angle_);
-        float tilt_angle = wxDegToRad(tilt_angle_);
-        float nod_angle = wxDegToRad(nod_angle_);
-
-        glm::vec4 position = glm::vec4(glm::vec3(x_, y_, z_), 1.0);
-
-        glm::mat4 rotationMatrixPan = glm::rotate(glm::mat4(1.0f), pan_angle, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 rotationMatrixTilt = glm::rotate(glm::mat4(1.0f), tilt_angle, glm::vec3(0.0f, 0.0f, 1.0f));
-        glm::mat4 rotationMatrixNod = glm::rotate(glm::mat4(1.0f), nod_angle, glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3((float)cx_, (float)cy_, 0.0f));
-        glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale_));
-        glm::vec4 model_position = translateMatrix * rotationMatrixPan * rotationMatrixTilt * rotationMatrixNod * scaleMatrix * position;
-        x = model_position.x;
-        y = model_position.y;
-    }
-};
-
-class dmxPoint3d {
-
-public:
-    float x;
-    float y;
-    float z;
-
-    dmxPoint3d(float x_, float y_, float z_, float cx_, float cy_, float cz_, float scale_, float pan_angle_, float tilt_angle_, float nod_angle_ = 0.0)
-        : x(x_), y(y_), z(z_)
-    {
-        float pan_angle = wxDegToRad(pan_angle_);
-        float tilt_angle = wxDegToRad(tilt_angle_);
-        float nod_angle = wxDegToRad(nod_angle_);
-
-        glm::vec4 position = glm::vec4(glm::vec3(x_, y_, z_), 1.0);
-
-        glm::mat4 rotationMatrixPan = glm::rotate(glm::mat4(1.0f), pan_angle, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 rotationMatrixTilt = glm::rotate(glm::mat4(1.0f), tilt_angle, glm::vec3(0.0f, 0.0f, 1.0f));
-        glm::mat4 rotationMatrixNod = glm::rotate(glm::mat4(1.0f), nod_angle, glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(cx_, cy_, cz_));
-        glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale_));
-        glm::vec4 model_position = translateMatrix * rotationMatrixPan * rotationMatrixTilt * rotationMatrixNod * scaleMatrix * position;
-        x = model_position.x;
-        y = model_position.y;
-        z = model_position.z;
-    }
-};
-
 void DmxMovingHead3D::DisableUnusedProperties(wxPropertyGridInterface* grid)
 {
     wxPGProperty* p = grid->GetPropertyByName("DmxStyle");
@@ -186,6 +100,9 @@ void DmxMovingHead3D::InitModel() {
         ModelXml->AddChild(new_node);
         head_node = new_node;
     }
+    float w = 1;
+    float h = 1;
+    float d = 1;
 
     if (base_mesh == nullptr) {
         if (base_node->HasAttribute("ObjFile")) {
@@ -195,6 +112,10 @@ void DmxMovingHead3D::InitModel() {
         base_node->AddAttribute("ObjFile", f);
         base_mesh = new Mesh(base_node, "BaseMesh");
         base_mesh->Init(this, true);
+        
+        w = std::max(w, screenLocation.GetRenderWi());
+        h = std::max(h, screenLocation.GetRenderHt());
+        d = std::max(d, screenLocation.GetRenderDp());
     }
     if (head_mesh == nullptr) {
         wxString f = obj_path + "MovingHead3D_Head.obj";
@@ -203,17 +124,19 @@ void DmxMovingHead3D::InitModel() {
         }
         head_node->AddAttribute("ObjFile", f);
         head_mesh = new Mesh(head_node, "HeadMesh");
-        head_mesh->Init(this, false);
+        head_mesh->Init(this, true);
+        w = std::max(w, screenLocation.GetRenderWi());
+        h = std::max(h, screenLocation.GetRenderHt());
+        d = std::max(d, screenLocation.GetRenderDp());
     }
+    screenLocation.SetRenderSize(w, h, d);
 }
 
-void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2, DrawGLUtils::xl3Accumulator& va3, const xlColor* c, float& sx, float& sy, float& sz, bool active, bool is_3d)
-{
+void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor* c) {
     static wxStopWatch sw;
     float pan_angle, pan_angle_raw, tilt_angle, beam_length_displayed; //, angle1, angle2
     //int x1, x2, y1, y2;
     size_t NodeCount = Nodes.size();
-    DrawGLUtils::xlAccumulator& va = is_3d ? va3 : va2;
 
     if (pan_channel > NodeCount ||
         tilt_channel > NodeCount ||
@@ -238,56 +161,25 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
         color = *c;
     }
 
-    float beam_scale = base_mesh->GetWidth() * ((BoxedScreenLocation)screenLocation).GetScaleX() / 1.5f;
-    xlColor color_angle;
-
+    GetColor(beam_color, transparency, blackTransparency, !active, c, Nodes);
+    
     int trans = color == xlBLACK ? blackTransparency : transparency;
-
-    if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
-
-        xlColor proxy = xlBLACK;
-        if (white_channel > 0)
-        {
-            Nodes[white_channel - 1]->GetColor(proxy);
-            beam_color = proxy;
-        }
-
-        if (proxy == xlBLACK)
-        {
-            Nodes[red_channel - 1]->GetColor(proxy);
-            beam_color.red = proxy.red;
-            Nodes[green_channel - 1]->GetColor(proxy);
-            beam_color.green = proxy.red;
-            Nodes[blue_channel - 1]->GetColor(proxy);
-            beam_color.blue = proxy.red;
-        }
-    }
-    else if (white_channel > 0)
-    {
-        xlColor proxy;
-        Nodes[white_channel - 1]->GetColor(proxy);
-        beam_color.red = proxy.red;
-        beam_color.green = proxy.red;
-        beam_color.blue = proxy.red;
-    }
-
     if (!active) {
         beam_color = xlWHITE;
-    }
-    else {
+    } else {
         marker_color = beam_color;
     }
-    ApplyTransparency(beam_color, trans, trans);
     ApplyTransparency(ccolor, trans, trans);
     ApplyTransparency(base_color, trans, trans);
     ApplyTransparency(base_color2, trans, trans);
     ApplyTransparency(pnt_color, trans, trans);
 
+    xlColor color_angle;
+
     // retrieve the model state
     float old_pan_angle = 0.0f;
     float old_tilt_angle = 0.0f;
     long old_ms = 0;
-    float rot_angle = (float)(((BoxedScreenLocation)screenLocation).GetRotation());
 
     std::vector<std::string> old_state = GetModelState();
     if (old_state.size() > 0 && active) {
@@ -325,8 +217,7 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
     if (tilt_channel > 0 && active) {
         Nodes[tilt_channel - 1]->GetColor(color_angle);
         tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
-    }
-    else {
+    } else {
         tilt_angle = tilt_orient;
     }
 
@@ -349,8 +240,7 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
     if (tilt_pos < 0) {
         if (pan_angle >= 180.0f) {
             pan_angle -= 180.0f;
-        }
-        else {
+        } else {
             pan_angle += 180.0f;
         }
     }
@@ -362,7 +252,13 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
     state.push_back(std::to_string(tilt_angle));
     SaveModelState(state);
 
-    beam_length_displayed = beam_scale * beam_length;
+    beam_length_displayed = beam_length;
+    
+    float scw = screenLocation.GetRenderWi() * screenLocation.GetScaleX();
+    float sch = screenLocation.GetRenderHt() * screenLocation.GetScaleY();
+    float scd = screenLocation.GetRenderDp() * screenLocation.GetScaleZ();
+    float sbl = std::max(scw, std::max(sch, scd));
+    beam_length_displayed *= sbl;
 
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
@@ -372,135 +268,31 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
         int shutter_value = proxy.red;
         if (shutter_value >= 0) {
             shutter_open = shutter_value >= shutter_threshold;
-        }
-        else {
+        } else {
             shutter_open = shutter_value <= std::abs(shutter_threshold);
         }
     }
-
-    xlColor beam_color_end(beam_color);
-    beam_color_end.alpha = 0;
-
+    
     while (pan_angle_raw > 360.0f) pan_angle_raw -= 360.0f;
     pan_angle_raw = 360.0f - pan_angle_raw;
-    bool facing_right = pan_angle_raw <= 90.0f || pan_angle_raw >= 270.0f;
 
-    float combined_angle = tilt_angle + rot_angle;
-    if (beam_color.red != 0 || beam_color.green != 0 || beam_color.blue != 0) {
-        if (shutter_open) {
-            dmxPoint3d p1(beam_length_displayed, -beam_width, -beam_width, sx, sy, sz, beam_scale, pan_angle_raw, combined_angle);
-            dmxPoint3d p2(beam_length_displayed, -beam_width, beam_width, sx, sy, sz, beam_scale, pan_angle_raw, combined_angle);
-            dmxPoint3d p3(beam_length_displayed, beam_width, -beam_width, sx, sy, sz, beam_scale, pan_angle_raw, combined_angle);
-            dmxPoint3d p4(beam_length_displayed, beam_width, beam_width, sx, sy, sz, beam_scale, pan_angle_raw, combined_angle);
-            dmxPoint3d p0(0, 0, 0, sx, sy, sz, beam_scale, pan_angle_raw, combined_angle);
 
-            if (facing_right) {
-                va.AddVertex(p2.x, p2.y, p2.z, beam_color_end);
-                va.AddVertex(p4.x, p4.y, p4.z, beam_color_end);
-                va.AddVertex(p0.x, p0.y, p0.z, beam_color);
-            }
-            else {
-                va.AddVertex(p1.x, p1.y, p1.z, beam_color_end);
-                va.AddVertex(p3.x, p3.y, p3.z, beam_color_end);
-                va.AddVertex(p0.x, p0.y, p0.z, beam_color);
-            }
+    auto vac = tprogram->getAccumulator();
+    int start = vac->getCount();
+    Draw3DBeam(vac, beam_color, beam_length_displayed, pan_angle_raw, tilt_angle, shutter_open);
+    int end = vac->getCount();
+    tprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->drawTriangles(vac, start, end - start);
+    });
+    if (!hide_body) {
+        glm::mat4 Identity = glm::mat4(1.0f);
+        glm::mat4 base_motion_matrix = glm::rotate(Identity, glm::radians(pan_angle_raw), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 head_motion_matrix = base_motion_matrix * glm::rotate(Identity, glm::radians(tilt_angle), glm::vec3(0.0f, 0.0f, 1.0f));
 
-            va.AddVertex(p1.x, p1.y, p1.z, beam_color_end);
-            va.AddVertex(p2.x, p2.y, p2.z, beam_color_end);
-            va.AddVertex(p0.x, p0.y, p0.z, beam_color);
-
-            va.AddVertex(p3.x, p3.y, p3.z, beam_color_end);
-            va.AddVertex(p4.x, p4.y, p4.z, beam_color_end);
-            va.AddVertex(p0.x, p0.y, p0.z, beam_color);
-
-            if (!facing_right) {
-                va.AddVertex(p2.x, p2.y, p2.z, beam_color_end);
-                va.AddVertex(p4.x, p4.y, p4.z, beam_color_end);
-                va.AddVertex(p0.x, p0.y, p0.z, beam_color);
-            }
-            else {
-                va.AddVertex(p1.x, p1.y, p1.z, beam_color_end);
-                va.AddVertex(p3.x, p3.y, p3.z, beam_color_end);
-                va.AddVertex(p0.x, p0.y, p0.z, beam_color);
-            }
-        }
+        // Draw Meshs
+        base_mesh->Draw(this, preview, sprogram, tprogram, Identity, base_motion_matrix, false);
+        head_mesh->Draw(this, preview, sprogram, tprogram, Identity, head_motion_matrix, false);
     }
-
-    if (!hide_body)
-    {
-        if (is_3d) {
-            glm::mat4 Identity = glm::mat4(1.0f);
-            glm::vec3 scaling = GetModelScreenLocation().GetScaleMatrix();
-            scaling.z = scaling.x;
-            glm::mat4 scalingMatrix = glm::scale(Identity, scaling);
-            glm::vec3 world = GetModelScreenLocation().GetWorldPosition();
-            glm::mat4 translateMatrix = glm::translate(Identity, world);
-            glm::quat rotateQuat = GetModelScreenLocation().GetRotationQuat();
-            glm::mat4 base_matrix = translateMatrix * glm::toMat4(rotateQuat) * scalingMatrix;
-            glm::mat4 base_motion_matrix = glm::rotate(Identity, glm::radians(pan_angle_raw), glm::vec3(0.0f, 1.0f, 0.0f));
-            glm::mat4 head_motion_matrix = base_motion_matrix * glm::rotate(Identity, glm::radians(tilt_angle), glm::vec3(0.0f, 0.0f, 1.0f));
-
-            // Draw Meshs
-            base_mesh->Draw(this, preview, va3, base_matrix, base_motion_matrix, false, 0, 0, 0, false, false);
-            head_mesh->Draw(this, preview, va3, base_matrix, head_motion_matrix, false, 0, 0, 0, true, false);
-        }
-        else
-        {
-            float w = base_mesh->GetWidth();
-            float h = base_mesh->GetHeight();
-
-            float x1 = -0.5f * w;
-            float x2 = -0.5f * w;
-            float x3 = 0.5f * w;
-            float x4 = 0.5f * w;
-            float y1 = -0.5f * h;
-            float y2 = 0.5f * h;
-            float y3 = 0.5f * h;
-            float y4 = -0.5f * h;
-            float z1 = 0.0f;
-            float z2 = 0.0f;
-            float z3 = 0.0f;
-            float z4 = 0.0f;
-
-            GetBaseObjectScreenLocation().TranslatePoint(x1, y1, z1);
-            GetBaseObjectScreenLocation().TranslatePoint(x2, y2, z2);
-            GetBaseObjectScreenLocation().TranslatePoint(x3, y3, z3);
-            GetBaseObjectScreenLocation().TranslatePoint(x4, y4, z4);
-
-            va.AddVertex(x1, y1, z1, *wxRED);
-            va.AddVertex(x2, y2, z2, *wxRED);
-            va.AddVertex(x2, y2, z2, *wxRED);
-            va.AddVertex(x3, y3, z3, *wxRED);
-            va.AddVertex(x3, y3, z3, *wxRED);
-            va.AddVertex(x4, y4, z4, *wxRED);
-            va.AddVertex(x4, y4, z4, *wxRED);
-            va.AddVertex(x1, y1, z1, *wxRED);
-            va.AddVertex(x1, y1, z1, *wxRED);
-            va.AddVertex(x3, y3, z3, *wxRED);
-            va.AddVertex(x2, y2, z2, *wxRED);
-            va.AddVertex(x4, y4, z4, *wxRED);
-            va.Finish(GL_LINES, GL_LINE_SMOOTH, 5.0f);
-        }
-    }
-
-    va.Finish(GL_TRIANGLES);
-}
-
-void DmxMovingHead3D::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
-{
-    if (!IsActive()) return;
-    
-    float sz = 0;
-    DrawGLUtils::xl3Accumulator dummy;
-    DrawModel(preview, va, dummy, c, sx, sy, sz, active, false);
-}
-
-void DmxMovingHead3D::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active)
-{
-    if (!IsActive()) return;
-
-    DrawGLUtils::xlAccumulator dummy;
-    DrawModel(preview, dummy, va, c, sx, sy, sz, active, true);
 }
 
 void DmxMovingHead3D::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {

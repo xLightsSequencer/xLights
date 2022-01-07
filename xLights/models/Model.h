@@ -23,6 +23,7 @@
 #include <wx/gdicmn.h>
 #include <wx/propgrid/props.h>
 
+
 class wxProgressDialog;
 class DimmingCurve;
 class wxXmlNode;
@@ -37,15 +38,15 @@ class OutputManager;
 class wxPGProperty;
 class ControllerCaps;
 class NodeBaseClass;
+class xlGraphicsProgram;
+class xlVertexIndexedColorAccumulator;
+class xlVertexColorAccumulator;
+class xlVertexAccumulator;
+class xlGraphicsContext;
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
 
 #define NO_CONTROLLER "No Controller"
 #define USE_START_CHANNEL "Use Start Channel"
-
-namespace DrawGLUtils {
-    class xlAccumulator;
-    class xl3Accumulator;
-}
 
 enum {
     //GRIDCHANGE_REFRESH_DISPLAY = 0x0001,
@@ -200,6 +201,8 @@ public:
     virtual ModelScreenLocation& GetModelScreenLocation() = 0;
 
     bool IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2);
+    
+    static void ApplyTransparency(xlColor& color, int transparency, int blackTransparency);
 protected:
     void AdjustStringProperties(wxPropertyGridInterface* grid, int newNum);
     std::string ComputeStringStartChannel(int x);
@@ -208,7 +211,6 @@ protected:
         int& bufferWi, int& bufferHi) const;
     void AdjustForTransform(const std::string& transform,
         int& bufferWi, int& bufferHi) const;
-    void ApplyTransparency(xlColor& color, int transparency, int blackTransparency) const;
     void DumpBuffer(std::vector<NodeBaseClassPtr>& newNodes, int bufferWi, int bufferHi) const;
 
     // size of the default buffer
@@ -368,9 +370,16 @@ public:
     bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);
     int GetNumberFromChannelString(const std::string& sc) const;
     int GetNumberFromChannelString(const std::string& sc, bool& valid, std::string& dependsonmodel) const;
-    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& solidVa, DrawGLUtils::xlAccumulator& transparentVa, float& minx, float& miny, float& maxx, float& maxy, bool is_3d = false, const xlColor* color = NULL, bool allowSelected = false, bool highlightFirst = false);
-    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& solidVa3, DrawGLUtils::xl3Accumulator& transparentVa3, DrawGLUtils::xl3Accumulator& lva, bool is_3d = false, const xlColor* color = NULL, bool allowSelected = false, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
+    
+    virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                      xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
+                                      const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
+                                      bool highlightFirst = false, int highlightpixel = 0,
+                                      float *boundingBox = nullptr);
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
+    
+    
+    
     virtual int NodeRenderOrder() { return 0; }
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip);
     std::vector<int> GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end);
@@ -592,6 +601,28 @@ protected:
     std::vector<int> layerSizes; // inside to outside
 
     unsigned int maxVertexCount;
+    
+    
+    class PreviewGraphicsCacheInfo {
+    public:
+        PreviewGraphicsCacheInfo() {
+        }
+        virtual ~PreviewGraphicsCacheInfo();
+        xlGraphicsProgram *program = nullptr;
+        xlVertexIndexedColorAccumulator *vica = nullptr;
+        xlVertexColorAccumulator *vca = nullptr;
+        xlVertexAccumulator *va = nullptr;
+        
+        int width = 0;
+        int height = 0;
+        int renderWi = 0;
+        int renderHi = 0;
+        bool isTransparent = false;
+        float boundingBox[6];
+    };
+    std::map<std::string, PreviewGraphicsCacheInfo*> uiCaches;
+    virtual void deleteUIObjects();
+    
 };
 
 template <class ScreenLocation>

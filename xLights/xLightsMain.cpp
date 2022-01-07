@@ -98,6 +98,7 @@
 #include "ExportSettings.h"
 #include "GPURenderUtils.h"
 #include "ViewsModelsPanel.h"
+#include "graphics/opengl/xlGLCanvas.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -1973,19 +1974,6 @@ void xLightsFrame::DoPostStartupCommands() {
         }
         if (_userEmail == "") CollectUserEmail();
         if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
-
-#ifdef __WXOSX__
-        wxConfigBase* config = wxConfigBase::Get();
-        if (!wxPlatformInfo::Get().CheckOSVersion(10, 14)) {
-            if (config->Read("MacOSUnsupportedVersionCheck", "") != xlights_version_string) {
-                config->Write("MacOSUnsupportedVersionCheck", xlights_version_string);
-                wxMessageBox("Your version of macOS will soon be unsupported.  It is strongly "
-                             "recommended to upgrade to at least macOS 10.14.",
-                             "MacOS Version",
-                             wxICON_WARNING| wxOK | wxCENTRE, this);
-            }
-        }
-#endif
     }
 }
 
@@ -3048,22 +3036,21 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 
     wxAuiPaneInfo& pi = m_mgr->GetPane("HousePreview");
     bool visible = pi.IsShown();
-    if (!visible)
-    {
+    if (!visible) {
         pi.Show();
         m_mgr->Update();
     }
 
     ModelPreview *housePreview = _housePreviewPanel->GetModelPreview();
-    if (housePreview == nullptr)
+    if (housePreview == nullptr) {
         return;
+    }
 
     const char wildcard[] = "MP4 files (*.mp4)|*.mp4";
     wxFileDialog *pExportDlg = new wxFileDialog(this, _("Export House Preview Video"), wxEmptyString, CurrentSeqXmlFile->GetName(), wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     int exportChoice = pExportDlg->ShowModal();
 
-    if (exportChoice != wxID_OK)
-    {
+    if (exportChoice != wxID_OK)  {
         delete pExportDlg;
         return;
     }
@@ -3117,14 +3104,12 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
         if (audioMgr != nullptr) {
             videoExporter.setGetAudioCallback(audioLambda);
         }
-
-        xlGLCanvas::CaptureHelper captureHelper(width, height, contentScaleFactor);
-
-        auto videoLambda = [this, housePreview, &captureHelper](uint8_t* buf, int bufSize, unsigned frameIndex) {
+        auto videoLambda = [=](AVFrame *f, uint8_t* buf, int bufSize, unsigned frameIndex) {
             const FrameData& frameData(this->_seqData[frameIndex]);
             const uint8_t* data = frameData[0];
+            housePreview->captureNextFrame(width*contentScaleFactor, height*contentScaleFactor);
             housePreview->Render(data, false);
-            return captureHelper.ToRGB(buf, bufSize, true);
+            return housePreview->getFrameForExport(width*contentScaleFactor, height*contentScaleFactor, f, buf, bufSize);
         };
         videoExporter.setGetVideoCallback(videoLambda);
 

@@ -12,13 +12,9 @@
 
 #include <vector>
 #include "ViewObject.h"
-#include "graphics/opengl/Image.h"
-#include "tiny_obj_loader.h"
 
 class ModelPreview;
-namespace DrawGLUtils {
-    class xl3DMesh;
-}
+class xlMesh;
 
 class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 {
@@ -36,16 +32,15 @@ class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 
         int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-        virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected = false) override;
+        virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
+    
         virtual std::list<std::string> GetFileReferences() override;
         virtual bool CleanupFileLocations(xLightsFrame* frame) override;
         virtual std::list<std::string> CheckModelSettings() override;
-        virtual void uncacheDisplayObjects();
-        virtual void IncrementChangeCount() override;
 
     protected:
         void checkAccessToFile(const std::string &url);
-        void loadObject();
+        void loadObject(xlGraphicsContext *ctx);
     private:
         std::string _objFile;
         float width;
@@ -55,14 +50,6 @@ class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
         bool obj_loaded;
         bool mesh_only;
 
-        tinyobj::attrib_t attrib;
-        std::vector<tinyobj::shape_t> shapes;
-        std::vector<tinyobj::material_t> materials;
-        std::map<std::string, Image*> textures;
-        std::vector<int> lines;
-        float bmin[3];
-        float bmax[3];
-
-        DrawGLUtils::xl3DMesh *mesh3d;
+        xlMesh *mesh;
 };
 

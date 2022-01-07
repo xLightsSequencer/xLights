@@ -585,31 +585,123 @@ float DmxSkull::GetServoPos(Servo* _servo, bool active) {
     return servo_pos;
 }
 
-void DmxSkull::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active) {
+
+
+void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                      xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is_3d,
+                                      const xlColor* c, bool allowSelected, bool wiring,
+                                      bool highlightFirst, int highlightpixel,
+                                      float *boundingBox) {
     if (!IsActive()) return;
 
-    DrawGLUtils::xl3Accumulator dummy;
-    DrawModel(preview, va, dummy, c, sx, sy, active, false);
+    screenLocation.PrepareToDraw(is_3d, allowSelected);
+    screenLocation.UpdateBoundingBox(1, 1, 1);
+    
+    sprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PushMatrix();
+        if (!is_3d) {
+            //not 3d, flatten to the 0 plane
+            ctx->Scale(1.0, 1.0, 0.001);
+        }
+        GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+        ctx->Scale(0.7, 0.7, 0.7);
+        ctx->Translate(0, -0.7, is_3d ? 0 : 0.5);
+    });
+    tprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PushMatrix();
+        if (!is_3d) {
+            //not 3d, flatten to the 0 plane
+            ctx->Scale(1.0, 1.0, 0.001);
+        }
+        GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+        ctx->Scale(0.7, 0.7, 0.7);
+        ctx->Translate(0, -0.7, is_3d ? 0 : 0.5);
+    });
+    DrawModel(preview, ctx, sprogram, tprogram, is_3d, !allowSelected, c);
+    sprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PopMatrix();
+    });
+    tprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PopMatrix();
+    });
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
+        if (is_3d) {
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+        } else {
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+        }
+    }
+}
+void DmxSkull::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
+    if (!IsActive() && preview->IsNoCurrentModel()) { return; }
+    
+    bool mustEnd = false;
+    xlGraphicsContext *ctx = preview->getCurrentGraphicsContext();
+    if (ctx == nullptr) {
+        bool success = preview->StartDrawing(pointSize);
+        if (success) {
+            ctx = preview->getCurrentGraphicsContext();
+            mustEnd = true;
+        }
+    }
+    if (ctx) {
+        int w, h;
+        preview->GetSize(&w, &h);
+        float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
+        float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
+        
+        float aspect = screenLocation.GetScaleX();
+        aspect /= screenLocation.GetScaleY();
+        if (scaleY < scaleX) {
+            scaleX = scaleY * aspect;
+        } else {
+            scaleY = scaleX / aspect;
+        }
+        float ml, mb;
+        GetMinScreenXY(ml, mb);
+        ml += GetModelScreenLocation().RenderWi / 2;
+        mb += GetModelScreenLocation().RenderHt / 2;
+        
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PushMatrix();
+            ctx->Scale(1.0, 1.0, 0.001);
+            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Scale(scaleX, scaleY, 1.0);
+            ctx->Scale(0.5, 0.5, 0.5);
+            ctx->Translate(0, -0.7, 0.5);
+        });
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PushMatrix();
+            ctx->Scale(1.0, 1.0, 0.001);
+            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Scale(scaleX, scaleY, 1.0);
+            ctx->Scale(0.5, 0.5, 0.5);
+            ctx->Translate(0, -0.7, 0.5);
+        });
+        DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), false, true, nullptr);
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PopMatrix();
+        });
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PopMatrix();
+        });
+    }
+    if (mustEnd) {
+        preview->EndDrawing();
+    }
 }
 
-void DmxSkull::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active) {
-    if (!IsActive()) return;
-
-    DrawGLUtils::xlAccumulator dummy;
-    DrawModel(preview, dummy, va, c, sx, sy, active, true);
-}
-
-void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2, DrawGLUtils::xl3Accumulator& va3, const xlColor *c, float &sx, float &sy, bool active, bool is_3d)
-{
+void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c) {
+    
     size_t NodeCount=Nodes.size();
-    DrawGLUtils::xlAccumulator& va = is_3d ? va3 : va2;
 
     // crash protection
     if( eye_brightness_channel > NodeCount ||
         red_channel > NodeCount ||
         green_channel > NodeCount ||
-        blue_channel > NodeCount )
-    {
+        blue_channel > NodeCount ) {
         return;
     }
 
@@ -631,36 +723,14 @@ void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2,
         color = *c;
     }
 
-    int dmx_size = ((BoxedScreenLocation)screenLocation).GetScaleX();
-    float radius = (float)(dmx_size) / 2.0f;
     xlColor color_angle;
-
+    GetColor(eye_color, transparency, blackTransparency, !active, c, Nodes);
+    
     int trans = color == xlBLACK ? blackTransparency : transparency;
-    if (has_color) {
-        if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
-            xlColor proxy;
-            Nodes[red_channel - 1]->GetColor(proxy);
-            eye_color.red = proxy.red;
-            Nodes[green_channel - 1]->GetColor(proxy);
-            eye_color.green = proxy.red;
-            Nodes[blue_channel - 1]->GetColor(proxy);
-            eye_color.blue = proxy.red;
-        }
-    }
-    else {
-        eye_color = xlWHITE;
-    }
-    if( (eye_color.red == 0 && eye_color.green == 0 && eye_color.blue == 0) || !active ) {
-        eye_color = xlWHITE;
-    } else {
-        ApplyTransparency(eye_color, trans, trans);
-    }
     ApplyTransparency(ccolor, trans, trans);
     ApplyTransparency(base_color, trans, trans);
     ApplyTransparency(base_color2, trans, trans);
 
-    float sf = 12.0f;
-    float scale = radius / sf;
 
     // Get servo positions
     float pan_pos, tilt_pos, nod_pos, jaw_pos, eye_x_pos, eye_y_pos;
@@ -671,271 +741,51 @@ void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2,
     eye_x_pos = GetServoPos(eye_lr_servo, active && has_eye_lr) + (active ? eye_lr_orient : 0.0f);
     eye_y_pos = GetServoPos(eye_ud_servo, active && has_eye_ud) + (active ? eye_ud_orient : 0.0f);
 
-    if (is_3d) {
-        glm::mat4 Identity = glm::mat4(1.0f);
-        glm::vec3 scaling = GetModelScreenLocation().GetScaleMatrix();
-        glm::mat4 scalingMatrix = glm::scale(Identity, scaling);
-        glm::vec3 world = GetModelScreenLocation().GetWorldPosition();
-        glm::mat4 translateMatrix = glm::translate(Identity, world);
-        glm::quat rotateQuat = GetModelScreenLocation().GetRotationQuat();
-        glm::mat4 base_matrix = translateMatrix * glm::toMat4(rotateQuat) * scalingMatrix;
-        glm::mat4 jaw_matrix = Identity;
-        glm::mat4 pan_matrix = Identity;
-        glm::mat4 tilt_matrix = Identity;
-        glm::mat4 nod_matrix = Identity;
-        glm::mat4 eye_x_matrix = Identity;
-        glm::mat4 eye_y_matrix = Identity;
+    glm::mat4 Identity = glm::mat4(1.0f);
+    glm::mat4 jaw_matrix = Identity;
+    glm::mat4 pan_matrix = Identity;
+    glm::mat4 tilt_matrix = Identity;
+    glm::mat4 nod_matrix = Identity;
+    glm::mat4 eye_x_matrix = Identity;
+    glm::mat4 eye_y_matrix = Identity;
 
-        // Fill motion matrices
-        if (has_jaw) jaw_servo->FillMotionMatrix(jaw_pos, jaw_matrix);
-        if (has_pan) pan_servo->FillMotionMatrix(pan_pos, pan_matrix);
-        if (has_tilt) tilt_servo->FillMotionMatrix(tilt_pos, tilt_matrix);
-        if (has_nod) nod_servo->FillMotionMatrix(nod_pos, nod_matrix);
-        if (has_eye_lr) eye_lr_servo->FillMotionMatrix(eye_x_pos, eye_x_matrix);
-        if (has_eye_ud) eye_ud_servo->FillMotionMatrix(eye_y_pos, eye_y_matrix);
+    // Fill motion matrices
+    if (has_jaw) jaw_servo->FillMotionMatrix(jaw_pos, jaw_matrix);
+    if (has_pan) pan_servo->FillMotionMatrix(pan_pos, pan_matrix);
+    if (has_tilt) tilt_servo->FillMotionMatrix(tilt_pos, tilt_matrix);
+    if (has_nod) nod_servo->FillMotionMatrix(nod_pos, nod_matrix);
+    if (has_eye_lr) eye_lr_servo->FillMotionMatrix(eye_x_pos, eye_x_matrix);
+    if (has_eye_ud) eye_ud_servo->FillMotionMatrix(eye_y_pos, eye_y_matrix);
 
-        // Adjust scaling to render size of 1
-        float jaw_pivot_y = 3.3f;;
-        float jaw_pivot_z = 0.4f;
-        if (head_mesh->GetExists()) {
-            float w = head_mesh->GetWidth();
-            float scale = 1.0f / w;
-            head_mesh->SetRenderScaling(scale);
-            jaw_mesh->SetRenderScaling(scale);
-            eye_l_mesh->SetRenderScaling(scale);
-            eye_r_mesh->SetRenderScaling(scale);
-            GetBaseObjectScreenLocation().UpdateBoundingBox(head_mesh->GetWidth(), head_mesh->GetHeight(), head_mesh->GetDepth());  // FIXME: Modify to only call this when position changes
-            eye_l_mesh->SetOffsetX(-1.0f * scale);
-            eye_l_mesh->SetOffsetY(4.5f * scale);
-            eye_l_mesh->SetOffsetZ(3.2f * scale);
-            eye_r_mesh->SetOffsetX(1.0f * scale);
-            eye_r_mesh->SetOffsetY(4.5f * scale);
-            eye_r_mesh->SetOffsetZ(3.2f * scale);
-            jaw_pivot_y *= scale;
-            jaw_pivot_z *= scale;
-        }
-
-        // Draw Meshs
-        glm::mat4 head_matrix = pan_matrix * tilt_matrix * nod_matrix;
-        glm::mat4 head_base = base_matrix * head_matrix;
-        eye_x_matrix = eye_x_matrix * eye_y_matrix;
-        eye_l_mesh->SetColor(eye_color, "EyeColor");
-        eye_r_mesh->SetColor(eye_color, "EyeColor");
-        head_mesh->Draw(this, preview, va3, base_matrix, head_matrix, false, 0, 0, 0, false, false);
-        jaw_mesh->Draw(this, preview, va3, head_base, jaw_matrix, false, 0, jaw_pivot_y, jaw_pivot_z, true, false);
-        eye_l_mesh->Draw(this, preview, va3, head_base, eye_x_matrix, false, 0, 0, 0, false, false);
-        eye_r_mesh->Draw(this, preview, va3, head_base, eye_x_matrix, false, 0, 0, 0, false, false);
+    // Adjust scaling to render size of 1
+    float jaw_pivot_y = 3.3f;;
+    float jaw_pivot_z = 0.4f;
+    if (head_mesh->GetExists(this, ctx)) {
+        float w = head_mesh->GetWidth();
+        float scale = 1.0f / w;
+        head_mesh->SetRenderScaling(scale);
+        jaw_mesh->SetRenderScaling(scale);
+        eye_l_mesh->SetRenderScaling(scale);
+        eye_r_mesh->SetRenderScaling(scale);
+        eye_l_mesh->SetOffsetX(-1.0f * scale);
+        eye_l_mesh->SetOffsetY(4.5f * scale);
+        eye_l_mesh->SetOffsetZ(3.2f * scale);
+        eye_r_mesh->SetOffsetX(1.0f * scale);
+        eye_r_mesh->SetOffsetY(4.5f * scale);
+        eye_r_mesh->SetOffsetZ(3.2f * scale);
+        jaw_pivot_y *= scale;
+        jaw_pivot_z *= scale;
     }
-    else {
-        float eye_range_of_motion = 3.8f;
-        float eye_lr_rom = has_eye_lr ? -eye_lr_servo->GetRangeOfMotion() : -70.0f;
-        float eye_ud_rom = has_eye_ud ? -eye_ud_servo->GetRangeOfMotion() : -70.0f;
 
-        if (!active) {
-            // static positions in layout
-            jaw_pos = -0.5f;
-            pan_pos = 0.5f;
-            tilt_pos = 0.5f;
-            nod_pos = 0.5f;
-            eye_x_pos = 0.5f * eye_range_of_motion - eye_range_of_motion / 2.0;
-            eye_y_pos = 0.5f * eye_range_of_motion - eye_range_of_motion / 2.0;
-        }
-        else {
-            jaw_pos = -jaw_pos / 5.0f - 0.5f;
-            eye_x_pos = (eye_x_pos - eye_lr_orient) / eye_lr_rom * eye_range_of_motion - eye_range_of_motion / 2.0;
-            eye_y_pos = (eye_y_pos - eye_ud_orient) / eye_ud_rom * eye_range_of_motion - eye_range_of_motion / 2.0;
-        }
-
-        // Create Head
-        dmxPoint3 p1(-7.5f, 13.7f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p2(7.5f, 13.7f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p3(13.2f, 6.0f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p8(-13.2f, 6.0f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p4(9, -11.4f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p7(-9, -11.4f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p5(6.3f, -16, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p6(-6.3f, -16, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-
-        dmxPoint3 p9(0, 3.5f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p10(-2.5f, -1.7f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p11(2.5f, -1.7f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-
-        dmxPoint3 p14(0, -6.5f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p12(-6, -6.5f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p16(6, -6.5f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p13(-3, -11.4f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p15(3, -11.4f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-
-        // Create Back of Head
-        dmxPoint3 p1b(-7.5f, 13.7f, -3, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p2b(7.5f, 13.7f, -3, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p3b(13.2f, 6.0f, -3, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p8b(-13.2f, 6.0f, -3, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p4b(9, -11.4f, -3, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p7b(-9, -11.4f, -3, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p5b(6.3f, -16, -3, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p6b(-6.3f, -16, -3, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-
-        // Create Lower Mouth
-        dmxPoint3 p4m(9, -11.4f + jaw_pos, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p7m(-9, -11.4f + jaw_pos, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p5m(6.3f, -16 + jaw_pos, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p6m(-6.3f, -16 + jaw_pos, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p14m(0, -6.5f + jaw_pos, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p12m(-6, -6.5f + jaw_pos, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p16m(6, -6.5f + jaw_pos, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p13m(-3, -11.4f + jaw_pos, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 p15m(3, -11.4f + jaw_pos, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-
-        // Create Eyes
-        dmxPoint3 left_eye_socket(-5, 7.5f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 right_eye_socket(5, 7.5f, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 left_eye(-5 + eye_x_pos, 7.5f + eye_y_pos, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-        dmxPoint3 right_eye(5 + eye_x_pos, 7.5f + eye_y_pos, 0.0f, sx, sy, scale, pan_pos, tilt_pos, nod_pos);
-
-        // Draw Back of Head
-        va.AddVertex(p1.x, p1.y, base_color2);
-        va.AddVertex(p1b.x, p1b.y, base_color2);
-        va.AddVertex(p2.x, p2.y, base_color2);
-        va.AddVertex(p2b.x, p2b.y, base_color2);
-        va.AddVertex(p1b.x, p1b.y, base_color2);
-        va.AddVertex(p2.x, p2.y, base_color2);
-
-        va.AddVertex(p2.x, p2.y, base_color);
-        va.AddVertex(p2b.x, p2b.y, base_color);
-        va.AddVertex(p3.x, p3.y, base_color);
-        va.AddVertex(p3b.x, p3b.y, base_color);
-        va.AddVertex(p2b.x, p2b.y, base_color);
-        va.AddVertex(p3.x, p3.y, base_color);
-
-        va.AddVertex(p3.x, p3.y, base_color2);
-        va.AddVertex(p3b.x, p3b.y, base_color2);
-        va.AddVertex(p4.x, p4.y, base_color2);
-        va.AddVertex(p4b.x, p4b.y, base_color2);
-        va.AddVertex(p3b.x, p3b.y, base_color2);
-        va.AddVertex(p4.x, p4.y, base_color2);
-
-        va.AddVertex(p4.x, p4.y, base_color);
-        va.AddVertex(p4b.x, p4b.y, base_color);
-        va.AddVertex(p5.x, p5.y, base_color);
-        va.AddVertex(p5b.x, p5b.y, base_color);
-        va.AddVertex(p4b.x, p4b.y, base_color);
-        va.AddVertex(p5.x, p5.y, base_color);
-
-        va.AddVertex(p5.x, p5.y, base_color2);
-        va.AddVertex(p5b.x, p5b.y, base_color2);
-        va.AddVertex(p6.x, p6.y, base_color2);
-        va.AddVertex(p6b.x, p6b.y, base_color2);
-        va.AddVertex(p5b.x, p5b.y, base_color2);
-        va.AddVertex(p6.x, p6.y, base_color2);
-
-        va.AddVertex(p6.x, p6.y, base_color);
-        va.AddVertex(p6b.x, p6b.y, base_color);
-        va.AddVertex(p7.x, p7.y, base_color);
-        va.AddVertex(p7b.x, p7b.y, base_color);
-        va.AddVertex(p6b.x, p6b.y, base_color);
-        va.AddVertex(p7.x, p7.y, base_color);
-
-        va.AddVertex(p7.x, p7.y, base_color2);
-        va.AddVertex(p7b.x, p7b.y, base_color2);
-        va.AddVertex(p8.x, p8.y, base_color2);
-        va.AddVertex(p8b.x, p8b.y, base_color2);
-        va.AddVertex(p7b.x, p7b.y, base_color2);
-        va.AddVertex(p8.x, p8.y, base_color2);
-
-        va.AddVertex(p8.x, p8.y, base_color);
-        va.AddVertex(p8b.x, p8b.y, base_color);
-        va.AddVertex(p1.x, p1.y, base_color);
-        va.AddVertex(p1b.x, p1b.y, base_color);
-        va.AddVertex(p8b.x, p8b.y, base_color);
-        va.AddVertex(p1.x, p1.y, base_color);
-
-        // Draw Front of Head
-        va.AddVertex(p1.x, p1.y, ccolor);
-        va.AddVertex(p2.x, p2.y, ccolor);
-        va.AddVertex(p9.x, p9.y, ccolor);
-
-        va.AddVertex(p2.x, p2.y, ccolor);
-        va.AddVertex(p9.x, p9.y, ccolor);
-        va.AddVertex(p11.x, p11.y, ccolor);
-
-        va.AddVertex(p1.x, p1.y, ccolor);
-        va.AddVertex(p9.x, p9.y, ccolor);
-        va.AddVertex(p10.x, p10.y, ccolor);
-
-        va.AddVertex(p1.x, p1.y, ccolor);
-        va.AddVertex(p8.x, p8.y, ccolor);
-        va.AddVertex(p10.x, p10.y, ccolor);
-
-        va.AddVertex(p2.x, p2.y, ccolor);
-        va.AddVertex(p3.x, p3.y, ccolor);
-        va.AddVertex(p11.x, p11.y, ccolor);
-
-        va.AddVertex(p8.x, p8.y, ccolor);
-        va.AddVertex(p10.x, p10.y, ccolor);
-        va.AddVertex(p12.x, p12.y, ccolor);
-
-        va.AddVertex(p3.x, p3.y, ccolor);
-        va.AddVertex(p11.x, p11.y, ccolor);
-        va.AddVertex(p16.x, p16.y, ccolor);
-
-        va.AddVertex(p7.x, p7.y, ccolor);
-        va.AddVertex(p8.x, p8.y, ccolor);
-        va.AddVertex(p12.x, p12.y, ccolor);
-
-        va.AddVertex(p3.x, p3.y, ccolor);
-        va.AddVertex(p4.x, p4.y, ccolor);
-        va.AddVertex(p16.x, p16.y, ccolor);
-
-        va.AddVertex(p10.x, p10.y, ccolor);
-        va.AddVertex(p12.x, p12.y, ccolor);
-        va.AddVertex(p14.x, p14.y, ccolor);
-
-        va.AddVertex(p10.x, p10.y, ccolor);
-        va.AddVertex(p11.x, p11.y, ccolor);
-        va.AddVertex(p14.x, p14.y, ccolor);
-
-        va.AddVertex(p11.x, p11.y, ccolor);
-        va.AddVertex(p14.x, p14.y, ccolor);
-        va.AddVertex(p16.x, p16.y, ccolor);
-
-        va.AddVertex(p12.x, p12.y, ccolor);
-        va.AddVertex(p13.x, p13.y, ccolor);
-        va.AddVertex(p14.x, p14.y, ccolor);
-
-        va.AddVertex(p14.x, p14.y, ccolor);
-        va.AddVertex(p15.x, p15.y, ccolor);
-        va.AddVertex(p16.x, p16.y, ccolor);
-
-        // Draw Lower Mouth
-        va.AddVertex(p4m.x, p4m.y, ccolor);
-        va.AddVertex(p6m.x, p6m.y, ccolor);
-        va.AddVertex(p7m.x, p7m.y, ccolor);
-
-        va.AddVertex(p4m.x, p4m.y, ccolor);
-        va.AddVertex(p5m.x, p5m.y, ccolor);
-        va.AddVertex(p6m.x, p6m.y, ccolor);
-
-        va.AddVertex(p7m.x, p7m.y, ccolor);
-        va.AddVertex(p12m.x, p12m.y, ccolor);
-        va.AddVertex(p13m.x, p13m.y, ccolor);
-
-        va.AddVertex(p13m.x, p13m.y, ccolor);
-        va.AddVertex(p14m.x, p14m.y, ccolor);
-        va.AddVertex(p15m.x, p15m.y, ccolor);
-
-        va.AddVertex(p4m.x, p4m.y, ccolor);
-        va.AddVertex(p15m.x, p15m.y, ccolor);
-        va.AddVertex(p16m.x, p16m.y, ccolor);
-
-        // Draw Eyes
-        va.AddCircleAsTriangles(left_eye_socket.x, left_eye_socket.y, scale * sf * 0.25, black, black);
-        va.AddCircleAsTriangles(right_eye_socket.x, right_eye_socket.y, scale * sf * 0.25, black, black);
-        va.AddCircleAsTriangles(left_eye.x, left_eye.y, scale * sf * 0.10, eye_color, eye_color);
-        va.AddCircleAsTriangles(right_eye.x, right_eye.y, scale * sf * 0.10, eye_color, eye_color);
-
-    }
-    va.Finish(GL_TRIANGLES);
+    // Draw Meshs
+    glm::mat4 head_matrix = pan_matrix * tilt_matrix * nod_matrix;
+    eye_x_matrix = eye_x_matrix * eye_y_matrix;
+    eye_l_mesh->SetColor(eye_color, "EyeColor");
+    eye_r_mesh->SetColor(eye_color, "EyeColor");
+    head_mesh->Draw(this, preview, sprogram, tprogram, Identity, head_matrix, false, 0, 0, 0, false, false);
+    jaw_mesh->Draw(this, preview,  sprogram, tprogram, head_matrix, jaw_matrix, false, 0, jaw_pivot_y, jaw_pivot_z, true, false);
+    eye_l_mesh->Draw(this, preview, sprogram, tprogram, head_matrix, eye_x_matrix, false, 0, 0, 0, false, false);
+    eye_r_mesh->Draw(this, preview, sprogram, tprogram, head_matrix, eye_x_matrix, false, 0, 0, 0, false, false);
 }
 
 void DmxSkull::ExportXlightsModel()

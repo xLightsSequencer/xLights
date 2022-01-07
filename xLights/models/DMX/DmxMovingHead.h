@@ -26,20 +26,27 @@ class DmxMovingHead : public DmxModel, public DmxColorAbility, public DmxPanTilt
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
+        virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                      xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
+                                      const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
+                                      bool highlightFirst = false, int highlightpixel = 0,
+                                      float *boundingBox = nullptr) override;
+        virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
+        virtual void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
+
     protected:
+        void Draw3DDMXBaseLeft(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle);
+        void Draw3DDMXBaseRight(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle);
+        void Draw3DDMXHead(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle, float combinedAngle);
+        void Draw3DBeam(xlVertexColorAccumulator *vac, xlColor beam_color, float beam_length_displayed, float pan_angle_raw, float tilt_angle, bool shutter_open);
+
         virtual void InitModel() override;
 
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
-        void DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2, DrawGLUtils::xl3Accumulator& va3, const xlColor* c, float& sx, float& sy, float& sz, bool active, bool is_3d);
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active) override;
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active) override;
         virtual float GetDefaultBeamWidth() const { return 30; }
 
-        void Draw3DDMXBaseLeft(DrawGLUtils::xlAccumulator& va, const xlColor& c, float& sx, float& sy, float& scale, float& pan_angle, float& rot_angle);
-        void Draw3DDMXBaseRight(DrawGLUtils::xlAccumulator& va, const xlColor& c, float& sx, float& sy, float& scale, float& pan_angle, float& rot_angle);
-        void Draw3DDMXHead(DrawGLUtils::xlAccumulator& va, const xlColor& c, float& sx, float& sy, float& scale, float& pan_angle, float& tilt_angle);
 
         bool hide_body = false;
         bool style_changed;

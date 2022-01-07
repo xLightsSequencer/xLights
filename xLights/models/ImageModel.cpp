@@ -22,6 +22,10 @@
 
 #include <log4cpp/Category.hh>
 
+#include "../graphics/xlGraphicsAccumulators.h"
+#include "../graphics/xlGraphicsContext.h"
+
+
 ImageModel::ImageModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
     _whiteAsAlpha = false;
@@ -41,8 +45,7 @@ ImageModel::ImageModel(const ModelManager &manager) : ModelWithScreenLocation(ma
 ImageModel::~ImageModel()
 {
     //dtor
-    for (auto it = _images.begin(); it != _images.end(); ++it)
-    {
+    for (auto it = _images.begin(); it != _images.end(); ++it) {
         delete it->second;
     }
 }
@@ -79,7 +82,6 @@ void ImageModel::InitRenderBufferNodes(const std::string &type, const std::strin
 }
 
 void ImageModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-
 	wxPGProperty *p = grid->Append(new wxImageFileProperty("Image",
                                              "Image",
                                              _imageFile));
@@ -160,6 +162,7 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         ObtainAccessToURL(_imageFile);
         ModelXml->DeleteAttribute("Image");
         ModelXml->AddAttribute("Image", _imageFile);
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::Image");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::Image");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::Image");
@@ -170,6 +173,7 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
             delete it->second;
         }
         _images.clear();
+        IncrementChangeCount();
         ModelXml->DeleteAttribute("WhiteAsAlpha");
         ModelXml->AddAttribute("WhiteAsAlpha", _whiteAsAlpha ? "True" : "False");
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
@@ -222,110 +226,220 @@ void ImageModel::InitModel()
 
 void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 {
-    bool success = preview->StartDrawing(pointSize);
-
-    if (success) {
-        DrawGLUtils::xlAccumulator va(maxVertexCount);
-        DrawGLUtils::xlAccumulator tva(maxVertexCount);
-
+    bool mustEnd = false;
+    xlGraphicsContext *ctx = preview->getCurrentGraphicsContext();
+    if (ctx == nullptr) {
+        bool success = preview->StartDrawing(pointSize);
+        if (success) {
+            ctx = preview->getCurrentGraphicsContext();
+            mustEnd = true;
+        }
+    }
+    if (ctx) {
         GetModelScreenLocation().PrepareToDraw(false, false);
 
         int w, h;
         preview->GetSize(&w, &h);
 
-        float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
-        float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
-        float scale = scaleY < scaleX ? scaleY : scaleX;
-        scale = 1;
+        xlTexture *texture = _images[preview->GetName().ToStdString()];
+        if (texture == nullptr && wxFileExists(_imageFile)) {
+            wxImage img(_imageFile);
+            if (img.IsOk()) {
+                bool mAlpha = img.HasAlpha();
+                if (!mAlpha && _whiteAsAlpha) {
+                    img.InitAlpha();
+                    for (int x = 0; x < img.GetWidth(); x++) {
+                        for (int y = 0; y < img.GetHeight(); y++) {
+                            int r = img.GetRed(x,y);
+                            if (r == img.GetGreen(x, y) && r == img.GetBlue(x, y)) {
+                                img.SetAlpha(x, y, r);
+                            }
+                        }
+                    }
+                }
+                width = img.GetWidth();
+                height = img.GetHeight();
+                texture = ctx->createTexture(img);
+                texture->SetName(GetName());
+                texture->Finalize();
+            }
+        }
+        if (texture) {
+            float scaleX = float(w) / float(width);
+            float scaleY = float(h) / float(height);
+            
+            float scale = scaleY < scaleX ? scaleY : scaleX;
+            
+            float offX = (float(w) - float(width) * scale) / 2.0f;
+            float offY = (float(h) - float(height) * scale) / 2.0f;
 
-        float x1 = 0;
-        float x2 = 0;
-        float x3 = w * scale;
-        float x4 = w * scale;
-        float y1 = 0;
-        float y2 = h * scale;
-        float y3 = h * scale;
-        float y4 = 0;
+            float x1 = offX;
+            float x2 = offX;
+            float x3 = offX + float(width) * scale;
+            float x4 = offX + float(width) * scale;
+            float y1 = offY;
+            float y2 = offY + float(height) * scale;
+            float y3 = offY + float(height) * scale;
+            float y4 = offY;
+            
+            int brightness = (100.0 - transparency) * 255.0 / 100.0;
+            brightness = (float)_offBrightness + (float)(255 - _offBrightness) * (float)brightness / 255.0 * (float)GetChannelValue(0) / 255.0;
+            
+            xlVertexTextureAccumulator *va = ctx->createVertexTextureAccumulator();
+            
+            va->PreAlloc(6);
+            va->AddVertex(x1, y1, 0, 0.0, 1.0);
+            va->AddVertex(x4, y4, 0, 1.0, 1.0);
+            va->AddVertex(x2, y2, 0, 0.0, 0.0);
+            va->AddVertex(x2, y2, 0, 0.0, 0.0);
+            va->AddVertex(x4, y4, 0, 1.0, 1.0);
+            va->AddVertex(x3, y3, 0, 1.0, 0.0);
 
-		DrawModelOnWindow(preview, va, tva, nullptr, x1, y1, x2, y2, x3, y3, x4, y4, true);
+            preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+                ctx->drawTexture(va, texture, brightness, 255, 0, va->getCount());
+                delete va;
+            });
+        } else {
+            
+            xlGraphicsProgram *program = preview->getCurrentSolidProgram();
+            xlVertexColorAccumulator *vac= program->getAccumulator();
+            int start = vac->getCount();
+            
+            float offX = float(w) * 0.95;
+            float offY = float(h) * 0.95;
 
-        DrawGLUtils::Draw(va);
-        DrawGLUtils::Draw(tva);
-        maxVertexCount = std::max(va.getCount(), tva.getCount());
+            vac->AddVertex(offX, offY, 0, xlRED);
+            vac->AddVertex(w - offX, offY, 0, xlRED);
+
+            vac->AddVertex(w - offX, offY, 0, xlRED);
+            vac->AddVertex(w - offX, h - offY, 0, xlRED);
+
+            vac->AddVertex(w - offX, h - offY, 0, xlRED);
+            vac->AddVertex(offX, h - offY, 0, xlRED);
+
+            vac->AddVertex(offX, h - offY, 0, xlRED);
+            vac->AddVertex(offX, offY, 0, xlRED);
+            
+            vac->AddVertex(offX, offY, 0, xlRED);
+            vac->AddVertex(w - offX, h - offY, 0, xlRED);
+
+            vac->AddVertex(w - offX, offY, 0, xlRED);
+            vac->AddVertex(offX, h - offY, 0, xlRED);
+
+            int count = vac->getCount();
+            program->addStep([=](xlGraphicsContext *ctx) {
+                ctx->drawLines(vac, start, count - start);
+            });
+        }
+
+    }
+    if (mustEnd) {
         preview->EndDrawing();
     }
 }
 
-// display model using colors
-void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float& maxy, bool is_3d, const xlColor *c, bool allowSelected, bool highlightFirst)
-{
+
+void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                      xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d,
+                                      const xlColor* color, bool allowSelected, bool wiring,
+                                      bool highlightFirst, int highlightpixel,
+                                      float *boundingBox) {
     GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
 
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
-
-    float x1 = -0.5f;
-    float x2 = -0.5f;
-    float x3 = 0.5f;
-    float x4 = 0.5f;
-    float y1 = -0.5f;
-    float y2 = 0.5f;
-    float y3 = 0.5f;
-    float y4 = -0.5f;
-    float z1 = 0.0f;
-    float z2 = 0.0f;
-    float z3 = 0.0f;
-    float z4 = 0.0f;
-
-    GetModelScreenLocation().TranslatePoint(x1, y1, z1);
-    GetModelScreenLocation().TranslatePoint(x2, y2, z2);
-    GetModelScreenLocation().TranslatePoint(x3, y3, z3);
-    GetModelScreenLocation().TranslatePoint(x4, y4, z4);
-
-    GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
-    DrawModelOnWindow(preview, va, tva, c, x1, y1, x2, y2, x3, y3, x4, y4, !allowSelected);
-
-    if (x1 < minx) minx = x1;
-    if (y4 < miny) miny = y4;
-    if (x4 > maxx) maxx = x4;
-    if (y1 > maxy) maxy = y1;
-
-    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+    
+    xlTexture *texture = _images[preview->GetName().ToStdString()];
+    if (texture == nullptr && wxFileExists(_imageFile)) {
+        wxImage img(_imageFile);
+        if (img.IsOk()) {
+            bool mAlpha = img.HasAlpha();
+            if (!mAlpha && _whiteAsAlpha) {
+                img.InitAlpha();
+                for (int x = 0; x < img.GetWidth(); x++) {
+                    for (int y = 0; y < img.GetHeight(); y++) {
+                        int r = img.GetRed(x,y);
+                        if (r == img.GetGreen(x, y) && r == img.GetBlue(x, y)) {
+                            img.SetAlpha(x, y, r);
+                        }
+                    }
+                }
+            }
+            
+            width = img.GetWidth();
+            height = img.GetHeight();
+            texture = ctx->createTexture(img);
+            texture->SetName(GetName());
+            texture->Finalize();
+            _images[preview->GetName().ToStdString()] = texture;
+        }
     }
-}
-
-void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va,
-                                      DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d, const xlColor *c, bool allowSelected, bool wiring, bool highlightFirst, int highlightpixel)
-{
-    GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
-
-    int w, h;
-    preview->GetVirtualCanvasSize(w, h);
-
-    float x1 = -0.5f;
-    float x2 = -0.5f;
-    float x3 = 0.5f;
-    float x4 = 0.5f;
-    float y1 = -0.5f;
-    float y2 = 0.5f;
-    float y3 = 0.5f;
-    float y4 = -0.5f;
-    float z1 = 0.0f;
-    float z2 = 0.0f;
-    float z3 = 0.0f;
-    float z4 = 0.0f;
-
-    GetModelScreenLocation().TranslatePoint(x1, y1, z1);
-    GetModelScreenLocation().TranslatePoint(x2, y2, z2);
-    GetModelScreenLocation().TranslatePoint(x3, y3, z3);
-    GetModelScreenLocation().TranslatePoint(x4, y4, z4);
-
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
-    DrawModelOnWindow(preview, va, tva, c, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, !allowSelected);
+   
+    
+    xlGraphicsProgram *program = transparency == 0 ? solidProgram : transparentProgram;
+    if (texture) {
+        xlVertexTextureAccumulator *va = ctx->createVertexTextureAccumulator();
+        
+        va->PreAlloc(6);
+        va->AddVertex(-0.5, -0.5, 0, 0.0, 1.0);
+        va->AddVertex(0.5, -0.5, 0, 1.0, 1.0);
+        va->AddVertex(-0.5, 0.5, 0, 0.0, 0.0);
+        va->AddVertex(-0.5, 0.5, 0, 0.0, 0.0);
+        va->AddVertex(0.5, -0.5, 0, 1.0, 1.0);
+        va->AddVertex(0.5, 0.5, 0, 1.0, 0.0);
 
-    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
+        int alpha = (100.0 - transparency) / 100.0 * 255.0;
+        int brightness = (float)_offBrightness + (float)(100 - _offBrightness) * (float)GetChannelValue(0) / 255.0;
+
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PushMatrix();
+            if (!is_3d) {
+                //not 3d, flatten to the 0.5 plane
+                ctx->Translate(0, 0, 0.5);
+                ctx->Scale(1.0, 1.0, 0.001);
+            }
+            GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+            ctx->drawTexture(va, texture, brightness, alpha, 0, va->getCount());
+            ctx->PopMatrix();
+            delete va;
+        });
+    } else {
+        xlVertexColorAccumulator *vac= program->getAccumulator();
+        int start = vac->getCount();
+        vac->AddVertex(-0.5, -0.5, 0, xlRED);
+        vac->AddVertex(0.5, -0.5, 0, xlRED);
+
+        vac->AddVertex(0.5, -0.5, 0, xlRED);
+        vac->AddVertex(0.5, 0.5, 0, xlRED);
+
+        vac->AddVertex(0.5, 0.5, 0, xlRED);
+        vac->AddVertex(-0.5, 0.5, 0, xlRED);
+
+        vac->AddVertex(-0.5, 0.5, 0, xlRED);
+        vac->AddVertex(-0.5, -0.5, 0, xlRED);
+
+        vac->AddVertex(-0.5, -0.5, 0, xlRED);
+        vac->AddVertex(0.5, 0.5, 0, xlRED);
+
+        vac->AddVertex(0.5, -0.5, 0, xlRED);
+        vac->AddVertex(-0.5, 0.5, 0, xlRED);
+
+        int count = vac->getCount();
+        program->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PushMatrix();
+            GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+            ctx->drawLines(vac, start, count - start);
+            ctx->PopMatrix();
+        });
+    }
+    
+    if ((Selected || (Highlighted && is_3d)) && color != nullptr && allowSelected) {
+        if (is_3d) {
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+        } else {
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+        }
     }
 }
 
@@ -369,152 +483,7 @@ std::list<std::string> ImageModel::CheckModelSettings()
     return res;
 }
 
-void ImageModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, const xlColor *c,
-                                   float &x1, float &y1, float&x2, float&y2, float& x3, float& y3, float& x4, float& y4, bool active)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    bool exists = false;
-    if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
-        if (!wxFileExists(_imageFile)) {
-            va.AddVertex(x1, y1, *wxRED);
-            va.AddVertex(x2, y2, *wxRED);
-            va.AddVertex(x2, y2, *wxRED);
-            va.AddVertex(x3, y3, *wxRED);
-            va.AddVertex(x3, y3, *wxRED);
-            va.AddVertex(x4, y4, *wxRED);
-            va.AddVertex(x4, y4, *wxRED);
-            va.AddVertex(x1, y1, *wxRED);
-            va.AddVertex(x1, y1, *wxRED);
-            va.AddVertex(x3, y3, *wxRED);
-            va.AddVertex(x2, y2, *wxRED);
-            va.AddVertex(x4, y4, *wxRED);
-            va.Finish(GL_LINES, GL_LINE_SMOOTH, 5.0f);
-        } else {
-            logger_base.debug("Loading image model %s file %s for preview %s.",
-                              (const char *)GetName().c_str(),
-                              (const char *)_imageFile.c_str(),
-                              (const char *)preview->GetName().c_str());
-            _images[preview->GetName().ToStdString()] = new Image(_imageFile, _whiteAsAlpha);
-            exists = true;
-        }
-    } else {
-        exists = true;
-    }
-
-    if (exists) {
-        Image* image = _images[preview->GetName().ToStdString()];
-
-        DrawGLUtils::xlAccumulator &va2 = transparency == 0 ? va : tva;
-        
-        float tx1 = 0;
-        float tx2 = image->tex_coord_x;
-
-        va2.PreAllocTexture(6);
-        va2.AddTextureVertex(x1, y1, tx1, -0.5 / (image->textureHeight));
-        va2.AddTextureVertex(x4, y4, tx2, -0.5 / (image->textureHeight));
-        va2.AddTextureVertex(x2, y2, tx1, image->tex_coord_y);
-
-        va2.AddTextureVertex(x2, y2, tx1, image->tex_coord_y);
-        va2.AddTextureVertex(x4, y4, tx2, -0.5 / (image->textureHeight));
-        va2.AddTextureVertex(x3, y3, tx2, image->tex_coord_y);
-
-        int brightness = (100.0 - transparency) * 255.0 / 100.0;
-
-        if (active) {
-            brightness = (float)_offBrightness + (float)(255 - _offBrightness) * (float)brightness / 255.0 * (float)GetChannelValue(0) / 255.0;
-        }
-
-        va2.FinishTextures(GL_TRIANGLES, image->getID(), brightness, 100.0f);
-    }
-
-    if (c != nullptr && (c->red != c->green || c->red != c->blue)) {
-        va.AddVertex(x1 - 2, y1 - 2, *c);
-        va.AddVertex(x2 - 2, y2 + 2, *c);
-        va.AddVertex(x2 - 2, y2 + 2, *c);
-        va.AddVertex(x3 + 2, y3 + 2, *c);
-        va.AddVertex(x3 + 2, y3 + 2, *c);
-        va.AddVertex(x4 + 2, y4 - 2, *c);
-        va.AddVertex(x4 + 2, y4 - 2, *c);
-        va.AddVertex(x1 - 2, y1 - 2, *c);
-        va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
-    }
-}
-
-void ImageModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, DrawGLUtils::xl3Accumulator &tva,
-                                   const xlColor *c,
-                                   float &x1, float &y1, float &z1,
-                                   float &x2, float &y2, float &z2,
-                                   float &x3, float &y3, float &z3,
-                                   float &x4, float &y4, float &z4, bool active)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    bool exists = false;
-    if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
-        if (!wxFileExists(_imageFile)) {
-            va.AddVertex(x1, y1, z1, *wxRED);
-            va.AddVertex(x2, y2, z2, *wxRED);
-            va.AddVertex(x2, y2, z2, *wxRED);
-            va.AddVertex(x3, y3, z3, *wxRED);
-            va.AddVertex(x3, y3, z3, *wxRED);
-            va.AddVertex(x4, y4, z4, *wxRED);
-            va.AddVertex(x4, y4, z4, *wxRED);
-            va.AddVertex(x1, y1, z1, *wxRED);
-            va.AddVertex(x1, y1, z1, *wxRED);
-            va.AddVertex(x3, y3, z3, *wxRED);
-            va.AddVertex(x2, y2, z2, *wxRED);
-            va.AddVertex(x4, y4, z4, *wxRED);
-            va.Finish(GL_LINES, GL_LINE_SMOOTH, 5.0f);
-        } else {
-            logger_base.debug("Loading image model %s file %s for preview %s.",
-                (const char *)GetName().c_str(),
-                (const char *)_imageFile.c_str(),
-                (const char *)preview->GetName().c_str());
-            _images[preview->GetName().ToStdString()] = new Image(_imageFile, _whiteAsAlpha);
-            exists = true;
-        }
-    } else {
-        exists = true;
-    }
-
-    if (exists) {
-        Image* image = _images[preview->GetName().ToStdString()];
-        DrawGLUtils::xlAccumulator &va2 = transparency == 0 ? va : tva;
-
-        va2.PreAllocTexture(6);
-        float tx1 = 0;
-        float tx2 = image->tex_coord_x;
-
-        va2.AddTextureVertex(x1, y1, z1, tx1, -0.5 / (image->textureHeight));
-        va2.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
-        va2.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
-
-        va2.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
-        va2.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
-        va2.AddTextureVertex(x3, y3, z3, tx2, image->tex_coord_y);
-
-        int brightness = (100.0 - transparency) * 255.0 / 100.0;
-
-        if (active) {
-            brightness = (float)_offBrightness + (float)(255 - _offBrightness) * (float)brightness / 255.0 * (float)GetChannelValue(0) / 255.0;
-        }
-
-        va2.FinishTextures(GL_TRIANGLES, image->getID(), brightness, 100.0f);
-    }
-
-    if (c != nullptr && (c->red != c->green || c->red != c->blue)) {
-        va.AddVertex(x1 - 2, y1 - 2, z1, *c);
-        va.AddVertex(x2 - 2, y2 + 2, z2, *c);
-        va.AddVertex(x2 - 2, y2 + 2, z2, *c);
-        va.AddVertex(x3 + 2, y3 + 2, z3, *c);
-        va.AddVertex(x3 + 2, y3 + 2, z3, *c);
-        va.AddVertex(x4 + 2, y4 - 2, z4, *c);
-        va.AddVertex(x4 + 2, y4 - 2, z4, *c);
-        va.AddVertex(x1 - 2, y1 - 2, z1, *c);
-        va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
-    }
-}
 int ImageModel::GetChannelValue(int channel)
 {
     wxASSERT(channel == 0);

@@ -37,7 +37,6 @@
 #include "LayoutPanel.h"
 #include "ModelPreview.h"
 #include "xLightsMain.h"
-#include "graphics/opengl/DrawGLUtils.h"
 #include "ChannelLayoutDialog.h"
 #include "ControllerConnectionDialog.h"
 #include "ModelGroupPanel.h"
@@ -4054,8 +4053,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                     selectedBaseObject->GetBaseObjectScreenLocation().MouseOverHandle(m_over_handle);
                     over_handle = m_over_handle;
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
-                }
-                else if( event.ControlDown() ) {
+                } else if( event.ControlDown() ) {
                     // For now require control to be active before we start highlighting other models while a model is selected otherwise
                     // it gets hard to work on selected model with everything else highlighting.
                     // See if hovering over a model and if so highlight it or remove highlight as you leave it if it wasn't selected.
@@ -7538,7 +7536,6 @@ void LayoutPanel::PreviewPrintImage()
             mtx.Scale(xScale, yScale);
             dc->SetTransformMatrix(mtx);
             dc->DrawBitmap(*m_image, rect.GetTopLeft());
-
 			return true;
 		}
 

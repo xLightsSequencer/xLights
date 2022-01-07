@@ -10,6 +10,8 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#include "../Model.h"
+
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
 class BaseObject;
@@ -30,6 +32,10 @@ class DmxColorAbility
         int GetWhiteChannel() {return white_channel;}
 
     protected:
+        void GetColor(xlColor &color, int transparency, int blackTransparency,
+                      bool allowSelected, const xlColor *c, const std::vector<NodeBaseClassPtr> &Nodes) const;
+
+    
         int red_channel;
         int green_channel;
         int blue_channel;

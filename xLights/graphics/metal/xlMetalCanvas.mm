@@ -10,62 +10,101 @@
 
 #include "ExternalHooks.h"
 
-#include "../opengl/xlGLCanvas.h"
 #include "wx/osx/private.h"
 #include "../xlGraphicsBase.h"
+
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
+}
 
 BEGIN_EVENT_TABLE(xlMetalCanvas, wxMetalCanvas)
     EVT_SIZE(xlMetalCanvas::Resized)
     EVT_ERASE_BACKGROUND(xlMetalCanvas::OnEraseBackGround)  // Override to do nothing on this event
 END_EVENT_TABLE()
 
-#if !defined(FORCE_OPENGL_BASE)
 
-@interface wxNSCustomOpenGLView : NSOpenGLView
-{
-}
-@end
-@implementation wxNSCustomOpenGLView
-
-+ (void)initialize
-{
-    static BOOL initialized = NO;
-    if (!initialized)
-    {
-        initialized = YES;
-        wxOSXCocoaClassAddWXMethods( self );
+class MSAATextureInfo {
+public:
+    MSAATextureInfo(xlMetalCanvas *c) : canvas(c) {
+        id<CAMetalDrawable> d2 = [c->getMTKView() currentDrawable];
+        CAMetalLayer *layer = [d2 layer];
+        width = [layer drawableSize].width;
+        height = [layer drawableSize].height;
     }
-}
+    ~MSAATextureInfo() {
+        if (msaaTexture != nil) {
+            [msaaTexture release];
+        }
+    }
+    
+    id<MTLTexture> getMSAATexture() {
+        if (msaaTexture == nil) {
+            MTLTextureDescriptor * msaaDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
+                                                                                                              width:width
+                                                                                                             height:height
+                                                                                                          mipmapped:NO];
+            msaaDesc.usage = MTLTextureUsageRenderTarget;
+            msaaDesc.storageMode = MTLStorageModePrivate;
+            msaaDesc.textureType = MTLTextureType2DMultisample;
+            msaaDesc.sampleCount = canvas->getMSAASampleCount();
+            msaaTexture = [canvas->getMTLDevice() newTextureWithDescriptor:msaaDesc];
+            std::string n = canvas->getName() + "-MSAATexture";
+            NSString *ns = [NSString stringWithCString:n.c_str() encoding:[NSString defaultCStringEncoding]];
+            [msaaTexture setLabel:ns];
+        }
+        return msaaTexture;
+    }
 
-- (BOOL)isOpaque
-{
-    return YES;
-}
+    int width;
+    int height;
+    id<MTLTexture> msaaTexture = nil;
+    xlMetalCanvas *canvas;
+};
 
-- (BOOL) acceptsFirstResponder
-{
-    return YES;
-}
-
-// for special keys
-
-- (void)doCommandBySelector:(SEL)aSelector
-{
-    wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( self );
-    if (impl)
-        impl->doCommandBySelector(aSelector, self, _cmd);
-}
-
-- (NSOpenGLContext *) openGLContext
-{
-    // Prevent the NSOpenGLView from making it's own context
-    // We want to force using wxGLContexts
-    return NULL;
-}
-
-@end
-
-#endif
+class DepthTextureInfo {
+public:
+    DepthTextureInfo(xlMetalCanvas *c) : canvas(c) {
+        id<CAMetalDrawable> d2 = [c->getMTKView() currentDrawable];
+        CAMetalLayer *layer = [d2 layer];
+        width = [layer drawableSize].width;
+        height = [layer drawableSize].height;
+    }
+    ~DepthTextureInfo() {
+        if (depthTexture != nil) {
+            [depthTexture release];
+        }
+    }
+    
+    id<MTLTexture> getDepthTexture() {
+        if (depthTexture == nil) {
+            MTLTextureDescriptor * depthBufferDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float
+                                                                                                              width:width
+                                                                                                             height:height
+                                                                                                          mipmapped:NO];
+            depthBufferDescriptor.usage = MTLTextureUsageRenderTarget;
+            if (@available(macOS 11.0, *)) {
+                depthBufferDescriptor.storageMode = MTLStorageModeMemoryless;
+            } else {
+                depthBufferDescriptor.storageMode = MTLStorageModePrivate;
+            }
+            depthBufferDescriptor.textureType = MTLTextureType2DMultisample;
+            depthBufferDescriptor.sampleCount = canvas->getMSAASampleCount();
+            depthTexture = [canvas->getMTLDevice() newTextureWithDescriptor:depthBufferDescriptor];
+            std::string n = canvas->getName() + "-DepthBuffer";
+            NSString *ns = [NSString stringWithCString:n.c_str() encoding:[NSString defaultCStringEncoding]];
+            [depthTexture setLabel:ns];
+        }
+        return depthTexture;
+    }
+    
+    int width;
+    int height;
+    id<MTLTexture> depthTexture = nil;
+    xlMetalCanvas *canvas;
+};
 
 xlMetalCanvas::xlMetalCanvas(wxWindow *parent,
                              wxWindowID id,
@@ -79,53 +118,68 @@ mWindowWidth(0),
 mWindowHeight(0),
 mWindowResized(false),
 mIsInitialized(false),
-mName(name),
-fallback(nullptr)
+mName(name)
 {
-#if !defined(FORCE_OPENGL_BASE)
-    if (!wxPlatformInfo::Get().CheckOSVersion(10, 14)) {
-        //We need a Metal supported graphics card.  Only 10.14 guarentees that so
-        //If we aren't on 10.14 or better, we'll fall back to OpenGL
-        fallback = new xlGLCanvas(parent, id, pos, size, style, name, only2d);
-
-        NSRect r = wxOSXGetFrameForControl( this, pos , size ) ;
-        wxNSCustomOpenGLView* v = [[[wxNSCustomOpenGLView alloc] initWithFrame:r] retain];
-        [v setWantsBestResolutionOpenGLSurface:YES];
-
-        wxWidgetCocoaImpl* c = new wxWidgetCocoaImpl( this, v, wxWidgetImpl::Widget_UserKeyEvents | wxWidgetImpl::Widget_UserMouseEvents );
-        SetPeer(c);
-        MacPostControlCreate(pos, size);
-        fallback->SetPeer(new wxWidgetCocoaImpl( this, v, wxWidgetImpl::Widget_UserKeyEvents | wxWidgetImpl::Widget_UserMouseEvents ));
+    //triple buffer the extra textures to avoid contention
+    for (int x = 0; x < 3; x++) {
+        msaaTextures[x] = nullptr;
+        depthTextures[x] = nullptr;
     }
-#endif
 }
-
+class CaptureBufferInfo {
+public:
+    CaptureBufferInfo(int w, int h) : width(w), height(h) {
+        int bytesPerRow = w * 4;
+        int bufferSize = bytesPerRow * h;
+        buffer = [[wxMetalCanvas::getMTLDevice() newBufferWithLength:bufferSize options:MTLResourceStorageModeShared] retain];
+        
+        MTLTextureDescriptor *description = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
+                                                                                               width:w
+                                                                                              height:h
+                                                                                           mipmapped:false];
+        description.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead;
+        target = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
+    }
+    ~CaptureBufferInfo() {
+        if (buffer != nil) {
+            [buffer release];
+        }
+        if (target != nil) {
+            [target release];
+        }
+    }
+    
+    int width = 0;
+    int height = 0;
+    id<MTLBuffer> buffer = nil;
+    id<MTLTexture> target = nil;
+    bool captureNext = false;
+};
 
 xlMetalCanvas::~xlMetalCanvas() {
-    if (fallback) {
-        delete fallback;
+    if (captureBuffer) {
+        delete captureBuffer;
+    }
+    for (int x = 0; x < 3; x++) {
+        if (msaaTextures[x]) {
+            delete msaaTextures[x];
+        }
+        if (depthTextures[x]) {
+            delete depthTextures[x];
+        }
     }
 }
 xlColor xlMetalCanvas::ClearBackgroundColor() const {
     return xlBLACK;
 }
 bool xlMetalCanvas::drawingUsingLogicalSize() const {
-    if (fallback) {
-        return fallback->drawingUsingLogicalSize();
-    }
     return false;
 }
 
 double xlMetalCanvas::translateToBacking(double x) const {
-    if (fallback) {
-        return fallback->translateToBacking(x);
-    }
     return xlTranslateToRetina(*this, x);
 }
 double xlMetalCanvas::mapLogicalToAbsolute(double x) const {
-    if (fallback) {
-        return fallback->mapLogicalToAbsolute(x);
-    }
     if (drawingUsingLogicalSize()) {
         return x;
     }
@@ -135,11 +189,7 @@ double xlMetalCanvas::mapLogicalToAbsolute(double x) const {
 
 void xlMetalCanvas::Resized(wxSizeEvent& evt)
 {
-    if (fallback) {
-        fallback->Resized(evt);
-        mWindowWidth = fallback->getWidth();
-        mWindowHeight = fallback->getHeight();
-    } else if (drawingUsingLogicalSize()) {
+    if (drawingUsingLogicalSize()) {
         mWindowWidth = evt.GetSize().GetWidth();
         mWindowHeight = evt.GetSize().GetHeight();
     } else {
@@ -147,35 +197,150 @@ void xlMetalCanvas::Resized(wxSizeEvent& evt)
         mWindowHeight = evt.GetSize().GetHeight() * GetContentScaleFactor();
     }
     mWindowResized = true;
+    for (int x = 0; x < 3; x++) {
+        if (msaaTextures[x]) {
+            delete msaaTextures[x];
+            msaaTextures[x] = nullptr;
+        }
+        if (depthTextures[x]) {
+            delete depthTextures[x];
+            depthTextures[x] = nullptr;
+        }
+    }
     Refresh();
 }
 
 void xlMetalCanvas::PrepareCanvas() {
     if (!mIsInitialized) {
-        if (fallback) {
-            fallback->PrepareCanvas();
-        } else {
-            //just make sure this will load
-            getPipelineState("singleColorProgram", "singleColorVertexShader", "singleColorFragmentShader", false);
-        }
+        //just make sure this will load
+        getPipelineState("singleColorProgram", "singleColorVertexShader", "colorFragmentShader", false);
         mIsInitialized = true;
     }
 }
 xlGraphicsContext * xlMetalCanvas::PrepareContextForDrawing() {
-    if (fallback) {
-        return fallback->PrepareContextForDrawing(this->ClearBackgroundColor());
-    }
-    xlMetalGraphicsContext *ret = new xlMetalGraphicsContext(this);
-    if (!ret->hasDrawable()) {
+    xlMetalGraphicsContext *ret = new xlMetalGraphicsContext(this, captureBuffer == nullptr || !captureBuffer->captureNext ? nil : captureBuffer->target);
+    if (!ret->isValid()) {
         delete ret;
         return nullptr;
     }
     return ret;
 }
-void xlMetalCanvas::FinishDrawing(xlGraphicsContext *ctx) {
-    if (fallback) {
-        return fallback->FinishDrawing(ctx);
-    } else {
-        delete ctx;
+void xlMetalCanvas::FinishDrawing(xlGraphicsContext *ctx, bool display) {
+    @autoreleasepool {
+        xlMetalGraphicsContext *mgx = (xlMetalGraphicsContext*)ctx;
+        if (captureBuffer && captureBuffer->captureNext) {
+            mgx->Commit(false, captureBuffer->buffer);
+        } else {
+            mgx->Commit(display, nil);
+        }
+        if (captureBuffer) {
+            captureBuffer->captureNext = false;
+        }
+        delete mgx;
     }
+}
+
+id<MTLTexture> xlMetalCanvas::getMSAATexture(int w, int h) {
+    curMSAATexture++;
+    if (curMSAATexture == 3) {
+        curMSAATexture = 0;
+    }
+    if (msaaTextures[curMSAATexture] != nullptr) {
+        if (msaaTextures[curMSAATexture]->width != w || msaaTextures[curMSAATexture]->height != h) {
+            delete msaaTextures[curMSAATexture];
+            msaaTextures[curMSAATexture] = nullptr;
+        }
+    }
+    if (msaaTextures[curMSAATexture] == nullptr) {
+        msaaTextures[curMSAATexture] = new MSAATextureInfo(this);
+    }
+    return msaaTextures[curMSAATexture]->getMSAATexture();
+}
+id<MTLTexture> xlMetalCanvas::getDepthTexture(int w, int h) {
+    curDepthTexture++;
+    if (curDepthTexture == 3) {
+        curDepthTexture = 0;
+    }
+    if (depthTextures[curDepthTexture] != nullptr) {
+        if (depthTextures[curDepthTexture]->width != w || depthTextures[curDepthTexture]->height != h) {
+            delete depthTextures[curDepthTexture];
+            depthTextures[curDepthTexture] = nullptr;
+        }
+    }
+    if (depthTextures[curDepthTexture] == nullptr) {
+        depthTextures[curDepthTexture] = new DepthTextureInfo(this);
+    }
+    return depthTextures[curDepthTexture]->getDepthTexture();
+}
+
+
+void xlMetalCanvas::captureNextFrame(int w, int h) {
+    if (captureBuffer && (captureBuffer->width != w || captureBuffer->height != h)) {
+        delete captureBuffer;
+        captureBuffer = nullptr;
+    }
+    if (captureBuffer == nullptr) {
+        captureBuffer = new CaptureBufferInfo(w, h);
+    }
+    captureBuffer->captureNext = true;
+}
+
+
+extern void VideoToolboxCreateFrame(CIImage *image, AVFrame *f);
+
+bool xlMetalCanvas::getFrameForExport(int w, int h, AVFrame *f, uint8_t *buffer, int bufferSize) {
+    if (captureBuffer == nullptr || captureBuffer->buffer == nil) {
+        return true;
+    }
+    static CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    uint8_t *src = (uint8_t*)captureBuffer->buffer.contents;
+    uint8_t *dst = buffer;
+    
+    if (f->format == AV_PIX_FMT_VIDEOTOOLBOX) {
+        @autoreleasepool {
+            NSMutableDictionary *dict = [[NSMutableDictionary alloc]init];
+            [dict setObject:(__bridge id)colorSpace  forKey:kCIImageColorSpace];
+            
+            CIImage *image = [CIImage imageWithMTLTexture:captureBuffer->target options:dict];
+            CIImage *i2 = [image imageByApplyingCGOrientation:kCGImagePropertyOrientationDownMirrored];
+                        
+            VideoToolboxCreateFrame(i2, f);
+            
+            [dict release];
+        }
+        return false;
+    }
+    for (int x = 0; x < w * h; x++, src += 4, dst += 3) {
+        dst[0] = src[2];
+        dst[1] = src[1];
+        dst[2] = src[0];
+    }
+    return true;
+}
+
+
+
+wxImage *xlMetalCanvas::GrabImage(wxSize size) {
+    int w = GetContentScaleFactor() * getWidth();
+    int h = GetContentScaleFactor() * getHeight();
+    captureNextFrame(w, h);
+    render();
+    return GrabCapturedImage();
+}
+
+wxImage *xlMetalCanvas::GrabCapturedImage() {
+    if (captureBuffer == nullptr || captureBuffer->buffer == nil) {
+        return nullptr;
+    }
+    uint8_t *src = (uint8_t*)captureBuffer->buffer.contents;  ///BGRA
+    uint8_t *dest = (uint8_t*)malloc(captureBuffer->width * captureBuffer->height * 3);
+    uint8_t *dst = dest;
+    for (int x = 0; x < captureBuffer->width * captureBuffer->height; x++, src += 4, dst += 3) {
+        dst[0] = src[2];
+        dst[1] = src[1];
+        dst[2] = src[0];
+    }
+    wxImage *img = new wxImage(captureBuffer->width, captureBuffer->height);
+    img->SetData(dest);
+    return img;
 }

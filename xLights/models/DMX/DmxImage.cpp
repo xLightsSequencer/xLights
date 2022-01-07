@@ -318,8 +318,8 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     return -1;
 }
 
-void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccumulator& va,
-                    glm::mat4& base_matrix, glm::mat4& motion_matrix,
+void DmxImage::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *pg,
+                    glm::mat4 &motion_matrix,
                     int transparency, float brightness, bool only_image,
                     float pivot_offset_x, float pivot_offset_y, bool rotation, bool use_pivot)
 {
@@ -332,39 +332,23 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccu
                 (const char*)base->GetName().c_str(),
                 (const char*)_imageFile.c_str(),
                 (const char*)preview->GetName().c_str());
-            _images[preview->GetName().ToStdString()] = new Image(_imageFile);
-            width = (_images[preview->GetName().ToStdString()])->width;
-            height = (_images[preview->GetName().ToStdString()])->height;
-            exists = true;
-            obj_exists = true;
-            if (image_selected && !only_image) {
-                // Next line is needed to trigger another redraw so the motion image scaling in DmxServo can happen
-                base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::Draw");
-                base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::Draw");
-                base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxImage::Draw");
+            wxImage img(_imageFile);
+            if (img.IsOk()) {
+                xlTexture *t = preview->getCurrentGraphicsContext()->createTexture(img);
+                _images[preview->GetName().ToStdString()] = t;
+                width = img.GetWidth();
+                height = img.GetHeight();
+                exists = true;
+                obj_exists = true;
             }
         }
-    }
-    else {
+    } else {
         exists = true;
     }
 
-    float x1 = -0.5f;
-    float x2 = -0.5f;
-    float x3 = 0.5f;
-    float x4 = 0.5f;
-    float y1 = -0.5f;
-    float y2 = 0.5f;
-    float y3 = 0.5f;
-    float y4 = -0.5f;
-    float z1 = 0.0f;
-    float z2 = 0.0f;
-    float z3 = 0.0f;
-    float z4 = 0.0f;
 
     if (exists) {
-        Image* image = _images[preview->GetName().ToStdString()];
-        //glm::vec3 scale = base->GetBaseObjectScreenLocation().GetScaleMatrix();
+        xlTexture* image = _images[preview->GetName().ToStdString()];
 
         glm::mat4 Identity = glm::mat4(1.0f);
         glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
@@ -377,89 +361,66 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccu
         if (rotation) {
             glm::mat4 pivotToZero = glm::translate(Identity, glm::vec3(-pivot_offset_x, -pivot_offset_y, 0.0f));
             glm::mat4 pivotBack = glm::translate(Identity, glm::vec3(pivot_offset_x, pivot_offset_y, 0.0f));
-            m = base_matrix * m * pivotBack * motion_matrix * pivotToZero;
+            m = m * pivotBack * motion_matrix * pivotToZero;
+        } else {
+            m = m * motion_matrix;
         }
-        else
-        {
-            m = base_matrix * m * motion_matrix;
-        }
-
-
-        glm::vec4 v = m * glm::vec4(glm::vec3(x1, y1, z1), 1.0f);
-        x1 = v.x; y1 = v.y; z1 = v.z;
-        v = m * glm::vec4(glm::vec3(x2, y2, z2), 1.0f);
-        x2 = v.x; y2 = v.y; z2 = v.z;
-        v = m * glm::vec4(glm::vec3(x3, y3, z3), 1.0f);
-        x3 = v.x; y3 = v.y; z3 = v.z;
-        v = m * glm::vec4(glm::vec3(x4, y4, z4), 1.0f);
-        x4 = v.x; y4 = v.y; z4 = v.z;
-
-
-        float tx1 = 0;
-        float tx2 = image->tex_coord_x;
-
-        va.PreAllocTexture(6);
-        va.AddTextureVertex(x1, y1, z1, tx1, -0.5 / (image->textureHeight));
-        va.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
-        va.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
-        va.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
-        va.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
-        va.AddTextureVertex(x3, y3, z3, tx2, image->tex_coord_y);
-        int alpha = (100.0 - transparency) * 255.0 / 100.0;
-        va.FinishTextures(GL_TRIANGLES, image->getID(), alpha, brightness);
-
-
+        
+        auto vac = pg->getAccumulator();
+        int start = vac->getCount();
         if (use_pivot && rotation) {
+            glm::vec3 scale = base->GetBaseObjectScreenLocation().GetScaleMatrix();
+            float mw = std::min(4.0f / scale.x, 4.0f / scale.y);
+            float mw2 = std::min(3.0f / scale.x, 3.0f / scale.y);
+
+            
             xlColor pink = xlColor(255, 0, 255);
-            float x1 = pivot_offset_x;
-            float y1 = pivot_offset_y;
-            float z1 = 0.0f;
-            glm::vec4 v = m * glm::vec4(glm::vec3(x1, y1, 0.0f), 1.0f);
-            x1 = v.x; y1 = v.y; z1 = v.z + 0.01;
-            va.AddCircleAsTriangles(x1, y1, z1, 2.5, xlBLACK);
-            va.AddCircleAsTriangles(x1, y1, z1+0.01, 2, pink);
-            va.Finish(GL_TRIANGLES);
-            va.AddVertex(x1 - 1.5, y1 + 1.5, z1+0.002, xlBLACK);
-            va.AddVertex(x1 + 1.5, y1 - 1.5, z1+0.002, xlBLACK);
-            va.AddVertex(x1 - 1.5, y1 - 1.5, z1+0.002, xlBLACK);
-            va.AddVertex(x1 + 1.5, y1 + 1.5, z1+0.002, xlBLACK);
-            va.Finish(GL_LINES);
+            vac->AddCircleAsTriangles(0, 0, 0, mw, xlBLACK);
+            vac->AddCircleAsTriangles(0, 0, 0, mw2, pink);
+            vac->AddVertex(0.0-mw/2, 0.0-mw/2, 0, xlBLACK);
+            vac->AddVertex(0.0+mw/2, 0.0+mw/2, 0, xlBLACK);
+            vac->AddVertex(0.0-mw/2, 0.0+mw/2, 0, xlBLACK);
+            vac->AddVertex(0.0+mw/2, 0.0-mw/2, 0, xlBLACK);
         }
-    }
-    else if (only_image) {
-        float rw = base->GetBaseObjectScreenLocation().GetRenderWi();
-        float rh = base->GetBaseObjectScreenLocation().GetRenderHt();
-        float x1 = -0.5f * rw;
-        float x2 = -0.5f * rw;
-        float x3 = 0.5f * rw;
-        float x4 = 0.5f * rw;
-        float y1 = -0.5f * rh;
-        float y2 = 0.5f * rh;
-        float y3 = 0.5f * rh;
-        float y4 = -0.5f * rh;
-        float z1 = 0.0f;
-        float z2 = 0.0f;
-        float z3 = 0.0f;
-        float z4 = 0.0f;
 
-        base->GetBaseObjectScreenLocation().TranslatePoint(x1, y1, z1);
-        base->GetBaseObjectScreenLocation().TranslatePoint(x2, y2, z2);
-        base->GetBaseObjectScreenLocation().TranslatePoint(x3, y3, z3);
-        base->GetBaseObjectScreenLocation().TranslatePoint(x4, y4, z4);
+        int end = vac->getCount();
+        int alpha = (100.0 - transparency) * 255.0 / 100.0;
+        pg->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PushMatrix();
+            ctx->ApplyMatrix(m);
+            ctx->drawTexture(image,
+                             -0.5, 0.5, 0.5, -0.5,
+                             0.0, 0.0, 1.0, 1.0,
+                             true, 100, alpha);
+            if (end != start) {
+                if (rotation) {
+                    ctx->Translate(pivot_offset_x, pivot_offset_y, 0.0f);
+                }
+                ctx->drawTriangles(vac, start, end - 4 - start);
+                ctx->drawLines(vac, end - 4, 4);
+            }
+            ctx->PopMatrix();
+        });
 
-        va.AddVertex(x1, y1, z1, *wxRED);
-        va.AddVertex(x2, y2, z2, *wxRED);
-        va.AddVertex(x2, y2, z2, *wxRED);
-        va.AddVertex(x3, y3, z3, *wxRED);
-        va.AddVertex(x3, y3, z3, *wxRED);
-        va.AddVertex(x4, y4, z4, *wxRED);
-        va.AddVertex(x4, y4, z4, *wxRED);
-        va.AddVertex(x1, y1, z1, *wxRED);
-        va.AddVertex(x1, y1, z1, *wxRED);
-        va.AddVertex(x3, y3, z3, *wxRED);
-        va.AddVertex(x2, y2, z2, *wxRED);
-        va.AddVertex(x4, y4, z4, *wxRED);
-        va.Finish(GL_LINES, GL_LINE_SMOOTH, 5.0f);
+    } else if (only_image) {
+        auto vac = pg->getAccumulator();
+        int start = vac->getCount();
+        vac->AddVertex(-0.5, -0.5, 0, *wxRED);
+        vac->AddVertex(-0.5, 0.5, 0, *wxRED);
+        vac->AddVertex(-0.5, 0.5, 0, *wxRED);
+        vac->AddVertex(0.5, 0.5, 0, *wxRED);
+        vac->AddVertex(0.5, 0.5, 0, *wxRED);
+        vac->AddVertex(0.5, -0.5, 0, *wxRED);
+        vac->AddVertex(0.5, -0.5, 0, *wxRED);
+        vac->AddVertex(-0.5, -0.5, 0, *wxRED);
+        vac->AddVertex(-0.5, -0.5, 0, *wxRED);
+        vac->AddVertex(0.5, 0.5, 0, *wxRED);
+        vac->AddVertex(-0.5, 0.5, 0, *wxRED);
+        vac->AddVertex(0.5, -0.5, 0, *wxRED);
+        int end = vac->getCount();
+        pg->addStep([=](xlGraphicsContext *ctx) {
+            ctx->drawLines(vac, start, end - start);
+        });
     }
 }
 

@@ -14,6 +14,7 @@ public:
 
     int getID() const { return id; }
 
+    int getSize() const { return size; }
     float widthOf(const std::string &text, float factor = 1.0) const;
     void populate(xlVertexTextureAccumulator &va, float x, float yBase, const std::string &text, float factor = 1.0) const;
     const wxImage &getImage() const { return image; }
@@ -25,6 +26,7 @@ private:
     bool load(const FontInfoStruct &fi);
 
 
+    int size;
     int id;
     wxImage image;
     float maxD, maxW, maxH;

@@ -38,6 +38,8 @@
 #define DoInAppPurchases(w)
 #define WXGLUnsetCurrentContext()
 #define GetOSFormattedClipboardData() ""
+#define StartGraphicsSyncPoint()
+#define EndGraphicsSyncPoint()
 
 inline double xlOSGetMainScreenContentScaleFactor() { return 1.0; }
 inline bool ObtainAccessToURL(const std::string &path) { return true; }

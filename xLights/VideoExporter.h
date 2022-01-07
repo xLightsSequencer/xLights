@@ -39,7 +39,7 @@ public:
    };
 
    // Callbacks provide the video and audio for each frame
-   typedef std::function< bool( uint8_t* /*buf*/, int/*bufSize*/, unsigned /*frameIndex*/ ) > GetVideoFrameCb;
+   typedef std::function< bool( AVFrame * ,uint8_t* /*buf*/, int/*bufSize*/, unsigned /*frameIndex*/ ) > GetVideoFrameCb;
    typedef std::function< bool( float* /*leftCh*/, float* /*rightCh*/, int /*frameSize*/ ) > GetAudioFrameCb;
 
    // Callback to allow the exporter to query the client on whether to abort the export
@@ -75,8 +75,8 @@ protected:
    void cleanup();
 
    const std::string       _path;
-   const Params            _inParams;
    const bool              _videoOnly;
+   Params                  _inParams;
    Params                  _outParams;
    int64_t                 _ptsIncrement = 0LL;
    SwsContext*             _swsContext = nullptr;

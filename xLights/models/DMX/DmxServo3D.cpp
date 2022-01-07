@@ -547,13 +547,13 @@ void DmxServo3d::InitModel() {
     bool last_exists = false;
     for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
         (*it)->Init(this, !last_exists);
-        last_exists = (*it)->GetExists();
+        last_exists = (*it)->HasObjFile();
     }
 
-    last_exists = num_static > 0 ? static_meshs[0]->GetExists() : false;
+    last_exists = num_static > 0 ? static_meshs[0]->HasObjFile() : false;
     for (auto it = motion_meshs.begin(); it != motion_meshs.end(); ++it) {
         (*it)->Init(this, !last_exists);
-        last_exists = (*it)->GetExists();
+        last_exists = (*it)->HasObjFile();
     }
 
     // renumber servo changed if number of bits changed
@@ -585,18 +585,114 @@ void DmxServo3d::InitModel() {
     update_node_names = false;
 }
 
-void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
-{
+void DmxServo3d::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                      xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is_3d,
+                                      const xlColor* c, bool allowSelected, bool wiring,
+                                      bool highlightFirst, int highlightpixel,
+                                      float *boundingBox) {
     if (!IsActive()) return;
 
+    screenLocation.PrepareToDraw(is_3d, allowSelected);
+    screenLocation.UpdateBoundingBox(Nodes);
+    
+    
+    sprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PushMatrix();
+        if (!is_3d) {
+            //not 3d, flatten to the 0 plane
+            ctx->Scale(1.0, 1.0, 0.000001);
+        }
+        GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+    });
+    tprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PushMatrix();
+        if (!is_3d) {
+            //not 3d, flatten to the 0 plane
+            ctx->Scale(1.0, 1.0, 0.000001);
+        }
+        GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+    });
+    DrawModel(preview, ctx, sprogram, tprogram, !allowSelected);
+    sprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PopMatrix();
+    });
+    tprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PopMatrix();
+    });
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
+        if (is_3d) {
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+        } else {
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+        }
+    }
+}
+void DmxServo3d::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
+    if (!IsActive() && preview->IsNoCurrentModel()) { return; }
+    
+    bool mustEnd = false;
+    xlGraphicsContext *ctx = preview->getCurrentGraphicsContext();
+    if (ctx == nullptr) {
+        bool success = preview->StartDrawing(pointSize);
+        if (success) {
+            ctx = preview->getCurrentGraphicsContext();
+            mustEnd = true;
+        }
+    }
+    if (ctx) {
+        int w, h;
+        preview->GetSize(&w, &h);
+        float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
+        float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
+        
+        float aspect = screenLocation.GetScaleX();
+        aspect /= screenLocation.GetScaleY();
+        if (scaleY < scaleX) {
+            scaleX = scaleY * aspect;
+        } else {
+            scaleY = scaleX / aspect;
+        }
+        float ml, mb;
+        GetMinScreenXY(ml, mb);
+        ml += GetModelScreenLocation().RenderWi / 2;
+        mb += GetModelScreenLocation().RenderHt / 2;
+        
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PushMatrix();
+            ctx->Scale(1.0, 1.0, 0.00001);
+            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Scale(scaleX, scaleY, 1.0);
+        });
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PushMatrix();
+            ctx->Scale(1.0, 1.0, 0.00001);
+            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Scale(scaleX, scaleY, 1.0);
+        });
+        DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), true);
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PopMatrix();
+        });
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+            ctx->PopMatrix();
+        });
+    }
+    if (mustEnd) {
+        preview->EndDrawing();
+    }
+}
+
+void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active) {
+    
     // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);
     if (min_channels > Nodes.size()) {
         return;
     }
     for (auto it = servos.begin(); it != servos.end(); ++it) {
-        if ((*it)->GetChannel() > Nodes.size())
-        {
+        if ((*it)->GetChannel() > Nodes.size()) {
             return;
         }
     }
@@ -605,14 +701,10 @@ void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumu
     glm::mat4 Identity = glm::mat4(1.0f);
     glm::mat4 servo_matrix[SUPPORTED_SERVOS];
     glm::mat4 motion_matrix[SUPPORTED_SERVOS];
-    glm::mat4 scalingMatrix = glm::scale(Identity, GetModelScreenLocation().GetScaleMatrix());
-    glm::mat4 translateMatrix = glm::translate(Identity, GetModelScreenLocation().GetWorldPosition());
-    glm::quat rotateQuat = GetModelScreenLocation().GetRotationQuat();
-    glm::mat4 base_matrix = translateMatrix * glm::toMat4(rotateQuat) * scalingMatrix;
 
     // Draw Static Meshs
     for (int i = 0; i < num_static; ++i) {
-        static_meshs[i]->Draw(this, preview, va, base_matrix, Identity, i < num_motion ? !motion_meshs[i]->GetExists() : false, 0, 0, 0, false, false);
+        static_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, Identity, i < num_motion ? !motion_meshs[i]->GetExists(this, ctx) : false, 0, 0, 0, false, false);
     }
 
     // Get servo positions and fill motion matrices
@@ -669,48 +761,11 @@ void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumu
 
     // Draw Motion Meshs
     for (int i = 0; i < num_motion; ++i) {
-        motion_meshs[i]->Draw(this, preview, va, base_matrix, motion_matrix[i], i < num_static ? !static_meshs[i]->GetExists() : false,
+        motion_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, motion_matrix[i], i < num_static ? !static_meshs[i]->GetExists(this, ctx) : false,
             servos[i]->GetPivotOffsetX(), servos[i]->GetPivotOffsetY(), servos[i]->GetPivotOffsetZ(), servos[i]->IsRotate() && show_pivot, !active);
     }
-
 }
 
-void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)
-{
-    if (!IsActive()) return;
-
-    float x1 = -0.5f;
-    float x2 = -0.5f;
-    float x3 = 0.5f;
-    float x4 = 0.5f;
-    float y1 = -0.5f;
-    float y2 = 0.5f;
-    float y3 = 0.5f;
-    float y4 = -0.5f;
-    float z1 = 0.0f;
-    float z2 = 0.0f;
-    float z3 = 0.0f;
-    float z4 = 0.0f;
-
-    GetBaseObjectScreenLocation().TranslatePoint(x1, y1, z1);
-    GetBaseObjectScreenLocation().TranslatePoint(x2, y2, z2);
-    GetBaseObjectScreenLocation().TranslatePoint(x3, y3, z3);
-    GetBaseObjectScreenLocation().TranslatePoint(x4, y4, z4);
-
-    va.AddVertex(x1, y1, z1, *wxRED);
-    va.AddVertex(x2, y2, z2, *wxRED);
-    va.AddVertex(x2, y2, z2, *wxRED);
-    va.AddVertex(x3, y3, z3, *wxRED);
-    va.AddVertex(x3, y3, z3, *wxRED);
-    va.AddVertex(x4, y4, z4, *wxRED);
-    va.AddVertex(x4, y4, z4, *wxRED);
-    va.AddVertex(x1, y1, z1, *wxRED);
-    va.AddVertex(x1, y1, z1, *wxRED);
-    va.AddVertex(x3, y3, z3, *wxRED);
-    va.AddVertex(x2, y2, z2, *wxRED);
-    va.AddVertex(x4, y4, z4, *wxRED);
-    va.Finish(GL_LINES, GL_LINE_SMOOTH, 5.0f);
-}
 
 void DmxServo3d::ExportXlightsModel()
 {

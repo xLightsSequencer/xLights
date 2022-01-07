@@ -12,9 +12,11 @@
 
 #include "ViewObject.h"
 #include "TerrianScreenLocation.h"
-#include "graphics/opengl/Image.h"
 
 class ModelPreview;
+class xlTexture;
+class xlVertexAccumulator;
+class xlVertexTextureAccumulator;
 
 class TerrianObject : public ObjectWithScreenLocation<TerrianScreenLocation>
 {
@@ -29,7 +31,7 @@ public:
 
     int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-    virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected = false) override;
+    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
 protected:
 
@@ -47,9 +49,13 @@ private:
     bool hide_image;
     bool hide_grid;
     int brush_size;
-    std::map<std::string, Image*> _images;
     int img_width;
     int img_height;
     int transparency;
     float brightness;
+    
+    std::map<std::string, xlTexture*> _images;
+    xlVertexAccumulator *grid;
+    xlVertexTextureAccumulator *texture;
+
 };

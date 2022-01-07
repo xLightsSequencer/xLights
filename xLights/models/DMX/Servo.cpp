@@ -15,6 +15,7 @@
 
 #include "Servo.h"
 #include "../BaseObject.h"
+#include "../ModelScreenLocation.h"
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -93,6 +94,7 @@ void Servo::SetPivotOffsetZ(float val) {
 }
 
 void Servo::Init(BaseObject* base) {
+    this->base = base;
     channel = wxAtoi(node_xml->GetAttribute("Channel", "0"));
     min_limit = wxAtoi(node_xml->GetAttribute("MinLimit", "0"));
     max_limit = wxAtoi(node_xml->GetAttribute("MaxLimit", "65535"));
@@ -139,17 +141,19 @@ float Servo::GetPosition(int channel_value) {
     return ((1.0 - ((channel_value - min_limit) / (float)(max_limit - min_limit))) * range_of_motion - range_of_motion);
 }
 
-void Servo::FillMotionMatrix(float& servo_pos, glm::mat4& motion_matrix) {
+void Servo::FillMotionMatrix(float servo_pos, glm::mat4& motion_matrix) {
+    glm::vec3 scale = base->GetBaseObjectScreenLocation().GetScaleMatrix();
+    
     glm::mat4 Identity = glm::mat4(1.0f);
     switch(servo_style_val) {
     case SERVO_STYLE_TRANSLATEX:
-        motion_matrix = glm::translate(Identity, glm::vec3(-servo_pos, 0.0f, 0.0f));
+        motion_matrix = glm::translate(Identity, glm::vec3(-servo_pos / scale.x, 0.0f, 0.0f));
         break;
     case SERVO_STYLE_TRANSLATEY:
-        motion_matrix = glm::translate(Identity, glm::vec3(0.0f, -servo_pos, 0.0f));
+        motion_matrix = glm::translate(Identity, glm::vec3(0.0f, -servo_pos / scale.y, 0.0f));
         break;
     case SERVO_STYLE_TRANSLATEZ:
-        motion_matrix = glm::translate(Identity, glm::vec3(0.0f, 0.0f, -servo_pos));
+        motion_matrix = glm::translate(Identity, glm::vec3(0.0f, 0.0f, -servo_pos / scale.z));
         break;
     case SERVO_STYLE_ROTATEX:
         motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(1.0f, 0.0f, 0.0f));
