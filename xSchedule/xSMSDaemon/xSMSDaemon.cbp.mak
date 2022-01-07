@@ -174,10 +174,6 @@ MagicWord.cpp: MagicWord.h SMSMessage.h xSMSDaemonApp.h
 
 SMSMessage.h: Curl.h
 
-Curl.h: curl.h
-
-curl.h: curl.h
-
 xSMSDaemonApp.cpp: xSMSDaemonMain.h xSMSDaemonApp.h
 
 xSMSDaemonMain.h: SMSService.h SMSDaemonOptions.h xSMSDaemonApp.h
@@ -191,6 +187,8 @@ Bandwidth.h: Curl.h SMSMessage.h SMSService.h
 voip_ms.h: Curl.h SMSMessage.h SMSService.h
 
 Twilio.h: Curl.h SMSMessage.h SMSService.h
+
+../../xLights/UtilFunctions.cpp: Curl.h
 
 SMSDaemonOptions.cpp: SMSDaemonOptions.h MagicWord.h
 

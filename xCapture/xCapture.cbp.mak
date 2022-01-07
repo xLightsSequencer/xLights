@@ -24,7 +24,7 @@ RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
 LIBDIR_LINUX_DEBUG = $(LIBDIR)
 LIB_LINUX_DEBUG = $(LIB)
-LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs log4cpp` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -rdynamic $(LDFLAGS)
+LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lX11 -lcurl `pkg-config --libs log4cpp` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -rdynamic $(LDFLAGS)
 OBJDIR_LINUX_DEBUG = .objs_debug
 DEP_LINUX_DEBUG = 
 OUT_LINUX_DEBUG = ../bin/xCapture
@@ -35,14 +35,14 @@ RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 LIBDIR_LINUX_RELEASE = $(LIBDIR)
 LIB_LINUX_RELEASE = $(LIB)
-LDFLAGS_LINUX_RELEASE =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs log4cpp` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -rdynamic $(LDFLAGS)
+LDFLAGS_LINUX_RELEASE =  -lGL -lGLU -lglut -ldl -lX11 -lcurl `pkg-config --libs log4cpp` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -rdynamic $(LDFLAGS)
 OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../bin/xCapture
 
-OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/xCaptureMain.o $(OBJDIR_LINUX_DEBUG)/xCaptureApp.o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o $(OBJDIR_LINUX_DEBUG)/ResultDialog.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o
+OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/ResultDialog.o $(OBJDIR_LINUX_DEBUG)/xCaptureMain.o $(OBJDIR_LINUX_DEBUG)/xCaptureApp.o $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonval.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonreader.o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o
 
-OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/xCaptureMain.o $(OBJDIR_LINUX_RELEASE)/xCaptureApp.o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o $(OBJDIR_LINUX_RELEASE)/ResultDialog.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o
+OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/ResultDialog.o $(OBJDIR_LINUX_RELEASE)/xCaptureMain.o $(OBJDIR_LINUX_RELEASE)/xCaptureApp.o $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonval.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonreader.o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o
 
 all: linux_debug linux_release
 
@@ -52,6 +52,7 @@ before_linux_debug:
 	@test -d ../bin || mkdir -p ../bin
 	@test -d $(OBJDIR_LINUX_DEBUG) || mkdir -p $(OBJDIR_LINUX_DEBUG)
 	@test -d $(OBJDIR_LINUX_DEBUG)/__/xLights || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/xLights
+	@test -d $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON
 
 after_linux_debug: 
 
@@ -60,23 +61,29 @@ linux_debug: before_linux_debug out_linux_debug after_linux_debug
 out_linux_debug: before_linux_debug $(OBJ_LINUX_DEBUG) $(DEP_LINUX_DEBUG)
 	$(LD) $(LIBDIR_LINUX_DEBUG) -o $(OUT_LINUX_DEBUG) $(OBJ_LINUX_DEBUG)  $(LDFLAGS_LINUX_DEBUG) $(LIB_LINUX_DEBUG)
 
+$(OBJDIR_LINUX_DEBUG)/ResultDialog.o: ResultDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ResultDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ResultDialog.o
+
 $(OBJDIR_LINUX_DEBUG)/xCaptureMain.o: xCaptureMain.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xCaptureMain.cpp -o $(OBJDIR_LINUX_DEBUG)/xCaptureMain.o
 
 $(OBJDIR_LINUX_DEBUG)/xCaptureApp.o: xCaptureApp.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xCaptureApp.cpp -o $(OBJDIR_LINUX_DEBUG)/xCaptureApp.o
 
-$(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o
-
 $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o: UniverseEntryDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c UniverseEntryDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/ResultDialog.o: ResultDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ResultDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ResultDialog.o
+$(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o: ../xLights/xLightsVersion.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/xLightsVersion.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonval.o: ../xSchedule/wxJSON/jsonval.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xSchedule/wxJSON/jsonval.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonval.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonreader.o: ../xSchedule/wxJSON/jsonreader.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xSchedule/wxJSON/jsonreader.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonreader.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o
@@ -88,6 +95,7 @@ before_linux_release:
 	@test -d ../bin || mkdir -p ../bin
 	@test -d $(OBJDIR_LINUX_RELEASE) || mkdir -p $(OBJDIR_LINUX_RELEASE)
 	@test -d $(OBJDIR_LINUX_RELEASE)/__/xLights || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/xLights
+	@test -d $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON
 
 after_linux_release: 
 
@@ -96,23 +104,29 @@ linux_release: before_linux_release out_linux_release after_linux_release
 out_linux_release: before_linux_release $(OBJ_LINUX_RELEASE) $(DEP_LINUX_RELEASE)
 	$(LD) $(LIBDIR_LINUX_RELEASE) -o $(OUT_LINUX_RELEASE) $(OBJ_LINUX_RELEASE)  $(LDFLAGS_LINUX_RELEASE) $(LIB_LINUX_RELEASE)
 
+$(OBJDIR_LINUX_RELEASE)/ResultDialog.o: ResultDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ResultDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ResultDialog.o
+
 $(OBJDIR_LINUX_RELEASE)/xCaptureMain.o: xCaptureMain.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xCaptureMain.cpp -o $(OBJDIR_LINUX_RELEASE)/xCaptureMain.o
 
 $(OBJDIR_LINUX_RELEASE)/xCaptureApp.o: xCaptureApp.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xCaptureApp.cpp -o $(OBJDIR_LINUX_RELEASE)/xCaptureApp.o
 
-$(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o
-
 $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o: UniverseEntryDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c UniverseEntryDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o
 
-$(OBJDIR_LINUX_RELEASE)/ResultDialog.o: ResultDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ResultDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ResultDialog.o
+$(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o: ../xLights/xLightsVersion.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/xLightsVersion.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonval.o: ../xSchedule/wxJSON/jsonval.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xSchedule/wxJSON/jsonval.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonval.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonreader.o: ../xSchedule/wxJSON/jsonreader.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xSchedule/wxJSON/jsonreader.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonreader.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o
@@ -120,13 +134,13 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
 clean_linux_release: 
 	rm -f $(OBJ_LINUX_RELEASE) $(OUT_LINUX_RELEASE)
 
+ResultDialog.cpp: ResultDialog.h
+
 xCaptureMain.cpp: xCaptureMain.h UniverseEntryDialog.h ResultDialog.h ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm
 
 xCaptureApp.cpp: xCaptureApp.h xCaptureMain.h
 
 UniverseEntryDialog.cpp: UniverseEntryDialog.h
-
-ResultDialog.cpp: ResultDialog.h
 
 .PHONY: before_linux_debug after_linux_debug clean_linux_debug before_linux_release after_linux_release clean_linux_release
 

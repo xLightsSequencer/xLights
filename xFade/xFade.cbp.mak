@@ -24,7 +24,7 @@ RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
 LIBDIR_LINUX_DEBUG = $(LIBDIR)
 LIB_LINUX_DEBUG = $(LIB)
-LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs log4cpp` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -lporttime -lportmidi -rdynamic $(LDFLAGS)
+LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lX11 -lcurl `pkg-config --libs log4cpp` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -lporttime -lportmidi -rdynamic $(LDFLAGS)
 OBJDIR_LINUX_DEBUG = .objs_debug
 DEP_LINUX_DEBUG = 
 OUT_LINUX_DEBUG = ../bin/xFade
@@ -35,14 +35,14 @@ RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 LIBDIR_LINUX_RELEASE = $(LIBDIR)
 LIB_LINUX_RELEASE = $(LIB)
-LDFLAGS_LINUX_RELEASE =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs log4cpp` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -lporttime -lportmidi -rdynamic $(LDFLAGS)
+LDFLAGS_LINUX_RELEASE =  -lGL -lGLU -lglut -ldl -lX11 -lcurl `pkg-config --libs log4cpp` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -lporttime -lportmidi -rdynamic $(LDFLAGS)
 OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../bin/xFade
 
-OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/PacketData.o $(OBJDIR_LINUX_DEBUG)/Settings.o $(OBJDIR_LINUX_DEBUG)/SettingsDialog.o $(OBJDIR_LINUX_DEBUG)/UniverseData.o $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o $(OBJDIR_LINUX_DEBUG)/MIDIListener.o $(OBJDIR_LINUX_DEBUG)/wxLED.o $(OBJDIR_LINUX_DEBUG)/xFadeApp.o $(OBJDIR_LINUX_DEBUG)/xFadeMain.o $(OBJDIR_LINUX_DEBUG)/ArtNETReceiver.o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidi.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_DEBUG)/E131Receiver.o $(OBJDIR_LINUX_DEBUG)/Emitter.o $(OBJDIR_LINUX_DEBUG)/FadeExcludeDialog.o $(OBJDIR_LINUX_DEBUG)/MIDIAssociateDialog.o
+OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/MIDIListener.o $(OBJDIR_LINUX_DEBUG)/PacketData.o $(OBJDIR_LINUX_DEBUG)/Settings.o $(OBJDIR_LINUX_DEBUG)/SettingsDialog.o $(OBJDIR_LINUX_DEBUG)/UniverseData.o $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o $(OBJDIR_LINUX_DEBUG)/MIDIAssociateDialog.o $(OBJDIR_LINUX_DEBUG)/wxLED.o $(OBJDIR_LINUX_DEBUG)/xFadeApp.o $(OBJDIR_LINUX_DEBUG)/xFadeMain.o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonreader.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonval.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidi.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o $(OBJDIR_LINUX_DEBUG)/ArtNETReceiver.o $(OBJDIR_LINUX_DEBUG)/E131Receiver.o $(OBJDIR_LINUX_DEBUG)/Emitter.o $(OBJDIR_LINUX_DEBUG)/FadeExcludeDialog.o
 
-OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/PacketData.o $(OBJDIR_LINUX_RELEASE)/Settings.o $(OBJDIR_LINUX_RELEASE)/SettingsDialog.o $(OBJDIR_LINUX_RELEASE)/UniverseData.o $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o $(OBJDIR_LINUX_RELEASE)/MIDIListener.o $(OBJDIR_LINUX_RELEASE)/wxLED.o $(OBJDIR_LINUX_RELEASE)/xFadeApp.o $(OBJDIR_LINUX_RELEASE)/xFadeMain.o $(OBJDIR_LINUX_RELEASE)/ArtNETReceiver.o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidi.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_RELEASE)/E131Receiver.o $(OBJDIR_LINUX_RELEASE)/Emitter.o $(OBJDIR_LINUX_RELEASE)/FadeExcludeDialog.o $(OBJDIR_LINUX_RELEASE)/MIDIAssociateDialog.o
+OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/MIDIListener.o $(OBJDIR_LINUX_RELEASE)/PacketData.o $(OBJDIR_LINUX_RELEASE)/Settings.o $(OBJDIR_LINUX_RELEASE)/SettingsDialog.o $(OBJDIR_LINUX_RELEASE)/UniverseData.o $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o $(OBJDIR_LINUX_RELEASE)/MIDIAssociateDialog.o $(OBJDIR_LINUX_RELEASE)/wxLED.o $(OBJDIR_LINUX_RELEASE)/xFadeApp.o $(OBJDIR_LINUX_RELEASE)/xFadeMain.o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonreader.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonval.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidi.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o $(OBJDIR_LINUX_RELEASE)/ArtNETReceiver.o $(OBJDIR_LINUX_RELEASE)/E131Receiver.o $(OBJDIR_LINUX_RELEASE)/Emitter.o $(OBJDIR_LINUX_RELEASE)/FadeExcludeDialog.o
 
 all: linux_debug linux_release
 
@@ -52,6 +52,7 @@ before_linux_debug:
 	@test -d ../bin || mkdir -p ../bin
 	@test -d $(OBJDIR_LINUX_DEBUG) || mkdir -p $(OBJDIR_LINUX_DEBUG)
 	@test -d $(OBJDIR_LINUX_DEBUG)/__/xLights || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/xLights
+	@test -d $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON
 	@test -d $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src
 
 after_linux_debug: 
@@ -60,6 +61,9 @@ linux_debug: before_linux_debug out_linux_debug after_linux_debug
 
 out_linux_debug: before_linux_debug $(OBJ_LINUX_DEBUG) $(DEP_LINUX_DEBUG)
 	$(LD) $(LIBDIR_LINUX_DEBUG) -o $(OUT_LINUX_DEBUG) $(OBJ_LINUX_DEBUG)  $(LDFLAGS_LINUX_DEBUG) $(LIB_LINUX_DEBUG)
+
+$(OBJDIR_LINUX_DEBUG)/MIDIListener.o: MIDIListener.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MIDIListener.cpp -o $(OBJDIR_LINUX_DEBUG)/MIDIListener.o
 
 $(OBJDIR_LINUX_DEBUG)/PacketData.o: PacketData.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PacketData.cpp -o $(OBJDIR_LINUX_DEBUG)/PacketData.o
@@ -76,8 +80,8 @@ $(OBJDIR_LINUX_DEBUG)/UniverseData.o: UniverseData.cpp
 $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o: UniverseEntryDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c UniverseEntryDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/MIDIListener.o: MIDIListener.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MIDIListener.cpp -o $(OBJDIR_LINUX_DEBUG)/MIDIListener.o
+$(OBJDIR_LINUX_DEBUG)/MIDIAssociateDialog.o: MIDIAssociateDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MIDIAssociateDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/MIDIAssociateDialog.o
 
 $(OBJDIR_LINUX_DEBUG)/wxLED.o: wxLED.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c wxLED.cpp -o $(OBJDIR_LINUX_DEBUG)/wxLED.o
@@ -88,11 +92,14 @@ $(OBJDIR_LINUX_DEBUG)/xFadeApp.o: xFadeApp.cpp
 $(OBJDIR_LINUX_DEBUG)/xFadeMain.o: xFadeMain.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xFadeMain.cpp -o $(OBJDIR_LINUX_DEBUG)/xFadeMain.o
 
-$(OBJDIR_LINUX_DEBUG)/ArtNETReceiver.o: ArtNETReceiver.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ArtNETReceiver.cpp -o $(OBJDIR_LINUX_DEBUG)/ArtNETReceiver.o
-
 $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonreader.o: ../xSchedule/wxJSON/jsonreader.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xSchedule/wxJSON/jsonreader.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonreader.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonval.o: ../xSchedule/wxJSON/jsonval.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xSchedule/wxJSON/jsonval.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonval.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsTimer.o: ../xLights/xLightsTimer.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/xLightsTimer.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsTimer.o
@@ -100,14 +107,17 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsTimer.o: ../xLights/xLightsTimer.cpp
 $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o: ../xLights/xLightsVersion.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/xLightsVersion.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o
 
+$(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o
+
 $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidi.o: ../xSchedule/wxMIDI/src/wxMidi.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xSchedule/wxMIDI/src/wxMidi.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidi.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o: ../xSchedule/wxMIDI/src/wxMidiDatabase.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xSchedule/wxMIDI/src/wxMidiDatabase.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o
 
-$(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o
+$(OBJDIR_LINUX_DEBUG)/ArtNETReceiver.o: ArtNETReceiver.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ArtNETReceiver.cpp -o $(OBJDIR_LINUX_DEBUG)/ArtNETReceiver.o
 
 $(OBJDIR_LINUX_DEBUG)/E131Receiver.o: E131Receiver.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c E131Receiver.cpp -o $(OBJDIR_LINUX_DEBUG)/E131Receiver.o
@@ -118,9 +128,6 @@ $(OBJDIR_LINUX_DEBUG)/Emitter.o: Emitter.cpp
 $(OBJDIR_LINUX_DEBUG)/FadeExcludeDialog.o: FadeExcludeDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c FadeExcludeDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/FadeExcludeDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/MIDIAssociateDialog.o: MIDIAssociateDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MIDIAssociateDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/MIDIAssociateDialog.o
-
 clean_linux_debug: 
 	rm -f $(OBJ_LINUX_DEBUG) $(OUT_LINUX_DEBUG)
 
@@ -128,6 +135,7 @@ before_linux_release:
 	@test -d ../bin || mkdir -p ../bin
 	@test -d $(OBJDIR_LINUX_RELEASE) || mkdir -p $(OBJDIR_LINUX_RELEASE)
 	@test -d $(OBJDIR_LINUX_RELEASE)/__/xLights || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/xLights
+	@test -d $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON
 	@test -d $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src
 
 after_linux_release: 
@@ -136,6 +144,9 @@ linux_release: before_linux_release out_linux_release after_linux_release
 
 out_linux_release: before_linux_release $(OBJ_LINUX_RELEASE) $(DEP_LINUX_RELEASE)
 	$(LD) $(LIBDIR_LINUX_RELEASE) -o $(OUT_LINUX_RELEASE) $(OBJ_LINUX_RELEASE)  $(LDFLAGS_LINUX_RELEASE) $(LIB_LINUX_RELEASE)
+
+$(OBJDIR_LINUX_RELEASE)/MIDIListener.o: MIDIListener.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MIDIListener.cpp -o $(OBJDIR_LINUX_RELEASE)/MIDIListener.o
 
 $(OBJDIR_LINUX_RELEASE)/PacketData.o: PacketData.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PacketData.cpp -o $(OBJDIR_LINUX_RELEASE)/PacketData.o
@@ -152,8 +163,8 @@ $(OBJDIR_LINUX_RELEASE)/UniverseData.o: UniverseData.cpp
 $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o: UniverseEntryDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c UniverseEntryDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o
 
-$(OBJDIR_LINUX_RELEASE)/MIDIListener.o: MIDIListener.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MIDIListener.cpp -o $(OBJDIR_LINUX_RELEASE)/MIDIListener.o
+$(OBJDIR_LINUX_RELEASE)/MIDIAssociateDialog.o: MIDIAssociateDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MIDIAssociateDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/MIDIAssociateDialog.o
 
 $(OBJDIR_LINUX_RELEASE)/wxLED.o: wxLED.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c wxLED.cpp -o $(OBJDIR_LINUX_RELEASE)/wxLED.o
@@ -164,11 +175,14 @@ $(OBJDIR_LINUX_RELEASE)/xFadeApp.o: xFadeApp.cpp
 $(OBJDIR_LINUX_RELEASE)/xFadeMain.o: xFadeMain.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xFadeMain.cpp -o $(OBJDIR_LINUX_RELEASE)/xFadeMain.o
 
-$(OBJDIR_LINUX_RELEASE)/ArtNETReceiver.o: ArtNETReceiver.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ArtNETReceiver.cpp -o $(OBJDIR_LINUX_RELEASE)/ArtNETReceiver.o
-
 $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonreader.o: ../xSchedule/wxJSON/jsonreader.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xSchedule/wxJSON/jsonreader.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonreader.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonval.o: ../xSchedule/wxJSON/jsonval.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xSchedule/wxJSON/jsonval.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonval.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsTimer.o: ../xLights/xLightsTimer.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/xLightsTimer.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsTimer.o
@@ -176,14 +190,17 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsTimer.o: ../xLights/xLightsTimer.cpp
 $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o: ../xLights/xLightsVersion.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/xLightsVersion.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o
 
+$(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o
+
 $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidi.o: ../xSchedule/wxMIDI/src/wxMidi.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xSchedule/wxMIDI/src/wxMidi.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidi.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o: ../xSchedule/wxMIDI/src/wxMidiDatabase.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xSchedule/wxMIDI/src/wxMidiDatabase.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o
 
-$(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o
+$(OBJDIR_LINUX_RELEASE)/ArtNETReceiver.o: ArtNETReceiver.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ArtNETReceiver.cpp -o $(OBJDIR_LINUX_RELEASE)/ArtNETReceiver.o
 
 $(OBJDIR_LINUX_RELEASE)/E131Receiver.o: E131Receiver.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c E131Receiver.cpp -o $(OBJDIR_LINUX_RELEASE)/E131Receiver.o
@@ -194,11 +211,10 @@ $(OBJDIR_LINUX_RELEASE)/Emitter.o: Emitter.cpp
 $(OBJDIR_LINUX_RELEASE)/FadeExcludeDialog.o: FadeExcludeDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c FadeExcludeDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/FadeExcludeDialog.o
 
-$(OBJDIR_LINUX_RELEASE)/MIDIAssociateDialog.o: MIDIAssociateDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MIDIAssociateDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/MIDIAssociateDialog.o
-
 clean_linux_release: 
 	rm -f $(OBJ_LINUX_RELEASE) $(OUT_LINUX_RELEASE)
+
+MIDIListener.cpp: MIDIListener.h
 
 PacketData.cpp: PacketData.h
 
@@ -212,7 +228,7 @@ UniverseData.h: PacketData.h
 
 UniverseEntryDialog.cpp: UniverseEntryDialog.h
 
-MIDIListener.cpp: MIDIListener.h
+MIDIAssociateDialog.cpp: MIDIAssociateDialog.h MIDIListener.h Settings.h
 
 wxLED.cpp: wxLED.h
 
@@ -220,7 +236,7 @@ xFadeApp.cpp: xFadeApp.h xFadeMain.h
 
 xFadeMain.h: Settings.h wxLED.h UniverseData.h
 
-xFadeMain.cpp: xFadeMain.h UniverseEntryDialog.h Emitter.h MIDIListener.h SettingsDialog.h MIDIAssociateDialog.h UniverseData.h E131Receiver.h ArtNETReceiver.h ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm
+xFadeMain.cpp: xFadeMain.h UniverseEntryDialog.h Emitter.h SettingsDialog.h UniverseData.h E131Receiver.h ArtNETReceiver.h MIDIListener.h MIDIAssociateDialog.h ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm
 
 Emitter.h: PacketData.h
 
@@ -235,8 +251,6 @@ E131Receiver.cpp: E131Receiver.h xFadeMain.h Settings.h PacketData.h UniverseDat
 Emitter.cpp: Emitter.h xFadeMain.h Settings.h PacketData.h
 
 FadeExcludeDialog.cpp: FadeExcludeDialog.h Settings.h
-
-MIDIAssociateDialog.cpp: MIDIAssociateDialog.h MIDIListener.h Settings.h
 
 .PHONY: before_linux_debug after_linux_debug clean_linux_debug before_linux_release after_linux_release clean_linux_release
 
