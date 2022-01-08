@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
       - run: docker pull debenham/xlights
       - run: docker run --name buildvm debenham/xlights /bin/bash Recipe.appimage
       - run: 'docker cp buildvm:/xLights/xLights/AppImage/ /tmp/'
@@ -30,6 +32,8 @@ jobs:
    steps:
     - name: Checkout
       uses: actions/checkout@master
+      with:
+          submodules: 'true'
 
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v1     
