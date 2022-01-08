@@ -916,8 +916,6 @@
     </ClCompile>
     <ClCompile Include="graphics\opengl\XlightsDrawable.cpp" />
     <ClCompile Include="graphics\xlFontInfo.cpp" />
-    <ClCompile Include="automation\automation.cpp" />
-    <ClCompile Include="automation\xLightsAutomations.cpp" />
     <ClCompile Include="ScriptsDialog.cpp" />
     <ClCompile Include="..\xSchedule\wxHTTPServer\connection.cpp" />
     <ClCompile Include="..\xSchedule\wxHTTPServer\context.cpp" />
@@ -930,6 +928,15 @@
     <ClCompile Include="..\xSchedule\wxHTTPServer\status.cpp" />
     <ClCompile Include="graphics\xlMesh.cpp">
       <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="automation\automation.cpp">
+      <Filter>automation</Filter>
+    </ClCompile>
+    <ClCompile Include="automation\xLightsAutomations.cpp">
+      <Filter>automation</Filter>
+    </ClCompile>
+    <ClCompile Include="automation\LuaRunner.cpp">
+      <Filter>automation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1860,7 +1867,6 @@
     </ClInclude>
     <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
     <ClInclude Include="graphics\xlFontInfo.h" />
-    <ClInclude Include="automation\automation.h" />
     <ClInclude Include="ScriptsDialog.h" />
     <ClInclude Include="..\xSchedule\wxHTTPServer\sha1.h" />
     <ClInclude Include="..\xSchedule\wxHTTPServer\wxhttpserver.h" />
@@ -1869,6 +1875,12 @@
     </ClInclude>
     <ClInclude Include="graphics\xlMesh.h">
       <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="automation\automation.h">
+      <Filter>automation</Filter>
+    </ClInclude>
+    <ClInclude Include="automation\LuaRunner.h">
+      <Filter>automation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1901,6 +1913,9 @@
     </Filter>
     <Filter Include="graphics\opengl">
       <UniqueIdentifier>{6a3bbe99-6c51-4b5c-a7af-1e8d44671419}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="automation">
+      <UniqueIdentifier>{4712b6e7-2234-4c16-8ba5-b15d04dcba71}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

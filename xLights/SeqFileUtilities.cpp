@@ -6358,3 +6358,47 @@ void xLightsFrame::ImportVsa(const wxFileName& filename)
     float elapsedTime = sw.Time() / 1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
+
+void xLightsFrame::CloneXLightsEffects(EffectLayer* target, EffectLayer* src, bool eraseExisting)
+{
+    if (eraseExisting) {
+        target->DeleteAllEffects();
+    }
+
+    for (int x = 0; x < src->GetEffectCount(); x++) {
+        Effect* ef = src->GetEffect(x);
+        if (!target->HasEffectsInTimeRange(ef->GetStartTimeMS(), ef->GetEndTimeMS())) {
+            std::string settings = ef->GetSettingsAsString();
+
+            // remove lock if it is there
+            Replace(settings, ",X_Effect_Locked=True", "");
+            target->AddEffect(0, ef->GetEffectName(), settings, ef->GetPaletteAsString(),
+                              ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
+        }
+    }
+}
+
+bool xLightsFrame::CloneXLightsEffects(const std::string& target,
+                                       const std::string& source,
+                                       SequenceElements& seqEl,
+                                       bool eraseExisting)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    Element* from = seqEl.GetElement(source);
+    Element* to = seqEl.GetElement(target);
+
+    if (from == nullptr || to == nullptr) {
+        logger_base.debug("Mapping xLights effect from %s to %s failed as the effect was not found in the source sequence.", (const char*)source.c_str(), (const char*)target.c_str());
+        //printf("Source element %s doesn't exist\n", name.c_str());
+        return false;
+    }
+    _sequenceElements.get_undo_mgr().CreateUndoStep();
+    while (to->GetEffectLayerCount() < from->GetEffectLayerCount()) {
+        to->AddEffectLayer();
+    }
+    for (size_t x = 0; x < from->GetEffectLayerCount(); x++) {
+        CloneXLightsEffects(to->GetEffectLayer(x), from->GetEffectLayer(x), eraseExisting);
+    }
+    return true;
+}

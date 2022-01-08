@@ -26,7 +26,10 @@
 #include "../JukeboxPanel.h"
 #include "../outputs/E131Output.h"
 #include "../../xSchedule/wxHTTPServer/wxhttpserver.h"
+#include "../sequencer/MainSequencer.h"
 #include <wx/uri.h>
+
+#include "LuaRunner.h"
 
 #include <log4cpp/Category.hh>
 
@@ -645,6 +648,85 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
     } else if (cmd == "packageLogFiles") {
         auto const filename = PackageDebugFiles(false);
         std::string response = wxString::Format("{\"msg\":\"Log Files Packaged.\",\"output\":\"%s\"}", JSONSafe(filename));
+        return sendResponse(response, "", 200, true);
+
+    } else if (cmd == "exportVideoPreview") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+
+        auto filename = params["filename"];
+        if (filename == "" || filename == "null") {
+            filename = CurrentDir + wxFileName::GetPathSeparator() + CurrentSeqXmlFile->GetName() + ".mp4";
+        }
+        auto const worked = ExportVideoPreview(filename);
+        if (worked) {
+            std::string response = wxString::Format("{\"msg\":\"Export Video Preview.\",\"output\":\"%s\"}", JSONSafe(filename));
+            return sendResponse(response, "", 200, true);
+        }        
+        return sendResponse("Export Video Preview Failed", "msg", 503, true);
+    } else if (cmd == "runScript") {
+        auto filename = params["filename"];
+        if (filename.empty() || filename == "null" || !wxFile::Exists(filename)) {
+            return sendResponse("Invalid Script Path.", "msg", 503, false);
+        }
+
+        LuaRunner runner(this);
+        auto const worked = runner.Run_Script(filename, [](std::string const& m) {});
+        if (worked) {
+            std::string response = "{\"msg\":\"Script Was Successful.\"}";
+            return sendResponse(response, "", 200, true);
+        }
+        return sendResponse("Script Failed", "msg", 503, true);
+    } else if (cmd == "cloneModelEffects") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        auto target = params["target"];
+        auto source = params["source"];
+        auto erase = false;
+
+        if (!params["eraseModel"].empty()) {
+            erase = ReadBool(params["eraseModel"]);
+        }
+        auto const worked = CloneXLightsEffects(target, source, _sequenceElements, erase);
+        mainSequencer->PanelEffectGrid->Refresh();
+        std::string response = wxString::Format("{\"msg\":\"Model Effects Cloned.\",\"worked\":\"%s\"}", JSONSafe(toStr(worked)));
+        return sendResponse(response, "", 200, true);
+    } else if (cmd == "addEffect") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        auto target = params["target"];
+        auto effect = params["effect"];
+        auto settings = params["settings"];
+        auto palette = params["palette"];
+        Element* to = _sequenceElements.GetElement(target);
+        int startTime = 0;
+        int endTime = CurrentSeqXmlFile->GetSequenceDurationMS();
+        int layer = 0;
+
+        if (!params["layer"].empty()) {
+            layer = std::stoi(params["layer"]);
+        }
+        if (!params["startTime"].empty()) {
+            startTime = std::stoi(params["startTime"]);
+        }
+        if (!params["endTime"].empty()) {
+            endTime = std::stoi(params["endTime"]);
+        }
+
+        if (to == nullptr) {
+            return sendResponse("target element doesnt exists.", "msg", 503, false);
+        }
+        _sequenceElements.get_undo_mgr().CreateUndoStep();
+        while (to->GetEffectLayerCount() < layer) {
+            to->AddEffectLayer();
+        }
+        auto valid = to->GetEffectLayer(layer)->AddEffect(0, effect, settings, palette,
+                                                          startTime, endTime, 0, false);
+        mainSequencer->PanelEffectGrid->Refresh();
+        std::string response = wxString::Format("{\"msg\":\"Added Effects.\",\"worked\":\"%s\"}", JSONSafe(toStr(valid != nullptr)));
         return sendResponse(response, "", 200, true);
     }
 

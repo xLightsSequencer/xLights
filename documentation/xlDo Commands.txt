@@ -157,3 +157,24 @@ Get open sequence
 Get E131 Tag
     {"cmd":"getE131Tag"}
 
+Add Ethernet Type Controller
+    {"cmd":"addEthernetController", "ip":"IP Address", "name", "Name in xLights"}
+
+Packaged Sequence Files
+    {"cmd":"packageSequence"}
+
+Packaged Log Files
+    {"cmd":"packageLogFiles"}
+
+Export Video Preview
+    {"cmd":"exportVideoPreview", "filename":"Export File Name"}
+
+Run Lua Script
+    {"cmd":"runScript", "filename":"Lua File Name"}
+
+Copy All Effects from One Model to Another Model
+    {"cmd":"cloneModelEffects", "target":"Model to Copy Effects To", "source":"Model to Copy Effects From", "eraseModel":"Erase Existing Effects from Target Model"}
+
+Add Effect to a Model
+    {"cmd":"addEffect", "target":"Model to Add Effect To", "effect":"Effect Type", "settings":"Effect Settings", "palette":"Color Palette Settings", "layer":"Effect Layer", "startTime":"Start Time in ms", "endTime":"End Time in ms"}
+

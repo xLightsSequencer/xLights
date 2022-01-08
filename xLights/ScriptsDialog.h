@@ -19,13 +19,18 @@
 #include <wx/textctrl.h>
 //*)
 
+#include <wx/arrstr.h>
+#include <map>
+#include <string>
+
+class LuaRunner;
 class xLightsFrame;
-class wxJSONValue;
 
 class ScriptsDialog : public wxDialog
 {
 	xLightsFrame* _frame = nullptr;
-    wxString _scriptFolder;
+    wxArrayString _scripts;
+    std::unique_ptr<LuaRunner> _runner;
 
 public:
 
@@ -33,6 +38,7 @@ public:
 	virtual ~ScriptsDialog();
 
 	//(*Declarations(ScriptsDialog)
+	wxButton* Button_Clear;
 	wxButton* Button_Refresh;
 	wxButton* Button_Run;
 	wxListBox* ListBoxScripts;
@@ -40,13 +46,16 @@ public:
 	wxTextCtrl* TextCtrl_Log;
 	//*)
 
-protected:
+
+
+    protected:
 
 	//(*Identifiers(ScriptsDialog)
 	static const long ID_STATICTEXT1;
 	static const long ID_LISTBOX_SCRIPTS;
 	static const long ID_BUTTON_RUN;
 	static const long ID_BUTTON_REFRESH;
+	static const long ID_BUTTON_CLEAR;
 	static const long ID_TEXTCTRL_LOG;
 	//*)
 
@@ -57,14 +66,16 @@ private:
 	//(*Handlers(ScriptsDialog)
 	void OnButton_RefreshClick(wxCommandEvent& event);
 	void OnButton_RunClick(wxCommandEvent& event);
+	void OnButton_ClearClick(wxCommandEvent& event);
 	//*)
 
 	void OnListRClick(wxContextMenuEvent& event);
 	void OnPopup(wxCommandEvent& event);
 
 	void LoadScriptDir();
-    void Run_Script(wxString const& filepath);
-    wxString JSONtoString(wxJSONValue const& json) const;
+    void ProcessScriptDir(wxString const& dir);
+    void Run_Lua_Script(wxString const& filepath)const;
+
 
 	DECLARE_EVENT_TABLE()
 };

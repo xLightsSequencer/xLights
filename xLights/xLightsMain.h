@@ -389,6 +389,7 @@ public:
     void PopTraceContext();
     void AddTraceMessage(const std::string &msg);
     void ClearTraceMessages();
+    bool ExportVideoPreview(wxString const& path);
 
 	void SetAudioControls();
     void ImportXLights(const wxFileName &filename);
@@ -404,6 +405,11 @@ public:
     void ImportLSP(const wxFileName &filename);
     void ImportVsa(const wxFileName &filename);
     void ImportSuperStar(const wxFileName &filename);
+    void CloneXLightsEffects(EffectLayer* target, EffectLayer* src, bool eraseExisting);
+    bool CloneXLightsEffects(const std::string& target,
+                             const std::string& source,
+                             SequenceElements& seqEl,
+                             bool eraseExisting);
     void SaveWorking();
     void SaveWorkingLayout();
     void PlayerError(const wxString& msg);

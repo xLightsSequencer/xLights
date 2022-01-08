@@ -12,7 +12,7 @@
 			<growablerows>1</growablerows>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-					<label>Select the JSON Script you want to run.</label>
+					<label>Select the Lua Script to Run.</label>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -28,7 +28,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_RUN" variable="Button_Run" member="yes">
 							<label>Run</label>
@@ -42,6 +42,15 @@
 						<object class="wxButton" name="ID_BUTTON_REFRESH" variable="Button_Refresh" member="yes">
 							<label>Refresh</label>
 							<handler function="OnButton_RefreshClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_CLEAR" variable="Button_Clear" member="yes">
+							<label>Clear</label>
+							<handler function="OnButton_ClearClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

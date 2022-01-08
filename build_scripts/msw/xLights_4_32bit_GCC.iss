@@ -141,6 +141,9 @@ Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: ignorev
 ; Palettes
 Source: "../../palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: ignoreversion recursesubdirs
 
+; Scripts
+Source: "../../scripts/*.*"; DestDir: "{app}/scripts"   ; Flags: ignoreversion recursesubdirs
+
 [Icons] 
 Name: "{group}\xLights"; Filename: "{app}\xLights.EXE"; WorkingDir: "{app}"
 Name: "{group}\xSchedule"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"

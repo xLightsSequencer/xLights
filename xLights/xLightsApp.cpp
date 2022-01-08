@@ -122,6 +122,7 @@
 #pragma comment(lib, "SDL2.lib")
 #pragma comment(lib, "swscale.lib")
 #pragma comment(lib, "z.lib")
+#pragma comment(lib, "lua5.3.5-static.lib")
 #endif
 
 xLightsFrame* xLightsApp::__frame = nullptr;

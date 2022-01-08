@@ -3026,10 +3026,25 @@ void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 {
+    const char wildcard[] = "MP4 files (*.mp4)|*.mp4";
+    wxFileDialog pExportDlg(this, _("Export House Preview Video"), wxEmptyString, CurrentSeqXmlFile->GetName(), wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    int exportChoice = pExportDlg.ShowModal();
+
+    if (exportChoice != wxID_OK) {
+        return;
+    }
+
+    ExportVideoPreview(pExportDlg.GetPath());
+}
+
+bool xLightsFrame::ExportVideoPreview(wxString const& path)
+{
     int frameCount = _seqData.NumFrames();
 
     if (CurrentSeqXmlFile == nullptr || frameCount == 0)
-        return;
+    {
+        return false; 
+    }
 
     // Ensure all pending work is done before we do anything
     DoAllWork();
@@ -3043,20 +3058,9 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 
     ModelPreview *housePreview = _housePreviewPanel->GetModelPreview();
     if (housePreview == nullptr) {
-        return;
+        return false;
     }
 
-    const char wildcard[] = "MP4 files (*.mp4)|*.mp4";
-    wxFileDialog *pExportDlg = new wxFileDialog(this, _("Export House Preview Video"), wxEmptyString, CurrentSeqXmlFile->GetName(), wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    int exportChoice = pExportDlg->ShowModal();
-
-    if (exportChoice != wxID_OK)  {
-        delete pExportDlg;
-        return;
-    }
-
-    wxString path(pExportDlg->GetPath());
-    delete pExportDlg;
 
     int playStatus = GetPlayStatus();
     SetPlayStatus(PLAY_TYPE_STOPPED);
@@ -3133,6 +3137,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     } else {
         DisplayError( "Exporting house preview video failed.  " + emsg, this );
     }
+    return exportStatus;
 }
 
 void xLightsFrame::OnResize(wxSizeEvent& event)
