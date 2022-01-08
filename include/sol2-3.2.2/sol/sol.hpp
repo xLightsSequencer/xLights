@@ -6372,7 +6372,7 @@ namespace sol {
 		template <typename... Args>
 		stack_dependencies(int stack_target, Args&&... args) : target(stack_target), stack_indices(), len(sizeof...(Args)) {
 			std::size_t i = 0;
-			(void)detail::swallow{ int(), (stack_indices[i++] = static_cast<int>(std::forward<Args>(args)), int())... };
+            (void)detail::swallow{ int(), (static_cast<void>(stack_indices[i++] = static_cast<int>(std::forward<Args>(args))), int())... };
 		}
 
 		int& operator[](std::size_t i) {
@@ -24415,7 +24415,7 @@ namespace sol {
 		}
 
 		basic_environment(env_key_t, const stack_reference& extraction_target)
-		: base_t(detail::no_safety, extraction_target.lua_state(), (stack::push_environment_of(extraction_target), -1)) {
+        : base_t(detail::no_safety, extraction_target.lua_state(), (static_cast<void>(stack::push_environment_of(extraction_target)), -1)) {
 #if SOL_IS_ON(SOL_SAFE_REFERENCES_I_)
 			constructor_handler handler {};
 			stack::check<env_key_t>(this->lua_state(), -1, handler);
