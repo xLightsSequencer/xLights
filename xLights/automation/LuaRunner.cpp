@@ -15,10 +15,6 @@
 
 #include <log4cpp/Category.hh>
 
-//#include <lua.hpp>
-
-//wxDEFINE_EVENT(LUA_LOG_EVENT, wxCommandEvent);
-
 LuaRunner::LuaRunner(xLightsFrame* frame) :
     _frame(frame)
 {}
