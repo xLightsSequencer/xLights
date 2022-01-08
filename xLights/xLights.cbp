@@ -755,6 +755,8 @@
 		<Unit filename="XlightsDrawable.h" />
 		<Unit filename="automation/automation.cpp" />
 		<Unit filename="automation/automation.h" />
+		<Unit filename="automation/LuaRunner.cpp" />
+		<Unit filename="automation/LuaRunner.h" />
 		<Unit filename="automation/xLightsAutomations.cpp" />
 		<Unit filename="cad/CADModel.cpp" />
 		<Unit filename="cad/CADModel.h" />
