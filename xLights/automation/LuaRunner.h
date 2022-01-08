@@ -31,10 +31,12 @@ public:
     bool Run_Script(wxString const& filepath, std::function<void(std::string const& msg)> SendResponce);
 
     [[nodiscard]] std::map<std::string, std::string> RunCommand(std::string const& cmd, std::map<std::string, std::string> parms);
-    void ShowMessage(std::string const& text);
-    [[nodiscard]] std::string PromptString(std::string const& text);
-    [[nodiscard]] std::string PromptSelection(std::list<std::string> const items);
+    void ShowMessage(std::string const& text) const;
+    [[nodiscard]] std::string PromptString(std::string const& text) const;
+    [[nodiscard]] std::string PromptSelection(std::list<std::string> const& items, std::string const& message) const;
     [[nodiscard]] std::list<std::string> PromptSequences() const;
+    [[nodiscard]] std::list<std::string> GetModels() const;
+    [[nodiscard]] std::list<std::string> GetContollers() const;
 
 private:
     xLightsFrame* _frame = nullptr;

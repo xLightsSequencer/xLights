@@ -19,12 +19,12 @@ LuaRunner::LuaRunner(xLightsFrame* frame) :
     _frame(frame)
 {}
 
-void LuaRunner::ShowMessage(std::string const& text)
+void LuaRunner::ShowMessage(std::string const& text) const
 {
     wxMessageBox(text, text, wxOK);
 }
 
-std::string LuaRunner::PromptString(std::string const& message)
+std::string LuaRunner::PromptString(std::string const& message) const
 {
     wxTextEntryDialog dialog(_frame, message, message);
     if (dialog.ShowModal() == wxID_OK) {
@@ -33,14 +33,14 @@ std::string LuaRunner::PromptString(std::string const& message)
     return std::string();
 }
 
-std::string LuaRunner::PromptSelection(std::list<std::string> const items)
+std::string LuaRunner::PromptSelection(std::list<std::string> const& items, std::string const& message) const
 {
     wxArrayString itemList;
 
     std::transform(items.begin(), items.end(), std::back_inserter(itemList),
                    [](auto const& str) { return str; });
 
-    wxSingleChoiceDialog dlg(_frame, "", "Select Item", itemList);
+    wxSingleChoiceDialog dlg(_frame, message, message, itemList);
 
     if (dlg.ShowModal() == wxID_OK) {
         return dlg.GetStringSelection();
@@ -63,11 +63,25 @@ std::list<std::string> LuaRunner::PromptSequences() const
             if (fname.FileExists()) {
                 sequenceList.push_back(fname.GetFullPath());
             } else {
-                logger_base.info("BatchRender: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
+                logger_base.info("PromptSequences: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
             }
         }
     }
     return sequenceList;
+}
+
+std::list<std::string> LuaRunner::GetContollers() const
+{
+    return _frame->GetOutputManager()->GetControllerNames();
+}
+
+std::list<std::string> LuaRunner::GetModels() const
+{
+    std::list<std::string> models;
+    for (auto m = (& _frame->AllModels)->begin();m != (&_frame->AllModels)->end(); ++m){
+        models.push_back(m->first);
+    }
+    return models;
 }
 
 bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::string const& msg)> SendResponce)
@@ -82,6 +96,8 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
     lua.set_function("ShowMessage", &LuaRunner::ShowMessage, this);
     lua.set_function("PromptString", &LuaRunner::PromptString, this);
     lua.set_function("PromptSelection", &LuaRunner::PromptSelection, this);
+    lua.set_function("GetContollers", &LuaRunner::GetContollers, this);
+    lua.set_function("GetModels", &LuaRunner::GetModels, this);
     lua.set_function("Log", SendResponce);
 
     try {
