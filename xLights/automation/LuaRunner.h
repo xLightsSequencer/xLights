@@ -11,6 +11,7 @@
 #include <wx/string.h>
 
 #include "../../xSchedule/wxJSON/jsonreader.h"
+#include "../../xSchedule/wxJSON/jsonwriter.h"
 
 #define SOL_ALL_SAFETIES_ON 1
 #include "sol/sol.hpp"
