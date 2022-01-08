@@ -20,7 +20,9 @@
 //*)
 
 #include <wx/arrstr.h>
+
 #include <map>
+#include <memory>
 #include <string>
 
 class LuaRunner;
