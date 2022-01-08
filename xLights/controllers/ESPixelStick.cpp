@@ -149,8 +149,8 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
         wxJSONValue inputConfig = origJson["get"]["input_config"]; //get the input_config element
 
         std::list<Output*> outputs = controller->GetOutputs();
-        if (outputs.size() > 6) {
-            DisplayError(wxString::Format("Attempt to upload %d universes to ESPixelStick controller but only 6 are supported.", outputs.size()).ToStdString());
+        if (outputs.size() > 12) {
+            DisplayError(wxString::Format("Attempt to upload %d universes to ESPixelStick controller but only 12 are supported.", outputs.size()).ToStdString());
             return false;
         }
 
