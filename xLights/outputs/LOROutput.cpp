@@ -43,19 +43,13 @@ bool LOROutput::Open() {
 
     _ok = SerialOutput::Open();
 
-    for (size_t i = 0; i <= 255; i++) {
-        int temp = (int)(100.0*(double)i / (double)255 + 0.5);
-        switch (temp) {
-        case 0:
-            _data[i] = 0xF0;
-            break;
-        case 100:
-            _data[i] = 0x01;
-            break;
-        default:
-            _data[i] = 228 - temp * 2;
-            break;
-        }
+    for (size_t i = 0; i < LOR_PACKET_LEN; i++) {
+        // encode brightness value according to LOR protocol
+        // see: https://github.com/Cryptkeeper/lightorama-protocol/blob/master/PROTOCOL.md#brightness
+        // 100% brightness  = 0x01
+        // 0% brightness    = 0xF0
+        // brightness range = 0xEF
+        _data[i] = (i / 255.0F) * -0xEF + 0xF0;
     }
 
     // initialise to a known state of all off
