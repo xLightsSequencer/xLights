@@ -22,7 +22,7 @@ static const wxString xlights_qualifier       = " DEBUG";
 #else
 static const wxString xlights_qualifier       = ""; // " BETA,ALPHA,PROD";
 #endif
-static const wxString xlights_build_date      = "January 6, 2022";
+static const wxString xlights_build_date      = __DATE__;
 	
 const wxString &GetBitness();
 wxString GetDisplayVersionString();
