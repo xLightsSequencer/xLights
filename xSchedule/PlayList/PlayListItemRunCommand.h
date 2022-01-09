@@ -35,7 +35,7 @@ public:
     PlayListItemRunCommand(wxXmlNode* node);
     PlayListItemRunCommand();
     virtual ~PlayListItemRunCommand() {};
-    virtual PlayListItem* Copy() const override;
+    virtual PlayListItem* Copy(const bool isClone) const override;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters

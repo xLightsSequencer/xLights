@@ -154,7 +154,7 @@ PlayListItemMQTT::PlayListItemMQTT() : PlayListItem()
     _type = "PLIMQTT";
 }
 
-PlayListItem* PlayListItemMQTT::Copy() const
+PlayListItem* PlayListItemMQTT::Copy(const bool isClone) const
 {
     PlayListItemMQTT* res = new PlayListItemMQTT();
 
@@ -166,7 +166,7 @@ PlayListItem* PlayListItemMQTT::Copy() const
     res->_password = _password;
     res->_clientId = _clientId;
     res->_started = false;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

@@ -59,7 +59,7 @@ PlayListItemOSC::PlayListItemOSC() : PlayListItem()
 	}
 }
 
-PlayListItem* PlayListItemOSC::Copy() const
+PlayListItem* PlayListItemOSC::Copy(const bool isClone) const
 {
     PlayListItemOSC* res = new PlayListItemOSC();
 
@@ -72,7 +72,7 @@ PlayListItem* PlayListItemOSC::Copy() const
 		res->_types[i] = _types[i];
 		res->_values[i] = _values[i];
 	}
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

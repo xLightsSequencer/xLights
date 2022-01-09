@@ -58,7 +58,7 @@ public:
     PlayListItemProjector(wxXmlNode* node);
     PlayListItemProjector();
     virtual ~PlayListItemProjector() { };
-    virtual PlayListItem* Copy() const override;
+    virtual PlayListItem* Copy(const bool isClone) const override;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters

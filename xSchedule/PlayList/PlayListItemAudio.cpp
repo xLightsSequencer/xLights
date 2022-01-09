@@ -148,10 +148,10 @@ PlayListItemAudio::~PlayListItemAudio()
     }
 }
 
-PlayListItem* PlayListItemAudio::Copy() const
+PlayListItem* PlayListItemAudio::Copy(const bool isClone) const
 {
     PlayListItemAudio* res = new PlayListItemAudio();
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
     res->_fastStartAudio = _fastStartAudio;
     res->_durationMS = _durationMS;
     res->_controlsTimingCache = _controlsTimingCache;

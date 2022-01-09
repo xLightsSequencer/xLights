@@ -53,7 +53,7 @@ PlayListItemARTNetTrigger::PlayListItemARTNetTrigger() : PlayListItem()
     _ip = "";
 }
 
-PlayListItem* PlayListItemARTNetTrigger::Copy() const
+PlayListItem* PlayListItemARTNetTrigger::Copy(const bool isClone) const
 {
     PlayListItemARTNetTrigger* res = new PlayListItemARTNetTrigger();
     res->_oem = _oem;
@@ -62,7 +62,7 @@ PlayListItem* PlayListItemARTNetTrigger::Copy() const
     res->_ip = _ip;
     res->_data = _data;
     res->_started = false;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

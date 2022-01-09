@@ -53,7 +53,7 @@ public:
     PlayListItemVideo(wxXmlNode* node);
     PlayListItemVideo(ScheduleOptions* options);
     virtual ~PlayListItemVideo();
-    virtual PlayListItem* Copy() const override;
+    virtual PlayListItem* Copy(const bool isClone) const override;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters

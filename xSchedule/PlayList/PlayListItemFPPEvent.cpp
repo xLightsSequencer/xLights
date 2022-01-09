@@ -157,7 +157,7 @@ PlayListItemFPPEvent::PlayListItemFPPEvent() : PlayListItem()
     _type = "PLIFPPEVENT";
 }
 
-PlayListItem* PlayListItemFPPEvent::Copy() const
+PlayListItem* PlayListItemFPPEvent::Copy(const bool isClone) const
 {
     PlayListItemFPPEvent* res = new PlayListItemFPPEvent();
     res->_major = _major;
@@ -165,7 +165,7 @@ PlayListItem* PlayListItemFPPEvent::Copy() const
     res->_ip = _ip;
     res->_started = false;
     res->_method = _method;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

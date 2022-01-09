@@ -41,13 +41,13 @@ PlayListItemRunProcess::PlayListItemRunProcess() : PlayListItem()
     _waitForCompletion = false;
 }
 
-PlayListItem* PlayListItemRunProcess::Copy() const
+PlayListItem* PlayListItemRunProcess::Copy(const bool isClone) const
 {
     PlayListItemRunProcess* res = new PlayListItemRunProcess();
     res->_command = _command;
     res->_started = false;
     res->_waitForCompletion = _waitForCompletion;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

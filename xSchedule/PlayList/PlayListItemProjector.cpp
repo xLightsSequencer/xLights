@@ -225,7 +225,7 @@ PlayListItemProjector::PlayListItemProjector() : PlayListItem()
     _socket = nullptr;
 }
 
-PlayListItem* PlayListItemProjector::Copy() const
+PlayListItem* PlayListItemProjector::Copy(const bool isClone) const
 {
     PlayListItemProjector* res = new PlayListItemProjector();
     res->_command = _command;
@@ -241,7 +241,7 @@ PlayListItem* PlayListItemProjector::Copy() const
     res->_charBits = _charBits;
     res->_stopBits = _stopBits;
     res->_parameter = _parameter;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

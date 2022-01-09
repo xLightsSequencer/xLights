@@ -178,14 +178,14 @@ PlayListItemRDS::PlayListItemRDS() : PlayListItem()
 
 PlayListItemRDS::~PlayListItemRDS() { }
 
-PlayListItem* PlayListItemRDS::Copy() const
+PlayListItem* PlayListItemRDS::Copy(const bool isClone) const
 {
     PlayListItemRDS* res = new PlayListItemRDS();
     res->_started = false;
     res->_stationName = _stationName;
     res->_commPort = _commPort;
     res->_text = _text;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

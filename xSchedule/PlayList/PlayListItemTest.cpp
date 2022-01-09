@@ -60,7 +60,7 @@ PlayListItemTest::PlayListItemTest(OutputManager* outputManager) : PlayListItem(
     _value2 = 255;
 }
 
-PlayListItem* PlayListItemTest::Copy() const
+PlayListItem* PlayListItemTest::Copy(const bool isClone) const
 {
     PlayListItemTest* res = new PlayListItemTest(_outputManager);
     res->_outputManager = _outputManager;
@@ -71,7 +71,7 @@ PlayListItem* PlayListItemTest::Copy() const
     res->_mode = _mode;
     res->_value1 = _value1;
     res->_value2 = _value2;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

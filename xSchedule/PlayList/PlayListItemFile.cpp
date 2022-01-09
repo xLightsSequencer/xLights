@@ -45,14 +45,14 @@ PlayListItemFile::PlayListItemFile() : PlayListItem()
     _fileName = "";
 }
 
-PlayListItem* PlayListItemFile::Copy() const
+PlayListItem* PlayListItemFile::Copy(const bool isClone) const
 {
     PlayListItemFile* res = new PlayListItemFile();
     res->_content = _content;
     res->_append = _append;
     res->_fileName = _fileName;
     res->_started = false;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

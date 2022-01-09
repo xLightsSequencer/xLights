@@ -889,8 +889,7 @@ void PlayListDialog::Clone()
             PlayListStep* step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
             if (step != nullptr)
             {
-                PlayListStep* pls = new PlayListStep(*step);
-                pls->SetDirty();
+                PlayListStep* pls = step->Clone();
                 _playlist->AddStep(pls, GetPos(treeitem) + 1);
                 PopulateTree(_playlist, step, nullptr);
             }
@@ -906,8 +905,7 @@ void PlayListDialog::Clone()
                     PlayListStep* step = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitemStep))->GetData();
                     if (step != nullptr)
                     {
-                        PlayListItem* newItem = pli->Copy();
-                        newItem->SetDirty();
+                        PlayListItem* newItem = pli->Clone();
                         step->AddItem(newItem);
                         PopulateTree(_playlist, step, pli);
                     }

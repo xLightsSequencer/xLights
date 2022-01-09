@@ -48,7 +48,7 @@ PlayListItemSerial::PlayListItemSerial() : PlayListItem()
     _data = "";
 }
 
-PlayListItem* PlayListItemSerial::Copy() const
+PlayListItem* PlayListItemSerial::Copy(const bool isClone) const
 {
     PlayListItemSerial* res = new PlayListItemSerial();
     res->_commPort = _commPort;
@@ -56,7 +56,7 @@ PlayListItem* PlayListItemSerial::Copy() const
     res->_speed = _speed;
     res->_data = _data;
     res->_started = false;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

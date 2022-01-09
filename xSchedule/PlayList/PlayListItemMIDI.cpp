@@ -50,7 +50,7 @@ PlayListItemMIDI::PlayListItemMIDI() : PlayListItem()
     _data2 = "0x00";
 }
 
-PlayListItem* PlayListItemMIDI::Copy() const
+PlayListItem* PlayListItemMIDI::Copy(const bool isClone) const
 {
     PlayListItemMIDI* res = new PlayListItemMIDI();
     res->_device = _device;
@@ -59,7 +59,7 @@ PlayListItem* PlayListItemMIDI::Copy() const
     res->_data1 = _data1;
     res->_data2 = _data2;
     res->_started = false;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

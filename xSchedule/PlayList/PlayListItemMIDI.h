@@ -35,7 +35,7 @@ public:
     PlayListItemMIDI(wxXmlNode* node);
     PlayListItemMIDI();
     virtual ~PlayListItemMIDI() {};
-    virtual PlayListItem* Copy() const override;
+    virtual PlayListItem* Copy(const bool isClone) const override;
     #pragma endregion Constructors and Destructors
 
     static std::list<std::string> GetDevices();

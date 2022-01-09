@@ -119,11 +119,14 @@ std::string PlayListItem::GetNameNoTime() const
     return "<unnamed>";
 }
 
-void PlayListItem::Copy(PlayListItem* to) const
+void PlayListItem::Copy(PlayListItem* to, const bool isClone) const
 {
-    to->_id = _id;
-    to->_lastSavedChangeCount = _lastSavedChangeCount;
-    to->_changeCount = _changeCount;
+    if (!isClone) {
+        // During a clone the following members are not copied because we want the values set in the constructor.
+        to->_id = _id;
+        to->_lastSavedChangeCount = _lastSavedChangeCount;
+        to->_changeCount = _changeCount;
+    }
     to->_delay = _delay;
     to->_frames = _frames;
     to->_msPerFrame = _msPerFrame;
@@ -133,6 +136,11 @@ void PlayListItem::Copy(PlayListItem* to) const
     to->_restOfStep = _restOfStep;
     to->_stepLengthMS = _stepLengthMS;
     to->_type = _type;
+}
+
+PlayListItem* PlayListItem::Clone() const
+{
+    return Copy(true);
 }
 
 bool PlayListItem::IsInSlaveMode() const

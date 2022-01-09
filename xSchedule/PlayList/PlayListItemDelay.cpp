@@ -31,11 +31,11 @@ PlayListItemDelay::PlayListItemDelay() : PlayListItem()
     SetName("Delay");
 }
 
-PlayListItem* PlayListItemDelay::Copy() const
+PlayListItem* PlayListItemDelay::Copy(const bool isClone) const
 {
     PlayListItemDelay* res = new PlayListItemDelay();
     res->_duration = _duration;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

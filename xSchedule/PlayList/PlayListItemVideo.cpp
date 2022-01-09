@@ -97,7 +97,7 @@ PlayListItemVideo::PlayListItemVideo(ScheduleOptions* options) : PlayListItem()
     _durationMS = 0;
 }
 
-PlayListItem* PlayListItemVideo::Copy() const
+PlayListItem* PlayListItemVideo::Copy(const bool isClone) const
 {
     PlayListItemVideo* res = new PlayListItemVideo((ScheduleOptions*)nullptr);
     res->_origin = _origin;
@@ -111,7 +111,7 @@ PlayListItem* PlayListItemVideo::Copy() const
     res->_loopVideo = _loopVideo;
     res->_suppressVirtualMatrix = _suppressVirtualMatrix;
     res->_useMediaPlayer = _useMediaPlayer;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

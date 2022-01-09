@@ -67,7 +67,7 @@ PlayListItemScreenMap::PlayListItemScreenMap() : PlayListItem()
     _quality = "Bilinear";
 }
 
-PlayListItem* PlayListItemScreenMap::Copy() const
+PlayListItem* PlayListItemScreenMap::Copy(const bool isClone) const
 {
     PlayListItemScreenMap* res = new PlayListItemScreenMap();
     res->_matrix = _matrix;
@@ -79,7 +79,7 @@ PlayListItem* PlayListItemScreenMap::Copy() const
     res->_blendMode = _blendMode;
     res->_quality = _quality;
     res->_rescale = _rescale;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }
