@@ -1275,6 +1275,8 @@ void SubModelsDialog::SelectRow(int r) {
         for (int i = 0; i < NodesGrid->GetNumberRows(); ++i) {
             SetNodeColor(i, r == i ? xlWHITE : priorc);
         }
+        // redo the selected row to ensure any duplicated nodes are highlighted
+        SetNodeColor(r, xlWHITE);
     }
     NodesGrid->Refresh();
     model->DisplayEffectOnWindow(modelPreview, 2);

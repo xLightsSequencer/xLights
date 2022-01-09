@@ -543,6 +543,9 @@ void ModelStateDialog::SelectRow(wxGrid* grid, int const r) {
                 xlColor const c = GetRowColor(grid, i, r != i, CustomColorSingleNode->IsChecked());
                 SetSingleNodeColor(grid, i, c );
             }
+            // redo the selected row to ensure it is white
+            xlColor const cc = GetRowColor(grid, r, false, CustomColorNodeRanges->IsChecked());
+            SetSingleNodeColor(grid, r, cc);
         }
     } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
         if (r == -1) {
@@ -555,6 +558,9 @@ void ModelStateDialog::SelectRow(wxGrid* grid, int const r) {
                 xlColor const c = GetRowColor(grid, i, r != i, CustomColorNodeRanges->IsChecked());
                 SetNodeColor(grid, i, c );
             }
+            // redo the selected row to ensure it is white
+            xlColor const cc = GetRowColor(grid, r, false, CustomColorNodeRanges->IsChecked());
+            SetNodeColor(grid, r, cc);
         }
     }
     grid->Refresh();
