@@ -1283,61 +1283,75 @@
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM10" variable="MenuItem18" member="yes">
 					<label>Windows</label>
-					<object class="wxMenuItem" name="ID_MENUITEM_DISPLAY_ELEMENTS" variable="MenuItemDisplayElements" member="no">
+					<object class="wxMenuItem" name="ID_MENUITEM_DISPLAY_ELEMENTS" variable="MenuItemDisplayElements" member="yes">
 						<label>Display Elements</label>
 						<handler function="ShowHideDisplayElementsWindow" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
-					<object class="wxMenuItem" name="ID_MENU_TOGGLE_MODEL_PREVIEW" variable="MenuItem20" member="no">
+					<object class="wxMenuItem" name="ID_MENU_TOGGLE_MODEL_PREVIEW" variable="MenuItemModelPreview" member="yes">
 						<label>Model Preview</label>
 						<handler function="ShowHideModelPreview" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
-					<object class="wxMenuItem" name="ID_MENU_TOGGLE_HOUSE_PREVIEW" variable="MenuItem6" member="no">
+					<object class="wxMenuItem" name="ID_MENU_TOGGLE_HOUSE_PREVIEW" variable="MenuItemHousePreview" member="yes">
 						<label>House Preview</label>
 						<handler function="ShowHideHousePreview" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM14" variable="MenuItem22" member="no">
+					<object class="wxMenuItem" name="ID_MENUITEM14" variable="MenuItemEffectSettings" member="yes">
 						<label>Effect Settings</label>
 						<handler function="ShowHideEffectSettingsWindow" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM15" variable="MenuItem23" member="no">
+					<object class="wxMenuItem" name="ID_MENUITEM15" variable="MenuItemColours" member="yes">
 						<label>Colors</label>
 						<handler function="ShowHideColorWindow" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM16" variable="MenuItem24" member="no">
+					<object class="wxMenuItem" name="ID_MENUITEM16" variable="MenuItemLayerBlending" member="yes">
 						<label>Layer Blending</label>
 						<handler function="ShowHideLayerTimingWindow" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM9" variable="MenuItem32" member="yes">
+					<object class="wxMenuItem" name="ID_MENUITEM9" variable="MenuItemLayerSettings" member="yes">
 						<label>Layer Settings</label>
 						<handler function="ShowHideBufferSettingsWindow" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM17" variable="MenuItem25" member="no">
+					<object class="wxMenuItem" name="ID_MENUITEM17" variable="MenuItemEffectDropper" member="yes">
 						<label>Effect Dropper</label>
 						<handler function="ShowHideEffectDropper" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
-					<object class="wxMenuItem" name="ID_MNU_VALUECURVES" variable="MenuItem_ValueCurves" member="yes">
+					<object class="wxMenuItem" name="ID_MNU_VALUECURVES" variable="MenuItemValueCurves" member="yes">
 						<label>Value Curves</label>
 						<handler function="OnMenuItem_ValueCurvesSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
-					<object class="wxMenuItem" name="ID_MNU_COLOURDROPPER" variable="MenuItem_ColourDropper" member="yes">
+					<object class="wxMenuItem" name="ID_MNU_COLOURDROPPER" variable="MenuItemColourDropper" member="yes">
 						<label>Color Dropper</label>
 						<handler function="OnMenuItem_ColourDropperSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM_EFFECT_ASSIST_WINDOW" variable="MenuItemEffectAssistWindow" member="yes">
+					<object class="wxMenuItem" name="ID_MENUITEM_EFFECT_ASSIST_WINDOW" variable="MenuItemEffectAssist" member="yes">
 						<label>Effect Assist</label>
 						<handler function="ShowHideEffectAssistWindow" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_SELECT_EFFECT" variable="MenuItemSelectEffect" member="yes">
 						<label>Select Effect</label>
 						<handler function="OnMenuItemSelectEffectSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM_VIDEOPREVIEW" variable="MenuItem52" member="yes">
+					<object class="wxMenuItem" name="ID_MENUITEM_VIDEOPREVIEW" variable="MenuItemVideoPreview" member="yes">
 						<label>Video Preview</label>
 						<handler function="OnMenuItemShowHideVideoPreview" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
-					<object class="wxMenuItem" name="ID_MNU_JUKEBOX" variable="MenuItem_Jukebox" member="yes">
+					<object class="wxMenuItem" name="ID_MNU_JUKEBOX" variable="MenuItemJukebox" member="yes">
 						<label>Jukebox</label>
 						<handler function="OnMenuItem_JukeboxSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
 					</object>
 					<object class="separator" />
 					<object class="wxMenuItem" name="ID_MENUITEM_WINDOWS_PERSPECTIVE" variable="MenuItem26" member="no">

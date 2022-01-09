@@ -227,6 +227,8 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     SaveWindowPosition("xLightsNodeSelectDialogPosition", nullptr);
     SaveWindowPosition("ControllerModelDialogPosition", nullptr);
     SaveWindowPosition("xLightsTestDialogPosition", nullptr);
+
+    UpdateViewMenu();
 }
 
 void xLightsFrame::InitSequencer()
@@ -1465,6 +1467,7 @@ void xLightsFrame::AutoShowHouse()
             }
         }
     }
+    UpdateViewMenu();
 }
 
 void xLightsFrame::DoPlaySequence()
@@ -2828,6 +2831,7 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
     }
     UpdateLayoutSave();
     UpdateControllerSave();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::LoadPerspective(wxCommandEvent& event)
@@ -2910,6 +2914,7 @@ void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
     UpdateControllerSave();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
@@ -2922,6 +2927,7 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
     info.FloatingSize(std::max(600, w), std::max(400, h));
     info.Show();
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::OnMenuDockAllSelected(wxCommandEvent& event)
@@ -2940,6 +2946,7 @@ void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
         m_mgr->GetPane("LayerSettings").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
@@ -2961,6 +2968,7 @@ void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
         info.Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideEffectSettingsWindow(wxCommandEvent& event)
@@ -2973,6 +2981,7 @@ void xLightsFrame::ShowHideEffectSettingsWindow(wxCommandEvent& event)
         m_mgr->GetPane("Effect").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideColorWindow(wxCommandEvent& event)
@@ -2985,6 +2994,7 @@ void xLightsFrame::ShowHideColorWindow(wxCommandEvent& event)
         m_mgr->GetPane("Color").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideLayerTimingWindow(wxCommandEvent& event)
@@ -2997,6 +3007,7 @@ void xLightsFrame::ShowHideLayerTimingWindow(wxCommandEvent& event)
         m_mgr->GetPane("LayerTiming").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
@@ -3009,6 +3020,7 @@ void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
         m_mgr->GetPane("ModelPreview").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideHousePreview(wxCommandEvent& event)
@@ -3021,6 +3033,7 @@ void xLightsFrame::ShowHideHousePreview(wxCommandEvent& event)
         m_mgr->GetPane("HousePreview").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideEffectDropper(wxCommandEvent& event)
@@ -3033,6 +3046,7 @@ void xLightsFrame::ShowHideEffectDropper(wxCommandEvent& event)
         m_mgr->GetPane("EffectDropper").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHidePerspectivesWindow(wxCommandEvent& event)
@@ -3045,6 +3059,7 @@ void xLightsFrame::ShowHidePerspectivesWindow(wxCommandEvent& event)
         m_mgr->GetPane("Perspectives").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
@@ -3059,6 +3074,7 @@ void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
         mEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
@@ -4033,6 +4049,7 @@ void xLightsFrame::OnAuiToolBarItemShowHideEffects(wxCommandEvent& event)
         m_mgr->GetPane("EffectDropper").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::UpdateSequenceVideoPanel(const wxString& path)

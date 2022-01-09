@@ -504,12 +504,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     wxMenu* MenuHelp;
     wxMenuItem* MenuItem11;
     wxMenuItem* MenuItem13;
-    wxMenuItem* MenuItem20;
     wxMenuItem* MenuItem21;
-    wxMenuItem* MenuItem22;
-    wxMenuItem* MenuItem23;
-    wxMenuItem* MenuItem24;
-    wxMenuItem* MenuItem25;
     wxMenuItem* MenuItem26;
     wxMenuItem* MenuItem2;
     wxMenuItem* MenuItem30;
@@ -517,12 +512,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     wxMenuItem* MenuItem4;
     wxMenuItem* MenuItem5;
     wxMenuItem* MenuItem61;
-    wxMenuItem* MenuItem6;
     wxMenuItem* MenuItem7;
     wxMenuItem* MenuItem8;
     wxMenuItem* MenuItem9;
     wxMenuItem* MenuItemBatchRender;
-    wxMenuItem* MenuItemDisplayElements;
     wxPanel* Panel1;
     wxStaticBoxSizer* StaticBoxSizer1;
     wxStaticBoxSizer* StaticBoxSizer2;
@@ -916,34 +909,34 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     MenuItemPerspectives->AppendSeparator();
     MenuView->Append(ID_MENUITEM7, _("Perspectives"), MenuItemPerspectives, wxEmptyString);
     MenuItem18 = new wxMenu();
-    MenuItemDisplayElements = new wxMenuItem(MenuItem18, ID_MENUITEM_DISPLAY_ELEMENTS, _("Display Elements"), wxEmptyString, wxITEM_NORMAL);
+    MenuItemDisplayElements = new wxMenuItem(MenuItem18, ID_MENUITEM_DISPLAY_ELEMENTS, _("Display Elements"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemDisplayElements);
-    MenuItem20 = new wxMenuItem(MenuItem18, ID_MENU_TOGGLE_MODEL_PREVIEW, _("Model Preview"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItem20);
-    MenuItem6 = new wxMenuItem(MenuItem18, ID_MENU_TOGGLE_HOUSE_PREVIEW, _("House Preview"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItem6);
-    MenuItem22 = new wxMenuItem(MenuItem18, ID_MENUITEM14, _("Effect Settings"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItem22);
-    MenuItem23 = new wxMenuItem(MenuItem18, ID_MENUITEM15, _("Colors"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItem23);
-    MenuItem24 = new wxMenuItem(MenuItem18, ID_MENUITEM16, _("Layer Blending"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItem24);
-    MenuItem32 = new wxMenuItem(MenuItem18, ID_MENUITEM9, _("Layer Settings"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItem32);
-    MenuItem25 = new wxMenuItem(MenuItem18, ID_MENUITEM17, _("Effect Dropper"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItem25);
-    MenuItem_ValueCurves = new wxMenuItem(MenuItem18, ID_MNU_VALUECURVES, _("Value Curves"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItem_ValueCurves);
-    MenuItem_ColourDropper = new wxMenuItem(MenuItem18, ID_MNU_COLOURDROPPER, _("Color Dropper"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItem_ColourDropper);
-    MenuItemEffectAssistWindow = new wxMenuItem(MenuItem18, ID_MENUITEM_EFFECT_ASSIST_WINDOW, _("Effect Assist"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItemEffectAssistWindow);
-    MenuItemSelectEffect = new wxMenuItem(MenuItem18, ID_MENUITEM_SELECT_EFFECT, _("Select Effect"), wxEmptyString, wxITEM_NORMAL);
+    MenuItemModelPreview = new wxMenuItem(MenuItem18, ID_MENU_TOGGLE_MODEL_PREVIEW, _("Model Preview"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemModelPreview);
+    MenuItemHousePreview = new wxMenuItem(MenuItem18, ID_MENU_TOGGLE_HOUSE_PREVIEW, _("House Preview"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemHousePreview);
+    MenuItemEffectSettings = new wxMenuItem(MenuItem18, ID_MENUITEM14, _("Effect Settings"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemEffectSettings);
+    MenuItemColours = new wxMenuItem(MenuItem18, ID_MENUITEM15, _("Colors"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemColours);
+    MenuItemLayerBlending = new wxMenuItem(MenuItem18, ID_MENUITEM16, _("Layer Blending"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemLayerBlending);
+    MenuItemLayerSettings = new wxMenuItem(MenuItem18, ID_MENUITEM9, _("Layer Settings"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemLayerSettings);
+    MenuItemEffectDropper = new wxMenuItem(MenuItem18, ID_MENUITEM17, _("Effect Dropper"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemEffectDropper);
+    MenuItemValueCurves = new wxMenuItem(MenuItem18, ID_MNU_VALUECURVES, _("Value Curves"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemValueCurves);
+    MenuItemColourDropper = new wxMenuItem(MenuItem18, ID_MNU_COLOURDROPPER, _("Color Dropper"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemColourDropper);
+    MenuItemEffectAssist = new wxMenuItem(MenuItem18, ID_MENUITEM_EFFECT_ASSIST_WINDOW, _("Effect Assist"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemEffectAssist);
+    MenuItemSelectEffect = new wxMenuItem(MenuItem18, ID_MENUITEM_SELECT_EFFECT, _("Select Effect"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemSelectEffect);
-    MenuItem52 = new wxMenuItem(MenuItem18, ID_MENUITEM_VIDEOPREVIEW, _("Video Preview"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItem52);
-    MenuItem_Jukebox = new wxMenuItem(MenuItem18, ID_MNU_JUKEBOX, _("Jukebox"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItem_Jukebox);
+    MenuItemVideoPreview = new wxMenuItem(MenuItem18, ID_MENUITEM_VIDEOPREVIEW, _("Video Preview"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemVideoPreview);
+    MenuItemJukebox = new wxMenuItem(MenuItem18, ID_MNU_JUKEBOX, _("Jukebox"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemJukebox);
     MenuItem18->AppendSeparator();
     MenuItem26 = new wxMenuItem(MenuItem18, ID_MENUITEM_WINDOWS_PERSPECTIVE, _("Perspectives"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem26);
@@ -2204,6 +2197,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     else {
         SetEffectAssistWindowState(false);
     }
+    UpdateViewMenu();
 
     logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews - done");
 }
@@ -3043,7 +3037,7 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
 
     if (CurrentSeqXmlFile == nullptr || frameCount == 0)
     {
-        return false; 
+        return false;
     }
 
     // Ensure all pending work is done before we do anything
@@ -3344,6 +3338,7 @@ void xLightsFrame::SetEffectAssistWindowState(bool show)
         m_mgr->GetPane("EffectAssist").Show();
         m_mgr->Update();
     }
+    UpdateViewMenu();
 }
 
 void xLightsFrame::UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect)
@@ -3612,6 +3607,8 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
 void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
 {
     SetFocus();
+    if (event.pane != nullptr) event.pane->Hide();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report) {
@@ -4304,10 +4301,10 @@ void xLightsFrame::ExportModels(wxString const& filename)
     lxw_format* format = workbook_add_format(workbook);
     format_set_border(format, LXW_BORDER_THIN);
 
-    auto write_worksheet_string = [FACTOR](lxw_worksheet* sheet, int row, int col, std::string text, lxw_format* format, std::map<int, double>& col_widths) { 
+    auto write_worksheet_string = [FACTOR](lxw_worksheet* sheet, int row, int col, std::string text, lxw_format* format, std::map<int, double>& col_widths) {
         worksheet_write_string(sheet, row, col, text.c_str(), format);
         col_widths[col] = std::max(text.size() + FACTOR, col_widths[col]);
-    }; 
+    };
 
     const std::vector<std::string> model_header_cols{ "Model Name", "Shadowing", "Description", "Display As", "Dimensions", "String Type", "String Count", "Node Count", "Light Count", "Est Current (Amps)", "Channels Per Node", "Channel Count", "Start Channel", "Start Channel No", "#Universe(or id):Start Channel", "End Channel No", "Default Buffer W x H", "Preview", "Controller Ports", "Connection Protocol", "Connection Attributes", "Controller Name", "Controller Type", "Protocol", "Controller Description", "IP", "Baud", "Universe/Id", "Universe Channel", "Controller Channel", "Active" };
 
@@ -4446,7 +4443,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
     std::map<int, double> _controller_col_widths;
 
     auto control_cols = OutputManager::GetExportHeaders();
-    
+
     for (int i = 0; i < control_cols.size(); i++) {
         worksheet_write_string(controllersheet, 0, i, control_cols[i].c_str(), header_format);
         _controller_col_widths[i] = control_cols[i].size() + FACTOR; //estimate column width
@@ -8928,6 +8925,7 @@ void xLightsFrame::OnMenuItemSelectEffectSelected(wxCommandEvent& event)
         m_mgr->GetPane("SelectEffect").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::OnMenuItemShowHideVideoPreview(wxCommandEvent& event)
@@ -8936,6 +8934,7 @@ void xLightsFrame::OnMenuItemShowHideVideoPreview(wxCommandEvent& event)
 
    pane.IsShown() ? pane.Hide() : pane.Show();
    m_mgr->Update();
+   UpdateViewMenu();
 }
 
 void xLightsFrame::DoBackupPurge()
@@ -9068,6 +9067,7 @@ void xLightsFrame::OnMenuItem_JukeboxSelected(wxCommandEvent& event)
 
    pane.IsShown() ? pane.Hide() : pane.Show();
    m_mgr->Update();
+   UpdateViewMenu();
 }
 
 void xLightsFrame::SetXFadePort(int i)
@@ -9894,6 +9894,7 @@ void xLightsFrame::OnMenuItem_ValueCurvesSelected(wxCommandEvent& event)
         m_mgr->GetPane("ValueCurveDropper").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::OnMenuItem_ColourDropperSelected(wxCommandEvent& event)
@@ -9906,13 +9907,13 @@ void xLightsFrame::OnMenuItem_ColourDropperSelected(wxCommandEvent& event)
         m_mgr->GetPane("ColourDropper").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::OnSysColourChanged(wxSysColourChangedEvent& event) {
     event.Skip();
     color_mgr.SysColorChanged();
 }
-
 
 void xLightsFrame::SetHardwareVideoAccelerated(bool b)
 {
@@ -9975,7 +9976,7 @@ void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent
     format_set_bold(header_format);
     format_set_bg_color(header_format, LXW_COLOR_YELLOW);
     format_set_border(header_format, LXW_BORDER_THIN);
-    
+
     lxw_format* first_format = workbook_add_format(workbook);
     format_set_border(first_format, LXW_BORDER_MEDIUM);
     format_set_bold(first_format);
@@ -10004,7 +10005,7 @@ void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent
                 if (column.empty()) {
                     continue;
                 }
-                worksheet_write_string(worksheet, row, col, column.c_str(), lformat); 
+                worksheet_write_string(worksheet, row, col, column.c_str(), lformat);
                 double width = column.size() + 1.3;//estimate column width
                 if (_col_widths[col] < width) {
                     _col_widths[col] = width;
@@ -10066,4 +10067,34 @@ void xLightsFrame::OnMenuItemRunScriptSelected(wxCommandEvent& event)
         _scriptsDialog = std::make_unique<ScriptsDialog>(this);
     }
     _scriptsDialog->Show();
+}
+
+void xLightsFrame::UpdateViewMenu()
+{
+    std::map<std::string, wxMenuItem*> panes = {
+        { "DisplayElements", MenuItemDisplayElements },
+        { "ModelPreview", MenuItemModelPreview },
+        { "HousePreview", MenuItemHousePreview },
+        { "Effect", MenuItemEffectSettings },
+        { "Color", MenuItemColours },
+        { "LayerTiming", MenuItemLayerBlending },
+        { "LayerSettings", MenuItemLayerSettings },
+        { "EffectDropper", MenuItemEffectDropper },
+        { "ValueCurveDropper", MenuItemValueCurves },
+        { "ColourDropper", MenuItemColourDropper },
+        { "EffectAssist", MenuItemEffectAssist },
+        { "SelectEffect", MenuItemSelectEffect },
+        { "SequenceVideo", MenuItemVideoPreview },
+        { "Jukebox", MenuItemJukebox }
+    };
+
+    wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
+    for (size_t x = 0; x < info.size(); x++) {
+        if (info[x].IsOk()) {
+            auto pane = panes.find(info[x].name);
+            if (pane != panes.end()) {
+                (*pane).second->Check(m_mgr->GetPane(info[x].name).IsShown());
+            }
+        }
+    }
 }
