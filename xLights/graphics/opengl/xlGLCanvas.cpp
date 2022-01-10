@@ -969,16 +969,37 @@ public:
 
                         for (int x = 0; x < 3; x++) {
                             tinyobj::index_t vi = s.mesh.indices[idx*3 + x];
-                            vert[x][0] = objects.GetAttrib().vertices[vi.vertex_index * 3];
-                            vert[x][1] = objects.GetAttrib().vertices[vi.vertex_index * 3 + 1];
-                            vert[x][2] = objects.GetAttrib().vertices[vi.vertex_index * 3 + 2];
 
-                            norms[x][0] = objects.GetAttrib().normals[vi.normal_index * 3];
-                            norms[x][1] = objects.GetAttrib().normals[vi.normal_index * 3 + 1];
-                            norms[x][2] = objects.GetAttrib().normals[vi.normal_index * 3 + 2];
+                            auto& objVerts = objects.GetAttrib().vertices;
+                            if ((vi.vertex_index < 0) || ((vi.vertex_index * 3 + 2) >= objVerts.size())) {
+                                vert[x][0] = 0;
+                                vert[x][1] = 0;
+                                vert[x][2] = 0;
+                            } else {
+                                vert[x][0] = objVerts[vi.vertex_index * 3];
+                                vert[x][1] = objVerts[vi.vertex_index * 3 + 1];
+                                vert[x][2] = objVerts[vi.vertex_index * 3 + 2];
+                            }
 
-                            tc[x][0] = objects.GetAttrib().texcoords[vi.texcoord_index * 2];
-                            tc[x][1] = objects.GetAttrib().texcoords[vi.texcoord_index * 2 + 1];
+                            auto& objNorms = objects.GetAttrib().normals;
+                            if ((vi.vertex_index < 0) || ((vi.normal_index * 3 + 2) >= objNorms.size())) {
+                                vert[x][0] = 0;
+                                vert[x][1] = 0;
+                                vert[x][2] = 0;
+                            } else {
+                                norms[x][0] = objNorms[vi.normal_index * 3];
+                                norms[x][1] = objNorms[vi.normal_index * 3 + 1];
+                                norms[x][2] = objNorms[vi.normal_index * 3 + 2];
+                            }
+
+                            auto& objTexCoords = objects.GetAttrib().texcoords;
+                            if ((vi.vertex_index < 0) || ((vi.texcoord_index * 2 + 1) >= objTexCoords.size())) {
+                                tc[x][0] = 0;
+                                tc[x][1] = 0;
+                            } else {
+                                tc[x][0] = objTexCoords[vi.texcoord_index * 2];
+                                tc[x][1] = objTexCoords[vi.texcoord_index * 2 + 1];
+                            }
                             
                             color[x][0] = c.red;
                             color[x][1] = c.green;
