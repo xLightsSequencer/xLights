@@ -42,7 +42,7 @@ public:
     PlayListItemScreenMap(wxXmlNode* node);
     PlayListItemScreenMap();
     virtual ~PlayListItemScreenMap();
-    virtual PlayListItem* Copy() const override;
+    virtual PlayListItem* Copy(const bool isClone) const override;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters

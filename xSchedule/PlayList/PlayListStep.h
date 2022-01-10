@@ -55,6 +55,7 @@ public:
     PlayListStep();
     virtual ~PlayListStep();
     PlayListStep(const PlayListStep& step);
+    PlayListStep* Clone() const;
 #pragma endregion Constructors and Destructors
 
     bool operator==(const PlayListStep& rhs) const { return _id == rhs._id; }

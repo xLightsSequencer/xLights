@@ -75,7 +75,7 @@ PlayListItemCURL::PlayListItemCURL() : PlayListItem()
     _type = "PLICURL";
 }
 
-PlayListItem* PlayListItemCURL::Copy() const
+PlayListItem* PlayListItemCURL::Copy(const bool isClone) const
 {
     PlayListItemCURL* res = new PlayListItemCURL();
     res->_url = _url;
@@ -83,7 +83,7 @@ PlayListItem* PlayListItemCURL::Copy() const
     res->_body = _body;
     res->_started = false;
     res->_contentType = _contentType;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

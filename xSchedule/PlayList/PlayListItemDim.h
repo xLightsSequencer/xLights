@@ -36,7 +36,7 @@ public:
     PlayListItemDim(OutputManager* outputManager, wxXmlNode* node);
     PlayListItemDim(OutputManager* outputManager);
     virtual ~PlayListItemDim();
-    virtual PlayListItem* Copy() const override;
+    virtual PlayListItem* Copy(const bool isClone) const override;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters

@@ -54,7 +54,7 @@ PlayListItemSetColour::PlayListItemSetColour(OutputManager* outputManager) : Pla
     SetName("Set Colour");
 }
 
-PlayListItem* PlayListItemSetColour::Copy() const
+PlayListItem* PlayListItemSetColour::Copy(const bool isClone) const
 {
     PlayListItemSetColour* res = new PlayListItemSetColour(_outputManager);
     res->_duration = _duration;
@@ -64,7 +64,7 @@ PlayListItem* PlayListItemSetColour::Copy() const
     res->_nodes = _nodes;
     res->_startChannel = _startChannel;
     res->_fadeToBlack = _fadeToBlack;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

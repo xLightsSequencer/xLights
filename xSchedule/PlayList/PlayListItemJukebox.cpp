@@ -45,13 +45,13 @@ PlayListItemJukebox::PlayListItemJukebox() :
     SetEnumState(ENUMJUKEBOX::ENUM_STATE_DONE);
 }
 
-PlayListItem* PlayListItemJukebox::Copy() const
+PlayListItem* PlayListItemJukebox::Copy(const bool isClone) const
 {
     PlayListItemJukebox* res = new PlayListItemJukebox();
     res->_jukeboxButton = _jukeboxButton;
     res->_port = _port;
     res->_started = false;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

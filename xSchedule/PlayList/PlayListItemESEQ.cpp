@@ -48,12 +48,12 @@ size_t PlayListItemESEQ::GetDurationMS(size_t frameMS) const
     return 0;
 }
 
-PlayListItem* PlayListItemESEQ::Copy() const
+PlayListItem* PlayListItemESEQ::Copy(const bool isClone) const
 {
     PlayListItemESEQ* res = new PlayListItemESEQ();
     res->_ESEQFileName = _ESEQFileName;
     res->_applyMethod = _applyMethod;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

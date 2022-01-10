@@ -257,10 +257,10 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager, Sched
     }
 }
 
-PlayListItem* PlayListItemFSEQVideo::Copy() const
+PlayListItem* PlayListItemFSEQVideo::Copy(const bool isClone) const
 {
     PlayListItemFSEQVideo* res = new PlayListItemFSEQVideo(_outputManager, (ScheduleOptions*)nullptr);
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
     res->_cachedAudioFilename = _cachedAudioFilename;
     res->_outputManager = _outputManager;
     res->_topMost = _topMost;

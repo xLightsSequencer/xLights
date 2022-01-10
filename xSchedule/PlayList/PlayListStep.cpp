@@ -112,10 +112,33 @@ PlayListStep::PlayListStep(const PlayListStep& step)
         ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = step._items.begin(); it != step._items.end(); ++it)
         {
-            _items.push_back((*it)->Copy());
+            _items.push_back((*it)->Copy(false));
         }
         _items.sort(compare_priority);
     }
+}
+
+PlayListStep* PlayListStep::Clone() const
+{
+    PlayListStep* pls = new PlayListStep();
+    pls->_loops = _loops;
+    pls->_framecount = _framecount;
+    pls->_currentFrame = _currentFrame;
+    pls->_name = _name;
+    pls->_changeCount = _changeCount;
+    pls->_excludeFromRandom = _excludeFromRandom;
+    pls->_everyStep = _everyStep;
+    // Note: We are intentially NOT copying "_lastSavedChangeCount" and "_id" here.
+
+    {
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = _items.begin(); it != _items.end(); ++it) {
+            pls->_items.push_back((*it)->Clone());
+        }
+        pls->_items.sort(compare_priority);
+    }
+
+    return pls;
 }
 
 void PlayListStep::ClearDirty()

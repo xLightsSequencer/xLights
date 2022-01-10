@@ -224,10 +224,10 @@ PlayListItemFSEQ::PlayListItemFSEQ(OutputManager* outputManager) : PlayListItem(
     _currentFrame = 0;
 }
 
-PlayListItem* PlayListItemFSEQ::Copy() const
+PlayListItem* PlayListItemFSEQ::Copy(const bool isClone) const
 {
     PlayListItemFSEQ* res = new PlayListItemFSEQ(_outputManager);
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
     res->_outputManager = _outputManager;
     res->_cachedAudioFilename = _cachedAudioFilename;
     res->_fseqFileName = _fseqFileName;

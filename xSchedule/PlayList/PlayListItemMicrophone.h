@@ -40,7 +40,7 @@ public:
     PlayListItemMicrophone(OutputManager* outputManager, wxXmlNode* node);
     PlayListItemMicrophone(OutputManager* outputManager);
     virtual ~PlayListItemMicrophone();
-    virtual PlayListItem* Copy() const override;
+    virtual PlayListItem* Copy(const bool isClone) const override;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters

@@ -54,7 +54,7 @@ PlayListItemAllOff::PlayListItemAllOff(OutputManager* outputManager) : PlayListI
     SetName("All Set");
 }
 
-PlayListItem* PlayListItemAllOff::Copy() const
+PlayListItem* PlayListItemAllOff::Copy(const bool isClone) const
 {
     PlayListItemAllOff* res = new PlayListItemAllOff(_outputManager);
     res->_duration = _duration;
@@ -64,7 +64,7 @@ PlayListItem* PlayListItemAllOff::Copy() const
     res->_channels = _channels;
     res->_startChannel = _startChannel;
     res->_fadeToZero = _fadeToZero;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

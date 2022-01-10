@@ -128,7 +128,7 @@ PlayListItemText::PlayListItemText() : PlayListItem()
     _parameter1 = "";
 }
 
-PlayListItem* PlayListItemText::Copy() const
+PlayListItem* PlayListItemText::Copy(const bool isClone) const
 {
     PlayListItemText* res = new PlayListItemText();
     res->_matrix = _matrix;
@@ -147,7 +147,7 @@ PlayListItem* PlayListItemText::Copy() const
         _font->GetUnderlined(), _font->GetFaceName(), _font->GetEncoding());
     res->_format = _format;
     res->_text = _text;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

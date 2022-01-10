@@ -39,7 +39,7 @@ public:
     PlayListItemAllOff(OutputManager* outputManager, wxXmlNode* node);
     PlayListItemAllOff(OutputManager* outputManager);
     virtual ~PlayListItemAllOff() {};
-    virtual PlayListItem* Copy() const override;
+    virtual PlayListItem* Copy(const bool isClone) const override;
 #pragma endregion Constructors and Destructors
 
 #pragma region Getters and Setters

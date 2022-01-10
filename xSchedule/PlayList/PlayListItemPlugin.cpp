@@ -48,14 +48,14 @@ PlayListItemPlugin::PlayListItemPlugin() : PlayListItem()
 	_eventParm = "";
 }
 
-PlayListItem* PlayListItemPlugin::Copy() const
+PlayListItem* PlayListItemPlugin::Copy(const bool isClone) const
 {
     PlayListItemPlugin* res = new PlayListItemPlugin();
     res->_plugin = _plugin;
     res->_action = _action;
 	res->_eventParm = _eventParm;
     res->_started = false;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

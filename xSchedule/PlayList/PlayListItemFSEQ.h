@@ -54,7 +54,7 @@ public:
     PlayListItemFSEQ(OutputManager* outputManager, wxXmlNode* node);
     PlayListItemFSEQ(OutputManager* outputManager);
     virtual ~PlayListItemFSEQ();
-    virtual PlayListItem* Copy() const override;
+    virtual PlayListItem* Copy(const bool isClone) const override;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters

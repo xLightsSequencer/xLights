@@ -78,7 +78,7 @@ PlayListItemColourOrgan::PlayListItemColourOrgan(OutputManager* outputManager) :
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
 }
 
-PlayListItem* PlayListItemColourOrgan::Copy() const
+PlayListItem* PlayListItemColourOrgan::Copy(const bool isClone) const
 {
     PlayListItemColourOrgan* res = new PlayListItemColourOrgan(_outputManager);
     res->_outputManager = _outputManager;
@@ -94,7 +94,7 @@ PlayListItem* PlayListItemColourOrgan::Copy() const
     res->_fadeFrames = _fadeFrames;
     res->_fadePerFrame = _fadePerFrame;
     res->_threshold = _threshold;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

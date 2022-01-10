@@ -46,7 +46,7 @@ PlayListItemFade::PlayListItemFade(OutputManager* outputManager) : PlayListItem(
     SetName("Fade");
 }
 
-PlayListItem* PlayListItemFade::Copy() const
+PlayListItem* PlayListItemFade::Copy(const bool isClone) const
 {
     PlayListItemFade* res = new PlayListItemFade(_outputManager);
     res->_duration = _duration;
@@ -54,7 +54,7 @@ PlayListItem* PlayListItemFade::Copy() const
     res->_fadeDirection = _fadeDirection;
     res->_channels = _channels;
     res->_startChannel = _startChannel;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

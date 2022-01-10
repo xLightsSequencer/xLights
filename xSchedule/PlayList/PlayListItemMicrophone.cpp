@@ -56,7 +56,7 @@ PlayListItemMicrophone::PlayListItemMicrophone(OutputManager* outputManager) : P
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
 }
 
-PlayListItem* PlayListItemMicrophone::Copy() const
+PlayListItem* PlayListItemMicrophone::Copy(const bool isClone) const
 {
     PlayListItemMicrophone* res = new PlayListItemMicrophone(_outputManager);
     res->_outputManager = _outputManager;
@@ -66,7 +66,7 @@ PlayListItem* PlayListItemMicrophone::Copy() const
     res->_colour = _colour;
     res->_mode = _mode;
     res->_blendMode = _blendMode;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }
