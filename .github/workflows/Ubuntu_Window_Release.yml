@@ -52,7 +52,6 @@ jobs:
     - name: Build xlDo
       working-directory: xlDo
       run: msbuild xlDo.sln /m /p:Configuration="Release" /p:Platform="x64"
-
     - name: Build xFade
       working-directory: xFade
       run: msbuild xFade.sln /m /p:Configuration="Release" /p:Platform="x64"
