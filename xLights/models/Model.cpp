@@ -3773,12 +3773,25 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         // The empty space factor is the number of empty cells expected per filled cell in the average model ... of course in models where there are dense and sparse areas this wont necessarily be true
         #define MODEL_EMPTY_SPACE_FACTOR 4.0f
         if (type == PER_PREVIEW && GetDisplayAs() != "ModelGroup" && factor == 1.0 && (newNodes.size() * (MODEL_EMPTY_SPACE_FACTOR + 1.0) > (maxX - minX) * (maxY - minY))) {
-            float aspect = (maxX - minX) / (maxY - minY);
+            float deltaX = maxX - minX;
+            float deltaY = maxY - minY;
+
+            // Don't allow "aspect" (down below) become zero because this will lead to a divide by zero for "factor", then all following calculations will be "nan".
+            if (deltaX == 0) {
+                deltaX = 0.01f;
+            }
+
+            // Don't allow "deltaY" to be zero because this will lead to a divide by zero for "aspect", then all following calculations will be "nan".
+            if (deltaY == 0) {
+                deltaY = 0.01f;
+            }
+
+            float aspect = deltaX / deltaY;
             float mx = ((float)newNodes.size()) * (MODEL_EMPTY_SPACE_FACTOR + 1.0f) * aspect;
             float x = std::sqrt(mx);
-            factor = (maxX - minX) / x;
-            if (std::max((maxX - minX) / factor, (maxY - minY) / factor) > 400) { // if this results in an overly large scaling ... ie a buffer > 400 in any dimension
-                factor = std::max((maxX - minX), (maxY - minY)) /  400; // work out a scaling that gives a 400x400 buffer
+            factor = deltaX / x;
+            if (std::max(deltaX / factor, deltaY / factor) > 400) { // if this results in an overly large scaling ... ie a buffer > 400 in any dimension
+                factor = std::max(deltaX, deltaY) /  400; // work out a scaling that gives a 400x400 buffer
             }
         }
 
