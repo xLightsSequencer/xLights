@@ -58,6 +58,11 @@ const std::vector<std::string> &PolyLineModel::GetBufferStyles() const {
     return POLYLINE_BUFFER_STYLES;
 }
 
+bool PolyLineModel::IsNodeFirst(int n) const
+{
+    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - 1);
+}
+
 void PolyLineModel::InitRenderBufferNodes(const std::string& type, const std::string& camera,
     const std::string& transform,
     std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi) const

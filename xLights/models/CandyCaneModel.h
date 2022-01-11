@@ -37,6 +37,7 @@ class CandyCaneModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual int MapToNodeIndex(int strand, int node) const override;
         virtual int GetNumStrands() const override;
         virtual int CalcCannelsPerString() override;
+        virtual bool IsNodeFirst(int node) const override;
 
     private:
         void SetCaneCoord();

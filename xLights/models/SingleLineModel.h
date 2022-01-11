@@ -35,6 +35,7 @@ class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
     protected:
         static std::vector<std::string> LINE_BUFFER_STYLES;
         virtual void InitModel() override;
+        virtual bool IsNodeFirst(int n) const override;
 
     private:
 };

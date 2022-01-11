@@ -17,18 +17,27 @@
 
 std::vector<std::string> SingleLineModel::LINE_BUFFER_STYLES;
 
-
 SingleLineModel::SingleLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
-    parm1 = parm2 = parm3 = 0;
+    parm1 = 0;
+    parm2 = 0;
+    parm3 = 0;
 }
+
 SingleLineModel::SingleLineModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
     SetFromXml(node, zeroBased);
 }
+
 SingleLineModel::SingleLineModel(int lights, const Model &pbc, int strand, int node) : ModelWithScreenLocation(pbc.GetModelManager())
 {
     Reset(lights, pbc, strand, node);
 }
+
+bool SingleLineModel::IsNodeFirst(int n) const 
+{
+    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - 1);
+}
+
 void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node, bool forceDirection)
 {
     Nodes.clear();

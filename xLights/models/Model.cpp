@@ -4890,7 +4890,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
         if (n+1 == highlightpixel) {
             color = xlMAGENTA;
         } else if (highlightFirst && Nodes.size() > 1) {
-            if (n == 0) {
+            if (IsNodeFirst(n)) {
                 color = xlCYAN;
             } else {
                 color = saveColor;

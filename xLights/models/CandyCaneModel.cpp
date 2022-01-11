@@ -196,6 +196,11 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
     return Model::OnPropertyGridChange(grid, event);
 }
 
+bool CandyCaneModel::IsNodeFirst(int n) const
+{
+    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - parm2);
+}
+
 std::string CandyCaneModel::GetDimension() const
 {
     if (parm1 != 0) {

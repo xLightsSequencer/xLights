@@ -251,6 +251,16 @@ void ArchesModel::InitRenderBufferNodes(const std::string& type, const std::stri
     }
 }
 
+bool ArchesModel::IsNodeFirst(int n) const 
+{
+    if (GetLayerSizeCount() == 0) {
+        return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - 1);
+    }
+    else {
+        return n == 0;
+    }
+}
+
 void ArchesModel::InitModel()
 {
     arc = wxAtoi(ModelXml->GetAttribute("arc", "180"));

@@ -188,6 +188,10 @@ public:
     virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {};
     virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {};
     virtual std::string GetDimension() const override;
+    virtual bool IsNodeFirst(int n) const
+    {
+        return n == 0;
+    }
     /**
      * Returns a combination of:
      *     0x0001  -  Refresh displays

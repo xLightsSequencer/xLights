@@ -45,6 +45,7 @@ public:
     virtual int OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
+    virtual bool IsNodeFirst(int node) const override;
 
 protected:
     static std::vector<std::string> POLYLINE_BUFFER_STYLES;
