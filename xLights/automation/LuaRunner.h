@@ -38,6 +38,9 @@ public:
     [[nodiscard]] std::list<std::string> GetModels() const;
     [[nodiscard]] std::list<std::string> GetContollers() const;
 
+    [[nodiscard]] std::list<std::string> SplitString(std::string const& text, char const& delimiter) const;
+    [[nodiscard]] std::string JoinString(std::list<std::string> const& list, char const& delimiter) const;
+
 private:
     xLightsFrame* _frame = nullptr;
 

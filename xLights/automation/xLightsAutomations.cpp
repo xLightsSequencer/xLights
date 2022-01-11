@@ -728,8 +728,39 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         mainSequencer->PanelEffectGrid->Refresh();
         std::string response = wxString::Format("{\"msg\":\"Added Effects.\",\"worked\":\"%s\"}", JSONSafe(toStr(valid != nullptr)));
         return sendResponse(response, "", 200, true);
+    } else if (cmd == "getModels") {
+        std::string models;
+        for (auto m = (&AllModels)->begin(); m != (&AllModels)->end(); ++m) {
+            models += (m->first);
+            models += ",";
+        }
+        if (models.size() != 0) {
+            models.pop_back();//remove last comma
+        }
+        return sendResponse(JSONSafe(models), "msg", 200, false);
+    } else if (cmd == "getControllerNames") {
+        std::string controllers;
+        for (const auto& it : _outputManager.GetControllerNames()) {
+                controllers += it;
+            controllers += ",";
+        }
+        if (controllers.size() != 0) {
+            controllers.pop_back();//remove last comma
+        }
+        return sendResponse(JSONSafe(controllers), "msg", 200, false);
+    } else if (cmd == "getControllerIPs") {
+        std::string ipAddresses;
+        for (const auto& it : _outputManager.GetControllers()) {
+            if (!it->GetIP().empty()) {
+                ipAddresses += (it->GetIP());
+                ipAddresses += ",";
+            }
+        }
+        if (ipAddresses.size() != 0) {
+            ipAddresses.pop_back();//remove last comma
+        }
+        return sendResponse(JSONSafe(ipAddresses), "msg", 200, false);
     }
-
 
     return false;
 }

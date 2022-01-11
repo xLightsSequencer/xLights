@@ -84,6 +84,25 @@ std::list<std::string> LuaRunner::GetModels() const
     return models;
 }
 
+std::list<std::string> LuaRunner::SplitString(std::string const& text, char const& delimiter) const
+{
+    auto items = wxSplit(text, delimiter);
+    std::list<std::string> itemList;
+
+    std::transform(items.begin(), items.end(), std::back_inserter(itemList),
+                   [](auto const& str) { return str; });
+    return itemList;
+}
+
+std::string LuaRunner::JoinString(std::list<std::string> const& list, char const& delimiter) const
+{
+    wxArrayString itemList;
+
+    std::transform(list.begin(), list.end(), std::back_inserter(itemList),
+                   [](auto const& str) { return str; });
+    return wxJoin(itemList, delimiter);
+}
+
 bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::string const& msg)> SendResponce)
 { 
     sol::state lua;
@@ -98,6 +117,8 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
     lua.set_function("PromptSelection", &LuaRunner::PromptSelection, this);
     lua.set_function("GetContollers", &LuaRunner::GetContollers, this);
     lua.set_function("GetModels", &LuaRunner::GetModels, this);
+    lua.set_function("SplitString", &LuaRunner::SplitString, this);
+    lua.set_function("JoinString", &LuaRunner::JoinString, this);
     lua.set_function("Log", SendResponce);
 
     try {
@@ -170,6 +191,8 @@ std::map<std::string, std::string> LuaRunner::JSONStringToMap(wxString const& js
                 }
             }
         }
+    } else {
+        map.insert({ "msg", json });
     }
     return map;
 }
