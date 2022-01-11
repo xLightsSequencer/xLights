@@ -94,7 +94,8 @@ public:
                                                                                                              height:height
                                                                                                           mipmapped:NO];
             depthBufferDescriptor.usage = MTLTextureUsageRenderTarget;
-            
+            depthBufferDescriptor.storageMode = MTLStorageModePrivate;
+
             if (supportsMemoryless()) {
                 if (@available(macOS 11.0, *)) {
                     depthBufferDescriptor.storageMode = MTLStorageModeMemoryless;
