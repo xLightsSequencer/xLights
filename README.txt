@@ -11,6 +11,22 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   Note: macOS now requires macOS 10.14.  10.12 and 10.13 are no longer supported
+   Note: The DMX models have changed from using world coordinates for various sizes (like beam lengths) to
+         values relative to the size/scale parameters.  Thus, users will need adjust things to accomodate.
+         Pixel sizes are also consistent between 2D and 3D and thus may also need adjusting.
+   -- enh (dkulp) Move all UI views from OpenGL to Metal on macOS
+   -- enh (dkulp) 3D and 2D layouts use same code paths (just flattend for 2D) so features like cyan starting
+                  nodes will work on 3D layout.
+   -- enh (dkulp) 2D layouts now use flattened 3D meshes for DMX models instead of a red X
+   -- enh (scott) Automation: add getModels, getControllerNames and getControllerIPs
+   -- enh (scott) Add LUA scripting engine for scripting Automations
+   -- enh (keith) Show which panes are visible with checkmarks in the view menu
+   -- bug (keith) On some models, the cyan "first node" marker is in the wrong location
+   -- bug (robfallone) Fix Per Model Per Preview doesn't include all Single Line models in group
+   -- bug (Nick Krecklow) Use full LOR brightness encoding range in LOROutput
+   -- bug (keith) Fix highlighting of nodes in submodels and states where nodes are reused across multiple rows
+   -- bug (scott) Increase number of universes for v4 ESPixelStick
 2022.01 January 6, 2022
    NOTE: This will be the last version to support macOS 10.12 and 10.13.   Future builds will
          require macOS 10.14 or newer.
