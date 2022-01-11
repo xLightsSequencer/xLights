@@ -77,6 +77,15 @@ public:
             [depthTexture release];
         }
     }
+
+    bool supportsMemoryless() {
+        if (@available(macOS 11.0, *)) {
+            return [canvas->getMTLDevice() respondsToSelector: @selector(supportsFamily:)]
+                && [canvas->getMTLDevice() supportsFamily: MTLGPUFamilyApple5];
+        } else {
+            return false;
+        }
+    }
     
     id<MTLTexture> getDepthTexture() {
         if (depthTexture == nil) {
@@ -85,10 +94,11 @@ public:
                                                                                                              height:height
                                                                                                           mipmapped:NO];
             depthBufferDescriptor.usage = MTLTextureUsageRenderTarget;
-            if (@available(macOS 11.0, *)) {
-                depthBufferDescriptor.storageMode = MTLStorageModeMemoryless;
-            } else {
-                depthBufferDescriptor.storageMode = MTLStorageModePrivate;
+            
+            if (supportsMemoryless()) {
+                if (@available(macOS 11.0, *)) {
+                    depthBufferDescriptor.storageMode = MTLStorageModeMemoryless;
+                }
             }
             depthBufferDescriptor.textureType = MTLTextureType2DMultisample;
             depthBufferDescriptor.sampleCount = canvas->getMSAASampleCount();
