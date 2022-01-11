@@ -1890,19 +1890,15 @@ void xLightsFrame::SequenceSeekTo(wxCommandEvent& event)
 
     int pos = event.GetInt();
     int current_play_time;
-    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr)
-    {
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr) {
         current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
-    }
-    else
-    {
+    } else {
         wxTimeSpan ts = wxDateTime::UNow() - starttime;
         long curtime = ts.GetMilliseconds().ToLong();
         int msec;
         if (playAnimation) {
             msec = curtime * playSpeed;
-        }
-        else {
+        } else {
             msec = curtime;
         }
 
@@ -1912,16 +1908,15 @@ void xLightsFrame::SequenceSeekTo(wxCommandEvent& event)
     long origtime = current_play_time;
     current_play_time += (pos - current_play_time);
     int end_ms = CurrentSeqXmlFile->GetSequenceDurationMS();
-    if (current_play_time > end_ms) current_play_time = end_ms;
+    if (current_play_time > end_ms) {
+        current_play_time = end_ms;
+    }
 
     if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-        if (CurrentSeqXmlFile->GetMedia() != nullptr)
-        {
+        if (CurrentSeqXmlFile->GetMedia() != nullptr) {
             CurrentSeqXmlFile->GetMedia()->Seek(current_play_time);
         }
-    }
-    else
-    {
+    } else {
         starttime += wxTimeSpan(0, 0, (origtime - current_play_time) / 1000, (origtime - current_play_time) % 1000);
     }
 
@@ -2330,6 +2325,16 @@ bool xLightsFrame::TimerRgbSeq(long msec)
 #define RecordTimingCheckpoint()
 #endif
 
+    int current_play_time;
+    if (playType == PLAY_TYPE_MODEL) {
+        if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING) {
+            current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
+            curt = current_play_time;
+        } else {
+            current_play_time = curt;
+        }
+    }
+    
     RecordTimingCheckpoint();
     int frame = curt / _seqData.FrameTime();
     if (frame < _seqData.NumFrames()) {
@@ -2359,13 +2364,6 @@ bool xLightsFrame::TimerRgbSeq(long msec)
     }
     
     if (playType == PLAY_TYPE_MODEL) {
-        int current_play_time;
-		if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING) {
-			current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
-            curt = current_play_time;
-        } else {
-            current_play_time = curt;
-        }
         // see if its time to stop model play
         if (curt >= playEndTime) {
             if (mLoopAudio) {
