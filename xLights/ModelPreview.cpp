@@ -530,19 +530,14 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                         }
 
                         if (sm->GroupSelected || sm->Selected) {
-                            m->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d,
-                                                    color, allowSelected, false, highlightFirst);
                             
                             float bounds[6];
                             bounds[0] = bounds[1] = bounds[2] = 999999;
                             bounds[3] = bounds[4] = bounds[5] = -999999;
                             
+                            sm->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d,
+                                                     color, allowSelected, false, highlightFirst);
 
-                            
-                            m->DisplayModelOnWindow(this, currentContext, solidProgram,
-                                                    transparentProgram, is3d, defColor,
-                                                    false, false, highlightFirst, 0, bounds);
-                            
                             if (color == selColor) {
                                 m->GetModelScreenLocation().TranslatePoint(bounds[0], bounds[1], bounds[2]);
                                 m->GetModelScreenLocation().TranslatePoint(bounds[3], bounds[4], bounds[5]);
