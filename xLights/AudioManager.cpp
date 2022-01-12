@@ -159,8 +159,7 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
     _state = SDLSTATE::SDLUNINITIALISED;
     _playbackrate = 1.0f;
 
-    if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER))
-    {
+    if (SDL_Init(SDL_INIT_AUDIO)) {
         logger_base.error("Could not initialize SDL");
         return;
     }
@@ -171,8 +170,7 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
     _device = "";
 #else
     // override the default driver on windows so we can access the microphone
-    if (SDL_AudioInit("directsound") != 0)
-    {
+    if (SDL_AudioInit("directsound") != 0) {
         logger_base.error("Failed to access DirectSound ... Microphone won't be available.");
     }
     _device = device;
@@ -181,8 +179,7 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
     _state = SDLSTATE::SDLINITIALISED;
     _initialisedRate = DEFAULT_RATE;
 
-    if (!OpenAudioDevice(device))
-    {
+    if (!OpenAudioDevice(device)) {
         logger_base.error("Could not open SDL audio");
         _audioDeviceFailed = true;
         return;
@@ -643,8 +640,7 @@ bool SDL::OpenAudioDevice(const std::string& device)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (_state != SDLSTATE::SDLOPENED && _state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
-    {
+    if (_state != SDLSTATE::SDLOPENED && _state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED) {
         Stop();
     }
 
@@ -663,14 +659,12 @@ bool SDL::OpenAudioDevice(const std::string& device)
     logger_base.debug("Opening audio device. '%s'", (const char *)device.c_str());
     SDL_ClearError();
     const char* d = nullptr;
-    if (device != "")
-    {
+    if (device != "") {
         d = device.c_str();
     }
     SDL_AudioDeviceID rc = SDL_OpenAudioDevice(d, 0, &_wanted_spec, &actual_spec, 0);
     logger_base.debug("    Result '%s'", SDL_GetError());
-    if (rc < 2)
-    {
+    if (rc < 2) {
         return false;
     }
     _dev = rc;
@@ -678,8 +672,7 @@ bool SDL::OpenAudioDevice(const std::string& device)
     logger_base.debug("Pausing audio device %d.", _dev);
     SDL_ClearError();
     SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
-    if (as == SDL_AUDIO_PLAYING)
-    {
+    if (as == SDL_AUDIO_PLAYING) {
         SDL_PauseAudioDevice(_dev, 1);
     }
     logger_base.debug("    Result '%s'", SDL_GetError());
