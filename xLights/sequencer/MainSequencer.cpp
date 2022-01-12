@@ -167,15 +167,16 @@ public:
             return;
         }
         ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
-
+        
         float fs = translateToBacking(fontSize);
-        if (newFontSize != fontSize) {
+        if (newFontSize != fontSize || backedFontSize != fs) {
             if (fontTexture) {
                 delete fontTexture;
                 fontTexture = nullptr;
             }
             fontSize = newFontSize;
             fs = translateToBacking(fontSize);
+            backedFontSize = fs;
             const xlFontInfo &fi = xlFontInfo::FindFont((int)fs);
             fontTexture = ctx->createTextureForFont(fi);
         }
@@ -213,6 +214,7 @@ private:
     std::string _selected;
 
     int fontSize = 0;
+    int backedFontSize = 0;
     int newFontSize = 14;
 };
 
