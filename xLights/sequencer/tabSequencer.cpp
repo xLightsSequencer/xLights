@@ -2325,7 +2325,7 @@ bool xLightsFrame::TimerRgbSeq(long msec)
 #define RecordTimingCheckpoint()
 #endif
 
-    int current_play_time;
+    int current_play_time = 0;
     if (playType == PLAY_TYPE_MODEL) {
         if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING) {
             current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
