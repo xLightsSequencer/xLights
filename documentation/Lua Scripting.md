@@ -22,3 +22,4 @@ The Script Runner Dialog allows the user to run [Lua](http://www.lua.org/manual/
 | PromptString     | string message                   | table        | Opens Text Entry Dialog for User Entry     |
 | SplitString      | string text, string delimiter    | table        | Splits single string into table of strings |
 | JoinString       | table items, string delimiter    | string       | Joins table of strings into single string  |
+| Log              | string message                   | string       | Log Message to Script Dialog               |
