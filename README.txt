@@ -15,6 +15,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    Note: The DMX models have changed from using world coordinates for various sizes (like beam lengths) to
          values relative to the size/scale parameters.  Thus, users will need adjust things to accomodate.
          Pixel sizes are also consistent between 2D and 3D and thus may also need adjusting.
+   -- enh (gil)   Add multiple string support to PolyLine
    -- enh (dkulp) Move all UI views from OpenGL to Metal on macOS
    -- enh (dkulp) 3D and 2D layouts use same code paths (just flattend for 2D) so features like cyan starting
                   nodes will work on 3D layout.

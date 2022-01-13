@@ -861,7 +861,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
 void Model::ClearIndividualStartChannels()
 {
     // dont clear custom models
-    if (IsCustom()) return;
+    if (IsCustom() || IsPolyLine()) return;
 
     ModelXml->DeleteAttribute("Advanced");
     // remove per strand start channels if individual isnt selected
@@ -4225,6 +4225,10 @@ void Model::GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts) {
 
 bool Model::IsCustom(void) {
     return (DisplayAs == "Custom");
+}
+
+bool Model::IsPolyLine(void) {
+    return (DisplayAs == "PolyLine");
 }
 
 //convert # to AA format so it matches Custom Model grid display:
