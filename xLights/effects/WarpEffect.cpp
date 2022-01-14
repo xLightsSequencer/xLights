@@ -580,117 +580,142 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
 
 void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
-   float progress = buffer.GetEffectTimeIntervalPosition(1.f);
+    float progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
-   std::string warpType = SettingsMap.Get( "CHOICE_Warp_Type", "water drops" );
-   std::string warpTreatment = SettingsMap.Get( "CHOICE_Warp_Treatment_APPLYLAST", "constant");
-   std::string warpStrCycleCount = SettingsMap.Get( "TEXTCTRL_Warp_Cycle_Count", "1" );
-   std::string speedStr = SettingsMap.Get( "TEXTCTRL_Warp_Speed", "20" );
-   std::string freqStr = SettingsMap.Get( "TEXTCTRL_Warp_Frequency", "20" );
-   int xPercentage = GetValueCurveInt( "Warp_X", 0, SettingsMap, progress, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-   int yPercentage = GetValueCurveInt( "Warp_Y", 0, SettingsMap, progress, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-   double x = 0.01 * xPercentage;
-   double y = 0.01 * yPercentage;
-   float speed = std::stof( speedStr );
-   float frequency = std::stof( freqStr );
+    std::string warpTypeString = SettingsMap.Get( "CHOICE_Warp_Type", "water drops" );
+    WarpEffect::WarpType warpType = mapWarpType(warpTypeString);
+    std::string warpTreatment = SettingsMap.Get( "CHOICE_Warp_Treatment_APPLYLAST", "constant");
+    std::string warpStrCycleCount = SettingsMap.Get( "TEXTCTRL_Warp_Cycle_Count", "1" );
+    std::string speedStr = SettingsMap.Get( "TEXTCTRL_Warp_Speed", "20" );
+    std::string freqStr = SettingsMap.Get( "TEXTCTRL_Warp_Frequency", "20" );
+    int xPercentage = GetValueCurveInt( "Warp_X", 0, SettingsMap, progress, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int yPercentage = GetValueCurveInt( "Warp_Y", 0, SettingsMap, progress, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    double x = 0.01 * xPercentage;
+    double y = 0.01 * yPercentage;
+    float speed = std::stof( speedStr );
+    float frequency = std::stof( freqStr );
 
-   WarpEffectParams params( progress, Vec2D( x, y ), speed, frequency );
-   if ( warpType == "water drops" )
-      RenderPixelTransform( waterDrops, buffer, params );
-   else if (warpType == "sample on")
-   {
-       RenderSampleOn(buffer, x, y);
-   }
-   else if ( warpType == "wavy" )
-   {
-      LinearInterpolater interpolater;
-      params.speed = interpolate( params.speed, 0.0,0.5, 40.0,5.0, interpolater );
+    WarpEffectParams params( progress, Vec2D( x, y ), speed, frequency );
+    if ( warpType == WarpEffect::WarpType::WATER_DROPS) {
+        RenderPixelTransform( waterDrops, buffer, params );
+    } else if (warpType == WarpEffect::WarpType::SAMPLE_ON) {
+        RenderSampleOn(buffer, x, y);
+    } else if (warpType == WarpEffect::WarpType::WAVY) {
+        LinearInterpolater interpolater;
+        params.speed = interpolate( params.speed, 0.0,0.5, 40.0,5.0, interpolater );
+        RenderPixelTransform( wavy, buffer, params );
+    } else if (warpType == WarpEffect::WarpType::MIRROR) {
+        RenderPixelTransform(mirror, buffer, params);
+    } else if (warpType == WarpEffect::WarpType::COPY) {
+        RenderPixelTransform(copy, buffer, params);
+    } else if (warpType == WarpEffect::WarpType::SINGLE_WATER_DROP) {
+        float cycleCount = std::stof( warpStrCycleCount );
+        float intervalLen = 1.f / cycleCount;
+        float scaledProgress = progress / intervalLen;
+        float intervalProgress, intervalIndex;
+        intervalProgress = std::modf( scaledProgress, &intervalIndex );
 
-      RenderPixelTransform( wavy, buffer, params );
-   }
-   else if (warpType == "mirror") {
-       RenderPixelTransform(mirror, buffer, params);
-   }
-   else if (warpType == "copy") {
-       RenderPixelTransform(copy, buffer, params);
-   }
-   else if ( warpType == "single water drop" )
-   {
-      float cycleCount = std::stof( warpStrCycleCount );
-      float intervalLen = 1.f / cycleCount;
-      float scaledProgress = progress / intervalLen;
-      float intervalProgress, intervalIndex;
-      intervalProgress = std::modf( scaledProgress, &intervalIndex );
+        LinearInterpolater interpolater;
+        float interpolatedProgress = interpolate( intervalProgress, 0.0,0.20, 1.0,0.45, interpolater );
 
-      LinearInterpolater interpolater;
-      float interpolatedProgress = interpolate( intervalProgress, 0.0,0.20, 1.0,0.45, interpolater );
+        params.progress = interpolatedProgress;
+        RenderPixelTransform( singleWaterDrop, buffer, params );
+    } else {
+        PixelTransform xform = nullptr;
+        // the other warps were originally intended as transitions in or out... for constant
+        // treatment, we'll just cycle between progress of [0,1] and [1,0]. "constant" wasn't
+        // a very good description, maybe back-and-forth or something would be more accurate
+        if (warpTreatment == "constant") {
+            float cycleCount = std::stof(warpStrCycleCount);
+            float intervalLen = 1.f / (2 * cycleCount );
+            float scaledProgress = progress / intervalLen;
+            float intervalProgress, intervalIndex;
+            intervalProgress = std::modf( scaledProgress, &intervalIndex );
+            if (int(intervalIndex) % 2) {
+                intervalProgress = 1.f - intervalProgress;
+            }
+            params.progress = intervalProgress;
+            if (warpType == WarpEffect::WarpType::RIPPLE) {
+                xform = rippleIn;
+            } else if (warpType == WarpEffect::WarpType::DISSOLVE) {
+                xform = dissolveIn;
+            } else if (warpType == WarpEffect::WarpType::BANDED_SWIRL) {
+                xform = bandedSwirlIn;
+            } else if (warpType == WarpEffect::WarpType::CIRCLE_REVEAL) {
+                xform = circleRevealIn;
+            } else if (warpType == WarpEffect::WarpType::CIRCULAR_SWIRL) {
+                params.progress = 1. - params.progress;
+                xform = circularSwirl;
+            } else if (warpType == WarpEffect::WarpType::DROP) {
+                params.progress = 1. - params.progress;
+                xform = drop;
+            }
+        } else {
+            if (warpType == WarpEffect::WarpType::RIPPLE) {
+                xform = warpTreatment == "in" ? rippleIn : rippleOut;
+            } else if (warpType == WarpEffect::WarpType::DISSOLVE) {
+                xform = ( warpTreatment == "in" ) ? dissolveIn : dissolveOut;
+            } else if (warpType == WarpEffect::WarpType::BANDED_SWIRL) {
+                xform = ( warpTreatment == "in" ) ? bandedSwirlIn : bandedSwirlOut;
+            } else if (warpType == WarpEffect::WarpType::CIRCLE_REVEAL) {
+                xform = ( warpTreatment == "in" ) ? circleRevealIn : circleRevealOut;
+            } else if (warpType == WarpEffect::WarpType::CIRCULAR_SWIRL) {
+                xform = circularSwirl;
+            } else if (warpType == WarpEffect::WarpType::DROP) {
+                xform = drop;
+                if (warpTreatment == "in") {
+                    params.progress = 1. - params.progress;
+                }
+            }
+        }
 
-      params.progress = interpolatedProgress;
-      RenderPixelTransform( singleWaterDrop, buffer, params );
-   }
-   else
-   {
-      PixelTransform xform = nullptr;
-      // the other warps were originally intended as transitions in or out... for constant
-      // treatment, we'll just cycle between progress of [0,1] and [1,0]. "constant" wasn't
-      // a very good description, maybe back-and-forth or something would be more accurate
-      if ( warpTreatment == "constant" )
-      {
-         float cycleCount = std::stof( warpStrCycleCount );
-         float intervalLen = 1.f / (2 * cycleCount );
-         float scaledProgress = progress / intervalLen;
-         float intervalProgress, intervalIndex;
-         intervalProgress = std::modf( scaledProgress, &intervalIndex );
-         if ( int(intervalIndex) % 2 )
-            intervalProgress = 1.f - intervalProgress;
-         params.progress = intervalProgress;
-         if ( warpType == "ripple" )
-            xform = rippleIn;
-         else if ( warpType == "dissolve" )
-            xform = dissolveIn;
-         else if ( warpType == "banded swirl" )
-            xform = bandedSwirlIn;
-         else if ( warpType == "circle reveal" )
-            xform = circleRevealIn;
-         else if ( warpType == "circular swirl" )
-         {
-            params.progress = 1. - params.progress;
-            xform = circularSwirl;
-         }
-         else if ( warpType == "drop" )
-         {
-            params.progress = 1. - params.progress;
-            xform = drop;
-         }
-      }
-      else
-      {
-         if ( warpType == "ripple" )
-            xform = ( warpTreatment == "in" )? rippleIn : rippleOut;
-         else if ( warpType == "dissolve" )
-            xform = ( warpTreatment == "in" ) ? dissolveIn : dissolveOut;
-         else if ( warpType == "banded swirl" )
-            xform = ( warpTreatment == "in" ) ? bandedSwirlIn : bandedSwirlOut;
-         else if ( warpType == "circle reveal" )
-            xform = ( warpTreatment == "in" ) ? circleRevealIn : circleRevealOut;
-         else if ( warpType == "circular swirl" )
-            xform = circularSwirl;
-         else if ( warpType == "drop" )
-         {
-            xform = drop;
-            if ( warpTreatment == "in" )
-               params.progress = 1. - params.progress;
-         }
-      }
+        if (warpType == WarpEffect::WarpType::CIRCULAR_SWIRL) {
+            params.speed = interpolate( params.speed, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
+            if (warpTreatment == "in") {
+                params.progress = 1. - params.progress;
+            }
+        }
 
-      if ( warpType == "circular swirl" )
-      {
-         params.speed = interpolate( params.speed, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
-         if ( warpTreatment == "in" )
-            params.progress = 1. - params.progress;
-      }
+        if (xform != nullptr) {
+            RenderPixelTransform( xform, buffer, params );
+        }
+    }
+}
 
-      if ( xform != nullptr )
-         RenderPixelTransform( xform, buffer, params );
-   }
+
+WarpEffect::WarpType WarpEffect::mapWarpType(const std::string &s) {
+    if (s == "water drops") {
+        return WarpEffect::WATER_DROPS;
+    }
+    if (s == "dissolve") {
+        return WarpEffect::DISSOLVE;
+    }
+    if (s == "circle reveal") {
+        return WarpEffect::CIRCLE_REVEAL;
+    }
+    if (s == "banded swirl") {
+        return WarpEffect::BANDED_SWIRL;
+    }
+    if (s == "ripple") {
+        return WarpEffect::RIPPLE;
+    }
+    if (s == "single water drop") {
+        return WarpEffect::SINGLE_WATER_DROP;
+    }
+    if (s == "circular swirl") {
+        return WarpEffect::CIRCULAR_SWIRL;
+    }
+    if (s == "drop") {
+        return WarpEffect::DROP;
+    }
+    if (s == "wavy") {
+        return WarpEffect::WAVY;
+    }
+    if (s == "sample on") {
+        return WarpEffect::SAMPLE_ON;
+    }
+    if (s == "mirror") {
+        return WarpEffect::MIRROR;
+    }
+    return WarpEffect::COPY;
 }

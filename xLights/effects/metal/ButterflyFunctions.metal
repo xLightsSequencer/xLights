@@ -3,7 +3,7 @@
 using namespace metal;
 
 
-#include "ButterflyTypes.h"
+#include "MetalEffectDataTypes.h"
 
 constant half4 K = half4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
 constant float pi2 = 3.14159*2.0;

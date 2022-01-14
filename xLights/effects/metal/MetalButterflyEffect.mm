@@ -1,7 +1,7 @@
 
 #include "MetalComputeUtilities.hpp"
-#include "MetalButterflyEffect.hpp"
-#include "ButterflyTypes.h"
+#include "MetalEffects.hpp"
+#include "MetalEffectDataTypes.h"
 
 #include "../../RenderBuffer.h"
 

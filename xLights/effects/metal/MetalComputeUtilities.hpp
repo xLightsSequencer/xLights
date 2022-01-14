@@ -32,6 +32,7 @@ public:
     
     id<MTLBuffer> getPixelBuffer(bool sendToGPU = true);
     id<MTLTexture> getPixelTexture();
+    id<MTLBuffer> getPixelBufferCopy();
 
     void commit();
     void waitForCompletion();
@@ -42,6 +43,7 @@ private:
     RenderBuffer *renderBuffer;
     id<MTLCommandBuffer> commandBuffer;
     id<MTLBuffer> pixelBuffer;
+    id<MTLBuffer> pixelBufferCopy;
     id<MTLTexture> pixelTexture;
     int pixelBufferSize;
     bool committed = false;

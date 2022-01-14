@@ -18,3 +18,18 @@ struct ButterflyData
     uint16_t numColors;
 
 };
+
+
+struct WarpData {
+    uint32_t width;
+    uint32_t height;
+    
+    uint32_t xPos;
+    uint32_t yPos;
+    
+    float speed;
+    float progress;
+    float frequency;
+    
+    int direction;
+};

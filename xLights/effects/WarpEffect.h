@@ -15,6 +15,25 @@
 class WarpEffect : public RenderableEffect
 {
     public:
+        enum WarpType {
+            WATER_DROPS = 0,
+            SINGLE_WATER_DROP,
+            CIRCLE_REVEAL,
+            BANDED_SWIRL,
+            CIRCULAR_SWIRL,
+            DISSOLVE,
+            RIPPLE,
+            DROP,
+            WAVY,
+            SAMPLE_ON,
+            MIRROR,
+            COPY,
+            
+            COUNT_WARP_STYLES
+        };
+        WarpType mapWarpType(const std::string &wt);
+    
+    
         WarpEffect(int id);
         virtual ~WarpEffect();
         virtual bool CanBeRandom() override {return false;}

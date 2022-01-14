@@ -17,6 +17,7 @@ MetalPixelBufferComputeData::~MetalPixelBufferComputeData() {
 MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, MetalPixelBufferComputeData *pbd) : renderBuffer(rb), pixelBufferData(pbd) {
     commandBuffer = nil;
     pixelBuffer = nil;
+    pixelBufferCopy = nil;
     pixelTexture = nil;
     pixelBufferSize = 0;
 }
@@ -28,6 +29,9 @@ MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
         }
         if (pixelBuffer != nil) {
             [pixelBuffer release];
+        }
+        if (pixelBufferCopy != nil) {
+            [pixelBufferCopy release];
         }
         if (pixelTexture != nil) {
             [pixelTexture release];
@@ -42,8 +46,26 @@ id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer() {
     }
     return commandBuffer;
 }
+id<MTLBuffer> MetalRenderBufferComputeData::getPixelBufferCopy() {
+    if (pixelBufferCopy == nil) {
+        int bufferSize = renderBuffer->GetPixelCount() * 4;
+        id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModePrivate] retain];
+        std::string name = renderBuffer->GetModelName() + "PixelBufferCopy";
+        NSString* mn = [NSString stringWithUTF8String:name.c_str()];
+        [newBuffer setLabel:mn];
+        pixelBufferCopy = newBuffer;
+    }
+    return pixelBufferCopy;
+}
+
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
     if (pixelBufferSize < renderBuffer->GetPixelCount()) {
+        if (pixelBuffer) {
+            [pixelBuffer release];
+        }
+        if (pixelBufferCopy) {
+            [pixelBufferCopy release];
+        }
         int bufferSize = renderBuffer->GetPixelCount() * 4;
         id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeShared] retain];
         std::string name = renderBuffer->GetModelName() + "PixelBuffer";

@@ -4,7 +4,7 @@
 #include "../../RenderBuffer.h"
 #include "MetalComputeUtilities.hpp"
 
-#include "MetalButterflyEffect.hpp"
+#include "MetalEffects.hpp"
 
 
 class MetalRenderUtils : public GPURenderUtils {
@@ -74,8 +74,13 @@ static MetalRenderUtils METAL_RENDER_UTILS;
 
 RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
     if (MetalComputeUtilities::INSTANCE.computeEnabled()) {
-        if (eff == EffectManager::eff_BUTTERFLY) {
+        switch (eff) {
+        case EffectManager::eff_BUTTERFLY:
             return new MetalButterflyEffect(eff);
+        case EffectManager::eff_WARP:
+            return new MetalWarpEffect(eff);
+        default:
+            return nullptr;
         }
     }
     return nullptr;
