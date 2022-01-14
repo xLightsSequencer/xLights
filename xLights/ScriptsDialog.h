@@ -69,11 +69,13 @@ private:
 	void OnButton_RefreshClick(wxCommandEvent& event);
 	void OnButton_RunClick(wxCommandEvent& event);
 	void OnButton_ClearClick(wxCommandEvent& event);
+	void OnListBoxScriptsDClick(wxCommandEvent& event);
 	//*)
 
 	void OnListRClick(wxContextMenuEvent& event);
 	void OnPopup(wxCommandEvent& event);
 
+	void Run_Selected_Script();
 	void LoadScriptDir();
     void ProcessScriptDir(wxString const& dir);
     void Run_Lua_Script(wxString const& filepath)const;

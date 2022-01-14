@@ -2,6 +2,7 @@
 The Script Runner Dialog allows the user to run [Lua](http://www.lua.org/manual/5.3/manual.html) Scripts to control xLights functions.
 
 #### Lua Types
+  - boolean true
   - string 'Sample'
   - number 1
   - table {a="Test", b=2}

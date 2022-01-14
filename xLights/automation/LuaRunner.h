@@ -26,7 +26,7 @@ class wxJSONValue;
 class LuaRunner 
 {
 public:
-    LuaRunner(xLightsFrame* frame);
+    explicit LuaRunner(xLightsFrame* frame);
 
     bool Run_Script(wxString const& filepath, std::function<void(std::string const& msg)> SendResponce);
 
@@ -35,8 +35,6 @@ public:
     [[nodiscard]] std::string PromptString(std::string const& text) const;
     [[nodiscard]] std::string PromptSelection(std::list<std::string> const& items, std::string const& message) const;
     [[nodiscard]] std::list<std::string> PromptSequences() const;
-    [[nodiscard]] std::list<std::string> GetModels() const;
-    [[nodiscard]] std::list<std::string> GetContollers() const;
 
     [[nodiscard]] std::list<std::string> SplitString(std::string const& text, char const& delimiter) const;
     [[nodiscard]] std::string JoinString(std::list<std::string> const& list, char const& delimiter) const;
