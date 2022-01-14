@@ -157,8 +157,8 @@ void MetalRenderBufferComputeData::waitForCompletion() {
     }
 }
 bool MetalRenderBufferComputeData::blur(int radius) {
-    if ((renderBuffer->BufferHt < (radius * 2)) || (renderBuffer->BufferWi < (radius * 2))) {
-        // the performance shaders don't handle edges so if less than the radius, bail to the CPU
+    if ((renderBuffer->BufferHt < (radius * 2)) || (renderBuffer->BufferWi < (radius * 2)) || ((renderBuffer->BufferWi * renderBuffer->BufferHt) < 1024)) {
+        // Smallish buffer, overhead of sending to GPU will be more than the gain
         return false;
     }
     @autoreleasepool {
@@ -175,6 +175,7 @@ bool MetalRenderBufferComputeData::blur(int radius) {
         MPSImageTent *gblur = [[MPSImageTent alloc] initWithDevice:MetalComputeUtilities::INSTANCE.device
                                                      kernelWidth:r
                                                     kernelHeight:r];
+        [gblur setEdgeMode:MPSImageEdgeModeClamp];
         [gblur setLabel:@"Blur"];
 
         MPSCopyAllocator myAllocator = ^id <MTLTexture>( MPSKernel * __nonnull filter,

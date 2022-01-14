@@ -5231,7 +5231,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                             int count = cache->vica->getCount();
                             cache->program->addStep([=](xlGraphicsContext *ctx) {
                                 if (lastPixelStyle > 1) {
-                                    ctx->drawTriangles(cache->vica, startVertex, count);
+                                    ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                                 } else {
                                     ModelPreview *preview = (ModelPreview *)ctx->getWindow();
                                     float pointSize = preview->calcPixelSize(lastPixelSize * pointScale);
@@ -5259,7 +5259,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 int count = cache->vica->getCount();
                 cache->program->addStep([=](xlGraphicsContext *ctx) {
                     if (lastPixelStyle > 1) {
-                        ctx->drawTriangles(cache->vica, startVertex, count);
+                        ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                     } else {
                         ModelPreview *preview = (ModelPreview *)ctx->getWindow();
                         float pointSize = preview->calcPixelSize(lastPixelSize * pointScale);

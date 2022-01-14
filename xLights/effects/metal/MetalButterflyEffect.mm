@@ -89,8 +89,8 @@ void MetalButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, Rend
     MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
     int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
 
-    //currently just  Style 1 is GPU enabled
-    if (rbcd == nullptr || !data->canRenderStyle(Style)) {
+    //currently just  Styles 1-5 are GPU enabled, if smaller buffer, overhead of prep for GPU will be higher than benefit
+    if (rbcd == nullptr || !data->canRenderStyle(Style) || ((buffer.BufferWi * buffer.BufferHt) < 1024)) {
         ButterflyEffect::Render(effect, SettingsMap, buffer);
         return;
     }
