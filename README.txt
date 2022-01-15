@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.02 January 15, 2022
    Note: macOS now requires macOS 10.14.  10.12 and 10.13 are no longer supported
    Note: The DMX models have changed from using world coordinates for various sizes (like beam lengths) to
          values relative to the size/scale parameters.  Thus, users will need adjust things to accomodate.
@@ -23,6 +24,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (scott) Automation: add getModels, getControllerNames and getControllerIPs
    -- enh (scott) Add LUA scripting engine for scripting Automations
    -- enh (keith) Show which panes are visible with checkmarks in the view menu
+   -- enh (dkulp) Add Warp to Metal GPU rendering
+   -- enh (gil)   Add multiple string support to PolyLine
    -- bug (keith) On some models, the cyan "first node" marker is in the wrong location
    -- bug (robfallone) Fix Per Model Per Preview doesn't include all Single Line models in group
    -- bug (Nick Krecklow) Use full LOR brightness encoding range in LOROutput
