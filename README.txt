@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)   Add new render buffer "Per Model Default Deep" that will recurse nested model groups.
 2022.02 January 15, 2022
    Note: macOS now requires macOS 10.14.  10.12 and 10.13 are no longer supported
    Note: The DMX models have changed from using world coordinates for various sizes (like beam lengths) to

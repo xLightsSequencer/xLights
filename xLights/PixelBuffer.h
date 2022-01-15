@@ -123,6 +123,7 @@ private:
             BufferHt = BufferWi = 0;
             persistent = false;
             usingModelBuffers = false;
+            usingModelBuffersDeep = false;
             freezeAfterFrame = 10000;
             suppressUntil = 0;
             fadeInSteps = fadeOutSteps = 0;
@@ -210,6 +211,7 @@ private:
         float inMaskFactor;
         float outMaskFactor;
         bool usingModelBuffers;
+        bool usingModelBuffersDeep;
         std::vector<std::unique_ptr<RenderBuffer>> modelBuffers;
         bool isChromaKey = false;
         xlColor chromaKeyColour = xlBLACK;
@@ -305,6 +307,7 @@ public:
     void InitStrandBuffer(const Model &pbc, int strand, int timing, int layers);
     void InitNodeBuffer(const Model &pbc, int strand, int node, int timing);
     void InitPerModelBuffers(const ModelGroup& model, int layer, int timing);
+    void InitPerModelBuffersDeep(const ModelGroup& model, int layer, int timing);
 
     void Clear(int which);
 

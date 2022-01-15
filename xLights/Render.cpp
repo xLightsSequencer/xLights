@@ -240,18 +240,28 @@ public:
                     for (int l = numLayers - 1; l >= 0; --l) {
                         EffectLayer *layer = row->GetEffectLayer(l);
                         bool perModelEffects = false;
+                        bool perModelEffectsDeep = false;
                         for (int e = 0; e < layer->GetEffectCount() && !perModelEffects; ++e) {
                             static const std::string CHOICE_BufferStyle("B_CHOICE_BufferStyle");
                             static const std::string DEFAULT("Default");
                             static const std::string PER_MODEL("Per Model");
-                            const std::string &bt = layer->GetEffect(e)->GetSettings().Get(CHOICE_BufferStyle, DEFAULT);
+                            static const std::string DEEP("Deep");
+                            const std::string& bt = layer->GetEffect(e)->GetSettings().Get(CHOICE_BufferStyle, DEFAULT);
                             if (bt.compare(0, 9, PER_MODEL) == 0) {
                                 perModelEffects = true;
+                                if (bt.compare(bt.length() - 4, 4, DEEP) == 0) {
+                                    perModelEffectsDeep = true;
+                                }
                             }
                         }
-                        if (perModelEffects) {
-                            const ModelGroup *grp = dynamic_cast<const ModelGroup*>(model);
-                            mainBuffer->InitPerModelBuffers(*grp, l, data.FrameTime());
+                        if (perModelEffects)
+                        {
+                            const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
+                            if (perModelEffectsDeep) {
+                                mainBuffer->InitPerModelBuffersDeep(*grp, l, data.FrameTime());
+                            } else {
+                                mainBuffer->InitPerModelBuffers(*grp, l, data.FrameTime());
+                            }
                         }
                     }
                 }
