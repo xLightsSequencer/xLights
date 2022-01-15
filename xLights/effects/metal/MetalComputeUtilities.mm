@@ -65,6 +65,7 @@ id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
         }
         if (pixelBufferCopy) {
             [pixelBufferCopy release];
+            pixelBufferCopy = nil;
         }
         int bufferSize = renderBuffer->GetPixelCount() * 4;
         id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeShared] retain];
