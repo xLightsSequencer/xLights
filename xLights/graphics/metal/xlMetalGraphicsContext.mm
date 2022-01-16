@@ -1344,13 +1344,13 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
     bool lastIsSolid = true;
     for (auto sm : xlm->subMeshes) {
         int mid = sm->material;
-        if (xlm->GetMaterial(mid).color.alpha == 255) {
-            if (!xlm->GetMaterial(mid).texture || xlm->GetMaterial(mid).forceColor) {
+        if (mid < 0 || xlm->GetMaterial(mid).color.alpha == 255) {
+            if (mid < 0 || !xlm->GetMaterial(mid).texture || xlm->GetMaterial(mid).forceColor) {
                 if (!lastIsSolid) {
                     lastIsSolid = true;
                     [encoder setRenderPipelineState:solidPS];
                 }
-                simd::float4 color =  xlm->GetMaterial(mid).color.asFloat4();
+                simd::float4 color = mid < 0 ? xlWHITE.asFloat4() : xlm->GetMaterial(mid).color.asFloat4();
                 if (sm->type == MTLPrimitiveTypeLine) {
                     color = {0.0, 0.0, 0.0, 1.0};
                 }
@@ -1422,7 +1422,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshTransparents(xlMesh *mesh, in
     bool lastIsSolid = true;
     for (auto sm : xlm->subMeshes) {
         int mid = sm->material;
-        if (xlm->GetMaterial(mid).color.alpha != 255) {
+        if (mid >= 0 && xlm->GetMaterial(mid).color.alpha != 255) {
             if (xlm->GetMaterial(mid).texture) {
                 if (lastIsSolid) {
                     lastIsSolid = false;
