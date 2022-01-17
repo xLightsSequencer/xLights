@@ -2403,6 +2403,10 @@ void LayoutPanel::SelectAllModels()
 void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
 
     if (base_object == nullptr || propertyEditor == nullptr) return;
+    if (dynamic_cast<ModelGroup*>(base_object) != nullptr) {
+        //groups don't use the property grid
+        return;
+    }
 
     if (propertyEditor->GetSelection() != nullptr) {
         _lastSelProp = propertyEditor->GetSelection()->GetName();
@@ -3618,8 +3622,11 @@ void LayoutPanel::OnPreviewRotateGesture(wxRotateGestureEvent& event) {
     } else if (event.IsGestureStart()) {
         rotate_gesture_active = true;
     }
-    if (selectedBaseObject != nullptr) {
-        //rotate model
+    int gSize = selectedTreeGroups.size();
+    int smSize = selectedTreeSubModels.size();
+    
+    if (selectedBaseObject != nullptr && gSize == 0 && smSize == 0) {
+        //groups and submodels shouldn't rotate
         float delta = (m_last_mouse_x - (event.GetRotationAngle() * 1000)) / 1000.0;
         if (!event.IsGestureStart()) {
             //convert to degrees
@@ -3660,7 +3667,12 @@ void LayoutPanel::OnPreviewZoomGesture(wxZoomGestureEvent& event) {
         zoom_gesture_active = true;
     }
     float delta = (m_last_mouse_x - (event.GetZoomFactor() * 1000)) / 1000.0;
-    if (selectedBaseObject != nullptr) {
+    
+    int gSize = selectedTreeGroups.size();
+    int smSize = selectedTreeSubModels.size();
+    
+    if (selectedBaseObject != nullptr && gSize == 0 && smSize == 0) {
+        //groups and submodels shouldn't resize/scale
         if (!event.IsGestureStart()) {
             //resize model
             if (selectedBaseObject->Scale(glm::vec3(1.0f - delta))) {
