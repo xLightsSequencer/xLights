@@ -1049,9 +1049,11 @@ public:
         xlGLMesh *glm = (xlGLMesh*)mesh;
         glm->create3DMesh(this);
         if (glm->mesh) {
+            glDepthFunc(GL_LESS);
             DrawGLUtils::xlAccumulator vac;
             vac.AddMesh(glm->mesh, false, brightness, false);
             DrawGLUtils::Draw(vac);
+            glDepthFunc(GL_LEQUAL);
         }
         return this;
     }
@@ -1059,9 +1061,11 @@ public:
         xlGLMesh *glm = (xlGLMesh*)mesh;
         glm->create3DMesh(this);
         if (glm->mesh) {
+            glDepthFunc(GL_LESS);
             DrawGLUtils::xlAccumulator vac;
             vac.AddMesh(glm->mesh, false, brightness, true);
             DrawGLUtils::Draw(vac);
+            glDepthFunc(GL_LEQUAL);
         }
         return this;
     }
@@ -1069,9 +1073,11 @@ public:
         xlGLMesh *glm = (xlGLMesh*)mesh;
         glm->create3DMesh(this);
         if (glm->mesh) {
+            glDepthFunc(GL_LESS);
             DrawGLUtils::xlAccumulator vac;
             vac.AddMesh(glm->mesh, true, brightness, false);
             DrawGLUtils::Draw(vac);
+            glDepthFunc(GL_LEQUAL);
         }
         return this;
     }

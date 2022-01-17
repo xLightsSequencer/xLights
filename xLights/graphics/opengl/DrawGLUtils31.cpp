@@ -448,12 +448,12 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
                 singleColorProgram.SetMatrix(mat);
                 GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor");
                 LOG_GL_ERRORV(glUniform4f(cid, 0.0f, 1.0f, 0.0f, 1.0f));
-                LOG_GL_ERRORV(glBindVertexArray(meshProgram.VertexArrayID));
+                LOG_GL_ERRORV(glBindVertexArray(singleColorProgram.VertexArrayID));
                 LOG_GL_ERRORV(glEnableVertexAttribArray(0));
                 LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[4]));
                 LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
                 glEnable(GL_LINE_SMOOTH);
-                LOG_GL_ERRORV(glDrawArrays(GL_LINES, 0, wireframe.size() / 2));
+                LOG_GL_ERRORV(glDrawArrays(GL_LINES, 0, wireframe.size() / 3));
                 glDisable(GL_LINE_SMOOTH);
                 LOG_GL_ERRORV(glDisableVertexAttribArray(0));
                 singleColorProgram.UseProgram();
@@ -510,13 +510,13 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
                 singleColorProgram.SetMatrix(mat);
                 GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor");
                 LOG_GL_ERRORV(glUniform4f(cid, 0.0f, 0.0f, 0.0f, 1.0f));
-                LOG_GL_ERRORV(glBindVertexArray(meshProgram.VertexArrayID));
+                LOG_GL_ERRORV(glBindVertexArray(singleColorProgram.VertexArrayID));
                 LOG_GL_ERRORV(glEnableVertexAttribArray(0));
                 LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[5]));
                 LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
 
                 glEnable(GL_LINE_SMOOTH);
-                LOG_GL_ERRORV(glDrawArrays(GL_LINES, 0, lines.size() / 2));
+                LOG_GL_ERRORV(glDrawArrays(GL_LINES, 0, lines.size() / 3));
                 glDisable(GL_LINE_SMOOTH);
                 LOG_GL_ERRORV(glDisableVertexAttribArray(0));
                 singleColorProgram.UseProgram();

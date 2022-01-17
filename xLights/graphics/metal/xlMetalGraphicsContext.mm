@@ -69,7 +69,7 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
         [encoder setLabel:n];
         
         if (c->RequiresDepthBuffer()) {
-            [encoder setDepthStencilState:c->getDepthStencilState()];
+            [encoder setDepthStencilState:c->getDepthStencilStateLE()];
         }
         
         [renderPass release];
@@ -1336,9 +1336,13 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
     [encoder pushDebugGroup:n];
 
     [encoder setVertexBuffer:xlm->vbuffer offset:0 atIndex:BufferIndexMeshPositions];
+    
     frameData.brightness = brightness;
     frameData.brightness /= 100.0;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
+    
+    [encoder setDepthStencilState:canvas->getDepthStencilStateL()];
+
     
     xlTexture *lastTexture = nullptr;
     bool lastIsSolid = true;
@@ -1395,6 +1399,8 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
                            indexBuffer:xlm->ibuffer
                      indexBufferOffset:(xlm->linesStart*4)];
     }
+    [encoder setDepthStencilState:canvas->getDepthStencilStateLE()];
+
     [encoder popDebugGroup];
     return this;
 }
@@ -1417,6 +1423,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshTransparents(xlMesh *mesh, in
     frameData.brightness = brightness;
     frameData.brightness /= 100.0;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
+    [encoder setDepthStencilState:canvas->getDepthStencilStateL()];
 
     xlTexture *lastTexture = nullptr;
     bool lastIsSolid = true;
@@ -1459,6 +1466,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshTransparents(xlMesh *mesh, in
     if (!lastIsSolid) {
         [encoder setRenderPipelineState:solidPS];
     }
+    [encoder setDepthStencilState:canvas->getDepthStencilStateLE()];
     [encoder popDebugGroup];
     return this;
 }
@@ -1467,7 +1475,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshWireframe(xlMesh *mesh, int b
     if (m->vbuffer == nil) {
         m->LoadBuffers();
     }
-    setPipelineState("meshSolidProgram", "meshVertexShader", "meshSolidFragmentShader");
+    setPipelineState("meshWireframeProgram", "meshWireframeVertexShader", "meshSolidFragmentShader");
     std::string n2 = m->GetName() + " Wireframe";
     NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
     [encoder pushDebugGroup:n];
