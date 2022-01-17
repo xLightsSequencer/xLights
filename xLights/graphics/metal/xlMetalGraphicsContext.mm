@@ -1321,7 +1321,7 @@ xlMesh *xlMetalGraphicsContext::loadMeshFromObjFile(const std::string &file) {
     return new xlMetalMesh(this, file);
 }
 
-xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brightness) {
+xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brightness, bool applyShading) {
     xlMetalMesh *xlm = (xlMetalMesh*)mesh;
     if (xlm->vbuffer == nil) {
         xlm->LoadBuffers();
@@ -1339,6 +1339,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
     
     frameData.brightness = brightness;
     frameData.brightness /= 100.0;
+    frameData.applyShading = applyShading;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
     
     [encoder setDepthStencilState:canvas->getDepthStencilStateL()];

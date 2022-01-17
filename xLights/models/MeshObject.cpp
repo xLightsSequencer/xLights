@@ -317,7 +317,7 @@ bool MeshObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsP
             if (mesh_only) {
                 ctx->drawMeshWireframe(mesh, brightness);
             } else {
-                ctx->drawMeshSolids(mesh, brightness);
+                ctx->drawMeshSolids(mesh, brightness, true);
             }
             ctx->PopMatrix();
         });

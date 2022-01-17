@@ -1045,7 +1045,7 @@ public:
     virtual xlMesh *loadMeshFromObjFile(const std::string &file) override {
         return new xlGLMesh(file, this);
     }
-    virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness) override {
+    virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness, bool applyShading) override {
         xlGLMesh *glm = (xlGLMesh*)mesh;
         glm->create3DMesh(this);
         if (glm->mesh) {

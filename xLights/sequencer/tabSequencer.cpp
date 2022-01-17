@@ -2367,15 +2367,17 @@ bool xLightsFrame::TimerRgbSeq(long msec)
         // see if its time to stop model play
         if (curt >= playEndTime) {
             if (mLoopAudio) {
-				DoPlaySequence();
-				return true;
+                DoPlaySequence();
+                EndGraphicsSyncPoint();
+                return true;
             } else {
-				playStartTime = playEndTime = 0;
-				playStartMS = -1;
-				wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
-				wxPostEvent(this, playEvent);
-				return true;
-			}
+                playStartTime = playEndTime = 0;
+                playStartMS = -1;
+                wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+                wxPostEvent(this, playEvent);
+                EndGraphicsSyncPoint();
+                return true;
+            }
         }
 
         wxASSERT(_seqData.FrameTime() != 0);
