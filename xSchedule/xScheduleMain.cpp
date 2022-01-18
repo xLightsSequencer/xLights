@@ -367,18 +367,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     OutputManager::SetInteractive(false);
-    _pinger = nullptr;
     __schedule = nullptr;
     _statusSetAt = wxDateTime::Now();
-    _webServer = nullptr;
-    _timerOutputFrame = false;
-    _suspendOTL = false;
     _nowebicon = wxBitmap(no_web_icon_24);
     _webicon = wxBitmap(web_icon_24);
     _slowicon = wxBitmap(slow_32);
-    _webIconDisplayed = false;
-    _slowDisplayed = false;
-    _lastSlow = 0;
 
     static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     _timer.SetLog((logger_frame.getPriority() == log4cpp::Priority::DEBUG));
@@ -843,7 +836,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     }
 
     if (rate == 0) rate = 50;
-    _timer.Start(rate / 2, false, "FrameTimer");
+    _useHalfFrames = rate > 1000 / 30; // slower than 30 fps
+    _timer.Start(_useHalfFrames ? rate / 2 : rate, false, "FrameTimer");
     _timerSchedule.Start(500, false, "ScheduleTimer");
 
     StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + ":" + wxString::Format("%d", __schedule->GetOptions()->GetWebServerPort()) + "   ");
@@ -1368,6 +1362,7 @@ void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
         _timer.Stop();
         LoadSchedule();
         wxASSERT(__schedule != nullptr);
+        _useHalfFrames = true;
         _timer.Start(50 / 2, false);
         _timerSchedule.Start(500, false);
         _pluginManager.Initialise(_showDir);
@@ -1506,7 +1501,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     if (elapsed < _timer.GetInterval() / 2)
     {
         // this is premature ... maybe it is a backed up timer event ... lets skip it
-        logger_frame.warn("Timer: Frame event fire interval %dms less than 1/4 frame time %dms", elapsed, _timer.GetInterval() / 2);
+        logger_frame.warn("Timer: Frame event fire interval %dms less than 1/2 frame time %dms", elapsed, _timer.GetInterval() / 2);
         return;
     }
 
@@ -1529,8 +1524,10 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     if (last != wxDateTime::Now().GetSecond() && _timerOutputFrame)
 #endif
     {
-        // This code must be commented out before release!!!
-        logger_frame.debug("    Check schedule");
+        // This log message must be commented out before release!!!
+        //logger_frame.debug("    Check schedule");
+
+        // update the UI every second
         last = wxDateTime::Now().GetSecond();
         wxCommandEvent event2(EVT_SCHEDULECHANGED);
         wxPostEvent(this, event2);
@@ -1546,6 +1543,9 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         // we took too long so next frame has to be an output frame
         _timerOutputFrame = true;
         logger_frame.debug("Timer: Frame took too long %ld > %d so next frame forced to be output", ms, _timer.GetInterval());
+    } else if (!_useHalfFrames) {
+        // every frame is an output frame
+        _timerOutputFrame = true;
     }
     else
     {
@@ -1829,6 +1829,7 @@ void xScheduleFrame::ChangeShowFolder(wxCommandEvent& event)
     _timerSchedule.Stop();
     _timer.Stop();
     LoadSchedule();
+    _useHalfFrames = true;
     _timer.Start(50 / 2, false);
     _timerSchedule.Start(500, false);
     ValidateWindow();
@@ -2632,12 +2633,15 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
 void xScheduleFrame::CorrectTimer(int rate)
 {
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
-    if (rate == 0) rate = 50;
-    if ((rate - __schedule->GetTimerAdjustment()) / 2 != _timer.GetInterval())
+    if (rate == 0) {
+        rate = 50;
+        _useHalfFrames = true;
+    }
+    if ((rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1) != _timer.GetInterval())
     {
-        logger_frame.debug("Timer corrected %d", (rate - __schedule->GetTimerAdjustment()) / 2);
+        logger_frame.debug("Timer corrected %d", (rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1));
 
-        _timer.Start((rate - __schedule->GetTimerAdjustment()) / 2);
+        _timer.Start((rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1));
     }
 }
 
@@ -3648,6 +3652,7 @@ void xScheduleFrame::OnMenuItem_UsexLightsFolderSelected(wxCommandEvent& event)
     _timerSchedule.Stop();
     _timer.Stop();
     LoadSchedule();
+    _useHalfFrames = true;
     _timer.Start(50 / 2, false);
     _timerSchedule.Start(500, false);
 
@@ -3657,35 +3662,30 @@ void xScheduleFrame::OnMenuItem_UsexLightsFolderSelected(wxCommandEvent& event)
 void xScheduleFrame::OnMenuItem_RemoteLatencySelected(wxCommandEvent& event)
 {
     RemoteModeConfigDialog dlg(this, __schedule->GetOptions()->GetRemoteLatency(), __schedule->GetOptions()->GetRemoteAcceptableJitter());
-    if (dlg.ShowModal() == wxID_OK)
-    {
+    if (dlg.ShowModal() == wxID_OK) {
         __schedule->GetOptions()->SetRemoteLatency(dlg.GetLatency());
         __schedule->GetOptions()->SetRemoteAcceptableJitter(dlg.GetJitter());
     }
 }
+
 void xScheduleFrame::OnButton_CloneClick(wxCommandEvent& event)
 {
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
-    if (treeitem.IsOk())
-    {
-        if (IsPlayList(treeitem))
-        {
+    if (treeitem.IsOk()) {
+        if (IsPlayList(treeitem)) {
             PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
             PlayList* newpl = new PlayList(*playlist, true);
-            wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(TreeCtrl_PlayListsSchedules->GetRootItem(), newpl->GetName(), -1, -1, new MyTreeItemData(newpl));
+            wxTreeItemId newitem = TreeCtrl_PlayListsSchedules->AppendItem(TreeCtrl_PlayListsSchedules->GetRootItem(), newpl->GetName(), -1, -1, new MyTreeItemData(newpl));
             TreeCtrl_PlayListsSchedules->Expand(newitem);
             TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
             __schedule->AddPlayList(newpl);
-        }
-        else if (IsSchedule(treeitem))
-        {
+        } else if (IsSchedule(treeitem)) {
             wxTreeItemId plid = TreeCtrl_PlayListsSchedules->GetItemParent(treeitem);
             Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-            if (plid.IsOk())
-            {
+            if (plid.IsOk()) {
                 PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(plid))->GetData();
                 Schedule* newSchedule = new Schedule(*schedule, true);
-                wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(plid, GetScheduleName(newSchedule, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(newSchedule));
+                wxTreeItemId newitem = TreeCtrl_PlayListsSchedules->AppendItem(plid, GetScheduleName(newSchedule, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(newSchedule));
                 TreeCtrl_PlayListsSchedules->Expand(plid);
                 TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
                 playlist->AddSchedule(newSchedule);

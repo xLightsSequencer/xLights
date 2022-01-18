@@ -63,16 +63,17 @@ class xScheduleFrame : public wxFrame
     static ScheduleManager* __schedule;
     std::string _showDir;
     wxDateTime _statusSetAt;
-    bool _timerOutputFrame;
-    bool _suspendOTL;
-    Pinger* _pinger;
+    bool _timerOutputFrame = false;
+    bool _suspendOTL = false;
+    Pinger* _pinger = nullptr;
     wxBitmap _nowebicon;
     wxBitmap _webicon;
     wxBitmap _slowicon;
-    bool _webIconDisplayed;
-    bool _slowDisplayed;
-    wxLongLong _lastSlow;
+    bool _webIconDisplayed = false;
+    bool _slowDisplayed = false;
+    wxLongLong _lastSlow = 0;
     PluginManager _pluginManager;
+    bool _useHalfFrames = true;
 
     void AddIPs();
     void LoadShowDir();
