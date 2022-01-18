@@ -45,6 +45,10 @@ public:
     virtual xlGraphicsContext* Scale(float w, float h, float z) = 0;
     virtual xlGraphicsContext* SetCamera(const glm::mat4 &m) = 0;
     virtual xlGraphicsContext* SetModelMatrix(const glm::mat4 &m) = 0;
+
+    virtual xlGraphicsContext* ScaleViewMatrix(float w, float h, float z) = 0;
+    virtual xlGraphicsContext* TranslateViewMatrix(float x, float y, float z) = 0;
+
     
 
     //setters for various states
@@ -82,7 +86,7 @@ public:
     virtual xlGraphicsContext* drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, const xlColor &c, int start = 0, int count = -1) = 0;
     virtual xlGraphicsContext* drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, int brightness, uint8_t alpha, int start, int count) = 0;
     
-    virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness, bool applyShading) = 0;
+    virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness, bool useViewMatrix) = 0;
     virtual xlGraphicsContext* drawMeshTransparents(xlMesh *mesh, int brightness) = 0;
     virtual xlGraphicsContext* drawMeshWireframe(xlMesh *mesh, int brightness) = 0;
     

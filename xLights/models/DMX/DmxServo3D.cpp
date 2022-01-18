@@ -600,7 +600,7 @@ void DmxServo3d::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
-            ctx->Scale(1.0, 1.0, 0.000001);
+            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
@@ -608,7 +608,7 @@ void DmxServo3d::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
-            ctx->Scale(1.0, 1.0, 0.000001);
+            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
@@ -659,17 +659,17 @@ void DmxServo3d::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
         
         preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
-            ctx->Scale(1.0, 1.0, 0.00001);
-            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
+            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
+            ctx->TranslateViewMatrix(w/2.0f - (ml < 0.0f ? ml : 0.0f),
                            h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
-            ctx->Scale(scaleX, scaleY, 1.0);
+            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0);
         });
         preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
-            ctx->Scale(1.0, 1.0, 0.00001);
-            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
+            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
+            ctx->TranslateViewMatrix(w/2.0f - (ml < 0.0f ? ml : 0.0f),
                            h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
-            ctx->Scale(scaleX, scaleY, 1.0);
+            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0);
         });
         DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), true);
         preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {

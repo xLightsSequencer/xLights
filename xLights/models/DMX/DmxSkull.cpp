@@ -601,7 +601,7 @@ void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ct
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
-            ctx->Scale(1.0, 1.0, 0.001);
+            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
         ctx->Scale(0.7, 0.7, 0.7);
@@ -611,7 +611,7 @@ void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ct
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
-            ctx->Scale(1.0, 1.0, 0.001);
+            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
         ctx->Scale(0.7, 0.7, 0.7);
@@ -664,21 +664,21 @@ void DmxSkull::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         
         preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
-            ctx->Scale(1.0, 1.0, 0.001);
-            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
-                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
-            ctx->Scale(scaleX, scaleY, 1.0);
-            ctx->Scale(0.5, 0.5, 0.5);
-            ctx->Translate(0, -0.7, 0.5);
+            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
+            ctx->TranslateViewMatrix(w/2.0f - (ml < 0.0f ? ml : 0.0f),
+                                     h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0);
+            ctx->ScaleViewMatrix(0.5, 0.5, 0.5);
+            ctx->TranslateViewMatrix(0, -0.7, 0.5);
         });
         preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
-            ctx->Scale(1.0, 1.0, 0.001);
-            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
-                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
-            ctx->Scale(scaleX, scaleY, 1.0);
-            ctx->Scale(0.5, 0.5, 0.5);
-            ctx->Translate(0, -0.7, 0.5);
+            ctx->ScaleViewMatrix(1.0, 1.0, 0.0001);
+            ctx->TranslateViewMatrix(w/2.0f - (ml < 0.0f ? ml : 0.0f),
+                                     h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0);
+            ctx->ScaleViewMatrix(0.5, 0.5, 1.0);
+            ctx->TranslateViewMatrix(0, -0.7, 0.5);
         });
         DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), false, true, nullptr);
         preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {

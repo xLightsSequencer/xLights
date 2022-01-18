@@ -279,7 +279,7 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane
             ctx->Translate(0, 0, 0.5);
-            ctx->Scale(1.0, 1.0, 0.001);
+            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
@@ -288,7 +288,7 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane
             ctx->Translate(0, 0, 0.5);
-            ctx->Scale(1.0, 1.0, 0.001);
+            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });

@@ -1045,7 +1045,7 @@ public:
     virtual xlMesh *loadMeshFromObjFile(const std::string &file) override {
         return new xlGLMesh(file, this);
     }
-    virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness, bool applyShading) override {
+    virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness, bool useViewMatrix) override {
         xlGLMesh *glm = (xlGLMesh*)mesh;
         glm->create3DMesh(this);
         if (glm->mesh) {
@@ -1126,6 +1126,15 @@ public:
         DrawGLUtils::Scale(w, h, z);
         return this;
     }
+    virtual xlGraphicsContext* ScaleViewMatrix(float w, float h, float z) override {
+        DrawGLUtils::Scale(w, h, z);
+        return this;
+    }
+    virtual xlGraphicsContext* TranslateViewMatrix(float x, float y, float z) override {
+        DrawGLUtils::Translate(x, y, z);
+        return this;
+    }
+
     virtual xlGraphicsContext* SetCamera(const glm::mat4 &m) override {
         DrawGLUtils::SetCamera(m);
         return this;

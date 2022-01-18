@@ -1321,7 +1321,7 @@ xlMesh *xlMetalGraphicsContext::loadMeshFromObjFile(const std::string &file) {
     return new xlMetalMesh(this, file);
 }
 
-xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brightness, bool applyShading) {
+xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brightness, bool useViewMatrix) {
     xlMetalMesh *xlm = (xlMetalMesh*)mesh;
     if (xlm->vbuffer == nil) {
         xlm->LoadBuffers();
@@ -1339,7 +1339,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
     
     frameData.brightness = brightness;
     frameData.brightness /= 100.0;
-    frameData.applyShading = applyShading;
+    frameData.useViewMatrix = useViewMatrix;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
     
     [encoder setDepthStencilState:canvas->getDepthStencilStateL()];
@@ -1777,12 +1777,15 @@ xlGraphicsContext* xlMetalGraphicsContext::SetViewport(int topleft_x, int toplef
 //manipulating the matrices
 xlGraphicsContext* xlMetalGraphicsContext::PushMatrix() {
     matrixStack.push(frameData.MVP);
+    matrixStack.push(frameData.viewMatrix);
     matrixStack.push(frameData.modelMatrix);
     return this;
 }
 xlGraphicsContext* xlMetalGraphicsContext::PopMatrix() {
     if (!matrixStack.empty()) {
         frameData.modelMatrix = matrixStack.top();
+        matrixStack.pop();
+        frameData.viewMatrix = matrixStack.top();
         matrixStack.pop();
         frameData.MVP = matrixStack.top();
         matrixStack.pop();
@@ -1802,10 +1805,26 @@ inline simd::float4x4 mapMatrix(const glm::mat4 &m) {
 xlGraphicsContext* xlMetalGraphicsContext::SetCamera(const glm::mat4 &m) {
     simd::float4x4 vm = mapMatrix(m);
     frameData.MVP = matrix_multiply(frameData.MVP, vm);
-    frameData.modelMatrix = matrix_multiply(frameData.modelMatrix, vm);
+    frameData.viewMatrix = matrix_multiply(frameData.viewMatrix, vm);
     frameDataChanged = true;
     return this;
 }
+xlGraphicsContext* xlMetalGraphicsContext::ScaleViewMatrix(float w, float h, float z) {
+    simd::float4x4 m = matrix4x4_scale(w, h, z);
+    frameData.MVP = matrix_multiply(frameData.MVP, m);
+    frameData.viewMatrix = matrix_multiply(frameData.viewMatrix, m);
+    frameDataChanged = true;
+    return this;
+}
+xlGraphicsContext* xlMetalGraphicsContext::TranslateViewMatrix(float x, float y, float z) {
+    simd::float4x4 m = matrix4x4_translation(x, y, z);
+    frameData.MVP = matrix_multiply(frameData.MVP, m);
+    frameData.viewMatrix = matrix_multiply(frameData.viewMatrix, m);
+    frameDataChanged = true;
+    return this;
+}
+
+
 xlGraphicsContext* xlMetalGraphicsContext::SetModelMatrix(const glm::mat4 &m) {
     simd::float4x4 vm = mapMatrix(m);
     frameData.MVP = matrix_multiply(frameData.MVP, vm);
