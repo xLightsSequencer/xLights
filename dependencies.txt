@@ -210,3 +210,12 @@ Version:	 [latest version available as at Jan 2022 is 1.1.4 released Oct 2021]
 License:     BSD
 Strategy:    added as git submodule, build lib with cMake or make
 
+Library:     WS2812FX & WLED & FastLED
+Usage:       Single strand effect FX
+Link:        https://github.com/Aircoookie/WLED
+Source:      https://github.com/Aircoookie/WLED
+Last Pulled:
+Version:	 January 2021
+License:     MIT
+Strategy:    FX.cpp and FX.h created as a merge of all dependent functions across libraries. To the degree possible the actual effect
+             algorithms are unchanged.

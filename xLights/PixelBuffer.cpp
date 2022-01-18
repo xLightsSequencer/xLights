@@ -203,8 +203,6 @@ namespace
       return a.x * b.x + a.y * b.y + a.z * b.z;
    }
 
-   const float PI = 3.14159265359f;
-
    // code for fold transition
    xlColor foldIn( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress, bool isReverse )
    {

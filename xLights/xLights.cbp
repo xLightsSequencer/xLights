@@ -964,6 +964,8 @@
 		<Unit filename="effects/ShockwavePanel.h" />
 		<Unit filename="effects/SingleStrandEffect.cpp" />
 		<Unit filename="effects/SingleStrandEffect.h" />
+		<Unit filename="effects/FX.cpp" />
+		<Unit filename="effects/FX.h" />
 		<Unit filename="effects/SingleStrandPanel.cpp" />
 		<Unit filename="effects/SingleStrandPanel.h" />
 		<Unit filename="effects/SnowflakesEffect.cpp" />

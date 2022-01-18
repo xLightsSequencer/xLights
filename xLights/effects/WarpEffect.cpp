@@ -38,8 +38,6 @@ namespace
       return std::min( hi, std::max( lo, val ) );
    }
 
-   const float PI = 3.14159265359f;
-
    struct Vec2D
    {
       Vec2D( double i_x = 0., double i_y = 0. ) : x( i_x ), y( i_y ) {}

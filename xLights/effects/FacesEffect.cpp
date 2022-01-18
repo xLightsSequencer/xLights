@@ -29,8 +29,6 @@
 
 #include <log4cpp/Category.hh>
 
-#define PI 3.1415926
-
 class FacesRenderCache : public EffectRenderCache {
     std::map<std::string, RenderBuffer*> _imageCache;
 

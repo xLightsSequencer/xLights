@@ -871,6 +871,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     UpdateUI(true);
 
+    logger_base.debug("Loading plugins.");
     _pluginManager.Initialise(_showDir);
 
     for (auto it : _pluginManager.GetPlugins())     {
@@ -883,6 +884,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
             }
         }
     }
+    logger_base.debug("Plugins loaded.");
 }
 
 void xScheduleFrame::LoadSchedule()

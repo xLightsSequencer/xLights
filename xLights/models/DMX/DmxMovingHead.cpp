@@ -39,7 +39,6 @@ DmxMovingHead::~DmxMovingHead()
     //dtor
 }
 
-const double PI = 3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
 class dmxPoint {
@@ -278,8 +277,8 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane
-            ctx->Translate(0, 0, 0.5);
-            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
+            ctx->Translate(0, 0, 0.5f);
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
@@ -287,8 +286,8 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane
-            ctx->Translate(0, 0, 0.5);
-            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
+            ctx->Translate(0, 0, 0.5f);
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
@@ -322,10 +321,10 @@ void DmxMovingHead::DisplayEffectOnWindow(ModelPreview* preview, double pointSiz
     if (ctx) {
         int w, h;
         preview->GetSize(&w, &h);
-        float scaleX = float(w) * 0.95 / float(GetModelScreenLocation().RenderWi);
-        float scaleY = float(h) * 0.95 / float(GetModelScreenLocation().RenderHt);
+        float scaleX = float(w) * 0.95f / float(GetModelScreenLocation().RenderWi);
+        float scaleY = float(h) * 0.95f / float(GetModelScreenLocation().RenderHt);
         if (GetModelScreenLocation().RenderDp > 1) {
-            float scaleZ = float(w) * 0.95 / float(GetModelScreenLocation().RenderDp);
+            float scaleZ = float(w) * 0.95f / float(GetModelScreenLocation().RenderDp);
             scaleX = std::min(scaleX, scaleZ);
         }
         
@@ -345,13 +344,13 @@ void DmxMovingHead::DisplayEffectOnWindow(ModelPreview* preview, double pointSiz
             ctx->PushMatrix();
             ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
                            h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.5f);
-            ctx->Scale(scaleX, scaleY, 0.001);
+            ctx->Scale(scaleX, scaleY, 0.001f);
         });
         preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
             ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
                            h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.5f);
-            ctx->Scale(scaleX, scaleY, 0.001);
+            ctx->Scale(scaleX, scaleY, 0.001f);
         });
         DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), false, true, nullptr);
         preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
@@ -496,7 +495,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlG
     }
 
     // Determine if we need to flip the beam
-    float tilt_pos = RenderBuffer::cos(ToRadians(tilt_angle)) * 0.9;
+    float tilt_pos = RenderBuffer::cos(ToRadians(tilt_angle)) * 0.9f;
     if (tilt_pos < 0) {
         if (pan_angle >= 180.0f) {
             pan_angle -= 180.0f;
@@ -539,18 +538,18 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlG
     auto vac = sprogram->getAccumulator();
     int startVert = vac->getCount();
 
-    float beam_length_displayed = beam_length / 2.0;
+    float beam_length_displayed = beam_length / 2.0f;
 
     if (dmx_style_val == DMX_STYLE_MOVING_HEAD_BARS ||
         dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS ||
         dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS) {
         tprogram->addStep([=](xlGraphicsContext *ctx) {
-            ctx->Translate(-0.25, 0, 0);
-            ctx->Scale(0.5, 0.5, 1.0);
+            ctx->Translate(-0.25f, 0, 0);
+            ctx->Scale(0.5f, 0.5f, 1.0f);
         });
         sprogram->addStep([=](xlGraphicsContext *ctx) {
-            ctx->Translate(-0.25, 0, 0);
-            ctx->Scale(0.5, 0.5, 1.0);
+            ctx->Translate(-0.25f, 0, 0);
+            ctx->Scale(0.5f, 0.5f, 1.0f);
         });
         beam_length_displayed *= 2;
     }
@@ -579,59 +578,59 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlG
 
     if (!hide_body) {
         if (dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP || dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS) {
-            vac->AddCircleAsTriangles(0, 0, 0, 0.5, ccolor, ccolor, 0, 48);
+            vac->AddCircleAsTriangles(0, 0, 0, 0.5f, ccolor, ccolor, 0, 48);
 
             // draw angle line
-            dmxPoint p1(0, -0.05, angle);
-            dmxPoint p2(0.5, -0.05, angle);
-            dmxPoint p3(0.5, 0.05, angle);
-            dmxPoint p4(0, 0.05, angle);
+            dmxPoint p1(0, -0.05f, angle);
+            dmxPoint p2(0.5f, -0.05f, angle);
+            dmxPoint p3(0.5f, 0.05f, angle);
+            dmxPoint p4(0, 0.05f, angle);
 
-            vac->AddVertex(p1.x, p1.y, 0.1, pnt_color);
-            vac->AddVertex(p2.x, p2.y, 0.1, pnt_color);
-            vac->AddVertex(p3.x, p3.y, 0.1, pnt_color);
+            vac->AddVertex(p1.x, p1.y, 0.1f, pnt_color);
+            vac->AddVertex(p2.x, p2.y, 0.1f, pnt_color);
+            vac->AddVertex(p3.x, p3.y, 0.1f, pnt_color);
 
-            vac->AddVertex(p1.x, p1.y, 0.1, pnt_color);
-            vac->AddVertex(p3.x, p3.y, 0.1, pnt_color);
-            vac->AddVertex(p4.x, p4.y, 0.1, pnt_color);
+            vac->AddVertex(p1.x, p1.y, 0.1f, pnt_color);
+            vac->AddVertex(p3.x, p3.y, 0.1f, pnt_color);
+            vac->AddVertex(p4.x, p4.y, 0.1f, pnt_color);
 
             // draw tilt marker
-            dmxPoint marker(tilt_pos / 2.0, 0, angle);
-            vac->AddCircleAsTriangles(marker.x, marker.y, 0.2, 0.07, black, black);
-            vac->AddCircleAsTriangles(marker.x, marker.y, 0.3, 0.06, marker_color, marker_color);
+            dmxPoint marker(tilt_pos / 2.0f, 0, angle);
+            vac->AddCircleAsTriangles(marker.x, marker.y, 0.2f, 0.07f, black, black);
+            vac->AddCircleAsTriangles(marker.x, marker.y, 0.3f, 0.06f, marker_color, marker_color);
         } else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE || dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS) {
             // draw head
-            dmxPoint p1(0.5, -0.5, angle);
-            dmxPoint p2(0.5, +0.5, angle);
-            dmxPoint p3(-0.4, +0.4,angle);
-            dmxPoint p4(-0.5, +0.2, angle);
-            dmxPoint p5(-0.5, -0.2, angle);
-            dmxPoint p6(-0.4, -0.4, angle);
-            vac->AddVertex(p1.x, p1.y, 0.1, ccolor);
-            vac->AddVertex(p2.x, p2.y, 0.1, ccolor);
-            vac->AddVertex(p6.x, p6.y, 0.1, ccolor);
+            dmxPoint p1(0.5f, -0.5f, angle);
+            dmxPoint p2(0.5f, +0.5f, angle);
+            dmxPoint p3(-0.4f, +0.4f,angle);
+            dmxPoint p4(-0.5f, +0.2f, angle);
+            dmxPoint p5(-0.5f, -0.2f, angle);
+            dmxPoint p6(-0.4f, -0.4f, angle);
+            vac->AddVertex(p1.x, p1.y, 0.1f, ccolor);
+            vac->AddVertex(p2.x, p2.y, 0.1f, ccolor);
+            vac->AddVertex(p6.x, p6.y, 0.1f, ccolor);
 
-            vac->AddVertex(p2.x, p2.y, 0.1, ccolor);
-            vac->AddVertex(p3.x, p3.y, 0.1, ccolor);
-            vac->AddVertex(p6.x, p6.y, 0.1, ccolor);
+            vac->AddVertex(p2.x, p2.y, 0.1f, ccolor);
+            vac->AddVertex(p3.x, p3.y, 0.1f, ccolor);
+            vac->AddVertex(p6.x, p6.y, 0.1f, ccolor);
 
-            vac->AddVertex(p3.x, p3.y, 0.1, ccolor);
-            vac->AddVertex(p5.x, p5.y, 0.1, ccolor);
-            vac->AddVertex(p6.x, p6.y, 0.1, ccolor);
-            vac->AddVertex(p3.x, p3.y, 0.1, ccolor);
-            vac->AddVertex(p4.x, p4.y, 0.1, ccolor);
-            vac->AddVertex(p5.x, p5.y, 0.1, ccolor);
+            vac->AddVertex(p3.x, p3.y, 0.1f, ccolor);
+            vac->AddVertex(p5.x, p5.y, 0.1f, ccolor);
+            vac->AddVertex(p6.x, p6.y, 0.1f, ccolor);
+            vac->AddVertex(p3.x, p3.y, 0.1f, ccolor);
+            vac->AddVertex(p4.x, p4.y, 0.1f, ccolor);
+            vac->AddVertex(p5.x, p5.y, 0.1f, ccolor);
 
             // draw base
-            vac->AddCircleAsTriangles(0, 0, 0.2, 0.2, base_color, base_color, 0, 32);
-            vac->AddRectAsTriangles(-0.2, 0, 0.2, -0.7, 0.2, base_color);
+            vac->AddCircleAsTriangles(0, 0, 0.2f, 0.2f, base_color, base_color, 0, 32);
+            vac->AddRectAsTriangles(-0.2f, 0, 0.2f, -0.7f, 0.2f, base_color);
 
             // draw pan marker
-            dmxPoint p7(0.2, 0.05, pan_angle);
-            dmxPoint p8(0.2, -0.05, pan_angle);
-            vac->AddVertex(0, 0, 0.3, marker_color);
-            vac->AddVertex(p7.x, p7.y, 0.3, marker_color);
-            vac->AddVertex(p8.x, p8.y, 0.3, marker_color);
+            dmxPoint p7(0.2f, 0.05f, pan_angle);
+            dmxPoint p8(0.2f, -0.05f, pan_angle);
+            vac->AddVertex(0, 0, 0.3f, marker_color);
+            vac->AddVertex(p7.x, p7.y, 0.3f, marker_color);
+            vac->AddVertex(p8.x, p8.y, 0.3f, marker_color);
         }
     }
 
@@ -653,18 +652,18 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlG
         ApplyTransparency(pink, trans, trans);
         ApplyTransparency(turqoise, trans, trans);
 
-        vac->AddRectAsTriangles(0.6, 0.9, 0.65, -0.9, ccolor);
-        vac->AddRectAsTriangles(1.5, 0.9, 1.45, -0.9, ccolor);
-        vac->AddRectAsTriangles(0.6, 0.9, 1.5, 0.85, ccolor);
-        vac->AddRectAsTriangles(0.6, -0.9, 1.5, -0.85, ccolor);
+        vac->AddRectAsTriangles(0.6f, 0.9f, 0.65f, -0.9f, ccolor);
+        vac->AddRectAsTriangles(1.5f, 0.9f, 1.45f, -0.9f, ccolor);
+        vac->AddRectAsTriangles(0.6f, 0.9f, 1.5f, 0.85f, ccolor);
+        vac->AddRectAsTriangles(0.6f, -0.9f, 1.5f, -0.85f, ccolor);
 
-        float lineSize = 1.7 / ((float)NodeCount);
-        float barSize = lineSize * 0.8;
-        float lineStart = 0.825;
+        float lineSize = 1.7f / ((float)NodeCount);
+        float barSize = lineSize * 0.8f;
+        float lineStart = 0.825f;
         for (int i = 1; i <= NodeCount; ++i) {
             Nodes[i - 1]->GetColor(proxy);
             float val = (float)proxy.red;
-            float offsetx = val / 255.0 * 0.8;
+            float offsetx = val / 255.0f * 0.8f;
             if (i == pan_channel) {
                 proxy = pink;
             } else if (i == tilt_channel) {
@@ -680,7 +679,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlG
             } else {
                 proxy = ccolor;
             }
-            vac->AddRectAsTriangles(0.65, lineStart, 0.65 + offsetx, lineStart - barSize, 0.3, proxy);
+            vac->AddRectAsTriangles(0.65f, lineStart, 0.65f + offsetx, lineStart - barSize, 0.3f, proxy);
             lineStart -= lineSize;
         }
     }

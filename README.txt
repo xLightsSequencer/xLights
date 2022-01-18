@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith) Add FX to single strand effect. This is a port of WS2812FX/FastLED as modified by WLED into xLights.
    -- bug (gil)   Fix issue with Per Model Default Deep not creating large enough buffer
 2022.03 January 22, 2022
    -- enh (dkulp) MacOS: Initial support for 3DConnexion 3D mice in Preview windows
@@ -24,6 +25,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (dkulp) Fix problems on OpenGL with single color strings
    -- bug (scott) Fix crashes in custom model wiring view
    -- bug (gil)   Fix issues with PolyLine caused by multiple string upgrades
+   -- bug (keith) Fix cyan first pixel on some models showing incorrectly
 2022.02 January 15, 2022
    Note: macOS now requires macOS 10.14.  10.12 and 10.13 are no longer supported
    Note: The DMX models have changed from using world coordinates for various sizes (like beam lengths) to

@@ -21,6 +21,12 @@
 #define SINGLESTRAND_COLOURMIX_MIN 1
 #define SINGLESTRAND_COLOURMIX_MAX 100
 
+#define SINGLESTRAND_FXINTENSITY_MIN 0
+#define SINGLESTRAND_FXINTENSITY_MAX 255
+
+#define SINGLESTRAND_FXSPEED_MIN 0
+#define SINGLESTRAND_FXSPEED_MAX 255
+
 class SingleStrandEffect : public RenderableEffect
 {
     public:
@@ -44,7 +50,8 @@ class SingleStrandEffect : public RenderableEffect
                                  float chaseSpeed);
         void RenderSingleStrandSkips(RenderBuffer &buffer, Effect *eff, int Skips_BandSize,
                                  int Skips_SkipSize, int Skips_StartPos, const std::string& Skips_Direction, int advances);
-        void draw_chase(RenderBuffer &buffer,
+        void RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, int intensity, int speed, const std::string& fx, const std::string& palette);
+        void draw_chase(RenderBuffer& buffer,
                     int x, bool group, int ColorScheme,int Number_Chases,bool autoReverse,int width,
                     int Color_Mix1,bool Chase_Fade3d1,int ChaseDirection, bool mirror);
 };

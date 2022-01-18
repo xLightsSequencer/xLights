@@ -29,6 +29,9 @@
 #include <wx/textctrl.h>
 //*)
 
+#define XLIGHTS_FX
+#include "FX.h"
+
 //(*IdInit(SingleStrandPanel)
 const long SingleStrandPanel::ID_STATICTEXT_SingleStrand_Colors = wxNewId();
 const long SingleStrandPanel::ID_CHOICE_SingleStrand_Colors = wxNewId();
@@ -76,6 +79,19 @@ const long SingleStrandPanel::ID_STATICTEXT_Skips_Direction = wxNewId();
 const long SingleStrandPanel::ID_CHOICE_Skips_Direction = wxNewId();
 const long SingleStrandPanel::ID_BITMAPBUTTON_CHOICE_Skips_Direction = wxNewId();
 const long SingleStrandPanel::ID_PANEL21 = wxNewId();
+const long SingleStrandPanel::ID_STATICTEXT2 = wxNewId();
+const long SingleStrandPanel::ID_CHOICE_SingleStrand_FX = wxNewId();
+const long SingleStrandPanel::ID_STATICTEXT4 = wxNewId();
+const long SingleStrandPanel::ID_CHOICE_SingleStrand_FX_Palette = wxNewId();
+const long SingleStrandPanel::ID_STATICTEXT1 = wxNewId();
+const long SingleStrandPanel::ID_SLIDER_FX_Intensity = wxNewId();
+const long SingleStrandPanel::ID_VALUECURVE_FX_Intensity = wxNewId();
+const long SingleStrandPanel::IDD_TEXTCTRL_FX_Intensity = wxNewId();
+const long SingleStrandPanel::ID_STATICTEXT3 = wxNewId();
+const long SingleStrandPanel::ID_SLIDER_FX_Speed = wxNewId();
+const long SingleStrandPanel::ID_VALUECURVE_FX_Speed = wxNewId();
+const long SingleStrandPanel::IDD_TEXTCTRL_FX_Speed = wxNewId();
+const long SingleStrandPanel::ID_PANEL1 = wxNewId();
 const long SingleStrandPanel::ID_NOTEBOOK_SSEFFECT_TYPE = wxNewId();
 //*)
 
@@ -93,12 +109,17 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BulkEditTextCtrl* TextCtrl45;
 	BulkEditTextCtrl* TextCtrl4;
 	BulkEditTextCtrl* TextCtrl5;
+	BulkEditTextCtrl* TextCtrl_FX_Intensity;
+	BulkEditTextCtrl* TextCtrl_FX_Speed;
 	BulkEditTextCtrlF1* TextCtrl43;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer21;
 	wxFlexGridSizer* FlexGridSizer24;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer79;
 	wxFlexGridSizer* FlexGridSizer81;
 	wxFlexGridSizer* FlexGridSizer82;
@@ -276,15 +297,57 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Panel2->SetSizer(FlexGridSizer79);
 	FlexGridSizer79->Fit(Panel2);
 	FlexGridSizer79->SetSizeHints(Panel2);
+	Panel_FX = new wxPanel(SingleStrandEffectType, ID_PANEL1, wxPoint(104,13), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer4->AddGrowableCol(1);
+	StaticText2 = new wxStaticText(Panel_FX, ID_STATICTEXT2, _("FX"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_SingleStrand_FX = new BulkEditChoice(Panel_FX, ID_CHOICE_SingleStrand_FX, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_SingleStrand_FX"));
+	FlexGridSizer4->Add(Choice_SingleStrand_FX, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText4 = new wxStaticText(Panel_FX, ID_STATICTEXT4, _("Palette"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer4->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_FX_Palette = new BulkEditChoice(Panel_FX, ID_CHOICE_SingleStrand_FX_Palette, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_SingleStrand_FX_Palette"));
+	FlexGridSizer4->Add(Choice_FX_Palette, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText1 = new wxStaticText(Panel_FX, ID_STATICTEXT1, _("Intensity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer4->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer5->AddGrowableCol(0);
+	Slider_FX_Intensity = new BulkEditSlider(Panel_FX, ID_SLIDER_FX_Intensity, 128, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_FX_Intensity"));
+	Slider_FX_Intensity->SetSelection(1, 20);
+	FlexGridSizer5->Add(Slider_FX_Intensity, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_FX_IntensityVC = new BulkEditValueCurveButton(Panel_FX, ID_VALUECURVE_FX_Intensity, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxSize(18,30), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_FX_Intensity"));
+	FlexGridSizer5->Add(BitmapButton_FX_IntensityVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_FX_Intensity = new BulkEditTextCtrl(Panel_FX, IDD_TEXTCTRL_FX_Intensity, _("128"), wxDefaultPosition, wxDLG_UNIT(Panel_FX,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_FX_Intensity"));
+	TextCtrl_FX_Intensity->SetMaxLength(3);
+	FlexGridSizer4->Add(TextCtrl_FX_Intensity, 1, wxALL|wxEXPAND, 5);
+	StaticText3 = new wxStaticText(Panel_FX, ID_STATICTEXT3, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer4->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer6->AddGrowableCol(0);
+	Slider_FX_Speed = new BulkEditSlider(Panel_FX, ID_SLIDER_FX_Speed, 128, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_FX_Speed"));
+	Slider_FX_Speed->SetSelection(1, 20);
+	FlexGridSizer6->Add(Slider_FX_Speed, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_FX_SpeedVC = new BulkEditValueCurveButton(Panel_FX, ID_VALUECURVE_FX_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxSize(18,30), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_FX_Speed"));
+	FlexGridSizer6->Add(BitmapButton_FX_SpeedVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_FX_Speed = new BulkEditTextCtrl(Panel_FX, IDD_TEXTCTRL_FX_Speed, _("128"), wxDefaultPosition, wxDLG_UNIT(Panel_FX,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_FX_Speed"));
+	TextCtrl_FX_Speed->SetMaxLength(3);
+	FlexGridSizer4->Add(TextCtrl_FX_Speed, 1, wxALL|wxEXPAND, 5);
+	Panel_FX->SetSizer(FlexGridSizer4);
+	FlexGridSizer4->Fit(Panel_FX);
+	FlexGridSizer4->SetSizeHints(Panel_FX);
 	SingleStrandEffectType->AddPage(Panel1, _("Chase"), false);
 	SingleStrandEffectType->AddPage(Panel2, _("Skips"), false);
+	SingleStrandEffectType->AddPage(Panel_FX, _("FX"), false);
 	FlexGridSizer89->Add(SingleStrandEffectType, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer89);
 	FlexGridSizer89->Fit(this);
 	FlexGridSizer89->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_CHOICE_SingleStrand_Colors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
-	Connect(ID_VALUECURVE_Number_Chases,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Number_Chases,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Color_Mix1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Color_Mix1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
@@ -305,10 +368,43 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 
     SetName("ID_PANEL_SINGLESTRAND");
 
+	Slider_FX_Intensity->SetMin(SINGLESTRAND_FXINTENSITY_MIN);
+    Slider_FX_Intensity->SetMax(SINGLESTRAND_FXINTENSITY_MAX);
+
+	Slider_FX_Speed->SetMin(SINGLESTRAND_FXSPEED_MIN);
+    Slider_FX_Speed->SetMax(SINGLESTRAND_FXSPEED_MAX);
+
     BitmapButton_Chase_Rotations->GetValue()->SetLimits(SINGLESTRAND_ROTATIONS_MIN, SINGLESTRAND_ROTATIONS_MAX);
     BitmapButton_Chase_Rotations->GetValue()->SetDivisor(10);
     BitmapButton_Number_ChasesVC->GetValue()->SetLimits(SINGLESTRAND_CHASES_MIN, SINGLESTRAND_CHASES_MAX);
     BitmapButton_Color_Mix1VC->GetValue()->SetLimits(SINGLESTRAND_COLOURMIX_MIN, SINGLESTRAND_COLOURMIX_MAX);
+    BitmapButton_FX_IntensityVC->GetValue()->SetLimits(SINGLESTRAND_FXINTENSITY_MIN, SINGLESTRAND_FXINTENSITY_MAX);
+    BitmapButton_FX_SpeedVC->GetValue()->SetLimits(SINGLESTRAND_FXSPEED_MIN, SINGLESTRAND_FXSPEED_MAX);
+
+	wxString names = JSON_mode_names;
+    names.Replace("\n", "");
+    names.Replace("\"", "");
+    names.Replace("[", "");
+    names.Replace("]", "");
+    auto nn = wxSplit(names, ',');
+
+	for (const auto& n : nn) {
+        Choice_SingleStrand_FX->AppendString(n);
+	}
+    Choice_SingleStrand_FX->SetSelection(0);
+
+	names = JSON_palette_names;
+    names.Replace("\n", "");
+    names.Replace("\"", "");
+    names.Replace("[", "");
+    names.Replace("]", "");
+    nn = wxSplit(names, ',');
+
+    for (const auto& n : nn) {
+        Choice_FX_Palette->AppendString(n);
+    }
+	// This will use the colour panel colours by default
+    Choice_FX_Palette->SetStringSelection("* Colors Only");
 
     ValidateWindow();
 }

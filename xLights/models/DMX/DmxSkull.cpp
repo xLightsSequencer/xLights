@@ -601,21 +601,21 @@ void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ct
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
-            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
+            ctx->ScaleViewMatrix(1.0, 1.0, 0.001f);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
-        ctx->Scale(0.7, 0.7, 0.7);
-        ctx->Translate(0, -0.7, is_3d ? 0 : 0.5);
+        ctx->Scale(0.7f, 0.7f, 0.7f);
+        ctx->Translate(0, -0.7f, is_3d ? 0 : 0.5f);
     });
     tprogram->addStep([=](xlGraphicsContext *ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
-            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
-        ctx->Scale(0.7, 0.7, 0.7);
-        ctx->Translate(0, -0.7, is_3d ? 0 : 0.5);
+        ctx->Scale(0.7f, 0.7f, 0.7f);
+        ctx->Translate(0, -0.7f, is_3d ? 0 : 0.5f);
     });
     DrawModel(preview, ctx, sprogram, tprogram, is_3d, !allowSelected, c);
     sprogram->addStep([=](xlGraphicsContext *ctx) {
@@ -647,8 +647,8 @@ void DmxSkull::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     if (ctx) {
         int w, h;
         preview->GetSize(&w, &h);
-        float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
-        float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
+        float scaleX = float(w) * 0.95f / GetModelScreenLocation().RenderWi;
+        float scaleY = float(h) * 0.95f / GetModelScreenLocation().RenderHt;
         
         float aspect = screenLocation.GetScaleX();
         aspect /= screenLocation.GetScaleY();
@@ -664,21 +664,21 @@ void DmxSkull::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         
         preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
-            ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
             ctx->TranslateViewMatrix(w/2.0f - (ml < 0.0f ? ml : 0.0f),
                                      h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
-            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0);
-            ctx->ScaleViewMatrix(0.5, 0.5, 0.5);
-            ctx->TranslateViewMatrix(0, -0.7, 0.5);
+            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0f);
+            ctx->ScaleViewMatrix(0.5f, 0.5f, 0.5f);
+            ctx->TranslateViewMatrix(0, -0.7f, 0.5f);
         });
         preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
-            ctx->ScaleViewMatrix(1.0, 1.0, 0.0001);
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.0001f);
             ctx->TranslateViewMatrix(w/2.0f - (ml < 0.0f ? ml : 0.0f),
                                      h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
-            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0);
-            ctx->ScaleViewMatrix(0.5, 0.5, 1.0);
-            ctx->TranslateViewMatrix(0, -0.7, 0.5);
+            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0f);
+            ctx->ScaleViewMatrix(0.5f, 0.5f, 1.0f);
+            ctx->TranslateViewMatrix(0, -0.7f, 0.5f);
         });
         DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), false, true, nullptr);
         preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {

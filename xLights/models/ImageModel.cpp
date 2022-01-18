@@ -397,7 +397,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
             if (!is_3d) {
                 //not 3d, flatten to the 0.5 plane
                 ctx->Translate(0, 0, 0.5);
-                ctx->ScaleViewMatrix(1.0, 1.0, 0.001);
+                ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
             }
             GetModelScreenLocation().ApplyModelViewMatrices(ctx);
             ctx->drawTexture(va, texture, brightness, alpha, 0, va->getCount());
