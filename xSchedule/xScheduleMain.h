@@ -209,6 +209,7 @@ public:
         void OnMenuItem_ResetWindowLocationsSelected(wxCommandEvent& event);
         //*)
 
+        void OnCustom_BrightnessLeftDown(wxMouseEvent& event);
         void OnListView_PingMouseMove(wxMouseEvent& event);
         void OnListView_RunningItemSelected(wxListEvent& event);
         bool IsPlayList(wxTreeItemId id) const;

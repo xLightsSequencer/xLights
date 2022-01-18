@@ -126,6 +126,7 @@ class ScheduleManager
         void SetMode(int mode, REMOTEMODE remote);
         void GetMode(int& mode, REMOTEMODE& remote) const { mode = _mode; remote = _remoteMode; }
         void ToggleMute();
+        void ToggleBrightness();
         void SetVolume(int volume);
         void AdjustVolumeBy(int volume);
         int GetVolume() const;

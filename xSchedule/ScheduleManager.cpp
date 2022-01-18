@@ -4272,6 +4272,17 @@ void ScheduleManager::ToggleMute()
     }
 }
 
+void ScheduleManager::ToggleBrightness()
+{
+    static int savebrightness = 100;
+    if (GetBrightness() > 0) {
+        savebrightness = GetBrightness();
+        SetBrightness(0);
+    } else {
+        SetBrightness(savebrightness);
+    }
+}
+
 void ScheduleManager::SetMode(int mode, REMOTEMODE remote)
 {
     _mode = mode;

@@ -685,6 +685,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxEVT_SIZE, (wxObjectEventFunction)&xScheduleFrame::OnResize);
     //*)
 
+    Brightness->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&xScheduleFrame::OnCustom_BrightnessLeftDown, 0, this);
     Connect(ID_LISTVIEW1, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnListView_RunningItemSelected);
 
     Connect(wxID_ANY, EVT_FRAMEMS, (wxObjectEventFunction)&xScheduleFrame::RateNotification);
@@ -2683,6 +2684,12 @@ void xScheduleFrame::OnBitmapButton_VolumeUpClick(wxCommandEvent& event)
 void xScheduleFrame::OnCustom_VolumeLeftDown(wxMouseEvent& event)
 {
     __schedule->ToggleMute();
+    UpdateUI();
+}
+
+void xScheduleFrame::OnCustom_BrightnessLeftDown(wxMouseEvent& event)
+{
+    __schedule->ToggleBrightness();
     UpdateUI();
 }
 
