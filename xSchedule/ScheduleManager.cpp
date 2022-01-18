@@ -47,6 +47,7 @@
 #include "../xLights/VideoReader.h"
 #include "../xLights/outputs/Controller.h"
 #include "OutputProcessExcludeDim.h"
+#include "../xLights/Parallel.h"
 
 #include <memory>
 
@@ -804,11 +805,14 @@ void ScheduleManager::ApplyBrightness()
     auto ed = OutputProcess::GetExcludeDim(_outputProcessing, 1, totalChannels);
 
     if (ed.size() == 0) { // handle the simple case fast
-        uint8_t* pb = _buffer;
-        for (size_t i = 0; i < totalChannels; ++i) {
-            *pb = _brightnessArray[*pb];
-            pb++;
-        }
+        //uint8_t* pb = _buffer;
+        //for (size_t i = 0; i < totalChannels; ++i) {
+        //    *pb = _brightnessArray[*pb];
+        //    pb++;
+        //}
+        parallel_for(0, totalChannels, [this](int i) {
+            _buffer[i] = _brightnessArray[_buffer[i]];
+        });
     }
     else {
         auto exclude = ed.begin();
