@@ -4956,7 +4956,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
         cache->program->runSteps(ctx);
-        if (wiring) {
+        if (wiring && cache->va != nullptr) {
             ctx->drawLineStrip(cache->va, xlColor(0x49, 0x80, 0x49));
         }
         ctx->PopMatrix();
