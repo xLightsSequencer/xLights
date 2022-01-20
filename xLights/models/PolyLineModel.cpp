@@ -330,9 +330,41 @@ void PolyLineModel::InitModel()
     // fix the string numbers for each node since model is non-standard
     size_t idx = 0;
     if (HasIndividualStartChans && hasIndivSeg && !SingleNode) {
-        for (int x = 0; x < (SingleNode ? 1 : num_segments); x++) {
+        for (int x = 0; x < num_segments; x++) {
             for (int n = 0; n < polyLineSegDropSizes[x]; ++n) {
                 Nodes[idx++]->StringNum = x;
+            }
+        }
+    } else if ( _strings > 1 ) {
+        wxString nm = StartNodeAttrName(0);
+        int node_count = GetNodeCount();
+        bool hasIndivNodes = ModelXml->HasAttribute(nm);
+        for (int s = 0; s < _strings; ++s) {
+            int v1 = 0;
+            int v2 = node_count;
+            if (hasIndivNodes) {
+                wxString nm = StartNodeAttrName(s);
+                std::string val = ModelXml->GetAttribute(nm, "").ToStdString();
+                v1 = wxAtoi(val)-1;
+                if (s < _strings - 1) { // not last string
+                    nm = StartNodeAttrName(s + 1);
+                    val = ModelXml->GetAttribute(nm, "").ToStdString();
+                    v2 = wxAtoi(val)-1;
+                }
+            } else {
+                v1 = wxAtoi(ComputeStringStartNode(s))-1;
+                if (s < _strings - 1) { // not last string
+                    v2 = wxAtoi(ComputeStringStartNode(s + 1))-1;
+                }
+            }
+            if (!IsLtoR) {
+                for (int n = v1; n < v2; ++n) {
+                    Nodes[node_count-n-1]->StringNum = s;
+                }
+            } else {
+                for (int n = v1; n < v2; ++n) {
+                    Nodes[n]->StringNum = s;
+                }
             }
         }
     }
@@ -1091,7 +1123,23 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         return 0;
     }
     else if ("PolyLineStrings" == event.GetPropertyName()) {
-        _strings = event.GetValue().GetInteger();
+        int old_string_count = _strings;
+        int new_string_count = event.GetValue().GetInteger();
+        _strings = new_string_count;
+        if (old_string_count != new_string_count) {
+            wxString nm = StartNodeAttrName(0);
+            bool hasIndivNodes = ModelXml->HasAttribute(nm);
+            if (hasIndivNodes) {
+                for (int x = 0; x < old_string_count; x++) {
+                    wxString nm = StartNodeAttrName(x);
+                    ModelXml->DeleteAttribute(nm);
+                }
+                for (int x = 0; x < new_string_count; x++) {
+                    wxString nm = StartNodeAttrName(x);
+                    ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
+                }
+            }
+        }
         ModelXml->DeleteAttribute("PolyStrings");
         ModelXml->AddAttribute("PolyStrings", wxString::Format("%d", _strings));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::PolyLineStrings");
@@ -1227,17 +1275,53 @@ std::string PolyLineModel::ComputeStringStartNode(int x) const
 
 int PolyLineModel::NodesPerString() const
 {
-    int nodes = GetChanCount() / std::max(GetChanCountPerNode(), 1);
-
-    int ts = GetSmartTs();
-    if (ts <= 1) {
-        return nodes;
-    } else {
-        return nodes * ts;
-    }
+    return Model::NodesPerString();
 }
 
-int PolyLineModel::NodesPerString(int string) const
+ int PolyLineModel::NodesPerString(int string) const
+{
+     int num_nodes = 0;
+     if (_strings == 1) {
+        return NodesPerString();
+     } else {
+        if (SingleNode) {
+            return 1;
+        } else {
+            wxString nm = StartNodeAttrName(0);
+            bool hasIndivNodes = ModelXml->HasAttribute(nm);
+            int v1 = 0;
+            int v2 = 0;
+            if (hasIndivNodes) {
+                nm = StartNodeAttrName(string);
+                std::string val = ModelXml->GetAttribute(nm, "").ToStdString();
+                v1 = wxAtoi(val);
+                if (string < _strings - 1) { // not last string
+                    nm = StartNodeAttrName(string + 1);
+                    val = ModelXml->GetAttribute(nm, "").ToStdString();
+                    v2 = wxAtoi(val);
+                }
+            } else {
+                v1 = wxAtoi(ComputeStringStartNode(string));
+                if (string < _strings - 1) { // not last string
+                    v2 = wxAtoi(ComputeStringStartNode(string + 1));
+                }
+            }
+            if (string < _strings - 1) { // not last string
+                num_nodes = v2 - v1;
+            } else {
+                num_nodes = GetNodeCount() - v1 + 1;
+            }
+        }
+        int ts = GetSmartTs();
+        if (ts <= 1) {
+            return num_nodes;
+        } else {
+            return num_nodes * ts;
+        }
+     }
+}
+
+/* int PolyLineModel::NodesPerString(int string) const
 {
     if (_strings == 1) {
         return NodesPerString();
@@ -1259,7 +1343,7 @@ int PolyLineModel::NodesPerString(int string) const
         }
     }
     return len / GetNodeChannelCount(StringType);
-}
+}*/
 
 int PolyLineModel::OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {

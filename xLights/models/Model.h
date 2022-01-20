@@ -433,7 +433,6 @@ public:
     virtual void ExportAsCustomXModel() const;
     virtual std::string GetStartLocation() const;
     bool IsCustom(void);
-    bool IsPolyLine(void);
     virtual bool SupportsExportAsCustom() const = 0;
     virtual bool SupportsWiringView() const = 0;
     size_t GetChannelCoords(wxArrayString& choices); //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
