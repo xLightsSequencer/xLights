@@ -21,6 +21,8 @@
 #include "ViewpointMgr.h"
 #include "models/ModelManager.h"
 
+#include "Mouse3DManager.h"
+
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -145,6 +147,8 @@ public:
     xlGraphicsProgram *getCurrentTransparentProgram() { return transparentProgram; }
     
     
+    void OnMotion3DEvent(Motion3DEvent &event);
+    void OnMotion3DButtonEvent(wxCommandEvent &event);
 
 protected:
     void AddGridToAccumulator(const glm::mat4& ViewScale);

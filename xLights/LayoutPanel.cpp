@@ -427,6 +427,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         modelPreview->Connect(wxEVT_GESTURE_ROTATE, (wxObjectEventFunction)&LayoutPanel::OnPreviewRotateGesture, nullptr, this);
         modelPreview->Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&LayoutPanel::OnPreviewZoomGesture, nullptr, this);
     }
+    modelPreview->Connect(EVT_MOTION3D, (wxObjectEventFunction)&LayoutPanel::OnPreviewMotion3D, nullptr, this);
+    modelPreview->Connect(EVT_MOTION3D_BUTTONCLICKED, (wxObjectEventFunction)&LayoutPanel::OnPreviewMotion3DButtonEvent, nullptr, this);
 
     propertyEditor = new wxPropertyGrid(ModelSplitter,
                                         wxID_ANY, // id
@@ -3613,6 +3615,61 @@ void LayoutPanel::OnPreviewMouseWheelUp(wxMouseEvent& event)
 {
     m_wheel_down = false;
 }
+void LayoutPanel::OnPreviewMotion3DButtonEvent(wxCommandEvent &event) {
+    
+    if (event.GetString() == "BUTTON_MENU") {
+        wxMouseEvent evt;
+        OnPreviewRightDown(evt);
+    } else {
+        modelPreview->OnMotion3DButtonEvent(event);
+        /*
+        int gSize = selectedTreeGroups.size();
+        int smSize = selectedTreeSubModels.size();
+        if (selectedBaseObject != nullptr && gSize == 0 && smSize == 0) {
+        } else {
+        }
+        */
+    }
+}
+
+void LayoutPanel::OnPreviewMotion3D(Motion3DEvent &event) {
+    int gSize = selectedTreeGroups.size();
+    int smSize = selectedTreeSubModels.size();
+    if (selectedBaseObject != nullptr && gSize == 0 && smSize == 0) {
+        CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, "Zoom");
+        float scale = 10; //10 degrees per full 1.0 aka: max speed
+
+        selectedBaseObject->Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, event.rotations.x * scale);
+        selectedBaseObject->Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -event.rotations.z * scale);
+        selectedBaseObject->Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS, event.rotations.y * scale);
+
+        scale = modelPreview->translateToBacking(1.0) * 20.0; //20 pixels at max speed
+        float zoom = modelPreview->GetZoom();
+        if (modelPreview->Is3D()) {
+            selectedBaseObject->AddOffset(event.translations.x * zoom * scale,
+                                          -event.translations.z * zoom * scale,
+                                          event.translations.y * zoom * scale);
+        } else {
+            selectedBaseObject->AddOffset(event.translations.x * zoom * scale,
+                                          -event.translations.z * zoom * scale - event.translations.y * zoom * scale,
+                                          0.0f);
+        }
+
+        last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
+        last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
+        last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
+        selectedBaseObject->UpdateXmlWithScale();
+
+        SetupPropGrid(selectedBaseObject);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewRotateGesture");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewRotateGesture");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewRotateGesture");
+
+    } else {
+        modelPreview->OnMotion3DEvent(event);
+    }
+}
+
 void LayoutPanel::OnPreviewRotateGesture(wxRotateGestureEvent& event) {
     if (!rotate_gesture_active && !event.IsGestureStart()) {
         return;
@@ -8196,19 +8253,15 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
 {
     is_3d = CheckBox_3D->GetValue();
 
-    if (is_3d)
-    {
-        if (ChoiceLayoutGroups->GetStringSelection() != "Default")
-        {
+    if (is_3d) {
+        if (ChoiceLayoutGroups->GetStringSelection() != "Default") {
             ChoiceLayoutGroups->SetStringSelection("Default");
             wxCommandEvent e;
             OnChoiceLayoutGroupsSelect(e);
         }
         ChoiceLayoutGroups->Disable();
         ChoiceLayoutGroups->SetToolTip("3D is only supported in the Default preview.");
-    }
-    else
-    {
+    } else {
         ChoiceLayoutGroups->Enable();
         ChoiceLayoutGroups->UnsetToolTip();
     }
@@ -8220,14 +8273,17 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
             highlightedBaseObject = selectedBaseObject;
             selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
             selectedBaseObject->EnableLayoutGroupProperty(propertyEditor, false);
-        }
-        else {
+        } else {
             UnSelectAllModels();
         }
 	    Notebook_Objects->AddPage(PanelObjects, _("3D Objects"), false);
     } else {
-        if (selectedBaseObject != nullptr) {
-            selectedBaseObject->EnableLayoutGroupProperty(propertyEditor, true);
+        editing_models = true;
+        Model *m = dynamic_cast<Model*>(selectedBaseObject);
+        if (m != nullptr) {
+            m->EnableLayoutGroupProperty(propertyEditor, true);
+        } else {
+            UnSelectAllModels();
         }
         Notebook_Objects->RemovePage(1);
     }

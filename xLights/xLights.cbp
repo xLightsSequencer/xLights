@@ -610,6 +610,8 @@
 		<Unit filename="ModelPreview.h" />
 		<Unit filename="ModelStateDialog.cpp" />
 		<Unit filename="ModelStateDialog.h" />
+		<Unit filename="Mouse3DManager.cpp" />
+		<Unit filename="Mouse3DManager.h" />
 		<Unit filename="MultiControllerUploadDialog.cpp" />
 		<Unit filename="MultiControllerUploadDialog.h" />
 		<Unit filename="MusicXML.cpp" />
@@ -757,10 +759,10 @@
 		<Unit filename="WiringDialog.cpp" />
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.h" />
-		<Unit filename="automation/automation.cpp" />
-		<Unit filename="automation/automation.h" />
 		<Unit filename="automation/LuaRunner.cpp" />
 		<Unit filename="automation/LuaRunner.h" />
+		<Unit filename="automation/automation.cpp" />
+		<Unit filename="automation/automation.h" />
 		<Unit filename="automation/xLightsAutomations.cpp" />
 		<Unit filename="cad/CADModel.cpp" />
 		<Unit filename="cad/CADModel.h" />
