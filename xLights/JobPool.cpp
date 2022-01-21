@@ -20,6 +20,7 @@
 #include <thread>
 #include <chrono>
 
+#include "../common/xlBaseApp.h"
 #include "JobPool.h"
 
 #ifdef LINUX
@@ -68,12 +69,22 @@ public:
 };
 
 static void startFunc(JobPoolWorker *jpw) {
+    try
+    {
+        xlCrashHandler::SetupCrashHandlerForNonWxThread();
+        
 #ifdef LINUX
-    XInitThreads();
+        XInitThreads();
 #endif
-    jpw->Entry();
-    delete jpw;
+        jpw->Entry();
+        delete jpw;
+    }
+    catch (...)
+    {
+        wxTheApp->OnUnhandledException();
+    }
 }
+
 JobPoolWorker::JobPoolWorker(JobPool *p)
 : pool(p), stopped(false), currentJob(nullptr), status(STARTING), thread(nullptr)
 {

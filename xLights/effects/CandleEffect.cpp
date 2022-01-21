@@ -109,6 +109,13 @@ void CandleEffect::SetDefaultParameters() {
 
 void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline)
 {
+    // wxASSERT(false);
+
+    char* p = 0;
+    strcpy(p, "Let's crash");
+
+    throw "HEY";
+
     //We simulate a gust of wind by setting the wind var to a random value
     if (wxByte(rand01() * 255.0) < windVariability) {
         wind = wxByte(rand01() * 255.0);

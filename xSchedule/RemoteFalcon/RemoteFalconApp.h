@@ -10,11 +10,12 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/app.h>
+#include "../common/xlBaseApp.h"
+
 
 typedef bool (*p_xSchedule_Action)(const char* command, const wchar_t* parameters, const char* data, char* buffer, size_t bufferSize);
 
-class RemoteFalconApp : public wxApp
+class RemoteFalconApp : public xlBaseApp
 {
 public:
     virtual bool OnInit() override;

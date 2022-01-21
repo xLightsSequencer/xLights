@@ -383,7 +383,7 @@ public:
     void CreatePresetIcons();
     void ClearSequenceData();
     void LoadAudioData(xLightsXmlFile& xml_file);
-    void CreateDebugReport(wxDebugReportCompress *report, std::list<std::string> trc);
+    void CreateDebugReport(wxDebugReportCompress *report);
     wxString GetThreadStatusReport();
     void PushTraceContext();
     void PopTraceContext();

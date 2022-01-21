@@ -284,11 +284,11 @@ xScheduleFrame *topFrame = nullptr;
 #ifndef __WXMSW__
 #include <execinfo.h>
 #else
-#include "../xLights/MSWStackWalk.h"
+#include "../common/xlStackWalker.h"
 #endif
 
-void handleCrash(void *data) {
-
+void HandleCrash(bool const isFatalException)
+{
     // if we crash while in here we dont want to report again.
     static bool reentry = false;
     if (reentry) return;
@@ -322,7 +322,10 @@ void handleCrash(void *data) {
 
     wxString trace = wxString::Format("xSchedule version %s\n\n", GetDisplayVersionString());
 
-#ifndef __WXMSW__
+#ifdef __WXMSW__
+    xlStackWalker sw(false, false);
+    trace += sw.GetStackTrace();
+#else
     void* callstack[128];
     int i, frames = backtrace(callstack, 128);
     char** strs = backtrace_symbols(callstack, frames);
@@ -331,8 +334,6 @@ void handleCrash(void *data) {
         trace += "\n";
     }
     free(strs);
-#else
-    trace += windows_get_stacktrace(data);
 #endif
 
     int id = (int)wxThread::GetCurrentId();
@@ -386,16 +387,6 @@ void handleCrash(void *data) {
     reentry = false;
 }
 
-#if !(wxUSE_ON_FATAL_EXCEPTION)
-#include <windows.h>
-//MinGW needs to do this manually
-LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
-{
-    handleCrash(ExceptionInfo->ContextRecord);
-	return 0;
-}
-#endif
-
 void xScheduleApp::WipeSettings()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -428,13 +419,7 @@ bool xScheduleApp::OnInit()
 
     wxLog::SetLogLevel(wxLOG_FatalError);
 
-#if wxUSE_ON_FATAL_EXCEPTION
-    #if !defined(_DEBUG) || !defined(_MSC_VER)
-        wxHandleFatalExceptions();
-    #endif
-#else
-    SetUnhandledExceptionFilter(windows_exception_handler);
-#endif
+    wxHandleFatalExceptions();
 
     //curl_global_init(CURL_GLOBAL_SSL);
 
@@ -530,9 +515,8 @@ bool xScheduleApp::OnInit()
     return wxsOK;
 }
 
-// CODE COPIED FROM XLIGHTS TO DUMP STACK TRACES
-
-void xScheduleApp::OnFatalException() {
-    handleCrash(nullptr);
+void xScheduleApp::OnFatalException()
+{
+    HandleCrash(true);
 }
 

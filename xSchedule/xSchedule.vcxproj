@@ -432,6 +432,7 @@
     <ClCompile Include="Xyzzy.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\xlStackWalker.h" />
     <ClInclude Include="..\xLights\AudioManager.h" />
     <ClInclude Include="..\xLights\controllers\BaseController.h" />
     <ClInclude Include="..\xLights\controllers\ControllerCaps.h" />
@@ -440,7 +441,6 @@
     <ClInclude Include="..\xLights\effects\GIFImage.h" />
     <ClInclude Include="..\xLights\FSEQFile.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
-    <ClInclude Include="..\xLights\MSWStackWalk.h" />
     <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
     <ClInclude Include="..\xLights\outputs\Controller.h" />
     <ClInclude Include="..\xLights\outputs\ControllerEthernet.h" />

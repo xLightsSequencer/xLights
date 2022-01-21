@@ -10,12 +10,13 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/app.h>
+#include "../common/xlBaseApp.h"
+
 
 class wxSingleInstanceChecker;
 class xScheduleFrame;
 
-class xScheduleApp : public wxApp
+class xScheduleApp : public xlBaseApp
 {
     wxSingleInstanceChecker* _checker = nullptr;
 

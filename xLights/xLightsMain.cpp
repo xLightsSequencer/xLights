@@ -1799,8 +1799,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
 
     std::thread th([this]() {
-        std::this_thread::sleep_for(std::chrono::seconds(3));
-        this->CallAfter(&xLightsFrame::DoPostStartupCommands);
+        try
+        {
+            xlCrashHandler::SetupCrashHandlerForNonWxThread();
+            throw "HEY";
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+            this->CallAfter(&xLightsFrame::DoPostStartupCommands);
+        }
+        catch (...)
+        {
+            wxTheApp->OnUnhandledException();
+        }
     });
     th.detach();
     wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
@@ -1962,9 +1971,12 @@ void xLightsFrame::DoPostStartupCommands() {
 
     // dont check for updates if batch rendering
     if (!_renderMode && !_checkSequenceMode) {
+// Don't bother checking for updates when debugging.
+// #ifndef _DEBUG
         if (!IsFromAppStore()) {
             CheckForUpdate(1, true, false);
         }
+// #endif
         if (_userEmail == "") CollectUserEmail();
         if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
     }
@@ -2035,6 +2047,13 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
     dlg.LegalTextLabel->Wrap(dlg.LegalTextLabel->GetClientSize().GetWidth() - 10);
     dlg.MainSizer->Fit(&dlg);
     dlg.MainSizer->SetSizeHints(&dlg);
+
+    // wxASSERT(false);
+
+    // char* p = 0;
+    // strcpy(p, "Let's crash");
+
+    throw "HEY";
 
     if (IsFromAppStore()) {
         dlg.PrivacyHyperlinkCtrl->SetURL("http://kulplights.com/xlights/privacy_policy.html");

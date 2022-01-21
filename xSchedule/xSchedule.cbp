@@ -295,6 +295,7 @@
 		<ResourceCompiler>
 			<Add directory="$(#wx)/include" />
 		</ResourceCompiler>
+		<Unit filename="../common/xlStackWalker.h" />
 		<Unit filename="../xLights/AudioManager.cpp" />
 		<Unit filename="../xLights/AudioManager.h" />
 		<Unit filename="../xLights/Discovery.cpp" />
@@ -303,7 +304,6 @@
 		<Unit filename="../xLights/FSEQFile.h" />
 		<Unit filename="../xLights/JobPool.cpp" />
 		<Unit filename="../xLights/JobPool.h" />
-		<Unit filename="../xLights/MSWStackWalk.h" />
 		<Unit filename="../xLights/Parallel.cpp" />
 		<Unit filename="../xLights/Parallel.h" />
 		<Unit filename="../xLights/SequenceData.cpp" />
