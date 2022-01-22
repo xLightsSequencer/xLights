@@ -150,8 +150,11 @@ void ModelPreview::OnMotion3DButtonEvent(wxCommandEvent &event) {
                || event.GetString() == "BUTTON_V2"
                || event.GetString() == "BUTTON_V3"
                || event.GetString() == "BUTTON_ISO1"
+               || event.GetString() == "BUTTON_ISO2"
                || event.GetString() == "BUTTON_TOP"
                || event.GetString() == "BUTTON_FRONT"
+               || event.GetString() == "BUTTON_LEFT"
+               || event.GetString() == "BUTTON_BOTTOM"
                || event.GetString() == "BUTTON_RIGHT") {
         std::string name = event.GetString();
         name = name.substr(7);

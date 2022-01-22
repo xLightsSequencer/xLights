@@ -150,6 +150,7 @@ static void DeviceEvent(uint32_t unused, uint32_t msg_type, void *msg_arg) {
     } */
 }
 
+static uint32_t SUPPORTED_BUTTONS = 0b111000000000000000110001111111;
 static void DeviceAdded(uint32_t unused) {
     int32_t result;
     ConnexionClientControl(clientID, kConnexionCtlGetDeviceID, 0, &result);
@@ -157,8 +158,10 @@ static void DeviceAdded(uint32_t unused) {
     int16_t productID = result & 0xffff;
     Mouse3DManager::INSTANCE.deviceAdded(vendorID, productID);
     // Don't want ESC, ALT, SHIFT, CTRL, LOCK
-    SetConnexionClientButtonMask(clientID, 0x383FFFFF);
+    //SetConnexionClientButtonMask(clientID, 0x383FFFFF);
+    SetConnexionClientButtonMask(clientID, SUPPORTED_BUTTONS);
 }
+
 
 Mouse3DManager::Mouse3DManager() {
     if (load_driver_functions()) {
@@ -230,6 +233,7 @@ void Mouse3DManager::deviceAdded(int16_t vendorID, int16_t productID) {
     //printf("Device added %X  %X\n", vendorID, productID);
 }
 void Mouse3DManager::sendButtonEvents(uint32_t buttons) {
+    //printf("Button:  %X\n", buttons);
     for (int x = 0; x < 32; x++) {
         if (buttons & 0x1) {
             wxCommandEvent *event = new wxCommandEvent(EVT_MOTION3D_BUTTONCLICKED);
