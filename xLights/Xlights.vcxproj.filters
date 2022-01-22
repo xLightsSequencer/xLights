@@ -938,6 +938,7 @@
     <ClCompile Include="automation\LuaRunner.cpp">
       <Filter>automation</Filter>
     </ClCompile>
+    <ClCompile Include="Mouse3DManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1882,6 +1883,7 @@
     <ClInclude Include="automation\LuaRunner.h">
       <Filter>automation</Filter>
     </ClInclude>
+    <ClInclude Include="Mouse3DManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

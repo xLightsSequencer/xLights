@@ -4,12 +4,13 @@
 
 #include <wx/app.h>
 #include <stdint.h>
-#include <dlfcn.h>
 #include <stdio.h>
 #include <algorithm>
 
 
 #ifdef __WXOSX__
+
+#include <dlfcn.h>
 
 #define kConnexionClientModeTakeOver 1
 #define kConnexionMaskAll 0x3fff

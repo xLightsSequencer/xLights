@@ -344,6 +344,7 @@
     <ClCompile Include="models\ViewObject.cpp" />
     <ClCompile Include="models\ViewObjectManager.cpp" />
     <ClCompile Include="models\WholeHouseModel.cpp" />
+    <ClCompile Include="Mouse3DManager.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
     <ClCompile Include="NoteRangeDialog.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
@@ -789,6 +790,7 @@
     <ClInclude Include="models\ViewObject.h" />
     <ClInclude Include="models\ViewObjectManager.h" />
     <ClInclude Include="models\WholeHouseModel.h" />
+    <ClInclude Include="Mouse3DManager.h" />
     <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\CandleEffect.h" />
