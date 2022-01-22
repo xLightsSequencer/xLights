@@ -11,8 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.03 January 22, 2022
+   -- enh (dkulp) MacOS: Initial support for 3DConnexion 3D mice in Preview windows
+   -- enh (dkulp) MacOS: Support for using normals for shading 3D meshes
+   -- enh (sslupsky) Add support for differential ports for BBB16v2
+   -- enh (gil)   Add new render buffer "Per Model Default Deep" that will recurse nested model groups
+   -- bug (dkulp) MacOS: Fix scrolling/displays on OSX after play finishes
+   -- bug (dkulp) Fix group centering + if  submodels are in the group
+   -- bug (dkulp) Fix several issues with mesh/obj files not rendering properly
+   -- bug (dkulp) Fix crashes if material files cannot be loaded
+   -- bug (dkulp) Fix problems on OpenGL with single color strings
+   -- bug (scott) Fix crashes in custom model wiring view
    -- bug (gil)   Fix issues with PolyLine caused by multiple string upgrades
-   -- enh (gil)   Add new render buffer "Per Model Default Deep" that will recurse nested model groups.
 2022.02 January 15, 2022
    Note: macOS now requires macOS 10.14.  10.12 and 10.13 are no longer supported
    Note: The DMX models have changed from using world coordinates for various sizes (like beam lengths) to
