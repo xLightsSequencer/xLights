@@ -2546,7 +2546,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                 std::list<Model*> flat_models = gp->GetFlatModels();
                 std::list<Model*>::iterator it_m = flat_models.begin();
                 for (const auto& it : inf->modelBuffers) {
-                    std::string ntype = type.substr(10, type.length() - 10);
+                    std::string ntype = "Default";// type.substr(10, type.length() - 10);
                     int bw, bh;
                     it->Nodes.clear();
                     (*it_m)->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
@@ -2667,9 +2667,9 @@ void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
         for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it, it_m++) {
             if (frame->AllModels[(*it_m)->Name()] == nullptr)
                 {
-                (*it)->SetState(period, resetState, grp->Models()[cnt]->GetFullName());
+                (*it)->SetState(period, resetState, (*it_m)->GetFullName());
             } else {
-                (*it)->SetState(period, resetState, grp->Models()[cnt]->Name());
+                (*it)->SetState(period, resetState, (*it_m)->Name());
             }
         }
     }
