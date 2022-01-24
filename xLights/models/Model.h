@@ -148,7 +148,7 @@ public:
     virtual const std::vector<std::string>& GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
     virtual void GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi) const;
     virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform,
-        std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi) const;
+        std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep = false) const;
     const ModelManager& GetModelManager() const { return modelManager; }
     virtual bool SupportsXlightsModel() { return false; }
     static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview);

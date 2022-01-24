@@ -3510,7 +3510,8 @@ void Model::ApplyTransform(const std::string &type,
 
 void Model::InitRenderBufferNodes(const std::string &type, const std::string &camera,
     const std::string &transform,
-    std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHt) const {
+    std::vector<NodeBaseClassPtr>& newNodes, int& bufferWi, int& bufferHt, bool deep) const
+{
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

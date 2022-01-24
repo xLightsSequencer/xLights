@@ -24,7 +24,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
                                    int &BufferWi, int &BufferHi) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, bool deep = false) const override;
 
         virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override {}
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;

@@ -947,7 +947,8 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
                                        const std::string& camera,
                                        const std::string& transform,
                                        std::vector<NodeBaseClassPtr>& Nodes,
-                                       int& BufferWi, int& BufferHt) const {
+                                       int& BufferWi, int& BufferHt, bool deep) const
+{
     CheckForChanges();
     std::string type = tp;
     if (type.compare(0, 9, "Per Model") == 0) {
@@ -1216,9 +1217,10 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
     } else if (type == SINGLE_LINE) {
         BufferHt = 1;
         BufferWi = 0;
-        for (const auto& it : modelNames) {
-            Model* m = modelManager[it];
-            if (m != nullptr) {
+        if (deep) {
+            for (const auto& it : GetFlatModels()) {
+                Model* m = it;
+                wxASSERT(m != nullptr);
                 int start = Nodes.size();
                 int x, y;
                 m->InitRenderBufferNodes("Single Line", "2D", "None", Nodes, x, y);
@@ -1229,6 +1231,23 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
                     }
                     start++;
                     BufferWi++;
+                }
+            }
+        } else {
+            for (const auto& it : modelNames) {
+                Model* m = modelManager[it];
+                if (m != nullptr) {
+                    int start = Nodes.size();
+                    int x, y;
+                    m->InitRenderBufferNodes("Single Line", "2D", "None", Nodes, x, y);
+                    while (start < Nodes.size()) {
+                        for (auto& it2 : Nodes[start]->Coords) {
+                            it2.bufX = BufferWi;
+                            it2.bufY = 0;
+                        }
+                        start++;
+                        BufferWi++;
+                    }
                 }
             }
         }

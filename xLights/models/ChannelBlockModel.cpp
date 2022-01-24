@@ -133,7 +133,7 @@ void ChannelBlockModel::GetBufferSize(const std::string &type, const std::string
 }
 
 void ChannelBlockModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-                                        std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
+                                        std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, bool deep) const {
     BufferHi = 1;
     BufferWi = GetNodeCount();
         

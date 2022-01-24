@@ -2480,13 +2480,17 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         // 2019-02-22 This was "Horizontal Per Model" but it causes DMX Model issues ...
         // so I have changed it to "Single Line". In theory both should create all the nodes
         auto tt = type;
+        bool go_deep = false;
         if (StartsWith(type, "Per Model")) {
             tt = "Single Line";
+            if (type.compare(type.length() - 4, 4, "Deep") == 0) {
+                go_deep = true;
+            }
         }
-        model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+        model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, go_deep);
         if (origNodeCount != 0 && origNodeCount != inf->buffer.Nodes.size()) {
             inf->buffer.Nodes.clear();
-            model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+            model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, go_deep);
         }
 
         int curBH = inf->BufferHt;

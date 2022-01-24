@@ -667,7 +667,7 @@ int CubeModel::GetNumPhysicalStrings() const
     }
 }
 
-void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi) const
+void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep) const
 {
     int width = parm1;
     int height = parm2;

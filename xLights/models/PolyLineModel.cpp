@@ -65,7 +65,7 @@ bool PolyLineModel::IsNodeFirst(int n) const
 
 void PolyLineModel::InitRenderBufferNodes(const std::string& type, const std::string& camera,
     const std::string& transform,
-    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi) const
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, bool deep) const
 {
     if (type == "Line Segments" && hasIndivSeg) {
         BufferHi = num_segments;

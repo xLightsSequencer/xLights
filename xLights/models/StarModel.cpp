@@ -109,7 +109,7 @@ void StarModel::GetBufferSize(const std::string& type, const std::string& camera
 void StarModel::InitRenderBufferNodes(const std::string& type,
     const std::string& camera,
     const std::string& transform,
-    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi) const
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, bool deep) const
 {
     if (type == "Layer Star") {
         BufferHi = GetNumStrands();

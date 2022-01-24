@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)   Fix issue with Per Model Default Deep not creating large enough buffer
 2022.03 January 22, 2022
    -- enh (dkulp) MacOS: Initial support for 3DConnexion 3D mice in Preview windows
    -- enh (dkulp) MacOS: Support for using normals for shading 3D meshes

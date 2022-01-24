@@ -574,7 +574,7 @@ void CustomModel::GetBufferSize(const std::string& type, const std::string& came
     AdjustForTransform(transform, BufferWi, BufferHi);
 }
 
-void CustomModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi) const
+void CustomModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep) const
 {
     int width = parm1;
     int height = parm2;
