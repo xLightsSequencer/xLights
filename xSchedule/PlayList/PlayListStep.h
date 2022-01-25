@@ -41,8 +41,10 @@ protected:
     wxUint32 _pause;
     wxUint32 _id;
     wxUint32 _suspend;
-    int _loops;
-    bool _everyStep;
+    int _loops = 0;
+    bool _everyStep = false;
+    bool _everyStepExcludeFirst = false;
+    bool _everyStepExcludeLast = false;
 #pragma endregion Member Variables
 
     std::string FormatTime(size_t timems, bool ms = false) const;
@@ -87,7 +89,32 @@ public:
     void SetLoops(int loops) { _loops = loops; }
     void SetEveryStep(bool everyStep) { if (_everyStep != everyStep) { _everyStep = everyStep; _changeCount++; } }
     bool GetEveryStep(void) const { return _everyStep; }
-    bool IsPaused() const { return _pause != 0; }
+    void SetEveryStepExcludeFirst(bool excludeFirst)
+    {
+        if (_everyStepExcludeFirst != excludeFirst) {
+            _everyStepExcludeFirst = excludeFirst;
+            _changeCount++;
+        }
+    }
+    bool GetEveryStepExcludeFirst(void) const
+    {
+        return _everyStepExcludeFirst;
+    }
+    void SetEveryStepExcludeLast(bool excludeLast)
+    {
+        if (_everyStepExcludeLast != excludeLast) {
+            _everyStepExcludeLast = excludeLast;
+            _changeCount++;
+        }
+    }
+    bool GetEveryStepExcludeLast(void) const
+    {
+        return _everyStepExcludeLast;
+    }
+    bool IsPaused() const
+    {
+        return _pause != 0;
+    }
     void Stop();
     void Suspend(bool suspend);
     void Restart();

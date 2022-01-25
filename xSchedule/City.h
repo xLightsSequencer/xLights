@@ -14,6 +14,9 @@
 #include <list>
 #include <cmath>
 #include <wx/datetime.h>
+
+#include "../xLights/UtilFunctions.h"
+
 #include <log4cpp/Category.hh>
 
 class City
@@ -96,7 +99,6 @@ public:
         return false;
     }
 
-    #define PI 3.141592653589793
     #define RADIANS(A) ((A) * PI / 180.0)
     #define DEGREES(A) ((A) * 180.0 / PI)
 

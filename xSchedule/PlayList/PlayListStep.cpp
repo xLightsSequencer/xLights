@@ -107,6 +107,8 @@ PlayListStep::PlayListStep(const PlayListStep& step)
     _changeCount = step._changeCount;
     _excludeFromRandom = step._excludeFromRandom;
     _everyStep = step._everyStep;
+    _everyStepExcludeFirst = step._everyStepExcludeFirst;
+    _everyStepExcludeLast = step._everyStepExcludeLast;
     _id = step._id;
     {
         ReentrancyCounter rec(_reentrancyCounter);
@@ -128,6 +130,8 @@ PlayListStep* PlayListStep::Clone() const
     pls->_changeCount = _changeCount;
     pls->_excludeFromRandom = _excludeFromRandom;
     pls->_everyStep = _everyStep;
+    pls->_everyStepExcludeFirst = _everyStepExcludeFirst;
+    pls->_everyStepExcludeLast = _everyStepExcludeLast;
     // Note: We are intentially NOT copying "_lastSavedChangeCount" and "_id" here.
 
     {
@@ -188,6 +192,12 @@ wxXmlNode* PlayListStep::Save()
     {
         res->AddAttribute("EveryStep", "TRUE");
     }
+    if (_everyStepExcludeFirst) {
+        res->AddAttribute("EveryStepExcludeFirst", "TRUE");
+    }
+    if (_everyStepExcludeLast) {
+        res->AddAttribute("EveryStepExcludeLast", "TRUE");
+    }
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
@@ -205,6 +215,8 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
     _name = node->GetAttribute("Name", "");
     _excludeFromRandom = node->GetAttribute("ExcludeRandom", "FALSE") == "TRUE";
     _everyStep = node->GetAttribute("EveryStep", "FALSE") == "TRUE";
+    _everyStepExcludeFirst = node->GetAttribute("EveryStepExcludeFirst", "FALSE") == "TRUE";
+    _everyStepExcludeLast = node->GetAttribute("EveryStepExcludeLast", "FALSE") == "TRUE";
 
     for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext())
     {
