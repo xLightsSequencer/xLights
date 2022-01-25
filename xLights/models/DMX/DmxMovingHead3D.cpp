@@ -46,7 +46,6 @@ DmxMovingHead3D::~DmxMovingHead3D()
     //dtor
 }
 
-const double PI = 3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
 void DmxMovingHead3D::DisableUnusedProperties(wxPropertyGridInterface* grid)
