@@ -68,20 +68,29 @@ Start xLights
     
 Render all (assumes an open sequence)
     {"cmd":"renderAll"}
+Response
+    {"res":200, "msg": "Rendered."}
 
 Load a sequence
     {"cmd":"loadSequence", "seq":"filename", "promptIssues":"true|false"}
+Response
+    {"res":200, "seq": "SequenceName.xsq", "fullseq": "C:\FullPath\SequenceName.xsq", "media": "C:\FullPath\media.mp3", "len": "120000", "framems": "25"}
+
     
 Close a sequence
     {"cmd":"closeSequence", "quiet":"true|false", "force":"true|false"}
     
     Quiet when true will return success even if no sequence was open
     This command will fail if the sequence has unsaved changes
+Response
+    {"res":200, "msg": "Sequence closed."}
 
 Close xLights
     {"cmd":"closexLights", "force":"true|false"}
 
     if force is not true then it will fail if anything is unsaved
+Response
+    {"res":200, "msg": "xLights closed."}
 
 New Sequence    
     {"cmd":"newSequence", "force":"true|false", "mediaFile":"media filename", "durationSecs":30}
@@ -89,76 +98,116 @@ New Sequence
     If force is not true then this command will fail if there is a sequence already open
     If mediaFile is blank then durationSecs is the length of the animation opened
     If mediaFile is not blank then sequence is created for the audio
+Response
+    {"res":200, "msg": "Sequence created."}
 
 Save Sequence
     {"cmd":"saveSequence", "seq":"filename"}
 
     If seq is blank then it will save the sequence using the name it was opened with
+Response
+    {"res":200, "msg": "Sequence Saved."}
 
 Batch Render Named Sequences
     {"cmd":"batchRender", "seqs":["filename"], "promptIssues":"true|false"}
+Response
+    {"res":200, "msg": "Sequence batch rendered."}
     
 Upload controller configuration
     {"cmd":"uploadController", "ip":"ip address"}
+Response
+    {"res":200, "msg": "Uploaded to controller '192.168.1.100'"}
 
 Upload FPP configuration
     {"cmd":"uploadFPPConfig", "ip":"ip address", "udp":"all|proxy|", "models":"true|false", "map":"true|false"}
     
     If models is true then the models are uploaded to FPP
     If map is true then the virtual display map is uploaded to FPP
+Response
+    {"res":200, "msg": "Uploaded to FPP '192.168.1.100'"}
 
 Upload Sequence to FPP/Falcon V4/Pixel Stick
     {"cmd":"uploadSequence", "ip":"ip address", "media":"true|false", "format":"v1|v2std|v2zlib|v2uncompressedsparse|v2uncompressed|v2stdsparse|v2zlibsparse", "seq":"xsq filename"}
+Response
+    {"res":200, "msg": "Sequence uploaded."}
 
 Check sequence
     {"cmd":"checkSequence", "seq":"xsq filename"}
 
     Open and check a sequence
+Response
+    {"res":200, "msg": "Sequence checked.","output":"Path to Check Seq File Path"}
     
 Change Show Folder
     {"cmd":"changeShowFolder", "folder":"show folder", "force":"true|false"}
+Response
+    {"res":200, "msg": "Show folder changed to (show_folder_path)."}
 
 Open Controller
     {"cmd":"openController", "ip":"ip address"}
 
     Opens the controller in a browser
+Response
+    {"res":200, "msg": "Controller opened"}
     
 Get xLights Version
     {"cmd":"getVersion"}
 
     Gets the xLights version
+Response
+    {"res":200, "version": "2022.3"}
 
 Export Models CSV
     {"cmd":"exportModels", "filename":"file to create"}
+Response
+    {"res":200, "msg": "Models Exported.", "output": "C:\FullPath\Models_.csv"}
 
 Export Model
     {"cmd":"exportModel", "filename":"file to create", "model":"model to export", "format":"lsp|lorclipboard|lorclipboards5|vixenroutine|hls|eseq|eseqcompressed|avicompressed|aviuncompressed|minleon|gif"}
     
     This assumes the rendered model data is up to date
+Response
+    {"res":200, "msg": "Model exported."}
     
 Lights On
     {"cmd":"lightsOn"}
+Response
+    {"res":200, "msg": "Lights on."}
 
 Lights Off
     {"cmd":"lightsOff"}
+Response
+    {"res":200, "msg": "Lights off."}
 
 Play jukebox button
     {"cmd":"playJukebox","button":1}
+Response
+    {"res":200, "msg": "Played button 1"}
     
 Get Jukebox tooltips
     {"cmd":"getJukeboxButtonTooltips"}
+Response
+    {"res":200, "tooltips": ["Tooltips Button 1","Tooltips Button 2", "Tooltips Button 3"]}
 
 Get Jukebox buttons have effects
     {"cmd":"getJukeboxButtonEffectPresent"}
+Response
+    {"res":200, "effects": ["1","2", "3"]}
 
 Get open sequence 
     {"cmd":"getOpenSequence"}
+Response
+    {"res":200, "seq": "SequenceName.xsq", "fullseq": "C:\FullPath\SequenceName.xsq", "media": "C:\FullPath\media.mp3", "len": "120000", "framems": "25"}
 
 Get E131 Tag
     {"cmd":"getE131Tag"}
+Response
+    {"res":200, "tag": "xLights 984566"}
 
 Add Ethernet Type Controller
     {"cmd":"addEthernetController", "ip":"IP Address", "name", "Name in xLights"}
+Response
+    {"res":200, "msg": "Added Ethernet Controller"}
 
 Packaged Sequence Files
     {"cmd":"packageSequence"}
@@ -177,12 +226,18 @@ Response
 
 Run Lua Script
     {"cmd":"runScript", "filename":"Lua File Name"}
+Response
+    {"res":200,"msg":"Script Was Successful."}
 
 Copy All Effects from One Model to Another Model
     {"cmd":"cloneModelEffects", "target":"Model to Copy Effects To", "source":"Model to Copy Effects From", "eraseModel":"Erase Existing Effects from Target Model"}
+Response
+    {"res":200, "msg":"Model Effects Cloned.","worked":"true"}
 
 Add Effect to a Model
     {"cmd":"addEffect", "target":"Model to Add Effect To", "effect":"Effect Type", "settings":"Effect Settings", "palette":"Color Palette Settings", "layer":"Effect Layer", "startTime":"Start Time in ms", "endTime":"End Time in ms"}
+Response
+    {"res":200, "msg":"Added Effects.","worked":"true"}
 
 Get List of all the Models and Model Groups
     {"cmd":"getModels"}
