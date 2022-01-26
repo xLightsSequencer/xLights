@@ -29,6 +29,7 @@
 #include <functional>
 #include <wx/file.h>
 #include <wx/filename.h>
+#include "Color.h"
 
 #define xlSetRetinaCanvasViewport(w,a,b,c,d)
 #define xlTranslateToRetina(a, x) x
