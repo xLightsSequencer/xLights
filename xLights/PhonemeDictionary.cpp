@@ -18,6 +18,7 @@
 
 #include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 
 void PhonemeDictionary::LoadDictionaries(const wxString& showDir, wxWindow* parent)
 {
@@ -30,10 +31,10 @@ void PhonemeDictionary::LoadDictionaries(const wxString& showDir, wxWindow* pare
 
     wxFileName phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
     phonemeFile.SetFullName("phoneme_mapping");
-    if (!wxFile::Exists(phonemeFile.GetFullPath())) {
+    if (!FileExists(phonemeFile.GetFullPath())) {
         phonemeFile = wxFileName(wxStandardPaths::Get().GetResourcesDir(), "phoneme_mapping");
     }
-    if (!wxFile::Exists(phonemeFile.GetFullPath())) {
+    if (!FileExists(phonemeFile.GetFullPath())) {
         DisplayError("Failed to open Phoneme Mapping file!");
         return;
     }
@@ -66,17 +67,17 @@ void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString 
     phonemeFile.SetFullName(filename);
 
     // if not there then look were the exe is
-    if (!wxFile::Exists(phonemeFile.GetFullPath())) {
+    if (!FileExists(phonemeFile.GetFullPath())) {
         phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
         phonemeFile.SetFullName(filename);
     }
 
     // if not there look in the resources location (OSX/Linux keeps it there)
-    if (!wxFile::Exists(phonemeFile.GetFullPath())) {
+    if (!FileExists(phonemeFile.GetFullPath())) {
         phonemeFile = wxFileName(wxStandardPaths::Get().GetResourcesDir(), filename);
     }
 
-    if (!wxFile::Exists(phonemeFile.GetFullPath())) {
+    if (!FileExists(phonemeFile.GetFullPath())) {
         logger_base.warn("Failed to open phoneme dictionary. '%s'", (const char *)filename.c_str());
         DisplayError("Failed to open Phoneme dictionary!");
         return;

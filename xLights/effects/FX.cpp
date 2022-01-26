@@ -1156,7 +1156,7 @@ CRGB ColorFromPalette(const CRGBPalette16& pal,
 
     const CRGB* entry = &pal[hi4];
 
-    const CRGB* e1 = entry;
+    //const CRGB* e1 = entry;
     const CRGB* e2 = nullptr;
 
     uint8_t blend = lo4 && (blendType != NOBLEND);

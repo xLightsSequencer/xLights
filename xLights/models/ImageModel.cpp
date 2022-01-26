@@ -242,7 +242,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
         preview->GetSize(&w, &h);
 
         xlTexture *texture = _images[preview->GetName().ToStdString()];
-        if (texture == nullptr && wxFileExists(_imageFile)) {
+        if (texture == nullptr && FileExists(_imageFile)) {
             wxImage img(_imageFile);
             if (img.IsOk()) {
                 bool mAlpha = img.HasAlpha();
@@ -350,7 +350,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
     preview->GetVirtualCanvasSize(w, h);
     
     xlTexture *texture = _images[preview->GetName().ToStdString()];
-    if (texture == nullptr && wxFileExists(_imageFile)) {
+    if (texture == nullptr && FileExists(_imageFile)) {
         wxImage img(_imageFile);
         if (img.IsOk()) {
             bool mAlpha = img.HasAlpha();
@@ -446,7 +446,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
 bool ImageModel::CleanupFileLocations(xLightsFrame* frame)
 {
     bool rc = false;
-    if (wxFile::Exists(_imageFile)) {
+    if (FileExists(_imageFile)) {
         if (!frame->IsInShowFolder(_imageFile)) {
             _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
             ModelXml->DeleteAttribute("Image");
@@ -462,7 +462,7 @@ bool ImageModel::CleanupFileLocations(xLightsFrame* frame)
 std::list<std::string> ImageModel::GetFileReferences()
 {
     std::list<std::string> res;
-    if (wxFile::Exists(_imageFile)) {
+    if (FileExists(_imageFile)) {
         res.push_back(_imageFile);
     }
     return res;

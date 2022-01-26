@@ -139,10 +139,10 @@ void InitialiseLogging(bool fromMain)
 #endif
 #ifdef __WXOSX__
         std::string initFileName = "xlights.mac.properties";
-        if (!wxFile::Exists(initFileName)) {
+        if (!FileExists(initFileName)) {
             if (fromMain) {
                 return;
-            } else if (wxFile::Exists(wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties")) {
+            } else if (FileExists(wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties")) {
                 initFileName = wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties";
             }
         }
@@ -151,20 +151,20 @@ void InitialiseLogging(bool fromMain)
 #endif
 #ifdef __LINUX__
         std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xlights.linux.properties";
-        if (!wxFile::Exists(initFileName)) {
+        if (!FileExists(initFileName)) {
             initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/share/xLights/xlights.linux.properties";
         }
 #endif
 
 #ifdef _MSC_VER
-        if (!wxFile::Exists(initFileName)) {
+        if (!FileExists(initFileName)) {
             wxFileName f(wxStandardPaths::Get().GetExecutablePath());
             wxString appPath(f.GetPath());
             initFileName = appPath + "\\" + initFileName;
         }
 #endif
 
-        if (!wxFile::Exists(initFileName))
+        if (!FileExists(initFileName))
         {
 #ifdef _MSC_VER
             // the app is not initialized so GUI is not available and no event loop.
@@ -389,40 +389,33 @@ void handleCrash(void *data) {
     #endif
 
     wxFileName fn(topFrame->CurrentDir, OutputManager::GetNetworksFileName());
-    if (fn.Exists()) {
+    if (FileExists(fn)) {
         report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
     }
-    if (wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").Exists()) {
+    if (FileExists(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml"))) {
         report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
     }
-    if (topFrame->UnsavedRgbEffectsChanges &&  wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp").Exists()) {
+    if (topFrame->UnsavedRgbEffectsChanges &&  FileExists(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp"))) {
         report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
     }
 
     if (topFrame->GetSeqXmlFileName() != "") {
         wxFileName fn2(topFrame->GetSeqXmlFileName());
-        if (fn2.Exists() && !fn2.IsDir()) {
+        if (FileExists(fn2) && !fn2.IsDir()) {
             report->AddFile(topFrame->GetSeqXmlFileName(), fn2.GetName());
             wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
-            if (fnb.Exists())
-            {
+            if (FileExists(fnb)) {
                 report->AddFile(fnb.GetFullPath(), fnb.GetName());
             }
-        }
-        else
-        {
+        } else {
             wxFileName fnb(topFrame->CurrentDir + "/" + "__.xbkp");
-            if (fnb.Exists())
-            {
+            if (FileExists(fnb)) {
                 report->AddFile(fnb.GetFullPath(), fnb.GetName());
             }
         }
-    }
-    else
-    {
+    } else {
         wxFileName fnb(topFrame->CurrentDir + "/" + "__.xbkp");
-        if (fnb.Exists())
-        {
+        if (FileExists(fnb)) {
             report->AddFile(fnb.GetFullPath(), fnb.GetName());
         }
     }
@@ -480,15 +473,15 @@ void handleCrash(void *data) {
     std::string filename = "/tmp/xLights_l4cpp.log";
 #endif
 
-    if (wxFile::Exists(filename))
+    if (FileExists(filename))
     {
         report->AddFile(filename, "xLights_l4cpp.log");
     }
-    else if (wxFile::Exists(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath()))
+    else if (FileExists(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath()))
     {
         report->AddFile(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
     }
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath()))
+    else if (FileExists(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath()))
     {
         report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
     }
@@ -615,7 +608,7 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
     ObtainAccessToURL(fileName);
 
     wxString showDir = wxPathOnly(fileName);
-    while (showDir != "" && !wxFile::Exists(showDir + "/" + "xlights_rgbeffects.xml")) {
+    while (showDir != "" && !FileExists(showDir + "/" + "xlights_rgbeffects.xml")) {
         auto old = showDir;
         showDir = wxPathOnly(showDir);
         if (showDir == old) showDir = "";
@@ -879,7 +872,7 @@ bool xLightsApp::OnInit()
             }
             if (showDir.IsNull()) {
                 showDir=wxPathOnly(sequenceFile);
-                while (showDir != "" && !wxFile::Exists(showDir + "/" + "xlights_rgbeffects.xml"))
+                while (showDir != "" && !FileExists(showDir + "/" + "xlights_rgbeffects.xml"))
                 {
                     auto old = showDir;
                     showDir = wxPathOnly(showDir);

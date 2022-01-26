@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <log4cpp/Category.hh>
 #include <wx/filename.h>
+#include "ExternalHooks.h"
 
 
 xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(ctx), filename(f) {
@@ -41,10 +42,10 @@ xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(c
         materials[idx].color.Set((uint8_t)red, (uint8_t)green, (uint8_t)blue, (uint8_t)dissolve);
         if (m.diffuse_texname != "") {
             wxString texName = m.diffuse_texname;
-            if (!wxFileName::Exists(texName)) {
+            if (!FileExists(texName)) {
                 texName = fn.GetPath() + fn.GetPathSeparator() + m.diffuse_texname;
             }
-            if (!wxFileName::Exists(texName)) {
+            if (!FileExists(texName)) {
                 texName = m.diffuse_texname;
                 if (texName.Contains(("/"))) {
                     texName = texName.substr(texName.Last('/') + 1);

@@ -18,12 +18,13 @@
 #include "graphics/opengl/DrawGLUtils.h"
 #include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 
 GLuint loadImage(const wxString &path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
                  bool &scaledW, bool &scaledH, bool &hasAlpha, bool useForcePowerOfTwo)
 {
     // check the file exists
-    if(!wxFileExists(path))
+    if(!FileExists(path))
     {
         DisplayCrit( _("Failed to load resource image") + path);
 		exit(1);

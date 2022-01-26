@@ -62,6 +62,7 @@
 #include "outputs/Output.h"
 #include "cad/ModelToCAD.h"
 #include "LORPreview.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -2233,7 +2234,7 @@ public:
             lastFileName = fn;
             delete m_pImage;
             m_pImage = nullptr;
-            if (fn.Exists()) {
+            if (FileExists(fn)) {
                 m_pImage = new wxImage(fn.GetFullPath());
             }
         }
@@ -2320,7 +2321,7 @@ void LayoutPanel::showBackgroundProperties()
 
     if (background == nullptr) {
         backgroundFile = previewBackgroundFile;
-        if (backgroundFile != "" && wxFileExists(backgroundFile) && wxIsReadable(backgroundFile)) {
+        if (backgroundFile != "" && FileExists(backgroundFile) && wxIsReadable(backgroundFile)) {
             background = new wxImage(backgroundFile);
         }
     }

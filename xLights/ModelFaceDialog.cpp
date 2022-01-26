@@ -632,7 +632,7 @@ void ModelFaceDialog::DoSetPhonemes(wxFileName fn, std::string actualkey, std::s
     for (auto it = phonemes.begin(); it != phonemes.end(); ++it)
     {
         wxFileName fn2 = GetFileNamePhoneme(fn, actualkey, count, *it);
-        if (fn2.Exists() && (faceData[name][GenerateKey(col, setPhoneme)] == "" || !wxFileName::FileExists(faceData[name][GenerateKey(col, setPhoneme)])))
+        if (FileExists(fn2) && (faceData[name][GenerateKey(col, setPhoneme)] == "" || !FileExists(faceData[name][GenerateKey(col, setPhoneme)])))
         {
             faceData[name][GenerateKey(col, setPhoneme)] = fn2.GetFullPath();
             MatrixModelsGrid->SetCellValue(row, col, fn2.GetFullPath());
@@ -732,7 +732,7 @@ void ModelFaceDialog::TryToSetAllMatrixModels(std::string name, std::string key,
             for(const auto &phen :findList)
             {
                 const wxFileName fn2 = GetFileNamePhoneme(fn, *it, i, phen);
-                if (fn2.Exists())
+                if (FileExists(fn2))
                 {
                     DoSetMatrixModels(fn, *it, k, i, col, name);
                     done = true;
@@ -1130,13 +1130,13 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
                 std::string filename = dir + "/" + ent->GetName().ToStdString();
                 files.push_back(filename);
 
-                if (!wxFile::Exists(filename))
+                if (!FileExists(filename))
                 {
                     logger_base.debug("Extracting %s:%s to %s.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)filename.c_str());
                     wxFileOutputStream fout(filename);
                     zin.Read(fout);
                 }
-                if (!wxFile::Exists(filename)) {
+                if (!FileExists(filename)) {
                     logger_base.error("File extract failed.");
                 }
                 ent = zin.GetNextEntry();

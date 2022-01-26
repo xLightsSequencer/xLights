@@ -736,7 +736,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
         if (xml_file.GetMedia() == nullptr) {
             mediaFilename = xml_file.GetMediaFile();
             ObtainAccessToURL(mediaFilename);
-            if ((mediaFilename == wxEmptyString) || !wxFileExists(mediaFilename) || !wxIsReadable(mediaFilename)) {
+            if ((mediaFilename == wxEmptyString) || !FileExists(mediaFilename) || !wxIsReadable(mediaFilename)) {
                 SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectories, wxT(""), wxEmptyString);
                 setting_dlg.Fit();
                 int ret_val = setting_dlg.ShowModal();

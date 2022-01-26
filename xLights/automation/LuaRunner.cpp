@@ -12,6 +12,7 @@
 #include "xLightsMain.h"
 #include "BatchRenderDialog.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -60,7 +61,7 @@ std::list<std::string> LuaRunner::PromptSequences() const
 
         for (auto const& f : files) {
             wxFileName fname(_frame->GetShowDirectory() + wxFileName::GetPathSeparator() + f);
-            if (fname.FileExists()) {
+            if (FileExists(fname)) {
                 sequenceList.push_back(fname.GetFullPath());
             } else {
                 logger_base.info("PromptSequences: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());

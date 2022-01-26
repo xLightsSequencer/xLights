@@ -22,6 +22,7 @@
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 #include "../effects/RenderableEffect.h"
+#include "../ExternalHooks.h"
 
 #include <unordered_map>
 
@@ -558,13 +559,13 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
                                 pth += dirs[j] + fn.GetPathSeparator();
                             }
                             pth += file;
-                            if (wxFile::Exists(pth)) {
+                            if (FileExists(pth)) {
                                 // found it
                                 mSettings[realid] = pth;
                                 break;
                             }
                         }
-                        if (origName == mSettings[realid] && !wxFile::Exists(origName)) {
+                        if (origName == mSettings[realid] && !FileExists(origName)) {
                             logger_base.warn("Unable to correct show folder '%s' : '%s' to '%s'", (const char*)realid.c_str(), (const char*)origName.c_str(), (const char*)value.c_str());
                         }
                     }

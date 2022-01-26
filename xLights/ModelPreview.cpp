@@ -928,7 +928,7 @@ void ModelPreview::InitializePreview(wxString img, int brightness, int alpha, bo
             background = nullptr;
         }
         mBackgroundImage = img;
-        mBackgroundImageExists = wxFileExists(mBackgroundImage) && wxIsReadable(mBackgroundImage) && wxImage::CanRead(mBackgroundImage);
+        mBackgroundImageExists = FileExists(mBackgroundImage) && wxIsReadable(mBackgroundImage) && wxImage::CanRead(mBackgroundImage);
     }
     mBackgroundBrightness = brightness;
     mBackgroundAlpha = alpha;
@@ -953,7 +953,7 @@ void ModelPreview::SetbackgroundImage(wxString img)
             background = nullptr;
         }
         mBackgroundImage = img;
-        mBackgroundImageExists = wxFileExists(mBackgroundImage) && wxIsReadable(mBackgroundImage) && wxImage::CanRead(mBackgroundImage);
+        mBackgroundImageExists = FileExists(mBackgroundImage) && wxIsReadable(mBackgroundImage) && wxImage::CanRead(mBackgroundImage);
     }
 }
 

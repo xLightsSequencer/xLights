@@ -237,7 +237,7 @@ void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filen
     }
 
     ObtainAccessToURL(filename.ToStdString());
-    if ((filename != wxEmptyString) && wxFileExists(filename) && wxIsReadable(filename)) {
+    if ((filename != wxEmptyString) && FileExists(filename) && wxIsReadable(filename)) {
         logger_base.debug("SetMediaFile: Creating audio manager");
         audio = new AudioManager(std::string(filename.c_str()), GetFrameMS());
 
@@ -1114,11 +1114,11 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                             delete audio;
                             audio = nullptr;
                         }
-                        if (mf.FileExists() && mf.IsFileReadable()) {
+                        if (::FileExists(mf) && mf.IsFileReadable()) {
                             mediaFileName = media_file.ToStdString();
                         }
                         else {
-                            if (!mf.FileExists()) {
+                            if (!::FileExists(mf)) {
                                 logger_base.error("LoadSequence: audio file does not exist.");
                             }
                             else if (!mf.IsFileReadable()) {
@@ -2972,16 +2972,16 @@ void xLightsXmlFile::SetMetaMP3Tags()
 
 std::string xLightsXmlFile::GetFSEQForXSQ(const std::string& xsq, const std::string& fseqDirectory)
 {
-    if (!wxFile::Exists(xsq))
+    if (!FileExists(xsq))
         return "";
 
     wxFileName fn(xsq);
     fn.SetExt("fseq");
 
-    if (!wxFile::Exists(fn.GetFullPath())) {
+    if (!FileExists(fn.GetFullPath())) {
         fn.SetPath(fseqDirectory);
 
-        if (!wxFile::Exists(fn.GetFullPath())) {
+        if (!FileExists(fn.GetFullPath())) {
             return "";
         }
     }
@@ -2991,7 +2991,7 @@ std::string xLightsXmlFile::GetFSEQForXSQ(const std::string& xsq, const std::str
 
 std::string xLightsXmlFile::GetMediaForXSQ(const std::string& xsq, const std::string& showDir, const std::list<std::string> mediaFolders)
 {
-    if (!wxFile::Exists(xsq))
+    if (!FileExists(xsq))
         return "";
 
     static const int BUFFER_SIZE = 1024 * 12;
@@ -3050,18 +3050,18 @@ std::string xLightsXmlFile::GetMediaForXSQ(const std::string& xsq, const std::st
     delete parser;
 
     if (mediaName != "") {
-        if (!wxFile::Exists(mediaName)) {
+        if (!FileExists(mediaName)) {
             wxFileName fn(mediaName);
             for (auto& md : mediaFolders) {
                 std::string tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
-                if (wxFile::Exists(tmn)) {
+                if (FileExists(tmn)) {
                     mediaName = tmn;
                     break;
                 }
             }
-            if (!wxFile::Exists(mediaName)) {
+            if (!FileExists(mediaName)) {
                 const std::string fixedMN = FixFile(showDir, mediaName);
-                if (!wxFile::Exists(fixedMN)) {
+                if (!FileExists(fixedMN)) {
                     mediaName = "";
                 } else {
                     mediaName = fixedMN;

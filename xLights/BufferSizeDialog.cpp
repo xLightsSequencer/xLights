@@ -13,6 +13,7 @@
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
 #include "PixelBuffer.h"
+#include "ExternalHooks.h"
 
 //(*InternalHeaders(BufferSizeDialog)
 #include <wx/artprov.h>
@@ -412,7 +413,7 @@ void BufferSizeDialog::LoadBufferPreset(wxString const& name)
     logger_base.debug("Loading buffer file %s.", (const char*)filename.c_str());
 
     wxXmlDocument doc;
-    if (wxFile::Exists(filename) && doc.Load(filename) && doc.IsOk()) {
+    if (FileExists(filename) && doc.Load(filename) && doc.IsOk()) {
         auto n = doc.GetRoot();
         if (n != nullptr && n->GetName() == "Buffer") {
             SpinCtrl_Left->SetValue(wxAtof(n->GetAttribute("Left", "0.0")));
@@ -536,11 +537,11 @@ void BufferSizeDialog::CreateBufferPresetsList(wxDir& directory, bool subdirs)
 
 wxString BufferSizeDialog::FindBufferPreset(const wxString& name) const
 {
-    if (wxFile::Exists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + name + ".xbuffer")) {
+    if (FileExists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + name + ".xbuffer")) {
         return xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + name + ".xbuffer";
     }
 
-    if (wxFile::Exists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "buffers" + wxFileName::GetPathSeparator() + name + ".xbuffer")) {
+    if (FileExists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "buffers" + wxFileName::GetPathSeparator() + name + ".xbuffer")) {
         return xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "buffers" + wxFileName::GetPathSeparator() + name + ".xbuffer";
     }
 

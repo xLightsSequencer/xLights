@@ -517,7 +517,7 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
             std::string fseqName = frame->GetFseqDirectory() + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
             if (isSequence) {
                 //need to check for existence of fseq
-                if (!wxFile::Exists(fseqName)) {
+                if (!FileExists(fseqName)) {
                     fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
                 }
                 if (!wxFile::Exists(fseqName)) {
@@ -525,18 +525,18 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
                 }
             }
             if (!mediaName.empty()) {
-                if (!wxFile::Exists(mediaName)) {
+                if (!FileExists(mediaName)) {
                     wxFileName fn(mediaName);
                     for (auto const& md : frame->GetMediaFolders()) {
                         std::string tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
-                        if (wxFile::Exists(tmn)) {
+                        if (FileExists(tmn)) {
                             mediaName = tmn;
                             break;
                         }
                     }
-                    if (!wxFile::Exists(mediaName)) {
+                    if (!FileExists(mediaName)) {
                         const std::string fixedMN = FixFile(frame->CurrentDir, mediaName);
-                        if (!wxFile::Exists(fixedMN)) {
+                        if (!FileExists(fixedMN)) {
                             logger_base.info("Could not find media: %s", mediaName.c_str());
                             mediaName = "";
                         } else {

@@ -761,7 +761,7 @@ void NodeSelectGrid::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 
     if (background_image != "")
     {
-        if (wxFile::Exists(background_image))
+        if (FileExists(background_image))
         {
             bkg_image = new wxImage(background_image);
         }

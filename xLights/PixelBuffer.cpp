@@ -2662,13 +2662,11 @@ void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
 {
     layers[layer]->buffer.SetState(period, resetState, modelName);
     if (layers[layer]->usingModelBuffersDeep) {
-        int cnt = 0;
         const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
         std::list<Model*> flat_models = grp->GetFlatModels();
         std::list<Model*>::iterator it_m = flat_models.begin();
         for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it, it_m++) {
-            if (frame->AllModels[(*it_m)->Name()] == nullptr)
-                {
+            if (frame->AllModels[(*it_m)->Name()] == nullptr) {
                 (*it)->SetState(period, resetState, (*it_m)->GetFullName());
             } else {
                 (*it)->SetState(period, resetState, (*it_m)->Name());

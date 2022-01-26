@@ -14,6 +14,7 @@
 #include <wx/wfstream.h>
 #include <wx/log.h>
 #include <log4cpp/Category.hh>
+#include "ExternalHooks.h"
 
 bool MusicXML::IsOk()
 {
@@ -30,7 +31,7 @@ MusicXML::MusicXML(std::string file)
 {
     wxLogNull logNo; //kludge: avoid zip errors
 
-    if (file != "" && wxFile::Exists(file))
+    if (file != "" && FileExists(file))
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Loading music XML file: %s", (const char*)file.c_str());

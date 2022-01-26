@@ -27,6 +27,7 @@
 #ifndef __XL_EXTERNAL_HOOKS__
 
 #include <functional>
+#include <wx/file.h>
 
 #define xlSetRetinaCanvasViewport(w,a,b,c,d)
 #define xlTranslateToRetina(a, x) x
@@ -47,5 +48,15 @@ inline bool IsFromAppStore() { return false; }
 inline void AdjustColorToDeviceColorspace(const wxColor& c, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a) { r = c.Red(); g = c.Green(); b = c.Blue(); a = c.Alpha();}
 inline bool IsMouseEventFromTouchpad() { return false; }
 inline void RunInAutoReleasePool(std::function<void()> &&f) { f(); }
+
+inline bool FileExists(const std::string &s) {
+    return wxFile::Exists(s);
+}
+inline bool FileExists(const wxString &s) {
+    return wxFile::Exists(s);
+}
+inline bool FileExists(const wxFileName &fn) {
+    return fn.FileExists();
+}
 
 #endif

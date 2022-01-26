@@ -181,7 +181,7 @@ void xlGridCanvasPictures::SaveAsImage()
     }
     save_name = file_check.GetFullPath();
 
-    if (wxFile::Exists(save_name)) {
+    if (FileExists(save_name)) {
         if (wxMessageBox("Are you sure you want to overwrite this image file?\n" + save_name, "Confirm Overwrite?", wxICON_QUESTION | wxYES_NO) == wxYES ) {
             PictureName = save_name;
             SaveImageToFile();
@@ -260,7 +260,7 @@ void xlGridCanvasPictures::SaveImage()
         save_name = file_check.GetFullPath();
     }
 
-    if (wxFile::Exists(save_name)) {
+    if (FileExists(save_name)) {
         if( wxMessageBox("Are you sure you want to overwrite this image file?\n" + save_name, "Confirm Overwrite?", wxICON_QUESTION | wxYES_NO) == wxYES ) {
             PictureName = save_name;
             SaveImageToFile();
@@ -313,7 +313,7 @@ void xlGridCanvasPictures::CreateNewImage(wxString& image_dir)
     new_file.SetPath(image_dir);
     new_file.SetFullName("NewImage.png");
     NewPictureName = new_file.GetFullPath();
-    if (wxFile::Exists(NewPictureName)) {
+    if (FileExists(NewPictureName)) {
         ::wxRemoveFile(NewPictureName);
     }
     image.Create(mColumns, mRows, true);
@@ -342,7 +342,7 @@ void xlGridCanvasPictures::SetEffect(Effect* effect_)
     if (NewPictureName == "") {
         return;
     }
-    if (wxFile::Exists(NewPictureName)) {
+    if (FileExists(NewPictureName)) {
         LoadAndProcessImage();
     } else {
         missing_file = "File Not Found: " + NewPictureName;

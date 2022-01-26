@@ -26,6 +26,7 @@
 #include "../UtilFunctions.h"
 #include "../FontManager.h"
 #include "../xLightsMain.h"
+#include "../ExternalHooks.h"
 
 #include "../../include/text-16.xpm"
 #include "../../include/text-24.xpm"
@@ -58,7 +59,7 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
     {
         res.push_back(wxString::Format("    ERR: Text effect has no actual text. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
-    else if (textFilename != "" && !wxFile::Exists(textFilename))
+    else if (textFilename != "" && !FileExists(textFilename))
     {
         res.push_back(wxString::Format("    ERR: Text effect cant find file '%s'. Model '%s', Start %s", textFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
@@ -90,7 +91,7 @@ bool TextEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Settings
 {
     bool rc = false;
     wxString file = SettingsMap["E_FILEPICKERCTRL_Text_File"];
-    if (wxFile::Exists(file))
+    if (FileExists(file))
     {
         if (!frame->IsInShowFolder(file))
         {
@@ -266,7 +267,7 @@ void TextEffect::adjustSettings(const std::string &version, Effect *effect, bool
     wxString file = settings["E_FILEPICKERCTRL_Text_File"];
     if (file != "")
     {
-        if (!wxFile::Exists(file))
+        if (!FileExists(file))
         {
             settings["E_FILEPICKERCTRL_Text_File"] = FixFile("", file);
         }
@@ -477,7 +478,7 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
 
     if (text == "")
     {
-        if (wxFile::Exists(filename))
+        if (FileExists(filename))
         {
             wxTextFile f(filename);
             f.Open();
@@ -1404,7 +1405,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     wxString lyricTrack = settings["CHOICE_Text_LyricTrack"];
 
     if (text == "") {
-        if (wxFile::Exists(filename)) {
+        if (FileExists(filename)) {
             wxTextFile f(filename);
             f.Open();
             int i = 0;

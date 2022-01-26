@@ -30,6 +30,7 @@
 #include "outputs/OutputManager.h"
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -635,14 +636,11 @@ void GenerateCustomModelDialog::ValidateWindow()
     if (_state == VideoProcessingStates::CHOOSE_VIDEO)
     {
         wxString file = TextCtrl_GCM_Filename->GetValue();
-        if (wxFile::Exists(file))
-        {
+        if (FileExists(file)) {
             TextCtrl_GCM_Filename->SetBackgroundColour(*wxWHITE);
             Button_CV_Next->Enable();
             Button_CV_Manual->Enable();
-        }
-        else
-        {
+        } else {
             TextCtrl_GCM_Filename->SetBackgroundColour(*wxRED);
             Button_CV_Next->Disable();
             Button_CV_Manual->Disable();
@@ -1009,7 +1007,7 @@ void GenerateCustomModelDialog::CVTabEntry()
         StaticText_CM_Request->SetLabel("Select the video you recorded of your model using the prepare tab.");
     }
     _state = VideoProcessingStates::CHOOSE_VIDEO;
-    if (wxFile::Exists(std::string(TextCtrl_GCM_Filename->GetValue().c_str())))
+    if (FileExists(std::string(TextCtrl_GCM_Filename->GetValue().c_str())))
     {
         if (SLRadioButton->GetValue())
         {

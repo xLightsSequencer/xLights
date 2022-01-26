@@ -50,6 +50,7 @@
 #include "../xLightsVersion.h"
 #include "../Parallel.h"
 #include "ControllerCaps.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 #include "ControllerUploadData.h"
@@ -613,7 +614,7 @@ static inline void addString(wxMemoryBuffer &buffer, const std::string &str) {
 bool FPP::GetPathAsJSON(const std::string &path, wxJSONValue &val) {
     wxFileName fn;
     fn = path;
-    if (fn.Exists()) {
+    if (FileExists(fn)) {
         wxJSONReader reader;
         wxFile tf(fn.GetFullPath());
         wxString json;

@@ -35,6 +35,7 @@ extern "C"
 #include "ConvertDialog.h"
 #include "FileConverter.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "models/ModelGroup.h"
 #include "models/MatrixModel.h"
 #include "sequencer/SequenceElements.h"
@@ -107,7 +108,7 @@ void xLightsFrame:: SetMediaFilename(const wxString& filename)
 
     wxPathFormat PathFmt = Contains(mediaFilename, "\\") ? wxPATH_DOS : wxPATH_NATIVE;
     wxFileName fn1(mediaFilename, PathFmt);
-    if (!fn1.FileExists())
+    if (!FileExists(fn1))
     {
         wxFileName fn2(CurrentDir, fn1.GetFullName());
         mediaFilename = fn2.GetFullPath();
@@ -1143,7 +1144,7 @@ void xLightsFrame::CreatePresetIcons()
 
     for (const auto& it : presets) {
         auto filename = GetPresetIconFilename(it);
-        if (!wxFile::Exists(filename)) {
+        if (!FileExists(filename)) {
             WriteGIFForPreset(it);
         }
     }

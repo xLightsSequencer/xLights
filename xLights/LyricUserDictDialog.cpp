@@ -23,6 +23,7 @@
 #include <wx/msgdlg.h>
 #include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 
 //(*IdInit(LyricUserDictDialog)
 const long LyricUserDictDialog::ID_TEXTCTRL_NEW_LYRIC = wxNewId();
@@ -240,15 +241,15 @@ void LyricUserDictDialog::ReadUserDictionary() const
     const wxString filename = "user_dictionary";
     wxFileName phonemeFile = wxFileName::DirName(m_showDirectory);
     phonemeFile.SetFullName(filename);
-    if (!wxFile::Exists(phonemeFile.GetFullPath())) {
+    if (!FileExists(phonemeFile.GetFullPath())) {
         phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
         phonemeFile.SetFullName(filename);
     }
-    if (!wxFile::Exists(phonemeFile.GetFullPath())) {
+    if (!FileExists(phonemeFile.GetFullPath())) {
         phonemeFile = wxFileName(wxStandardPaths::Get().GetResourcesDir(), filename);
     }
 
-    if (!wxFile::Exists(phonemeFile.GetFullPath())) {
+    if (!FileExists(phonemeFile.GetFullPath())) {
         logger_base.error("Could Not Find user_dictionary file");
         return;
     }

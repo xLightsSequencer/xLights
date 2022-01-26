@@ -397,7 +397,7 @@ void CustomModel::SetCustomLightness(long lightness)
 bool CustomModel::CleanupFileLocations(xLightsFrame* frame)
 {
     bool rc = false;
-    if (wxFile::Exists(custom_background)) {
+    if (FileExists(custom_background)) {
         if (!frame->IsInShowFolder(custom_background)) {
             custom_background = frame->MoveToShowFolder(custom_background, wxString(wxFileName::GetPathSeparator()) + "Images");
             ModelXml->DeleteAttribute("CustomBkgImage");
@@ -413,7 +413,7 @@ bool CustomModel::CleanupFileLocations(xLightsFrame* frame)
 std::list<std::string> CustomModel::GetFileReferences()
 {
     std::list<std::string> res;
-    if (wxFile::Exists(custom_background)) {
+    if (FileExists(custom_background)) {
         res.push_back(custom_background);
     }
     return res;
@@ -1453,7 +1453,7 @@ void CustomModel::ExportXlightsModel()
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
-    //    bool isnew = !wxFile::Exists(filename);
+    //    bool isnew = !FileExists(filename);
     if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString cm = ModelXml->GetAttribute("CustomModel");
     wxString p1 = ModelXml->GetAttribute("parm1");

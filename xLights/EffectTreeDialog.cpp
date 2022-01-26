@@ -23,6 +23,7 @@
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1162,7 +1163,7 @@ void EffectTreeDialog::GenerateGifImage(wxTreeItemId itemID, bool regenerate)
     if (!fullName.IsEmpty()) {
         std::string filePath = xLightParent->GetPresetIconFilename(fullName);
 
-        if (!wxFile::Exists(filePath) || regenerate) {
+        if (!FileExists(filePath) || regenerate) {
             wxWindowDisabler disableAll;
             wxBusyInfo wait(wxBusyInfoFlags()
                             .Parent(this)
@@ -1179,7 +1180,7 @@ void EffectTreeDialog::GenerateGifImage(wxTreeItemId itemID, bool regenerate)
 void EffectTreeDialog::LoadGifImage(wxString const& path)
 {
     TimerGif.Stop();
-    if(wxFile::Exists(path) && GIFImage::IsGIF(path)) {
+    if(FileExists(path) && GIFImage::IsGIF(path)) {
         gifImage = std::make_unique<GIFImage>(path);
 
         if (!gifImage->IsOk()) {
@@ -1232,7 +1233,7 @@ void EffectTreeDialog::DeleteGifImage(wxTreeItemId itemID)
     if (!fullName.IsEmpty()) {
         std::string filePath = xLightParent->GetPresetIconFilename(fullName);
 
-        if (wxFile::Exists(filePath)) {
+        if (FileExists(filePath)) {
             wxRemoveFile(filePath);
         }
     }
@@ -1543,7 +1544,7 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
                     while (!priorGifFiles.empty()) {
                         wxFileName priorGifFn(priorGifFiles.front());
                         
-                        if (priorGifFn.IsOk() && priorGifFn.Exists()) {
+                        if (priorGifFn.IsOk() && FileExists(priorGifFn)) {
                             wxFileName newGifFn(newGifFiles.front());
                             wxRenameFile(priorGifFn.GetFullPath(), newGifFiles.front());
                         }

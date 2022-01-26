@@ -21,6 +21,7 @@
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "TraceLog.h"
+#include "ExternalHooks.h"
 
 #pragma region RenderCache
 
@@ -543,7 +544,7 @@ void RenderCacheItem::Delete()
     static log4cpp::Category& logger_rcache = log4cpp::Category::getInstance(std::string("log_rendercache"));
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxLogNull logNo; //kludge: avoid user error messahe
-    if (!_purged && wxFile::Exists(_cacheFile)) {
+    if (!_purged && FileExists(_cacheFile)) {
         if (!wxRemoveFile(_cacheFile))
         {
             logger_base.warn("Unable to remove cache file " + _cacheFile);

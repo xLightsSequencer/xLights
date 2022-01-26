@@ -14,6 +14,7 @@
 #include "xLightsMain.h"
 #include "DragColoursBitmapButton.h"
 #include "ColorPanel.h"
+#include "ExternalHooks.h"
 
 //(*InternalHeaders(ColoursPanel)
 #include <wx/intl.h>
@@ -87,19 +88,15 @@ void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
     wxString filename;
     bool cont = directory.GetFirst(&filename, "*.xcc", wxDIR_FILES);
 
-    while (cont)
-    {
+    while (cont) {
         count++;
         wxFileName fn(directory.GetNameWithSep() + filename);
-        if (fn.Exists())
-        {
+        if (FileExists(fn)) {
             ColorCurve cc;
             cc.LoadXCC(fn.GetFullPath());
             cc.SetId("ID_BUTTON_PaletteX");
             AddColour(cc.Serialise());
-        }
-        else
-        {
+        } else {
             logger_base.warn("ColoursPanel::ProcessColourCurveDir Unable to load " + fn.GetFullPath());
         }
 
@@ -107,11 +104,9 @@ void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
     }
     logger_base.info("    Found %d.", count);
 
-    if (subdirs)
-    {
+    if (subdirs) {
         cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
-        while (cont)
-        {
+        while (cont) {
             wxDir dir(directory.GetNameWithSep() + filename);
             ProcessColourCurveDir(dir, subdirs);
             cont = directory.GetNext(&filename);

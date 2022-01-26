@@ -801,7 +801,7 @@ void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
     if (type != "Animation")
     {
         path = TextCtrl_Xml_Media_File->GetValue();
-        if (wxFileExists(path))
+        if (FileExists(path))
         {
             wxFileName name_and_path(path);
             MediaLoad(path);

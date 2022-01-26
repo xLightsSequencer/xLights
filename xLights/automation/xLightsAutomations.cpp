@@ -22,6 +22,7 @@
 #include "../../xSchedule/wxJSON/jsonreader.h"
 #include "../../xSchedule/wxJSON/jsonwriter.h"
 #include "../UtilFunctions.h"
+#include "../ExternalHooks.h"
 #include "../xLightsApp.h"
 #include "../JukeboxPanel.h"
 #include "../outputs/E131Output.h"
@@ -35,10 +36,10 @@
 
 std::string xLightsFrame::FindSequence(const std::string& seq)
 {
-    if (wxFile::Exists(seq))
+    if (FileExists(seq))
         return seq;
 
-    if (wxFile::Exists(CurrentDir + wxFileName::GetPathSeparator() + seq))
+    if (FileExists(CurrentDir + wxFileName::GetPathSeparator() + seq))
         return CurrentDir + wxFileName::GetPathSeparator() + seq;
     
     return "";
@@ -333,7 +334,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         auto fseq = xLightsXmlFile::GetFSEQForXSQ(xsq, GetFseqDirectory());
         auto m2 = xLightsXmlFile::GetMediaForXSQ(xsq, CurrentDir, GetMediaFolders());
 
-        if (!wxFile::Exists(fseq)) {
+        if (!FileExists(fseq)) {
             return sendResponse("Unable to find sequence FSEQ file.", "msg", 503, false);
         }
 
@@ -667,7 +668,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         return sendResponse("Export Video Preview Failed", "msg", 503, true);
     } else if (cmd == "runScript") {
         auto filename = params["filename"];
-        if (filename.empty() || filename == "null" || !wxFile::Exists(filename)) {
+        if (filename.empty() || filename == "null" || !FileExists(filename)) {
             return sendResponse("Invalid Script Path.", "msg", 503, false);
         }
 

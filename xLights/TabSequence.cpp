@@ -38,6 +38,7 @@
 #include "ColoursPanel.h"
 #include "sequencer/MainSequencer.h"
 #include "HousePreviewPanel.h"
+#include "ExternalHooks.h"
 
 #include "xLightsVersion.h"
 
@@ -83,7 +84,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     wxString myString = "Hello";
     UnsavedRgbEffectsChanges = false;
 
-    if (!effectsFile.FileExists()) {
+    if (!FileExists(effectsFile)) {
         // file does not exist, so create an empty xml doc
         CreateDefaultEffectsXml();
     }
@@ -94,7 +95,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         xx.SetExt("xbkp");
         wxString asfile = xx.GetLongPath();
 
-        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && wxFile::Exists(asfile)) {
+        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && FileExists(asfile)) {
             // the autosave file exists
             wxDateTime xmltime = fn.GetModificationTime();
             wxFileName asfn(asfile);
@@ -117,7 +118,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
                     wxRenameFile(asfile, effectsFile.GetFullPath());
                 }
                 else {
-                    if (wxFile::Exists(fn.GetFullPath())) {
+                    if (FileExists(fn.GetFullPath())) {
                         //set the backup to be older than the XML files to avoid re-promting
                         xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resolution is 2 seconds
                         asfn.SetTimes(&xmltime, &xmltime, &xmltime);
@@ -267,18 +268,18 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
     mBackgroundImage = FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage", ""));
     ObtainAccessToURL(mBackgroundImage.ToStdString());
-    if (mBackgroundImage != "" && (!wxFileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage))) {
+    if (mBackgroundImage != "" && (!FileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage))) {
         //image doesn't exist there, lets look for it in media directories
         wxString bgImg = GetXmlSetting("backgroundImage", "");
         for (auto &dir : mediaDirectories) {
             wxString fn = FixFile(dir, bgImg);
             ObtainAccessToURL(fn.ToStdString());
-            if (wxFileExists(fn) && wxIsReadable(fn)) {
+            if (FileExists(fn) && wxIsReadable(fn)) {
                 mBackgroundImage = fn;
                 break;
             }
         }
-        if (!wxFileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage)) {
+        if (!FileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage)) {
             wxFileName name(mBackgroundImage);
             name.SetPath(CurrentDir);
             if (name.Exists()) {

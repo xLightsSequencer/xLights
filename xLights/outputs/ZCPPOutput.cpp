@@ -24,6 +24,7 @@
 #include "../UtilFunctions.h"
 #include "ControllerEthernet.h"
 #include "../OutputModelManager.h"
+#include "ExternalHooks.h"
 
 #ifndef EXCLUDENETWORKUI
 #include "../controllers/Falcon.h"
@@ -127,7 +128,7 @@ ZCPPOutput::ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir) : IP
         fileName += ".zcpp";
         fileName = showdir + wxFileName::GetPathSeparator() + fileName;
 
-        if (wxFile::Exists(fileName)) {
+        if (FileExists(fileName)) {
             wxFile zf;
             if (zf.Open(fileName)) {
                 uint8_t tag[4];
@@ -643,7 +644,7 @@ bool ZCPPOutput::SetModelData(Controller* c, std::list<ZCPP_packet_t*> modelData
     fileName += ".zcpp";
     fileName = showDir + wxFileName::GetPathSeparator() + fileName;
 
-    if (_modelData.size() != modelData.size() || _extraConfig.size() != extraConfig.size() || !wxFile::Exists(fileName)) {
+    if (_modelData.size() != modelData.size() || _extraConfig.size() != extraConfig.size() || !FileExists(fileName)) {
         // different size so must be different
     }
     else {

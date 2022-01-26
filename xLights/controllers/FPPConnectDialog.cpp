@@ -578,26 +578,26 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
             std::string fseqName = frame->GetFseqDirectory() + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
             if (isSequence) {
                 //need to check for existence of fseq
-                if (!wxFile::Exists(fseqName)) {
+                if (!FileExists(fseqName)) {
                     fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
                 }
-                if (!wxFile::Exists(fseqName)) {
+                if (!FileExists(fseqName)) {
                     isSequence = false;
                 }
             }
             if (mediaName != "") {
-                if (!wxFile::Exists(mediaName)) {
+                if (!FileExists(mediaName)) {
                     wxFileName fn(mediaName);
                     for (auto &md : frame->GetMediaFolders()) {
                         std::string tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
-                        if (wxFile::Exists(tmn)) {
+                        if (FileExists(tmn)) {
                             mediaName = tmn;
                             break;
                         }
                     }
-                    if (!wxFile::Exists(mediaName)) {
+                    if (!FileExists(mediaName)) {
                         const std::string fixedMN = FixFile(frame->CurrentDir, mediaName);
-                        if (!wxFile::Exists(fixedMN)) {
+                        if (!FileExists(fixedMN)) {
                             logger_base.info("Could not find media: %s ", mediaName.c_str());
                             mediaName = "";
                         } else {
@@ -687,7 +687,7 @@ void FPPConnectDialog::LoadSequences()
                     if (header.code[0] == 'm' && header.code[1] == 'f') {
                         wxString mediaName = (const char*)(&header.data[0]);
                         mediaName = FixFile("", mediaName);
-                        if (wxFileExists(mediaName)) {
+                        if (FileExists(mediaName)) {
                             CheckListBox_Sequences->SetItemText(item, 2, mediaName);
                         }
                     }
@@ -1042,7 +1042,7 @@ void FPPConnectDialog::CreateDriveList()
         inst->majorVersion = 2;
         inst->fullVersion = "Unknown";
         inst->mode = "standalone";
-        if (wxFile::Exists(a + "/fpp-info.json")) {
+        if (FileExists(a + "/fpp-info.json")) {
             //read version and hostname
             wxJSONValue system;
             wxJSONReader reader;
@@ -1355,7 +1355,7 @@ void FPPConnectDialog::GetFolderList(const wxString& folder)
 
 void FPPConnectDialog::DisplayDateModified(std::string const& filePath, wxTreeListItem &item) const
 { 
-    if (wxFile::Exists(filePath)) {
+    if (FileExists(filePath)) {
         wxDateTime last_modified_time(wxFileModificationTime(filePath));
         CheckListBox_Sequences->SetItemText(item, 1, last_modified_time.Format(wxT("%Y-%m-%d %H:%M:%S")));
     }

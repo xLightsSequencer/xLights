@@ -46,6 +46,7 @@
 #include "../xLightsVersion.h"
 #include "../controllers/ControllerCaps.h"
 #include "../Pixels.h"
+#include "../ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -4396,7 +4397,7 @@ void Model::ExportAsCustomXModel() const {
     if (filename.IsEmpty()) return;
 
     wxFile f(filename);
-    //    bool isnew = !wxFile::Exists(filename);
+    //    bool isnew = !FileExists(filename);
     if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
     wxString cm = "";
@@ -5526,7 +5527,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                         if (json == "") {
                             json = wxStandardPaths::Get().GetResourcesDir() + "/model_vendor_mapping.json";
                         }
-                        if (json != "" && !wxFileExists(json)) {
+                        if (json != "" && !FileExists(json)) {
                             json = "";
                         }
                         if (json != "") {
@@ -6704,7 +6705,7 @@ bool Model::CleanupFileLocations(xLightsFrame* frame)
             {
                 if (it2.first != "CustomColors" && it2.first != "ImagePlacement" && it2.first != "Type" && it2.second != "")
                 {
-                    if (wxFile::Exists(it2.second))
+                    if (FileExists(it2.second))
                     {
                         if (!frame->IsInShowFolder(it2.second))
                         {
@@ -6751,7 +6752,7 @@ std::list<std::string> Model::GetFaceFiles(const std::list<std::string>& facesUs
                 {
                     if (it2.first != "CustomColors" && it2.first != "ImagePlacement" && it2.first != "Type" && it2.second != "")
                     {
-                        if (all || wxFile::Exists(it2.second))
+                        if (all || FileExists(it2.second))
                         {
                             std::string n = it2.second;
                             if (includeFaceName) n = it.first + "|" + n;

@@ -15,6 +15,7 @@
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "models/ModelManager.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -112,7 +113,7 @@ bool LORPreview::LoadPreviewFile() {
 
     auto const previewfileName = FindLORPreviewFile();
 
-    if( wxFile::Exists( previewfileName ) ) {
+    if (FileExists( previewfileName )) {
         wxXmlDocument d;
         d.Load( previewfileName );
         if( d.IsOk() ) {
@@ -180,7 +181,7 @@ Model* LORPreview::LoadModelFile( wxString const& modelFile, wxString const& sta
     S5Model model;
 
     wxXmlDocument doc;
-    if( wxFile::Exists( modelFile ) && doc.Load( modelFile ) && doc.IsOk() ) {
+    if (wxFileExists(modelFile) && doc.Load( modelFile ) && doc.IsOk()) {
         for( wxXmlNode* e = doc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext() ) {
             if( e->GetName() == "PropClass" ) {
                 model.ParseXML( e );
@@ -946,7 +947,7 @@ wxString LORPreview::FindLORPreviewFile()
     //C:\Users\scoot\Documents\Light-O-Rama\CommonData\LORPreviews.xml
 
     wxString const filePath = wxStandardPaths::Get().GetDocumentsDir() + wxFileName::GetPathSeparator() + "Light-O-Rama" + wxFileName::GetPathSeparator() + "CommonData" + wxFileName::GetPathSeparator() + "LORPreviews.xml";
-    if( wxFile::Exists( filePath ) ) {
+    if( FileExists(filePath) ) {
         return filePath;
     }
 

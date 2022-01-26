@@ -354,7 +354,7 @@ void Mesh::uncacheDisplayObjects() {
 }
 
 void Mesh::loadObject(BaseObject* base, xlGraphicsContext *ctx) {
-    if (wxFileExists(_objFile)) {
+    if (FileExists(_objFile)) {
         uncacheDisplayObjects();
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         obj_exists = true;

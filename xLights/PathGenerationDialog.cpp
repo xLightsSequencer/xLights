@@ -22,6 +22,7 @@
 #include <wx/log.h>
 
 #include "ValueCurve.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -147,7 +148,7 @@ void PathGenerationDialog::OnButton_LoadClick(wxCommandEvent& event)
         vc2.LoadXVC(fn);
         wxFileName fn2 = fn;
         fn2.SetName(fn.GetName().Left(fn.GetName().Length() - 1) + "X");
-        if (fn2.Exists())
+        if (FileExists(fn2))
         {
             vc1.LoadXVC(fn2);
         }
@@ -157,8 +158,7 @@ void PathGenerationDialog::OnButton_LoadClick(wxCommandEvent& event)
         vc1.LoadXVC(fn);
         wxFileName fn2 = fn;
         fn2.SetName(fn.GetName().Left(fn.GetName().Length() - 1) + "Y");
-        if (fn2.Exists())
-        {
+        if (FileExists(fn2)) {
             vc2.LoadXVC(fn2);
         }
     }
@@ -260,7 +260,7 @@ void PathGenerationDialog::OnButton_GenerateClick(wxCommandEvent& event)
     wxFileName fn2(filename);
     fn2.SetName(fn2.GetName() + "Y");
 
-    if (wxFile::Exists(fn1.GetFullPath()) || wxFile::Exists(fn2.GetFullPath()))
+    if (FileExists(fn1.GetFullPath()) || FileExists(fn2.GetFullPath()))
     {
         if (wxMessageBox("Overwrite existing curves?", "Overwite?", wxYES_NO, this) == wxNO) return;
     }
@@ -699,7 +699,7 @@ void PathGenerationDialog::OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& ev
 
 void PathGenerationDialog::RegenerateImage()
 {
-    bool success = wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath());
+    bool success = FileExists(FilePickerCtrl1->GetFileName().GetFullPath());
     if (success)
     {
         wxImage image(FilePickerCtrl1->GetFileName().GetFullPath());

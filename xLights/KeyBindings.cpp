@@ -14,6 +14,7 @@
 #include "KeyBindings.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -920,7 +921,7 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
 
     _openedFile = fileName; // even if the file does not exist I assume this is where we want to save it
 
-    if (fileName.Exists()) {
+    if (FileExists(fileName)) {
         logger_base.debug("Loading keybindings.");
         wxXmlDocument doc;
         if (doc.Load(fileName.GetFullPath())) {

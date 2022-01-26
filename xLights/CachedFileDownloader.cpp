@@ -10,6 +10,7 @@
 
 #include "../xSchedule/xSMSDaemon/Curl.h"
 #include "CachedFileDownloader.h"
+#include "ExternalHooks.h"
 
 #include <wx/wx.h>
 #include <wx/protocol/http.h>
@@ -58,6 +59,9 @@ void FileCacheItem::Delete() const
         logger_base.debug("Removing cached URL %s.", (const char*)_url.BuildURI().c_str());
         wxRemoveFile(_fileName);
     }
+}
+bool FileCacheItem::Exists() const {
+    return FileExists(_fileName);
 }
 
 bool FileCacheItem::operator==(const wxURI& url) const
@@ -189,7 +193,7 @@ void CachedFileDownloader::LoadCache()
 
     logger_base.debug("Loading File Cache %s.", (const char *)_cacheFile.c_str());
 
-    if (wxFile::Exists(_cacheFile) && wxFileName(_cacheFile).GetSize() > 0)
+    if (FileExists(_cacheFile) && wxFileName(_cacheFile).GetSize() > 0)
     {
         wxXmlDocument d;
         d.Load(_cacheFile);

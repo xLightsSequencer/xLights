@@ -3392,7 +3392,7 @@ void xLightsFrame::CheckUnsavedChanges()
             effectsFile.AssignDir(CurrentDir);
             effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
             wxFileName fn(effectsFile.GetFullPath());
-            if (wxFile::Exists(fn.GetFullPath()))
+            if (FileExists(fn.GetFullPath()))
             {
                 fn.Touch();
             }
@@ -3802,13 +3802,13 @@ static void AddLogFile(const wxString& CurrentDir, const wxString& fileName, wxD
 #ifdef __LINUX__
     wxString filename = "/tmp/" + fileName;
 #endif
-    if (wxFile::Exists(filename)) {
+    if (FileExists(filename)) {
         report.AddFile(filename, fileName);
     }
-    else if (wxFile::Exists(wxFileName(CurrentDir, fileName).GetFullPath())) {
+    else if (FileExists(wxFileName(CurrentDir, fileName).GetFullPath())) {
         report.AddFile(wxFileName(CurrentDir, fileName).GetFullPath(), fileName);
     }
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), fileName).GetFullPath())) {
+    else if (FileExists(wxFileName(wxGetCwd(), fileName).GetFullPath())) {
         report.AddFile(wxFileName(wxGetCwd(), fileName).GetFullPath(), fileName);
     }
 }
@@ -3817,13 +3817,13 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
 {
 
     wxFileName fn(CurrentDir, OutputManager::GetNetworksFileName());
-    if (fn.Exists()) {
+    if (FileExists(fn)) {
         report.AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
     }
-    if (wxFileName(CurrentDir, "xlights_rgbeffects.xml").Exists()) {
+    if (FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xml"))) {
         report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
     }
-    if (UnsavedRgbEffectsChanges && wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").Exists()) {
+    if (UnsavedRgbEffectsChanges && FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp"))) {
         report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
     }
 
@@ -3833,11 +3833,11 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
 
     if (GetSeqXmlFileName() != "") {
         wxFileName fn2(GetSeqXmlFileName());
-        if (fn2.Exists() && !fn2.IsDir()) {
+        if (FileExists(fn2) && !fn2.IsDir()) {
             report.AddFile(GetSeqXmlFileName(), fn2.GetName());
             if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
                 wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
-                if (fnb.Exists()) {
+                if (FileExists(fnb)) {
                     report.AddFile(fnb.GetFullPath(), fnb.GetName());
                 }
             }
@@ -3845,7 +3845,7 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
         else {
             if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
                 wxFileName fnb(CurrentDir + "/" + "__.xbkp");
-                if (fnb.Exists()) {
+                if (FileExists(fnb)) {
                     report.AddFile(fnb.GetFullPath(), fnb.GetName());
                 }
             }
@@ -3854,7 +3854,7 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
     else {
         if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
             wxFileName fnb(CurrentDir + "/" + "__.xbkp");
-            if (fnb.Exists()) {
+            if (FileExists(fnb)) {
                 report.AddFile(fnb.GetFullPath(), fnb.GetName());
             }
         }
@@ -4591,13 +4591,13 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxString filename = "/tmp/" + fileName;
 #endif
     wxString fn = "";
-    if (wxFile::Exists(filename)) {
+    if (FileExists(filename)) {
         fn = filename;
     }
-    else if (wxFile::Exists(wxFileName(CurrentDir, fileName).GetFullPath())) {
+    else if (FileExists(wxFileName(CurrentDir, fileName).GetFullPath())) {
         fn = wxFileName(CurrentDir, fileName).GetFullPath();
     }
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), fileName).GetFullPath())) {
+    else if (FileExists(wxFileName(wxGetCwd(), fileName).GetFullPath())) {
         fn = wxFileName(wxGetCwd(), fileName).GetFullPath();
     }
 
@@ -5854,7 +5854,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
         for (const auto& fit : facefiles) {
             auto ff = wxSplit(fit, '|');
-            if (!wxFile::Exists(ff[1])) {
+            if (!FileExists(ff[1])) {
                 wxString msg = wxString::Format("    ERR: Model '%s' face '%s' image missing %s.", it.second->GetFullName(), ff[0], ff[1]);
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
@@ -5960,7 +5960,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             LogAndWrite(f, "");
             LogAndWrite(f, "Checking media file");
 
-            if (!wxFileExists(CurrentSeqXmlFile->GetMediaFile())) {
+            if (!FileExists(CurrentSeqXmlFile->GetMediaFile())) {
                 wxString msg = wxString::Format("    ERR: media file %s does not exist.", CurrentSeqXmlFile->GetMediaFile());
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
@@ -6192,7 +6192,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         wxString ff = FixFile(showDirectory, it);
         if (ff.StartsWith(showDirectory)) // only check files in show folder
         {
-            if (wxFile::Exists(ff)) {
+            if (FileExists(ff)) {
                 ff = ff.substr(showDirectory.size());
                 wxArrayString folders = Split(ff, delimiters);
 
@@ -6257,7 +6257,7 @@ void xLightsFrame::ValidateEffectAssets()
     std::string missing;
     for (const auto& it : _sequenceElements.GetAllReferencedFiles()) {
         auto f = FixFile("", it);
-        if (!wxFile::Exists(f)) {
+        if (!FileExists(f)) {
             missing += it + "\n";
         }
     }
@@ -7013,7 +7013,7 @@ std::string AddFileToZipFile(const std::string& baseDirectory, const std::string
     if (actualfile == "") filetoactuallyzip = file;
 
     std::string lost = "";
-    if (wxFile::Exists(filetoactuallyzip))
+    if (FileExists(filetoactuallyzip))
     {
         wxFileName bd(baseDirectory);
         std::string showdir = bd.GetName().ToStdString();
@@ -7255,7 +7255,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     for (const auto& f : modelfiles) {
         i++;
         wxFileName fnf(f);
-        if (fnf.Exists()) {
+        if (FileExists(fnf)) {
             prog.Update(10 + (int)(10.0 * i / (float)modelfiles.size()), fnf.GetFullName());
             lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
             if (lost != "") {
@@ -7340,7 +7340,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     for (auto f : effectfiles) {
         i++;
         wxFileName fnf(f);
-        if (fnf.Exists()) {
+        if (FileExists(fnf)) {
             prog.Update(35 + (int)(59.0 * i / (float)effectfiles.size()), fnf.GetFullName());
             lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
             if (lost != "") {
@@ -7393,8 +7393,8 @@ bool xLightsFrame::IsInShowFolder(const std::string& file) const
 bool xLightsFrame::FilesMatch(const std::string & file1, const std::string & file2) const
 {
     // only equal if they both exist
-    if (!wxFile::Exists(file1)) return false;
-    if (!wxFile::Exists(file2)) return false;
+    if (!FileExists(file1)) return false;
+    if (!FileExists(file2)) return false;
 
     // and they are the same size
     wxFileName f1(file1);
@@ -7453,12 +7453,12 @@ std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::s
     target += fn.GetFullName();
 
     int i = 1;
-    while (wxFile::Exists(target) && !FilesMatch(file, target))
+    while (FileExists(target) && !FilesMatch(file, target))
     {
         target = dir + wxFileName::GetPathSeparator() + fn.GetName() + "_" + wxString::Format("%d", i++) + "." + fn.GetExt();
     }
 
-    if (!wxFile::Exists(target))
+    if (!FileExists(target))
     {
         logger_base.debug("Copying file %s to %s.", (const char*)file.c_str(), (const char *)target.c_str());
         wxCopyFile(file, target, false);
@@ -7475,7 +7475,7 @@ void xLightsFrame::CleanupSequenceFileLocations()
     }
 
     wxString media = CurrentSeqXmlFile->GetMediaFile();
-    if (wxFile::Exists(media) && !IsInShowFolder(media))
+    if (FileExists(media) && !IsInShowFolder(media))
     {
         CurrentSeqXmlFile->SetMediaFile(GetShowDirectory(), MoveToShowFolder(media, wxString(wxFileName::GetPathSeparator()) + "Audio"), false);
         _sequenceElements.IncrementChangeCount(nullptr);
@@ -7508,7 +7508,7 @@ void xLightsFrame::CleanupSequenceFileLocations()
 
 void xLightsFrame::CleanupRGBEffectsFileLocations()
 {
-    if (wxFile::Exists(mBackgroundImage) && !IsInShowFolder(mBackgroundImage))
+    if (FileExists(mBackgroundImage) && !IsInShowFolder(mBackgroundImage))
     {
         wxString bi = MoveToShowFolder(mBackgroundImage, wxString(wxFileName::GetPathSeparator()));
         SetPreviewBackgroundImage(bi);
@@ -8591,7 +8591,7 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
         wxArrayString filesToRender;
         for (auto f : files) {
             wxFileName fname(this->GetShowDirectory() + wxFileName::GetPathSeparator() + f);
-            if(fname.FileExists())
+            if(FileExists(fname))
                 filesToRender.push_back(fname.GetFullPath());
             else
                 logger_base.info("BatchRender: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
@@ -9747,7 +9747,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                 if (it > 1.0) it = 1.0;
             }
 
-            if (targetFile.Exists())
+            if (FileExists(targetFile))
             {
                 if (wxMessageBox(targetFile.GetFullPath() + " already exists. Do you want to overwrite it?", "Replace", wxYES_NO | wxCENTRE, this) == wxNO)
                 {
