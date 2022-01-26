@@ -12,6 +12,7 @@ The Script Runner Dialog allows the user to run [Lua](http://www.lua.org/manual/
 
 ##### Variables
   - "showfolder", string
+  - "scriptsfolder", string
 
 ##### Functions
 

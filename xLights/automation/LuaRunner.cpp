@@ -95,6 +95,12 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
     // open some common libraries
     lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::table, sol::lib::os, sol::lib::io, sol::lib::string, sol::lib::math );
 
+    std::string const path = lua["package"]["path"];
+
+    std::string const scripts_folder = _frame->GetShowDirectory() + wxFileName::GetPathSeparator() + "scripts" + wxFileName::GetPathSeparator();
+    lua["package"]["path"] = path + ";" + scripts_folder + "?.lua ";
+
+    lua.set("scripsfolder", scripts_folder);
     lua.set("showfolder", _frame->GetShowDirectory());
     lua.set_function("RunCommand", &LuaRunner::RunCommand, this);
     lua.set_function("PromptSequences", &LuaRunner::PromptSequences, this);

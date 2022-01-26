@@ -720,7 +720,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("target element doesnt exists.", "msg", 503, false);
         }
         _sequenceElements.get_undo_mgr().CreateUndoStep();
-        while (to->GetEffectLayerCount() < layer) {
+        while (to->GetEffectLayerCount() < layer + 1) {
             to->AddEffectLayer();
         }
         auto valid = to->GetEffectLayer(layer)->AddEffect(0, effect, settings, palette,
