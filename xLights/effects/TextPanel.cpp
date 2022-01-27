@@ -10,7 +10,7 @@
 
 #include "TextPanel.h"
 #include "EffectPanelUtils.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 #include "../FontManager.h"
 
 //(*InternalHeaders(TextPanel)

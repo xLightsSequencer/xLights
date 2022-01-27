@@ -22,7 +22,7 @@
 #include "../UtilFunctions.h"
 #include "../xLightsMain.h" 
 #include "PicturesEffect.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 
 #include <wx/tokenzr.h>
 

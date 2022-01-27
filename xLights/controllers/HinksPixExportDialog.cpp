@@ -15,7 +15,7 @@
 #include "AudioManager.h"
 #include "ControllerCaps.h"
 #include "ControllerUploadData.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 #include "HinksPixExportDialog.h"
 #include "UtilFunctions.h"
 #include "xLightsMain.h"

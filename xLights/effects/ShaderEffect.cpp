@@ -73,7 +73,7 @@
 #include "../TimingPanel.h"
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 #include "../../xSchedule/wxJSON/jsonreader.h"
 #include "graphics/opengl/DrawGLUtils.h"
 

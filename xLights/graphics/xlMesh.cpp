@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <log4cpp/Category.hh>
 #include <wx/filename.h>
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 
 
 xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(ctx), filename(f) {

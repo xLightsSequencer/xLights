@@ -32,7 +32,7 @@
 #include <wx/dcgraph.h>
 #include "Image_Loader.h"
 #include "xlGLCanvas.h"
-#include "ExternalHooks.h"
+#include "../../ExternalHooks.h"
 
 #include <map>
 #include "Image.h"

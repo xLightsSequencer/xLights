@@ -18,7 +18,7 @@
 #include "MeshObject.h"
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 #include "xLightsMain.h"
 
 #include <log4cpp/Category.hh>

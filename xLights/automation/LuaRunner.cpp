@@ -12,7 +12,7 @@
 #include "xLightsMain.h"
 #include "BatchRenderDialog.h"
 #include "UtilFunctions.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 

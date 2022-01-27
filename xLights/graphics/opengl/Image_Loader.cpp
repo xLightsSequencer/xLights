@@ -18,7 +18,7 @@
 #include "graphics/opengl/DrawGLUtils.h"
 #include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
-#include "ExternalHooks.h"
+#include "../../ExternalHooks.h"
 
 GLuint loadImage(const wxString &path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
                  bool &scaledW, bool &scaledH, bool &hasAlpha, bool useForcePowerOfTwo)

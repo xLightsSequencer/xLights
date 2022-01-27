@@ -13,7 +13,7 @@
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 #include "ShaderDownloadDialog.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"

@@ -12,7 +12,7 @@
 #include <wx/image.h>
 #include "xlGLCanvas.h"
 #include "UtilFunctions.h"
-#include "ExternalHooks.h"
+#include "../../ExternalHooks.h"
 
 BEGIN_EVENT_TABLE(xlGLCanvas, wxGLCanvas)
     EVT_SIZE(xlGLCanvas::Resized)

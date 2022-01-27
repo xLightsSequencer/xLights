@@ -16,7 +16,7 @@
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
 #include "xLightsMain.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
