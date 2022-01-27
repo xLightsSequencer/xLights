@@ -2658,11 +2658,12 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
     srcFile.SetPath(srcDir.GetNameWithSep());
 
     wxArrayString files;
-    GetAllFilesInDir(srcFile.GetFullPath(), files, wildcard);
-    for (auto &fname : files) {
-        srcFile.SetFullName(fname);
+    GetAllFilesInDir(srcDir.GetNameWithSep(), files, wildcard);
+    for (auto &file : files) {
+        auto const fname = wxFileName(file).GetFullName();
+        srcFile.SetFullName(file);
         if (FileExists(srcFile.GetFullPath())) { //checking if exists will force it to be downloaded if in the cloud
-            logger_base.debug("Backing up file %s.", (const char*)(srcDirName + fname).c_str());
+            logger_base.debug("Backing up file %s.", (const char*)(srcFile.GetFullPath()).c_str());
             res = true;
 
             CreateMissingDirectories(targetDirName, lastCreatedDirectory, errors);
@@ -2677,7 +2678,7 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
 
             logger_base.debug("    to %s.", (const char*)(targetDirName + wxFileName::GetPathSeparator() + fname).c_str());
             SetStatusText("Copying File \"" + srcFile.GetFullPath());
-            bool success = wxCopyFile(srcDirName + fname,
+            bool success = wxCopyFile(srcFile.GetFullPath(),
                 targetDirName + wxFileName::GetPathSeparator() + fname);
             if (!success) {
                 logger_base.error("    Copy Failed.");
