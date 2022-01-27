@@ -24,7 +24,7 @@
 #include "../UtilFunctions.h"
 #include "ControllerEthernet.h"
 #include "../OutputModelManager.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 
 #ifndef EXCLUDENETWORKUI
 #include "../controllers/Falcon.h"
