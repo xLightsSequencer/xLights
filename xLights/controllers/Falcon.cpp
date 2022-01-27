@@ -2150,7 +2150,7 @@ bool Falcon::V4_ValidateWAV(const std::string& media)
     wxFile f;
     if (f.Open(media))         {
         
-        uint8_t buffer[34];
+        uint8_t buffer[36];
         if (f.Read(&buffer, sizeof(buffer)) == sizeof(buffer))             {
 
             // is it a WAV file
@@ -2166,8 +2166,17 @@ bool Falcon::V4_ValidateWAV(const std::string& media)
             }
 
             // is sample rate 44100
-            if (buffer[24] != 0x44 || buffer[25] != 0xAC) {
-                logger_base.error("Not 44,100 bits per second.");
+            if (!(
+                (buffer[24] == 0x44 && buffer[25] == 0xac) || // 44100
+                (buffer[24] == 0x80 && buffer[25] == 0xbb) || // 48000
+                (buffer[24] == 0x00 && buffer[25] == 0x7d) || // 32000
+                (buffer[24] == 0x22 && buffer[25] == 0x56) || // 22050
+                (buffer[24] == 0x80 && buffer[25] == 0x3e) || // 16000
+                (buffer[24] == 0x11 && buffer[25] == 0x2b) || // 11025
+                (buffer[24] == 0x40 && buffer[25] == 0x1f)    // 8000
+                    )) {
+                int br = (((int)buffer[25]) << 8) + (int)buffer[24];
+                logger_base.error("Not valid bit rate: %d", br);
                 return false;
             }
 
@@ -2178,13 +2187,13 @@ bool Falcon::V4_ValidateWAV(const std::string& media)
             }
 
             // is it block align 4
-            if (buffer[30] != 4 || buffer[31] != 0) {
+            if (buffer[32] != 4 || buffer[33] != 0) {
                 logger_base.error("WAV file block alignment is not 4.");
                 return false;
             }
 
             // is it 16 bit
-            if (buffer[32] != 4 || buffer[33] != 0) {
+            if (buffer[34] != 16 || buffer[35] != 0) {
                 logger_base.error("Not 16 bits per sample.");
                 return false;
             }
