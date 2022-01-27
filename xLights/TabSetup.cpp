@@ -303,7 +303,6 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     networkFile.AssignDir(CurrentDir);
     networkFile.SetFullName(_(XLIGHTS_NETWORK_FILE));
     if (FileExists(networkFile)) {
-        ObtainAccessToURL(networkFile.GetFullPath());
         logger_base.debug("Loading networks.");
         wxStopWatch sww;
         if (!_outputManager.Load(CurrentDir.ToStdString())) {
@@ -341,6 +340,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
         font.SetWeight(wxFONTWEIGHT_NORMAL);
         ShowDirectoryLabel->SetFont(font);
         Button_CheckShowFolderTemporarily->SetLabelText("Change Temporarily");
+        Button_ChangeTemporarilyAgain->Hide();
     }
     else {
         ShowDirectoryLabel->SetForegroundColour(wxColor(255, 200, 0));
@@ -348,6 +348,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
         font.SetWeight(wxFONTWEIGHT_BOLD);
         ShowDirectoryLabel->SetFont(font);
         Button_CheckShowFolderTemporarily->SetLabelText("Restore to Permanent");
+        Button_ChangeTemporarilyAgain->Show();
     }
     
     // do layout after so button resizes to fit label (only issue on osx, "Restore to Permanent" is cut off)
@@ -398,6 +399,10 @@ void xLightsFrame::OnMenuOpenFolderSelected(wxCommandEvent& event) {
     PromptForShowDirectory(true);
 }
 
+void xLightsFrame::OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event)
+{
+    PromptForShowDirectory(false);
+}
 
 void xLightsFrame::OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event)
 {
@@ -409,6 +414,7 @@ void xLightsFrame::OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event)
         layoutPanel->ClearUndo();
         wxASSERT(_permanentShowFolder != "");
         SetDir(_permanentShowFolder, true);
+        Button_ChangeTemporarilyAgain->Hide();
     }
 }
 
@@ -435,7 +441,7 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent) {
         if (dirOK) {
             wxString fn;
             // if new directory contains a networks or rgbeffects file then ok
-            if (FileExists(newdir + wxFileName::GetPathSeparator() + XLIGHTS_NETWORK_FILE) || FileExists(newdir + wxFileName::GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE)) {
+            if (wxFile::Exists(newdir + wxFileName::GetPathSeparator() + XLIGHTS_NETWORK_FILE) || wxFile::Exists(newdir + wxFileName::GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE)) {
             }
             // if new directory is empty then ok
             else if (!wxDir(newdir).GetFirst(&fn)) {
