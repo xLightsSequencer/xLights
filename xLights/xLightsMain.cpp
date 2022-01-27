@@ -1183,6 +1183,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
 
+    Connect(wxEVT_HELP, (wxObjectEventFunction)&xLightsFrame::OnHelp);
+    Notebook1->Connect(wxEVT_HELP, (wxObjectEventFunction) & xLightsFrame::OnHelp, 0, this); 
+
     logger_base.debug("BB");
 
     logger_base.debug("xLightsFrame constructor UI code done.");
@@ -1956,6 +1959,11 @@ xLightsFrame::~xLightsFrame()
     reenter = false;
 }
 
+void xLightsFrame::OnHelp(wxHelpEvent& event)
+{
+    // deliberately do nothing
+}
+
 void xLightsFrame::DoPostStartupCommands() {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("In Post Startup");
@@ -2081,6 +2089,8 @@ void xLightsFrame::OnOutputTimerTrigger(wxTimerEvent& event)
 
 void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
 {
+    event.Skip();
+
     wxString caption, msg;
 
     switch (Notebook1->GetSelection())
@@ -2100,7 +2110,7 @@ void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
     default:
         break;
     }
-    wxMessageBox(msg, caption);
+    wxMessageBox(msg, caption, 5L, this);
 }
 
 void xLightsFrame::ResetAllSequencerWindows()

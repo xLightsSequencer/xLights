@@ -594,7 +594,9 @@ public:
     void OnMenuItemRunScriptSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
-private:
+    void OnHelp(wxHelpEvent& event);
+
+private :
 
     //void OnMenuItem53Selected(wxCommandEvent& event);
 
