@@ -592,6 +592,7 @@ public:
     void OnMenuItem_xScannerSelected(wxCommandEvent& event);
     void OnButton_OpenProxyClick(wxCommandEvent& event);
     void OnMenuItemRunScriptSelected(wxCommandEvent& event);
+    void OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -666,6 +667,7 @@ public:
     static const long ID_AUIEFFECTSTOOLBAR;
     static const long ID_BUTTON3;
     static const long ID_BUTTON11;
+    static const long ID_BUTTON13;
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON_SAVE_SETUP;
     static const long ID_BUTTON9;
@@ -827,6 +829,7 @@ public:
     wxButton* ButtonUploadInput;
     wxButton* ButtonUploadOutput;
     wxButton* ButtonVisualise;
+    wxButton* Button_ChangeTemporarilyAgain;
     wxButton* Button_CheckShowFolderTemporarily;
     wxButton* Button_OpenProxy;
     wxChoice* ChoiceParm1;
