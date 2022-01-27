@@ -150,7 +150,7 @@ void ScriptsDialog::LoadScriptDir()
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    wxString scriptFolder = _frame->GetShowDirectory() + wxFileName::GetPathSeparator() + "scripts";
+    wxString scriptFolder = _runner->GetUserScriptFolder();
 
     while ((int)ListBoxScripts->GetCount() > 0) {
         ListBoxScripts->Delete(0);
@@ -162,13 +162,8 @@ void ScriptsDialog::LoadScriptDir()
         ProcessScriptDir(scriptFolder);
     }
 
-    wxStandardPaths stdp = wxStandardPaths::Get();
-
-#ifndef __WXMSW__
-    scriptFolder = wxStandardPaths::Get().GetResourcesDir() + wxFileName::GetPathSeparator() + "scripts";
-#else
-    scriptFolder = wxFileName(stdp.GetExecutablePath()).GetPath() + wxFileName::GetPathSeparator() + "scripts";
-#endif
+    logger_base.info("Scanning System Script folder: %s", (const char*)scriptFolder.c_str());
+    scriptFolder = LuaRunner::GetSystemScriptFolder();
     if (wxDir::Exists(scriptFolder)) {
         ProcessScriptDir(scriptFolder);
     }

@@ -16,9 +16,25 @@
 
 #include <log4cpp/Category.hh>
 
+#include <wx/stdpaths.h>
+
 LuaRunner::LuaRunner(xLightsFrame* frame) :
     _frame(frame)
 {}
+
+std::string LuaRunner::GetUserScriptFolder() const
+{
+    return _frame->GetShowDirectory() + wxFileName::GetPathSeparator() + "scripts" + wxFileName::GetPathSeparator();
+}
+
+std::string LuaRunner::GetSystemScriptFolder()
+{
+#ifndef __WXMSW__
+    return wxStandardPaths::Get().GetResourcesDir() + wxFileName::GetPathSeparator() + "scripts";
+#else
+    return wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath() + wxFileName::GetPathSeparator() + "scripts";
+#endif
+}
 
 void LuaRunner::ShowMessage(std::string const& text) const
 {
@@ -92,44 +108,73 @@ std::string LuaRunner::JoinString(std::list<std::string> const& list, char const
 
 bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::string const& msg)> SendResponce)
 { 
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     sol::state lua;
     // open some common libraries
     lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::table, sol::lib::os, sol::lib::io, sol::lib::string, sol::lib::math );
 
     std::string const path = lua["package"]["path"];
 
-    std::string const scripts_folder = _frame->GetShowDirectory() + wxFileName::GetPathSeparator() + "scripts" + wxFileName::GetPathSeparator();
-    lua["package"]["path"] = path + ";" + scripts_folder + "?.lua ";
+    std::string const user_scripts_folder = GetUserScriptFolder();
+    std::string const system_scripts_folder = GetUserScriptFolder();
+    lua["package"]["path"] = path + ";" + system_scripts_folder + "?.lua;" + user_scripts_folder + "?.lua ";
 
-    lua.set("scripsfolder", scripts_folder);
+    lua.set("userscripsfolder", user_scripts_folder);
+    lua.set("systemscripsfolder", system_scripts_folder);
     lua.set("showfolder", _frame->GetShowDirectory());
     lua.set_function("RunCommand", &LuaRunner::RunCommand, this);
+
     lua.set_function("PromptSequences", &LuaRunner::PromptSequences, this);
     lua.set_function("ShowMessage", &LuaRunner::ShowMessage, this);
     lua.set_function("PromptString", &LuaRunner::PromptString, this);
     lua.set_function("PromptSelection", &LuaRunner::PromptSelection, this);
     lua.set_function("SplitString", &LuaRunner::SplitString, this);
     lua.set_function("JoinString", &LuaRunner::JoinString, this);
-    lua.set_function("Log", SendResponce);
+    lua.set_function("JSONToTable", &LuaRunner::JSONToTable, this);
+
+    auto SendObjectResponce = [&](sol::object const& val) {
+        if (val.is<bool>()) {
+            return SendResponce(toStr(val.as<bool>()));
+        }
+        if (val.is<int>()) {
+            return SendResponce(std::to_string(val.as<int>()));
+        }
+        if (val.is<double>()) {
+            return SendResponce(std::to_string(val.as<double>()));
+        }
+        if (val.is<std::string>()) {
+            return SendResponce(val.as<std::string>());
+        }
+        SendResponce("UnkownType");
+    };
+
+    lua.set_function("Log", SendObjectResponce);
 
     try {
         sol::load_result lr = lua.load_file(filepath);
+
         // check if it's sucessfully loaded
         if (!lr.valid()) {
             sol::error err = lr;
+            logger_base.info("LuaRunner: Script is Invaid: %s.", (const char*)filepath.c_str());
+            logger_base.info("LuaRunner: Error: %s.", err.what());
             wxMessageBox("Script is Invaid: " + filepath + "\n\n" + err.what(), "Load Script Error", wxOK);
             return false;
         }
         auto result2 = lr();
-        // check if it was done properly
 
+        // check if it was done properly
         if (!result2.valid()) {
             sol::error err2 = result2;
+            logger_base.info("LuaRunner: Error Runing Script: %s.", (const char*)filepath.c_str());
+            logger_base.info("LuaRunner: Error: %s.", err2.what());
             SendResponce(err2.what());
             wxMessageBox("Error Runing Script: " + filepath + "\n\n" + err2.what(), "Script Error", wxOK);
             return false;
         }
     } catch (std::exception& e) {
+        logger_base.info("LuaRunner: Throw Runing Script: %s.", (const char*)filepath.c_str());
+        logger_base.info("LuaRunner: Error: %s.", e.what());
         SendResponce(e.what());
         wxMessageBox(e.what(), "Error", wxOK);
         return false;
@@ -137,9 +182,9 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
     return true;
 }
 
-std::map<std::string, std::string> LuaRunner::RunCommand(std::string const& cmd, std::map<std::string, std::string> parms)
+sol::object LuaRunner::RunCommand(std::string const& cmd, std::map<std::string, std::string> parms, sol::this_state thislua)
 {
-    return JSONStringToMap(_frame->ProcessxlDoAutomation(CommandtoString(cmd, parms)));
+    return JSONToTable(_frame->ProcessxlDoAutomation(CommandtoString(cmd, parms)), thislua);
 }
 
 wxString LuaRunner::JSONtoString(wxJSONValue const& json) const
@@ -160,58 +205,49 @@ wxString LuaRunner::CommandtoString(std::string const& cmd, std::map<std::string
     return JSONtoString(cmds);
 }
 
-std::map<std::string, std::string> LuaRunner::JSONStringToMap(wxString const& json) const
+sol::object LuaRunner::JSONToTable(std::string const& json, sol::this_state s) const
 {
-    std::map<std::string, std::string> map;
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    sol::state_view lua = s;
     wxJSONValue val;
     wxJSONReader reader;
-    if (reader.Parse(json, &val) == 0) {
-        for (const auto& it : val.GetMemberNames()) {
-            wxJSONValue v = val[it];
-            if (v.IsString()) {
-                map.insert({ it, v.AsString() });
-            } else if (v.IsLong()) {
-                map.insert({it, std::to_string(v.AsLong())});
-            } else if (v.IsInt()) {
-                map.insert({ it, std::to_string(v.AsInt()) });
-            } else if (v.IsBool()) {
-                map.insert({ it, toStr(v.AsBool()) });
-            } else if (v.IsArray()) {
-                for (int x = 0; x < v.Size(); x++) {
-                    map.insert({ it + std::to_string(x), v[x].AsString() });
-                }
-            }
-        }
-    } else {
-        map.insert({ "msg", json });
+    if (reader.Parse(wxString(json), &val) == 0) {
+        return getObjectType(val, lua);
     }
-    return map;
+    logger_base.info("LuaRunner: Could not Parse JSON: %s.", (const char*)json.c_str());
+    return sol::make_object(lua, json);
 }
-//doesnt work for some reson
-/* sol::object LuaRunner::JSONStringToObject(sol::this_state s, wxString const& json) const
+
+sol::object LuaRunner::getObjectType(wxJSONValue const& val, sol::state_view lua) const
 {
-    sol::state_view lua(s);
-    sol::table obj = lua.create_table();
-    wxJSONValue val;
-    wxJSONReader reader;
-    if (reader.Parse(json, &val) == 0) {
-        for (const auto& it : val.GetMemberNames()) {
-            wxJSONValue v = val[it];
-            if (v.IsString()) {
-                obj[it.c_str()] = sol::make_object(lua, v.AsString().ToStdString());
-            } else if (v.IsLong()) {
-                obj[it.c_str()] = sol::make_object(lua, (double)v.AsLong());
-            } else if (v.IsInt()) {
-                obj[it.c_str()] = sol::make_object(lua, (double)v.AsInt());
-            } else if (v.IsBool()) {
-                obj[it.c_str()] = sol::make_object(lua, v.AsBool());
-            } else if (v.IsArray()) {
-                for (int x = 0; x < v.Size(); x++) {
-                    obj[it.c_str()][x] = sol::make_object(lua, v[x].AsString().ToStdString());
-                }
-            }
-        }
+    if (val.IsString()) {
+        return sol::make_object(lua, val.AsString().ToStdString());
     }
-    return obj.as<sol::object>();
-    //return obj;
-}*/
+    if (val.IsInt()) {
+        return sol::make_object(lua, val.AsInt());
+    }
+    if (val.IsLong()) {
+        return sol::make_object(lua, val.AsLong());
+    } 
+    if (val.IsDouble()) {
+        return sol::make_object(lua, val.AsDouble());
+    } 
+    if (val.IsBool()) {
+        return sol::make_object(lua,val.AsBool());
+    } 
+    if (val.IsArray()) {
+        sol::table arry = lua.create_table();
+        for (int x = 0; x < val.Size(); x++) {
+            arry[x] = getObjectType(val.ItemAt(x), lua);
+        }
+        return arry;
+    } 
+    if (val.IsObject()) {
+        sol::table obj = lua.create_table();
+        for (const auto& it : val.GetMemberNames()) {
+            obj[it.ToStdString()] = getObjectType(val.ItemAt(it), lua);
+        }
+        return obj;
+    }
+    return sol::make_object(lua, nullptr);
+}

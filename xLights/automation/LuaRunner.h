@@ -30,12 +30,16 @@ public:
 
     bool Run_Script(wxString const& filepath, std::function<void(std::string const& msg)> SendResponce);
 
-    [[nodiscard]] std::map<std::string, std::string> RunCommand(std::string const& cmd, std::map<std::string, std::string> parms);
+    [[nodiscard]] std::string GetUserScriptFolder() const;
+    [[nodiscard]] static std::string GetSystemScriptFolder();
+
+    [[nodiscard]] sol::object RunCommand(std::string const& cmd, std::map<std::string, std::string> parms, sol::this_state thislua);
     void ShowMessage(std::string const& text) const;
     [[nodiscard]] std::string PromptString(std::string const& text) const;
     [[nodiscard]] std::string PromptSelection(std::list<std::string> const& items, std::string const& message) const;
     [[nodiscard]] std::list<std::string> PromptSequences() const;
-
+    
+    [[nodiscard]] sol::object JSONToTable(std::string const& json, sol::this_state s) const;
     [[nodiscard]] std::list<std::string> SplitString(std::string const& text, char const& delimiter) const;
     [[nodiscard]] std::string JoinString(std::list<std::string> const& list, char const& delimiter) const;
 
@@ -44,6 +48,5 @@ private:
 
     [[nodiscard]] wxString JSONtoString(wxJSONValue const& json) const;
     [[nodiscard]] wxString CommandtoString(std::string const& cmd, std::map<std::string, std::string> const& parms) const;
-    [[nodiscard]] std::map<std::string, std::string> JSONStringToMap(wxString const& json) const;
-    //[[nodiscard]] sol::object JSONStringToObject(sol::this_state s, wxString const& json) const;
+    [[nodiscard]] sol::object getObjectType(wxJSONValue const& val, sol::state_view lua) const;
 };
