@@ -1107,6 +1107,7 @@
     <ClInclude Include="OutputProcessExcludeDim.h">
       <Filter>OutputProcessing</Filter>
     </ClInclude>
+    <ClInclude Include="..\xLights\ExternalHooks.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">

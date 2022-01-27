@@ -438,6 +438,7 @@
     <ClInclude Include="..\xLights\controllers\Falcon.h" />
     <ClInclude Include="..\xLights\Discovery.h" />
     <ClInclude Include="..\xLights\effects\GIFImage.h" />
+    <ClInclude Include="..\xLights\ExternalHooks.h" />
     <ClInclude Include="..\xLights\FSEQFile.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
     <ClInclude Include="..\xLights\MSWStackWalk.h" />
