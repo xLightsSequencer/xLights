@@ -519,19 +519,16 @@ void BufferSizeDialog::LoadAllBufferPresets()
 
 void BufferSizeDialog::CreateBufferPresetsList(wxDir& directory, bool subdirs)
 {
-    wxString filename;
-    bool cont = directory.GetFirst(&filename, "*.xbuffer", wxDIR_FILES);
-
-    while (cont) {
-        wxFileName fn(directory.GetNameWithSep() + filename);
+    wxArrayString files;
+    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.xbuffer");
+    for (auto &filename : files) {
+        wxFileName fn(filename);
         const wxString name = fn.GetName();
         //const wxString name = fn.GetFullName().ToStdString();
 
         if (!name.IsEmpty() && std::find(_loadedBufferPresets.begin(), _loadedBufferPresets.end(), name) == _loadedBufferPresets.end()) {
             _loadedBufferPresets.push_back(name.ToStdString());
         }
-
-        cont = directory.GetNext(&filename);
     }
 }
 

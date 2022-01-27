@@ -24,6 +24,7 @@
 #include <wx/dir.h>
 #include <wx/menu.h>
 #include <wx/config.h>
+#include "ExternalHooks.h"
 
 #include "globals.h"
 
@@ -147,10 +148,11 @@ wxArrayString BatchRenderDialog::GetFileList()
 void BatchRenderDialog::GetSeqList(const wxString& folder)
 {
     wxArrayString files;
-    wxDir::GetAllFiles(folder, &files, "*.x*");
+    GetAllFilesInDir(folder, files, "*.x*");
     files.Sort();
     for (size_t x = 0; x < files.size(); x++) {
-        wxString name = files[x].SubString(folder.length(), files[x].size());
+        wxString name = files[x];
+        name = name.SubString(folder.length(), files[x].size());
         if (name[0] == '/' || name[0] == '\\') {
             name = name.SubString(1, name.size());
         }

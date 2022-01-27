@@ -147,7 +147,7 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
     std::string file = settings["E_FILEPICKER_Pictures_Filename"];
     if (file != "")
     {
-        if (!FileExists(file))
+        if (!FileExists(file, false))
         {
             settings["E_FILEPICKER_Pictures_Filename"] = FixFile("", file);
         }

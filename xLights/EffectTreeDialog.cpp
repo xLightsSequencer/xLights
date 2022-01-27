@@ -1433,7 +1433,7 @@ void EffectTreeDialog::PurgeDanglingGifs() {
     
     wxArrayString filesOnDisk = wxArrayString();
     std::string presetDir = xLightParent->GetShowDirectory() + "/presets";
-    wxDir::GetAllFiles(presetDir, &filesOnDisk, wxT("*.gif"), wxDIR_FILES);
+    GetAllFilesInDir(presetDir, filesOnDisk, "*.gif");
 
     // Get potential gif names, may or may not be generated yet
     std::list<std::string> filesFromTree = GetGifFileNamesRecursive(treeRootID);

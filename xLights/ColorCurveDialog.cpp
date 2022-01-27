@@ -23,6 +23,7 @@
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "xLightsApp.h"
+#include "ExternalHooks.h"
 #include "sequencer/MainSequencer.h"
 
 #include <log4cpp/Category.hh>
@@ -200,32 +201,26 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 
     int count = 0;
 
-    wxString filename;
     auto existing = PresetSizer->GetChildren();
 
-    bool cont = directory.GetFirst(&filename, "*.xcc", wxDIR_FILES);
-
-    while (cont)
-    {
+    wxArrayString files;
+    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.xcc");
+    for (auto &filename : files) {
         count++;
-        wxFileName fn(directory.GetNameWithSep() + filename);
+        wxFileName fn(filename);
         bool found = false;
-        for (const auto& it : existing)
-        {
-            if (it->GetWindow()->GetLabel() == fn.GetFullPath())
-            {
+        for (const auto& it : existing) {
+            if (it->GetWindow()->GetLabel() == fn.GetFullPath()) {
                 // already there
                 found = true;
                 break;
             }
         }
-        if (!found)
-        {
+        if (!found && FileExists(fn.GetFullPath())) {
             ColorCurve cc;
             cc.SetId("Dummy");
             cc.LoadXCC(fn.GetFullPath());
-            if (cc.IsActive()) // will only be active if it loaded ok
-            {
+            if (cc.IsActive()) { // will only be active if it loaded ok
                 long id = wxNewId();
                 wxBitmapButton* bmb = new wxBitmapButton(this, id, cc.GetImage(30, 30, false), wxDefaultPosition,
                     wxSize(30, 30), wxBU_AUTODRAW | wxNO_BORDER);
@@ -235,16 +230,13 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
                 Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)& ColorCurveDialog::OnButtonPresetClick);
             }
         }
-
-        cont = directory.GetNext(&filename);
     }
     logger_base.info("    Found %d.", count);
 
-    if (subdirs)
-    {
-        cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
-        while (cont)
-        {
+    if (subdirs) {
+        wxString filename;
+        bool cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        while (cont) {
             wxDir dir(directory.GetNameWithSep() + filename);
             ProcessPresetDir(dir, subdirs);
             cont = directory.GetNext(&filename);

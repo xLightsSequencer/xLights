@@ -17,6 +17,7 @@
 #include <wx/dir.h>
 
 #include "../UtilFunctions.h"
+#include "../ExternalHooks.h"
 #include "../outputs/Controller.h"
 
 #include <log4cpp/Category.hh>
@@ -74,29 +75,22 @@ void ControllerCaps::LoadControllers() {
 
     if (wxDir::Exists(d)) {
         wxDir dir(d);
-
-        wxString filename;
-        bool cont = dir.GetFirst(&filename, "*.xcontroller", wxDIR_FILES);
-        int count = 0;
-        while (cont) {
-            count++;
-            cont = dir.GetNext(&filename);
-        }
+        wxArrayString files;
+        GetAllFilesInDir(d, files, "*.xcontroller");
         std::vector<wxXmlDocument> docs;
-        docs.resize(count);
-        filename = "";
-        cont = dir.GetFirst(&filename, "*.xcontroller", wxDIR_FILES);
-        count = 0;
-        while (cont) {
-            wxFileName fn(dir.GetNameWithSep() + filename);
-            wxXmlDocument doc;
-            docs[count].Load(fn.GetFullPath());
-            if (!docs[count].IsOk()) {
-                wxASSERT(false);
-                logger_base.error("Problem loading " + fn.GetFullPath());
+        docs.resize(files.size());
+        int count = 0;
+        for (auto &filename : files) {
+            wxFileName fn(filename);
+            if (FileExists(fn.GetFullPath())) {
+                wxXmlDocument doc;
+                docs[count].Load(fn.GetFullPath());
+                if (!docs[count].IsOk()) {
+                    wxASSERT(false);
+                    logger_base.error("Problem loading " + fn.GetFullPath());
+                }
+                count++;
             }
-            count++;
-            cont = dir.GetNext(&filename);
         }
         std::map<std::string, wxXmlNode *> abstracts;
         for (auto &doc : docs) {

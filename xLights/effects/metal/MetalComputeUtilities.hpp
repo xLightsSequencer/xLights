@@ -46,6 +46,7 @@ private:
     id<MTLBuffer> pixelBufferCopy;
     id<MTLTexture> pixelTexture;
     int pixelBufferSize;
+    std::pair<uint32_t, uint32_t> pixelTextureSize;
     bool committed = false;
     CurrentDataLocation currentDataLocation = BUFFER;
 };

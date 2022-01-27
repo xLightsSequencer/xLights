@@ -20,6 +20,7 @@ MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, Met
     pixelBufferCopy = nil;
     pixelTexture = nil;
     pixelBufferSize = 0;
+    pixelTextureSize = {0, 0};
 }
 MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
     pixelBufferData = nullptr;
@@ -101,6 +102,18 @@ id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
 }
 id<MTLTexture> MetalRenderBufferComputeData::getPixelTexture() {
     getPixelBuffer(true);
+    
+    if (pixelTexture != nil &&
+        (renderBuffer->BufferWi != pixelTextureSize.first
+        || renderBuffer->BufferHt != pixelTextureSize.second)) {
+     
+        @autoreleasepool {
+            [pixelTexture release];
+            pixelTexture = nil;
+        }
+        pixelTextureSize = { 0, 0 };
+    }
+    
     if (pixelTexture == nil) {
         @autoreleasepool {
             MTLTextureDescriptor *d = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat: MTLPixelFormatRGBA8Unorm
@@ -115,6 +128,7 @@ id<MTLTexture> MetalRenderBufferComputeData::getPixelTexture() {
             std::string name = renderBuffer->GetModelName() + "PixelTexture";
             NSString* mn = [NSString stringWithUTF8String:name.c_str()];
             [pixelTexture setLabel:mn];
+            pixelTextureSize = { renderBuffer->BufferWi, renderBuffer->BufferHt };
         }
     }
     if (currentDataLocation == BUFFER) {

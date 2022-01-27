@@ -85,13 +85,12 @@ void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
 
     int count = 0;
 
-    wxString filename;
-    bool cont = directory.GetFirst(&filename, "*.xcc", wxDIR_FILES);
-
-    while (cont) {
+    wxArrayString files;
+    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.xcc");
+    for (auto &filename : files) {
         count++;
-        wxFileName fn(directory.GetNameWithSep() + filename);
-        if (FileExists(fn)) {
+        wxFileName fn(filename);
+        if (FileExists(filename)) {
             ColorCurve cc;
             cc.LoadXCC(fn.GetFullPath());
             cc.SetId("ID_BUTTON_PaletteX");
@@ -99,13 +98,12 @@ void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
         } else {
             logger_base.warn("ColoursPanel::ProcessColourCurveDir Unable to load " + fn.GetFullPath());
         }
-
-        cont = directory.GetNext(&filename);
     }
     logger_base.info("    Found %d.", count);
 
     if (subdirs) {
-        cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        wxString filename;
+        bool cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
         while (cont) {
             wxDir dir(directory.GetNameWithSep() + filename);
             ProcessColourCurveDir(dir, subdirs);
@@ -121,38 +119,30 @@ void ColoursPanel::ProcessPaletteDir(wxDir& directory, bool subdirs)
 
     int count = 0;
 
-    wxString filename;
-    bool cont = directory.GetFirst(&filename, "*.xpalette", wxDIR_FILES);
-
-    while (cont)
-    {
+    wxArrayString files;
+    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.xpalette");
+    for (auto &filename : files) {
         count++;
-        wxFileName fn(directory.GetNameWithSep() + filename);
-
-        wxFile f;
-        if (f.Open(fn.GetFullPath()))
-        {
-            wxString p;
-            f.ReadAll(&p);
-            for (const auto& it : wxSplit(p, ','))
-            {
-                if (it != "") AddColour(it);
+        wxFileName fn(filename);
+        if (FileExists(fn.GetFullPath())) {
+            wxFile f;
+            if (f.Open(fn.GetFullPath())) {
+                wxString p;
+                f.ReadAll(&p);
+                for (const auto& it : wxSplit(p, ',')) {
+                    if (it != "") AddColour(it);
+                }
+            } else {
+                logger_base.warn("ColoursPanel::ProcessPaletteDir Unable to load " + fn.GetFullPath());
             }
         }
-        else
-        {
-            logger_base.warn("ColoursPanel::ProcessPaletteDir Unable to load " + fn.GetFullPath());
-        }
-
-        cont = directory.GetNext(&filename);
     }
     logger_base.info("    Found %d.", count);
 
-    if (subdirs)
-    {
-        cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
-        while (cont)
-        {
+    if (subdirs) {
+        wxString filename;
+        bool cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        while (cont) {
             wxDir dir(directory.GetNameWithSep() + filename);
             ProcessColourCurveDir(dir, subdirs);
             cont = directory.GetNext(&filename);

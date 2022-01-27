@@ -20,6 +20,7 @@
 #include "xLightsMain.h"
 
 #include "automation/LuaRunner.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 #include <wx/mimetype.h>
@@ -178,17 +179,14 @@ void ScriptsDialog::ProcessScriptDir(wxString const& dir)
     wxDir directory;
     directory.Open(dir);
 
-    wxString file;
-    bool fcont = directory.GetFirst(&file, "*.lua");
-
-    while (fcont) {
-        wxFileName fn(directory.GetNameWithSep() + file);
+    
+    wxArrayString files;
+    GetAllFilesInDir(dir, files, "*.lua");
+    for (auto & file : files) {
+        wxFileName fn(file);
         wxString path = fn.GetFullPath();
-
         _scripts.push_back(path);
-
-        ListBoxScripts->Append(file);
-        fcont = directory.GetNext(&file);
+        ListBoxScripts->Append(fn.GetFullName());
     }
 }
 

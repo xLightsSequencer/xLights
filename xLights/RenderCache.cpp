@@ -48,7 +48,7 @@ private:
 
         wxDir dir(cacheFolder);
         wxArrayString files;
-        dir.GetAllFiles(cacheFolder, &files, "*.cache");
+        GetAllFilesInDir(cacheFolder, files, "*.cache");
 
         for (const auto& it : files) {
             // allow up to 3 times physical memory

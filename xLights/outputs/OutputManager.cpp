@@ -164,7 +164,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
     wxXmlDocument doc;
     doc.Load(fn.GetFullPath());
-
+    
     Controller* cu = nullptr;
     std::string lasttype = "";
     std::string lastport = "";

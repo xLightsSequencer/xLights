@@ -303,6 +303,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     networkFile.AssignDir(CurrentDir);
     networkFile.SetFullName(_(XLIGHTS_NETWORK_FILE));
     if (FileExists(networkFile)) {
+        ObtainAccessToURL(networkFile.GetFullPath());
         logger_base.debug("Loading networks.");
         wxStopWatch sww;
         if (!_outputManager.Load(CurrentDir.ToStdString())) {

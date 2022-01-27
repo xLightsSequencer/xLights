@@ -2648,37 +2648,37 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool res = false;
-    wxString fname;
     wxString srcDirName = srcDir.GetNameWithSep();
     wxFileName srcFile;
     srcFile.SetPath(srcDir.GetNameWithSep());
 
-    bool cont = srcDir.GetFirst(&fname, wildcard, wxDIR_FILES);
-    while (cont) {
-        logger_base.debug("Backing up file %s.", (const char*)(srcDirName + fname).c_str());
-        res = true;
-
-        CreateMissingDirectories(targetDirName, lastCreatedDirectory, errors);
-
+    wxArrayString files;
+    GetAllFilesInDir(srcFile.GetFullPath(), files, wildcard);
+    for (auto &fname : files) {
         srcFile.SetFullName(fname);
+        if (FileExists(srcFile.GetFullPath())) { //checking if exists will force it to be downloaded if in the cloud
+            logger_base.debug("Backing up file %s.", (const char*)(srcDirName + fname).c_str());
+            res = true;
 
-        wxULongLong fsize = srcFile.GetSize();
-        if (!forceallfiles && fsize > MAXBACKUPFILE_MB * 1024 * 1024) // skip any xml files > MAXBACKUPFILE_MB mbytes, they are something other than xml files
-        {
-            logger_base.warn("    Skipping file as it is too large.");
-            cont = srcDir.GetNext(&fname);
-            continue;
-        }
+            CreateMissingDirectories(targetDirName, lastCreatedDirectory, errors);
 
-        logger_base.debug("    to %s.", (const char*)(targetDirName + wxFileName::GetPathSeparator() + fname).c_str());
-        SetStatusText("Copying File \"" + srcFile.GetFullPath());
-        bool success = wxCopyFile(srcDirName + fname,
-            targetDirName + wxFileName::GetPathSeparator() + fname);
-        if (!success) {
-            logger_base.error("    Copy Failed.");
-            errors += "Unable to copy file \"" + srcDir.GetNameWithSep() + fname + "\"\n";
+
+            wxULongLong fsize = srcFile.GetSize();
+            if (!forceallfiles && fsize > MAXBACKUPFILE_MB * 1024 * 1024) // skip any xml files > MAXBACKUPFILE_MB mbytes, they are something other than xml files
+            {
+                logger_base.warn("    Skipping file as it is too large.");
+                continue;
+            }
+
+            logger_base.debug("    to %s.", (const char*)(targetDirName + wxFileName::GetPathSeparator() + fname).c_str());
+            SetStatusText("Copying File \"" + srcFile.GetFullPath());
+            bool success = wxCopyFile(srcDirName + fname,
+                targetDirName + wxFileName::GetPathSeparator() + fname);
+            if (!success) {
+                logger_base.error("    Copy Failed.");
+                errors += "Unable to copy file \"" + srcDir.GetNameWithSep() + fname + "\"\n";
+            }
         }
-        cont = srcDir.GetNext(&fname);
     }
 
     return res;
@@ -6267,7 +6267,7 @@ void xLightsFrame::ValidateEffectAssets()
     std::string missing;
     for (const auto& it : _sequenceElements.GetAllReferencedFiles()) {
         auto f = FixFile("", it);
-        if (!FileExists(f)) {
+        if (!FileExists(f, false)) {
             missing += it + "\n";
         }
     }
@@ -8983,8 +8983,7 @@ void xLightsFrame::DoBackupPurge()
 
         // We dont follow symbolic links
         bool cont = dir.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
-        while (cont)
-        {
+        while (cont) {
             auto fdc = wxSplit(filename, '-');
 
             if (fdc.size() > 3)

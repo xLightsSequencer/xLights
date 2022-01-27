@@ -18,6 +18,7 @@
 #include "xLightsXmlFile.h"
 #include "UtilFunctions.h"
 #include "AudioManager.h"
+#include "ExternalHooks.h"
 #include "sequencer/SequenceElements.h"
 
 #include <log4cpp/Category.hh>
@@ -1475,6 +1476,10 @@ void ValueCurve::LoadXVC(const wxFileName& fn)
 
 void ValueCurve::LoadXVC(const std::string& fn)
 {
+    if (!FileExists(fn)) {
+        DisplayError("Failure loading value curve file " + fn + ".");
+        return;
+    }
     wxXmlDocument doc(fn);
 
     if (doc.IsOk())

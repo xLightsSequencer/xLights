@@ -14,6 +14,8 @@
 #include "ValueCurveButton.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
+#include "ExternalHooks.h"
+
 
 //(*InternalHeaders(ValueCurvesPanel)
 #include <wx/intl.h>
@@ -43,31 +45,25 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
     int added = 0;
     int count = 0;
 
-    wxString filename;
     auto existing = GridSizer1->GetChildren();
 
-    bool cont = directory.GetFirst(&filename, "*.xvc", wxDIR_FILES);
-
-    while (cont)
-    {
-        wxFileName fn(directory.GetNameWithSep() + filename);
+    wxArrayString files;
+    GetAllFilesInDir(directory.GetName(), files, "*.xvc");
+    for (auto &filename : files) {
+        wxFileName fn(filename);
         bool found = false;
         count++;
-        for (const auto& it : existing)
-        {
-            if (it->GetWindow()->GetLabel() == fn.GetFullPath())
-            {
+        for (const auto& it : existing) {
+            if (it->GetWindow()->GetLabel() == fn.GetFullPath()) {
                 // already there
                 found = true;
                 break;
             }
         }
-        if (!found)
-        {
+        if (!found) {
             ValueCurve vc("");
             vc.LoadXVC(fn);
-            if (vc.IsOk())
-            {
+            if (vc.IsOk()) {
                 wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
                 DragValueCurveBitmapButton* bmb = new DragValueCurveBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
                     wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
@@ -76,22 +72,17 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
                 bmb->SetValueCurve(vc.Serialise());
                 GridSizer1->Add(bmb);
                 added++;
-            }
-            else
-            {
+            } else {
                 logger_base.warn("ValueCurvesPanel::ProcessPresetDir Unable to load " + fn.GetFullPath());
             }
         }
-
-        cont = directory.GetNext(&filename);
     }
     logger_base.info("    Found %d.", count);
 
-    if (subdirs)
-    {
-        cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
-        while (cont)
-        {
+    if (subdirs) {
+        wxString filename;
+        bool cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        while (cont) {
             wxDir dir(directory.GetNameWithSep() + filename);
             added += ProcessPresetDir(dir, subdirs);
             cont = directory.GetNext(&filename);

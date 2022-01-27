@@ -584,136 +584,121 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
 {
     static wxRegEx cregex("^\\$[^:]*: rgba\\(([^)]*)\\)");
 
-    wxString filename;
-    bool cont = directory.GetFirst(&filename, "*.xpalette", wxDIR_FILES);
-    while (cont)
-    {
-        wxFileName fn(directory.GetNameWithSep() + filename);
-        wxFileInputStream input(fn.GetFullPath());
-        if (input.IsOk())
-        {
-            wxTextInputStream text(input);
-            wxString s = text.ReadLine();
-            wxString scomp = s.BeforeLast(',');
+    wxArrayString files;
+    GetAllFilesInDir(directory.GetName(), files, "*.xpalette");
+    for (auto &filename : files) {
+        if (FileExists(filename)) {
+            wxFileName fn(filename);
+            wxFileInputStream input(fn.GetFullPath());
+            if (input.IsOk()) {
+                wxTextInputStream text(input);
+                wxString s = text.ReadLine();
+                wxString scomp = s.BeforeLast(',');
 
-            bool found = false;
-            for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it)
-            {
-                wxString p(*it);
-                if (p.BeforeLast(',') == scomp)
-                {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
-            {
-                _loadedPalettes.push_back(s.ToStdString() + fn.GetFullName().ToStdString());
-            }
-        }
-        cont = directory.GetNext(&filename);
-    }
-
-    filename = "";
-    cont = directory.GetFirst(&filename, "*.scss", wxDIR_FILES);
-    while (cont)
-    {
-        wxFileName fn(directory.GetNameWithSep() + filename);
-        wxFileInputStream input(fn.GetFullPath());
-        if (input.IsOk())
-        {
-            wxString pal;
-            int cols = 0;
-            wxTextInputStream text(input);
-            while (!input.Eof())
-            {
-                wxString line = text.ReadLine();
-                if (cregex.Matches(line))
-                {
-                    wxString rgb = cregex.GetMatch(line, 1);
-                    wxArrayString comp = wxSplit(rgb, ',');
-                    if (comp.size() == 4)
-                    {
-                        pal += wxString::Format("#%2x%2x%2x,",
-                            wxAtoi(comp[0]),
-                            wxAtoi(comp[1]),
-                            wxAtoi(comp[2])
-                        );
-                        cols++;
-                    }
-                }
-            }
-            if (cols > 0)
-            {
-                while (cols < 8)
-                {
-                    pal += "#FFFFFF,";
-                    cols++;
-                }
-                bool found = false;
-                for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it)
-                {
-                    wxString p(*it);
-                    if (p.BeforeLast(',') == pal)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found)
-                {
-                    _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
-                }
-            }
-        }
-        cont = directory.GetNext(&filename);
-    }
-
-    filename = "";
-    cont = directory.GetFirst(&filename, "*.svg", wxDIR_FILES);
-    while (cont) {
-
-        wxFileName fn(directory.GetNameWithSep() + filename);
-        wxXmlDocument svg;
-        svg.Load(directory.GetNameWithSep() + filename);
-
-        if (svg.IsOk()) {
-            wxString pal;
-            int cols = 0;
-            for (auto n = svg.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
-                if (n->GetName() == "rect") {
-                    if (n->HasAttribute("fill")) {
-                        pal += n->GetAttribute("fill") + ",";
-                        cols++;
-                    }
-                }
-            }
-            if (cols > 0) {
-                while (cols < 8) {
-                    pal += "#FFFFFF,";
-                    cols++;
-                }
                 bool found = false;
                 for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
                     wxString p(*it);
-                    if (p.BeforeLast(',') == pal) {
+                    if (p.BeforeLast(',') == scomp) {
                         found = true;
                         break;
                     }
                 }
                 if (!found) {
-                    _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
+                    _loadedPalettes.push_back(s.ToStdString() + fn.GetFullName().ToStdString());
                 }
             }
         }
-        cont = directory.GetNext(&filename);
     }
 
-    if (subdirs)
-    {
-        cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
-        while (cont)
-        {
+    files.clear();
+    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.scss");
+    for (auto &filename : files) {
+        if (FileExists(filename)) {
+            wxFileName fn(filename);
+            wxFileInputStream input(fn.GetFullPath());
+            if (input.IsOk()) {
+                wxString pal;
+                int cols = 0;
+                wxTextInputStream text(input);
+                while (!input.Eof()) {
+                    wxString line = text.ReadLine();
+                    if (cregex.Matches(line)) {
+                        wxString rgb = cregex.GetMatch(line, 1);
+                        wxArrayString comp = wxSplit(rgb, ',');
+                        if (comp.size() == 4) {
+                            pal += wxString::Format("#%2x%2x%2x,",
+                                wxAtoi(comp[0]),
+                                wxAtoi(comp[1]),
+                                wxAtoi(comp[2])
+                            );
+                            cols++;
+                        }
+                    }
+                }
+                if (cols > 0) {
+                    while (cols < 8) {
+                        pal += "#FFFFFF,";
+                        cols++;
+                    }
+                    bool found = false;
+                    for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
+                        wxString p(*it);
+                        if (p.BeforeLast(',') == pal) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
+                    }
+                }
+            }
+        }
+    }
+    files.clear();
+    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.svg");
+    for (auto &filename : files) {
+        if (FileExists(filename)) {
+            wxFileName fn(filename);
+            wxXmlDocument svg;
+            svg.Load(filename);
+
+            if (svg.IsOk()) {
+                wxString pal;
+                int cols = 0;
+                for (auto n = svg.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
+                    if (n->GetName() == "rect") {
+                        if (n->HasAttribute("fill")) {
+                            pal += n->GetAttribute("fill") + ",";
+                            cols++;
+                        }
+                    }
+                }
+                if (cols > 0) {
+                    while (cols < 8) {
+                        pal += "#FFFFFF,";
+                        cols++;
+                    }
+                    bool found = false;
+                    for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
+                        wxString p(*it);
+                        if (p.BeforeLast(',') == pal) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
+                    }
+                }
+            }
+        }
+    }
+
+    if (subdirs) {
+        wxString filename;
+        bool cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        while (cont) {
             wxDir dir(directory.GetNameWithSep() + filename);
             LoadPalettes(dir, subdirs);
             cont = directory.GetNext(&filename);

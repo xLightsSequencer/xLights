@@ -142,16 +142,13 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect, boo
 
     std::string file = settings["E_FILEPICKERCTRL_Video_Filename"];
 
-    if (file != "")
-    {
-        if (!FileExists(file))
-        {
+    if (file != "") {
+        if (!FileExists(file, false)) {
             settings["E_FILEPICKERCTRL_Video_Filename"] = FixFile("", file);
         }
     }
 
-    if (settings.Contains("E_SLIDER_Video_Starttime"))
-    {
+    if (settings.Contains("E_SLIDER_Video_Starttime")) {
         settings.erase("E_SLIDER_Video_Starttime");
         //long st = wxAtol(settings["E_SLIDER_Video_Starttime"]);
         //settings["E_SLIDER_Video_Starttime"] = wxString::Format(wxT("%i"), st / 10);

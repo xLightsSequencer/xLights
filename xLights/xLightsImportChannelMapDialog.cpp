@@ -25,6 +25,7 @@
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "MediaImportOptionsDialog.h"
 
 #include <log4cpp/Category.hh>
@@ -1931,12 +1932,12 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
 
     auto maphints = xlights->CurrentDir + wxFileName::GetPathSeparator() + "maphints";
     if (wxDir::Exists(maphints)) {
-        wxDir dir(maphints);
-        wxString filename;
-        bool cont = dir.GetFirst(&filename, "*.xmaphint", wxDIR_FILES);
-        while (cont) {
-            loadMapHintsFile(xlights->CurrentDir + wxFileName::GetPathSeparator() + "maphints" + wxFileName::GetPathSeparator() + filename);
-            cont = dir.GetNext(&filename);
+        wxArrayString files;
+        GetAllFilesInDir(maphints, files, "*.xmaphint");
+        for (auto &filename : files) {
+            if (FileExists(filename)) {
+                loadMapHintsFile(filename);
+            }
         }
     }
 

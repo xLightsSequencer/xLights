@@ -1299,7 +1299,11 @@ public:
         NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
         [vbuffer setLabel:n];
         sz = indexes.size() * sizeof(uint32_t);
-        ibuffer = [wxMetalCanvas::getMTLDevice() newBufferWithBytes:&indexes[0] length:sz options:MTLResourceStorageModeManaged];
+        if (sz == 0) {
+            ibuffer = [wxMetalCanvas::getMTLDevice() newBufferWithLength:12 options:MTLResourceStorageModeManaged];
+        } else {
+            ibuffer = [wxMetalCanvas::getMTLDevice() newBufferWithBytes:&indexes[0] length:sz options:MTLResourceStorageModeManaged];
+        }
         n2 = name + " Indexes";
         n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
         [ibuffer setLabel:n];
