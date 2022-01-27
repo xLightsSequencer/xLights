@@ -50,7 +50,7 @@
 #include "../xLightsVersion.h"
 #include "../Parallel.h"
 #include "ControllerCaps.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 #include "ControllerUploadData.h"

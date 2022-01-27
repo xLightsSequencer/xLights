@@ -242,6 +242,7 @@
     <ClInclude Include="..\xLights\controllers\Pixlite16.h" />
     <ClInclude Include="..\xLights\Discovery.h" />
     <ClInclude Include="..\xLights\ExportSettings.h" />
+    <ClInclude Include="..\xLights\ExternalHooks.h" />
     <ClInclude Include="..\xLights\JobPool.h" />
     <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
     <ClInclude Include="..\xLights\outputs\Controller.h" />

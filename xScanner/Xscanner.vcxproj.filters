@@ -282,6 +282,9 @@
     <ClInclude Include="..\xLights\automation\automation.h">
       <Filter>xLights</Filter>
     </ClInclude>
+    <ClInclude Include="..\xLights\ExternalHooks.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
