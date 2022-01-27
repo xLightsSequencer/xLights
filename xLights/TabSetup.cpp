@@ -416,6 +416,7 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent) {
     wxDirDialog DirDialog1(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
 
     while (DirDialog1.ShowModal() == wxID_OK) {
+        bool dirOK = true;
         AbortRender(); // make sure nothing is still rendering
         wxString newdir = DirDialog1.GetPath();
         if (newdir == CurrentDir) return true;
@@ -427,10 +428,24 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent) {
 #ifdef __WXMSW__
         if (ShowFolderIsInProgramFiles(newdir.ToStdString())) {
             DisplayWarning("ERROR: Show folder inside your Program Files folder either just wont work or will cause you security issues ... so please choose again.", this);
+            dirOK = false;
         }
-        else
 #endif
-        {
+        if (dirOK) {
+            wxString fn;
+            // if new directory contains a networks or rgbeffects file then ok
+            if (wxFile::Exists(newdir + wxFileName::GetPathSeparator() + XLIGHTS_NETWORK_FILE) || wxFile::Exists(newdir + wxFileName::GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE)) {
+            }
+            // if new directory is empty then ok
+            else if (!wxDir(newdir).GetFirst(&fn)) {
+            }
+            // otherwise ... this may not be a show directory ... check the user is sure about this
+            else if (wxMessageBox("Folder chosen does not contain xLights show folder files and is not empty. Are you sure you chose the right folder?", "Possibly incorrect folder chosen.", wxYES_NO, this) == wxNO) {
+                dirOK = false;
+            }
+        }
+
+        if (dirOK) {
             displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
             layoutPanel->ClearUndo();
             return SetDir(newdir, permanent);
