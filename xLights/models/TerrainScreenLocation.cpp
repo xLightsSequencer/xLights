@@ -301,6 +301,43 @@ int TerrianScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool 
     }
     return 1;
 }
+int TerrianScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+    if (_locked) return 0;
+
+    if (handle != CENTER_HANDLE) {
+        if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
+            int point = handle - 1;
+            if (point < mPos.size()) {
+
+                float newz = (mPos[point] - mov.z*scale);
+                mPos[point] = newz;
+                if (tool_size > 1) {
+                    int row = point / num_points_wide;
+                    int col = point % num_points_wide;
+                    int start_row = row - tool_size + 1;
+                    int end_row = row + tool_size - 1;
+                    int start_col = col - tool_size + 1;
+                    int end_col = col + tool_size - 1;
+                    if (start_row < 0) start_row = 0;
+                    if (end_row > num_points_deep - 1) end_row = num_points_deep - 1;
+                    if (start_col < 0) start_col = 0;
+                    if (end_col > num_points_wide - 1) end_col = num_points_wide - 1;
+                    for (int j = start_row; j <= end_row; ++j) {
+                        for (int i = start_col; i <= end_col; ++i) {
+                            int abs_point = j * num_points_wide + i;
+                            mPos[abs_point] = newz;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        BoxedScreenLocation::MoveHandle3D(scale, handle, rot, mov);
+    }
+    return 1;
+}
+
+
 
 void TerrianScreenLocation::SetActiveHandle(int handle)
 {

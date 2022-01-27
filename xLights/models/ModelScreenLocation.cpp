@@ -1913,6 +1913,24 @@ int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool Sh
     }
     return 1;
 }
+int BoxedScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+    if (handle == CENTER_HANDLE) {
+        constexpr float rscale = 10; //10 degrees per full 1.0 aka: max speed
+        Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, rot.x * rscale);
+        Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -rot.z * rscale);
+        Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS, rot.y * rscale);
+        AddOffset(mov.x * scale, -mov.z * scale, mov.y * scale);
+    } else {
+        float change_x = mov.x * scale;
+        float change_y = -mov.z * scale;
+        float change_z = mov.y * scale;
+        scalex = saved_scale.x * change_x;
+        scaley = saved_scale.y * change_y;
+        scalez = saved_scale.z * change_z;
+    }
+    return 1;
+}
+        
 
 int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
@@ -2822,6 +2840,63 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
             z2 = end_pt.z - worldPos_z;
             saved_angle = angle;
         }
+    }
+    return 1;
+}
+int TwoPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+    if (handle == CENTER_HANDLE) {
+        constexpr float rscale = 10; //10 degrees per full 1.0 aka: max speed
+        Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, rot.x * rscale);
+        Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -rot.z * rscale);
+        Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS, rot.y * rscale);
+        AddOffset(mov.x * scale, -mov.z * scale, mov.y * scale);
+    } else if (handle == START_HANDLE) {
+        worldPos_x += mov.x * scale;
+        worldPos_y += -mov.z * scale;
+        worldPos_z += mov.y * scale;
+        
+        x2 -= mov.x * scale;
+        y2 -= -mov.z * scale;
+        z2 -= mov.y * scale;
+        
+        
+        glm::vec3 sp = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+        glm::vec3 ep = glm::vec3(x2, y2, z2);
+        
+        glm::mat4 translateToOrigin = glm::translate(Identity, -sp);
+        glm::mat4 translateBack = glm::translate(Identity, sp);
+
+        glm::mat4 Rotate = glm::rotate(Identity, glm::radians(rot.x*10.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        Rotate = glm::rotate(Rotate, glm::radians(-rot.z*10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        Rotate = glm::rotate(Rotate, glm::radians(rot.y*10.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        ep = glm::vec3(translateBack * Rotate * translateToOrigin* glm::vec4(ep, 1.0f));
+        x2 = ep.x;
+        y2 = ep.y;
+        z2 = ep.z;
+    } else if (handle == END_HANDLE) {
+        x2 += mov.x * scale;
+        y2 += -mov.z * scale;
+        z2 += mov.y * scale;
+        
+        glm::vec3 sp = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+        glm::vec3 ep = glm::vec3(x2, y2, z2);
+        
+        glm::mat4 translateToOrigin = glm::translate(Identity, -ep);
+        glm::mat4 translateBack = glm::translate(Identity, ep);
+
+        glm::mat4 Rotate = glm::rotate(Identity, glm::radians(rot.x*10.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        Rotate = glm::rotate(Rotate, glm::radians(-rot.z*10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        Rotate = glm::rotate(Rotate, glm::radians(rot.y*10.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        glm::vec3 sp2 = glm::vec3(translateBack * Rotate * translateToOrigin * glm::vec4(sp, 1.0f));
+        worldPos_x = sp2.x;
+        worldPos_y = sp2.y;
+        worldPos_z = sp2.z;
+        
+        x2 += sp.x - worldPos_x;
+        y2 += sp.y - worldPos_y;
+        z2 += sp.z - worldPos_z;
     }
     return 1;
 }
@@ -3980,7 +4055,29 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
     }
     return TwoPointScreenLocation::MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
 }
-
+int ThreePointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+    if (handle == SHEAR_HANDLE) {
+        //we'll handle move, ignore rotations
+        if (supportsAngle) {
+            angle -= mov.x*10.0f;
+            height += -mov.z;
+        } else if (supportsShear) {
+            shear -= mov.x*10.0f;
+            height += -mov.z;
+        } else {
+            height += -mov.z;
+        }
+        if (std::abs(height) < 0.01f) {
+            if (height < 0.0f) {
+                height = -0.01f;
+            } else {
+                height = 0.01f;
+            }
+        }
+        return 1;
+    }
+    return TwoPointScreenLocation::MoveHandle3D(scale, handle, rot, mov);
+}
 float ThreePointScreenLocation::GetVScaleFactor() const {
     if (modelHandlesHeight) {
         return 1.0;
@@ -5553,6 +5650,44 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             break;
             default:
                 break;
+            }
+        }
+    }
+    return 1;
+}
+int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+    if (handle == CENTER_HANDLE) {
+        constexpr float rscale = 10; //10 degrees per full 1.0 aka: max speed
+        Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, rot.x * rscale);
+        Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -rot.z * rscale);
+        Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS, rot.y * rscale);
+        AddOffset(mov.x * scale, -mov.z * scale, mov.y * scale);
+    } else {
+        if (handle & HANDLE_CP0) {
+            int seg = handle & HANDLE_MASK;
+            if (seg < mPos.size()) {
+                mPos[seg].cp0.x += mov.x * scale;
+                mPos[seg].cp0.y -= mov.z * scale;
+                mPos[seg].cp0.z += mov.y * scale;
+                if (mPos[seg].curve != nullptr) mPos[seg].curve->set_cp0(mPos[seg].cp0.x, mPos[seg].cp0.y, mPos[seg].cp0.z);
+                FixCurveHandles();
+            }
+        } else if (handle & HANDLE_CP1) {
+            int seg = handle & HANDLE_MASK;
+            if (seg < mPos.size()) {
+                mPos[seg].cp1.x += mov.x * scale;
+                mPos[seg].cp1.y -= mov.z * scale;
+                mPos[seg].cp1.z += mov.y * scale;
+                if (mPos[seg].curve != nullptr) mPos[seg].curve->set_cp1(mPos[seg].cp1.x, mPos[seg].cp1.y, mPos[seg].cp1.z);
+                FixCurveHandles();
+            }
+        } else {
+            int point = handle - 1;
+            if (point < mPos.size()) {
+                mPos[point].x += mov.x * scale;
+                mPos[point].y -= mov.z * scale;
+                mPos[point].z += mov.y * scale;
+                FixCurveHandles();
             }
         }
     }

@@ -3637,35 +3637,44 @@ void LayoutPanel::OnPreviewMotion3D(Motion3DEvent &event) {
     int gSize = selectedTreeGroups.size();
     int smSize = selectedTreeSubModels.size();
     if (selectedBaseObject != nullptr && gSize == 0 && smSize == 0) {
-        CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, "Zoom");
-        float scale = 10; //10 degrees per full 1.0 aka: max speed
+        int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
+        CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, std::to_string(active_handle));
+        xlights->AbortRender();
 
-        selectedBaseObject->Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, event.rotations.x * scale);
-        selectedBaseObject->Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -event.rotations.z * scale);
-        selectedBaseObject->Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS, event.rotations.y * scale);
+        float scale = modelPreview->translateToBacking(1.0) * 20.0 * modelPreview->GetZoom(); //20 pixels at max speed, default zoom
+        if (!modelPreview->Is3D()) {
+            //moving/rotating the entire model
+            constexpr float rscale = 10; //10 degrees per full 1.0 aka: max speed
+            selectedBaseObject->Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, event.rotations.x * rscale);
+            selectedBaseObject->Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -event.rotations.z * rscale);
+            selectedBaseObject->Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS, event.rotations.y * rscale);
 
-        scale = modelPreview->translateToBacking(1.0) * 20.0; //20 pixels at max speed
-        float zoom = modelPreview->GetZoom();
-        if (modelPreview->Is3D()) {
-            selectedBaseObject->AddOffset(event.translations.x * zoom * scale,
-                                          -event.translations.z * zoom * scale,
-                                          event.translations.y * zoom * scale);
-        } else {
-            selectedBaseObject->AddOffset(event.translations.x * zoom * scale,
-                                          -event.translations.z * zoom * scale - event.translations.y * zoom * scale,
+            selectedBaseObject->AddOffset(event.translations.x * scale,
+                                          -event.translations.z * scale - event.translations.y * scale,
                                           0.0f);
+
+            last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
+            last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
+            last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
+            selectedBaseObject->UpdateXmlWithScale();
+
+            SetupPropGrid(selectedBaseObject);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewMotion3D");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewMotion3D");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMotion3D");
+        } else if (modelPreview->Is3D()) {
+            selectedBaseObject->MoveHandle3D(scale, active_handle, event.rotations, event.translations);
+
+            last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
+            last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
+            last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
+            selectedBaseObject->UpdateXmlWithScale();
+            
+            SetupPropGrid(selectedBaseObject);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewMotion3D");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewMotion3D");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMotion3D");
         }
-
-        last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
-        last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
-        last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
-        selectedBaseObject->UpdateXmlWithScale();
-
-        SetupPropGrid(selectedBaseObject);
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewRotateGesture");
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewRotateGesture");
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewRotateGesture");
-
     } else {
         modelPreview->OnMotion3DEvent(event);
     }
@@ -6706,6 +6715,25 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
         } else if (undoBuffer[sz].type == "SingleModel") {
             logger_base.debug("LayoutPanel::DoUndo SingleModel");
             Model *m = xlights->AllModels[undoBuffer[sz].model];
+            if (m != nullptr) {
+                wxStringInputStream min(undoBuffer[sz].data);
+                wxXmlDocument mdoc(min);
+
+                wxXmlNode *parent = m->GetModelXml()->GetParent();
+                wxXmlNode *next = m->GetModelXml()->GetNext();
+                parent->RemoveChild(m->GetModelXml());
+
+                delete m->GetModelXml();
+                m->SetFromXml(mdoc.GetRoot());
+                mdoc.DetachRoot();
+                parent->InsertChild(m->GetModelXml(), next);
+                SelectModel(undoBuffer[sz].model);
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoUndo");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
+            }
+        } else if (undoBuffer[sz].type == "SingleObject") {
+            logger_base.debug("LayoutPanel::DoUndo SingleObject");
+            ViewObject *m = xlights->AllObjects[undoBuffer[sz].model];
             if (m != nullptr) {
                 wxStringInputStream min(undoBuffer[sz].data);
                 wxXmlDocument mdoc(min);

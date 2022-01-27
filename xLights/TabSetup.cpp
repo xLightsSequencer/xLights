@@ -303,6 +303,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     networkFile.AssignDir(CurrentDir);
     networkFile.SetFullName(_(XLIGHTS_NETWORK_FILE));
     if (FileExists(networkFile)) {
+        ObtainAccessToURL(networkFile.GetFullPath());
         logger_base.debug("Loading networks.");
         wxStopWatch sww;
         if (!_outputManager.Load(CurrentDir.ToStdString())) {
@@ -441,7 +442,7 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent) {
         if (dirOK) {
             wxString fn;
             // if new directory contains a networks or rgbeffects file then ok
-            if (wxFile::Exists(newdir + wxFileName::GetPathSeparator() + XLIGHTS_NETWORK_FILE) || wxFile::Exists(newdir + wxFileName::GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE)) {
+            if (FileExists(newdir + wxFileName::GetPathSeparator() + XLIGHTS_NETWORK_FILE) || FileExists(newdir + wxFileName::GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE)) {
             }
             // if new directory is empty then ok
             else if (!wxDir(newdir).GetFirst(&fn)) {

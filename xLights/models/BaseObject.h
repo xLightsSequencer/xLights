@@ -49,6 +49,7 @@ public:
     virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
     virtual glm::vec3 MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
+    virtual glm::vec3 MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov);
     void SelectHandle(int handle);
     void Lock(bool lock);
     virtual void AddASAPWork(uint32_t work, const std::string& from);
