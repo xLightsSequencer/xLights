@@ -39,8 +39,11 @@ void IciclesModel::InitModel()
     std::vector<size_t> dropSizes;
     size_t maxH = 0;
     for (int x = 0; x < pat.size(); x++) {
-        dropSizes.push_back(wxAtoi(pat[x]));
-        maxH = std::max(maxH, dropSizes[x]);
+        int d = wxAtoi(pat[x]);
+        if (d >= 0) { // we dont handle drops of less than zero
+            dropSizes.push_back(wxAtoi(pat[x]));
+            maxH = std::max(maxH, (size_t)d);
+        }
     }
     if (dropSizes.size() == 0) {
         dropSizes.push_back(5);
