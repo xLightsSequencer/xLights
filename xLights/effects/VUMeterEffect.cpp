@@ -171,16 +171,22 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
 
 bool VUMeterEffect::needToAdjustSettings(const std::string& version)
 {
-    return IsVersionOlder("2019.16", version);
+    return IsVersionOlder("2022.04", version);
 }
 
 void VUMeterEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
 {
-    SettingsMap &settings = effect->GetSettings();
-    if (settings.Contains("E_CHECKBOX_Fireworks_LogarithmicX"))
-    {
-        settings["E_CHECKBOX_VUMeter_LogarithmicX"] = settings.Get("E_CHECKBOX_Fireworks_LogarithmicX", "0");
-        settings.erase("E_CHECKBOX_Fireworks_LogarithmicX");
+    SettingsMap& settings = effect->GetSettings();
+    if (IsVersionOlder("2019.16", version)) {
+        if (settings.Contains("E_CHECKBOX_Fireworks_LogarithmicX")) {
+            settings["E_CHECKBOX_VUMeter_LogarithmicX"] = settings.Get("E_CHECKBOX_Fireworks_LogarithmicX", "0");
+            settings.erase("E_CHECKBOX_Fireworks_LogarithmicX");
+        }
+    }
+    if (IsVersionOlder("2022.04", version)) {
+        if (settings.Get("CHOICE_VUMeter_Type", "Waveform") == "Timing Event Color") {
+            settings["E_SLIDER_VUMeter_Sensitivity"] = "100";
+        }
     }
 }
 
@@ -636,7 +642,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             RenderDominantFrequencyColour(buffer, sensitivity, startnote, endnote, true);
             break;
         case RenderType::TIMING_EVENT_COLOR:
-            RenderTimingEventColourFrame(buffer, _colourindex, timingtrack);
+            RenderTimingEventColourFrame(buffer, _colourindex, timingtrack, sensitivity);
             break;
         case RenderType::NOTE_ON:
             RenderNoteOnFrame(buffer, startnote, endnote, gain);
@@ -2508,7 +2514,7 @@ void VUMeterEffect::RenderTimingEventPulseColourFrame(RenderBuffer &buffer, int 
     }
 }
 
-void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colourindex, std::string timingtrack)
+void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colourindex, std::string timingtrack, int sensitivity)
 {
     if (timingtrack != "")
     {
@@ -2539,6 +2545,8 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colo
                 else if (ems > ms) break;
             }
 
+            bool effectActuallyPresent = el->GetEffectAtTime(ms) != nullptr;
+
             if (effectPresent)
             {
                 colourindex++;
@@ -2552,6 +2560,9 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colo
 
             xlColor color;
             buffer.palette.GetColor(colourindex, color);
+            if (!effectActuallyPresent) {
+                color.alpha = (sensitivity * 255) / 100;
+            }
 
             for (int x = 0; x < buffer.BufferWi; x++)
             {

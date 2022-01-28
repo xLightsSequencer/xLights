@@ -48,7 +48,7 @@ protected:
     void RenderOnFrame(RenderBuffer &buffer, int gain);
     void RenderOnColourFrame(RenderBuffer &buffer, int gain);
     void RenderPulseFrame(RenderBuffer &buffer, int fadeframes, std::string timingtrack, int& lasttimingmark);
-    void RenderTimingEventColourFrame(RenderBuffer &buffer, int& colourindex, std::string timingtrack);
+    void RenderTimingEventColourFrame(RenderBuffer &buffer, int& colourindex, std::string timingtrack, int sensitivity);
     void RenderLevelColourFrame(RenderBuffer &buffer, int& colourindex, int sensitivity, int& lasttimingmark, int gain);
     void RenderIntensityWaveFrame(RenderBuffer &buffer, int bars, int gain);
     void RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain);
