@@ -47,22 +47,20 @@ std::string LuaRunner::PromptString(std::string const& message) const
     if (dialog.ShowModal() == wxID_OK) {
         return dialog.GetValue();
     }
-    return std::string();
+    return {};
 }
 
-std::string LuaRunner::PromptSelection(std::list<std::string> const& items, std::string const& message) const
+std::string LuaRunner::PromptSelection(sol::object const& items, std::string const& message) const
 {
-    wxArrayString itemList;
+    wxArrayString itemList = getArrayString(items);
 
-    std::transform(items.begin(), items.end(), std::back_inserter(itemList),
-                   [](auto const& str) { return str; });
-
+    itemList.Sort();
     wxSingleChoiceDialog dlg(_frame, message, message, itemList);
 
     if (dlg.ShowModal() == wxID_OK) {
         return dlg.GetStringSelection();
     }
-    return std::string();
+    return {};
 }
 
 std::list<std::string> LuaRunner::PromptSequences() const
@@ -97,12 +95,10 @@ std::list<std::string> LuaRunner::SplitString(std::string const& text, char cons
     return itemList;
 }
 
-std::string LuaRunner::JoinString(std::list<std::string> const& list, char const& delimiter) const
+std::string LuaRunner::JoinString(sol::object const& list, char const& delimiter) const
 {
-    wxArrayString itemList;
+    wxArrayString const itemList = getArrayString(list);
 
-    std::transform(list.begin(), list.end(), std::back_inserter(itemList),
-                   [](auto const& str) { return str; });
     return wxJoin(itemList, delimiter);
 }
 
@@ -250,4 +246,23 @@ sol::object LuaRunner::getObjectType(wxJSONValue const& val, sol::state_view lua
         return obj;
     }
     return sol::make_object(lua, nullptr);
+}
+
+wxArrayString LuaRunner::getArrayString(sol::object const& items) const
+{
+    wxArrayString itemList;
+    if (items.get_type() == sol::type::table) {
+        for (auto const& it : items.as<sol::table>()) {
+            if (it.second.get_type() == sol::type::string) {
+                itemList.Add(it.second.as<std::string>());
+            }
+        }
+    } else if (items.get_type() == sol::type::userdata) {
+        if (items.is<std::list<std::string>>()) {
+            auto const str_item = items.as<std::list<std::string>>();
+            std::transform(str_item.begin(), str_item.end(),
+                           std::back_inserter(itemList), [](auto const& str) { return str; });
+        }
+    }
+    return itemList;
 }

@@ -732,35 +732,35 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
     } else if (cmd == "getModels") {
         std::string models;
         for (auto m = (&AllModels)->begin(); m != (&AllModels)->end(); ++m) {
-            models += (m->first);
-            models += ",";
+            models += "\"" + JSONSafe(m->first) + "\",";
         }
-        if (models.size() != 0) {
+        if (!models.empty()) {
             models.pop_back();//remove last comma
         }
-        return sendResponse(JSONSafe(models), "msg", 200, false);
+        models = "[" + models + "]";
+        return sendResponse(models, "models", 200, true);
     } else if (cmd == "getControllerNames") {
         std::string controllers;
         for (const auto& it : _outputManager.GetControllerNames()) {
-                controllers += it;
-            controllers += ",";
+            controllers += "\"" + JSONSafe(it) + "\",";
         }
-        if (controllers.size() != 0) {
+        if (!controllers.empty()) {
             controllers.pop_back();//remove last comma
         }
-        return sendResponse(JSONSafe(controllers), "msg", 200, false);
+        controllers = "[" + controllers + "]";
+        return sendResponse(controllers, "controllers", 200, true);
     } else if (cmd == "getControllerIPs") {
         std::string ipAddresses;
         for (const auto& it : _outputManager.GetControllers()) {
             if (!it->GetIP().empty()) {
-                ipAddresses += (it->GetIP());
-                ipAddresses += ",";
+                ipAddresses += "\"" + JSONSafe(it->GetIP()) + "\",";
             }
         }
-        if (ipAddresses.size() != 0) {
+        if (!ipAddresses.empty()) {
             ipAddresses.pop_back();//remove last comma
         }
-        return sendResponse(JSONSafe(ipAddresses), "msg", 200, false);
+        ipAddresses = "[" + ipAddresses + "]";
+        return sendResponse(ipAddresses, "controllers", 200, true);
     }
 
     return false;

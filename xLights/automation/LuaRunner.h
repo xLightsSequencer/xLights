@@ -36,12 +36,12 @@ public:
     [[nodiscard]] sol::object RunCommand(std::string const& cmd, std::map<std::string, std::string> parms, sol::this_state thislua);
     void ShowMessage(std::string const& text) const;
     [[nodiscard]] std::string PromptString(std::string const& text) const;
-    [[nodiscard]] std::string PromptSelection(std::list<std::string> const& items, std::string const& message) const;
+    [[nodiscard]] std::string PromptSelection(sol::object const& items, std::string const& message) const;
     [[nodiscard]] std::list<std::string> PromptSequences() const;
     
     [[nodiscard]] sol::object JSONToTable(std::string const& json, sol::this_state s) const;
     [[nodiscard]] std::list<std::string> SplitString(std::string const& text, char const& delimiter) const;
-    [[nodiscard]] std::string JoinString(std::list<std::string> const& list, char const& delimiter) const;
+    [[nodiscard]] std::string JoinString(sol::object const& list, char const& delimiter) const;
 
 private:
     xLightsFrame* _frame = nullptr;
@@ -49,4 +49,5 @@ private:
     [[nodiscard]] wxString JSONtoString(wxJSONValue const& json) const;
     [[nodiscard]] wxString CommandtoString(std::string const& cmd, std::map<std::string, std::string> const& parms) const;
     [[nodiscard]] sol::object getObjectType(wxJSONValue const& val, sol::state_view lua) const;
+    [[nodiscard]] wxArrayString getArrayString(sol::object const& items) const;
 };
