@@ -65,23 +65,17 @@ void SequenceVideoPreview::Render( AVFrame *frame )
     }
 
     // Upload video frame to texture
-#ifndef __WXMSW__
     if (frame->format == AV_PIX_FMT_BGRA) {
         _texture->UpdateData(frame->data[0] , true, true);
-    } else
-#endif
-    if (frame->format == AV_PIX_FMT_RGBA) {
+    } else if (frame->format == AV_PIX_FMT_RGBA) {
         _texture->UpdateData(frame->data[0] , false, true);
     } else if (frame->format == AV_PIX_FMT_RGB24) {
         _texture->UpdateData(frame->data[0] , false, false);
     } else if (frame->format == AV_PIX_FMT_VIDEOTOOLBOX) {
         _texture->UpdateData(ctx, frame->data[3], "vt");
-    }
-#ifndef  __WXMSW__
-    else if (frame->format == AV_PIX_FMT_BGR24) {
+    } else if (frame->format == AV_PIX_FMT_BGR24) {
         _texture->UpdateData(frame->data[0] , true, false);
     }
-#endif
     ctx->drawTexture(_texture, 0, 0, mWindowWidth, mWindowHeight );
     FinishDrawing(ctx);
 }

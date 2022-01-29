@@ -662,7 +662,7 @@ public:
             LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, _texId ) );
 
             GLuint tp = bgr ? GL_BGRA : GL_RGBA;
-            LOG_GL_ERRORV( glTexImage2D( GL_TEXTURE_2D, 0, tp, w, h, 0, tp, GL_UNSIGNED_BYTE, nullptr ) );
+            LOG_GL_ERRORV( glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, tp, GL_UNSIGNED_BYTE, nullptr ) );
             LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ) );
             LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ) );
             LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE ) );
