@@ -564,7 +564,7 @@ void ModelStateDialog::SelectRow(wxGrid* grid, int const r) {
         }
     }
     grid->Refresh();
-    model->DisplayEffectOnWindow(modelPreview, 2);
+    model->DisplayEffectOnWindow(modelPreview, PIXEL_SIZE_ON_DIALOGS);
 }
 
 void ModelStateDialog::SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c) {
@@ -1246,7 +1246,7 @@ void ModelStateDialog::RenderModel()
     if (m_creating_bound_rect) {
         modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
     }
-    model->DisplayEffectOnWindow(modelPreview, 2);
+    model->DisplayEffectOnWindow(modelPreview, PIXEL_SIZE_ON_DIALOGS);
     modelPreview->EndDrawing();
 }
 

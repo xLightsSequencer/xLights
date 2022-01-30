@@ -531,7 +531,7 @@ void ModelPreview::render()
             if (is3d) {
                 RenderModel(model, _wiring, _highlightFirst);
             } else {
-                model->DisplayEffectOnWindow(this, 2);
+                model->DisplayEffectOnWindow(this, PIXEL_SIZE_ON_DIALOGS);
             }
         } else {
             if (!StartDrawing(mPointSize, true)) return;

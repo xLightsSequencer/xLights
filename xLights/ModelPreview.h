@@ -27,6 +27,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+// This does not actually fix the pixel size on dialog problem but consolidating this value into one location makes sense
+// This is the default size pixels render in things like submodel, faces etc dialogs
+#define PIXEL_SIZE_ON_DIALOGS 2
+
 class Model;
 class ModelGroup;
 class PreviewPane;

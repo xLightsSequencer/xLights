@@ -1248,7 +1248,7 @@ void SubModelsDialog::DisplayRange(const wxString &range)
             model->SetNodeColor(node, c);
         }
     }
-    model->DisplayEffectOnWindow(modelPreview, 2);
+    model->DisplayEffectOnWindow(modelPreview, PIXEL_SIZE_ON_DIALOGS);
 }
 
 void SubModelsDialog::ClearNodeColor(Model *m)
@@ -1279,7 +1279,7 @@ void SubModelsDialog::SelectRow(int r) {
         SetNodeColor(r, xlWHITE);
     }
     NodesGrid->Refresh();
-    model->DisplayEffectOnWindow(modelPreview, 2);
+    model->DisplayEffectOnWindow(modelPreview, PIXEL_SIZE_ON_DIALOGS);
 }
 
 bool SubModelsDialog::SetNodeColor(int row, xlColor const& c) {
@@ -1995,7 +1995,7 @@ void SubModelsDialog::RenderModel()
     if (m_creating_bound_rect) {
         modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
     }
-    model->DisplayEffectOnWindow(modelPreview, 2);
+    model->DisplayEffectOnWindow(modelPreview, PIXEL_SIZE_ON_DIALOGS);
     modelPreview->EndDrawing();
 }
 
