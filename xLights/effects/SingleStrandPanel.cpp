@@ -363,6 +363,12 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_BITMAPBUTTON_CHOICE_Skips_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
 	//*)
 
+    Connect(ID_VALUECURVE_Chase_Rotations, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_Number_Chases, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_Color_Mix1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_FX_Intensity, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_FX_Speed, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
+
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SingleStrandPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&SingleStrandPanel::OnValidateWindow, 0, this);
 
