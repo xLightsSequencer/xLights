@@ -1641,14 +1641,16 @@ void VUMeterEffect::RenderLevelColourFrame(RenderBuffer &buffer, int& colourinde
         lasttimingmark = buffer.curPeriod;
     }
 
-    xlColor color1;
-    buffer.palette.GetColor(colourindex, color1);
+    if (colourindex < 0) {
+        // dont render anything until at least something triggers
+    } else {
+        xlColor color1;
+        buffer.palette.GetColor(colourindex, color1);
 
-    for (int x = 0; x < buffer.BufferWi; x++)
-    {
-        for (int y = 0; y < buffer.BufferHt; y++)
-        {
-            buffer.SetPixel(x, y, color1);
+        for (int x = 0; x < buffer.BufferWi; x++) {
+            for (int y = 0; y < buffer.BufferHt; y++) {
+                buffer.SetPixel(x, y, color1);
+            }
         }
     }
 }
