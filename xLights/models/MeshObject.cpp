@@ -144,7 +144,7 @@ bool MeshObject::CleanupFileLocations(xLightsFrame* frame)
 }
 
 void MeshObject::checkAccessToFile(const std::string &url) {
-    if (!ObtainAccessToURL(url) && FileExists(url)) {
+    if (FileExists(url) && !ObtainAccessToURL(url)) {
         wxMessageBox("Could not obtain access to " + url + "\n\nTry giving xLights permission to access to the directory.",
                      "Access Denied");
         wxFileName fn(url);
