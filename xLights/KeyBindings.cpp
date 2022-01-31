@@ -100,6 +100,10 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "MODEL_DISTRIBUTE_VERT", KBSCOPE::Layout },
     { "MODEL_FLIP_HORIZ", KBSCOPE::Layout },
     { "MODEL_FLIP_VERT", KBSCOPE::Layout },
+    { "MODEL_SUBMODELS", KBSCOPE::Layout },
+    { "MODEL_FACES", KBSCOPE::Layout },
+    { "MODEL_STATES", KBSCOPE::Layout },
+    { "MODEL_MODELDATA", KBSCOPE::Layout },
     { "CANCEL_RENDER", KBSCOPE::Sequence },
     { "TOGGLE_RENDER", KBSCOPE::Sequence },
     { "PRESETS_TOGGLE", KBSCOPE::Sequence },
@@ -211,7 +215,11 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
     { "AUDIO_S_1_2_SPEED", "Playback audio at 1/2 speed." },
     { "AUDIO_S_1_4_SPEED", "Playback audio at 1/4 speed." },
     { "PRIOR_TAG", "Jump to prior audio tag." },
-    { "NEXT_TAG", "Jump to next audio tag." }
+    { "NEXT_TAG", "Jump to next audio tag." },
+    { "MODEL_SUBMODELS", "Edit model submodels." },
+    { "MODEL_FACES", "Edit model faces." },
+    { "MODEL_STATES", "Edit model states." },
+    { "MODEL_MODELDATA", "Edit custom model data." }
 };
 
 const std::vector<KeyBinding> DefaultBindings =
@@ -309,6 +317,10 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("", true, "MODEL_DISTRIBUTE_VERT", true, false, true),
     KeyBinding("", true, "MODEL_FLIP_HORIZ", true, false, true),
     KeyBinding("", true, "MODEL_FLIP_VERT", true, false, true),
+    KeyBinding("", true, "MODEL_SUBMODELS", true),
+    KeyBinding("", true, "MODEL_FACES", true),
+    KeyBinding("", true, "MODEL_STATES", true),
+    KeyBinding("", true, "MODEL_MODELDATA", true),
 
     KeyBinding("o", false, "On", "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100", xlights_version_string),
     KeyBinding("u", false, "On", "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0", xlights_version_string),

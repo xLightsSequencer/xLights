@@ -339,6 +339,10 @@ class LayoutPanel: public wxPanel
         void BulkEditDimmingCurves();
         void ReplaceModel();
         void ShowNodeLayout();
+        void EditSubmodels();
+        void EditFaces();
+        void EditStates();
+        void EditModelData();
         void ShowWiring();
         void ExportModelAsCAD();
         void ExportLayoutDXF();

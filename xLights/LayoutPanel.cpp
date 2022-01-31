@@ -48,6 +48,7 @@
 #include "models/ModelGroup.h"
 #include "models/ViewObject.h"
 #include "models/RulerObject.h"
+#include "models/CustomModel.h"
 #include "WiringDialog.h"
 #include "ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
@@ -63,6 +64,10 @@
 #include "cad/ModelToCAD.h"
 #include "LORPreview.h"
 #include "ExternalHooks.h"
+#include "ModelFaceDialog.h"
+#include "ModelStateDialog.h"
+#include "CustomModelDialog.h"
+#include "SubModelsDialog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -4921,6 +4926,75 @@ void LayoutPanel::PreviewModelAlignWithGround()
     ReselectTreeModels(selectedModelPaths);
 }
 
+void LayoutPanel::EditSubmodels()
+{
+    Model* md = dynamic_cast<Model*>(selectedBaseObject);
+    if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel")
+        return;
+
+    SubModelsDialog dlg(this);
+    dlg.Setup(md);
+    if (dlg.ShowModal() == wxID_OK) {
+        dlg.Save();
+    }
+    if (dlg.ReloadLayout) { //force grid to reload
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(md->GetModelManager().GetXLightsFrame(), eventForceRefresh);
+        md->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Model::SubModelsDialog::SubModels");
+        md->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SubModelsDialog::SubModels");
+        md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SubModelsDialog::SubModels");
+    }
+}
+
+void LayoutPanel::EditFaces()
+{
+    Model* md = dynamic_cast<Model*>(selectedBaseObject);
+    if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel")
+        return;
+
+    ModelFaceDialog dlg(this);
+    dlg.SetFaceInfo(md, md->faceInfo);
+    if (dlg.ShowModal() == wxID_OK) {
+        md->faceInfo.clear();
+        dlg.GetFaceInfo(md->faceInfo);
+    }
+}
+
+void LayoutPanel::EditStates()
+{
+    Model* md = dynamic_cast<Model*>(selectedBaseObject);
+    if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel")
+        return;
+
+    ModelStateDialog dlg(this);
+    dlg.SetStateInfo(md, md->stateInfo);
+    if (dlg.ShowModal() == wxID_OK) {
+        md->stateInfo.clear();
+        dlg.GetStateInfo(md->stateInfo);
+    }
+}
+
+void LayoutPanel::EditModelData()
+{
+    CustomModel* md = dynamic_cast<CustomModel*>(selectedBaseObject);
+    if (md == nullptr || md->GetDisplayAs() != "Custom")
+        return;
+
+    md->SaveDisplayDimensions();
+    auto oldAutoSave = md->GetModelManager().GetXLightsFrame()->_suspendAutoSave;
+    md->GetModelManager().GetXLightsFrame()->_suspendAutoSave = true; // because we will tamper with model we need to suspend autosave
+    CustomModelDialog dlg(this);
+    dlg.Setup(md);
+    if (dlg.ShowModal() == wxID_OK) {
+        dlg.Save(md);
+        md->RestoreDisplayDimensions();
+    } else {
+        md->RestoreDisplayDimensions();
+        md->GetModelManager().GetXLightsFrame()->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CustomModel::CancelCustomData");
+    }
+    md->GetModelManager().GetXLightsFrame()->_suspendAutoSave = oldAutoSave;
+}
+
 void LayoutPanel::ShowNodeLayout()
 {
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
@@ -8367,8 +8441,15 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         }
         else if (type == "NODE_LAYOUT") {
             ShowNodeLayout();
-        }
-        else if (type == "SAVE_LAYOUT") {
+        } else if (type == "MODEL_SUBMODELS") {
+            EditSubmodels();
+        } else if (type == "MODEL_FACES") {
+            EditFaces();
+        } else if (type == "MODEL_STATES") {
+            EditStates();
+        } else if (type == "MODEL_MODELDATA") {
+            EditModelData();
+        } else if (type == "SAVE_LAYOUT") {
             SaveEffects();
             if (xlights->IsControllersAndLayoutTabSaveLinked()) {
                 xlights->SaveNetworksFile();
