@@ -114,22 +114,32 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
             float miny = 10000;
             float maxy = -1;
             for (auto const& idx : nodeIdx) {
-                NodeBaseClass* node = p->Nodes[idx]->clone();
-                for (const auto& c : node->Coords) {
-                    if (c.bufX < minx) minx = c.bufX;
-                    if (c.bufY < miny) miny = c.bufY;
-                    if (c.bufX > maxx) maxx = c.bufX;
-                    if (c.bufY > maxy) maxy = c.bufY;
+                // ignore nodes indexes if they are out of range
+                if (idx < p->Nodes.size()) {
+                    NodeBaseClass* node = p->Nodes[idx]->clone();
+                    for (const auto& c : node->Coords) {
+                        if (c.bufX < minx)
+                            minx = c.bufX;
+                        if (c.bufY < miny)
+                            miny = c.bufY;
+                        if (c.bufX > maxx)
+                            maxx = c.bufX;
+                        if (c.bufY > maxy)
+                            maxy = c.bufY;
+                    }
+                    delete node;
                 }
-                delete node;
             }
             for (auto const& idx : nodeIdx) {
-                NodeBaseClass* node = p->Nodes[idx]->clone();
-                startChannel = (std::min)(startChannel, node->ActChan);
-                Nodes.push_back(NodeBaseClassPtr(node));
-                for (auto& c : node->Coords) {
-                    c.bufX -= minx;
-                    c.bufY -= miny;
+                // ignore nodes indexes if they are out of range
+                if (idx < p->Nodes.size()) {
+                    NodeBaseClass* node = p->Nodes[idx]->clone();
+                    startChannel = (std::min)(startChannel, node->ActChan);
+                    Nodes.push_back(NodeBaseClassPtr(node));
+                    for (auto& c : node->Coords) {
+                        c.bufX -= minx;
+                        c.bufY -= miny;
+                    }
                 }
             }
             if (maxx < minx || maxy < miny || Nodes.size() == 0) {
