@@ -3248,6 +3248,7 @@ bool TwoPointScreenLocation::Rotate(MSLAXIS axis, float factor) {
     if (_locked) return false;
     glm::vec3 start_pt = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
     glm::vec3 end_pt = glm::vec3(x2 + worldPos_x, y2 + worldPos_y, z2 + worldPos_z);
+    glm::vec3 center(x2/2.0 + worldPos_x, y2/2.0 + worldPos_y, z2/2.0 + worldPos_z);
     glm::mat4 translateToOrigin = glm::translate(Identity, -center);
     glm::mat4 translateBack = glm::translate(Identity, center);
     glm::mat4 rot_mat = Identity;
