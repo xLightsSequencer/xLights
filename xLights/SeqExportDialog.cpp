@@ -63,8 +63,8 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent, const std::string& model, wxW
     ChoiceFormat->Append(_("LSP, Light Show Pro "));
     ChoiceFormat->Append(_("HLS, Hinkle Lighte Sequencer *.hlsnc"));
     ChoiceFormat->Append(_("xLights/FPP, *.fseq"));
-    ChoiceFormat->Append(_("Compressed Video, *.avi"));
-    ChoiceFormat->Append(_("Uncompressed Video, *.avi"));
+    ChoiceFormat->Append(_("Compressed Video, *.mp4"));
+    ChoiceFormat->Append(_("Uncompressed Video, *.mp4"));
     ChoiceFormat->Append(_("Minleon Network Effects Controller, *.bin"));
     ChoiceFormat->Append(_("GIF Image, *.gif"));
     FlexGridSizer2->Add(ChoiceFormat, 1, wxALL|wxEXPAND, 5);
@@ -111,8 +111,8 @@ SeqExportDialog::~SeqExportDialog()
 void SeqExportDialog::ModelExportTypes(bool isgroup)
 {
     if (isgroup) {
-        ChoiceFormat->Delete(ChoiceFormat->FindString(_("Compressed Video, *.avi")));
-        ChoiceFormat->Delete(ChoiceFormat->FindString(_("Uncompressed Video, *.avi")));
+        ChoiceFormat->Delete(ChoiceFormat->FindString(_("Compressed Video, *.mp4")));
+        ChoiceFormat->Delete(ChoiceFormat->FindString(_("Uncompressed Video, *.mp4")));
         ChoiceFormat->Delete(ChoiceFormat->FindString(_("Minleon Network Effects Controller, *.bin")));
     }
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("LOR. *.lms or *.las")));
@@ -166,8 +166,8 @@ void SeqExportDialog::SetDefaultName()
         TextCtrlFilename->SetValue(fsd + wxFileName::GetPathSeparator() + _model + ".eseq");
     } else if (fmt == "xLights/FPP, *.fseq") {
         TextCtrlFilename->SetValue(fsd + wxFileName::GetPathSeparator() + _model + ".fseq");
-    } else if (fmt == "Compressed Video, *.avi" || fmt == "Uncompressed Video, *.avi") {
-        TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".avi");
+    } else if (fmt == "Compressed Video, *.mp4" || fmt == "Uncompressed Video, *.mp4") {
+        TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".mp4");
     } else if (fmt == "Minleon Network Effects Controller, *.bin") {
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".bin");
     } else if (fmt == "GIF Image, *.gif") {
@@ -210,8 +210,8 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fsd, TextCtrlFilename->GetValue(), wxEmptyString, "FPP Compresses Sub Sequence (*.eseq)|*.eseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "xLights/FPP, *.fseq") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fsd, TextCtrlFilename->GetValue(), wxEmptyString, "xLights/FPP (*.fseq)|*.fseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    } else if (fmt == "Compressed Video, *.avi" || fmt == "Uncompressed Video, *.avi") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Video (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+    } else if (fmt == "Compressed Video, *.mp4" || fmt == "Uncompressed Video, *.mp4") {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Video (*.mp4)|*.mp4", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "Minleon Network Effects Controller, *.bin") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Minleon Networks Effects Controller (*.bin)|*.bin", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "GIF Image, *.gif") {

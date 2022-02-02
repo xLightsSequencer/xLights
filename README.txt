@@ -11,7 +11,24 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp) MacOS: Move to FFMPEG 5 for accelerated ProRes video decoding on M1 Pro/Max
+   -- enh (dkulp) MacOS: Update 3D Mouse support to manipulate individual control points
+   -- enh (dkulp) MacOS: Enhanced iCloud support to make sure files are fully downloaded when needed
+   -- enh (dkulp) Change export model videos to mp4 (from avi) to fix issues trying to import into various apps (like FinalCut)
    -- enh (keith) Add FX to single strand effect. This is a port of WS2812FX/FastLED as modified by WLED into xLights.
+   -- enh (keith) Add keybindings for model data, faces, states and submodels
+   -- enh (keith) VUMeter: Use sensitivity setting in VU Meter Timing Event Colour to control the transparency of the colour when no timing mark is actually present
+   -- enh (scott) Change xlDo controller and model commands to use JSON list type. Added more lua type wrappers to methods
+   -- enh (keith) Add ability to change temporarily multiple times before restoring to permanent
+   -- enh (keith) Warn user if they change show folder to a non-empty folder that does not contain networks or rgbeffects
+   -- bug (keith) Fix falcon WAV file header validation
+   -- bug (keith) Prevent negative drops on icicles
+   -- bug (keith) F1 on layout tab can cause a never ending loop
+   -- bug (dkulp) Fix undo of view object movements
+   -- bug (dkulp) Fix video preview on Windows
+   -- bug (keith) VUMeter:  Level colour shows white before it is first triggered
+   -- bug (keith) Crash loading submodel which references nodes that are out of range in the model
+   -- bug (dkulp) Fix arch/single line/candycane rotation around center
    -- bug (gil)   Fix issue with Per Model Default Deep not creating large enough buffer
 2022.03 January 22, 2022
    -- enh (dkulp) MacOS: Initial support for 3DConnexion 3D mice in Preview windows

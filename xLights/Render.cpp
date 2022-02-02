@@ -1876,12 +1876,12 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         WriteFalconPiModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), v2);
     } else if (Out3 == "Com") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        oName.SetExt(_("avi"));
+        oName.SetExt(_("mp4"));
         fullpath = oName.GetFullPath();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), true);
     } else if (Out3 == "Unc") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        oName.SetExt(_("avi"));
+        oName.SetExt(_("mp4"));
         fullpath = oName.GetFullPath();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false);
     } else if (Out3 == "Min") {

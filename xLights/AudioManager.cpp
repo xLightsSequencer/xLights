@@ -1208,6 +1208,9 @@ size_t AudioManager::GetAudioFileLength(std::string filename)
         return 0;
     }
 
+#if LIBAVCODEC_VERSION_MAJOR >= 59
+    const
+#endif
     AVCodec* cdc;
     int streamIndex = av_find_best_stream(formatContext, AVMEDIA_TYPE_AUDIO, -1, -1, &cdc, 0);
     if (streamIndex < 0)
@@ -2251,7 +2254,10 @@ int AudioManager::OpenMediaFile()
 	}
 
 	// Find the audio stream
-	AVCodec* cdc = nullptr;
+#if LIBAVCODEC_VERSION_MAJOR >= 59
+    const
+#endif
+    AVCodec* cdc = nullptr;
 	int streamIndex = av_find_best_stream(formatContext, AVMEDIA_TYPE_AUDIO, -1, -1, &cdc, 0);
 	if (streamIndex < 0)
 	{
@@ -3671,7 +3677,9 @@ AudioReaderDecoderInitState AudioReaderDecoder::initialize()
     status = ::avformat_find_stream_info( _formatContext, nullptr );
     if ( status < 0 )
         SetStateAndReturn( AudioReaderDecoderInitState::FindStreamInfoFails );
-
+#if LIBAVCODEC_VERSION_MAJOR >= 59
+    const
+#endif
     AVCodec *codec = nullptr;
     _streamIndex = ::av_find_best_stream( _formatContext, AVMEDIA_TYPE_AUDIO, -1, -1, &codec, 0 );
     if ( _streamIndex == -1 )

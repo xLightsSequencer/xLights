@@ -538,9 +538,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             format = "FPP";
         } else if (format == "eseqcompressed") {
             format = "FPPCompressed";
-        } else if (format == "avicompressed") {
+        } else if (format == "avicompressed" || format == "mp4compressed") {
             format = "Com";
-        } else if (format == "aviuncompressed") {
+        } else if (format == "aviuncompressed" || format == "mp4uncompressed") {
             format = "Unc";
         } else if (format == "minleon") {
             format = "Min";

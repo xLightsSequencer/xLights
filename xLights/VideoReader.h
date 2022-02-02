@@ -63,7 +63,7 @@ private:
 	AVFormatContext* _formatContext = nullptr;
 	AVCodecContext* _codecContext = nullptr;
 	AVStream* _videoStream = nullptr;
-    AVCodec* _decoder = nullptr;
+    const AVCodec* _decoder = nullptr;
     AVBufferRef* _hw_device_ctx = nullptr;
     void *hwDecoderCache = nullptr;
 	int _streamIndex = 0;

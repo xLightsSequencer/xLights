@@ -130,7 +130,13 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	}
 
 	// Find the video stream
-	_streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &_decoder, 0);
+#if LIBAVFORMAT_VERSION_MAJOR >= 59
+    _streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &_decoder, 0);
+#else
+    AVCodec* decoder = nullptr;
+	_streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &decoder, 0);
+    _decoder = decoder;
+#endif
 	if (_streamIndex < 0) {
         logger_base.error("VideoReader: Could not find any video stream in " + filename);
 		return;
@@ -473,10 +479,8 @@ long VideoReader::GetVideoLength(const std::string& filename)
     }
 
     // Find the video stream
-    AVCodec* cdc;
-    int streamIndex = av_find_best_stream(formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &cdc, 0);
-    if (streamIndex < 0)
-    {
+    int streamIndex = av_find_best_stream(formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+    if (streamIndex < 0) {
         avformat_close_input(&formatContext);
         return 0;
     }

@@ -877,52 +877,30 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     #if LIBAVFORMAT_VERSION_MAJOR < 58
     av_register_all();
     #endif
-
+    
     const char *filename = filenames.c_str();
-    AVOutputFormat* fmt = av_guess_format(nullptr, filename, nullptr);
-    if (!fmt)
-    {
-        logger_base.warn("   Could not deduce output format from file extension : using MPEG.");
-        fmt = av_guess_format("mpeg", filename, nullptr);
+    enum AVCodecID vc = AV_CODEC_ID_H264; //compressed ? AV_CODEC_ID_H264 : AV_CODEC_ID_MPEG4;
+    const AVCodec* codec = ::avcodec_find_encoder( vc );
+    if (codec == nullptr) {
+        //h264/h265 not working, stick with original guess (likely mpeg4)
+        vc = av_guess_format(nullptr, filename, nullptr)->video_codec;
+        codec = ::avcodec_find_encoder( vc );
     }
-    if (!fmt)
-    {
-        logger_base.error("   Could not find suitable output format.");
-        return;
-    }
-
-    // Choose the output video format
-    if (compressed)
-    {
-        fmt->video_codec = AV_CODEC_ID_H264;
-    }
-    else
-    {
-        fmt->video_codec = AV_CODEC_ID_RAWVIDEO;
-    }
-    //fmt->video_codec = AV_CODEC_ID_MPEG4; // this is the default for AVI
-
     // Create the codec context that will configure the codec
     AVFormatContext* oc = nullptr;
-    avformat_alloc_output_context2(&oc, fmt, nullptr, filename);
-    if (oc == nullptr)
-    {
+    AVDictionary * av_opts = NULL;
+    av_dict_set(&av_opts, "brand", "mp42", 0);
+    av_dict_set(&av_opts, "movflags", "+disable_chpl+write_colr", 0);
+    avformat_alloc_output_context2(&oc, nullptr,  "mp4", filename);
+    if (oc == nullptr) {
         logger_base.warn("   Could not create output context.");
         return;
     }
 
-    // Find the output codec
-    AVCodec* codec = avcodec_find_encoder(fmt->video_codec);
-    if (codec == nullptr)
-    {
-        logger_base.error("   Cannot find codec %d.", fmt->video_codec);
-        return;
-    }
 
     // Create a video stream
     AVStream* video_st = avformat_new_stream(oc, nullptr);
-    if (video_st == nullptr)
-    {
+    if (video_st == nullptr) {
         logger_base.error("   Cannot allocate stream.");
         return;
     }
@@ -932,7 +910,6 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
 
     // Configure the codec
     AVCodecContext* codecContext = avcodec_alloc_context3( codec );
-    codecContext->bit_rate = 400000;
     codecContext->width = width;
     codecContext->height = height;
     codecContext->time_base.num = 1;
@@ -940,54 +917,68 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     codecContext->gop_size = 12; // key frame gap ... 1 is all key frames
     codecContext->max_b_frames = 1;
     codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
-
-    if (fmt->video_codec == AV_CODEC_ID_H264)
-    {
-        codecContext->pix_fmt = AV_PIX_FMT_YUV444P;
-        av_opt_set(codecContext->priv_data, "preset", "ultrafast", 0);
-        av_opt_set(codecContext->priv_data, "qp", "0", 0);
-        av_opt_set(codecContext->priv_data, "crf", "0", AV_OPT_SEARCH_CHILDREN);
+    if (!compressed) {
+        codecContext->bit_rate = framesPerSec * width * height * 3 * 8;
+        codecContext->gop_size = 1;
+        codecContext->has_b_frames = 0;
+        codecContext->max_b_frames = 0;
     }
-    else if (codecContext->codec_id == AV_CODEC_ID_MPEG4) {
-        av_opt_set(codecContext->priv_data, "qp", "0", 0);
-        av_opt_set(codecContext->priv_data, "crf", "0", AV_OPT_SEARCH_CHILDREN);
-    }
-    else if (codecContext->codec_id == AV_CODEC_ID_RAWVIDEO)
-    {
+    if (codecContext->codec_id == AV_CODEC_ID_H264) {
+        if (codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
+            if (!compressed) {
+                ::av_opt_set( codecContext, "q:v", "12800", AV_OPT_SEARCH_CHILDREN );
+            } else {
+                ::av_opt_set( codecContext, "q:v", "60", AV_OPT_SEARCH_CHILDREN );
+            }
+        } else {
+            ::av_opt_set( codecContext, "preset", "fast", AV_OPT_SEARCH_CHILDREN );
+            if (!compressed) {
+                ::av_opt_set( codecContext, "crf", "0", AV_OPT_SEARCH_CHILDREN );
+                ::av_opt_set( codecContext, "qp", "0", AV_OPT_SEARCH_CHILDREN );
+            } else {
+                ::av_opt_set( codecContext, "crf", "18", AV_OPT_SEARCH_CHILDREN );
+            }
+        }
+    } else if (codecContext->codec_id == AV_CODEC_ID_MPEG4) {
+        av_opt_set(codecContext, "qp", "0", AV_OPT_SEARCH_CHILDREN);
+        av_opt_set(codecContext, "crf", "0", AV_OPT_SEARCH_CHILDREN);
+    } else if (codecContext->codec_id == AV_CODEC_ID_RAWVIDEO) {
         codecContext->pix_fmt = AV_PIX_FMT_BGR24;
-        av_opt_set(codecContext->priv_data, "qp", "0", 0);
-        av_opt_set(codecContext->priv_data, "crf", "0", AV_OPT_SEARCH_CHILDREN);
-    }
-    else if (codecContext->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
+        av_opt_set(codecContext, "qp", "0", AV_OPT_SEARCH_CHILDREN);
+        av_opt_set(codecContext, "crf", "0", AV_OPT_SEARCH_CHILDREN);
+    } else if (codecContext->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
         /* Needed to avoid using macroblocks in which some coeffs overflow.
          * This does not happen with normal video, it just happens here as
          * the motion of the chroma plane does not match the luma plane. */
         codecContext->mb_decision = 2;
     }
 
-    if (oc->oformat->flags & AVFMT_GLOBALHEADER)
+    if (oc->oformat->flags & AVFMT_GLOBALHEADER) {
         codecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
+    }
 
     int ret = avcodec_open2(codecContext, nullptr, nullptr);
-    if (ret < 0)
-    {
+    if (ret < 0) {
         logger_base.error("   Cannot open codec context %d.", ret);
         return;
     }
 
     ret = avcodec_parameters_from_context( video_st->codecpar, codecContext );
-    if ( ret != 0 )
-    {
+    if ( ret != 0 ) {
         logger_base.error( "   Cannot init video stream from codec context" );
         return;
     }
-
-    ret = avformat_init_output(oc, nullptr);
-    if (ret < 0)
-    {
-        logger_base.error("   Cannot init output %d.", ret);
-        return;
+    video_st->disposition |= AV_DISPOSITION_DEFAULT;
+    if (AV_CODEC_ID_H264 == codec->id) {
+        video_st->codecpar->codec_tag = MKTAG('a','v','c','1');
+    } else if (AV_CODEC_ID_MPEG4 == codec->id) {
+        //video_st->codecpar->codec_tag = MKTAG('r','a','w',' ');
+    } else if (AV_CODEC_ID_RAWVIDEO == codec->id) {
+        video_st->codecpar->codec_tag = MKTAG('r','a','w',' ');
     }
+    AVRational r = {(int)framesPerSec, 1};
+    video_st->avg_frame_rate = r;
+    video_st->r_frame_rate = r;
 
     // Create the frame object which will be placed in the packet
     AVFrame* frame = av_frame_alloc();
@@ -1028,23 +1019,19 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     av_dump_format(oc, 0, filename, 1);
 
     /* open the output file, if needed */
-    if (!(fmt->flags & AVFMT_NOFILE)) {
-        if (avio_open(&oc->pb, filename, AVIO_FLAG_WRITE) < 0) {
-            logger_base.error("   Could open file %s.", static_cast<const char *>(filename));
-            return;
-        }
+    if (avio_open(&oc->pb, filename, AVIO_FLAG_WRITE) < 0) {
+        logger_base.error("   Could open file %s.", static_cast<const char *>(filename));
+        return;
     }
 
     /* Write the stream header, if any. */
-    if (avformat_write_header(oc, nullptr) < 0) {
+    if (avformat_write_header(oc, &av_opts) < 0) {
         logger_base.error("   Could not write video file header.");
         return;
     }
 
     frame->pts = 0;
-
-    for (size_t i = startFrame; i < endFrame; i++)
-    {
+    for (size_t i = startFrame; i < endFrame; i++) {
         // Create a bitmap with the current frame
         wxImage image(origwidth, origheight, true);
         FillImage(image, model, (uint8_t*)&(*dataBuf)[i][0], startAddr, false);
@@ -1071,25 +1058,22 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
         av_init_packet(pkt);
 
         ret = avcodec_send_frame(codecContext, frame);
-        if ( ret < 0 )
-        {
+        if ( ret < 0 ) {
             logger_base.error("   Error encoding frame %d.", ret);
             return;
         }
 
-        while (1)
-        {
+        while (1) {
             ret = avcodec_receive_packet(codecContext, pkt);
-            if (ret == 0)
-            {
+            if (ret == 0) {
                 pkt->duration = 1LL;
                 ret = av_interleaved_write_frame(oc, pkt);
-            }
-            else if (ret == AVERROR(EAGAIN))
+            } else if (ret == AVERROR(EAGAIN)) {
                 break;
+            }
         }
 
-        frame->pts += 1LL;
+        frame->pts += av_rescale_q(1, codecContext->time_base, video_st->time_base);
 
         av_packet_free(&pkt);
     }
@@ -1099,15 +1083,13 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
         AVPacket* pkt = av_packet_alloc();
         av_init_packet(pkt);
         ret = avcodec_send_frame(codecContext, nullptr);
-        while (1)
-        {
+        while (1) {
             ret = avcodec_receive_packet(codecContext, pkt);
-            if (ret == 0)
-            {
+            if (ret == 0) {
                 ret = av_interleaved_write_frame(oc, pkt);
-            }
-            else if (ret == AVERROR_EOF)
+            } else if (ret == AVERROR_EOF) {
                 break;
+            }
         }
         av_packet_free(&pkt);
     }
@@ -1116,8 +1098,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     av_write_trailer(oc);
 
     // Close the output file
-    if (!(fmt->flags & AVFMT_NOFILE))
-        avio_closep( &oc->pb );
+    avio_closep( &oc->pb );
 
     // Free and close everything
     sws_freeContext(sws_ctx);
