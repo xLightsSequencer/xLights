@@ -408,8 +408,15 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
     else {
         width = buffer.BufferWi;
     }
+    
+    if (Mirror) {
+        if ((width % 2) == 0) {
+            width /= 2;
+        } else {
+            width = (width + 1) / 2;
+        }
+    }
 
-    if (Mirror) width /= 2;
     if (width == 0) width = 1;
 
     // Make this a variable since it's used regularly
