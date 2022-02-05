@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.04 February 5, 2022
    -- enh (dkulp) MacOS: Move to FFMPEG 5 for accelerated ProRes video decoding on M1 Pro/Max
    -- enh (dkulp) MacOS: Update 3D Mouse support to manipulate individual control points
    -- enh (dkulp) MacOS: Enhanced iCloud support to make sure files are fully downloaded when needed
@@ -21,6 +22,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (scott) Change xlDo controller and model commands to use JSON list type. Added more lua type wrappers to methods
    -- enh (keith) Add ability to change temporarily multiple times before restoring to permanent
    -- enh (keith) Warn user if they change show folder to a non-empty folder that does not contain networks or rgbeffects
+   -- bug (MikeSoukup) Include middle pixel for Single Strand / From Middle effect with odd number of nodes
    -- bug (keith) Fix falcon WAV file header validation
    -- bug (keith) Prevent negative drops on icicles
    -- bug (keith) F1 on layout tab can cause a never ending loop
