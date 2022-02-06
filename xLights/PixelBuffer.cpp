@@ -1078,32 +1078,32 @@ uint32_t PixelBufferClass::GetChanCountPerNode() const
 
 bool MixTypeHandlesAlpha(MixTypes mt)
 {
-    return mt == Mix_Normal;
+    return mt == MixTypes::Mix_Normal;
 }
 
 static std::map<std::string, MixTypes> MixTypesMap = {
-    {"Effect 1", Mix_Effect1},
-    {"Effect 2", Mix_Effect2},
-    {"1 is Mask", Mix_Mask1},
-    {"2 is Mask", Mix_Mask2},
-    {"1 is Unmask", Mix_Unmask1},
-    {"2 is Unmask", Mix_Unmask2},
-    {"1 is True Unmask", Mix_TrueUnmask1},
-    {"2 is True Unmask", Mix_TrueUnmask2},
-    {"1 reveals 2", Mix_1_reveals_2},
-    {"2 reveals 1", Mix_2_reveals_1},
-    {"Shadow 1 on 2", Mix_Shadow_1on2},
-    {"Shadow 2 on 1", Mix_Shadow_2on1},
-    {"Layered", Mix_Layered},
-    {"Normal", Mix_Normal},
-    {"Additive", Mix_Additive},
-    {"Subtractive", Mix_Subtractive},
-    {"Brightness", Mix_AsBrightness},
-    {"Average", Mix_Average},
-    {"Bottom-Top", Mix_BottomTop},
-    {"Left-Right", Mix_LeftRight},
-    {"Max", Mix_Max},
-    {"Min", Mix_Min}
+    { "Effect 1", MixTypes::Mix_Effect1 },
+    { "Effect 2", MixTypes::Mix_Effect2 },
+    { "1 is Mask", MixTypes::Mix_Mask1 },
+    { "2 is Mask", MixTypes::Mix_Mask2 },
+    { "1 is Unmask", MixTypes::Mix_Unmask1 },
+    { "2 is Unmask", MixTypes::Mix_Unmask2 },
+    { "1 is True Unmask", MixTypes::Mix_TrueUnmask1 },
+    { "2 is True Unmask", MixTypes::Mix_TrueUnmask2 },
+    { "1 reveals 2", MixTypes::Mix_1_reveals_2 },
+    { "2 reveals 1", MixTypes::Mix_2_reveals_1 },
+    { "Shadow 1 on 2", MixTypes::Mix_Shadow_1on2 },
+    { "Shadow 2 on 1", MixTypes::Mix_Shadow_2on1 },
+    { "Layered", MixTypes::Mix_Layered },
+    { "Normal", MixTypes::Mix_Normal },
+    { "Additive", MixTypes::Mix_Additive },
+    { "Subtractive", MixTypes::Mix_Subtractive },
+    { "Brightness", MixTypes::Mix_AsBrightness },
+    { "Average", MixTypes::Mix_Average },
+    { "Bottom-Top", MixTypes::Mix_BottomTop },
+    { "Left-Right", MixTypes::Mix_LeftRight },
+    { "Max", MixTypes::Mix_Max },
+    { "Min", MixTypes::Mix_Min }
 };
 
 std::vector<std::string> PixelBufferClass::GetMixTypes()
@@ -1120,7 +1120,7 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
 {
     auto it = MixTypesMap.find(MixName);
     if (it == MixTypesMap.end()) {
-        layers[layer]->mixType = Mix_Effect1;
+        layers[layer]->mixType = MixTypes::Mix_Effect1;
     } else {
         layers[layer]->mixType = it->second;
     }
@@ -1165,12 +1165,12 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
     float effectMixThreshold = layer->outputEffectMixThreshold;
     switch (layer->mixType)
     {
-    case Mix_Normal:
+    case MixTypes::Mix_Normal:
         fg.alpha = fg.alpha * layer->fadeFactor * (1.0 - effectMixThreshold);
         bg.AlphaBlendForgroundOnto(fg);
         break;
-    case Mix_Effect1:
-    case Mix_Effect2:
+    case MixTypes::Mix_Effect1:
+    case MixTypes::Mix_Effect2:
     {
         double emt, emtNot;
         if (!layer->effectMixVaries) {
@@ -1189,7 +1189,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             emtNot = 1 - effectMixThreshold;
         }
 
-        if (layer->mixType == Mix_Effect2) {
+        if (layer->mixType == MixTypes::Mix_Effect2) {
             fg.Set(fg.Red()*(emtNot),fg.Green()*(emtNot), fg.Blue()*(emtNot));
             bg.Set(bg.Red()*(emt),bg.Green()*(emt), bg.Blue()*(emt));
         } else {
@@ -1199,7 +1199,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         bg.Set(fg.Red()+bg.Red(), fg.Green()+bg.Green(), fg.Blue()+bg.Blue());
         break;
     }
-    case Mix_Mask1:
+    case MixTypes::Mix_Mask1:
     {
         // first masks second
         HSVValue hsv0 = fg.asHSV();
@@ -1208,7 +1208,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Mask2:
+    case MixTypes::Mix_Mask2:
     {
         // second masks first
         HSVValue hsv1 = bg.asHSV();
@@ -1219,7 +1219,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Unmask1:
+    case MixTypes::Mix_Unmask1:
     {
         // first unmasks second
         HSVValue hsv0 = fg.asHSV();
@@ -1232,7 +1232,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_TrueUnmask1:
+    case MixTypes::Mix_TrueUnmask1:
     {
         // first unmasks second
         HSVValue hsv0 = fg.asHSV();
@@ -1241,7 +1241,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Unmask2:
+    case MixTypes::Mix_Unmask2:
     {
         // second unmasks first
         HSVValue hsv1 = bg.asHSV();
@@ -1255,7 +1255,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_TrueUnmask2:
+    case MixTypes::Mix_TrueUnmask2:
     {
         // second unmasks first
         HSVValue hsv1 = bg.asHSV();
@@ -1267,7 +1267,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Shadow_1on2:
+    case MixTypes::Mix_Shadow_1on2:
     {
         // Effect 1 shadows onto effect 2
         HSVValue hsv0 = fg.asHSV();
@@ -1283,7 +1283,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         //   }
         break;
     }
-    case Mix_Shadow_2on1:
+    case MixTypes::Mix_Shadow_2on1:
     {
         // Effect 2 shadows onto effect 1
         HSVValue hsv0 = fg.asHSV();
@@ -1295,7 +1295,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         bg = hsv0;
         break;
     }
-    case Mix_Layered:
+    case MixTypes::Mix_Layered:
     {
         HSVValue hsv1 = bg.asHSV();
         if (hsv1.value <= effectMixThreshold) {
@@ -1303,7 +1303,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Average:
+    case MixTypes::Mix_Average:
         // only average when both colors are non-black
         if (bg == xlBLACK) {
             bg = fg;
@@ -1311,25 +1311,25 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             bg.Set( (fg.Red()+bg.Red())/2, (fg.Green()+bg.Green())/2, (fg.Blue()+bg.Blue())/2 );
         }
         break;
-    case Mix_BottomTop:
+    case MixTypes::Mix_BottomTop:
         bg = y < layer->BufferHt/2 ? fg : bg;
         break;
-    case Mix_LeftRight:
+    case MixTypes::Mix_LeftRight:
         bg = x < layer->BufferWi/2 ? fg : bg;
         break;
-    case Mix_1_reveals_2:
+    case MixTypes::Mix_1_reveals_2:
     {
         HSVValue hsv0 = fg.asHSV();
         bg = hsv0.value > effectMixThreshold ? fg : bg; // if effect 1 is non black
         break;
     }
-    case Mix_2_reveals_1:
+    case MixTypes::Mix_2_reveals_1:
     {
         HSVValue hsv1 = bg.asHSV();
         bg = hsv1.value > effectMixThreshold ? bg : fg; // if effect 2 is non black
         break;
     }
-    case Mix_Additive:
+    case MixTypes::Mix_Additive:
         {
             int r = fg.red + bg.red;
             int g = fg.green + bg.green;
@@ -1340,7 +1340,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             bg.Set(r, g, b);
         }
         break;
-    case Mix_Subtractive:
+    case MixTypes::Mix_Subtractive:
         {
             int r = bg.red - fg.red;
             int g = bg.green - fg.green;
@@ -1352,7 +1352,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
 
-    case Mix_Min:
+    case MixTypes::Mix_Min:
         {
             int r = std::min(fg.red, bg.red);
             int g = std::min(fg.green, bg.green);
@@ -1360,7 +1360,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             bg.Set(r, g, b);
         }
         break;
-    case Mix_Max:
+    case MixTypes::Mix_Max:
         {
             int r = std::max(fg.red, bg.red);
             int g = std::max(fg.green, bg.green);
@@ -1368,7 +1368,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             bg.Set(r, g, b);
         }
         break;
-    case Mix_AsBrightness:
+    case MixTypes::Mix_AsBrightness:
         {
         int r = fg.red * bg.red / 255;
         int g = fg.green *  bg.green / 255;

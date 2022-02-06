@@ -42,7 +42,7 @@ ColorManager* ColorManager::instance()
 }
 
 void ColorManager::SysColorChanged() {
-    for( size_t i = 0; i < NUM_COLORS; ++i ) {
+    for( size_t i = 0; i < ColorManager::ColorNames::NUM_COLORS; ++i ) {
         if (xLights_color[i].systemColor != wxSYS_COLOUR_MAX) {
             //using a system color, we need to reload it
             wxColour c = wxSystemSettings::GetColour(xLights_color[i].systemColor);
@@ -64,7 +64,7 @@ void ColorManager::ResetDefaults()
 {
     colors.clear();
     colors_system.clear();
-    for( size_t i = 0; i < NUM_COLORS; ++i ) {
+    for (size_t i = 0; i < ColorManager::ColorNames::NUM_COLORS; ++i) {
         if (xLights_color[i].systemColor == wxSYS_COLOUR_MAX) {
             colors[xLights_color[i].name] = xLights_color[i].color;
         } else {
@@ -86,18 +86,18 @@ void ColorManager::Snapshot()
 {
 	// store a new snapshot
     colors_backup.clear();
-    for (auto it = colors.begin(); it != colors.end(); ++it)
+    for (const auto& it: colors)
 	{
-        colors_backup[it->first] = it->second;
+        colors_backup[it.first] = it.second;
 	}
 }
 
 void ColorManager::RestoreSnapshot()
 {
     colors.clear();
-    for (auto it = colors_backup.begin(); it != colors_backup.end(); ++it)
+    for (const auto& it : colors_backup)
 	{
-        colors[it->first] = it->second;
+        colors[it.first] = it.second;
 	}
 }
 
@@ -118,7 +118,7 @@ void ColorManager::SetDirty()
     xlights->UpdateControllerSave();
 }
 
-xlColor ColorManager::GetColor(ColorNames name)
+xlColor ColorManager::GetColor(ColorManager::ColorNames name)
 {
     auto search = colors.find(xLights_color[name].name);
     if(search != colors.end()) {
@@ -192,12 +192,12 @@ wxXmlNode* ColorManager::Save() const
 {
 	wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "colors");
 
-	for (auto it = colors.begin(); it != colors.end(); ++it)
+	for (const auto& it : colors)
 	{
-	    wxXmlNode* cnode = new wxXmlNode(wxXML_ELEMENT_NODE, it->first);
-	    cnode->AddAttribute("Red", wxString::Format("%d", it->second.red));
-	    cnode->AddAttribute("Green", wxString::Format("%d", it->second.green));
-	    cnode->AddAttribute("Blue", wxString::Format("%d", it->second.blue));
+	    wxXmlNode* cnode = new wxXmlNode(wxXML_ELEMENT_NODE, it.first);
+	    cnode->AddAttribute("Red", wxString::Format("%d", it.second.red));
+	    cnode->AddAttribute("Green", wxString::Format("%d", it.second.green));
+	    cnode->AddAttribute("Blue", wxString::Format("%d", it.second.blue));
         node->AddChild(cnode);
 	}
 

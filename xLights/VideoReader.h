@@ -20,10 +20,6 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 
-#ifdef __WXMSW__
-#include <d3d9.h>
-#endif
-
 class VideoReader
 {
 public:
@@ -76,14 +72,11 @@ private:
     int _curPos = 0;
     int _firstFramePos = -1;
     SwsContext *_swsCtx = nullptr;
-    AVPacket _packet;
+    AVPacket* _packet = nullptr;
 	AVPixelFormat _pixelFmt;
 	bool _atEnd = false;
     std::string _filename;
     bool _abort = false;
     bool _videoToolboxAccelerated; 
     bool _abandonHardwareDecode = false;
-#ifdef __WXMSW__
-    std::list<D3DTEXTUREFILTERTYPE> _dxva2_filters = { D3DTEXF_ANISOTROPIC, D3DTEXF_PYRAMIDALQUAD, D3DTEXF_GAUSSIANQUAD, D3DTEXF_LINEAR, D3DTEXF_POINT, D3DTEXF_NONE };
-#endif
 };

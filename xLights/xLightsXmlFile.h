@@ -88,8 +88,8 @@ class xLightsXmlFile : public wxFileName
 		void SetMediaFile(const wxString& ShowDir, const wxString& filename, bool overwrite_tags );
 		void ClearMediaFile();
 
-        wxString GetHeaderInfo(HEADER_INFO_TYPES node_type) { return header_info[node_type]; }
-        void SetHeaderInfo(HEADER_INFO_TYPES node_type, const wxString& node_value);
+        wxString GetHeaderInfo(xLightsXmlFile::HEADER_INFO_TYPES node_type) { return header_info[node_type]; }
+        void SetHeaderInfo(xLightsXmlFile::HEADER_INFO_TYPES node_type, const wxString& node_value);
 
         wxString GetImageDir(wxWindow* parent);
         void SetImageDir(const wxString& dir);

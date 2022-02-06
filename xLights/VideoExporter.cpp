@@ -314,11 +314,11 @@ void GenericVideoExporter::initializeFrames()
 void GenericVideoExporter::initializePackets()
 {
    _videoPacket = ::av_packet_alloc();
-   ::av_init_packet( _videoPacket );
+   //::av_init_packet( _videoPacket );
 
    if (!_videoOnly) {
        _audioPacket = ::av_packet_alloc();
-       ::av_init_packet(_audioPacket);
+       //::av_init_packet(_audioPacket);
    }
 }
 

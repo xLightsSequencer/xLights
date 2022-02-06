@@ -41,7 +41,7 @@ class Effect
 {
     int mID = 0;
     short mEffectIndex = -1;
-    std::string *mName;
+    std::string *mName = nullptr;
     int mStartTime = 0;
     int mEndTime = 0;
     int mSelected = 0;

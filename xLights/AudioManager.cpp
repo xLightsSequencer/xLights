@@ -2454,7 +2454,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     int out_sample_rate = _rate;
 
     AVPacket* readingPacket = av_packet_alloc();
-	av_init_packet( readingPacket );
+	//av_init_packet( readingPacket );
 
     #define CONVERSION_BUFFER_SIZE 192000
     uint8_t* out_buffer = (uint8_t *)av_malloc(CONVERSION_BUFFER_SIZE * out_channels * 2); // 1 second of audio
@@ -2655,7 +2655,7 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
         logger_base.info( "av_frame_alloc okay" );
 
 	AVPacket *readingPacket = av_packet_alloc();
-	av_init_packet( readingPacket );
+	//av_init_packet( readingPacket );
 
 	// start at the beginning
 	av_seek_frame( formatContext, 0, 0, AVSEEK_FLAG_ANY );
@@ -2681,6 +2681,8 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 		// You *must* call av_free_packet() after each call to av_read_frame() or else you'll leak memory
 		av_packet_unref( readingPacket );
 	}
+
+    av_packet_free(&readingPacket);
 
 	// Clean up!
     av_frame_free( &frame );
@@ -3434,28 +3436,30 @@ bool AudioManager::WriteAudioFrame(AVFormatContext *oc, AVCodecContext* codecCon
         return false;
     }
 
-    AVPacket pkt;
-    av_init_packet(&pkt);
-    pkt.data = nullptr;    // packet data will be allocated by the encoder
-    pkt.size = 0;
-    pkt.stream_index = st->index;
+    AVPacket* pkt = av_packet_alloc();
+    //AVPacket pkt;
+    //av_init_packet(&pkt);
+    pkt->data = nullptr;    // packet data will be allocated by the encoder
+    pkt->size = 0;
+    pkt->stream_index = st->index;
 
     if ( avcodec_send_frame( codecContext, frame ) == 0 )
     {
-        if ( avcodec_receive_packet( codecContext, &pkt) == 0 )
+        if ( avcodec_receive_packet( codecContext, pkt) == 0 )
         {
-            pkt.stream_index = st->index;
-            if ( av_interleaved_write_frame(oc, &pkt) != 0 )
+            pkt->stream_index = st->index;
+            if ( av_interleaved_write_frame(oc, pkt) != 0 )
             {
                 logger_base.error("  error writing audio data");
                 return false;
             }
 
-            av_packet_unref( &pkt );
+            av_packet_unref( pkt );
         }
     }
 
-    av_frame_free( &frame );
+	av_packet_free(&pkt);
+    av_frame_free(&frame);
     return true;
 }
 
@@ -3698,7 +3702,7 @@ AudioReaderDecoderInitState AudioReaderDecoder::initialize()
     _packet = ::av_packet_alloc();
     if ( _packet == nullptr )
         SetStateAndReturn( AudioReaderDecoderInitState::PacketAllocFails );
-    ::av_init_packet( _packet );
+    //::av_init_packet( _packet );
 
     _frame = ::av_frame_alloc();
     if ( _frame == nullptr )
@@ -3877,8 +3881,7 @@ namespace
 
 AudioLoader::AudioLoader( const std::string& path, bool forceLittleEndian/*=false*/ )
     : _path( path )
-    , _forceLittleEndian( forceLittleEndian )
-    , _state( NoInit )
+    , _forceLittleEndian( forceLittleEndian ), _state(AudioLoader::State::NoInit)
     , _numInResampleBuffer( 0 )
     , _resampleBufferSampleCapacity( 0 )
     , _primingAdjustment( 0 )
@@ -3909,7 +3912,7 @@ bool AudioLoader::loadAudioData()
     _readerDecoder.reset( new AudioReaderDecoder( _path ) );
 
     if ( _readerDecoder->initialize() != AudioReaderDecoderInitState::Ok )
-        SetStateAndReturn( ReaderDecoderInitFails, false );
+        SetStateAndReturn(AudioLoader::State::ReaderDecoderInitFails, false);
 
     // ReaderDecoder has already successfully initialized so no need to check return value
     _readerDecoder->getAudioParams( _inputParams );
@@ -3922,7 +3925,7 @@ bool AudioLoader::loadAudioData()
 
     _resampler.reset( new AudioResampler( _resamplerInputParams, _resamplerInputParams.sampleRate, outputParams ) );
     if ( _resampler->initialize() != AudioResamplerInitState::Ok )
-        SetStateAndReturn( ResamplerInitFails, false );
+        SetStateAndReturn(AudioLoader::State::ResamplerInitFails, false);
 
     _resampleBufferSampleCapacity = _inputParams.sampleRate;
 
@@ -3937,7 +3940,7 @@ bool AudioLoader::loadAudioData()
     };
 
     if ( !_readerDecoder->readAndDecode( callback ) )
-        SetStateAndReturn( LoadAudioFails, false );
+        SetStateAndReturn(AudioLoader::State::LoadAudioFails, false);
 
     flushResampleBuffer();
 
@@ -3956,7 +3959,7 @@ bool AudioLoader::loadAudioData()
         }
     }
 
-    SetStateAndReturn( Ok, true );
+    SetStateAndReturn(AudioLoader::State::Ok, true);
 }
 
 bool AudioLoader::readerDecoderInitState( AudioReaderDecoderInitState& state ) const

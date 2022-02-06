@@ -668,7 +668,7 @@ void xLightsFrame::WriteFalconPiModelFile(const wxString& filename, long numChan
             return;
         }
 
-        wxUint8 buf[ESEQ_HEADER_LENGTH];
+        wxUint8 buf[ESEQ_HEADER_LENGTH] = { 0 };
 
         // Header Information
         // Format Identifier
@@ -710,7 +710,7 @@ void xLightsFrame::WriteFalconPiModelFile(const wxString& filename, long numChan
 // Log messages from libav*
 void my_av_log_callback(void *ptr, int level, const char *fmt, va_list vargs)
 {
-    static char message[8192];
+    static char message[8192] = { 0 };
 
     // Create the actual message
     vsnprintf(message, sizeof(message), fmt, vargs);
@@ -879,7 +879,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     #endif
     
     const char *filename = filenames.c_str();
-    enum AVCodecID vc = AV_CODEC_ID_H264; //compressed ? AV_CODEC_ID_H264 : AV_CODEC_ID_MPEG4;
+    AVCodecID vc = AVCodecID::AV_CODEC_ID_H264; //compressed ? AV_CODEC_ID_H264 : AV_CODEC_ID_MPEG4;
     const AVCodec* codec = ::avcodec_find_encoder( vc );
     if (codec == nullptr) {
         //h264/h265 not working, stick with original guess (likely mpeg4)
@@ -916,15 +916,15 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     codecContext->time_base.den = framesPerSec;
     codecContext->gop_size = 12; // key frame gap ... 1 is all key frames
     codecContext->max_b_frames = 1;
-    codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
+    codecContext->pix_fmt = AVPixelFormat::AV_PIX_FMT_YUV420P;
     if (!compressed) {
         codecContext->bit_rate = framesPerSec * width * height * 3 * 8;
         codecContext->gop_size = 1;
         codecContext->has_b_frames = 0;
         codecContext->max_b_frames = 0;
     }
-    if (codecContext->codec_id == AV_CODEC_ID_H264) {
-        if (codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
+    if (codecContext->codec_id == AVCodecID::AV_CODEC_ID_H264) {
+        if (codec->pix_fmts[0] == AVPixelFormat::AV_PIX_FMT_VIDEOTOOLBOX) {
             if (!compressed) {
                 ::av_opt_set( codecContext, "q:v", "12800", AV_OPT_SEARCH_CHILDREN );
             } else {
@@ -1002,7 +1002,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     }
 
     // Create source and final image frames
-    AVFrame src_picture;
+    AVFrame src_picture = { 0 };
     ret = av_image_alloc(src_picture.data, src_picture.linesize, origwidth, origheight, informat, 1);
     if (ret < 0) {
         logger_base.error("   Could not allocate picture buffer.");
@@ -1055,7 +1055,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
         }
 
         AVPacket* pkt = av_packet_alloc();
-        av_init_packet(pkt);
+        //av_init_packet(pkt);
 
         ret = avcodec_send_frame(codecContext, frame);
         if ( ret < 0 ) {
@@ -1081,7 +1081,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     // render out any buffered data
     {
         AVPacket* pkt = av_packet_alloc();
-        av_init_packet(pkt);
+        //av_init_packet(pkt);
         ret = avcodec_send_frame(codecContext, nullptr);
         while (1) {
             ret = avcodec_receive_packet(codecContext, pkt);
@@ -1274,7 +1274,7 @@ void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, un
 
         // Black out the almost blacks
         const unsigned char BLACK_THRESHOLD = 5;
-        auto pal = image2.GetPalette();
+        auto& pal = image2.GetPalette();
 
         unsigned char* red = (unsigned char*)malloc(pal.GetColoursCount());
         unsigned char* green = (unsigned char*)malloc(pal.GetColoursCount());
@@ -1410,7 +1410,7 @@ wxString FromAscii(const char *val) {
 void xLightsFrame:: ReadXlightsFile(const wxString& FileName, wxString *mediaFilename)
 {
     wxFile f;
-    char hdr[512], filetype[10];
+    char hdr[512] = { 0 }, filetype[10] = { 0 };
     int fileversion, numch, numper;
 
     ConversionInit();

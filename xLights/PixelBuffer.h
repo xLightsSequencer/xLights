@@ -53,7 +53,7 @@
  * \brief enumeration of the different techniques used in layering effects
  */
 
-enum MixTypes
+enum class MixTypes
 {
     Mix_Normal,  /** Layered with Alpha channel considered **/
     Mix_Effect1, /**<  Effect 1 only */
@@ -116,7 +116,7 @@ private:
             valueadjust = 0;
             contrast = 0;
             fadeFactor = 0.0;
-            mixType = Mix_Normal;
+            mixType = MixTypes::Mix_Normal;
             effectMixThreshold = 0.0;
             effectMixVaries = false;
             canvas = false;

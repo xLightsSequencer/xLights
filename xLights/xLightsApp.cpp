@@ -874,7 +874,7 @@ bool xLightsApp::OnInit()
                 showDir=wxPathOnly(sequenceFile);
                 while (showDir != "" && !FileExists(showDir + "/" + "xlights_rgbeffects.xml"))
                 {
-                    auto old = showDir;
+                    wxString old = showDir;
                     showDir = wxPathOnly(showDir);
                     if (showDir == old) showDir = "";
                 }
