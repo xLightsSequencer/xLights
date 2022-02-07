@@ -260,7 +260,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_VIEW_DEFAULT" variable="VeiwDefaultChoice" member="yes" />
+				<object class="wxChoice" name="ID_CHOICE_VIEW_DEFAULT" variable="ViewDefaultChoice" member="yes" />
 				<col>1</col>
 				<row>2</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

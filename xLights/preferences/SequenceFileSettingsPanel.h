@@ -46,7 +46,7 @@ class SequenceFileSettingsPanel: public wxPanel
 		wxChoice* FSEQVersionChoice;
 		wxChoice* ModelBlendDefaultChoice;
 		wxChoice* RenderCacheChoice;
-		wxChoice* VeiwDefaultChoice;
+		wxChoice* ViewDefaultChoice;
 		wxDirPickerCtrl* DirPickerCtrl_FSEQ;
 		wxDirPickerCtrl* DirPickerCtrl_RenderCache;
 		wxListBox* MediaDirectoryList;
@@ -98,7 +98,7 @@ class SequenceFileSettingsPanel: public wxPanel
 		void OnRemoveMediaButtonClick(wxCommandEvent& event);
 		void OnMediaDirectoryListSelect(wxCommandEvent& event);
 		void OnModelBlendDefaultChoiceSelect(wxCommandEvent& event);
-		void OnVeiwDefaultChoiceSelect(wxCommandEvent& event);
+		void OnViewDefaultChoiceSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

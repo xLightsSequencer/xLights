@@ -652,7 +652,7 @@ void SeqSettingsDialog::WizardPage3()
     Connect(ID_BITMAPBUTTON_quick_start,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_quick_startClick);
     ModelsChoice->Connect(wxEVT_CHOICE, (wxObjectEventFunction)&SeqSettingsDialog::OnViewSelect, NULL, this);
 
-    StaticText_Info->SetLabelText("This option is used to select which models will populate the grid. \nPress Quick Start to begin sequencing and skip option steps.");
+    StaticText_Info->SetLabelText("This option is used to select which models will populate the master view. \nPress Quick Start to begin sequencing and skip option steps.");
     StaticText_Info->Show();
     Fit();
     Refresh();
