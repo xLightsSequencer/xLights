@@ -148,7 +148,7 @@ wxArrayString BatchRenderDialog::GetFileList()
 void BatchRenderDialog::GetSeqList(const wxString& folder)
 {
     wxArrayString files;
-    GetAllFilesInDir(folder, files, "*.x*");
+    GetAllFilesInDir(folder, files, "*.x*", wxDIR_DEFAULT);
     files.Sort();
     for (size_t x = 0; x < files.size(); x++) {
         wxString name = files[x];

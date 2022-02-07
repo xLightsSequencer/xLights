@@ -61,8 +61,9 @@ inline bool FileExists(const wxString &s, bool waitForDownload = true) {
 inline bool FileExists(const wxFileName &fn, bool waitForDownload = true) {
     return fn.FileExists();
 }
-inline void GetAllFilesInDir(const wxString &dir, wxArrayString &files, const wxString &filespec) {
-    wxDir::GetAllFiles(dir, &files, filespec, wxDIR_FILES);
+inline void GetAllFilesInDir(const wxString& dir, wxArrayString& files, const wxString& filespec, int flags = wxDIR_FILES)
+{
+    wxDir::GetAllFiles(dir, &files, filespec, flags);
 }
 
 #endif
