@@ -20,6 +20,10 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 
+#ifdef __WXMSW__
+class WindowsHardwareVideoReader;
+#endif
+
 class VideoReader
 {
 public:
@@ -79,4 +83,7 @@ private:
     bool _abort = false;
     bool _videoToolboxAccelerated; 
     bool _abandonHardwareDecode = false;
+    #ifdef __WXMSW__
+    WindowsHardwareVideoReader* _windowsHardwareVideoReader = nullptr;
+    #endif
 };

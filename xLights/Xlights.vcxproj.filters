@@ -942,6 +942,7 @@
     <ClCompile Include="effects\FX.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
+    <ClCompile Include="WindowsHardwareVideoReader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1890,6 +1891,7 @@
     <ClInclude Include="effects\FX.h">
       <Filter>Effects</Filter>
     </ClInclude>
+    <ClInclude Include="WindowsHardwareVideoReader.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

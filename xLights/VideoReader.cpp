@@ -23,7 +23,6 @@ extern "C" {
 }
 
 #include "SpecialOptions.h"
-
 #include <log4cpp/Category.hh>
 
 #ifdef __WXOSX__
@@ -40,7 +39,11 @@ static inline bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame 
 static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false; }
 #endif
 
-static enum AVPixelFormat __hw_pix_fmt = AVPixelFormat::AV_PIX_FMT_NONE;
+#ifdef __WXMSW__
+#include "WindowsHardwareVideoReader.h"
+#endif
+
+static enum AVPixelFormat __hw_pix_fmt = ::AVPixelFormat::AV_PIX_FMT_NONE;
 static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelFormat* pix_fmts)
 {
     const enum AVPixelFormat* p;
@@ -104,6 +107,36 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	_swsCtx = nullptr;
     _dtspersec = 1.0;
     _frames = 0;
+    _width = _maxwidth;
+    _height = _maxheight;
+
+#ifdef __WXMSW__
+    if (HW_ACCELERATION_ENABLED) {
+        _windowsHardwareVideoReader = new WindowsHardwareVideoReader(filename, _wantAlpha, usenativeresolution, keepaspectratio, maxwidth, maxheight, _pixelFmt);
+        if (_windowsHardwareVideoReader->IsOk()) {
+            _frames = _windowsHardwareVideoReader->GetFrames();
+            _lengthMS = _windowsHardwareVideoReader->GetDuration();
+            _height = _windowsHardwareVideoReader->GetHeight();
+            _width = _windowsHardwareVideoReader->GetWidth();
+            _frameMS = _windowsHardwareVideoReader->GetFrameMS();
+            _valid = true;
+
+            logger_base.info("Video loaded: " + filename);
+            logger_base.info("      Length MS: %.2f", _lengthMS);
+            logger_base.info("      _frames: %d", _frames);
+            logger_base.info("      Frames per second %.2f", (double)_frames * 1000.0 / _lengthMS);
+            logger_base.info("      Source size: %dx%d", _windowsHardwareVideoReader->GetNativeWidth(), _windowsHardwareVideoReader->GetNativeHeight());
+            logger_base.info("      Output size: %dx%d", _width, _height);
+            if (_wantAlpha)
+                logger_base.info("      Alpha: TRUE");
+            logger_base.info("      Frame ms %d", _frameMS);
+            return;
+        } else {
+            delete _windowsHardwareVideoReader;
+            _windowsHardwareVideoReader = nullptr;
+        }
+    }
+#endif
 
     #if LIBAVFORMAT_VERSION_MAJOR < 58
     av_register_all();
@@ -134,10 +167,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	}
 
 	_videoStream = _formatContext->streams[_streamIndex];
-    _videoStream->discard = AVDiscard::AVDISCARD_NONE;
-
-    _width = _maxwidth;
-    _height = _maxheight;
+    _videoStream->discard = ::AVDiscard::AVDISCARD_NONE;
 
     reopenContext();
 
@@ -303,7 +333,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
     }
 
     #if LIBAVFORMAT_VERSION_MAJOR > 57
-    enum AVHWDeviceType type = AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
+    enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
 #if defined(__WXMSW__)
         std::list<std::string> hwdecoders;
@@ -500,6 +530,14 @@ long VideoReader::GetVideoLength(const std::string& filename)
 VideoReader::~VideoReader()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    #ifdef __WXMSW__
+    if (_windowsHardwareVideoReader != nullptr) {
+        delete _windowsHardwareVideoReader;
+        _windowsHardwareVideoReader = nullptr;
+    }
+    #endif
+
     if (_packet != nullptr) {
         av_packet_free(&_packet);
         _packet = nullptr;
@@ -563,6 +601,19 @@ VideoReader::~VideoReader()
 void VideoReader::Seek(int timestampMS, bool readFrame)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    #ifdef __WXMSW__
+    if (_windowsHardwareVideoReader != nullptr) {
+        _windowsHardwareVideoReader->Seek(timestampMS);
+        _curPos = _windowsHardwareVideoReader->GetPos();
+        if (_curPos >= _windowsHardwareVideoReader->GetDuration()) {
+            _atEnd = true;
+        } else {
+            _atEnd = false;
+        }
+        return;
+    }
+    #endif
 
     // we have to be valid
 	if (_valid) {
@@ -749,6 +800,19 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
         _atEnd = true;
         return nullptr;
     }
+
+#ifdef __WXMSW__
+    if (_windowsHardwareVideoReader != nullptr) {
+        AVFrame * frame = _windowsHardwareVideoReader->GetNextFrame(timestampMS, gracetime);
+        _curPos = _windowsHardwareVideoReader->GetPos();
+        if (_curPos >= _windowsHardwareVideoReader->GetDuration()) {
+            _atEnd = true;
+            return nullptr;
+        } else {
+            return frame;
+        }
+    }
+#endif
 
 #ifdef VIDEO_EXTRALOGGING
     logger_base.debug("Video %s getting frame %d.", (const char *)_filename.c_str(), timestampMS);

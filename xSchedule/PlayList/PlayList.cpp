@@ -849,7 +849,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
                 }
                 else if (it == _steps.end())
                 {
-                    logger_base.debug("We reached the end and we are not looping.");
+                    //logger_base.debug("We reached the end and we are not looping.");
                     return nullptr;
                 }
                 else

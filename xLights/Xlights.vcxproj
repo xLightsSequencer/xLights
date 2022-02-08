@@ -647,6 +647,7 @@
     <ClCompile Include="Vixen3.cpp" />
     <ClCompile Include="VSAFile.cpp" />
     <ClCompile Include="VsaImportDialog.cpp" />
+    <ClCompile Include="WindowsHardwareVideoReader.cpp" />
     <ClCompile Include="WiringDialog.cpp" />
     <ClCompile Include="wxCheckedListCtrl.cpp" />
     <ClCompile Include="wxModelGridCellRenderer.cpp" />
@@ -1101,6 +1102,7 @@
     <ClInclude Include="Vixen3.h" />
     <ClInclude Include="VSAFile.h" />
     <ClInclude Include="VsaImportDialog.h" />
+    <ClInclude Include="WindowsHardwareVideoReader.h" />
     <ClInclude Include="WiringDialog.h" />
     <ClInclude Include="wxCheckedListCtrl.h" />
     <ClInclude Include="wxModelGridCellRenderer.h" />
