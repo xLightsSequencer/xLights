@@ -260,7 +260,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_VIEW_DEFAULT" variable="ViewDefaultChoice" member="yes" />
+				<object class="wxChoice" name="ID_CHOICE_VIEW_DEFAULT" variable="ViewDefaultChoice" member="yes">
+					<tooltip>This option is used to select which models will populate the master view when a new sequence is created.</tooltip>
+					<handler function="OnViewDefaultChoiceSelect" entry="EVT_CHOICE" />
+				</object>
 				<col>1</col>
 				<row>2</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
