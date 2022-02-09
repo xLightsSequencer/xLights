@@ -134,10 +134,9 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT2, _("Default View for New Sequences"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	GridBagSizer1->Add(StaticText5, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ViewDefaultChoice = new wxChoice(this, ID_CHOICE_VIEW_DEFAULT, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_DEFAULT"));
+	ViewDefaultChoice->SetToolTip(_("This option is used to select which models will populate the master view when a new sequence is created."));
 	GridBagSizer1->Add(ViewDefaultChoice, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridBagSizer1);
-	GridBagSizer1->Fit(this);
-	GridBagSizer1->SetSizeHints(this);
 
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnRenderOnSaveCheckBoxClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnFSEQSaveCheckBoxClick);
@@ -154,6 +153,9 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	Connect(ID_BUTTON_REMOVE_MEDIA,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnRemoveMediaButtonClick);
 	Connect(ID_CHOICE_VIEW_DEFAULT,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnViewDefaultChoiceSelect);
 	//*)
+
+	GridBagSizer1->Fit(this);
+	GridBagSizer1->SetSizeHints(this);
 }
 
 SequenceFileSettingsPanel::~SequenceFileSettingsPanel()
