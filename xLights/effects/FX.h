@@ -2814,10 +2814,7 @@ class WS2812FX {
 
     public:
     uint32_t millis() const;
-    void SetBuffer(RenderBuffer* buffer)
-    {
-        _buffer = buffer;
-    }
+    void SetBuffer(RenderBuffer* buffer);
     private:
 
 #endif

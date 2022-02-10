@@ -1572,6 +1572,11 @@ uint32_t WS2812FX::color_blend(uint32_t color1, uint32_t color2, uint16_t blend,
 
     return convertColour(r3, g3, b3, w3);
 }
+void WS2812FX::SetBuffer(RenderBuffer* buffer)
+{
+    _buffer = buffer;
+    _length = buffer->BufferWi;
+}
 
 void WS2812FX::setPixelColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b, uint8_t w)
 {

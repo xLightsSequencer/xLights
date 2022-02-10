@@ -300,6 +300,7 @@ void SingleStrandEffect::RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff,
 
     if (buffer.needToInit) {
         buffer.ClearTempBuf();
+        pfx->SetBuffer(&buffer);
         pfx->setSegment(0, 0, buffer.BufferWi);
         pfx->setMode(0, DecodeMode(fx));
         pfx->getSegment(0).palette = DecodePalette(palette);
