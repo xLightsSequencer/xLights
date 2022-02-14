@@ -1,5 +1,12 @@
-
 PREFIX          = /usr
+
+# When not installing to a custom location append that location
+# to PKG_CONFIG_PATH so that pkgconfig can find the libraries installed.
+# The "if" is to add : only when there's an existing PKG_CONFIG_PATH.
+export PKG_CONFIG_PATH := $(if $(PKG_CONFIG_PATH),$(PKG_CONFIG_PATH):$(PREFIX)/lib/pkgconfig/,$(PREFIX)/lib/pkgconfig)
+
+# Make sure wx-config will be found.
+export PATH := $(PREFIX)/bin:$(PATH)
 
 # Ignore some warnings for now to make compile output cleaner
 # until the issues are cleaned up in the code.
@@ -13,6 +20,8 @@ DEL_FILE        = rm -f
 ICON_SIZES      = 16x16 32x32 64x64 128x128 256x256
 SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary xschedule.linux.properties xcapture.linux.properties  xfade.linux.properties xscanner.linux.properties xscanner.linux.properties xsmsdaemon.linux.properties remotefalcon.linux.properties
 QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.cat
+# run with `SUDO= make` when installing to a location that doesn't require root
+SUDO		= `which sudo`
 
 SUBDIRS         = xLights xSchedule xCapture xFade xScanner xSchedule/xSMSDaemon xSchedule/RemoteFalcon
 
@@ -62,7 +71,7 @@ log4cpp: FORCE
 		echo Building log4cpp; \
 		${MAKE} -s; \
 		echo Installing log4cpp; \
-		`which sudo` ${MAKE} install DESTDIR=$(DESTDIR); \
+		$(SUDO) ${MAKE} install DESTDIR=$(DESTDIR); \
 		echo Completed build/install of log4cpp; \
 		fi
 
@@ -77,7 +86,7 @@ wxwidgets31: FORCE
 		echo Building wxwidgets; \
 		${MAKE} -j 4 -s; \
 		echo Installing wxwidgets; \
-		`which sudo` ${MAKE} install DESTDIR=$(DESTDIR); \
+		$(SUDO) ${MAKE} install DESTDIR=$(DESTDIR); \
 		echo Completed build/install of wxwidgets; \
         fi
 
