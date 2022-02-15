@@ -54,7 +54,7 @@
             <Port2>3</Port2>
             <Port3>1</Port3>
             <Port4>4</Port4>
-            <Port5>19</Port5>
+            <Port5>15</Port5>
         </Variant>
         <Variant Name="ESP8266" Base="WLED:BaseWLEDSettings">
             <MaxPixelPort>3</MaxPixelPort>
