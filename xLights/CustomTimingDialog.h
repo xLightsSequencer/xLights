@@ -11,11 +11,11 @@
  **************************************************************/
 
 //(*Headers(CustomTimingDialog)
+#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/spinctrl.h>
-#include <wx/dialog.h>
 //*)
 
 class CustomTimingDialog: public wxDialog
@@ -29,8 +29,8 @@ class CustomTimingDialog: public wxDialog
         void SetTiming(int value);
 
 		//(*Declarations(CustomTimingDialog)
-		wxStaticText* StaticText1;
 		wxSpinCtrl* SpinCtrl_Interval;
+		wxStaticText* StaticText1;
 		wxTextCtrl* TextCtrl_FPS;
 		//*)
 
