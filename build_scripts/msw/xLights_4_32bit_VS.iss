@@ -103,6 +103,9 @@ Source: "../../bin/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 ; libcurl
 Source: "../../bin/libcurl.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
+; hidapi
+Source: "../../bin/hidapi.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+
 ; Added files for doing Papagayo effects
 Source: "../../bin/extended_dictionary"; DestDir: "{app}"
 Source: "../../bin/phoneme_mapping";     DestDir: "{app}"

@@ -43,8 +43,8 @@ Library:     libavcodec/ffmpeg
 Usage:       Audio and Video processing
 Link:        https://www.ffmpeg.org/
 Source:      https://github.com/FFmpeg/FFmpeg
-Last Pulled: Feb 6, 2022 - Windows binaries directly from https://github.com/BtbN/FFmpeg-Builds/releases
-Version:     5.0
+Last Pulled: Oct 10, 2019 - Windows binaries directly from ffmpeg.org
+Version:     4.2.1 [latest available as at Jan 2021 is 4.3.1]
 License:     LGPL
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 
@@ -219,3 +219,12 @@ Version:	 January 2021
 License:     MIT
 Strategy:    FX.cpp and FX.h created as a merge of all dependent functions across libraries. To the degree possible the actual effect
              algorithms are unchanged.
+
+Library:     hidapi
+Usage:       3D mouse support
+Link:        https://github.com/libusb/hidapi
+Source:      https://github.com/libusb/hidapi
+Last Pulled:
+Version:	 0.11.2
+License:     BSD/GPLv3
+Strategy:    Header added to repository. static libraries added for windows

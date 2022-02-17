@@ -5,7 +5,6 @@
 #include <wx/app.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <algorithm>
 
 
 #ifdef __WXOSX__
@@ -184,11 +183,462 @@ Mouse3DManager::~Mouse3DManager() {
     }
 }
 
+#elif defined(__WXMSW__)
+#include <algorithm>
+#include <map>
+#include <limits>
+#include <condition_variable>
+
+
+#pragma comment(lib, "hidapi.lib")
+
+Mouse3DManager::Mouse3DManager()
+{
+    enabled = false;
+    m_device = detect_attached_device();
+    if (!m_device.isEmpty()) {
+        enabled = true;
+    }
+
+    assert(!m_thread.joinable());
+    if (!m_thread.joinable()) {
+        m_stop = false;
+        m_thread = std::thread(&Mouse3DManager::run, this);
+    }
+}
+
+Mouse3DManager::~Mouse3DManager() {
+
+    m_stop = true;
+}
+
+std::string Mouse3DManager::format_device_string(int vid, int pid)
+{
+    std::string ret;
+
+    switch (vid) {
+        case 0x046d: {
+            ret = "LOGITECH";
+            break;
+        }
+        case 0x256F: {
+            ret = "3DCONNECTION";
+            break;
+        }
+        default: {
+            ret = "UNKNOWN";
+            break;
+        }
+    }
+
+    ret += "::";
+
+    switch (pid) {
+        case 0xc603: {
+            ret += "spacemouse plus XT";
+            break;
+        }
+        case 0xc605: {
+            ret += "cadman";
+            break;
+        }
+        case 0xc606: {
+            ret += "spacemouse classic";
+            break;
+        }
+        case 0xc621: {
+            ret += "spaceball 5000";
+            break;
+        }
+        case 0xc623: {
+            ret += "space traveller";
+            break;
+        }
+        case 0xc625: {
+            ret += "space pilot";
+            break;
+        }
+        case 0xc626: {
+            ret += "space navigator";
+            break;
+        }
+        case 0xc627: {
+            ret += "space explorer";
+            break;
+        }
+        case 0xc628: {
+            ret += "space navigator for notebooks";
+            break;
+        }
+        case 0xc629: {
+            ret += "space pilot pro";
+            break;
+        }
+        case 0xc62b: {
+            ret += "space mouse pro";
+            break;
+        }
+        case 0xc62e: {
+            ret += "spacemouse wireless (USB cable)";
+            break;
+        }
+        case 0xc62f: {
+            ret += "spacemouse wireless receiver";
+            break;
+        }
+        case 0xc631: {
+            ret += "spacemouse pro wireless";
+            break;
+        }
+        case 0xc632: {
+            ret += "spacemouse pro wireless receiver";
+            break;
+        }
+        case 0xc633: {
+            ret += "spacemouse enterprise";
+            break;
+        }
+        case 0xc635: {
+            ret += "spacemouse compact";
+            break;
+        }
+        case 0xc636: {
+            ret += "spacemouse module";
+            break;
+        }
+        case 0xc640: {
+            ret += "nulooq";
+            break;
+        }
+        case 0xc652: {
+            ret += "3Dconnexion universal receiver";
+            break;
+        }
+        default: {
+            ret += "UNKNOWN";
+            break;
+        }
+    }
+
+    return ret;
+}
+
+DeviceData Mouse3DManager::detect_attached_device()
+{
+    DeviceData ret;
+
+    // Initialize the hidapi library
+    int res = hid_init();
+    if (res != 0) {
+       std::cout << "Unable to initialize hidapi library";
+    }
+    else {
+        // Enumerates devices
+        hid_device_info* devices = hid_enumerate(0, 0);
+        if (devices == nullptr) {
+            std::cout << "detect_attached_device() - no HID device enumerated.";
+        } else {
+            // Searches for 1st connected 3Dconnexion device
+            struct DeviceData {
+                unsigned short usage_page{ 0 };
+                unsigned short usage{ 0 };
+
+                DeviceData(unsigned short usage_page, unsigned short usage) :
+                    usage_page(usage_page), usage(usage)
+                {}
+
+                // https://www.usb.org/sites/default/files/documents/hut1_12v2.pdf
+                // Usage page 1 - Generic Desktop Controls
+                // Usage page 1, usage 8 - Multi-axis Controller
+                [[nodiscard]]bool has_valid_usage() const
+                {
+                    return usage_page == 1 && usage == 8;
+                }
+            };
+
+            // When using 3Dconnexion universal receiver, multiple devices are detected sharing the same vendor_id and product_id.
+            // To choose from them the right one we use: usage_page == 1 and usage == 8
+            // When only a single device is detected, as for wired connections, vendor_id and product_id are enough
+
+            // First we count all the valid devices from the enumerated list,
+
+            hid_device_info* current = devices;
+            typedef std::pair<unsigned short, unsigned short> DeviceIds;
+            typedef std::vector<DeviceData> DeviceDataList;
+            typedef std::map<DeviceIds, DeviceDataList> DetectedDevices;
+            DetectedDevices detected_devices;
+            while (current != nullptr) {
+                unsigned short vendor_id = 0;
+                unsigned short product_id = 0;
+
+                for (auto const& vendor : _3DCONNEXION_VENDORS) {
+                    if (vendor == current->vendor_id) {
+                        vendor_id = current->vendor_id;
+                        break;
+                    }
+                }
+
+                if (vendor_id != 0) {
+                    for (auto const& device : _3DCONNEXION_DEVICES) {
+                        if (device == current->product_id) {
+                            product_id = current->product_id;
+                            DeviceIds detected_device(vendor_id, product_id);
+                            DetectedDevices::iterator it = detected_devices.find(detected_device);
+                            if (it == detected_devices.end()) {
+                                it = detected_devices.insert(DetectedDevices::value_type(detected_device, DeviceDataList())).first;
+                            }
+                            it->second.emplace_back(current->usage_page, current->usage);
+                        }
+                    }
+                }
+
+                current = current->next;
+            }
+
+            // Free enumerated devices
+            hid_free_enumeration(devices);
+
+            unsigned short vendor_id = 0;
+            unsigned short product_id = 0;
+            if (!detected_devices.empty()) {
+                // Then we'll decide the choosing logic to apply in dependence of the device count and operating system
+                for (const DetectedDevices::value_type& device : detected_devices) {
+                    if (device.second.size() == 1) {
+                        if (device.second.front().has_valid_usage()) {
+                            vendor_id = device.first.first;
+                            product_id = device.first.second;
+                            break;
+                        }
+                    } else {
+                        bool found = false;
+                        for (const DeviceData& data : device.second) {
+                            if (data.has_valid_usage()) {
+                                vendor_id = device.first.first;
+                                product_id = device.first.second;
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (found) 
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (vendor_id != 0 && product_id != 0) {
+                ret.DeviceStr = format_device_string(static_cast<int>(vendor_id), static_cast<int>(product_id));
+                ret.VID = vendor_id;
+                ret.PID = product_id;                
+            }
+        }
+
+        // Finalize the hidapi library
+        hid_exit();
+    }
+
+    return ret;
+}
+
+bool Mouse3DManager::handle_input(const DataPacketRaw& packet, const int packet_length)
+{
+    if (focusWindow == nullptr) {
+        return false;
+    }
+    if (!focusWindow->IsMouseInWindow()) {
+        return false;
+    }
+
+    if (packet_length == 7 || packet_length == 13) {
+        handle_packet(packet, packet_length);
+    }
+     return false;
+}
+// The following is called by handle_input() from the worker thread.
+bool Mouse3DManager::handle_packet(const DataPacketRaw& packet, const int packet_length)
+{
+    switch (packet[0]) {
+        case 1: // Translation + Rotation
+        {
+            bool updated{false};
+            if (packet_length == 13) {
+                updated = handle_packet_translation_rotation(packet);
+            } else {
+                updated = handle_packet_translation(packet);
+            }
+            if (updated) {
+                return true;
+            }
+
+            break;
+        }
+        case 2: // Rotation
+        {
+            if (handle_packet_rotation(packet, 1)) {
+                return true;
+            }
+
+            break;
+        }
+        case 3: // Button
+        {
+            if (handle_packet_button(packet, packet.size() - 1)) {
+                return true;
+            }
+
+            break;
+        }
+        case 23: // Battery charge
+        {
+            std::cout << "3DConnexion - battery level: " << (int)packet[1] << " percent" << std::endl;
+            break;
+        }
+        default: {
+            std::cout << "3DConnexion - Got unknown data packet of code: " << (int)packet[0] << std::endl;
+            break;
+        }
+    }
+
+    return false;
+}
+
+static bool isZero(float value)
+{
+    constexpr auto threshold = std::numeric_limits<float>::epsilon();
+    return value >= -threshold && value <= threshold;
+}
+
+static bool isZero(glm::vec3 val)
+{
+    return isZero(val.x) && isZero(val.y) && isZero(val.z);
+}
+
+static double convert_input(int coord_byte_low, int coord_byte_high, double deadzone)
+{
+    int value = coord_byte_low | (coord_byte_high << 8);
+    if (value >= 32768) {
+        value = value - 65536;
+    }
+    double ret = (double)value / 350.0;
+    return (std::abs(ret) > deadzone) ? ret : 0.0;
+}
+
+bool Mouse3DManager::handle_packet_translation_rotation(const DataPacketRaw& packet)
+{
+    constexpr double deadzone{ 0 };
+    glm::vec3 t(convert_input(packet[1], packet[2], deadzone),
+                convert_input(packet[3], packet[4], deadzone),
+                convert_input(packet[5], packet[6], deadzone));
+
+    glm::vec3 r((float)convert_input(packet[7], packet[8], deadzone),
+                (float)convert_input(packet[9], packet[10], deadzone),
+                (float)convert_input(packet[11], packet[12], deadzone));
+    if (isZero(t) && isZero(r)) {
+        return false;
+    }
+    Mouse3DManager::INSTANCE.sendMotionEvents(t, r);
+    return false;
+}
+
+bool Mouse3DManager::handle_packet_translation(const DataPacketRaw& packet)
+{
+    constexpr double deadzone{ 0 };
+    glm::vec3 t(convert_input(packet[1], packet[2], deadzone),
+                      convert_input(packet[3], packet[4], deadzone),
+                      convert_input(packet[5], packet[6], deadzone));
+    if (isZero(t)) {
+        return false;
+    }
+    glm::vec3 r(0, 0, 0);
+    Mouse3DManager::INSTANCE.sendMotionEvents(t, r);
+    return false;
+}
+bool Mouse3DManager::handle_packet_rotation(const DataPacketRaw& packet, unsigned int first_byte)
+{
+    double deadzone = 0;
+    glm::vec3 r((float)convert_input(packet[first_byte + 0], packet[first_byte + 1], deadzone),
+                   (float)convert_input(packet[first_byte + 2], packet[first_byte + 3], deadzone),
+                   (float)convert_input(packet[first_byte + 4], packet[first_byte + 5], deadzone));
+    if (isZero(r)) {
+        return false;
+    }
+    glm::vec3 t(0, 0, 0);
+    Mouse3DManager::INSTANCE.sendMotionEvents(t, r);
+    return false;
+}
+bool Mouse3DManager::handle_packet_button(const DataPacketRaw& packet, unsigned int packet_size)
+{
+    unsigned int data = 0;
+    for (unsigned int i = 1; i < packet_size; ++i) {
+        data |= packet[i] << 8 * (i - 1);
+    }
+    Mouse3DManager::INSTANCE.sendButtonEvents(data);
+    return false;
+}
+
+bool Mouse3DManager::connect_device(DeviceData const& dev)
+{ 
+    auto *device = hid_open(dev.VID, dev.PID, nullptr);
+    if (device == nullptr) {
+       return false;
+    }
+    m_device_ptr = device;
+    return true;
+}
+void Mouse3DManager::disconnect_device()
+{
+    m_device_ptr = nullptr;
+}
+
+void Mouse3DManager::run()
+{
+    int res = hid_init();
+    if (res != 0) {
+        return;
+    }
+    this->connect_device(m_device);
+    if (m_device_ptr != nullptr) {
+        for (;;) {  
+            if (m_stop) {
+                break;
+            }
+            // Waits for 3DConnexion mouse input for maximum 100ms, then repeats.
+            if (!this->collect_input()) {
+                break;
+            }                
+            Sleep(10);
+
+        }
+    }
+
+    this->disconnect_device();
+
+    // Finalize the hidapi library
+    hid_exit();
+}
+bool Mouse3DManager::collect_input()
+{
+    DataPacketRaw packet = { 0 };
+    // Read packet, block maximum 100 ms. That means when closing the application, closing the application will be delayed by 100 ms.
+    int res = hid_read_timeout(m_device_ptr, packet.data(), packet.size(), 100);
+    if (res < 0) {
+        // An error occourred (device detached from pc ?). Close the 3Dconnexion device.
+        this->disconnect_device();
+        return false;
+    }
+    this->handle_input(packet, res);
+    return true;    
+}
+
 #else
-Mouse3DManager::Mouse3DManager() {
+Mouse3DManager::Mouse3DManager()
+{
     enabled = false;
 }
-Mouse3DManager::~Mouse3DManager() {
+Mouse3DManager::~Mouse3DManager()
+{
 }
 
 #endif
