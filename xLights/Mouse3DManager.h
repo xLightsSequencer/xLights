@@ -4,18 +4,24 @@
 #include <wx/wx.h>
 #include <glm/vec3.hpp>
 
-#ifdef __WXMSW__
+#if defined(__WXOSX__) || defined(__WXMSW__)
+#define __USE_HIDAPI__
+#endif
+
+
+#ifdef __USE_HIDAPI__
 
 #include <thread>
 #include <array>
 
 extern "C" {
-#include "hidapi.h"
+#include "hidapi/hidapi.h"
 }
 
 struct DeviceData 
 {
     std::string DeviceStr;
+    std::string path;
     unsigned short VID{ 0 };
     unsigned short PID{ 0 };
 
@@ -24,6 +30,7 @@ struct DeviceData
         DeviceStr = std::string();
         VID=0;
         PID=0;
+        path = "";
     }
 
     bool isEmpty()
@@ -88,8 +95,8 @@ class Mouse3DManager {
 public:
     bool isEnabled() const { return enabled; }
 
-    #ifdef __WXMSW__
-    // Called by Win32 HID enumeration callback.
+    #ifdef __USE_HIDAPI__
+    // Called by HID enumeration callback.
     void device_detached(const std::string& device);
     #endif
     
@@ -100,7 +107,7 @@ public:
     void enableMotionEvents(wxWindow *);
     
     void deviceAdded(int16_t vendorID, int16_t productID);
-    void sendButtonEvents(uint32_t buttons);
+    void sendButtonEvent(uint32_t button);
     void sendMotionEvents(const glm::vec3 &t, const glm::vec3 &r);
     
     void focusEvent(wxFocusEvent& event);
@@ -114,7 +121,7 @@ protected:
     wxWindow* lastWindow = nullptr;
     wxWindow* focusWindow = nullptr;
 
-#ifdef __WXMSW__
+#ifdef __USE_HIDAPI__
 private:
     std::thread m_thread;
     hid_device* m_device_ptr{ nullptr };
@@ -140,5 +147,7 @@ private:
     static bool handle_packet_translation(const DataPacketRaw& packet);
     static bool handle_packet_rotation(const DataPacketRaw& packet, unsigned int first_byte);
     static bool handle_packet_button(const DataPacketRaw& packet, unsigned int packet_size);
+    static bool handle_packet_button28(const DataPacketRaw& packet, unsigned int packet_size);
+    static bool handle_packet_button29(const DataPacketRaw& packet, unsigned int packet_size);
    #endif
 };

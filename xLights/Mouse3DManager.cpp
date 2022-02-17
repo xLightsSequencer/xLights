@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 
-#ifdef __WXOSX__
+#if defined(__WXOSX__)
 
 #include <dlfcn.h>
 
@@ -133,7 +133,13 @@ static void DeviceEvent(uint32_t unused, uint32_t msg_type, void *msg_arg) {
                     break;
                 }
                 case kConnexionCmdHandleButtons: {
-                    Mouse3DManager::INSTANCE.sendButtonEvents(s->buttons);
+                    uint32_t buttons = s->buttons;
+                    for (int x = 0; x < 32; x++) {
+                        if (buttons & 0x1) {
+                            Mouse3DManager::INSTANCE.sendButtonEvent(x);
+                        }
+                        buttons >>= 1;
+                    }
                     break;
                 }
                 default:
@@ -161,29 +167,9 @@ static void DeviceAdded(uint32_t unused) {
     //SetConnexionClientButtonMask(clientID, 0x383FFFFF);
     SetConnexionClientButtonMask(clientID, SUPPORTED_BUTTONS);
 }
+#endif
 
-
-Mouse3DManager::Mouse3DManager() {
-    if (load_driver_functions()) {
-        const bool separate_thread = true;
-        uint16_t error = SetConnexionHandlers(DeviceEvent, DeviceAdded, DeviceRemoved, separate_thread);
-        if (error) {
-            return;
-        }
-        clientID = RegisterConnexionClient('xlts', "\007xLights", kConnexionClientModeTakeOver, kConnexionMaskAll);
-
-        //SetConnexionClientMask(clientID, kConnexionMaskAllButtons);
-        SetConnexionClientButtonMask(clientID, kConnexionMaskAllButtons);
-        enabled = true;
-    }
-}
-Mouse3DManager::~Mouse3DManager() {
-    if (module) {
-        dlclose(module);
-    }
-}
-
-#elif defined(__WXMSW__)
+#if defined(__USE_HIDAPI__)
 #include <algorithm>
 #include <map>
 #include <limits>
@@ -192,25 +178,6 @@ Mouse3DManager::~Mouse3DManager() {
 
 #pragma comment(lib, "hidapi.lib")
 
-Mouse3DManager::Mouse3DManager()
-{
-    enabled = false;
-    m_device = detect_attached_device();
-    if (!m_device.isEmpty()) {
-        enabled = true;
-    }
-
-    assert(!m_thread.joinable());
-    if (!m_thread.joinable()) {
-        m_stop = false;
-        m_thread = std::thread(&Mouse3DManager::run, this);
-    }
-}
-
-Mouse3DManager::~Mouse3DManager() {
-
-    m_stop = true;
-}
 
 std::string Mouse3DManager::format_device_string(int vid, int pid)
 {
@@ -363,13 +330,14 @@ DeviceData Mouse3DManager::detect_attached_device()
             // First we count all the valid devices from the enumerated list,
 
             hid_device_info* current = devices;
-            typedef std::pair<unsigned short, unsigned short> DeviceIds;
+            typedef std::tuple<unsigned short, unsigned short, std::string> DeviceIds;
             typedef std::vector<DeviceData> DeviceDataList;
             typedef std::map<DeviceIds, DeviceDataList> DetectedDevices;
             DetectedDevices detected_devices;
             while (current != nullptr) {
                 unsigned short vendor_id = 0;
                 unsigned short product_id = 0;
+                std::string devicePath = "";
 
                 for (auto const& vendor : _3DCONNEXION_VENDORS) {
                     if (vendor == current->vendor_id) {
@@ -382,6 +350,7 @@ DeviceData Mouse3DManager::detect_attached_device()
                     for (auto const& device : _3DCONNEXION_DEVICES) {
                         if (device == current->product_id) {
                             product_id = current->product_id;
+                            devicePath = current->path;
                             DeviceIds detected_device(vendor_id, product_id);
                             DetectedDevices::iterator it = detected_devices.find(detected_device);
                             if (it == detected_devices.end()) {
@@ -400,21 +369,25 @@ DeviceData Mouse3DManager::detect_attached_device()
 
             unsigned short vendor_id = 0;
             unsigned short product_id = 0;
+            std::string devicePath = "";
+
             if (!detected_devices.empty()) {
                 // Then we'll decide the choosing logic to apply in dependence of the device count and operating system
                 for (const DetectedDevices::value_type& device : detected_devices) {
                     if (device.second.size() == 1) {
                         if (device.second.front().has_valid_usage()) {
-                            vendor_id = device.first.first;
-                            product_id = device.first.second;
+                            vendor_id = std::get<0>(device.first);
+                            product_id = std::get<1>(device.first);
+                            devicePath = std::get<2>(device.first);
                             break;
                         }
                     } else {
                         bool found = false;
                         for (const DeviceData& data : device.second) {
                             if (data.has_valid_usage()) {
-                                vendor_id = device.first.first;
-                                product_id = device.first.second;
+                                vendor_id = std::get<0>(device.first);
+                                product_id = std::get<1>(device.first);
+                                devicePath = std::get<2>(device.first);
                                 found = true;
                                 break;
                             }
@@ -431,7 +404,8 @@ DeviceData Mouse3DManager::detect_attached_device()
             if (vendor_id != 0 && product_id != 0) {
                 ret.DeviceStr = format_device_string(static_cast<int>(vendor_id), static_cast<int>(product_id));
                 ret.VID = vendor_id;
-                ret.PID = product_id;                
+                ret.PID = product_id;
+                ret.path = devicePath;
             }
         }
 
@@ -447,9 +421,11 @@ bool Mouse3DManager::handle_input(const DataPacketRaw& packet, const int packet_
     if (focusWindow == nullptr) {
         return false;
     }
+#ifdef __WXMSW__
     if (!focusWindow->IsMouseInWindow()) {
         return false;
     }
+#endif
 
     if (packet_length == 7 || packet_length == 13) {
         handle_packet(packet, packet_length);
@@ -459,6 +435,8 @@ bool Mouse3DManager::handle_input(const DataPacketRaw& packet, const int packet_
 // The following is called by handle_input() from the worker thread.
 bool Mouse3DManager::handle_packet(const DataPacketRaw& packet, const int packet_length)
 {
+    //static int cnt = 0;
+    //printf("Packet %d: %d   %d\n", ++cnt, (int)packet[0], packet_length);
     switch (packet[0]) {
         case 1: // Translation + Rotation
         {
@@ -488,6 +466,20 @@ bool Mouse3DManager::handle_packet(const DataPacketRaw& packet, const int packet
                 return true;
             }
 
+            break;
+        }
+        case 28: // enterprise button
+        {
+            if (handle_packet_button28(packet, packet.size() - 1)) {
+                return true;
+            }
+            break;
+        }
+        case 29: // enterprise button, long press
+        {
+            if (handle_packet_button29(packet, packet.size() - 1)) {
+                return true;
+            }
             break;
         }
         case 23: // Battery charge
@@ -570,19 +562,105 @@ bool Mouse3DManager::handle_packet_rotation(const DataPacketRaw& packet, unsigne
 }
 bool Mouse3DManager::handle_packet_button(const DataPacketRaw& packet, unsigned int packet_size)
 {
-    unsigned int data = 0;
+    unsigned int curButton = 0;
     for (unsigned int i = 1; i < packet_size; ++i) {
-        data |= packet[i] << 8 * (i - 1);
+        uint32_t buttons = packet[i];
+        for (int x = 0; x < 8; x++) {
+            if (buttons & 0x1) {
+                Mouse3DManager::INSTANCE.sendButtonEvent(curButton);
+            }
+            buttons >>= 1;
+            curButton++;
+        }
     }
-    Mouse3DManager::INSTANCE.sendButtonEvents(data);
     return false;
 }
 
+inline uint32_t mapEnterpriseButton(uint32_t i) {
+    if (i < 25) {
+        return i;
+    }
+    switch (i) {
+        case 0x4D: // BUTTON 11
+            return 8;
+        case 0x4E: // BUTTON 12
+            return 10;
+        case 0x19: // SHIFT
+            return 25;
+        case 0x1A: // CTRL
+            return 26;
+        case 0x1B: // LOCK
+            return 27;
+        case 0x67: // V1
+            return 28;
+        case 0x68: // V2
+            return 29;
+        case 0x69: // V3
+            return 30;
+            
+        case 0x24: // ENTER
+            return 31;
+        case 0xAF: // TAB
+            return 32;
+        case 0x25: // DELETE
+            return 33;
+        case 0xB0: // SPACE
+            return 34;
+    }
+    /*
+    uint32_t n = i;
+    for (uint32_t i2 = 1 << 7; i2 > 0; i = i2 / 2) {
+          (n & i2) ? printf("1") : printf("0");
+    }
+    printf("   %X\n", (int)i);
+    */
+    return 0;
+}
+
+bool Mouse3DManager::handle_packet_button28(const DataPacketRaw& packet, unsigned int packet_size)
+{
+    for (unsigned int i = 1; i < packet_size; ++i) {
+        uint32_t val = mapEnterpriseButton(packet[i]);
+        if (val) {
+            Mouse3DManager::INSTANCE.sendButtonEvent(val - 1);
+        }
+    }
+    return false;
+}
+bool Mouse3DManager::handle_packet_button29(const DataPacketRaw& packet, unsigned int packet_size)
+{
+    for (unsigned int i = 1; i < packet_size; ++i) {
+        uint32_t val = mapEnterpriseButton(packet[i]);
+        if (val) {
+            switch (val) {
+                case 3:  // TOP -> BOTTOM
+                    val += 4;
+                    break;
+                case 6:  // FRONT -> BACK
+                    val = 35;
+                    break;
+                case 5:  // RIGHT -> LEFT
+                    val -= 1;
+                    break;
+                case 11: // ISO1 -> ISO2
+                    val += 1;
+                    break;
+                default:
+                    break;
+            }
+            Mouse3DManager::INSTANCE.sendButtonEvent(val - 1);
+        }
+    }
+    return false;
+}
 bool Mouse3DManager::connect_device(DeviceData const& dev)
 { 
-    auto *device = hid_open(dev.VID, dev.PID, nullptr);
+    auto *device = hid_open_path(dev.path.c_str());
     if (device == nullptr) {
-       return false;
+        device = hid_open(dev.VID, dev.PID, nullptr);
+    }
+    if (device == nullptr) {
+        return false;
     }
     m_device_ptr = device;
     return true;
@@ -608,8 +686,7 @@ void Mouse3DManager::run()
             if (!this->collect_input()) {
                 break;
             }                
-            Sleep(10);
-
+            wxMilliSleep(1);
         }
     }
 
@@ -631,19 +708,58 @@ bool Mouse3DManager::collect_input()
     this->handle_input(packet, res);
     return true;    
 }
+#endif
 
-#else
 Mouse3DManager::Mouse3DManager()
 {
     enabled = false;
-}
-Mouse3DManager::~Mouse3DManager()
-{
-}
+#ifdef __WXOSX__
+    if (load_driver_functions()) {
+        const bool separate_thread = true;
+        uint16_t error = SetConnexionHandlers(DeviceEvent, DeviceAdded, DeviceRemoved, separate_thread);
+        if (!error) {
+            clientID = RegisterConnexionClient('xlts', "\007xLights", kConnexionClientModeTakeOver, kConnexionMaskAll);
 
+            //SetConnexionClientMask(clientID, kConnexionMaskAllButtons);
+            SetConnexionClientButtonMask(clientID, kConnexionMaskAllButtons);
+            enabled = true;
+        }
+    }
 #endif
+#if defined(__USE_HIDAPI__)
+    if (!enabled) {
+        m_device = detect_attached_device();
+        if (!m_device.isEmpty()) {
+            enabled = true;
+        }
 
-static const char *BUTTON_NAMES[] = {
+        assert(!m_thread.joinable());
+        if (!m_thread.joinable()) {
+            m_stop = false;
+            m_thread = std::thread(&Mouse3DManager::run, this);
+        }
+    }
+#endif
+}
+
+Mouse3DManager::~Mouse3DManager() {
+#if defined(__USE_HIDAPI__)
+    m_stop = true;
+    if (m_thread.joinable()) {
+        m_thread.join();
+    }
+#endif
+#ifdef __WXOSX__
+    if (module) {
+        dlclose(module);
+    }
+#endif
+}
+
+
+
+
+static std::vector<const char *>BUTTON_NAMES = {
     "BUTTON_MENU",     "BUTTON_FIT",      "BUTTON_TOP",    "BUTTON_LEFT",
     "BUTTON_RIGHT",    "BUTTON_FRONT",    "BUTTON_BOTTOM",
     "BUTTON_11",
@@ -660,7 +776,7 @@ static const char *BUTTON_NAMES[] = {
     "BUTTON_V2",
     "BUTTON_V3",
     
-    "BUTTON_???",    "BUTTON_???",  "BUTTON_???"
+    "BUTTON_ENTER", "BUTTON_TAB", "BUTTON_DELETE", "BUTTON_SPACE", "BUTTON_BACK"
 };
 
 wxIMPLEMENT_DYNAMIC_CLASS(Motion3DEvent, wxEvent);
@@ -683,17 +799,13 @@ void Mouse3DManager::focusEvent(wxFocusEvent& event) {
 void Mouse3DManager::deviceAdded(int16_t vendorID, int16_t productID) {
     //printf("Device added %X  %X\n", vendorID, productID);
 }
-void Mouse3DManager::sendButtonEvents(uint32_t buttons) {
-    //printf("Button:  %X\n", buttons);
-    for (int x = 0; x < 32; x++) {
-        if (buttons & 0x1) {
-            wxCommandEvent *event = new wxCommandEvent(EVT_MOTION3D_BUTTONCLICKED);
-            event->SetInt(x);
-            event->SetString(BUTTON_NAMES[x]);
-            sendEvent(event);
-        }
-        buttons >>= 1;
-    }
+void Mouse3DManager::sendButtonEvent(uint32_t button) {
+    std::string name = (button < BUTTON_NAMES.size()) ? BUTTON_NAMES[button] : "BUTTON_???";
+    //printf("Button:  %d  %s\n", button, name.c_str());
+    wxCommandEvent *event = new wxCommandEvent(EVT_MOTION3D_BUTTONCLICKED);
+    event->SetInt(button);
+    event->SetString(name);
+    sendEvent(event);
 }
 void Mouse3DManager::sendMotionEvents(const glm::vec3 &t, const glm::vec3 &r) {
     //printf("Motion: %0.3f  %0.3f  %0.3f\n        %0.3f  %0.3f  %0.3f\n", t.x, t.y, t.z, r.x, r.y, r.z);

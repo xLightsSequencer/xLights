@@ -167,7 +167,7 @@ void ModelPreview::OnMotion3DButtonEvent(wxCommandEvent &event) {
                 }
             }
         } else {
-            for (int x = 0; x < xlights->viewpoint_mgr.GetNum3DCameras(); x++) {
+            for (int x = 0; x < xlights->viewpoint_mgr.GetNum2DCameras(); x++) {
                 if (xlights->viewpoint_mgr.GetCamera2D(x)->GetName() == name) {
                     SetCamera2D(x);
                     render();
