@@ -111,7 +111,7 @@ public:
     void Rename(std::string const& newName);
     int GetNumStrings() const { return parm1; }
     int GetPixelStyle() const { return pixelStyle; }
-    void SetPixelStyle(int style) { pixelStyle = style; } // temporarily changes pixel style
+    void SetPixelStyle(int style);
     static std::string GetPixelStyleDescription(int pixelStyle);
     virtual int GetNumPhysicalStrings() const;
     ControllerCaps* GetControllerCaps() const;
@@ -123,8 +123,11 @@ public:
     int _controller; // this is used to pass the selected controller name between property create and property change only
 
     int GetPixelSize() const { return pixelSize; }
-    void SetPixelSize(int size) { pixelSize = size; } // temporarily changes pixel size
+    void SetPixelSize(int size);
+    void SetTransparency(int t);
+    void SetBlackTransparency(int t);
 
+    
     virtual bool AllNodesAllocated() const { return true; }
     static void ParseFaceInfo(wxXmlNode* fiNode, std::map<std::string, std::map<std::string, std::string> >& faceInfo);
     static void WriteFaceInfo(wxXmlNode* fiNode, const std::map<std::string, std::map<std::string, std::string> >& faceInfo);

@@ -1219,6 +1219,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 	mRendering = false;
 
     _appProgress = std::make_unique<wxAppProgressIndicator>(this);
+    _appProgress->SetRange(100);
+    _appProgress->Reset();
 
     AddEffectToolbarButtons(effectManager, EffectsToolBar);
     wxSize sz = EffectsToolBar->GetSize();

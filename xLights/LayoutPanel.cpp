@@ -33,6 +33,7 @@
 #include <wx/config.h>
 #include <wx/treebase.h>
 #include <wx/colordlg.h>
+#include <wx/numdlg.h>
 
 #include "LayoutPanel.h"
 #include "ModelPreview.h"
@@ -148,6 +149,10 @@ const long LayoutPanel::ID_PREVIEW_BULKEDIT_SETACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_SETINACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_SMARTREMOTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_TAGCOLOUR = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_PIXELSIZE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_PIXELSTYLE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_TRANSPARENCY = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_BLACKTRANSPARENCY = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS = wxNewId();
@@ -1974,11 +1979,117 @@ void LayoutPanel::BulkEditControllerName()
         ReselectTreeModels(selectedModelPaths);
     }
 }
+void LayoutPanel::BulkEditPixelSize() {
+    std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
+    // remember the selected models
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
+    int size = 0;
+    for (Model* model: modelsToEdit) {
+        if (model != nullptr) {
+            size = std::max(model->GetPixelSize(), size);
+        }
+    }
+    wxNumberEntryDialog dlg(this, "Choose the pixel size",  "Pixel Size:", "Pixel Size", size, 1, 500);
+    OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() == wxID_OK) {
+        size = dlg.GetValue();
+        for (Model* model: modelsToEdit) {
+            model->SetPixelSize(size);
+        }
+
+        // see comment in BulkEditActive()
+        xlights->GetOutputModelManager()->ClearSelectedModel();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditPixelSize");
+        // reselect all the models
+        ReselectTreeModels(selectedModelPaths);
+    }
+}
+void LayoutPanel::BulkEditPixelStyle() {
+    std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
+    // remember the selected models
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+
+    int style = 3;
+    for (Model* model: modelsToEdit) {
+        if (model != nullptr) {
+            style = std::min(model->transparency, style);
+        }
+    }
+
+    static const char *PIXEL_STYLES_VALUES[] = {"Square", "Smooth", "Solid Circle", "Blended Circle"};
+    static wxArrayString PIXEL_STYLES(4, PIXEL_STYLES_VALUES);
+    wxSingleChoiceDialog dlg(this, "Choose the Pixel Style",  "Pixel Style", PIXEL_STYLES);
+    dlg.SetSelection(style);
+    OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() == wxID_OK) {
+        style = dlg.GetSelection();
+        for (Model* model: modelsToEdit) {
+            model->SetPixelStyle(style);
+        }
+
+        // see comment in BulkEditActive()
+        xlights->GetOutputModelManager()->ClearSelectedModel();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditPixelStyle");
+        // reselect all the models
+        ReselectTreeModels(selectedModelPaths);
+    }
+}
+void LayoutPanel::BulkEditTransparency() {
+    std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
+    // remember the selected models
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+
+    int trans = 100;
+    for (Model* model: modelsToEdit) {
+        if (model != nullptr) {
+            trans = std::min(model->transparency, trans);
+        }
+    }
+    wxNumberEntryDialog dlg(this, "Choose the transparency",  "Transparency:", "Transparency", trans, 0, 100);
+    OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() == wxID_OK) {
+        trans = dlg.GetValue();
+        for (Model* model: modelsToEdit) {
+            model->SetTransparency(trans);
+        }
+
+        // see comment in BulkEditActive()
+        xlights->GetOutputModelManager()->ClearSelectedModel();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditTransparency");
+        // reselect all the models
+        ReselectTreeModels(selectedModelPaths);
+    }
+}
+void LayoutPanel::BulkEditBlackTranparency() {
+    std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
+    // remember the selected models
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+
+    int trans = 100;
+    for (Model* model: modelsToEdit) {
+        if (model != nullptr) {
+            trans = std::min(model->blackTransparency, trans);
+        }
+    }
+    wxNumberEntryDialog dlg(this, "Choose the black transparency",  "Black Transparency:", "Black Transparency", trans, 0, 100);
+    OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() == wxID_OK) {
+        trans = dlg.GetValue();
+        for (Model* model: modelsToEdit) {
+            model->SetBlackTransparency(trans);
+        }
+
+        // see comment in BulkEditActive()
+        xlights->GetOutputModelManager()->ClearSelectedModel();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditBlackTranparency");
+        // reselect all the models
+        ReselectTreeModels(selectedModelPaths);
+    }
+}
 void LayoutPanel::BulkEditTagColour()
 {
     std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
-
     // remember the selected models
     std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
@@ -4389,6 +4500,11 @@ void LayoutPanel::AddBulkEditOptionsToMenu(wxMenu* mnuBulkEdit) {
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERNAME, "Controller Name");
         }
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_TAGCOLOUR, "Tag Color");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_PIXELSIZE, "Pixel Size");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_PIXELSTYLE, "Pixel Style");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_TRANSPARENCY, "Transparency");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_BLACKTRANSPARENCY, "Black Transparency");
+
         mnuBulkEdit->AppendSeparator();
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Port");
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT, "Controller Port and Increment");
@@ -4617,12 +4733,17 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     else if (event.GetId() == ID_PREVIEW_BULKEDIT_SETINACTIVE)
     {
         BulkEditActive(false);
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_TAGCOLOUR)
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_TAGCOLOUR) {
         BulkEditTagColour();
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW)
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSIZE) {
+        BulkEditPixelSize();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSTYLE) {
+        BulkEditPixelStyle();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_TRANSPARENCY) {
+        BulkEditTransparency();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_BLACKTRANSPARENCY) {
+        BulkEditBlackTranparency();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW)
     {
         BulkEditControllerPreview();
     }
@@ -7178,6 +7299,14 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         BulkEditActive(false);
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_TAGCOLOUR) {
         BulkEditTagColour();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSIZE) {
+        BulkEditPixelSize();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSTYLE) {
+        BulkEditPixelStyle();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_TRANSPARENCY) {
+        BulkEditTransparency();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_BLACKTRANSPARENCY) {
+        BulkEditBlackTranparency();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW) {
         BulkEditControllerPreview();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_DIMMINGCURVES) {

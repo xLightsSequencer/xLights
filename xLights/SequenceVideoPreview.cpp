@@ -21,7 +21,7 @@ END_EVENT_TABLE()
 
 
 SequenceVideoPreview::SequenceVideoPreview(wxPanel *parent)
-    : GRAPHICS_BASE_CLASS(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ViewPreview"), _texture(nullptr), _texWidth(0), _texHeight(0)
+    : GRAPHICS_BASE_CLASS(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "VideoPreview"), _texture(nullptr), _texWidth(0), _texHeight(0)
 {
 
 }

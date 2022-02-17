@@ -596,8 +596,7 @@ void Model::ColourClashingChains(wxPGProperty* p)
 
 std::string Model::GetPixelStyleDescription(int pixelStyle)
 {
-    if (pixelStyle < PIXEL_STYLES.size())
-    {
+    if (pixelStyle < PIXEL_STYLES.size()) {
         return PIXEL_STYLES[pixelStyle];
     }
     return "";
@@ -6245,6 +6244,43 @@ void Model::SetTagColour(wxColour colour)
     IncrementChangeCount();
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTagColour");
 }
+void Model::SetPixelSize(int size) {
+    if (size != pixelSize) {
+        pixelSize = size;
+        ModelXml->DeleteAttribute("PixelSize");
+        ModelXml->AddAttribute("PixelSize", wxString::Format(wxT("%i"), pixelSize));
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetPixelSize");
+    }
+}
+void Model::SetTransparency(int t) {
+    if (t != transparency) {
+        transparency = t;
+        ModelXml->DeleteAttribute("Transparency");
+        ModelXml->AddAttribute("Transparency", wxString::Format(wxT("%i"), transparency));
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTransparency");
+    }
+}
+void Model::SetBlackTransparency(int t) {
+    if (t != blackTransparency) {
+        blackTransparency = t;
+        ModelXml->DeleteAttribute("BlackTransparency");
+        ModelXml->AddAttribute("BlackTransparency", wxString::Format(wxT("%i"), blackTransparency));
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetBlackTransparency");
+    }
+}
+void Model::SetPixelStyle(int style) {
+    if (pixelStyle != style) {
+        pixelStyle = style;
+        ModelXml->DeleteAttribute("Antialias");
+        ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), pixelStyle));
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetPixelStyle");
+    }
+}
+
 
 int32_t Model::GetStringStartChan(int x) const
 {
