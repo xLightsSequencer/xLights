@@ -335,9 +335,9 @@ DeviceData Mouse3DManager::detect_attached_device()
             typedef std::map<DeviceIds, DeviceDataList> DetectedDevices;
             DetectedDevices detected_devices;
             while (current != nullptr) {
-                unsigned short vendor_id = 0;
-                unsigned short product_id = 0;
-                std::string devicePath = "";
+                unsigned short vendor_id{ 0 };
+                unsigned short product_id{ 0 };
+                std::string devicePath;
 
                 for (auto const& vendor : _3DCONNEXION_VENDORS) {
                     if (vendor == current->vendor_id) {
@@ -351,7 +351,7 @@ DeviceData Mouse3DManager::detect_attached_device()
                         if (device == current->product_id) {
                             product_id = current->product_id;
                             devicePath = current->path;
-                            DeviceIds detected_device(vendor_id, product_id);
+                            DeviceIds detected_device(vendor_id, product_id, devicePath);
                             DetectedDevices::iterator it = detected_devices.find(detected_device);
                             if (it == detected_devices.end()) {
                                 it = detected_devices.insert(DetectedDevices::value_type(detected_device, DeviceDataList())).first;
@@ -367,9 +367,9 @@ DeviceData Mouse3DManager::detect_attached_device()
             // Free enumerated devices
             hid_free_enumeration(devices);
 
-            unsigned short vendor_id = 0;
-            unsigned short product_id = 0;
-            std::string devicePath = "";
+            unsigned short vendor_id{ 0 };
+            unsigned short product_id{ 0 };
+            std::string devicePath;
 
             if (!detected_devices.empty()) {
                 // Then we'll decide the choosing logic to apply in dependence of the device count and operating system
@@ -549,7 +549,7 @@ bool Mouse3DManager::handle_packet_translation(const DataPacketRaw& packet)
 }
 bool Mouse3DManager::handle_packet_rotation(const DataPacketRaw& packet, unsigned int first_byte)
 {
-    double deadzone = 0;
+    constexpr double deadzone{ 0 };
     glm::vec3 r((float)convert_input(packet[first_byte + 0], packet[first_byte + 1], deadzone),
                    (float)convert_input(packet[first_byte + 2], packet[first_byte + 3], deadzone),
                    (float)convert_input(packet[first_byte + 4], packet[first_byte + 5], deadzone));
@@ -562,7 +562,7 @@ bool Mouse3DManager::handle_packet_rotation(const DataPacketRaw& packet, unsigne
 }
 bool Mouse3DManager::handle_packet_button(const DataPacketRaw& packet, unsigned int packet_size)
 {
-    unsigned int curButton = 0;
+    unsigned int curButton{ 0 };
     for (unsigned int i = 1; i < packet_size; ++i) {
         uint32_t buttons = packet[i];
         for (int x = 0; x < 8; x++) {
@@ -678,14 +678,14 @@ void Mouse3DManager::run()
     }
     this->connect_device(m_device);
     if (m_device_ptr != nullptr) {
-        for (;;) {  
+        for (;;) {
             if (m_stop) {
                 break;
             }
             // Waits for 3DConnexion mouse input for maximum 100ms, then repeats.
             if (!this->collect_input()) {
                 break;
-            }                
+            }
             wxMilliSleep(1);
         }
     }
@@ -706,7 +706,7 @@ bool Mouse3DManager::collect_input()
         return false;
     }
     this->handle_input(packet, res);
-    return true;    
+    return true;
 }
 #endif
 

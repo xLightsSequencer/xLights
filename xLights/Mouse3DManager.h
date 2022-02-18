@@ -30,7 +30,7 @@ struct DeviceData
         DeviceStr = std::string();
         VID=0;
         PID=0;
-        path = "";
+        path = std::string();
     }
 
     bool isEmpty()
