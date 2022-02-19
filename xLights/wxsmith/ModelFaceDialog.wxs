@@ -304,6 +304,7 @@
 														<minsize>-1,200d</minsize>
 														<handler function="OnMatrixModelsGridCellLeftClick1" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
 														<handler function="OnMatrixModelsGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
+														<handler function="OnMatrixModelsGridLabelLeftDClick" entry="EVT_CMD_GRID_LABEL_LEFT_DCLICK" />
 														<handler function="OnMatrixModelsGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGED" />
 														<handler function="OnMatrixModelsGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 													</object>
