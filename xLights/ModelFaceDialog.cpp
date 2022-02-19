@@ -336,6 +336,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id, const wxPoint& 
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButton_DownloadImagesClick);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellLeftClick1);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellLeftClick);
+	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridLabelLeftDClick);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellChange);
 	Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellSelect);
 	Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&ModelFaceDialog::OnFaceTypeChoicePageChanged);
@@ -568,12 +569,24 @@ void ModelFaceDialog::OnMatrixModelsGridCellChange(wxGridEvent& event)
     faceData[name][key.ToStdString()] = MatrixModelsGrid->GetCellValue(r, c);
 }
 
-static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*";
 void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
 {
-    std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    int r = event.GetRow();
-    int c = event.GetCol();
+    SelectMatrixImage(event.GetRow(), event.GetCol());
+}
+
+void ModelFaceDialog::OnMatrixModelsGridLabelLeftDClick(wxGridEvent& event)
+{
+    if (event.GetRow() < 0) {
+        return;
+    }
+    SelectMatrixImage(event.GetRow(), 0);// update eyes open column
+}
+
+static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*";
+void ModelFaceDialog::SelectMatrixImage(int r, int c)
+{
+    std::string const name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+
     wxString key = MatrixModelsGrid->GetRowLabelValue(r) + "-" + MatrixModelsGrid->GetColLabelValue(c);
     wxFileName fname(MatrixModelsGrid->GetCellValue(r, c));
     wxFileDialog dlg(this, "Choose Image File for " + key, fname.GetPath(),
@@ -1787,3 +1800,5 @@ void ModelFaceDialog::ReverseFaceNodes()
     SelectFaceModel(name);
     UpdatePreview("", *wxWHITE);
 }
+
+

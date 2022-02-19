@@ -135,6 +135,7 @@ class ModelFaceDialog: public wxDialog
 		void OnNodeRangeGridCellRightClick(wxGridEvent& event);
 		void OnNodeRangeGridLabelLeftDClick(wxGridEvent& event);
 		void OnButtonImportClick(wxCommandEvent& event);
+		void OnMatrixModelsGridLabelLeftDClick(wxGridEvent& event);
 		//*)
 
         void OnAddBtnPopup(wxCommandEvent& event);
@@ -173,6 +174,7 @@ class ModelFaceDialog: public wxDialog
     void ShiftFaceNodes();
     void ReverseFaceNodes();
 
+	void SelectMatrixImage(int r, int c);
 	void RenderModel();
 	void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
 	void SelectAllInBoundingRect(bool shiftdwn);
