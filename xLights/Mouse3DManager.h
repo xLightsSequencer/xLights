@@ -72,7 +72,7 @@ static const std::vector<int> _3DCONNEXION_DEVICES = {
 class Motion3DEvent;
 wxDECLARE_EVENT(EVT_MOTION3D, Motion3DEvent);
 
-class Motion3DEvent : public wxEvent {
+class Motion3DEvent : public wxEvent, public wxKeyboardState {
 public:
     Motion3DEvent(const glm::vec3 &t, const glm::vec3 &r);
     Motion3DEvent();

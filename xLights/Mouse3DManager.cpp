@@ -786,7 +786,12 @@ wxIMPLEMENT_DYNAMIC_CLASS(Motion3DEvent, wxEvent);
 wxDEFINE_EVENT(EVT_MOTION3D, Motion3DEvent);
 wxDEFINE_EVENT(EVT_MOTION3D_BUTTONCLICKED, wxCommandEvent);
 
-Motion3DEvent::Motion3DEvent(const glm::vec3 &t, const glm::vec3 &r) : wxEvent(0, EVT_MOTION3D), translations(t), rotations(r) {
+Motion3DEvent::Motion3DEvent(const glm::vec3 &t, const glm::vec3 &r) : wxEvent(0, EVT_MOTION3D), wxKeyboardState(), translations(t), rotations(r) {
+    wxMouseState ms = ::wxGetMouseState();
+    SetControlDown(ms.ControlDown());
+    SetAltDown(ms.AltDown());
+    SetShiftDown(ms.ShiftDown());
+    SetRawControlDown(ms.RawControlDown());
 }
 Motion3DEvent::Motion3DEvent() : wxEvent(0, EVT_MOTION3D) {
 }

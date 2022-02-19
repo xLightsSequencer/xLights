@@ -3752,7 +3752,7 @@ void LayoutPanel::OnPreviewMotion3DButtonEvent(wxCommandEvent &event) {
 void LayoutPanel::OnPreviewMotion3D(Motion3DEvent &event) {
     int gSize = selectedTreeGroups.size();
     int smSize = selectedTreeSubModels.size();
-    if (selectedBaseObject != nullptr && gSize == 0 && smSize == 0) {
+    if (selectedBaseObject != nullptr && gSize == 0 && smSize == 0 && !event.ControlDown() && !event.RawControlDown()) {
         int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
         CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, std::to_string(active_handle));
         xlights->AbortRender();
