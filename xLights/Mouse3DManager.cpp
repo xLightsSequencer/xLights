@@ -655,7 +655,10 @@ bool Mouse3DManager::handle_packet_button29(const DataPacketRaw& packet, unsigne
 }
 bool Mouse3DManager::connect_device(DeviceData const& dev)
 { 
-    auto *device = hid_open_path(dev.path.c_str());
+    if (dev.path.empty() && dev.VID == 0 && dev.PID == 0) {
+        return false;
+    }
+    auto* device = hid_open_path(dev.path.c_str());
     if (device == nullptr) {
         device = hid_open(dev.VID, dev.PID, nullptr);
     }
