@@ -36,6 +36,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual std::string GetStartLocation() const override { return "n/a"; }
 
+        bool IsAllNodesUnique() const;
         long GetCustomWidth() const { return parm1;}
         long GetCustomHeight() const { return parm2;}
         long GetCustomDepth() const { return _depth;}

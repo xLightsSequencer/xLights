@@ -50,6 +50,7 @@
 #include "models/Model.h"
 #include "xLightsApp.h"
 #include "support/VectorMath.h"
+#include "models/CustomModel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -356,6 +357,8 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id, const wxPoint& 
     modelPreview->Connect(wxEVT_LEAVE_WINDOW, (wxObjectEventFunction)&ModelFaceDialog::OnPreviewMouseLeave, nullptr, this);
     modelPreview->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&ModelFaceDialog::OnPreviewLeftDClick, nullptr, this);
 
+    FaceTypeChoice->ChangeSelection(NODE_RANGE_FACE);
+
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
     Center();
@@ -535,6 +538,24 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             NameChoice->Enable();
             FaceTypeChoice->Enable();
             DeleteButton->Enable();
+
+              // set the default type of face based on the model type
+            if (model->GetDisplayAs() == "Matrix" || StartsWith(model->GetDisplayAs(), "Tree")) {
+                FaceTypeChoice->ChangeSelection(MATRIX_FACE);
+            } else if (model->GetDisplayAs() == "Custom") {
+                CustomModel* cm = dynamic_cast<CustomModel*>(model);
+                if (cm != nullptr) {
+                    if (cm->IsAllNodesUnique()) {
+                        FaceTypeChoice->ChangeSelection(NODE_RANGE_FACE);
+                    } else {
+                        FaceTypeChoice->ChangeSelection(SINGLE_NODE_FACE);
+                    }
+                }
+            } else if (model->GetDisplayAs() == "Channel Block") {
+                FaceTypeChoice->ChangeSelection(SINGLE_NODE_FACE);
+            } else {
+                FaceTypeChoice->ChangeSelection(NODE_RANGE_FACE);
+            }
         }
     }
 }

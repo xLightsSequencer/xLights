@@ -20,6 +20,7 @@
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
 #include "support/VectorMath.h"
+#include "models/CustomModel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -254,6 +255,8 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
     modelPreview->Connect(wxEVT_LEAVE_WINDOW, (wxObjectEventFunction)&ModelStateDialog::OnPreviewMouseLeave, nullptr, this);
     modelPreview->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&ModelStateDialog::OnPreviewLeftDClick, nullptr, this);
 
+    StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
+
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
     Center();
@@ -422,6 +425,22 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             NameChoice->Enable();
             StateTypeChoice->Enable();
             DeleteButton->Enable();
+ 
+            // set the default type of state based on model type
+            if (model->GetDisplayAs() == "Custom") {
+                CustomModel* cm = dynamic_cast<CustomModel*>(model);
+                if (cm != nullptr) {
+                    if (cm->IsAllNodesUnique()) {
+                        StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
+                    } else {
+                        StateTypeChoice->ChangeSelection(SINGLE_NODE_STATE);
+                    }
+                }
+            } else if (model->GetDisplayAs() == "Channel Block") {
+                StateTypeChoice->ChangeSelection(SINGLE_NODE_STATE);
+            } else {
+                StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
+            }
         }
     }
     ValidateWindow();

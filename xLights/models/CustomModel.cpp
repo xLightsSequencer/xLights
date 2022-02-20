@@ -410,6 +410,17 @@ bool CustomModel::CleanupFileLocations(xLightsFrame* frame)
     return Model::CleanupFileLocations(frame) || rc;
 }
 
+bool CustomModel::IsAllNodesUnique() const
+{
+    if (Nodes.size() == 0)
+        return false; // this is a special case where i want to treat it like it is not unique
+    for (const auto& n : Nodes) {
+        if (n->Coords.size() > 1)
+            return false;
+    }
+    return true;
+}
+
 std::list<std::string> CustomModel::GetFileReferences()
 {
     std::list<std::string> res;
