@@ -1108,81 +1108,73 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     return html;
 }
 
-void CustomModel::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    if (!wxString(filename).Lower().EndsWith("xmodel"))
-    {
-        return ImportLORModel(filename, xlights, min_x, max_x, min_y, max_y);
-    }
+void CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "custommodel") {
+        wxString name = root->GetAttribute("name");
+        wxString cm = root->GetAttribute("CustomModel");
+        wxString p1 = root->GetAttribute("parm1");
+        wxString p2 = root->GetAttribute("parm2");
+        wxString d = root->GetAttribute("Depth", "1");
+        wxString st = root->GetAttribute("StringType", "RGB Nodes");
+        wxString ps = root->GetAttribute("PixelSize", "2");
+        wxString t = root->GetAttribute("Transparency", "0");
+        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString a = root->GetAttribute("Antialias", "1");
+        wxString sn = root->GetAttribute("StrandNames");
+        wxString nn = root->GetAttribute("NodeNames");
+        wxString v = root->GetAttribute("SourceVersion");
+        wxString pc = root->GetAttribute("PixelCount");
+        wxString pt = root->GetAttribute("PixelType");
+        wxString psp = root->GetAttribute("PixelSpacing");
 
-    wxXmlDocument doc(filename);
+        // generally xmodels dont have these ... but there are some cases where we do where it would point to a shadow model ... in those cases we want to bring it in
+        wxString smf = root->GetAttribute("ShadowModelFor");
+        wxString sc = root->GetAttribute("StartChannel");
 
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
+        // Add any model version conversion logic here
+        // Source version will be the program version that created the custom model
 
-        if (root->GetName() == "custommodel")
-        {
-            wxString name = root->GetAttribute("name");
-            wxString cm = root->GetAttribute("CustomModel");
-            wxString p1 = root->GetAttribute("parm1");
-            wxString p2 = root->GetAttribute("parm2");
-            wxString d = root->GetAttribute("Depth", "1");
-            wxString st = root->GetAttribute("StringType", "RGB Nodes");
-            wxString ps = root->GetAttribute("PixelSize", "2");
-            wxString t = root->GetAttribute("Transparency", "0");
-            wxString mb = root->GetAttribute("ModelBrightness");
-            wxString a = root->GetAttribute("Antialias","1");
-            wxString sn = root->GetAttribute("StrandNames");
-            wxString nn = root->GetAttribute("NodeNames");
-            wxString v = root->GetAttribute("SourceVersion");
-            wxString pc = root->GetAttribute("PixelCount");
-            wxString pt = root->GetAttribute("PixelType");
-            wxString psp = root->GetAttribute("PixelSpacing");
-
-            // Add any model version conversion logic here
-            // Source version will be the program version that created the custom model
-
-            SetProperty("CustomModel", cm);
-            SetProperty("parm1", p1);
-            SetProperty("parm2", p2);
-            SetProperty("Depth", d);
-            SetProperty("StringType", st);
-            SetProperty("PixelSize", ps);
-            SetProperty("Transparency", t);
-            SetProperty("ModelBrightness", mb);
-            SetProperty("Antialias", a);
-            SetProperty("StrandNames", sn);
-            SetProperty("NodeNames", nn);
-            SetProperty("PixelCount", pc);
-            SetProperty("PixelType", pt);
-            SetProperty("PixelSpacing", psp);
-            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-            SetProperty("name", newname, true);
-
-            ImportSuperStringColours(root);
-            ImportModelChildren(root, xlights, newname);
-
-            GetModelScreenLocation().SetMWidth(max_x - min_x);
-            GetModelScreenLocation().SetMHeight(max_y - min_y);
-
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportXlightsModel");
+        SetProperty("CustomModel", cm);
+        SetProperty("parm1", p1);
+        SetProperty("parm2", p2);
+        SetProperty("Depth", d);
+        SetProperty("StringType", st);
+        SetProperty("PixelSize", ps);
+        SetProperty("Transparency", t);
+        SetProperty("ModelBrightness", mb);
+        SetProperty("Antialias", a);
+        SetProperty("StrandNames", sn);
+        SetProperty("NodeNames", nn);
+        SetProperty("PixelCount", pc);
+        SetProperty("PixelType", pt);
+        SetProperty("PixelSpacing", psp);
+        if (smf != "") {
+            SetProperty("ShadowModelFor", smf);
         }
-        else
-        {
-            DisplayError("Failure loading custom model file.");
+        if (sc != "") {
+            SetControllerName("Use Start Channel");
+            SetProperty("StartChannel", sc);
         }
-    }
-    else
-    {
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        SetProperty("name", newname, true);
+
+        ImportSuperStringColours(root);
+        ImportModelChildren(root, xlights, newname);
+
+        GetModelScreenLocation().SetMWidth(max_x - min_x);
+        GetModelScreenLocation().SetMHeight(max_y - min_y);
+
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportXlightsModel");
+    } else {
         DisplayError("Failure loading custom model file.");
     }
 }
 
 bool point_compare(const wxPoint first, const wxPoint second)
 {
-    if (first.x == second.x)
-    {
+    if (first.x == second.x) {
         return first.y < second.y;
     }
 
@@ -1194,54 +1186,40 @@ void RemoveDuplicatePixels(std::list<std::list<wxPoint>>& chs)
     std::list<wxPoint> flat;
     std::list<wxPoint> duplicates;
 
-    for (const auto& ch : chs)
-    {
-        for (const auto& it : ch)
-        {
+    for (const auto& ch : chs) {
+        for (const auto& it : ch) {
             flat.push_back(wxPoint(it.x, it.y));
         }
     }
 
     flat.sort(point_compare);
 
-    for (auto it = flat.begin(); it != flat.end(); ++it)
-    {
+    for (auto it = flat.begin(); it != flat.end(); ++it) {
         auto it2 = it;
         ++it2;
 
-        if (it2 != flat.end())
-        {
-            if (it->x == it2->x && it->y == it2->y && 
-                (duplicates.size() == 0 || duplicates.back().x != it->x || duplicates.back().y != it->y))
-            {
+        if (it2 != flat.end()) {
+            if (it->x == it2->x && it->y == it2->y &&
+                (duplicates.size() == 0 || duplicates.back().x != it->x || duplicates.back().y != it->y)) {
                 duplicates.push_back(*it);
             }
         }
     }
 
-    for (const auto& d : duplicates)
-    {
+    for (const auto& d : duplicates) {
         bool first = true;
 
-        for (auto ch = chs.begin(); ch != chs.end(); ++ch)
-        {
+        for (auto ch = chs.begin(); ch != chs.end(); ++ch) {
             auto it = ch->begin();
-            while (it != ch->end())
-            {
-                if (it->x == d.x && it->y == d.y)
-                {
-                    if (first)
-                    {
+            while (it != ch->end()) {
+                if (it->x == d.x && it->y == d.y) {
+                    if (first) {
                         first = false;
                         ++it;
-                    }
-                    else
-                    {
+                    } else {
                         ch->erase(it++);
                     }
-                }
-                else
-                {
+                } else {
                     ++it;
                 }
             }
@@ -1253,27 +1231,24 @@ bool HasDuplicates(float divisor, std::list<std::list<wxPoint>> chs)
 {
     std::list<wxPoint> scaled;
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Checking for duplicates at scale %f.", divisor);
 
-    for (const auto& ch : chs)
-    {
-        for (const auto& it : ch)
-        {
+    for (const auto& ch : chs) {
+        for (const auto& it : ch) {
             scaled.push_back(wxPoint((float)it.x * divisor, (float)it.y * divisor));
         }
     }
 
     scaled.sort(point_compare);
 
-    for (auto it = scaled.begin(); it != scaled.end(); ++it)
-    {
+    for (auto it = scaled.begin(); it != scaled.end(); ++it) {
         auto it2 = it;
         ++it2;
 
-        if (it2 != scaled.end())
-        {
-            if (it->x == it2->x && it->y == it2->y) return true;
+        if (it2 != scaled.end()) {
+            if (it->x == it2->x && it->y == it2->y)
+                return true;
         }
     }
 
@@ -1282,34 +1257,25 @@ bool HasDuplicates(float divisor, std::list<std::list<wxPoint>> chs)
 
 void CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxXmlDocument doc(filename);
 
-    if (doc.IsOk())
-    {
-        logger_base.debug("Loading LOR model %s.", (const char *)filename.c_str());
+    if (doc.IsOk()) {
+        logger_base.debug("Loading LOR model %s.", (const char*)filename.c_str());
 
         wxXmlNode* root = doc.GetRoot();
 
         std::list<std::list<wxPoint>> chs;
 
-        for (wxXmlNode* n1 = root->GetChildren(); n1 != nullptr; n1 = n1->GetNext())
-        {
-            if (n1->GetName() == "DrawObjects")
-            {
-                for (wxXmlNode* n2 = n1->GetChildren(); n2 != nullptr; n2 = n2->GetNext())
-                {
-                    if (n2->GetName() == "DrawObject")
-                    {
-                        for (wxXmlNode* n3 = n2->GetChildren(); n3 != nullptr; n3 = n3->GetNext())
-                        {
-                            if (n3->GetName() == "DrawPoints")
-                            {
+        for (wxXmlNode* n1 = root->GetChildren(); n1 != nullptr; n1 = n1->GetNext()) {
+            if (n1->GetName() == "DrawObjects") {
+                for (wxXmlNode* n2 = n1->GetChildren(); n2 != nullptr; n2 = n2->GetNext()) {
+                    if (n2->GetName() == "DrawObject") {
+                        for (wxXmlNode* n3 = n2->GetChildren(); n3 != nullptr; n3 = n3->GetNext()) {
+                            if (n3->GetName() == "DrawPoints") {
                                 std::list<wxPoint> points;
-                                for (wxXmlNode* n4 = n3->GetChildren(); n4 != nullptr; n4 = n4->GetNext())
-                                {
-                                    if (n4->GetName() == "DrawPoint")
-                                    {
+                                for (wxXmlNode* n4 = n3->GetChildren(); n4 != nullptr; n4 = n4->GetNext()) {
+                                    if (n4->GetName() == "DrawPoint") {
                                         points.push_back(wxPoint(wxAtoi(n4->GetAttribute("X", "-5")) / 5, wxAtoi(n4->GetAttribute("Y", "-1")) / 5));
                                     }
                                 }
@@ -1328,8 +1294,7 @@ void CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::ImportLORModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportLORModel");
 
-        if (chs.size() == 0)
-        {
+        if (chs.size() == 0) {
             logger_base.error("No model data found.");
             wxMessageBox("Unable to import model data.");
             return;
@@ -1340,27 +1305,25 @@ void CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         int miny = 999999999;
         int maxy = -1;
 
-        for (auto ch = chs.begin(); ch != chs.end(); ++ch)
-        {
-            for (auto it = ch->begin(); it != ch->end(); ++it)
-            {
-                if (it->x >= 0)
-                {
-                    if (it->x < minx) minx = it->x;
-                    if (it->x > maxx) maxx = it->x;
+        for (auto ch = chs.begin(); ch != chs.end(); ++ch) {
+            for (auto it = ch->begin(); it != ch->end(); ++it) {
+                if (it->x >= 0) {
+                    if (it->x < minx)
+                        minx = it->x;
+                    if (it->x > maxx)
+                        maxx = it->x;
                 }
-                if (it->y >= 0)
-                {
-                    if (it->y < miny) miny = it->y;
-                    if (it->y > maxy) maxy = it->y;
+                if (it->y >= 0) {
+                    if (it->y < miny)
+                        miny = it->y;
+                    if (it->y > maxy)
+                        maxy = it->y;
                 }
             }
         }
 
-        for (auto ch = chs.begin(); ch != chs.end(); ++ch)
-        {
-            for (auto it = ch->begin(); it != ch->end(); ++it)
-            {
+        for (auto ch = chs.begin(); ch != chs.end(); ++ch) {
+            for (auto it = ch->begin(); it != ch->end(); ++it) {
                 it->x = (it->x - minx);
                 it->y = (it->y - miny);
             }
@@ -1370,78 +1333,72 @@ void CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         maxy -= miny;
 
         float divisor = 0.1f;
-        if (HasDuplicates(1.0, chs))
-        {
+        if (HasDuplicates(1.0, chs)) {
             DisplayWarning("This model is not going to import correctly as one or more pixels overlap.");
 
             RemoveDuplicatePixels(chs);
         }
 
-        while (HasDuplicates(divisor, chs))
-            {
-                divisor += 0.1f;
+        while (HasDuplicates(divisor, chs)) {
+            divisor += 0.1f;
 
-                if (divisor >= 1.0f) break;
-            }
+            if (divisor >= 1.0f)
+                break;
+        }
 
-            divisor -= 0.1f + 0.01f;
+        divisor -= 0.1f + 0.01f;
 
-            while (HasDuplicates(divisor, chs))
-            {
-                divisor += 0.01f;
+        while (HasDuplicates(divisor, chs)) {
+            divisor += 0.01f;
 
-                if (divisor >= 1.0f) break;
-            }
+            if (divisor >= 1.0f)
+                break;
+        }
 
         maxx = ((float)maxx * divisor) + 1;
         maxy = ((float)maxy * divisor) + 1;
 
-        logger_base.debug("Divisor chosen %f. Model dimensions %d,%d", divisor, maxx+1, maxy+1);
+        logger_base.debug("Divisor chosen %f. Model dimensions %d,%d", divisor, maxx + 1, maxy + 1);
 
         SetProperty("parm1", wxString::Format("%i", maxx));
         SetProperty("parm2", wxString::Format("%i", maxy));
 
-        int* data = (int*)malloc(maxx *  maxy * sizeof(int));
-        memset(data, 0x00, maxx *  maxy * sizeof(int));
+        int* data = (int*)malloc(maxx * maxy * sizeof(int));
+        memset(data, 0x00, maxx * maxy * sizeof(int));
 
         int c = 1;
 
-        for (auto ch = chs.begin(); ch != chs.end(); ++ch)
-        {
-            for (auto it = ch->begin(); it != ch->end(); ++it)
-            {
+        for (auto ch = chs.begin(); ch != chs.end(); ++ch) {
+            for (auto it = ch->begin(); it != ch->end(); ++it) {
                 int x = (float)it->x * divisor;
                 int y = (float)it->y * divisor;
 
                 wxASSERT(x >= 0 && x < maxx);
                 wxASSERT(y >= 0 && y < maxy);
 
-                data[y*maxx + x] = c;
+                data[y * maxx + x] = c;
             }
             c++;
         }
 
         std::string cm = "";
-        for (int y = 0; y < maxy; ++y)
-        {
-            for (int x = 0; x < maxx; ++x)
-            {
-                if (data[y * maxx + x] != 0)
-                {
+        for (int y = 0; y < maxy; ++y) {
+            for (int x = 0; x < maxx; ++x) {
+                if (data[y * maxx + x] != 0) {
                     cm += wxString::Format("%i", data[y * maxx + x]);
                 }
-                if (x != maxx - 1) cm += ",";
+                if (x != maxx - 1)
+                    cm += ",";
             }
 
-            if (y != maxy - 1) cm += ";";
+            if (y != maxy - 1)
+                cm += ";";
         }
         free(data);
 
         SetProperty("CustomModel", cm);
         logger_base.debug("Model import done.");
-    }
-    else
-    {
+    } else {
         DisplayError("Failure loading LOR model file.");
     }
 }
@@ -1451,10 +1408,12 @@ void CustomModel::ExportXlightsModel()
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
     wxFile f(filename);
     //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    if (!f.Create(filename, true) || !f.IsOpened())
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString cm = ModelXml->GetAttribute("CustomModel");
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
@@ -1487,18 +1446,15 @@ void CustomModel::ExportXlightsModel()
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString face = SerialiseFace();
-    if (face != "")
-    {
+    if (face != "") {
         f.Write(face);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     wxString groups = SerialiseGroups();
@@ -1513,21 +1469,19 @@ void CustomModel::ExportXlightsModel()
 // order ... this helps us name the strings correctly
 int CustomModel::MapPhysicalStringToLogicalString(int string) const
 {
-    if (_strings == 1) return string;
+    if (_strings == 1)
+        return string;
 
     // FIXME
-    // This is not very efficient ... n^2 algorithm ... but given most people will have a small 
-    // number of strings and it is super simple and only used on controller upload i am hoping 
+    // This is not very efficient ... n^2 algorithm ... but given most people will have a small
+    // number of strings and it is super simple and only used on controller upload i am hoping
     // to get away with it
 
     std::vector<int> stringOrder;
-    for (int curr = 0; curr < _strings; curr++)
-    {
+    for (int curr = 0; curr < _strings; curr++) {
         int count = 0;
-        for (int s = 0; s < _strings; s++)
-        {
-            if (stringStartChan[s] < stringStartChan[curr] && s != curr)
-            {
+        for (int s = 0; s < _strings; s++) {
+            if (stringStartChan[s] < stringStartChan[curr] && s != curr) {
                 count++;
             }
         }
@@ -1536,15 +1490,15 @@ int CustomModel::MapPhysicalStringToLogicalString(int string) const
     return stringOrder[string];
 }
 
-int CustomModel::GetNumPhysicalStrings() const 
-{ 
+int CustomModel::GetNumPhysicalStrings() const
+{
     int ts = GetSmartTs();
     if (ts <= 1) {
         return _strings;
-    }
-    else {
+    } else {
         int strings = _strings / ts;
-        if (strings == 0) strings = 1;
+        if (strings == 0)
+            strings = 1;
         return strings;
     }
 }

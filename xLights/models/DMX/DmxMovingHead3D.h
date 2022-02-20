@@ -28,7 +28,7 @@ class DmxMovingHead3D : public DmxMovingHead
         virtual void SetFromXml(wxXmlNode* ModelNode, bool zb) override;
         virtual void InitModel() override;
 
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
         virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
         virtual float GetDefaultBeamWidth() const override { return 1.5f; }

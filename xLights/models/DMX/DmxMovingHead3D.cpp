@@ -294,11 +294,9 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
     }
 }
 
-void DmxMovingHead3D::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    // We have already loaded gdtf properties
-    if (EndsWith(filename, "gdtf")) return;
+void DmxMovingHead3D::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
 
-    DmxMovingHead::ImportXlightsModel(filename, xlights, min_x, max_x, min_y, max_y);
+    DmxMovingHead::ImportXlightsModel(root, xlights, min_x, max_x, min_y, max_y);
 
     SetProperty("DisplayAs", "DmxMovingHead3D");
 }

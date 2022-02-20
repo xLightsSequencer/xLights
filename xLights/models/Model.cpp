@@ -47,6 +47,7 @@
 #include "../controllers/ControllerCaps.h"
 #include "../Pixels.h"
 #include "../ExternalHooks.h"
+#include "CustomModel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -2141,15 +2142,65 @@ void Model::AddState(wxXmlNode* n)
     Model::WriteStateInfo(ModelXml, stateInfo);
 }
 
+void Model::ImportShadowModels(wxXmlNode* n, xLightsFrame* xlights)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    int x = 500;
+    int y = 800;
+
+    // import the shadow models as well
+    for (auto m = n->GetChildren(); m != nullptr; m = m->GetNext()) {
+        Model* model = nullptr;
+        if (m->GetName() == "matrixmodel") {
+            logger_base.debug("Importing shadow matrix model.");
+            
+            // grab the attributes I want to keep
+            model = xlights->AllModels.CreateDefaultModel("Matrix", "1");
+        } else if (m->GetName() == "custommodel") {
+            logger_base.debug("Importing shadow custom model.");
+            model = xlights->AllModels.CreateDefaultModel("Custom", "1");
+        } else {
+            logger_base.error("Importing of shadow models of type %s not yet supported.", (const char*)m->GetName().c_str());
+            continue;
+        }
+        if (model != nullptr) {
+            x += 20;
+            y += 20;
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
+            model->SetWidth(100, true);
+            model->SetHeight(100, true);
+            model->UpdateXmlWithScale();
+            model->SetLayoutGroup("Unassigned");
+            model->Selected = false;
+            float min_x = 0;
+            float min_y = 0;
+            float max_x = 0;
+            float max_y = 0;
+            model->ImportXlightsModel(m, xlights, min_x, max_x, min_y, max_y);
+            model->SetControllerName(NO_CONTROLLER); // this will force the start channel to a non controller start channel ... then the user can associate them using visualiser
+            xlights->AllModels.AddModel(model);
+            AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::ImportShadowModels");
+            AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::ImportShadowModels");
+            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::ImportShadowModels");
+            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::ImportShadowModels");
+            AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "Model::ImportShadowModels");
+            AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::ImportShadowModels");
+            IncrementChangeCount();
+        }
+    }
+}
+
 void Model::AddSubmodel(wxXmlNode* n)
 {
     ParseSubModel(n);
 
     // this may break if the submodel format changes and the user loads an old format ... if that happens this needs to go through a upgrade routine
-    wxXmlNode *f = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+    wxXmlNode* f = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
     ModelXml->AddChild(f);
-    for (auto a = n->GetAttributes(); a!= nullptr; a = a->GetNext())
-    {
+    for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
         f->AddAttribute(a->GetName(), a->GetValue());
     }
 }
@@ -5461,6 +5512,8 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
         else if (n->GetName() == "modelGroup") {
             AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
                 xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname, merge, showPopup);
+        } else if (n->GetName() == "shadowmodels") {
+            ImportShadowModels(n, xlights);
         }
     }
 }
@@ -7037,8 +7090,6 @@ void Model::deleteUIObjects() {
     uiObjectsInvalid = false;
 }
 
-
-
 bool wxDropPatternProperty::ValidateValue(wxVariant& value, wxPGValidationInfo& validationInfo) const
 {
     for (auto c : value.GetString()) {
@@ -7046,3 +7097,27 @@ bool wxDropPatternProperty::ValidateValue(wxVariant& value, wxPGValidationInfo& 
     }
     return true;
 } 
+
+void Model::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    // these have already been dealt with
+    if (EndsWith(filename, "gdtf"))
+        return;
+
+    if (!wxString(filename).Lower().EndsWith("xmodel")) {
+        CustomModel* cm = dynamic_cast<CustomModel*>(this);
+        if (cm != nullptr) {
+            return cm->ImportLORModel(filename, xlights, min_x, max_x, min_y, max_y);
+        }
+        DisplayError("Attempt to import non-xmodel onto a non custom model.");
+        return;
+    }
+
+    wxXmlDocument doc(filename);
+    if (doc.IsOk()) {
+        wxXmlNode* root = doc.GetRoot();
+        ImportXlightsModel(root, xlights, min_x, max_x, min_y, max_y);
+    } else {
+        DisplayError("Failure loading model file: " + filename);
+    }
+}

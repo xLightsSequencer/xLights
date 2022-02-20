@@ -262,18 +262,19 @@ void DmxMovingHead::InitModel() {
     }
 }
 
-void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
-                                    xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is_3d,
-                                    const xlColor* c, bool allowSelected, bool wiring,
-                                    bool highlightFirst, int highlightpixel,
-                                    float *boundingBox) {
-    if (!IsActive()) return;
+void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+                                         xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
+                                         const xlColor* c, bool allowSelected, bool wiring,
+                                         bool highlightFirst, int highlightpixel,
+                                         float* boundingBox)
+{
+    if (!IsActive())
+        return;
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(Nodes);
-    
-    
-    sprogram->addStep([=](xlGraphicsContext *ctx) {
+
+    sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane
@@ -282,7 +283,7 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
-    tprogram->addStep([=](xlGraphicsContext *ctx) {
+    tprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane
@@ -292,10 +293,10 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
     DrawModel(preview, ctx, sprogram, tprogram, is_3d, !allowSelected, c);
-    sprogram->addStep([=](xlGraphicsContext *ctx) {
+    sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PopMatrix();
     });
-    tprogram->addStep([=](xlGraphicsContext *ctx) {
+    tprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PopMatrix();
     });
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
@@ -306,11 +307,15 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
         }
     }
 }
-void DmxMovingHead::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
-    if (!IsActive() && preview->IsNoCurrentModel()) { return; }
-    
+
+void DmxMovingHead::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+{
+    if (!IsActive() && preview->IsNoCurrentModel()) {
+        return;
+    }
+
     bool mustEnd = false;
-    xlGraphicsContext *ctx = preview->getCurrentGraphicsContext();
+    xlGraphicsContext* ctx = preview->getCurrentGraphicsContext();
     if (ctx == nullptr) {
         bool success = preview->StartDrawing(pointSize);
         if (success) {
@@ -327,7 +332,7 @@ void DmxMovingHead::DisplayEffectOnWindow(ModelPreview* preview, double pointSiz
             float scaleZ = float(w) * 0.95f / float(GetModelScreenLocation().RenderDp);
             scaleX = std::min(scaleX, scaleZ);
         }
-        
+
         float aspect = screenLocation.GetScaleX();
         aspect /= screenLocation.GetScaleY();
         if (scaleY < scaleX) {
@@ -339,24 +344,24 @@ void DmxMovingHead::DisplayEffectOnWindow(ModelPreview* preview, double pointSiz
         GetMinScreenXY(ml, mb);
         ml += GetModelScreenLocation().RenderWi / 2;
         mb += GetModelScreenLocation().RenderHt / 2;
-        
-        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext* ctx) {
             ctx->PushMatrix();
-            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
-                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.5f);
+            ctx->Translate(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.5f);
             ctx->Scale(scaleX, scaleY, 0.001f);
         });
-        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
             ctx->PushMatrix();
-            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
-                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.5f);
+            ctx->Translate(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.5f);
             ctx->Scale(scaleX, scaleY, 0.001f);
         });
         DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), false, true, nullptr);
-        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext* ctx) {
             ctx->PopMatrix();
         });
-        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
             ctx->PopMatrix();
         });
     }
@@ -365,7 +370,8 @@ void DmxMovingHead::DisplayEffectOnWindow(ModelPreview* preview, double pointSiz
     }
 }
 
-void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor* c) {
+void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
+{
     static wxStopWatch sw;
     size_t NodeCount = Nodes.size();
 
@@ -519,7 +525,6 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlG
     state.push_back(std::to_string(tilt_angle));
     SaveModelState(state);
 
-
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
     if (shutter_channel > 0 && shutter_channel <= NodeCount && active) {
@@ -532,7 +537,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlG
             shutter_open = shutter_value <= std::abs(shutter_threshold);
         }
     }
-    
+
     auto tvac = tprogram->getAccumulator();
     int tStart = tvac->getCount();
     auto vac = sprogram->getAccumulator();
@@ -543,17 +548,17 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlG
     if (dmx_style_val == DMX_STYLE_MOVING_HEAD_BARS ||
         dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS ||
         dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS) {
-        tprogram->addStep([=](xlGraphicsContext *ctx) {
+        tprogram->addStep([=](xlGraphicsContext* ctx) {
             ctx->Translate(-0.25f, 0, 0);
             ctx->Scale(0.5f, 0.5f, 1.0f);
         });
-        sprogram->addStep([=](xlGraphicsContext *ctx) {
+        sprogram->addStep([=](xlGraphicsContext* ctx) {
             ctx->Translate(-0.25f, 0, 0);
             ctx->Scale(0.5f, 0.5f, 1.0f);
         });
         beam_length_displayed *= 2;
     }
-    
+
     float angle1 = angle - beam_width / 2.0f;
     float angle2 = angle + beam_width / 2.0f;
     if (angle1 < 0.0f) {
@@ -566,7 +571,6 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlG
     float y1 = (RenderBuffer::sin(ToRadians(angle1)) * beam_length_displayed);
     float x2 = (RenderBuffer::cos(ToRadians(angle2)) * beam_length_displayed);
     float y2 = (RenderBuffer::sin(ToRadians(angle2)) * beam_length_displayed);
-
 
     // Draw the light beam
     if (dmx_style_val != DMX_STYLE_MOVING_HEAD_BARS && dmx_style_val != DMX_STYLE_MOVING_HEAD_3D && shutter_open) {
@@ -602,7 +606,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlG
             // draw head
             dmxPoint p1(0.5f, -0.5f, angle);
             dmxPoint p2(0.5f, +0.5f, angle);
-            dmxPoint p3(-0.4f, +0.4f,angle);
+            dmxPoint p3(-0.4f, +0.4f, angle);
             dmxPoint p4(-0.5f, +0.2f, angle);
             dmxPoint p5(-0.5f, -0.2f, angle);
             dmxPoint p6(-0.4f, -0.4f, angle);
@@ -637,7 +641,6 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlG
     if (dmx_style_val == DMX_STYLE_MOVING_HEAD_BARS ||
         dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS ||
         dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS) {
-
         // draw the bars
         xlColor proxy;
         xlColor red(xlRED);
@@ -685,7 +688,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlG
     }
 
     if (dmx_style_val == DMX_STYLE_MOVING_HEAD_3D) {
-        while (pan_angle_raw > 360.0f) pan_angle_raw -= 360.0f;
+        while (pan_angle_raw > 360.0f)
+            pan_angle_raw -= 360.0f;
         pan_angle_raw = 360.0f - pan_angle_raw;
         bool facing_right = pan_angle_raw <= 90.0f || pan_angle_raw >= 270.0f;
 
@@ -704,20 +708,23 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlG
         }
     }
     int tEnd = tvac->getCount();
-    tprogram->addStep([=](xlGraphicsContext *ctx) {
+    tprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->drawTriangles(tvac, tStart, tEnd - tStart);
     });
 
     int end = vac->getCount();
-    sprogram->addStep([=](xlGraphicsContext *ctx) {
+    sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->drawTriangles(vac, startVert, end - startVert);
     });
 }
 
-static inline void AddVertex(xlVertexColorAccumulator &va, const dmxPoint3 &point, const xlColor& c) {
+static inline void AddVertex(xlVertexColorAccumulator& va, const dmxPoint3& point, const xlColor& c)
+{
     va.AddVertex(point.x, point.y, point.z, c);
 }
-void DmxMovingHead::Draw3DBeam(xlVertexColorAccumulator *tvac, xlColor beam_color, float beam_length_displayed, float pan_angle_raw, float tilt_angle, bool shutter_open) {
+
+void DmxMovingHead::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_color, float beam_length_displayed, float pan_angle_raw, float tilt_angle, bool shutter_open)
+{
     xlColor beam_color_end(beam_color);
     beam_color_end.alpha = 0;
 
@@ -770,8 +777,7 @@ void DmxMovingHead::Draw3DBeam(xlVertexColorAccumulator *tvac, xlColor beam_colo
     }
 }
 
-
-void DmxMovingHead::Draw3DDMXBaseLeft(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle)
+void DmxMovingHead::Draw3DDMXBaseLeft(xlVertexColorAccumulator& va, const xlColor& c, float pan_angle)
 {
     constexpr float scaleFactor = 15.0f;
     dmxPoint3 p10(-3 / scaleFactor, -1 / scaleFactor, -5 / scaleFactor, pan_angle);
@@ -854,15 +860,15 @@ void DmxMovingHead::Draw3DDMXBaseLeft(xlVertexColorAccumulator &va, const xlColo
     AddVertex(va, p11, c);
 }
 
-void DmxMovingHead::Draw3DDMXBaseRight(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle)
+void DmxMovingHead::Draw3DDMXBaseRight(xlVertexColorAccumulator& va, const xlColor& c, float pan_angle)
 {
     constexpr float scaleFactor = 15.0f;
     dmxPoint3 p20(-3 / scaleFactor, -1 / scaleFactor, 5 / scaleFactor, pan_angle);
     dmxPoint3 p21(3 / scaleFactor, -1 / scaleFactor, 5 / scaleFactor, pan_angle);
     dmxPoint3 p22(-3 / scaleFactor, -5 / scaleFactor, 5 / scaleFactor, pan_angle);
-    dmxPoint3 p23(3 / scaleFactor, -5 / scaleFactor, 5 / scaleFactor,  pan_angle);
-    dmxPoint3 p24(0 / scaleFactor, -1 / scaleFactor, 5 / scaleFactor,  pan_angle);
-    dmxPoint3 p25(-1 / scaleFactor, 1 / scaleFactor, 5 / scaleFactor,  pan_angle);
+    dmxPoint3 p23(3 / scaleFactor, -5 / scaleFactor, 5 / scaleFactor, pan_angle);
+    dmxPoint3 p24(0 / scaleFactor, -1 / scaleFactor, 5 / scaleFactor, pan_angle);
+    dmxPoint3 p25(-1 / scaleFactor, 1 / scaleFactor, 5 / scaleFactor, pan_angle);
     dmxPoint3 p26(1 / scaleFactor, 1 / scaleFactor, 5 / scaleFactor, pan_angle);
 
     AddVertex(va, p20, c);
@@ -886,7 +892,7 @@ void DmxMovingHead::Draw3DDMXBaseRight(xlVertexColorAccumulator &va, const xlCol
     dmxPoint3 p222(-3 / scaleFactor, -5 / scaleFactor, 3 / scaleFactor, pan_angle);
     dmxPoint3 p223(3 / scaleFactor, -5 / scaleFactor, 3 / scaleFactor, pan_angle);
     dmxPoint3 p224(0 / scaleFactor, -1 / scaleFactor, 3 / scaleFactor, pan_angle);
-    dmxPoint3 p225(-1 / scaleFactor, 1 / scaleFactor, 3 / scaleFactor,  pan_angle);
+    dmxPoint3 p225(-1 / scaleFactor, 1 / scaleFactor, 3 / scaleFactor, pan_angle);
     dmxPoint3 p226(1 / scaleFactor, 1 / scaleFactor, 3 / scaleFactor, pan_angle);
 
     AddVertex(va, p220, c);
@@ -936,10 +942,12 @@ void DmxMovingHead::Draw3DDMXBaseRight(xlVertexColorAccumulator &va, const xlCol
     AddVertex(va, p221, c);
     AddVertex(va, p21, c);
 }
-void DmxMovingHead::Draw3DDMXHead(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle, float tilt_angle) {
+
+void DmxMovingHead::Draw3DDMXHead(xlVertexColorAccumulator& va, const xlColor& c, float pan_angle, float tilt_angle)
+{
     // draw the head
     constexpr float scaleFactor = 15.0f;
-    float pan_angle1 = pan_angle + 270.0f;  // needs to be rotated from reference we drew it
+    float pan_angle1 = pan_angle + 270.0f; // needs to be rotated from reference we drew it
     dmxPoint3 p31(-2 / scaleFactor, 3.45f / scaleFactor, -4 / scaleFactor, pan_angle1, 0, tilt_angle);
     dmxPoint3 p32(2 / scaleFactor, 3.45f / scaleFactor, -4 / scaleFactor, pan_angle1, 0, tilt_angle);
     dmxPoint3 p33(4 / scaleFactor, 0 / scaleFactor, -4 / scaleFactor, pan_angle1, 0, tilt_angle);
@@ -1028,10 +1036,12 @@ void DmxMovingHead::ExportXlightsModel()
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
     wxFile f(filename);
     //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    if (!f.Create(filename, true) || !f.IsOpened())
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
@@ -1091,73 +1101,63 @@ void DmxMovingHead::ExportXlightsModel()
     f.Close();
 }
 
-void DmxMovingHead::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    // We have already loaded gdtf properties
-    if (EndsWith(filename, "gdtf")) return;
+void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "dmxmodel") {
+        ImportBaseParameters(root);
 
-    wxXmlDocument doc(filename);
+        wxString name = root->GetAttribute("name");
+        wxString v = root->GetAttribute("SourceVersion");
 
-    if (doc.IsOk()) {
-        wxXmlNode* root = doc.GetRoot();
+        wxString s = root->GetAttribute("DmxStyle");
+        wxString pdr = root->GetAttribute("DmxPanDegOfRot");
+        wxString tdr = root->GetAttribute("DmxTiltDegOfRot");
+        wxString pc = root->GetAttribute("DmxPanChannel");
+        wxString po = root->GetAttribute("DmxPanOrient");
+        wxString psl = root->GetAttribute("DmxPanSlewLimit");
+        wxString tc = root->GetAttribute("DmxTiltChannel");
+        wxString to = root->GetAttribute("DmxTiltOrient");
+        wxString tsl = root->GetAttribute("DmxTiltSlewLimit");
+        wxString rc = root->GetAttribute("DmxRedChannel");
+        wxString gc = root->GetAttribute("DmxGreenChannel");
+        wxString bc = root->GetAttribute("DmxBlueChannel");
+        wxString wc = root->GetAttribute("DmxWhiteChannel");
+        wxString sc = root->GetAttribute("DmxShutterChannel");
+        wxString so = root->GetAttribute("DmxShutterOpen");
+        wxString bl = root->GetAttribute("DmxBeamLimit");
+        wxString dbl = root->GetAttribute("DmxBeamLength", "1");
+        wxString dbw = root->GetAttribute("DmxBeamWidth", "1");
 
-        if (root->GetName() == "dmxmodel") {
-            ImportBaseParameters(root);
+        // Add any model version conversion logic here
+        // Source version will be the program version that created the custom model
 
-            wxString name = root->GetAttribute("name");
-            wxString v = root->GetAttribute("SourceVersion");
+        SetProperty("DmxStyle", s);
+        SetProperty("DmxPanDegOfRot", pdr);
+        SetProperty("DmxTiltDegOfRot", tdr);
+        SetProperty("DmxPanChannel", pc);
+        SetProperty("DmxPanOrient", po);
+        SetProperty("DmxPanSlewLimit", psl);
+        SetProperty("DmxTiltChannel", tc);
+        SetProperty("DmxTiltOrient", to);
+        SetProperty("DmxTiltSlewLimit", tsl);
+        SetProperty("DmxRedChannel", rc);
+        SetProperty("DmxGreenChannel", gc);
+        SetProperty("DmxBlueChannel", bc);
+        SetProperty("DmxWhiteChannel", wc);
+        SetProperty("DmxShutterChannel", sc);
+        SetProperty("DmxShutterOpen", so);
+        SetProperty("DmxBeamLimit", bl);
+        SetProperty("DmxBeamLength", dbl);
+        SetProperty("DmxBeamWidth", dbw);
 
-            wxString s = root->GetAttribute("DmxStyle");
-            wxString pdr = root->GetAttribute("DmxPanDegOfRot");
-            wxString tdr = root->GetAttribute("DmxTiltDegOfRot");
-            wxString pc = root->GetAttribute("DmxPanChannel");
-            wxString po = root->GetAttribute("DmxPanOrient");
-            wxString psl = root->GetAttribute("DmxPanSlewLimit");
-            wxString tc = root->GetAttribute("DmxTiltChannel");
-            wxString to = root->GetAttribute("DmxTiltOrient");
-            wxString tsl = root->GetAttribute("DmxTiltSlewLimit");
-            wxString rc = root->GetAttribute("DmxRedChannel");
-            wxString gc = root->GetAttribute("DmxGreenChannel");
-            wxString bc = root->GetAttribute("DmxBlueChannel");
-            wxString wc = root->GetAttribute("DmxWhiteChannel");
-            wxString sc = root->GetAttribute("DmxShutterChannel");
-            wxString so = root->GetAttribute("DmxShutterOpen");
-            wxString bl = root->GetAttribute("DmxBeamLimit");
-            wxString dbl = root->GetAttribute("DmxBeamLength", "1");
-            wxString dbw = root->GetAttribute("DmxBeamWidth", "1");
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        GetModelScreenLocation().Write(ModelXml);
+        SetProperty("name", newname, true);
 
-            // Add any model version conversion logic here
-            // Source version will be the program version that created the custom model
+        ImportModelChildren(root, xlights, newname);
 
-            SetProperty("DmxStyle", s);
-            SetProperty("DmxPanDegOfRot", pdr);
-            SetProperty("DmxTiltDegOfRot", tdr);
-            SetProperty("DmxPanChannel", pc);
-            SetProperty("DmxPanOrient", po);
-            SetProperty("DmxPanSlewLimit", psl);
-            SetProperty("DmxTiltChannel", tc);
-            SetProperty("DmxTiltOrient", to);
-            SetProperty("DmxTiltSlewLimit", tsl);
-            SetProperty("DmxRedChannel", rc);
-            SetProperty("DmxGreenChannel", gc);
-            SetProperty("DmxBlueChannel", bc);
-            SetProperty("DmxWhiteChannel", wc);
-            SetProperty("DmxShutterChannel", sc);
-            SetProperty("DmxShutterOpen", so);
-            SetProperty("DmxBeamLimit", bl);
-            SetProperty("DmxBeamLength", dbl);
-            SetProperty("DmxBeamWidth", dbw);
-
-            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-            GetModelScreenLocation().Write(ModelXml);
-            SetProperty("name", newname, true);
-
-            ImportModelChildren(root, xlights, newname);
-
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHead::ImportXlightsModel");
-        } else {
-            DisplayError("Failure loading DmxMovingHead model file.");
-        }
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHead::ImportXlightsModel");
     } else {
         DisplayError("Failure loading DmxMovingHead model file.");
     }

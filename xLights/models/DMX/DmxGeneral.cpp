@@ -32,8 +32,8 @@ DmxGeneral::~DmxGeneral()
     //dtor
 }
 
-void DmxGeneral::AddTypeProperties(wxPropertyGridInterface *grid) {
-
+void DmxGeneral::AddTypeProperties(wxPropertyGridInterface* grid)
+{
     DmxModel::AddTypeProperties(grid);
 
     AddColorTypeProperties(grid);
@@ -41,7 +41,6 @@ void DmxGeneral::AddTypeProperties(wxPropertyGridInterface *grid) {
 
 int DmxGeneral::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
-
     if (OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
     }
@@ -49,7 +48,8 @@ int DmxGeneral::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGr
     return DmxModel::OnPropertyGridChange(grid, event);
 }
 
-void DmxGeneral::InitModel() {
+void DmxGeneral::InitModel()
+{
     DmxModel::InitModel();
 
     DisplayAs = "DmxGeneral";
@@ -71,10 +71,12 @@ void DmxGeneral::ExportXlightsModel()
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
     wxFile f(filename);
     //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    if (!f.Create(filename, true) || !f.IsOpened())
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxgeneral \n");
 
@@ -93,13 +95,11 @@ void DmxGeneral::ExportXlightsModel()
     f.Write(" >\n");
 
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString groups = SerialiseGroups();
@@ -110,57 +110,41 @@ void DmxGeneral::ExportXlightsModel()
     f.Close();
 }
 
-void DmxGeneral::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    // We have already loaded gdtf properties
-    if (EndsWith(filename, "gdtf")) return;
+void DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "dmxgeneral") {
+        ImportBaseParameters(root);
 
-    wxXmlDocument doc(filename);
+        wxString name = root->GetAttribute("name");
+        wxString v = root->GetAttribute("SourceVersion");
 
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
+        wxString rc = root->GetAttribute("DmxRedChannel");
+        wxString gc = root->GetAttribute("DmxGreenChannel");
+        wxString bc = root->GetAttribute("DmxBlueChannel");
+        wxString wc = root->GetAttribute("DmxWhiteChannel");
+        wxString sc = root->GetAttribute("DmxShutterChannel");
+        wxString so = root->GetAttribute("DmxShutterOpen");
+        wxString bl = root->GetAttribute("DmxBeamLimit");
+        wxString dbl = root->GetAttribute("DmxBeamLength", "1");
+        wxString dbw = root->GetAttribute("DmxBeamWidth", "1");
 
-        if (root->GetName() == "dmxgeneral")
-        {
-            ImportBaseParameters(root);
+        // Add any model version conversion logic here
+        // Source version will be the program version that created the custom model
 
-            wxString name = root->GetAttribute("name");
-            wxString v = root->GetAttribute("SourceVersion");
+        SetProperty("DmxRedChannel", rc);
+        SetProperty("DmxGreenChannel", gc);
+        SetProperty("DmxBlueChannel", bc);
+        SetProperty("DmxWhiteChannel", wc);
 
-            wxString rc = root->GetAttribute("DmxRedChannel");
-            wxString gc = root->GetAttribute("DmxGreenChannel");
-            wxString bc = root->GetAttribute("DmxBlueChannel");
-            wxString wc = root->GetAttribute("DmxWhiteChannel");
-            wxString sc = root->GetAttribute("DmxShutterChannel");
-            wxString so = root->GetAttribute("DmxShutterOpen");
-            wxString bl = root->GetAttribute("DmxBeamLimit");
-            wxString dbl = root->GetAttribute("DmxBeamLength", "1");
-            wxString dbw = root->GetAttribute("DmxBeamWidth", "1");
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        GetModelScreenLocation().Write(ModelXml);
+        SetProperty("name", newname, true);
 
-            // Add any model version conversion logic here
-            // Source version will be the program version that created the custom model
+        ImportModelChildren(root, xlights, newname);
 
-            SetProperty("DmxRedChannel", rc);
-            SetProperty("DmxGreenChannel", gc);
-            SetProperty("DmxBlueChannel", bc);
-            SetProperty("DmxWhiteChannel", wc);
-
-            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-            GetModelScreenLocation().Write(ModelXml);
-            SetProperty("name", newname, true);
-
-            ImportModelChildren(root, xlights, newname);
-
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxGeneral::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxGeneral::ImportXlightsModel");
-        }
-        else
-        {
-            DisplayError("Failure loading DmxGeneral model file.");
-        }
-    }
-    else
-    {
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxGeneral::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxGeneral::ImportXlightsModel");
+    } else {
         DisplayError("Failure loading DmxGeneral model file.");
     }
 }

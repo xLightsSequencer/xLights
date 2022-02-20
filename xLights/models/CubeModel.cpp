@@ -1047,93 +1047,77 @@ void CubeModel::ExportXlightsModel()
     f.Close();
 }
 
-void CubeModel::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    wxXmlDocument doc(filename);
+void CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "Cubemodel") {
+        wxString name = root->GetAttribute("name");
+        wxString p1 = root->GetAttribute("parm1");
+        wxString p2 = root->GetAttribute("parm2");
+        wxString p3 = root->GetAttribute("parm3");
+        wxString st = root->GetAttribute("StringType");
+        wxString ps = root->GetAttribute("PixelSize");
+        wxString t = root->GetAttribute("Transparency");
+        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString a = root->GetAttribute("Antialias");
+        wxString ss = root->GetAttribute("StartSide");
+        wxString dir = root->GetAttribute("Dir");
+        wxString sn = root->GetAttribute("StrandNames");
+        wxString nn = root->GetAttribute("NodeNames");
+        wxString v = root->GetAttribute("SourceVersion");
+        wxString da = root->GetAttribute("DisplayAs");
+        wxString pc = root->GetAttribute("PixelCount");
+        wxString pt = root->GetAttribute("PixelType");
+        wxString psp = root->GetAttribute("PixelSpacing");
+        wxString s0 = root->GetAttribute("Strings");
+        wxString s1 = root->GetAttribute("Start");
+        wxString s2 = root->GetAttribute("Style");
+        wxString s3 = root->GetAttribute("StrandsPerLine");
+        wxString s4 = root->GetAttribute("StrandsPerLayer");
 
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
+        // Add any model version conversion logic here
+        // Source version will be the program version that created the custom model
 
-        if (root->GetName() == "Cubemodel")
-        {
-            wxString name = root->GetAttribute("name");
-            wxString p1 = root->GetAttribute("parm1");
-            wxString p2 = root->GetAttribute("parm2");
-            wxString p3 = root->GetAttribute("parm3");
-            wxString st = root->GetAttribute("StringType");
-            wxString ps = root->GetAttribute("PixelSize");
-            wxString t = root->GetAttribute("Transparency");
-            wxString mb = root->GetAttribute("ModelBrightness");
-            wxString a = root->GetAttribute("Antialias");
-            wxString ss = root->GetAttribute("StartSide");
-            wxString dir = root->GetAttribute("Dir");
-            wxString sn = root->GetAttribute("StrandNames");
-            wxString nn = root->GetAttribute("NodeNames");
-            wxString v = root->GetAttribute("SourceVersion");
-            wxString da = root->GetAttribute("DisplayAs");
-            wxString pc = root->GetAttribute("PixelCount");
-            wxString pt = root->GetAttribute("PixelType");
-            wxString psp = root->GetAttribute("PixelSpacing");
-            wxString s0 = root->GetAttribute("Strings");
-            wxString s1 = root->GetAttribute("Start");
-            wxString s2 = root->GetAttribute("Style");
-            wxString s3 = root->GetAttribute("StrandsPerLine");
-            wxString s4 = root->GetAttribute("StrandsPerLayer");
+        SetProperty("parm1", p1);
+        SetProperty("parm2", p2);
+        SetProperty("parm3", p3);
+        SetProperty("StringType", st);
+        SetProperty("PixelSize", ps);
+        SetProperty("Transparency", t);
+        SetProperty("ModelBrightness", mb);
+        SetProperty("Antialias", a);
+        SetProperty("StartSide", ss);
+        SetProperty("Dir", dir);
+        SetProperty("StrandNames", sn);
+        SetProperty("NodeNames", nn);
+        SetProperty("DisplayAs", da);
+        SetProperty("PixelCount", pc);
+        SetProperty("PixelType", pt);
+        SetProperty("PixelSpacing", psp);
+        SetProperty("Strings", s0);
+        SetProperty("Start", s1);
+        SetProperty("Style", s2);
+        SetProperty("StrandsPerLine", s3);
+        SetProperty("StrandsPerLayer", s4);
 
-            // Add any model version conversion logic here
-            // Source version will be the program version that created the custom model
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        GetModelScreenLocation().Write(ModelXml);
+        SetProperty("name", newname, true);
 
-            SetProperty("parm1", p1);
-            SetProperty("parm2", p2);
-            SetProperty("parm3", p3);
-            SetProperty("StringType", st);
-            SetProperty("PixelSize", ps);
-            SetProperty("Transparency", t);
-            SetProperty("ModelBrightness", mb);
-            SetProperty("Antialias", a);
-            SetProperty("StartSide", ss);
-            SetProperty("Dir", dir);
-            SetProperty("StrandNames", sn);
-            SetProperty("NodeNames", nn);
-            SetProperty("DisplayAs", da);
-            SetProperty("PixelCount", pc);
-            SetProperty("PixelType", pt);
-            SetProperty("PixelSpacing", psp);
-            SetProperty("Strings", s0);
-            SetProperty("Start", s1);
-            SetProperty("Style", s2);
-            SetProperty("StrandsPerLine", s3);
-            SetProperty("StrandsPerLayer", s4);
+        ImportSuperStringColours(root);
+        ImportModelChildren(root, xlights, newname);
 
-            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-            GetModelScreenLocation().Write(ModelXml);
-            SetProperty("name", newname, true);
-
-            ImportSuperStringColours(root);
-            ImportModelChildren(root, xlights, newname);
-
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::ImportXlightsModel");
-        }
-        else
-        {
-            DisplayError("Failure loading Cube model file.");
-        }
-    }
-    else
-    {
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::ImportXlightsModel");
+    } else {
         DisplayError("Failure loading Cube model file.");
     }
 }
 
 int CubeModel::MapToNodeIndex(int strand, int node) const
 {
-    if (SingleChannel || SingleNode)
-    {
+    if (SingleChannel || SingleNode) {
         return node;
-    }
-    else
-    {
+    } else {
         return strand * _strandLength + node;
     }
 }
@@ -1164,8 +1148,7 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
     html += wxString::Format("<tr><td>Height:</td><td>%d</td></tr>", parm2);
     html += wxString::Format("<tr><td>Depth:</td><td>%d</td></tr>", parm3);
 
-    if (c != nullptr)
-    {
+    if (c != nullptr) {
         html += wxString::Format("<tr><td>Controller:</td><td>%s</td></tr>", c->GetLongDescription());
     }
 
@@ -1173,8 +1156,7 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
         html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetControllerProtocol().c_str());
         if (GetNumStrings() == 1) {
             html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetControllerPort());
-        }
-        else {
+        } else {
             html += wxString::Format("<tr><td>Controller Connections:</td><td>%d-%d</td></tr>", GetControllerPort(), GetControllerPort() + GetNumPhysicalStrings() - 1);
         }
     }
@@ -1182,11 +1164,9 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
 
     auto locations = BuildCube();
 
-    for (int y = parm2 -1; y >=0; y--)
-    {
+    for (int y = parm2 - 1; y >= 0; y--) {
         html += "<tr>";
-        for (int j = 0; j < parm1 * parm3; j++)
-        {
+        for (int j = 0; j < parm1 * parm3; j++) {
             int z = j / parm1;
             int x = j % parm1;
 
@@ -1204,17 +1184,19 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
     return html;
 }
 
-void CubeModel::ExportAsCustomXModel() const {
-
+void CubeModel::ExportAsCustomXModel() const
+{
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
 
     wxFile f(filename);
     //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    if (!f.Create(filename, true) || !f.IsOpened())
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
     wxString cm = "";
     int width = parm1;
@@ -1223,19 +1205,19 @@ void CubeModel::ExportAsCustomXModel() const {
 
     auto locations = BuildCube();
 
-    for (int l = 0; l < depth; l++)
-    {
-        if (cm != "") cm += "|";
+    for (int l = 0; l < depth; l++) {
+        if (cm != "")
+            cm += "|";
         wxString ll = "";
 
-        for (int r = height-1; r >=0; r--)
-        {
-            if (ll != "") ll += ";";
+        for (int r = height - 1; r >= 0; r--) {
+            if (ll != "")
+                ll += ";";
             wxString rr = "";
 
-            for (int c = 0; c < width; c++)
-            {
-                if (rr != "") rr += ",";
+            for (int c = 0; c < width; c++) {
+                if (rr != "")
+                    rr += ",";
                 rr += wxString::Format("%d ", FindNodeIndex(locations, c, r, l) + 1);
             }
             ll += rr;
@@ -1287,18 +1269,15 @@ void CubeModel::ExportAsCustomXModel() const {
         f.Write(groups);
     }
     wxString face = SerialiseFace();
-    if (face != "")
-    {
+    if (face != "") {
         f.Write(face);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     f.Write("</custommodel>");
@@ -1308,7 +1287,8 @@ void CubeModel::ExportAsCustomXModel() const {
 int CubeModel::NodesPerString() const
 {
     int strings = GetStrings();
-    if (strings == 0) strings = 1;
+    if (strings == 0)
+        strings = 1;
     int width = parm1;
     int height = parm2;
     int depth = parm3;
@@ -1317,9 +1297,7 @@ int CubeModel::NodesPerString() const
     int ts = GetSmartTs();
     if (ts <= 1) {
         return nodes;
-    }
-    else
-    {
+    } else {
         return nodes * ts;
     }
 }
