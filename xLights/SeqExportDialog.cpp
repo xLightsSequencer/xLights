@@ -139,6 +139,23 @@ void SeqExportDialog::ModelExportTypes(bool isgroup)
     SetDefaultName();
 }
 
+void SeqExportDialog::SetExportType(bool selectedEffects, bool render)
+{
+    std::string title = "Export Sequence - ";
+
+    if (render && selectedEffects) {
+        title += "Render then export selected effects.";
+    } else if (render) {
+        title += "Render then export model.";
+    } else if (selectedEffects) {
+        title += "Export selected effects.";
+    } else {
+        title += "Export model.";
+    }
+
+    SetTitle(title);
+}
+
 void SeqExportDialog::SetDefaultName()
 {
     wxString fmt = ChoiceFormat->GetStringSelection();

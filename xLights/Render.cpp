@@ -1930,6 +1930,7 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
 
     SeqExportDialog dialog(this, m->GetName());
     dialog.ModelExportTypes(isgroup || !isboxed);
+    dialog.SetExportType(command.GetString().Contains('|'), command.GetInt() == 1);
 
     if (dialog.ShowModal() == wxID_OK) {
         wxString filename = dialog.TextCtrlFilename->GetValue();
