@@ -1837,19 +1837,30 @@ void VUMeterEffect::DrawHeart(RenderBuffer &buffer, int xc, int yc, double radiu
 	double interpolation = 0.75;
 	double t = (double)thickness - 1.0 + interpolation;
 
-	for (double x = -2.0; x <= 2.0; x += 0.01f)
+    double xincr = 0.01;
+	for (double x = -2.0; x <= 2.0; x += xincr)
 	{
 		double y1 = std::sqrt(1.0 - (std::abs(x) - 1.0) * (std::abs(x) - 1.0));
 		double y2 = std::acos(1.0 - std::abs(x)) - M_PI;
 
-		double r = radius;
-
-		for (double i = 0.0; i < t; i += interpolation)
+        double r = radius;
+        for (double i = 0.0; i < t; i += interpolation)
 		{
 			if (r >= 0)
 			{
-				buffer.SetPixel(std::round(x * r / 2.0) + xc, std::round(y1 * r / 2.0) + yc, color);
-				buffer.SetPixel(std::round(x * r / 2.0) + xc, std::round(y2 * r / 2.0) + yc, color);
+                double xx1 = std::round((x * r) / 2.0) + xc;
+                double yy1 = ((y1 * r) / 2.0) + yc;
+                double yy2 = ((y2 * r) / 2.0) + yc;
+                buffer.SetPixel(xx1, std::round(yy1), color);
+				buffer.SetPixel(xx1, std::round(yy2), color);
+                if (x + xincr > 2.0 || x == -2.0 + xincr) {
+                    if (yy1 > yy2)
+                        std::swap(yy1, yy2);
+
+                    for (double z = yy1; z < yy2; z += 0.5) {
+                        buffer.SetPixel(xx1, std::round(z), color);
+                    }
+                }
 			}
 			else
 			{
