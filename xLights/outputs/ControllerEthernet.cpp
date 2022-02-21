@@ -599,11 +599,20 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
         int universes = 0;
         if (IsUniversePerString() && models.size() > 0) {
             // number of universes should equal sum(((stringsize -1) / 510) + 1)
+            int lastSerialPort = -1;
             for (const auto& m : models) {
-                for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
-                    size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
-                    if (chs > 0) {
-                        universes += ((chs - 1) / channels_per_universe) + 1;
+                if (m->IsSerialProtocol() && m->GetControllerPort() == lastSerialPort) {
+                    // skip this one
+                } else if (m->IsSerialProtocol()) {
+                    universes++;
+                    lastSerialPort = m->GetControllerPort();
+                }
+                else {
+                    for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
+                        size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
+                        if (chs > 0) {
+                            universes += ((chs - 1) / channels_per_universe) + 1;
+                        }
                     }
                 }
             }
@@ -664,20 +673,43 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
         if (IsUniversePerString() && models.size() > 0) {
             // now we have the right number of outputs ... we just need to set their sizes
             auto o = begin(_outputs);
+            int lastSerialPort = -1;
             for (const auto& m : models) {
-                for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
-                    size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
-
-                    if (m->GetNumPhysicalStrings() == 1) {
-                        chs = m->GetChanCount();
-                    }
-
-                    while (chs > 0) {
-                        size_t uch = std::min(chs, (size_t)channels_per_universe);
-                        wxASSERT(o != end(_outputs));
-                        (*o)->SetChannels(uch);
-                        chs -= uch;
+                if (m->IsSerialProtocol() && m->GetControllerPort() == lastSerialPort) {
+                    // do nothing
+                } else if (m->IsSerialProtocol()) {
+                    if (GetControllerCaps()->NeedsFullUniverseForDMX()) {
+                        (*o)->SetChannels(GetControllerCaps() == nullptr ? 510 : GetControllerCaps()->GetMaxSerialPortChannels()); // serial universes are always their max or 510 if we dont know the max
                         ++o;
+                    } else {
+                        // this is tricky ... we need to work out how many channels we need for this port
+                        uint32_t chs = 0;
+                        for (const auto& mm : models) {
+                            if (mm->GetControllerProtocol() == m->GetControllerProtocol() && mm->GetControllerPort() == m->GetControllerPort()) {
+                                chs += mm->GetChanCount();
+                            }
+                        }
+                        if (chs == 0)
+                            chs = 1;
+                        (*o)->SetChannels(chs);
+                        ++o;
+                    }
+                    lastSerialPort = m->GetControllerPort();
+                } else {
+                    for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
+                        size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
+
+                        if (m->GetNumPhysicalStrings() == 1) {
+                            chs = m->GetChanCount();
+                        }
+
+                        while (chs > 0) {
+                            size_t uch = std::min(chs, (size_t)channels_per_universe);
+                            wxASSERT(o != end(_outputs));
+                            (*o)->SetChannels(uch);
+                            chs -= uch;
+                            ++o;
+                        }
                     }
                 }
             }
