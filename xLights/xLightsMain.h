@@ -1248,6 +1248,7 @@ public:
     void OnMRUSequence(wxCommandEvent& event);
     bool SetDir(const wxString& dirname, bool permanent);
     void UpdateRecentFilesList(bool reload);
+    void AddToMRU(const std::string& filename);
     bool PromptForShowDirectory(bool permanent);
     bool SaveNetworksFile();
     bool IsControllersAndLayoutTabSaveLinked() { return _linkedSave == "Controllers and Layout Tab"; }

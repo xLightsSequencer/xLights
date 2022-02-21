@@ -1483,6 +1483,8 @@ void xLightsFrame::SaveAsSequence(const std::string& filename)
     _renderCache.SetSequence(renderCacheDirectory, oName.GetName());
     SaveSequence();
     SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);
+    AddToMRU(filename);
+    UpdateRecentFilesList(false);
 }
 
 void xLightsFrame::RenderAll()
