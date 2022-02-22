@@ -173,6 +173,8 @@ public:
     int GetFrameMS();
     int GetMinPeriod();
 
+    std::vector<std::string> GetUsedColours(bool selectedOnly) const;
+    int ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to, bool selectedOnly);
     int SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS, int endMS);
     int SelectVisibleEffectsInRowAndTimeRange(int startRow, int endRow, int startMS, int endMS);
     int SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol, int endCol);
@@ -183,7 +185,7 @@ public:
     void SelectAllElements();
     void UnSelectAllElements();
 
-    EffectLayer* GetEffectLayer(Row_Information_Struct *s) const;
+    EffectLayer* GetEffectLayer(const Row_Information_Struct *s) const;
     EffectLayer* GetEffectLayer(int row);
     EffectLayer* GetVisibleEffectLayer(int row);
 

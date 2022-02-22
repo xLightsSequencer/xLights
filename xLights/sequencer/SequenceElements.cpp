@@ -122,7 +122,7 @@ int SequenceElements::GetSequenceEnd() const
     return mSequenceEndMS;
 }
 
-EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) const
+EffectLayer* SequenceElements::GetEffectLayer(const Row_Information_Struct *s) const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (s == nullptr) {
@@ -1531,7 +1531,7 @@ void SequenceElements::DeactivateAllTimingElements()
     }
 }
 
-int SequenceElements::SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS)
+int SequenceElements::SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS, int endMS)
 {
     int num_selected = 0;
     if(startRow<mRowInformation.size())
@@ -1607,6 +1607,41 @@ void SequenceElements::SelectAllEffectsNoTiming()
             effectLayer->SelectAllEffects();
         }
     }
+}
+
+std::vector<std::string> SequenceElements::GetUsedColours(bool selectedOnly) const
+{
+    std::vector<std::string> usedColours;
+
+    for (size_t i = 0; i < mRowInformation.size(); i++) {
+        if (mRowInformation[i].element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            continue;
+        }
+        EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
+        if (effectLayer != nullptr) {
+            for (const auto& it : effectLayer->GetUsedColours(selectedOnly)) {
+                if (std::find(begin(usedColours), end(usedColours), it) == end(usedColours)) {
+                    usedColours.push_back(it);
+                }
+            }
+        }
+    }
+    return usedColours;
+}
+
+int SequenceElements::ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to, bool selectedOnly)
+{
+    int replaced = 0;
+    for (size_t i = 0; i < mRowInformation.size(); i++) {
+        if (mRowInformation[i].element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            continue;
+        }
+        EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
+        if (effectLayer != nullptr) {
+            replaced += effectLayer->ReplaceColours(frame, from, to, selectedOnly);
+        }
+    }
+    return replaced;
 }
 
 void SequenceElements::SelectAllEffectsInRow(int row)

@@ -578,6 +578,33 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
     IncrementChangeCount();
 }
 
+int Effect::ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to)
+{
+    int res = 0;
+    for (auto it : mPaletteMap) {
+        if (StartsWith(it.first, "C_BUTTON")) {
+            if (Lower(it.second) == Lower(from)) {
+                std::string setting = "C_CHECKBOX" + it.first.substr(8);
+                if (mPaletteMap.Get(setting, "0") == "1") {
+                    mPaletteMap[it.first] = to;
+                    res++;
+                }
+            }
+        }
+    }
+
+    if (res > 0) {
+        ParseColorMap(mPaletteMap, mColors, mCC);
+
+        // we changed so this effect needs to re-render
+        frame->RenderEffectForModel(GetParentEffectLayer()->GetParentElement()->GetModelName(),
+                                    GetStartTimeMS(),
+                                    GetEndTimeMS());
+    }
+
+    return res;
+}
+
 void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);

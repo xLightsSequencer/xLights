@@ -492,6 +492,8 @@
 		<Unit filename="ColorManager.h" />
 		<Unit filename="ColorPanel.cpp" />
 		<Unit filename="ColorPanel.h" />
+		<Unit filename="ColourReplaceDialog.cpp" />
+		<Unit filename="ColourReplaceDialog.h" />
 		<Unit filename="ColoursPanel.cpp" />
 		<Unit filename="ColoursPanel.h" />
 		<Unit filename="ControllerConnectionDialog.cpp" />
@@ -842,6 +844,8 @@
 		<Unit filename="effects/EffectManager.h" />
 		<Unit filename="effects/EffectPanelUtils.cpp" />
 		<Unit filename="effects/EffectPanelUtils.h" />
+		<Unit filename="effects/FX.cpp" />
+		<Unit filename="effects/FX.h" />
 		<Unit filename="effects/FacesEffect.cpp" />
 		<Unit filename="effects/FacesEffect.h" />
 		<Unit filename="effects/FacesPanel.cpp" />
@@ -964,8 +968,6 @@
 		<Unit filename="effects/ShockwavePanel.h" />
 		<Unit filename="effects/SingleStrandEffect.cpp" />
 		<Unit filename="effects/SingleStrandEffect.h" />
-		<Unit filename="effects/FX.cpp" />
-		<Unit filename="effects/FX.h" />
 		<Unit filename="effects/SingleStrandPanel.cpp" />
 		<Unit filename="effects/SingleStrandPanel.h" />
 		<Unit filename="effects/SnowflakesEffect.cpp" />
@@ -1343,6 +1345,7 @@
 		<Unit filename="wxsmith/ColorManagerDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
 		<Unit filename="wxsmith/ColorWashPanel.wxs" />
+		<Unit filename="wxsmith/ColourReplaceDialog.wxs" />
 		<Unit filename="wxsmith/ColoursPanel.wxs" />
 		<Unit filename="wxsmith/ControllerConnectionDialog.wxs" />
 		<Unit filename="wxsmith/ControllerModelDialog.wxs" />
@@ -1688,6 +1691,7 @@
 					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MediaImportOptionsDialog.wxs" src="MediaImportOptionsDialog.cpp" hdr="MediaImportOptionsDialog.h" fwddecl="0" i18n="1" name="MediaImportOptionsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ScriptsDialog.wxs" src="ScriptsDialog.cpp" hdr="ScriptsDialog.h" fwddecl="0" i18n="1" name="ScriptsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ColourReplaceDialog.wxs" src="ColourReplaceDialog.cpp" hdr="ColourReplaceDialog.h" fwddecl="0" i18n="1" name="ColourReplaceDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

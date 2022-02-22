@@ -28,6 +28,7 @@ class RenderBuffer;
 class RenderCache;
 class Model;
 class RenderableEffect;
+class xLightsFrame;
 
 #define EFFECT_NOT_SELECTED     0
 #define EFFECT_LT_SELECTED      1
@@ -114,6 +115,7 @@ public:
     std::string GetSettingsAsString() const;
     void SetSettings(const std::string &settings, bool keepxsettings);
     void ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid);
+    int ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to);
     void PressButton(RenderableEffect* re, const std::string& id);
     const SettingsMap &GetSettings() const { return mSettings; }
     void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;

@@ -1020,8 +1020,8 @@ void ColorPanel::SetDefaultSettings(bool optionbased)
 {
     if (!optionbased)
     {
-        for (auto it = checkBoxes.begin(); it != checkBoxes.end(); ++it) {
-            (*it)->SetValue(false);
+        for (const auto& it : checkBoxes) {
+            it->SetValue(false);
         }
     }
 

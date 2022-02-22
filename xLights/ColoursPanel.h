@@ -11,10 +11,10 @@
  **************************************************************/
 
  //(*Headers(ColoursPanel)
-#include <wx/panel.h>
-#include <wx/scrolwin.h>
-#include <wx/sizer.h>
-//*)
+ #include <wx/panel.h>
+ #include <wx/scrolwin.h>
+ #include <wx/sizer.h>
+ //*)
 
 #include <wx/dir.h>
 

@@ -1151,6 +1151,45 @@ void EffectLayer::TagAllSelectedEffects()
     }
 }
 
+std::vector<std::string> EffectLayer::GetUsedColours(bool selectedOnly)
+{
+    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::vector<std::string> res;
+
+    for (int i = 0; i < mEffects.size(); i++) {
+        if (!selectedOnly ||
+            (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_SELECTED)) {
+            for (const auto& it : mEffects[i]->GetPalette()) {
+                auto s = std::string(it);
+                if (std::find(begin(res), end(res), s) == end(res)) {
+                    res.push_back(s);
+                }
+            }
+        }
+    }
+    return res;
+}
+
+int EffectLayer::ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to, bool selectedOnly)
+{
+    std::unique_lock<std::recursive_mutex> locker(lock);
+
+    int replaced = 0;
+
+    for (int i = 0; i < mEffects.size(); i++) {
+        if (!selectedOnly ||
+            (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_SELECTED)) {
+            replaced += mEffects[i]->ReplaceColours(frame, from, to);
+        }
+    }
+
+    return replaced;
+}
+
 int EffectLayer::GetSelectedEffectCount(const std::string effectName)
 {
     std::unique_lock<std::recursive_mutex> locker(lock);

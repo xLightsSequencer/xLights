@@ -1119,6 +1119,11 @@
 					<label>Shift Selected Effects</label>
 					<handler function="OnMenuItemShiftSelectedEffectsSelected" entry="EVT_MENU" />
 				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="ID_MNU_COLOURREPLACE" variable="MenuItem_ColorReplace" member="yes">
+					<label>Color Replace</label>
+					<handler function="OnMenuItem_ColorReplaceSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu1" member="yes">
 				<label>&amp;Tools</label>

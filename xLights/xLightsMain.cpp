@@ -99,6 +99,7 @@
 #include "GPURenderUtils.h"
 #include "ViewsModelsPanel.h"
 #include "graphics/opengl/xlGLCanvas.h"
+#include "ColourReplaceDialog.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -223,6 +224,7 @@ const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const long xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
 const long xLightsFrame::ID_SHIFT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MNU_SHIFT_SELECTED_EFFECTS = wxNewId();
+const long xLightsFrame::ID_MNU_COLOURREPLACE = wxNewId();
 const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MNU_CHECKSEQ = wxNewId();
 const long xLightsFrame::ID_MNU_CLEANUPFILE = wxNewId();
@@ -823,6 +825,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Menu3->Append(MenuItemShiftEffects);
     MenuItemShiftSelectedEffects = new wxMenuItem(Menu3, ID_MNU_SHIFT_SELECTED_EFFECTS, _("Shift Selected Effects"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItemShiftSelectedEffects);
+    Menu3->AppendSeparator();
+    MenuItem_ColorReplace = new wxMenuItem(Menu3, ID_MNU_COLOURREPLACE, _("Color Replace"), wxEmptyString, wxITEM_NORMAL);
+    Menu3->Append(MenuItem_ColorReplace);
     MenuBar->Append(Menu3, _("&Edit"));
     Menu1 = new wxMenu();
     ActionTestMenuItem = new wxMenuItem(Menu1, ID_MENUITEM13, _("&Test"), wxEmptyString, wxITEM_NORMAL);
@@ -1099,6 +1104,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(wxID_EXIT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnQuit);
     Connect(ID_SHIFT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftEffectsSelected);
     Connect(ID_MNU_SHIFT_SELECTED_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftSelectedEffectsSelected);
+    Connect(ID_MNU_COLOURREPLACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ColorReplaceSelected);
     Connect(ID_MENUITEM13,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
     Connect(ID_MNU_CHECKSEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemCheckSequenceSelected);
     Connect(ID_MNU_CLEANUPFILE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_CleanupFileLocationsSelected);
@@ -10114,4 +10120,18 @@ void xLightsFrame::UpdateViewMenu()
             }
         }
     }
+}
+
+void xLightsFrame::OnMenuItem_ColorReplaceSelected(wxCommandEvent& event)
+{
+    ColourReplaceDialog dlg(this, this);
+    dlg.ShowModal();
+
+    // need to update the colour panel as the colours may have changed on the selected effect
+    if (GetMainSequencer()->GetSelectedEffect() != nullptr) {
+        SelectedEffectChangedEvent event(GetMainSequencer()->GetSelectedEffect(), false, true);
+        SelectedEffectChanged(event);
+    }
+
+    // user will need to render as this does not force a re-render.
 }

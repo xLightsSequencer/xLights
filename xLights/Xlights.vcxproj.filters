@@ -943,6 +943,7 @@
       <Filter>Effects</Filter>
     </ClCompile>
     <ClCompile Include="WindowsHardwareVideoReader.cpp" />
+    <ClCompile Include="ColourReplaceDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1892,6 +1893,7 @@
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="WindowsHardwareVideoReader.h" />
+    <ClInclude Include="ColourReplaceDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

@@ -593,6 +593,7 @@ public:
     void OnButton_OpenProxyClick(wxCommandEvent& event);
     void OnMenuItemRunScriptSelected(wxCommandEvent& event);
     void OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event);
+    void OnMenuItem_ColorReplaceSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -712,6 +713,7 @@ public:
     static const long ID_FILE_ALTBACKUP;
     static const long ID_SHIFT_EFFECTS;
     static const long ID_MNU_SHIFT_SELECTED_EFFECTS;
+    static const long ID_MNU_COLOURREPLACE;
     static const long ID_MENUITEM13;
     static const long ID_MNU_CHECKSEQ;
     static const long ID_MNU_CLEANUPFILE;
@@ -891,6 +893,7 @@ public:
     wxMenuItem* MenuItemViewSavePerspective;
     wxMenuItem* MenuItem_ACLIghts;
     wxMenuItem* MenuItem_CleanupFileLocations;
+    wxMenuItem* MenuItem_ColorReplace;
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
     wxMenuItem* MenuItem_DownloadSequences;
