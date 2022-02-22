@@ -148,3 +148,211 @@ void DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
         DisplayError("Failure loading DmxGeneral model file.");
     }
 }
+
+void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
+{
+    size_t nodeCount = Nodes.size();
+
+    if (red_channel > nodeCount ||
+        green_channel > nodeCount ||
+        blue_channel > nodeCount ||
+        white_channel > nodeCount) {
+        return;
+    }
+
+    xlColor ccolor(xlWHITE);
+    xlColor black(xlBLACK);
+    xlColor color;
+    if (c != nullptr) {
+        color = *c;
+    }
+
+    int trans = color == xlBLACK ? blackTransparency : transparency;
+
+    if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
+        xlColor proxy = xlBLACK;
+        if (white_channel > 0) {
+            Nodes[white_channel - 1]->GetColor(proxy);
+        }
+
+        if (proxy == xlBLACK) {
+            Nodes[red_channel - 1]->GetColor(proxy);
+            Nodes[green_channel - 1]->GetColor(proxy);
+            Nodes[blue_channel - 1]->GetColor(proxy);
+        }
+    } else if (white_channel > 0) {
+        xlColor proxy;
+        Nodes[white_channel - 1]->GetColor(proxy);
+    }
+
+    ApplyTransparency(ccolor, trans, trans);
+
+    // draw the bars
+    xlColor proxy;
+    xlColor red(xlRED);
+    xlColor green(xlGREEN);
+    xlColor blue(xlBLUE);
+    xlColor white(xlWHITE);
+    ApplyTransparency(red, trans, trans);
+    ApplyTransparency(green, trans, trans);
+    ApplyTransparency(blue, trans, trans);
+
+    auto tvac = tprogram->getAccumulator();
+    int tStart = tvac->getCount();
+    auto vac = sprogram->getAccumulator();
+    int startVert = vac->getCount();
+
+    tprogram->addStep([=](xlGraphicsContext* ctx) {
+        ctx->Translate(-0.25f, 0, 0);
+        ctx->Scale(0.5f, 0.5f, 1.0f);
+    });
+    sprogram->addStep([=](xlGraphicsContext* ctx) {
+        ctx->Translate(-0.25f, 0, 0);
+        ctx->Scale(0.5f, 0.5f, 1.0f);
+    });
+
+    vac->AddRectAsTriangles(-0.5f, 0.9f, -0.45f, -0.9f, ccolor); // left side
+    vac->AddRectAsTriangles(1.5f, 0.9f, 1.45f, -0.9f, ccolor); // right side
+    vac->AddRectAsTriangles(-0.5f, 0.9f, 1.5f, 0.85f, ccolor); // top side
+    vac->AddRectAsTriangles(-0.5f, -0.9f, 1.5f, -0.85f, ccolor); // bottom side
+
+    float lineSize = 1.7f / ((float)nodeCount);
+    float barSize = lineSize * 0.8f;
+    float lineStart = 0.825f;
+    for (int i = 1; i <= nodeCount; ++i) {
+        Nodes[i - 1]->GetColor(proxy);
+        float val = (float)proxy.red;
+        float offsetx = val / 255.0f * 1.8f;
+        if (i == red_channel) {
+            proxy = red;
+        } else if (i == green_channel) {
+            proxy = green;
+        } else if (i == blue_channel) {
+            proxy = blue;
+        } else if (i == white_channel) {
+            proxy = white;
+        } else {
+            proxy = ccolor;
+        }
+        vac->AddRectAsTriangles(-0.4f, lineStart, -0.4f + offsetx, lineStart - barSize, 0.3f, proxy);
+        lineStart -= lineSize;
+    }
+
+    int tEnd = tvac->getCount();
+    tprogram->addStep([=](xlGraphicsContext* ctx) {
+        ctx->drawTriangles(tvac, tStart, tEnd - tStart);
+    });
+
+    int end = vac->getCount();
+    sprogram->addStep([=](xlGraphicsContext* ctx) {
+        ctx->drawTriangles(vac, startVert, end - startVert);
+    });
+}
+
+void DmxGeneral::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+                                         xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
+                                         const xlColor* c, bool allowSelected, bool wiring,
+                                         bool highlightFirst, int highlightpixel,
+                                         float* boundingBox)
+{
+    if (!IsActive())
+        return;
+
+    screenLocation.PrepareToDraw(is_3d, allowSelected);
+    screenLocation.UpdateBoundingBox(Nodes);
+
+    sprogram->addStep([=](xlGraphicsContext* ctx) {
+        ctx->PushMatrix();
+        if (!is_3d) {
+            //not 3d, flatten to the 0.5 plane
+            ctx->Translate(0, 0, 0.5f);
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
+        }
+        GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+    });
+    tprogram->addStep([=](xlGraphicsContext* ctx) {
+        ctx->PushMatrix();
+        if (!is_3d) {
+            //not 3d, flatten to the 0.5 plane
+            ctx->Translate(0, 0, 0.5f);
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
+        }
+        GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+    });
+    DrawModel(preview, ctx, sprogram, tprogram, is_3d, !allowSelected, c);
+    sprogram->addStep([=](xlGraphicsContext* ctx) {
+        ctx->PopMatrix();
+    });
+    tprogram->addStep([=](xlGraphicsContext* ctx) {
+        ctx->PopMatrix();
+    });
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
+        if (is_3d) {
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+        } else {
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+        }
+    }
+}
+
+void DmxGeneral::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+{
+    if (!IsActive() && preview->IsNoCurrentModel()) {
+        return;
+    }
+
+    bool mustEnd = false;
+    xlGraphicsContext* ctx = preview->getCurrentGraphicsContext();
+    if (ctx == nullptr) {
+        bool success = preview->StartDrawing(pointSize);
+        if (success) {
+            ctx = preview->getCurrentGraphicsContext();
+            mustEnd = true;
+        }
+    }
+    if (ctx) {
+        int w, h;
+        preview->GetSize(&w, &h);
+        float scaleX = float(w) * 0.95f / float(GetModelScreenLocation().RenderWi);
+        float scaleY = float(h) * 0.95f / float(GetModelScreenLocation().RenderHt);
+        if (GetModelScreenLocation().RenderDp > 1) {
+            float scaleZ = float(w) * 0.95f / float(GetModelScreenLocation().RenderDp);
+            scaleX = std::min(scaleX, scaleZ);
+        }
+
+        float aspect = screenLocation.GetScaleX();
+        aspect /= screenLocation.GetScaleY();
+        if (scaleY < scaleX) {
+            scaleX = scaleY * aspect;
+        } else {
+            scaleY = scaleX / aspect;
+        }
+        float ml, mb;
+        GetMinScreenXY(ml, mb);
+        ml += GetModelScreenLocation().RenderWi / 2;
+        mb += GetModelScreenLocation().RenderHt / 2;
+
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext* ctx) {
+            ctx->PushMatrix();
+            ctx->Translate(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.5f);
+            ctx->Scale(scaleX, scaleY, 0.001f);
+        });
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
+            ctx->PushMatrix();
+            ctx->Translate(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.5f);
+            ctx->Scale(scaleX, scaleY, 0.001f);
+        });
+        DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), false, true, nullptr);
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext* ctx) {
+            ctx->PopMatrix();
+        });
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
+            ctx->PopMatrix();
+        });
+    }
+    if (mustEnd) {
+        preview->EndDrawing();
+    }
+}

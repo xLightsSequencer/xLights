@@ -30,5 +30,13 @@ class DmxGeneral : public DmxModel, public DmxColorAbility
 
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+                                          xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d = false,
+                                          const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
+                                          bool highlightFirst = false, int highlightpixel = 0,
+                                          float* boundingBox = nullptr) override;
+        virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
+        virtual void DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c);
+
     private:
 };

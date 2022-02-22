@@ -436,9 +436,9 @@ class LayoutPanel: public wxPanel
         wxTreeListItem selectedPrimaryTreeItem = nullptr;
         bool selectionLatched = false;
         int over_handle = -1;
-        glm::vec3 last_centerpos;
-        glm::vec3 last_worldrotate;
-        glm::vec3 last_worldscale;
+        glm::vec3 last_centerpos = {0,0,0};
+        glm::vec3 last_worldrotate = {0,0,0};
+        glm::vec3 last_worldscale = {0,0,0};
 
         void clearPropGrid();
         bool stringPropsVisible = false;
