@@ -157,6 +157,7 @@ void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
         green_channel > nodeCount ||
         blue_channel > nodeCount ||
         white_channel > nodeCount) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
 

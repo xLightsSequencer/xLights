@@ -21,6 +21,8 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         DmxModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~DmxModel();
 
+        static void DrawInvalid(xlGraphicsProgram* pg, ModelScreenLocation* msl, bool is_3d, bool applyTransform);
+
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
                                    int &BufferWi, int &BufferHi) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,

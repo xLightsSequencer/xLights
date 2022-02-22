@@ -381,6 +381,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
         green_channel > NodeCount ||
         blue_channel > NodeCount ||
         white_channel > NodeCount) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
 

@@ -15,6 +15,7 @@
 
 #include <algorithm>
 
+#include "DmxModel.h"
 #include "Mesh.h"
 #include "Servo.h"
 #include "../../UtilFunctions.h"
@@ -496,24 +497,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *spro
             });
         }
     } else if( show_empty ) {
-        auto vac = sprogram->getAccumulator();
-        int start = vac->getCount();
-        vac->AddVertex(-0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(0.5, -0.5, 0, *wxRED);
-        int end = vac->getCount();
-        sprogram->addStep([=](xlGraphicsContext *ctx) {
-            ctx->drawLines(vac, start, end - start);
-        });
+        DmxModel::DrawInvalid(sprogram, nullptr, false, false);
     }
 }
 

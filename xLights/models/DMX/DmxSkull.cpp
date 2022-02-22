@@ -716,25 +716,32 @@ void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphi
         red_channel > NodeCount ||
         green_channel > NodeCount ||
         blue_channel > NodeCount) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
 
     if (has_jaw && jaw_servo->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
     if (has_pan && pan_servo->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
     if (has_tilt && tilt_servo->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
     if (has_nod && nod_servo->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
     if (has_eye_ud && eye_ud_servo->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
     if (has_eye_lr && eye_lr_servo->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
 

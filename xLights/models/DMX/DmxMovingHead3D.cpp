@@ -145,6 +145,7 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
         white_channel > NodeCount ||
         shutter_channel > NodeCount)
     {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
 

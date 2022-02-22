@@ -132,33 +132,33 @@ void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
         green_channel > NodeCount ||
         blue_channel > NodeCount ||
         white_channel > NodeCount) {
-        return;
-    }
+        DmxModel::DrawInvalid(solidProgram, &(GetModelScreenLocation()), is_3d, true);
+    } else {
+        xlColor center, edge;
+        GetColors(center, edge, allowSelected, c);
 
-    xlColor center, edge;
-    GetColors(center, edge, allowSelected, c);
+        // beam length doesn't use the zscale, it draws out of our normal bounding box
+        // we need to calculate a length
+        float rh = ((BoxedScreenLocation)screenLocation).GetMWidth();
+        float rw = ((BoxedScreenLocation)screenLocation).GetMHeight();
+        float min_size = (float)(std::min(rh, rw));
 
-    // beam length doesn't use the zscale, it draws out of our normal bounding box
-    // we need to calculate a length
-    float rh = ((BoxedScreenLocation)screenLocation).GetMWidth();
-    float rw = ((BoxedScreenLocation)screenLocation).GetMHeight();
-    float min_size = (float)(std::min(rh, rw));
-
-    if (shutter_open) {
-        auto* vac = transparentProgram->getAccumulator();
-        int start = vac->getCount();
-        DrawModel(vac, center, edge, is_3d ? beam_length * min_size : 0);
-        int end = vac->getCount();
-        transparentProgram->addStep([=](xlGraphicsContext* ctx) {
-            ctx->PushMatrix();
-            if (!is_3d) {
-                //not 3d, flatten to the 0 plane
-                ctx->Scale(1.0, 1.0, 0.0);
-            }
-            GetModelScreenLocation().ApplyModelViewMatrices(ctx);
-            ctx->drawTriangles(vac, start, end - start);
-            ctx->PopMatrix();
-        });
+        if (shutter_open) {
+            auto* vac = transparentProgram->getAccumulator();
+            int start = vac->getCount();
+            DrawModel(vac, center, edge, is_3d ? beam_length * min_size : 0);
+            int end = vac->getCount();
+            transparentProgram->addStep([=](xlGraphicsContext* ctx) {
+                ctx->PushMatrix();
+                if (!is_3d) {
+                    //not 3d, flatten to the 0 plane
+                    ctx->Scale(1.0, 1.0, 0.0);
+                }
+                GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+                ctx->drawTriangles(vac, start, end - start);
+                ctx->PopMatrix();
+            });
+        }
     }
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         if (is_3d) {

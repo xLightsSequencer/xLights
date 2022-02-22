@@ -692,10 +692,12 @@ void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
     // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);
     if (min_channels > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
     for (auto it = servos.begin(); it != servos.end(); ++it) {
         if ((*it)->GetChannel() > Nodes.size()) {
+            DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
             return;
         }
     }

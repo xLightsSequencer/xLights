@@ -15,6 +15,7 @@
 
 #include <algorithm>
 
+#include "DmxModel.h"
 #include "DmxImage.h"
 #include "../../UtilFunctions.h"
 #include "../../ExternalHooks.h"
@@ -403,24 +404,7 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *
         });
 
     } else if (only_image) {
-        auto vac = pg->getAccumulator();
-        int start = vac->getCount();
-        vac->AddVertex(-0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(0.5, -0.5, 0, *wxRED);
-        int end = vac->getCount();
-        pg->addStep([=](xlGraphicsContext *ctx) {
-            ctx->drawLines(vac, start, end - start);
-        });
+        DmxModel::DrawInvalid(pg, nullptr, false, false);
     }
 }
 

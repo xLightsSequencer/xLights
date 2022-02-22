@@ -458,13 +458,16 @@ void DmxServo::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphi
     // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);
     if (min_channels > Nodes.size()) {
+        DmxModel::DrawInvalid(program, &(GetModelScreenLocation()), false, false);
         return;
     }
     if (motion_images.size() < num_servos) {
+        DmxModel::DrawInvalid(program, &(GetModelScreenLocation()), false, false);
         return;
     }
     for (auto it = servos.begin(); it != servos.end(); ++it) {
         if ((*it)->GetChannel() > Nodes.size()) {
+            DmxModel::DrawInvalid(program, &(GetModelScreenLocation()), false, false);
             return;
         }
     }
