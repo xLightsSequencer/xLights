@@ -972,13 +972,13 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->BufferHt, buf->BufferWi, "None");
         GPURenderUtils::setupRenderBuffer(this, buf);
-        layers[layer]->modelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
+        layers[layer]->shallowModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
 
 void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int layer, int timing)
 {
-    for (const auto& it : model.GetFlatModels()) {
+    for (const auto& it : model.GetFlatModels(false)) {
         Model* m = it;
         wxASSERT(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame);
@@ -986,20 +986,17 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->BufferHt, buf->BufferWi, "None");
         GPURenderUtils::setupRenderBuffer(this, buf);
-        layers[layer]->modelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
+        layers[layer]->deepModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
 
 void PixelBufferClass::InitBuffer(const Model& pbc, int layers, int timing, bool zeroBased)
 {
     modelName = pbc.GetFullName();
-    if (zeroBased)
-    {
+    if (zeroBased) {
         zbModel = pbc.GetModelManager().CreateModel(pbc.GetModelXml(), 0, 0, zeroBased);
         model = zbModel;
-    }
-    else
-    {
+    } else {
         model = &pbc;
     }
     reset(layers + 1, timing);
@@ -2034,8 +2031,8 @@ void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors, xlColorCu
 {
     RenderBuffer& buf = layers[layer]->buffer;
     buf.SetPalette(newcolors, newcc);
-    if (layers[layer]->usingModelBuffers) {
-        for (auto& it : layers[layer]->modelBuffers) {
+    if (layers[layer]->modelBuffers) {
+        for (auto& it : *(layers[layer]->modelBuffers)) {
             it->SetPalette(newcolors, newcc);
         }
     }
@@ -2541,13 +2538,12 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         GPURenderUtils::setupRenderBuffer(this, &inf->buffer);
 
         if (type.compare(0, 9, "Per Model") == 0) {
-            inf->usingModelBuffers = true;
             if (type.compare(type.length()-4, 4, "Deep") == 0) {
-                inf->usingModelBuffersDeep = true;
+                inf->modelBuffers = &inf->deepModelBuffers;
                 const ModelGroup* gp = dynamic_cast<const ModelGroup*>(model);
-                std::list<Model*> flat_models = gp->GetFlatModels();
+                std::list<Model*> flat_models = gp->GetFlatModels(false);
                 std::list<Model*>::iterator it_m = flat_models.begin();
-                for (const auto& it : inf->modelBuffers) {
+                for (const auto& it : inf->deepModelBuffers) {
                     std::string ntype = "Default";// type.substr(10, type.length() - 10);
                     int bw, bh;
                     it->Nodes.clear();
@@ -2562,9 +2558,10 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                     ++it_m;
                 }
             } else {
+                inf->modelBuffers = &inf->shallowModelBuffers;
                 const ModelGroup* gp = dynamic_cast<const ModelGroup*>(model);
                 int cnt = 0;
-                for (const auto& it : inf->modelBuffers) {
+                for (const auto& it : inf->shallowModelBuffers) {
                     std::string ntype = type.substr(10, type.length() - 10);
                     int bw, bh;
                     it->Nodes.clear();
@@ -2580,7 +2577,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                 }
             }
         } else {
-            inf->usingModelBuffers = false;
+            inf->modelBuffers = nullptr;
         }
     }
 }
@@ -2601,53 +2598,48 @@ int PixelBufferClass::GetSuppressUntil(int layer)
 
 RenderBuffer& PixelBufferClass::BufferForLayer(int layer, int idx)
 {
-    if (idx >= 0 && layers[layer]->usingModelBuffers && idx < layers[layer]->modelBuffers.size()) {
-        return *layers[layer]->modelBuffers[idx];
+    if (idx >= 0 && layers[layer]->modelBuffers && idx < layers[layer]->modelBuffers->size()) {
+        return *(*layers[layer]->modelBuffers)[idx];
     }
     return layers[layer]->buffer;
 }
 
 uint32_t PixelBufferClass::BufferCountForLayer(int layer)
 {
-    if (layers[layer]->usingModelBuffers) {
-        return layers[layer]->modelBuffers.size();
+    if (layers[layer]->modelBuffers) {
+        return layers[layer]->modelBuffers->size();
     }
     return 1;
 }
 
 void PixelBufferClass::MergeBuffersForLayer(int layer) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (layers[layer]->usingModelBuffers) {
+    if (layers[layer]->modelBuffers) {
         //get all the data
         xlColor color;
         int nc = 0;
-        for (auto& modelBuffer : layers[layer]->modelBuffers) {
+        for (auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             GPURenderUtils::waitForRenderCompletion(modelBuffer.get());
         }
-        for (const auto& modelBuffer : layers[layer]->modelBuffers) {
+        for (const auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             for (const auto& node : modelBuffer->Nodes) {
-                if (nc < layers[layer]->buffer.Nodes.size())
-                {
+                if (nc < layers[layer]->buffer.Nodes.size()) {
                     modelBuffer->GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
                     for (const auto& coord : layers[layer]->buffer.Nodes[nc]->Coords) {
                         layers[layer]->buffer.SetPixel(coord.bufX, coord.bufY, color);
                     }
                     nc++;
-                }
-                else
-                {
+                } else {
                     // Where this happens it is usually a sign that there is a bug in one of our models where it creates a different number of nodes depending on the render buffer size
                     // To find the cause uncomment the model group function TestNodeInit and the call in PixelBuffer::SetLayerSettings
 
-                    if (layers[layer]->buffer.curPeriod == layers[layer]->buffer.curEffStartPer)
-                    {
+                    if (layers[layer]->buffer.curPeriod == layers[layer]->buffer.curEffStartPer) {
                         logger_base.warn("PixelBufferClass::MergeBuffersForLayer(%d) Model '%s' Mismatch in number of nodes across layers.", layer, (const char*)modelName.c_str());
-                        for (int i = 0; i < GetLayerCount(); i++)
-                        {
+                        for (int i = 0; i < GetLayerCount(); i++) {
                             logger_base.warn("    Layer %d node count %d buffer '%s'", i, (int)layers[i]->buffer.Nodes.size(), (const char*)layers[i]->bufferType.c_str());
                         }
                         int mbnodes = 0;
-                        for (const auto& mb : layers[layer]->modelBuffers) {
+                        for (const auto& mb : *(layers[layer]->modelBuffers)) {
                             mbnodes += mb->Nodes.size();
                         }
                         wxASSERT(false);
@@ -2661,22 +2653,21 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
 void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
 {
     layers[layer]->buffer.SetState(period, resetState, modelName);
-    if (layers[layer]->usingModelBuffersDeep) {
+    if (layers[layer]->modelBuffers == &layers[layer]->deepModelBuffers) {
         const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
-        std::list<Model*> flat_models = grp->GetFlatModels();
+        std::list<Model*> flat_models = grp->GetFlatModels(false);
         std::list<Model*>::iterator it_m = flat_models.begin();
-        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it, it_m++) {
+        for (auto it = layers[layer]->modelBuffers->begin(); it != layers[layer]->modelBuffers->end(); ++it, it_m++) {
             if (frame->AllModels[(*it_m)->Name()] == nullptr) {
                 (*it)->SetState(period, resetState, (*it_m)->GetFullName());
             } else {
                 (*it)->SetState(period, resetState, (*it_m)->Name());
             }
         }
-    }
-    else if (layers[layer]->usingModelBuffers) {
+    } else if (layers[layer]->modelBuffers) {
         int cnt = 0;
         const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
-        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it, cnt++) {
+        for (auto it = layers[layer]->modelBuffers->begin(); it != layers[layer]->modelBuffers->end(); ++it, cnt++) {
             if (frame->AllModels[grp->Models()[cnt]->Name()] == nullptr) {
                 (*it)->SetState(period, resetState, grp->Models()[cnt]->GetFullName());
             } else {
@@ -2689,8 +2680,8 @@ void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
 void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 {
     layers[layer]->buffer.SetEffectDuration(startTime, endTime);
-    if (layers[layer]->usingModelBuffers) {
-        for (const auto& it : layers[layer]->modelBuffers) {
+    if (layers[layer]->modelBuffers) {
+        for (const auto& it : *(layers[layer]->modelBuffers)) {
             it->SetEffectDuration(startTime, endTime);
         }
     }
@@ -3199,8 +3190,8 @@ static int DecodeType(const std::string &type)
 }
 void PixelBufferClass::LayerInfo::clear() {
     buffer.Clear();
-    if (usingModelBuffers) {
-        for (auto it = modelBuffers.begin();  it != modelBuffers.end(); ++it) {
+    if (modelBuffers) {
+        for (auto it = modelBuffers->begin();  it != modelBuffers->end(); ++it) {
             (*it)->Clear();
         }
     }

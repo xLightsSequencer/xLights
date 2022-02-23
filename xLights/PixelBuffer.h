@@ -122,8 +122,7 @@ private:
             canvas = false;
             BufferHt = BufferWi = 0;
             persistent = false;
-            usingModelBuffers = false;
-            usingModelBuffersDeep = false;
+            modelBuffers = nullptr;
             freezeAfterFrame = 10000;
             suppressUntil = 0;
             fadeInSteps = fadeOutSteps = 0;
@@ -210,9 +209,10 @@ private:
         bool outTransitionReverse;
         float inMaskFactor;
         float outMaskFactor;
-        bool usingModelBuffers;
-        bool usingModelBuffersDeep;
-        std::vector<std::unique_ptr<RenderBuffer>> modelBuffers;
+
+        std::vector<std::unique_ptr<RenderBuffer>> *modelBuffers = nullptr;
+        std::vector<std::unique_ptr<RenderBuffer>> shallowModelBuffers;
+        std::vector<std::unique_ptr<RenderBuffer>> deepModelBuffers;
         bool isChromaKey = false;
         xlColor chromaKeyColour = xlBLACK;
         xlColor sparklesColour = xlWHITE;

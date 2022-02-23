@@ -248,20 +248,19 @@ public:
                             static const std::string DEEP("Deep");
                             const std::string& bt = layer->GetEffect(e)->GetSettings().Get(CHOICE_BufferStyle, DEFAULT);
                             if (bt.compare(0, 9, PER_MODEL) == 0) {
-                                perModelEffects = true;
                                 if (bt.compare(bt.length() - 4, 4, DEEP) == 0) {
                                     perModelEffectsDeep = true;
+                                } else {
+                                    perModelEffects = true;
                                 }
                             }
                         }
-                        if (perModelEffects)
-                        {
-                            const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
-                            if (perModelEffectsDeep) {
-                                mainBuffer->InitPerModelBuffersDeep(*grp, l, data.FrameTime());
-                            } else {
-                                mainBuffer->InitPerModelBuffers(*grp, l, data.FrameTime());
-                            }
+                        const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
+                        if (perModelEffectsDeep) {
+                            mainBuffer->InitPerModelBuffersDeep(*grp, l, data.FrameTime());
+                        }
+                        if (perModelEffects) {
+                            mainBuffer->InitPerModelBuffers(*grp, l, data.FrameTime());
                         }
                     }
                 }

@@ -42,10 +42,8 @@ std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES;
 
 Model* ModelGroup::GetModel(std::string modelName) const
 {
-    for (const auto& it : models)
-    {
-        if (it->GetFullName() == modelName)
-        {
+    for (const auto& it : models) {
+        if (it->GetFullName() == modelName) {
             return it;
         }
     }
@@ -55,18 +53,16 @@ Model* ModelGroup::GetModel(std::string modelName) const
 
 Model* ModelGroup::GetFirstModel() const
 {
-    for (const auto& it : models)
-    {
-        if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel")
-        {
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {
             return it;
         }
     }
     return nullptr;
 }
 
-// Gets a list of models in the group flattening out any groups and removing any duplicates - submodels will be included if they are in the groups
-std::list<Model*> ModelGroup::GetFlatModels() const
+// Gets a list of models in the group flattening out any groups and optionally removing any duplicates - submodels will be included if they are in the groups
+std::list<Model*> ModelGroup::GetFlatModels(bool removeDuplicates) const
 {
     std::list<Model*> res;
 
@@ -76,21 +72,17 @@ std::list<Model*> ModelGroup::GetFlatModels() const
             if (m->GetDisplayAs() == "ModelGroup") {
                 auto mg = dynamic_cast<ModelGroup*>(m);
                 if (mg != nullptr) {
-                    for (const auto& it : mg->GetFlatModels()) {
-                        if (std::find(begin(res), end(res), it) == end(res)) {
+                    for (const auto& it : mg->GetFlatModels(removeDuplicates)) {
+                        if (!removeDuplicates || (std::find(begin(res), end(res), it) == end(res))) {
                             res.push_back(it);
                         }
                     }
                 }
-            }
-            else {
-                if (std::find(begin(res), end(res), m) == end(res)) {
-                    res.push_back(m);
-                }
+            } else if (!removeDuplicates || (std::find(begin(res), end(res), m) == end(res))) {
+                res.push_back(m);
             }
         }
     }
-
     return res;
 }
 
@@ -1218,7 +1210,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         BufferHt = 1;
         BufferWi = 0;
         if (deep) {
-            for (const auto& it : GetFlatModels()) {
+            for (const auto& it : GetFlatModels(false)) {
                 Model* m = it;
                 wxASSERT(m != nullptr);
                 int start = Nodes.size();

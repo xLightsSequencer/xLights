@@ -184,8 +184,7 @@ void ColourReplaceDialog::OnButton_CloseClick(wxCommandEvent& event)
 
 void ColourReplaceDialog::OnCCChanged(wxCommandEvent& event)
 {
-    ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
-
+    //ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
     Refresh();
 }
 
