@@ -38,7 +38,7 @@ protected:
                                       bool highlightFirst = false, int highlightpixel = 0,
                                       float *boundingBox = nullptr) override;
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
-    
+    virtual std::list<std::string> CheckModelSettings() override;
     
     void GetColors(xlColor &center, xlColor &edge, bool allowSelected, const xlColor *c);
     virtual void DrawModel(xlVertexColorAccumulator *vac, xlColor &center, xlColor &edge, float beam_length);

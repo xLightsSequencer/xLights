@@ -30,6 +30,7 @@ class DmxServo3d : public DmxModel
 
         virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
+        virtual std::list<std::string> CheckModelSettings() override;
 
         Servo* GetAxis(int num) { return num < num_servos ? servos[num] : servos[0]; }
         int GetNumServos() const { return num_servos; }

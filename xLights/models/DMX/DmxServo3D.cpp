@@ -687,6 +687,28 @@ void DmxServo3d::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
     }
 }
 
+std::list<std::string> DmxServo3d::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    int nodeCount = Nodes.size();
+    int min_channels = num_servos * (_16bit ? 2 : 1);
+
+    if (min_channels > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s requires more channels %d than have been allocated to it %d.", GetName(), min_channels, nodeCount));
+    }
+    int i = 1;
+    for (const auto& it : servos) {
+        if (it->GetChannel() > nodeCount) {
+            res.push_back(wxString::Format("    ERR: Model %s servo %d is assigned to channel %d but the model only has %d channels.", GetName(), i, it->GetChannel(), nodeCount));
+        }
+        i++;
+    }
+
+    res.splice(res.end(), Model::CheckModelSettings());
+    return res;
+}
+
 void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active)
 {
     // crash protection
@@ -695,8 +717,8 @@ void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    for (auto it = servos.begin(); it != servos.end(); ++it) {
-        if ((*it)->GetChannel() > Nodes.size()) {
+    for (const auto& it : servos) {
+        if (it->GetChannel() > Nodes.size()) {
             DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
             return;
         }

@@ -37,6 +37,7 @@ class DmxGeneral : public DmxModel, public DmxColorAbility
                                           float* boundingBox = nullptr) override;
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
         virtual void DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c);
+        virtual std::list<std::string> CheckModelSettings() override;
 
     private:
 };

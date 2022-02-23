@@ -110,6 +110,29 @@ void DmxFloodlight::DrawModel(xlVertexColorAccumulator* vac, xlColor& center, xl
     vac->AddCircleAsTriangles(0, 0, 0, 0.5, center, edge, beam_length);
 }
 
+std::list<std::string> DmxFloodlight::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    int nodeCount = Nodes.size();
+
+    if (red_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s red channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), red_channel, nodeCount));
+    }
+    if (green_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s green channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), green_channel, nodeCount));
+    }
+    if (blue_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s blue channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), blue_channel, nodeCount));
+    }
+    if (white_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s white channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), white_channel, nodeCount));
+    }
+
+    res.splice(res.end(), Model::CheckModelSettings());
+    return res;
+}
+
 void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
                                          xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d,
                                          const xlColor* c, bool allowSelected, bool wiring,

@@ -707,6 +707,48 @@ void DmxSkull::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
     }
 }
 
+std::list<std::string> DmxSkull::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    int nodeCount = Nodes.size();
+
+    if (red_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s red channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), red_channel, nodeCount));
+    }
+    if (green_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s green channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), green_channel, nodeCount));
+    }
+    if (blue_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s blue channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), blue_channel, nodeCount));
+    }
+    if (eye_brightness_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s eye brightness channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), eye_brightness_channel, nodeCount));
+    }
+
+    if (has_jaw && jaw_servo->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s jaw servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), jaw_servo->GetChannel(), nodeCount));
+    }
+    if (has_pan && pan_servo->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s pan servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), pan_servo->GetChannel(), nodeCount));
+    }
+    if (has_tilt && tilt_servo->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s tilt servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), tilt_servo->GetChannel(), nodeCount));
+    }
+    if (has_nod && nod_servo->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s nod servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), nod_servo->GetChannel(), nodeCount));
+    }
+    if (has_eye_ud && eye_ud_servo->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s eye up/down servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), eye_ud_servo->GetChannel(), nodeCount));
+    }
+    if (has_eye_lr && eye_lr_servo->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s eye left/right servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), eye_lr_servo->GetChannel(), nodeCount));
+    }
+
+    res.splice(res.end(), Model::CheckModelSettings());
+    return res;
+}
+
 void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
 {
     size_t NodeCount = Nodes.size();

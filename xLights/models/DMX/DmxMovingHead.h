@@ -33,6 +33,7 @@ class DmxMovingHead : public DmxModel, public DmxColorAbility, public DmxPanTilt
                                       float *boundingBox = nullptr) override;
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
         virtual void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
+        virtual std::list<std::string> CheckModelSettings() override;
 
     protected:
         void Draw3DDMXBaseLeft(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle);

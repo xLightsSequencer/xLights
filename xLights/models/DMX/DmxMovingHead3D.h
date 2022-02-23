@@ -32,6 +32,7 @@ class DmxMovingHead3D : public DmxMovingHead
 
         virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
         virtual float GetDefaultBeamWidth() const override { return 1.5f; }
+        virtual std::list<std::string> CheckModelSettings() override;
 
     private:
 

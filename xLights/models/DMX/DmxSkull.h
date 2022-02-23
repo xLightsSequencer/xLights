@@ -86,6 +86,7 @@ class DmxSkull : public DmxModel, public DmxColorAbility
 
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual std::list<std::string> CheckModelSettings() override;
 
         Mesh* head_mesh = nullptr;
         Mesh* jaw_mesh = nullptr;
