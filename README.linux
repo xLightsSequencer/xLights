@@ -79,7 +79,10 @@ Instructions for other Linux distributions will vary.
         git clone https://github.com/mirai-computing/cbp2make.git
         cd cbp2make
         make -f cbp2make.cbp.mak.unix
-        sudo install -m 755 -p -D bin/Release/cbp2make /usr/local/bin/cbp2make     
+        sudo install -m 755 -p -D bin/Release/cbp2make /usr/local/bin/cbp2make 
+     
+     newer versions of libportmidi combined the .so files. Easiest workaround is to add a sym link to the combine .so file:
+        sudo ln -s /usr/lib64/libportmidi.so /usr/lib64/libporttime.so
      
      Install other packages:
 
