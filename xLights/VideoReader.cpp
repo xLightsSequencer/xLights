@@ -41,6 +41,7 @@ static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false
 
 #ifdef __WXMSW__
 #include "WindowsHardwareVideoReader.h"
+#include <VersionHelpers.h>
 #endif
 
 static enum AVPixelFormat __hw_pix_fmt = ::AVPixelFormat::AV_PIX_FMT_NONE;
@@ -111,7 +112,8 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     _height = _maxheight;
 
 #ifdef __WXMSW__
-    if (HW_ACCELERATION_ENABLED) {
+
+    if ( HW_ACCELERATION_ENABLED && ::IsWindows8OrGreater() ) {
         _windowsHardwareVideoReader = new WindowsHardwareVideoReader(filename, _wantAlpha, usenativeresolution, keepaspectratio, maxwidth, maxheight, _pixelFmt);
         if (_windowsHardwareVideoReader->IsOk()) {
             _frames = _windowsHardwareVideoReader->GetFrames();
