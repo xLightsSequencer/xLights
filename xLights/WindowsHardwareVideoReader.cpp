@@ -25,12 +25,28 @@
 
 #include <log4cpp/Category.hh>
 
-#pragma comment(lib, "mfplat.lib")
-#pragma comment(lib, "mfreadwrite.lib")
+// All of this allows me to dynamically load the Direct X DLLs ensuring that on older platforms it still loads but hardware decoding wont work
+
+//#pragma comment(lib, "mfplat.lib") // mfplat.dll - media foundation platform
+    // MFStartup
+    typedef DWORD (*MFStartup_ptr)(ULONG, DWORD);
+    // MFShutdown
+    typedef DWORD (*MFShutdown_ptr)();
+    // MFCreateDXGIDeviceManager
+    typedef DWORD (*MFCreateDXGIDeviceManager_ptr)(UINT*, IMFDXGIDeviceManager**);
+    // MFCreateAttributes
+    typedef DWORD (*MFCreateAttributes_ptr)(IMFAttributes**, UINT32);
+    // MFCreateMediaType
+    typedef DWORD (*MFCreateMediaType_ptr)(IMFMediaType**);
+
+//#pragma comment(lib, "mfreadwrite.lib") // mfreadwrite.dll - media foundation read and write
+    // MFCreateSourceReaderFromURL
+    typedef DWORD (*MFCreateSourceReaderFromURL_ptr)(LPCWSTR, IMFAttributes*, IMFSourceReader**);
 #pragma comment(lib, "mfuuid.lib")
-#pragma comment(lib, "d2d1.lib")
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "propsys.lib")
+//#pragma comment(lib, "d3d11.lib") // d3d11.dll - direct 3d v11 
+    // D3D11CreateDevice
+    typedef DWORD (*D3D11CreateDevice_ptr)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE Software, UINT Flags, const D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
+#pragma comment(lib, "propsys.lib") // propsys.dll microsoft property system
 #pragma comment(lib, "wmcodecdspuuid.lib")
 
 
@@ -45,6 +61,60 @@
             logger_base.error("---------- " msg " : 0x%08x : %s", hr, (const char*)WindowsHardwareVideoReader::DecodeMFError(hr).c_str()); \
         }                               \
     }
+
+#define COMMA ,
+#define LIT(x) x
+#define DYNAMICCALL(dll, function, fn, msg)                                                                                                           \
+    {                                                                                                                                                 \
+        LIT(function)_ptr ffn = (LIT(function)_ptr)GetFunction(dll, #function);                                                                                                       \
+        if (ffn == nullptr) {                                                                                                                         \
+            logger_base.error("---------- " msg " : 0x%08x : %s", hr, (const char*)WindowsHardwareVideoReader::DecodeMFError(E_NOINTERFACE).c_str()); \
+            hr = E_NOINTERFACE;                                                                                                                       \
+        } else {                                                                                                                                      \
+            SAFEEXEC((ffn)(fn), msg);                                                                                                                        \
+        }                                                                                                                                             \
+    }
+
+static std::map<std::string, HINSTANCE> __delayLoadDLLs;
+static std::map<std::string, FARPROC> __delayLoadFunctions;
+
+HINSTANCE GetDLL(const std::string& dll)
+{
+    if (__delayLoadDLLs.find(dll) == end(__delayLoadDLLs)) {
+        HINSTANCE hinst = ::LoadLibraryA(dll.c_str());
+        if (hinst == nullptr)
+            return nullptr;
+        __delayLoadDLLs[dll] = hinst;
+    }
+    return __delayLoadDLLs[dll];
+}
+
+void FreeAllDLLs()
+{
+    for (const auto& it : __delayLoadDLLs) {
+        ::FreeLibrary(it.second);
+    }
+    __delayLoadDLLs.clear();
+}
+
+FARPROC GetFunction(const std::string& dll, const std::string& function)
+{
+    if (__delayLoadFunctions.find(function) == end(__delayLoadFunctions)) {
+        HINSTANCE hinst = GetDLL(dll);
+        if (hinst != nullptr) {
+            FARPROC proc = ::GetProcAddress(hinst, function.c_str());
+            if (proc != nullptr) {
+                __delayLoadFunctions[function] = proc;
+            } else {
+                return nullptr;
+            }
+        } else {
+            return nullptr;
+        }
+    }
+
+    return __delayLoadFunctions[function];
+}
 
 class WVHRStatic
 {
@@ -62,15 +132,25 @@ public:
 
         SAFEEXEC(::CoInitializeEx(nullptr, THREADING | COINIT_SPEED_OVER_MEMORY | COINIT_DISABLE_OLE1DDE), "WHVD: Failed to initialise OLE EX");
 
-        SAFEEXEC(::MFStartup(MF_VERSION), "WHVD: Failed to initialise Media Framework");
-
-        if (SUCCEEDED(hr)) {
-            _ok = true;
+        // we test load all the dlls to make sure hardware video decoding is possible ... if any fail then we wont try to hardware decode
+        // this does not protect us against internal differences but I am hoping it means we can load and run on older platforms
+        if (GetDLL("mfplat.dll") == nullptr || GetDLL("mfreadwrite.dll") == nullptr || GetDLL("d3d11.dll") == nullptr) {
+            logger_base.error("Failed to load mfplat.dll ... windows hardware debugging disabled.");
+        } else {
+            DYNAMICCALL("mfplat.dll", MFStartup, MF_VERSION COMMA MFSTARTUP_FULL, "WHVD: Failed to initialise Media Framework");
+            if (SUCCEEDED(hr)) {
+                _ok = true;
+            }
         }
     }
     virtual ~WVHRStatic()
     {
-        MFShutdown();
+        if (_ok) {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            HRESULT hr = S_OK;
+            DYNAMICCALL("mfplat.dll", MFShutdown, , "WHVD: Failed to initialise Media Framework");
+        }
+        FreeAllDLLs();
     }
     bool IsOk() const
     {
@@ -99,15 +179,15 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
     HRESULT hr = S_OK;
 
     IMFAttributes* attributes;
-    SAFEEXEC(MFCreateAttributes(&attributes, 4), "WHVD: Failed to create Media Framework attributes");
+    DYNAMICCALL("mfplat.dll", MFCreateAttributes, &attributes COMMA 4, "WHVD: Failed to create Media Framework attributes");
 
 #if defined(ENABLE_HW_ACCELERATION)
     D3D_FEATURE_LEVEL levels[] = { D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0 };
 
 #if defined(ENABLE_HW_DRIVER)
-    SAFEEXEC(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, /* D3D11_CREATE_DEVICE_SINGLETHREADED |*/ D3D11_CREATE_DEVICE_VIDEO_SUPPORT, levels, ARRAYSIZE(levels), D3D11_SDK_VERSION, &_device, nullptr, nullptr), "WHVD: Failed to create D3D11 device");
+    DYNAMICCALL("d3d11.dll", D3D11CreateDevice, nullptr COMMA D3D_DRIVER_TYPE_HARDWARE COMMA nullptr COMMA D3D11_CREATE_DEVICE_VIDEO_SUPPORT COMMA levels COMMA ARRAYSIZE(levels) COMMA D3D11_SDK_VERSION COMMA & _device COMMA nullptr COMMA nullptr, "WHVD: Failed to create D3D11 device");
 #else
-    SAFEEXEC(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_NULL, nullptr, 0/*D3D11_CREATE_DEVICE_SINGLETHREADED */, levels, ARRAYSIZE(levels), D3D11_SDK_VERSION, &_device, nullptr, nullptr), "WHVD: Failed to create D3D11 device");
+    DYNAMICCALL("d3d11.dll", D3D11CreateDevice, nullptr COMMA D3D_DRIVER_TYPE_NULL COMMA nullptr COMMA 0 COMMA levels COMMA ARRAYSIZE(levels) COMMA D3D11_SDK_VERSION COMMA & _device COMMA nullptr COMMA nullptr, "WHVD: Failed to create D3D11 device");
 #endif
 
     // NOTE: Getting ready for multi-threaded operation
@@ -119,7 +199,7 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
     }
 
     UINT token = 0;
-    SAFEEXEC(MFCreateDXGIDeviceManager(&token, &_deviceManager), "WHVD: Failed to create DXGI device manager");
+    DYNAMICCALL("mfplat.dll", MFCreateDXGIDeviceManager, &token COMMA & _deviceManager, "WHVD: Failed to create DXGI device manager");
 
     SAFEEXEC(_deviceManager->ResetDevice(_device, token), "WHVD: Failed to reset device");
 
@@ -132,7 +212,7 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
 
     // Create the source reader from the URL.
     std::wstring fn(filename.begin(), filename.end());
-    SAFEEXEC(MFCreateSourceReaderFromURL(fn.c_str(), attributes, &_reader), "WHVD: Failed to create video source reader");
+    DYNAMICCALL("mfreadwrite.dll", MFCreateSourceReaderFromURL, fn.c_str() COMMA attributes COMMA & _reader, "WHVD: Failed to create video source reader");
 
     SafeRelease(&attributes);
 
@@ -152,6 +232,8 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
         _frame->format = _pixelFormat;
         wxASSERT(_reader != nullptr);
         wxASSERT(_deviceManager != nullptr);
+
+        logger_base.debug("WHVD: Hardware Video Decoder Initialised OK for video: %s", (const char*)filename.c_str());
     } else {
         SafeRelease(&_reader);
         SafeRelease(&_deviceManager);
@@ -228,7 +310,7 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
 
     // I need to get the native size of the video first
     IMFMediaType* pType = nullptr;
-    SAFEEXEC(MFCreateMediaType(&pType), "WHVD: Failed to create media type");
+    DYNAMICCALL("mfplat.dll", MFCreateMediaType, &pType, "WHVD: Failed to create media type");
 
     SAFEEXEC(pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video), "WHVD: Failed to set major type");
 
@@ -276,7 +358,7 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
     // Configure the source reader to give us progressive RGB32 frames.
     // The source reader will load the decoder if needed.
 
-    SAFEEXEC(MFCreateMediaType(&pType), "WHVD: Failed to create media type");
+    DYNAMICCALL("mfplat.dll", MFCreateMediaType, &pType, "WHVD: Failed to create media type");
 
     SAFEEXEC(pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video), "WHVD: Failed to set major type");
 
