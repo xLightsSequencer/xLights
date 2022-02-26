@@ -149,6 +149,7 @@ void MorphEffect::SetDefaultParameters() {
     SetCheckBoxValue(mp->CheckBox_Morph_End_Link, false);
     SetCheckBoxValue(mp->CheckBox_Morph_Start_Link, false);
     SetCheckBoxValue(mp->CheckBox_ShowHeadAtStart, false);
+    SetCheckBoxValue(mp->CheckBox_Morph_AutoRepeat, false);
 }
 
 void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlColor &start_t, xlColor &end_t) {
@@ -258,6 +259,7 @@ void MorphEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     bool start_linked = SettingsMap.GetBool("CHECKBOX_Morph_Start_Link");
     bool end_linked = SettingsMap.GetBool("CHECKBOX_Morph_End_Link");
     bool showEntireHeadAtStart = SettingsMap.GetBool("CHECKBOX_ShowHeadAtStart");
+    bool auto_repeat = SettingsMap.GetBool("CHECKBOX_Morph_AutoRepeat");
 
     double step_size = 0.1;
 
@@ -323,16 +325,30 @@ void MorphEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     int repeat_y = 0;
     double effect_pct = 1.0;
     double stagger_pct = 0.0;
-    if( repeat_count > 0 )
+    if( repeat_count > 0 || auto_repeat)
     {
+        int maxmodel;
         if( (std::abs((float)delta_xa) + std::abs((float)delta_xb)) < (std::abs((float)delta_ya) + std::abs((float)delta_yb)) )
         {
             repeat_x = repeat_skip;
+            maxmodel = buffer.BufferWi;
         }
         else
         {
             repeat_y = repeat_skip;
+            maxmodel = buffer.BufferHt;
         }
+
+        // auto_repeat calculates the number of repeats required to cover the model automatically
+        if( auto_repeat ) {
+            int startx = std::max(1,std::abs(start_x1 - start_x2) * buffer.BufferWi / 100);
+            int starty = std::max(1,std::abs(start_y1 - start_y2) * buffer.BufferHt / 100);
+            int endx = std::max(1,std::abs(end_x1 - end_x2) * buffer.BufferWi / 100);
+            int endy = std::max(1,std::abs(end_y1 - end_y2) * buffer.BufferHt / 100);
+            int minmorph = std::min(startx, std::min(starty, std::min(endx, endy)));
+            repeat_count = (maxmodel / (minmorph + repeat_skip - 1)) - 1;
+        }
+
         double stagger_val = (double)(std::abs((double)stagger))/200.0;
         effect_pct = 1.0 / (1 + stagger_val * repeat_count);
         stagger_pct = effect_pct * stagger_val;
