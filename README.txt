@@ -11,6 +11,30 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.05 February 26, 2022
+   -- enh (keith) Upgrade windows to use FFMPEG v5 
+   -- enh (keith) Rewrite windows hardware video processing
+   -- enh (keith) Reduce minimum frame time to 10ms
+   -- enh (keith) Allow xmodels to include shadow models for simpler import
+   -- enh (keith) Improve the face defaults based on the type of model
+   -- enh (keith) Add to the model export dialog the type of export
+   -- enh (keith) Add a colour search and replace function to edit menu
+   -- enh (keith) Where DMX models cant render draw an error box and also explain why in check sequence
+   -- enh (scott) Add 3D mouse support to windows 
+   -- enh (scott) Allow selection of matrix faces by double clicking the row title
+   -- enh (dkulp) Add bulk edit of pixel appearance settings 
+   -- enh (dkulp) When control held down and object selected rotate/move the view rather than the object 
+   -- bug (scott) Fix batch render
+   -- bug (scott) Fix Q1 pin on QuinLED-Dig-Quad
+   -- bug (dklup) Fix FX not rendering 
+   -- bug (dkulp) OSX Fix node select grid colours in dark mode 
+   -- bug (dkulp) OSC Fix fallback for 3D mouse where drivers are missing
+   -- bug (slupsky) Fix default view for new sequences 
+   -- bug (keith) Fix ruler does not initialise if you are not in 3D mode 
+   -- bug (keith) Fix heart render has inconsistencies 
+   -- bug (keith) Universe per string allocates too many universes for serial port models 
+   -- bug (keith) Sequence save as does not update recent sequences menu 
+   -- bug (keith) Fix DMX general model does not display 
 2022.04 February 5, 2022
    -- enh (dkulp) MacOS: Move to FFMPEG 5 for accelerated ProRes video decoding on M1 Pro/Max
    -- enh (dkulp) MacOS: Update 3D Mouse support to manipulate individual control points
