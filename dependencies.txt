@@ -196,8 +196,8 @@ Library:     libltc
 Usage:       generate and consume SMTPE timecode
 Link:        https://github.com/x42/libltc
 Source:      https://github.com/x42/libltc
-Last Pulled: 2019-09-27
-Version:     1.3.1 [Latest version as at Jan 2021 is 1.3.1 released Apr 2019]
+Last Pulled: 2022-02-26
+Version:     1.3.1+ [Latest version as at Jan 2021 is 1.3.1 released Apr 2019]
 License:     GNU Lesser GPL2
 Strategy:    Header added to repository. static libraries added for windows
 
