@@ -2421,7 +2421,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->camera = settingsMap.Get(CHOICE_PerPreviewCamera, "2D");
     inf->transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
 
-    const std::string &type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
+    std::string type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
     const std::string &camera = settingsMap.Get(CHOICE_PerPreviewCamera, "2D");
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
     const std::string &subBuffer = settingsMap.Get(CUSTOM_SubBuffer, STR_EMPTY);
@@ -2476,12 +2476,23 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         // so I have changed it to "Single Line". In theory both should create all the nodes
         auto tt = type;
         bool go_deep = false;
-        if (StartsWith(type, "Per Model")) {
-            tt = "Single Line";
-            if (type.compare(type.length() - 4, 4, "Deep") == 0) {
-                go_deep = true;
+        if (model->Name() == "PRESET_Matrix_XYZZY") {
+            // for presets we just turn it into the non-per model style
+            if (StartsWith(type, "Per Model")) {
+                type = type.substr(10);
+                if (EndsWith(type, "Deep")) {
+                    type = type.substr(0, type.length() - 5);
+                }
+            }
+        } else {
+            if (StartsWith(type, "Per Model")) {
+                tt = "Single Line";
+                if (type.compare(type.length() - 4, 4, "Deep") == 0) {
+                    go_deep = true;
+                }
             }
         }
+
         model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, go_deep);
         if (origNodeCount != 0 && origNodeCount != inf->buffer.Nodes.size()) {
             inf->buffer.Nodes.clear();
@@ -2537,43 +2548,47 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
         GPURenderUtils::setupRenderBuffer(this, &inf->buffer);
 
-        if (type.compare(0, 9, "Per Model") == 0) {
+        if (type.compare(0, 9, "Per Model") == 0 && model->GetDisplayAs() == "ModelGroup") {
             if (type.compare(type.length()-4, 4, "Deep") == 0) {
                 inf->modelBuffers = &inf->deepModelBuffers;
                 const ModelGroup* gp = dynamic_cast<const ModelGroup*>(model);
-                std::list<Model*> flat_models = gp->GetFlatModels(false);
-                std::list<Model*>::iterator it_m = flat_models.begin();
-                for (const auto& it : inf->deepModelBuffers) {
-                    std::string ntype = "Default";// type.substr(10, type.length() - 10);
-                    int bw, bh;
-                    it->Nodes.clear();
-                    (*it_m)->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
-                    if (bw == 0)
-                        bw = 1; // zero sized buffers are a problem
-                    if (bh == 0)
-                        bh = 1;
-                    it->InitBuffer(bh, bw, bh, bw, transform);
-                    it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
-                    GPURenderUtils::setupRenderBuffer(this, it.get());
-                    ++it_m;
+                if (gp != nullptr) {
+                    std::list<Model*> flat_models = gp->GetFlatModels(false);
+                    std::list<Model*>::iterator it_m = flat_models.begin();
+                    for (const auto& it : inf->deepModelBuffers) {
+                        std::string ntype = "Default"; // type.substr(10, type.length() - 10);
+                        int bw, bh;
+                        it->Nodes.clear();
+                        (*it_m)->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
+                        if (bw == 0)
+                            bw = 1; // zero sized buffers are a problem
+                        if (bh == 0)
+                            bh = 1;
+                        it->InitBuffer(bh, bw, bh, bw, transform);
+                        it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
+                        GPURenderUtils::setupRenderBuffer(this, it.get());
+                        ++it_m;
+                    }
                 }
             } else {
                 inf->modelBuffers = &inf->shallowModelBuffers;
                 const ModelGroup* gp = dynamic_cast<const ModelGroup*>(model);
-                int cnt = 0;
-                for (const auto& it : inf->shallowModelBuffers) {
-                    std::string ntype = type.substr(10, type.length() - 10);
-                    int bw, bh;
-                    it->Nodes.clear();
-                    gp->Models()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
-                    if (bw == 0)
-                        bw = 1; // zero sized buffers are a problem
-                    if (bh == 0)
-                        bh = 1;
-                    it->InitBuffer(bh, bw, bh, bw, transform);
-                    it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
-                    GPURenderUtils::setupRenderBuffer(this, it.get());
-                    ++cnt;
+                if (gp != nullptr) {
+                    int cnt = 0;
+                    for (const auto& it : inf->shallowModelBuffers) {
+                        std::string ntype = type.substr(10, type.length() - 10);
+                        int bw, bh;
+                        it->Nodes.clear();
+                        gp->Models()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
+                        if (bw == 0)
+                            bw = 1; // zero sized buffers are a problem
+                        if (bh == 0)
+                            bh = 1;
+                        it->InitBuffer(bh, bw, bh, bw, transform);
+                        it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
+                        GPURenderUtils::setupRenderBuffer(this, it.get());
+                        ++cnt;
+                    }
                 }
             }
         } else {
