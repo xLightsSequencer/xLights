@@ -1324,8 +1324,8 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) 
             }
         }
         for (auto [x,y,z, ch] : modelPts) {
-            ret += wxString::Format("%d,%d,%d,%d,%s\n",
-                (int)std::round(x), (int)std::round(y), ch,
+            ret += wxString::Format("%d,%d,%d,%d,%d,%s\n",
+                (int)std::round(x), (int)std::round(y), (int)std::round(z), ch,
                 model->GetChanCountPerNode(), stringType.c_str());
         }
 
