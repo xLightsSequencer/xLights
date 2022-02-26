@@ -3138,6 +3138,16 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
             return true;
         });
     }
+    discovery.AddCurl("localhost", "/api/system/status", [&discovery](int rc, const std::string &buffer, const std::string &err) {
+        ProcessFPPSysinfo(discovery, "localhost", "", buffer);
+        return true;
+    });
+    discovery.AddCurl("localhost", "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
+        if (rc == 200) {
+            ProcessFPPSystems(discovery, buffer);
+        }
+        return true;
+    });
 
     discovery.AddMulticast("239.70.80.80", FPP_CTRL_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *buffer, int len) {
         ProcessFPPPingPacket(discovery, buffer, len);
