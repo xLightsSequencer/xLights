@@ -55,6 +55,8 @@ private:
 
 void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
 {
+    auto ld = _lowDefinitionRender;
+
     if (!mPreferencesEditor.get()) {
         wxImage gridImage(GRID_ICON_64);
         wxBitmap gridIcon(gridImage);
@@ -81,4 +83,10 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
     }
 
     mPreferencesEditor->Show(this);
+
+    if (ld != _lowDefinitionRender) {
+        // just in case the user changes the low resolution renderer
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Preferences Change");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Preferences Change");
+    }
 }

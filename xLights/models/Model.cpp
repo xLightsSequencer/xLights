@@ -595,6 +595,13 @@ void Model::ColourClashingChains(wxPGProperty* p)
     }
 }
 
+uint32_t Model::ApplyLowDefinition(uint32_t val) const
+{
+    if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().GetXLightsFrame()->IsLowDefinitionRender())
+        return val;
+    return (val * _lowDefFactor) /  100;
+}
+
 std::string Model::GetPixelStyleDescription(int pixelStyle)
 {
     if (pixelStyle < PIXEL_STYLES.size()) {
@@ -653,6 +660,13 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
 
     AddTypeProperties(grid);
+
+    if (SupportsLowDefinitionRender()) {
+        p = grid->Append(new wxUIntProperty("Low Definition Factor", "LowDefinition", _lowDefFactor));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 100);
+        p->SetEditor("SpinCtrl");
+    }
 
     _controller = 0;
     CONTROLLERS.clear();
@@ -1356,6 +1370,15 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelPixelBlackTransparency");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::ModelPixelBlackTransparency");
+        return 0;
+    } else if (event.GetPropertyName() == "LowDefinition") {
+        _lowDefFactor = event.GetValue().GetLong();
+        ModelXml->DeleteAttribute("LowDefinition");
+        ModelXml->AddAttribute("LowDefinition", wxString::Format(wxT("%i"), _lowDefFactor));
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::LowDefinition");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::OnPropertyGridChange::LowDefinition");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::LowDefinition");
         return 0;
     } else if (event.GetPropertyName() == "ModelTagColour") {
         modelTagColour << event.GetProperty()->GetValue();
@@ -2697,6 +2720,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     _pixelType = ModelNode->GetAttribute("PixelType", "").ToStdString();
     _pixelSpacing = ModelNode->GetAttribute("PixelSpacing", "").ToStdString();
     _active = ModelNode->GetAttribute("Active", "1") == "1";
+    _lowDefFactor = wxAtoi(ModelNode->GetAttribute("LowDefinition", "100"));
 
     //this needs to be done before GetNodeChannelCount call
     bool found = true;
@@ -4662,8 +4686,7 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
     html += wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>", (int)NodeCount);
     html += wxString::Format("<tr><td>Height:</td><td>%d</td></tr>", BufferHt);
 
-    if (c != nullptr)
-    {
+    if (c != nullptr) {
         html += wxString::Format("<tr><td>Controller:</td><td>%s</td></tr>", c->GetLongDescription());
     }
 
@@ -4682,10 +4705,9 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
         html += "<tr>";
         for (size_t i = 1; i <= NodeCount; i++) {
             int n = IsLtoR ? i : NodeCount - i + 1;
-            int s = Nodes[n-1]->StringNum + 1;
-            wxString bgcolor = s%2 == 1 ? "#ADD8E6" : "#90EE90";
-            while (n > NodesPerString())
-            {
+            int s = Nodes[n - 1]->StringNum + 1;
+            wxString bgcolor = s % 2 == 1 ? "#ADD8E6" : "#90EE90";
+            while (n > NodesPerString()) {
                 n -= NodesPerString();
             }
             html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ds%d</td>", n, s);
@@ -4695,8 +4717,7 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
         // horizontal or vertical matrix or frame
         for (size_t i = 0; i < NodeCount; i++) {
             size_t idx = Nodes[i]->Coords[0].bufY * BufferWi + Nodes[i]->Coords[0].bufX;
-            if (idx < chmap.size())
-            {
+            if (idx < chmap.size()) {
                 chmap[idx] = i + 1;
             }
         }
@@ -4707,10 +4728,9 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
                 if (n == 0) {
                     html += "<td></td>";
                 } else {
-                    int s = Nodes[n-1]->StringNum + 1;
-                    wxString bgcolor = (s%2 == 1) ? "#ADD8E6" : "#90EE90";
-                    while (n > NodesPerString())
-                    {
+                    int s = Nodes[n - 1]->StringNum + 1;
+                    wxString bgcolor = (s % 2 == 1) ? "#ADD8E6" : "#90EE90";
+                    while (n > NodesPerString()) {
                         n -= NodesPerString();
                     }
                     html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ds%d</td>", n, s);
@@ -4726,12 +4746,13 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
 }
 
 // initialize screen coordinates
-void Model::CopyBufCoord2ScreenCoord() {
+void Model::CopyBufCoord2ScreenCoord()
+{
     size_t NodeCount = GetNodeCount();
     int xoffset = BufferWi / 2;
     int yoffset = BufferHt / 2;
     for (size_t n = 0; n < NodeCount; n++) {
-        size_t CoordCount=GetCoordCount(n);
+        size_t CoordCount = GetCoordCount(n);
         for (size_t c = 0; c < CoordCount; c++) {
             Nodes[n]->Coords[c].screenX = Nodes[n]->Coords[c].bufX - xoffset;
             Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY - yoffset;
@@ -4740,7 +4761,8 @@ void Model::CopyBufCoord2ScreenCoord() {
     GetModelScreenLocation().SetRenderSize(BufferWi, BufferHt, GetModelScreenLocation().GetRenderDp());
 }
 
-void Model::UpdateXmlWithScale() {
+void Model::UpdateXmlWithScale()
+{
     GetModelScreenLocation().Write(ModelXml);
     ModelXml->DeleteAttribute("StartChannel");
     if (ModelXml->HasAttribute("versionNumber"))
@@ -4750,7 +4772,8 @@ void Model::UpdateXmlWithScale() {
     IncrementChangeCount();
 }
 
-bool Model::HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction) {
+bool Model::HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction)
+{
     return GetModelScreenLocation().HitTest(ray_origin, ray_direction);
 }
 

@@ -217,14 +217,36 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (CurrentSeqXmlFile == nullptr) {
             return sendResponse("No sequence open.", "msg", 503, false);
         }
+        auto ld = _lowDefinitionRender;
+        auto highdef = params["highdef"];
+        if (highdef == "true" && _lowDefinitionRender) {
+            // override definition
+            _lowDefinitionRender = false;
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::renderAll");
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::renderAll");
+        }
         RenderAll();
         while (mRendering) {
             wxYield();
         }
+        if (ld != _lowDefinitionRender) {
+            _lowDefinitionRender = ld;
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::renderAll");
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::renderAll");
+        }
         return sendResponse("Rendered.", "msg", 200, false);
     } else if (cmd == "batchRender") {
         wxArrayString files;
-                
+
+        auto ld = _lowDefinitionRender;
+        auto highdef = params["highdef"];
+        if (highdef == "true" && _lowDefinitionRender) {
+            // override definition
+            _lowDefinitionRender = false;
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::batchRender");
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::batchRender");
+        }
+
         auto seqs = params["seqs_0"];
         int snum = 0;
         while (seqs != "") {
@@ -247,6 +269,11 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         _promptBatchRenderIssues = oldPrompt;
+        if (ld != _lowDefinitionRender) {
+            _lowDefinitionRender = ld;
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::batchRender");
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::batchRender");
+        }
         return sendResponse("Sequence batch rendered.", "msg", 200, false);
     } else if (cmd == "uploadController") {
         auto ip = params["ip"];
@@ -516,6 +543,15 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("Sequence not open.", "msg", 503, false);
         }
 
+        auto ld = _lowDefinitionRender;
+        auto highdef = params["highdef"];
+        if (highdef == "true" && _lowDefinitionRender) {
+            // override definition
+            _lowDefinitionRender = false;
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::renderAll");
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::renderAll");
+        }
+
         auto model = params["model"];
         if (AllModels.GetModel(model) == nullptr) {
             return sendResponse("Unknown model.", "msg", 503, false);
@@ -551,8 +587,14 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         if (DoExportModel(0, 0, model, filename, format, false)) {
+            if (ld != _lowDefinitionRender) {
+                _lowDefinitionRender = ld;
+                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::exportModel");
+                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::exportModel");
+            }
             return sendResponse("Model exported.", "msg", 200, false);
         } else {
+            _lowDefinitionRender = ld;
             return sendResponse("Failed to export.", "msg", 503, false);
         }
     } else if (cmd == "closexLights") {

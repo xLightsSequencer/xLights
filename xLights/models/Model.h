@@ -252,6 +252,7 @@ protected:
     int transparency{ 0 };
     int blackTransparency{ 0 };
     wxColour modelTagColour;
+    uint8_t _lowDefFactor = 100;
 
     int StrobeRate;      // 0=no strobing
     bool zeroBased;
@@ -271,6 +272,7 @@ protected:
     std::vector<Model*> subModels;
     void ParseSubModel(wxXmlNode* subModelNode);
     void ColourClashingChains(wxPGProperty* p);
+    uint32_t ApplyLowDefinition(uint32_t val) const;
 
     std::vector<std::string> modelState;
 
@@ -443,6 +445,10 @@ public:
     size_t GetChannelCoords(wxArrayString& choices); //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
     static bool ParseFaceElement(const std::string& str, std::vector<wxPoint>& first_xy);
     static bool ParseStateElement(const std::string& str, std::vector<wxPoint>& first_xy);
+    virtual bool SupportsLowDefinitionRender() const
+    {
+        return false;
+    }
     std::string GetNodeXY(const std::string& nodenumstr);
     std::string GetNodeXY(int nodeinx);
 

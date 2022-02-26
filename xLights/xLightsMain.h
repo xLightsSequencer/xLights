@@ -1020,6 +1020,7 @@ public:
     bool _autoShowHousePreview = false;
     bool _smallWaveform = false;
     bool _modelBlendDefaultOff = true;
+    bool _lowDefinitionRender = false;
     bool _snapToTimingMarks = true;
     bool _autoSavePerspecive = true;
     bool _ignoreVendorModelRecommendations = false;
@@ -1153,7 +1154,14 @@ public:
 
     bool ModelBlendDefaultOff() const { return _modelBlendDefaultOff;}
     void SetModelBlendDefaultOff(bool b) { _modelBlendDefaultOff = b;}
-
+    void SetLowDefinitionRender(bool b)
+    {
+        _lowDefinitionRender = b;
+    }
+    bool IsLowDefinitionRender() const
+    {
+        return _lowDefinitionRender;
+    }
     const wxString &EnableRenderCache() const { return _enableRenderCache; }
     void SetEnableRenderCache(const wxString &t);
 

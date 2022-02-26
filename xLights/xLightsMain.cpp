@@ -1343,6 +1343,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     config->Read("xLightsModelBlendDefaultOff", &_modelBlendDefaultOff, false);
     logger_base.debug("Model Blend Default Off: %s.", toStr( _modelBlendDefaultOff ));
 
+    config->Read("xLightsLowDefinitionRender", &_lowDefinitionRender, false);
+    logger_base.debug("Low Defintion Render: %s.", toStr(_lowDefinitionRender));
+
     config->Read("xLightsSnapToTimingMarks", &_snapToTimingMarks, false);
     logger_base.debug("Snap To Timing Marks: %s.", toStr( _snapToTimingMarks ));
 
@@ -1886,6 +1889,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsPlayControlsOnPreview", _playControlsOnPreview);
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
     config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
+    config->Write("xLightsLowDefinitionRender", _lowDefinitionRender);
     config->Write("xLightsSnapToTimingMarks", _snapToTimingMarks);
     config->Write("xLightsFSEQVersion", _fseqVersion);
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
@@ -4848,6 +4852,12 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     if (mAutoSaveInterval <= 0) {
         wxString msg = wxString::Format("    WARN: Autosave is disabled ... you will lose work if xLights abnormally terminates.");
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
+    if (_lowDefinitionRender) {
+        wxString msg = wxString::Format("    WARN: Rendering in low definition is active.");
         LogAndWrite(f, msg.ToStdString());
         warncount++;
     }

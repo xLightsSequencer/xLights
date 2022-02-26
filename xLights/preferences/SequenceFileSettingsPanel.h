@@ -39,6 +39,7 @@ class SequenceFileSettingsPanel: public wxPanel
 		wxButton* AddMediaButton;
 		wxButton* RemoveMediaButton;
 		wxCheckBox* CheckBox_FSEQ;
+		wxCheckBox* CheckBox_LowDefinitionRender;
 		wxCheckBox* CheckBox_RenderCache;
 		wxCheckBox* FSEQSaveCheckBox;
 		wxCheckBox* RenderOnSaveCheckBox;
@@ -61,6 +62,7 @@ class SequenceFileSettingsPanel: public wxPanel
 
 		//(*Identifiers(SequenceFileSettingsPanel)
 		static const long ID_CHECKBOX1;
+		static const long ID_CHECKBOX3;
 		static const long ID_CHECKBOX2;
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE4;
@@ -99,6 +101,7 @@ class SequenceFileSettingsPanel: public wxPanel
 		void OnMediaDirectoryListSelect(wxCommandEvent& event);
 		void OnModelBlendDefaultChoiceSelect(wxCommandEvent& event);
 		void OnViewDefaultChoiceSelect(wxCommandEvent& event);
+		void OnCheckBox_LowDefinitionRenderClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

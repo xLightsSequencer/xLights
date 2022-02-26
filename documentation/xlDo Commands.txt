@@ -21,6 +21,7 @@ POST /openSequence - opens a sequence, the payload needs to be application/json:
     {"seq":"My Sequence.xsq", "promptIssues":true|false, "force":true|false}
 
 GET /renderAll - renders the open sequence
+    {"highdef":"false|true"}
 
 GET /closeSequence - closes the sequence
     Can have optional query params of:
@@ -67,7 +68,7 @@ Start xLights
     {"cmd:"startxLights", "ifNotRunning":"true|false"}
     
 Render all (assumes an open sequence)
-    {"cmd":"renderAll"}
+    {"cmd":"renderAll", "highdef":"true|false"}
 Response
     {"res":200, "msg": "Rendered."}
 
@@ -163,7 +164,7 @@ Response
     {"res":200, "msg": "Models Exported.", "output": "C:\FullPath\Models_.csv"}
 
 Export Model
-    {"cmd":"exportModel", "filename":"file to create", "model":"model to export", "format":"lsp|lorclipboard|lorclipboards5|vixenroutine|hls|eseq|eseqcompressed|avicompressed|aviuncompressed|minleon|gif"}
+    {"cmd":"exportModel", "filename":"file to create", "model":"model to export", "highdef":"true|false", format":"lsp|lorclipboard|lorclipboards5|vixenroutine|hls|eseq|eseqcompressed|avicompressed|aviuncompressed|minleon|gif"}
     
     This assumes the rendered model data is up to date
 Response
