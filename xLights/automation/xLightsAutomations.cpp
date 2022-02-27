@@ -543,13 +543,57 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("Sequence not open.", "msg", 503, false);
         }
 
+        auto model = params["model"];
+        if (AllModels.GetModel(model) == nullptr) {
+            return sendResponse("Unknown model.", "msg", 503, false);
+        }
+
+        auto filename = params["filename"];
+        auto format = params["format"];
+
+        if (format == "lsp") {
+            format = "LSP";
+        } else if (format == "lorclipboard") {
+            format = "Lcb";
+        } else if (format == "lorclipboards5") {
+            format = "LcbS5";
+        } else if (format == "vixenroutine") {
+            format = "Vir";
+        } else if (format == "hls") {
+            format = "HLS";
+        } else if (format == "eseq") {
+            format = "FPP";
+        } else if (format == "eseqcompressed") {
+            format = "FPPCompressed";
+        } else if (format == "avicompressed" || format == "mp4compressed") {
+            format = "Com";
+        } else if (format == "aviuncompressed" || format == "mp4uncompressed") {
+            format = "Unc";
+        } else if (format == "minleon") {
+            format = "Min";
+        } else if (format == "gif") {
+            format = "GIF";
+        } else {
+            return sendResponse("Unknown format.", "msg", 503, false);
+        }
+
+        if (DoExportModel(0, 0, model, filename, format, false)) {
+            return sendResponse("Model exported.", "msg", 200, false);
+        } else {
+            return sendResponse("Failed to export.", "msg", 503, false);
+        }
+    } else if (cmd == "exportModelWithRender") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+
         auto ld = _lowDefinitionRender;
         auto highdef = params["highdef"];
         if (highdef == "true" && _lowDefinitionRender) {
             // override definition
             _lowDefinitionRender = false;
-            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::renderAll");
-            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::renderAll");
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::exportModelWithRender");
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::exportModelWithRender");
         }
 
         auto model = params["model"];
@@ -586,15 +630,19 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("Unknown format.", "msg", 503, false);
         }
 
-        if (DoExportModel(0, 0, model, filename, format, false)) {
+        if (DoExportModel(0, 0, model, filename, format, true)) {
             if (ld != _lowDefinitionRender) {
                 _lowDefinitionRender = ld;
-                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::exportModel");
-                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::exportModel");
+                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::exportModelWithRender");
+                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::exportModelWithRender");
             }
             return sendResponse("Model exported.", "msg", 200, false);
         } else {
-            _lowDefinitionRender = ld;
+            if (ld != _lowDefinitionRender) {
+                _lowDefinitionRender = ld;
+                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::exportModelWithRender");
+                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::exportModelWithRender");
+            }
             return sendResponse("Failed to export.", "msg", 503, false);
         }
     } else if (cmd == "closexLights") {

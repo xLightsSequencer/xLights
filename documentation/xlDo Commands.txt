@@ -48,6 +48,7 @@ GET /openController
 GET /openControllerProxy
 GET /exportModelsCSV
 GET /exportModel
+GET /exportModelWithRender
 GET /closexLights
 GET /lightsOn
 GET /lightsOff
@@ -164,9 +165,13 @@ Response
     {"res":200, "msg": "Models Exported.", "output": "C:\FullPath\Models_.csv"}
 
 Export Model
-    {"cmd":"exportModel", "filename":"file to create", "model":"model to export", "highdef":"true|false", format":"lsp|lorclipboard|lorclipboards5|vixenroutine|hls|eseq|eseqcompressed|avicompressed|aviuncompressed|minleon|gif"}
+    {"cmd":"exportModel", "filename":"file to create", "model":"model to export", format":"lsp|lorclipboard|lorclipboards5|vixenroutine|hls|eseq|eseqcompressed|avicompressed|aviuncompressed|minleon|gif"}
     
     This assumes the rendered model data is up to date
+
+Export Model With Render
+    {"cmd":"exportModelWithRender", "filename":"file to create", "model":"model to export", "highdef":"true|false", format":"lsp|lorclipboard|lorclipboards5|vixenroutine|hls|eseq|eseqcompressed|avicompressed|aviuncompressed|minleon|gif"}
+    
 Response
     {"res":200, "msg": "Model exported."}
     
