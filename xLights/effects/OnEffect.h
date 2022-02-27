@@ -24,6 +24,10 @@ class OnEffect : public RenderableEffect
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) override;
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return true; }
+        virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const override
+        {
+            return true;
+        }
         virtual void SetDefaultParameters() override;
         virtual wxString GetEffectString() override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }

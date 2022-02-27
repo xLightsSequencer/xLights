@@ -222,6 +222,13 @@ public:
         return (cc[idx].IsActive() && cc[idx].GetTimeCurve() != TC_TIME);
     }
 
+    bool IsRadial(size_t idx) const
+    {
+        if (idx >= color.size())
+            return false;
+        return (cc[idx].IsActive() && (cc[idx].GetTimeCurve() == TC_RADIALIN || cc[idx].GetTimeCurve() == TC_RADIALOUT || cc[idx].GetTimeCurve() == TC_CW || cc[idx].GetTimeCurve() == TC_CCW));
+    }
+
     xlColor CalcRoundColor(int idx, double round, int type) const
     {
         if (idx < cc.size())
