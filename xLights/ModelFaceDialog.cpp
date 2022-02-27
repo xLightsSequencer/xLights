@@ -539,33 +539,43 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             FaceTypeChoice->Enable();
             DeleteButton->Enable();
 
-              // set the default type of face based on the model type
+            // set the default type of face based on the model type
             if (model->GetDisplayAs() == "Matrix" || StartsWith(model->GetDisplayAs(), "Tree")) {
                 FaceTypeChoice->ChangeSelection(MATRIX_FACE);
+                wxChoicebookEvent event;
+                OnFaceTypeChoicePageChanged(event);
             } else if (model->GetDisplayAs() == "Custom") {
                 CustomModel* cm = dynamic_cast<CustomModel*>(model);
                 if (cm != nullptr) {
                     if (cm->IsAllNodesUnique()) {
                         FaceTypeChoice->ChangeSelection(NODE_RANGE_FACE);
+                        wxChoicebookEvent event;
+                        OnFaceTypeChoicePageChanged(event);
                     } else {
                         FaceTypeChoice->ChangeSelection(SINGLE_NODE_FACE);
+                        wxChoicebookEvent event;
+                        OnFaceTypeChoicePageChanged(event);
                     }
                 }
             } else if (model->GetDisplayAs() == "Channel Block") {
                 FaceTypeChoice->ChangeSelection(SINGLE_NODE_FACE);
+                wxChoicebookEvent event;
+                OnFaceTypeChoicePageChanged(event);
             } else {
                 FaceTypeChoice->ChangeSelection(NODE_RANGE_FACE);
+                wxChoicebookEvent event;
+                OnFaceTypeChoicePageChanged(event);
             }
         }
     }
 }
+
 void ModelFaceDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     int i = wxMessageBox("Delete face definition?", "Are you sure you want to delete " + name + "?",
-                         wxICON_WARNING | wxOK , this);
+                         wxICON_WARNING | wxOK, this);
     if (i == wxID_OK || i == wxOK) {
-
         faceData[name].clear();
         NameChoice->Delete(NameChoice->GetSelection());
         if (NameChoice->GetCount() > 0) {
