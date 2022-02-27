@@ -1819,6 +1819,29 @@ Effect* SequenceElements::SelectEffectUsingDescription(std::string description)
     return nullptr;
 }
 
+std::list<std::string> SequenceElements::GetUniqueEffectPropertyValues(const std::string& id)
+{
+    std::list<std::string> res;
+
+    for (size_t i = 0; i < GetElementCount(); i++) {
+        Element* e = GetElement(i);
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            for (size_t j = 0; j < e->GetEffectLayerCount(); j++) {
+                EffectLayer* el = e->GetEffectLayer(j);
+                for (int k = 0; k < el->GetEffectCount(); k++) {
+                    Effect* eff = el->GetEffect(k);
+
+                    if (eff->GetSetting(id) != "" && std::find(res.begin(), res.end(), eff->GetSetting(id)) == res.end()) {
+                        res.push_back(eff->GetSetting(id));
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
 std::list<std::string> SequenceElements::GetAllEffectDescriptions()
 {
     std::list<std::string> res;

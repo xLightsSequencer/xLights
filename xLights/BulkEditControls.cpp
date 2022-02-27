@@ -141,6 +141,19 @@ BulkEditButton::BulkEditButton(wxWindow *parent, wxWindowID id, const wxString& 
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditButton::OnRightDown, nullptr, this);
 }
 
+BulkEditComboBox::BulkEditComboBox(wxWindow* parent, wxWindowID id, const wxString& value, const wxPoint& pos, const wxSize& size, int n, const wxString choices[], long style, const wxValidator& validator, const wxString& name) :
+    wxComboBox(parent, id, value, pos, size, n, choices, style, validator, name)
+{
+    _supportsBulkEdit = true;
+    ID_COMBOBOX_BULKEDIT = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditComboBox::OnRightDown, nullptr, this);
+
+    if (choices != nullptr) {
+        // not implemented ... should add to the defaultOptions
+        wxASSERT(false);
+    }
+}
+
 BulkEditChoice::BulkEditChoice(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, int n, const wxString choices[], long style, const wxValidator &validator, const wxString &name) : wxChoice(parent, id, pos, size, n, choices, style, validator, name)
 {
     _supportsBulkEdit = true;
@@ -287,6 +300,19 @@ void BulkEditSpinCtrl::OnRightDown(wxMouseEvent& event)
     wxMenu mnu;
     mnu.Append(ID_SPINCTRL_BULKEDIT, "Bulk Edit");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditSpinCtrl::OnSpinCtrlPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditComboBox::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit)
+        return;
+    if (!IsBulkEditAvailable(GetParent(), false))
+        return;
+
+    wxMenu mnu;
+    mnu.Append(ID_COMBOBOX_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditComboBox::OnComboBoxPopup, nullptr, this);
     PopupMenu(&mnu);
 }
 
@@ -766,6 +792,76 @@ void BulkEditSpinCtrl::OnSpinCtrlPopup(wxCommandEvent& event)
                 xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, value, nullptr, "");
             }
         }
+    }
+}
+
+void BulkEditComboBox::OnComboBoxPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_COMBOBOX_BULKEDIT) {
+        // Get the label
+        std::string label = "Bulk Edit";
+        wxStaticText* l = GetSettingLabelControl(GetParent(), GetName().ToStdString(), "COMBOBOX");
+        if (l != nullptr) {
+            label = l->GetLabel();
+        }
+
+        PopulateComboBox();
+
+        wxArrayString choices;
+        for (size_t i = 0; i < GetCount(); i++) {
+            choices.push_back(GetString(i));
+        }
+
+        wxSingleChoiceDialog dlg(GetParent(), "", label, choices);
+        auto sel = GetSelection();
+        if (sel >= 0 && sel < choices.size()) {
+            dlg.SetSelection(sel);
+        }
+        OptimiseDialogPosition(&dlg);
+
+        if (dlg.ShowModal() == wxID_OK) {
+            SetSelection(dlg.GetSelection());
+
+            std::string id = GetName().ToStdString();
+            std::string value = GetString(dlg.GetSelection());
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect") {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, value, nullptr, "");
+            } else {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, value, nullptr, "");
+            }
+        }
+    }
+}
+
+void BulkEditComboBox::PopulateComboBox()
+{
+    auto value = GetValue();
+
+    // scan all the effects looking for unique values and add them to the list
+    Clear();
+    for (const auto& it : _defaultOptions) {
+        AppendString(it);
+    }
+
+    SetValue(value);
+
+    auto id = FixIdForPanel(GetPanelName(GetParent()), GetName());
+
+    auto values = xLightsApp::GetFrame()->GetMainSequencer()->GetUniqueEffectPropertyValues(id);
+    for (const auto& it: values) {
+        if (std::find(begin(_defaultOptions), end(_defaultOptions), it) == end(_defaultOptions)) {
+            AppendString(it);
+        }
+    }
+}
+
+void BulkEditComboBox::AppendDefault(const std::string& def)
+{
+    if (std::find(begin(_defaultOptions), end(_defaultOptions), def) == end(_defaultOptions)) {
+        _defaultOptions.push_back(def);
     }
 }
 

@@ -1515,6 +1515,11 @@ std::list<Effect*> MainSequencer::GetElementLayerEffects(std::string elementName
     return mSequenceElements->GetElementLayerEffects(elementName, layer);
 }
 
+std::list<std::string> MainSequencer::GetUniqueEffectPropertyValues(const std::string& id)
+{
+    return mSequenceElements->GetUniqueEffectPropertyValues(id);
+}
+
 std::list<std::string> MainSequencer::GetAllEffectDescriptions()
 {
     return mSequenceElements->GetAllEffectDescriptions();

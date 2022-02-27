@@ -325,14 +325,18 @@ void Effect::SetEffectName(const std::string & name)
     }
 }
 
-wxString Effect::GetDescription() const
+std::string Effect::GetSetting(const std::string& id) const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
-    if (mSettings.Contains("X_Effect_Description"))
-    {
-        return mSettings["X_Effect_Description"];
+    if (mSettings.Contains(id)) {
+        return mSettings[id];
     }
     return "";
+}
+
+wxString Effect::GetDescription() const
+{
+        return GetSetting("X_Effect_Description");
 }
 
 void Effect::SetStartTimeMS(int startTimeMS)

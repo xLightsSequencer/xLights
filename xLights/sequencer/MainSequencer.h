@@ -57,6 +57,7 @@ class MainSequencer: public wxPanel
         int GetSelectedEffectCount(const std::string effectName) const;
         bool AreAllSelectedEffectsOnTheSameElement() const;
         void ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
+        std::list<std::string> GetUniqueEffectPropertyValues(const std::string& id);
         void ApplyButtonPressToSelected(const std::string& effectName, const std::string id);
         void RemapSelectedDMXEffectValues(const std::vector<std::pair<int, int>>& pairs);
         void ConvertSelectedEffectsTo(const std::string& effectName);

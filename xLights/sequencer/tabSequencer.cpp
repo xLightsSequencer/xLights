@@ -2532,8 +2532,19 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
 		}
 		else if (name.StartsWith("ID_TEXTCTRL"))
 		{
-			wxTextCtrl* ctrl = (wxTextCtrl*)CtrlWin;
-			ctrl->SetValue(value);
+			wxTextCtrl* ctrl = dynamic_cast<wxTextCtrl*>(CtrlWin);
+            if (ctrl != nullptr) {
+                ctrl->SetValue(value);
+            }
+            else {
+                // some text ctrls have been replace with combo boxes ... maybe this is one of those
+                wxComboBox* ctrl = dynamic_cast<wxComboBox*>(CtrlWin);
+                if (ctrl != nullptr) {
+                    ctrl->SetValue(value);
+                } else {
+                    wxASSERT(false);
+                }
+            }
 		}
 		else if (name.StartsWith("ID_SPINCTRL"))
 		{

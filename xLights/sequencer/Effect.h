@@ -82,6 +82,7 @@ public:
     void SetEffectName(const std::string & name);
 
     wxString GetDescription() const;
+    std::string GetSetting(const std::string& id) const;
 
     int GetStartTimeMS() const { return mStartTime; }
     void SetStartTimeMS(int startTimeMS);
