@@ -132,6 +132,9 @@ void xlGridCanvas::DrawBaseGrid(xlGraphicsContext *ctx)
     va->PreAlloc((mRows + mColumns + 2) * 2 * 3);
 
     float lwidth = mapLogicalToAbsolute(0.8);
+    if (lwidth < 1.1)
+        lwidth = 1.1;
+
     for (int row = 0; row <= mRows; row++ ) {
         float y = std::round(cellSize * row + inset) - lwidth / 2.0;
         va->AddVertex(inset, y);
@@ -152,12 +155,7 @@ void xlGridCanvas::DrawBaseGrid(xlGraphicsContext *ctx)
     }
 
     // use triangles as lines on retina displays are VERY thin, almost invisible
-    #ifdef __WXMSW__
-    // triangles dont seem to draw on windows so changing to lines as I am not sure what the problem with triangles are
-    ctx->drawLines(va, *mGridlineColor);
-    #else
     ctx->drawTriangles(va, *mGridlineColor);
-    #endif
     delete va;
 }
 
