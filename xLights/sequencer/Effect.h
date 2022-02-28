@@ -116,6 +116,7 @@ public:
     std::string GetSettingsAsString() const;
     void SetSettings(const std::string &settings, bool keepxsettings);
     void ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid);
+    bool UsesColour(const std::string& from);
     int ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to);
     void PressButton(RenderableEffect* re, const std::string& id);
     const SettingsMap &GetSettings() const { return mSettings; }

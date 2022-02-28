@@ -6020,7 +6020,7 @@ void PolyPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* pr
         len += RulerObject::Measure(last, mPos[i].AsVector());
         last = mPos[i].AsVector();
     }
-    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", RulerObject::Measure(len * 100)));
+    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", len));
     prop->ChangeFlag(wxPG_PROP_READONLY, true);
     prop->SetAttribute("Precision", 2);
     prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
@@ -6031,7 +6031,7 @@ void PolyPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* pr
         last = mPos[i].AsVector();
 
         auto seg = wxString::Format("Segment %d (%s)", i, RulerObject::GetUnitDescription());
-        prop = propertyEditor->Append(new wxFloatProperty(seg, "REAL" + seg, RulerObject::Measure(len * 100)));
+        prop = propertyEditor->Append(new wxFloatProperty(seg, "REAL" + seg, len));
         prop->SetAttribute("Precision", 2);
     }
 }

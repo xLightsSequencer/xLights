@@ -582,6 +582,21 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
     IncrementChangeCount();
 }
 
+bool Effect::UsesColour(const std::string& from)
+{
+    for (auto it : mPaletteMap) {
+        if (StartsWith(it.first, "C_BUTTON")) { // only check the colours
+            if (Lower(it.second) == Lower(from)) { // check the colours match
+                std::string setting = "C_CHECKBOX" + it.first.substr(8);
+                if (mPaletteMap.Get(setting, "0") == "1") { // check the colours checkbox is checked
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 int Effect::ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to)
 {
     int res = 0;
