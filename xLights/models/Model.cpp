@@ -5364,7 +5364,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         if (created) {
             cache->vica->Finalize(false, true);
         } else {
-            cache->vica->FlushColors(0, maxFlush);
+            cache->vica->FlushColors(0, maxFlush + 1);
         }
         
         preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
