@@ -640,6 +640,19 @@ void ValueCurve::Flip()
     else { wxASSERT(false); }
 }
 
+// call this function from adjustSettings when a value curve has been changed to have a different divider ... it will convert the values to the equivalent and then you can serialise the value curve
+void ValueCurve::ConvertDivider(int oldDivider, int newDivider)
+{
+    _parameter1 = (_parameter1 * (float)newDivider) / (float)oldDivider;
+    _parameter2 = (_parameter2 * (float)newDivider) / (float)oldDivider;
+    _parameter3 = (_parameter3 * (float)newDivider) / (float)oldDivider;
+    _parameter4 = (_parameter4 * (float)newDivider) / (float)oldDivider;
+    _min = (_min * (float)newDivider) / (float)oldDivider;
+    _max = (_max * (float)newDivider) / (float)oldDivider;
+
+    // values are 0-1 normalised so dont need to be converted
+}
+
 float ValueCurve::Normalise(int parm, float value)
 {
     float low;
