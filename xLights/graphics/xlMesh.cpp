@@ -4,6 +4,8 @@
 #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "xlMesh.h"
 
+#include <filesystem>
+
 #include <algorithm>
 #include <log4cpp/Category.hh>
 #include <wx/filename.h>
@@ -102,4 +104,61 @@ void xlMesh::SetMaterialColor(const std::string materialName, const xlColor *c) 
         }
     }
 }
+
+
+
+std::vector<std::string> xlMesh::GetMaterialFilenamesFromOBJ(const std::string &obj, bool strict) {
+    std::vector<std::string> ret;
+    
+    std::ifstream input(obj);
+    for (std::string line; std::getline(input, line); ) {
+        if (line.rfind("mtllib ", 0) == 0) {
+            line = line.substr(7);
+            int idx = line.find(' ');
+            while (strict && idx != std::string::npos) {
+                std::string f = line.substr(0, idx);
+                ret.push_back(f);
+                line = line.substr(idx + 1);
+            }
+            if (line != "") {
+                ret.push_back(line);
+            }
+        }
+    }
+    return ret;
+}
+
+void xlMesh::FixMaterialFilenamesInOBJ(const std::string &obj) {
+    std::filesystem::copy(obj, obj + ".bak");
+    
+    std::filesystem::path path(obj);
+
+    std::ifstream input(obj + ".bak");
+    std::ofstream output(obj, std::ofstream::out | std::ofstream::trunc);
+    for (std::string line; std::getline(input, line); ) {
+        if (line.rfind("mtllib ", 0) == 0) {
+            output << "mtllib ";
+            line = line.substr(7);
+            int idx = line.find(' ');
+            if (idx != std::string::npos) {
+                std::filesystem::path mtlpath(path);
+                mtlpath.replace_filename(line);
+                if (std::filesystem::exists(mtlpath)) {
+                    std::replace(line.begin(), line.end(), ' ', '_');
+                    std::filesystem::path nmtlpath(path);
+                    nmtlpath.replace_filename(line);
+                    std::filesystem::copy(mtlpath, nmtlpath);
+                    output << line << "\n";
+                } else {
+                    output << line << "\n";
+                }
+            } else {
+                output << line << "\n";
+            }
+        } else {
+            output << line << "\n";
+        }
+    }
+}
+
 

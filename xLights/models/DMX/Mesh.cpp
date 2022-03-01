@@ -14,6 +14,7 @@
 #include <wx/sstream.h>
 
 #include <algorithm>
+#include <filesystem>
 
 #include "DmxModel.h"
 #include "Mesh.h"
@@ -181,6 +182,29 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
         ObtainAccessToURL(_objFile);
         node_xml->DeleteAttribute("ObjFile");
         node_xml->AddAttribute("ObjFile", _objFile);
+        
+        auto mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile, false);
+        bool hasSpaces = false;
+        std::filesystem::path path(_objFile);
+        for (auto &mtf : mtfs) {
+            if (mtf.find(' ') != std::string::npos) {
+                std::filesystem::path mtlpath(path);
+                mtlpath.replace_filename(mtf);
+                if (std::filesystem::exists(mtlpath)) {
+                    // has spaces, but is found so we can fix it
+                    hasSpaces = true;
+                }
+            }
+        }
+        if (hasSpaces) {
+            if (wxMessageBox("The OBJ file contains materials with spaces in the filename.  This will prevent the materials from working.  Should we attempt to fix the file?",
+                         "Files with spaces",
+                             wxYES_NO | wxCENTRE | wxICON_WARNING) == wxYES) {
+                
+                xlMesh::FixMaterialFilenamesInOBJ(_objFile);
+            }
+        }
+
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ObjFile");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ObjFile");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ObjFile");

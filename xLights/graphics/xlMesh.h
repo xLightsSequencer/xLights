@@ -14,8 +14,6 @@ public:
     void SetName(const std::string &n) { name = n; }
     const std::string &GetName() const { return name; }
     
-    
-    
     class Material {
     public:
         Material() {}
@@ -43,6 +41,11 @@ public:
     float GetZMax() const { return zMax; }
     
     void SetMaterialColor(const std::string materialName, const xlColor *c);
+    
+    
+    static std::vector<std::string> GetMaterialFilenamesFromOBJ(const std::string &obj, bool strict = true);
+    static void FixMaterialFilenamesInOBJ(const std::string &obj);
+
 protected:
     std::string name;
     

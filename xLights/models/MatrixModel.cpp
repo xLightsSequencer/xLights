@@ -337,7 +337,6 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
         } else {
             logger_base.debug("Building low definition buffer at %d%%", _lowDefFactor);
 
-            size_t NodeCount = GetNodeCount();
             int xoffset = NumStrands / 2;
             int yoffset = PixelsPerStrand / 2;
 
@@ -471,7 +470,6 @@ void MatrixModel::InitHMatrix() {
         } else {
             logger_base.debug("Building low definition buffer at %d%%", _lowDefFactor);
 
-            size_t NodeCount = GetNodeCount();
             int xoffset = PixelsPerStrand / 2;
             int yoffset = NumStrands / 2;
 

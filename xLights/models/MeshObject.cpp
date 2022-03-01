@@ -14,6 +14,7 @@
 #include <wx/regex.h>
 
 #include <algorithm>
+#include <filesystem>
 
 #include "MeshObject.h"
 #include "UtilFunctions.h"
@@ -87,6 +88,27 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
     if ("ObjFile" == event.GetPropertyName()) {
         obj_loaded = false;
         _objFile = event.GetValue().GetString();
+        auto mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile, false);
+        bool hasSpaces = false;
+        std::filesystem::path path(_objFile);
+        for (auto &mtf : mtfs) {
+            if (mtf.find(' ') != std::string::npos) {
+                std::filesystem::path mtlpath(path);
+                mtlpath.replace_filename(mtf);
+                if (std::filesystem::exists(mtlpath)) {
+                    // has spaces, but is found so we can fix it
+                    hasSpaces = true;
+                }
+            }
+        }
+        if (hasSpaces) {
+            if (wxMessageBox("The OBJ file contains materials with spaces in the filename.  This will prevent the materials from working.  Should we attempt to fix the file?",
+                         "Files with spaces",
+                             wxYES_NO | wxCENTRE | wxICON_WARNING) == wxYES) {
+                
+                xlMesh::FixMaterialFilenamesInOBJ(_objFile);
+            }
+        }
         checkAccessToFile(_objFile);
         ModelXml->DeleteAttribute("ObjFile");
         ModelXml->AddAttribute("ObjFile", _objFile);
@@ -155,29 +177,6 @@ void MeshObject::checkAccessToFile(const std::string &url) {
     }
 }
 
-std::string MeshObject::ReadMaterialFileFromObj(const std::string& filename)
-{
-    std::string res = "";
-    auto f = new wxTextFile(filename);
-
-    if (f != nullptr) {
-        if (f->Open()) {
-            wxRegEx re("^\\s*mtllib\\s+(.*mtl)$", wxRE_ADVANCED);
-            wxString line = f->GetFirstLine();
-            do {
-                if (re.Matches(wxString(line))) {
-                    res = re.GetMatch(wxString(line), 1).ToStdString();
-                }
-                line = f->GetNextLine();
-            } while (res == "" && !f->Eof());
-
-            f->Close();
-        }
-        delete f;
-    }
-    return res;
-}
-
 std::list<std::string> MeshObject::CheckModelSettings()
 {
     std::list<std::string> res;
@@ -191,21 +190,17 @@ std::list<std::string> MeshObject::CheckModelSettings()
 
         wxFileName fn(_objFile);
         checkAccessToFile(_objFile);
-        fn.SetExt("mtl");
-        if (!FileExists(fn)) {
-            auto mtf = ReadMaterialFileFromObj(_objFile);
-            if (mtf != "") {
+        auto mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile);
+        if (!mtfs.empty()) {
+            for (auto & mtf : mtfs) {
                 mtf = fn.GetPath() + wxFileName::GetPathSeparator() + mtf;
-                fn = wxFileName(mtf);
-                if (!FileExists(fn)) {
-                    res.push_back(wxString::Format("    WARN: Mesh object '%s' does not have a material file '%s'.", GetName(), fn.GetFullPath()).ToStdString());
+                wxFileName fn2 = wxFileName(mtf);
+                if (!FileExists(fn2)) {
+                    res.push_back(wxString::Format("    WARN: Mesh object '%s' is missing material file '%s'.", GetName(), fn.GetFullPath()).ToStdString());
                 }
             }
-            else {
-                res.push_back(wxString::Format("    WARN: Mesh object '%s' does not have a material file '%s'.", GetName(), fn.GetFullPath()).ToStdString());
-            }
         } else {
-            checkAccessToFile(fn.GetFullPath());
+            res.push_back(wxString::Format("    WARN: Mesh object '%s' does not have a material file '%s'.", GetName(), fn.GetFullPath()).ToStdString());
         }
 
         std::string base_path = fn.GetPath();
@@ -240,21 +235,14 @@ std::list<std::string> MeshObject::GetFileReferences()
     if (FileExists(_objFile)) {
         res.push_back(_objFile);
 
-        wxFileName mtl(_objFile);
-        mtl.SetExt("mtl");
-
-        if (FileExists(mtl)) {
-            res.push_back(mtl.GetFullPath());
-            checkAccessToFile(mtl.GetFullPath());
-        } else {
-            auto mtf = ReadMaterialFileFromObj(_objFile);
-            if (mtf != "") {
-                mtf = mtl.GetPath() + wxFileName::GetPathSeparator() + mtf;
-                mtl = wxFileName(mtf);
-                if (FileExists(mtl)) {
-                    res.push_back(mtl.GetFullPath());
-                    checkAccessToFile(mtl.GetFullPath());
-                }
+        wxFileName path(_objFile);
+        auto mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile);
+        for (auto &mtf : mtfs) {
+            mtf = path.GetPath() + wxFileName::GetPathSeparator() + mtf;
+            wxFileName mtl = wxFileName(mtf);
+            if (FileExists(mtl)) {
+                res.push_back(mtl.GetFullPath());
+                checkAccessToFile(mtl.GetFullPath());
             }
         }
     }
