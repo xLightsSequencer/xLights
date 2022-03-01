@@ -5358,13 +5358,13 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             if (Nodes[n]->model->pixelStyle == 3) {
                 c2.alpha = 0;
                 cache->vica->SetColor(n + NodeCount, c2);
-                maxFlush = n + NodeCount;
+                maxFlush = n + NodeCount + 1;
             }
         }
         if (created) {
             cache->vica->Finalize(false, true);
         } else {
-            cache->vica->FlushColors(0, maxFlush + 1);
+            cache->vica->FlushColors(0, maxFlush);
         }
         
         preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
