@@ -2690,18 +2690,30 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
     setRangesToChannelCount(inst);
 }
 
-static void ProcessFPPSystems(Discovery &discovery, const std::string &systems) {
+static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsString) {
     wxJSONValue origJson;
     wxJSONReader reader;
-    bool parsed = reader.Parse(systems, &origJson) == 0;
+    bool parsed = reader.Parse(systemsString, &origJson) == 0;
     if (!parsed) {
         return;
     }
 
-    for (int x = 0; x < origJson.Size(); x++) {
-        wxJSONValue system = origJson[x];
-        std::string address = system["IP"].AsString();
-        std::string hostName = system["HostName"].IsNull() ? "" : system["HostName"].AsString();
+    wxString IPKey = "IP";
+    wxString PlatformKey = "Platform";
+    wxString HostNameKey = "HostName";
+    wxString ModeStringKey = "fppMode";
+    if (origJson.HasMember("systems")) {
+        IPKey = "address";
+        PlatformKey = "type";
+        HostNameKey = "hostname";
+        ModeStringKey = "fppModeString";
+    }
+    wxJSONValue systems = origJson.HasMember("systems") ? origJson["systems"] : origJson;
+
+    for (int x = 0; x < systems.Size(); x++) {
+        wxJSONValue &system = systems[x];
+        std::string address = system[IPKey].AsString();
+        std::string hostName = system[HostNameKey].IsNull() ? "" : system[HostNameKey].AsString();
         if (address == "null" || hostName == "null") {
             continue;
         }
@@ -2712,8 +2724,8 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systems) 
         DiscoveredData *found = discovery.FindByIp(address, hostName);
         DiscoveredData inst;
         inst.hostname = hostName;
-        if (!system["Platform"].IsNull()) {
-            inst.platform = system["Platform"].AsString();
+        if (!system[PlatformKey].IsNull()) {
+            inst.platform = system[PlatformKey].AsString();
         }
 
         if (!system["model"].IsNull()) {
@@ -2738,8 +2750,8 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systems) 
         if (!system["HostDescription"].IsNull()) {
             inst.description = system["HostDescription"].AsString();
         }
-        if (!system["fppMode"].IsNull()) {
-            inst.mode = system["fppMode"].AsString();
+        if (!system[ModeStringKey].IsNull()) {
+            inst.mode = system[ModeStringKey].AsString();
         }
         if (inst.typeId == 0xC2 || inst.typeId == 0xC3) {
             inst.pixelControllerType = inst.platformModel;
@@ -3138,7 +3150,7 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
             return true;
         });
     }
-    discovery.AddCurl("localhost", "/api/system/status", [&discovery](int rc, const std::string &buffer, const std::string &err) {
+    discovery.AddCurl("localhost", "/api/system/info", [&discovery](int rc, const std::string &buffer, const std::string &err) {
         ProcessFPPSysinfo(discovery, "localhost", "", buffer);
         return true;
     });
