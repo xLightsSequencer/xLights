@@ -23,6 +23,16 @@ class EffectButtonDropSource : public wxDropSource
     xLightsFrame* _frame = nullptr;
 
 public:
+#ifdef __linux__
+    EffectButtonDropSource(xLightsFrame* frame, wxWindow* window, const wxIcon& cursorCopy = wxNullIcon, const wxIcon& cursorMove = wxNullIcon, const wxIcon& cursorStop = wxNullIcon) :
+        wxDropSource(window,
+                     cursorCopy,
+                     cursorMove,
+                     cursorStop)
+    {
+        _frame = frame;
+    }
+#else
     EffectButtonDropSource(xLightsFrame* frame, wxWindow* window, const wxCursor& cursorCopy = wxNullCursor, const wxCursor& cursorMove = wxNullCursor, const wxCursor& cursorStop = wxNullCursor) :
         wxDropSource(window,
                      cursorCopy,
@@ -31,6 +41,7 @@ public:
     {
         _frame = frame;
     }
+#endif
 
     virtual bool GiveFeedback(wxDragResult effect) override
     {
