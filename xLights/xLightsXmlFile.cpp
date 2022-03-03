@@ -304,7 +304,7 @@ wxString xLightsXmlFile::GetRenderMode()
     return ERASE_MODE;
 }
 
-void xLightsXmlFile::AddDisplayElement(const wxString& name, const wxString& type, const wxString& visible, const wxString& collapsed, const wxString& active)
+void xLightsXmlFile::AddDisplayElement(const wxString& name, const wxString& type, const wxString& visible, const wxString& collapsed, const wxString& active, const wxString& renderDisabled)
 {
     wxXmlNode* root = seqDocument.GetRoot();
 
@@ -312,6 +312,9 @@ void xLightsXmlFile::AddDisplayElement(const wxString& name, const wxString& typ
         if (e->GetName() == "DisplayElements") {
             wxXmlNode* child = AddChildXmlNode(e, "Element");
             child->AddAttribute("collapsed", collapsed);
+            if (renderDisabled == "1") {
+                child->AddAttribute("RenderDisabled", renderDisabled);
+            }
             child->AddAttribute("active", active);
             child->AddAttribute("visible", visible);
             child->AddAttribute("type", type);
@@ -883,7 +886,7 @@ bool xLightsXmlFile::LoadV3Sequence()
     AddTimingDisplayElement("Imported Timing", "1", "1");
 
     for (size_t i = 0; i < models.GetCount(); ++i) {
-        AddDisplayElement(models[i], "model", "1", "0", "1");
+        AddDisplayElement(models[i], "model", "1", "0", "1", "0");
     }
 
     size_t num_effects = timing.GetCount();
@@ -2613,32 +2616,28 @@ void xLightsXmlFile::AddJukebox(wxXmlNode* node)
 }
 
 // function used to save sequence data
-void xLightsXmlFile::Save( SequenceElements& seq_elements)
+void xLightsXmlFile::Save(SequenceElements& seq_elements)
 {
     wxXmlNode* root = seqDocument.GetRoot();
 
     root->DeleteAttribute("ModelBlending");
     root->AddAttribute("ModelBlending", seq_elements.SupportsModelBlending() ? "true" : "false");
-    
+
     // Delete nodes that will be replaced
-    for(wxXmlNode* e=root->GetChildren(); e!=nullptr; )
-    {
-        if( e->GetName() == "DisplayElements" ||
-            e->GetName() == "ElementEffects"  ||
+    for (wxXmlNode* e = root->GetChildren(); e != nullptr;) {
+        if (e->GetName() == "DisplayElements" ||
+            e->GetName() == "ElementEffects" ||
             e->GetName() == "DataLayers" ||
             e->GetName() == "ColorPalettes" ||
             e->GetName() == "EffectDB" ||
             e->GetName() == "TimingTags" ||
-            e->GetName() == "lastView")
-        {
+            e->GetName() == "lastView") {
             wxXmlNode* node_to_delete = e;
             e = e->GetNext();
             root->RemoveChild(node_to_delete);
             delete node_to_delete;
-        }
-        else
-        {
-            e=e->GetNext();
+        } else {
+            e = e->GetNext();
         }
     }
 
@@ -2657,8 +2656,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
     SetNodeContent(last_view_node, wxString::Format("%d", seq_elements.GetCurrentView()));
 
     int num_data_layers = mDataLayers.GetNumLayers();
-    for(int i = 0; i < num_data_layers; ++i )
-    {
+    for (int i = 0; i < num_data_layers; ++i) {
         DataLayer* layer = mDataLayers.GetDataLayer(i);
         wxXmlNode* layer_node = AddChildXmlNode(data_layer, "DataLayer");
         layer_node->AddAttribute("lor_params", wxString::Format("%d", layer->GetLORConvertParams()));
@@ -2670,10 +2668,8 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         layer_node->AddAttribute("name", layer->GetName());
     }
 
-    if (seq_elements.GetTimeLine() != nullptr)
-    {
-        for (int i = 0; i < 10; ++i)
-        {
+    if (seq_elements.GetTimeLine() != nullptr) {
+        for (int i = 0; i < 10; ++i) {
             wxXmlNode* tag_node = AddChildXmlNode(timing_tags_node, "Tag");
             tag_node->AddAttribute("number", string_format("%d", i));
             tag_node->AddAttribute("position", string_format("%d", seq_elements.GetTimeLine()->GetTagPosition(i)));
@@ -2681,21 +2677,20 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
     }
 
     int num_elements = seq_elements.GetElementCount();
-    for(int i = 0; i < num_elements; ++i)
-    {
+    for (int i = 0; i < num_elements; ++i) {
         Element* element = seq_elements.GetElement(i);
 
         // Add display elements
         wxXmlNode* display_element_node = AddChildXmlNode(display_node, "Element");
         display_element_node->AddAttribute("collapsed", string_format("%d", element->GetCollapsed()));
+        if (element->IsRenderDisabled()) {
+            display_element_node->AddAttribute("RenderDisabled", "1");
+        }
         display_element_node->AddAttribute("type", element->GetType() == ElementType::ELEMENT_TYPE_TIMING ? "timing" : "model");
         display_element_node->AddAttribute("name", element->GetName());
-        if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING)
-        {
+        if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             display_element_node->AddAttribute("visible", string_format("%d", dynamic_cast<TimingElement*>(element)->GetMasterVisible()));
-        }
-        else
-        {
+        } else {
             display_element_node->AddAttribute("visible", string_format("%d", element->GetVisible()));
         }
 
@@ -2704,12 +2699,12 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         element_effects_node->AddAttribute("type", element->GetType() == ElementType::ELEMENT_TYPE_TIMING ? "timing" : "model");
         element_effects_node->AddAttribute("name", element->GetName());
 
-        if ( element->GetType() == ElementType::ELEMENT_TYPE_TIMING ) {
-            TimingElement *tm = dynamic_cast<TimingElement *>(element);
+        if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            TimingElement* tm = dynamic_cast<TimingElement*>(element);
             display_element_node->AddAttribute("views", tm->GetViews());
             display_element_node->AddAttribute("active", string_format("%d", tm->GetActive()));
             if (tm->GetFixedTiming()) {
-                element_effects_node->AddAttribute("fixed", string_format( "%d", tm->GetFixedTiming()));
+                element_effects_node->AddAttribute("fixed", string_format("%d", tm->GetFixedTiming()));
                 AddChildXmlNode(element_effects_node, "EffectLayer");
             } else {
                 int num_layers = tm->GetEffectLayerCount();
@@ -2720,8 +2715,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
 
                     // Add effects
                     int num_effects = layer->GetEffectCount();
-                    for(int k = 0; k < num_effects; ++k)
-                    {
+                    for (int k = 0; k < num_effects; ++k) {
                         Effect* effect = layer->GetEffect(k);
                         // Add effect node
                         wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, "Effect", effect->GetSettingsAsString());
@@ -2736,13 +2730,12 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                         effect_node->AddAttribute("startTime", string_format("%d", effect->GetStartTimeMS()));
                         effect_node->AddAttribute("endTime", string_format("%d", effect->GetEndTimeMS()));
                     }
-
                 }
             }
-        } else if ( element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-            ModelElement *me = dynamic_cast<ModelElement *>(element);
+        } else if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* me = dynamic_cast<ModelElement*>(element);
             int num_layers = me->GetEffectLayerCount();
-            for(int j = 0; j < num_layers; ++j) {
+            for (int j = 0; j < num_layers; ++j) {
                 EffectLayer* layer = me->GetEffectLayer(j);
 
                 // Add layer node
@@ -2755,17 +2748,16 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
 
             int num_strands = me->GetSubModelAndStrandCount();
             for (int strand = 0; strand < num_strands; strand++) {
-                SubModelElement *se = me->GetSubModel(strand);
+                SubModelElement* se = me->GetSubModel(strand);
                 num_layers = se->GetEffectLayerCount();
                 wxXmlNode* effect_layer_node = nullptr;
 
-                StrandElement *strEl = dynamic_cast<StrandElement*>(se);
-                for(int j = 0; j < num_layers; ++j)
-                {
+                StrandElement* strEl = dynamic_cast<StrandElement*>(se);
+                for (int j = 0; j < num_layers; ++j) {
                     EffectLayer* layer = se->GetEffectLayer(j);
 
                     if (layer->GetEffectCount() != 0) {
-                        wxXmlNode *eln = AddChildXmlNode(element_effects_node, strEl == nullptr ? "SubModelEffectLayer" : "Strand");
+                        wxXmlNode* eln = AddChildXmlNode(element_effects_node, strEl == nullptr ? "SubModelEffectLayer" : "Strand");
                         if (strEl != nullptr) {
                             eln->AddAttribute("index", string_format("%d", strEl->GetStrand()));
                             if (j == 0) {
@@ -2785,7 +2777,6 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                     }
                 }
                 if (strEl != nullptr) {
-
                     for (int n = 0; n < strEl->GetNodeLayerCount(); n++) {
                         NodeLayer* nlayer = strEl->GetNodeLayer(n);
                         if (nlayer->GetEffectCount() == 0) {
@@ -2809,43 +2800,42 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                                      effectDB_Node);
                     }
                 }
-
             }
         }
     }
     UpdateVersion();
-    
+
 #ifdef USE_COMPRESSION
-    for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext()) {
+    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
         wxString name = e->GetName();
         if (name == "ColorPalettes" || name == "EffectDB" || name == "ElementEffects") {
             wxXmlDocument doc;
 
-            wxXmlNode *next = e->GetNext();
+            wxXmlNode* next = e->GetNext();
             root->RemoveChild(e);
 
             doc.SetRoot(e);
             wxMemoryOutputStream out;
             doc.Save(out, wxXML_NO_INDENTATION);
-            
+
             int max = out.GetOutputStreamBuffer()->Tell();
-            uint8_t *outBuf = new uint8_t[max];
+            uint8_t* outBuf = new uint8_t[max];
             int outSize = ZSTD_compress(outBuf, max,
                                         out.GetOutputStreamBuffer()->GetBufferStart(), max,
                                         1);
             // Manipulate data.....
             wxString b64 = wxBase64Encode(outBuf, outSize);
-            delete [] outBuf;
-            wxXmlNode *newNode = new wxXmlNode(wxXML_ELEMENT_NODE, "CompressedData");
+            delete[] outBuf;
+            wxXmlNode* newNode = new wxXmlNode(wxXML_ELEMENT_NODE, "CompressedData");
             newNode->AddChild(new wxXmlNode(wxXML_TEXT_NODE, "", b64));
             newNode->AddAttribute("size", std::to_string(max));
             root->InsertChild(newNode, next);
-            
+
             e = newNode;
         }
     }
 #endif
-    
+
     seqDocument.Save(GetFullPath());
 }
 

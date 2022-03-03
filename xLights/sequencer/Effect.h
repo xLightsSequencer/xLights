@@ -102,8 +102,10 @@ public:
     bool GetProtected() const { return mProtected; }
     void SetProtected(bool Protected) { mProtected = Protected; }
 
+    bool IsModelRenderDisabled() const;
+    bool IsEffectRenderDisabled() const;
     bool IsRenderDisabled() const;
-    void SetRenderDisabled(bool disabled);
+    void SetEffectRenderDisabled(bool disabled);
 
     bool IsLocked() const;
     void SetLocked(bool lock);

@@ -135,6 +135,11 @@ int Element::GetLastSelectedEffectEndMS() const
     return endMS;
 }
 
+void Element::SetRenderDisabled(bool rd)
+{
+    _renderDisabled = rd;
+}
+
 EffectLayer* Element::GetEffectLayerFromExclusiveIndex(int index)
 {
     for (size_t i = 0; i < mEffectLayers.size(); i++)

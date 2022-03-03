@@ -8545,7 +8545,7 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
         // now create the phenome timing track
         std::string name = _sequenceElements.UniqueElementName(dlg.GetLyricName());
         int timingCount = _sequenceElements.GetNumberOfTimingElements();
-        Element* e = _sequenceElements.AddElement(timingCount, name, "timing", true, false, true, false);
+        Element* e = _sequenceElements.AddElement(timingCount, name, "timing", true, false, true, false, false);
         _sequenceElements.AddTimingToCurrentView(name);
         TimingElement* timing = dynamic_cast<TimingElement*>(e);
         timing->AddEffectLayer();

@@ -307,7 +307,7 @@ void LMSImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
         }
     }
     if (model == nullptr && allowAddModels) {
-        model = mSequenceElements->AddElement(name, "model", false, false, false, false);
+        model = mSequenceElements->AddElement(name, "model", false, false, false, false, false);
         model->AddEffectLayer();
     }
     if (model == nullptr) {
@@ -432,7 +432,7 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
             Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
             if (modelEl == nullptr && allowAddModels) {
-                modelEl = mSequenceElements->AddElement(model.ToStdString(), "model", false, false, false, false);
+                modelEl = mSequenceElements->AddElement(model.ToStdString(), "model", false, false, false, false, false);
                 modelEl->AddEffectLayer();
             }
             if (modelEl != nullptr) {

@@ -72,6 +72,8 @@ const long RowHeading::ID_ROW_MNU_COPY_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_MODEL = wxNewId();
+const long RowHeading::ID_ROW_MNU_RENDERENABLE_MODEL = wxNewId();
+const long RowHeading::ID_ROW_MNU_RENDERDISABLE_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_ROW_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_MODEL_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SELECT_ROW_EFFECTS = wxNewId();
@@ -378,6 +380,11 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
                 wxMenu* rowMenu = new wxMenu();
                 wxMenu* modelMenu = new wxMenu();
+                if (element->IsRenderDisabled()) {
+                    modelMenu->Append(ID_ROW_MNU_RENDERENABLE_MODEL, "Enable Render");
+                } else {
+                    modelMenu->Append(ID_ROW_MNU_RENDERDISABLE_MODEL, "Disable Render");
+                }
                 modelMenu->Append(ID_ROW_MNU_PLAY_MODEL, "Play");
                 modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
                 modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
@@ -865,8 +872,15 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         playEvent.SetInt(1);
         playEvent.SetString(element->GetModelName());
         wxPostEvent(GetParent(), playEvent);
-    }
-    else if (id == ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS) {
+    } else if (id == ID_ROW_MNU_RENDERDISABLE_MODEL) {
+        element->SetRenderDisabled(true);
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    } else if (id == ID_ROW_MNU_RENDERENABLE_MODEL) {
+        element->SetRenderDisabled(false);
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    } else if (id == ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS) {
 
         int startFrame = element->GetFirstSelectedEffectStartMS();
         int endFrame = element->GetLastSelectedEffectEndMS();
@@ -1454,6 +1468,12 @@ void RowHeading::Draw()
         } else {
             dc.SetTextForeground(*wxWHITE);
         }
+
+        // display model name in red if the model has rendering disabled
+        if (rowInfo->element->IsRenderDisabled()) {
+            dc.SetTextForeground(wxColour(255, 128, 128));
+        }
+
         if (rowInfo->layerIndex > 0 || rowInfo->strandIndex >= 0) {  // If effect layer = 0
             if (isDark) {
                 dc.SetPen(*wxMEDIUM_GREY_PEN);

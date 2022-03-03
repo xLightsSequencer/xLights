@@ -3102,7 +3102,7 @@ TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
     _sequenceElements.DeactivateAllTimingElements();
     int timingCount = _sequenceElements.GetNumberOfTimingElements();
     std::string type = "timing";
-    TimingElement* e = dynamic_cast<TimingElement*>(_sequenceElements.AddElement(timingCount, n, type, true, false, true, false));
+    TimingElement* e = dynamic_cast<TimingElement*>(_sequenceElements.AddElement(timingCount, n, type, true, false, true, false, false));
     e->AddEffectLayer();
     _sequenceElements.AddTimingToCurrentView(n);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);

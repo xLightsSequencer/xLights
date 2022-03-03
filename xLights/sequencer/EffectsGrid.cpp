@@ -3805,7 +3805,7 @@ void EffectsGrid::DisableRenderEffects(bool disable)
 
         if (efs.size() > 0) {
             for (auto it = efs.begin(); it != efs.end(); ++it) {
-                (*it)->SetRenderDisabled(disable);
+                (*it)->SetEffectRenderDisabled(disable);
             }
         }
     }
@@ -5155,7 +5155,7 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex, int x, int y)
 void EffectsGrid::SetEffectStatusText(Effect* eff) const
 {
     if (eff != nullptr) {
-        wxString e = wxString::Format("start: %s end: %s duration: %s %s %s %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()), eff->GetEffectName(), eff->GetDescription(), eff->IsRenderDisabled() ? _("DISABLED") : _(""));
+        wxString e = wxString::Format("start: %s end: %s duration: %s %s %s %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()), eff->GetEffectName(), eff->GetDescription(), eff->IsEffectRenderDisabled() ? _("DISABLED") : _(""));
         xlights->SetStatusText(e, true);
     }
     else {

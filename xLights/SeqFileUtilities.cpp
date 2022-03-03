@@ -1361,10 +1361,10 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
 
             if (target == nullptr)
             {
-                target = static_cast<TimingElement*>(_sequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
+                target = static_cast<TimingElement*>(_sequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false, false));
                 char cnt = '1';
                 while (target == nullptr) {
-                    target = static_cast<TimingElement*>(_sequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
+                    target = static_cast<TimingElement*>(_sequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), tel->GetActive(), false, false));
                 }
             }
 
@@ -2878,10 +2878,10 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
         if (dlg.TimingTrackListBox->IsChecked(tt)) {
             std::string name = dlg.TimingTrackListBox->GetString(tt).ToStdString();
-            TimingElement *target = (TimingElement*)_sequenceElements.AddElement(name, "timing", true, true, false, false);
+            TimingElement *target = (TimingElement*)_sequenceElements.AddElement(name, "timing", true, true, false, false, false);
             char cnt = '1';
             while (target == nullptr) {
-                target = (TimingElement*)_sequenceElements.AddElement(name + "-" + cnt++, "timing", true, true, false, false);
+                target = (TimingElement*)_sequenceElements.AddElement(name + "-" + cnt++, "timing", true, true, false, false, false);
             }
             if (target->GetEffectLayerCount() == 0)
             {
@@ -4509,10 +4509,10 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
 
             auto timings = lorEdit.GetTimings(name, offset);
 
-            TimingElement *target = (TimingElement*)_sequenceElements.AddElement(name, "timing", true, true, false, false);
+            TimingElement *target = (TimingElement*)_sequenceElements.AddElement(name, "timing", true, true, false, false, false);
             char cnt = '1';
             while (target == nullptr) {
-                target = (TimingElement*)_sequenceElements.AddElement(name + "-" + cnt++, "timing", true, true, false, false);
+                target = (TimingElement*)_sequenceElements.AddElement(name + "-" + cnt++, "timing", true, true, false, false, false);
             }
             if (target->GetEffectLayerCount() == 0)
             {

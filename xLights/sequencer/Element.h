@@ -75,6 +75,11 @@ public:
     int GetSelectedEffectCount() const;
     int GetFirstSelectedEffectStartMS() const;
     int GetLastSelectedEffectEndMS() const;
+    void SetRenderDisabled(bool rd);
+    bool IsRenderDisabled() const
+    {
+        return _renderDisabled;
+    }
 
     EffectLayer* AddEffectLayer();
     void RemoveEffectLayer(int index);
@@ -131,6 +136,7 @@ protected:
     int mIndex = 0;
     bool mVisible = true;
     bool mCollapsed = false;
+    bool _renderDisabled = false;
 
     std::vector<EffectLayer*> mEffectLayers;
     std::list<EffectLayer *> mLayersToDelete;

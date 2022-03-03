@@ -71,8 +71,8 @@ public:
     bool LoadSequencerFile(xLightsXmlFile& xml_file, const wxString& ShowDir);
     void Clear();
     void PrepareViews(xLightsXmlFile& xml_file);
-    Element* AddElement(const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected);
-    Element* AddElement(int index, const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected);
+    Element* AddElement(const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected, bool renderDisabled);
+    Element* AddElement(int index, const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected, bool renderDisabled);
     Element* GetElement(const std::string &name) const;
     int GetElementIndex(const std::string &name, int view = MASTER_VIEW);
     Element* GetElement(size_t index, int view = MASTER_VIEW) const;

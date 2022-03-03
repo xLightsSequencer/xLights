@@ -410,13 +410,29 @@ void Effect::ConvertTo(int effectIndex)
     }
 }
 
-bool Effect::IsRenderDisabled() const
+bool Effect::IsModelRenderDisabled() const
+{
+    Element* e = GetParentEffectLayer()->GetParentElement();
+    if (e != nullptr) {
+        return e->IsRenderDisabled();
+    }
+    return false;
+}
+
+bool Effect::IsEffectRenderDisabled() const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
     return mSettings.Contains("X_Effect_RenderDisabled");
 }
 
-void Effect::SetRenderDisabled(bool disabled)
+bool Effect::IsRenderDisabled() const
+{
+    if (IsModelRenderDisabled())
+        return true;
+    return IsEffectRenderDisabled();
+}
+
+void Effect::SetEffectRenderDisabled(bool disabled)
 {
     std::unique_lock<std::recursive_mutex> getlock(settingsLock);
     if (disabled) {
