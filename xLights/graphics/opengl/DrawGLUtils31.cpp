@@ -534,24 +534,16 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
 
 class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 
-    ShaderProgram textureProgram;
     ShaderProgram texture3Program;
     ShaderProgram meshProgram;
-    ShaderProgram singleColorProgram;
     ShaderProgram singleColor3Program;
-    ShaderProgram normalProgram;
     ShaderProgram normal3Program;
-    ShaderProgram vbNormalProgram;
 
     static std::atomic_int cacheCount;
-    static GLuint textureProgramId;
     static GLuint texture3ProgramId;
     static GLuint meshProgramId;
-    static GLuint singleColorProgramId;
     static GLuint singleColor3ProgramId;
-    static GLuint normalProgramId;
     static GLuint normal3ProgramId;
-    static GLuint vbNormalProgramId;
 
     bool Load33Shaders(bool UsesVertexTextureAccumulator = true,
                        bool UsesVertexColorAccumulator = true,
@@ -562,37 +554,6 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 					   bool UsesVertex3ColorAccumulator = true) {
         bool res = true;
         cacheCount++;
-        if (UsesVertexTextureAccumulator) {
-            textureProgram.Init(textureProgramId,
-                                "#version 330 core\n"
-                                "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
-                                "layout(location = 2) in vec2 vertexUV;\n"
-                                "out vec4 fragmentColor;\n"
-                                "out vec2 UV;\n"
-                                "uniform mat4 MVP;\n"
-                                "uniform vec4 inColor;\n"
-                                "void main(){\n"
-                                "    gl_Position = MVP * vec4(vertexPosition_modelspace,0,1);\n"
-                                "    fragmentColor = inColor;\n"
-                                "    UV = vertexUV;\n"
-                                "}\n",
-
-                                "#version 330 core\n"
-                                "in vec4 fragmentColor;\n"
-                                "in vec2 UV;\n"
-                                "out vec4 color;\n"
-                                "uniform sampler2D tex;\n"
-                                "uniform int RenderType = 0;\n"
-                                "void main(){\n"
-                                "    vec4 c = texture(tex, UV);\n"
-                                "    if (RenderType == 0) {\n"
-                                "        color = vec4(c.r*fragmentColor.r, c.g*fragmentColor.g, c.b*fragmentColor.b, c.a*fragmentColor.a);\n"
-                                "    } else {\n"
-                                "        color = vec4(fragmentColor.rgb, c.a * fragmentColor.a);\n"
-                                "    }\n"
-                                "}\n", 3);
-            res &= textureProgram.valid;
-        }
         if (UsesVertex3TextureAccumulator) {
             texture3Program.Init(texture3ProgramId,
                 "#version 330 core\n"
@@ -661,36 +622,6 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
             res &= meshProgram.valid;
         }
 
-        if (UsesVertexAccumulator) {
-			singleColorProgram.Init(singleColorProgramId,
-				"#version 330 core\n"
-				"layout(location = 0) in vec2 vertexPosition_modelspace;\n"
-				"out vec4 fragmentColor;\n"
-				"uniform mat4 MVP;\n"
-				"uniform vec4 inColor;\n"
-				"void main(){\n"
-				"    gl_Position = MVP * vec4(vertexPosition_modelspace,0,1);"
-				"    fragmentColor = inColor;\n"
-				"}\n",
-				"#version 330 core\n"
-				"in vec4 fragmentColor;\n"
-				"out vec4 color;\n"
-				"uniform int RenderType = 0;\n"
-				"uniform float PointSmoothMin = 0.4;\n"
-				"uniform float PointSmoothMax = 0.5;\n"
-				"void main(){\n"
-				"    if (RenderType == 0) {\n"
-				"        color = fragmentColor;\n"
-				"    } else {\n"
-				"        float dist = distance(gl_PointCoord, vec2(0.5));\n"
-				"        float alpha = 1.0 - smoothstep(PointSmoothMin, PointSmoothMax, dist);\n"
-				"        if (alpha == 0.0) discard;\n"
-				"        alpha = alpha * fragmentColor.a;\n"
-				"        color = vec4(fragmentColor.rgb, alpha);\n"
-				"    }\n"
-				"}\n", 1);
-            res &= singleColorProgram.valid;
-        }
 		if (UsesVertex3Accumulator) {
 			singleColor3Program.Init(singleColor3ProgramId,
 				"#version 330 core\n"
@@ -721,40 +652,6 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 				"}\n", 1);
             res &= singleColor3Program.valid;
         }
-		const char *npVS = "#version 330 core\n"
-                            "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
-                            "layout(location = 1) in vec4 vertexColor;\n"
-                            "out vec4 fragmentColor;\n"
-                            "uniform int RenderType;\n"
-                            "uniform mat4 MVP;\n"
-                            "uniform vec4 inColor;\n"
-                            "void main(){\n"
-                            "    gl_Position = MVP * vec4(vertexPosition_modelspace,0,1);\n"
-                            "    if (RenderType == -2) {\n"
-                            "        fragmentColor = inColor;\n"
-                            "    } else if (RenderType == -1) {\n"
-                            "        fragmentColor = inColor;\n"
-                            "    } else {\n"
-                            "        fragmentColor = vertexColor;\n"
-                            "    }\n"
-                            "}\n";
-        const char *npFS = "#version 330 core\n"
-                            "in vec4 fragmentColor;\n"
-                            "out vec4 color;\n"
-                            "uniform int RenderType;\n"
-                            "uniform float PointSmoothMin = 0.4;\n"
-                            "uniform float PointSmoothMax = 0.5;\n"
-                            "void main(){\n"
-                            "    if (RenderType == 0 || RenderType == -2) {\n"
-                            "        color = fragmentColor;\n"
-                            "    } else {\n"
-                            "        float dist = distance(gl_PointCoord, vec2(0.5));\n"
-                            "        float alpha = 1.0 - smoothstep(PointSmoothMin, PointSmoothMax, dist);\n"
-                            "        if (alpha == 0.0) discard;\n"
-                            "        alpha = alpha * fragmentColor.a;\n"
-                            "        color = vec4(fragmentColor.rgb, alpha);\n"
-                            "    }\n"
-                            "}\n";
 		const char *np3VS = "#version 330 core\n"
 							"layout(location = 0) in vec3 vertexPosition_modelspace;\n"
 							"layout(location = 1) in vec4 vertexColor;\n"
@@ -789,17 +686,9 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 							"        color = vec4(fragmentColor.rgb, alpha);\n"
 							"    }\n"
 							"}\n";
-		if (UsesVertexColorAccumulator) {
-            normalProgram.Init(normalProgramId, npVS, npFS, 2);
-            res &= normalProgram.valid;
-        }
         if (UsesVertex3ColorAccumulator) {
             normal3Program.Init(normal3ProgramId, np3VS, np3FS, 2);
             res &= normal3Program.valid;
-        }
-        if (UsesAddVertex) {
-            vbNormalProgram.Init(vbNormalProgramId, npVS, npFS, 2);
-            res &= vbNormalProgram.valid;
         }
         return res;
     }
@@ -808,14 +697,10 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
         --cacheCount;
         bool del = cacheCount == 0;
         GLuint zero = 0;
-        singleColorProgram.Cleanup(del ? singleColorProgramId : zero);
         singleColor3Program.Cleanup(del ? singleColor3ProgramId : zero);
-        textureProgram.Cleanup(del ? textureProgramId : zero);
         texture3Program.Cleanup(del ? texture3ProgramId : zero);
         meshProgram.Cleanup(del ? meshProgramId : zero);
-        normalProgram.Cleanup(del ? normalProgramId : zero);
         normal3Program.Cleanup(del ? normal3ProgramId : zero);
-        vbNormalProgram.Cleanup(del ? vbNormalProgramId : zero);
     }
 
 
@@ -852,15 +737,12 @@ public:
         if (c <= 0) {
             return;
         }
-        ShaderProgram *program = &singleColorProgram;
-        if (va.coordsPerVertex == 3) {
-            program = &singleColor3Program;
-        }
+        ShaderProgram *program = &singleColor3Program;
 
         program->UseProgram();
         program->SetMatrix(*matrix);
-        int offset0 = program->BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat)) / (va.coordsPerVertex*sizeof(GLfloat));
-        LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+        int offset0 = program->BindBuffer(0, &va.vertices[0], va.count*3*sizeof(GLfloat)) / (3*sizeof(GLfloat));
+        LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
         LOG_GL_ERRORV(GLuint cid = glGetUniformLocation(program->ProgramID, "inColor"));
         LOG_GL_ERRORV(glUniform4f(cid,
@@ -897,13 +779,8 @@ public:
                 return;
             }
         }
-        ShaderProgram *program = &normalProgram;
-        ShaderProgram *texturep = &textureProgram;
-        if (va.coordsPerVertex == 3) {
-            program = &normal3Program;
-            texturep = &texture3Program;
-        }
-
+        ShaderProgram *program = &normal3Program;
+        ShaderProgram *texturep = &texture3Program;
 
         bool hasTexture = false;
         for (auto &brt : va.types) {
@@ -917,8 +794,8 @@ public:
             texturep->UseProgram();
             texturep->SetMatrix(*matrix);
             if (va.tvertices) {
-                toffset0 = texturep->BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat))/ (va.coordsPerVertex*sizeof(GLfloat));
-                LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+                toffset0 = texturep->BindBuffer(0, &va.vertices[0], va.count*3*sizeof(GLfloat))/ (3*sizeof(GLfloat));
+                LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
                 texturep->BindBuffer(2, va.tvertices, va.count * 2 * sizeof(GLfloat));
                 LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, (void*)0 ));
             }
@@ -928,8 +805,8 @@ public:
         program->SetMatrix(*matrix);
         program->SetRenderType(0);
 
-        int roffset0 = program->BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat))/ (va.coordsPerVertex*sizeof(GLfloat));
-        LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+        int roffset0 = program->BindBuffer(0, &va.vertices[0], va.count*3*sizeof(GLfloat))/ (3*sizeof(GLfloat));
+        LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
         int offset0 = roffset0;
         program->BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
         LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
@@ -954,7 +831,7 @@ public:
                     program->UseProgram();
                     program->ReBindBuffer(0);
                     LOG_GL_ERRORV(glEnableVertexAttribArray(0));
-                    LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+                    LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
                     program->ReBindBuffer(1);
                     LOG_GL_ERRORV(glEnableVertexAttribArray(1));
                     LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
@@ -962,7 +839,7 @@ public:
                     //from non-texture to texture
                     texturep->UseProgram();
                     texturep->ReBindBuffer(0);
-                    LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+                    LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
                     texturep->ReBindBuffer(2);
                     LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, (void*)0 ));
                     offset0 = toffset0;
@@ -1038,16 +915,13 @@ public:
         if (c <= 0) {
             return;
         }
-        ShaderProgram *program = &normalProgram;
-        if (va.coordsPerVertex == 3) {
-            program = &normal3Program;
-        }
+        ShaderProgram *program = &normal3Program;
 
         program->UseProgram();
         program->SetMatrix(*matrix);
 
-        int offset0 = program->BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat))/ (va.coordsPerVertex*sizeof(GLfloat));
-        LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+        int offset0 = program->BindBuffer(0, &va.vertices[0], va.count*3*sizeof(GLfloat))/ (3*sizeof(GLfloat));
+        LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
         program->BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
         LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
@@ -1088,18 +962,15 @@ public:
         if (c <= 0) {
             return;
         }
-        ShaderProgram *program = &textureProgram;
-        if (va.coordsPerVertex == 3) {
-            program = &texture3Program;
-        }
+        ShaderProgram *program = &texture3Program;
 
         program->UseProgram();
         program->SetMatrix(*matrix);
 
-        int offset0 = textureProgram.BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat)) / (va.coordsPerVertex*sizeof(GLfloat));
-        LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+        int offset0 = program->BindBuffer(0, &va.vertices[0], va.count*3*sizeof(GLfloat)) / (3*sizeof(GLfloat));
+        LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
-        textureProgram.BindBuffer(2, va.tvertices, va.count*2*sizeof(GLfloat));
+        program->BindBuffer(2, va.tvertices, va.count*2*sizeof(GLfloat));
         LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
@@ -1140,13 +1011,9 @@ public:
         DrawGLUtils::xlGLCacheInfo::SetCurrent();
         data.Reset();
 
-        textureProgram.Reset();
         texture3Program.Reset();
-        singleColorProgram.Reset();
         singleColor3Program.Reset();
-        normalProgram.Reset();
         normal3Program.Reset();
-        vbNormalProgram.Reset();
     }
 
     DrawGLUtils::xlVertexColorAccumulator data;
@@ -1281,15 +1148,10 @@ protected:
     glm::mat4 *matrix;
 };
 std::atomic_int OpenGL33Cache::cacheCount(0);
-GLuint OpenGL33Cache::textureProgramId(0);
 GLuint OpenGL33Cache::texture3ProgramId(0);
 GLuint OpenGL33Cache::meshProgramId(0);
-GLuint OpenGL33Cache::singleColorProgramId(0);
 GLuint OpenGL33Cache::singleColor3ProgramId(0);
-GLuint OpenGL33Cache::normalProgramId(0);
 GLuint OpenGL33Cache::normal3ProgramId(0);
-GLuint OpenGL33Cache::vbNormalProgramId(0);
-
 
 
 DrawGLUtils::xlGLCacheInfo *Create33Cache() {

@@ -427,6 +427,7 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent) {
         bool dirOK = true;
         AbortRender(); // make sure nothing is still rendering
         wxString newdir = DirDialog1.GetPath();
+        ObtainAccessToURL(newdir);
         if (newdir == CurrentDir) return true;
 
         if (ShowFolderIsInBackup(newdir.ToStdString())) {

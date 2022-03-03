@@ -90,29 +90,6 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
 }
 
 
-static bool inSyncPoint = false;
-static std::list<id<CAMetalDrawable>> drawablesToPresent;
-static std::list<id<MTLCommandBuffer>> buffersToComplete;
-void StartMetalGraphicsSyncPoint() {
-    inSyncPoint = true;
-}
-void EndMetalGraphicsSyncPoint() {
-    inSyncPoint = false;
-    while (!buffersToComplete.empty()) {
-        id<MTLCommandBuffer> buffer = buffersToComplete.front();
-        buffersToComplete.pop_front();
-        [buffer waitUntilCompleted];
-        [buffer release];
-
-    }
-    while (!drawablesToPresent.empty()) {
-        id<CAMetalDrawable> drawable = drawablesToPresent.front();
-        drawablesToPresent.pop_front();
-        [drawable present];
-        [drawable release];
-    }
-}
-
 
 xlMetalGraphicsContext::~xlMetalGraphicsContext() {
     if (drawable != nil) {
@@ -124,7 +101,7 @@ void xlMetalGraphicsContext::Commit(bool displayOnScreen, id<MTLBuffer> captureB
     if (encoder != nil) {
         @autoreleasepool {
             [encoder endEncoding];
-            if (!inSyncPoint && displayOnScreen) {
+            if (!xlMetalCanvas::isInSyncPoint() && displayOnScreen) {
                 [buffer presentDrawable:drawable];
             }
             if (!displayOnScreen) {
@@ -152,13 +129,12 @@ void xlMetalGraphicsContext::Commit(bool displayOnScreen, id<MTLBuffer> captureB
 
             if (!displayOnScreen) {
                 [buffer waitUntilCompleted];
-            } else if (!inSyncPoint) {
+            } else if (!xlMetalCanvas::isInSyncPoint()) {
                 [drawable release];
                 drawable = nil;
             } else {
                 [buffer retain];
-                buffersToComplete.push_back(buffer);
-                drawablesToPresent.push_back(drawable);
+                wxMetalCanvas::addToSyncPoint(buffer, drawable);
                 drawable = nil;
                 buffer = nil;
             }

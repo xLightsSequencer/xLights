@@ -703,18 +703,15 @@ public:
 
     virtual xlVertexAccumulator *createVertexAccumulator() override {
         DrawGLUtils::xlVertexAccumulator *r = new DrawGLUtils::xlVertexAccumulator();
-        r->SetCoordsPerVertex(3);
         return r;
     }
     virtual xlVertexColorAccumulator *createVertexColorAccumulator() override {
         DrawGLUtils::xlVertexColorAccumulator *r = new DrawGLUtils::xlVertexColorAccumulator();
-        r->SetCoordsPerVertex(3);
         return r;
     }
 
     virtual xlVertexTextureAccumulator *createVertexTextureAccumulator() override {
         DrawGLUtils::xlVertexTextureAccumulator *r = new DrawGLUtils::xlVertexTextureAccumulator();
-        r->SetCoordsPerVertex(3);
         return r;
     }
     virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) override {
@@ -860,7 +857,7 @@ public:
             vac.FlushRange(0, getCount());
         }
         
-        DrawGLUtils::xlVertex3ColorAccumulator vac;
+        DrawGLUtils::xlVertexColorAccumulator vac;
         std::vector<uint32_t> colorIndexes;
         std::vector<xlColor> colors;
     };

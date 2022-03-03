@@ -410,7 +410,7 @@ public:
         LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
 
         LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
-        LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
+        LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &va.vertices[0]));
 
         for (auto it = va.types.begin(); it != va.types.end(); ++it) {
             if (it->mesh != nullptr) {
@@ -421,7 +421,7 @@ public:
                 LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
                 
                 LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
-                LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
+                LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &va.vertices[0]));
                 textsBound = false;
             } else {
                 if (it->textureId != -1) {
@@ -481,7 +481,7 @@ public:
         }
         LOG_GL_ERRORV(glColor4ub(color.Red(), color.Green(), color.Blue(), color.Alpha()));
         LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
-        LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
+        LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &va.vertices[0]));
         LOG_GL_ERRORV(glDrawArrays(type, start, c));
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
         if (enableCapability != 0) {
@@ -508,7 +508,7 @@ public:
         LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
 
         LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
-        LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
+        LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &va.vertices[0]));
         LOG_GL_ERRORV(glDrawArrays(type, start, c));
 
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
@@ -539,7 +539,7 @@ public:
         LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 
         LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
-        LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, va.vertices));
+        LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, va.vertices));
 
         if (va.forceColor) {
             int tem, crgb, srgb, orgb, ca, sa, oa;
@@ -780,9 +780,6 @@ void DrawGLUtils::Draw(xlAccumulator &va) {
     if (currentCache) currentCache->Draw(va);
 }
 
-void DrawGLUtils::Draw(xl3Accumulator &va) {
-    if (currentCache) currentCache->Draw(va);
-}
 
 void DrawGLUtils::Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability, int start, int count) {
     currentCache->Draw(va, color, type, enableCapability, start, count);
@@ -794,10 +791,6 @@ void DrawGLUtils::Draw(xlVertexColorAccumulator &va, int type, int enableCapabil
 
 void DrawGLUtils::Draw(xlVertexTextureAccumulator &va, int type, int enableCapability, int start, int count) {
     currentCache->Draw(va, type, enableCapability, start, count);
-}
-
-void DrawGLUtils::Draw(xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability, int start, int count) {
-	currentCache->Draw(va, color, type, enableCapability, start, count);
 }
 
 DrawGLUtils::xl3DMesh *DrawGLUtils::createMesh() {
@@ -1021,19 +1014,7 @@ void DrawGLUtils::xlAccumulator::Finish(int type, int enableCapability, float ex
 
 void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexColorAccumulator& va) {
     PreAlloc(va.count);
-    if (va.coordsPerVertex == coordsPerVertex) {
-        memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
-    } else {
-        for (unsigned int x = 0; x < va.count; x++) {
-            int cur = (count + x) * coordsPerVertex;
-            int curva = x * va.coordsPerVertex;
-            vertices[cur++] = va.vertices[curva++];
-            vertices[cur++] = va.vertices[curva++];
-            if (coordsPerVertex == 3) {
-                vertices[cur] = 0.0f;
-            }
-        }
-    }
+    memcpy(&vertices[count*3], va.vertices, sizeof(float)*va.count*3);
     memcpy(&colors[count*4], va.colors, va.count*4);
     count += va.count;
 }
@@ -1041,19 +1022,7 @@ void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexColorAccumulato
 
 void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va, const xlColor &c) {
     PreAlloc(va.count);
-    if (va.coordsPerVertex == coordsPerVertex) {
-        memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
-    } else  {
-        for (unsigned int x = 0; x < va.count; x++) {
-            int cur = (count + x) * coordsPerVertex;
-            int curva = x * va.coordsPerVertex;
-            vertices[cur++] = va.vertices[curva++];
-            vertices[cur++] = va.vertices[curva++];
-            if (coordsPerVertex == 3) {
-                vertices[cur] = 0.0f;
-            }
-        }
-    }
+    memcpy(&vertices[count*3], va.vertices, sizeof(float)*va.count*3);
     int i = count * 4;
     for (unsigned int x = 0; x < va.count; x++) {
         colors[i++] = c.Red();
@@ -1067,20 +1036,8 @@ void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va
 
 void DrawGLUtils::xlAccumulator::Load(const xlVertexTextureAccumulator &va, int type, int enableCapability) {
     PreAllocTexture(va.count);
-    if (va.coordsPerVertex == coordsPerVertex) {
-        memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
-    } else {
-        for (unsigned int x = 0; x < va.count; x++) {
-            int cur = (count + x) * coordsPerVertex;
-            int curva = x * va.coordsPerVertex;
-            vertices[cur++] = va.vertices[curva++];
-            vertices[cur++] = va.vertices[curva++];
-            if (coordsPerVertex == 3) {
-                vertices[cur] = 0.0f;
-            }
-        }
-    }
-    memcpy(&tvertices[count*coordsPerVertex], va.tvertices, sizeof(float)*va.count*2);
+    memcpy(&vertices[count*3], va.vertices, sizeof(float)*va.count*3);
+    memcpy(&tvertices[count*2], va.tvertices, sizeof(float)*va.count*2);
     count += va.count;
     if (va.forceColor) {
         FinishTextures(type, va.id, va.color, enableCapability);
@@ -1106,14 +1063,12 @@ void DrawGLUtils::xlAccumulator::PreAllocTexture(int i) {
 void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float z, float tx, float ty) {
     PreAllocTexture(1);
 
-    int i = count * coordsPerVertex;
+    int i = count * 3;
     vertices[i] = x;
     i++;
     vertices[i] = y;
-    if (coordsPerVertex == 3) {
-        i++;
-        vertices[i] = z;
-    }
+    i++;
+    vertices[i] = z;
     i = count * 2;
     tvertices[i] = tx;
     i++;
@@ -1732,13 +1687,13 @@ void DrawGLUtils::Draw(DrawGLUtils::xlVertexTextAccumulator &va, int size, float
     Draw(vat, GL_TRIANGLES, GL_BLEND);
 }
 
-void DrawGLUtils::DrawSphere(double x, double y, double z, double radius, const xlColor &color, xl3Accumulator &va)
+void DrawGLUtils::DrawSphere(double x, double y, double z, double radius, const xlColor &color, xlAccumulator &va)
 {
     // FIXME:  draw a square until I get a good sphere routine
     DrawCube(x, y, z, radius*2, color, va);
 }
 
-void DrawGLUtils::DrawCube(double x, double y, double z, double width, const xlColor &color, xl3Accumulator &va)
+void DrawGLUtils::DrawCube(double x, double y, double z, double width, const xlColor &color, xlAccumulator &va)
 {
     double halfwidth = width / 2.0;
 
@@ -1799,7 +1754,7 @@ void DrawGLUtils::DrawCube(double x, double y, double z, double width, const xlC
     va.Finish(GL_TRIANGLES);
 }
 
-void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va)
+void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator &va)
 {
     glm::vec4 c1(min_pt.x, max_pt.y, min_pt.z, 1.0f);
     glm::vec4 c2(max_pt.x, max_pt.y, min_pt.z, 1.0f);
@@ -1846,30 +1801,5 @@ void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_p
     va.AddVertex(c7.x, c7.y, c7.z, c);
     va.AddVertex(c4.x, c4.y, c4.z, c);
     va.AddVertex(c8.x, c8.y, c8.z, c);
-    va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
-}
-
-void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator& va)
-{
-    glm::vec4 c1(min_pt.x, max_pt.y, 1.0f, 1.0f);
-    glm::vec4 c2(max_pt.x, max_pt.y, 1.0f, 1.0f);
-    glm::vec4 c3(max_pt.x, min_pt.y, 1.0f, 1.0f);
-    glm::vec4 c4(min_pt.x, min_pt.y, 1.0f, 1.0f);
-
-    c1 = bound_matrix * c1;
-    c2 = bound_matrix * c2;
-    c3 = bound_matrix * c3;
-    c4 = bound_matrix * c4;
-
-    LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-    va.AddVertex(c1.x, c1.y, c);
-    va.AddVertex(c2.x, c2.y, c);
-    va.AddVertex(c2.x, c2.y, c);
-    va.AddVertex(c3.x, c3.y, c);
-    va.AddVertex(c3.x, c3.y, c);
-    va.AddVertex(c4.x, c4.y, c);
-    va.AddVertex(c4.x, c4.y, c);
-    va.AddVertex(c1.x, c1.y, c);
-
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 }
