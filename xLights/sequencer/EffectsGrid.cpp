@@ -5237,6 +5237,11 @@ void EffectsGrid::UpdateMousePosition(int time) const
     wxPostEvent(mParent, eventMousePos);
 }
 
+bool EffectsGrid::CanDropEffect() const
+{
+    return (mDropStartTimeMS >= 0 && mDropRow >= mSequenceElements->GetNumberOfTimingRows());
+}
+
 void EffectsGrid::UpdateZoomPosition(int time) const
 {
     mTimeline->SetZoomMarkerMS(time);

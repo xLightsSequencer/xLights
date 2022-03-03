@@ -160,6 +160,13 @@ public:
     void SelectEffect(Effect* ef);
     void ScrollBy(int by);
     void Draw();
+    void UpdateMousePosition(int time) const;
+    int GetDropStartMS() const
+    {
+        return mDropStartTimeMS;
+    }
+    bool CanDropEffect() const;
+
 protected:
 
 private:
@@ -197,7 +204,6 @@ private:
     void Resize(int position, bool offset, bool control);
     void RunMouseOverHitTests(int rowIndex, int x,int y);
     void UpdateTimePosition(int time) const;
-    void UpdateMousePosition(int time) const;
     void UpdateZoomPosition(int time) const;
     void EstablishSelectionRectangle();
     void UpdateSelectionRectangle();
