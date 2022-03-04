@@ -380,6 +380,12 @@ void LoadRenderBufferNodes(Model *m, const std::string &type, const std::string 
 
     if (m == nullptr) return;
 
+    // This skips over initialising inactive models so they also wont appear in groups.
+    // There is a downside of doing this ... by never adding them to the group the size of the group changes which could change the appearance of some effects.
+    // I am adding this now but I could well see us undoing this change if the solution is worse than the problem
+    if (!m->IsActive())
+        return; 
+
     if (m->GetDisplayAs() == "ModelGroup")
     {
         ModelGroup *g = dynamic_cast<ModelGroup*>(m);
