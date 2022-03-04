@@ -115,6 +115,8 @@ class NodeSelectGrid: public wxDialog
 		void OnButtonInvertSelectClick(wxCommandEvent& event);
 		//*)
 
+		void OnResize(wxSizeEvent& event);
+
         void OnCut(wxCommandEvent& event);
         void OnCopy(wxCommandEvent& event);
         void OnPaste(wxCommandEvent& event);

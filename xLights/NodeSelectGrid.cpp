@@ -318,6 +318,8 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&NodeSelectGrid::OnTextCtrl_NodesText);
 	//*)
 
+    Connect(wxEVT_SIZE, (wxObjectEventFunction)&NodeSelectGrid::OnResize);
+
     TextCtrl_Nodes->Bind(wxEVT_KILL_FOCUS, &NodeSelectGrid::OnTextCtrl_NodesLoseFocus, this);
 
     GridNodes->Connect(wxEVT_TEXT_CUT, (wxObjectEventFunction)&NodeSelectGrid::OnCut, 0, this);
@@ -715,6 +717,9 @@ void NodeSelectGrid::OnButtonZoomPlusClick(wxCommandEvent& event)
     SetGridSizeForFont(font);
 
     UpdateBackground();
+
+    Layout();
+    Refresh();
 }
 
 void NodeSelectGrid::OnButtonZoomMinusClick(wxCommandEvent& event)
@@ -739,6 +744,9 @@ void NodeSelectGrid::OnButtonZoomMinusClick(wxCommandEvent& event)
     SetGridSizeForFont(font);
 
     UpdateBackground();
+
+    Layout();
+    Refresh();
 }
 
 void NodeSelectGrid::OnBitmapButton1Click(wxCommandEvent& event)
@@ -1022,6 +1030,12 @@ void NodeSelectGrid::OnGridNodesCellRightClick(wxGridEvent& event)
 
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&NodeSelectGrid::OnGridPopup, nullptr, this);
     PopupMenu(&mnu);
+}
+
+void NodeSelectGrid::OnResize(wxSizeEvent& event)
+{
+    Layout();
+    Refresh();
 }
 
 void NodeSelectGrid::OnCut(wxCommandEvent& event)
