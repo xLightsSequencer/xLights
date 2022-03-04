@@ -12,6 +12,8 @@
 
 #include "RenderableEffect.h"
 
+#include <vector>
+
 class wxString;
 class TextDrawingContext;
 class FontManager;
@@ -43,6 +45,8 @@ protected:
 private:
     void SelectTextColor(std::string& palette, int index) const;
     void FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer& buffer, wxString& msg, wxString Line_orig) const;
+    std::vector<std::string> WordSplit(const std::string& text) const;
+    std::string FlipWord(const SettingsMap& settings, const std::string& text, RenderBuffer& buffer) const;
 
     wxImage* RenderTextLine(RenderBuffer& buffer,
         TextDrawingContext* dc,

@@ -163,6 +163,7 @@ TextPanel::TextPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Text_Dir->Append(_("up-right"));
 	Choice_Text_Dir->Append(_("down-right"));
 	Choice_Text_Dir->Append(_("wavey"));
+	Choice_Text_Dir->Append(_("word-flip"));
 	FlexGridSizer48->Add(Choice_Text_Dir, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_TextDir = new xlLockButton(Panel_Text1, ID_BITMAPBUTTON_CHOICE_Text_Dir, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Text_Dir"));
 	BitmapButton_TextDir->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));

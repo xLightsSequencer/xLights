@@ -424,7 +424,8 @@ enum TextDirection {
     TEXTDIR_UPRIGHT,
     TEXTDIR_DOWNRIGHT,
     TEXTDIR_WAVEY_LRUPDOWN,
-    TEXTDIR_VECTOR
+    TEXTDIR_VECTOR,
+    TEXTDIR_WORDFLIP
 };
 
 static TextDirection TextEffectDirectionsIndex(const wxString &st) {
@@ -438,7 +439,10 @@ static TextDirection TextEffectDirectionsIndex(const wxString &st) {
     if (st == "up-right") return TEXTDIR_UPRIGHT;
     if (st == "down-right") return TEXTDIR_DOWNRIGHT;
     if (st == "wavey") return TEXTDIR_WAVEY_LRUPDOWN;
-    if (st == "vector") return TEXTDIR_VECTOR;
+    if (st == "vector")
+        return TEXTDIR_VECTOR;
+    if (st == "word-flip")
+        return TEXTDIR_WORDFLIP;
     return TEXTDIR_NONE;
 }
 static int TextCountDownIndex(const wxString &st) {
@@ -540,6 +544,11 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 }
             }
         }
+    }
+
+    TextDirection dir = TextEffectDirectionsIndex(SettingsMap["CHOICE_Text_Dir"]);
+    if (dir == TEXTDIR_WORDFLIP) {
+        text = FlipWord(SettingsMap, text, buffer);
     }
 
     if (text != "") {
@@ -1075,6 +1084,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
                 else
                     rect.Offset(xlimit/16 - state % xlimit/8, zigzag(state/4, totheight)/2 - totheight/4);
                 break; // left-to-right, wavey up-down 1/2 height (too bouncy if full height is used), slow down up/down motion (too fast unless scaled)
+            case TEXTDIR_WORDFLIP:
             case TEXTDIR_NONE: //fall thru to default
             default:
                 //rect.Offset(0, OffsetTop);
@@ -1373,6 +1383,57 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
     }
 }
 
+std::vector<std::string> TextEffect::WordSplit(const std::string& text) const
+{
+    std::vector<std::string> res;
+
+    std::string word;
+    for (auto c : text) {
+        if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
+            if (word != "") {
+                res.push_back(word);
+                word = "";
+            }
+        }
+        else {
+            word += c;
+        }
+    }
+
+    if (word != "") {
+        res.push_back(word);
+    }
+
+    return res;
+}
+
+std::string TextEffect::FlipWord(const SettingsMap& settings, const std::string& text, RenderBuffer& buffer) const
+{
+    auto words = WordSplit(text);
+
+    if (words.size() > 1) {
+        // we need to adjust the text
+        int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10")); // 0 to 50
+
+        // zero means just show the first word ... never advance
+        // one means go through words once
+
+        float msPerWord = 0;
+        if (tspeed != 0) {
+            msPerWord = ((buffer.curEffEndPer - buffer.curEffStartPer + 1) * buffer.frameTimeInMs) / (words.size() * tspeed);
+        }
+        int word = 0;        
+        if (msPerWord != 0) {
+            word = ((float)(buffer.curPeriod - buffer.curEffStartPer) * (float)buffer.frameTimeInMs) / msPerWord;
+        }
+
+        word = word % words.size();
+        return words[word];
+    }
+
+    return text;
+}
+
 void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
     xlColor c;
@@ -1483,6 +1544,11 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         if (text_effect == 4) {
             up = true;
         }
+    }
+
+    TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
+    if (dir == TEXTDIR_WORDFLIP) {
+        text = FlipWord(settings, text, buffer);
     }
 
     int PreOffsetLeft = OffsetLeft;
