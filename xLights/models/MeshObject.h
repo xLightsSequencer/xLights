@@ -12,6 +12,7 @@
 
 #include <vector>
 #include "ViewObject.h"
+#include "BoxedScreenLocation.h"
 
 class ModelPreview;
 class xlMesh;

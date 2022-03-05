@@ -10,7 +10,7 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "ModelScreenLocation.h"
+#include "BoxedScreenLocation.h"
 
 class xlGraphicsProgram;
 

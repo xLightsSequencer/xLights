@@ -17,6 +17,11 @@
 #include <tuple>
 
 #include "ModelScreenLocation.h"
+#include "BoxedScreenLocation.h"
+#include "TwoPointScreenLocation.h"
+#include "ThreePointScreenLocation.h"
+#include "PolyPointScreenLocation.h"
+
 #include "../Color.h"
 #include "BaseObject.h"
 #include "../UtilFunctions.h"
