@@ -12,6 +12,7 @@
 
 #include "wx/wx.h"
 #include "wx/window.h"
+
 #define HORIZONTAL_PADDING      10
 #define PIXELS_PER_MAJOR_HASH   100
 
@@ -21,14 +22,13 @@
 #define SCROLL_RIGHT    0
 #define SCROLL_LEFT     1
 
-enum EFFECT_SCREEN_MODE{
+enum class EFFECT_SCREEN_MODE {
     SCREEN_L_R_OFF,
     SCREEN_L_ON,
     SCREEN_R_ON,
     SCREEN_L_R_ON,
     SCREEN_L_R_ACROSS,
 };
-
 
 wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_CHANGED, wxCommandEvent);

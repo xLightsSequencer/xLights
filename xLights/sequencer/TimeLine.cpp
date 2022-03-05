@@ -699,7 +699,7 @@ void TimeLine::GetPositionsFromTimeRange(int startTimeMS, int endTimeMS, EFFECT_
 {
     if (startTimeMS < mStartTimeMS && endTimeMS > mEndTimeMS)
     {
-        screenMode = SCREEN_L_R_ACROSS;
+        screenMode = EFFECT_SCREEN_MODE::SCREEN_L_R_ACROSS;
         x1 = 0;
         x2 = GetSize().x;
         double majorHashs = (double)(startTimeMS - mStartTimeMS) / (double)TimePerMajorTickInMS();
@@ -709,7 +709,7 @@ void TimeLine::GetPositionsFromTimeRange(int startTimeMS, int endTimeMS, EFFECT_
     }
     else if (startTimeMS < mStartTimeMS && endTimeMS > mStartTimeMS && endTimeMS <= mEndTimeMS)
     {
-        screenMode = SCREEN_R_ON;
+        screenMode = EFFECT_SCREEN_MODE::SCREEN_R_ON;
         double majorHashs = (double)(endTimeMS - mStartTimeMS) / (double)TimePerMajorTickInMS();
         x1 = 0;
         x2 = (int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
@@ -719,7 +719,7 @@ void TimeLine::GetPositionsFromTimeRange(int startTimeMS, int endTimeMS, EFFECT_
     }
     else if (startTimeMS >= mStartTimeMS && startTimeMS < mEndTimeMS && endTimeMS > mEndTimeMS)
     {
-        screenMode = SCREEN_L_ON;
+        screenMode = EFFECT_SCREEN_MODE::SCREEN_L_ON;
         double majorHashs = (double)(startTimeMS - mStartTimeMS) / (double)TimePerMajorTickInMS();
         x1 = (int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
         x2 = GetSize().x;
@@ -729,7 +729,7 @@ void TimeLine::GetPositionsFromTimeRange(int startTimeMS, int endTimeMS, EFFECT_
     }
     else if (startTimeMS >= mStartTimeMS && endTimeMS <= mEndTimeMS)
     {
-        screenMode = SCREEN_L_R_ON;
+        screenMode = EFFECT_SCREEN_MODE::SCREEN_L_R_ON;
         double majorHashs = (double)(startTimeMS - mStartTimeMS) / (double)TimePerMajorTickInMS();
         x1 = (int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
         majorHashs = (double)(endTimeMS - mStartTimeMS) / (double)TimePerMajorTickInMS();
@@ -740,7 +740,7 @@ void TimeLine::GetPositionsFromTimeRange(int startTimeMS, int endTimeMS, EFFECT_
     else if ((startTimeMS < mStartTimeMS && endTimeMS < mStartTimeMS) ||
         (startTimeMS > mStartTimeMS && endTimeMS > mStartTimeMS))
     {
-        screenMode = SCREEN_L_R_OFF;
+        screenMode = EFFECT_SCREEN_MODE::SCREEN_L_R_OFF;
         x1 = 0;
         x2 = 0;
         x3 = x1;
