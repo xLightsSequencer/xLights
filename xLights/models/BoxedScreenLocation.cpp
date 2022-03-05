@@ -20,13 +20,7 @@
 
 #include "Model.h"
 #include "../ModelPreview.h"
-//#include "../graphics/xlGraphicsAccumulators.h"
-//#include "Shapes.h"
-//#include "../ViewpointMgr.h"
 #include "../support/VectorMath.h"
-//#include "UtilFunctions.h"
-//#include "../xLightsApp.h"
-//#include "../xLightsMain.h"
 #include "RulerObject.h"
 
 #include <log4cpp/Category.hh>
@@ -41,140 +35,10 @@ inline void TranslatePointDoubles(float radians,float x, float y,float &x1, floa
     y1 = s*x+(c*y);
 }
 
-#define BOUNDING_RECT_OFFSET        8
+#define BOUNDING_RECT_OFFSET 8
 
 static glm::mat4 Identity(glm::mat4(1.0f));
 
-/*static inline void TranslatePointDoubles(float radians,float x, float y,float &x1, float &y1) {
-    float s = sin(radians);
-    float c = cos(radians);
-    x1 = c*x-(s*y);
-    y1 = s*x+(c*y);
-}
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused"
-void rotate_point(float cx, float cy, float angle, float &x, float &y)
-{
-    float s = sin(angle);
-    float c = cos(angle);
-
-    // translate point back to origin:
-    x -= cx;
-    y -= cy;
-
-    // rotate point
-    float xnew = x * c - y * s;
-    float ynew = x * s + y * c;
-
-    // translate point back:
-    x = xnew + cx;
-    y = ynew + cy;
-}
-
-// used to print matrix when debugging
-static void PrintMatrix(std::string name, glm::mat4& matrix)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Matrix Info: %s", name.c_str());
-    logger_base.debug("Row 0: %6.8f  %6.8f  %6.8f  %6.2f", matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]);
-    logger_base.debug("Row 1: %6.8f  %6.8f  %6.8f  %6.2f", matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3]);
-    logger_base.debug("Row 2: %6.8f  %6.8f  %6.8f  %6.2f", matrix[2][0], matrix[2][1], matrix[2][2], matrix[2][3]);
-    logger_base.debug("Row 3: %6.2f  %6.2f  %6.2f  %6.2f", matrix[3][0], matrix[3][1], matrix[3][2], matrix[3][3]);
-}
-
-static glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R)
-{
-    double x, y, z;
-    int path = 0;
-
-    double m13 = R[0][2];
-    
-    y = -asin(m13 < -1.0 ? -1.0 : m13 > 1 ? 1 : m13);
-
-    if (abs(m13) < 0.9999) {
-
-        x = atan2(R[1][2], R[2][2]);
-        z = atan2(R[0][1], R[0][0]);
-
-    }
-    else {
-
-        x = atan2(R[2][1], R[1][1]);
-        z = 0;
-    }
-
-    return glm::vec3(x, y, z);
-}
-
-static void PrintRay(std::string name, glm::vec3& origin, glm::vec3& direction)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Ray Info: %s", name.c_str());
-    logger_base.debug("Ray Origin: %6.2f  %6.2f  %6.2f", origin.x, origin.y, origin.z);
-    logger_base.debug("Ray Direct: %6.2f  %6.2f  %6.2f", direction.x, direction.y, direction.z);
-}
-#pragma clang diagnostic pop
-
-
-wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
-    int angleState;
-    //LeftTop and RightBottom
-    switch(cornerIndex) {
-            // Left top when PreviewRotation = 0
-        case L_TOP_HANDLE:
-            angleState = (int)(PreviewRotation/22.5);
-            break;
-            // Right Top
-        case R_TOP_HANDLE:
-            angleState = ((int)(PreviewRotation/22.5)+4)%16;
-            break;
-            // Right Bottom
-        case R_BOT_HANDLE:
-            angleState = ((int)(PreviewRotation/22.5)+8)%16;
-            break;
-            // Right Bottom
-        default:
-            angleState = ((int)(PreviewRotation/22.5)+12)%16;
-            break;
-    }
-    switch(angleState) {
-        case 0:
-            return wxCURSOR_SIZENWSE;
-        case 1:
-            return wxCURSOR_SIZEWE;
-        case 2:
-            return wxCURSOR_SIZEWE;
-        case 3:
-            return wxCURSOR_SIZENESW;
-        case 4:
-            return wxCURSOR_SIZENESW;
-        case 5:
-            return wxCURSOR_SIZENS;
-        case 6:
-            return wxCURSOR_SIZENS;
-        case 7:
-            return wxCURSOR_SIZENWSE;
-        case 8:
-            return wxCURSOR_SIZENWSE;
-        case 9:
-            return wxCURSOR_SIZEWE;
-        case 10:
-            return wxCURSOR_SIZEWE;
-        case 11:
-            return wxCURSOR_SIZENESW;
-        case 12:
-            return wxCURSOR_SIZENESW;
-        case 13:
-            return wxCURSOR_SIZENS;
-        case 14:
-            return wxCURSOR_SIZENS;
-        default:
-            return wxCURSOR_SIZENWSE;
-    }
-
-}
-*/
 
 BoxedScreenLocation::BoxedScreenLocation()
     : ModelScreenLocation(10), perspective(0.0f), centerx(0.0), centery(0.0), centerz(0.0)
