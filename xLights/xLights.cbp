@@ -1069,6 +1069,8 @@
 		<Unit filename="models/ArchesModel.h" />
 		<Unit filename="models/BaseObject.cpp" />
 		<Unit filename="models/BaseObject.h" />
+		<Unit filename="models/BoxedScreenLocation.cpp" />
+		<Unit filename="models/BoxedScreenLocation.h" />
 		<Unit filename="models/CandyCaneModel.cpp" />
 		<Unit filename="models/CandyCaneModel.h" />
 		<Unit filename="models/ChannelBlockModel.cpp" />
@@ -1141,6 +1143,8 @@
 		<Unit filename="models/ObjectManager.h" />
 		<Unit filename="models/PolyLineModel.cpp" />
 		<Unit filename="models/PolyLineModel.h" />
+		<Unit filename="models/PolyPointScreenLocation.cpp" />
+		<Unit filename="models/PolyPointScreenLocation.h" />
 		<Unit filename="models/RulerObject.cpp" />
 		<Unit filename="models/RulerObject.h" />
 		<Unit filename="models/Shapes.cpp" />
@@ -1159,8 +1163,12 @@
 		<Unit filename="models/TerrianObject.cpp" />
 		<Unit filename="models/TerrianObject.h" />
 		<Unit filename="models/TerrianScreenLocation.h" />
+		<Unit filename="models/ThreePointScreenLocation.cpp" />
+		<Unit filename="models/ThreePointScreenLocation.h" />
 		<Unit filename="models/TreeModel.cpp" />
 		<Unit filename="models/TreeModel.h" />
+		<Unit filename="models/TwoPointScreenLocation.cpp" />
+		<Unit filename="models/TwoPointScreenLocation.h" />
 		<Unit filename="models/ViewObject.cpp" />
 		<Unit filename="models/ViewObject.h" />
 		<Unit filename="models/ViewObjectManager.cpp" />
