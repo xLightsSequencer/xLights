@@ -27,6 +27,7 @@
 #include "BufferPanel.h"
 #include "EffectIconPanel.h"
 #include "JukeboxPanel.h"
+#include "FindDataPanel.h"
 #include "EffectsPanel.h"
 #include "TimingPanel.h"
 #include "ColorPanel.h"
@@ -1597,7 +1598,8 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllChildControls(_coloursPanel, enableSeqNotAC);
     //if (enableSeqNotAC) _coloursPanel->ValidateWindow();
     enableAllChildControls(jukeboxPanel, enableSeqNotAC);
-    //if (enableSeqNotAC) jukeboxPanel->ValidateWindow();
+    enableAllChildControls(_findDataPanel, enableSeq);
+    // if (enableSeqNotAC) jukeboxPanel->ValidateWindow();
     UpdateACToolbar(enable);
 
     enableAllMenubarControls(MenuBar, enable);

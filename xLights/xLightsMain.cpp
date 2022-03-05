@@ -57,6 +57,7 @@
 #include "BatchRenderDialog.h"
 #include "VideoExporter.h"
 #include "JukeboxPanel.h"
+#include "FindDataPanel.h"
 #include "EffectAssist.h"
 #include "EffectsPanel.h"
 #include "MultiControllerUploadDialog.h"
@@ -275,6 +276,7 @@ const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
 const long xLightsFrame::ID_MNU_JUKEBOX = wxNewId();
+const long xLightsFrame::ID_MNU_FINDDATA = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_DOCKALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM11 = wxNewId();
@@ -946,6 +948,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     MenuItem18->Append(MenuItemVideoPreview);
     MenuItemJukebox = new wxMenuItem(MenuItem18, ID_MNU_JUKEBOX, _("Jukebox"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemJukebox);
+    MenuItemFindData = new wxMenuItem(MenuItem18, ID_MNU_FINDDATA, _("Find Effect Data"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemFindData);
     MenuItem18->AppendSeparator();
     MenuItem26 = new wxMenuItem(MenuItem18, ID_MENUITEM_WINDOWS_PERSPECTIVE, _("Perspectives"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem26);
@@ -1156,6 +1160,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(ID_MENUITEM_SELECT_EFFECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSelectEffectSelected);
     Connect(ID_MENUITEM_VIDEOPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShowHideVideoPreview);
     Connect(ID_MNU_JUKEBOX,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_JukeboxSelected);
+    Connect(ID_MNU_FINDDATA,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFindDataSelected);
     Connect(ID_MENUITEM_WINDOWS_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePerspectivesWindow);
     Connect(ID_MENUITEM_WINDOWS_DOCKALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuDockAllSelected);
     Connect(ID_MENUITEM11,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetWindowsToDefaultPositions);
@@ -10118,7 +10123,8 @@ void xLightsFrame::UpdateViewMenu()
         { "EffectAssist", MenuItemEffectAssist },
         { "SelectEffect", MenuItemSelectEffect },
         { "SequenceVideo", MenuItemVideoPreview },
-        { "Jukebox", MenuItemJukebox }
+        { "Jukebox", MenuItemJukebox },
+        { "FindData", MenuItemFindData }
     };
 
     wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
@@ -10144,4 +10150,24 @@ void xLightsFrame::OnMenuItem_ColorReplaceSelected(wxCommandEvent& event)
     }
 
     // user will need to render as this does not force a re-render.
+}
+
+void xLightsFrame::OnMenuItemFindDataSelected(wxCommandEvent& event)
+{
+    wxAuiPaneInfo& pane = m_mgr->GetPane("FindData");
+
+    pane.IsShown() ? pane.Hide() : pane.Show();
+    m_mgr->Update();
+    UpdateViewMenu();
+}
+
+void xLightsFrame::ShowDataFindPanel()
+{
+    wxAuiPaneInfo& pane = m_mgr->GetPane("FindData");
+
+    if (!pane.IsShown()) {
+        pane.Show();
+        m_mgr->Update();
+        UpdateViewMenu();
+    }
 }

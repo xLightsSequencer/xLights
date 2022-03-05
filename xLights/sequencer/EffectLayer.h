@@ -138,8 +138,8 @@ class EffectLayer
         void GetMaximumRangeWithRightMovement(int index, int &toLeft, int &toRight);
         std::vector<Effect*> mEffects;
         std::list<Effect*> mEffectsToDelete;
-        int mIndex;
-        Element* mParentElement;
+        int mIndex = 0;
+        Element* mParentElement = nullptr;
         std::recursive_mutex lock;
 };
 
@@ -170,7 +170,7 @@ public:
         }
     }
 private:
-    std::string *name;
+    std::string *name = nullptr;
     static const std::string NO_NAME;
 };
 

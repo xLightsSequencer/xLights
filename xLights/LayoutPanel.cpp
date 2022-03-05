@@ -2491,7 +2491,7 @@ void LayoutPanel::SelectAllModels()
     selectionLatched = false;
 
     if (editing_models) {
-        auto models = modelPreview->GetModels();
+        auto& models = modelPreview->GetModels();
         for (size_t i = 0; i < models.size(); i++)
         {
             Model* m = models[i];

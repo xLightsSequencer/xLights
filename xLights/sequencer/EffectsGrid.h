@@ -69,6 +69,23 @@ struct EffectDropData;
 class MainSequencer;
 class PixelBufferClass;
 class SequenceData;
+class DataLayer;
+
+// this is used to keep track of effect found which might be generating data on a node
+typedef struct findDataEffect {
+    Element* e = nullptr;
+    EffectLayer* el = nullptr;
+    NodeLayer* nl = nullptr;
+    Effect* ef = nullptr;
+    DataLayer* dl = nullptr;
+
+    // helper functions
+    int GetStrand() const;
+    int GetNode() const;
+    std::string GetTypeDescription() const;
+    std::string GetName() const;
+    std::string GetStrandSubmodel() const;
+} findDataEffect;
 
 class EffectsGrid : public GRAPHICS_BASE_CLASS
 {
@@ -166,6 +183,10 @@ public:
         return mDropStartTimeMS;
     }
     bool CanDropEffect() const;
+    SequenceElements* GetSequenceElements() const
+    {
+        return mSequenceElements;
+    }
 
 protected:
 
@@ -243,6 +264,8 @@ private:
     int GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos, long startMS, long endMS);
     Effect* DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settings, std::string palette, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS, int offsetMS = 0);
     void TruncateBrightnessValueCurve(ValueCurve& vc, double startPos, double endPos, int startMS, int endMS, int originalLength);
+    uint32_t FindChannel(Element* element, int strandIndex, int nodeIndex, uint8_t& channelsPerNode) const;
+    void FindEffectsForData(uint32_t channel, uint8_t chans, uint32_t _findDataMS) const;
 
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
@@ -323,6 +346,7 @@ private:
     static const long ID_GRID_MNU_UNLOCK;
     static const long ID_GRID_MNU_RENDERDISABLE;
     static const long ID_GRID_MNU_RENDERENABLE;
+    static const long ID_GRID_MNU_FINDEFFECTFORDATA;
     static const long ID_GRID_MNU_TIMING;
     static const long ID_GRID_MNU_UNDO;
     static const long ID_GRID_MNU_REDO;
@@ -339,10 +363,12 @@ private:
     static const long ID_GRID_MNU_ALIGN_START_TIMES_SHIFT;
     static const long ID_GRID_MNU_ALIGN_END_TIMES_SHIFT;
 
-    EventPlayEffectArgs* playArgs;
+    EventPlayEffectArgs* playArgs = nullptr;
 
-    const SequenceData *seqData;
-    xLightsFrame *xlights;
+    const SequenceData *seqData = nullptr;
+    xLightsFrame *xlights = nullptr;
+    Row_Information_Struct* _findDataRI = nullptr;
+    uint32_t _findDataMS = 0xFFFFFFFF;
 
 	DECLARE_EVENT_TABLE()
 };

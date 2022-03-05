@@ -296,6 +296,7 @@
     <ClCompile Include="effects\ServoPanel.cpp" />
     <ClCompile Include="EmailDialog.cpp" />
     <ClCompile Include="ExportSettings.cpp" />
+    <ClCompile Include="FindDataPanel.cpp" />
     <ClCompile Include="FontManager.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="GenerateLyricsDialog.cpp" />
@@ -748,6 +749,7 @@
     <ClInclude Include="EffectTimingDialog.h" />
     <ClInclude Include="EmailDialog.h" />
     <ClInclude Include="ExportSettings.h" />
+    <ClInclude Include="FindDataPanel.h" />
     <ClInclude Include="FontManager.h" />
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />

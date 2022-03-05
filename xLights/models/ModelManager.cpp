@@ -431,7 +431,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                     //I think it makes sense to add the model if the group is in the xmodel file.
                     const auto& newNames = wxSplit(grpModels, ',');
                     for (const auto& it : newNames) {
-                        auto mmnmn = mmg->ModelNames();
+                        auto& mmnmn = mmg->ModelNames();
                         if (Contains(it, "/")) {
                             auto mgmn = wxString(it);
                             mgmn.Replace("EXPORTEDMODEL", mname);
@@ -648,8 +648,8 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
 
     // valid if i can follow the chain to blank
     int checks = 0;
-    auto current = startModel;
-    auto next = chain;
+    std::string current = startModel;
+    std::string next = chain;
     while (checks <= sameOutput.size())
     {
         bool found = false;
@@ -850,7 +850,7 @@ bool ModelManager::ReworkStartChannel() const
                     if (itm->GetModelChain() == last ||
                         itm->GetModelChain() == ">" + last ||
                         ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == "")) {
-                        auto osc = itm->ModelStartChannel;
+                        std::string osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
@@ -860,7 +860,7 @@ bool ModelManager::ReworkStartChannel() const
                             outputsChanged = true;
                         }
                     } else {
-                        auto osc = itm->ModelStartChannel;
+                        std::string osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
@@ -872,7 +872,7 @@ bool ModelManager::ReworkStartChannel() const
                         }
                     }
                 } else if (itm->IsLEDPanelMatrixProtocol()) {
-                    auto osc = itm->ModelStartChannel;
+                    std::string osc = itm->ModelStartChannel;
                     sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
                     itm->SetStartChannel(sc);
                     itm->ClearIndividualStartChannels();
@@ -911,7 +911,7 @@ bool ModelManager::ReworkStartChannel() const
                     {
                         // when not chained use dmx channel
                         uint32_t msc = chstart + itm->GetControllerDMXChannel() - 1;
-                        auto osc = itm->ModelStartChannel;
+                        std::string osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", msc);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();

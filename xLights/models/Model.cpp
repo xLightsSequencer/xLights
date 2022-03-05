@@ -4165,6 +4165,29 @@ bool Model::HandleLayerSizePropertyChange(wxPropertyGridInterface* grid, wxPrope
     return false;
 }
 
+bool Model::ContainsChannel(uint32_t startChannel, uint32_t endChannel) const
+{
+    // we could just check first and last channel but then that would not work for submodels
+    for (const auto& node : Nodes) {
+        if (node->ContainsChannel(startChannel, endChannel))
+            return true;
+    }
+    return false;
+}
+
+bool Model::ContainsChannel(int strand, uint32_t startChannel, uint32_t endChannel) const
+{
+    uint32_t sc = GetChannelForNode(strand, 0);
+    uint32_t ec = GetChannelForNode(strand, GetStrandLength(strand)-1) + GetChanCountPerNode() - 1;
+    return !(endChannel < sc || startChannel > ec);
+}
+
+bool Model::ContainsChannel(const std::string& submodelName, uint32_t startChannel, uint32_t endChannel) const
+{
+    auto sm = GetSubModel(submodelName);
+    return sm->ContainsChannel(startChannel, endChannel);
+}
+
 void Model::HandlePropertyGridRightClick(wxPropertyGridEvent& event, wxMenu& mnu)
 {
     wxString name = event.GetPropertyName();
@@ -4191,8 +4214,7 @@ void Model::HandlePropertyGridContextMenu(wxCommandEvent& event)
         ModelXml->DeleteAttribute("LayerSizes");
         ModelXml->AddAttribute("LayerSizes", SerialiseLayerSizes());
         OnLayerSizesChange(true);
-    }
-    else if (event.GetId() == ID_LAYERSIZE_INSERT) {
+    } else if (event.GetId() == ID_LAYERSIZE_INSERT) {
         InsertLayerSizeBefore(layerSizeMenu);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::HandlePropertyGridContextMenu::Insert");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::HandlePropertyGridContextMenu::Insert");
@@ -4206,22 +4228,41 @@ void Model::HandlePropertyGridContextMenu(wxCommandEvent& event)
     }
 }
 
+uint32_t Model::GetChannelForNode(int strandIndex, int node) const
+{
+    if (node < 0)
+        return -1;
+
+    size_t nodesOnPriorStrands = 0;
+    for (size_t s = 0; s < strandIndex; ++s) {
+        nodesOnPriorStrands += GetStrandLength(s);
+    }
+
+    size_t n = nodesOnPriorStrands + node;
+
+    if (n >= Nodes.size()) {
+        wxASSERT(false);
+        return -1;
+    }
+
+    return Nodes[n]->ActChan;
+}
+
 // returns a number where the first node is 1
-uint32_t Model::GetNodeNumber(size_t nodenum) const {
-    if (nodenum >= Nodes.size()) return 0;
-    int sn=Nodes[nodenum]->StringNum;
-    return (Nodes[nodenum]->ActChan - stringStartChan[sn]) / 3 + sn*NodesPerString() + 1;
+uint32_t Model::GetNodeNumber(size_t nodenum) const
+{
+    if (nodenum >= Nodes.size())
+        return 0;
+    int sn = Nodes[nodenum]->StringNum;
+    return (Nodes[nodenum]->ActChan - stringStartChan[sn]) / 3 + sn * NodesPerString() + 1;
 }
 
 long Model::GetNodeNumber(int bufY, int bufX) const
 {
     uint32_t count = 0;
-    for (const auto& it : Nodes)
-    {
-        if (it->Coords.size() > 0)
-        {
-            if (it->Coords[0].bufX == bufX && it->Coords[0].bufY == bufY)
-            {
+    for (const auto& it : Nodes) {
+        if (it->Coords.size() > 0) {
+            if (it->Coords[0].bufX == bufX && it->Coords[0].bufY == bufY) {
                 return count;
             }
         }

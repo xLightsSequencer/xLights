@@ -1370,6 +1370,11 @@
 						<handler function="OnMenuItem_JukeboxSelected" entry="EVT_MENU" />
 						<checkable>1</checkable>
 					</object>
+					<object class="wxMenuItem" name="ID_MNU_FINDDATA" variable="MenuItemFindData" member="yes">
+						<label>Find Effect Data</label>
+						<handler function="OnMenuItemFindDataSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
 					<object class="separator" />
 					<object class="wxMenuItem" name="ID_MENUITEM_WINDOWS_PERSPECTIVE" variable="MenuItem26" member="no">
 						<label>Perspectives</label>

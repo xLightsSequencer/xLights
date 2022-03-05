@@ -62,6 +62,7 @@ public:
     int GetMousePosition() const { return mMousePosition; }
     void SavePosition();
     void RestorePosition();
+    void SetTimelinePosition(int pos);
 
     void ResetMarkers(int ms);
     void RecalcEndTime();

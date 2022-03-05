@@ -97,6 +97,7 @@ class EffectIconPanel;
 class ValueCurvesPanel;
 class ColoursPanel;
 class JukeboxPanel;
+class FindDataPanel;
 class TimingPanel;
 class ColorPanel;
 class EffectsPanel;
@@ -594,6 +595,7 @@ public:
     void OnMenuItemRunScriptSelected(wxCommandEvent& event);
     void OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event);
     void OnMenuItem_ColorReplaceSelected(wxCommandEvent& event);
+    void OnMenuItemFindDataSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -764,6 +766,7 @@ public:
     static const long ID_MENUITEM_SELECT_EFFECT;
     static const long ID_MENUITEM_VIDEOPREVIEW;
     static const long ID_MNU_JUKEBOX;
+    static const long ID_MNU_FINDDATA;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM_WINDOWS_DOCKALL;
     static const long ID_MENUITEM11;
@@ -875,6 +878,7 @@ public:
     wxMenuItem* MenuItemEffectAssist;
     wxMenuItem* MenuItemEffectDropper;
     wxMenuItem* MenuItemEffectSettings;
+    wxMenuItem* MenuItemFindData;
     wxMenuItem* MenuItemHinksPixExport;
     wxMenuItem* MenuItemHousePreview;
     wxMenuItem* MenuItemJukebox;
@@ -1571,6 +1575,11 @@ public:
     void ResetPanelDefaultSettings(const std::string& effect, const Model* model, bool optionbased);
 
     void UnselectEffect();
+    FindDataPanel* GetFindDataPanel() const
+    {
+        return _findDataPanel;
+    }
+    void ShowDataFindPanel();
 
 private:
 
@@ -1595,8 +1604,9 @@ private:
     EffectIconPanel* effectPalettePanel = nullptr;
     ValueCurvesPanel* _valueCurvesPanel = nullptr;
     ColoursPanel* _coloursPanel = nullptr;
-    JukeboxPanel *jukeboxPanel = nullptr;
-    BufferPanel *bufferPanel = nullptr;
+    JukeboxPanel* jukeboxPanel = nullptr;
+    FindDataPanel* _findDataPanel = nullptr;
+    BufferPanel* bufferPanel = nullptr;
     ViewsModelsPanel *displayElementsPanel = nullptr;
     TopEffectsPanel* effectsPnl = nullptr;
     EffectsPanel* EffectsPanel1 = nullptr;

@@ -396,7 +396,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
         }
 
         auto filter = TextCtrl_Filter->GetValue().Lower();
-        auto layoutGroup = layoutPanel->GetCurrentLayoutGroup();
+        auto& layoutGroup = layoutPanel->GetCurrentLayoutGroup();
 
         // dont allow any group that contains this group to be added as that would create a loop
         for (const auto& it : mModels) {

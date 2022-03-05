@@ -547,6 +547,8 @@
 		<Unit filename="FSEQFile.h" />
 		<Unit filename="FileConverter.cpp" />
 		<Unit filename="FileConverter.h" />
+		<Unit filename="FindDataPanel.cpp" />
+		<Unit filename="FindDataPanel.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
 		<Unit filename="FlickerFreeBitmapButton.h" />
 		<Unit filename="FontManager.cpp" />
@@ -1370,6 +1372,7 @@
 		<Unit filename="wxsmith/FacesPanel.wxs" />
 		<Unit filename="wxsmith/FanPanel.wxs" />
 		<Unit filename="wxsmith/FillPanel.wxs" />
+		<Unit filename="wxsmith/FindDataPanel.wxs" />
 		<Unit filename="wxsmith/FirePanel.wxs" />
 		<Unit filename="wxsmith/FireworksPanel.wxs" />
 		<Unit filename="wxsmith/GalaxyPanel.wxs" />
@@ -1630,6 +1633,7 @@
 					<wxPanel wxs="wxsmith/FacesPanel.wxs" src="effects/FacesPanel.cpp" hdr="effects/FacesPanel.h" fwddecl="1" i18n="1" name="FacesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FanPanel.wxs" src="effects/FanPanel.cpp" hdr="effects/FanPanel.h" fwddecl="1" i18n="1" name="FanPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FillPanel.wxs" src="effects/FillPanel.cpp" hdr="effects/FillPanel.h" fwddecl="1" i18n="1" name="FillPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/FindDataPanel.wxs" src="FindDataPanel.cpp" hdr="FindDataPanel.h" fwddecl="1" i18n="1" name="FindDataPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FirePanel.wxs" src="effects/FirePanel.cpp" hdr="effects/FirePanel.h" fwddecl="1" i18n="1" name="FirePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FireworksPanel.wxs" src="effects/FireworksPanel.cpp" hdr="effects/FireworksPanel.h" fwddecl="1" i18n="1" name="FireworksPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/GalaxyPanel.wxs" src="effects/GalaxyPanel.cpp" hdr="effects/GalaxyPanel.h" fwddecl="1" i18n="1" name="GalaxyPanel" language="CPP" />

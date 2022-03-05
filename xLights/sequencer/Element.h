@@ -46,6 +46,7 @@ public:
     virtual ~Element();
     
     virtual ElementType GetType() const = 0;
+    std::string GetTypeDescription() const;
 
     SequenceElements *GetSequenceElements() const {return parent;}
 
@@ -224,6 +225,7 @@ public:
         return mNodeLayers.size();
     }
 
+    int GetNodeNumber(NodeLayer* nl);
     std::string GetStrandName() const {
         if(GetName() == "")
             return wxString::Format("Strand %d", mStrand + 1).ToStdString();

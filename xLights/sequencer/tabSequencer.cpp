@@ -41,6 +41,7 @@
 #include "../HousePreviewPanel.h"
 #include "../UtilFunctions.h"
 #include "../JukeboxPanel.h"
+#include "../FindDataPanel.h"
 #include "../EffectsPanel.h"
 #include "../EffectAssist.h"
 #include "../ColorPanel.h"
@@ -142,6 +143,9 @@ void xLightsFrame::CreateSequencer()
 
     logger_base.debug("        Jukebox.");
     jukeboxPanel = new JukeboxPanel(PanelSequencer);
+    
+    logger_base.debug("        Find Data.");
+    _findDataPanel = new FindDataPanel(PanelSequencer);
 
     // DisplayElements Panel
     logger_base.debug("        Display Elements.");
@@ -173,7 +177,8 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(_valueCurvesPanel, wxAuiPaneInfo().Name(wxT("ValueCurveDropper")).Caption(wxT("Value Curves")).Top().Layer(0).Hide());
     m_mgr->AddPane(_coloursPanel, wxAuiPaneInfo().Name(wxT("ColourDropper")).Caption(wxT("Colours")).Top().Layer(0).Hide());
     m_mgr->AddPane(jukeboxPanel,wxAuiPaneInfo().Name(wxT("Jukebox")).Caption(wxT("Jukebox")).Top().Layer(0).Hide());
-    m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
+    m_mgr->AddPane(_findDataPanel, wxAuiPaneInfo().Name(wxT("FindData")).Caption(wxT("Find Data")).Top().Layer(0).Hide());
+    m_mgr->AddPane(colorPanel, wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
     m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
     m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0));
 

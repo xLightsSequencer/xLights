@@ -592,6 +592,10 @@ public:
         }
         return res;
     }
+    bool ContainsChannel(uint32_t startChannel, uint32_t endChannel) const;
+    bool ContainsChannel(int strand, uint32_t startChannel, uint32_t endChannel) const;
+    bool ContainsChannel(const std::string& submodelName, uint32_t startChannel, uint32_t endChannel) const;
+
     virtual void OnLayerSizesChange(bool countChanged) {}
     static const long ID_LAYERSIZE_DELETE;
     static const long ID_LAYERSIZE_INSERT;
@@ -616,6 +620,7 @@ public:
             }
         }
     }
+    uint32_t GetChannelForNode(int strandIndex, int node) const;
 
 protected:
     std::vector<int> layerSizes; // inside to outside

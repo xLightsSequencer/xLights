@@ -38,6 +38,30 @@ Element::~Element() {
     listener = nullptr; // dont delete it ... as it was a passed in sequence elements pointer ... but explicitly forget it so someone doesnt delete it later
 }
 
+std::string Element::GetTypeDescription() const
+{
+    switch (GetType()) {
+    case ElementType::ELEMENT_TYPE_MODEL: {
+        Model* m = GetSequenceElements()->GetXLightsFrame()->AllModels[GetModelName()];
+        if (m != nullptr) {
+            if (m->GetDisplayAs() == "ModelGroup") {
+                return "Model Group";
+            }
+            return "Model";
+        }
+        return "Model/Model Group";
+    }
+    case ElementType::ELEMENT_TYPE_SUBMODEL:
+        return "Submodel";
+    case ElementType::ELEMENT_TYPE_STRAND:
+        return "Strand";
+    case ElementType::ELEMENT_TYPE_TIMING:
+        return "Timing";
+    }
+
+    return "UNKNOWN";
+}
+
 void Element::CleanupAfterRender() {
     for (auto &a : mEffectLayers) {
         a->CleanupAfterRender();
@@ -348,6 +372,17 @@ NodeLayer* StrandElement::GetNodeLayer(int n) const
         return mNodeLayers[n];
     }
     return nullptr;
+}
+
+int StrandElement::GetNodeNumber(NodeLayer* nl)
+{
+    int nn = -1;
+    for (const auto& n : mNodeLayers) {
+        nn++;
+        if (n == nl)
+            return nn;
+    }
+    return -1;
 }
 
 void StrandElement::InitFromModel(Model &model) {

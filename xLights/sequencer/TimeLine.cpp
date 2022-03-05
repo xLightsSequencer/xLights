@@ -438,6 +438,14 @@ void TimeLine::RestorePosition()
     }
 }
 
+void TimeLine::SetTimelinePosition(int pos)
+{
+    if (pos >= 0 && pos <= mTimeLength) {
+        SetStartTimeMS(pos);
+        RaiseChangeTimeline();
+    }
+}
+
 void TimeLine::LatchSelectedPositions()
 {
     if (mSelectedPlayMarkerEndMS != -1)
