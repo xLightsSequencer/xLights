@@ -8623,25 +8623,30 @@ void xLightsFrame::OnMenuItem_CrashXLightsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     BatchRenderDialog dlg(this);
     if (dlg.Prepare(this->GetShowDirectory()) && dlg.ShowModal() == wxID_OK && CloseSequence()) {
         wxArrayString files = dlg.GetFileList();
         wxArrayString filesToRender;
         for (auto f : files) {
             wxFileName fname(this->GetShowDirectory() + wxFileName::GetPathSeparator() + f);
-            if(FileExists(fname))
+            if (FileExists(fname))
                 filesToRender.push_back(fname.GetFullPath());
             else
                 logger_base.info("BatchRender: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
         }
         if (filesToRender.size() > 0) {
             _renderMode = true;
+            _saveLowDefinitionRender = _lowDefinitionRender;
+            if (dlg.CheckBox_ForceHighDefinition->IsChecked()) {
+                _lowDefinitionRender = false;
+            }
             OpenRenderAndSaveSequences(filesToRender, false);
-            if (filesToRender.size() == 0) _renderMode = false;
-        }
-        else
-        {
+            if (filesToRender.size() == 0) {
+                _lowDefinitionRender = _saveLowDefinitionRender;
+                _renderMode = false;
+            }
+        } else {
             logger_base.info("BatchRender: No Sequences Selected.");
         }
     }

@@ -262,6 +262,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         _promptBatchRenderIssues = ReadBool(params["promptIssues"]);
 
         _renderMode = true;
+        _saveLowDefinitionRender = _lowDefinitionRender;
         OpenRenderAndSaveSequences(files, false);
 
         while (_renderMode) {

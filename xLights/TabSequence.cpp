@@ -1180,6 +1180,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (origFilenames.IsEmpty()) {
+        _lowDefinitionRender = _saveLowDefinitionRender;
         _renderMode = false;
         EnableSequenceControls(true);
         logger_base.debug("Batch render done.");
