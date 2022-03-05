@@ -944,6 +944,18 @@
     </ClCompile>
     <ClCompile Include="WindowsHardwareVideoReader.cpp" />
     <ClCompile Include="ColourReplaceDialog.cpp" />
+    <ClCompile Include="models\BoxedScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\PolyPointScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\ThreePointScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\TwoPointScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1894,6 +1906,18 @@
     </ClInclude>
     <ClInclude Include="WindowsHardwareVideoReader.h" />
     <ClInclude Include="ColourReplaceDialog.h" />
+    <ClInclude Include="models\BoxedScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\PolyPointScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\ThreePointScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\TwoPointScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
