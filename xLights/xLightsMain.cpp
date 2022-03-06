@@ -3091,6 +3091,8 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
 
     int playStatus = GetPlayStatus();
     SetPlayStatus(PLAY_TYPE_STOPPED);
+    
+    wxStopWatch sw;
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Writing house-preview video to %s.", (const char *)path.c_str());
@@ -3159,8 +3161,11 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
         m_mgr->Update();
     }
 
+    
     if (exportStatus) {
         logger_base.debug( "Finished writing house-preview video." );
+        float elapsedTime = sw.Time()/1000.0; //msec => sec
+        SetStatusText(wxString::Format("'%s' exported in %4.3f sec.", path.c_str(), elapsedTime));
     } else {
         DisplayError( "Exporting house preview video failed.  " + emsg, this );
     }
