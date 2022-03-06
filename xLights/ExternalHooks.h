@@ -44,6 +44,7 @@
 #define GetOSFormattedClipboardData() ""
 #define StartGraphicsSyncPoint()
 #define EndGraphicsSyncPoint()
+#define SetThreadQOS(a)
 
 inline double xlOSGetMainScreenContentScaleFactor() { return 1.0; }
 inline bool ObtainAccessToURL(const std::string &path) { return true; }

@@ -217,7 +217,9 @@ void JobPoolWorker::Entry()
                 logger_jobpool.debug("JobPoolWorker::Entry processing job.   %X", this);
                 status = RUNNING_JOB;
                 // Call user's implementation for processing request
+                SetThreadQOS(10);
                 ProcessJob(job);
+                SetThreadQOS(0);
                 logger_jobpool.debug("JobPoolWorker::Entry processed job.  %X", this);
                 status = IDLE;
                 --pool->inFlight;
