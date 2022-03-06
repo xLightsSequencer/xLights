@@ -6035,6 +6035,18 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             model->Selected = true;
             return model;
         }
+        else if (root->GetName() == "multipointmodel") {
+            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+            auto lg = model->GetLayoutGroup();
+            if (model != nullptr) {
+                xlights->AddTraceMessage("GetXlightsModel converted model to MultiPoint");
+                delete model;
+            }
+            model = xlights->AllModels.CreateDefaultModel("MultiPoint", startChannel);
+            model->SetLayoutGroup(lg);
+            model->Selected = true;
+            return model;
+        }
         else if (root->GetName() == "matrixmodel") {
 
             // grab the attributes I want to keep

@@ -35,6 +35,7 @@
 #include "WholeHouseModel.h"
 #include "SingleLineModel.h"
 #include "PolyLineModel.h"
+#include "MultiPointModel.h"
 #include "ModelGroup.h"
 #include "WindowFrameModel.h"
 #include "WreathModel.h"
@@ -1298,6 +1299,8 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         model = new SingleLineModel(node, *this, false);
     } else if (type == "Poly Line") {
         model = new PolyLineModel(node, *this, false);
+    } else if (type == "MultiPoint") {
+        model = new MultiPointModel(node, *this, false);
     } else if (type == "Cube") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "5");
@@ -1452,6 +1455,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         model = new SingleLineModel(node, *this, zeroBased);
     } else if (type == "Poly Line") {
         model = new PolyLineModel(node, *this, zeroBased);
+    } else if (type == "MultiPoint") {
+        model = new MultiPointModel(node, *this, zeroBased);
     } else if (type == "Cube") {
         model = new CubeModel(node, *this, zeroBased);
     } else if (type == "Custom") {
