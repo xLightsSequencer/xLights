@@ -627,6 +627,11 @@ void ViewsModelsPanel::RemoveSelectedModels()
         }
 
         if (!hasEffects || wxMessageBox("Delete all effects and layers for the selected model(s)?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+
+            // we need to unselect the current effect because we may be about to delete it
+            wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
+            wxPostEvent(GetParent(), eventUnSelected);
+
             for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
                 if (IsItemSelected(ListCtrlModels, i)) {
                     // Got a selected item so handle it
