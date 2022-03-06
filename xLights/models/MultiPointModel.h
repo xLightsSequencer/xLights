@@ -29,8 +29,8 @@ public:
     virtual void DeleteHandle(int handle) override;
 
     virtual bool SupportsXlightsModel() override { return true; }
-    //virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
-    //virtual void ExportXlightsModel() override;
+    virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+    virtual void ExportXlightsModel() override;
 
     virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
@@ -55,6 +55,7 @@ protected:
     }
     std::string ComputeStringStartNode(int x) const;
     int GetCustomNodeStringNumber(int node) const;
+    void NormalizePointData();
 
     float height = 1.0f;
     int _strings;

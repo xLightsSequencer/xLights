@@ -22,8 +22,8 @@
 
 #include "MultiPointModel.h"
 //#include "../support/VectorMath.h"
-//#include "../xLightsMain.h"
-//#include "../xLightsVersion.h"
+#include "../xLightsMain.h"
+#include "../xLightsVersion.h"
 //#include "UtilFunctions.h"
 //#include "../ModelPreview.h"
 
@@ -441,4 +441,202 @@ void MultiPointModel::DeleteHandle(int handle_) {
     // handle is offset by 1 due to the center handle at 0
     int handle = handle_ - 1;
     GetModelScreenLocation().DeleteHandle(handle);
+}
+
+void MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "multipointmodel") {
+        wxString name = root->GetAttribute("name");
+        wxString p1 = root->GetAttribute("parm1");
+        wxString p2 = root->GetAttribute("parm2");
+        wxString p3 = root->GetAttribute("parm3");
+        wxString st = root->GetAttribute("StringType");
+        wxString ps = root->GetAttribute("PixelSize");
+        wxString t = root->GetAttribute("Transparency");
+        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString a = root->GetAttribute("Antialias");
+        wxString ss = root->GetAttribute("StartSide");
+        wxString dir = root->GetAttribute("Dir");
+        wxString sn = root->GetAttribute("StrandNames");
+        wxString nn = root->GetAttribute("NodeNames");
+        wxString v = root->GetAttribute("SourceVersion");
+        wxString pts = root->GetAttribute("NumPoints");
+        wxString point_data = root->GetAttribute("PointData");
+        wxString pc = root->GetAttribute("PixelCount");
+        wxString pt = root->GetAttribute("PixelType");
+        wxString psp = root->GetAttribute("PixelSpacing");
+
+        // Add any model version conversion logic here
+        // Source version will be the program version that created the custom model
+
+        SetProperty("parm1", p1);
+        SetProperty("parm2", p2);
+        SetProperty("parm3", p3);
+        SetProperty("StringType", st);
+        SetProperty("PixelSize", ps);
+        SetProperty("Transparency", t);
+        SetProperty("ModelBrightness", mb);
+        SetProperty("Antialias", a);
+        SetProperty("StartSide", ss);
+        SetProperty("Dir", dir);
+        SetProperty("StrandNames", sn);
+        SetProperty("NodeNames", nn);
+        SetProperty("PixelCount", pc);
+        SetProperty("PixelType", pt);
+        SetProperty("PixelSpacing", psp);
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        SetProperty("name", newname, true);
+
+        ImportSuperStringColours(root);
+        ImportModelChildren(root, xlights, newname);
+
+        ModelXml->DeleteAttribute("NumPoints");
+        ModelXml->AddAttribute("NumPoints", pts);
+
+        ModelXml->DeleteAttribute("PointData");
+        ModelXml->AddAttribute("PointData", point_data);
+
+        GetModelScreenLocation().Read(ModelXml);
+
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::ImportXlightsModel");
+    } else {
+        DisplayError("Failure loading MultiPoint model file.");
+    }
+}
+
+void MultiPointModel::ExportXlightsModel()
+{
+    wxString name = ModelXml->GetAttribute("name");
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (filename.IsEmpty())
+        return;
+    wxFile f(filename);
+    //    bool isnew = !wxFile::Exists(filename);
+    if (!f.Create(filename, true) || !f.IsOpened())
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    wxString p1 = ModelXml->GetAttribute("parm1");
+    wxString p2 = ModelXml->GetAttribute("parm2");
+    wxString p3 = ModelXml->GetAttribute("parm3");
+    wxString st = ModelXml->GetAttribute("StringType");
+    wxString ps = ModelXml->GetAttribute("PixelSize");
+    wxString t = ModelXml->GetAttribute("Transparency");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString a = ModelXml->GetAttribute("Antialias");
+    wxString ss = ModelXml->GetAttribute("StartSide");
+    wxString dir = ModelXml->GetAttribute("Dir");
+    wxString sn = ModelXml->GetAttribute("StrandNames");
+    wxString nn = ModelXml->GetAttribute("NodeNames");
+    wxString pts = ModelXml->GetAttribute("NumPoints");
+    NormalizePointData();
+    wxString point_data = ModelXml->GetAttribute("PointData");
+    wxString v = xlights_version_string;
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<multipointmodel \n");
+    f.Write(wxString::Format("name=\"%s\" ", name));
+    f.Write(wxString::Format("parm1=\"%s\" ", p1));
+    f.Write(wxString::Format("parm2=\"%s\" ", p2));
+    f.Write(wxString::Format("parm3=\"%s\" ", p3));
+    f.Write(wxString::Format("StringType=\"%s\" ", st));
+    f.Write(wxString::Format("Transparency=\"%s\" ", t));
+    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
+    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
+    f.Write(wxString::Format("Antialias=\"%s\" ", a));
+    f.Write(wxString::Format("StartSide=\"%s\" ", ss));
+    f.Write(wxString::Format("Dir=\"%s\" ", dir));
+    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
+    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    f.Write(wxString::Format("NumPoints=\"%s\" ", pts));
+    f.Write(wxString::Format("PointData=\"%s\" ", point_data));
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
+    f.Write(" >\n");
+    wxString state = SerialiseState();
+    if (state != "") {
+        f.Write(state);
+    }
+    wxString submodel = SerialiseSubmodel();
+    if (submodel != "") {
+        f.Write(submodel);
+    }
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
+    }
+    f.Write("</multipointmodel>");
+    f.Close();
+}
+
+void MultiPointModel::NormalizePointData()
+{
+    // read in the point data from xml
+    int num_points = wxAtoi(ModelXml->GetAttribute("NumPoints"));
+    if (num_points < 2)
+        num_points = 2;
+    std::vector<xlMultiPoint> pPos(num_points);
+    wxString point_data = ModelXml->GetAttribute("PointData");
+    wxArrayString point_array = wxSplit(point_data, ',');
+    while (point_array.size() < num_points * 3)
+        point_array.push_back("0.0");
+    for (int i = 0; i < num_points; ++i) {
+        pPos[i].x = wxAtof(point_array[i * 3]);
+        pPos[i].y = wxAtof(point_array[i * 3 + 1]);
+        pPos[i].z = wxAtof(point_array[i * 3 + 2]);
+    }
+
+    float minX = 100000.0f;
+    float minY = 100000.0f;
+    float minZ = 100000.0f;
+    float maxX = 0.0f;
+    float maxY = 0.0f;
+    float maxZ = 0.0f;
+
+    for (int i = 0; i < num_points; ++i) {
+        if (pPos[i].x < minX)
+            minX = pPos[i].x;
+        if (pPos[i].y < minY)
+            minY = pPos[i].y;
+        if (pPos[i].z < minZ)
+            minZ = pPos[i].z;
+        if (pPos[i].x > maxX)
+            maxX = pPos[i].x;
+        if (pPos[i].y > maxY)
+            maxY = pPos[i].y;
+        if (pPos[i].z > maxZ)
+            maxZ = pPos[i].z;
+    }
+    float deltax = maxX - minX;
+    float deltay = maxY - minY;
+    float deltaz = maxZ - minZ;
+
+    // normalize all the point data
+    for (int i = 0; i < num_points; ++i) {
+        if (deltax == 0.0f) {
+            pPos[i].x = 0.0f;
+        } else {
+            pPos[i].x = (pPos[i].x - minX) / deltax;
+        }
+        if (deltay == 0.0f) {
+            pPos[i].y = 0.0f;
+        } else {
+            pPos[i].y = (pPos[i].y - minY) / deltay;
+        }
+        if (deltaz == 0.0f) {
+            pPos[i].z = 0.0f;
+        } else {
+            pPos[i].z = (pPos[i].z - minZ) / deltaz;
+        }
+    }
+
+    ModelXml->DeleteAttribute("PointData");
+    point_data = "";
+    for (int i = 0; i < num_points; ++i) {
+        point_data += wxString::Format("%f,", pPos[i].x);
+        point_data += wxString::Format("%f,", pPos[i].y);
+        point_data += wxString::Format("%f", pPos[i].z);
+        if (i != num_points - 1) {
+            point_data += ",";
+        }
+    }
+    ModelXml->AddAttribute("PointData", point_data);
 }
