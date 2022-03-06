@@ -1137,6 +1137,10 @@
 		<Unit filename="models/ModelManager.h" />
 		<Unit filename="models/ModelScreenLocation.cpp" />
 		<Unit filename="models/ModelScreenLocation.h" />
+		<Unit filename="models/MultiPointModel.cpp" />
+		<Unit filename="models/MultiPointModel.h" />
+		<Unit filename="models/MultiPointScreenLocation.cpp" />
+		<Unit filename="models/MultiPointScreenLocation.h" />
 		<Unit filename="models/Node.cpp" />
 		<Unit filename="models/Node.h" />
 		<Unit filename="models/ObjectManager.cpp" />
@@ -1708,6 +1712,9 @@
 					<wxDialog wxs="wxsmith/ColourReplaceDialog.wxs" src="ColourReplaceDialog.cpp" hdr="ColourReplaceDialog.h" fwddecl="0" i18n="1" name="ColourReplaceDialog" language="CPP" />
 				</resources>
 			</wxsmith>
+			<code_completion />
+			<envvars />
+			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

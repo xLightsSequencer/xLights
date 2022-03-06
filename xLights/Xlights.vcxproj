@@ -349,6 +349,8 @@
     <ClCompile Include="models\ImageModel.cpp" />
     <ClCompile Include="models\ImageObject.cpp" />
     <ClCompile Include="models\MeshObject.cpp" />
+    <ClCompile Include="models\MultiPointModel.cpp" />
+    <ClCompile Include="models\MultiPointScreenLocation.cpp" />
     <ClCompile Include="models\ObjectManager.cpp" />
     <ClCompile Include="models\PolyPointScreenLocation.cpp" />
     <ClCompile Include="models\RulerObject.cpp" />
@@ -802,6 +804,8 @@
     <ClInclude Include="models\ImageModel.h" />
     <ClInclude Include="models\ImageObject.h" />
     <ClInclude Include="models\MeshObject.h" />
+    <ClInclude Include="models\MultiPointModel.h" />
+    <ClInclude Include="models\MultiPointScreenLocation.h" />
     <ClInclude Include="models\ObjectManager.h" />
     <ClInclude Include="models\PolyPointScreenLocation.h" />
     <ClInclude Include="models\RulerObject.h" />

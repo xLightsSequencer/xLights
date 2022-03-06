@@ -957,6 +957,12 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="FindDataPanel.cpp" />
+    <ClCompile Include="models\MultiPointModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\MultiPointScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1920,6 +1926,12 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="FindDataPanel.h" />
+    <ClInclude Include="models\MultiPointModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\MultiPointScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
