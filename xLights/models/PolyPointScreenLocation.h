@@ -45,6 +45,7 @@ public:
     virtual int GetNumHandles() const override { return num_points; }
     virtual void SelectSegment(int segment) override;
     virtual int GetSelectedSegment() const override { return selected_segment; }
+    virtual bool SupportsCurves() const override {return true;}
     virtual bool HasCurve(int segment) const override { return mPos[segment].has_curve; }
     virtual void SetCurve(int seg_num, bool create = true) override;
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override;

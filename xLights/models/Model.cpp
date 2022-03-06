@@ -5458,6 +5458,10 @@ int Model::GetSelectedSegment() {
     return GetModelScreenLocation().GetSelectedSegment();
 }
 
+bool Model::SupportsCurves() {
+    return GetModelScreenLocation().SupportsCurves();
+}
+
 bool Model::HasCurve(int segment) {
     return GetModelScreenLocation().HasCurve(segment);
 }

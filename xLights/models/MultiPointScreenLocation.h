@@ -18,6 +18,8 @@ public:
     MultiPointScreenLocation();
     virtual ~MultiPointScreenLocation();
 
+    virtual bool SupportsCurves() const override {return false;}
+
 protected:
 
 };

@@ -4427,14 +4427,17 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
             if( sel_seg != -1 ) {
                 if( !model->HasCurve(sel_seg) ) {
                     menu.Append(ID_PREVIEW_MODEL_ADDPOINT,"Add Point");
-                    menu.Append(ID_PREVIEW_MODEL_ADDCURVE,"Define Curve");
+                    if( model->SupportsCurves() ) {
+                        menu.Append(ID_PREVIEW_MODEL_ADDCURVE,"Define Curve");
+                    }
                 } else {
                     menu.Append(ID_PREVIEW_MODEL_DELCURVE,"Remove Curve");
                 }
                 need_sep = true;
             }
             int sel_hdl = model->GetSelectedHandle();
-            if( (sel_hdl != -1) && (sel_hdl < 0x4000) && (sel_hdl < model->GetNumHandles()) && (model->GetNumHandles() > 2) ) {
+            // Center handle is 0 and selected segments are greater than 0x4000
+            if( (sel_hdl > 0) && (sel_hdl < 0x4000) && (sel_hdl < model->GetNumHandles()) && (model->GetNumHandles() > 2) ) {
                 menu.Append(ID_PREVIEW_MODEL_DELETEPOINT,"Delete Point");
                 need_sep = true;
             }

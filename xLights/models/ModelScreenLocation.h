@@ -118,16 +118,17 @@ protected:
     virtual bool Rotate(MSLAXIS axis, float factor) = 0;
     virtual bool Scale(const glm::vec3& factor) = 0;
 
-    virtual void SelectHandle(int handle) = 0;
-    virtual int GetSelectedHandle() const = 0;
-    virtual int GetNumHandles() const = 0;
-    virtual void SelectSegment(int segment) = 0;
-    virtual int GetSelectedSegment() const = 0;
-    virtual bool HasCurve(int segment) const = 0;
-    virtual void SetCurve(int segment, bool create = true) = 0;
-    virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) = 0;
-    virtual void InsertHandle(int after_handle, float zoom, int scale) = 0;
-    virtual void DeleteHandle(int handle) = 0;
+    virtual void SelectHandle(int handle) {}
+    virtual int GetSelectedHandle() const {return NO_HANDLE;}
+    virtual int GetNumHandles() const {return NO_HANDLE;}
+    virtual void SelectSegment(int segment) {}
+    virtual int GetSelectedSegment() const {return NO_HANDLE;}
+    virtual bool SupportsCurves() const {return false;}
+    virtual bool HasCurve(int segment) const {return false;}
+    virtual void SetCurve(int segment, bool create = true) {}
+    virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) {}
+    virtual void InsertHandle(int after_handle, float zoom, int scale) {}
+    virtual void DeleteHandle(int handle) {}
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) = 0;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) = 0;
     virtual void UpdateBoundingBox(float width, float height, float depth);

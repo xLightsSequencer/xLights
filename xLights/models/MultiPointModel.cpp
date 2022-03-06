@@ -154,6 +154,7 @@ void MultiPointModel::InitModel()
 // parm2=Pixels Per String/Arch/Cane
 void MultiPointModel::InitLine() {
     int numLights = parm1 * parm2;
+    Nodes.clear();
     SetNodeCount(parm1,parm2,rgbOrder);
     SetBufferSize(1,SingleNode?parm1:numLights);
     int LastStringNum=-1;
@@ -434,4 +435,10 @@ int MultiPointModel::GetNumPhysicalStrings() const
             strings = 1;
         return strings;
     }
+}
+
+void MultiPointModel::DeleteHandle(int handle_) {
+    // handle is offset by 1 due to the center handle at 0
+    int handle = handle_ - 1;
+    GetModelScreenLocation().DeleteHandle(handle);
 }

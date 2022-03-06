@@ -26,6 +26,7 @@ public:
     virtual bool SupportsExportAsCustom() const override { return false; }
     virtual bool SupportsWiringView() const override { return false; }
     virtual int GetNumPhysicalStrings() const override;
+    virtual void DeleteHandle(int handle) override;
 
     virtual bool SupportsXlightsModel() override { return true; }
     //virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;

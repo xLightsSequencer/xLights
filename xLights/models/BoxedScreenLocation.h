@@ -40,16 +40,6 @@ public:
     virtual bool Rotate(MSLAXIS axis, float factor) override;
     virtual bool Scale(const glm::vec3& factor) override;
 
-    virtual void SelectHandle(int handle) override {}
-    virtual int GetSelectedHandle() const override {return -1;}
-    virtual int GetNumHandles() const override {return -1;}
-    virtual void SelectSegment(int segment) override {}
-    virtual int GetSelectedSegment() const override {return -1;}
-    virtual bool HasCurve(int segment) const override {return false;}
-    virtual void SetCurve(int segment, bool create = true) override {}
-    virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
-    virtual void InsertHandle(int after_handle, float zoom, int scale) override {}
-    virtual void DeleteHandle(int handle) override {}
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
     virtual void UpdateBoundingBox(float width, float height, float depth) override;
