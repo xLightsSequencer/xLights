@@ -168,7 +168,7 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     if (NumberWaves == 0) {
         NumberWaves = 1;
     }
-    float state = (float)(buffer.curPeriod - buffer.curEffStartPer) * wspeed * (float)(buffer.frameTimeInMs / 50);
+    float state = (float)(buffer.curPeriod - buffer.curEffStartPer) * wspeed * ((float)buffer.frameTimeInMs / 50.0);
 
     double yc = buffer.BufferHt / 2.0;
     double r = yc;
