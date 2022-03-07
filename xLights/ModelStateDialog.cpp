@@ -806,6 +806,8 @@ void ModelStateDialog::AddLabel(wxString label)
     }
     else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
         grid = NodeRangeGrid;
+    } else {
+        return;
     }
 
     for (int i = 0; i < grid->GetNumberRows(); i++)
@@ -887,23 +889,32 @@ void ModelStateDialog::OnButton_7SegmentClick(wxCommandEvent& event)
 
 void ModelStateDialog::ValidateWindow()
 {
-    if (NameChoice->GetStringSelection() == "")
-    {
+    if (NameChoice->GetStringSelection() == "") {
         NodeRangeGrid->Disable();
         SingleNodeGrid->Disable();
         Button_7Seg->Disable();
         Button_7Segment->Disable();
         CustomColorSingleNode->Disable();
         CustomColorNodeRanges->Disable();
-    }
-    else
-    {
+    } else {
         NodeRangeGrid->Enable();
         SingleNodeGrid->Enable();
         Button_7Seg->Enable();
         Button_7Segment->Enable();
         CustomColorSingleNode->Enable();
         CustomColorNodeRanges->Enable();
+    }
+
+    if (CustomColorSingleNode->IsChecked()) {
+        SingleNodeGrid->ShowCol(COLOUR_COL);
+    } else {
+        SingleNodeGrid->HideCol(COLOUR_COL);
+    }
+
+    if (CustomColorNodeRanges->IsChecked()) {
+        NodeRangeGrid->ShowCol(COLOUR_COL);
+    } else {
+        NodeRangeGrid->HideCol(COLOUR_COL);
     }
 }
 
