@@ -230,13 +230,15 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 
     if (_frames > 0)
 	{
-        if (_videoStream->avg_frame_rate.num != 0)
-        {
-            _lengthMS = ((double)_frames * (double)_videoStream->avg_frame_rate.den * 1000.0) / (double)_videoStream->avg_frame_rate.num;
-        }
-        else
-        {
-            logger_base.info("VideoReader: _videoStream->avg_frame_rate.num = 0");
+        if (_videoStream->r_frame_rate.num != 0) {
+            // r_frame_rate seems more accurate when it is there ... avg_frame_rate for some formats has an off by 1 problem
+            _lengthMS = ((double)_frames * (double)_videoStream->r_frame_rate.den * 1000.0) / (double)_videoStream->r_frame_rate.num;
+        } else {
+            if (_videoStream->avg_frame_rate.num != 0) {
+                _lengthMS = ((double)_frames * (double)_videoStream->avg_frame_rate.den * 1000.0) / (double)_videoStream->avg_frame_rate.num;
+            } else {
+                logger_base.info("VideoReader: _videoStream->avg_frame_rate.num = 0");
+            }
         }
     }
 
@@ -298,6 +300,8 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     logger_base.info("      Length MS: %.2f", _lengthMS);
     logger_base.info("      _videoStream->time_base.num: %d", _videoStream->time_base.num);
     logger_base.info("      _videoStream->time_base.den: %d", _videoStream->time_base.den);
+    logger_base.info("      _videoStream->r_frame_rate.num: %d", _videoStream->r_frame_rate.num);
+    logger_base.info("      _videoStream->r_frame_rate.den: %d", _videoStream->r_frame_rate.den);
     logger_base.info("      _videoStream->avg_frame_rate.num: %d", _videoStream->avg_frame_rate.num);
     logger_base.info("      _videoStream->avg_frame_rate.den: %d", _videoStream->avg_frame_rate.den);
     logger_base.info("      DTS per sec: %f", _dtspersec);
