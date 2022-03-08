@@ -382,7 +382,10 @@ int ArchesModel::MapToNodeIndex(int strand, int node) const {
     return strand * parm2 + node;
 }
 int ArchesModel::GetNumStrands() const {
-     return parm1;
+    if (GetLayerSizeCount() != 0) {
+        return GetLayerSizeCount();
+    }
+    return parm1;
 }
 int ArchesModel::CalcCannelsPerString()
 {

@@ -37,6 +37,8 @@ static const std::string PER_MODEL_DEFAULT("Per Model Default");
 static const std::string PER_MODEL_PER_PREVIEW("Per Model Per Preview");
 static const std::string PER_MODEL_SINGLE_LINE("Per Model Single Line");
 static const std::string PER_MODEL_DEFAULT_DEEP("Per Model Default Deep");
+static const std::string PER_MODEL_VERT_STRAND("Per Model Vertical Per Strand");
+static const std::string PER_MODEL_HORIZ_STRAND("Per Model Horizontal Per Strand");
 
 std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES;
 
@@ -282,6 +284,9 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
             GROUP_BUFFER_STYLES.push_back(PER_MODEL_SINGLE_LINE);
 
             GROUP_BUFFER_STYLES.push_back(PER_MODEL_DEFAULT_DEEP);
+
+            GROUP_BUFFER_STYLES.push_back( PER_MODEL_VERT_STRAND);
+            GROUP_BUFFER_STYLES.push_back( PER_MODEL_HORIZ_STRAND);
         }
     };
     static Initializer ListInitializationGuard;
