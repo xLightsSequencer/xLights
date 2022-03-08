@@ -599,6 +599,11 @@ std::string ControllerCaps::GetID() const {
     return name.ToStdString();
 }
 
+std::string ControllerCaps::GetPreferredInputProtocol() const
+{
+    return GetXmlNodeContent(_config, "PreferredInputProtocol", "");
+}
+
 std::vector<std::string> ControllerCaps::GetSmartRemoteTypes() const {
     if (!SupportsSmartRemotes()) {
         return { "" };

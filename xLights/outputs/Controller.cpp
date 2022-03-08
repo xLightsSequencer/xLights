@@ -463,6 +463,51 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
 
     propertyGrid->Append(new wxStringProperty("Description", "ControllerDescription", GetDescription()));
 
+    int v = 0;
+    wxPGChoices vendors;
+    for (const auto& it : ControllerCaps::GetVendors(GetType())) {
+        vendors.Add(it);
+        if (it == _vendor) {
+            v = vendors.GetCount() - 1;
+        }
+    }
+    if (vendors.GetCount() > 0) {
+        propertyGrid->Append(new wxEnumProperty("Vendor", "Vendor", vendors, v));
+
+        if (_vendor != "") {
+            int m = 0;
+            wxPGChoices models;
+            for (const auto& it : ControllerCaps::GetModels(GetType(), _vendor)) {
+                models.Add(it);
+                if (it == _model) {
+                    m = models.GetCount() - 1;
+                }
+            }
+            if (models.GetCount() > 0) {
+                propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
+
+                if (_model != "") {
+                    int v = -1;
+                    wxPGChoices versions;
+                    std::list<std::string> variants = ControllerCaps::GetVariants(GetType(), _vendor, _model);
+                    for (const auto& it : variants) {
+                        versions.Add(it);
+                        if (it == _variant) {
+                            v = versions.GetCount() - 1;
+                        }
+                    }
+                    if (versions.GetCount() > 1) {
+                        if (v == -1) {
+                            v = 0;
+                            _variant = variants.front();
+                        }
+                        propertyGrid->Append(new wxEnumProperty("Variant", "Variant", versions, v));
+                    }
+                }
+            }
+        }
+    }
+
     if (IsNeedsId()) {
         p = propertyGrid->Append(new wxUIntProperty("Id", "ControllerId", GetId()));
         p->SetAttribute("Min", 1);
@@ -513,51 +558,7 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
     }
     p = propertyGrid->Append(new wxEnumProperty("Active", "Active", ACTIVETYPENAMES, wxArrayInt(), (int)_active));
     p->SetHelpString("When inactive no data is output and any upload to FPP or xSchedule will also not output to the lights. When xLights only it will output when played in xLights but again FPP and xSchedule will not output to the lights.");
-
-    int v = 0;
-    wxPGChoices vendors;
-    for (const auto& it : ControllerCaps::GetVendors(GetType())) {
-        vendors.Add(it);
-        if (it == _vendor) {
-            v = vendors.GetCount() - 1;
-        }
-    }
-    if (vendors.GetCount() > 0) {
-        propertyGrid->Append(new wxEnumProperty("Vendor", "Vendor", vendors, v));
-
-        if (_vendor != "") {
-            int m = 0;
-            wxPGChoices models;
-            for (const auto& it : ControllerCaps::GetModels(GetType(), _vendor)) {
-                models.Add(it);
-                if (it == _model) {
-                    m = models.GetCount() - 1;
-                }
-            }
-            if (models.GetCount() > 0) {
-                propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
-
-                if (_model != "") {
-                    int v = -1;
-                    wxPGChoices versions;
-                    std::list<std::string> variants = ControllerCaps::GetVariants(GetType(), _vendor, _model);
-                    for (const auto& it : variants) {
-                        versions.Add(it);
-                        if (it == _variant) {
-                            v = versions.GetCount() - 1;
-                        }
-                    }
-                    if (versions.GetCount() > 1) {
-                        if (v == -1) {
-                            v = 0;
-                            _variant = variants.front();
-                        }
-                        propertyGrid->Append(new wxEnumProperty("Variant", "Variant", versions, v));
-                    }
-                }
-            }
-        }
-    }
+       
 
     if (SupportsSuppressDuplicateFrames()) {
         p = propertyGrid->Append(new wxBoolProperty("Suppress Duplicate Frames", "SuppressDuplicates", IsSuppressDuplicateFrames()));

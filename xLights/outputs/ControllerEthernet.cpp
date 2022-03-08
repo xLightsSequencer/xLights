@@ -496,6 +496,14 @@ std::string ControllerEthernet::GetColumn3Label() const {
 void ControllerEthernet::VMVChanged()
 {
     SetUniversePerString(false);
+    auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
+    if (c != nullptr) {
+        auto const& prefer = c->GetPreferredInputProtocol();
+        bool autoLayout = IsAutoLayout();
+        if (!prefer.empty() && autoLayout) {
+            SetProtocol(prefer);
+        }
+    }
 }
 
 Output::PINGSTATE ControllerEthernet::Ping() {

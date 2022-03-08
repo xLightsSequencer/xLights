@@ -115,6 +115,7 @@ public:
     std::string GetVariantName() const;
     std::string GetID() const;
 
+    std::string GetPreferredInputProtocol() const;
 
     std::vector<std::string> GetInputProtocols() const;
     std::vector<std::string> GetPixelProtocols() const;

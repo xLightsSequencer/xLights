@@ -26,7 +26,7 @@
         </Variant>
     </Controller>
     <AbstractVariant Name="BaseFPPSettings">
-		<SupportsPixelPortCommonSettings/>
+        <SupportsPixelPortCommonSettings/>
         <SupportsUpload/>
         <SupportsInputOnlyUpload/>
         <MaxInputUniverses>1000</MaxInputUniverses>
@@ -38,13 +38,14 @@
         <SupportsMultipleSimultaneousInputProtocols/>
         <SupportsAutoUpload/>
         <SupportsFullxLightsControl/>
+        <PreferredInputProtocol>DDP</PreferredInputProtocol>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCape" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
         <MaxPixelPortChannels>4200</MaxPixelPortChannels>
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
-		<SupportsRemotes/>
+        <SupportsRemotes/>
         <SupportsSmartRemotes>6</SupportsSmartRemotes>
         <AllSmartRemoteTypesPerPortMustBeSame/>
         <SupportsPixelPortEndNullPixels/>
