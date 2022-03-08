@@ -128,12 +128,12 @@ class LayoutPanel: public wxPanel
 		static const long ID_PANEL3;
 		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
+		static const long ID_CHECKBOX_3D;
 		static const long ID_CHECKBOXOVERLAP;
 		static const long ID_BUTTON_SAVE_PREVIEW;
 		static const long ID_PANEL5;
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE_PREVIEWS;
-		static const long ID_CHECKBOX_3D;
 		static const long ID_SCROLLBAR1;
 		static const long ID_SCROLLBAR2;
 		static const long ID_PANEL1;

@@ -107,12 +107,12 @@ const long LayoutPanel::ID_NOTEBOOK_OBJECTS = wxNewId();
 const long LayoutPanel::ID_PANEL3 = wxNewId();
 const long LayoutPanel::ID_PANEL2 = wxNewId();
 const long LayoutPanel::ID_SPLITTERWINDOW1 = wxNewId();
+const long LayoutPanel::ID_CHECKBOX_3D = wxNewId();
 const long LayoutPanel::ID_CHECKBOXOVERLAP = wxNewId();
 const long LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PANEL5 = wxNewId();
 const long LayoutPanel::ID_STATICTEXT1 = wxNewId();
 const long LayoutPanel::ID_CHOICE_PREVIEWS = wxNewId();
-const long LayoutPanel::ID_CHECKBOX_3D = wxNewId();
 const long LayoutPanel::ID_SCROLLBAR1 = wxNewId();
 const long LayoutPanel::ID_SCROLLBAR2 = wxNewId();
 const long LayoutPanel::ID_PANEL1 = wxNewId();
@@ -324,14 +324,13 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	FlexGridSizerPreview->AddGrowableCol(0);
 	FlexGridSizerPreview->AddGrowableRow(0);
 	SplitterWindow2 = new wxSplitterWindow(this, ID_SPLITTERWINDOW2, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW2"));
-	SplitterWindow2->SetMinSize(wxSize(10,10));
+	SplitterWindow2->SetMinimumPaneSize(10);
 	SplitterWindow2->SetSashGravity(0.5);
 	LeftPanel = new wxPanel(SplitterWindow2, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
 	LeftPanelSizer = new wxFlexGridSizer(0, 1, 0, 0);
 	LeftPanelSizer->AddGrowableCol(0);
 	LeftPanelSizer->AddGrowableRow(0);
 	ModelSplitter = new wxSplitterWindow(LeftPanel, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	ModelSplitter->SetMinSize(wxSize(100,100));
 	ModelSplitter->SetMinimumPaneSize(100);
 	ModelSplitter->SetSashGravity(0.5);
 	FirstPanel = new wxPanel(ModelSplitter, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
@@ -345,13 +344,14 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	Notebook_Objects->AddPage(PanelObjects, _("3D Objects"), false);
 	FlexGridSizer4->Add(Notebook_Objects, 1, wxALL|wxEXPAND, 1);
 	FirstPanel->SetSizer(FlexGridSizer4);
-	FlexGridSizer4->Fit(FirstPanel);
-	FlexGridSizer4->SetSizeHints(FirstPanel);
 	SecondPanel = new wxPanel(ModelSplitter, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	ModelSplitter->SplitHorizontally(FirstPanel, SecondPanel);
 	LeftPanelSizer->Add(ModelSplitter, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
+	CheckBox_3D = new wxCheckBox(LeftPanel, ID_CHECKBOX_3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_3D"));
+	CheckBox_3D->SetValue(false);
+	FlexGridSizer3->Add(CheckBox_3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBoxOverlap = new wxCheckBox(LeftPanel, ID_CHECKBOXOVERLAP, _("Overlap checks enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXOVERLAP"));
 	CheckBoxOverlap->SetValue(false);
 	FlexGridSizer3->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -360,8 +360,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	FlexGridSizer2->Add(ButtonSavePreview, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	LeftPanelSizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	LeftPanel->SetSizer(LeftPanelSizer);
-	LeftPanelSizer->Fit(LeftPanel);
-	LeftPanelSizer->SetSizeHints(LeftPanel);
 	PreviewGLPanel = new wxPanel(SplitterWindow2, ID_PANEL1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_PANEL1"));
 	PreviewGLSizer = new wxFlexGridSizer(2, 1, 0, 0);
 	PreviewGLSizer->AddGrowableCol(0);
@@ -378,9 +376,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	FlexGridSizer1->Add(StaticText1, 1, wxLEFT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 40);
 	ChoiceLayoutGroups = new wxChoice(PreviewGLPanel, ID_CHOICE_PREVIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PREVIEWS"));
 	FlexGridSizer1->Add(ChoiceLayoutGroups, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_3D = new wxCheckBox(PreviewGLPanel, ID_CHECKBOX_3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_3D"));
-	CheckBox_3D->SetValue(false);
-	FlexGridSizer1->Add(CheckBox_3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PreviewGLSizer->Add(FlexGridSizer1, 1, wxALL|wxALIGN_LEFT, 3);
 	LayoutGLSizer = new wxFlexGridSizer(0, 2, 0, 0);
 	LayoutGLSizer->AddGrowableCol(0);
@@ -394,20 +389,16 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	LayoutGLSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	PreviewGLSizer->Add(LayoutGLSizer, 1, wxALL|wxEXPAND, 0);
 	PreviewGLPanel->SetSizer(PreviewGLSizer);
-	PreviewGLSizer->Fit(PreviewGLPanel);
-	PreviewGLSizer->SetSizeHints(PreviewGLPanel);
 	SplitterWindow2->SplitVertically(LeftPanel, PreviewGLPanel);
 	FlexGridSizerPreview->Add(SplitterWindow2, 1, wxALL|wxEXPAND, 1);
 	SetSizer(FlexGridSizerPreview);
-	FlexGridSizerPreview->Fit(this);
-	FlexGridSizerPreview->SetSizeHints(this);
 
 	Connect(ID_NOTEBOOK_OBJECTS,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnNotebook_ObjectsPageChanged);
 	Connect(ID_SPLITTERWINDOW1,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnModelSplitterSashPosChanged);
+	Connect(ID_CHECKBOX_3D,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBox_3DClick);
 	Connect(ID_CHECKBOXOVERLAP,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBoxOverlapClick);
 	Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonSavePreviewClick);
 	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnChoiceLayoutGroupsSelect);
-	Connect(ID_CHECKBOX_3D,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBox_3DClick);
 	Connect(ID_SPLITTERWINDOW2,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
 	//*)
 
