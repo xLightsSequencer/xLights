@@ -870,7 +870,12 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     if (height % 2 > 0) height++;
     logger_base.debug("   Video dimensions %dx%d => %dx%d.", origwidth, origheight, width, height);
     logger_base.debug("   Video frames %ld.", endFrame - startFrame);
-    unsigned framesPerSec = 1000u / dataBuf->FrameTime();
+
+    // we need a num/den where the den > 10,000 ... if we dont do this then the timing can get slightly distorted
+    uint32_t scale = (11000 * dataBuf->FrameTime()) / 1000u; // we need to multiple num and denom by this to generate the right scale
+    uint32_t num = scale;
+    uint32_t den = (1000 * scale) / dataBuf->FrameTime();
+    uint32_t fps = 1000u / dataBuf->FrameTime();
 
     av_log_set_callback(my_av_log_callback);
 
@@ -897,28 +902,28 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
         return;
     }
 
-
     // Create a video stream
     AVStream* video_st = avformat_new_stream(oc, nullptr);
     if (video_st == nullptr) {
         logger_base.error("   Cannot allocate stream.");
         return;
     }
-    video_st->time_base.num = 1;
-    video_st->time_base.den = framesPerSec;
+    video_st->time_base.num = num;
+    video_st->time_base.den = den;
     video_st->id = oc->nb_streams - 1;
+    video_st->duration = num * (endFrame - startFrame);
 
     // Configure the codec
     AVCodecContext* codecContext = avcodec_alloc_context3( codec );
     codecContext->width = width;
     codecContext->height = height;
-    codecContext->time_base.num = 1;
-    codecContext->time_base.den = framesPerSec;
+    codecContext->time_base.num = num;
+    codecContext->time_base.den = den;
     codecContext->gop_size = 12; // key frame gap ... 1 is all key frames
     codecContext->max_b_frames = 1;
     codecContext->pix_fmt = AVPixelFormat::AV_PIX_FMT_YUV420P;
     if (!compressed) {
-        codecContext->bit_rate = framesPerSec * width * height * 3 * 8;
+        codecContext->bit_rate = fps * width * height * 3 * 8;
         codecContext->gop_size = 1;
         codecContext->has_b_frames = 0;
         codecContext->max_b_frames = 0;
@@ -976,7 +981,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     } else if (AV_CODEC_ID_RAWVIDEO == codec->id) {
         video_st->codecpar->codec_tag = MKTAG('r','a','w',' ');
     }
-    AVRational r = {(int)framesPerSec, 1};
+    AVRational r = {(int)den, (int)num};
     video_st->avg_frame_rate = r;
     video_st->r_frame_rate = r;
 
@@ -1032,6 +1037,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
 
     frame->pts = 0;
     for (size_t i = startFrame; i < endFrame; i++) {
+
         // Create a bitmap with the current frame
         wxImage image(origwidth, origheight, true);
         FillImage(image, model, (uint8_t*)&(*dataBuf)[i][0], startAddr, false);
@@ -1055,9 +1061,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
         }
 
         AVPacket* pkt = av_packet_alloc();
-        //av_init_packet(pkt);
-
-        ret = avcodec_send_frame(codecContext, frame);
+        ret = ::avcodec_send_frame(codecContext, frame);
         if ( ret < 0 ) {
             logger_base.error("   Error encoding frame %d.", ret);
             return;
@@ -1081,7 +1085,6 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     // render out any buffered data
     {
         AVPacket* pkt = av_packet_alloc();
-        //av_init_packet(pkt);
         ret = avcodec_send_frame(codecContext, nullptr);
         while (1) {
             ret = avcodec_receive_packet(codecContext, pkt);
