@@ -19,9 +19,9 @@ SketchEffect::~SketchEffect()
 
 }
 
-void SketchEffect::Render( Effect* effect, SettingsMap& settings, RenderBuffer& buffer )
+void SketchEffect::Render(Effect* /*effect*/, SettingsMap& /*settings*/, RenderBuffer& /*buffer*/ )
 {
-
+   // This is a terrible effect... it currently does nothing!!
 }
 
 void SketchEffect::SetDefaultParameters()
@@ -36,10 +36,14 @@ bool SketchEffect::needToAdjustSettings( const std::string& /*version*/ )
 
 void SketchEffect::adjustSettings( const std::string& version, Effect* effect, bool removeDefaults/*=true*/ )
 {
-
+    // give the base class a chance to adjust any settings
+    if ( RenderableEffect::needToAdjustSettings( version ) )
+    {
+        RenderableEffect::adjustSettings( version, effect, removeDefaults );
+    }
 }
 
-std::list<std::string> SketchEffect::CheckEffectSettings( const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache )
+std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& /*settings*/, AudioManager* /*media*/, Model* /*model*/, Effect* /*eff*/, bool /*renderCache*/ )
 {
     return std::list<std::string>();
 }
