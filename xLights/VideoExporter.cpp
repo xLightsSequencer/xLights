@@ -198,7 +198,7 @@ bool GenericVideoExporter::initializeVideo( const AVCodec* codec )
     _videoCodecContext->thread_count = 8;
     if (codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
         _videoCodecContext->pix_fmt = AV_PIX_FMT_VIDEOTOOLBOX;
-        ::av_opt_set( _videoCodecContext->priv_data, "q:v", "60", AV_OPT_SEARCH_CHILDREN );
+        ::av_opt_set_int(_videoCodecContext->priv_data, "allow_sw", 1, AV_OPT_SEARCH_CHILDREN);
     } else {
         ::av_opt_set( _videoCodecContext->priv_data, "preset", "fast", 0 );
         ::av_opt_set( _videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN );

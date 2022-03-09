@@ -884,13 +884,10 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
 #if LIBAVFORMAT_VERSION_MAJOR < 58
     av_register_all();
 #endif
-
     const char* filename = filenames.c_str();
-#ifdef __WXOSX__
-    AVCodecID vc = AVCodecID::AV_CODEC_ID_H264;
-#else
-    AVCodecID vc = compressed ? AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_RAWVIDEO;
-#endif
+
+    //AVCodecID vc = !EndsWith(filename, ".avi") ? (compressed ? AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_HEVC) : AVCodecID::AV_CODEC_ID_RAWVIDEO;
+    AVCodecID vc = !EndsWith(filename, ".avi") ?  AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_RAWVIDEO;
     const AVCodec* codec = ::avcodec_find_encoder(vc);
     if (codec == nullptr) {
         // h264/h265 not working, stick with original guess (likely mpeg4)
@@ -900,17 +897,11 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     // Create the codec context that will configure the codec
     AVFormatContext* oc = nullptr;
     AVDictionary* av_opts = nullptr;
-#ifndef __WXOSX__
-    if (compressed) {
-#endif
+    if (vc != AVCodecID::AV_CODEC_ID_RAWVIDEO) {
         av_dict_set(&av_opts, "brand", "mp42", 0);
         av_dict_set(&av_opts, "movflags", "+disable_chpl+write_colr", 0);
-#ifdef __WXOSX__
-        avformat_alloc_output_context2(&oc, nullptr, "mp4", filename);
-#else
     }
-    avformat_alloc_output_context2(&oc, nullptr, compressed ? "mp4" : "avi", filename);
-#endif
+    avformat_alloc_output_context2(&oc, nullptr, EndsWith(filename, ".avi") ? "avi" : "mp4", filename);
     if (oc == nullptr) {
         logger_base.warn("   Could not create output context.");
         return;
@@ -937,24 +928,35 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     codecContext->max_b_frames = 1;
     codecContext->pix_fmt = AVPixelFormat::AV_PIX_FMT_YUV420P;
     if (!compressed) {
-        codecContext->bit_rate = fps * width * height * 3 * 8;
-#ifdef __WXOSX__
-        codecContext->gop_size = 1;
-        codecContext->has_b_frames = 0;
-        codecContext->max_b_frames = 0;
-#endif
+        if (vc == AVCodecID::AV_CODEC_ID_H264) {
+            codecContext->bit_rate = fps * width * height * 3 * 8;
+            codecContext->gop_size = 1;
+            codecContext->has_b_frames = 0;
+            codecContext->max_b_frames = 0;
+        }
+        if (vc == AVCodecID::AV_CODEC_ID_HEVC ) {
+            codecContext->bit_rate = fps * width * height * 4 * 8;
+            codecContext->pix_fmt = AVPixelFormat::AV_PIX_FMT_BGRA;
+            codecContext->gop_size = 1;
+            codecContext->has_b_frames = 0;
+            codecContext->max_b_frames = 0;
+        }
     }
-    if (codecContext->codec_id == AVCodecID::AV_CODEC_ID_H264) {
+    if (codecContext->codec_id == AVCodecID::AV_CODEC_ID_H264 || codecContext->codec_id == AVCodecID::AV_CODEC_ID_HEVC) {
         if (codec->pix_fmts[0] == AVPixelFormat::AV_PIX_FMT_VIDEOTOOLBOX) {
             if (!compressed) {
-                ::av_opt_set(codecContext, "q:v", "12800", AV_OPT_SEARCH_CHILDREN);
-            } else {
-                ::av_opt_set(codecContext, "q:v", "60", AV_OPT_SEARCH_CHILDREN);
+#if defined(__aarch64__)
+                codecContext->flags |= AV_CODEC_FLAG_QSCALE;
+                codecContext->global_quality = (FF_QP2LAMBDA * 100) - 1;
+#else
+                codecContext->rc_max_rate = codecContext->bit_rate;
+#endif
             }
+            ::av_opt_set_int(codecContext, "allow_sw", 1, AV_OPT_SEARCH_CHILDREN);
         } else {
-            ::av_opt_set(codecContext, "preset", "fast", AV_OPT_SEARCH_CHILDREN);
             if (!compressed) {
                 ::av_opt_set(codecContext, "crf", "0", AV_OPT_SEARCH_CHILDREN);
+                ::av_opt_set(codecContext, "crf_max", "0", AV_OPT_SEARCH_CHILDREN);
                 ::av_opt_set(codecContext, "qp", "0", AV_OPT_SEARCH_CHILDREN);
             } else {
                 ::av_opt_set(codecContext, "crf", "18", AV_OPT_SEARCH_CHILDREN);
@@ -989,13 +991,16 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         logger_base.error("   Cannot init video stream from codec context");
         return;
     }
+    
     video_st->disposition |= AV_DISPOSITION_DEFAULT;
     if (AV_CODEC_ID_H264 == codec->id) {
         video_st->codecpar->codec_tag = MKTAG('a', 'v', 'c', '1');
+    } else if (AV_CODEC_ID_HEVC == codec->id) {
+        video_st->codecpar->codec_tag = MKTAG('h', 'v', 'c', '1');
     } else if (AV_CODEC_ID_MPEG4 == codec->id) {
         // video_st->codecpar->codec_tag = MKTAG('r','a','w',' ');
     } else if (AV_CODEC_ID_RAWVIDEO == codec->id) {
-        video_st->codecpar->codec_tag = MKTAG('r','a','w',' ');
+        video_st->codecpar->codec_tag = MKTAG('r', 'a', 'w', ' ');
     }
     AVRational r = { (int)den, (int)num };
     video_st->avg_frame_rate = r;

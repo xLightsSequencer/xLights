@@ -25,6 +25,7 @@
 #include "UtilFunctions.h"
 #include "PixelBuffer.h"
 #include "Parallel.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1880,11 +1881,6 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), true);
     } else if (Out3 == "Unc") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-#ifdef __WXOSX__
-        oName.SetExt(_("mp4"));
-#else
-        oName.SetExt(_("avi"));
-#endif
         fullpath = oName.GetFullPath();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false);
     } else if (Out3 == "Min") {
@@ -1898,7 +1894,9 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         fullpath = oName.GetFullPath();
         WriteGIFModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), _seqData.FrameTime());
     }
-    SetStatusText(wxString::Format("Finished writing model: %s in %ld ms ", fullpath, sw.Time()));
+    float s = sw.Time();
+    s /= 1000;
+    SetStatusText(wxString::Format("Finished writing model: %s in %0.3fs ", fullpath, s));
 
     delete data;
     EnableSequenceControls(true);
@@ -1906,7 +1904,7 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     return true;
 }
 
-    void xLightsFrame::ExportModel(wxCommandEvent& command)
+void xLightsFrame::ExportModel(wxCommandEvent& command)
 {
     unsigned int startFrame = 0;
     unsigned int endFrame = _seqData.NumFrames();
@@ -1937,6 +1935,7 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
 
     if (dialog.ShowModal() == wxID_OK) {
         wxString filename = dialog.TextCtrlFilename->GetValue();
+        ObtainAccessToURL(filename);
         EnableSequenceControls(false);
         wxString format = dialog.ChoiceFormat->GetStringSelection();
 
