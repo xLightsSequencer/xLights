@@ -886,7 +886,11 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
 #endif
 
     const char* filename = filenames.c_str();
+#ifdef __WXOSX__
+    AVCodecID vc = AVCodecID::AV_CODEC_ID_H264;
+#else
     AVCodecID vc = compressed ? AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_RAWVIDEO;
+#endif
     const AVCodec* codec = ::avcodec_find_encoder(vc);
     if (codec == nullptr) {
         // h264/h265 not working, stick with original guess (likely mpeg4)
@@ -896,11 +900,17 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     // Create the codec context that will configure the codec
     AVFormatContext* oc = nullptr;
     AVDictionary* av_opts = nullptr;
+#ifndef __WXOSX__
     if (compressed) {
+#endif
         av_dict_set(&av_opts, "brand", "mp42", 0);
         av_dict_set(&av_opts, "movflags", "+disable_chpl+write_colr", 0);
+#ifdef __WXOSX__
+        avformat_alloc_output_context2(&oc, nullptr, "mp4", filename);
+#else
     }
     avformat_alloc_output_context2(&oc, nullptr, compressed ? "mp4" : "avi", filename);
+#endif
     if (oc == nullptr) {
         logger_base.warn("   Could not create output context.");
         return;
@@ -928,9 +938,11 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     codecContext->pix_fmt = AVPixelFormat::AV_PIX_FMT_YUV420P;
     if (!compressed) {
         codecContext->bit_rate = fps * width * height * 3 * 8;
-        //    codecContext->gop_size = 1;
-        //    codecContext->has_b_frames = 0;
-        //    codecContext->max_b_frames = 0;
+#ifdef __WXOSX__
+        codecContext->gop_size = 1;
+        codecContext->has_b_frames = 0;
+        codecContext->max_b_frames = 0;
+#endif
     }
     if (codecContext->codec_id == AVCodecID::AV_CODEC_ID_H264) {
         if (codec->pix_fmts[0] == AVPixelFormat::AV_PIX_FMT_VIDEOTOOLBOX) {

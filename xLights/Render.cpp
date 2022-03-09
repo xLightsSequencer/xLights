@@ -1880,7 +1880,11 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), true);
     } else if (Out3 == "Unc") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+#ifdef __WXOSX__
+        oName.SetExt(_("mp4"));
+#else
         oName.SetExt(_("avi"));
+#endif
         fullpath = oName.GetFullPath();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false);
     } else if (Out3 == "Min") {
