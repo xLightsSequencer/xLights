@@ -3091,7 +3091,7 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
 
     int playStatus = GetPlayStatus();
     SetPlayStatus(PLAY_TYPE_STOPPED);
-    
+
     wxStopWatch sw;
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -3161,7 +3161,7 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
         m_mgr->Update();
     }
 
-    
+
     if (exportStatus) {
         logger_base.debug( "Finished writing house-preview video." );
         float elapsedTime = sw.Time()/1000.0; //msec => sec
@@ -4352,6 +4352,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
         worksheet_write_string(modelsheet, 0, i, model_header_cols[i].c_str(), header_format);
         _model_col_widths[i] = model_header_cols[i].size() + FACTOR; //estimate column width
     }
+    worksheet_freeze_panes(modelsheet, 1, 0);
 
     int modelCount = 0;
     int row = 1;
@@ -4446,7 +4447,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
         worksheet_write_string(groupsheet, 0, i, groupHeader[i].c_str(), header_format);
         _group_col_widths[i] = groupHeader[i].size() + FACTOR; //estimate column width
     }
-
+    worksheet_freeze_panes(groupsheet, 1, 0);
     int groupCount = 0;
     row = 1;
     for (auto const& m : AllModels) {
@@ -4486,6 +4487,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
         worksheet_write_string(controllersheet, 0, i, control_cols[i].c_str(), header_format);
         _controller_col_widths[i] = control_cols[i].size() + FACTOR; //estimate column width
     }
+    worksheet_freeze_panes(controllersheet, 1, 0);
 
     for (const auto& it : _outputManager.GetControllers()) {
         auto scolumns = it->GetExport();
