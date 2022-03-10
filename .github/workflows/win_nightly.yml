@@ -21,6 +21,13 @@ jobs:
             
     - name: install Inno
       run: choco install innosetup   
+      
+    - name: install python dependency
+      run: pip install in_place  
+      
+    - name: generate nightly version number
+      working-directory: build_scripts\msw
+      run: python WriteNightlyVersionFiles.py  
      
     - name: Download wxWidgets
       run: 
