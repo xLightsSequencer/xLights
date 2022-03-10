@@ -1544,6 +1544,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         FormatCountdown(Countdown, state, Line, buffer, msg, text);
         msg.Replace(" : ", ":");
     }
+    ReplaceVaribles(msg, buffer);
     text = msg;
     int text_length = font_mgr.get_length(font, text);
 
