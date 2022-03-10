@@ -1,4 +1,5 @@
 #include "SketchPanel.h"
+#include "SketchPathDialog.h"
 
 #include <wx/button.h>
 #include <wx/sizer.h>
@@ -46,7 +47,9 @@ void SketchPanel::ValidateWindow()
 
 }
 
-void SketchPanel::OnButton_DefineSketch(wxCommandEvent& event)
+void SketchPanel::OnButton_DefineSketch(wxCommandEvent& /*event*/)
 {
+    SketchPathDialog dlg(this);
 
+    dlg.ShowModal();
 }

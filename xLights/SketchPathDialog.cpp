@@ -1,52 +1,46 @@
 #include "SketchPathDialog.h"
 
-//(*InternalHeaders(SketchPathDialog)
-#include <wx/intl.h>
-#include <wx/string.h>
-//*)
+#include <wx/button.h>
+#include <wx/statbox.h>
+#include <wx/sizer.h>
 
-//(*IdInit(SketchPathDialog)
-const long SketchPathDialog::ID_STATICBOX1 = wxNewId();
-const long SketchPathDialog::ID_STATICTEXT1 = wxNewId();
-const long SketchPathDialog::ID_BUTTON1 = wxNewId();
-const long SketchPathDialog::ID_BUTTON2 = wxNewId();
-//*)
-
-BEGIN_EVENT_TABLE(SketchPathDialog,wxDialog)
-	//(*EventTable(SketchPathDialog)
-	//*)
+BEGIN_EVENT_TABLE(SketchPathDialog, wxDialog)
 END_EVENT_TABLE()
 
 SketchPathDialog::SketchPathDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
-	//(*Initialize(SketchPathDialog)
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
+    Create(parent, wxID_ANY, "Define Sketch", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxCLOSE_BOX, _T("wxID_ANY"));
 
-	Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX, _T("wxID_ANY"));
-	FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
-	FlexGridSizer1->AddGrowableCol(0);
-	FlexGridSizer1->AddGrowableRow(0);
-	StaticBox1 = new wxStaticBox(this, ID_STATICBOX1, _("Current Point"), wxDefaultPosition, wxDefaultSize, wxBORDER_STATIC, _T("ID_STATICBOX1"));
-	FlexGridSizer1->Add(StaticBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer2->AddGrowableCol(0);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer2->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-	FlexGridSizer2->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
-	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
-	//*)
+	auto mainSizer = new wxFlexGridSizer(2, 1, 0, 0);
+    mainSizer->AddGrowableCol(0);
+    mainSizer->AddGrowableRow(0);
+
+	auto label = new wxStaticBox(this, wxID_ANY, "Current Point", wxDefaultPosition, wxDefaultSize, wxBORDER_STATIC);
+    mainSizer->Add(label, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+
+    auto okCancelSizer = new wxFlexGridSizer(1, 3, 0, 0);
+    okCancelSizer->AddGrowableCol(0);
+    okCancelSizer->AddStretchSpacer();
+    auto okButton = new wxButton(this, wxID_ANY, "Ok");
+    okCancelSizer->Add(okButton, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    auto cancelButton = new wxButton(this, wxID_ANY, "Cancel");
+    okCancelSizer->Add(cancelButton, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    mainSizer->Add(okCancelSizer, 1, wxALL | wxEXPAND, 5);
+
+	SetSizer(mainSizer);
+    mainSizer->Fit(this);
+    mainSizer->SetSizeHints(this);
+
+	Connect(okButton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_Ok);
+    Connect(cancelButton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_Cancel);
 }
 
-SketchPathDialog::~SketchPathDialog()
+void SketchPathDialog::OnButton_Ok(wxCommandEvent& /*event*/)
 {
-	//(*Destroy(SketchPathDialog)
-	//*)
+    EndDialog(wxID_OK);
 }
 
+void SketchPathDialog::OnButton_Cancel(wxCommandEvent& /*event*/)
+{
+    EndDialog(wxID_CANCEL);
+}
