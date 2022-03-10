@@ -208,6 +208,14 @@ std::string RenderBuffer::GetModelName() const
     return cur_model;
 }
 
+wxString RenderBuffer::GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const
+{
+    if (xLightsFrame::CurrentSeqXmlFile == nullptr) {
+        return wxString();
+    }
+    return xLightsFrame::CurrentSeqXmlFile->GetHeaderInfo(node_type);
+}
+
 void RenderBuffer::AlphaBlend(const RenderBuffer& src)
 {
     if (src.BufferWi != BufferWi || src.BufferHt != BufferHt) return;

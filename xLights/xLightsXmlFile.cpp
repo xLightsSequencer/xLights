@@ -56,7 +56,7 @@ xLightsXmlFile::xLightsXmlFile(const wxFileName& filename)
     sequence_loaded(false),
     audio(nullptr)
 {
-    for (int i = 0; i < NUM_TYPES; ++i) {
+    for (int i = 0; i < static_cast<int>(HEADER_INFO_TYPES::NUM_TYPES); ++i) {
         header_info.push_back("");
     }
     CreateNew();
@@ -278,10 +278,10 @@ void xLightsXmlFile::ClearMediaFile()
     }
 
     media_file = "";
-    SetHeaderInfo(SONG, "");
-    SetHeaderInfo(ARTIST, "");
-    SetHeaderInfo(ALBUM, "");
-    SetHeaderInfo(URL, "");
+    SetHeaderInfo(HEADER_INFO_TYPES::SONG, "");
+    SetHeaderInfo(HEADER_INFO_TYPES::ARTIST, "");
+    SetHeaderInfo(HEADER_INFO_TYPES::ALBUM, "");
+    SetHeaderInfo(HEADER_INFO_TYPES::URL, "");
 }
 
 void xLightsXmlFile::SetRenderMode(const wxString& mode)
@@ -670,9 +670,9 @@ void xLightsXmlFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const wxString& 
     for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "head") {
             for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
-                if (element->GetName() == HEADER_STRINGS[name_name]) {
+                if (element->GetName() == HEADER_STRINGS[static_cast<int>(name_name)]) {
                     SetNodeContent(element, clean_node_value);
-                    header_info[name_name] = clean_node_value;
+                    header_info[static_cast<int>(name_name)] = clean_node_value;
                 }
             }
         }
@@ -789,14 +789,14 @@ void xLightsXmlFile::CreateNew()
 
     wxXmlNode* node = AddChildXmlNode(root, "head");
     AddChildXmlNode(node, "version", xlights_version_string);
-    AddChildXmlNode(node, "author", header_info[AUTHOR]);
-    AddChildXmlNode(node, "author-email", header_info[AUTHOR_EMAIL]);
-    AddChildXmlNode(node, "author-website", header_info[WEBSITE]);
-    AddChildXmlNode(node, "song", header_info[SONG]);
-    AddChildXmlNode(node, "artist", header_info[ARTIST]);
-    AddChildXmlNode(node, "album", header_info[ALBUM]);
-    AddChildXmlNode(node, "MusicURL", header_info[URL]);
-    AddChildXmlNode(node, "comment", header_info[COMMENT]);
+    AddChildXmlNode(node, "author", GetHeaderInfo(HEADER_INFO_TYPES::AUTHOR));
+    AddChildXmlNode(node, "author-email", GetHeaderInfo(HEADER_INFO_TYPES::AUTHOR_EMAIL));
+    AddChildXmlNode(node, "author-website", GetHeaderInfo(HEADER_INFO_TYPES::WEBSITE));
+    AddChildXmlNode(node, "song", GetHeaderInfo(HEADER_INFO_TYPES::SONG));
+    AddChildXmlNode(node, "artist", GetHeaderInfo(HEADER_INFO_TYPES::ARTIST));
+    AddChildXmlNode(node, "album", GetHeaderInfo(HEADER_INFO_TYPES::ALBUM));
+    AddChildXmlNode(node, "MusicURL", GetHeaderInfo(HEADER_INFO_TYPES::URL));
+    AddChildXmlNode(node, "comment", GetHeaderInfo(HEADER_INFO_TYPES::COMMENT));
     AddChildXmlNode(node, "sequenceTiming", seq_timing);
     AddChildXmlNode(node, "sequenceType", seq_type);
     AddChildXmlNode(node, "mediaFile", media_file);
@@ -1074,28 +1074,28 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                     version_string = element->GetNodeContent();
                 }
                 else if (element->GetName() == "author") {
-                    header_info[AUTHOR] = UnXmlSafe(element->GetNodeContent());
+                    SetHeaderInfo(HEADER_INFO_TYPES::AUTHOR, UnXmlSafe(element->GetNodeContent()));
                 }
                 else if (element->GetName() == "author-email") {
-                    header_info[AUTHOR_EMAIL] = UnXmlSafe(element->GetNodeContent());
+                    SetHeaderInfo(HEADER_INFO_TYPES::AUTHOR_EMAIL, UnXmlSafe(element->GetNodeContent()));
                 }
                 else if (element->GetName() == "author-website") {
-                    header_info[WEBSITE] = UnXmlSafe(element->GetNodeContent());
+                    SetHeaderInfo(HEADER_INFO_TYPES::WEBSITE, UnXmlSafe(element->GetNodeContent()));
                 }
                 else if (element->GetName() == "song") {
-                    header_info[SONG] = UnXmlSafe(element->GetNodeContent());
+                    SetHeaderInfo(HEADER_INFO_TYPES::SONG, UnXmlSafe(element->GetNodeContent()));
                 }
                 else if (element->GetName() == "artist") {
-                    header_info[ARTIST] = UnXmlSafe(element->GetNodeContent());
+                    SetHeaderInfo(HEADER_INFO_TYPES::ARTIST, UnXmlSafe(element->GetNodeContent()));
                 }
                 else if (element->GetName() == "album") {
-                    header_info[ALBUM] = UnXmlSafe(element->GetNodeContent());
+                    SetHeaderInfo(HEADER_INFO_TYPES::ALBUM, UnXmlSafe(element->GetNodeContent()));
                 }
                 else if (element->GetName() == "MusicURL") {
-                    header_info[URL] = UnXmlSafe(element->GetNodeContent());
+                    SetHeaderInfo(HEADER_INFO_TYPES::URL, UnXmlSafe(element->GetNodeContent()));
                 }
                 else if (element->GetName() == "comment") {
-                    header_info[COMMENT] = UnXmlSafe(element->GetNodeContent());
+                   SetHeaderInfo(HEADER_INFO_TYPES::COMMENT, UnXmlSafe(element->GetNodeContent()));
                 }
                 else if (element->GetName() == "sequenceTiming") {
                     seq_timing = element->GetNodeContent();
@@ -2954,9 +2954,9 @@ void xLightsXmlFile::SetMetaMP3Tags()
 {
     if (audio != nullptr)
     {
-        SetHeaderInfo(SONG, audio->Title());
-        SetHeaderInfo(ARTIST, audio->Artist());
-        SetHeaderInfo(ALBUM, audio->Album());
+        SetHeaderInfo(HEADER_INFO_TYPES::SONG, audio->Title());
+        SetHeaderInfo(HEADER_INFO_TYPES::ARTIST, audio->Artist());
+        SetHeaderInfo(HEADER_INFO_TYPES::ALBUM, audio->Album());
     }
 }
 

@@ -459,14 +459,14 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 
     StaticText_XML_Version->SetLabelText(xml_file->GetVersion());
     StaticText_Num_Models->SetLabelText(string_format("%d", xml_file->GetNumModels()));
-    TextCtrl_Xml_Author->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::AUTHOR));
-    TextCtrl_Xml_Author_Email->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::AUTHOR_EMAIL));
-    TextCtrl_Xml_Website->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::WEBSITE));
-    TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SONG));
-    TextCtrl_Xml_Artist->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ARTIST));
-    TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
-    TextCtrl_Xml_Music_Url->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::URL));
-    TextCtrl_Xml_Comment->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::COMMENT));
+    TextCtrl_Xml_Author->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::AUTHOR));
+    TextCtrl_Xml_Author_Email->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::AUTHOR_EMAIL));
+    TextCtrl_Xml_Website->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::WEBSITE));
+    TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::SONG));
+    TextCtrl_Xml_Artist->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::ARTIST));
+    TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::ALBUM));
+    TextCtrl_Xml_Music_Url->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::URL));
+    TextCtrl_Xml_Comment->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::COMMENT));
     Choice_Xml_Seq_Type->SetSelection(Choice_Xml_Seq_Type->FindString(xml_file->GetSequenceType()));
     TextCtrl_SeqTiming->SetValue(xml_file->GetSequenceTiming());
     if (xml_file->GetMedia() == nullptr) {
@@ -823,42 +823,42 @@ void SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event
 
 void SeqSettingsDialog::OnTextCtrl_Xml_AuthorText(wxCommandEvent& event)
 {
-    xml_file->SetHeaderInfo(xLightsXmlFile::AUTHOR, TextCtrl_Xml_Author->GetValue());
+    xml_file->SetHeaderInfo(HEADER_INFO_TYPES::AUTHOR, TextCtrl_Xml_Author->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_Author_EmailText(wxCommandEvent& event)
 {
-    xml_file->SetHeaderInfo(xLightsXmlFile::AUTHOR_EMAIL, TextCtrl_Xml_Author_Email->GetValue());
+    xml_file->SetHeaderInfo(HEADER_INFO_TYPES::AUTHOR_EMAIL, TextCtrl_Xml_Author_Email->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_WebsiteText(wxCommandEvent& event)
 {
-    xml_file->SetHeaderInfo(xLightsXmlFile::WEBSITE, TextCtrl_Xml_Website->GetValue());
+    xml_file->SetHeaderInfo(HEADER_INFO_TYPES::WEBSITE, TextCtrl_Xml_Website->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_SongText(wxCommandEvent& event)
 {
-    xml_file->SetHeaderInfo(xLightsXmlFile::SONG, TextCtrl_Xml_Song->GetValue());
+    xml_file->SetHeaderInfo(HEADER_INFO_TYPES::SONG, TextCtrl_Xml_Song->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_ArtistText(wxCommandEvent& event)
 {
-    xml_file->SetHeaderInfo(xLightsXmlFile::ARTIST, TextCtrl_Xml_Artist->GetValue());
+    xml_file->SetHeaderInfo(HEADER_INFO_TYPES::ARTIST, TextCtrl_Xml_Artist->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_AlbumText(wxCommandEvent& event)
 {
-    xml_file->SetHeaderInfo(xLightsXmlFile::ALBUM, TextCtrl_Xml_Album->GetValue());
+    xml_file->SetHeaderInfo(HEADER_INFO_TYPES::ALBUM, TextCtrl_Xml_Album->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_Music_UrlText(wxCommandEvent& event)
 {
-    xml_file->SetHeaderInfo(xLightsXmlFile::URL, TextCtrl_Xml_Music_Url->GetValue());
+    xml_file->SetHeaderInfo(HEADER_INFO_TYPES::URL, TextCtrl_Xml_Music_Url->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_CommentText(wxCommandEvent& event)
 {
-    xml_file->SetHeaderInfo(xLightsXmlFile::COMMENT, TextCtrl_Xml_Comment->GetValue());
+    xml_file->SetHeaderInfo(HEADER_INFO_TYPES::COMMENT, TextCtrl_Xml_Comment->GetValue());
 }
 
 bool SeqSettingsDialog::UpdateSequenceTiming()
@@ -1454,9 +1454,9 @@ void SeqSettingsDialog::MediaLoad(wxFileName name_and_path)
 {
     xml_file->SetMediaFile(xLightsParent->GetShowDirectory(), name_and_path.GetFullPath(), CheckBox_Overwrite_Tags->IsChecked());
     TextCtrl_Xml_Media_File->SetValue(name_and_path.GetFullPath());
-    TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SONG));
-    TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
-    TextCtrl_Xml_Artist->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ARTIST));
+    TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::SONG));
+    TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::ALBUM));
+    TextCtrl_Xml_Artist->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::ARTIST));
     int length_ms = 0;
     if (xml_file->GetMedia() != nullptr) length_ms = xml_file->GetMedia()->LengthMS(); // shouldnt happen but maybe if media load failed
     double length = length_ms / 1000.0f;

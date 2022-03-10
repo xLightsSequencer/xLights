@@ -22,6 +22,18 @@ class xLightsFrame;
 
 WX_DECLARE_STRING_HASH_MAP( int, StringIntMap );
 
+enum class HEADER_INFO_TYPES {
+    AUTHOR,
+    AUTHOR_EMAIL,
+    WEBSITE,
+    SONG,
+    ARTIST,
+    ALBUM,
+    URL,
+    COMMENT,
+    NUM_TYPES
+};
+
 class xLightsXmlFile : public wxFileName
 {
 public:
@@ -29,19 +41,9 @@ public:
     xLightsXmlFile(const wxFileName& filename);
     virtual ~xLightsXmlFile();
 
-    enum HEADER_INFO_TYPES {
-        AUTHOR,
-        AUTHOR_EMAIL,
-        WEBSITE,
-        SONG,
-        ARTIST,
-        ALBUM,
-        URL,
-        COMMENT,
-        NUM_TYPES
-    };
 
-    const wxString HEADER_STRINGS[NUM_TYPES] = {
+
+    const wxString HEADER_STRINGS[static_cast<int>(HEADER_INFO_TYPES::NUM_TYPES)] = {
         "author",
         "author-email",
         "author-website",
@@ -113,11 +115,11 @@ public:
     void SetMediaFile(const wxString& ShowDir, const wxString& filename, bool overwrite_tags);
     void ClearMediaFile();
 
-    wxString GetHeaderInfo(xLightsXmlFile::HEADER_INFO_TYPES node_type)
+    wxString const& GetHeaderInfo(HEADER_INFO_TYPES node_type) const
     {
-        return header_info[node_type];
+        return header_info[static_cast<int>(node_type)];
     }
-    void SetHeaderInfo(xLightsXmlFile::HEADER_INFO_TYPES node_type, const wxString& node_value);
+    void SetHeaderInfo(HEADER_INFO_TYPES node_type, const wxString& node_value);
 
     wxString GetImageDir(wxWindow* parent);
     void SetImageDir(const wxString& dir);

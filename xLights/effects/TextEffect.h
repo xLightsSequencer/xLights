@@ -48,6 +48,8 @@ private:
     std::vector<std::string> WordSplit(const std::string& text) const;
     std::string FlipWord(const SettingsMap& settings, const std::string& text, RenderBuffer& buffer) const;
 
+    void ReplaceVaribles(wxString& msg, RenderBuffer& buffer) const;
+
     wxImage* RenderTextLine(RenderBuffer& buffer,
         TextDrawingContext* dc,
         const wxString& Line_orig,

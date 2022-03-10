@@ -47,6 +47,7 @@
 
 class AudioManager;
 class xLightsFrame;
+enum class HEADER_INFO_TYPES;
 
 // eventually this will go in some header..
 // the idea is to define this (currently) for the MS compiler
@@ -409,6 +410,7 @@ public:
     Model* GetModel() const;
     Model* GetPermissiveModel() const; // gets the model even if it is a submodel/strand
     std::string GetModelName() const;
+    wxString GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const;
 
     void AlphaBlend(const RenderBuffer& src);
     bool IsNodeBuffer() const { return _nodeBuffer; }

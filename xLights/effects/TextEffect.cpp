@@ -27,6 +27,7 @@
 #include "../FontManager.h"
 #include "../xLightsMain.h"
 #include "../ExternalHooks.h"
+#include "../xLightsXmlFile.h"
 
 #include "../../include/text-16.xpm"
 #include "../../include/text-24.xpm"
@@ -942,6 +943,8 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
 
     FormatCountdown(Countdown, state, Line, buffer, msg, Line_orig);
 
+    ReplaceVaribles(msg, buffer);
+
     double TextRotation=0.0;
     switch(Effect)
     {
@@ -1381,6 +1384,21 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
             msg.Replace("\\n", "\n", true); //allow vertical spacing (mainly for up/down) -DJ
             break;
     }
+}
+
+
+void TextEffect::ReplaceVaribles(wxString& msg, RenderBuffer& buffer) const
+{
+    msg.Replace("${TITLE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
+    msg.Replace("${SONG}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
+    msg.Replace("${ARTIST}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ARTIST));
+    msg.Replace("${ALBUM}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ALBUM));
+    msg.Replace("${FILENAME}", buffer.GetMedia()->FileName());
+    msg.Replace("${AUTHOR}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR));
+    msg.Replace("${AUTHOREMAIL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR_EMAIL));
+    msg.Replace("${COMMENT}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::COMMENT));
+    msg.Replace("${URL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::URL));
+    msg.Replace("${WEBSITE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::WEBSITE));
 }
 
 std::vector<std::string> TextEffect::WordSplit(const std::string& text) const
