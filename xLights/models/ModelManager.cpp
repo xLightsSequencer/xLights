@@ -980,7 +980,7 @@ bool ModelManager::ReworkStartChannel() const
         std::lock_guard<std::recursive_mutex> lock(_modelMutex);
         for (auto itm : models) {
             std::list<std::string> visited;
-            if (ModelHasNoDependencyOnNoController(itm.second, visited)) {
+            if (ModelHasNoDependencyOnNoController(itm.second, visited) || itm.second->GetControllerName() == NO_CONTROLLER) {
                 if (itm.second->GetControllerName() != NO_CONTROLLER) {
                     lastChannel = std::max(lastChannel, itm.second->GetLastChannel() + 1);
                 } else {

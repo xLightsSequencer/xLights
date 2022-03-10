@@ -6730,6 +6730,14 @@ void Model::SetControllerName(const std::string& controller) {
     if (n != "" && n != USE_START_CHANNEL) {
         ModelXml->AddAttribute("Controller", n);
     }
+
+    // if we are moving the model to no contoller then clear the start channel and model chain
+    if (n == NO_CONTROLLER) {
+        SetStartChannel("");
+        SetModelChain("");
+        SetControllerPort(0);
+    }
+
     AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetControllerName");
     AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetControllerName");
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetControllerName");
