@@ -1,4 +1,6 @@
 #include "SketchEffect.h"
+
+#include "RenderBuffer.h"
 #include "SketchPanel.h"
 
 #include "../../include/sketch-64.xpm"
@@ -19,9 +21,14 @@ SketchEffect::~SketchEffect()
 
 }
 
-void SketchEffect::Render(Effect* /*effect*/, SettingsMap& /*settings*/, RenderBuffer& /*buffer*/ )
+void SketchEffect::Render(Effect* /*effect*/, SettingsMap& /*settings*/, RenderBuffer& buffer )
 {
-   // This is a terrible effect... it currently does nothing!!
+    // This is a terrible effect... it currently does almost nothing!!
+    int bw = buffer.BufferWi;
+    int bh = buffer.BufferHt;
+    buffer.DrawVLine(0, 0, bh - 1, xlRED);
+    buffer.DrawHLine(bh - 1, 0, bw - 1, xlGREEN);
+    buffer.DrawLine(bw - 1, bh - 1, 0, 0, xlBLUE);
 }
 
 void SketchEffect::SetDefaultParameters()
