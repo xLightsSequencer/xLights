@@ -9,6 +9,12 @@
 #include "../../include/sketch-24.xpm"
 #include "../../include/sketch-16.xpm"
 
+#include <wx/graphics.h>
+#include <wx/image.h>
+
+#include <cstdint>
+#include <memory>
+#include <vector>
 
 SketchEffect::SketchEffect( int id )
    : RenderableEffect( id, "Sketch", sketch_16_xpm, sketch_24_xpm, sketch_32_xpm, sketch_48_xpm, sketch_64_xpm )
@@ -26,9 +32,54 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& /*settings*/, RenderB
     // This is a terrible effect... it currently does almost nothing!!
     int bw = buffer.BufferWi;
     int bh = buffer.BufferHt;
-    buffer.DrawVLine(0, 0, bh - 1, xlRED);
-    buffer.DrawHLine(bh - 1, 0, bw - 1, xlGREEN);
-    buffer.DrawLine(bw - 1, bh - 1, 0, 0, xlBLUE);
+    std::vector<uint8_t> rgb(bw * 3 * bh);
+    std::vector<uint8_t> alpha(bw * bh);
+    xlColor* px = buffer.GetPixels();
+    int pxIndex = 0;
+    int rgbIndex = 0;
+    int alphaIndex = 0;
+    for ( int y = 0; y < bh; ++y )
+    {
+        for ( int x = 0; x < bw; ++x, ++pxIndex )
+        {
+            rgb[rgbIndex++] = px[pxIndex].Red();
+            rgb[rgbIndex++] = px[pxIndex].Green();
+            rgb[rgbIndex++] = px[pxIndex].Green();
+            alpha[alphaIndex++] = px[pxIndex].Alpha();
+        }
+    }
+
+    wxImage img(bw, bh, rgb.data(), alpha.data(), true);
+    {
+        std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(img));
+        wxGraphicsPath path1 = gc->CreatePath();
+        path1.MoveToPoint(0., 0.);
+        path1.AddLineToPoint(0.5 * bw, 0.5 * bh);
+        path1.AddCurveToPoint(bw, bh, 0.25 * bw, 0.25 * bh, 0.65 * bw, 0.3 * bh);
+        path1.CloseSubpath();
+
+        wxGraphicsPath path2 = gc->CreatePath();
+        path2.MoveToPoint(0.8 * bw, 0.8 * bh);
+        path2.AddLineToPoint(0.3 * bw, 0.7 * bh);
+        path2.AddLineToPoint(0.05 * bw, 0.1 * bh);
+
+        gc->SetPen(*wxRED);
+        gc->StrokePath(path1);
+
+        gc->SetPen(*wxGREEN);
+        gc->StrokePath(path2);
+    }
+
+    for ( int y = 0; y < bh; ++y )
+    {
+        for (int x = 0; x < bw; ++x, ++px)
+        {
+            px->red = img.GetRed(x, y);
+            px->green = img.GetGreen(x, y);
+            px->blue = img.GetBlue(x, y);
+            px->alpha = img.GetAlpha(x, y);
+        }
+    }
 }
 
 void SketchEffect::SetDefaultParameters()
