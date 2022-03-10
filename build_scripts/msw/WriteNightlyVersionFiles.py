@@ -1,6 +1,4 @@
 import subprocess
-from datetime import date
-
 import in_place
 
 def get_commit_hash():
@@ -12,12 +10,9 @@ def get_commit_hash():
     )
     return result.stdout.decode("utf-8").rstrip() 
 
-  
-  
 version = "nightly-" + get_commit_hash();
 mod = "static const wxString xlights_qualifier       = \" " + version + "\";\n";
 other = "#define Other \"_" + version + "\"\n";
-
 
 with in_place.InPlace("../../xLights/xLightsVersion.h") as file:
     for line in file:
