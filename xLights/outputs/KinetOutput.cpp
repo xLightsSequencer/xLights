@@ -229,11 +229,12 @@ void KinetOutput::EndFrame(int suppressFrames) {
     if (!_enabled || _suspend || _tempDisable|| _datagram == nullptr) return;
 
     if (_changed || NeedToOutput(suppressFrames)) {
-		if (_version == 2) {
-			_data[17] = _sequenceNum;
-		}
+        _data[8] = _sequenceNum & 0xFF;
+        _data[9] = (_sequenceNum >> 8) & 0xFF;
+        _data[10] = (_sequenceNum >> 16) & 0xFF;
+        _data[11] = (_sequenceNum >> 24) & 0xFF;
         _datagram->SendTo(_remoteAddr, _data, GetHeaderPacketLength() + _channels);
-        _sequenceNum = _sequenceNum == 255 ? 0 : _sequenceNum + 1;
+        _sequenceNum++;
         FrameOutput();
         _changed = false;
     }

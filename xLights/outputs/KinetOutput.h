@@ -25,7 +25,7 @@ class KinetOutput : public IPOutput
 {
     #pragma region Member Variables
     uint8_t _data[KINET_PACKET_LEN];
-    uint8_t _sequenceNum = 0;
+    uint32_t _sequenceNum = 0;
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram = nullptr;
     int _version = 2;
