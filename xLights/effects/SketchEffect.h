@@ -2,6 +2,11 @@
 
 #include "RenderableEffect.h"
 
+#include <memory>
+#include <vector>
+
+class SketchEffectPath;
+
 class SketchEffect : public RenderableEffect
 {
 public: 
@@ -19,4 +24,6 @@ public:
 protected:
     void RemoveDefaults( const std::string& version, Effect* effect ) override;
     xlEffectPanel* CreatePanel( wxWindow* parent ) override;
+
+    std::vector<std::shared_ptr<SketchEffectPath>> m_paths;
 };
