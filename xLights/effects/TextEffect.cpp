@@ -1393,7 +1393,9 @@ void TextEffect::ReplaceVaribles(wxString& msg, RenderBuffer& buffer) const
     msg.Replace("${SONG}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
     msg.Replace("${ARTIST}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ARTIST));
     msg.Replace("${ALBUM}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ALBUM));
-    msg.Replace("${FILENAME}", buffer.GetMedia()->FileName());
+    if (buffer.GetMedia() != nullptr) {
+        msg.Replace("${FILENAME}", buffer.GetMedia()->FileName());
+    }
     msg.Replace("${AUTHOR}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR));
     msg.Replace("${AUTHOREMAIL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR_EMAIL));
     msg.Replace("${COMMENT}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::COMMENT));
