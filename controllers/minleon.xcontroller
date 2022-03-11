@@ -1,6 +1,7 @@
 <Vendor Name="Minleon">
 	<Controller Name="RGB NDB Plus">
 		<Variant Name="">
+			<SupportsUpload/>
 			<SupportsPixelPortGrouping/>
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
@@ -35,6 +36,7 @@
 	</Controller>
 	<Controller Name="RGB NDB 4">
 		<Variant Name="">
+			<SupportsUpload/>
 			<SupportsPixelPortGrouping/>
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
