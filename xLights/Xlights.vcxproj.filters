@@ -971,6 +971,9 @@
     <ClCompile Include="effects\SketchPanel.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
+    <ClCompile Include="effects\SketchEffectDrawing.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1946,6 +1949,9 @@
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="effects\SketchPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SketchEffectDrawing.h">
       <Filter>Effects</Filter>
     </ClInclude>
   </ItemGroup>

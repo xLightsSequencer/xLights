@@ -285,6 +285,7 @@
     <ClCompile Include="effects\ShapeEffect.cpp" />
     <ClCompile Include="effects\ShapePanel.cpp" />
     <ClCompile Include="effects\SketchEffect.cpp" />
+    <ClCompile Include="effects\SketchEffectDrawing.cpp" />
     <ClCompile Include="effects\SketchPanel.cpp" />
     <ClCompile Include="effects\WarpEffect.cpp" />
     <ClCompile Include="effects\WarpPanel.cpp" />
@@ -751,6 +752,7 @@
     <ClInclude Include="effects\ShapeEffect.h" />
     <ClInclude Include="effects\ShapePanel.h" />
     <ClInclude Include="effects\SketchEffect.h" />
+    <ClInclude Include="effects\SketchEffectDrawing.h" />
     <ClInclude Include="effects\SketchPanel.h" />
     <ClInclude Include="effects\WarpEffect.h" />
     <ClInclude Include="effects\WarpPanel.h" />

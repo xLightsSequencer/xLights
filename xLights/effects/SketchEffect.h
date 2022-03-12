@@ -1,11 +1,9 @@
 #pragma once
 
 #include "RenderableEffect.h"
+#include "SketchEffectDrawing.h"
 
-#include <memory>
-#include <vector>
-
-class SketchEffectPath;
+class wxImage;
 
 class SketchEffect : public RenderableEffect
 {
@@ -25,5 +23,7 @@ protected:
     void RemoveDefaults( const std::string& version, Effect* effect ) override;
     xlEffectPanel* CreatePanel( wxWindow* parent ) override;
 
-    std::vector<std::shared_ptr<SketchEffectPath>> m_paths;
+    void renderSketch(wxImage& img, double progress);
+
+    SketchEffectSketch m_sketch;
 };
