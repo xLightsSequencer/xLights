@@ -105,6 +105,7 @@ class DmxSkull : public DmxModel, public DmxColorAbility
         int default_min_limit[6];
         int default_max_limit[6];
         float default_orient[6];
+        int jaw_orient;
         int pan_orient;
         int tilt_orient;
         int nod_orient;

@@ -273,6 +273,13 @@ void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid)
 
     grid->Append(new wxPropertyCategory("Orientation Properties", "OrientProperties"));
 
+    if (has_jaw) {
+        p = grid->Append(new wxIntProperty("Jaw Orientation", "DmxJawOrient", jaw_orient));
+        p->SetAttribute("Min", -360);
+        p->SetAttribute("Max", 360);
+        p->SetEditor("SpinCtrl");
+    }
+
     if (has_pan) {
         p = grid->Append(new wxIntProperty("Pan Orientation", "DmxPanOrient", pan_orient));
         p->SetAttribute("Min", -360);
@@ -343,6 +350,14 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
 
     if (has_jaw) {
         if (jaw_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+            return 0;
+        }
+        if ("DmxJawOrient" == event.GetPropertyName()) {
+            ModelXml->DeleteAttribute("DmxJawOrient");
+            ModelXml->AddAttribute("DmxJawOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DmxJawOrient");
+            AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DmxJawOrient");
+            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DmxJawOrient");
             return 0;
         }
     }
@@ -480,6 +495,7 @@ void DmxSkull::InitModel()
     blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "18"));
     white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
     eye_brightness_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeBrtChannel", "15"));
+    jaw_orient = wxAtoi(ModelXml->GetAttribute("DmxJawOrient", std::to_string(default_orient[JAW])));
     pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", std::to_string(default_orient[PAN])));
     tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", std::to_string(default_orient[TILT])));
     nod_orient = wxAtoi(ModelXml->GetAttribute("DmxNodOrient", std::to_string(default_orient[NOD])));
@@ -713,16 +729,16 @@ std::list<std::string> DmxSkull::CheckModelSettings()
 
     int nodeCount = Nodes.size();
 
-    if (red_channel > nodeCount) {
+    if (has_color && red_channel > nodeCount) {
         res.push_back(wxString::Format("    ERR: Model %s red channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), red_channel, nodeCount));
     }
-    if (green_channel > nodeCount) {
+    if (has_color && green_channel > nodeCount) {
         res.push_back(wxString::Format("    ERR: Model %s green channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), green_channel, nodeCount));
     }
-    if (blue_channel > nodeCount) {
+    if (has_color && blue_channel > nodeCount) {
         res.push_back(wxString::Format("    ERR: Model %s blue channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), blue_channel, nodeCount));
     }
-    if (eye_brightness_channel > nodeCount) {
+    if (has_color && eye_brightness_channel > nodeCount) {
         res.push_back(wxString::Format("    ERR: Model %s eye brightness channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), eye_brightness_channel, nodeCount));
     }
 
@@ -754,10 +770,10 @@ void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphi
     size_t NodeCount = Nodes.size();
 
     // crash protection
-    if (eye_brightness_channel > NodeCount ||
+    if (has_color && (eye_brightness_channel > NodeCount ||
         red_channel > NodeCount ||
         green_channel > NodeCount ||
-        blue_channel > NodeCount) {
+        blue_channel > NodeCount)) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
@@ -798,7 +814,12 @@ void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphi
     }
 
     xlColor color_angle;
-    GetColor(eye_color, transparency, blackTransparency, !active, c, Nodes);
+    if( has_color ) {
+        GetColor(eye_color, transparency, blackTransparency, !active, c, Nodes);
+    } else {
+        eye_color = xlBLACK;
+        Model::ApplyTransparency(eye_color, blackTransparency, blackTransparency);
+    }
 
     int trans = color == xlBLACK ? blackTransparency : transparency;
     ApplyTransparency(ccolor, trans, trans);
@@ -810,7 +831,7 @@ void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphi
     pan_pos = GetServoPos(pan_servo, active && has_pan) + (active ? pan_orient : 0.0f);
     tilt_pos = GetServoPos(tilt_servo, active && has_tilt) + (active ? tilt_orient : 0.0f);
     nod_pos = GetServoPos(nod_servo, active && has_nod) + (active ? nod_orient : 0.0f);
-    jaw_pos = GetServoPos(jaw_servo, active && has_jaw);
+    jaw_pos = GetServoPos(jaw_servo, active && has_jaw) + (active ? jaw_orient : 0.0f);
     eye_x_pos = GetServoPos(eye_lr_servo, active && has_eye_lr) + (active ? eye_lr_orient : 0.0f);
     eye_y_pos = GetServoPos(eye_ud_servo, active && has_eye_ud) + (active ? eye_ud_orient : 0.0f);
 
@@ -883,6 +904,7 @@ void DmxSkull::ExportXlightsModel()
 
     ExportBaseParameters(f);
 
+    wxString jo = ModelXml->GetAttribute("DmxJawOrient", std::to_string(default_orient[JAW]));
     wxString po = ModelXml->GetAttribute("DmxPanOrient", std::to_string(default_orient[PAN]));
     wxString to = ModelXml->GetAttribute("DmxTiltOrient", std::to_string(default_orient[TILT]));
     wxString no = ModelXml->GetAttribute("DmxNodOrient", std::to_string(default_orient[NOD]));
@@ -903,6 +925,7 @@ void DmxSkull::ExportXlightsModel()
     wxString eb = ModelXml->GetAttribute("DmxEyeBrtChannel", "23");
     wxString bits = ModelXml->GetAttribute("Bits16");
 
+    f.Write(wxString::Format("DmxJawOrient=\"%s\" ", jo));
     f.Write(wxString::Format("DmxPanOrient=\"%s\" ", po));
     f.Write(wxString::Format("DmxTiltOrient=\"%s\" ", to));
     f.Write(wxString::Format("DmxNodOrient=\"%s\" ", no));
@@ -963,6 +986,7 @@ void DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
         wxString name = root->GetAttribute("name");
         wxString v = root->GetAttribute("SourceVersion");
 
+        wxString jo = root->GetAttribute("DmxJawOrient");
         wxString po = root->GetAttribute("DmxPanOrient");
         wxString to = root->GetAttribute("DmxTiltOrient");
         wxString no = root->GetAttribute("DmxNodOrient");
@@ -986,6 +1010,7 @@ void DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
 
+        SetProperty("DmxJawOrient", jo);
         SetProperty("DmxPanOrient", po);
         SetProperty("DmxTiltOrient", to);
         SetProperty("DmxNodOrient", no);
@@ -1054,6 +1079,8 @@ void DmxSkull::SetupSkulltronix()
     SetupServo(eye_ud_servo, 15, 575, 1000, 70, true);
     SetupServo(eye_lr_servo, 17, 499, 878, -70, true);
 
+    ModelXml->DeleteAttribute("DmxJawOrient");
+    ModelXml->AddAttribute("DmxJawOrient", "0");
     ModelXml->DeleteAttribute("DmxPanOrient");
     ModelXml->AddAttribute("DmxPanOrient", "90");
     ModelXml->DeleteAttribute("DmxTiltOrient");
@@ -1080,6 +1107,7 @@ void DmxSkull::SetupSkulltronix()
     blue_channel = 17;
     white_channel = 0;
     eye_brightness_channel = 23;
+    jaw_orient = 0;
     pan_orient = 90;
     tilt_orient = -45;
     nod_orient = 29;

@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)      Add Jaw Orientation property for the DMXSkull model
+   -- end (gil).     DMXSkull model changed so color error checking is only done when color channels are active
 2022.06 March 6, 2022
    -- enh (gil)      Add auto repeat option to Morph.  Automatically scales the repeat to model size.
    -- enh (keith)    Add a low definition rendering mode to matrices
