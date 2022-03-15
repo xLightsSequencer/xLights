@@ -246,7 +246,7 @@ void OnEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffe
                 }
                 if (start == 100 && end == 100) {
                 } else {
-                    HSVValue hsv = color.asHSV();
+                    HSVValue hsv = col.asHSV();
                     double d = adjust;
                     d = start + (end - start) * d;
                     d = d / 100.0;
