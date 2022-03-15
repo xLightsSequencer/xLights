@@ -1,9 +1,11 @@
 #pragma once
 
 #include <wx/dialog.h>
+#include <wx/geometry.h>
 
 #include <vector>
 
+class wxButton;
 class wxPanel;
 
 class SketchPathDialog: public wxDialog
@@ -13,9 +15,24 @@ public:
     virtual ~SketchPathDialog() = default;
 
 private:
+    enum PathState { Undefined,
+                     DefineStartPoint,
+                     LineToNewPoint,
+                     CurveToNewPoint };
+    struct HandlePoint {
+        HandlePoint(wxPoint2DDouble _pt) :
+            pt(_pt)
+        {}
+        wxPoint2DDouble pt;
+        bool state = false;
+    };
+
 	DECLARE_EVENT_TABLE()
 
     wxPanel* m_sketchPanel = nullptr;
+    wxButton* m_startPathBtn = nullptr;
+    wxButton* m_endPathBtn = nullptr;
+    wxButton* m_closePathBtn = nullptr;
 
 	void OnSketchPaint(wxPaintEvent& event);
     void OnSketchKeyDown(wxKeyEvent& event);
@@ -24,18 +41,19 @@ private:
     void OnSketchMouseMove(wxMouseEvent& event);
 
     void OnButton_StartPath(wxCommandEvent& event);
+    void OnButton_EndPath(wxCommandEvent& event);
+    void OnButton_ClosePath(wxCommandEvent& event);
 
     void OnButton_Ok(wxCommandEvent& event);
     void OnButton_Cancel(wxCommandEvent& event);
 
-    struct HandlePoint
-    {
-        HandlePoint(wxPoint _pt) :
-            pt(_pt)
-        {}
-        wxPoint pt;
-        bool state = false;
-    };
+    wxPoint2DDouble UItoNormalized(const wxPoint2DDouble& pt) const;
+    wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt) const;
+    void UpdatePathState(PathState state);
+
     std::vector<HandlePoint> m_handles;
     std::vector<HandlePoint>::size_type m_grabbedHandleIndex = -1;
+    PathState m_pathState = Undefined;
+    bool m_pathClosed = false;
+    wxPoint2DDouble m_mousePos;
 };

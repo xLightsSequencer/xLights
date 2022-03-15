@@ -61,14 +61,12 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
     auto pathCtrlsSizer = new wxFlexGridSizer(1, 4, 0, 0);
     pathCtrlsSizer->AddGrowableCol(3);
     pathUISizer->Add(pathCtrlsSizer, 1, wxALL | wxEXPAND);
-    auto startPathBtn = new wxButton(this, wxID_ANY, "Start Path");
-    pathCtrlsSizer->Add(startPathBtn, 1, wxALL, 2);
-    auto endPathBtn = new wxButton(this, wxID_ANY, "End Path");
-    endPathBtn->Disable();
-    pathCtrlsSizer->Add(endPathBtn, 1, wxALL, 2);
-    auto closePathBtn = new wxButton(this, wxID_ANY, "Close Path");
-    closePathBtn->Disable();
-    pathCtrlsSizer->Add(closePathBtn, 1, wxALL, 2);
+    m_startPathBtn = new wxButton(this, wxID_ANY, "Start Path");
+    pathCtrlsSizer->Add(m_startPathBtn, 1, wxALL, 2);
+    m_endPathBtn = new wxButton(this, wxID_ANY, "End Path");
+    pathCtrlsSizer->Add(m_endPathBtn, 1, wxALL, 2);
+    m_closePathBtn = new wxButton(this, wxID_ANY, "Close Path");
+    pathCtrlsSizer->Add(m_closePathBtn, 1, wxALL, 2);
 
     mainSizer->Add(pathUISizer, 1, wxALL | wxEXPAND, 5);
 
@@ -92,14 +90,14 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
     m_sketchPanel->Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&SketchPathDialog::OnSketchLeftUp, nullptr, this);
     m_sketchPanel->Connect(wxEVT_MOTION, (wxObjectEventFunction)&SketchPathDialog::OnSketchMouseMove, nullptr, this);
 
-    Connect(startPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_StartPath);
+    Connect(m_startPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_StartPath);
+    Connect(m_endPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_EndPath);
+    Connect(m_closePathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_ClosePath);
 
     Connect(okButton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_Ok);
     Connect(cancelButton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_Cancel);
 
-    m_handles.push_back(wxPoint(100, 100));
-    m_handles.push_back(wxPoint(150, 150));
-    m_handles.push_back(wxPoint(200, 200));
+    UpdatePathState(Undefined);
 }
 
 void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
@@ -112,10 +110,7 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
     pdc.DrawRectangle(wxPoint(0, 0), sz);
 
     pdc.SetPen(*wxLIGHT_GREY_PEN);
-    pdc.DrawRectangle(BorderWidth, BorderWidth, sz.GetWidth() - 2 * BorderWidth, sz.GetHeight() - 2 * BorderWidth);
-
-    //pdc.SetPen(*wxBLUE_PEN);
-    //pdc.DrawLine(BorderWidth + 1, BorderWidth + 1, sz.GetWidth() - BorderWidth - 1, BorderWidth + 1);
+    pdc.DrawRectangle(BorderWidth, BorderWidth, sz.GetWidth() - 2 * BorderWidth-2, sz.GetHeight() - 2 * BorderWidth-2);
 
     {
         std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(pdc));
@@ -128,16 +123,35 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
         wxGraphicsPath path = gc->CreatePath();
         for (std::vector<wxPoint>::size_type i = 0; i < n; ++i)
         {
+            wxPoint2DDouble pt(NormalizedToUI(m_handles[i].pt));
             if (i == 0)
-                path.MoveToPoint(m_handles[i].pt);
+                path.MoveToPoint(pt);
             else
-                path.AddLineToPoint(m_handles[i].pt);
+                path.AddLineToPoint(pt);
         }
+
+        if (m_pathClosed && m_handles.size() > 2)
+            path.CloseSubpath();
         gc->DrawPath(path);
+
+        if ( (m_pathState == LineToNewPoint || m_pathState == CurveToNewPoint) && !m_handles.empty() )
+        {
+            wxPen pen( (m_pathState == LineToNewPoint) ? (*wxLIGHT_GREY) : (*wxRED) );
+            wxDash dashes[2] = { 2, 3 };
+            pen.SetStyle(wxPENSTYLE_USER_DASH);
+            pen.SetDashes(2, dashes);
+            gc->SetPen(pen);
+            auto ptFrom = NormalizedToUI(m_handles.back().pt);
+            auto ptTo(m_mousePos);
+            gc->StrokeLine(ptFrom.m_x, ptFrom.m_y, ptTo.m_x, ptTo.m_y);
+
+            gc->SetPen(*wxBLACK_PEN);
+        }
 
         // Second, draw the handles
         for (std::vector<wxPoint>::size_type i = 0; i < n; ++i)
         {
+            wxPoint2DDouble pt(NormalizedToUI(m_handles[i].pt));
             if (i == 0 && !m_handles[i].state )
                 gc->SetBrush(*wxGREEN_BRUSH);
             else if (i == n - 1 && !m_handles[i].state )
@@ -145,17 +159,57 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
             else
                 gc->SetBrush((m_handles[i].state) ? (*wxYELLOW_BRUSH) : (*wxLIGHT_GREY_BRUSH));
 
-             gc->DrawEllipse(m_handles[i].pt.x - 4, m_handles[i].pt.y - 4, 8, 8);
+             gc->DrawEllipse(pt.m_x - 4, pt.m_y - 4, 8, 8);
         }
     }
 }
 
 void SketchPathDialog::OnSketchKeyDown(wxKeyEvent& event)
 {
+    int keycode = event.GetKeyCode();
+    if (keycode == WXK_DELETE) {
+        for (auto iter = m_handles.begin(); iter != m_handles.end(); ++iter) {
+            if (iter->state) {
+                m_handles.erase(iter);
+                break;
+            }
+        }
+        if (m_handles.empty()) {
+            UpdatePathState(Undefined);
+            m_pathClosed = false;
+        } else if (m_handles.size() == 1) {
+            UpdatePathState(LineToNewPoint);
+            m_pathClosed = false;
+        } else
+            m_sketchPanel->Refresh();
+    }
+    else if (keycode == WXK_ESCAPE) {
+        UpdatePathState(Undefined);
+    } else if (keycode == WXK_SPACE) {
+        m_pathClosed = true;
+        UpdatePathState(Undefined);
+    } else if (keycode == WXK_SHIFT) {
+        m_pathState = (m_pathState == LineToNewPoint) ? CurveToNewPoint : LineToNewPoint;
+        m_sketchPanel->Refresh();
+    }
 }
 
 void SketchPathDialog::OnSketchLeftDown(wxMouseEvent& event)
 {
+    m_sketchPanel->SetFocus();
+
+    if (m_pathState == DefineStartPoint)
+    {
+        m_handles.push_back(UItoNormalized(event.GetPosition()));
+        UpdatePathState(LineToNewPoint);
+        return;
+    }
+    else if ( m_pathState == LineToNewPoint || m_pathState == CurveToNewPoint )
+    {
+        m_handles.push_back(UItoNormalized(event.GetPosition()));
+        return;
+    }
+
     for ( std::vector<HandlePoint>::size_type i = 0; i < m_handles.size(); ++i)
     {
         if (m_handles[i].state)
@@ -174,11 +228,17 @@ void SketchPathDialog::OnSketchLeftUp(wxMouseEvent& event)
 
 void SketchPathDialog::OnSketchMouseMove(wxMouseEvent& event)
 {
-    wxPoint2DDouble pos(event.GetPosition());
+    m_mousePos = event.GetPosition();
+
+    if (m_pathState == LineToNewPoint || m_pathState == CurveToNewPoint)
+    {
+        m_sketchPanel->Refresh();
+        return;
+    }
 
     if ( m_grabbedHandleIndex != -1 )
     {
-        m_handles[m_grabbedHandleIndex].pt = event.GetPosition();
+        m_handles[m_grabbedHandleIndex].pt = UItoNormalized(m_mousePos);
         m_sketchPanel->Refresh();
     }
     else
@@ -186,8 +246,8 @@ void SketchPathDialog::OnSketchMouseMove(wxMouseEvent& event)
         bool somethingChanged = false;
         for (auto& handle : m_handles)
         {
-            wxPoint2DDouble handlePos(handle.pt);
-            bool state = pos.GetDistanceSquare(handlePos) <= 16.;
+            wxPoint2DDouble handlePos(NormalizedToUI(handle.pt));
+            bool state = m_mousePos.GetDistanceSquare(handlePos) <= 16.;
             if (state != handle.state)
             {
                 handle.state = state;
@@ -202,7 +262,20 @@ void SketchPathDialog::OnSketchMouseMove(wxMouseEvent& event)
 
 void SketchPathDialog::OnButton_StartPath(wxCommandEvent& event)
 {
+    m_handles.clear(); // only one path allowed currently
+    m_pathClosed = false;
+    UpdatePathState(DefineStartPoint);
+}
 
+void SketchPathDialog::OnButton_EndPath(wxCommandEvent& event)
+{
+    UpdatePathState(Undefined);
+}
+
+void SketchPathDialog::OnButton_ClosePath(wxCommandEvent& event)
+{
+    m_pathClosed = true;
+    UpdatePathState(Undefined);
 }
 
 void SketchPathDialog::OnButton_Ok(wxCommandEvent& /*event*/)
@@ -213,4 +286,54 @@ void SketchPathDialog::OnButton_Ok(wxCommandEvent& /*event*/)
 void SketchPathDialog::OnButton_Cancel(wxCommandEvent& /*event*/)
 {
     EndDialog(wxID_CANCEL);
+}
+
+// Usable area rect: BorderWidth+1, BorderWidth+1, sz.GetWidth()-2*BorderWidth-2, sz.GetHeight()-2*BorderWidth-2;
+
+wxPoint2DDouble SketchPathDialog::UItoNormalized(const wxPoint2DDouble& pt) const
+{
+    wxPoint o(BorderWidth + 1, BorderWidth + 1);
+    wxSize sz(m_sketchPanel->GetSize() - wxSize(2 * BorderWidth - 2, 2 * BorderWidth - 2));
+
+    double x = double(pt.m_x - o.x) / sz.GetWidth();
+    double y = double(pt.m_y - o.y) / sz.GetHeight();
+
+    return wxPoint2DDouble(x, 1. - y);
+}
+
+wxPoint2DDouble SketchPathDialog::NormalizedToUI(const wxPoint2DDouble& pt) const
+{
+    wxPoint o(BorderWidth + 1, BorderWidth + 1);
+    wxSize sz(m_sketchPanel->GetSize() - wxSize(2 * BorderWidth - 2, 2 * BorderWidth - 2));
+
+    double x = pt.m_x * sz.GetWidth();
+    double y = pt.m_y * sz.GetHeight();
+    return wxPoint2DDouble(o.x + x, o.y + (sz.GetHeight() - y - 1));
+}
+
+void SketchPathDialog::UpdatePathState(PathState state)
+{
+    m_pathState = state;
+
+    switch ( m_pathState )
+    {
+    case Undefined:
+        m_startPathBtn->Enable();
+        m_endPathBtn->Disable();
+        m_closePathBtn->Disable();
+        break;
+    case DefineStartPoint:
+        m_startPathBtn->Disable();
+        m_endPathBtn->Disable();
+        m_closePathBtn->Disable();
+        break;
+    case LineToNewPoint:
+    case CurveToNewPoint:
+        m_startPathBtn->Disable();
+        m_endPathBtn->Enable();
+        m_closePathBtn->Enable();
+        break;
+    }
+
+    m_sketchPanel->Refresh();
 }
