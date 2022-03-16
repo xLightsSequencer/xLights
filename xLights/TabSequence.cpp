@@ -1317,6 +1317,9 @@ void xLightsFrame::SaveSequence()
         CurrentSeqXmlFile->SetPath(xmlFileName.GetPath());
         CurrentSeqXmlFile->SetFullName(xmlFileName.GetFullName());
 
+        AddToMRU(xmlFileName.GetFullPath());
+        UpdateRecentFilesList(false);
+
         wxFileName fseqFileName(NewFilename);//create FSEQ file name in seq folder
         fseqFileName.SetExt("fseq");
         DisplayXlightsFilename(fseqFileName.GetFullPath());
