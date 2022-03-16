@@ -15,19 +15,28 @@ public:
     virtual ~SketchPathDialog() = default;
 
 private:
+    DECLARE_EVENT_TABLE()
+
     enum PathState { Undefined,
                      DefineStartPoint,
                      LineToNewPoint,
-                     CurveToNewPoint };
+                     QuadraticCurveToNewPoint,
+                     CubicCurveToNewPoint };
+    enum HandlePointType { Point,
+                           QuadraticControlPt,
+                           QuadraticCurveEnd,
+                           CubicControlPt1,
+                           CubicControlPt2,
+                           CubicCurveEnd };
     struct HandlePoint {
-        HandlePoint(wxPoint2DDouble _pt) :
-            pt(_pt)
+        HandlePoint(wxPoint2DDouble _pt, HandlePointType _handlePointType=Point) :
+            pt(_pt),
+            handlePointType(_handlePointType)
         {}
         wxPoint2DDouble pt;
         bool state = false;
+        HandlePointType handlePointType = Point;
     };
-
-	DECLARE_EVENT_TABLE()
 
     wxPanel* m_sketchPanel = nullptr;
     wxButton* m_startPathBtn = nullptr;

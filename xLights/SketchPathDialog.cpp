@@ -1,6 +1,8 @@
 #include "SketchPathDialog.h"
 
-#include <memory>
+#include <optional>
+#include <utility>
+#include <xutility>
 
 #include <wx/brush.h>
 #include <wx/button.h>
@@ -126,17 +128,40 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
             wxPoint2DDouble pt(NormalizedToUI(m_handles[i].pt));
             if (i == 0)
                 path.MoveToPoint(pt);
-            else
+            else if (m_handles[i].handlePointType == Point)
                 path.AddLineToPoint(pt);
+            else if (m_handles[i].handlePointType == QuadraticControlPt) {
+                auto endPt = NormalizedToUI(m_handles[i + 1].pt);
+                path.AddQuadCurveToPoint(pt.m_x, pt.m_y, endPt.m_x, endPt.m_y);
+                i += 1;
+            }
+            else if (m_handles[i].handlePointType == CubicControlPt1)
+            {
+                auto cp2 = NormalizedToUI(m_handles[i + 1].pt);
+                auto endPt = NormalizedToUI(m_handles[i + 2].pt);
+                path.AddCurveToPoint(pt, cp2, endPt);
+                i += 2;
+            }
         }
 
         if (m_pathClosed && m_handles.size() > 2)
             path.CloseSubpath();
         gc->DrawPath(path);
 
-        if ( (m_pathState == LineToNewPoint || m_pathState == CurveToNewPoint) && !m_handles.empty() )
+        if ((m_pathState == LineToNewPoint || m_pathState == QuadraticCurveToNewPoint || m_pathState == CubicCurveToNewPoint) && !m_handles.empty())
         {
-            wxPen pen( (m_pathState == LineToNewPoint) ? (*wxLIGHT_GREY) : (*wxRED) );
+            wxPen pen;
+            switch (m_pathState) {
+            case LineToNewPoint:
+                pen = *wxBLACK;
+                break;
+            case QuadraticCurveToNewPoint:
+                pen = *wxRED;
+                break;
+            case CubicCurveToNewPoint:
+                pen = *wxBLUE;
+                break;
+            }
             wxDash dashes[2] = { 2, 3 };
             pen.SetStyle(wxPENSTYLE_USER_DASH);
             pen.SetDashes(2, dashes);
@@ -168,11 +193,47 @@ void SketchPathDialog::OnSketchKeyDown(wxKeyEvent& event)
 {
     int keycode = event.GetKeyCode();
     if (keycode == WXK_DELETE) {
-        for (auto iter = m_handles.begin(); iter != m_handles.end(); ++iter) {
+        std::optional<std::pair<int,int>> toErase;
+        int index = 0;
+        for (auto iter = m_handles.begin(); iter != m_handles.end(); ++iter, ++index) {
             if (iter->state) {
-                m_handles.erase(iter);
+                switch (iter->handlePointType) {
+                case Point:
+                    m_handles.erase(iter);
+                    break;
+                case QuadraticControlPt:
+                    toErase = std::make_pair(index, 2);
+                    break;
+                case QuadraticCurveEnd:
+                    toErase = std::make_pair(index-1, 2);
+                    break;
+                case CubicControlPt1:
+                    toErase = std::make_pair(index, 3);
+                    break;
+                case CubicControlPt2:
+                    toErase = std::make_pair(index - 1, 3);
+                    break;
+                case CubicCurveEnd:
+                    toErase = std::make_pair(index - 2, 3);
+                    break;
+                }
                 break;
             }
+        }
+        if (toErase.has_value() ) {
+            auto startIter = m_handles.cbegin();
+            auto endIter = m_handles.cbegin();
+            auto p = toErase.value();
+            std::advance(startIter, p.first);
+            std::advance(endIter, p.second + p.first);
+            m_handles.erase(startIter, endIter);
+
+            // todo - we shouldn't end up with orpaned control points or curve ends
+            //        but deleting curves sometimes does unexpected things... maybe
+            //        instead of deleting CurveEnd points they should be just changed
+            //        to Points... unless it is the CurveEnd point that is being
+            //        deleted? It's not entirely clear what the expected behavior
+            //        might be though for deleting curve points.
         }
         if (m_handles.empty()) {
             UpdatePathState(Undefined);
@@ -189,7 +250,17 @@ void SketchPathDialog::OnSketchKeyDown(wxKeyEvent& event)
         m_pathClosed = true;
         UpdatePathState(Undefined);
     } else if (keycode == WXK_SHIFT) {
-        m_pathState = (m_pathState == LineToNewPoint) ? CurveToNewPoint : LineToNewPoint;
+        switch (m_pathState) {
+        case LineToNewPoint:
+            m_pathState = QuadraticCurveToNewPoint;
+            break;
+        case QuadraticCurveToNewPoint:
+            m_pathState = CubicCurveToNewPoint;
+            break;
+        case CubicCurveToNewPoint:
+            m_pathState = LineToNewPoint;
+            break;
+        }
         m_sketchPanel->Refresh();
     }
 }
@@ -204,10 +275,29 @@ void SketchPathDialog::OnSketchLeftDown(wxMouseEvent& event)
         UpdatePathState(LineToNewPoint);
         return;
     }
-    else if ( m_pathState == LineToNewPoint || m_pathState == CurveToNewPoint )
+    else if (m_pathState == LineToNewPoint)
     {
         m_handles.push_back(UItoNormalized(event.GetPosition()));
         return;
+    } else if ( m_pathState == QuadraticCurveToNewPoint )
+    {
+        wxPoint2DDouble startPt = m_handles.back().pt;
+        wxPoint2DDouble endPt = UItoNormalized(event.GetPosition());
+        wxPoint2DDouble cp = 0.5 * startPt + 0.5 * endPt;
+
+        m_handles.push_back(HandlePoint(cp, QuadraticControlPt));
+        m_handles.push_back(HandlePoint(endPt, QuadraticCurveEnd));
+    }
+    else if (m_pathState == CubicCurveToNewPoint)
+    {
+        wxPoint2DDouble startPt = m_handles.back().pt;
+        wxPoint2DDouble endPt = UItoNormalized(event.GetPosition());
+        wxPoint2DDouble cp1 = 0.75 * startPt + 0.25 * endPt;
+        wxPoint2DDouble cp2 = 0.25 * startPt + 0.75 * endPt;
+
+        m_handles.push_back(HandlePoint(cp1, CubicControlPt1));
+        m_handles.push_back(HandlePoint(cp2, CubicControlPt2));
+        m_handles.push_back(HandlePoint(endPt, CubicCurveEnd));
     }
 
     for ( std::vector<HandlePoint>::size_type i = 0; i < m_handles.size(); ++i)
@@ -230,7 +320,7 @@ void SketchPathDialog::OnSketchMouseMove(wxMouseEvent& event)
 {
     m_mousePos = event.GetPosition();
 
-    if (m_pathState == LineToNewPoint || m_pathState == CurveToNewPoint)
+    if (m_pathState == LineToNewPoint || m_pathState == QuadraticCurveToNewPoint || m_pathState == CubicCurveToNewPoint)
     {
         m_sketchPanel->Refresh();
         return;
@@ -328,7 +418,8 @@ void SketchPathDialog::UpdatePathState(PathState state)
         m_closePathBtn->Disable();
         break;
     case LineToNewPoint:
-    case CurveToNewPoint:
+    case QuadraticCurveToNewPoint:
+    case CubicCurveToNewPoint:
         m_startPathBtn->Disable();
         m_endPathBtn->Enable();
         m_closePathBtn->Enable();
