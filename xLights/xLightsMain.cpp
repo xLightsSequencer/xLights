@@ -5728,7 +5728,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                             std::string warn = mg->Name() + m->Name() + e->second->Name();
                             if (warned.find(warn) == end(warned)) {
                                 warned[warn] = true;
-                                wxString msg = wxString::Format("    WARN: Model group '%s' contains model '%s' and model '%s' which contain at least one overlapping node (ch %lu). This may not render as expected.", (const char*)mg->Name().c_str(), (const char*)m->GetFullName().c_str(), (const char*)e->second->GetFullName().c_str(), n->ActChan);
+                                wxString msg = wxString::Format("    WARN: Model group '%s' contains model '%s' and model '%s' which contain at least one overlapping node (ch %u). This may not render as expected.", (const char*)mg->Name().c_str(), (const char*)m->GetFullName().c_str(), (const char*)e->second->GetFullName().c_str(), n->ActChan);
                                 LogAndWrite(f, msg.ToStdString());
                                 warncount++;
                             }
