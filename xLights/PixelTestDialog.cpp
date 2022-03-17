@@ -543,6 +543,11 @@ public:
     virtual std::string GetType() const override { return "SubModel"; }
 };
 
+inline bool SubModelTICompare(const SubModelTestItem* a, const SubModelTestItem* b)
+{
+    return NumberAwareStringCompare(a->GetName(), b->GetName()) == -1;
+}
+
 class ModelTestItem : public TestItemBase
 {
     std::string _modelName;
@@ -595,6 +600,8 @@ public:
             {
                 _subModels.push_back(new SubModelTestItem(it->GetFullName(), (SubModel*)it, channelsAvailable, false));
             }
+
+            _subModels.sort(SubModelTICompare);
 
             _nodes = model->GetNodeCount();
             _absoluteStartChannel = model->GetFirstChannel() + 1;
@@ -695,6 +702,14 @@ public:
     virtual std::string GetType() const override { return "Model"; }
 };
 
+inline bool ModelTICompare(const ModelTestItem* a, const ModelTestItem* b)
+{
+    return NumberAwareStringCompare(a->GetName(), b->GetName()) == -1;
+}
+
+class ModelGroupTestItem;
+inline bool ModelGroupTICompare(const ModelGroupTestItem* a, const ModelGroupTestItem* b);
+
 class ModelGroupTestItem : public TestItemBase
 {
     std::string _modelGroupName;
@@ -775,6 +790,11 @@ public:
                 }
             }
 
+            //TODO sort submodels list
+            _subModels.sort(SubModelTICompare);
+            _models.sort(ModelTICompare);
+            _modelGroups.sort(ModelGroupTICompare);
+
             _name = "";
             if (!_channelsAvailable)
             {
@@ -794,6 +814,11 @@ public:
     virtual bool IsClickable() const override { return _channelsAvailable; }
     virtual std::string GetType() const override { return "ModelGroup"; }
 };
+
+inline bool ModelGroupTICompare(const ModelGroupTestItem* a, const ModelGroupTestItem* b)
+{
+    return NumberAwareStringCompare(a->GetName(), b->GetName()) == -1;
+}
 
 class NodeTestItem : public TestItemBase
 {
@@ -1459,11 +1484,21 @@ bool PixelTestDialog::AreChannelsAvailable(Model* model)
 
 void PixelTestDialog::PopulateModelTree(ModelManager* modelManager)
 {
-	for (const auto& it : *_modelManager)
-	{
-		Model* m = it.second;
+    std::list<std::string> modelNames;
+    for (const auto& it : *_modelManager) {
+        Model* m = it.second;
 
-		if (m->GetDisplayAs() != "ModelGroup")
+        if (m->GetDisplayAs() != "ModelGroup") {
+            modelNames.push_back(m->GetName());
+        }
+    }
+    modelNames.sort(stdlistNumberAwareStringCompare);
+
+	for (const auto& it : modelNames)
+	{
+		Model* m = modelManager->GetModel(it);
+
+		if (m != nullptr && m->GetDisplayAs() != "ModelGroup")
 		{
 			// we found a model
 			ModelTestItem* modelcontroller = new ModelTestItem(m->GetName(), *modelManager, AreChannelsAvailable(m));
@@ -1490,7 +1525,9 @@ void PixelTestDialog::PopulateModelTree(ModelManager* modelManager)
                     TreeListCtrl_Models->AppendItem(modelitem, "Dummy");
                 }
             }
-		}
+		} else {
+            wxASSERT(false);
+        }
 	}
 }
 
