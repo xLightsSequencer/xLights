@@ -111,6 +111,7 @@ void SketchEffect::renderSketch(wxImage& img, double progress)
 {
     std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(img));
     auto paths = m_sketch.paths();
+    wxSize sz(img.GetWidth(), img.GetHeight());
     
     double totalLength = 0.;
     for (const auto& path : paths)
@@ -118,20 +119,21 @@ void SketchEffect::renderSketch(wxImage& img, double progress)
     
     double cumulativeLength = 0.;
     int i = 0;
+    const wxColor colors[] = { *wxRED, *wxGREEN, *wxBLUE };
     for (auto iter = paths.cbegin(); iter != paths.cend(); ++iter, ++i)
     {
-        gc->SetPen((i % 2) ? *wxGREEN : *wxRED);
+        gc->SetPen(colors[i % 3]);
         double pathLength = (*iter)->Length();
         double percentageAtEndOfThisPath = (cumulativeLength + pathLength) / totalLength;
     
         if (percentageAtEndOfThisPath <= progress)
-            (*iter)->drawEntirePath(gc.get());
+            (*iter)->drawEntirePath(gc.get(), sz);
         else
         {
             double percentageAtStartOfThisPath = cumulativeLength / totalLength;
             double percentageThroughThisPath = (progress - percentageAtStartOfThisPath) / (percentageAtEndOfThisPath - percentageAtStartOfThisPath);
             if (percentageThroughThisPath >= 0.)
-                (*iter)->drawPartialPath(gc.get(), percentageThroughThisPath);
+                (*iter)->drawPartialPath(gc.get(), sz, percentageThroughThisPath);
         }
         cumulativeLength += pathLength;
     }
