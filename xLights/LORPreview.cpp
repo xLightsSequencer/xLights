@@ -119,6 +119,9 @@ bool LORPreview::LoadPreviewFile() {
         if( d.IsOk() ) {
             wxXmlNode* root = d.GetRoot();
             if( root != nullptr ) {
+                if (previewfileName.Lower().EndsWith(".lorprev")) {
+                    return ReadPreview(root);
+                }
                 wxArrayString const previews = GetPreviews( root );
                 wxSingleChoiceDialog dlg( xlights, "", "Select Preview", previews );
                 if( dlg.ShowModal() == wxID_OK ) {
@@ -287,7 +290,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         m->SetProperty( "TreeBottomTopRatio", "1.0" );
 
         if( model.shapeName.Contains( "spiral" ) ) {
-            float roation = (float)model.parms.at( 2 ) / 10.0f; //120 in xml = 12.0 rotaions
+            float roation = (float)model.parms.at( 2 ) / 10.0F; //120 in xml = 12.0 rotaions
             if( model.startLocation.Contains( "CCW" ) ) {
                 roation *= -1;
             }
@@ -522,7 +525,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
             m->SetProperty( "parm3", wxString::Format( "%d", model.parms.at( 2 ) ) ); //number of points
 
             //try to convert LOR ratio to xLights
-            float radio = 2.618034 * ( (float)model.parms.at( 3 ) / 10.0 );
+            float radio = 2.618034F * ( (float)model.parms.at( 3 ) / 10.0 );
             m->SetProperty( "starRatio", wxString::Format( "%lf", radio ) );
         }
 
@@ -547,7 +550,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         m->SetProperty( "DisplayAs", DecodeTreeType( model.shapeName ) );
 
         if( model.shapeName.Contains( "spiral" ) ) {
-            float roation = (float)model.parms.at( 2 ) / 10.0; //120 in xml = 12.0 rotations
+            float roation = (float)model.parms.at( 2 ) / 10.0F; //120 in xml = 12.0 rotations
             if( model.startLocation.Contains( "CCW" ) ) {
                 roation *= -1;
             }
@@ -736,14 +739,14 @@ void LORPreview::ScaleToPreview( S5Model const& model, Model* m, int pvwW, int p
 
     float worldPos_x = xModelCenter.x;
     float worldPos_y = xModelCenter.y;
-    float worldPos_z = 0.0f;
+    float worldPos_z = 0.0F;
     float scalex     = xSize.x / bwidth;
     float scaley     = xSize.y / bheight;
     float scalez     = scalex;
-    float rotatex    = 0.0f;
-    float rotatey    = 0.0f;
-    float rotatez    = 0.0f;
-    if( model.radians != 0.0f ) {
+    float rotatex    = 0.0F;
+    float rotatey    = 0.0F;
+    float rotatez    = 0.0F;
+    if( model.radians != 0.0F ) {
         rotatez = ( model.radians ) * 180.0f / M_PI;
     }
 
@@ -793,23 +796,23 @@ void LORPreview::ScaleModelToSingleLine( S5Model const& model, Model* m, int pvw
     auto xSize        = GetXLightsSizeFromScale( model.scale, pvwW, pvwH );
     if( model.startLocation == "Top" ) {
         m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelCenter.x ) );
-        m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelCenter.y + ( xSize.y / 2.0f) ) );
+        m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelCenter.y + ( xSize.y / 2.0F) ) );
         m->SetProperty( "X2", "0.0000" );
-        m->SetProperty( "Y2", wxString::Format( "%6.4f", - ( xSize.y / 2.0f ) ) );
+        m->SetProperty( "Y2", wxString::Format( "%6.4f", - ( xSize.y / 2.0F ) ) );
     } else if( model.startLocation == "Bottom" ) {
         m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelCenter.x ) );
-        m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelCenter.y - ( xSize.y / 2.0f ) ) );
+        m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelCenter.y - ( xSize.y / 2.0F ) ) );
         m->SetProperty( "X2", "0.0000" );
-        m->SetProperty( "Y2", wxString::Format( "%6.4f",  ( xSize.y / 2.0f ) ) );
+        m->SetProperty( "Y2", wxString::Format( "%6.4f",  ( xSize.y / 2.0F ) ) );
     } else if( model.startLocation == "Left" ) {
-        m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelCenter.x + ( xSize.x / 2.0f ) ) );
+        m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelCenter.x + ( xSize.x / 2.0F ) ) );
         m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelCenter.y ) );
-        m->SetProperty( "X2", wxString::Format( "%6.4f",  - ( xSize.x / 2.0f ) ) );
+        m->SetProperty( "X2", wxString::Format( "%6.4f",  - ( xSize.x / 2.0F ) ) );
         m->SetProperty( "Y2", "0.0000" );
     } else if( model.startLocation == "Right" ) {
-        m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelCenter.x - ( xSize.x / 2.0f ) ) );
+        m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelCenter.x - ( xSize.x / 2.0F ) ) );
         m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelCenter.y ) );
-        m->SetProperty( "X2", wxString::Format( "%6.4f", ( xSize.x / 2.0f ) ) );
+        m->SetProperty( "X2", wxString::Format( "%6.4f", ( xSize.x / 2.0F ) ) );
         m->SetProperty( "Y2", "0.0000" );
     } else  {//should not happen.....
         m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelCenter.x ) );
@@ -855,7 +858,7 @@ void LORPreview::ScaleIcicleToSingleLine( S5Model const& model, int maxdrop, Mod
     m->SetProperty( "Z2", "0.0000" );
     //kinda a guess
     float new_Height = (( xModelFirst.y - xModelFour.y ) / (float)maxdrop) / 50.0F;
-    m->SetProperty( "Height", wxString::Format( "%6.4f", new_Height * -1.0f ) );
+    m->SetProperty( "Height", wxString::Format( "%6.4f", new_Height * -1.0F ) );
 
     m->SetProperty( "ScaleX", "1.0000" );
     m->SetProperty( "ScaleY", "1.0000" );
@@ -887,28 +890,28 @@ S5Point LORPreview::ScalePointToXLights( S5Point const& pt, int pvwW, int pvwH )
      *
      */
 
-    int xLights_x = ( (pvwW / 2) * ( pt.x + 1 ) ) ;
-    int xLights_y = ( (pvwH / 2) * ( pt.y + 1 ) ) ;
-    return S5Point( xLights_x, xLights_y );
+    float xLights_x = ( (pvwW / 2) * ( pt.x + 1 ) ) ;
+    float xLights_y = ((pvwH / 2) * (pt.y + 1));
+    return { xLights_x, xLights_y };
 }
 
 S5Point LORPreview::GetXLightsSizeFromScale( S5Point const& scale, int pvwW, int pvwH ) const
 {
-    float xLightsWidth  = 1.0f;
-    float xLightsHeight = 1.0f;
+    float xLightsWidth  = 1.0F;
+    float xLightsHeight = 1.0F;
 
-    if( scale.x < 5.0f ) { //models will have crazy high scale values on the axes that doesn't matter
-        xLightsWidth = ( (float)pvwW / 2.0f ) * scale.x;
+    if( scale.x < 5.0F ) { //models will have crazy high scale values on the axes that doesn't matter
+        xLightsWidth = ( (float)pvwW / 2.0F ) * scale.x;
     } else {
-        xLightsWidth = ( (float)pvwW / 2.0f ) * scale.y;
+        xLightsWidth = ( (float)pvwW / 2.0F ) * scale.y;
     }
 
-    if( scale.y < 5.0f ) {
-        xLightsHeight = ( (float)pvwH / 2.0f ) * scale.y;
+    if( scale.y < 5.0F ) {
+        xLightsHeight = ( (float)pvwH / 2.0F ) * scale.y;
     } else {
-        xLightsHeight = ( (float)pvwH / 2.0f ) * scale.x;
+        xLightsHeight = ( (float)pvwH / 2.0F ) * scale.x;
     }
-    return S5Point( xLightsWidth, xLightsHeight );
+    return { xLightsWidth, xLightsHeight };
 }
 
 void LORPreview::CreateGroup( S5Group const& grp, std::vector< S5Model > const& models )
@@ -946,10 +949,7 @@ wxString LORPreview::FindLORPreviewFile()
     //Default LOR S5 Preview File Location On Windows
     //C:\Users\scoot\Documents\Light-O-Rama\CommonData\LORPreviews.xml
 
-    wxString const filePath = wxStandardPaths::Get().GetDocumentsDir() + wxFileName::GetPathSeparator() + "Light-O-Rama" + wxFileName::GetPathSeparator() + "CommonData" + wxFileName::GetPathSeparator() + "LORPreviews.xml";
-    if( FileExists(filePath) ) {
-        return filePath;
-    }
+    wxString const filePath = wxStandardPaths::Get().GetDocumentsDir() + wxFileName::GetPathSeparator() + "Light-O-Rama" + wxFileName::GetPathSeparator() + "CommonData" + wxFileName::GetPathSeparator();
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
 #ifdef __WXOSX__
@@ -957,9 +957,9 @@ wxString LORPreview::FindLORPreviewFile()
 #else
     wxString const wildcard = "LORPreviews.xml";
 #endif
-    return wxFileSelector( _( "Choose LOR S5 Preview File to Import" ), wxEmptyString,
-                            XLIGHTS_RGBEFFECTS_FILE, wxEmptyString,
-                            "LOR S5 Preview File (LORPreviews.xml)|" + wildcard,
+    return wxFileSelector(_("Choose LOR S5 Preview File to Import"), filePath, wxEmptyString,
+                          wxEmptyString,
+                          "LOR S5 Preview Files (LORPreviews.xml or .lorprev)|" + wildcard + ";*.lorprev;",
                             wxFD_FILE_MUST_EXIST | wxFD_OPEN );
 }
 
@@ -980,41 +980,41 @@ wxArrayString LORPreview::GetPreviews( wxXmlNode* root ) const
 #ifdef _DEBUG
 void LORPreview::RunTests() {
     //built in testing, until I add google test some day
-    auto pt = ScalePointToXLights( S5Point( 0.0f, 0.0f ), 10, 10 );
-    wxASSERT( pt.x == 5.0f );
-    wxASSERT( pt.y == 5.0f );
+    auto pt = ScalePointToXLights( S5Point( 0.0F, 0.0F ), 10, 10 );
+    wxASSERT( pt.x == 5.0F );
+    wxASSERT( pt.y == 5.0F );
 
-    pt = ScalePointToXLights( S5Point( -1.0f, -1.0f ), 10, 10 );
-    wxASSERT( pt.x == 0.0f );
-    wxASSERT( pt.y == 0.0f );
+    pt = ScalePointToXLights( S5Point( -1.0F, -1.0F ), 10, 10 );
+    wxASSERT( pt.x == 0.0F );
+    wxASSERT( pt.y == 0.0F );
 
-    pt = ScalePointToXLights( S5Point( 1.0f, 1.0f ), 10, 10 );
-    wxASSERT( pt.x == 10.0f );
-    wxASSERT( pt.y == 10.0f );
+    pt = ScalePointToXLights( S5Point( 1.0F, 1.0F ), 10, 10 );
+    wxASSERT( pt.x == 10.0F );
+    wxASSERT( pt.y == 10.0F );
 
-    pt = ScalePointToXLights( S5Point( -0.373974591f, -0.431859612f ), 1280, 720 );
-    wxASSERT( pt.x == 400.0f );
-    wxASSERT( pt.y == 204.0f );
+    pt = ScalePointToXLights( S5Point( -0.373974591F, -0.431859612F ), 1280, 720 );
+    wxASSERT( pt.x == 400.656281F );
+    wxASSERT( pt.y == 204.530533F );
 
-    pt = ScalePointToXLights( S5Point( -0.07563785f, -0.26f ), 1280, 720 );
-    wxASSERT( pt.x == 591.0f );
-    wxASSERT( pt.y == 266.0f );
+    pt = ScalePointToXLights( S5Point( -0.07563785F, -0.26F ), 1280, 720 );
+    wxASSERT( pt.x == 591.591797F );
+    wxASSERT( pt.y == 266.399994F );
 
-    pt = ScalePointToXLights( S5Point( 0.1659517f, -0.4756281f ), 1280, 720 );
-    wxASSERT( pt.x == 746.0f );
-    wxASSERT( pt.y == 188.0f );
+    pt = ScalePointToXLights( S5Point( 0.1659517F, -0.4756281F ), 1280, 720 );
+    wxASSERT( pt.x == 746.209106F );
+    wxASSERT( pt.y == 188.773865F );
 
-    pt = GetXLightsSizeFromScale( S5Point( 1.0f, 1.0f ), 10, 10 );
-    wxASSERT( pt.x == 5.0f );
-    wxASSERT( pt.y == 5.0f );
+    pt = GetXLightsSizeFromScale( S5Point( 1.0F, 1.0F ), 10, 10 );
+    wxASSERT( pt.x == 5.0F );
+    wxASSERT( pt.y == 5.0F );
 
-    pt = GetXLightsSizeFromScale( S5Point( 2.0f, 2.0f ), 10, 10 );
-    wxASSERT( pt.x == 10.0f );
-    wxASSERT( pt.y == 10.0f );
+    pt = GetXLightsSizeFromScale( S5Point( 2.0F, 2.0F ), 10, 10 );
+    wxASSERT( pt.x == 10.0F );
+    wxASSERT( pt.y == 10.0F );
 
-    pt = GetXLightsSizeFromScale( S5Point( 0.5f, 0.5f ), 10, 10 );
-    wxASSERT( pt.x == 2.5f );
-    wxASSERT( pt.y == 2.5f );
+    pt = GetXLightsSizeFromScale( S5Point( 0.5F, 0.5F ), 10, 10 );
+    wxASSERT( pt.x == 2.5F );
+    wxASSERT( pt.y == 2.5F );
 
     int unv, chan;
     wxASSERT( GetStartUniverseChan( "Regular,40,1,300,0,", unv, chan ) );
