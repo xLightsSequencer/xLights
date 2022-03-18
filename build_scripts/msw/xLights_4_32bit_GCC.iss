@@ -150,8 +150,10 @@ Source: "../../scripts/*.*"; DestDir: "{app}/scripts"   ; Flags: ignoreversion r
 [Icons] 
 Name: "{group}\xLights"; Filename: "{app}\xLights.EXE"; WorkingDir: "{app}"
 Name: "{group}\xSchedule"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"
+Name: "{group}\xScanner"; Filename: "{app}\xScanner.EXE"; WorkingDir: "{app}"
 Name: "{commondesktop}\xLights"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xLights.ico";
 Name: "{commondesktop}\xSchedule"; Filename: "{app}\xSchedule.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule.ico";
+Name: "{commondesktop}\xScanner"; Filename: "{app}\xScanner.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xScanner.ico";
 
 [Run]
 Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 
