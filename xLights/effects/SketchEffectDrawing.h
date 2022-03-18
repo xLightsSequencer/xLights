@@ -23,7 +23,9 @@ public:
     virtual wxPoint2DDouble StartPoint() = 0;
     virtual wxPoint2DDouble EndPoint() = 0;
     virtual void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) = 0;
-    virtual void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, double percentage) = 0;
+    virtual void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
+                                    double startPercentage,
+                                    double endPercentage) = 0;
 };
 
 // A path is simply a collection of segments. If there are at least two segments,
@@ -41,7 +43,9 @@ public:
     void appendSegment(std::shared_ptr<SketchPathSegment> cmd);
     void closePath();
     void drawEntirePath(wxGraphicsContext* gc, const wxSize& sz);
-    void drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, double percentage);
+    void drawPartialPath(wxGraphicsContext* gc, const wxSize& sz,
+                         double startPercentage,
+                         double endPercentage);
 
 protected:
     double m_startDelay = 0.;
@@ -91,7 +95,9 @@ public:
         return m_toPt;
     }
     void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) override;
-    void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, double percentage) override;
+    void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
+                            double startPercentage,
+                            double endPercentage) override;
 
 protected:
     const wxPoint2DDouble m_fromPt;
@@ -119,7 +125,9 @@ public:
         return m_toPt;
     }
     void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) override;
-    void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, double percentage) override;
+    void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
+                            double startPercentage,
+                            double endPercentage) override;
 
 protected:
     const wxPoint2DDouble m_fromPt;
@@ -150,7 +158,9 @@ public:
         return m_toPt;
     }
     void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) override;
-    void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, double percentage) override;
+    void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
+                            double startPercentage,
+                            double endPercentage) override;
 
 protected:
     const wxPoint2DDouble m_fromPt;

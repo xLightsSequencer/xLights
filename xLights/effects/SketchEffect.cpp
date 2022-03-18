@@ -119,7 +119,7 @@ void SketchEffect::renderSketch(wxImage& img, double progress)
     
     double cumulativeLength = 0.;
     int i = 0;
-    const wxColor colors[] = { *wxRED, *wxGREEN, *wxBLUE };
+    const wxColor colors[] = { *wxRED, *wxGREEN, *wxBLUE }; // todo - shouldn't be hard-coded colors!!
     for (auto iter = paths.cbegin(); iter != paths.cend(); ++iter, ++i)
     {
         gc->SetPen(colors[i % 3]);
@@ -133,7 +133,7 @@ void SketchEffect::renderSketch(wxImage& img, double progress)
             double percentageAtStartOfThisPath = cumulativeLength / totalLength;
             double percentageThroughThisPath = (progress - percentageAtStartOfThisPath) / (percentageAtEndOfThisPath - percentageAtStartOfThisPath);
             if (percentageThroughThisPath >= 0.)
-                (*iter)->drawPartialPath(gc.get(), sz, percentageThroughThisPath);
+                (*iter)->drawPartialPath(gc.get(), sz, 0., percentageThroughThisPath);
         }
         cumulativeLength += pathLength;
     }
