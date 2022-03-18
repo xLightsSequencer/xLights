@@ -59,6 +59,7 @@ private:
     wxPoint2DDouble UItoNormalized(const wxPoint2DDouble& pt) const;
     wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt) const;
     void UpdatePathState(PathState state);
+    static bool isControlPoint(const HandlePoint& handlePt);
 
     std::vector<HandlePoint> m_handles;
     std::vector<HandlePoint>::size_type m_grabbedHandleIndex = -1;

@@ -165,6 +165,7 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
             wxDash dashes[2] = { 2, 3 };
             pen.SetStyle(wxPENSTYLE_USER_DASH);
             pen.SetDashes(2, dashes);
+            pen.SetWidth(2);
             gc->SetPen(pen);
             auto ptFrom = NormalizedToUI(m_handles.back().pt);
             auto ptTo(m_mousePos);
@@ -177,12 +178,14 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
         for (std::vector<wxPoint>::size_type i = 0; i < n; ++i)
         {
             wxPoint2DDouble pt(NormalizedToUI(m_handles[i].pt));
-            if (i == 0 && !m_handles[i].state )
+            if (i == 0 && !m_handles[i].state)
                 gc->SetBrush(*wxGREEN_BRUSH);
-            else if (i == n - 1 && !m_handles[i].state )
+            else if (i == n - 1 && !m_handles[i].state)
                 gc->SetBrush(*wxRED_BRUSH);
             else
-                gc->SetBrush((m_handles[i].state) ? (*wxYELLOW_BRUSH) : (*wxLIGHT_GREY_BRUSH));
+                gc->SetBrush((m_handles[i].state) ? (*wxYELLOW_BRUSH)
+                                                  : (isControlPoint(m_handles[i]) ? (*wxBLUE_BRUSH) : (*wxLIGHT_GREY_BRUSH)));
+            ;
 
              gc->DrawEllipse(pt.m_x - 4, pt.m_y - 4, 8, 8);
         }
@@ -278,6 +281,7 @@ void SketchPathDialog::OnSketchLeftDown(wxMouseEvent& event)
     else if (m_pathState == LineToNewPoint)
     {
         m_handles.push_back(UItoNormalized(event.GetPosition()));
+        m_sketchPanel->Refresh();
         return;
     } else if ( m_pathState == QuadraticCurveToNewPoint )
     {
@@ -287,6 +291,8 @@ void SketchPathDialog::OnSketchLeftDown(wxMouseEvent& event)
 
         m_handles.push_back(HandlePoint(cp, QuadraticControlPt));
         m_handles.push_back(HandlePoint(endPt, QuadraticCurveEnd));
+        m_sketchPanel->Refresh();
+        return;
     }
     else if (m_pathState == CubicCurveToNewPoint)
     {
@@ -298,6 +304,8 @@ void SketchPathDialog::OnSketchLeftDown(wxMouseEvent& event)
         m_handles.push_back(HandlePoint(cp1, CubicControlPt1));
         m_handles.push_back(HandlePoint(cp2, CubicControlPt2));
         m_handles.push_back(HandlePoint(endPt, CubicCurveEnd));
+        m_sketchPanel->Refresh();
+        return;
     }
 
     for ( std::vector<HandlePoint>::size_type i = 0; i < m_handles.size(); ++i)
@@ -427,4 +435,10 @@ void SketchPathDialog::UpdatePathState(PathState state)
     }
 
     m_sketchPanel->Refresh();
+}
+
+bool SketchPathDialog::isControlPoint(const HandlePoint& handlePt)
+{
+    auto hpt = handlePt.handlePointType;
+    return hpt == QuadraticControlPt || hpt == CubicControlPt1 || hpt == CubicControlPt2;
 }
