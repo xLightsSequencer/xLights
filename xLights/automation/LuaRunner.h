@@ -50,4 +50,5 @@ private:
     [[nodiscard]] wxString CommandtoString(std::string const& cmd, std::map<std::string, std::string> const& parms) const;
     [[nodiscard]] sol::object getObjectType(wxJSONValue const& val, sol::state_view lua) const;
     [[nodiscard]] wxArrayString getArrayString(sol::object const& items) const;
+    void SendObjResponce(sol::object const& val, std::function<void(std::string const& msg)> SendResponce) const;
 };

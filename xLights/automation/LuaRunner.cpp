@@ -129,19 +129,7 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
     lua.set_function("JSONToTable", &LuaRunner::JSONToTable, this);
 
     auto SendObjectResponce = [&](sol::object const& val) {
-        if (val.is<bool>()) {
-            return SendResponce(toStr(val.as<bool>()));
-        }
-        if (val.is<int>()) {
-            return SendResponce(std::to_string(val.as<int>()));
-        }
-        if (val.is<double>()) {
-            return SendResponce(std::to_string(val.as<double>()));
-        }
-        if (val.is<std::string>()) {
-            return SendResponce(val.as<std::string>());
-        }
-        SendResponce("UnkownType");
+        SendObjResponce(val, SendResponce);
     };
 
     lua.set_function("Log", SendObjectResponce);
@@ -176,6 +164,38 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
         return false;
     }
     return true;
+}
+
+void LuaRunner::SendObjResponce(sol::object const& val, std::function<void(std::string const& msg)> SendResponce) const
+{
+    if (val.is<bool>()) {
+        return SendResponce(toStr(val.as<bool>()));
+    }
+    if (val.is<int>()) {
+        return SendResponce(std::to_string(val.as<int>()));
+    }
+    if (val.is<double>()) {
+        return SendResponce(std::to_string(val.as<double>()));
+    }
+    if (val.is<std::string>()) {
+        return SendResponce(val.as<std::string>());
+    }
+    if (val.get_type() == sol::type::table) {
+        for (auto const& it : val.as<sol::table>()) {
+            SendObjResponce(it.first, SendResponce);
+            SendObjResponce(it.second, SendResponce);
+        }
+        return;
+    } else if (val.get_type() == sol::type::userdata) {
+        if (val.is<std::list<std::string>>()) {
+            auto const str_item = val.as<std::list<std::string>>();
+            for (auto const& str : str_item) {
+                SendResponce(str);
+            }
+            return;
+        }
+    }
+    SendResponce("UnkownType");
 }
 
 sol::object LuaRunner::RunCommand(std::string const& cmd, std::map<std::string, std::string> parms, sol::this_state thislua)
