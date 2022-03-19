@@ -119,7 +119,7 @@ bool LORPreview::LoadPreviewFile() {
         if( d.IsOk() ) {
             wxXmlNode* root = d.GetRoot();
             if( root != nullptr ) {
-                if (previewfileName.Lower().EndsWith(".lorprev")) {
+                if (root->GetName() == "PreviewClass") {
                     return ReadPreview(root);
                 }
                 wxArrayString const previews = GetPreviews( root );
