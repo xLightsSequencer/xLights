@@ -61,15 +61,21 @@
             <MaxSerialPort>0</MaxSerialPort>
             <Port1>2</Port1>
             <Port2>3</Port2>
-            <Port3>1</Port3>	
+            <Port3>1</Port3>
         </Variant>
     </Controller>
     <Controller Name="QuinLED-Dig-Uno">
-        <Variant Name="" Base="WLED:BaseWLEDSettings">
+        <Variant Name="ESP8266" Base="WLED:BaseWLEDSettings">
             <MaxPixelPort>2</MaxPixelPort>
             <MaxSerialPort>0</MaxSerialPort>
-            <Port1>2</Port1>
+            <Port1>3</Port1>
             <Port2>1</Port2>
+        </Variant>
+        <Variant Name="ESP32" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>16</Port1>
+            <Port2>3</Port2>
         </Variant>
     </Controller>
     <Controller Name="E1-WiFi">
