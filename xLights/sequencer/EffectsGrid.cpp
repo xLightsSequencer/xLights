@@ -93,6 +93,7 @@ const long EffectsGrid::ID_GRID_MNU_ALIGN_CENTERPOINTS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_MATCH_DURATION = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_START_TIMES_SHIFT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_END_TIMES_SHIFT = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_SPLIT_EFFECT = wxNewId();
 
 int findDataEffect::GetStrand() const
 {
@@ -356,6 +357,12 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         }
         if (!(mCellRangeSelected || mPartialCellSelected)) {
             menu_paste->Enable(false);
+        }
+
+        wxMenuItem* menu_split = mnuLayer.Append(ID_GRID_MNU_SPLIT_EFFECT, "Split");
+        if (mSelectedEffect == nullptr || MultipleEffectsSelected() || (mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS() <= mSequenceElements->GetFrameMS()))
+        {
+            menu_split->Enable(false);
         }
 
         // Undo
@@ -718,12 +725,33 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if (id == ID_GRID_MNU_ALIGN_START_TIMES_SHIFT) {
         logger_base.debug("OnGridPopup - ALIGN_START_TIMES_SHIFT");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_START_TIMES_SHIFT);
-    }
-    else if (id == ID_GRID_MNU_ALIGN_END_TIMES_SHIFT) {
+    } else if (id == ID_GRID_MNU_ALIGN_END_TIMES_SHIFT) {
         logger_base.debug("OnGridPopup - ALIGN_END_TIMES_SHIFT");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_END_TIMES_SHIFT);
-    }
-    else if (id == ID_GRID_MNU_PRESETS) {
+    } else if (id == ID_GRID_MNU_SPLIT_EFFECT) {
+        logger_base.debug("OnGridPopup - SPLIT_EFFECT");
+        if (mSelectedEffect != nullptr) {
+            long s = mSelectedEffect->GetStartTimeMS();
+            long e = mSelectedEffect->GetEndTimeMS();
+            if (e - s > mSequenceElements->GetFrameMS()) {
+                auto el = mSelectedEffect->GetParentEffectLayer();
+                float splitf = (float)(e - s) / 2.0f;
+                mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), mSelectedEffect->GetID(), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString());
+                mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(el->GetParentElement()->GetModelName(), el->GetIndex(), mSelectedEffect->GetID(), mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS());
+                long newend = TimeLine::RoundToMultipleOfPeriod((float)s + splitf, mSequenceElements->GetFrameMS());
+                mSelectedEffect->SetEndTimeMS(newend);
+
+                long newstart = newend;
+                newend = e;
+
+                Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newend, EFFECT_SELECTED, false);
+                mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
+                mSelectedEffect->SetSelected(EFFECT_SELECTED);
+            }
+        }
+    }    
+    else if (id == ID_GRID_MNU_PRESETS)
+    {
         logger_base.debug("OnGridPopup - PRESETS");
 
         //xlights->CreatePresetIcons();

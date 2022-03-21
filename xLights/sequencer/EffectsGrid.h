@@ -362,7 +362,7 @@ private:
     static const long ID_GRID_MNU_ALIGN_MATCH_DURATION;
     static const long ID_GRID_MNU_ALIGN_START_TIMES_SHIFT;
     static const long ID_GRID_MNU_ALIGN_END_TIMES_SHIFT;
-
+    static const long ID_GRID_MNU_SPLIT_EFFECT;
     EventPlayEffectArgs* playArgs = nullptr;
 
     const SequenceData *seqData = nullptr;
