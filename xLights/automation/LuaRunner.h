@@ -28,7 +28,7 @@ class LuaRunner
 public:
     explicit LuaRunner(xLightsFrame* frame);
 
-    bool Run_Script(wxString const& filepath, std::function<void(std::string const& msg)> SendResponce);
+    bool Run_Script(wxString const& filepath, std::function<void(std::string const& msg)> SendResponse);
 
     [[nodiscard]] std::string GetUserScriptFolder() const;
     [[nodiscard]] static std::string GetSystemScriptFolder();
@@ -50,5 +50,5 @@ private:
     [[nodiscard]] wxString CommandtoString(std::string const& cmd, std::map<std::string, std::string> const& parms) const;
     [[nodiscard]] sol::object getObjectType(wxJSONValue const& val, sol::state_view lua) const;
     [[nodiscard]] wxArrayString getArrayString(sol::object const& items) const;
-    void SendObjResponce(sol::object const& val, std::function<void(std::string const& msg)> SendResponce) const;
+    void SendObjResponse(sol::object const& val, std::function<void(std::string const& msg)> SendResponse) const;
 };

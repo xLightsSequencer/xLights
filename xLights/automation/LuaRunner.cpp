@@ -102,7 +102,7 @@ std::string LuaRunner::JoinString(sol::object const& list, char const& delimiter
     return wxJoin(itemList, delimiter);
 }
 
-bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::string const& msg)> SendResponce)
+bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::string const& msg)> SendResponse)
 { 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     sol::state lua;
@@ -128,11 +128,11 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
     lua.set_function("JoinString", &LuaRunner::JoinString, this);
     lua.set_function("JSONToTable", &LuaRunner::JSONToTable, this);
 
-    auto SendObjectResponce = [&](sol::object const& val) {
-        SendObjResponce(val, SendResponce);
+    auto SendObjectResponse = [&](sol::object const& val) {
+        SendObjResponse(val, SendResponse);
     };
 
-    lua.set_function("Log", SendObjectResponce);
+    lua.set_function("Log", SendObjectResponse);
 
     try {
         sol::load_result lr = lua.load_file(filepath);
@@ -152,50 +152,51 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
             sol::error err2 = result2;
             logger_base.info("LuaRunner: Error Runing Script: %s.", (const char*)filepath.c_str());
             logger_base.info("LuaRunner: Error: %s.", err2.what());
-            SendResponce(err2.what());
+            SendResponse(err2.what());
             wxMessageBox("Error Runing Script: " + filepath + "\n\n" + err2.what(), "Script Error", wxOK);
             return false;
         }
     } catch (std::exception& e) {
         logger_base.info("LuaRunner: Throw Runing Script: %s.", (const char*)filepath.c_str());
         logger_base.info("LuaRunner: Error: %s.", e.what());
-        SendResponce(e.what());
+        SendResponse(e.what());
         wxMessageBox(e.what(), "Error", wxOK);
         return false;
     }
     return true;
 }
 
-void LuaRunner::SendObjResponce(sol::object const& val, std::function<void(std::string const& msg)> SendResponce) const
+void LuaRunner::SendObjResponse(sol::object const& val, std::function<void(std::string const& msg)> SendResponse) const
 {
     if (val.is<bool>()) {
-        return SendResponce(toStr(val.as<bool>()));
+        return SendResponse(toStr(val.as<bool>()));
     }
     if (val.is<int>()) {
-        return SendResponce(std::to_string(val.as<int>()));
+        return SendResponse(std::to_string(val.as<int>()));
     }
     if (val.is<double>()) {
-        return SendResponce(std::to_string(val.as<double>()));
+        return SendResponse(std::to_string(val.as<double>()));
     }
     if (val.is<std::string>()) {
-        return SendResponce(val.as<std::string>());
+        return SendResponse(val.as<std::string>());
     }
     if (val.get_type() == sol::type::table) {
         for (auto const& it : val.as<sol::table>()) {
-            SendObjResponce(it.first, SendResponce);
-            SendObjResponce(it.second, SendResponce);
+            SendObjResponse(it.first, SendResponse);
+            SendObjResponse(it.second, SendResponse);
         }
         return;
-    } else if (val.get_type() == sol::type::userdata) {
+    } 
+    if (val.get_type() == sol::type::userdata) {
         if (val.is<std::list<std::string>>()) {
             auto const str_item = val.as<std::list<std::string>>();
             for (auto const& str : str_item) {
-                SendResponce(str);
+                SendResponse(str);
             }
             return;
         }
     }
-    SendResponce("UnkownType");
+    SendResponse("UnkownType");
 }
 
 sol::object LuaRunner::RunCommand(std::string const& cmd, std::map<std::string, std::string> parms, sol::this_state thislua)
