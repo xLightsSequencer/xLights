@@ -12,6 +12,7 @@
 
 #include <wx/image.h>
 
+#include <algorithm>
 #include <cstdint>
 
 SketchEffect::SketchEffect( int id ) :
@@ -111,8 +112,10 @@ void SketchEffect::renderSketch(wxImage& img, double progress)
 {
     std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(img));
     auto paths = m_sketch.paths();
-    wxSize sz(img.GetWidth(), img.GetHeight());
-    
+    wxSize sz(img.GetSize());
+
+    double drawPercentage = 0.25; // hard-coded; should be an effect setting
+
     double totalLength = 0.;
     for (const auto& path : paths)
         totalLength += path->Length();
@@ -132,8 +135,10 @@ void SketchEffect::renderSketch(wxImage& img, double progress)
         {
             double percentageAtStartOfThisPath = cumulativeLength / totalLength;
             double percentageThroughThisPath = (progress - percentageAtStartOfThisPath) / (percentageAtEndOfThisPath - percentageAtStartOfThisPath);
+            double drawPercentageThroughThisPath = (progress - drawPercentage - percentageAtStartOfThisPath) / (percentageAtEndOfThisPath - percentageAtStartOfThisPath);
+            drawPercentageThroughThisPath = std::max(drawPercentageThroughThisPath, 0.);
             if (percentageThroughThisPath >= 0.)
-                (*iter)->drawPartialPath(gc.get(), sz, 0., percentageThroughThisPath);
+                (*iter)->drawPartialPath(gc.get(), sz, drawPercentageThroughThisPath, percentageThroughThisPath);
         }
         cumulativeLength += pathLength;
     }

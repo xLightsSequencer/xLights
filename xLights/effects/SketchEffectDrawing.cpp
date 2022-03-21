@@ -103,9 +103,13 @@ void SketchLine::DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz)
 
 void SketchLine::DrawPartialSegment(wxGraphicsPath& path, const wxSize&sz, double startPercentage, double endPercentage)
 {
-    // todo - startPercentage/endPercentage
     auto pt = (1 - endPercentage) * m_fromPt + endPercentage * m_toPt;
-    path.AddLineToPoint(sz.x *pt.m_x, sz.y * pt.m_y);
+    if (startPercentage != 0.) {
+        auto startPt = (1 - startPercentage) * m_fromPt + startPercentage * m_toPt;
+        path.MoveToPoint(sz.x * startPt.m_x, sz.y * startPt.m_y);
+    }
+
+    path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
 }
 
 
@@ -194,9 +198,10 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
     // todo - startPercentage/endPercentage
     double totalLength = Length();
 
-    wxGraphicsPath path(gc->CreatePath());
     auto startPt(m_segments.front()->StartPoint());
+    wxGraphicsPath path(gc->CreatePath());
     path.MoveToPoint(sz.x * startPt.m_x, sz.y * startPt.m_y);
+
     double cumulativeLength = 0.;
     for (auto& cmd : m_segments) {
         double length = cmd->Length();
@@ -207,7 +212,8 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
             double percentageAtStartOfSegment = cumulativeLength / totalLength;
             if (endPercentage >= percentageAtStartOfSegment && endPercentage < percentageAtEndOfSegment) {
                 double segmentPercentage = (endPercentage - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
-                cmd->DrawPartialSegment(path, sz, 0., segmentPercentage);
+                double segmentDrawPercentage = (startPercentage - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
+                cmd->DrawPartialSegment(path, sz, segmentDrawPercentage, segmentPercentage);
             }
         }
         cumulativeLength += length;
