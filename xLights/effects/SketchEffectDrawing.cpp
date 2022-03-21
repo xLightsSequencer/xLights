@@ -233,6 +233,23 @@ void SketchEffectPath::closePath()
 SketchEffectSketch SketchEffectSketch::DefaultSketch()
 {
     SketchEffectSketch sketch;
+#if 1
+    const wxPoint2DDouble path1Start(0., 0.);
+    const wxPoint2DDouble path2Start(0.4, 0.1);
+
+    auto path1 = std::make_shared<SketchEffectPath>();
+    auto path1Segment1 = std::make_shared<SketchLine>(path1Start, wxPoint2DDouble(0.6, 0.6));
+    auto path1Segment2 = std::make_shared<SketchLine>(path1Segment1->EndPoint(), wxPoint2DDouble(0.8, 0.4));
+    path1->appendSegment(path1Segment1);
+    path1->appendSegment(path1Segment2);
+
+    auto path2 = std::make_shared<SketchEffectPath>();
+    auto path2Segment1 = std::make_shared<SketchLine>(path2Start, wxPoint2DDouble(0.95, 0.1));
+    path2->appendSegment(path2Segment1);
+
+    sketch.appendPath(path1);
+    sketch.appendPath(path2);
+#else
     const wxPoint2DDouble path1Start(0., 0.);
     const wxPoint2DDouble path2Start(0.35, 0.45);
     const wxPoint2DDouble path3Start(0.8, 0.8);
@@ -263,6 +280,7 @@ SketchEffectSketch SketchEffectSketch::DefaultSketch()
     sketch.appendPath(path1);
     sketch.appendPath(path2);
     sketch.appendPath(path3);
+ #endif
 
     return sketch;
 }
