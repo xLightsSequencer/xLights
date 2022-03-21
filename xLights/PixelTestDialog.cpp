@@ -790,7 +790,6 @@ public:
                 }
             }
 
-            //TODO sort submodels list
             _subModels.sort(SubModelTICompare);
             _models.sort(ModelTICompare);
             _modelGroups.sort(ModelGroupTICompare);
