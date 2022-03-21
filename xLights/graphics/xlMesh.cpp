@@ -54,14 +54,15 @@ xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(c
                 }
                 texName = fn.GetPath() + fn.GetPathSeparator() + texName;
             }
-            wxImage image(texName);
-            if (image.IsOk()) {
-                image = image.Mirror(false);
-                materials[idx].texture = ctx->createTexture(image);
-                materials[idx].texture->SetName(m.diffuse_texname);
-                materials[idx].texture->Finalize();
-            } else {
-                materials[idx].color.Set(128, 128, 128, (uint8_t)dissolve);
+            if (FileExists(texName)) {
+                ObtainAccessToURL(texName);
+                wxImage image(texName);
+                if (image.IsOk()) {
+                    image = image.Mirror(false);
+                    materials[idx].texture = ctx->createTexture(image);
+                    materials[idx].texture->SetName(m.diffuse_texname);
+                    materials[idx].texture->Finalize();
+                }
             }
         }
         materials[idx].origColor = materials[idx].color;
