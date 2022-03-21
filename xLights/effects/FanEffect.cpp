@@ -14,6 +14,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../UtilFunctions.h"
 
 
 #include "../../include/fan-16.xpm"
@@ -108,8 +109,6 @@ void FanEffect::SetDefaultParameters() {
     SetCheckBoxValue(fp->CheckBox_Fan_Blend_Edges, true);
     SetCheckBoxValue(fp->CheckBox_Fan_Reverse, false);
 }
-
-const double PI  =3.141592653589793238463;
 
 void FanEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();

@@ -3138,7 +3138,7 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
             videoExporter.setGetAudioCallback(audioLambda);
         }
         auto videoLambda = [=](AVFrame *f, uint8_t* buf, int bufSize, unsigned frameIndex) {
-            const FrameData& frameData(this->_seqData[frameIndex]);
+            const SequenceData::FrameData& frameData(this->_seqData[frameIndex]);
             const uint8_t* data = frameData[0];
             housePreview->captureNextFrame(width*contentScaleFactor, height*contentScaleFactor);
             housePreview->Render(data, false);

@@ -11,7 +11,10 @@
 #include <wx/wx.h>
 
 #ifdef __WXMAC__
- #include "OpenGL/gl.h"
+    // we NEED OpenGL 1.1 for this file
+    #undef __gl_h_
+    #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
+    #include "OpenGL/gl.h"
 #else
  #include <GL/gl.h>
  #ifdef _MSC_VER
@@ -33,10 +36,10 @@
 #include "Image_Loader.h"
 #include "xlGLCanvas.h"
 #include "../../ExternalHooks.h"
+#include "../../UtilFunctions.h"
 
 #include <map>
 #include "Image.h"
-const double PI = 3.141592653589793238463;
 
 #include <log4cpp/Category.hh>
 

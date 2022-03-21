@@ -13,21 +13,11 @@
 
 #include <log4cpp/Category.hh>
 
-#ifdef __WXOSX__
-#include <sys/mman.h>
-#include <mach/vm_statistics.h>
-#define USE_MMAP_BLOCKS
-#elif defined(LINUX)
-#include <sys/mman.h>
-#define USE_MMAP_BLOCKS
-#else
-//Windows
-#endif
 
 #include "SequenceData.h"
 #include "UtilFunctions.h"
 
-const unsigned char FrameData::_constzero = 0;
+const unsigned char SequenceData::FrameData::_constzero = 0;
 
 
 // we'll keep the callocs below 1GB in size.  Should keep pressure off

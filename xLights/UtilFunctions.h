@@ -26,7 +26,7 @@
 
 #define AMPS_PER_PIXEL (0.055f)
 #define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", ((uint32_t)ms) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
-#define PI 3.141592653589793238463
+constexpr double PI = 3.141592653589793238463;
 
 // Consolidated set of utility functions
 void CleanupIpAddress(wxString& IpAddr);

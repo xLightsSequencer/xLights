@@ -108,7 +108,7 @@ protected:
     bool blending = false;
     std::string lastPipeline;
     bool lastPipelineBlend = false;
-    FrameData frameData;
+    MTLFrameData frameData;
     bool frameDataChanged = true;
     std::stack<simd::float4x4> matrixStack;
 };

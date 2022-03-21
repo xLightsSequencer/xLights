@@ -14,6 +14,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../UtilFunctions.h"
 #include "../Parallel.h"
 
 #include "../../include/galaxy-16.xpm"
@@ -105,7 +106,6 @@ void GalaxyEffect::SetDefaultParameters() {
     SetCheckBoxValue(gp->CheckBox_Galaxy_Reverse, false);
 }
 
-const double PI  =3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
 void CalcEndpointColor(double end_angle, double start_angle,

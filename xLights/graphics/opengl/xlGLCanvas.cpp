@@ -27,6 +27,10 @@ END_EVENT_TABLE()
 #include "../xlMesh.h"
 #include "DrawGLUtils.h"
 
+#ifndef GL_POINT_SMOOTH
+#define GL_POINT_SMOOTH                0x0B10
+#endif
+
 static const int DEPTH_BUFFER_BITS[] = {32, 24, 16, 12, 10, 8};
 
 wxGLContext *xlGLCanvas::m_sharedContext = nullptr;
