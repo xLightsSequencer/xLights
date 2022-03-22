@@ -70,7 +70,6 @@ namespace
         return length;
     }
 
-
     std::vector<wxPoint2DDouble> piecewiseLinearApproximation(const wxPoint2DDouble& startPt,
                                                               const wxPoint2DDouble& ctrlPt1,
                                                               const wxPoint2DDouble& ctrlPt2,
@@ -100,20 +99,25 @@ void SketchLine::DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz)
     path.AddLineToPoint(sz.x * m_toPt.m_x, sz.y * m_toPt.m_y);
 }
 
-void SketchLine::DrawPartialSegment(wxGraphicsPath& path, const wxSize&sz, double startPercentage, double endPercentage)
+void SketchLine::DrawPartialSegment(wxGraphicsPath& path, const wxSize&sz, std::optional<double> startPercentage, double endPercentage)
 {
-    startPercentage = std::clamp(startPercentage, 0., 1.);
-    endPercentage = std::clamp(endPercentage, 0., 1.);
-    if (startPercentage == endPercentage)
-        return;
+    if (!startPercentage.has_value()) {
+        if (endPercentage <= 0. || endPercentage > 1.)
+            return;
+        auto pt = (1 - endPercentage) * m_fromPt + endPercentage * m_toPt;
+        path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
+    } else {
+        double percentage = std::clamp(startPercentage.value(), 0., 1.);
+        endPercentage = std::clamp(endPercentage, 0., 1.);
+        if (percentage == endPercentage)
+            return;
 
-    auto pt = (1 - endPercentage) * m_fromPt + endPercentage * m_toPt;
-    //if (startPercentage != 0.) {
-        auto startPt = (1 - startPercentage) * m_fromPt + startPercentage * m_toPt;
+        auto pt = (1 - endPercentage) * m_fromPt + endPercentage * m_toPt;
+        auto startPt = (1 - percentage) * m_fromPt + percentage * m_toPt;
         path.MoveToPoint(sz.x * startPt.m_x, sz.y * startPt.m_y);
-    //}
 
-    path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
+        path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
+    }
 }
 
 
@@ -127,14 +131,17 @@ void SketchQuadraticBezier::DrawEntireSegment(wxGraphicsPath& path, const wxSize
     path.AddQuadCurveToPoint(sz.x * m_cp.m_x, sz.y  * m_cp.m_y, sz.x * m_toPt.m_x, sz.y * m_toPt.m_y);
 }
 
-void SketchQuadraticBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, double percentage, double endPercentage)
+void SketchQuadraticBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, std::optional<double> startPercentage, double endPercentage)
 {
-    // todo - startPercentage/endPercentage
-    auto pts = piecewiseLinearApproximation(m_fromPt, m_cp, m_toPt);
-    int i = 0;
-    double increment = 1. / pts.size();
-    for (double t = 0.; t <= endPercentage; t += increment, ++i)
-        path.AddLineToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+    if (!startPercentage.has_value()) {
+        auto pts = piecewiseLinearApproximation(m_fromPt, m_cp, m_toPt);
+        int i = 0;
+        double increment = 1. / pts.size();
+        for (double t = 0.; t <= endPercentage; t += increment, ++i)
+            path.AddLineToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+    } else {
+        // todo - startPercentage/endPercentage
+    }
 }
 
 
@@ -147,14 +154,17 @@ double SketchCubicBezier::Length()
 {
     path.AddCurveToPoint(sz.x*m_cp1.m_x, sz.y*m_cp1.m_y, sz.x*m_cp2.m_x, sz.y*m_cp2.m_y, sz.x*m_toPt.m_x, sz.y*m_toPt.m_y);
 }
-void SketchCubicBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, double startPercentage, double endPercentage)
+void SketchCubicBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, std::optional<double> startPercentage, double endPercentage)
 {
-    // todo - startPercentage/endPercentage
-    auto pts = piecewiseLinearApproximation(m_fromPt, m_cp1, m_cp2, m_toPt);
-    int i = 0;
-    double increment = 1. / pts.size();
-    for (double t = 0.; t <= endPercentage; t += increment, ++i)
-        path.AddLineToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+    if (!startPercentage.has_value()) {
+        auto pts = piecewiseLinearApproximation(m_fromPt, m_cp1, m_cp2, m_toPt);
+        int i = 0;
+        double increment = 1. / pts.size();
+        for (double t = 0.; t <= endPercentage; t += increment, ++i)
+            path.AddLineToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+    } else {
+        // todo - startPercentage/endPercentage
+    }
 }
 
 double SketchEffectPath::Length()
@@ -194,44 +204,63 @@ void SketchEffectPath::drawEntirePath(wxGraphicsContext* gc, const wxSize& sz)
     gc->StrokePath(path);
 }
 
-void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, double startPercentage, double endPercentage)
+void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, std::optional<double> startPercentage, double endPercentage)
 {
     if (m_segments.empty())
         return;
-
-    // todo - startPercentage/endPercentage
     double totalLength = Length();
+    double cumulativeLength = 0.;
 
     auto startPt(m_segments.front()->StartPoint());
     wxGraphicsPath path(gc->CreatePath());
     path.MoveToPoint(sz.x * startPt.m_x, sz.y * startPt.m_y);
 
-    double cumulativeLength = 0.;
-    for (auto& cmd : m_segments) {
-        double length = cmd->Length();
-        double percentageAtStartOfSegment = cumulativeLength / totalLength;
-        double percentageAtEndOfSegment = (cumulativeLength + length) / totalLength;
-        //if (endPercentage > percentageAtEndOfSegment)
-        //if (startPercentage > percentageAtStartOfSegment && endPercentage > percentageAtEndOfSegment)
-        //    cmd->DrawEntireSegment(path, sz);
-        //else {
-            //if (endPercentage >= percentageAtStartOfSegment && endPercentage < percentageAtEndOfSegment) {
-            //if (startPercentage >= percentageAtStartOfSegment && endPercentage < percentageAtEndOfSegment) {
-                double segmentPercentage = (endPercentage - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
-                double segmentDrawPercentage = (startPercentage - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
-                cmd->DrawPartialSegment(path, sz, segmentDrawPercentage, segmentPercentage);
-            //}
-        //}
-        cumulativeLength += length;
-    }
-
-    if (m_closePath && !m_segments.empty()) {
-        double percentageAtStartOfClose = cumulativeLength / totalLength;
-        if (endPercentage >= percentageAtStartOfClose && endPercentage < 1.) {
-            double closePercentage = (endPercentage - percentageAtStartOfClose) / (1. - percentageAtStartOfClose);
-            auto pt = (1 - closePercentage) * m_segments.back()->EndPoint() + closePercentage * startPt;
-            path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
+    if (!startPercentage.has_value()) {
+        for (auto& segment : m_segments) {
+            double length = segment->Length();
+            double percentageAtEndOfSegment = (cumulativeLength + length) / totalLength;
+            if (endPercentage > percentageAtEndOfSegment) {
+                segment->DrawEntireSegment(path, sz);
+            } else {
+                double percentageAtStartOfSegment = cumulativeLength / totalLength;
+                if (endPercentage >= percentageAtStartOfSegment && endPercentage < percentageAtEndOfSegment) {
+                    double segmentPercentage = (endPercentage - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
+                    segment->DrawPartialSegment(path, sz, std::nullopt, segmentPercentage);
+                }
+            }
+            cumulativeLength += length;
         }
+
+        if (m_closePath && !m_segments.empty()) {
+            double percentageAtStartOfClose = cumulativeLength / totalLength;
+            if (endPercentage >= percentageAtStartOfClose && endPercentage < 1.) {
+                double closePercentage = (endPercentage - percentageAtStartOfClose) / (1. - percentageAtStartOfClose);
+                auto pt = (1 - closePercentage) * m_segments.back()->EndPoint() + closePercentage * startPt;
+                path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
+            }
+        }
+    } else {
+        for (auto& segment : m_segments) {
+            double length = segment->Length();
+            double percentageAtStartOfSegment = cumulativeLength / totalLength;
+            double percentageAtEndOfSegment = (cumulativeLength + length) / totalLength;
+
+            double segmentPercentage = (endPercentage - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
+            double segmentDrawPercentage = (startPercentage.value() - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
+            segment->DrawPartialSegment(path, sz, segmentDrawPercentage, segmentPercentage);
+
+            cumulativeLength += length;
+        }
+
+        // todo - make closed paths work with "motion" case
+        //if (m_closePath && !m_segments.empty()) {
+        //    double percentageAtStartOfClose = cumulativeLength / totalLength;
+        //    if (endPercentage >= percentageAtStartOfClose && endPercentage < 1.) {
+        //        double closePercentage = (endPercentage - percentageAtStartOfClose) / (1. - percentageAtStartOfClose);
+        //        auto pt = (1 - closePercentage) * m_segments.back()->EndPoint() + closePercentage * startPt;
+        //        path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
+        //    }
+        //}
     }
 
     gc->StrokePath(path);
@@ -245,22 +274,20 @@ void SketchEffectPath::closePath()
 SketchEffectSketch SketchEffectSketch::DefaultSketch()
 {
     SketchEffectSketch sketch;
-#if 1
+#if 0
     const wxPoint2DDouble p1(0., 0.5);
     const wxPoint2DDouble p2(0.5, 1.);
     const wxPoint2DDouble p3(1., 0.5);
     const wxPoint2DDouble p4(0.5, 0.);
 
-    auto path1 = std::make_shared<SketchEffectPath>();
-    path1->appendSegment(std::make_shared<SketchLine>(p1, p2));
-    path1->appendSegment(std::make_shared<SketchLine>(p2, p3));
+    auto path = std::make_shared<SketchEffectPath>();
+    path->appendSegment(std::make_shared<SketchLine>(p1, p2));
+    path->appendSegment(std::make_shared<SketchLine>(p2, p3));
+    path->appendSegment(std::make_shared<SketchLine>(p3, p4));
+    //path->closePath();
+    path->appendSegment(std::make_shared<SketchLine>(p4, p1));
 
-    auto path2 = std::make_shared<SketchEffectPath>();
-    path2->appendSegment(std::make_shared<SketchLine>(p3, p4));
-    path2->appendSegment(std::make_shared <SketchLine>(p4, p1));
-
-    sketch.appendPath(path1);
-    sketch.appendPath(path2);
+    sketch.appendPath(path);
 
     //const wxPoint2DDouble path1Start(0., 0.);
     //const wxPoint2DDouble path2Start(0.4, 0.1);

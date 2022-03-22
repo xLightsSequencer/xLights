@@ -3,6 +3,7 @@
 #include <wx/geometry.h>
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 class wxGraphicsContext;
@@ -13,7 +14,6 @@ class wxGraphicsPath;
 // or a cubic-bezier segment (start and end point with two control points).
 //
 // Coordinates are normalized to [0,1] and scaled for drawing in the Draw*() methods
-// and also following the convention where the y-axis goes from top-to-bottom.
 class SketchPathSegment
 {
 public:
@@ -24,7 +24,7 @@ public:
     virtual wxPoint2DDouble EndPoint() = 0;
     virtual void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) = 0;
     virtual void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
-                                    double startPercentage,
+                                    std::optional<double> startPercentage,
                                     double endPercentage) = 0;
 };
 
@@ -44,7 +44,7 @@ public:
     void closePath();
     void drawEntirePath(wxGraphicsContext* gc, const wxSize& sz);
     void drawPartialPath(wxGraphicsContext* gc, const wxSize& sz,
-                         double startPercentage,
+                         std::optional<double> startPercentage,
                          double endPercentage);
 
 protected:
@@ -96,7 +96,7 @@ public:
     }
     void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) override;
     void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
-                            double startPercentage,
+                            std::optional<double> startPercentage,
                             double endPercentage) override;
 
 protected:
@@ -126,7 +126,7 @@ public:
     }
     void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) override;
     void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
-                            double startPercentage,
+                            std::optional<double> startPercentage,
                             double endPercentage) override;
 
 protected:
@@ -159,7 +159,7 @@ public:
     }
     void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) override;
     void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
-                            double startPercentage,
+                            std::optional<double> startPercentage,
                             double endPercentage) override;
 
 protected:

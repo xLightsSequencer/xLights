@@ -17,27 +17,27 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
 {
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 
-    auto sizer1 = new wxFlexGridSizer(2, 1, 0, 0);
-    sizer1->AddGrowableRow(1);
-    sizer1->AddGrowableCol(0);
+    auto mainSizer = new wxFlexGridSizer(2, 1, 0, 0);
+    mainSizer->AddGrowableRow(1);
+    mainSizer->AddGrowableCol(0);
 
-    auto sizer2 = new wxFlexGridSizer(1, 3, 0, 0);
-    sizer2->AddGrowableCol(1);
+    auto sketchDefSizer = new wxFlexGridSizer(1, 3, 0, 0);
+    sketchDefSizer->AddGrowableCol(1);
     auto label = new wxStaticText(this, wxID_ANY, "Sketch:");
     auto textCtrl = new wxTextCtrl(this, ID_TEXTCTRL_Sketch);
     //textCtrl->Disable();
     textCtrl->SetEditable(false);
     textCtrl->AppendText("SKETCH DEFINITION GOES HERE!");
     auto defineSketchBtn = new wxButton(this, wxNewId(), "...", wxDefaultPosition, wxDLG_UNIT(this, wxSize(16, -1)));
-    sizer2->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-    sizer2->Add(textCtrl, 1, wxALL | wxEXPAND, 2);
-    sizer2->Add(defineSketchBtn, 1, wxALL, 2);
+    sketchDefSizer->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+    sketchDefSizer->Add(textCtrl, 1, wxALL | wxEXPAND, 2);
+    sketchDefSizer->Add(defineSketchBtn, 1, wxALL, 2);
 
-    sizer1->Add(sizer2, 1, wxALL | wxEXPAND, 2);
+    mainSizer->Add(sketchDefSizer, 1, wxALL | wxEXPAND, 2);
 
-	SetSizer(sizer1);
-    sizer1->Fit(this);
-    sizer1->SetSizeHints(this);
+	SetSizer(mainSizer);
+    mainSizer->Fit(this);
+    mainSizer->SetSizeHints(this);
 
 	Connect(defineSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPanel::OnButton_DefineSketch);
 }
