@@ -92,7 +92,6 @@ namespace
 
         return pts;
     }
-
 }
 
 
@@ -103,11 +102,16 @@ void SketchLine::DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz)
 
 void SketchLine::DrawPartialSegment(wxGraphicsPath& path, const wxSize&sz, double startPercentage, double endPercentage)
 {
+    startPercentage = std::clamp(startPercentage, 0., 1.);
+    endPercentage = std::clamp(endPercentage, 0., 1.);
+    if (startPercentage == endPercentage)
+        return;
+
     auto pt = (1 - endPercentage) * m_fromPt + endPercentage * m_toPt;
-    if (startPercentage != 0.) {
+    //if (startPercentage != 0.) {
         auto startPt = (1 - startPercentage) * m_fromPt + startPercentage * m_toPt;
         path.MoveToPoint(sz.x * startPt.m_x, sz.y * startPt.m_y);
-    }
+    //}
 
     path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
 }
@@ -205,17 +209,19 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
     double cumulativeLength = 0.;
     for (auto& cmd : m_segments) {
         double length = cmd->Length();
+        double percentageAtStartOfSegment = cumulativeLength / totalLength;
         double percentageAtEndOfSegment = (cumulativeLength + length) / totalLength;
-        if (endPercentage > percentageAtEndOfSegment)
-            cmd->DrawEntireSegment(path, sz);
-        else {
-            double percentageAtStartOfSegment = cumulativeLength / totalLength;
-            if (endPercentage >= percentageAtStartOfSegment && endPercentage < percentageAtEndOfSegment) {
+        //if (endPercentage > percentageAtEndOfSegment)
+        //if (startPercentage > percentageAtStartOfSegment && endPercentage > percentageAtEndOfSegment)
+        //    cmd->DrawEntireSegment(path, sz);
+        //else {
+            //if (endPercentage >= percentageAtStartOfSegment && endPercentage < percentageAtEndOfSegment) {
+            //if (startPercentage >= percentageAtStartOfSegment && endPercentage < percentageAtEndOfSegment) {
                 double segmentPercentage = (endPercentage - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
                 double segmentDrawPercentage = (startPercentage - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
                 cmd->DrawPartialSegment(path, sz, segmentDrawPercentage, segmentPercentage);
-            }
-        }
+            //}
+        //}
         cumulativeLength += length;
     }
 
@@ -240,21 +246,37 @@ SketchEffectSketch SketchEffectSketch::DefaultSketch()
 {
     SketchEffectSketch sketch;
 #if 1
-    const wxPoint2DDouble path1Start(0., 0.);
-    const wxPoint2DDouble path2Start(0.4, 0.1);
+    const wxPoint2DDouble p1(0., 0.5);
+    const wxPoint2DDouble p2(0.5, 1.);
+    const wxPoint2DDouble p3(1., 0.5);
+    const wxPoint2DDouble p4(0.5, 0.);
 
     auto path1 = std::make_shared<SketchEffectPath>();
-    auto path1Segment1 = std::make_shared<SketchLine>(path1Start, wxPoint2DDouble(0.6, 0.6));
-    auto path1Segment2 = std::make_shared<SketchLine>(path1Segment1->EndPoint(), wxPoint2DDouble(0.8, 0.4));
-    path1->appendSegment(path1Segment1);
-    path1->appendSegment(path1Segment2);
+    path1->appendSegment(std::make_shared<SketchLine>(p1, p2));
+    path1->appendSegment(std::make_shared<SketchLine>(p2, p3));
 
     auto path2 = std::make_shared<SketchEffectPath>();
-    auto path2Segment1 = std::make_shared<SketchLine>(path2Start, wxPoint2DDouble(0.95, 0.1));
-    path2->appendSegment(path2Segment1);
+    path2->appendSegment(std::make_shared<SketchLine>(p3, p4));
+    path2->appendSegment(std::make_shared <SketchLine>(p4, p1));
 
     sketch.appendPath(path1);
     sketch.appendPath(path2);
+
+    //const wxPoint2DDouble path1Start(0., 0.);
+    //const wxPoint2DDouble path2Start(0.4, 0.1);
+
+    //auto path1 = std::make_shared<SketchEffectPath>();
+    //auto path1Segment1 = std::make_shared<SketchLine>(path1Start, wxPoint2DDouble(0.6, 0.6));
+    //auto path1Segment2 = std::make_shared<SketchLine>(path1Segment1->EndPoint(), wxPoint2DDouble(0.8, 0.4));
+    //path1->appendSegment(path1Segment1);
+    //path1->appendSegment(path1Segment2);
+
+    //auto path2 = std::make_shared<SketchEffectPath>();
+    //auto path2Segment1 = std::make_shared<SketchLine>(path2Start, wxPoint2DDouble(0.95, 0.1));
+    //path2->appendSegment(path2Segment1);
+
+    //sketch.appendPath(path1);
+    //sketch.appendPath(path2);
 #else
     const wxPoint2DDouble path1Start(0., 0.);
     const wxPoint2DDouble path2Start(0.35, 0.45);

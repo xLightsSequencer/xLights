@@ -15,6 +15,24 @@
 #include <algorithm>
 #include <cstdint>
 
+namespace
+{
+    struct LinearInterpolater {
+        double operator()(double t) const
+        {
+            return t;
+        }
+    };
+
+    template<class T>
+    double interpolate(double x, double loIn, double loOut, double hiIn, double hiOut, const T& interpolater)
+    {
+        return (loIn != hiIn)
+                   ? (loOut + (hiOut - loOut) * interpolater((x - loIn) / (hiIn - loIn)))
+                   : ((loOut + hiOut) / 2);
+    }
+}
+
 SketchEffect::SketchEffect( int id ) :
     RenderableEffect( id, "Sketch", sketch_16_xpm, sketch_24_xpm, sketch_32_xpm, sketch_48_xpm, sketch_64_xpm ),
     m_sketch(SketchEffectSketch::DefaultSketch())
@@ -116,6 +134,9 @@ void SketchEffect::renderSketch(wxImage& img, double progress)
 
     double drawPercentage = 0.25; // hard-coded; should be an effect setting
 
+    // In order for the animation to both "draw in" and "draw out" we adjust the [0,1] range
+    double adjustedProgress = interpolate(progress, 0., 0., 1., 1 + drawPercentage, LinearInterpolater());
+
     double totalLength = 0.;
     for (const auto& path : paths)
         totalLength += path->Length();
@@ -129,17 +150,18 @@ void SketchEffect::renderSketch(wxImage& img, double progress)
         double pathLength = (*iter)->Length();
         double percentageAtEndOfThisPath = (cumulativeLength + pathLength) / totalLength;
     
-        if (percentageAtEndOfThisPath <= progress)
-            (*iter)->drawEntirePath(gc.get(), sz);
-        else
-        {
+        //if (percentageAtEndOfThisPath <= progress)
+        //    (*iter)->drawEntirePath(gc.get(), sz);
+        //else
+        //{
             double percentageAtStartOfThisPath = cumulativeLength / totalLength;
-            double percentageThroughThisPath = (progress - percentageAtStartOfThisPath) / (percentageAtEndOfThisPath - percentageAtStartOfThisPath);
-            double drawPercentageThroughThisPath = (progress - drawPercentage - percentageAtStartOfThisPath) / (percentageAtEndOfThisPath - percentageAtStartOfThisPath);
-            drawPercentageThroughThisPath = std::max(drawPercentageThroughThisPath, 0.);
-            if (percentageThroughThisPath >= 0.)
+            double percentageThroughThisPath = (adjustedProgress - percentageAtStartOfThisPath) / (percentageAtEndOfThisPath - percentageAtStartOfThisPath);
+            double drawPercentageThroughThisPath = (adjustedProgress - drawPercentage - percentageAtStartOfThisPath) / (percentageAtEndOfThisPath - percentageAtStartOfThisPath);
+            drawPercentageThroughThisPath = std::clamp(drawPercentageThroughThisPath, 0., 1.);
+            percentageThroughThisPath = std::clamp(percentageThroughThisPath, 0., 1.);
+            //if (percentageThroughThisPath >= 0.)
                 (*iter)->drawPartialPath(gc.get(), sz, drawPercentageThroughThisPath, percentageThroughThisPath);
-        }
+        //}
         cumulativeLength += pathLength;
     }
 }
