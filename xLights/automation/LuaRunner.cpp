@@ -18,6 +18,8 @@
 
 #include <wx/stdpaths.h>
 
+#include <cmath>
+
 LuaRunner::LuaRunner(xLightsFrame* frame) :
     _frame(frame)
 {}
@@ -327,4 +329,11 @@ wxArrayString LuaRunner::getArrayString(sol::object const& items) const
         }
     }
     return itemList;
+}
+
+bool LuaRunner::is_integer(double n) const
+{
+    int c = std::ceil(n);
+    int f = std::floor(n);
+    return f == c;
 }

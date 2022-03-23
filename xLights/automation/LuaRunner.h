@@ -53,11 +53,5 @@ private:
     [[nodiscard]] wxArrayString getArrayString(sol::object const& items) const;
     void SendObjResponse(sol::object const& val, std::function<void(std::string const& msg)> SendResponse) const;
     void ObjectToJSON(sol::object const& items, wxJSONValue& json) const;
-
-    inline bool is_integer(double n) const
-    {
-        int c = std::ceil(n);
-        int f = std::floor(n);
-        return f == c;
-    }
+    bool is_integer(double n) const;
 };
