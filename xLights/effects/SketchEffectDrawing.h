@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 class wxGraphicsContext;
@@ -46,7 +47,6 @@ public:
     void drawPartialPath(wxGraphicsContext* gc, const wxSize& sz,
                          std::optional<double> startPercentage,
                          double endPercentage);
-
 protected:
     double m_startDelay = 0.;
     std::vector<std::shared_ptr<SketchPathSegment>> m_segments;
@@ -58,6 +58,7 @@ class SketchEffectSketch
 {
 public:
     static SketchEffectSketch DefaultSketch();
+    static SketchEffectSketch SketchFromString(const std::string& sketchDef);
 
     virtual ~SketchEffectSketch() = default;
 
