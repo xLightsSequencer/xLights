@@ -147,7 +147,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             }
         } else {
             std::string seq = FindSequence(fname);
-            if (seq == "") {
+            if (seq.empty()) {
                 return sendResponse("Sequence not found.", "msg", 503, false);
             }
             if (CurrentSeqXmlFile != nullptr && force) {
@@ -251,7 +251,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         int snum = 0;
         while (seqs != "") {
             auto seq = FindSequence(seqs);
-            if (seq == "") {
+            if (seq.empty()) {
                 return sendResponse("Sequence not found '" + seq + "'", "msg", 503, false);
             }
             files.push_back(seq);
@@ -355,7 +355,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         auto xsq = params["seq"];
         xsq = FindSequence(xsq);
 
-        if (xsq == "") {
+        if (xsq.empty()) {
             return sendResponse("Sequence not found.", "msg", 503, false);
         }
 
@@ -460,7 +460,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
     } else if (cmd == "checkSequence") {
         auto seq = params["seq"];
         seq = FindSequence(seq);
-        if (seq == "") {
+        if (seq.empty()) {
             return sendResponse("Sequence not found.", "msg", 503, false);
         }
         auto file = OpenAndCheckSequence(seq);
@@ -519,7 +519,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
 
         auto proxy = controller->GetFPPProxy();
 
-        if (proxy == "") {
+        if (proxy.empty()) {
             return "{\"res\":504,\"msg\":\"Controller has no proxy.\"}";
         }
 
@@ -809,7 +809,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         if (to == nullptr) {
-            return sendResponse("target element doesnt exists.", "msg", 503, false);
+            return sendResponse("target element doesn't exists.", "msg", 503, false);
         }
         _sequenceElements.get_undo_mgr().CreateUndoStep();
         while (to->GetEffectLayerCount() < layer + 1) {
@@ -852,6 +852,112 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         ipAddresses = "[" + ipAddresses + "]";
         return sendResponse(ipAddresses, "controllers", 200, true);
+    } else if (cmd == "getEffectIDs") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        auto model = params["model"];
+        Element* ele = _sequenceElements.GetElement(model);
+        if (ele == nullptr) {
+            return sendResponse("target element doesn't exists.", "msg", 503, false);
+        }
+        std::string layers = "[";
+        for (int i = 0; i < ele->GetEffectLayerCount(); ++i) {
+            std::string ids;
+            auto effects = ele->GetEffectLayer(i)->GetAllEffects();
+            for (auto* eff : effects) {
+                ids += "\"" + std::to_string(eff->GetID()) + "\",";
+            }
+            if (!ids.empty()) {
+                ids.pop_back(); // remove last comma
+            }
+            ids.insert(0, "[");
+            ids.append( "],");
+            layers.append( ids );
+        }
+        layers.pop_back(); // remove last comma
+        layers += "]";
+        return sendResponse(layers, "effects", 200, true);
+    } else if (cmd == "getEffectSettings") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        int id = 0;
+        int layer = 0;
+
+        if (!params["id"].empty()) {
+            id = std::stoi(params["id"]);
+        }
+        if (!params["layer"].empty()) {
+            layer = std::stoi(params["layer"]);
+        }
+        auto const& model = params["model"];
+        Element* ele = _sequenceElements.GetElement(model);
+        if (ele == nullptr) {
+            return sendResponse("target element doesn't exists.", "msg", 503, false);
+        }
+        auto* lay = ele->GetEffectLayer(layer);
+        if (lay == nullptr) {
+            return sendResponse("target layer doesn't exists.", "msg", 503, false);
+        }
+        auto* eff = lay->GetEffectFromID(id);
+        if (eff != nullptr) {
+
+            std::string json = "{\"name\":\"" + eff->GetEffectName() + "\"" +
+                                ",\"settings\":" + eff->GetSettingsAsJSON() +
+                               ",\"palette\":" + eff->GetPaletteAsJSON() +
+                               ",\"startTime\":" + std::to_string(eff->GetStartTimeMS()) +
+                               ",\"endTime\":" + std::to_string(eff->GetEndTimeMS()) +
+                                ",\"selected\":" + std::to_string(eff->GetSelected()) + "}";
+            return sendResponse(json, "", 200, true);
+        }        
+        return sendResponse("target effect doesn't exists.", "msg", 503, false);
+    } else if (cmd == "setEffectSettings") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        int id = 0;
+        int layer = 0;
+
+        if (!params["id"].empty()) {
+            id = std::stoi(params["id"]);
+        }
+        if (!params["layer"].empty()) {
+            layer = std::stoi(params["layer"]);
+        }
+        auto const& model = params["model"];
+        Element* ele = _sequenceElements.GetElement(model);
+        if (ele == nullptr) {
+            return sendResponse("target element doesn't exists.", "msg", 503, false);
+        }
+        auto* lay = ele->GetEffectLayer(layer);
+        if (lay == nullptr) {
+            return sendResponse("target layer doesn't exists.", "msg", 503, false);
+        }
+        auto* eff = lay->GetEffectFromID(id);
+        if (eff != nullptr) {
+
+            if (!params["name"].empty()) {
+                eff->SetEffectName(params["name"]);
+            }
+            if (!params["startTime"].empty()) {
+                eff->SetStartTimeMS(std::stoi(params["startTime"]));
+            }
+            if (!params["endTime"].empty()) {
+                eff->SetEndTimeMS(std::stoi(params["endTime"]));
+            }
+            if (!params["settings"].empty()) {
+                eff->SetSettings(params["settings"], true , true);
+            }
+            if (!params["palette"].empty()) {
+                eff->SetColourOnlyPalette(params["palette"], true);
+            }
+            mainSequencer->PanelEffectGrid->Refresh();
+            mainSequencer->SelectEffect(eff);
+            std::string response = wxString::Format("{\"msg\":\"Set Effect Settings.\",\"worked\":\"%s\"}", JSONSafe(toStr(eff != nullptr)));
+            return sendResponse(response, "", 200, true);
+        }
+        return sendResponse("target effect doesn't exists.", "msg", 503, false);
     }
 
     return false;

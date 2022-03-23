@@ -116,7 +116,8 @@ public:
     void IncrementChangeCount();
 
     std::string GetSettingsAsString() const;
-    void SetSettings(const std::string &settings, bool keepxsettings);
+    std::string GetSettingsAsJSON() const;
+    void SetSettings(const std::string &settings, bool keepxsettings, bool json = false);
     void ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid);
     bool UsesColour(const std::string& from);
     int ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to);
@@ -126,12 +127,15 @@ public:
     void FixBuffer(const Model* m);
     bool IsPersistent() const;
 
+
+
     const xlColorVector &GetPalette() const { return mColors; }
     int GetPaletteSize() const { return mColors.size(); }
     const SettingsMap &GetPaletteMap() const { return mPaletteMap; }
     std::string GetPaletteAsString() const;
+    std::string GetPaletteAsJSON() const;
     void SetPalette(const std::string& i);
-    void SetColourOnlyPalette(const std::string & i);
+    void SetColourOnlyPalette(const std::string& i, bool json = false);
     void CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const;
 
     /* Do NOT call these on any thread other than the main thread */

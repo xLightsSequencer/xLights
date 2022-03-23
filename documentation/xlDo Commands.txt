@@ -260,3 +260,21 @@ Command
     {"cmd":"getControllerIPs"}
 Response
     {"res":200, "controllers":[ "192.168.1.205","192.168.1.100"]}
+
+Get List of all the Effect IDs by Layer for a model.
+Command
+    {"cmd":"getEffectIDs", "model":"model name"}
+Response
+    {"res":200, "effects":[ ["0","1"],[]]}
+
+Get the Effect Settings for an Effect on a model.
+Command
+    {"cmd":"getEffectSettings", "model":"model name", "layer":"0", "id":"0" }
+Response
+    {"res":200,"name":"On","palette":{"C_BUTTON_Palette1":"#0000FF","C_CHECKBOX_Palette1":"1" },"settings":{"E_TEXTCTRL_Eff_On_Start":"10"},"startTime":"10","endTime":"100","selected":"0"}
+
+Set Effect Settings for an Effect on a model.
+Command
+    {"cmd":"setEffectSettings","model":"model name","layer":"0","id":"0","name":"On","palette":{"C_BUTTON_Palette1":"#0000FF","C_CHECKBOX_Palette1":"1" },"settings":{"E_TEXTCTRL_Eff_On_Start":"10"},"startTime":"10","endTime":"100"}
+Response
+    {"res":200, "msg":"Set Effect Settings.","worked":"true"}

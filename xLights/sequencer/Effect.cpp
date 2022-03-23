@@ -478,7 +478,13 @@ std::string Effect::GetSettingsAsString() const
     return mSettings.AsString();
 }
 
-void Effect::SetSettings(const std::string& settings, bool keepxsettings) {
+std::string Effect::GetSettingsAsJSON() const
+{
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    return mSettings.AsJSON();
+}
+
+void Effect::SetSettings(const std::string& settings, bool keepxsettings, bool json) {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
     auto old = GetSettingsAsString();
@@ -491,7 +497,7 @@ void Effect::SetSettings(const std::string& settings, bool keepxsettings) {
             }
         }
     }
-    mSettings.Parse(settings);
+    json ? mSettings.ParseJson(settings) : mSettings.Parse(settings);
     if (keepxsettings) {
         for (const auto& it : x) {
             mSettings[it.first] = it.second;
@@ -696,6 +702,12 @@ std::string Effect::GetPaletteAsString() const
     return mPaletteMap.AsString();
 }
 
+std::string Effect::GetPaletteAsJSON() const
+{
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    return mPaletteMap.AsJSON();
+}
+
 void Effect::SetPalette(const std::string& i)
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
@@ -714,7 +726,7 @@ void Effect::SetPalette(const std::string& i)
 }
 
 // This only updates the colour palette ... preserving all the other colour settings
-void Effect::SetColourOnlyPalette(const std::string& i)
+void Effect::SetColourOnlyPalette(const std::string& i, bool json)
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
@@ -722,7 +734,7 @@ void Effect::SetColourOnlyPalette(const std::string& i)
     auto oldPalette = mPaletteMap;
 
     // parse in the new one
-    mPaletteMap.Parse(i);
+    json ? mPaletteMap.ParseJson(i) : mPaletteMap.Parse(i);
 
     // copy over all the non colour entries
     for (auto it = oldPalette.begin(); it != oldPalette.end(); ++it)
