@@ -42,6 +42,7 @@ public:
     [[nodiscard]] sol::object JSONToTable(std::string const& json, sol::this_state s) const;
     [[nodiscard]] std::list<std::string> SplitString(std::string const& text, char const& delimiter) const;
     [[nodiscard]] std::string JoinString(sol::object const& list, char const& delimiter) const;
+    [[nodiscard]] std::string TableToJSON(sol::object const& items) const;
 
 private:
     xLightsFrame* _frame = nullptr;
@@ -51,4 +52,12 @@ private:
     [[nodiscard]] sol::object getObjectType(wxJSONValue const& val, sol::state_view lua) const;
     [[nodiscard]] wxArrayString getArrayString(sol::object const& items) const;
     void SendObjResponse(sol::object const& val, std::function<void(std::string const& msg)> SendResponse) const;
+    void ObjectToJSON(sol::object const& items, wxJSONValue& json) const;
+
+    inline bool is_integer(double n) const
+    {
+        int c = std::ceil(n);
+        int f = std::floor(n);
+        return f == c;
+    }
 };

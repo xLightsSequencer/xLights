@@ -127,6 +127,7 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
     lua.set_function("SplitString", &LuaRunner::SplitString, this);
     lua.set_function("JoinString", &LuaRunner::JoinString, this);
     lua.set_function("JSONToTable", &LuaRunner::JSONToTable, this);
+    lua.set_function("TableToJSON", &LuaRunner::TableToJSON, this);
 
     auto SendObjectResponse = [&](sol::object const& val) {
         SendObjResponse(val, SendResponse);
@@ -233,6 +234,46 @@ sol::object LuaRunner::JSONToTable(std::string const& json, sol::this_state s) c
     }
     logger_base.info("LuaRunner: Could not Parse JSON: %s.", (const char*)json.c_str());
     return sol::make_object(lua, json);
+}
+
+std::string LuaRunner::TableToJSON(sol::object const& item) const
+{
+    wxJSONValue json;
+    ObjectToJSON(item, json);
+    wxString str;
+    wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
+    writer.Write(json, str);
+    return str.ToStdString();
+}
+
+void LuaRunner::ObjectToJSON(sol::object const& items, wxJSONValue &json) const
+{
+    if (items.get_type() == sol::type::table) {
+        for (auto const& it : items.as<sol::table>()) {
+            auto key = it.first.as<std::string>();
+            if (it.second.get_type() == sol::type::table) {
+                ObjectToJSON(it.second, json[key]);
+            } else if(it.second.get_type() == sol::type::string) {
+                json[key] = it.second.as<std::string>();
+            } else if (it.second.get_type() == sol::type::boolean) {
+                json[key] = toStr(it.second.as<bool>());
+            } else if (it.second.get_type() == sol::type::number)
+            {
+                if (is_integer(it.second.as<double>())) 
+                {
+                    json[key] = std::to_string(it.second.as<int>());
+                } else {
+                    json[key] = std::to_string(it.second.as<double>());
+                }                
+            }            
+        }
+    } else if (items.get_type() == sol::type::userdata) {
+        if (items.is<std::map<std::string, std::string>>()) {
+            for (auto const& [key, val] : items.as<std::map<std::string, std::string>>()) {
+                json[key] = val;
+            }
+        }
+    }
 }
 
 sol::object LuaRunner::getObjectType(wxJSONValue const& val, sol::state_view lua) const

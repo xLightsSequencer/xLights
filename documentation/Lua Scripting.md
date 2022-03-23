@@ -27,4 +27,5 @@ The Script Runner Dialog allows the user to run [Lua](http://www.lua.org/manual/
 | SplitString      | string text, string delimiter    | table        | Splits single string into table of strings  |
 | JoinString       | table items, string delimiter    | string       | Joins table of strings into single string   |
 | JSONToTable      | string json                      | table        | Create Table of JSON Parameters Recursively |
+| TableToJSON      | table items                      | string       | Create JSON of Table Parameters Recursively |
 | Log              | string/number/boolean value      |              | Log Message to Script Dialog                |
