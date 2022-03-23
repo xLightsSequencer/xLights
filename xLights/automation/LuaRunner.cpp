@@ -137,12 +137,12 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
     try {
         sol::load_result lr = lua.load_file(filepath);
 
-        // check if it's sucessfully loaded
+        // check if it's successfully loaded
         if (!lr.valid()) {
             sol::error err = lr;
-            logger_base.info("LuaRunner: Script is Invaid: %s.", (const char*)filepath.c_str());
+            logger_base.info("LuaRunner: Script is Invalid: %s.", (const char*)filepath.c_str());
             logger_base.info("LuaRunner: Error: %s.", err.what());
-            wxMessageBox("Script is Invaid: " + filepath + "\n\n" + err.what(), "Load Script Error", wxOK);
+            wxMessageBox("Script is Invalid: " + filepath + "\n\n" + err.what(), "Load Script Error", wxOK);
             return false;
         }
         auto result2 = lr();
@@ -150,14 +150,14 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
         // check if it was done properly
         if (!result2.valid()) {
             sol::error err2 = result2;
-            logger_base.info("LuaRunner: Error Runing Script: %s.", (const char*)filepath.c_str());
+            logger_base.info("LuaRunner: Error Running Script: %s.", (const char*)filepath.c_str());
             logger_base.info("LuaRunner: Error: %s.", err2.what());
             SendResponse(err2.what());
-            wxMessageBox("Error Runing Script: " + filepath + "\n\n" + err2.what(), "Script Error", wxOK);
+            wxMessageBox("Error Running Script: " + filepath + "\n\n" + err2.what(), "Script Error", wxOK);
             return false;
         }
     } catch (std::exception& e) {
-        logger_base.info("LuaRunner: Throw Runing Script: %s.", (const char*)filepath.c_str());
+        logger_base.info("LuaRunner: Throw Running Script: %s.", (const char*)filepath.c_str());
         logger_base.info("LuaRunner: Error: %s.", e.what());
         SendResponse(e.what());
         wxMessageBox(e.what(), "Error", wxOK);
