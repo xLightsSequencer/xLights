@@ -179,9 +179,6 @@ double SketchEffectPath::Length()
     for (const auto& cmd : m_segments)
         len += cmd->Length();
 
-    if (m_closePath)
-        len += m_segments.front()->StartPoint().GetDistance(m_segments.back()->EndPoint());
-
     return len;
 }
 
@@ -200,9 +197,6 @@ void SketchEffectPath::drawEntirePath(wxGraphicsContext* gc, const wxSize& sz)
 
     for (auto& cmd : m_segments)
         cmd->DrawEntireSegment(path, sz);
-
-    if (m_closePath && !m_segments.empty())
-        path.CloseSubpath();
 
     gc->StrokePath(path);
 }
@@ -233,15 +227,6 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
             }
             cumulativeLength += length;
         }
-
-        if (m_closePath && !m_segments.empty()) {
-            double percentageAtStartOfClose = cumulativeLength / totalLength;
-            if (endPercentage >= percentageAtStartOfClose && endPercentage < 1.) {
-                double closePercentage = (endPercentage - percentageAtStartOfClose) / (1. - percentageAtStartOfClose);
-                auto pt = (1 - closePercentage) * m_segments.back()->EndPoint() + closePercentage * startPt;
-                path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
-            }
-        }
     } else {
         for (auto& segment : m_segments) {
             double length = segment->Length();
@@ -254,16 +239,6 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
 
             cumulativeLength += length;
         }
-
-        // todo - make closed paths work with "motion" case
-        //if (m_closePath && !m_segments.empty()) {
-        //    double percentageAtStartOfClose = cumulativeLength / totalLength;
-        //    if (endPercentage >= percentageAtStartOfClose && endPercentage < 1.) {
-        //        double closePercentage = (endPercentage - percentageAtStartOfClose) / (1. - percentageAtStartOfClose);
-        //        auto pt = (1 - closePercentage) * m_segments.back()->EndPoint() + closePercentage * startPt;
-        //        path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
-        //    }
-        //}
     }
 
     gc->StrokePath(path);
@@ -271,8 +246,11 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
 
 void SketchEffectPath::closePath()
 {
-    if (m_segments.size() >= 1)
-        m_closePath = true;
+    if (m_segments.size() >= 1) {
+        wxPoint2DDouble startPt( m_segments.back()->EndPoint() );
+        wxPoint2DDouble endPt( m_segments.front()->StartPoint() );
+        m_segments.push_back(std::make_shared <SketchLine>(startPt, endPt));
+    }
 }
 
 SketchEffectSketch SketchEffectSketch::DefaultSketch()

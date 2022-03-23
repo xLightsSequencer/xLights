@@ -50,7 +50,6 @@ public:
 protected:
     double m_startDelay = 0.;
     std::vector<std::shared_ptr<SketchPathSegment>> m_segments;
-    bool m_closePath = false;
 };
 
 // A sketch is a collection of paths... just a thin std::vector wrapper currently
