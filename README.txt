@@ -12,7 +12,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (gil)      Add Jaw Orientation property for the DMXSkull model
-   -- end (gil).     DMXSkull model changed so color error checking is only done when color channels are active
+   -- enh (gil)      DMXSkull model changed so color error checking is only done when color channels are active
+   -- enh (scott)    Added Text Replace to Text Effect ${TITLE},${ARTIST},${ALBUM},${FILENAME}.
+   -- enh (scott)    Added Support to Import S5 .lorprev Preview Files.
+   -- enh (scott)    Added WLED Dig-Uno ESP32 Variant with correct pins.
+   -- enh (scott)    Added WLED Warning For Firmware v0.13 & v0.13.1 not working with Controller Upload, use v0.13.2 or v0.13b5.
+   -- enh (scott)    Added xLightsAutomations APIs to get and set Effect Settings.
+   -- enh (scott)    Added Lua commands for TableToJSON and Table Logging.
+   -- bug (scott)    Fixed wrong HSV value with On Effect added in 2022.6
 2022.06 March 6, 2022
    -- enh (gil)      Add auto repeat option to Morph.  Automatically scales the repeat to model size.
    -- enh (keith)    Add a low definition rendering mode to matrices
