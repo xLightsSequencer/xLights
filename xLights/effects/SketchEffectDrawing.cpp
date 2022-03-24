@@ -253,78 +253,14 @@ void SketchEffectPath::closePath()
     }
 }
 
+std::string SketchEffectSketch::DefaultSketchString()
+{
+    return std::string("0.0,0.0;L0.5,0.5;C1.0,1.0,0.25,0.25,0.65,0.30;c|0.35,0.45;Q0.7,0.75,0.9,0.45|0.8,0.8;L0.3,0.7;L0.05,0.1");
+}
+
 SketchEffectSketch SketchEffectSketch::DefaultSketch()
 {
-    SketchEffectSketch sketch;
-#if 0
-    const wxPoint2DDouble p1(0., 0.5);
-    const wxPoint2DDouble p2(0.5, 1.);
-    const wxPoint2DDouble p3(1., 0.5);
-    const wxPoint2DDouble p4(0.5, 0.);
-
-    auto path = std::make_shared<SketchEffectPath>();
-    path->appendSegment(std::make_shared<SketchLine>(p1, p2));
-    path->appendSegment(std::make_shared<SketchLine>(p2, p3));
-    path->appendSegment(std::make_shared<SketchLine>(p3, p4));
-    //path->closePath();
-    path->appendSegment(std::make_shared<SketchLine>(p4, p1));
-
-    sketch.appendPath(path);
-
-    //const wxPoint2DDouble path1Start(0., 0.);
-    //const wxPoint2DDouble path2Start(0.4, 0.1);
-
-    //auto path1 = std::make_shared<SketchEffectPath>();
-    //auto path1Segment1 = std::make_shared<SketchLine>(path1Start, wxPoint2DDouble(0.6, 0.6));
-    //auto path1Segment2 = std::make_shared<SketchLine>(path1Segment1->EndPoint(), wxPoint2DDouble(0.8, 0.4));
-    //path1->appendSegment(path1Segment1);
-    //path1->appendSegment(path1Segment2);
-
-    //auto path2 = std::make_shared<SketchEffectPath>();
-    //auto path2Segment1 = std::make_shared<SketchLine>(path2Start, wxPoint2DDouble(0.95, 0.1));
-    //path2->appendSegment(path2Segment1);
-
-    //sketch.appendPath(path1);
-    //sketch.appendPath(path2);
-#else
-    // todo - remove whitespace from sketchDef
-    std::string sketchDef("0.0,0.0;L0.5,0.5;C1.0,1.0,0.25,0.25,0.65,0.30;c|0.35,0.45;Q0.7,0.75,0.9,0.45|0.8,0.8;L0.3,0.7;L0.05,0.1");
-    return SketchFromString(sketchDef);
-
-
-    //const wxPoint2DDouble path1Start(0., 0.);
-    //const wxPoint2DDouble path2Start(0.35, 0.45);
-    //const wxPoint2DDouble path3Start(0.8, 0.8);
-
-    //auto path1 = std::make_shared<SketchEffectPath>();
-    //auto path1Segment1 = std::make_shared<SketchLine>(path1Start, wxPoint2DDouble(0.5, 0.5));
-    //auto path1Segment2 = std::make_shared<SketchCubicBezier>(path1Segment1->EndPoint(),
-    //                                                         wxPoint2DDouble(1., 1.),
-    //                                                         wxPoint2DDouble(0.25, 0.25),
-    //                                                         wxPoint2DDouble(0.65, 0.3));
-    //path1->appendSegment(path1Segment1);
-    //path1->appendSegment(path1Segment2);
-    //path1->closePath();
-
-    //auto path2 = std::make_shared<SketchEffectPath>();
-    //auto path2Segment1 = std::make_shared<SketchQuadraticBezier>(path2Start,
-    //                                                             wxPoint2DDouble(0.7, 0.75),
-    //                                                             wxPoint2DDouble(0.9, 0.45));
-    //path2->appendSegment(path2Segment1);
-
-    //auto path3 = std::make_shared<SketchEffectPath>();
-    //auto path3Segment1 = std::make_shared<SketchLine>(path3Start, wxPoint2DDouble(0.3, 0.7));
-    //auto path3Segment2 = std::make_shared<SketchLine>(wxPoint2DDouble(0.3, 0.7),
-    //                                                  wxPoint2DDouble(0.05, 0.1));
-    //path3->appendSegment(path3Segment1);
-    //path3->appendSegment(path3Segment2);
-
-    //sketch.appendPath(path1);
-    //sketch.appendPath(path2);
-    //sketch.appendPath(path3);
- #endif
-
-    return sketch;
+    return SketchFromString(DefaultSketchString());
 }
 
 SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketchDef)

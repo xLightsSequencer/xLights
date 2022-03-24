@@ -56,6 +56,7 @@ protected:
 class SketchEffectSketch
 {
 public:
+    static std::string DefaultSketchString();
     static SketchEffectSketch DefaultSketch();
     static SketchEffectSketch SketchFromString(const std::string& sketchDef);
 

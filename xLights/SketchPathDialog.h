@@ -3,6 +3,7 @@
 #include <wx/dialog.h>
 #include <wx/geometry.h>
 
+#include <string>
 #include <vector>
 
 class wxButton;
@@ -13,6 +14,8 @@ class SketchPathDialog: public wxDialog
 public:
 	SketchPathDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
     virtual ~SketchPathDialog() = default;
+
+    std::string sketchDefString() const;
 
 private:
     DECLARE_EVENT_TABLE()

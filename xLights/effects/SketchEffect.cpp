@@ -1,5 +1,6 @@
 #include "SketchEffect.h"
 
+#include "BulkEditControls.h"
 #include "RenderBuffer.h"
 #include "SketchEffectDrawing.h"
 #include "SketchPanel.h"
@@ -33,9 +34,8 @@ namespace
     }
 }
 
-SketchEffect::SketchEffect( int id ) :
-    RenderableEffect( id, "Sketch", sketch_16_xpm, sketch_24_xpm, sketch_32_xpm, sketch_48_xpm, sketch_64_xpm ),
-    m_sketch(SketchEffectSketch::DefaultSketch())
+SketchEffect::SketchEffect(int id) :
+    RenderableEffect(id, "Sketch", sketch_16_xpm, sketch_24_xpm, sketch_32_xpm, sketch_48_xpm, sketch_64_xpm)
 {
 }
 
@@ -44,9 +44,13 @@ SketchEffect::~SketchEffect()
 
 }
 
-void SketchEffect::Render(Effect* /*effect*/, SettingsMap& /*settings*/, RenderBuffer& buffer )
+void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffer& buffer )
 {
-    // This is a terrible effect... it currently just draws a hard-coded sketch!!
+    std::string sketchDef = settings.Get("TEXTCTRL_SketchDef", "");
+    if (sketchDef.empty())
+        return;
+    m_sketch = SketchEffectSketch::SketchFromString(sketchDef);
+
     double progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
     //
@@ -94,7 +98,9 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& /*settings*/, RenderB
 
 void SketchEffect::SetDefaultParameters()
 {
+    SketchPanel* p = (SketchPanel*)panel;
 
+    SetTextValue(p->TextCtrl_SketchDef, SketchEffectSketch::DefaultSketchString());
 }
 
 bool SketchEffect::needToAdjustSettings( const std::string& /*version*/ )
@@ -104,6 +110,8 @@ bool SketchEffect::needToAdjustSettings( const std::string& /*version*/ )
 
 void SketchEffect::adjustSettings( const std::string& version, Effect* effect, bool removeDefaults/*=true*/ )
 {
+    //SettingsMap& settings = effect->GetSettings();
+
     // give the base class a chance to adjust any settings
     if ( RenderableEffect::needToAdjustSettings( version ) )
     {

@@ -1,6 +1,7 @@
 #include "SketchPathDialog.h"
 
 #include <optional>
+#include <sstream>
 #include <utility>
 #include <xutility>
 
@@ -100,6 +101,42 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
     Connect(cancelButton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_Cancel);
 
     UpdatePathState(Undefined);
+}
+
+std::string SketchPathDialog::sketchDefString() const
+{
+    // Syntax here must be in sync with SketchEffectSketch::SketchFromString()!!
+
+    if (m_handles.size() < 2)
+        return std::string();
+
+    std::ostringstream stream;
+
+    auto startPt(m_handles[0].pt);
+    stream << startPt.m_x << ',' << startPt.m_y << ';';
+
+    for (std::vector<HandlePoint>::size_type i = 1; i < m_handles.size();) {
+        if (m_handles[i].handlePointType == Point) {
+            auto endPt(m_handles[i].pt);
+            stream << 'L' << endPt.m_x << ',' << endPt.m_y << ';';
+            ++i;
+        } else if (m_handles[i].handlePointType == QuadraticControlPt) {
+            auto ctrlPt(m_handles[i].pt);
+            auto endPt(m_handles[i + 1].pt);
+            stream << 'Q' << ctrlPt.m_x << ',' << ctrlPt.m_y << ',' << endPt.m_x << ',' << endPt.m_y << ';';
+            i += 2;
+        } else if (m_handles[i].handlePointType == CubicControlPt1) {
+            auto ctrlPt1(m_handles[i].pt);
+            auto ctrlPt2(m_handles[i + 1].pt);
+            auto endPt(m_handles[i + 2].pt);
+            stream << 'C' << ctrlPt1.m_x << ',' << ctrlPt1.m_y << ','
+                   << ctrlPt2.m_x << ',' << ctrlPt2.m_y << ','
+                   << endPt.m_x << ',' << endPt.m_y << ';';
+            i += 3;
+        }
+    }
+  
+    return stream.str();
 }
 
 void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)

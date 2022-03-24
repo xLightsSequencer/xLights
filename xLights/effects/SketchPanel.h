@@ -2,6 +2,8 @@
 
 #include "EffectPanelUtils.h"
 
+class BulkEditTextCtrl;
+
 class SketchPanel : public xlEffectPanel
 {
 public:
@@ -10,10 +12,14 @@ public:
 
     void ValidateWindow() override;
 
+    // controls are public to allow SketchEffect access
+    BulkEditTextCtrl* TextCtrl_SketchDef;
+
+protected:
+    static const long ID_TEXTCTRL_SketchDef;
+
  private:
     DECLARE_EVENT_TABLE()
-
-    static const long ID_TEXTCTRL_Sketch;
 
     void OnButton_DefineSketch(wxCommandEvent& event);
 };

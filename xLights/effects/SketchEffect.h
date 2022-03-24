@@ -19,6 +19,8 @@ public:
     void adjustSettings( const std::string& version, Effect* effect, bool removeDefaults = true ) override;
     std::list<std::string> CheckEffectSettings( const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache ) override;
 
+    void setSketch(const std::string& sketchStr);
+
 protected:
     void RemoveDefaults( const std::string& version, Effect* effect ) override;
     xlEffectPanel* CreatePanel( wxWindow* parent ) override;
