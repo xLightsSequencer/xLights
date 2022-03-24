@@ -47,6 +47,9 @@ SketchEffect::~SketchEffect()
 void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffer& buffer )
 {
     std::string sketchDef = settings.Get("TEXTCTRL_SketchDef", "");
+    bool motionEnabled = std::stoi(settings.Get("CHECKBOX_MotionEnabled", "0"));
+    int motionPercentage = std::stoi(settings.Get("SLIDER_MotionPercentage", "100"));
+
     if (sketchDef.empty())
         return;
     m_sketch = SketchEffectSketch::SketchFromString(sketchDef);
@@ -79,7 +82,7 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffe
     //
     // rendering sketch via wxGraphicsContext
     //
-    renderSketch(img, progress);
+    renderSketch(img, progress, motionEnabled, 0.01*motionPercentage);
 
     //
     // wxImage --> RenderBuffer
@@ -101,6 +104,8 @@ void SketchEffect::SetDefaultParameters()
     SketchPanel* p = (SketchPanel*)panel;
 
     SetTextValue(p->TextCtrl_SketchDef, SketchEffectSketch::DefaultSketchString());
+    SetSliderValue(p->Slider_MotionPercentage, 100);
+    SetCheckBoxValue(p->CheckBox_MotionEnabled, false);
 }
 
 bool SketchEffect::needToAdjustSettings( const std::string& /*version*/ )
@@ -110,8 +115,6 @@ bool SketchEffect::needToAdjustSettings( const std::string& /*version*/ )
 
 void SketchEffect::adjustSettings( const std::string& version, Effect* effect, bool removeDefaults/*=true*/ )
 {
-    //SettingsMap& settings = effect->GetSettings();
-
     // give the base class a chance to adjust any settings
     if ( RenderableEffect::needToAdjustSettings( version ) )
     {
@@ -134,18 +137,14 @@ xlEffectPanel* SketchEffect::CreatePanel( wxWindow* parent )
     return new SketchPanel( parent );
 }
 
-void SketchEffect::renderSketch(wxImage& img, double progress)
+void SketchEffect::renderSketch(wxImage& img, double progress, bool hasMotion, double motionPercentage)
 {
     std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(img));
     auto paths = m_sketch.paths();
     wxSize sz(img.GetSize());
 
-    // These are hard-coded for now; should be setting(s)
-    bool hasMotion = false;
-    double drawPercentage = 0.25; // hard-coded; should be an effect setting
-
     // In order for the animation to both "draw in" and "draw out" we adjust the [0,1] range
-    double maxProgress = hasMotion ? (1. + drawPercentage) : 1.;
+    double maxProgress = hasMotion ? (1. + motionPercentage) : 1.;
     double adjustedProgress = interpolate(progress, 0., 0., 1., maxProgress, LinearInterpolater());
 
     double totalLength = 0.;
@@ -169,7 +168,7 @@ void SketchEffect::renderSketch(wxImage& img, double progress)
             if (!hasMotion)
                 (*iter)->drawPartialPath(gc.get(), sz, std::nullopt, percentageThroughThisPath);
             else {
-                double drawPercentageThroughThisPath = (adjustedProgress - drawPercentage - percentageAtStartOfThisPath) / (percentageAtEndOfThisPath - percentageAtStartOfThisPath);
+                double drawPercentageThroughThisPath = (adjustedProgress - motionPercentage - percentageAtStartOfThisPath) / (percentageAtEndOfThisPath - percentageAtStartOfThisPath);
                 drawPercentageThroughThisPath = std::clamp(drawPercentageThroughThisPath, 0., 1.);
 
                 (*iter)->drawPartialPath(gc.get(), sz, drawPercentageThroughThisPath, percentageThroughThisPath);
