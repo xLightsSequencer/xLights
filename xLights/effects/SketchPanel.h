@@ -5,6 +5,7 @@
 class BulkEditCheckBox;
 class BulkEditSlider;
 class BulkEditTextCtrl;
+class BulkEditValueCurveButton;
 
 class SketchPanel : public xlEffectPanel
 {
@@ -16,17 +17,26 @@ public:
 
     // controls are public to allow SketchEffect access
     BulkEditTextCtrl* TextCtrl_SketchDef = nullptr;
+    BulkEditSlider* Slider_Thickness = nullptr;
+    BulkEditValueCurveButton* BitmapButton_Thickness = nullptr;
+    BulkEditTextCtrl* TextCtrl_Thickness = nullptr;
     BulkEditCheckBox* CheckBox_MotionEnabled = nullptr;
     BulkEditSlider* Slider_MotionPercentage = nullptr;
+    BulkEditValueCurveButton* BitmapButton_MotionPercentage = nullptr;
+    BulkEditTextCtrl* TextCtrl_MotionPercentage = nullptr;
 
 protected:
     static const long ID_TEXTCTRL_SketchDef;
+    static const long ID_SLIDER_Thickness;
+    static const long ID_VALUECURVE_Thickness;
+    static const long ID_TEXTCTRL_Thickness;
     static const long ID_CHECKBOX_MotionEnabled;
     static const long ID_SLIDER_MotionPercentage;
+    static const long ID_VALUECURVE_MotionPercentage;
+    static const long ID_TEXTCTRL_MotionPercentage;
 
  private:
     DECLARE_EVENT_TABLE()
 
     void OnButton_DefineSketch(wxCommandEvent& event);
-    //void OnCheckBox_ToggleMotion(wxCommandEvent& event);
 };

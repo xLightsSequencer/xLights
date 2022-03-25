@@ -25,7 +25,7 @@ protected:
     void RemoveDefaults( const std::string& version, Effect* effect ) override;
     xlEffectPanel* CreatePanel( wxWindow* parent ) override;
 
-    void renderSketch(wxImage& img, double progress, bool hasMotion, double motionPercentage);
+    void renderSketch(wxImage& img, double progress, int lineThickness, bool hasMotion, double motionPercentage);
 
     SketchEffectSketch m_sketch;
 };

@@ -48,6 +48,7 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffe
 {
     std::string sketchDef = settings.Get("TEXTCTRL_SketchDef", "");
     bool motionEnabled = std::stoi(settings.Get("CHECKBOX_MotionEnabled", "0"));
+    int thickness = std::stoi(settings.Get("SLIDER_Thickness", "1"));
     int motionPercentage = std::stoi(settings.Get("SLIDER_MotionPercentage", "100"));
 
     if (sketchDef.empty())
@@ -82,7 +83,7 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffe
     //
     // rendering sketch via wxGraphicsContext
     //
-    renderSketch(img, progress, motionEnabled, 0.01*motionPercentage);
+    renderSketch(img, progress, thickness, motionEnabled, 0.01*motionPercentage);
 
     //
     // wxImage --> RenderBuffer
@@ -104,8 +105,14 @@ void SketchEffect::SetDefaultParameters()
     SketchPanel* p = (SketchPanel*)panel;
 
     SetTextValue(p->TextCtrl_SketchDef, SketchEffectSketch::DefaultSketchString());
-    SetSliderValue(p->Slider_MotionPercentage, 100);
+
+    p->BitmapButton_Thickness->SetActive(false);
+    p->BitmapButton_MotionPercentage->SetActive(false);
+
     SetCheckBoxValue(p->CheckBox_MotionEnabled, false);
+
+    SetSliderValue(p->Slider_Thickness, 1);
+    SetSliderValue(p->Slider_MotionPercentage, 100);
 }
 
 bool SketchEffect::needToAdjustSettings( const std::string& /*version*/ )
@@ -137,7 +144,7 @@ xlEffectPanel* SketchEffect::CreatePanel( wxWindow* parent )
     return new SketchPanel( parent );
 }
 
-void SketchEffect::renderSketch(wxImage& img, double progress, bool hasMotion, double motionPercentage)
+void SketchEffect::renderSketch(wxImage& img, double progress, int lineThickness, bool hasMotion, double motionPercentage)
 {
     std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(img));
     auto paths = m_sketch.paths();
@@ -156,7 +163,8 @@ void SketchEffect::renderSketch(wxImage& img, double progress, bool hasMotion, d
     const wxColor colors[] = { *wxRED, *wxGREEN, *wxBLUE }; // todo - shouldn't be hard-coded colors!!
     for (auto iter = paths.cbegin(); iter != paths.cend(); ++iter, ++i)
     {
-        gc->SetPen(colors[i % 3]);
+        wxPen pen(colors[i % 3], lineThickness);
+        gc->SetPen(pen);
         double pathLength = (*iter)->Length();
         double percentageAtEndOfThisPath = (cumulativeLength + pathLength) / totalLength;
     

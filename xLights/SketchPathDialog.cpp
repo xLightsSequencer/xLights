@@ -1,4 +1,5 @@
 #include "SketchPathDialog.h"
+#include "effects/SketchEffectDrawing.h"
 
 #include <optional>
 #include <sstream>
@@ -103,6 +104,46 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
     UpdatePathState(Undefined);
 }
 
+void SketchPathDialog::setSketch(const std::string& sketchStr)
+{
+    SketchEffectSketch sketch(SketchEffectSketch::SketchFromString(sketchStr));
+
+    auto paths(sketch.paths());
+    if (paths.empty())
+        return;
+
+    // todo - dialog currently only works with a single path
+    const auto& firstPath( paths.front() );
+
+    auto pathSegments(firstPath->segments());
+    bool addedFirstHandle = false;
+    for (auto iter = pathSegments.cbegin(); iter != pathSegments.cend(); ++iter) {
+        std::shared_ptr<SketchPathSegment> pathSegment = *iter;
+        if (!addedFirstHandle) {
+            m_handles.push_back(HandlePoint(pathSegment->StartPoint()));
+            addedFirstHandle = true;
+        }
+
+        std::shared_ptr<SketchQuadraticBezier> quadratic;
+        std::shared_ptr<SketchCubicBezier> cubic;
+        if (std::dynamic_pointer_cast<SketchLine>(pathSegment) != nullptr) {
+            m_handles.push_back(HandlePoint(pathSegment->EndPoint()));
+        } else if ((quadratic = std::dynamic_pointer_cast<SketchQuadraticBezier>(pathSegment)) != nullptr) {
+            m_handles.push_back(HandlePoint(quadratic->ControlPoint(), QuadraticControlPt));
+            m_handles.push_back(HandlePoint(quadratic->EndPoint(), QuadraticCurveEnd));
+        } else if ((cubic = std::dynamic_pointer_cast<SketchCubicBezier>(pathSegment)) != nullptr) {
+            m_handles.push_back(HandlePoint(cubic->ControlPoint1(), CubicControlPt1));
+            m_handles.push_back(HandlePoint(cubic->ControlPoint2(), CubicControlPt2));
+            m_handles.push_back(HandlePoint(cubic->EndPoint(), CubicCurveEnd));
+        }
+    }
+
+    if (firstPath->isClosed() && m_handles.size() >= 3) {
+        m_handles.pop_back();
+        m_pathClosed = true;
+    }
+}
+
 std::string SketchPathDialog::sketchDefString() const
 {
     // Syntax here must be in sync with SketchEffectSketch::SketchFromString()!!
@@ -135,7 +176,9 @@ std::string SketchPathDialog::sketchDefString() const
             i += 3;
         }
     }
-  
+    if (m_pathClosed)
+        stream << 'c';
+ 
     return stream.str();
 }
 

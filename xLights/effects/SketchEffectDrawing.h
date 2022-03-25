@@ -47,9 +47,21 @@ public:
     void drawPartialPath(wxGraphicsContext* gc, const wxSize& sz,
                          std::optional<double> startPercentage,
                          double endPercentage);
+
+    const std::vector<std::shared_ptr<SketchPathSegment>>& segments() const
+    {
+        return m_segments;
+    }
+
+    bool isClosed() const
+    {
+        return m_isClosed;
+    }
+
 protected:
     double m_startDelay = 0.;
     std::vector<std::shared_ptr<SketchPathSegment>> m_segments;
+    bool m_isClosed = false;
 };
 
 // A sketch is a collection of paths... just a thin std::vector wrapper currently
@@ -58,6 +70,7 @@ class SketchEffectSketch
 public:
     static std::string DefaultSketchString();
     static SketchEffectSketch DefaultSketch();
+
     static SketchEffectSketch SketchFromString(const std::string& sketchDef);
 
     virtual ~SketchEffectSketch() = default;
@@ -130,6 +143,11 @@ public:
                             std::optional<double> startPercentage,
                             double endPercentage) override;
 
+    wxPoint2DDouble ControlPoint() const
+    {
+        return m_cp;
+    }
+
 protected:
     const wxPoint2DDouble m_fromPt;
     const wxPoint2DDouble m_cp;
@@ -162,6 +180,15 @@ public:
     void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
                             std::optional<double> startPercentage,
                             double endPercentage) override;
+
+    wxPoint2DDouble ControlPoint1() const
+    {
+        return m_cp1;
+    }
+    wxPoint2DDouble ControlPoint2() const
+    {
+        return m_cp2;
+    }
 
 protected:
     const wxPoint2DDouble m_fromPt;

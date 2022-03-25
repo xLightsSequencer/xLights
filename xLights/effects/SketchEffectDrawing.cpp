@@ -39,7 +39,7 @@ namespace
     // number of steps to use for approximating bezier segment length
     // and approximating a partial bezier segment with a piecewise-linear
     // approximation
-    const int NUM_STEPS = 40;
+    const int NUM_STEPS = 50;
 
     double bezierLength(const wxPoint2DDouble& startPt,
                         const wxPoint2DDouble& ctrlPt1,
@@ -143,7 +143,23 @@ void SketchQuadraticBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSiz
         for (double t = 0.; t <= endPercentage; t += increment, ++i)
             path.AddLineToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
     } else {
-        // todo - startPercentage/endPercentage
+        double percentage = std::clamp(startPercentage.value(), 0., 1.);
+        endPercentage = std::clamp(endPercentage, 0., 1.);
+        if (percentage == endPercentage)
+            return;
+
+        auto pts = piecewiseLinearApproximation(m_fromPt, m_cp, m_toPt);
+        int i = 0;
+        double increment = 1. / pts.size();
+        bool started = false;
+        for (double t = 0.; t <= endPercentage; t += increment, ++i) {
+            if (t >= startPercentage && !started) {
+                path.MoveToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+                started = true;
+            } else if (t >= startPercentage && t <= endPercentage) {
+                path.AddLineToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+            }
+        }
     }
 }
 
@@ -166,7 +182,23 @@ void SketchCubicBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSize& s
         for (double t = 0.; t <= endPercentage; t += increment, ++i)
             path.AddLineToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
     } else {
-        // todo - startPercentage/endPercentage
+        double percentage = std::clamp(startPercentage.value(), 0., 1.);
+        endPercentage = std::clamp(endPercentage, 0., 1.);
+        if (percentage == endPercentage)
+            return;
+
+        auto pts = piecewiseLinearApproximation(m_fromPt, m_cp1, m_cp2, m_toPt);
+        int i = 0;
+        double increment = 1. / pts.size();
+        bool started = false;
+        for (double t = 0.; t <= endPercentage; t += increment, ++i) {
+            if (t >= startPercentage && !started) {
+                path.MoveToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+                started = true;
+            } else if (t >= startPercentage && t <= endPercentage) {
+                path.AddLineToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+            }
+        }
     }
 }
 
@@ -246,10 +278,11 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
 
 void SketchEffectPath::closePath()
 {
-    if (m_segments.size() >= 1) {
+    if (!m_isClosed && m_segments.size() >= 1) {
         wxPoint2DDouble startPt( m_segments.back()->EndPoint() );
         wxPoint2DDouble endPt( m_segments.front()->StartPoint() );
         m_segments.push_back(std::make_shared <SketchLine>(startPt, endPt));
+        m_isClosed = true;
     }
 }
 
@@ -265,6 +298,18 @@ SketchEffectSketch SketchEffectSketch::DefaultSketch()
 
 SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketchDef)
 {
+    // Basic syntax of a sketch:
+    //  * paths are separated by '|'
+    //  * within a path, ';' is the separator
+    //  * paths always begin with a start point (followed by the ';' separator)
+    //  * paths with a start point and no segments... probably do not work currently
+    //  * within a path, only four "commands" (in SVG syntax) are supported currently:
+    //      - 'L' for line segments
+    //      - 'Q' for quadratic-curve segments
+    //      - 'C' for cubic-curve segments
+    //      - 'c' close the path with a line to the start point (must be the last command)
+    //      - 'p' pause time (probably in seconds) -- CURRENTLY UNIMPLEMENTED
+    //
     static const std::regex pathsRegex("([^\\|]+)");
     static const std::regex pathComponentsRegex("([^;]+)");
     static const std::string doubleCapture("(-?[0-9]*\\.?[0-9]*)");
