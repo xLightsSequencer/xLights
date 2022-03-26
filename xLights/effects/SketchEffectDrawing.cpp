@@ -3,6 +3,7 @@
 #include <wx/graphics.h>
 
 #include <regex>
+#include <sstream>
 #include <xutility>
 
 namespace
@@ -97,12 +98,12 @@ namespace
 }
 
 
-void SketchLine::DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz)
+void SketchLine::DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const
 {
     path.AddLineToPoint(sz.x * m_toPt.m_x, sz.y * m_toPt.m_y);
 }
 
-void SketchLine::DrawPartialSegment(wxGraphicsPath& path, const wxSize&sz, std::optional<double> startPercentage, double endPercentage)
+void SketchLine::DrawPartialSegment(wxGraphicsPath& path, const wxSize&sz, std::optional<double> startPercentage, double endPercentage) const
 {
     if (!startPercentage.has_value()) {
         if (endPercentage <= 0. || endPercentage > 1.)
@@ -124,17 +125,17 @@ void SketchLine::DrawPartialSegment(wxGraphicsPath& path, const wxSize&sz, std::
 }
 
 
-double SketchQuadraticBezier::Length()
+double SketchQuadraticBezier::Length() const
 {
     return bezierLength(m_fromPt, m_cp, m_toPt);
 }
 
-void SketchQuadraticBezier::DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz)
+void SketchQuadraticBezier::DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const
 {
     path.AddQuadCurveToPoint(sz.x * m_cp.m_x, sz.y  * m_cp.m_y, sz.x * m_toPt.m_x, sz.y * m_toPt.m_y);
 }
 
-void SketchQuadraticBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, std::optional<double> startPercentage, double endPercentage)
+void SketchQuadraticBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, std::optional<double> startPercentage, double endPercentage) const
 {
     if (!startPercentage.has_value()) {
         auto pts = piecewiseLinearApproximation(m_fromPt, m_cp, m_toPt);
@@ -164,16 +165,16 @@ void SketchQuadraticBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSiz
 }
 
 
-double SketchCubicBezier::Length()
+double SketchCubicBezier::Length() const
 {
     return bezierLength(m_fromPt, m_cp1, m_cp2, m_toPt);
 }
 
- void SketchCubicBezier::DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz)
+ void SketchCubicBezier::DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const
 {
     path.AddCurveToPoint(sz.x*m_cp1.m_x, sz.y*m_cp1.m_y, sz.x*m_cp2.m_x, sz.y*m_cp2.m_y, sz.x*m_toPt.m_x, sz.y*m_toPt.m_y);
 }
-void SketchCubicBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, std::optional<double> startPercentage, double endPercentage)
+void SketchCubicBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, std::optional<double> startPercentage, double endPercentage) const
 {
     if (!startPercentage.has_value()) {
         auto pts = piecewiseLinearApproximation(m_fromPt, m_cp1, m_cp2, m_toPt);
@@ -202,7 +203,7 @@ void SketchCubicBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSize& s
     }
 }
 
-double SketchEffectPath::Length()
+double SketchEffectPath::Length() const
 {
     if (m_segments.empty())
         return 0.;
@@ -219,7 +220,7 @@ void SketchEffectPath::appendSegment(std::shared_ptr<SketchPathSegment> cmd)
     m_segments.push_back(cmd);
 }
 
-void SketchEffectPath::drawEntirePath(wxGraphicsContext* gc, const wxSize& sz)
+void SketchEffectPath::drawEntirePath(wxGraphicsContext* gc, const wxSize& sz) const
 {
     if (m_segments.empty())
         return;
@@ -233,7 +234,7 @@ void SketchEffectPath::drawEntirePath(wxGraphicsContext* gc, const wxSize& sz)
     gc->StrokePath(path);
 }
 
-void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, std::optional<double> startPercentage, double endPercentage)
+void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, std::optional<double> startPercentage, double endPercentage) const
 {
     if (m_segments.empty())
         return;
@@ -381,4 +382,47 @@ SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketc
     }
 
     return sketch;
+}
+
+std::string SketchEffectSketch::toString() const
+{
+    if (m_paths.empty() )
+        return std::string();
+
+    std::ostringstream stream;
+    for ( size_t i = 0; i < m_paths.size(); ++i ) {
+        std::shared_ptr<SketchEffectPath> path = m_paths[i];
+        auto segments = path->segments();
+        if (segments.empty())
+            continue;
+
+        auto startPt(segments[0]->StartPoint());
+        stream << startPt.m_x << ',' << startPt.m_y << ';';
+        for (size_t ii = 0; ii < segments.size(); ++ii) {
+            std::shared_ptr<SketchCubicBezier> cubic;
+            std::shared_ptr<SketchQuadraticBezier> quadratic;
+
+            if (std::dynamic_pointer_cast<SketchLine>(segments[ii]) != nullptr) {
+                auto endPt(segments[ii]->EndPoint());
+                stream << 'L' << endPt.m_x << ',' << endPt.m_y << ';';
+            } else if ((quadratic = std::dynamic_pointer_cast<SketchQuadraticBezier>(segments[ii]))) {
+                auto ctrlPt(quadratic->ControlPoint());
+                auto endPt(quadratic->EndPoint());
+                stream << 'Q' << ctrlPt.m_x << ',' << ctrlPt.m_y
+                       << ',' << endPt.m_x << ',' << endPt.m_y << ';';
+            } else if ((cubic = std::dynamic_pointer_cast<SketchCubicBezier>(segments[ii]))) {
+                auto ctrlPt1(cubic->ControlPoint1());
+                auto ctrlPt2(cubic->ControlPoint2());
+                auto endPt(cubic->EndPoint());
+                stream << 'C' << ctrlPt1.m_x << ',' << ctrlPt1.m_y << ','
+                       << ctrlPt2.m_x << ',' << ctrlPt2.m_y << ','
+                       << endPt.m_x << ',' << endPt.m_y << ';';
+            }
+        }
+        if (path->isClosed())
+            stream << 'c';
+        if (i != m_paths.size() - 1)
+            stream << '|';
+    }
+    return stream.str();
 }

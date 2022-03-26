@@ -20,13 +20,15 @@ class SketchPathSegment
 public:
     virtual ~SketchPathSegment() = default;
 
-    virtual double Length() = 0;
-    virtual wxPoint2DDouble StartPoint() = 0;
-    virtual wxPoint2DDouble EndPoint() = 0;
-    virtual void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) = 0;
+    virtual double Length() const = 0;
+    virtual wxPoint2DDouble StartPoint() const = 0;
+    virtual void SetStartPoint(const wxPoint2DDouble&pt) = 0;
+    virtual wxPoint2DDouble EndPoint() const = 0;
+    virtual void SetEndPoint(const wxPoint2DDouble& pt) = 0;
+    virtual void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const = 0;
     virtual void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
                                     std::optional<double> startPercentage,
-                                    double endPercentage) = 0;
+                                    double endPercentage) const = 0;
 };
 
 // A path is simply a collection of segments. If there are at least two segments,
@@ -39,14 +41,14 @@ public:
     {}
     virtual ~SketchEffectPath() = default;
 
-    double Length();
+    double Length() const;
 
     void appendSegment(std::shared_ptr<SketchPathSegment> cmd);
     void closePath();
-    void drawEntirePath(wxGraphicsContext* gc, const wxSize& sz);
+    void drawEntirePath(wxGraphicsContext* gc, const wxSize& sz) const;
     void drawPartialPath(wxGraphicsContext* gc, const wxSize& sz,
                          std::optional<double> startPercentage,
-                         double endPercentage);
+                         double endPercentage) const;
 
     const std::vector<std::shared_ptr<SketchPathSegment>>& segments() const
     {
@@ -73,9 +75,11 @@ public:
 
     static SketchEffectSketch SketchFromString(const std::string& sketchDef);
 
+    std::string toString() const;
+
     virtual ~SketchEffectSketch() = default;
 
-    const std::vector<std::shared_ptr<SketchEffectPath>> paths() const
+    const std::vector<std::shared_ptr<SketchEffectPath>>& paths() const
     {
         return m_paths;
     }
@@ -96,26 +100,34 @@ public:
         m_fromPt(fromPt),
         m_toPt(toPt)
     {}
-    double Length() override
+    double Length() const override
     {
         return m_fromPt.GetDistance(m_toPt);
     }
-    wxPoint2DDouble StartPoint() override
+    wxPoint2DDouble StartPoint() const override
     {
         return m_fromPt;
     }
-    wxPoint2DDouble EndPoint() override
+    void SetStartPoint(const wxPoint2DDouble& pt) override
+    {
+        m_fromPt = pt;
+    }
+    wxPoint2DDouble EndPoint() const override
     {
         return m_toPt;
     }
-    void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) override;
+    void SetEndPoint(const wxPoint2DDouble& pt) override
+    {
+        m_toPt = pt;
+    }
+    void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const override;
     void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
                             std::optional<double> startPercentage,
-                            double endPercentage) override;
+                            double endPercentage) const override;
 
 protected:
-    const wxPoint2DDouble m_fromPt;
-    const wxPoint2DDouble m_toPt;
+    wxPoint2DDouble m_fromPt;
+    wxPoint2DDouble m_toPt;
 };
 
 class SketchQuadraticBezier : public SketchPathSegment
@@ -129,29 +141,41 @@ public:
         m_toPt(toPt)
     {
     }
-    double Length() override;
-    wxPoint2DDouble StartPoint() override
+    double Length() const override;
+    wxPoint2DDouble StartPoint() const override
     {
         return m_fromPt;
     }
-    wxPoint2DDouble EndPoint() override
+    void SetStartPoint(const wxPoint2DDouble& pt) override
+    {
+        m_fromPt = pt;
+    }
+    wxPoint2DDouble EndPoint() const override
     {
         return m_toPt;
     }
-    void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) override;
+    void SetEndPoint(const wxPoint2DDouble& pt) override
+    {
+        m_toPt = pt;
+    }
+    void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const override;
     void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
                             std::optional<double> startPercentage,
-                            double endPercentage) override;
+                            double endPercentage) const override;
 
     wxPoint2DDouble ControlPoint() const
     {
         return m_cp;
     }
+    void SetControlPoint(const wxPoint2DDouble& pt)
+    {
+        m_cp = pt;
+    }
 
 protected:
-    const wxPoint2DDouble m_fromPt;
-    const wxPoint2DDouble m_cp;
-    const wxPoint2DDouble m_toPt;
+    wxPoint2DDouble m_fromPt;
+    wxPoint2DDouble m_cp;
+    wxPoint2DDouble m_toPt;
 };
 
 class SketchCubicBezier : public SketchPathSegment
@@ -167,32 +191,48 @@ public:
         m_toPt(toPt)
     {
     }
-    double Length() override;
-    wxPoint2DDouble StartPoint() override
+    double Length() const override;
+    wxPoint2DDouble StartPoint() const override
     {
         return m_fromPt;
     }
-    wxPoint2DDouble EndPoint() override
+    void SetStartPoint(const wxPoint2DDouble& pt) override
+    {
+        m_fromPt = pt;
+    }
+    wxPoint2DDouble EndPoint() const override
     {
         return m_toPt;
     }
-    void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) override;
+    void SetEndPoint(const wxPoint2DDouble& pt) override
+    {
+        m_toPt = pt;
+    }
+    void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const override;
     void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
                             std::optional<double> startPercentage,
-                            double endPercentage) override;
+                            double endPercentage) const override;
 
     wxPoint2DDouble ControlPoint1() const
     {
         return m_cp1;
     }
+    void SetControlPoint1(const wxPoint2DDouble& pt)
+    {
+        m_cp1 = pt;
+    }
     wxPoint2DDouble ControlPoint2() const
     {
         return m_cp2;
     }
+    void SetControlPoint2(const wxPoint2DDouble& pt)
+    {
+        m_cp2 = pt;
+    }
 
 protected:
-    const wxPoint2DDouble m_fromPt;
-    const wxPoint2DDouble m_cp1;
-    const wxPoint2DDouble m_cp2;
-    const wxPoint2DDouble m_toPt;
+    wxPoint2DDouble m_fromPt;
+    wxPoint2DDouble m_cp1;
+    wxPoint2DDouble m_cp2;
+    wxPoint2DDouble m_toPt;
 };

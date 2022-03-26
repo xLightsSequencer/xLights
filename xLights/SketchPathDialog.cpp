@@ -1,8 +1,6 @@
 #include "SketchPathDialog.h"
-#include "effects/SketchEffectDrawing.h"
 
 #include <optional>
-#include <sstream>
 #include <utility>
 #include <xutility>
 
@@ -10,10 +8,11 @@
 #include <wx/button.h>
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
-#include <wx/statbox.h>
+#include <wx/listctrl.h>
 #include <wx/panel.h>
 #include <wx/pen.h>
 #include <wx/sizer.h>
+#include <wx/statbox.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
@@ -23,13 +22,19 @@ END_EVENT_TABLE()
 namespace
 {
     const int BorderWidth = 5;
+
+    const char HotkeysText[] =
+        "Shift\tToggle segment type (line, one-point curve, two-point curve)\n"
+        "Esc\tEnd current path\n"
+        "Space\tClose current path\n"
+        "Delete\tDelete point/segment\n";
 }
 
 SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     Create(parent, wxID_ANY, "Define Sketch", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxCLOSE_BOX, _T("wxID_ANY"));
 
-    auto mainSizer = new wxFlexGridSizer(2, 1, 0, 0);
+    auto mainSizer = new wxFlexGridSizer(3, 1, 0, 0);
     mainSizer->AddGrowableCol(0);
     mainSizer->AddGrowableRow(0);
 
@@ -74,6 +79,20 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
 
     mainSizer->Add(pathUISizer, 1, wxALL | wxEXPAND, 5);
 
+    // Sketch UI
+    auto sketchUISizer = new wxFlexGridSizer(2, 1, 5, 0);
+    sketchUISizer->AddGrowableRow(1);
+    sketchUISizer->AddGrowableCol(0);
+    auto hotkeysSizer = new wxStaticBoxSizer(wxVERTICAL, this, "Canvas hotkeys");
+    hotkeysSizer->Add(new wxStaticText(hotkeysSizer->GetStaticBox(), wxID_ANY, HotkeysText), 1, wxALL | wxEXPAND, 3);
+
+    m_pathsListView = new wxListView(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL);
+    //m_pathsListView->AppendColumn("Paths", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE_USEHEADER);
+
+    sketchUISizer->Add(hotkeysSizer, 1, wxALL | wxEXPAND);
+    sketchUISizer->Add(m_pathsListView, 1, wxALL | wxEXPAND, 5);
+    mainSizer->Add(sketchUISizer, 1, wxALL | wxEXPAND, 5);
+
     // Ok / Cancel
     auto okCancelSizer = new wxFlexGridSizer(1, 3, 0, 0);
     okCancelSizer->AddGrowableCol(0);
@@ -98,6 +117,8 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
     Connect(m_endPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_EndPath);
     Connect(m_closePathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_ClosePath);
 
+    Connect(m_pathsListView->GetId(), wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&SketchPathDialog::OnListView_PathSelected);
+
     Connect(okButton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_Ok);
     Connect(cancelButton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_Cancel);
 
@@ -106,80 +127,22 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
 
 void SketchPathDialog::setSketch(const std::string& sketchStr)
 {
-    SketchEffectSketch sketch(SketchEffectSketch::SketchFromString(sketchStr));
+    m_sketch = SketchEffectSketch::SketchFromString(sketchStr);
 
-    auto paths(sketch.paths());
-    if (paths.empty())
-        return;
+    m_pathsListView->ClearAll();
+    m_pathsListView->AppendColumn("Paths", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE_USEHEADER);
 
-    // todo - dialog currently only works with a single path
-    const auto& firstPath( paths.front() );
-
-    auto pathSegments(firstPath->segments());
-    bool addedFirstHandle = false;
-    for (auto iter = pathSegments.cbegin(); iter != pathSegments.cend(); ++iter) {
-        std::shared_ptr<SketchPathSegment> pathSegment = *iter;
-        if (!addedFirstHandle) {
-            m_handles.push_back(HandlePoint(pathSegment->StartPoint()));
-            addedFirstHandle = true;
-        }
-
-        std::shared_ptr<SketchQuadraticBezier> quadratic;
-        std::shared_ptr<SketchCubicBezier> cubic;
-        if (std::dynamic_pointer_cast<SketchLine>(pathSegment) != nullptr) {
-            m_handles.push_back(HandlePoint(pathSegment->EndPoint()));
-        } else if ((quadratic = std::dynamic_pointer_cast<SketchQuadraticBezier>(pathSegment)) != nullptr) {
-            m_handles.push_back(HandlePoint(quadratic->ControlPoint(), QuadraticControlPt));
-            m_handles.push_back(HandlePoint(quadratic->EndPoint(), QuadraticCurveEnd));
-        } else if ((cubic = std::dynamic_pointer_cast<SketchCubicBezier>(pathSegment)) != nullptr) {
-            m_handles.push_back(HandlePoint(cubic->ControlPoint1(), CubicControlPt1));
-            m_handles.push_back(HandlePoint(cubic->ControlPoint2(), CubicControlPt2));
-            m_handles.push_back(HandlePoint(cubic->EndPoint(), CubicCurveEnd));
-        }
-    }
-
-    if (firstPath->isClosed() && m_handles.size() >= 3) {
-        m_handles.pop_back();
-        m_pathClosed = true;
+    int i = 0;
+    for (const auto& path : m_sketch.paths()) {
+        wxString text;
+        text.sprintf("Path %d", i + 1);
+        m_pathsListView->InsertItem(i++, text);
     }
 }
 
 std::string SketchPathDialog::sketchDefString() const
 {
-    // Syntax here must be in sync with SketchEffectSketch::SketchFromString()!!
-
-    if (m_handles.size() < 2)
-        return std::string();
-
-    std::ostringstream stream;
-
-    auto startPt(m_handles[0].pt);
-    stream << startPt.m_x << ',' << startPt.m_y << ';';
-
-    for (std::vector<HandlePoint>::size_type i = 1; i < m_handles.size();) {
-        if (m_handles[i].handlePointType == Point) {
-            auto endPt(m_handles[i].pt);
-            stream << 'L' << endPt.m_x << ',' << endPt.m_y << ';';
-            ++i;
-        } else if (m_handles[i].handlePointType == QuadraticControlPt) {
-            auto ctrlPt(m_handles[i].pt);
-            auto endPt(m_handles[i + 1].pt);
-            stream << 'Q' << ctrlPt.m_x << ',' << ctrlPt.m_y << ',' << endPt.m_x << ',' << endPt.m_y << ';';
-            i += 2;
-        } else if (m_handles[i].handlePointType == CubicControlPt1) {
-            auto ctrlPt1(m_handles[i].pt);
-            auto ctrlPt2(m_handles[i + 1].pt);
-            auto endPt(m_handles[i + 2].pt);
-            stream << 'C' << ctrlPt1.m_x << ',' << ctrlPt1.m_y << ','
-                   << ctrlPt2.m_x << ',' << ctrlPt2.m_y << ','
-                   << endPt.m_x << ',' << endPt.m_y << ';';
-            i += 3;
-        }
-    }
-    if (m_pathClosed)
-        stream << 'c';
- 
-    return stream.str();
+    return m_sketch.toString();
 }
 
 void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
@@ -197,12 +160,46 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
     {
         std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(pdc));
 
+        // First, draw the unselected path(s)
+        gc->SetPen(*wxLIGHT_GREY_PEN);
+
+        long selectedPathIndex = m_pathsListView->GetFirstSelected();
+        long pathIndex = 0;
+        for (const auto& path : m_sketch.paths() ) {
+            if (pathIndex++ == selectedPathIndex)
+                continue;
+            wxGraphicsPath graphicsPath(gc->CreatePath());
+            const auto& firstSegment( path->segments().front() );
+            wxPoint2DDouble startPt(NormalizedToUI(firstSegment->StartPoint()));
+            graphicsPath.MoveToPoint(startPt);
+
+            for (const auto& segment : path->segments()) {
+                std::shared_ptr<SketchQuadraticBezier> quadratic;
+                std::shared_ptr<SketchCubicBezier> cubic;
+
+                if (std::dynamic_pointer_cast<SketchLine>(segment) != nullptr) {
+                    graphicsPath.AddLineToPoint(NormalizedToUI(segment->EndPoint()));
+                } else if ((quadratic = std::dynamic_pointer_cast<SketchQuadraticBezier>(segment)) != nullptr) {
+                    wxPoint2DDouble ctrlPt(NormalizedToUI(quadratic->ControlPoint()));
+                    wxPoint2DDouble endPt(NormalizedToUI(quadratic->EndPoint()));
+                    graphicsPath.AddQuadCurveToPoint(ctrlPt.m_x, ctrlPt.m_y, endPt.m_x, endPt.m_y);
+                } else if ((cubic = std::dynamic_pointer_cast<SketchCubicBezier>(segment)) != nullptr) {
+                    wxPoint2DDouble ctrlPt1(NormalizedToUI(cubic->ControlPoint1()));
+                    wxPoint2DDouble ctrlPt2(NormalizedToUI(cubic->ControlPoint2()));
+                    wxPoint2DDouble endPt(NormalizedToUI(cubic->EndPoint()));
+                    graphicsPath.AddCurveToPoint(ctrlPt1, ctrlPt2, endPt);
+                }
+            }
+            if (path->isClosed())
+                graphicsPath.CloseSubpath();
+
+            gc->DrawPath(graphicsPath);
+        }
+
+        // Second, draw the selected path
         gc->SetPen(*wxBLACK_PEN);
-
         std::vector<wxPoint>::size_type n = m_handles.size();
-
-        // First, draw the path
-        wxGraphicsPath path = gc->CreatePath();
+        wxGraphicsPath path( gc->CreatePath() );
         for (std::vector<wxPoint>::size_type i = 0; i < n; ++i)
         {
             wxPoint2DDouble pt(NormalizedToUI(m_handles[i].pt));
@@ -228,6 +225,7 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
             path.CloseSubpath();
         gc->DrawPath(path);
 
+        // Third, if we are in a segment-adding state, draw that potential segment
         if ((m_pathState == LineToNewPoint || m_pathState == QuadraticCurveToNewPoint || m_pathState == CubicCurveToNewPoint) && !m_handles.empty())
         {
             wxPen pen;
@@ -254,7 +252,7 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
             gc->SetPen(*wxBLACK_PEN);
         }
 
-        // Second, draw the handles
+        // Fourth, draw the handles
         for (std::vector<wxPoint>::size_type i = 0; i < n; ++i)
         {
             wxPoint2DDouble pt(NormalizedToUI(m_handles[i].pt));
@@ -265,7 +263,6 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
             else
                 gc->SetBrush((m_handles[i].state) ? (*wxYELLOW_BRUSH)
                                                   : (isControlPoint(m_handles[i]) ? (*wxBLUE_BRUSH) : (*wxLIGHT_GREY_BRUSH)));
-            ;
 
              gc->DrawEllipse(pt.m_x - 4, pt.m_y - 4, 8, 8);
         }
@@ -398,11 +395,16 @@ void SketchPathDialog::OnSketchLeftDown(wxMouseEvent& event)
     }
 }
 
-void SketchPathDialog::OnSketchLeftUp(wxMouseEvent& event)
+void SketchPathDialog::OnSketchLeftUp(wxMouseEvent& /*event*/)
 {
+    if (m_grabbedHandleIndex != -1) {
+        UpdatePathForHandles(m_grabbedHandleIndex);
+        // temp for debugging handles-path synchronization
+        //UpdateHandlesForPath(m_pathsListView->GetFirstSelected());
+    }
+
     m_grabbedHandleIndex = -1;
 }
-
 
 void SketchPathDialog::OnSketchMouseMove(wxMouseEvent& event)
 {
@@ -438,22 +440,27 @@ void SketchPathDialog::OnSketchMouseMove(wxMouseEvent& event)
     }
 }
 
-void SketchPathDialog::OnButton_StartPath(wxCommandEvent& event)
+void SketchPathDialog::OnButton_StartPath(wxCommandEvent& /*event*/)
 {
-    m_handles.clear(); // only one path allowed currently
+    m_handles.clear(); // TODO - only one path allowed currently
     m_pathClosed = false;
     UpdatePathState(DefineStartPoint);
 }
 
-void SketchPathDialog::OnButton_EndPath(wxCommandEvent& event)
+void SketchPathDialog::OnButton_EndPath(wxCommandEvent& /*event*/)
 {
     UpdatePathState(Undefined);
 }
 
-void SketchPathDialog::OnButton_ClosePath(wxCommandEvent& event)
+void SketchPathDialog::OnButton_ClosePath(wxCommandEvent& /*event*/)
 {
     m_pathClosed = true;
     UpdatePathState(Undefined);
+}
+
+void SketchPathDialog::OnListView_PathSelected(wxCommandEvent& /*event*/)
+{
+    UpdateHandlesForPath( m_pathsListView->GetFirstSelected() );
 }
 
 void SketchPathDialog::OnButton_Ok(wxCommandEvent& /*event*/)
@@ -487,6 +494,116 @@ wxPoint2DDouble SketchPathDialog::NormalizedToUI(const wxPoint2DDouble& pt) cons
     double x = pt.m_x * sz.GetWidth();
     double y = pt.m_y * sz.GetHeight();
     return wxPoint2DDouble(o.x + x, o.y + (sz.GetHeight() - y - 1));
+}
+
+void SketchPathDialog::UpdateHandlesForPath(long pathIndex)
+{
+    m_handles.clear();
+    m_grabbedHandleIndex = -1;
+    m_pathState = Undefined;
+    m_pathClosed = false;
+
+    if (pathIndex < 0 || pathIndex >= m_sketch.paths().size())
+        return;
+
+    auto iter = m_sketch.paths().cbegin();
+    std::advance(iter, pathIndex);
+
+    auto pathSegments((*iter)->segments());
+    m_handles.push_back(HandlePoint(pathSegments.front()->StartPoint()));
+    for (auto iter = pathSegments.cbegin(); iter != pathSegments.cend(); ++iter) {
+        std::shared_ptr<SketchPathSegment> pathSegment = *iter;
+
+        std::shared_ptr<SketchQuadraticBezier> quadratic;
+        std::shared_ptr<SketchCubicBezier> cubic;
+        if (std::dynamic_pointer_cast<SketchLine>(pathSegment) != nullptr) {
+            m_handles.push_back(HandlePoint(pathSegment->EndPoint()));
+        } else if ((quadratic = std::dynamic_pointer_cast<SketchQuadraticBezier>(pathSegment)) != nullptr) {
+            m_handles.push_back(HandlePoint(quadratic->ControlPoint(), QuadraticControlPt));
+            m_handles.push_back(HandlePoint(quadratic->EndPoint(), QuadraticCurveEnd));
+        } else if ((cubic = std::dynamic_pointer_cast<SketchCubicBezier>(pathSegment)) != nullptr) {
+            m_handles.push_back(HandlePoint(cubic->ControlPoint1(), CubicControlPt1));
+            m_handles.push_back(HandlePoint(cubic->ControlPoint2(), CubicControlPt2));
+            m_handles.push_back(HandlePoint(cubic->EndPoint(), CubicCurveEnd));
+        }
+    }
+
+    if ((*iter)->isClosed() && m_handles.size() >= 3) {
+        m_handles.pop_back();
+        m_pathClosed = true;
+    }
+
+    m_sketchPanel->Refresh();
+}
+
+void SketchPathDialog::UpdatePathForHandles(long handleIndex)
+{
+    auto paths(m_sketch.paths());
+    auto pathIndex = m_pathsListView->GetFirstSelected();
+    if (pathIndex < 0 || pathIndex >= paths.size())
+        return;
+
+    auto iter = paths.cbegin();
+    std::advance(iter, pathIndex);
+
+    auto segments = (*iter)->segments();
+    if (segments.empty())
+        return;
+
+    int index = 0;
+    auto normalizedHandlePt(m_handles[handleIndex].pt);
+
+    // Can early-return when adjusting the start-point of the path
+    if (handleIndex == index++) {
+        segments.front()->SetStartPoint(normalizedHandlePt);
+
+        // yuck... closed paths have an extra SketchLine to close the path, so if we update
+        //         the start point, we need to update that last 'extra' segment
+        if ((*iter)->isClosed())
+            segments.back()->SetEndPoint(normalizedHandlePt);
+        return;
+    }
+
+    for (int segmentIndex = 0; segmentIndex < segments.size(); ++segmentIndex) {
+        std::shared_ptr<SketchPathSegment> segment = segments[segmentIndex];
+        std::shared_ptr<SketchQuadraticBezier> quadratic;
+        std::shared_ptr<SketchCubicBezier> cubic;
+
+        if (std::dynamic_pointer_cast<SketchLine>(segment) != nullptr) {
+            if (handleIndex == index++) {
+                segment->SetEndPoint(normalizedHandlePt);
+                if (segmentIndex < segments.size() - 1)
+                    segments[segmentIndex + 1]->SetStartPoint(normalizedHandlePt);
+                break;
+            }
+        } else if ((quadratic = std::dynamic_pointer_cast<SketchQuadraticBezier>(segment)) != nullptr) {
+            if (handleIndex == index++) {
+                quadratic->SetControlPoint(normalizedHandlePt);
+                break;
+            }
+            if (handleIndex == index++) {
+                segment->SetEndPoint(normalizedHandlePt);
+                if (segmentIndex < segments.size() - 1)
+                    segments[segmentIndex + 1]->SetStartPoint(normalizedHandlePt);
+                break;
+            }
+        } else if ((cubic = std::dynamic_pointer_cast<SketchCubicBezier>(segment)) != nullptr) {
+            if (handleIndex == index++) {
+                cubic->SetControlPoint1(normalizedHandlePt);
+                break;
+            }
+            if (handleIndex == index++) {
+                cubic->SetControlPoint2(normalizedHandlePt);
+                break;
+            }
+            if (handleIndex == index++) {
+                segment->SetEndPoint(normalizedHandlePt);
+                if (segmentIndex < segments.size() - 1)
+                    segments[segmentIndex + 1]->SetStartPoint(normalizedHandlePt);
+                break;
+            }
+        }
+    }
 }
 
 void SketchPathDialog::UpdatePathState(PathState state)
