@@ -22,9 +22,12 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/regex.h>
+
 //(*IdInit(SearchPanel)
 const long SearchPanel::ID_STATICTEXT1 = wxNewId();
 const long SearchPanel::ID_COMBOBOX_SEARCH_MODEL = wxNewId();
+const long SearchPanel::ID_CHECKBOX_SEARCH_REGEX = wxNewId();
 const long SearchPanel::ID_STATICTEXT2 = wxNewId();
 const long SearchPanel::ID_TEXTCTRL_SEARCH = wxNewId();
 const long SearchPanel::ID_BUTTON_SEARCH_FIND = wxNewId();
@@ -52,7 +55,9 @@ SearchPanel::SearchPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ComboBox_Search_Model = new wxComboBox(this, ID_COMBOBOX_SEARCH_MODEL, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT|wxCB_READONLY|wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_COMBOBOX_SEARCH_MODEL"));
 	FlexGridSizer1->Add(ComboBox_Search_Model, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Search_Regex = new wxCheckBox(this, ID_CHECKBOX_SEARCH_REGEX, _("Regex"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_SEARCH_REGEX"));
+	CheckBox_Search_Regex->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Search_Regex, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Search:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrlSearch = new wxTextCtrl(this, ID_TEXTCTRL_SEARCH, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_SEARCH"));
@@ -176,7 +181,7 @@ void SearchPanel::FindSettings()
     if (search.IsEmpty()) {
         return;
     }
-
+    auto regex = CheckBox_Search_Regex->IsChecked();
     std::vector<wxString> models;
 
     auto const& selmodel = ComboBox_Search_Model->GetValue();
@@ -201,7 +206,7 @@ void SearchPanel::FindSettings()
             auto* elay = el->GetEffectLayer(i);
             auto effs = elay->GetEffects();
             for (auto* eff : effs) {
-                if (ContainsSetting(eff, search, value)) {
+                if (ContainsSetting(eff, search, regex, value)) {
                     ListBoxResults->Append(wxString::Format("%s [%05.1fs,%05.1fs] %s %s", value, eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, eff->GetEffectName(), tmpname), (void*)eff);
                 }
             }
@@ -217,7 +222,7 @@ void SearchPanel::FindSettings()
                             auto* elay = sme->GetEffectLayer(j);
                             auto effs = elay->GetEffects();
                             for (auto* eff : effs) {
-                                if (ContainsSetting(eff, search, value)) {
+                                if (ContainsSetting(eff, search, regex, value)) {
                                     ListBoxResults->Append(wxString::Format("%s [%05.1fs,%05.1fs] %s %s", value, eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, eff->GetEffectName(), tmpname), (void*)eff);
                                 }
                             }
@@ -234,11 +239,20 @@ void SearchPanel::FindSettings()
     }
 }
 
-bool SearchPanel::ContainsSetting(Effect* eff, std::string const& search, std::string &value) const
+bool SearchPanel::ContainsSetting(Effect* eff, std::string const& search, bool regex, std::string &value) const
 {
     value.clear();
+
+    auto compare = [&](std::string const& val) {
+        if (regex) {
+            wxRegEx re(search, wxRE_ADVANCED | wxRE_NEWLINE);
+            return re.Matches(val);
+        } 
+        return ::Contains(::Lower(val), ::Lower(search));
+    };
+
     for (auto [key, setting] : eff->GetSettings()) {
-        if (::Contains(::Lower(setting),::Lower(search))) {
+        if (compare(setting)) {
             value = key;
             value.append("=");
             value.append(setting);
@@ -246,7 +260,7 @@ bool SearchPanel::ContainsSetting(Effect* eff, std::string const& search, std::s
         }
     }
     for (auto [key, setting] : eff->GetPaletteMap()) {
-        if (::Contains(::Lower(setting), ::Lower(search))) {
+        if (compare(setting)) {
             value = key;
             value.append("=");
             value.append(setting);

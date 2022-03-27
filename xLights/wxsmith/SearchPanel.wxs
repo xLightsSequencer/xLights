@@ -26,8 +26,11 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
-			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_SEARCH_REGEX" variable="CheckBox_Search_Regex" member="yes">
+					<label>Regex</label>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

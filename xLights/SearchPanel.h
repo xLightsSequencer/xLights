@@ -12,6 +12,7 @@
 
 //(*Headers(SearchPanel)
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/combobox.h>
 #include <wx/listbox.h>
 #include <wx/panel.h>
@@ -39,6 +40,7 @@ class SearchPanel: public wxPanel
 		//(*Declarations(SearchPanel)
 		wxButton* ButtonSelectAll;
 		wxButton* Button_Search_Find;
+		wxCheckBox* CheckBox_Search_Regex;
 		wxComboBox* ComboBox_Search_Model;
 		wxListBox* ListBoxResults;
 		wxStaticText* StaticText1;
@@ -51,6 +53,7 @@ class SearchPanel: public wxPanel
 		//(*Identifiers(SearchPanel)
 		static const long ID_STATICTEXT1;
 		static const long ID_COMBOBOX_SEARCH_MODEL;
+		static const long ID_CHECKBOX_SEARCH_REGEX;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL_SEARCH;
 		static const long ID_BUTTON_SEARCH_FIND;
@@ -69,7 +72,7 @@ class SearchPanel: public wxPanel
         void FindSettings();
         void SelectEffects();
 
-		bool ContainsSetting(Effect* eff, std::string const& search, std::string& value) const;
+		bool ContainsSetting(Effect* eff, std::string const& search, bool regex, std::string& value) const;
 
 		//(*Handlers(SearchPanel)
 		void OnButton_Search_FindClick(wxCommandEvent& event);
