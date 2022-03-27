@@ -274,6 +274,7 @@ const long xLightsFrame::ID_MNU_VALUECURVES = wxNewId();
 const long xLightsFrame::ID_MNU_COLOURDROPPER = wxNewId();
 const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
+const long xLightsFrame::ID_MENUITEM_SEARCH_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
 const long xLightsFrame::ID_MNU_JUKEBOX = wxNewId();
 const long xLightsFrame::ID_MNU_FINDDATA = wxNewId();
@@ -944,6 +945,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     MenuItem18->Append(MenuItemEffectAssist);
     MenuItemSelectEffect = new wxMenuItem(MenuItem18, ID_MENUITEM_SELECT_EFFECT, _("Select Effect"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemSelectEffect);
+    MenuItemSearchEffects = new wxMenuItem(MenuItem18, ID_MENUITEM_SEARCH_EFFECTS, _("Search Effects"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemSearchEffects);
     MenuItemVideoPreview = new wxMenuItem(MenuItem18, ID_MENUITEM_VIDEOPREVIEW, _("Video Preview"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemVideoPreview);
     MenuItemJukebox = new wxMenuItem(MenuItem18, ID_MNU_JUKEBOX, _("Jukebox"), wxEmptyString, wxITEM_CHECK);
@@ -1158,6 +1161,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(ID_MNU_COLOURDROPPER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ColourDropperSelected);
     Connect(ID_MENUITEM_EFFECT_ASSIST_WINDOW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
     Connect(ID_MENUITEM_SELECT_EFFECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSelectEffectSelected);
+    Connect(ID_MENUITEM_SEARCH_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSearchEffectsSelected);
     Connect(ID_MENUITEM_VIDEOPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShowHideVideoPreview);
     Connect(ID_MNU_JUKEBOX,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_JukeboxSelected);
     Connect(ID_MNU_FINDDATA,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFindDataSelected);
@@ -10136,7 +10140,8 @@ void xLightsFrame::UpdateViewMenu()
         { "SelectEffect", MenuItemSelectEffect },
         { "SequenceVideo", MenuItemVideoPreview },
         { "Jukebox", MenuItemJukebox },
-        { "FindData", MenuItemFindData }
+        { "FindData", MenuItemFindData },
+        { "SearchPanel", MenuItemSearchEffects }
     };
 
     wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
@@ -10182,4 +10187,16 @@ void xLightsFrame::ShowDataFindPanel()
         m_mgr->Update();
         UpdateViewMenu();
     }
+}
+
+void xLightsFrame::OnMenuItemSearchEffectsSelected(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("SearchPanel").IsShown();
+    if (visible) {
+        m_mgr->GetPane("SearchPanel").Hide();
+    } else {
+        m_mgr->GetPane("SearchPanel").Show();
+    }
+    m_mgr->Update();
+    UpdateViewMenu();
 }

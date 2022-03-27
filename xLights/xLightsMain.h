@@ -92,6 +92,7 @@ class ConvertLogDialog;
 class RenderTreeData;
 class HousePreviewPanel;
 class SelectPanel;
+class SearchPanel;
 class SequenceVideoPanel;
 class EffectIconPanel;
 class ValueCurvesPanel;
@@ -596,6 +597,7 @@ public:
     void OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event);
     void OnMenuItem_ColorReplaceSelected(wxCommandEvent& event);
     void OnMenuItemFindDataSelected(wxCommandEvent& event);
+    void OnMenuItemSearchEffectsSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -764,6 +766,7 @@ public:
     static const long ID_MNU_COLOURDROPPER;
     static const long ID_MENUITEM_EFFECT_ASSIST_WINDOW;
     static const long ID_MENUITEM_SELECT_EFFECT;
+    static const long ID_MENUITEM_SEARCH_EFFECTS;
     static const long ID_MENUITEM_VIDEOPREVIEW;
     static const long ID_MNU_JUKEBOX;
     static const long ID_MNU_FINDDATA;
@@ -887,6 +890,7 @@ public:
     wxMenuItem* MenuItemLoadEditPerspective;
     wxMenuItem* MenuItemModelPreview;
     wxMenuItem* MenuItemRunScript;
+    wxMenuItem* MenuItemSearchEffects;
     wxMenuItem* MenuItemSelectEffect;
     wxMenuItem* MenuItemShiftEffects;
     wxMenuItem* MenuItemShiftSelectedEffects;
@@ -1613,6 +1617,7 @@ private:
     EffectsPanel* EffectsPanel1 = nullptr;
     SelectPanel *_selectPanel = nullptr;
     SequenceVideoPanel* sequenceVideoPanel = nullptr;
+    SearchPanel* _searchPanel = nullptr;
     std::unique_ptr<ScriptsDialog> _scriptsDialog;
     int mMediaLengthMS;
 

@@ -50,6 +50,7 @@
 #include "MainSequencer.h"
 #include "../PerspectivesPanel.h"
 #include "../SelectPanel.h"
+#include "../SearchPanel.h"
 #include "../LayoutGroup.h"
 #include "../ViewpointMgr.h"
 #include "../LayoutPanel.h"
@@ -172,6 +173,10 @@ void xLightsFrame::CreateSequencer()
     _selectPanel = new SelectPanel(&_sequenceElements, mainSequencer, PanelSequencer);
     m_mgr->AddPane(_selectPanel, wxAuiPaneInfo().Name(wxT("SelectEffect")).Caption(wxT("Select Effects")).
         Left().Layer(1).Hide());
+
+    logger_base.debug("CreateSequencer: Adding Search Panel.");
+    _searchPanel = new SearchPanel(&_sequenceElements, mainSequencer, PanelSequencer);
+    m_mgr->AddPane(_searchPanel, wxAuiPaneInfo().Name(wxT("SearchPanel")).Caption(wxT("Search Panel")).Left().Layer(1).Hide());
 
     m_mgr->AddPane(effectPalettePanel,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).Top().Layer(0).Hide());
     m_mgr->AddPane(_valueCurvesPanel, wxAuiPaneInfo().Name(wxT("ValueCurveDropper")).Caption(wxT("Value Curves")).Top().Layer(0).Hide());

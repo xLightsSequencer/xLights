@@ -1360,6 +1360,11 @@
 						<handler function="OnMenuItemSelectEffectSelected" entry="EVT_MENU" />
 						<checkable>1</checkable>
 					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_SEARCH_EFFECTS" variable="MenuItemSearchEffects" member="yes">
+						<label>Search Effects</label>
+						<handler function="OnMenuItemSearchEffectsSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_VIDEOPREVIEW" variable="MenuItemVideoPreview" member="yes">
 						<label>Video Preview</label>
 						<handler function="OnMenuItemShowHideVideoPreview" entry="EVT_MENU" />

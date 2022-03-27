@@ -963,6 +963,7 @@
     <ClCompile Include="models\MultiPointScreenLocation.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="SearchPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1932,6 +1933,7 @@
     <ClInclude Include="models\MultiPointScreenLocation.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="SearchPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

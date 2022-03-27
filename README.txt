@@ -13,6 +13,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (gil)      Add Jaw Orientation property for the DMXSkull model
    -- enh (gil)      DMXSkull model changed so color error checking is only done when color channels are active
+   -- enh (scott)    Added Effect Settings Search Panel.
    -- enh (scott)    Added Text Replace to Text Effect ${TITLE},${ARTIST},${ALBUM},${FILENAME}.
    -- enh (scott)    Added Support to Import S5 .lorprev Preview Files.
    -- enh (scott)    Added WLED Dig-Uno ESP32 Variant with correct pins.

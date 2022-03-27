@@ -40,6 +40,7 @@
 #include "ModelPreview.h"
 #include "sequencer/MainSequencer.h"
 #include "SelectPanel.h"
+#include "SearchPanel.h"
 
 #include "effects/SpiralsEffect.h"
 #include "effects/ButterflyEffect.h"
@@ -643,8 +644,11 @@ bool xLightsFrame::CloseSequence()
 
     SetPanelSequencerLabel("");
 
-    if (_selectPanel) {
+    if (_selectPanel != nullptr) {
         _selectPanel->ClearData();
+    }
+    if (_searchPanel != nullptr) {
+        _searchPanel->ClearData();
     }
     if (mainSequencer != nullptr) {
         if (mainSequencer->PanelEffectGrid != nullptr) mainSequencer->PanelEffectGrid->ClearSelection();
