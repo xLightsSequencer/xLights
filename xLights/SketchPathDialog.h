@@ -73,6 +73,7 @@ private:
     void UpdatePathForHandles(long handleIndex);
     void UpdatePathState(PathState state);
     static bool isControlPoint(const HandlePoint& handlePt);
+    std::shared_ptr<SketchEffectPath> CreatePathFromHandles() const;
 
     // Handles and PathState are for the currently active path
     std::vector<HandlePoint> m_handles;

@@ -442,9 +442,13 @@ void SketchPathDialog::OnSketchMouseMove(wxMouseEvent& event)
 
 void SketchPathDialog::OnButton_StartPath(wxCommandEvent& /*event*/)
 {
-    m_handles.clear(); // TODO - only one path allowed currently
+    m_handles.clear();
+    m_grabbedHandleIndex = -1;
     m_pathClosed = false;
     UpdatePathState(DefineStartPoint);
+
+    // I think we want no path selected while a path is being defined?
+    m_pathsListView->Select(m_pathsListView->GetFirstSelected(), false);
 }
 
 void SketchPathDialog::OnButton_EndPath(wxCommandEvent& /*event*/)
@@ -632,10 +636,62 @@ void SketchPathDialog::UpdatePathState(PathState state)
     }
 
     m_sketchPanel->Refresh();
+
+    // If we're Undefined, have some handles, and no path
+    // selected, I think we've added a new one!!
+    if (m_pathState == Undefined && !m_handles.empty() && m_pathsListView->GetFirstSelected() < 0) {
+        auto path = CreatePathFromHandles();
+        if (path != nullptr) {
+            m_sketch.appendPath(path);
+            int n = static_cast<int>(m_sketch.pathCount());
+            wxString str;
+            str.sprintf("Path %d", n);
+            m_pathsListView->InsertItem(n, str);
+            m_pathsListView->Select(n - 1);
+        }
+    }
 }
 
 bool SketchPathDialog::isControlPoint(const HandlePoint& handlePt)
 {
     auto hpt = handlePt.handlePointType;
     return hpt == QuadraticControlPt || hpt == CubicControlPt1 || hpt == CubicControlPt2;
+}
+
+std::shared_ptr<SketchEffectPath> SketchPathDialog::CreatePathFromHandles() const
+{
+    if (m_handles.size() < 2)
+        return nullptr;
+
+    auto path = std::make_shared<SketchEffectPath>();
+    for (size_t index = 0; index < m_handles.size() - 1;) {
+        std::shared_ptr<SketchPathSegment> segment;
+
+        switch (m_handles[index + 1].handlePointType) {
+        case Point:
+            segment = std::make_shared<SketchLine>(m_handles[index].pt, m_handles[index + 1].pt);
+            ++index;
+            break;
+        case QuadraticControlPt:
+            segment = std::make_shared<SketchQuadraticBezier>(m_handles[index].pt,
+                                                              m_handles[index + 1].pt,
+                                                              m_handles[index + 2].pt);
+            index += 2;
+            break;
+        case CubicControlPt1:
+            segment = std::make_shared<SketchCubicBezier>(m_handles[index].pt,
+                                                          m_handles[index + 1].pt,
+                                                          m_handles[index + 2].pt,
+                                                          m_handles[index + 3].pt);
+            index += 3;
+            break;
+        }
+
+        if (segment != nullptr)
+            path->appendSegment(segment);
+    }
+    if (m_pathClosed)
+        path->closePath();
+
+    return path;
 }

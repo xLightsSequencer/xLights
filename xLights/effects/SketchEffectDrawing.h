@@ -83,6 +83,10 @@ public:
     {
         return m_paths;
     }
+    size_t pathCount() const
+    {
+        return m_paths.size();
+    }
 
     void appendPath(std::shared_ptr<SketchEffectPath> path)
     {
