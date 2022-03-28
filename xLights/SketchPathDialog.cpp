@@ -66,16 +66,25 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
     bgSizer->Add(bgTextCtrl, 1, wxALL | wxEXPAND, 2);
     bgSizer->Add(chooseBgBtn, 1, wxALL, 2);
 
-    // path controls
-    auto pathCtrlsSizer = new wxFlexGridSizer(1, 4, 0, 0);
-    pathCtrlsSizer->AddGrowableCol(3);
-    pathUISizer->Add(pathCtrlsSizer, 1, wxALL | wxEXPAND);
-    m_startPathBtn = new wxButton(this, wxID_ANY, "Start Path");
-    pathCtrlsSizer->Add(m_startPathBtn, 1, wxALL, 2);
-    m_endPathBtn = new wxButton(this, wxID_ANY, "End Path");
-    pathCtrlsSizer->Add(m_endPathBtn, 1, wxALL, 2);
-    m_closePathBtn = new wxButton(this, wxID_ANY, "Close Path");
-    pathCtrlsSizer->Add(m_closePathBtn, 1, wxALL, 2);
+    // path / sketch controls
+    m_startPathBtn = new wxButton(this, wxID_ANY, "Start");
+    m_endPathBtn = new wxButton(this, wxID_ANY, "End");
+    m_closePathBtn = new wxButton(this, wxID_ANY, "Close");
+    auto clearSketchBtn = new wxButton(this, wxID_ANY, "Clear");
+
+    auto pathCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Path");
+    pathCtrlsSizer->Add(m_startPathBtn, 1, wxALL | wxEXPAND, 3);
+    pathCtrlsSizer->Add(m_endPathBtn, 1, wxALL | wxEXPAND, 3);
+    pathCtrlsSizer->Add(m_closePathBtn, 1, wxALL | wxEXPAND, 3);
+
+    auto sketchCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Sketch");
+    sketchCtrlsSizer->Add(clearSketchBtn, 1, wxALL | wxEXPAND, 3);
+
+    auto pathSketchCtrlsSizer = new wxFlexGridSizer(1, 3, 0, 5);
+    pathSketchCtrlsSizer->AddGrowableCol(2);
+    pathSketchCtrlsSizer->Add(pathCtrlsSizer, 1, wxALL, 2);
+    pathSketchCtrlsSizer->Add(sketchCtrlsSizer, 1, wxALL, 2);
+    pathUISizer->Add(pathSketchCtrlsSizer, 1, wxALL | wxEXPAND);
 
     mainSizer->Add(pathUISizer, 1, wxALL | wxEXPAND, 5);
 
@@ -116,6 +125,7 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
     Connect(m_startPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_StartPath);
     Connect(m_endPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_EndPath);
     Connect(m_closePathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_ClosePath);
+    Connect(clearSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_ClearSketch);
 
     Connect(m_pathsListView->GetId(), wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&SketchPathDialog::OnListView_PathSelected);
 
@@ -273,6 +283,8 @@ void SketchPathDialog::OnSketchKeyDown(wxKeyEvent& event)
 {
     int keycode = event.GetKeyCode();
     if (keycode == WXK_DELETE) {
+        // temporarily disabling this until it works with m_sketch correctly
+#if 0
         std::optional<std::pair<int,int>> toErase;
         int index = 0;
         for (auto iter = m_handles.begin(); iter != m_handles.end(); ++iter, ++index) {
@@ -323,6 +335,7 @@ void SketchPathDialog::OnSketchKeyDown(wxKeyEvent& event)
             m_pathClosed = false;
         } else
             m_sketchPanel->Refresh();
+#endif
     }
     else if (keycode == WXK_ESCAPE) {
         UpdatePathState(Undefined);
@@ -460,6 +473,18 @@ void SketchPathDialog::OnButton_ClosePath(wxCommandEvent& /*event*/)
 {
     m_pathClosed = true;
     UpdatePathState(Undefined);
+}
+
+void SketchPathDialog::OnButton_ClearSketch(wxCommandEvent& /*event*/)
+{
+    m_handles.clear();
+    m_grabbedHandleIndex = -1;
+    m_pathState = Undefined;
+    m_pathClosed = false;
+    m_sketch = SketchEffectSketch();
+
+    m_pathsListView->ClearAll();
+    m_sketchPanel->Refresh();
 }
 
 void SketchPathDialog::OnListView_PathSelected(wxCommandEvent& /*event*/)

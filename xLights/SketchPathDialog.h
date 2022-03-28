@@ -61,6 +61,7 @@ private:
     void OnButton_StartPath(wxCommandEvent& event);
     void OnButton_EndPath(wxCommandEvent& event);
     void OnButton_ClosePath(wxCommandEvent& event);
+    void OnButton_ClearSketch(wxCommandEvent& event);
 
     void OnListView_PathSelected(wxCommandEvent& event);
 
