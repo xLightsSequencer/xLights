@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.07 March 28, 2022
    -- enh (gil)      Add Jaw Orientation property for the DMXSkull model
    -- enh (gil)      DMXSkull model changed so color error checking is only done when color channels are active
    -- enh (scott)    Added Effect Settings Search Panel.
@@ -20,7 +21,23 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (scott)    Added WLED Warning For Firmware v0.13 & v0.13.1 not working with Controller Upload, use v0.13.2 or v0.13b5.
    -- enh (scott)    Added xLightsAutomations APIs to get and set Effect Settings.
    -- enh (scott)    Added Lua commands for TableToJSON and Table Logging.
+   -- enh (dkulp)    Add a timer for video export
+   -- enh (dkulp)    Move 3D checkbox so it does not get lost when screen sizes are changed
+   -- enh (keith)    Add the minleon 4 port NDB controller
+   -- enh (keith)    Use number aware sorting in test dialog for models and submodels
+   -- enh (keith)    Add the ability to split the current effect
    -- bug (scott)    Fixed wrong HSV value with On Effect added in 2022.6
+   -- bug (keith)    Fix state dialog shows colours even when force colours is not set
+   -- bug (keith)    Fix wave effect frozen at frame rates over 20ms
+   -- bug (keith)    Fix visualiser does not show port number for models on other controllers
+   -- bug (keith)    Fix jerky model video playback due to frame count interpretation error
+   -- bug (keith)    Restore AVI export on windows for model video so lossless compression works
+   -- bug (keith)    Fix issues with make all model start channels valid not working
+   -- bug (keith)    Fix xSchedule POST requests issued as GET requests ... this will need to be re-setup.
+   -- bug (keith)    Fix uploading to minleon controllers
+   -- bug (keith)    Fix sequence number bug in KiNet protocol
+   -- bug (keith)    Fix crash in text effect in animation sequences
+   -- bug (keith)    Fix save sequence does not update MRU
 2022.06 March 6, 2022
    -- enh (gil)      Add auto repeat option to Morph.  Automatically scales the repeat to model size.
    -- enh (keith)    Add a low definition rendering mode to matrices
