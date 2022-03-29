@@ -160,7 +160,7 @@ public:
 	void ClearEvents()
 	{
 		// delete all our music events
-		for(int i = 0; i < _events.size(); i++)
+		for(int i = 0; i < _events.size(); ++i)
 		{
 			for (const auto& it : *_events[i])
 			{
@@ -419,16 +419,16 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
                 while (f != data[b].end() && f->second > notesensitivity)
                 {
                     ++f;
-                    frame++;
+                    ++frame;
                 }
                 --f;
-                frame--;
+                --frame;
                 if (frame - startframe >= MINIMUMEVENTLENGTH)
                 {
                     events[b]->push_back(new MusicEvent(startframe, frame - startframe));
                 }
             }
-            frame++;
+            ++frame;
         }
     }
 }
@@ -439,7 +439,7 @@ void MusicEffect::RenderMorph(RenderBuffer &buffer, int x, int bars, int startNo
     int event = -1;
     for (const auto& it : events)
     {
-        event++;
+        ++event;
         up = !up;
         if (it->IsEventActive(buffer.curPeriod))
         {
@@ -499,7 +499,7 @@ void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int start
     int event = -1;
     for (const auto& it : events)
     {
-        event++;
+        ++event;
         if (it->IsEventActive(buffer.curPeriod))
         {
             float progress = it->OffsetInDuration(buffer.curPeriod);
@@ -570,7 +570,7 @@ void MusicEffect::RenderOn(RenderBuffer &buffer, int x, int bars, int startNote,
     int event = -1;
     for (const auto& it : events)
     {
-        event++;
+        ++event;
         if (it->IsEventActive(buffer.curPeriod))
         {
             float progress = it->OffsetInDuration(buffer.curPeriod);
