@@ -92,6 +92,8 @@ public:
     {
         m_paths.push_back(path);
     }
+    void updatePath(int index, std::shared_ptr<SketchEffectPath> path);
+    void deletePath(int pathIndex);
 
 protected:
     std::vector<std::shared_ptr<SketchEffectPath>> m_paths;

@@ -9,7 +9,7 @@
 #include <vector>
 
 class wxButton;
-class wxListView;
+class wxListBox;
 class wxPanel;
 
 class SketchPathDialog: public wxDialog
@@ -50,20 +50,24 @@ private:
     wxButton* m_startPathBtn = nullptr;
     wxButton* m_endPathBtn = nullptr;
     wxButton* m_closePathBtn = nullptr;
-    wxListView* m_pathsListView = nullptr;
+    wxListBox* m_pathsListBox = nullptr;
+    static long ID_MENU_Delete;
 
 	void OnSketchPaint(wxPaintEvent& event);
     void OnSketchKeyDown(wxKeyEvent& event);
     void OnSketchLeftDown(wxMouseEvent& event);
     void OnSketchLeftUp(wxMouseEvent& event);
     void OnSketchMouseMove(wxMouseEvent& event);
+    void OnSketchEnter(wxMouseEvent& event);
 
     void OnButton_StartPath(wxCommandEvent& event);
     void OnButton_EndPath(wxCommandEvent& event);
     void OnButton_ClosePath(wxCommandEvent& event);
     void OnButton_ClearSketch(wxCommandEvent& event);
 
-    void OnListView_PathSelected(wxCommandEvent& event);
+    void OnListBox_PathSelected(wxCommandEvent& event);
+    void OnListBox_ContextMenu(wxContextMenuEvent& event);
+    void OnPopupCommand(wxCommandEvent& event);
 
     void OnButton_Ok(wxCommandEvent& event);
     void OnButton_Cancel(wxCommandEvent& event);
@@ -71,10 +75,13 @@ private:
     wxPoint2DDouble UItoNormalized(const wxPoint2DDouble& pt) const;
     wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt) const;
     void UpdateHandlesForPath(long pathIndex);
-    void UpdatePathForHandles(long handleIndex);
+    void UpdatePathFromHandles(long handleIndex);
+    void UpdatePathFromHandles();
     void UpdatePathState(PathState state);
     static bool isControlPoint(const HandlePoint& handlePt);
     std::shared_ptr<SketchEffectPath> CreatePathFromHandles() const;
+    void ResetHandlesState(PathState state = Undefined);
+    void PopulatePathListBoxFromSketch();
 
     // Handles and PathState are for the currently active path
     std::vector<HandlePoint> m_handles;
@@ -84,4 +91,5 @@ private:
 
     SketchEffectSketch m_sketch;
     wxPoint2DDouble m_mousePos;
+    int m_pathIndexToDelete = -1;
 };

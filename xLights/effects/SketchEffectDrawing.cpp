@@ -2,6 +2,7 @@
 
 #include <wx/graphics.h>
 
+#include <iterator>
 #include <regex>
 #include <sstream>
 #include <xutility>
@@ -425,4 +426,19 @@ std::string SketchEffectSketch::toString() const
             stream << '|';
     }
     return stream.str();
+}
+
+void SketchEffectSketch::updatePath(int index, std::shared_ptr<SketchEffectPath> path)
+{
+    if (index < 0 || index >= m_paths.size())
+        return;
+    m_paths[index] = path;
+}
+
+void SketchEffectSketch::deletePath(int pathIndex)
+{
+    auto iter = m_paths.begin();
+    std::advance(iter, pathIndex);
+
+    m_paths.erase(iter);
 }

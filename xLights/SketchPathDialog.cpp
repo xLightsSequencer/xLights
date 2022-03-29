@@ -8,7 +8,8 @@
 #include <wx/button.h>
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
-#include <wx/listctrl.h>
+#include <wx/listbox.h>
+#include <wx/menu.h>
 #include <wx/panel.h>
 #include <wx/pen.h>
 #include <wx/sizer.h>
@@ -29,6 +30,8 @@ namespace
         "Space\tClose current path\n"
         "Delete\tDelete point/segment\n";
 }
+
+long SketchPathDialog::ID_MENU_Delete = wxNewId();
 
 SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
@@ -95,11 +98,13 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
     auto hotkeysSizer = new wxStaticBoxSizer(wxVERTICAL, this, "Canvas hotkeys");
     hotkeysSizer->Add(new wxStaticText(hotkeysSizer->GetStaticBox(), wxID_ANY, HotkeysText), 1, wxALL | wxEXPAND, 3);
 
-    m_pathsListView = new wxListView(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL);
-    //m_pathsListView->AppendColumn("Paths", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE_USEHEADER);
+    // Paths UI
+    m_pathsListBox = new wxListBox(this, wxID_ANY);
+    auto pathsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Paths");
+    pathsSizer->Add(m_pathsListBox, 1, wxALL | wxEXPAND, 3);
 
     sketchUISizer->Add(hotkeysSizer, 1, wxALL | wxEXPAND);
-    sketchUISizer->Add(m_pathsListView, 1, wxALL | wxEXPAND, 5);
+    sketchUISizer->Add(pathsSizer, 1, wxALL | wxEXPAND, 5);
     mainSizer->Add(sketchUISizer, 1, wxALL | wxEXPAND, 5);
 
     // Ok / Cancel
@@ -121,13 +126,15 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
     m_sketchPanel->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&SketchPathDialog::OnSketchLeftDown, nullptr, this);
     m_sketchPanel->Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&SketchPathDialog::OnSketchLeftUp, nullptr, this);
     m_sketchPanel->Connect(wxEVT_MOTION, (wxObjectEventFunction)&SketchPathDialog::OnSketchMouseMove, nullptr, this);
+    m_sketchPanel->Connect(wxEVT_ENTER_WINDOW, (wxObjectEventFunction)&SketchPathDialog::OnSketchEnter, nullptr, this);
 
     Connect(m_startPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_StartPath);
     Connect(m_endPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_EndPath);
     Connect(m_closePathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_ClosePath);
     Connect(clearSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_ClearSketch);
 
-    Connect(m_pathsListView->GetId(), wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&SketchPathDialog::OnListView_PathSelected);
+    Connect(m_pathsListBox->GetId(), wxEVT_LISTBOX, (wxObjectEventFunction)&SketchPathDialog::OnListBox_PathSelected);
+    m_pathsListBox->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&SketchPathDialog::OnListBox_ContextMenu, nullptr, this);
 
     Connect(okButton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_Ok);
     Connect(cancelButton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_Cancel);
@@ -139,15 +146,7 @@ void SketchPathDialog::setSketch(const std::string& sketchStr)
 {
     m_sketch = SketchEffectSketch::SketchFromString(sketchStr);
 
-    m_pathsListView->ClearAll();
-    m_pathsListView->AppendColumn("Paths", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE_USEHEADER);
-
-    int i = 0;
-    for (const auto& path : m_sketch.paths()) {
-        wxString text;
-        text.sprintf("Path %d", i + 1);
-        m_pathsListView->InsertItem(i++, text);
-    }
+    PopulatePathListBoxFromSketch();
 }
 
 std::string SketchPathDialog::sketchDefString() const
@@ -173,7 +172,7 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
         // First, draw the unselected path(s)
         gc->SetPen(*wxLIGHT_GREY_PEN);
 
-        long selectedPathIndex = m_pathsListView->GetFirstSelected();
+        long selectedPathIndex = m_pathsListBox->GetSelection();
         long pathIndex = 0;
         for (const auto& path : m_sketch.paths() ) {
             if (pathIndex++ == selectedPathIndex)
@@ -282,16 +281,15 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
 void SketchPathDialog::OnSketchKeyDown(wxKeyEvent& event)
 {
     int keycode = event.GetKeyCode();
-    if (keycode == WXK_DELETE) {
-        // temporarily disabling this until it works with m_sketch correctly
-#if 0
+    if (keycode == WXK_DELETE && (m_pathState == Undefined || m_pathState == DefineStartPoint)) {
+        int pathIndex = m_pathsListBox->GetSelection();
         std::optional<std::pair<int,int>> toErase;
         int index = 0;
         for (auto iter = m_handles.begin(); iter != m_handles.end(); ++iter, ++index) {
             if (iter->state) {
                 switch (iter->handlePointType) {
                 case Point:
-                    m_handles.erase(iter);
+                    toErase = std::make_pair(index, 1);
                     break;
                 case QuadraticControlPt:
                     toErase = std::make_pair(index, 2);
@@ -312,30 +310,24 @@ void SketchPathDialog::OnSketchKeyDown(wxKeyEvent& event)
                 break;
             }
         }
-        if (toErase.has_value() ) {
+        if (toErase.has_value()) {
             auto startIter = m_handles.cbegin();
             auto endIter = m_handles.cbegin();
             auto p = toErase.value();
             std::advance(startIter, p.first);
             std::advance(endIter, p.second + p.first);
             m_handles.erase(startIter, endIter);
+            if (m_handles.size() == 1)
+                m_handles.clear();
 
-            // todo - we shouldn't end up with orpaned control points or curve ends
-            //        but deleting curves sometimes does unexpected things... maybe
-            //        instead of deleting CurveEnd points they should be just changed
-            //        to Points... unless it is the CurveEnd point that is being
-            //        deleted? It's not entirely clear what the expected behavior
-            //        might be though for deleting curve points.
+            if (m_handles.empty()) {
+                m_sketch.deletePath(pathIndex);
+                PopulatePathListBoxFromSketch();
+            } else
+                UpdatePathFromHandles();
         }
-        if (m_handles.empty()) {
-            UpdatePathState(Undefined);
-            m_pathClosed = false;
-        } else if (m_handles.size() == 1) {
-            UpdatePathState(LineToNewPoint);
-            m_pathClosed = false;
-        } else
-            m_sketchPanel->Refresh();
-#endif
+
+        m_sketchPanel->Refresh();
     }
     else if (keycode == WXK_ESCAPE) {
         UpdatePathState(Undefined);
@@ -360,8 +352,6 @@ void SketchPathDialog::OnSketchKeyDown(wxKeyEvent& event)
 
 void SketchPathDialog::OnSketchLeftDown(wxMouseEvent& event)
 {
-    m_sketchPanel->SetFocus();
-
     if (m_pathState == DefineStartPoint)
     {
         m_handles.push_back(UItoNormalized(event.GetPosition()));
@@ -411,7 +401,7 @@ void SketchPathDialog::OnSketchLeftDown(wxMouseEvent& event)
 void SketchPathDialog::OnSketchLeftUp(wxMouseEvent& /*event*/)
 {
     if (m_grabbedHandleIndex != -1) {
-        UpdatePathForHandles(m_grabbedHandleIndex);
+        UpdatePathFromHandles(m_grabbedHandleIndex);
         // temp for debugging handles-path synchronization
         //UpdateHandlesForPath(m_pathsListView->GetFirstSelected());
     }
@@ -453,15 +443,16 @@ void SketchPathDialog::OnSketchMouseMove(wxMouseEvent& event)
     }
 }
 
+void SketchPathDialog::OnSketchEnter(wxMouseEvent& /*event*/)
+{
+    m_sketchPanel->SetFocus();
+}
+
 void SketchPathDialog::OnButton_StartPath(wxCommandEvent& /*event*/)
 {
-    m_handles.clear();
-    m_grabbedHandleIndex = -1;
-    m_pathClosed = false;
-    UpdatePathState(DefineStartPoint);
+    ResetHandlesState(DefineStartPoint);
 
-    // I think we want no path selected while a path is being defined?
-    m_pathsListView->Select(m_pathsListView->GetFirstSelected(), false);
+    m_pathsListBox->DeselectAll();
 }
 
 void SketchPathDialog::OnButton_EndPath(wxCommandEvent& /*event*/)
@@ -477,19 +468,43 @@ void SketchPathDialog::OnButton_ClosePath(wxCommandEvent& /*event*/)
 
 void SketchPathDialog::OnButton_ClearSketch(wxCommandEvent& /*event*/)
 {
-    m_handles.clear();
-    m_grabbedHandleIndex = -1;
-    m_pathState = Undefined;
-    m_pathClosed = false;
     m_sketch = SketchEffectSketch();
 
-    m_pathsListView->ClearAll();
-    m_sketchPanel->Refresh();
+    m_pathsListBox->Clear();
+
+    ResetHandlesState();
 }
 
-void SketchPathDialog::OnListView_PathSelected(wxCommandEvent& /*event*/)
+void SketchPathDialog::OnListBox_PathSelected(wxCommandEvent& /*event*/)
 {
-    UpdateHandlesForPath( m_pathsListView->GetFirstSelected() );
+    UpdateHandlesForPath( m_pathsListBox->GetSelection() );
+}
+
+void SketchPathDialog::OnListBox_ContextMenu(wxContextMenuEvent& event)
+{
+    wxPoint pt(m_pathsListBox->ScreenToClient(event.GetPosition()));
+    m_pathIndexToDelete = m_pathsListBox->HitTest(pt);
+    if (m_pathIndexToDelete < 0)
+        return;
+
+    wxString str;
+    str.sprintf("Delete Path %d", 1 + m_pathIndexToDelete);
+
+    wxMenu mnu;
+    mnu.Append(ID_MENU_Delete, str);
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SketchPathDialog::OnPopupCommand, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void SketchPathDialog::OnPopupCommand(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_MENU_Delete && m_pathIndexToDelete < m_sketch.pathCount()) {
+        m_sketch.deletePath(m_pathIndexToDelete);
+
+        ResetHandlesState();
+
+        PopulatePathListBoxFromSketch();
+    }
 }
 
 void SketchPathDialog::OnButton_Ok(wxCommandEvent& /*event*/)
@@ -527,10 +542,7 @@ wxPoint2DDouble SketchPathDialog::NormalizedToUI(const wxPoint2DDouble& pt) cons
 
 void SketchPathDialog::UpdateHandlesForPath(long pathIndex)
 {
-    m_handles.clear();
-    m_grabbedHandleIndex = -1;
-    m_pathState = Undefined;
-    m_pathClosed = false;
+    ResetHandlesState();
 
     if (pathIndex < 0 || pathIndex >= m_sketch.paths().size())
         return;
@@ -565,10 +577,47 @@ void SketchPathDialog::UpdateHandlesForPath(long pathIndex)
     m_sketchPanel->Refresh();
 }
 
-void SketchPathDialog::UpdatePathForHandles(long handleIndex)
+void SketchPathDialog::UpdatePathFromHandles()
+{
+    if (m_handles.size() < 2)
+        return;
+
+    auto pathIndex = m_pathsListBox->GetSelection();
+    if (pathIndex < 0 || pathIndex >= m_sketch.pathCount())
+        return;
+
+    auto path = std::make_shared<SketchEffectPath>();
+    auto startPt = m_handles.front().pt;
+    for ( size_t i = 1; i < m_handles.size(); ) {
+        std::shared_ptr<SketchPathSegment> segment;
+        switch (m_handles[i].handlePointType) {
+        case Point:
+            segment = std::make_shared<SketchLine>(startPt, m_handles[i].pt);
+            ++i;
+            break;
+        case QuadraticControlPt:
+            segment = std::make_shared<SketchQuadraticBezier>(startPt, m_handles[i].pt, m_handles[i + 1].pt);
+            i += 2;
+            break;
+        case CubicControlPt1:
+            segment = std::make_shared<SketchCubicBezier>(startPt, m_handles[i].pt, m_handles[i + 1].pt, m_handles[i + 2].pt);
+            i += 3;
+            break;
+        default: {
+            int x = 1;
+        }
+        }
+        path->appendSegment(segment);
+        startPt = segment->EndPoint();
+    }
+
+    m_sketch.updatePath(pathIndex, path);
+}
+
+void SketchPathDialog::UpdatePathFromHandles(long handleIndex)
 {
     auto paths(m_sketch.paths());
-    auto pathIndex = m_pathsListView->GetFirstSelected();
+    auto pathIndex = m_pathsListBox->GetSelection();
     if (pathIndex < 0 || pathIndex >= paths.size())
         return;
 
@@ -597,6 +646,7 @@ void SketchPathDialog::UpdatePathForHandles(long handleIndex)
         std::shared_ptr<SketchPathSegment> segment = segments[segmentIndex];
         std::shared_ptr<SketchQuadraticBezier> quadratic;
         std::shared_ptr<SketchCubicBezier> cubic;
+
 
         if (std::dynamic_pointer_cast<SketchLine>(segment) != nullptr) {
             if (handleIndex == index++) {
@@ -664,15 +714,15 @@ void SketchPathDialog::UpdatePathState(PathState state)
 
     // If we're Undefined, have some handles, and no path
     // selected, I think we've added a new one!!
-    if (m_pathState == Undefined && !m_handles.empty() && m_pathsListView->GetFirstSelected() < 0) {
+    if (m_pathState == Undefined && !m_handles.empty() && m_pathsListBox->GetSelection() < 0) {
         auto path = CreatePathFromHandles();
         if (path != nullptr) {
             m_sketch.appendPath(path);
             int n = static_cast<int>(m_sketch.pathCount());
             wxString str;
             str.sprintf("Path %d", n);
-            m_pathsListView->InsertItem(n, str);
-            m_pathsListView->Select(n - 1);
+            m_pathsListBox->Insert(str, n - 1);
+            m_pathsListBox->Select(n - 1);
         }
     }
 }
@@ -719,4 +769,24 @@ std::shared_ptr<SketchEffectPath> SketchPathDialog::CreatePathFromHandles() cons
         path->closePath();
 
     return path;
+}
+
+void SketchPathDialog::ResetHandlesState(PathState state /*Undefined*/)
+{
+    m_handles.clear();
+    m_grabbedHandleIndex = -1;
+    m_pathClosed = false;
+    UpdatePathState(state);
+}
+
+void SketchPathDialog::PopulatePathListBoxFromSketch()
+{
+    m_pathsListBox->Clear();
+
+    int i = 0;
+    for (const auto& path : m_sketch.paths()) {
+        wxString text;
+        text.sprintf("Path %d", i + 1);
+        m_pathsListBox->Insert(text, i++);
+    }
 }
