@@ -66,7 +66,9 @@ private:
     void OnSketchLeftDown(wxMouseEvent& event);
     void OnSketchLeftUp(wxMouseEvent& event);
     void OnSketchMouseMove(wxMouseEvent& event);
-    void OnSketchEnter(wxMouseEvent& event);
+    void OnSketchEntered(wxMouseEvent& event);
+    void OnSketchMouseWheel(wxMouseEvent& event);
+    void OnSketchMidDown(wxMouseEvent& event);
 
     void OnFilePickerCtrl_FileChanged(wxCommandEvent& event);
     void OnSlider_BgAlphaChanged(wxCommandEvent& event);
@@ -107,4 +109,9 @@ private:
     wxImage m_bgImage;
     std::unique_ptr<wxBitmap> m_bgBitmap;
     unsigned char m_bitmapAlpha = 0x30;
+
+    int m_wheelRotation = 0;
+    wxPoint2DDouble m_normalizedZoomPt;
+    wxPoint2DDouble m_canvasTranslation;
+    double m_matrixComponents[6];
 };

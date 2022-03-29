@@ -1,9 +1,11 @@
 #include "SketchPathDialog.h"
 
+#include <algorithm>
 #include <optional>
 #include <utility>
 #include <xutility>
 
+#include <wx/affinematrix2d.h>
 #include <wx/bitmap.h>
 #include <wx/brush.h>
 #include <wx/button.h>
@@ -26,6 +28,7 @@ END_EVENT_TABLE()
 namespace
 {
     const int BorderWidth = 5;
+    const int MouseWheelLimit = 1440;
 
     const wxString imgSelect("Select an image file");
     const wxString imgFilters(" *.jpg; *.gif; *.png; *.bmp; *.jpeg");
@@ -34,7 +37,23 @@ namespace
         "Shift\tToggle segment type (line, one-point curve, two-point curve)\n"
         "Esc\tEnd current path\n"
         "Space\tClose current path\n"
-        "Delete\tDelete point/segment\n";
+        "Delete\tDelete point/segment\n\n"
+        "Use mouse wheel and middle button to zoom and pan on sketch";
+
+    struct LinearInterpolater {
+        double operator()(double t) const
+        {
+            return t;
+        }
+    };
+
+    template<class T>
+    double interpolate(double x, double loIn, double loOut, double hiIn, double hiOut, const T& interpolater)
+    {
+        return (loIn != hiIn)
+                   ? (loOut + (hiOut - loOut) * interpolater((x - loIn) / (hiIn - loIn)))
+                   : ((loOut + hiOut) / 2);
+    }
 }
 
 long SketchPathDialog::ID_MENU_Delete = wxNewId();
@@ -132,7 +151,9 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
     m_sketchPanel->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&SketchPathDialog::OnSketchLeftDown, nullptr, this);
     m_sketchPanel->Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&SketchPathDialog::OnSketchLeftUp, nullptr, this);
     m_sketchPanel->Connect(wxEVT_MOTION, (wxObjectEventFunction)&SketchPathDialog::OnSketchMouseMove, nullptr, this);
-    m_sketchPanel->Connect(wxEVT_ENTER_WINDOW, (wxObjectEventFunction)&SketchPathDialog::OnSketchEnter, nullptr, this);
+    m_sketchPanel->Connect(wxEVT_ENTER_WINDOW, (wxObjectEventFunction)&SketchPathDialog::OnSketchEntered, nullptr, this);
+    m_sketchPanel->Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&SketchPathDialog::OnSketchMouseWheel, nullptr, this);
+    m_sketchPanel->Connect(wxEVT_MIDDLE_DOWN, (wxObjectEventFunction)&SketchPathDialog::OnSketchMidDown, nullptr, this);
 
     Connect(m_filePicker->GetId(), wxEVT_COMMAND_FILEPICKER_CHANGED, (wxObjectEventFunction)&SketchPathDialog::OnFilePickerCtrl_FileChanged);
     Connect(m_bgAlphaSlider->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&SketchPathDialog::OnSlider_BgAlphaChanged);
@@ -179,14 +200,28 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
 
     {
         std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(pdc));
+        double zoomLevel = 1.;
+        if (m_wheelRotation) {
+            zoomLevel = interpolate(m_wheelRotation, 0, 1., MouseWheelLimit, 8., LinearInterpolater());
+            wxGraphicsMatrix m = gc->CreateMatrix();
+            wxPoint2DDouble pt(NormalizedToUI(m_normalizedZoomPt));
+            m.Translate(-m_canvasTranslation.m_x, -m_canvasTranslation.m_y);
+            m.Translate(pt.m_x, pt.m_y);
+            m.Scale(zoomLevel, zoomLevel);
+            m.Translate(-pt.m_x, -pt.m_y);
+            gc->SetTransform(m);
 
-        // First, draw the background
-        if (m_bgBitmap != nullptr) {
-            gc->DrawBitmap(*(m_bgBitmap.get()), bgRect.x, bgRect.y, bgRect.width, bgRect.height);
+            m.Get(m_matrixComponents, m_matrixComponents + 1, m_matrixComponents + 2,
+                  m_matrixComponents + 3, m_matrixComponents + 4, m_matrixComponents + 5);
         }
 
+        // First, draw the background
+        if (m_bgBitmap != nullptr)
+            gc->DrawBitmap(*(m_bgBitmap.get()), bgRect.x, bgRect.y, bgRect.width, bgRect.height);
+
         // Next, draw the unselected path(s)
-        gc->SetPen(*wxLIGHT_GREY_PEN);
+        wxGraphicsPen pen = gc->CreatePen(wxGraphicsPenInfo(*wxLIGHT_GREY, 1. / zoomLevel));
+        gc->SetPen(pen);
 
         long selectedPathIndex = m_pathsListBox->GetSelection();
         long pathIndex = 0;
@@ -222,7 +257,8 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
         }
 
         // Next, draw the selected path
-        gc->SetPen(*wxBLACK_PEN);
+        pen = gc->CreatePen(wxGraphicsPenInfo(*wxBLACK, 1. / zoomLevel));
+        gc->SetPen(pen);
         std::vector<wxPoint>::size_type n = m_handles.size();
         wxGraphicsPath path( gc->CreatePath() );
         for (std::vector<wxPoint>::size_type i = 0; i < n; ++i)
@@ -250,31 +286,37 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
             path.CloseSubpath();
         gc->DrawPath(path);
 
-        // Third, if we are in a segment-adding state, draw that potential segment
+        // Next, if we are in a segment-adding state, draw that potential segment
         if ((m_pathState == LineToNewPoint || m_pathState == QuadraticCurveToNewPoint || m_pathState == CubicCurveToNewPoint) && !m_handles.empty())
         {
-            wxPen pen;
             switch (m_pathState) {
             case LineToNewPoint:
-                pen = *wxBLACK;
+                pen = gc->CreatePen(wxGraphicsPenInfo(*wxBLACK, 2. / zoomLevel, wxPENSTYLE_SHORT_DASH));
                 break;
             case QuadraticCurveToNewPoint:
-                pen = *wxRED;
+                pen = gc->CreatePen(wxGraphicsPenInfo(*wxRED, 2. / zoomLevel, wxPENSTYLE_SHORT_DASH));
                 break;
             case CubicCurveToNewPoint:
-                pen = *wxBLUE;
+                pen = gc->CreatePen(wxGraphicsPenInfo(*wxBLUE, 2. / zoomLevel, wxPENSTYLE_SHORT_DASH));
                 break;
             }
-            wxDash dashes[2] = { 2, 3 };
-            pen.SetStyle(wxPENSTYLE_USER_DASH);
-            pen.SetDashes(2, dashes);
-            pen.SetWidth(2);
             gc->SetPen(pen);
+
+            wxAffineMatrix2D m;
+            if (m_wheelRotation) {
+                wxMatrix2D m2d(m_matrixComponents[0], m_matrixComponents[1],
+                               m_matrixComponents[2], m_matrixComponents[3]);
+                wxPoint2DDouble mt(m_matrixComponents[4], m_matrixComponents[5]);
+                m.Set(m2d, mt);
+                m.Invert();
+            }
+
             auto ptFrom = NormalizedToUI(m_handles.back().pt);
-            auto ptTo(m_mousePos);
+            auto ptTo(m.TransformPoint(m_mousePos));
             gc->StrokeLine(ptFrom.m_x, ptFrom.m_y, ptTo.m_x, ptTo.m_y);
 
-            gc->SetPen(*wxBLACK_PEN);
+            pen = gc->CreatePen(wxGraphicsPenInfo(*wxBLACK, 1. / zoomLevel, wxPENSTYLE_SOLID));
+            gc->SetPen(pen);
         }
 
         // Next, draw the handles
@@ -289,7 +331,7 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
                 gc->SetBrush((m_handles[i].state) ? (*wxYELLOW_BRUSH)
                                                   : (isControlPoint(m_handles[i]) ? (*wxBLUE_BRUSH) : (*wxLIGHT_GREY_BRUSH)));
 
-             gc->DrawEllipse(pt.m_x - 4, pt.m_y - 4, 8, 8);
+             gc->DrawEllipse(pt.m_x - 4.5 / zoomLevel, pt.m_y - 4.5 / zoomLevel, 9 / zoomLevel, 9 / zoomLevel);
         }
     }
 }
@@ -368,32 +410,40 @@ void SketchPathDialog::OnSketchKeyDown(wxKeyEvent& event)
 
 void SketchPathDialog::OnSketchLeftDown(wxMouseEvent& event)
 {
+    wxAffineMatrix2D m;
+    if (m_wheelRotation) {
+        wxMatrix2D m2d(m_matrixComponents[0], m_matrixComponents[1],
+                       m_matrixComponents[2], m_matrixComponents[3]);
+        wxPoint2DDouble mt(m_matrixComponents[4], m_matrixComponents[5]);
+        m.Set(m2d, mt);
+        m.Invert();
+    }
+    wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
+    wxPoint2DDouble pt(UItoNormalized(ptUI));
+
+    // Defining-new-segment stuff
     if (m_pathState == DefineStartPoint)
     {
-        m_handles.push_back(UItoNormalized(event.GetPosition()));
+        m_handles.push_back(pt);
         UpdatePathState(LineToNewPoint);
         return;
     }
-    else if (m_pathState == LineToNewPoint)
-    {
-        m_handles.push_back(UItoNormalized(event.GetPosition()));
+    else if (m_pathState == LineToNewPoint) {
+        m_handles.push_back(pt);
         m_sketchPanel->Refresh();
         return;
-    } else if ( m_pathState == QuadraticCurveToNewPoint )
-    {
+    } else if ( m_pathState == QuadraticCurveToNewPoint ) {
         wxPoint2DDouble startPt = m_handles.back().pt;
-        wxPoint2DDouble endPt = UItoNormalized(event.GetPosition());
+        wxPoint2DDouble endPt = pt;
         wxPoint2DDouble cp = 0.5 * startPt + 0.5 * endPt;
 
         m_handles.push_back(HandlePoint(cp, QuadraticControlPt));
         m_handles.push_back(HandlePoint(endPt, QuadraticCurveEnd));
         m_sketchPanel->Refresh();
         return;
-    }
-    else if (m_pathState == CubicCurveToNewPoint)
-    {
+    } else if (m_pathState == CubicCurveToNewPoint) {
         wxPoint2DDouble startPt = m_handles.back().pt;
-        wxPoint2DDouble endPt = UItoNormalized(event.GetPosition());
+        wxPoint2DDouble endPt = pt;
         wxPoint2DDouble cp1 = 0.75 * startPt + 0.25 * endPt;
         wxPoint2DDouble cp2 = 0.25 * startPt + 0.75 * endPt;
 
@@ -404,10 +454,9 @@ void SketchPathDialog::OnSketchLeftDown(wxMouseEvent& event)
         return;
     }
 
-    for ( std::vector<HandlePoint>::size_type i = 0; i < m_handles.size(); ++i)
-    {
-        if (m_handles[i].state)
-        {
+    // Updating 'grabbed' handle
+    for (std::vector<HandlePoint>::size_type i = 0; i < m_handles.size(); ++i) {
+        if (m_handles[i].state) {
             m_grabbedHandleIndex = i;
             break;
         }
@@ -427,6 +476,14 @@ void SketchPathDialog::OnSketchLeftUp(wxMouseEvent& /*event*/)
 
 void SketchPathDialog::OnSketchMouseMove(wxMouseEvent& event)
 {
+    // handling drag of canvas as a special case for now...
+    if ( event.ButtonIsDown(wxMOUSE_BTN_MIDDLE) ) {
+        m_canvasTranslation += m_mousePos - event.GetPosition();
+        m_mousePos = event.GetPosition();
+        m_sketchPanel->Refresh();
+        return;
+    }
+
     m_mousePos = event.GetPosition();
 
     if (m_pathState == LineToNewPoint || m_pathState == QuadraticCurveToNewPoint || m_pathState == CubicCurveToNewPoint)
@@ -435,9 +492,18 @@ void SketchPathDialog::OnSketchMouseMove(wxMouseEvent& event)
         return;
     }
 
+    wxAffineMatrix2D m;
+    if (m_wheelRotation) {
+        wxMatrix2D m2d(m_matrixComponents[0], m_matrixComponents[1],
+                       m_matrixComponents[2], m_matrixComponents[3]);
+        wxPoint2DDouble mt(m_matrixComponents[4], m_matrixComponents[5]);
+        m.Set(m2d, mt);
+    }
+
     if ( m_grabbedHandleIndex != -1 )
     {
-        m_handles[m_grabbedHandleIndex].pt = UItoNormalized(m_mousePos);
+        m.Invert();
+        m_handles[m_grabbedHandleIndex].pt = UItoNormalized(m.TransformPoint(m_mousePos));
         m_sketchPanel->Refresh();
     }
     else
@@ -446,7 +512,8 @@ void SketchPathDialog::OnSketchMouseMove(wxMouseEvent& event)
         for (auto& handle : m_handles)
         {
             wxPoint2DDouble handlePos(NormalizedToUI(handle.pt));
-            bool state = m_mousePos.GetDistanceSquare(handlePos) <= 16.;
+            wxPoint2DDouble transformedHandlePos(m.TransformPoint(handlePos));
+            bool state = m_mousePos.GetDistanceSquare(transformedHandlePos) <= 20.25;
             if (state != handle.state)
             {
                 handle.state = state;
@@ -459,9 +526,27 @@ void SketchPathDialog::OnSketchMouseMove(wxMouseEvent& event)
     }
 }
 
-void SketchPathDialog::OnSketchEnter(wxMouseEvent& /*event*/)
+void SketchPathDialog::OnSketchEntered(wxMouseEvent& /*event*/)
 {
     m_sketchPanel->SetFocus();
+}
+
+void SketchPathDialog::OnSketchMouseWheel(wxMouseEvent& event)
+{
+    m_wheelRotation += event.GetWheelRotation();
+    m_wheelRotation = std::clamp(m_wheelRotation, 0, MouseWheelLimit);
+    if (!m_wheelRotation)
+        m_canvasTranslation = wxPoint2DDouble();
+
+    // todo? - take zoom into account
+    m_normalizedZoomPt = UItoNormalized(event.GetPosition());
+
+    m_sketchPanel->Refresh();
+}
+
+void SketchPathDialog::OnSketchMidDown(wxMouseEvent& event)
+{
+    m_mousePos = event.GetPosition();
 }
 
 void SketchPathDialog::OnFilePickerCtrl_FileChanged(wxCommandEvent& /*event*/)
