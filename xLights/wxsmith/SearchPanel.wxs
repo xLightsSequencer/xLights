@@ -44,6 +44,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="ID_TEXTCTRL_SEARCH" variable="TextCtrlSearch" member="yes">
+					<style>wxTE_PROCESS_ENTER</style>
 					<handler function="OnTextCtrlSearchTextEnter" entry="EVT_TEXT_ENTER" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
