@@ -247,23 +247,21 @@ bool SearchPanel::ContainsSetting(Effect* eff, std::string const& search, bool r
         if (regex) {
             wxRegEx re(search, wxRE_ADVANCED | wxRE_NEWLINE);
             return re.Matches(val);
-        } 
+        }
         return ::Contains(::Lower(val), ::Lower(search));
     };
 
     for (auto [key, setting] : eff->GetSettings()) {
-        if (compare(setting)) {
-            value = key;
-            value.append("=");
-            value.append(setting);
+        std::string cmpvalue{ key + "=" + setting };
+        if (compare(cmpvalue)) {
+            value = cmpvalue;
             return true;
         }
     }
     for (auto [key, setting] : eff->GetPaletteMap()) {
-        if (compare(setting)) {
-            value = key;
-            value.append("=");
-            value.append(setting);
+        std::string cmpvalue{ key + "=" + setting };
+        if (compare(cmpvalue)) {
+            value = cmpvalue;
             return true;
         }
     }
