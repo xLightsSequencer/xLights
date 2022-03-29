@@ -4,15 +4,18 @@
 #include <utility>
 #include <xutility>
 
+#include <wx/bitmap.h>
 #include <wx/brush.h>
 #include <wx/button.h>
 #include <wx/dcbuffer.h>
+#include <wx/filepicker.h>
 #include <wx/graphics.h>
 #include <wx/listbox.h>
 #include <wx/menu.h>
 #include <wx/panel.h>
 #include <wx/pen.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/statbox.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
@@ -23,6 +26,9 @@ END_EVENT_TABLE()
 namespace
 {
     const int BorderWidth = 5;
+
+    const wxString imgSelect("Select an image file");
+    const wxString imgFilters(" *.jpg; *.gif; *.png; *.bmp; *.jpeg");
 
     const char HotkeysText[] =
         "Shift\tToggle segment type (line, one-point curve, two-point curve)\n"
@@ -61,13 +67,13 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
     bgSizer->AddGrowableCol(1);
     pathUISizer->Add(bgSizer, 1, wxALL | wxEXPAND);
     auto bgLabel = new wxStaticText(this, wxID_ANY, "Background:");
-    auto bgTextCtrl = new wxTextCtrl(this, wxID_ANY);
-    // bgTextCtrl->Disable();
-    bgTextCtrl->SetEditable(false);
-    auto chooseBgBtn = new wxButton(this, wxID_ANY, "...", wxDefaultPosition, wxDLG_UNIT(this, wxSize(16, -1)));
+    m_filePicker = new wxFilePickerCtrl(this, wxID_ANY, wxEmptyString, imgSelect, imgFilters, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL);
+    m_filePicker->GetTextCtrl()->SetEditable(false);
+    m_bgAlphaSlider = new wxSlider(this, wxID_ANY, m_bitmapAlpha, 0x00, 0xff);
+
     bgSizer->Add(bgLabel, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-    bgSizer->Add(bgTextCtrl, 1, wxALL | wxEXPAND, 2);
-    bgSizer->Add(chooseBgBtn, 1, wxALL, 2);
+    bgSizer->Add(m_filePicker, 1, wxALL | wxEXPAND, 2);
+    bgSizer->Add(m_bgAlphaSlider, 1, wxALL | wxEXPAND, 2);
 
     // path / sketch controls
     m_startPathBtn = new wxButton(this, wxID_ANY, "Start");
@@ -128,6 +134,9 @@ SketchPathDialog::SketchPathDialog(wxWindow* parent, wxWindowID id, const wxPoin
     m_sketchPanel->Connect(wxEVT_MOTION, (wxObjectEventFunction)&SketchPathDialog::OnSketchMouseMove, nullptr, this);
     m_sketchPanel->Connect(wxEVT_ENTER_WINDOW, (wxObjectEventFunction)&SketchPathDialog::OnSketchEnter, nullptr, this);
 
+    Connect(m_filePicker->GetId(), wxEVT_COMMAND_FILEPICKER_CHANGED, (wxObjectEventFunction)&SketchPathDialog::OnFilePickerCtrl_FileChanged);
+    Connect(m_bgAlphaSlider->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&SketchPathDialog::OnSlider_BgAlphaChanged);
+
     Connect(m_startPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_StartPath);
     Connect(m_endPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_EndPath);
     Connect(m_closePathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPathDialog::OnButton_ClosePath);
@@ -158,18 +167,25 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
 {
     wxAutoBufferedPaintDC pdc(m_sketchPanel);
     wxSize sz(m_sketchPanel->GetSize());
+    wxRect borderRect(BorderWidth, BorderWidth, sz.GetWidth() - 2 * BorderWidth - 2, sz.GetHeight() - 2 * BorderWidth - 2);
+    wxRect bgRect(wxRect(borderRect).Deflate(1, 1));
 
     pdc.SetPen(*wxWHITE_PEN);
     pdc.SetBrush(*wxWHITE_BRUSH);
     pdc.DrawRectangle(wxPoint(0, 0), sz);
 
     pdc.SetPen(*wxLIGHT_GREY_PEN);
-    pdc.DrawRectangle(BorderWidth, BorderWidth, sz.GetWidth() - 2 * BorderWidth-2, sz.GetHeight() - 2 * BorderWidth-2);
+    pdc.DrawRectangle(borderRect);
 
     {
         std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(pdc));
 
-        // First, draw the unselected path(s)
+        // First, draw the background
+        if (m_bgBitmap != nullptr) {
+            gc->DrawBitmap(*(m_bgBitmap.get()), bgRect.x, bgRect.y, bgRect.width, bgRect.height);
+        }
+
+        // Next, draw the unselected path(s)
         gc->SetPen(*wxLIGHT_GREY_PEN);
 
         long selectedPathIndex = m_pathsListBox->GetSelection();
@@ -205,7 +221,7 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
             gc->DrawPath(graphicsPath);
         }
 
-        // Second, draw the selected path
+        // Next, draw the selected path
         gc->SetPen(*wxBLACK_PEN);
         std::vector<wxPoint>::size_type n = m_handles.size();
         wxGraphicsPath path( gc->CreatePath() );
@@ -261,7 +277,7 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
             gc->SetPen(*wxBLACK_PEN);
         }
 
-        // Fourth, draw the handles
+        // Next, draw the handles
         for (std::vector<wxPoint>::size_type i = 0; i < n; ++i)
         {
             wxPoint2DDouble pt(NormalizedToUI(m_handles[i].pt));
@@ -446,6 +462,17 @@ void SketchPathDialog::OnSketchMouseMove(wxMouseEvent& event)
 void SketchPathDialog::OnSketchEnter(wxMouseEvent& /*event*/)
 {
     m_sketchPanel->SetFocus();
+}
+
+void SketchPathDialog::OnFilePickerCtrl_FileChanged(wxCommandEvent& /*event*/)
+{
+    UpdateBgBitmap(ImageUpdate);
+}
+
+void SketchPathDialog::OnSlider_BgAlphaChanged(wxCommandEvent& event)
+{
+    m_bitmapAlpha = static_cast<unsigned char>(m_bgAlphaSlider->GetValue());
+    UpdateBgBitmap(AlphaUpdate);
 }
 
 void SketchPathDialog::OnButton_StartPath(wxCommandEvent& /*event*/)
@@ -789,4 +816,25 @@ void SketchPathDialog::PopulatePathListBoxFromSketch()
         text.sprintf("Path %d", i + 1);
         m_pathsListBox->Insert(text, i++);
     }
+}
+
+void SketchPathDialog::UpdateBgBitmap(BgUpdateType updateType)
+{
+    if (updateType == ImageUpdate) {
+        wxImage img(m_filePicker->GetFileName().GetFullPath());
+        if (img.IsOk()) {
+            img.InitAlpha();
+            m_bgImage = img;
+        }
+    }
+
+    int w = m_bgImage.GetWidth();
+    int h = m_bgImage.GetHeight();
+    for (int y = 0; y < h; ++y)
+        for (int x = 0; x < w; ++x)
+            m_bgImage.SetAlpha(x, y, m_bitmapAlpha);
+
+    m_bgBitmap.reset(new wxBitmap(m_bgImage));
+
+    m_sketchPanel->Refresh();
 }

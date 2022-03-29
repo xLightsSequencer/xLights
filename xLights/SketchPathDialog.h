@@ -3,14 +3,19 @@
 #include "effects/SketchEffectDrawing.h"
 
 #include <wx/dialog.h>
+#include <wx/image.h>
 #include <wx/geometry.h>
 
+#include <memory>
 #include <string>
 #include <vector>
 
+class wxBitmap;
 class wxButton;
+class wxFilePickerCtrl;
 class wxListBox;
 class wxPanel;
+class wxSlider;
 
 class SketchPathDialog: public wxDialog
 {
@@ -36,6 +41,7 @@ private:
                            CubicControlPt1,
                            CubicControlPt2,
                            CubicCurveEnd };
+    enum BgUpdateType { ImageUpdate, AlphaUpdate };
     struct HandlePoint {
         HandlePoint(wxPoint2DDouble _pt, HandlePointType _handlePointType=Point) :
             pt(_pt),
@@ -47,6 +53,8 @@ private:
     };
 
     wxPanel* m_sketchPanel = nullptr;
+    wxFilePickerCtrl* m_filePicker = nullptr;
+    wxSlider* m_bgAlphaSlider = nullptr;
     wxButton* m_startPathBtn = nullptr;
     wxButton* m_endPathBtn = nullptr;
     wxButton* m_closePathBtn = nullptr;
@@ -60,6 +68,8 @@ private:
     void OnSketchMouseMove(wxMouseEvent& event);
     void OnSketchEnter(wxMouseEvent& event);
 
+    void OnFilePickerCtrl_FileChanged(wxCommandEvent& event);
+    void OnSlider_BgAlphaChanged(wxCommandEvent& event);
     void OnButton_StartPath(wxCommandEvent& event);
     void OnButton_EndPath(wxCommandEvent& event);
     void OnButton_ClosePath(wxCommandEvent& event);
@@ -82,6 +92,7 @@ private:
     std::shared_ptr<SketchEffectPath> CreatePathFromHandles() const;
     void ResetHandlesState(PathState state = Undefined);
     void PopulatePathListBoxFromSketch();
+    void UpdateBgBitmap(BgUpdateType updateType);
 
     // Handles and PathState are for the currently active path
     std::vector<HandlePoint> m_handles;
@@ -92,4 +103,8 @@ private:
     SketchEffectSketch m_sketch;
     wxPoint2DDouble m_mousePos;
     int m_pathIndexToDelete = -1;
+
+    wxImage m_bgImage;
+    std::unique_ptr<wxBitmap> m_bgBitmap;
+    unsigned char m_bitmapAlpha = 0x30;
 };

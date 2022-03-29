@@ -40,8 +40,10 @@ namespace
 
     // number of steps to use for approximating bezier segment length
     // and approximating a partial bezier segment with a piecewise-linear
-    // approximation
-    const int NUM_STEPS = 50;
+    // approximation... bumping this up (temporarily?) to fix weirdness
+    // when the 'motion' attribute is enabled. So far, a higher number
+    // doesn't seem to affect render times very much.
+    const int NUM_STEPS = /*50*/500;
 
     double bezierLength(const wxPoint2DDouble& startPt,
                         const wxPoint2DDouble& ctrlPt1,
