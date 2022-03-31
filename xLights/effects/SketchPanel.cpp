@@ -3,9 +3,23 @@
 #include "SketchPathDialog.h"
 
 #include <wx/button.h>
+#include <wx/hyperlink.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/utils.h>
+
+namespace
+{
+    const char effectInfoText[] =
+        "The sketch effect allows you to trace out a sketch over an image. That sketch "
+        "is then drawn over some percentage of the effect. In the remaining percentage, the entire sketch "
+        "is rendered.\n\n"
+        "Optionally, motion can be enabled, which enables drawing over the full duration of the effect "
+        "but renders only a percentage of the effect in order to create simple 'motion graphics' elements. "
+        "For more info, see the link below.";
+
+    const char demoVideoURL[] = "https://vimeo.com/694290476";
+}
 
 BEGIN_EVENT_TABLE(SketchPanel, wxPanel)
 END_EVENT_TABLE()
@@ -25,10 +39,25 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
 {
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 
-    auto mainSizer = new wxFlexGridSizer(2, 1, 0, 0);
-    mainSizer->AddGrowableRow(1);
+    auto mainSizer = new wxFlexGridSizer(3, 1, 5, 0);
+    mainSizer->AddGrowableRow(2);
     mainSizer->AddGrowableCol(0);
 
+    // Effect Info
+    auto effectInfoSizer = new wxFlexGridSizer(2, 1, 0, 0);
+    effectInfoSizer->AddGrowableCol(0);
+
+    auto effectDescText = new wxTextCtrl(this, wxID_ANY, effectInfoText,
+                                         wxDefaultPosition, wxDefaultSize,
+                                         wxTE_NO_VSCROLL | wxTE_MULTILINE | wxTE_READONLY | wxBORDER_NONE);
+    effectDescText->SetEditable(false);
+
+    auto effectDescLink = new wxHyperlinkCtrl(this, wxID_ANY, "Sketch Effect Demo", demoVideoURL);
+
+    effectInfoSizer->Add(effectDescText, 1, wxALL | wxEXPAND, 0);
+    effectInfoSizer->Add(effectDescLink, 1, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+
+    // Sketch Definition
     auto sketchDefSizer = new wxFlexGridSizer(4, 3, 0, 0);
     sketchDefSizer->AddGrowableCol(1);
 
@@ -82,6 +111,7 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
     sketchDefSizer->Add(TextCtrl_MotionPercentage, 1, wxALL | wxALIGN_CENTER_VERTICAL, 2);
 
     // Etc
+    mainSizer->Add(effectInfoSizer, 1, wxALL | wxEXPAND, 2);
     mainSizer->Add(sketchDefSizer, 1, wxALL | wxEXPAND, 2);
 
 	SetSizer(mainSizer);
