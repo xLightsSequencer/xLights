@@ -6488,8 +6488,7 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
         case WXK_ESCAPE:
             if (m_polyline_active) {
                 FinalizeModel();
-            }
-            else if (is_3d) {
+            } else if (is_3d) {
                 if (editing_models) {
                     UnSelectAllModelsInTree();
                 } else {
@@ -6498,6 +6497,12 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
             }
             break;
 
+        case WXK_RETURN:
+            if (m_polyline_active) {
+                FinalizeModel();
+            }
+            event.Skip();
+            break;
         default:
             event.Skip();
             break;
