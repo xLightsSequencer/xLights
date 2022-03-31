@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <optional>
 #include <utility>
-#include <xutility>
 
 #include <wx/affinematrix2d.h>
 #include <wx/bitmap.h>
