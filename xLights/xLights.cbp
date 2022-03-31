@@ -978,6 +978,12 @@
 		<Unit filename="effects/SingleStrandEffect.h" />
 		<Unit filename="effects/SingleStrandPanel.cpp" />
 		<Unit filename="effects/SingleStrandPanel.h" />
+		<Unit filename="effects/SketchEffect.cpp" />
+		<Unit filename="effects/SketchEffect.h" />
+		<Unit filename="effects/SketchEffectDrawing.cpp" />
+		<Unit filename="effects/SketchEffectDrawing.h" />
+		<Unit filename="effects/SketchPanel.cpp" />
+		<Unit filename="effects/SketchPanel.h" />
 		<Unit filename="effects/SnowflakesEffect.cpp" />
 		<Unit filename="effects/SnowflakesEffect.h" />
 		<Unit filename="effects/SnowflakesPanel.cpp" />
@@ -1473,7 +1479,6 @@
 		<Unit filename="wxsmith/ShimmerPanel.wxs" />
 		<Unit filename="wxsmith/ShockwavePanel.wxs" />
 		<Unit filename="wxsmith/SingleStrandPanel.wxs" />
-		<Unit filename="wxsmith/SketchPathDialog.wxs" />
 		<Unit filename="wxsmith/SkullConfigDialog.wxs" />
 		<Unit filename="wxsmith/SnowflakesPanel.wxs" />
 		<Unit filename="wxsmith/SnowstormPanel.wxs" />
@@ -1717,7 +1722,6 @@
 					<wxDialog wxs="wxsmith/MediaImportOptionsDialog.wxs" src="MediaImportOptionsDialog.cpp" hdr="MediaImportOptionsDialog.h" fwddecl="0" i18n="1" name="MediaImportOptionsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ScriptsDialog.wxs" src="ScriptsDialog.cpp" hdr="ScriptsDialog.h" fwddecl="0" i18n="1" name="ScriptsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ColourReplaceDialog.wxs" src="ColourReplaceDialog.cpp" hdr="ColourReplaceDialog.h" fwddecl="0" i18n="1" name="ColourReplaceDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SketchPathDialog.wxs" src="SketchPathDialog.cpp" hdr="SketchPathDialog.h" fwddecl="0" i18n="1" name="SketchPathDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<code_completion />
