@@ -538,7 +538,7 @@ void SketchPathDialog::OnSketchMouseWheel(wxMouseEvent& event)
     if (!m_wheelRotation)
         m_canvasTranslation = wxPoint2DDouble();
 
-    // todo? - take zoom into account
+    // todo? - take zoom and/or canvas translation into account
     m_normalizedZoomPt = UItoNormalized(event.GetPosition());
 
     m_sketchPanel->Refresh();
