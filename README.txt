@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2022.07 March 28, 2022
+   -- enh (kevin)    Add Sketch Effect
    -- enh (gil)      Add Jaw Orientation property for the DMXSkull model
    -- enh (gil)      DMXSkull model changed so color error checking is only done when color channels are active
    -- enh (scott)    Added Effect Settings Search Panel.
