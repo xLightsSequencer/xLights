@@ -54,6 +54,10 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffe
     bool motionEnabled = std::stoi(settings.Get("CHECKBOX_MotionEnabled", "0"));
     int motionPercentage = std::stoi(settings.Get("SLIDER_MotionPercentage", "100"));
 
+    xlColorVector colors(buffer.GetColorCount());
+    for (size_t i = 0; i < buffer.GetColorCount(); ++i)
+        colors[i] = buffer.palette.GetColor(i);
+
     if (sketchDef.empty())
         return;
     m_sketch = SketchEffectSketch::SketchFromString(sketchDef);
@@ -84,7 +88,7 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffe
     //
     // rendering sketch via wxGraphicsContext
     //
-    renderSketch(img, progress, 0.01*drawPercentage, thickness, motionEnabled, 0.01*motionPercentage);
+    renderSketch(img, progress, 0.01*drawPercentage, thickness, motionEnabled, 0.01*motionPercentage, colors);
 
     //
     // wxImage --> RenderBuffer
@@ -146,7 +150,7 @@ xlEffectPanel* SketchEffect::CreatePanel( wxWindow* parent )
 }
 
 
-void SketchEffect::renderSketch(wxImage& img, double progress, double drawPercentage, int lineThickness, bool hasMotion, double motionPercentage)
+void SketchEffect::renderSketch(wxImage& img, double progress, double drawPercentage, int lineThickness, bool hasMotion, double motionPercentage, const xlColorVector& colors)
 {
     std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(img));
     auto paths = m_sketch.paths();
@@ -170,10 +174,10 @@ void SketchEffect::renderSketch(wxImage& img, double progress, double drawPercen
     
     double cumulativeLength = 0.;
     int i = 0;
-    const wxColor colors[] = { *wxRED, *wxGREEN, *wxBLUE }; // todo - shouldn't be hard-coded colors!!
     for (auto iter = paths.cbegin(); iter != paths.cend(); ++iter, ++i)
     {
-        wxPen pen(colors[i % 3], lineThickness);
+        wxColor color(colors[i%colors.size()].asWxColor());
+        wxPen pen(color, lineThickness);
         gc->SetPen(pen);
         double pathLength = (*iter)->Length();
         double percentageAtEndOfThisPath = (cumulativeLength + pathLength) / totalLength;
