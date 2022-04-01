@@ -348,7 +348,7 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
         
         auto vac = program->getAccumulator();
         int startVertex = vac->getCount();
-        vac->PreAlloc(18);
+        vac->PreAlloc(38);
 
         float x = RenderWi / 2;
         if (supportsAngle) {
@@ -390,7 +390,7 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
         int count = vac->getCount();
         program->addStep([=](xlGraphicsContext *ctx) {
             ctx->drawLines(vac, startVertex, 2);
-            ctx->drawTriangles(vac, startVertex + 2, count - 2);
+            ctx->drawTriangles(vac, startVertex + 2, count - startVertex - 2);
         });
     }
 
