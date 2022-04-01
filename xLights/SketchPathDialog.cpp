@@ -907,7 +907,8 @@ void SketchPathDialog::UpdateBgBitmap(BgUpdateType updateType)
     if (updateType == ImageUpdate) {
         wxImage img(m_filePicker->GetFileName().GetFullPath());
         if (img.IsOk()) {
-            img.InitAlpha();
+            if (!img.HasAlpha())
+                img.InitAlpha();
             m_bgImage = img;
         }
     }
