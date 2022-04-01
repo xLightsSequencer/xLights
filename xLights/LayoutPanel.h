@@ -275,6 +275,7 @@ class LayoutPanel: public wxPanel
         void DoCut(wxCommandEvent& event);
         void DoPaste(wxCommandEvent& event);
         void DoUndo(wxCommandEvent& event);
+        void RemoveSelectedModelsFromGroup();
         void DeleteSelectedModels();
 		void DeleteSelectedObject();
         void DeleteSelectedGroups();
@@ -539,6 +540,7 @@ class LayoutPanel: public wxPanel
         void HandleSelectionChanged();
         void OnItemContextMenu(wxTreeListEvent& event);
 
+        static const long ID_MNU_REMOVE_MODEL_FROM_GROUP;
         static const long ID_MNU_DELETE_MODEL;
         static const long ID_MNU_DELETE_MODEL_GROUP;
         static const long ID_MNU_DELETE_EMPTY_MODEL_GROUPS;

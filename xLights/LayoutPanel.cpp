@@ -177,6 +177,7 @@ const long LayoutPanel::ID_PREVIEW_ALIGN_BACK = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_H_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
+const long LayoutPanel::ID_MNU_REMOVE_MODEL_FROM_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_EMPTY_MODEL_GROUPS = wxNewId();
@@ -6548,11 +6549,47 @@ ModelGroup* LayoutPanel::GetSelectedModelGroup() const
     xlights->AddTraceMessage("LayoutPanel::GetSelectedModelGroup done");
     return res;
 }
-
-void LayoutPanel::DeleteSelectedModels() {
-
+void LayoutPanel::RemoveSelectedModelsFromGroup() {
     if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked()) {
+        xlights->AddTraceMessage("LayoutPanel::Remove Selected Models From Group");
 
+        wxArrayString modelsToRemove;
+        wxString modelsToConfirm = "";
+        wxString parentGroup = "";
+        for (const auto& item : selectedTreeModels) {
+            if (item.IsOk()) {
+                parentGroup = TreeListViewModels->GetItemText(TreeListViewModels->GetItemParent(item));
+                wxString modelName = TreeListViewModels->GetItemText(item);
+                modelsToRemove.Add(modelName);
+                modelsToConfirm = modelsToConfirm + wxString::Format("%s- %s\n", "    ", modelName);
+            }
+        }
+
+        ModelGroup *grp = dynamic_cast<ModelGroup*>(xlights->GetModel(parentGroup));
+        if (grp && wxMessageBox("Are you sure you want to remove the folowing model(s)?:\n\n" + modelsToConfirm, "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+
+            // we suspend deferred work because if the delete model pops a dialog then the ASAP work gets done prematurely
+            xlights->GetOutputModelManager()->SuspendDeferredWork(true);
+            xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
+
+            CreateUndoPoint("All", wxJoin(modelsToRemove, ','));
+
+            for (const auto& it: modelsToRemove) {
+                grp->ModelRemoved(it);
+            }
+            selectedBaseObject = nullptr;
+
+            xlights->GetOutputModelManager()->SuspendDeferredWork(false);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::RemoveSelectedModelsFromGroup");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::RemoveSelectedModelsFromGroup");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::RemoveSelectedModelsFromGroup");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::RemoveSelectedModelsFromGroup");
+        }
+    }
+
+}
+void LayoutPanel::DeleteSelectedModels() {
+    if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked()) {
         xlights->AddTraceMessage("LayoutPanel::Delete Selected Model");
 
         wxArrayString modelsToDelete;
@@ -7158,6 +7195,9 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
     if (id == ID_MNU_DELETE_MODEL) {
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL");
         DeleteSelectedModels();
+    } else if (id == ID_MNU_REMOVE_MODEL_FROM_GROUP) {
+        logger_base.debug("LayoutPanel::OnModelsPopup REMOVE_MODEL_FROM_GROUP");
+        RemoveSelectedModelsFromGroup();
     } else if (event.GetId() == ID_PREVIEW_REPLACEMODEL) {
         ReplaceModel();
     } else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT) {
@@ -8021,13 +8061,28 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     if (selectedTreeGroups.size() == 0 && selectedTreeSubModels.size() == 0) {
         if (selectedTreeModels.size() == 1) {
             mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Model");
+            auto par = TreeListViewModels->GetItemParent(selectedTreeModels[0]);
+            if (par != TreeListViewModels->GetRootItem()) {
+                mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Groop");
+            }
             mnuContext.AppendSeparator();
         }
 
         if (selectedTreeModels.size() > 1) {
+            auto parent = TreeListViewModels->GetItemParent(selectedTreeModels[0]);
+            bool allSameParent = true;
+            for (auto &i : selectedTreeModels) {
+                if (parent != TreeListViewModels->GetItemParent(i)) {
+                    allSameParent = false;
+                }
+            }
             mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Models");
             mnuContext.Append(ID_PREVIEW_MODEL_LOCK, "Lock Models");
             mnuContext.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock Models");
+            
+            if (allSameParent && parent != TreeListViewModels->GetRootItem()) {
+                mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Groop");
+            }
             mnuContext.AppendSeparator();
         }
     }
