@@ -4,6 +4,8 @@
 #include "RenderBuffer.h"
 #include "SketchEffectDrawing.h"
 #include "SketchPanel.h"
+#include "assist/AssistPanel.h"
+#include "assist/SketchAssistPanel.h"
 
 #include "../../include/sketch-64.xpm"
 #include "../../include/sketch-48.xpm"
@@ -60,7 +62,7 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffe
 
     if (sketchDef.empty())
         return;
-    m_sketch = SketchEffectSketch::SketchFromString(sketchDef);
+    SketchEffectSketch sketch(SketchEffectSketch::SketchFromString(sketchDef));
 
     //
     // RenderBuffer --> wxImage
@@ -88,7 +90,7 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffe
     //
     // rendering sketch via wxGraphicsContext
     //
-    renderSketch(img, progress, 0.01*drawPercentage, thickness, motionEnabled, 0.01*motionPercentage, colors);
+    renderSketch(sketch, img, progress, 0.01*drawPercentage, thickness, motionEnabled, 0.01*motionPercentage, colors);
 
     //
     // wxImage --> RenderBuffer
@@ -139,6 +141,27 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& /*se
     return std::list<std::string>();
 }
 
+AssistPanel* SketchEffect::GetAssistPanel(wxWindow* parent, xLightsFrame* /*xl_frame*/)
+{
+    if (m_panel == nullptr)
+        return nullptr;
+    auto lambda = [this](const std::string& sketchDef) {
+        if (m_panel != nullptr) {
+            m_panel->TextCtrl_SketchDef->SetValue(sketchDef);
+        }
+    };
+
+    AssistPanel* assistPanel = new AssistPanel(parent);
+
+    auto sketchAssistPanel = new SketchAssistPanel(assistPanel->GetCanvasParent());
+    sketchAssistPanel->SetSketchDef(m_panel->TextCtrl_SketchDef->GetValue().ToStdString());
+    sketchAssistPanel->SetSketchUpdateCallback(lambda);
+    //sketchAssistPanel->SetxLightsFrame(xl_frame);
+    assistPanel->AddPanel(sketchAssistPanel, wxALL | wxEXPAND);
+
+    return assistPanel;
+}
+
 void SketchEffect::RemoveDefaults( const std::string& version, Effect* effect )
 {
 
@@ -146,14 +169,15 @@ void SketchEffect::RemoveDefaults( const std::string& version, Effect* effect )
 
 xlEffectPanel* SketchEffect::CreatePanel( wxWindow* parent )
 {
-    return new SketchPanel( parent );
+    m_panel = new SketchPanel(parent);
+    return m_panel;
 }
 
 
-void SketchEffect::renderSketch(wxImage& img, double progress, double drawPercentage, int lineThickness, bool hasMotion, double motionPercentage, const xlColorVector& colors)
+void SketchEffect::renderSketch(const SketchEffectSketch& sketch, wxImage& img, double progress, double drawPercentage, int lineThickness, bool hasMotion, double motionPercentage, const xlColorVector& colors)
 {
     std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(img));
-    auto paths = m_sketch.paths();
+    auto paths = sketch.paths();
     wxSize sz(img.GetSize());
 
     // In order for the animation to both "draw in" and "draw out" we adjust the [0,1] range...

@@ -1,8 +1,8 @@
 #include "SketchPanel.h"
 #include "BulkEditControls.h"
-#include "SketchPathDialog.h"
+//#include "SketchPathDialog.h"
 
-#include <wx/button.h>
+//#include <wx/button.h>
 #include <wx/hyperlink.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -13,12 +13,12 @@ namespace
     const char effectInfoText[] =
         "The sketch effect allows you to trace out a sketch over an image. That sketch "
         "is then drawn over some percentage of the effect. In the remaining percentage, the entire sketch "
-        "is rendered.\n\n"
+        "is rendered. The sketch is defined within the Effect Assist panel.\n\n"
         "Optionally, motion can be enabled, which enables drawing over the full duration of the effect "
         "but renders only a percentage of the effect in order to create simple 'motion graphics' elements. "
         "For more info, see the link below.";
 
-    const char demoVideoURL[] = "https://vimeo.com/694290476";
+    const char demoVideoURL[] = "https://vimeo.com/696352082";
 }
 
 BEGIN_EVENT_TABLE(SketchPanel, wxPanel)
@@ -65,11 +65,12 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
     auto label = new wxStaticText(this, wxID_ANY, "Sketch:");
     TextCtrl_SketchDef = new BulkEditTextCtrl(this, ID_TEXTCTRL_SketchDef, wxEmptyString, wxDefaultPosition, wxDLG_UNIT(this, wxSize(20, -1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_SketchDef"));
     TextCtrl_SketchDef->SetEditable(false);
-    auto defineSketchBtn = new wxButton(this, wxNewId(), "...", wxDefaultPosition, wxDLG_UNIT(this, wxSize(16, -1)));
+    //auto defineSketchBtn = new wxButton(this, wxNewId(), "...", wxDefaultPosition, wxDLG_UNIT(this, wxSize(16, -1)));
 
     sketchDefSizer->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
     sketchDefSizer->Add(TextCtrl_SketchDef, 1, wxALL | wxEXPAND, 2);
-    sketchDefSizer->Add(defineSketchBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL, 2);
+    //sketchDefSizer->Add(defineSketchBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL, 2);
+    sketchDefSizer->AddStretchSpacer();
 
     // Draw Percentage
     auto label2 = new wxStaticText(this, wxID_ANY, "Draw Percentage:");
@@ -120,7 +121,7 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
 
     SetName("ID_PANEL_SKETCH");
 
-	Connect(defineSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPanel::OnButton_DefineSketch);
+	//Connect(defineSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPanel::OnButton_DefineSketch);
 
     Connect(ID_VALUECURVE_Thickness, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPanel::OnVCButtonClick);
 
@@ -135,13 +136,13 @@ void SketchPanel::ValidateWindow()
 
 }
 
-void SketchPanel::OnButton_DefineSketch(wxCommandEvent& /*event*/)
-{
-    SketchPathDialog dlg(this);
-    dlg.setSketch(TextCtrl_SketchDef->GetValue());
-
-    if ( dlg.ShowModal() == wxID_OK ) {
-        std::string sketchDef(dlg.sketchDefString());
-        TextCtrl_SketchDef->SetValue(sketchDef);
-    }
-}
+//void SketchPanel::OnButton_DefineSketch(wxCommandEvent& /*event*/)
+//{
+//    SketchPathDialog dlg(this);
+//    dlg.setSketch(TextCtrl_SketchDef->GetValue());
+//
+//    if ( dlg.ShowModal() == wxID_OK ) {
+//        std::string sketchDef(dlg.sketchDefString());
+//        TextCtrl_SketchDef->SetValue(sketchDef);
+//    }
+//}
