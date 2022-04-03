@@ -597,7 +597,22 @@ void ModelFaceDialog::OnMatrixModelsGridCellChange(wxGridEvent& event)
     int c = event.GetCol();
     wxString key = MatrixModelsGrid->GetRowLabelValue(r) + "-" + MatrixModelsGrid->GetColLabelValue(c);
     key.Replace(" ", "");
-    faceData[name][key.ToStdString()] = MatrixModelsGrid->GetCellValue(r, c);
+    wxString value = MatrixModelsGrid->GetCellValue(r, c);
+    value.Trim();
+    value.Trim(true);
+    if (value.StartsWith("\"")) {
+        value = value.SubString(1, value.size());
+    }
+    if (value.EndsWith("\"")) {
+        value = value.Truncate(value.size()-1);
+    }
+
+    TryToFindPath(value);
+
+    faceData[name][key.ToStdString()] = value;
+    MatrixModelsGrid->SetCellValue(r, c, value);
+
+    TryToSetAllMatrixModels(name, key.ToStdString(), value, r, c);
 }
 
 void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
@@ -750,6 +765,36 @@ void ModelFaceDialog::DoSetMatrixModels(wxFileName fn, std::string actualkey, st
     for (auto it = _phonemes.begin(); it != _phonemes.end(); ++it)
     {
         DoSetPhonemes(fn, actualkey, key, count, i++, col, name, GetPhonemes(*it), *it);
+    }
+}
+
+void ModelFaceDialog::TryToFindPath(wxString& filename) const
+{
+    wxFileName fn = wxFileName(filename);
+    if (fn.Exists()) {
+        return;
+    }
+
+    //current folder
+    wxArrayString files;
+    GetAllFilesInDir(fn.GetPath(), files, fn.GetName() + ".*", wxDIR_DEFAULT);
+    if (files.size()>0) {
+        filename = fn.GetPath() + files[0];
+        return;
+    }
+
+     // show folder
+    GetAllFilesInDir(xLightsFrame::CurrentDir, files, fn.GetName() + ".*", wxDIR_DEFAULT);
+    if (files.size() > 0) {
+        filename = files[0];
+        return;
+    }
+
+    // show folder + DownloadedFaces folder
+    GetAllFilesInDir(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "DownloadedFaces", files, fn.GetName() + ".*", wxDIR_DEFAULT);
+    if (files.size() > 0) {
+        filename = files[0];
+        return;
     }
 }
 

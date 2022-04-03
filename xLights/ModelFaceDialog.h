@@ -48,6 +48,7 @@ class ModelFaceDialog: public wxDialog
     void TryToSetAllMatrixModels(std::string name, std::string key, std::string new_filename, int row, int col);
     bool IsValidPhoneme(const std::string phoneme) const;
     int GetRowForPhoneme(const std::string phoneme) const;
+    void TryToFindPath(wxString& filename) const;
 
     public:
 
