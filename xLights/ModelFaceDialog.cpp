@@ -779,7 +779,7 @@ void ModelFaceDialog::TryToFindPath(wxString& filename) const
     wxArrayString files;
     GetAllFilesInDir(fn.GetPath(), files, fn.GetName() + ".*", wxDIR_DEFAULT);
     if (files.size()>0) {
-        filename = fn.GetPath() + files[0];
+        filename = files[0];
         return;
     }
 
