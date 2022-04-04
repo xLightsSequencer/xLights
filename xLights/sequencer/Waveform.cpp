@@ -85,6 +85,9 @@ void Waveform::CloseMedia()
 {
     views.clear();
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
+    _type = AUDIOSAMPLETYPE::RAW;
+    _lowNote = -1;
+    _highNote = -1;
 	_media = nullptr;
     mParent->Refresh();
 }
@@ -352,10 +355,12 @@ void Waveform::mouseWheelMoved(wxMouseEvent& event)
 int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 {
     _type = AUDIOSAMPLETYPE::RAW;
+    _lowNote = -1;
+    _highNote = -1;
     _media = media;
     views.clear();
 	if (_media != nullptr) {
-        _media->SwitchTo(AUDIOSAMPLETYPE::RAW);
+        _media->SwitchTo(_type);
 		float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
 		views.emplace_back(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
 		mCurrentWaveView = 0;
