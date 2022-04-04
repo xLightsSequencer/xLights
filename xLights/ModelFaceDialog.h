@@ -22,6 +22,7 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/splitter.h>
 #include <wx/stattext.h>
 //*)
 
@@ -49,6 +50,7 @@ class ModelFaceDialog: public wxDialog
     bool IsValidPhoneme(const std::string phoneme) const;
     int GetRowForPhoneme(const std::string phoneme) const;
     void TryToFindPath(wxString& filename) const;
+    void ValidateMatrixGrid(int r, int c) const;
 
     public:
 
@@ -69,9 +71,11 @@ class ModelFaceDialog: public wxDialog
 		wxGrid* SingleNodeGrid;
 		wxPanel* Matrix;
 		wxPanel* ModelPreviewPanelLocation;
+		wxPanel* Panel3;
 		wxPanel* Panel_Matrix;
 		wxPanel* Panel_NodeRanges;
 		wxPanel* Panel_SingleNode;
+		wxSplitterWindow* SplitterWindow1;
 		wxStaticText* StaticText3;
 		//*)
 
@@ -97,7 +101,7 @@ class ModelFaceDialog: public wxDialog
 		static const long ID_CHECKBOX1;
 		static const long ID_GRID_COROFACES;
 		static const long ID_PANEL2;
-		static const long ID_PANEL5;
+		static const long ID_PANEL8;
 		static const long ID_CHECKBOX2;
 		static const long ID_GRID3;
 		static const long ID_PANEL6;
@@ -107,7 +111,9 @@ class ModelFaceDialog: public wxDialog
 		static const long ID_GRID1;
 		static const long ID_PANEL3;
 		static const long ID_CHOICEBOOK1;
+		static const long ID_PANEL5;
 		static const long ID_PANEL1;
+		static const long ID_SPLITTERWINDOW1;
 		//*)
 
 	private:
