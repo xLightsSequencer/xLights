@@ -20,6 +20,7 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/splitter.h>
 #include <wx/stattext.h>
 //*)
 
@@ -43,21 +44,22 @@ class ModelStateDialog: public wxDialog
 		ModelStateDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ModelStateDialog();
 
-		//(*Declarations(ModelFaceDialog)
-		wxCheckBox* CustomColorNodeRanges;
-		wxGrid* SingleNodeGrid;
-		wxStaticText* StaticText3;
-		wxPanel* Matrix;
-		wxCheckBox* CustomColorSingleNode;
+		//(*Declarations(ModelStateDialog)
+		wxButton* Button_7Seg;
+		wxButton* Button_7Segment;
+		wxButton* Button_Import;
 		wxButton* DeleteButton;
-        wxButton* Button_Import;
+		wxCheckBox* CustomColorNodeRanges;
+		wxCheckBox* CustomColorSingleNode;
+		wxChoice* NameChoice;
 		wxChoicebook* StateTypeChoice;
 		wxGrid* NodeRangeGrid;
-		wxChoice* NameChoice;
-        wxPanel* ModelPreviewPanelLocation;
-        wxButton* Button_7Segment;
-        wxButton* Button_7Seg;
-        //*)
+		wxGrid* SingleNodeGrid;
+		wxPanel* ModelPreviewPanelLocation;
+		wxPanel* Panel3;
+		wxSplitterWindow* SplitterWindow1;
+		wxStaticText* StaticText3;
+		//*)
 
         void SetStateInfo(Model *cls, std::map<std::string, std::map<std::string, std::string> > &info);
         void GetStateInfo(std::map<std::string, std::map<std::string, std::string> > &info);
@@ -78,7 +80,9 @@ class ModelStateDialog: public wxDialog
 		static const long ID_GRID3;
 		static const long ID_PANEL6;
 		static const long ID_CHOICEBOOK1;
+		static const long ID_PANEL5;
 		static const long ID_PANEL_PREVIEW;
+		static const long ID_SPLITTERWINDOW1;
 		//*)
 
         static const long STATE_DIALOG_IMPORT_SUB;
