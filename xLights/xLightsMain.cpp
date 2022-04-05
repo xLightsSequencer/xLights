@@ -4878,6 +4878,14 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         warncount++;
     }
 
+    if (mBackgroundImage != "") {
+        if (!wxIsReadable(mBackgroundImage) || !wxImage::CanRead(mBackgroundImage)) {
+            wxString msg = wxString::Format("    ERR: Layout Background image not loadable as an image: %s.", mBackgroundImage);
+            LogAndWrite(f, msg.ToStdString());
+            errcount++;
+        }
+    }
+
     if (errcount + warncount == errcountsave + warncountsave) {
         LogAndWrite(f, "    No problems found");
     }
