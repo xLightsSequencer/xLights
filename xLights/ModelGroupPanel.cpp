@@ -91,9 +91,12 @@ const long ModelGroupPanel::ID_STATICTEXT4 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL1 = wxNewId();
 const long ModelGroupPanel::ID_CHOICE_PREVIEWS = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT7 = wxNewId();
+const long ModelGroupPanel::ID_STATICTEXT10 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL2 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT8 = wxNewId();
+const long ModelGroupPanel::ID_STATICTEXT11 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL3 = wxNewId();
+const long ModelGroupPanel::ID_STATICTEXT8 = wxNewId();
+const long ModelGroupPanel::ID_COLOURPICKERCTRL_MG_TAGCOLOUR = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX1 = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX3 = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX2 = wxNewId();
@@ -131,6 +134,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxStaticText* StaticText4;
 	wxStaticText* StaticText6;
@@ -176,16 +180,24 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer6->Add(StaticText6, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	ChoicePreviews = new wxChoice(this, ID_CHOICE_PREVIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PREVIEWS"));
 	FlexGridSizer6->Add(ChoicePreviews, 1, wxALL|wxEXPAND, 2);
-	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("X Center Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Center Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer6->Add(StaticText7, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
+	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("X"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
+	FlexGridSizer4->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_XCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL2, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -1000, 1000, 0, _T("ID_SPINCTRL2"));
 	SpinCtrl_XCentreOffset->SetValue(_T("0"));
-	FlexGridSizer6->Add(SpinCtrl_XCentreOffset, 1, wxALL|wxEXPAND, 2);
-	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Y Center Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-	FlexGridSizer6->Add(StaticText8, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer4->Add(SpinCtrl_XCentreOffset, 1, wxALL|wxEXPAND, 2);
+	StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
+	FlexGridSizer4->Add(StaticText11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_YCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -1000, 1000, 0, _T("ID_SPINCTRL3"));
 	SpinCtrl_YCentreOffset->SetValue(_T("0"));
-	FlexGridSizer6->Add(SpinCtrl_YCentreOffset, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer4->Add(SpinCtrl_YCentreOffset, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer6->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
+	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Tag Color:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+	FlexGridSizer6->Add(StaticText8, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+	ColourPickerCtrl_ModelGroupTagColour = new wxColourPickerCtrl(this, ID_COLOURPICKERCTRL_MG_TAGCOLOUR, wxColour(0,0,0), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL_MG_TAGCOLOUR"));
+	FlexGridSizer6->Add(ColourPickerCtrl_ModelGroupTagColour, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_ShowSubmodels = new wxCheckBox(this, ID_CHECKBOX1, _("Show SubModels to Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_ShowSubmodels->SetValue(true);
 	FlexGridSizer6->Add(CheckBox_ShowSubmodels, 1, wxALL|wxEXPAND, 2);
@@ -252,6 +264,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoicePreviewsSelect);
 	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange);
 	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange);
+	Connect(ID_COLOURPICKERCTRL_MG_TAGCOLOUR,wxEVT_COMMAND_COLOURPICKER_CHANGED,(wxObjectEventFunction)&ModelGroupPanel::OnColourPickerCtrl_ModelGroupTagColourColourChanged);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowSubmodelsClick);
 	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowInactiveModelsClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowModelGroupsClick);
@@ -469,6 +482,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
         SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
         SpinCtrl_XCentreOffset->SetValue(wxAtoi(e->GetAttribute("XCentreOffset", "0")));
         SpinCtrl_YCentreOffset->SetValue(wxAtoi(e->GetAttribute("YCentreOffset", "0")));
+        ColourPickerCtrl_ModelGroupTagColour->SetColour(e->GetAttribute("TagColour", "Black"));
     }
 
     ResizeColumns();
@@ -674,6 +688,7 @@ void ModelGroupPanel::SaveGroupChanges()
     e->AddAttribute("GridSize", wxString::Format("%d", SizeSpinCtrl->GetValue()));
     e->DeleteAttribute("XCentreOffset");
     e->DeleteAttribute("YCentreOffset");
+    e->DeleteAttribute("TagColour");
     if (ChoiceModelLayoutType->GetSelection() == 1)
     {
         e->AddAttribute("XCentreOffset", wxString::Format("%d", SpinCtrl_XCentreOffset->GetValue()));
@@ -696,6 +711,7 @@ void ModelGroupPanel::SaveGroupChanges()
         e->AddAttribute("layout", ChoiceModelLayoutType->GetStringSelection());
         break;
     }
+    e->AddAttribute("TagColour", ColourPickerCtrl_ModelGroupTagColour->GetColour().GetAsString());
     g->Reset();
     layoutPanel->ModelGroupUpdated(g, false);
 }
@@ -1281,4 +1297,9 @@ void ModelGroupPanel::OnCheckBox_ShowInactiveModelsClick(wxCommandEvent& event)
 void ModelGroupPanel::OnCheckBox_ShowOnlyModelsInCurrentViewClick(wxCommandEvent& event)
 {
     UpdatePanel(mGroup);
+}
+
+void ModelGroupPanel::OnColourPickerCtrl_ModelGroupTagColourColourChanged(wxColourPickerEvent& event)
+{
+    SaveGroupChanges();
 }

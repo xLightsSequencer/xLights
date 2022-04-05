@@ -436,6 +436,7 @@ bool ModelGroup::Reset(bool zeroBased) {
     int gridSize = wxAtoi(ModelXml->GetAttribute("GridSize", "400"));
     int offsetX = wxAtoi(ModelXml->GetAttribute("XCentreOffset", "0"));
     int offsetY = wxAtoi(ModelXml->GetAttribute("YCentreOffset", "0"));
+    modelTagColour = wxColour(ModelXml->GetAttribute("TagColour", "Black"));
     std::string layout = ModelXml->GetAttribute("layout", "minimalGrid").ToStdString();
     defaultBufferStyle = layout;
     if (layout.compare(0, 9, "Per Model") == 0) {
