@@ -1514,7 +1514,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemActivated);
     Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemActivated);
     Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemActivated);
-    Connect(ID_TREELISTCTRL_Controller, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemActivated);
+    Connect(ID_TREELISTCTRL_Controllers, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemActivated);
 #endif
 
     PopulateOutputTree(_outputManager);
