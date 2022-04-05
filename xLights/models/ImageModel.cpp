@@ -368,6 +368,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
             
             width = img.GetWidth();
             height = img.GetHeight();
+            hasAlpha = img.HasAlpha();
             texture = ctx->createTexture(img);
             texture->SetName(GetName());
             texture->Finalize();
@@ -377,7 +378,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
    
     
-    xlGraphicsProgram *program = transparency == 0 ? solidProgram : transparentProgram;
+    xlGraphicsProgram *program = (transparency != 0 || hasAlpha) ? transparentProgram : solidProgram;
     if (texture) {
         xlVertexTextureAccumulator *va = ctx->createVertexTextureAccumulator();
         
@@ -391,13 +392,16 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
 
         int alpha = (100.0 - transparency) / 100.0 * 255.0;
         int brightness = (float)_offBrightness + (float)(100 - _offBrightness) * (float)GetChannelValue(0) / 255.0;
+        if (color) {
+            brightness = color->red;
+            brightness /= 2.55f;
+        }
 
         preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
             if (!is_3d) {
-                //not 3d, flatten to the 0.5 plane
-                ctx->Translate(0, 0, 0.5);
-                ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
+                //not 3d, flatten to the 0 plane
+                ctx->ScaleViewMatrix(1.0f, 1.0f, 0.0f);
             }
             GetModelScreenLocation().ApplyModelViewMatrices(ctx);
             ctx->drawTexture(va, texture, brightness, alpha, 0, va->getCount());
