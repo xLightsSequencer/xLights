@@ -1279,7 +1279,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     mBackupOnLaunch = true;
     mSuppressFadeHints = false;
     me131Sync = false;
-    mLocalIP = "";
     mAltBackupDir = "";
     mIconSize = 16;
     _modelHandleSize = 1;
@@ -1713,17 +1712,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     _outputManager.SetSyncEnabled(me131Sync);
     logger_base.debug("Sync: %s.", toStr( me131Sync ));
 
+    // this is no longer used ... as it is now stored in the networks file
     wxString tmpString;
     config->Read("xLightsLocalIP", &tmpString, "");
-
-    if (IsValidLocalIP(tmpString) || tmpString == "") {
-        mLocalIP = tmpString;
-        _outputManager.SetForceFromIP(mLocalIP);
-    }
-    else {
-        wxMessageBox(wxString::Format("Local IP : %s : Not currently available so clearing that setting.", tmpString));
-        mLocalIP = "";
-        _outputManager.SetForceFromIP("");
+    if (IsValidLocalIP(tmpString) && tmpString != "") {
+        _outputManager.SetGlobalForceLocalIP(tmpString);
+        config->DeleteEntry("xLightsLocalIP");
     }
 
     SetControllersProperties();
@@ -1893,7 +1887,6 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
     config->Write("xLightsSuppressFadeHints", mSuppressFadeHints);
     config->Write("xLightse131Sync", me131Sync);
-    config->Write("xLightsLocalIP", wxString(mLocalIP));
     config->Write("xLightsEffectAssistMode", mEffectAssistMode);
     config->Write("xLightsAltBackupDir", mAltBackupDir);
     config->Write("xFadePort", _xFadePort);
@@ -4739,8 +4732,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     wxDatagramSocket *testSocket;
     wxIPV4address addr;
     wxString fullhostname = wxGetFullHostName();
-    if (mLocalIP != "") {
-        addr.Hostname(mLocalIP);
+    if (_outputManager.GetGlobalForceLocalIP() != "") {
+        addr.Hostname(_outputManager.GetGlobalForceLocalIP());
         testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
     }
     else {
@@ -7627,14 +7620,6 @@ void xLightsFrame::PlayerError(const wxString& msg)
 }
 
 #pragma region Settings Menu
-
-void xLightsFrame::SetLocalIP(const std::string &ip)
-{
-    mLocalIP = ip;
-    _outputManager.SetForceFromIP(mLocalIP);
-
-    CycleOutputsIfOn();
-}
 
 void xLightsFrame::ShowACLights()
 {

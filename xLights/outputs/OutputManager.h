@@ -43,6 +43,7 @@ class OutputManager
     bool _outputting = false; // true if we are currently sending out data
     bool _didConvert = false;
     std::string _globalFPPProxy;
+    std::string _globalForceLocalIP;
     wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
     #pragma endregion 
 
@@ -132,6 +133,9 @@ public:
     std::list<int> GetIPUniverses(const std::string& ip = std::string()) const;
     std::list<std::string> GetIps() const;
 
+    std::string GetGlobalForceLocalIP() const { return _globalForceLocalIP; }
+    void SetGlobalForceLocalIP(const std::string& forceLocalIP);
+
     std::string GetGlobalFPPProxy() const { return _globalFPPProxy; }
     void SetGlobalFPPProxy(const std::string& globalFPPProxy);
     
@@ -154,9 +158,8 @@ public:
     void SomethingChanged() const;
     bool IsDirty() const;
 
-    void SetForceFromIP(const std::string& forceFromIP);
-
     bool AtLeastOneOutputUsingProtocol(const std::string& protocol) const;
+    std::list<std::string> GetForceIPs(const std::string& protocol) const;
 
     void SetSuppressFrames(int suppressFrames) { _suppressFrames = suppressFrames; _dirty = true; }
     int GetSuppressFrames() const { return _suppressFrames; }

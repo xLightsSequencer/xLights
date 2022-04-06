@@ -1111,9 +1111,6 @@ public:
     bool E131Sync() const {return me131Sync;}
     void SetE131Sync(bool b);
 
-    const std::string &LocalIP() const { return mLocalIP; }
-    void SetLocalIP(const std::string &ip);
-
     int SuppressDuplicateFrames() const;
     void SetSuppressDuplicateFrames(int i);
 
@@ -1475,7 +1472,6 @@ private:
     bool mBackupOnLaunch = true;
     bool me131Sync = false;
     bool mSuppressFadeHints = false;
-    std::string mLocalIP;
     wxString mAltBackupDir;
     int mIconSize;
     int mGridSpacing;

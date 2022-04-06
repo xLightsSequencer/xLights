@@ -49,11 +49,11 @@ void E131Output::OpenDatagram() {
     if (_datagram != nullptr) return;
 
     wxIPV4address localaddr;
-    if (IPOutput::__localIP == "") {
+    if (GetForceLocalIPToUse() == "") {
         localaddr.AnyAddress();
     }
     else {
-        localaddr.Hostname(IPOutput::__localIP);
+        localaddr.Hostname(GetForceLocalIPToUse());
     }
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
@@ -135,7 +135,7 @@ wxXmlNode* E131Output::Save() {
 #pragma endregion
 
 #pragma region Static Functions
-void E131Output::SendSync(int syncUniverse) {
+void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static uint8_t syncdata[E131_SYNCPACKET_LEN];
@@ -191,11 +191,11 @@ void E131Output::SendSync(int syncUniverse) {
             syncdata[46] = syncUniverse & 0xff;
 
             wxIPV4address localaddr;
-            if (IPOutput::__localIP == "") {
+            if (localIP == "") {
                 localaddr.AnyAddress();
             }
             else {
-                localaddr.Hostname(IPOutput::__localIP);
+                localaddr.Hostname(localIP);
             }
 
             if (syncdatagram != nullptr) {

@@ -24,10 +24,6 @@ protected:
 
 public:
 
-    #pragma region Static Members
-    static std::string __localIP;
-    #pragma endregion
-
     #pragma region Constructors and Destructors
     IPOutput(wxXmlNode* node);
     IPOutput();
@@ -37,8 +33,6 @@ public:
     #pragma endregion 
 
     #pragma region Static Functions
-    static void SetLocalIP(const std::string& localIP) { __localIP = localIP; }
-    static std::string GetLocalIP() { return __localIP; }
     static Output::PINGSTATE Ping(const std::string& ip, const std::string& proxy);
     #pragma endregion 
 

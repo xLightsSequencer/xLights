@@ -35,11 +35,11 @@ void ArtNetOutput::OpenDatagram() {
     if (_datagram != nullptr) return;
 
     wxIPV4address localaddr;
-    if (IPOutput::__localIP == "") {
+    if (GetForceLocalIPToUse() == "") {
         localaddr.AnyAddress();
     }
     else {
-        localaddr.Hostname(IPOutput::__localIP);
+        localaddr.Hostname(GetForceLocalIPToUse());
     }
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
@@ -86,7 +86,7 @@ ArtNetOutput::~ArtNetOutput() {
 #pragma endregion
 
 #pragma region Static Functions
-void ArtNetOutput::SendSync() {
+void ArtNetOutput::SendSync(const std::string& localIP) {
 
     log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static uint8_t syncdata[ARTNET_SYNCPACKET_LEN];
@@ -109,11 +109,11 @@ void ArtNetOutput::SendSync() {
         syncdata[11] = 0x0E; // Protocol version Low
 
         wxIPV4address localaddr;
-        if (IPOutput::__localIP == "") {
+        if (localIP == "") {
             localaddr.AnyAddress();
         }
         else {
-            localaddr.Hostname(IPOutput::__localIP);
+            localaddr.Hostname(localIP);
         }
 
         if (syncdatagram != nullptr) {

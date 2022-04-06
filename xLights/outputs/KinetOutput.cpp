@@ -29,11 +29,11 @@ void KinetOutput::OpenDatagram() {
     if (_datagram != nullptr) return;
 
     wxIPV4address localaddr;
-    if (IPOutput::__localIP == "") {
+    if (GetForceLocalIPToUse() == "") {
         localaddr.AnyAddress();
     }
     else {
-        localaddr.Hostname(IPOutput::__localIP);
+        localaddr.Hostname(GetForceLocalIPToUse());
     }
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);

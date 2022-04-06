@@ -78,7 +78,7 @@ OutputSettingsPanel::OutputSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWind
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OutputSettingsPanel::OnxFadexScheduleChoiceSelect);
 	//*)
     
-    std::string localIP = frame->LocalIP();
+    std::string localIP = frame->_outputManager.GetGlobalForceLocalIP();
     auto ips = GetLocalIPs();
 
     if (ips.size() == 0) {
@@ -116,7 +116,7 @@ OutputSettingsPanel::~OutputSettingsPanel()
 bool OutputSettingsPanel::TransferDataFromWindow() {
     frame->SetXFadePort(xFadexScheduleChoice->GetSelection());
     frame->SetE131Sync(FrameSyncCheckBox->IsChecked());
-    frame->SetLocalIP(ForceLocalIPChoice->GetStringSelection());
+    frame->_outputManager.SetGlobalForceLocalIP(ForceLocalIPChoice->GetStringSelection());
     switch (DuplicateSuppressChoice->GetSelection()) {
         case 3:
             frame->SetSuppressDuplicateFrames(40);

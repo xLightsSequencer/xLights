@@ -1629,11 +1629,11 @@ void xLightsFrame::SetControllersProperties() {
         int val = 0;
         choices.Add("");
         for (const auto& it : ips) { 
-            if (it == mLocalIP) val = choices.GetCount();
+            if (it == _outputManager.GetGlobalForceLocalIP()) val = choices.GetCount();
             choices.Add(it);
         }
 
-        Controllers_PropertyEditor->Append(new wxEnumProperty("Force Local IP", "ForceLocalIP", choices, val));
+        Controllers_PropertyEditor->Append(new wxEnumProperty("Global Force Local IP", "ForceLocalIP", choices, val));
 
         Controllers_PropertyEditor->Append(new wxStringProperty("Global FPP Proxy", "GlobalFPPProxy", _outputManager.GetGlobalFPPProxy()));
     }
@@ -1833,7 +1833,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
             auto ips = GetLocalIPs();
 
             if (event.GetValue().GetLong() == 0) {
-                mLocalIP = "";
+                _outputManager.SetGlobalForceLocalIP("");
             }
             else {
                 if (event.GetValue().GetLong() >= ips.size() + 1) {//need to add one as dropdown has blank first entry
@@ -1842,15 +1842,10 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
                 else {
                     auto it = begin(ips);
                     std::advance(it, event.GetValue().GetLong() - 1);
-                    mLocalIP = *it;
+                    _outputManager.SetGlobalForceLocalIP(*it);
                 }
             }
-
-            _outputManager.SetForceFromIP(mLocalIP);
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::ForceLocalIP");
-            wxConfigBase* config = wxConfigBase::Get();
-            config->Write("xLightsLocalIP", wxString(mLocalIP));
-            config->Flush();
             CycleOutputsIfOn();
         }
     }

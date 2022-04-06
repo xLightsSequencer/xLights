@@ -70,7 +70,7 @@ class Minleon : public BaseController
 
 public:
     #pragma region Constructors and Destructors
-    Minleon(const std::string& ip, const std::string &proxy);
+    Minleon(const std::string& ip, const std::string &proxy, const std::string& forceLocalIP);
     virtual ~Minleon();
     #pragma endregion
 

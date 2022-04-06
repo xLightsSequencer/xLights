@@ -35,6 +35,7 @@ protected:
     std::string _ip;
     std::string _resolvedIp;
     std::string _type;
+    std::string _forceLocalIP;
     bool _forceSizes = false;
     int _priority = 100;
     int _version = 1;
@@ -61,6 +62,11 @@ public:
 
     virtual std::string GetProtocol() const override { return _type; }
     void SetProtocol(const std::string& protocol);
+
+    std::string GetForceLocalIP() const;
+    std::string GetControllerForceLocalIP() const;
+    void SetForceLocalIP(const std::string& localIP);
+    void SetGlobalForceLocalIP(const std::string& localIP);
 
     void SetFPPProxy(const std::string& proxy);
     std::string GetControllerFPPProxy() const { return _fppProxy; }

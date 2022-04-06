@@ -62,7 +62,7 @@ public:
     static int GetArtNetSubnet(int u) { return (u & 0x00F0) >> 4; }
     static int GetArtNetUniverse(int u) { return u & 0x000F; }
     static int GetArtNetCombinedUniverse(int net, int subnet, int universe) { return ((net & 0x007F) << 8) + ((subnet & 0x000F) << 4) + (universe & 0x000F); }
-    static void SendSync();
+    static void SendSync(const std::string& localIP);
 #ifndef EXCLUDEDISCOVERY
     static void PrepareDiscovery(Discovery &discovery);
 #endif

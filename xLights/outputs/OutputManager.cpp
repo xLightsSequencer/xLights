@@ -172,6 +172,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
     if (doc.IsOk()) {
         _globalFPPProxy = doc.GetRoot()->GetAttribute("GlobalFPPProxy");
+        _globalForceLocalIP = doc.GetRoot()->GetAttribute("GlobalForceLocalIP");
 
         std::map<std::string, bool> multiip;
         for (auto e = doc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
@@ -307,6 +308,8 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
     for (const auto& it : _controllers) {
         it->SetGlobalFPPProxy(_globalFPPProxy);
+        if (dynamic_cast<ControllerEthernet*>(it) != nullptr)
+            dynamic_cast<ControllerEthernet*>(it)->SetGlobalForceLocalIP(_globalForceLocalIP);
     }
 
     logger_base.debug("Networks loaded.");
@@ -326,6 +329,7 @@ bool OutputManager::Save() {
 
     root->AddAttribute("computer", wxGetHostName());
     root->AddAttribute("GlobalFPPProxy", _globalFPPProxy);
+    root->AddAttribute("GlobalForceLocalIP", _globalForceLocalIP);
 
     doc.SetRoot(root);
 
@@ -871,6 +875,17 @@ void OutputManager::SetGlobalFPPProxy(const std::string& globalFPPProxy)
     }
 }
 
+void OutputManager::SetGlobalForceLocalIP(const std::string& forceLocalIP)
+{
+    if (_globalForceLocalIP != forceLocalIP) {
+        _globalForceLocalIP = forceLocalIP;
+        _dirty = true;
+        for (const auto& it : _controllers) {
+            it->SetGlobalFPPProxy(forceLocalIP);
+        }
+    }
+}
+
 void OutputManager::SetShowDir(const std::string& showDir) {
 
     wxFileName fn(showDir + "/" + GetNetworksFileName());
@@ -966,15 +981,25 @@ bool OutputManager::IsDirty() const {
     return std::any_of(begin(_controllers), end(_controllers), [](Controller* c) {return c->IsDirty(); });
 }
 
-void OutputManager::SetForceFromIP(const std::string& forceFromIP) {
+std::list<std::string> OutputManager::GetForceIPs(const std::string& protocol) const
+{
+    std::list<std::string> res;
 
-    IPOutput::SetLocalIP(forceFromIP);
+    for (const auto& it : GetControllers()) {
+        auto e = dynamic_cast<ControllerEthernet*>(it);
+        if (e != nullptr && e->GetFirstOutput()->GetType() == protocol) {
+            auto fip = e->GetForceLocalIP();
+            if (std::find(begin(res), end(res), fip) == end(res))
+                res.push_back(fip);
+        }
+    }
+    return res;
 }
 
 bool OutputManager::AtLeastOneOutputUsingProtocol(const std::string& protocol) const {
 
-    for (const auto& it : GetAllOutputs()) {
-        if (it->GetType() == protocol) {
+    for (const auto& it : GetControllers()) {
+        if (it->GetFirstOutput()->GetType() == protocol) {
             return true;
         }
     }
@@ -1038,6 +1063,7 @@ bool OutputManager::StartOutput() {
 
         // make sure global FPP proxy is up to date ...
         it->SetGlobalFPPProxyIP(_globalFPPProxy);
+        it->SetGlobalForceLocalIP(_globalForceLocalIP);
 
         bool preok = ok;
         ok = it->Open() && ok;
@@ -1150,20 +1176,24 @@ void OutputManager::EndFrame() {
     if (IsSyncEnabled()) {
         if (_syncUniverse != 0) {
             if (AtLeastOneOutputUsingProtocol(OUTPUT_E131)) {
-                E131Output::SendSync(_syncUniverse);
+                for (const auto& it : GetForceIPs(OUTPUT_E131))
+                    E131Output::SendSync(_syncUniverse, it);
             }
         }
 
         if (AtLeastOneOutputUsingProtocol(OUTPUT_ARTNET)) {
-            ArtNetOutput::SendSync();
+            for (const auto& it : GetForceIPs(OUTPUT_ARTNET))
+                ArtNetOutput::SendSync(it);
         }
 
         if (AtLeastOneOutputUsingProtocol(OUTPUT_DDP)) {
-            DDPOutput::SendSync();
+            for (const auto& it : GetForceIPs(OUTPUT_DDP))
+                DDPOutput::SendSync(it);
         }
 
         if (AtLeastOneOutputUsingProtocol(OUTPUT_ZCPP)) {
-            ZCPPOutput::SendSync();
+            for (const auto& it : GetForceIPs(OUTPUT_ZCPP))
+                ZCPPOutput::SendSync(it);
         }
     }
     _outputCriticalSection.Leave();
