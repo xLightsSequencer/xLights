@@ -29,6 +29,7 @@ public:
     virtual void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
                                     std::optional<double> startPercentage,
                                     double endPercentage) const = 0;
+    virtual bool HitTest(const wxPoint2DDouble& pt) const = 0;
 };
 
 // A path is simply a collection of segments. If there are at least two segments,
@@ -130,6 +131,8 @@ public:
     void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
                             std::optional<double> startPercentage,
                             double endPercentage) const override;
+    bool HitTest(const wxPoint2DDouble& pt) const override;
+
 
 protected:
     wxPoint2DDouble m_fromPt;
@@ -168,6 +171,7 @@ public:
     void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
                             std::optional<double> startPercentage,
                             double endPercentage) const override;
+    bool HitTest(const wxPoint2DDouble& pt) const override;
 
     wxPoint2DDouble ControlPoint() const
     {
@@ -218,6 +222,7 @@ public:
     void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
                             std::optional<double> startPercentage,
                             double endPercentage) const override;
+    bool HitTest(const wxPoint2DDouble& pt) const override;
 
     wxPoint2DDouble ControlPoint1() const
     {

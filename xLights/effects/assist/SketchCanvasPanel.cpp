@@ -121,7 +121,7 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
         }
 
         // Next, draw the selected path
-        pen = gc->CreatePen(wxGraphicsPenInfo(*wxBLACK, 1. / zoomLevel));
+        pen = gc->CreatePen(wxGraphicsPenInfo(m_pathHoveredOrGrabbbed ? *wxRED : *wxBLACK, 1. / zoomLevel));
         gc->SetPen(pen);
         std::vector<wxPoint>::size_type n = m_handles.size();
         wxGraphicsPath path(gc->CreatePath());
@@ -318,11 +318,17 @@ void SketchCanvasPanel::OnSketchLeftDown(wxMouseEvent& event)
         return;
     }
 
+    // Potentially moving a path around
+    if (m_pathHoveredOrGrabbbed) {
+        m_pathGrabbedPos = event.GetPosition();
+        m_pathGrabbed = true;
     // Updating 'grabbed' handle
-    for (std::vector<HandlePoint>::size_type i = 0; i < m_handles.size(); ++i) {
-        if (m_handles[i].state) {
-            m_grabbedHandleIndex = i;
-            break;
+    } else {
+        for (std::vector<HandlePoint>::size_type i = 0; i < m_handles.size(); ++i) {
+            if (m_handles[i].state) {
+                m_grabbedHandleIndex = i;
+                break;
+            }
         }
     }
 }
@@ -336,6 +342,11 @@ void SketchCanvasPanel::OnSketchLeftUp(wxMouseEvent& /*event*/)
     }
 
     m_grabbedHandleIndex = -1;
+    if (m_pathGrabbed) {
+        UpdatePathFromHandles();
+        m_parentPanel->sketchUpdatedFromCanvasPanel();
+        m_pathGrabbed = false;
+    }
 }
 
 void SketchCanvasPanel::OnSketchMouseMove(wxMouseEvent& event)
@@ -363,9 +374,22 @@ void SketchCanvasPanel::OnSketchMouseMove(wxMouseEvent& event)
         m.Set(m2d, mt);
     }
 
-    if (m_grabbedHandleIndex != -1) {
+    // dragging a handle
+    if (m_grabbedHandleIndex != -1 && event.ButtonIsDown(wxMOUSE_BTN_LEFT)) {
         m.Invert();
         m_handles[m_grabbedHandleIndex].pt = UItoNormalized(m.TransformPoint(m_mousePos));
+        Refresh();
+
+    // dragging a path
+    } else if (m_pathGrabbed && event.ButtonIsDown(wxMOUSE_BTN_LEFT)) {
+        m.Invert();
+        wxPoint2DDouble delta(m.TransformPoint(m_mousePos) - m.TransformPoint(m_pathGrabbedPos));
+        for (auto& handle : m_handles) {
+            wxPoint2DDouble handlePos(NormalizedToUI(handle.pt));
+            handlePos += delta;
+            handle.pt = UItoNormalized(handlePos);
+        }
+        m_pathGrabbedPos = m_mousePos;
         Refresh();
     } else {
         bool somethingChanged = false;
@@ -375,6 +399,32 @@ void SketchCanvasPanel::OnSketchMouseMove(wxMouseEvent& event)
             bool state = m_mousePos.GetDistanceSquare(transformedHandlePos) <= 20.25;
             if (state != handle.state) {
                 handle.state = state;
+                m_pathHoveredOrGrabbbed = false;
+                somethingChanged = true;
+            }
+        }
+
+        // do hit-testing over segments if we're not hovered over a handle
+        if (!somethingChanged && !HandleHoveredOrGrabbed()) {
+                bool hovered = false;
+
+            m.Invert();
+            wxPoint2DDouble transformedMousePos(m.TransformPoint(m_mousePos));
+            wxPoint2DDouble pt(UItoNormalized(transformedMousePos));
+
+            int pathIndex = m_parentPanel->m_pathsListBox->GetSelection();
+            if (pathIndex >= 0) {
+                auto paths(m_parentPanel->m_sketch.paths());
+                auto segments(paths[pathIndex]->segments());
+                for (const auto& segment : segments) {
+                    if (segment->HitTest(pt)) {
+                        hovered = true;
+                        break;
+                    }
+                }
+            }
+            if (hovered != m_pathHoveredOrGrabbbed) {
+                m_pathHoveredOrGrabbbed = hovered;
                 somethingChanged = true;
             }
         }
@@ -427,7 +477,7 @@ wxPoint2DDouble SketchCanvasPanel::NormalizedToUI(const wxPoint2DDouble& pt) con
 
     double x = pt.m_x * sz.GetWidth();
     double y = pt.m_y * sz.GetHeight();
-    return wxPoint2DDouble(o.x + x, o.y + (sz.GetHeight() - y - 1));
+    return wxPoint2DDouble(o.x + x, o.y + (sz.GetHeight() - y));
 }
 
 bool SketchCanvasPanel::IsControlPoint(const HandlePoint& handlePt)
@@ -601,7 +651,38 @@ void SketchCanvasPanel::UpdatePathFromHandles(long handleIndex)
 
 void SketchCanvasPanel::UpdatePathFromHandles()
 {
-    // todo
+    if (m_handles.size() < 2)
+        return;
+
+    auto pathIndex = m_parentPanel->m_pathsListBox->GetSelection();
+    if (pathIndex < 0 || pathIndex >= m_parentPanel->m_sketch.pathCount())
+        return;
+
+    auto path = std::make_shared<SketchEffectPath>();
+    auto startPt = m_handles.front().pt;
+    for (size_t i = 1; i < m_handles.size();) {
+        std::shared_ptr<SketchPathSegment> segment;
+        switch (m_handles[i].handlePointType) {
+        case Point:
+            segment = std::make_shared<SketchLine>(startPt, m_handles[i].pt);
+            ++i;
+            break;
+        case QuadraticControlPt:
+            segment = std::make_shared<SketchQuadraticBezier>(startPt, m_handles[i].pt, m_handles[i + 1].pt);
+            i += 2;
+            break;
+        case CubicControlPt1:
+            segment = std::make_shared<SketchCubicBezier>(startPt, m_handles[i].pt, m_handles[i + 1].pt, m_handles[i + 2].pt);
+            i += 3;
+            break;
+        default:
+            break;
+        }
+        path->appendSegment(segment);
+        startPt = segment->EndPoint();
+    }
+
+    m_parentPanel->m_sketch.updatePath(pathIndex, path);
 }
 
 std::shared_ptr<SketchEffectPath> SketchCanvasPanel::CreatePathFromHandles() const
@@ -642,6 +723,14 @@ std::shared_ptr<SketchEffectPath> SketchCanvasPanel::CreatePathFromHandles() con
         path->closePath();
 
     return path;
+}
+
+bool SketchCanvasPanel::HandleHoveredOrGrabbed() const
+{
+    for (const auto& handle : m_handles)
+        if (handle.state)
+            return true;
+    return false;
 }
 
 void SketchCanvasPanel::setBackgroundBitmap(std::unique_ptr<wxBitmap> bm)
