@@ -76,10 +76,14 @@ private:
     void UpdatePathFromHandles(long handleIndex);
     void UpdatePathFromHandles();
     std::shared_ptr<SketchEffectPath> CreatePathFromHandles() const;
+    bool HandleHoveredOrGrabbed() const;
 
     // Handles and PathState are for the currently active path
     std::vector<HandlePoint> m_handles;
-    std::vector<HandlePoint>::size_type m_grabbedHandleIndex = -1;
+    size_t m_grabbedHandleIndex = -1;
+    bool m_pathHoveredOrGrabbbed = false;
+    bool m_pathGrabbed = false;
+    wxPoint2DDouble m_pathGrabbedPos;
     PathState m_pathState = Undefined;
     bool m_pathClosed = false;
 

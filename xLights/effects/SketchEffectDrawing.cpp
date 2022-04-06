@@ -79,24 +79,44 @@ namespace
     std::vector<wxPoint2DDouble> piecewiseLinearApproximation(const wxPoint2DDouble& startPt,
                                                               const wxPoint2DDouble& ctrlPt1,
                                                               const wxPoint2DDouble& ctrlPt2,
-                                                              const wxPoint2DDouble& endPt)
+                                                              const wxPoint2DDouble& endPt,
+                                                              int numSteps = NUM_STEPS)
     {
-        std::vector<wxPoint2DDouble> pts(NUM_STEPS);
-        for (int i = 1; i <= NUM_STEPS; ++i)
-            pts[i - 1] = bezierPoint(i / float(NUM_STEPS), startPt, ctrlPt1, ctrlPt2, endPt);
+        std::vector<wxPoint2DDouble> pts(numSteps);
+        for (int i = 1; i <= numSteps; ++i)
+            pts[i - 1] = bezierPoint(i / float(numSteps), startPt, ctrlPt1, ctrlPt2, endPt);
 
         return pts;
     }
     std::vector<wxPoint2DDouble> piecewiseLinearApproximation(const wxPoint2DDouble& startPt,
                                                               const wxPoint2DDouble& ctrlPt,
-                                                              const wxPoint2DDouble& endPt)
+                                                              const wxPoint2DDouble& endPt,
+                                                              int numSteps = NUM_STEPS)
     {
-        std::vector<wxPoint2DDouble> pts(NUM_STEPS);
-        for (int i = 1; i <= NUM_STEPS; ++i)
-            pts[i - 1] = bezierPoint(i / float(NUM_STEPS), startPt, ctrlPt, endPt);
+        std::vector<wxPoint2DDouble> pts(numSteps);
+        for (int i = 1; i <= numSteps; ++i)
+            pts[i - 1] = bezierPoint(i / float(numSteps), startPt, ctrlPt, endPt);
 
         return pts;
     }
+
+    double minDistSqrPointToLineSegment(const wxPoint2DDouble& v, const wxPoint2DDouble& w, const wxPoint2DDouble& p)
+    {
+        double l2 = v.GetDistanceSquare(w);
+        if (l2 == 0.) //  v == w case
+            return p.GetDistance(v);
+
+        // Consider the line extending the segment, parameterized as v + t (w - v).
+        // We find projection of point p onto the line.
+        // It falls where t = [(p-v) . (w-v)] / |w-v|^2
+        // We clamp t from [0,1] to handle points outside the segent vw.
+        double dot = wxPoint2DDouble(p - v).GetDotProduct(wxPoint2DDouble(w - v));
+        double t = std::clamp(dot / l2, 0., 1.);
+        wxPoint2DDouble projection(v + t * (w - v));
+        return p.GetDistanceSquare(projection);
+    }
+
+    const double HIT_TEST_DIST_SQR_LIMIT = 0.0075 * 0.0075;
 }
 
 
@@ -124,6 +144,12 @@ void SketchLine::DrawPartialSegment(wxGraphicsPath& path, const wxSize&sz, std::
 
         path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
     }
+}
+
+bool SketchLine::HitTest(const wxPoint2DDouble& pt) const
+{
+    double distSqr = minDistSqrPointToLineSegment(m_fromPt, m_toPt, pt);
+    return distSqr <= HIT_TEST_DIST_SQR_LIMIT;
 }
 
 
@@ -166,6 +192,19 @@ void SketchQuadraticBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSiz
     }
 }
 
+bool SketchQuadraticBezier::HitTest(const wxPoint2DDouble& pt) const
+{
+    auto points = piecewiseLinearApproximation(m_fromPt, m_cp, m_toPt, 40);
+    wxPoint2DDouble startPt(points.front());
+    for (size_t i = 1; i < points.size(); ++i) {
+        double distSqr = minDistSqrPointToLineSegment(startPt, points[i], pt);
+        if (distSqr < HIT_TEST_DIST_SQR_LIMIT)
+            return true;
+        startPt = points[i];
+    }
+    return false;
+}
+
 
 double SketchCubicBezier::Length() const
 {
@@ -204,6 +243,20 @@ void SketchCubicBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSize& s
         }
     }
 }
+
+bool SketchCubicBezier::HitTest(const wxPoint2DDouble& pt) const
+{
+    auto points = piecewiseLinearApproximation(m_fromPt, m_cp1, m_cp2, m_toPt, 40);
+    wxPoint2DDouble startPt(points.front());
+    for (size_t i = 1; i < points.size(); ++i) {
+        double distSqr = minDistSqrPointToLineSegment(startPt, points[i], pt);
+        if (distSqr < HIT_TEST_DIST_SQR_LIMIT)
+            return true;
+        startPt = points[i];
+    }
+    return false;
+}
+
 
 double SketchEffectPath::Length() const
 {
