@@ -1582,8 +1582,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllToolbarControls(ACToolbar, enableSeq);
     mainSequencer->CheckBox_SuspendRender->Enable(enableSeq);
     enableAllToolbarControls(ViewToolBar, enable);
-    enableAllToolbarControls(OutputToolBar, enable);
-
+    PlayToolBar->EnableTool(ID_CHECKBOX_LIGHT_OUTPUT, enable);
 
     enableAllChildControls(EffectsPanel1, enableSeqNotAC);
     if (enableSeqNotAC) EffectsPanel1->ValidateWindow();

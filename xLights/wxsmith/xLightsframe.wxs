@@ -126,6 +126,15 @@
 						</object>
 						<label>Item label</label>
 					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_CHECKBOX_LIGHT_OUTPUT" variable="CheckBoxLightOutput" member="yes">
+							<bitmap stock_id="xlART_OUTPUT_LIGHTS" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Output To Lights</shorthelp>
+							<itemkind>Check</itemkind>
+							<handler function="OnCheckBoxLightOutputClick" entry="EVT_TOOL" />
+						</object>
+						<label>Output To Lights</label>
+					</object>
 				</object>
 				<name>Play Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>
@@ -525,59 +534,6 @@
 				<closebutton>0</closebutton>
 				<layer>10</layer>
 				<position>13</position>
-				<dockfixed>0</dockfixed>
-				<dockabledirection></dockabledirection>
-				<resizable>0</resizable>
-				<gripper>Default</gripper>
-				<destroyonclose>0</destroyonclose>
-				<firstadd>0</firstadd>
-			</object>
-			<object class="AuiManagerItem">
-				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_OUTPUT" subclass="xlAuiToolBar" variable="OutputToolBar" member="yes">
-					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_BITMAPBUTTON_TAB_INFO" variable="BitmapButtonTabInfo" member="yes">
-							<bitmap stock_id="wxART_INFORMATION" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Tips for using current tab</shorthelp>
-							<handler function="OnBitmapButtonTabInfoClick" entry="EVT_TOOL" />
-						</object>
-						<label>Information</label>
-					</object>
-					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_BUTTON_STOP_NOW" variable="ButtonStopNow" member="yes">
-							<bitmap stock_id="xlART_STOP_NOW" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Stop Now!</shorthelp>
-							<handler function="OnButtonStopNowClick" entry="EVT_TOOL" />
-						</object>
-						<label>Stop</label>
-					</object>
-					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_BUTTON_LIGHTS_OFF" variable="ButtonLightsOff" member="yes">
-							<bitmap stock_id="xlART_LIGHTS_OFF" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Lights Off</shorthelp>
-							<handler function="OnButtonLightsOffClick" entry="EVT_TOOL" />
-						</object>
-						<label>Lights Off</label>
-					</object>
-					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_CHECKBOX_LIGHT_OUTPUT" variable="CheckBoxLightOutput" member="yes">
-							<bitmap stock_id="xlART_OUTPUT_LIGHTS" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Output To Lights</shorthelp>
-							<itemkind>Check</itemkind>
-							<handler function="OnCheckBoxLightOutputClick" entry="EVT_TOOL" />
-						</object>
-						<label>Output To Lights</label>
-					</object>
-				</object>
-				<name>Output Tool Bar</name>
-				<standardpanetype>Toolbar</standardpanetype>
-				<caption>Output Tool Bar</caption>
-				<captionvisible>0</captionvisible>
-				<minimizebutton>0</minimizebutton>
-				<maximizebutton>0</maximizebutton>
-				<pinbutton>0</pinbutton>
-				<closebutton>0</closebutton>
-				<layer>10</layer>
-				<position>25</position>
 				<dockfixed>0</dockfixed>
 				<dockabledirection></dockabledirection>
 				<resizable>0</resizable>

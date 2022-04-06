@@ -446,9 +446,7 @@ public:
     void OnButtonNetworkMoveDownClick(wxCommandEvent& event);
     void OnButtonSaveSetupClick(wxCommandEvent& event);
     void OnBitmapButtonTabInfoClick(wxCommandEvent& event);
-    void OnButtonLightsOffClick(wxCommandEvent& event);
     void OnCheckBoxLightOutputClick(wxCommandEvent& event);
-    void OnButtonStopNowClick(wxCommandEvent& event);
     void OnBitmapButtonOpenSeqClick(wxCommandEvent& event);
     void OnBitmapButtonSaveSeqClick(wxCommandEvent& event);
     void OnClose(wxCloseEvent& event);
@@ -631,6 +629,7 @@ public:
     static const long ID_AUITOOLBAR_FIRST_FRAME;
     static const long ID_AUITOOLBAR_LAST_FRAME;
     static const long ID_AUITOOLBAR_REPLAY_SECTION;
+    static const long ID_CHECKBOX_LIGHT_OUTPUT;
     static const long ID_AUITOOLBAR_PLAY;
     static const long ID_AUITOOLBARITEM2;
     static const long ID_AUITOOLBARITEM5;
@@ -664,11 +663,6 @@ public:
     static const long ID_AUITOOLBAR_AC;
     static const long ID_AUITOOLBARITEM14;
     static const long ID_AUITOOLBAR_VIEW;
-    static const long ID_BITMAPBUTTON_TAB_INFO;
-    static const long ID_BUTTON_STOP_NOW;
-    static const long ID_BUTTON_LIGHTS_OFF;
-    static const long ID_CHECKBOX_LIGHT_OUTPUT;
-    static const long ID_AUITOOLBAR_OUTPUT;
     static const long ID_AUIEFFECTSTOOLBAR;
     static const long ID_BUTTON3;
     static const long ID_BUTTON11;
@@ -968,7 +962,6 @@ public:
     xlAuiToolBar* EditToolBar;
     xlAuiToolBar* EffectsToolBar;
     xlAuiToolBar* MainToolBar;
-    xlAuiToolBar* OutputToolBar;
     xlAuiToolBar* PlayToolBar;
     xlAuiToolBar* ViewToolBar;
     xlAuiToolBar* WindowMgmtToolbar;
