@@ -159,6 +159,8 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
             case CubicCurveToNewPoint:
                 pen = gc->CreatePen(wxGraphicsPenInfo(*wxBLUE, 2. / zoomLevel, wxPENSTYLE_SHORT_DASH));
                 break;
+            default:
+                break;
             }
             gc->SetPen(pen);
 
@@ -264,6 +266,8 @@ void SketchCanvasPanel::OnSketchKeyDown(wxKeyEvent& event)
             break;
         case CubicCurveToNewPoint:
             m_pathState = LineToNewPoint;
+            break;
+        default:
             break;
         }
         Refresh();
@@ -626,6 +630,8 @@ std::shared_ptr<SketchEffectPath> SketchCanvasPanel::CreatePathFromHandles() con
                                                           m_handles[index + 2].pt,
                                                           m_handles[index + 3].pt);
             index += 3;
+            break;
+        default:
             break;
         }
 

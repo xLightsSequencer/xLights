@@ -298,6 +298,8 @@ void SketchPathDialog::OnSketchPaint(wxPaintEvent& event)
             case CubicCurveToNewPoint:
                 pen = gc->CreatePen(wxGraphicsPenInfo(*wxBLUE, 2. / zoomLevel, wxPENSTYLE_SHORT_DASH));
                 break;
+            default:
+                break;
             }
             gc->SetPen(pen);
 
@@ -401,6 +403,8 @@ void SketchPathDialog::OnSketchKeyDown(wxKeyEvent& event)
             break;
         case CubicCurveToNewPoint:
             m_pathState = LineToNewPoint;
+            break;
+        default:
             break;
         }
         m_sketchPanel->Refresh();
@@ -714,9 +718,8 @@ void SketchPathDialog::UpdatePathFromHandles()
             segment = std::make_shared<SketchCubicBezier>(startPt, m_handles[i].pt, m_handles[i + 1].pt, m_handles[i + 2].pt);
             i += 3;
             break;
-        default: {
-            int x = 1;
-        }
+        default:
+            break;
         }
         path->appendSegment(segment);
         startPt = segment->EndPoint();
@@ -871,6 +874,8 @@ std::shared_ptr<SketchEffectPath> SketchPathDialog::CreatePathFromHandles() cons
                                                           m_handles[index + 3].pt);
             index += 3;
             break;
+        default:
+            break;
         }
 
         if (segment != nullptr)
@@ -894,8 +899,7 @@ void SketchPathDialog::PopulatePathListBoxFromSketch()
 {
     m_pathsListBox->Clear();
 
-    int i = 0;
-    for (const auto& path : m_sketch.paths()) {
+    for (int i = 0; i < m_sketch.paths().size(); ++i) {
         wxString text;
         text.sprintf("Path %d", i + 1);
         m_pathsListBox->Insert(text, i++);

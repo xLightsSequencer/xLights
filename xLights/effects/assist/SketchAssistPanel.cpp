@@ -266,8 +266,7 @@ void SketchAssistPanel::populatePathListBoxFromSketch()
 {
     m_pathsListBox->Clear();
 
-    int i = 0;
-    for (const auto& path : m_sketch.paths()) {
+    for (int i = 0; i < m_sketch.paths().size(); ++i) {
         wxString text;
         text.sprintf("Path %d", i + 1);
         m_pathsListBox->Insert(text, i++);
