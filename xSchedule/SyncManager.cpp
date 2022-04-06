@@ -27,32 +27,32 @@ std::unique_ptr<SyncBase> SyncManager::CreateSync(SYNCMODE sm, REMOTEMODE rm) co
     wxASSERT(_scheduleManager != nullptr);
     if (sm == SYNCMODE::OSCMASTER || rm == REMOTEMODE::OSCSLAVE)
     {
-        return std::make_unique<SyncOSC>(SyncOSC(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
+        return std::make_unique<SyncOSC>(SyncOSC(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     }
     else if (sm == SYNCMODE::ARTNETMASTER || rm == REMOTEMODE::ARTNETSLAVE)
     {
-        return std::make_unique<SyncArtNet>(SyncArtNet(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
+        return std::make_unique<SyncArtNet>(SyncArtNet(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     }
     else if (sm == SYNCMODE::FPPBROADCASTMASTER)
     {
-        return std::make_unique<SyncBroadcastFPP>(SyncBroadcastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
+        return std::make_unique<SyncBroadcastFPP>(SyncBroadcastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     }
     else if (sm == SYNCMODE::FPPUNICASTMASTER)
     {
-        return std::make_unique<SyncUnicastFPP>(SyncUnicastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
+        return std::make_unique<SyncUnicastFPP>(SyncUnicastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     }
     else if (sm == SYNCMODE::FPPUNICASTCSVMASTER || rm == REMOTEMODE::FPPCSVSLAVE)
     {
-        return std::make_unique<SyncUnicastCSVFPP>(SyncUnicastCSVFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
+        return std::make_unique<SyncUnicastCSVFPP>(SyncUnicastCSVFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     }
     else if (sm == SYNCMODE::FPPMULTICASTMASTER)
     {
-        return std::make_unique<SyncMulticastFPP>(SyncMulticastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
+        return std::make_unique<SyncMulticastFPP>(SyncMulticastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     }
     else if (rm == REMOTEMODE::FPPSLAVE || rm == REMOTEMODE::FPPBROADCASTSLAVE || rm == REMOTEMODE::FPPUNICASTSLAVE)
     {
         // really doesnt matter which FPP I create
-        return std::make_unique<SyncMulticastFPP>(SyncMulticastFPP(sm, REMOTEMODE::FPPSLAVE, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
+        return std::make_unique<SyncMulticastFPP>(SyncMulticastFPP(sm, REMOTEMODE::FPPSLAVE, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     }
     else if (sm == SYNCMODE::MIDIMASTER || rm == REMOTEMODE::MIDISLAVE)
     {
@@ -135,7 +135,7 @@ void SyncManager::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t ste
     }
 }
 
-void SyncManager::Start(int mode, REMOTEMODE remoteMode)
+void SyncManager::Start(int mode, REMOTEMODE remoteMode, const std::string& localIP)
 {
     if (mode & static_cast<int>(SYNCMODE::FPPBROADCASTMASTER)) {
         AddMaster(SYNCMODE::FPPBROADCASTMASTER);
@@ -214,14 +214,14 @@ void SyncManager::Start(int mode, REMOTEMODE remoteMode)
         SetRemote(REMOTEMODE::SMPTESLAVE);
     }
 
-    _scheduleManager->GetListenerManager()->StartListeners();
+    _scheduleManager->GetListenerManager()->StartListeners(localIP);
 }
 
-void SyncManager::Stop()
+void SyncManager::Stop(const std::string& localIP)
 {
     SetRemote(REMOTEMODE::DISABLED);
     ClearMasters();
-    _scheduleManager->GetListenerManager()->StartListeners();
+    _scheduleManager->GetListenerManager()->StartListeners(localIP);
 }
 
 bool SyncManager::IsTimecodeSlave() const

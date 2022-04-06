@@ -53,6 +53,14 @@ ScheduleOptions* PlayListItem::GetOptions() const
     return sm->GetOptions();
 }
 
+std::string PlayListItem::GetLocalIP() const
+{
+    ScheduleManager* sm = xScheduleFrame::GetScheduleManager();
+    if (sm == nullptr)
+        return "";
+    return sm->GetForceLocalIP();
+}
+
 void PlayListItem::Load(wxXmlNode* node)
 {
     _type = node->GetName();

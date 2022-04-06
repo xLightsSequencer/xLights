@@ -23,12 +23,12 @@ class ListenerARTNet : public ListenerBase
     bool IsValidHeader(uint8_t* buffer);
 
 public:
-    ListenerARTNet(ListenerManager* _listenerManager);
+    ListenerARTNet(ListenerManager* _listenerManager, const std::string& localIP);
     virtual ~ListenerARTNet() {}
     virtual void Start() override;
     virtual void Stop() override;
     virtual std::string GetType() const override { return "ARTNet"; }
-    virtual void StartProcess() override;
+    virtual void StartProcess(const std::string& localIP) override;
     virtual void StopProcess() override;
     virtual void Poll() override;
 };

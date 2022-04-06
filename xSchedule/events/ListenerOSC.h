@@ -22,12 +22,12 @@ class ListenerOSC : public ListenerBase
     wxDatagramSocket* _socket;
 
 public:
-    ListenerOSC(ListenerManager* _listenerManager);
+    ListenerOSC(ListenerManager* _listenerManager, const std::string& localIP);
     virtual ~ListenerOSC() {}
     virtual void Start() override;
     virtual void Stop() override;
     virtual std::string GetType() const override { return "OSC"; }
-    virtual void StartProcess() override;
+    virtual void StartProcess(const std::string& localIP) override;
     virtual void StopProcess() override;
     virtual void Poll() override;
 };

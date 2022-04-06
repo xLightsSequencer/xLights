@@ -26,14 +26,15 @@ class ListenerBase
         ListenerThread* _thread;
         bool _isOk;
         std::atomic<int> _frameMS;
+        std::string _localIP;
 
 	public:
-        ListenerBase(ListenerManager* listenerManager);
+        ListenerBase(ListenerManager* listenerManager, const std::string& localIP);
 		virtual ~ListenerBase() {}
 		virtual void Start() = 0;
         virtual void Stop() = 0;
         virtual std::string GetType() const = 0;
-        virtual void StartProcess() = 0;
+        virtual void StartProcess(const std::string& localIP) = 0;
         virtual void StopProcess() = 0;
         bool IsOk() const { return _isOk; }
         virtual void Poll() {};
@@ -44,10 +45,11 @@ class ListenerThread : public wxThread
 {
     bool _stop = false;
     ListenerBase* _listener = nullptr;
-    bool _running = false;;
+    bool _running = false;
+    std::string _localIP;
 
 public:
-    ListenerThread(ListenerBase* listener);
+    ListenerThread(ListenerBase* listener, const std::string& localIP);
     virtual ~ListenerThread()
     {
         Stop();

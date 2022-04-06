@@ -139,6 +139,9 @@ class ScheduleManager
         const SyncManager* GetSyncManager() const { return _syncManager.get(); }
         int GetTimerAdjustment() const { return _timerAdjustment; }
         std::string GetOurIP() const;
+        void SetForceLocalIP(const std::string& forceLocalIP);
+        std::string GetForceLocalIP() const;
+        void ScheduleManager::ForceLocalIP(const std::string& forceLocalIP);
         void SetTimerAdjustment(int timerAdjustment) { _timerAdjustment = timerAdjustment; }
         PlayList* GetPlayList(int  id) const;
         PlayList* GetBackgroundPlayList() const { return _backgroundPlayList; }

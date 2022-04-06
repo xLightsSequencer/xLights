@@ -27,7 +27,7 @@ bool ListenerCSVFPP::IsValidHeader(uint8_t* buffer)
             buffer[6] == '0';
 }
 
-ListenerCSVFPP::ListenerCSVFPP(ListenerManager* listenerManager) : ListenerBase(listenerManager)
+ListenerCSVFPP::ListenerCSVFPP(ListenerManager* listenerManager, const std::string& localIP) : ListenerBase(listenerManager, localIP)
 {
     _socket = nullptr;
 }
@@ -36,7 +36,7 @@ void ListenerCSVFPP::Start()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("FPP CSV listener starting.");
-    _thread = new ListenerThread(this);
+    _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerCSVFPP::Stop()
@@ -58,18 +58,18 @@ void ListenerCSVFPP::Stop()
     }
 }
 
-void ListenerCSVFPP::StartProcess()
+void ListenerCSVFPP::StartProcess(const std::string& localIP)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
+    if (localIP == "")
     {
         localaddr.AnyAddress();
     }
     else
     {
-        localaddr.Hostname(IPOutput::GetLocalIP());
+        localaddr.Hostname(localIP);
     }
     localaddr.Service(FPP_CTRL_CSV_PORT);
 

@@ -354,7 +354,7 @@ OSCPacket::~OSCPacket()
     if (_buffer != nullptr) delete _buffer;
 }
 
-void OSCPacket::Send(const std::string& ip, int port)
+void OSCPacket::Send(const std::string& ip, int port, const std::string& localIP)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -375,13 +375,13 @@ void OSCPacket::Send(const std::string& ip, int port)
     }
 
     wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
+    if (localIP == "")
     {
         localaddr.AnyAddress();
     }
     else
     {
-        localaddr.Hostname(IPOutput::GetLocalIP());
+        localaddr.Hostname(localIP);
     }
 
     wxDatagramSocket socket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);

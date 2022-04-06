@@ -93,6 +93,7 @@ protected:
     void SetStepLength(long stepLengthMS) { _stepLengthMS = stepLengthMS; }
     virtual bool SetPosition(size_t frame, size_t ms);
     ScheduleOptions* GetOptions() const;
+    std::string GetLocalIP() const;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() = 0;

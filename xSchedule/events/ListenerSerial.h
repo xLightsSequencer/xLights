@@ -28,13 +28,13 @@ class ListenerSerial : public ListenerBase
         int _valid; // how many chars in buffer are valid
 
 	public:
-        ListenerSerial(ListenerManager* _listenerManager, std::string commPort, std::string serialConfig, int baudRate, std::string protocol);
+        ListenerSerial(ListenerManager* _listenerManager, const std::string& commPort, const std::string& serialConfig, int baudRate, const std::string& protocol);
 		virtual ~ListenerSerial() {}
 		virtual void Start() override;
         virtual void Stop() override;
         virtual std::string GetType() const override { return "Serial"; }
         std::string GetCommPort() const { return _commPort; }
-        virtual void StartProcess() override;
+        virtual void StartProcess(const std::string& localIP) override;
         virtual void StopProcess() override;
         virtual void Poll() override;
         std::string GetProtocol() const { return _protocol; }

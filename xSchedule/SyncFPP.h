@@ -22,7 +22,7 @@ class SyncFPP : public SyncBase
 
 public:
 
-    static void Ping(bool remote);
+    static void Ping(bool remote, const std::string& localIP);
 
     SyncFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options) : SyncBase(sm, rm, options) {}
     virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const override;
@@ -38,7 +38,7 @@ class SyncBroadcastFPP : public SyncFPP
 
     public:
 
-        SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager);
+        SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP);
         SyncBroadcastFPP(SyncBroadcastFPP&& from) noexcept;
         virtual ~SyncBroadcastFPP();
         virtual std::string GetType() const override { return "FPPBROADCAST"; }
@@ -54,7 +54,7 @@ class SyncUnicastFPP : public SyncFPP
 
     public:
 
-        SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager);
+        SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP);
         SyncUnicastFPP(SyncUnicastFPP&& from) noexcept;
         virtual ~SyncUnicastFPP();
         virtual std::string GetType() const override { return "FPPUNICAST"; }
@@ -70,7 +70,7 @@ class SyncUnicastCSVFPP : public SyncFPP
 
 public:
 
-    SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager);
+    SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP);
     SyncUnicastCSVFPP(SyncUnicastCSVFPP&& from) noexcept;
     virtual ~SyncUnicastCSVFPP();
     virtual std::string GetType() const override { return "FPPCSV"; }
@@ -85,7 +85,7 @@ class SyncMulticastFPP : public SyncFPP
 
 public:
 
-    SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager);
+    SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP);
     SyncMulticastFPP(SyncMulticastFPP&& from) noexcept;
     virtual ~SyncMulticastFPP();
     virtual std::string GetType() const override { return "FPPMULTICAST"; }

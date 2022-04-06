@@ -30,7 +30,7 @@ bool ListenerARTNet::IsValidHeader(uint8_t* buffer)
         buffer[7] == 0x00;
 }
 
-ListenerARTNet::ListenerARTNet(ListenerManager* listenerManager) : ListenerBase(listenerManager)
+ListenerARTNet::ListenerARTNet(ListenerManager* listenerManager, const std::string& localIP) : ListenerBase(listenerManager, localIP)
 {
     _socket = nullptr;
 }
@@ -39,7 +39,7 @@ void ListenerARTNet::Start()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("ARTNet listener starting.");
-    _thread = new ListenerThread(this);
+    _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerARTNet::Stop()
@@ -59,16 +59,16 @@ void ListenerARTNet::Stop()
     }
 }
 
-void ListenerARTNet::StartProcess()
+void ListenerARTNet::StartProcess(const std::string& localIP)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "") {
+    if (localIP == "") {
         localaddr.AnyAddress();
     }
     else {
-        localaddr.Hostname(IPOutput::GetLocalIP());
+        localaddr.Hostname(localIP);
     }
     localaddr.Service(ARTNET_PORT);
 
