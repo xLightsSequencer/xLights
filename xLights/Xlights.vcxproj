@@ -275,6 +275,7 @@
     <ClCompile Include="DissolveTransitionPattern.cpp" />
     <ClCompile Include="DragColoursBitmapButton.cpp" />
     <ClCompile Include="DragValueCurveBitmapButton.cpp" />
+    <ClCompile Include="effects\assist\SketchAssistPanel.cpp" />
     <ClCompile Include="effects\FX.cpp" />
     <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
     <ClCompile Include="effects\KaleidoscopePanel.cpp" />
@@ -284,6 +285,7 @@
     <ClCompile Include="effects\ShaderPanel.cpp" />
     <ClCompile Include="effects\ShapeEffect.cpp" />
     <ClCompile Include="effects\ShapePanel.cpp" />
+    <ClCompile Include="effects\assist\SketchCanvasPanel.cpp" />
     <ClCompile Include="effects\SketchEffect.cpp" />
     <ClCompile Include="effects\SketchEffectDrawing.cpp" />
     <ClCompile Include="effects\SketchPanel.cpp" />
@@ -739,6 +741,7 @@
     <ClInclude Include="DragValueCurveBitmapButton.h" />
     <ClInclude Include="effects\assist\AssistPanel.h" />
     <ClInclude Include="effects\assist\PicturesAssistPanel.h" />
+    <ClInclude Include="effects\assist\SketchAssistPanel.h" />
     <ClInclude Include="effects\assist\xlGridCanvasEmpty.h" />
     <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
     <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
@@ -751,6 +754,7 @@
     <ClInclude Include="effects\ShaderPanel.h" />
     <ClInclude Include="effects\ShapeEffect.h" />
     <ClInclude Include="effects\ShapePanel.h" />
+    <ClInclude Include="effects\assist\SketchCanvasPanel.h" />
     <ClInclude Include="effects\SketchEffect.h" />
     <ClInclude Include="effects\SketchEffectDrawing.h" />
     <ClInclude Include="effects\SketchPanel.h" />

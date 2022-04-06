@@ -1044,6 +1044,10 @@
 		<Unit filename="effects/assist/AssistPanel.h" />
 		<Unit filename="effects/assist/PicturesAssistPanel.cpp" />
 		<Unit filename="effects/assist/PicturesAssistPanel.h" />
+		<Unit filename="effects/assist/SketchAssistPanel.cpp" />
+		<Unit filename="effects/assist/SketchAssistPanel.h" />
+		<Unit filename="effects/assist/SketchCanvasPanel.cpp" />
+		<Unit filename="effects/assist/SketchCanvasPanel.h" />
 		<Unit filename="effects/assist/xlGridCanvasEmpty.cpp" />
 		<Unit filename="effects/assist/xlGridCanvasEmpty.h" />
 		<Unit filename="effects/assist/xlGridCanvasMorph.cpp" />
