@@ -269,7 +269,7 @@ void SketchAssistPanel::populatePathListBoxFromSketch()
     for (int i = 0; i < m_sketch.paths().size(); ++i) {
         wxString text;
         text.sprintf("Path %d", i + 1);
-        m_pathsListBox->Insert(text, i++);
+        m_pathsListBox->Insert(text, i);
     }
 }
 
