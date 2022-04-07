@@ -702,8 +702,6 @@
 		<Unit filename="SevenSegmentDialog.h" />
 		<Unit filename="ShaderDownloadDialog.cpp" />
 		<Unit filename="ShaderDownloadDialog.h" />
-		<Unit filename="SketchPathDialog.cpp" />
-		<Unit filename="SketchPathDialog.h" />
 		<Unit filename="SplashDialog.cpp" />
 		<Unit filename="SplashDialog.h" />
 		<Unit filename="StartChannelDialog.cpp" />

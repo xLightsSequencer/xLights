@@ -964,7 +964,6 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="SearchPanel.cpp" />
-    <ClCompile Include="SketchPathDialog.cpp" />
     <ClCompile Include="effects\SketchEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
@@ -1948,7 +1947,6 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="SearchPanel.h" />
-    <ClInclude Include="SketchPathDialog.h" />
     <ClInclude Include="effects\SketchEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>

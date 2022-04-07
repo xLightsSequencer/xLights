@@ -619,7 +619,6 @@
     <ClCompile Include="SequenceViewManager.cpp" />
     <ClCompile Include="SevenSegmentDialog.cpp" />
     <ClCompile Include="ShaderDownloadDialog.cpp" />
-    <ClCompile Include="SketchPathDialog.cpp" />
     <ClCompile Include="SplashDialog.cpp" />
     <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
@@ -1083,7 +1082,6 @@
     <ClInclude Include="SequenceViewManager.h" />
     <ClInclude Include="SevenSegmentDialog.h" />
     <ClInclude Include="ShaderDownloadDialog.h" />
-    <ClInclude Include="SketchPathDialog.h" />
     <ClInclude Include="SpecialOptions.h" />
     <ClInclude Include="SplashDialog.h" />
     <ClInclude Include="StartChannelDialog.h" />

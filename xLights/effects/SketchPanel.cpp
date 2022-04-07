@@ -1,6 +1,5 @@
 #include "SketchPanel.h"
 #include "BulkEditControls.h"
-//#include "SketchPathDialog.h"
 
 //#include <wx/button.h>
 #include <wx/hyperlink.h>

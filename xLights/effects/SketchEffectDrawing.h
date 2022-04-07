@@ -22,7 +22,7 @@ public:
 
     virtual double Length() const = 0;
     virtual wxPoint2DDouble StartPoint() const = 0;
-    virtual void SetStartPoint(const wxPoint2DDouble&pt) = 0;
+    virtual void SetStartPoint(const wxPoint2DDouble& pt) = 0;
     virtual wxPoint2DDouble EndPoint() const = 0;
     virtual void SetEndPoint(const wxPoint2DDouble& pt) = 0;
     virtual void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const = 0;
@@ -37,9 +37,6 @@ public:
 class SketchEffectPath
 {
 public:
-    SketchEffectPath(double startDelay = 0.) :
-        m_startDelay(startDelay)
-    {}
     virtual ~SketchEffectPath() = default;
 
     double Length() const;
@@ -62,7 +59,6 @@ public:
     }
 
 protected:
-    double m_startDelay = 0.;
     std::vector<std::shared_ptr<SketchPathSegment>> m_segments;
     bool m_isClosed = false;
 };
@@ -132,7 +128,6 @@ public:
                             std::optional<double> startPercentage,
                             double endPercentage) const override;
     bool HitTest(const wxPoint2DDouble& pt) const override;
-
 
 protected:
     wxPoint2DDouble m_fromPt;

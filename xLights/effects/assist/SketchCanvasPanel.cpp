@@ -1,16 +1,18 @@
 #include "SketchCanvasPanel.h"
-#include "../assist/SketchAssistPanel.h"
+#include "../SketchEffectDrawing.h"
 
 #include <wx/dcbuffer.h>
-#include <wx/filepicker.h>
 #include <wx/graphics.h>
-#include <wx/listbox.h>
 
 namespace
 {
     const int BorderWidth = 5;
  
     const int MouseWheelLimit = 1440;
+
+    const double HandleRadius = 4.5;
+    const double HandleRadiusSquared = HandleRadius * HandleRadius;
+    const double HandleDiameter = 2 * HandleRadius;
 
     struct LinearInterpolater {
         double operator()(double t) const
@@ -40,9 +42,9 @@ BEGIN_EVENT_TABLE(SketchCanvasPanel, wxPanel)
 END_EVENT_TABLE()
 
 
-SketchCanvasPanel::SketchCanvasPanel(SketchAssistPanel* parentPanel, wxWindow*parent, wxWindowID id /*=wxID_ANY*/, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*=wxDefaultSize*/) :
+SketchCanvasPanel::SketchCanvasPanel(ISketchCanvasParent* sketchCanvasParent, wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*=wxDefaultSize*/) :
     wxPanel(parent, id, pos, size, wxNO_BORDER | wxWANTS_CHARS),
-    m_parentPanel(parentPanel)
+    m_sketchCanvasParent(sketchCanvasParent)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 }
@@ -78,7 +80,6 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
                   m_matrixComponents + 3, m_matrixComponents + 4, m_matrixComponents + 5);
         }
 
-
         // First, draw the background
         if (m_bgBitmap != nullptr)
             gc->DrawBitmap(*(m_bgBitmap.get()), bgRect.x, bgRect.y, bgRect.width, bgRect.height);
@@ -87,9 +88,10 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
         wxGraphicsPen pen = gc->CreatePen(wxGraphicsPenInfo(*wxLIGHT_GREY, 1. / zoomLevel));
         gc->SetPen(pen);
 
-        long selectedPathIndex = m_parentPanel->m_pathsListBox->GetSelection();
+        const SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
+        long selectedPathIndex = m_sketchCanvasParent->GetSelectedPathIndex();
         long pathIndex = 0;
-        for (const auto& path : m_parentPanel->m_sketch.paths()) {
+        for (const auto& path : sketch.paths()) {
             if (pathIndex++ == selectedPathIndex)
                 continue;
             wxGraphicsPath graphicsPath(gc->CreatePath());
@@ -192,7 +194,7 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
                 gc->SetBrush((m_handles[i].state) ? (*wxYELLOW_BRUSH)
                                                   : (IsControlPoint(m_handles[i]) ? (*wxBLUE_BRUSH) : (*wxLIGHT_GREY_BRUSH)));
 
-            gc->DrawEllipse(pt.m_x - 4.5 / zoomLevel, pt.m_y - 4.5 / zoomLevel, 9 / zoomLevel, 9 / zoomLevel);
+            gc->DrawEllipse(pt.m_x - HandleRadius / zoomLevel, pt.m_y - HandleRadius / zoomLevel, HandleDiameter / zoomLevel, HandleDiameter / zoomLevel);
         }
     }
 }
@@ -201,7 +203,7 @@ void SketchCanvasPanel::OnSketchKeyDown(wxKeyEvent& event)
 {
     int keycode = event.GetKeyCode();
     if (keycode == WXK_DELETE && (m_pathState == Undefined || m_pathState == DefineStartPoint)) {
-        int pathIndex = m_parentPanel->m_pathsListBox->GetSelection();
+        int pathIndex = m_sketchCanvasParent->GetSelectedPathIndex();
         std::optional<std::pair<int, int>> toErase;
         int index = 0;
         for (auto iter = m_handles.begin(); iter != m_handles.end(); ++iter, ++index) {
@@ -240,10 +242,10 @@ void SketchCanvasPanel::OnSketchKeyDown(wxKeyEvent& event)
                 m_handles.clear();
 
             if (m_handles.empty()) {
-                SketchEffectSketch& sketch(m_parentPanel->m_sketch);
+                SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
                 sketch.deletePath(pathIndex);
-                m_parentPanel->sketchUpdatedFromCanvasPanel();
-                m_parentPanel->populatePathListBoxFromSketch();
+                m_sketchCanvasParent->NotifySketchUpdated();
+                m_sketchCanvasParent->NotifySketchPathsUpdated();
             } else
                 UpdatePathFromHandles();
         }
@@ -251,11 +253,11 @@ void SketchCanvasPanel::OnSketchKeyDown(wxKeyEvent& event)
         Refresh();
     } else if (keycode == WXK_ESCAPE) {
         UpdatePathState(Undefined);
-        m_parentPanel->sketchUpdatedFromCanvasPanel();
+        m_sketchCanvasParent->NotifySketchUpdated();
     } else if (keycode == WXK_SPACE) {
         m_pathClosed = true;
         UpdatePathState(Undefined);
-        m_parentPanel->sketchUpdatedFromCanvasPanel();
+        m_sketchCanvasParent->NotifySketchUpdated();
     } else if (keycode == WXK_SHIFT) {
         switch (m_pathState) {
         case LineToNewPoint:
@@ -344,7 +346,7 @@ void SketchCanvasPanel::OnSketchLeftUp(wxMouseEvent& /*event*/)
     m_grabbedHandleIndex = -1;
     if (m_pathGrabbed) {
         UpdatePathFromHandles();
-        m_parentPanel->sketchUpdatedFromCanvasPanel();
+        m_sketchCanvasParent->NotifySketchUpdated();
         m_pathGrabbed = false;
     }
 }
@@ -396,7 +398,7 @@ void SketchCanvasPanel::OnSketchMouseMove(wxMouseEvent& event)
         for (auto& handle : m_handles) {
             wxPoint2DDouble handlePos(NormalizedToUI(handle.pt));
             wxPoint2DDouble transformedHandlePos(m.TransformPoint(handlePos));
-            bool state = m_mousePos.GetDistanceSquare(transformedHandlePos) <= 20.25;
+            bool state = m_mousePos.GetDistanceSquare(transformedHandlePos) <= HandleRadiusSquared;
             if (state != handle.state) {
                 handle.state = state;
                 m_pathHoveredOrGrabbbed = false;
@@ -406,15 +408,16 @@ void SketchCanvasPanel::OnSketchMouseMove(wxMouseEvent& event)
 
         // do hit-testing over segments if we're not hovered over a handle
         if (!somethingChanged && !HandleHoveredOrGrabbed()) {
-                bool hovered = false;
+            bool hovered = false;
 
             m.Invert();
             wxPoint2DDouble transformedMousePos(m.TransformPoint(m_mousePos));
             wxPoint2DDouble pt(UItoNormalized(transformedMousePos));
 
-            int pathIndex = m_parentPanel->m_pathsListBox->GetSelection();
+            int pathIndex = m_sketchCanvasParent->GetSelectedPathIndex();
             if (pathIndex >= 0) {
-                auto paths(m_parentPanel->m_sketch.paths());
+                const SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
+                auto paths = sketch.paths();
                 auto segments(paths[pathIndex]->segments());
                 for (const auto& segment : segments) {
                     if (segment->HitTest(pt)) {
@@ -486,49 +489,29 @@ bool SketchCanvasPanel::IsControlPoint(const HandlePoint& handlePt)
     return hpt == QuadraticControlPt || hpt == CubicControlPt1 || hpt == CubicControlPt2;
 }
 
-void SketchCanvasPanel::UpdatePathState(PathState pathState)
+void SketchCanvasPanel::UpdatePathState(SketchCanvasPathState pathState)
 {
     m_pathState = pathState;
 
-    switch (m_pathState) {
-    case Undefined:
-        m_parentPanel->m_startPathBtn->Enable();
-        m_parentPanel->m_endPathBtn->Disable();
-        m_parentPanel->m_closePathBtn->Disable();
-        break;
-    case DefineStartPoint:
-        m_parentPanel->m_startPathBtn->Disable();
-        m_parentPanel->m_endPathBtn->Disable();
-        m_parentPanel->m_closePathBtn->Disable();
-        break;
-    case LineToNewPoint:
-    case QuadraticCurveToNewPoint:
-    case CubicCurveToNewPoint:
-        m_parentPanel->m_startPathBtn->Disable();
-        m_parentPanel->m_endPathBtn->Enable();
-        m_parentPanel->m_closePathBtn->Enable();
-        break;
-    }
+    m_sketchCanvasParent->NotifyPathStateUpdated(m_pathState);
 
     Refresh();
 
     // If we're Undefined, have some handles, and no path
     // selected, I think we've added a new one!!
-    if (m_pathState == Undefined && !m_handles.empty() && m_parentPanel->m_pathsListBox->GetSelection() < 0) {
+    if (m_pathState == Undefined && !m_handles.empty() && m_sketchCanvasParent->GetSelectedPathIndex() < 0) {
         auto path = CreatePathFromHandles();
         if (path != nullptr) {
-            SketchEffectSketch& sketch(m_parentPanel->m_sketch);
+            SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
             sketch.appendPath(path);
-            int n = static_cast<int>(sketch.pathCount());
-            wxString str;
-            str.sprintf("Path %d", n);
-            m_parentPanel->m_pathsListBox->Insert(str, n - 1);
-            m_parentPanel->m_pathsListBox->Select(n - 1);
+
+            m_sketchCanvasParent->NotifySketchPathsUpdated();
+            m_sketchCanvasParent->SelectLastPath();
         }
     }
 }
 
-void SketchCanvasPanel::ResetHandlesState(PathState state /*Undefined*/)
+void SketchCanvasPanel::ResetHandlesState(SketchCanvasPathState state /*Undefined*/)
 {
     m_handles.clear();
     m_grabbedHandleIndex = -1;
@@ -538,7 +521,7 @@ void SketchCanvasPanel::ResetHandlesState(PathState state /*Undefined*/)
 
 void SketchCanvasPanel::UpdateHandlesForPath(long pathIndex)
 {
-    const SketchEffectSketch& sketch(m_parentPanel->m_sketch);
+    const SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
 
     if (pathIndex < 0 || pathIndex >= sketch.paths().size())
         return;
@@ -577,10 +560,10 @@ void SketchCanvasPanel::UpdateHandlesForPath(long pathIndex)
 
 void SketchCanvasPanel::UpdatePathFromHandles(long handleIndex)
 {
-    SketchEffectSketch& sketch(m_parentPanel->m_sketch);
+    SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
     auto paths(sketch.paths());
 
-    auto pathIndex = m_parentPanel->m_pathsListBox->GetSelection();
+    auto pathIndex = m_sketchCanvasParent->GetSelectedPathIndex();
     if (pathIndex < 0 || pathIndex >= paths.size())
         return;
 
@@ -602,7 +585,7 @@ void SketchCanvasPanel::UpdatePathFromHandles(long handleIndex)
         //         the start point, we need to update that last 'extra' segment
         if ((*iter)->isClosed())
             segments.back()->SetEndPoint(normalizedHandlePt);
-        m_parentPanel->sketchUpdatedFromCanvasPanel();
+        m_sketchCanvasParent->NotifySketchUpdated();
         return;
     }
 
@@ -646,7 +629,7 @@ void SketchCanvasPanel::UpdatePathFromHandles(long handleIndex)
             }
         }
     }
-    m_parentPanel->sketchUpdatedFromCanvasPanel();
+    m_sketchCanvasParent->NotifySketchUpdated();
 }
 
 void SketchCanvasPanel::UpdatePathFromHandles()
@@ -654,8 +637,9 @@ void SketchCanvasPanel::UpdatePathFromHandles()
     if (m_handles.size() < 2)
         return;
 
-    auto pathIndex = m_parentPanel->m_pathsListBox->GetSelection();
-    if (pathIndex < 0 || pathIndex >= m_parentPanel->m_sketch.pathCount())
+    SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
+    auto pathIndex = m_sketchCanvasParent->GetSelectedPathIndex();
+    if (pathIndex < 0 || pathIndex >= sketch.pathCount())
         return;
 
     auto path = std::make_shared<SketchEffectPath>();
@@ -682,7 +666,8 @@ void SketchCanvasPanel::UpdatePathFromHandles()
         startPt = segment->EndPoint();
     }
 
-    m_parentPanel->m_sketch.updatePath(pathIndex, path);
+    sketch.updatePath(pathIndex, path);
+    m_sketchCanvasParent->NotifySketchUpdated();
 }
 
 std::shared_ptr<SketchEffectPath> SketchCanvasPanel::CreatePathFromHandles() const
