@@ -509,6 +509,23 @@ void Effect::SetSettings(const std::string& settings, bool keepxsettings, bool j
     }
 }
 
+// this is not sensitive to the order of the settings in the string ... it compares the effect settings with the provide settings string and return true if anything has changed
+bool Effect::SettingsChanged(const std::string& settings)
+{
+    SettingsMap x;
+    x.Parse(settings);
+
+    if (mSettings.size() != x.size())
+        return true;
+
+    for (const auto& it: mSettings) {
+        if (it.second != x[it.first])
+            return true;
+    }
+
+    return false;
+}
+
 void Effect::PressButton(RenderableEffect* re, const std::string& id)
 {
     bool changed = false;

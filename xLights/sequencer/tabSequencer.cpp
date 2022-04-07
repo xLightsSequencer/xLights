@@ -1180,7 +1180,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                 selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
                 selectedEffect = effect;
 
-                if (effect->GetPaletteMap().empty() || resetStrings) {
+                if (effect->GetPaletteMap().empty() || resetStrings || effect->SettingsChanged(selectedEffectString)) { // the settings changed is necessary because there are some situations where a new effect wont render because somehow the selectedEffectString changes without triggering a render. I think it relates to effects that auto-set certain values based on the model such as faces and states
                     effect->SetPalette(selectedEffectPalette);
                     effect->SetSettings(selectedEffectString, true);
                     if (!_suspendRender) {

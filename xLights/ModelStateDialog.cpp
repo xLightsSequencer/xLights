@@ -159,7 +159,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer3->Add(Button_7Segment, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	SingleNodeGrid = new wxGrid(CoroPanel, ID_GRID_COROSTATES, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID_COROSTATES"));
-	SingleNodeGrid->CreateGrid(40,3);
+	SingleNodeGrid->CreateGrid(200,3);
 	SingleNodeGrid->SetMinSize(wxDLG_UNIT(CoroPanel,wxSize(-1,200)));
 	SingleNodeGrid->EnableEditing(true);
 	SingleNodeGrid->EnableGridLines(true);
@@ -188,7 +188,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer6->Add(Button_7Seg, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
 	NodeRangeGrid = new wxGrid(NodeRangePanel, ID_GRID3, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID3"));
-	NodeRangeGrid->CreateGrid(40,3);
+	NodeRangeGrid->CreateGrid(200,3);
 	NodeRangeGrid->SetMinSize(wxDLG_UNIT(NodeRangePanel,wxSize(-1,200)));
 	NodeRangeGrid->EnableEditing(true);
 	NodeRangeGrid->EnableGridLines(true);
@@ -364,10 +364,9 @@ void ModelStateDialog::SetStateInfo(Model *cls, std::map< std::string, std::map<
 
 void ModelStateDialog::GetStateInfo(std::map< std::string, std::map<std::string, std::string> > &finfo) {
     finfo.clear();
-    for (std::map<std::string, std::map<std::string, std::string> >::iterator it = stateData.begin();
-         it != stateData.end(); ++it) {
-        if (!it->second.empty()) {
-            finfo[it->first] = it->second;
+    for (const auto& it : stateData) {
+        if (!it.second.empty()) {
+            finfo[it.first] = it.second;
         }
     }
 }
@@ -383,17 +382,23 @@ static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
     for (int x = 0; x < grid->GetNumberRows(); x++) {
         wxString pname = "s" + grid->GetRowLabelValue(x);
         pname.Replace(" ", "");
-        grid->SetCellValue(x, CHANNEL_COL, info[pname.ToStdString()]);
+        if (info.find(pname) != end(info) || info.find(pname + "-Name") != end(info) || info.find(pname + "-Color") != end(info)) {
+            grid->SetCellValue(x, CHANNEL_COL, info[pname.ToStdString()]);
 
-        wxString n = info[pname.ToStdString() + "-Name"];
-        grid->SetCellValue(x, NAME_COL, n);
+            wxString n = info[pname.ToStdString() + "-Name"];
+            grid->SetCellValue(x, NAME_COL, n);
 
-        wxString c = info[pname.ToStdString() + "-Color"];
-        if (c == "") {
-            c = "#FFFFFF";
+            wxString c = info[pname.ToStdString() + "-Color"];
+            if (c == "") {
+                c = "#FFFFFF";
+            }
+            xlColor color(c);
+            grid->SetCellBackgroundColour(x, COLOUR_COL, color.asWxColor());
+        } else {
+            grid->SetCellValue(x, CHANNEL_COL, "");
+            grid->SetCellValue(x, NAME_COL, "");
+            grid->SetCellBackgroundColour(x, COLOUR_COL, *wxWHITE);
         }
-        xlColor color(c);
-        grid->SetCellBackgroundColour(x, COLOUR_COL, color.asWxColor());
     }
     return customColor;
 }
@@ -520,17 +525,23 @@ void ModelStateDialog::GetValue(wxGrid *grid, const int row, const int col, std:
     key.Replace(" ", "");
     if (key != "")
     {
-        if (col == COLOUR_COL) {
-            key += "-Color";
-            xlColor color = grid->GetCellBackgroundColour(row, col);
-            info[key.ToStdString()] = color;
-        }
-        else if (col == NAME_COL) {
-            key += "-Name";
-            info[key.ToStdString()] = grid->GetCellValue(row, col).Lower();
+        if (grid->GetCellValue(row, NAME_COL) != "" || grid->GetCellBackgroundColour(row, COLOUR_COL) != *wxWHITE || grid->GetCellValue(row, CHANNEL_COL) != "") {
+            if (col == COLOUR_COL) {
+                key += "-Color";
+                xlColor color = grid->GetCellBackgroundColour(row, col);
+                info[key.ToStdString()] = color;
+            } else if (col == NAME_COL) {
+                key += "-Name";
+                info[key.ToStdString()] = grid->GetCellValue(row, col).Lower();
+            } else {
+                info[key.ToStdString()] = grid->GetCellValue(row, col);
+            }
         }
         else {
-            info[key.ToStdString()] = grid->GetCellValue(row, col);
+            // if all the values are their defaults then delete them all so we dont keep them unnecessarily
+            info.erase((key + "-Color").ToStdString());
+            info.erase((key + "-Name").ToStdString());
+            info.erase(key.ToStdString());
         }
     }
     SelectRow(grid, row);

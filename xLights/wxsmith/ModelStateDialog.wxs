@@ -116,7 +116,7 @@
 												<object class="sizeritem">
 													<object class="wxGrid" name="ID_GRID_COROSTATES" variable="SingleNodeGrid" member="yes">
 														<cols>3</cols>
-														<rows>40</rows>
+														<rows>200</rows>
 														<labelrowheight>20</labelrowheight>
 														<labelcolwidth>0</labelcolwidth>
 														<defaultcolsize>150</defaultcolsize>
@@ -181,7 +181,7 @@
 												<object class="sizeritem">
 													<object class="wxGrid" name="ID_GRID3" variable="NodeRangeGrid" member="yes">
 														<cols>3</cols>
-														<rows>40</rows>
+														<rows>200</rows>
 														<labelrowheight>20</labelrowheight>
 														<labelcolwidth>0</labelcolwidth>
 														<defaultcolsize>150</defaultcolsize>

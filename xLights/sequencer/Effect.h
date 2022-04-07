@@ -118,6 +118,7 @@ public:
     std::string GetSettingsAsString() const;
     std::string GetSettingsAsJSON() const;
     void SetSettings(const std::string &settings, bool keepxsettings, bool json = false);
+    bool SettingsChanged(const std::string& settings);
     void ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid);
     bool UsesColour(const std::string& from);
     int ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to);

@@ -2251,9 +2251,10 @@ void Model::ParseStateInfo(wxXmlNode *f, std::map<std::string, std::map<std::str
     }
     wxXmlAttribute *att = f->GetAttributes();
     while (att != nullptr) {
-        if (att->GetName() != "Name")
-        {
+        if (att->GetName() != "Name") {
+            if (att->GetValue() != "") { // we only save non default values to keep xml file small
                 stateInfo[name][att->GetName().ToStdString()] = att->GetValue();
+            }
         }
         att = att->GetNext();
     }
