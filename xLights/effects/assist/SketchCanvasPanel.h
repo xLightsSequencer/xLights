@@ -1,28 +1,43 @@
 #pragma once
 
 #include <wx/geometry.h>
-#include <wx/image.h>
 #include <wx/panel.h>
 
 #include <memory>
 #include <vector>
 
-class SketchAssistPanel;
 class SketchEffectPath;
+class SketchEffectSketch;
 
 class wxBitmap;
-class wxFilePickerCtrl;
+
+enum SketchCanvasPathState {
+    Undefined,
+    DefineStartPoint,
+    LineToNewPoint,
+    QuadraticCurveToNewPoint,
+    CubicCurveToNewPoint
+};
+
+// This interface is an attempt to decouple the SketchCanvasPanel from it's
+// parent UI. In the current implementation of the SketchCanvasPanel, only
+// a single path from the sketch can be selected (or none). This interface
+// assumes the parent UI follows that assumption with a SelectedPathIndex.
+class ISketchCanvasParent
+{
+public:
+    virtual SketchEffectSketch& GetSketch() = 0;
+    virtual int GetSelectedPathIndex() = 0;
+    virtual void NotifySketchUpdated() = 0;
+    virtual void NotifySketchPathsUpdated() = 0;
+    virtual void NotifyPathStateUpdated(SketchCanvasPathState state) = 0;
+    virtual void SelectLastPath() = 0;
+};
 
 class SketchCanvasPanel : public wxPanel
 {
 public:
-    enum PathState { Undefined,
-                     DefineStartPoint,
-                     LineToNewPoint,
-                     QuadraticCurveToNewPoint,
-                     CubicCurveToNewPoint };
-
-    SketchCanvasPanel(SketchAssistPanel* parentPanel, wxWindow* parent, wxWindowID id = wxID_ANY,
+    SketchCanvasPanel(ISketchCanvasParent* sketchCanvasParent, wxWindow* parent, wxWindowID id = wxID_ANY,
                       const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~SketchCanvasPanel() = default;
 
@@ -32,8 +47,8 @@ public:
     }
 
     void setBackgroundBitmap(std::unique_ptr<wxBitmap> bm);
-    void UpdatePathState(PathState state);
-    void ResetHandlesState(PathState pathState = Undefined);
+    void UpdatePathState(SketchCanvasPathState state);
+    void ResetHandlesState(SketchCanvasPathState pathState = Undefined);
     void UpdateHandlesForPath(long pathIndex);
     void ClosePath()
     {
@@ -84,10 +99,10 @@ private:
     bool m_pathHoveredOrGrabbbed = false;
     bool m_pathGrabbed = false;
     wxPoint2DDouble m_pathGrabbedPos;
-    PathState m_pathState = Undefined;
+    SketchCanvasPathState m_pathState = Undefined;
     bool m_pathClosed = false;
 
-    SketchAssistPanel* const m_parentPanel;
+    ISketchCanvasParent* const m_sketchCanvasParent;
     std::unique_ptr<wxBitmap> m_bgBitmap;
     int m_wheelRotation = 0;
     wxPoint2DDouble m_normalizedZoomPt;

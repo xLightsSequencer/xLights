@@ -101,14 +101,14 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     m_startPathBtn = new wxButton(this, wxID_ANY, "Start");
     m_endPathBtn = new wxButton(this, wxID_ANY, "End");
     m_closePathBtn = new wxButton(this, wxID_ANY, "Close");
-    auto clearSketchBtn = new wxButton(this, wxID_ANY, "Clear");
+    m_clearSketchBtn = new wxButton(this, wxID_ANY, "Clear");
 
     auto pathCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Path");
     pathCtrlsSizer->Add(m_startPathBtn, 1, wxALL | wxEXPAND, 3);
     pathCtrlsSizer->Add(m_endPathBtn, 1, wxALL | wxEXPAND, 3);
     pathCtrlsSizer->Add(m_closePathBtn, 1, wxALL | wxEXPAND, 3);
 
-    sketchCtrlsSizer->Add(clearSketchBtn, 1, wxALL | wxEXPAND, 3);
+    sketchCtrlsSizer->Add(m_clearSketchBtn, 1, wxALL | wxEXPAND, 3);
 
     pathSketchCtrlsSizer->AddGrowableCol(2);
     pathSketchCtrlsSizer->Add(pathCtrlsSizer, 1, wxALL, 2);
@@ -139,12 +139,12 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     Connect(m_startPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_StartPath);
     Connect(m_endPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_EndPath);
     Connect(m_closePathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ClosePath);
-    Connect(clearSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ClearSketch);
+    Connect(m_clearSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ClearSketch);
 
     m_pathsListBox->Connect(wxEVT_LISTBOX, (wxObjectEventFunction)&SketchAssistPanel::OnListBox_PathSelected, nullptr, this);
     m_pathsListBox->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&SketchAssistPanel::OnListBox_ContextMenu, nullptr, this);
 
-    m_sketchCanvasPanel->UpdatePathState(SketchCanvasPanel::Undefined);
+    m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::Undefined);
 }
 
 void SketchAssistPanel::SetSketchDef(const std::string& sketchDef)
@@ -152,7 +152,7 @@ void SketchAssistPanel::SetSketchDef(const std::string& sketchDef)
     if ( sketchDef != m_sketchDef) {
         m_sketchDef = sketchDef;
         m_sketch = SketchEffectSketch::SketchFromString(m_sketchDef);
-        updateUIFromSketch();
+        populatePathListBoxFromSketch();
         Refresh();
     }
 }
@@ -161,6 +161,62 @@ void SketchAssistPanel::ForwardKeyEvent(wxKeyEvent& event)
 {
     if (m_sketchCanvasPanel != nullptr)
         m_sketchCanvasPanel->OnSketchKeyDown(event);
+}
+
+SketchEffectSketch& SketchAssistPanel::GetSketch()
+{
+    return m_sketch;
+}
+
+int SketchAssistPanel::GetSelectedPathIndex()
+{
+    return m_pathsListBox->GetSelection();
+}
+
+void SketchAssistPanel::NotifySketchUpdated()
+{
+    m_sketchDef = m_sketch.toString();
+    if (m_sketchUpdateCB != nullptr)
+        m_sketchUpdateCB(m_sketchDef);
+}
+
+void SketchAssistPanel::NotifySketchPathsUpdated()
+{
+    populatePathListBoxFromSketch();
+}
+
+void SketchAssistPanel::NotifyPathStateUpdated(SketchCanvasPathState state)
+{
+    switch (state) {
+    case SketchCanvasPathState::Undefined:
+        m_startPathBtn->Enable();
+        m_endPathBtn->Disable();
+        m_closePathBtn->Disable();
+        m_clearSketchBtn->Enable();
+        break;
+    case SketchCanvasPathState::DefineStartPoint:
+        m_startPathBtn->Disable();
+        m_endPathBtn->Disable();
+        m_closePathBtn->Disable();
+        m_clearSketchBtn->Disable();
+        break;
+    case SketchCanvasPathState::LineToNewPoint:
+    case SketchCanvasPathState::QuadraticCurveToNewPoint:
+    case SketchCanvasPathState::CubicCurveToNewPoint:
+        m_startPathBtn->Disable();
+        m_endPathBtn->Enable();
+        m_closePathBtn->Enable();
+        m_clearSketchBtn->Disable();
+        break;
+    }
+}
+
+void SketchAssistPanel::SelectLastPath()
+{
+    unsigned n;
+
+    if ((n = m_pathsListBox->GetCount()) != 0)
+        m_pathsListBox->SetSelection(n - 1);
 }
 
 void SketchAssistPanel::OnFilePickerCtrl_FileChanged(wxCommandEvent& /*event*/)
@@ -180,24 +236,25 @@ void SketchAssistPanel::OnSlider_BgAlphaChanged(wxCommandEvent& event)
     m_bitmapAlpha = static_cast<unsigned char>(m_bgAlphaSlider->GetValue());
     updateBgImage();
 }
+
 void SketchAssistPanel::OnButton_StartPath(wxCommandEvent& /*event*/)
 {
-    m_sketchCanvasPanel->ResetHandlesState(SketchCanvasPanel::DefineStartPoint);
+    m_sketchCanvasPanel->ResetHandlesState(SketchCanvasPathState::DefineStartPoint);
 
     m_pathsListBox->DeselectAll();
 }
 
 void SketchAssistPanel::OnButton_EndPath(wxCommandEvent& /*event*/)
 {
-    m_sketchCanvasPanel->UpdatePathState(SketchCanvasPanel::Undefined);
-    sketchUpdatedFromCanvasPanel();
+    m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::Undefined);
+    NotifySketchUpdated();
 }
 
 void SketchAssistPanel::OnButton_ClosePath(wxCommandEvent& /*event*/)
 {
     m_sketchCanvasPanel->ClosePath();
-    m_sketchCanvasPanel->UpdatePathState(SketchCanvasPanel::Undefined);
-    sketchUpdatedFromCanvasPanel();
+    m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::Undefined);
+    NotifySketchUpdated();
 }
 
 void SketchAssistPanel::OnButton_ClearSketch(wxCommandEvent& /*event*/)
@@ -207,7 +264,7 @@ void SketchAssistPanel::OnButton_ClearSketch(wxCommandEvent& /*event*/)
     m_pathsListBox->Clear();
 
     m_sketchCanvasPanel->ResetHandlesState();
-    sketchUpdatedFromCanvasPanel();
+    NotifySketchUpdated();
 }
 
 void SketchAssistPanel::OnListBox_PathSelected(wxCommandEvent& /*event*/)
@@ -239,7 +296,7 @@ void SketchAssistPanel::OnPopupCommand(wxCommandEvent& event)
         m_sketchCanvasPanel->ResetHandlesState();
 
         populatePathListBoxFromSketch();
-        sketchUpdatedFromCanvasPanel();
+        NotifySketchUpdated();
     }
 }
 
@@ -257,11 +314,6 @@ void SketchAssistPanel::updateBgImage()
     m_sketchCanvasPanel->setBackgroundBitmap(std::make_unique<wxBitmap>(m_bgImage));
 }
 
-void SketchAssistPanel::updateUIFromSketch()
-{
-    populatePathListBoxFromSketch();
-}
-
 void SketchAssistPanel::populatePathListBoxFromSketch()
 {
     m_pathsListBox->Clear();
@@ -271,11 +323,4 @@ void SketchAssistPanel::populatePathListBoxFromSketch()
         text.sprintf("Path %d", i + 1);
         m_pathsListBox->Insert(text, i);
     }
-}
-
-void SketchAssistPanel::sketchUpdatedFromCanvasPanel()
-{
-    m_sketchDef = m_sketch.toString();
-    if (m_sketchUpdateCB != nullptr)
-        m_sketchUpdateCB(m_sketchDef);
 }

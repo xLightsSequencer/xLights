@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../SketchEffectDrawing.h"
+#include "SketchCanvasPanel.h"      // for ISketchCanvasParent
 
 #include <functional>
 #include <string>
@@ -10,13 +11,11 @@
 
 class wxButton;
 class wxFilePickerCtrl;
-class wxKeyEvent;
 class wxListBox;
 class wxSlider;
 
-class SketchCanvasPanel;
-
-class SketchAssistPanel : public wxPanel
+class SketchAssistPanel : public wxPanel,
+                          public ISketchCanvasParent
 {
 public:
     // Effect panels are static (a single panel for the lifetime of the app) but
@@ -35,6 +34,14 @@ public:
 
     void ForwardKeyEvent(wxKeyEvent& event);
 
+    // ISketchCanvasParent impl
+    SketchEffectSketch& GetSketch() override;
+    int GetSelectedPathIndex() override;
+    void NotifySketchUpdated() override;
+    void NotifySketchPathsUpdated() override;
+    void NotifyPathStateUpdated(SketchCanvasPathState state) override;
+    void SelectLastPath() override;
+
 private:
     DECLARE_EVENT_TABLE()
 
@@ -51,9 +58,7 @@ private:
     void OnPopupCommand(wxCommandEvent& event);
 
     void updateBgImage();
-    void updateUIFromSketch();
     void populatePathListBoxFromSketch();
-    void sketchUpdatedFromCanvasPanel();
 
     std::string m_sketchDef;
     SketchEffectSketch m_sketch;
@@ -65,12 +70,11 @@ private:
     wxButton* m_startPathBtn = nullptr;
     wxButton* m_endPathBtn = nullptr;
     wxButton* m_closePathBtn = nullptr;
+    wxButton* m_clearSketchBtn = nullptr;
     wxListBox* m_pathsListBox = nullptr;
     static long ID_MENU_Delete;
 
     wxImage m_bgImage;
     unsigned char m_bitmapAlpha = 0x30;
     int m_pathIndexToDelete = -1;
-
-    friend class SketchCanvasPanel;
 };
