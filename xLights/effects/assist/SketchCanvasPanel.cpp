@@ -499,7 +499,7 @@ void SketchCanvasPanel::UpdatePathState(SketchCanvasPathState pathState)
 
     // If we're Undefined, have some handles, and no path
     // selected, I think we've added a new one!!
-    if (m_pathState == Undefined && !m_handles.empty() && m_sketchCanvasParent->GetSelectedPathIndex() < 0) {
+    if (m_pathState == SketchCanvasPathState::Undefined && !m_handles.empty() && m_sketchCanvasParent->GetSelectedPathIndex() < 0) {
         auto path = CreatePathFromHandles();
         if (path != nullptr) {
             SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
@@ -507,6 +507,18 @@ void SketchCanvasPanel::UpdatePathState(SketchCanvasPathState pathState)
 
             m_sketchCanvasParent->NotifySketchPathsUpdated();
             m_sketchCanvasParent->SelectLastPath();
+        }
+    // 'continuing an existing path' case
+    } else if (m_pathState == SketchCanvasPathState::Undefined && !m_handles.empty()) {
+        auto path = CreatePathFromHandles();
+        if (path != nullptr) {
+            SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
+            auto& paths( sketch.paths() );
+            int index = m_sketchCanvasParent->GetSelectedPathIndex();
+            if (index <= paths.size()) {
+                paths[index] = path;
+                m_sketchCanvasParent->NotifySketchUpdated();
+            }
         }
     }
 }
