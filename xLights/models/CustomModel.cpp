@@ -866,11 +866,19 @@ int CustomModel::GetCustomNodeStringNumber(int node) const
         return 1;
     }
 
+    wxString nm = StartNodeAttrName(0);
+    bool hasIndiv = ModelXml->HasAttribute(nm);
+
     int stringStart = -1;
     int string = -1;
     for (int i = 0; i < _strings; i++) {
-        wxString nm = StartNodeAttrName(i);
-        int startNode = wxAtoi(ModelXml->GetAttribute(nm, "1"));
+        int startNode = 1;
+        if (hasIndiv) {
+            nm = StartNodeAttrName(i);
+            startNode = wxAtoi(ModelXml->GetAttribute(nm, "1"));
+        } else {
+            startNode = wxAtoi(ComputeStringStartNode(i));
+        }
         if (node >= startNode && startNode >= stringStart) {
             string = i;
             stringStart = startNode;
