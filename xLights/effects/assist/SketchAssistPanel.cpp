@@ -101,12 +101,15 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     m_startPathBtn = new wxButton(this, wxID_ANY, "Start");
     m_endPathBtn = new wxButton(this, wxID_ANY, "End");
     m_closePathBtn = new wxButton(this, wxID_ANY, "Close");
+    m_continuePathBtn = new wxButton(this, wxID_ANY, "Continue");
+
     m_clearSketchBtn = new wxButton(this, wxID_ANY, "Clear");
 
     auto pathCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Path");
     pathCtrlsSizer->Add(m_startPathBtn, 1, wxALL | wxEXPAND, 3);
     pathCtrlsSizer->Add(m_endPathBtn, 1, wxALL | wxEXPAND, 3);
     pathCtrlsSizer->Add(m_closePathBtn, 1, wxALL | wxEXPAND, 3);
+    pathCtrlsSizer->Add(m_continuePathBtn, 1, wxALL | wxEXPAND, 3);
 
     sketchCtrlsSizer->Add(m_clearSketchBtn, 1, wxALL | wxEXPAND, 3);
 
@@ -139,6 +142,7 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     Connect(m_startPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_StartPath);
     Connect(m_endPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_EndPath);
     Connect(m_closePathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ClosePath);
+    Connect(m_continuePathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ContinuePath);
     Connect(m_clearSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ClearSketch);
 
     m_pathsListBox->Connect(wxEVT_LISTBOX, (wxObjectEventFunction)&SketchAssistPanel::OnListBox_PathSelected, nullptr, this);
@@ -192,12 +196,14 @@ void SketchAssistPanel::NotifyPathStateUpdated(SketchCanvasPathState state)
         m_startPathBtn->Enable();
         m_endPathBtn->Disable();
         m_closePathBtn->Disable();
+        m_continuePathBtn->Enable(canContinuePath());
         m_clearSketchBtn->Enable();
         break;
     case SketchCanvasPathState::DefineStartPoint:
         m_startPathBtn->Disable();
         m_endPathBtn->Disable();
         m_closePathBtn->Disable();
+        m_continuePathBtn->Disable();
         m_clearSketchBtn->Disable();
         break;
     case SketchCanvasPathState::LineToNewPoint:
@@ -206,6 +212,7 @@ void SketchAssistPanel::NotifyPathStateUpdated(SketchCanvasPathState state)
         m_startPathBtn->Disable();
         m_endPathBtn->Enable();
         m_closePathBtn->Enable();
+        m_continuePathBtn->Disable();
         m_clearSketchBtn->Disable();
         break;
     }
@@ -215,8 +222,10 @@ void SketchAssistPanel::SelectLastPath()
 {
     unsigned n;
 
-    if ((n = m_pathsListBox->GetCount()) != 0)
+    if ((n = m_pathsListBox->GetCount()) != 0) {
         m_pathsListBox->SetSelection(n - 1);
+        m_continuePathBtn->Enable(canContinuePath());
+    }
 }
 
 void SketchAssistPanel::OnFilePickerCtrl_FileChanged(wxCommandEvent& /*event*/)
@@ -257,6 +266,11 @@ void SketchAssistPanel::OnButton_ClosePath(wxCommandEvent& /*event*/)
     NotifySketchUpdated();
 }
 
+void SketchAssistPanel::OnButton_ContinuePath(wxCommandEvent& /*event*/)
+{
+    m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::LineToNewPoint);
+}
+
 void SketchAssistPanel::OnButton_ClearSketch(wxCommandEvent& /*event*/)
 {
     m_sketch = SketchEffectSketch();
@@ -269,7 +283,9 @@ void SketchAssistPanel::OnButton_ClearSketch(wxCommandEvent& /*event*/)
 
 void SketchAssistPanel::OnListBox_PathSelected(wxCommandEvent& /*event*/)
 {
-    m_sketchCanvasPanel->UpdateHandlesForPath(m_pathsListBox->GetSelection());
+    int index = m_pathsListBox->GetSelection();
+    m_sketchCanvasPanel->UpdateHandlesForPath(index);
+    m_continuePathBtn->Enable(canContinuePath());
 }
 
 void SketchAssistPanel::OnListBox_ContextMenu(wxContextMenuEvent& event)
@@ -323,4 +339,16 @@ void SketchAssistPanel::populatePathListBoxFromSketch()
         text.sprintf("Path %d", i + 1);
         m_pathsListBox->Insert(text, i);
     }
+}
+
+bool SketchAssistPanel::canContinuePath() const
+{
+    int index = m_pathsListBox->GetSelection();
+    if (index < 0)
+        return false;
+
+    if (index >= m_sketch.pathCount())
+        return false;
+    auto paths(m_sketch.paths());
+    return !paths[index]->isClosed();
 }

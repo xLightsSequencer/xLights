@@ -51,6 +51,7 @@ private:
     void OnButton_StartPath(wxCommandEvent& event);
     void OnButton_EndPath(wxCommandEvent& event);
     void OnButton_ClosePath(wxCommandEvent& event);
+    void OnButton_ContinuePath(wxCommandEvent& event);
     void OnButton_ClearSketch(wxCommandEvent& event);
 
     void OnListBox_PathSelected(wxCommandEvent& event);
@@ -59,6 +60,7 @@ private:
 
     void updateBgImage();
     void populatePathListBoxFromSketch();
+    bool canContinuePath() const;
 
     std::string m_sketchDef;
     SketchEffectSketch m_sketch;
@@ -70,6 +72,7 @@ private:
     wxButton* m_startPathBtn = nullptr;
     wxButton* m_endPathBtn = nullptr;
     wxButton* m_closePathBtn = nullptr;
+    wxButton* m_continuePathBtn = nullptr;
     wxButton* m_clearSketchBtn = nullptr;
     wxListBox* m_pathsListBox = nullptr;
     static long ID_MENU_Delete;
