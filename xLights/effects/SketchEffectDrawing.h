@@ -76,6 +76,10 @@ public:
 
     virtual ~SketchEffectSketch() = default;
 
+    std::vector<std::shared_ptr<SketchEffectPath>>& paths()
+    {
+        return m_paths;
+    }
     const std::vector<std::shared_ptr<SketchEffectPath>>& paths() const
     {
         return m_paths;
