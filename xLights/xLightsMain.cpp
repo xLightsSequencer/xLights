@@ -2695,7 +2695,7 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
         // I dont think backup should follow symbolic links
         bool cont = srcDir.GetFirst(&dir, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
         while (cont) {
-            if (dir != "Backup") {
+            if (dir.Lower() != "backup") {
                 wxDir subdir(srcDir.GetNameWithSep() + dir);
                 BackupDirectory(subdir.GetNameWithSep(), targetDirName + wxFileName::GetPathSeparator() + dir, lastCreatedDirectory, forceallfiles, errors);
             }
