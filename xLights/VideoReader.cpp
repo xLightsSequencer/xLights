@@ -228,7 +228,10 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
         }
     }
 
-    if (_frames > 0)
+    if (_videoStream->time_base.num != 0 && _videoStream->duration != 0) {
+        _lengthMS = ((double)_videoStream->duration * (double)_videoStream->time_base.num) / (double)_videoStream->time_base.den * 1000.0;
+    }
+    else if (_frames > 0)
 	{
         if (_videoStream->r_frame_rate.num != 0) {
             // r_frame_rate seems more accurate when it is there ... avg_frame_rate for some formats has an off by 1 problem
