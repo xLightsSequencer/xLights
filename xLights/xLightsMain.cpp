@@ -5526,12 +5526,12 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     for (const auto& it : AllModels) {
         std::list<std::string> warnings = it.second->CheckModelSettings();
-        for (auto s = warnings.begin(); s != warnings.end(); ++s) {
-            LogAndWrite(f, *s);
-            if (s->find("WARN:") != std::string::npos) {
+        for (const auto& it : warnings) {
+            LogAndWrite(f, it);
+            if (it.find("WARN:") != std::string::npos) {
                 warncount++;
             }
-            else if (s->find("ERR:") != std::string::npos) {
+            else if (it.find("ERR:") != std::string::npos) {
                 errcount++;
             }
         }
@@ -5545,12 +5545,12 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     for (const auto& it : AllObjects) {
         std::list<std::string> warnings = it.second->CheckModelSettings();
-        for (auto s = warnings.begin(); s != warnings.end(); ++s) {
-            LogAndWrite(f, *s);
-            if (s->find("WARN:") != std::string::npos) {
+        for (const auto& it : warnings) {
+            LogAndWrite(f, it);
+            if (it.find("WARN:") != std::string::npos) {
                 warncount++;
             }
-            else if (s->find("ERR:") != std::string::npos) {
+            else if (it.find("ERR:") != std::string::npos) {
                 errcount++;
             }
         }

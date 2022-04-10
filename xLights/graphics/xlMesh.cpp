@@ -110,16 +110,17 @@ void xlMesh::SetMaterialColor(const std::string materialName, const xlColor *c) 
 
 std::vector<std::string> xlMesh::GetMaterialFilenamesFromOBJ(const std::string &obj, bool strict) {
     std::vector<std::string> ret;
-    
+
     std::ifstream input(obj);
-    for (std::string line; std::getline(input, line); ) {
+    for (std::string line; std::getline(input, line);) {
         if (line.rfind("mtllib ", 0) == 0) {
             line = line.substr(7);
-            int idx = line.find(' ');
+            auto idx = line.find(' ');
             while (strict && idx != std::string::npos) {
                 std::string f = line.substr(0, idx);
                 ret.push_back(f);
                 line = line.substr(idx + 1);
+                idx = line.find(' ');
             }
             if (line != "") {
                 ret.push_back(line);
