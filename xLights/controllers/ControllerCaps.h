@@ -86,6 +86,7 @@ public:
     bool SupportsSerialInputProtols() const;
     bool NeedsFullUniverseForDMX() const;
     bool AllSmartRemoteTypesPerPortMustBeSame() const;
+    bool DMXAfterPixels() const;
 
     int GetSmartRemoteCount() const;
     int GetMaxInputE131Universes() const;

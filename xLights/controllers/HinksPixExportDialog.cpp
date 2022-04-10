@@ -1288,10 +1288,12 @@ std::vector<HinksChannelMap> HinksPixExportDialog::getModelChannelMap(Controller
     UDController cud(hinks, m_outputManager, m_modelManager, false);
     int32_t hinkstartChan = 1;
 
-    //serial first
-    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxSerialPort(); port++) {
-        if (cud.HasSerialPort(port)) {
-            UDControllerPort* portData = cud.GetControllerSerialPort(port);
+    wxASSERT(hinks->GetControllerCaps()->DMXAfterPixels());
+
+    //pixels first
+    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxPixelPort(); port++) {
+        if (cud.HasPixelPort(port)) {
+            UDControllerPort* portData = cud.GetControllerPixelPort(port);
             for (auto const& m : portData->GetModels()) {
                 auto sizeofchan = m->Channels();
                 auto startChan = m->GetStartChannel();
@@ -1302,10 +1304,10 @@ std::vector<HinksChannelMap> HinksPixExportDialog::getModelChannelMap(Controller
         }
     }
 
-    //pixels second
-    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxPixelPort(); port++) {
-        if (cud.HasPixelPort(port)) {
-            UDControllerPort* portData = cud.GetControllerPixelPort(port);
+    // serial second
+    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxSerialPort(); port++) {
+        if (cud.HasSerialPort(port)) {
+            UDControllerPort* portData = cud.GetControllerSerialPort(port);
             for (auto const& m : portData->GetModels()) {
                 auto sizeofchan = m->Channels();
                 auto startChan = m->GetStartChannel();

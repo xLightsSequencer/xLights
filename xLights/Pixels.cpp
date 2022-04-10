@@ -103,107 +103,107 @@
 // the "preferred" pixel type should be at the start of each list
 const static std::vector<std::vector<std::string>> __equivalentPixels =
 {
-	{ "" }, // No protocol
-	{ "ws2811", // preferred & default
-	  "apa104", "apa106", "cs8812", "gs8202", "gs8206", "gs8208", "ink1002", "ink1003", "lpd1882",
-	  "lx1203", "p9883", "sk6812", "sk6813", "sk6822", "sm16703", "sm16711", "sm16712", "tm1803", "tm1804", "tm1809",
-	  "tm1812", "tm1914", "ucs1903", "ucs1904", "ucs1909", "ucs1912", "ucs2903", "ucs2909", "ucs2912", "ucs9812",
-	  "ws2812", "ws2812b", "ws2813", "ws2815", "ws2818",
-	  // artificial
-	  "tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "gs820x"
-	},
+    { "" }, // No protocol
+    { "ws2811", // preferred & default
+      "apa104", "apa106", "cs8812", "gs8202", "gs8206", "gs8208", "ink1002", "ink1003", "lpd1882",
+      "lx1203", "p9883", "sk6812", "sk6813", "sk6822", "sm16703", "sm16711", "sm16712", "tm1803", "tm1804", "tm1809",
+      "tm1812", "tm1914", "ucs1903", "ucs1904", "ucs1909", "ucs1912", "ucs2903", "ucs2909", "ucs2912", "ucs9812",
+      "ws2812", "ws2812b", "ws2813", "ws2815", "ws2818",
+      // artificial
+      "tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "gs820x"
+    },
     { "9pdot" },
     { "9pdot (16)" },
     { "apa101", "apa102", "apa102c", "hd107s", "sk9822" },
-	{ "apa109", "sk6812rgbw", "sk6818", "sm16704", "ucs2904", "ws2814" },
-	{ "dm412" },
-	{ "dmx512p" },
-	{ "gece" },
-	{ "gw6205" },
-	{ "d705", "lpd1101", "lpd6803", "ucs6909", "ucs6912s" },
-	{ "lpd8803", "lpd8806", "lpd8809", "ucs8812" },
-	{ "mib6020" },
-	{ "my9221" },
-	{ "my9291" },
-	{ "p9813" },
-	{ "sj1221" },
-	{ "sm16716", "sm16726" },
+    { "apa109", "sk6812rgbw", "sk6818", "sm16704", "ucs2904", "ws2814" },
+    { "dm412" },
+    { "dmx512p" },
+    { "gece" },
+    { "gw6205" },
+    { "d705", "lpd1101", "lpd6803", "ucs6909", "ucs6912s" },
+    { "lpd8803", "lpd8806", "lpd8809", "ucs8812" },
+    { "mib6020" },
+    { "my9221" },
+    { "my9291" },
+    { "p9813" },
+    { "sj1221" },
+    { "sm16716", "sm16726" },
     { "spxl" },
     { "spxl (16)" },
     { "cy3005", "tls3001", "tls3002", "qed3001" },
     { "tlc5973" },
     { "tls3008" },
-	{ "tm1814", "tm1814a" },
-	{ "tm1829" },
-	{ "ucs8903", "ucs8903 (16)" },
-	{ "ucs8904", "ucs8904 (16)" },
-	{ "my9231" }, // I have not researched these ... they may fit into an existing category
-	{ "dmx512" }, // I have not researched these ... they may fit into an existing category
-	{ "ws2801", "ws2803" }
+    { "tm1814", "tm1814a" },
+    { "tm1829" },
+    { "ucs8903", "ucs8903 (16)" },
+    { "ucs8904", "ucs8904 (16)" },
+    { "my9231" }, // I have not researched these ... they may fit into an existing category
+    //{ "dmx512" }, // I have not researched these ... they may fit into an existing category
+    { "ws2801", "ws2803" }
 };
 
 const static std::vector<std::vector<std::string>> __equivalentSerial = {
-	{ "dmx" },
-	{ "dmx-open", "opendmx" },
-	{ "dmx-pro" },
-	{ "lor" },
-	{ "renard" },
-	{ "genericserial" },
-	{ "pixelnet" },
-	{ "pixelnet-lynx" },
-	{ "pixelnet-open" }
+    { "dmx", "dmx512" },
+    { "dmx-open", "opendmx" },
+    { "dmx-pro" },
+    { "lor" },
+    { "renard" },
+    { "genericserial" },
+    { "pixelnet" },
+    { "pixelnet-lynx" },
+    { "pixelnet-open" }
 };
 
 const static std::vector<std::string> __artificalTypes =
 {
-	"tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "ucs8903 (16)", "ucs8904 (16)", "gs820x"
+    "tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "ucs8903 (16)", "ucs8904 (16)", "gs820x"
 };
 
 bool IsArtificialPixelType(const std::string& p)
 {
-	for (const auto& it : __artificalTypes) {
-		if (p == it) return true;
-	}
-	return false;
+    for (const auto& it : __artificalTypes) {
+        if (p == it) return true;
+    }
+    return false;
 }
 
 std::string ChooseBestControllerPixel(const std::vector<std::string>& controllerPixels, const std::string& selectedPixel)
 {
-	// first look for an exact match in controller pixels ... if that is there return that
-	if (std::find(begin(controllerPixels), end(controllerPixels), selectedPixel) != end(controllerPixels)) {
-		return selectedPixel;
-	}
+    // first look for an exact match in controller pixels ... if that is there return that
+    if (std::find(begin(controllerPixels), end(controllerPixels), selectedPixel) != end(controllerPixels)) {
+        return selectedPixel;
+    }
 
-	// if not look for the pool this type is in and look for an exact match in that group
-	for (const auto& it : __equivalentPixels) {
-		if (std::find(begin(it), end(it), selectedPixel) != end(it)) {
-			// we found our pool
-			for (const auto& it2 : it) {
-				if (std::find(begin(controllerPixels), end(controllerPixels), it2) != end(controllerPixels)) {
-					return it2;
-				}
-			}
-		}
-	}
+    // if not look for the pool this type is in and look for an exact match in that group
+    for (const auto& it : __equivalentPixels) {
+        if (std::find(begin(it), end(it), selectedPixel) != end(it)) {
+            // we found our pool
+            for (const auto& it2 : it) {
+                if (std::find(begin(controllerPixels), end(controllerPixels), it2) != end(controllerPixels)) {
+                    return it2;
+                }
+            }
+        }
+    }
     std::string p1 = selectedPixel;
     std::transform(p1.begin(), p1.end(), p1.begin(), ::tolower);
     if (p1 != selectedPixel) {
         return ChooseBestControllerSerial(controllerPixels, p1);
     }
 
-	// no good match
-	return "";
+    // no good match
+    return "";
 }
 
 std::vector<std::string> GetAllPixelTypes(const std::vector<std::string>& controllerPixels, bool includeSerial, bool includeArtificial, bool includeMatrices)
 {
-	auto superset = GetAllPixelTypes(includeSerial, includeArtificial, includeMatrices);
+    auto superset = GetAllPixelTypes(includeSerial, includeArtificial, includeMatrices);
 
-	std::vector<std::string> res;
+    std::vector<std::string> res;
 
-	for (const auto& it : controllerPixels) {
-		if (std::find(begin(superset), end(superset), it) != end(superset)) {
-			res.push_back(it);
+    for (const auto& it : controllerPixels) {
+        if (std::find(begin(superset), end(superset), it) != end(superset)) {
+            res.push_back(it);
         } else {
             std::string p1 = it;
             std::transform(p1.begin(), p1.end(), p1.begin(), ::tolower);
@@ -211,56 +211,56 @@ std::vector<std::string> GetAllPixelTypes(const std::vector<std::string>& contro
                 res.push_back(it);
             }
         }
-	}
+    }
 
-	return res;
+    return res;
 }
 
 std::vector<std::string> GetAllPixelTypes(bool includeSerial, bool includeArtificial, bool includeMatrices)
 {
-	std::vector<std::string> res;
+    std::vector<std::string> res;
 
-	for (const auto& it : __equivalentPixels) {
-		for (const auto& it2 : it) {
-			if (includeArtificial || !IsArtificialPixelType(it2)) {
-				res.push_back(it2);
-			}
-		}
-	}
+    for (const auto& it : __equivalentPixels) {
+        for (const auto& it2 : it) {
+            if (includeArtificial || !IsArtificialPixelType(it2)) {
+                res.push_back(it2);
+            }
+        }
+    }
 
-	if (includeSerial) {
-		for (const auto& it : __equivalentSerial) {
-			for (const auto& it2 : it) {
-				res.push_back(it2);
-			}
-		}
-	}
+    if (includeSerial) {
+        for (const auto& it : __equivalentSerial) {
+            for (const auto& it2 : it) {
+                res.push_back(it2);
+            }
+        }
+    }
     if (includeMatrices) {
         res.push_back("Virtual Matrix");
         res.push_back("LED Panel Matrix");
     }
 
-	return res;
+    return res;
 }
 
 std::vector<std::string> GetAllSerialTypes()
 {
-	std::vector<std::string> res;
+    std::vector<std::string> res;
 
-	for (const auto& it : __equivalentSerial) {
-		for (const auto& it2 : it) {
-			res.push_back(it2);
-		}
-	}
-	
-	return res;
+    for (const auto& it : __equivalentSerial) {
+        for (const auto& it2 : it) {
+            res.push_back(it2);
+        }
+    }
+    
+    return res;
 }
 
 std::vector<std::string> GetAllSerialTypes(const std::vector<std::string>& controllerSerial)
 {
-	auto superset = GetAllSerialTypes();
+    auto superset = GetAllSerialTypes();
 
-	std::vector<std::string> res;
+    std::vector<std::string> res;
 
     for (const auto& it : controllerSerial) {
         if (std::find(begin(superset), end(superset), it) != end(superset)) {
@@ -274,56 +274,54 @@ std::vector<std::string> GetAllSerialTypes(const std::vector<std::string>& contr
         }
     }
 
-	return res;
+    return res;
 }
 
 std::string ChooseBestControllerSerial(const std::vector<std::string>& controllerSerial, const std::string& selectedSerial)
 {
-	// first look for an exact match in controller pixels ... if that is there return that
-	if (std::find(begin(controllerSerial), end(controllerSerial), selectedSerial) != end(controllerSerial)) {
-		return selectedSerial;
-	}
+    // first look for an exact match in controller pixels ... if that is there return that
+    if (std::find(begin(controllerSerial), end(controllerSerial), selectedSerial) != end(controllerSerial)) {
+        return selectedSerial;
+    }
 
-	// if not look for the pool this type is in and look for an exact match in that group
-	for (const auto& it : __equivalentSerial) {
-		if (std::find(begin(it), end(it), selectedSerial) != end(it)) {
-			// we found our pool
-			for (const auto& it2 : it) {
-				if (std::find(begin(controllerSerial), end(controllerSerial), it2) != end(controllerSerial)) {
-					return it2;
-				}
-			}
-		}
-	}
+    // if not look for the pool this type is in and look for an exact match in that group
+    for (const auto& it : __equivalentSerial) {
+        if (std::find(begin(it), end(it), selectedSerial) != end(it)) {
+            // we found our pool
+            for (const auto& it2 : it) {
+                if (std::find(begin(controllerSerial), end(controllerSerial), it2) != end(controllerSerial)) {
+                    return it2;
+                }
+            }
+        }
+    }
     std::string p1 = selectedSerial;
     std::transform(p1.begin(), p1.end(), p1.begin(), ::tolower);
     if (p1 != selectedSerial) {
         return ChooseBestControllerSerial(controllerSerial, p1);
     }
-	// no good match
-	return "";
+    // no good match
+    return "";
 }
 
 bool IsPixelProtocol(const std::string& p1)
 {
-	auto pt = GetAllPixelTypes(false, true);
-    if (std::find(begin(pt), end(pt), p1) != end(pt)) {
-        std::string p = p1;
-        std::transform(p.begin(), p.end(), p.begin(), ::tolower);
-        return std::find(begin(pt), end(pt), p) != end(pt);
-    }
-    return true;
+    auto pt = GetAllPixelTypes(false, true);
+    return std::find_if(begin(pt), end(pt), [&p1](auto const& pix) {
+            std::string p = p1;
+            std::transform(p.begin(), p.end(), p.begin(), ::tolower);
+            return pix == p;
+        }) != end(pt);
 }
 
 bool IsSerialProtocol(const std::string& p1)
 {
-	auto st = GetAllSerialTypes();
-    if (std::find(begin(st), end(st), p1) == end(st)) {
-        std::string p = p1;
-        std::transform(p.begin(), p.end(), p.begin(), ::tolower);
-        return std::find(begin(st), end(st), p) != end(st);
-    }
-    return true;
+    auto st = GetAllSerialTypes();
+    return std::find_if(begin(st), end(st), [&p1](auto const& ser) {
+               std::string p = p1;
+               std::transform(p.begin(), p.end(), p.begin(), ::tolower);
+               return ser == p;
+           }) != end(st);
 }
 bool IsMatrixProtocol(const std::string& p1)
 {

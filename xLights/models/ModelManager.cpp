@@ -694,6 +694,12 @@ bool ModelManager::ReworkStartChannel() const
     for (const auto& it : outputManager->GetControllers())
     {
         auto caps = it->GetControllerCaps();
+
+        wxString serialPrefix;
+        if (caps && caps->DMXAfterPixels()) {
+            serialPrefix = "zzz";
+        }
+
         std::map<std::string, std::list<Model*>> cmodels;
         std::lock_guard<std::recursive_mutex> lock(_modelMutex);
         for (auto itm : models)
@@ -710,7 +716,7 @@ bool ModelManager::ReworkStartChannel() const
                 }
                 else
                 {
-                    cc = wxString::Format("%s:%02d", itm.second->GetControllerProtocol(), itm.second->GetControllerPort()).Lower();
+                    cc = wxString::Format("%s%s:%02d", serialPrefix, itm.second->GetControllerProtocol(), itm.second->GetControllerPort()).Lower();
                 }
                 if (cmodels.find(cc) == cmodels.end())
                 {

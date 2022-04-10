@@ -129,7 +129,7 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
 
                 std::string url = "http://" + ip + ":" + std::to_string(::GetxFadePort(ab + 1)) + "/getVersion";
                 if (val["ifNotRunning"].AsString() == "true") {
-                    std::string resp = Curl::HTTPSGet(url, command);
+                    std::string resp = Curl::HTTPSGet(url, command.ToStdString());
                     if (resp != "") {
                         xlDo_Output(script, "{\"res\":200,\"msg\":\"xLights was already running.\"}", verbose, false);
                         return 0;
@@ -168,14 +168,14 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
 
 
                 int loop = 0;
-                std::string resp = Curl::HTTPSGet(url, command);
+                std::string resp = Curl::HTTPSGet(url, command.ToStdString());
                 while (resp == "") {
                     // dont wait more than a minute
                     if (loop++ > 60)
                         break;
 
                     wxSleep(1);
-                    resp = Curl::HTTPSGet(url, command);
+                    resp = Curl::HTTPSGet(url, command.ToStdString());
                 }
 
                 if (loop > 60) {
