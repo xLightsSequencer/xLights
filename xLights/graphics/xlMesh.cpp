@@ -5,12 +5,14 @@
 #include "xlMesh.h"
 
 #include <filesystem>
-
 #include <algorithm>
-#include <log4cpp/Category.hh>
-#include <wx/filename.h>
-#include "../ExternalHooks.h"
 
+#include <wx/filename.h>
+
+#include "../ExternalHooks.h"
+#include "../UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(ctx), filename(f) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -106,7 +108,18 @@ void xlMesh::SetMaterialColor(const std::string materialName, const xlColor *c) 
     }
 }
 
-
+// this list should contain 0 or more .mtl files ... if it just contains 2 and one does not end in mtl then it is likely a space in the mtl file name
+bool xlMesh::InvalidMaterialsList(const std::vector<std::string>& materialFiles)
+{
+    if (materialFiles.size() == 2) {
+        for (const auto& it : materialFiles) {
+            if (!EndsWith(Lower(it), ".mtl")) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 std::vector<std::string> xlMesh::GetMaterialFilenamesFromOBJ(const std::string &obj, bool strict) {
     std::vector<std::string> ret;

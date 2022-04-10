@@ -478,6 +478,8 @@ std::list<std::string> ImageModel::CheckModelSettings()
 
     if (_imageFile == "" || !wxFile::Exists(_imageFile)) {
         res.push_back(wxString::Format("    ERR: Image model '%s' cant find image file '%s'", GetName(), _imageFile).ToStdString());
+    } else if (!wxIsReadable(_imageFile) || !wxImage::CanRead(_imageFile)) {
+        res.push_back(wxString::Format("    ERR: Image model '%s' cant load image file '%s'", GetName(), _imageFile).ToStdString());
     } else {
         if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {
             res.push_back(wxString::Format("    WARN: Image model '%s' image file '%s' not under show/media/resource directories.", GetName(), _imageFile).ToStdString());

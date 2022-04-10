@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include "../Color.h"
 #include "tiny_obj_loader.h"
 #include "xlGraphicsContext.h"
@@ -42,8 +43,8 @@ public:
     
     void SetMaterialColor(const std::string materialName, const xlColor *c);
     
-    
-    static std::vector<std::string> GetMaterialFilenamesFromOBJ(const std::string &obj, bool strict = true);
+    static bool InvalidMaterialsList(const std::vector<std::string>& mtls);
+    static std::vector<std::string> GetMaterialFilenamesFromOBJ(const std::string& obj, bool strict = true);
     static void FixMaterialFilenamesInOBJ(const std::string &obj);
 
 protected:

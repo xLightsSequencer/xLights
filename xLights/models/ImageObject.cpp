@@ -211,6 +211,8 @@ std::list<std::string> ImageObject::CheckModelSettings()
 
     if (_imageFile == "" || !FileExists(_imageFile)) {
         res.push_back(wxString::Format("    ERR: Image object '%s' cant find image file '%s'", GetName(), _imageFile).ToStdString());
+    } else if (!wxIsReadable(_imageFile) || !wxImage::CanRead(_imageFile)) {
+        res.push_back(wxString::Format("    ERR: Image object '%s' cant load image file '%s'", GetName(), _imageFile).ToStdString());
     } else {
         if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {
             res.push_back(wxString::Format("    WARN: Image object '%s' image file '%s' not under show/media/resource directories.", GetName(), _imageFile).ToStdString());
