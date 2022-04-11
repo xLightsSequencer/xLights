@@ -387,6 +387,16 @@ bool ControllerCaps::SupportsPixelPortGamma() const {
     return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortGamma");
 }
 
+bool ControllerCaps::SupportsDefaultGamma() const
+{
+    return DoesXmlNodeExist(_config, "SupportsDefaultGamma");
+}
+
+bool ControllerCaps::SupportsDefaultBrightness() const
+{
+    return DoesXmlNodeExist(_config, "SupportsDefaultBrightness");
+}
+
 bool ControllerCaps::SupportsPixelPortColourOrder() const {
 
     return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortColourOrder");

@@ -537,17 +537,21 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
         p->SetHelpString("This option will when uploading erase the configuration of all unused ports on the controller per the configuration in xLights.");
 
         if (IsFullxLightsControl()) {
-            p = propertyGrid->Append(new wxUIntProperty("Default Port Brightness", "DefaultBrightnessUnderFullxLightsControl", GetDefaultBrightnessUnderFullControl()));
-            p->SetAttribute("Min", 5);
-            p->SetAttribute("Max", 100);
-            p->SetEditor("SpinCtrl");
-            p->SetHelpString("This option will set the brightness of all ports to this value unless specifically overriden by a model.");
+            if (SupportsDefaultBrightness()) {
+                p = propertyGrid->Append(new wxUIntProperty("Default Port Brightness", "DefaultBrightnessUnderFullxLightsControl", GetDefaultBrightnessUnderFullControl()));
+                p->SetAttribute("Min", 5);
+                p->SetAttribute("Max", 100);
+                p->SetEditor("SpinCtrl");
+                p->SetHelpString("This option will set the brightness of all ports to this value unless specifically overriden by a model.");
+            }
 
-            p = propertyGrid->Append(new wxFloatProperty("Default Port Gamma", "DefaultGammaUnderFullxLightsControl", GetDefaultGammaUnderFullControl()));
-            p->SetAttribute("Min", 0.1F);
-            p->SetAttribute("Max", 5.0F);
-            p->SetEditor("SpinCtrlDouble");
-            p->SetHelpString("This option will set the Gamma of all ports to this value unless specifically overriden by a model.");
+            if (SupportsDefaultGamma()) {
+                p = propertyGrid->Append(new wxFloatProperty("Default Port Gamma", "DefaultGammaUnderFullxLightsControl", GetDefaultGammaUnderFullControl()));
+                p->SetAttribute("Min", 0.1F);
+                p->SetAttribute("Max", 5.0F);
+                p->SetEditor("SpinCtrlDouble");
+                p->SetHelpString("This option will set the Gamma of all ports to this value unless specifically overriden by a model.");
+            }
         }
     }
 

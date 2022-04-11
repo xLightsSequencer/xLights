@@ -229,6 +229,8 @@ public:
     virtual bool SupportsAutoSize() const { return false; }
 
     virtual bool SupportsFullxLightsControl() const { return false; }
+    virtual bool SupportsDefaultBrightness() const { return false; }
+    virtual bool SupportsDefaultGamma() const { return false; }
 
     virtual std::string GetIP() const { return GetResolvedIP(); }
     virtual std::string GetResolvedIP() const { return ""; }

@@ -38,6 +38,8 @@
         <SupportsMultipleSimultaneousInputProtocols/>
         <SupportsAutoUpload/>
         <SupportsFullxLightsControl/>
+        <SupportsDefaultBrightness/>
+        <SupportsDefaultGamma/>
         <PreferredInputProtocol>DDP</PreferredInputProtocol>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCape" Base="FPP:BaseFPPSettings">

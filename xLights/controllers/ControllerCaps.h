@@ -76,6 +76,8 @@ public:
     bool NoWebUI() const;
     bool SupportsPixelPortBrightness() const;
     bool SupportsPixelPortGamma() const;
+    bool SupportsDefaultGamma() const;
+    bool SupportsDefaultBrightness() const;
     bool SupportsPixelPortNullPixels() const;
     bool SupportsPixelPortEndNullPixels() const;
     bool SupportsPixelPortGrouping() const;

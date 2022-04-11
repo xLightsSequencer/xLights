@@ -483,7 +483,32 @@ bool ControllerEthernet::SupportsFullxLightsControl() const
     return false;
 }
 
-std::string ControllerEthernet::GetChannelMapping(int32_t ch) const {
+bool ControllerEthernet::SupportsDefaultBrightness() const
+{
+    if (_type == OUTPUT_ZCPP)
+        return false;
+
+    auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
+    if (c != nullptr) {
+        return c->SupportsDefaultBrightness();
+    }
+    return false;
+}
+
+bool ControllerEthernet::SupportsDefaultGamma() const
+{
+    if (_type == OUTPUT_ZCPP)
+        return false;
+
+    auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
+    if (c != nullptr) {
+        return c->SupportsDefaultGamma();
+    }
+    return false;
+}
+
+std::string ControllerEthernet::GetChannelMapping(int32_t ch) const
+{
 
     wxString res = wxString::Format("Channel %d maps to ...\nType: %s\nName: %s\nIP: %s\n", ch, GetProtocol(), GetName(), GetIP());
 
