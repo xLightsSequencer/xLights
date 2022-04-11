@@ -26,6 +26,8 @@ enum SketchCanvasPathState {
 class ISketchCanvasParent
 {
 public:
+    virtual ~ISketchCanvasParent() {}
+    
     virtual SketchEffectSketch& GetSketch() = 0;
     virtual int GetSelectedPathIndex() = 0;
     virtual void NotifySketchUpdated() = 0;
