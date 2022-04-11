@@ -18,6 +18,7 @@ namespace
         "For more info, see the link below.";
 
     const char demoVideoURL[] = "https://vimeo.com/696352082";
+    const char demoVideoURL2[] = "https://vimeo.com/698053599";
 }
 
 BEGIN_EVENT_TABLE(SketchPanel, wxPanel)
@@ -43,7 +44,7 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
     mainSizer->AddGrowableCol(0);
 
     // Effect Info
-    auto effectInfoSizer = new wxFlexGridSizer(2, 1, 0, 0);
+    auto effectInfoSizer = new wxFlexGridSizer(3, 1, 0, 0);
     effectInfoSizer->AddGrowableCol(0);
 
     auto effectDescText = new wxTextCtrl(this, wxID_ANY, effectInfoText,
@@ -52,9 +53,11 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
     effectDescText->SetEditable(false);
 
     auto effectDescLink = new wxHyperlinkCtrl(this, wxID_ANY, "Sketch Effect Demo", demoVideoURL);
+    auto effectMoreLink = new wxHyperlinkCtrl(this, wxID_ANY, "Sketch Tracing Demo", demoVideoURL2);
 
     effectInfoSizer->Add(effectDescText, 1, wxALL | wxEXPAND, 0);
     effectInfoSizer->Add(effectDescLink, 1, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+    effectInfoSizer->Add(effectMoreLink, 1, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
     // Sketch Definition
     auto sketchDefSizer = new wxFlexGridSizer(4, 3, 0, 0);
