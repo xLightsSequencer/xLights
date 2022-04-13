@@ -28,6 +28,11 @@ class wxWindow;
 
 #define MAX_EXPORT_BUFFER_FRAMES 20
 
+// Uncomment this to turn on avlib debug logging
+//#define VIDEOWRITE_DEBUG
+
+void my_av_log_callback(void* ptr, int level, const char* fmt, va_list vargs);
+
 class GenericVideoExporter
 {
 public:
