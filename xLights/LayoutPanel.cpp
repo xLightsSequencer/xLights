@@ -2329,7 +2329,7 @@ public:
 
         SetValueFromString(value);
         if (img != nullptr) {
-            m_pImage = new wxImage(*img);
+            setImage(*img);
         }
     }
     virtual ~xlImageProperty() {}
@@ -2340,12 +2340,25 @@ public:
         ObtainAccessToURL(fn.GetFullPath());
         if (fn != lastFileName) {
             lastFileName = fn;
-            delete m_pImage;
-            m_pImage = nullptr;
             if (FileExists(fn)) {
-                m_pImage = new wxImage(fn.GetFullPath());
+                setImage(wxImage(fn.GetFullPath()));
+            } else {
+                setImage(wxImage());
             }
         }
+    }
+    
+    void setImage(const wxImage &img) {
+#if wxRELEASE_NUMBER < 7
+        if (img.IsOk()) {
+            m_pImage = new wxImage(img);
+        } else {
+            delete m_pImage;
+            m_pImage = nullptr;
+        }
+#else
+        m_image = img;
+#endif
     }
 
 private:
