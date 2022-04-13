@@ -107,7 +107,7 @@ private:
     ISketchCanvasParent* const m_sketchCanvasParent;
     std::unique_ptr<wxBitmap> m_bgBitmap;
     int m_wheelRotation = 0;
-    wxPoint2DDouble m_normalizedZoomPt;
+    wxPoint2DDouble m_zoomPoint;
     wxPoint2DDouble m_canvasTranslation;
     double m_matrixComponents[6];
     wxPoint2DDouble m_mousePos;

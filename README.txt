@@ -35,7 +35,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (dkulp)    Fix Image Model transparency issues, make sure not "dark" on layout panel
    -- bug (keith)    Reset to default waveform on load of new audio after custom filter applied
 2022.07 March 28, 2022
-   -- enh (kevin)    Add Sketch Effect
    -- enh (gil)      Add Jaw Orientation property for the DMXSkull model
    -- enh (gil)      DMXSkull model changed so color error checking is only done when color channels are active
    -- enh (scott)    Added Effect Settings Search Panel.

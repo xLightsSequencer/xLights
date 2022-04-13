@@ -14,6 +14,8 @@ namespace
     const double HandleRadiusSquared = HandleRadius * HandleRadius;
     const double HandleDiameter = 2 * HandleRadius;
 
+    const double ZoomPointChangeThreshold = 20.;
+
     struct LinearInterpolater {
         double operator()(double t) const
         {
@@ -69,11 +71,10 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
         if (m_wheelRotation) {
             zoomLevel = interpolate(m_wheelRotation, 0, 1., MouseWheelLimit, 8., LinearInterpolater());
             wxGraphicsMatrix m = gc->CreateMatrix();
-            wxPoint2DDouble pt(NormalizedToUI(m_normalizedZoomPt));
             m.Translate(-m_canvasTranslation.m_x, -m_canvasTranslation.m_y);
-            m.Translate(pt.m_x, pt.m_y);
+            m.Translate(m_zoomPoint.m_x, m_zoomPoint.m_y);
             m.Scale(zoomLevel, zoomLevel);
-            m.Translate(-pt.m_x, -pt.m_y);
+            m.Translate(-m_zoomPoint.m_x, -m_zoomPoint.m_y);
             gc->SetTransform(m);
 
             m.Get(m_matrixComponents, m_matrixComponents + 1, m_matrixComponents + 2,
@@ -444,13 +445,25 @@ void SketchCanvasPanel::OnSketchEntered(wxMouseEvent& /*event*/)
 
 void SketchCanvasPanel::OnSketchMouseWheel(wxMouseEvent& event)
 {
+    int rotationBefore = m_wheelRotation;
     m_wheelRotation += event.GetWheelRotation();
     m_wheelRotation = std::clamp(m_wheelRotation, 0, MouseWheelLimit);
-    if (!m_wheelRotation)
+    if (!m_wheelRotation) {
         m_canvasTranslation = wxPoint2DDouble();
-
-    // todo? - take zoom and/or canvas translation into account
-    m_normalizedZoomPt = UItoNormalized(event.GetPosition());
+        m_zoomPoint = wxPoint2DDouble();
+    }  else {
+        if (m_zoomPoint == wxPoint2DDouble() )
+            m_zoomPoint = event.GetPosition();
+        double distance = m_zoomPoint.GetDistance(event.GetPosition() + m_canvasTranslation);
+        if (distance > ZoomPointChangeThreshold) {
+            // Much of the time, we're zooming in and out near the same point.
+            // If that zoom-point seems to be different, we adjust.
+            m_canvasTranslation -= event.GetPosition() - m_zoomPoint;
+            m_zoomPoint = event.GetPosition();
+        } else {
+            m_zoomPoint = event.GetPosition() + m_canvasTranslation;
+        }
+    }
 
     Refresh();
 }
