@@ -6577,7 +6577,14 @@ void LayoutPanel::RemoveSelectedModelsFromGroup() {
                 modelsToConfirm = modelsToConfirm + wxString::Format("%s- %s\n", "    ", modelName);
             }
         }
-
+        for (const auto& item : selectedTreeSubModels) {
+            if (item.IsOk()) {
+                parentGroup = TreeListViewModels->GetItemText(TreeListViewModels->GetItemParent(item));
+                wxString modelName = TreeListViewModels->GetItemText(item);
+                modelsToRemove.Add(modelName);
+                modelsToConfirm = modelsToConfirm + wxString::Format("%s- %s\n", "    ", modelName);
+            }
+        }
         ModelGroup *grp = dynamic_cast<ModelGroup*>(xlights->GetModel(parentGroup));
         if (grp && wxMessageBox("Are you sure you want to remove the folowing model(s)?:\n\n" + modelsToConfirm, "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES) {
 
@@ -8071,32 +8078,44 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
 
     wxMenu mnuContext;
 
-    if (selectedTreeGroups.size() == 0 && selectedTreeSubModels.size() == 0) {
-        if (selectedTreeModels.size() == 1) {
-            mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Model");
-            auto par = TreeListViewModels->GetItemParent(selectedTreeModels[0]);
-            if (par != TreeListViewModels->GetRootItem()) {
-                mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Groop");
-            }
-            mnuContext.AppendSeparator();
-        }
-
-        if (selectedTreeModels.size() > 1) {
-            auto parent = TreeListViewModels->GetItemParent(selectedTreeModels[0]);
-            bool allSameParent = true;
-            for (auto &i : selectedTreeModels) {
-                if (parent != TreeListViewModels->GetItemParent(i)) {
-                    allSameParent = false;
+    if (selectedTreeGroups.size() == 0) {
+        if (selectedTreeSubModels.size() == 0) {
+            if (selectedTreeModels.size() == 1) {
+                mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Model");
+                auto par = TreeListViewModels->GetItemParent(selectedTreeModels[0]);
+                if (par != TreeListViewModels->GetRootItem()) {
+                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Groop");
                 }
+                mnuContext.AppendSeparator();
             }
-            mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Models");
-            mnuContext.Append(ID_PREVIEW_MODEL_LOCK, "Lock Models");
-            mnuContext.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock Models");
-            
-            if (allSameParent && parent != TreeListViewModels->GetRootItem()) {
-                mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Groop");
+
+            if (selectedTreeModels.size() > 1) {
+                auto parent = TreeListViewModels->GetItemParent(selectedTreeModels[0]);
+                bool allSameParent = true;
+                for (auto &i : selectedTreeModels) {
+                    if (parent != TreeListViewModels->GetItemParent(i)) {
+                        allSameParent = false;
+                    }
+                }
+                mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Models");
+                mnuContext.Append(ID_PREVIEW_MODEL_LOCK, "Lock Models");
+                mnuContext.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock Models");
+                
+                if (allSameParent && parent != TreeListViewModels->GetRootItem()) {
+                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Groop");
+                }
+                mnuContext.AppendSeparator();
             }
-            mnuContext.AppendSeparator();
+        } else {
+            auto par = TreeListViewModels->GetItemParent(selectedTreeSubModels[0]);
+            if (par != TreeListViewModels->GetRootItem()) {
+                if ((selectedTreeSubModels.size() + selectedTreeModels.size()) == 1) {
+                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Groop");
+                } else {
+                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Groop");
+                }
+                mnuContext.AppendSeparator();
+            }
         }
     }
 
