@@ -18,6 +18,7 @@ public:
     // controls are public to allow SketchEffect access
     BulkEditTextCtrl* TextCtrl_SketchDef = nullptr;
     BulkEditSlider* Slider_DrawPercentage = nullptr;
+    BulkEditValueCurveButton* BitmapButton_DrawPercentage = nullptr;
     BulkEditTextCtrl* TextCtrl_DrawPercentage = nullptr;
     BulkEditSlider* Slider_Thickness = nullptr;
     BulkEditValueCurveButton* BitmapButton_Thickness = nullptr;
@@ -30,6 +31,7 @@ protected:
     static const long ID_TEXTCTRL_SketchDef;
     static const long ID_SLIDER_DrawPercentage;
     static const long ID_TEXTCTRL_DrawPercentage;
+    static const long ID_VALUECURVE_DrawPercentage;
     static const long ID_SLIDER_Thickness;
     static const long ID_VALUECURVE_Thickness;
     static const long ID_TEXTCTRL_Thickness;
@@ -40,5 +42,5 @@ protected:
  private:
     DECLARE_EVENT_TABLE()
 
-    void OnButton_DefineSketch(wxCommandEvent& event);
+    void OnCheckBox_MotionClick(wxCommandEvent& event);
 };

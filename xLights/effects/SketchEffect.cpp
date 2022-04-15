@@ -51,7 +51,7 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffe
     double progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
     std::string sketchDef = settings.Get("TEXTCTRL_SketchDef", "");
-    int drawPercentage = std::stoi(settings.Get("SLIDER_DrawPercentage", "40"));
+    double drawPercentage = GetValueCurveDouble("DrawPercentage", 40, settings, progress, 1, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int thickness = GetValueCurveInt("Thickness", 1, settings, progress, 1, 10, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool motionEnabled = std::stoi(settings.Get("CHECKBOX_MotionEnabled", "0"));
     int motionPercentage = std::stoi(settings.Get("SLIDER_MotionPercentage", "100"));
@@ -59,7 +59,7 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffe
     xlColorVector colors(buffer.GetColorCount());
     for (size_t i = 0; i < buffer.GetColorCount(); ++i)
         colors[i] = buffer.palette.GetColor(i);
-
+    
     if (sketchDef.empty())
         return;
     SketchEffectSketch sketch(SketchEffectSketch::SketchFromString(sketchDef));
@@ -114,6 +114,7 @@ void SketchEffect::SetDefaultParameters()
     SetTextValue(p->TextCtrl_SketchDef, SketchEffectSketch::DefaultSketchString());
 
     p->BitmapButton_Thickness->SetActive(false);
+    p->BitmapButton_DrawPercentage->SetActive(false);
 
     SetCheckBoxValue(p->CheckBox_MotionEnabled, false);
 
@@ -186,11 +187,9 @@ void SketchEffect::renderSketch(const SketchEffectSketch& sketch, wxImage& img, 
 
     // ... but we do a different adjustment for the non-motion case
     if (!hasMotion) {
-        if (progress > 0.5)
-            adjustedProgress = 1.0;
-        else
-            adjustedProgress = interpolate(progress, 0.0, 0.0, drawPercentage, 1.0, LinearInterpolater());
+        adjustedProgress = interpolate(progress, 0.0, 0.0, drawPercentage, 1.0, LinearInterpolater());
     }
+    
 
     double totalLength = 0.;
     for (const auto& path : paths)

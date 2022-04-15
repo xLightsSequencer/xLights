@@ -140,8 +140,8 @@ void SketchLine::DrawPartialSegment(wxGraphicsPath& path, const wxSize&sz, std::
 
         auto pt = (1 - endPercentage) * m_fromPt + endPercentage * m_toPt;
         auto startPt = (1 - percentage) * m_fromPt + percentage * m_toPt;
+        
         path.MoveToPoint(sz.x * startPt.m_x, sz.y * startPt.m_y);
-
         path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
     }
 }
@@ -318,14 +318,18 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
     } else {
         for (auto& segment : m_segments) {
             double length = segment->Length();
-            double percentageAtStartOfSegment = cumulativeLength / totalLength;
-            double percentageAtEndOfSegment = (cumulativeLength + length) / totalLength;
+            if (length != 0.0) {
+                //if length is 0, skip (partially because you get divide by 0 for the two percentages below
+                double percentageAtStartOfSegment = cumulativeLength / totalLength;
+                double percentageAtEndOfSegment = (cumulativeLength + length) / totalLength;
 
-            double segmentPercentage = (endPercentage - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
-            double segmentDrawPercentage = (startPercentage.value() - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
-            segment->DrawPartialSegment(path, sz, segmentDrawPercentage, segmentPercentage);
+                double segmentPercentage = (endPercentage - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
+                double segmentDrawPercentage = (startPercentage.value() - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
+                
+                segment->DrawPartialSegment(path, sz, segmentDrawPercentage, segmentPercentage);
 
-            cumulativeLength += length;
+                cumulativeLength += length;
+            }
         }
     }
 

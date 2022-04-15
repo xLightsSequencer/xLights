@@ -27,6 +27,7 @@ END_EVENT_TABLE()
 const long SketchPanel::ID_TEXTCTRL_SketchDef = wxNewId();
 const long SketchPanel::ID_SLIDER_DrawPercentage = wxNewId();
 const long SketchPanel::ID_TEXTCTRL_DrawPercentage = wxNewId();
+const long SketchPanel::ID_VALUECURVE_DrawPercentage = wxNewId();
 const long SketchPanel::ID_SLIDER_Thickness = wxNewId();
 const long SketchPanel::ID_VALUECURVE_Thickness = wxNewId();
 const long SketchPanel::ID_TEXTCTRL_Thickness = wxNewId();
@@ -77,10 +78,16 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
     // Draw Percentage
     auto label2 = new wxStaticText(this, wxID_ANY, "Draw Percentage:");
     Slider_DrawPercentage = new BulkEditSlider(this, ID_SLIDER_DrawPercentage, 40, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DrawPercentage"));
+    BitmapButton_DrawPercentage = new BulkEditValueCurveButton(this, ID_VALUECURVE_DrawPercentage, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_DrawPercentage"));
     TextCtrl_DrawPercentage = new BulkEditTextCtrl(this, ID_TEXTCTRL_DrawPercentage, wxEmptyString, wxDefaultPosition, wxDLG_UNIT(this, wxSize(20, -1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_DrawPercentage"));
 
+    auto drawPctControlsSizer = new wxFlexGridSizer(1, 2, 0, 0);
+    drawPctControlsSizer->AddGrowableCol(0);
+    drawPctControlsSizer->Add(Slider_DrawPercentage, 1, wxALL | wxEXPAND, 0);
+    drawPctControlsSizer->Add(BitmapButton_DrawPercentage, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+    
     sketchDefSizer->Add(label2, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-    sketchDefSizer->Add(Slider_DrawPercentage, 1, wxALL | wxEXPAND, 2);
+    sketchDefSizer->Add(drawPctControlsSizer, 1, wxALL | wxEXPAND, 2);
     sketchDefSizer->Add(TextCtrl_DrawPercentage, 1, wxALL | wxALIGN_CENTER_VERTICAL, 2);
 
     // Thickness
@@ -123,28 +130,29 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
 
     SetName("ID_PANEL_SKETCH");
 
-	//Connect(defineSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPanel::OnButton_DefineSketch);
-
     Connect(ID_VALUECURVE_Thickness, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_DrawPercentage, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPanel::OnVCButtonClick);
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SketchPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&SketchPanel::OnValidateWindow, 0, this);
 
+    Connect(ID_CHECKBOX_MotionEnabled, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&SketchPanel::OnCheckBox_MotionClick);
+    
     BitmapButton_Thickness->SetLimits(1, 10);
+    BitmapButton_DrawPercentage->SetLimits(1, 100);
 }
 
 void SketchPanel::ValidateWindow()
 {
-
+    bool motion = CheckBox_MotionEnabled->IsChecked();
+    Slider_DrawPercentage->Enable(!motion);
+    BitmapButton_DrawPercentage->Enable(!motion);
+    TextCtrl_DrawPercentage->Enable(!motion);
+    
+    Slider_MotionPercentage->Enable(motion);
+    TextCtrl_MotionPercentage->Enable(motion);
 }
 
-//void SketchPanel::OnButton_DefineSketch(wxCommandEvent& /*event*/)
-//{
-//    SketchPathDialog dlg(this);
-//    dlg.setSketch(TextCtrl_SketchDef->GetValue());
-//
-//    if ( dlg.ShowModal() == wxID_OK ) {
-//        std::string sketchDef(dlg.sketchDefString());
-//        TextCtrl_SketchDef->SetValue(sketchDef);
-//    }
-//}
+void SketchPanel::OnCheckBox_MotionClick(wxCommandEvent& event) {
+    ValidateWindow();
+}
