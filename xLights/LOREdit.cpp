@@ -719,24 +719,24 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         if (movementLeft.Contains("R")) 
         {
             wxArrayString rr = wxSplit(movementLeft, 'R');
-            settings += ",E_SLIDER_PicturesXC=" + rr[0];
-            settings += ",E_SLIDER_PicturesEndXC=" + rr[1];
+            settings += ",E_SLIDER_PicturesXC=" + rr[1];
+            settings += ",E_SLIDER_PicturesEndXC=" + rr[2];
         } else if (movementLeft.IsNumber()) {
             settings += ",E_SLIDER_PicturesXC=" + movementLeft;
             settings += ",E_SLIDER_PicturesEndXC=" + movementLeft;
         }
         if (movementTop.Contains("R")) {
             wxArrayString rr = wxSplit(movementTop, 'R');
-            settings += ",E_SLIDER_PicturesYC=" + rr[0];
-            settings += ",E_SLIDER_PicturesEndYC=" + rr[1];
+            settings += ",E_SLIDER_PicturesYC=" + rr[1];
+            settings += ",E_SLIDER_PicturesEndYC=" + rr[2];
         } else if (movementTop.IsNumber()) {
             settings += ",E_SLIDER_PicturesYC=" + movementTop;
             settings += ",E_SLIDER_PicturesEndYC=" + movementTop;
         }
         if (scaleX.Contains("R")) {
             wxArrayString rr = wxSplit(scaleX, 'R');
-            settings += ",E_SLIDER_Pictures_StartScale=" + rr[0];
-            settings += ",E_SLIDER_Pictures_EndScale=" + rr[1];
+            settings += ",E_SLIDER_Pictures_StartScale=" + rr[1];
+            settings += ",E_SLIDER_Pictures_EndScale=" + rr[2];
         } else if (scaleX.IsNumber()) {
             settings += ",E_SLIDER_Pictures_StartScale=" + scaleX;
             settings += ",E_SLIDER_Pictures_EndScale=" + scaleX;
