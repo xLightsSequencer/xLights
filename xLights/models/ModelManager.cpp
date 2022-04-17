@@ -1268,8 +1268,11 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         if (type == "DmxServo3Axis") {
             node->DeleteAttribute("DisplayAs");
             node->AddAttribute("DisplayAs", "DmxServo3d");
+            node->DeleteAttribute("NumServos");
             node->AddAttribute("NumServos", "3");
+            node->DeleteAttribute("NumStatic");
             node->AddAttribute("NumStatic", "1");
+            node->DeleteAttribute("NumMotion");
             node->AddAttribute("NumMotion", "3");
             node->DeleteAttribute("parm1");
             node->AddAttribute("parm1", "6");
@@ -1413,6 +1416,7 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         type = "DmxServo3d";
         node->DeleteAttribute("DisplayAs");
         node->AddAttribute("DisplayAs", type);
+        node->DeleteAttribute("NumServos");
         node->AddAttribute("NumServos", "3");
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "6");
