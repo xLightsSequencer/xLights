@@ -42,7 +42,7 @@ namespace
     // approximation... bumping this up (temporarily?) to fix weirdness
     // when the 'motion' attribute is enabled. So far, a higher number
     // doesn't seem to affect render times very much.
-    const int NUM_STEPS = /*50*/500;
+    const int NUM_STEPS = /*50*/ 500;
 
     double bezierLength(const wxPoint2DDouble& startPt,
                         const wxPoint2DDouble& ctrlPt1,
@@ -114,6 +114,11 @@ namespace
         double t = std::clamp(dot / l2, 0., 1.);
         wxPoint2DDouble projection(v + t * (w - v));
         return p.GetDistanceSquare(projection);
+    }
+
+    double calcPercentage(double v, double s, double e)
+    {
+        return (v - s) / (e - s);
     }
 
     const double HIT_TEST_DIST_SQR_LIMIT = 0.0075 * 0.0075;
@@ -264,15 +269,14 @@ double SketchEffectPath::Length() const
         return 0.;
 
     double len = 0.0;
-    for (const auto& cmd : m_segments)
-        len += cmd->Length();
-
+    for (const auto& segment : m_segments)
+        len += segment->Length();
     return len;
 }
 
-void SketchEffectPath::appendSegment(std::shared_ptr<SketchPathSegment> cmd)
+void SketchEffectPath::appendSegment(std::shared_ptr<SketchPathSegment> segment)
 {
-    m_segments.push_back(cmd);
+    m_segments.push_back(segment);
 }
 
 void SketchEffectPath::drawEntirePath(wxGraphicsContext* gc, const wxSize& sz) const
@@ -283,8 +287,8 @@ void SketchEffectPath::drawEntirePath(wxGraphicsContext* gc, const wxSize& sz) c
     wxGraphicsPath path(gc->CreatePath());
     path.MoveToPoint(sz.x * startPt.m_x, sz.y * startPt.m_y);
 
-    for (auto& cmd : m_segments)
-        cmd->DrawEntireSegment(path, sz);
+    for (const auto& segment : m_segments)
+        segment->DrawEntireSegment(path, sz);
 
     gc->StrokePath(path);
 }
@@ -294,6 +298,8 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
     if (m_segments.empty())
         return;
     double totalLength = Length();
+    if (totalLength == 0.)
+        return;
     double cumulativeLength = 0.;
 
     auto startPt(m_segments.front()->StartPoint());
@@ -301,7 +307,7 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
     path.MoveToPoint(sz.x * startPt.m_x, sz.y * startPt.m_y);
 
     if (!startPercentage.has_value()) {
-        for (auto& segment : m_segments) {
+        for (const auto& segment : m_segments) {
             double length = segment->Length();
             double percentageAtEndOfSegment = (cumulativeLength + length) / totalLength;
             if (endPercentage > percentageAtEndOfSegment) {
@@ -309,22 +315,22 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
             } else {
                 double percentageAtStartOfSegment = cumulativeLength / totalLength;
                 if (endPercentage >= percentageAtStartOfSegment && endPercentage < percentageAtEndOfSegment) {
-                    double segmentPercentage = (endPercentage - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
+                    double segmentPercentage = calcPercentage(endPercentage, percentageAtStartOfSegment, percentageAtEndOfSegment);
                     segment->DrawPartialSegment(path, sz, std::nullopt, segmentPercentage);
                 }
             }
             cumulativeLength += length;
         }
     } else {
-        for (auto& segment : m_segments) {
+        for (const auto& segment : m_segments) {
             double length = segment->Length();
             if (length != 0.0) {
                 //if length is 0, skip (partially because you get divide by 0 for the two percentages below
                 double percentageAtStartOfSegment = cumulativeLength / totalLength;
                 double percentageAtEndOfSegment = (cumulativeLength + length) / totalLength;
 
-                double segmentPercentage = (endPercentage - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
-                double segmentDrawPercentage = (startPercentage.value() - percentageAtStartOfSegment) / (percentageAtEndOfSegment - percentageAtStartOfSegment);
+                double segmentPercentage = calcPercentage(endPercentage, percentageAtStartOfSegment, percentageAtEndOfSegment);
+                double segmentDrawPercentage = calcPercentage(startPercentage.value(), percentageAtStartOfSegment, percentageAtEndOfSegment);
                 
                 segment->DrawPartialSegment(path, sz, segmentDrawPercentage, segmentPercentage);
 
@@ -495,6 +501,9 @@ void SketchEffectSketch::updatePath(int index, std::shared_ptr<SketchEffectPath>
 
 void SketchEffectSketch::deletePath(int pathIndex)
 {
+    if (pathIndex < 0 || pathIndex >= m_paths.size())
+        return;
+
     auto iter = m_paths.begin();
     std::advance(iter, pathIndex);
 
