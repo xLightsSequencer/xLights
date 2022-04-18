@@ -58,8 +58,8 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffe
     std::string sketchDef = settings.Get("TEXTCTRL_SketchDef", "");
     double drawPercentage = GetValueCurveDouble("DrawPercentage", 40, settings, progress, 1, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int thickness = GetValueCurveInt("Thickness", 1, settings, progress, 1, 10, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool motionEnabled = std::stoi(settings.Get("CHECKBOX_MotionEnabled", "0"));
-    int motionPercentage = std::stoi(settings.Get("SLIDER_MotionPercentage", "100"));
+    bool motionEnabled = settings.GetBool("CHECKBOX_MotionEnabled");
+    int motionPercentage = settings.GetInt("SLIDER_MotionPercentage", 100);
 
     xlColorVector colors(buffer.GetColorCount());
     for (size_t i = 0; i < buffer.GetColorCount(); ++i)
