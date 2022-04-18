@@ -61,6 +61,7 @@
 #include "EffectAssist.h"
 #include "EffectsPanel.h"
 #include "MultiControllerUploadDialog.h"
+#include "Parallel.h"
 #include "outputs/IPOutput.h"
 #include "outputs/E131Output.h"
 #include "GenerateLyricsDialog.h"

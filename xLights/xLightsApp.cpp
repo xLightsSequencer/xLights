@@ -28,7 +28,6 @@
 
 #include "xLightsApp.h"
 #include "xLightsVersion.h"
-#include "Parallel.h"
 #include "UtilFunctions.h"
 #include "TraceLog.h"
 #include "ExternalHooks.h"
