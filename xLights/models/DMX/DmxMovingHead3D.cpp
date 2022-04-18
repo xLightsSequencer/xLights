@@ -46,7 +46,6 @@ DmxMovingHead3D::~DmxMovingHead3D()
     //dtor
 }
 
-const double PI = 3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
 void DmxMovingHead3D::DisableUnusedProperties(wxPropertyGridInterface* grid)
@@ -132,6 +131,38 @@ void DmxMovingHead3D::InitModel() {
     screenLocation.SetRenderSize(w, h, d);
 }
 
+std::list<std::string> DmxMovingHead3D::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    int nodeCount = Nodes.size();
+
+    if (red_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s red channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), red_channel, nodeCount));
+    }
+    if (green_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s green channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), green_channel, nodeCount));
+    }
+    if (blue_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s blue channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), blue_channel, nodeCount));
+    }
+    if (white_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s white channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), white_channel, nodeCount));
+    }
+    if (pan_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s pan channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), pan_channel, nodeCount));
+    }
+    if (tilt_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s tilt channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), tilt_channel, nodeCount));
+    }
+    if (shutter_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s shutter channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), shutter_channel, nodeCount));
+    }
+
+    res.splice(res.end(), Model::CheckModelSettings());
+    return res;
+}
+
 void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor* c) {
     static wxStopWatch sw;
     float pan_angle, pan_angle_raw, tilt_angle, beam_length_displayed; //, angle1, angle2
@@ -146,6 +177,7 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
         white_channel > NodeCount ||
         shutter_channel > NodeCount)
     {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
 
@@ -295,11 +327,9 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
     }
 }
 
-void DmxMovingHead3D::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    // We have already loaded gdtf properties
-    if (EndsWith(filename, "gdtf")) return;
+void DmxMovingHead3D::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
 
-    DmxMovingHead::ImportXlightsModel(filename, xlights, min_x, max_x, min_y, max_y);
+    DmxMovingHead::ImportXlightsModel(root, xlights, min_x, max_x, min_y, max_y);
 
     SetProperty("DisplayAs", "DmxMovingHead3D");
 }

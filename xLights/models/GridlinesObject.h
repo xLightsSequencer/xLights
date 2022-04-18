@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "ViewObject.h"
+#include "BoxedScreenLocation.h"
 
 class ModelPreview;
 class xlVertexColorAccumulator;

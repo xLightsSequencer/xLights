@@ -17,6 +17,8 @@
 
 #include <cmath>
 
+#include "ExternalHooks.h"
+
 class BaseDimmingCurve : public DimmingCurve {
 public:
     BaseDimmingCurve(int ch) : DimmingCurve(), channel(ch) {
@@ -259,7 +261,7 @@ DimmingCurve *createCurve(wxXmlNode *dcn, int channel = -1) {
     DimmingCurve *dc = nullptr;
     if (dcn->HasAttribute("filename")) {
         wxString fn = dcn->GetAttribute("filename");
-        if (wxFile::Exists(fn)) {
+        if (FileExists(fn)) {
             FileDimmingCurve *fdc = new FileDimmingCurve(fn, channel);
             if (fdc->isIdentity()) {
                 delete fdc;
@@ -319,7 +321,7 @@ DimmingCurve *DimmingCurve::createBrightnessGamma(int brightness, float gamma) {
     return c;
 }
 DimmingCurve *DimmingCurve::createFromFile(const wxString &fileName) {
-    if (wxFile::Exists(fileName)) {
+    if (FileExists(fileName)) {
         return new FileDimmingCurve(fileName, -1);
     }
     return new BasicDimmingCurve(100, 1.0, -1);

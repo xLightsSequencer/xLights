@@ -232,7 +232,7 @@ static bool doesFileExist(const wxString &dir, const wxString &origFileWin, cons
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (origFileWin != "") {
         wxFileName fn3(dir, origFileWin);
-        if (fn3.Exists()) {
+        if (FileExists(fn3, false)) {
             logger_base.debug("File location fixed: " + origFileWin + " -> " + fn3.GetFullPath());
             path = fn3.GetFullPath();
             return true;
@@ -240,7 +240,7 @@ static bool doesFileExist(const wxString &dir, const wxString &origFileWin, cons
     }
     if (origFileUnix != "") {
         wxFileName fn4(dir, origFileUnix);
-        if (fn4.Exists()) {
+        if (FileExists(fn4, false)) {
             logger_base.debug("File location fixed: " + origFileWin + " -> " + fn4.GetFullPath());
             path = fn4.GetFullPath();
             return true;
@@ -314,7 +314,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
         return file;
     }
 
-    if (wxFileExists(file)) {
+    if (FileExists(file, false)) {
         return file;
     }
 
@@ -433,7 +433,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
         int offset = flc.Find(sflc) + showfolder.Length();
         wxString relative = file.SubString(offset, file.Length());
         wxFileName sdFn =  wxFileName::DirName(sd);
-        if (wxFileExists(relative)) {
+        if (FileExists(relative, false)) {
             __fileMap[file] = relative;
             return relative;
         }

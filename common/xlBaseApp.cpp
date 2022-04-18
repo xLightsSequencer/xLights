@@ -26,6 +26,7 @@
 #include <log4cpp/PropertyConfigurator.hh>
 #include <log4cpp/Configurator.hh>
 
+#include "ExternalHooks.h"
 #include "xLightsVersion.h"
 #include "xlBaseApp.h"
 #include "xlStackWalker.h"
@@ -140,15 +141,15 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
         std::string const logFilePath = "/tmp/" + logFileName;
 #endif
 
-        if (wxFile::Exists(logFilePath))
+        if (FileExists(logFilePath))
         {
             report.AddFile(logFilePath, logFileName.c_str());
         }
-        else if ((topFrame != nullptr) && wxFile::Exists(wxFileName(topFrame->GetCurrentDir(), logFileName.c_str()).GetFullPath()))
+        else if ((topFrame != nullptr) && FileExists(wxFileName(topFrame->GetCurrentDir(), logFileName.c_str()).GetFullPath()))
         {
             report.AddFile(wxFileName(topFrame->GetCurrentDir(), logFileName.c_str()).GetFullPath(), logFileName.c_str());
         }
-        else if (wxFile::Exists(wxFileName(wxGetCwd(), logFileName.c_str()).GetFullPath()))
+        else if (FileExists(wxFileName(wxGetCwd(), logFileName.c_str()).GetFullPath()))
         {
             report.AddFile(wxFileName(wxGetCwd(), logFileName.c_str()).GetFullPath(), logFileName.c_str());
         }

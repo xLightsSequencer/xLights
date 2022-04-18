@@ -17,6 +17,11 @@
 #include <tuple>
 
 #include "ModelScreenLocation.h"
+#include "BoxedScreenLocation.h"
+#include "TwoPointScreenLocation.h"
+#include "ThreePointScreenLocation.h"
+#include "PolyPointScreenLocation.h"
+
 #include "../Color.h"
 #include "BaseObject.h"
 #include "../UtilFunctions.h"
@@ -111,7 +116,7 @@ public:
     void Rename(std::string const& newName);
     int GetNumStrings() const { return parm1; }
     int GetPixelStyle() const { return pixelStyle; }
-    void SetPixelStyle(int style) { pixelStyle = style; } // temporarily changes pixel style
+    void SetPixelStyle(int style);
     static std::string GetPixelStyleDescription(int pixelStyle);
     virtual int GetNumPhysicalStrings() const;
     ControllerCaps* GetControllerCaps() const;
@@ -119,12 +124,15 @@ public:
 
     std::string description;
     xlColor customColor;
-    DimmingCurve* modelDimmingCurve;
-    int _controller; // this is used to pass the selected controller name between property create and property change only
+    DimmingCurve* modelDimmingCurve = nullptr;
+    int _controller = 0; // this is used to pass the selected controller name between property create and property change only
 
     int GetPixelSize() const { return pixelSize; }
-    void SetPixelSize(int size) { pixelSize = size; } // temporarily changes pixel size
+    void SetPixelSize(int size);
+    void SetTransparency(int t);
+    void SetBlackTransparency(int t);
 
+    
     virtual bool AllNodesAllocated() const { return true; }
     static void ParseFaceInfo(wxXmlNode* fiNode, std::map<std::string, std::map<std::string, std::string> >& faceInfo);
     static void WriteFaceInfo(wxXmlNode* fiNode, const std::map<std::string, std::map<std::string, std::string> >& faceInfo);
@@ -140,6 +148,7 @@ public:
     void AddFace(wxXmlNode* n);
     void AddState(wxXmlNode* n);
     void AddSubmodel(wxXmlNode* n);
+    void ImportShadowModels(wxXmlNode* n, xLightsFrame* xlights);
 
     wxString SerialiseSubmodel() const;
 
@@ -148,11 +157,12 @@ public:
     virtual const std::vector<std::string>& GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
     virtual void GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi) const;
     virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform,
-        std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi) const;
+        std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep = false) const;
     const ModelManager& GetModelManager() const { return modelManager; }
     virtual bool SupportsXlightsModel() { return false; }
     static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview);
-    virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {}
+    void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
+    virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {}
     virtual void ExportXlightsModel() {}
     virtual void ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname);
     bool FourChannelNodes() const;
@@ -218,9 +228,9 @@ protected:
     void DumpBuffer(std::vector<NodeBaseClassPtr>& newNodes, int bufferWi, int bufferHi) const;
 
     // size of the default buffer
-    int BufferHt{ 0 };
-    int BufferWi{ 0 };
-    int BufferDp{ 0 };
+    int BufferHt = 0;
+    int BufferWi = 0;
+    int BufferDp = 0;
     std::vector<NodeBaseClassPtr> Nodes;
     const ModelManager& modelManager;
 
@@ -242,30 +252,32 @@ protected:
     void SetLineCoord();
     std::string GetNextName();
 
-    int pixelStyle;  //0 - default, 1 - smooth, 2 - circle
-    int pixelSize{ 2 };
-    int transparency{ 0 };
-    int blackTransparency{ 0 };
-    wxColour modelTagColour;
+    int pixelStyle = 1; // 0 - default, 1 - smooth, 2 - circle
+    int pixelSize = 2;
+    int transparency = 0;
+    int blackTransparency = 0;
+    wxColour modelTagColour = *wxBLACK;
+    uint8_t _lowDefFactor = 100;
 
-    int StrobeRate;      // 0=no strobing
-    bool zeroBased;
+    int StrobeRate = 0; // 0 = no strobing
+    bool zeroBased =  false;
 
     std::vector<std::string> strandNames;
     std::vector<std::string> nodeNames;
-    long parm1;         /* Number of strings in the model or number of arches or canes (except for frames & custom) */
-    long parm2;         /* Number of nodes per string in the model or number of segments per arch or cane (except for frames & custom) */
-    long parm3;         /* Number of strands per string in the model or number of lights per arch or cane segment (except for frames & custom) */
-    bool IsLtoR;         // true=left to right, false=right to left
+    long parm1 = 0;         /* Number of strings in the model or number of arches or canes (except for frames & custom) */
+    long parm2 = 0;         /* Number of nodes per string in the model or number of segments per arch or cane (except for frames & custom) */
+    long parm3 = 0;         /* Number of strands per string in the model or number of lights per arch or cane segment (except for frames & custom) */
+    bool IsLtoR = true;     // true = left to right, false = right to left
     std::vector<int32_t> stringStartChan;
-    bool isBotToTop;
+    bool isBotToTop = true;
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
-    int rgbwHandlingType;
+    int rgbwHandlingType = 0;
     std::vector<xlColor> superStringColours;
 
     std::vector<Model*> subModels;
     void ParseSubModel(wxXmlNode* subModelNode);
     void ColourClashingChains(wxPGProperty* p);
+    uint32_t ApplyLowDefinition(uint32_t val) const;
 
     std::vector<std::string> modelState;
 
@@ -345,7 +357,7 @@ public:
     bool SingleChannel = false;  // true for traditional single-color strings
 
     std::string ModelStartChannel{ "" };
-    bool CouldComputeStartChannel{ false };
+    bool CouldComputeStartChannel = false;
     bool Overlapping{ false };
     std::string _pixelCount{ "" };
     std::string _pixelType{ "" };
@@ -395,6 +407,7 @@ public:
     int GetSelectedHandle();
     int GetNumHandles();
     int GetSelectedSegment();
+    bool SupportsCurves();
     bool HasCurve(int segment);
     void SetCurve(int segment, bool create);
     void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
@@ -433,12 +446,15 @@ public:
     virtual void ExportAsCustomXModel() const;
     virtual std::string GetStartLocation() const;
     bool IsCustom(void);
-    bool IsPolyLine(void);
     virtual bool SupportsExportAsCustom() const = 0;
     virtual bool SupportsWiringView() const = 0;
     size_t GetChannelCoords(wxArrayString& choices); //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
     static bool ParseFaceElement(const std::string& str, std::vector<wxPoint>& first_xy);
     static bool ParseStateElement(const std::string& str, std::vector<wxPoint>& first_xy);
+    virtual bool SupportsLowDefinitionRender() const
+    {
+        return false;
+    }
     std::string GetNodeXY(const std::string& nodenumstr);
     std::string GetNodeXY(int nodeinx);
 
@@ -577,6 +593,10 @@ public:
         }
         return res;
     }
+    bool ContainsChannel(uint32_t startChannel, uint32_t endChannel) const;
+    bool ContainsChannel(int strand, uint32_t startChannel, uint32_t endChannel) const;
+    bool ContainsChannel(const std::string& submodelName, uint32_t startChannel, uint32_t endChannel) const;
+
     virtual void OnLayerSizesChange(bool countChanged) {}
     static const long ID_LAYERSIZE_DELETE;
     static const long ID_LAYERSIZE_INSERT;
@@ -601,12 +621,11 @@ public:
             }
         }
     }
+    uint32_t GetChannelForNode(int strandIndex, int node) const;
 
 protected:
     std::vector<int> layerSizes; // inside to outside
-
-    unsigned int maxVertexCount;
-    
+    unsigned int maxVertexCount = 0;
     
     class PreviewGraphicsCacheInfo {
     public:

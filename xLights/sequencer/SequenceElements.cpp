@@ -122,7 +122,7 @@ int SequenceElements::GetSequenceEnd() const
     return mSequenceEndMS;
 }
 
-EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) const
+EffectLayer* SequenceElements::GetEffectLayer(const Row_Information_Struct *s) const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (s == nullptr) {
@@ -163,7 +163,7 @@ EffectLayer* SequenceElements::GetVisibleEffectLayer(int row) {
 
 static Element* CreateElement(SequenceElements *se, const std::string &name, const std::string &type,
     bool visible, bool collapsed, bool active, bool selected,
-    xLightsFrame *xframe) {
+    xLightsFrame *xframe, bool renderDisabled) {
     Element *el;
     if (type == "timing") {
         TimingElement *te = new TimingElement(se, name);
@@ -184,15 +184,16 @@ static Element* CreateElement(SequenceElements *se, const std::string &name, con
         el->SetVisible(visible);
     }
     el->SetCollapsed(collapsed);
+    el->SetRenderDisabled(renderDisabled);
     return el;
 }
 
 Element* SequenceElements::AddElement(const std::string &name, const std::string &type,
-    bool visible, bool collapsed, bool active, bool selected)
+    bool visible, bool collapsed, bool active, bool selected, bool renderDisabled)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!ElementExists(name)) {
-        Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, xframe);
+        Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, xframe, renderDisabled);
 
         mAllViews[MASTER_VIEW].push_back(el);
         mMasterViewChangeCount++;
@@ -205,12 +206,12 @@ Element* SequenceElements::AddElement(const std::string &name, const std::string
 
 Element* SequenceElements::AddElement(int index, const std::string &name,
     const std::string &type,
-    bool visible, bool collapsed, bool active, bool selected)
+    bool visible, bool collapsed, bool active, bool selected, bool renderDisabled)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!ElementExists(name) && index <= mAllViews[MASTER_VIEW].size())
     {
-        Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, xframe);
+        Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, xframe, renderDisabled);
         mAllViews[MASTER_VIEW].insert(mAllViews[MASTER_VIEW].begin() + index, el);
         mMasterViewChangeCount++;
         IncrementChangeCount(el);
@@ -757,6 +758,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 }
                 std::string type = element->GetAttribute(STR_TYPE).ToStdString();
                 bool visible = element->GetAttribute("visible") == '1' ? true : false;
+                bool renderDisabled = element->GetAttribute("RenderDisabled", "0") == "1" ? true : false;
 
                 if (type == STR_TIMING)
                 {
@@ -775,7 +777,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 }
                 else
                 {
-                    Element* elem = AddElement(name, type, visible, collapsed, active, selected);
+                    Element* elem = AddElement(name, type, visible, collapsed, active, selected, renderDisabled);
                     if (type == STR_TIMING)
                     {
                         std::string views = element->GetAttribute("views", "").ToStdString();
@@ -1033,7 +1035,7 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
                 {
                     if (!ElementExists(model1->GetName()))
                     {
-                        Element* elem = AddElement(model1->GetName(), "model", visible, false, false, false);
+                        Element* elem = AddElement(model1->GetName(), "model", visible, false, false, false, false);
                         if (elem != nullptr)
                         {
                             elem->AddEffectLayer();
@@ -1531,7 +1533,7 @@ void SequenceElements::DeactivateAllTimingElements()
     }
 }
 
-int SequenceElements::SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS)
+int SequenceElements::SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS, int endMS)
 {
     int num_selected = 0;
     if(startRow<mRowInformation.size())
@@ -1607,6 +1609,42 @@ void SequenceElements::SelectAllEffectsNoTiming()
             effectLayer->SelectAllEffects();
         }
     }
+}
+
+std::vector<std::string> SequenceElements::GetUsedColours(bool selectedOnly) const
+{
+    std::vector<std::string> usedColours;
+
+    for (size_t i = 0; i < mRowInformation.size(); i++) {
+        if (mRowInformation[i].element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            continue;
+        }
+        EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
+        if (effectLayer != nullptr) {
+            for (const auto& it : effectLayer->GetUsedColours(selectedOnly)) {
+                if (std::find(begin(usedColours), end(usedColours), it) == end(usedColours)) {
+                    usedColours.push_back(it);
+                }
+            }
+        }
+    }
+    return usedColours;
+}
+
+int SequenceElements::ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to, bool selectedOnly)
+{
+    get_undo_mgr().CreateUndoStep();
+    int replaced = 0;
+    for (size_t i = 0; i < mRowInformation.size(); i++) {
+        if (mRowInformation[i].element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            continue;
+        }
+        EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
+        if (effectLayer != nullptr) {
+            replaced += effectLayer->ReplaceColours(frame, from, to, selectedOnly, get_undo_mgr());
+        }
+    }
+    return replaced;
 }
 
 void SequenceElements::SelectAllEffectsInRow(int row)
@@ -1782,6 +1820,29 @@ Effect* SequenceElements::SelectEffectUsingDescription(std::string description)
     }
 
     return nullptr;
+}
+
+std::list<std::string> SequenceElements::GetUniqueEffectPropertyValues(const std::string& id)
+{
+    std::list<std::string> res;
+
+    for (size_t i = 0; i < GetElementCount(); i++) {
+        Element* e = GetElement(i);
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            for (size_t j = 0; j < e->GetEffectLayerCount(); j++) {
+                EffectLayer* el = e->GetEffectLayer(j);
+                for (int k = 0; k < el->GetEffectCount(); k++) {
+                    Effect* eff = el->GetEffect(k);
+
+                    if (eff->GetSetting(id) != "" && std::find(res.begin(), res.end(), eff->GetSetting(id)) == res.end()) {
+                        res.push_back(eff->GetSetting(id));
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
 }
 
 std::list<std::string> SequenceElements::GetAllEffectDescriptions()

@@ -424,6 +424,7 @@ void VUMeterPanel::ValidateWindow()
         type == "Note Level Jump" ||
         type == "Note Level Jump 100" ||
         type == "Note Level Pulse" ||
+        type == "Timing Event Color" ||
         type == "Dominant Frequency Colour" ||
         type == "Dominant Frequency Colour Gradient"
         )

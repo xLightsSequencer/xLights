@@ -27,8 +27,8 @@
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
 
-DmxSkull::DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased)
-    : DmxModel(node, manager, zeroBased)
+DmxSkull::DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased) :
+    DmxModel(node, manager, zeroBased)
 {
     wxStandardPaths stdp = wxStandardPaths::Get();
 #ifndef __WXMSW__
@@ -111,15 +111,15 @@ public:
     }
 };
 
-class dmxPoint3d {
-
+class dmxPoint3d
+{
 public:
     float x;
     float y;
     float z;
 
-    dmxPoint3d(float x_, float y_, float z_, float cx_, float cy_, float cz_, float scale_, float pan_angle_, float tilt_angle_, float nod_angle_ = 0.0)
-        : x(x_), y(y_), z(z_)
+    dmxPoint3d(float x_, float y_, float z_, float cx_, float cy_, float cz_, float scale_, float pan_angle_, float tilt_angle_, float nod_angle_ = 0.0) :
+        x(x_), y(y_), z(z_)
     {
         float pan_angle = wxDegToRad(pan_angle_);
         float tilt_angle = wxDegToRad(tilt_angle_);
@@ -139,7 +139,8 @@ public:
     }
 };
 
-static void CheckResult(bool value, bool old_value, DmxSkull* model, const std::string attribute, bool& change) {
+static void CheckResult(bool value, bool old_value, DmxSkull* model, const std::string attribute, bool& change)
+{
     if (value != old_value) {
         model->GetModelXml()->DeleteAttribute(attribute);
         model->GetModelXml()->AddAttribute(attribute, std::to_string(value));
@@ -151,11 +152,13 @@ static const std::string CLICK_TO_EDIT("--Click To Edit--");
 class SkullConfigDialogAdapter : public wxPGEditorDialogAdapter
 {
 public:
-    SkullConfigDialogAdapter(DmxSkull* model)
-        : wxPGEditorDialogAdapter(), m_model(model) {
+    SkullConfigDialogAdapter(DmxSkull* model) :
+        wxPGEditorDialogAdapter(), m_model(model)
+    {
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-        wxPGProperty* WXUNUSED(property)) override {
+                              wxPGProperty* WXUNUSED(property)) override
+    {
         SkullConfigDialog dlg(propGrid);
 
         dlg.CheckBox_16bits->SetValue(m_model->Is16Bit());
@@ -201,6 +204,7 @@ public:
         }
         return false;
     }
+
 protected:
     DmxSkull* m_model;
 };
@@ -209,18 +213,21 @@ class SkullPopupDialogProperty : public wxStringProperty
 {
 public:
     SkullPopupDialogProperty(DmxSkull* m,
-        const wxString& label,
-        const wxString& name,
-        const wxString& value,
-        int type)
-        : wxStringProperty(label, name, value), m_model(m), m_tp(type) {
+                             const wxString& label,
+                             const wxString& name,
+                             const wxString& value,
+                             int type) :
+        wxStringProperty(label, name, value), m_model(m), m_tp(type)
+    {
     }
     // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const override {
+    virtual const wxPGEditor* DoGetEditorClass() const override
+    {
         return wxPGEditor_TextCtrlAndButton;
     }
     // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override {
+    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
+    {
         switch (m_tp) {
         case 1:
             return new SkullConfigDialogAdapter(m_model);
@@ -229,13 +236,14 @@ public:
         }
         return nullptr;
     }
+
 protected:
     DmxSkull* m_model = nullptr;
     int m_tp;
 };
 
-void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid) {
-
+void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid)
+{
     DmxModel::AddTypeProperties(grid);
 
     wxPGProperty* p = grid->Append(new SkullPopupDialogProperty(this, "Skull Config", "SkullConfig", CLICK_TO_EDIT, 1));
@@ -264,6 +272,13 @@ void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid) {
     }
 
     grid->Append(new wxPropertyCategory("Orientation Properties", "OrientProperties"));
+
+    if (has_jaw) {
+        p = grid->Append(new wxIntProperty("Jaw Orientation", "DmxJawOrient", jaw_orient));
+        p->SetAttribute("Min", -360);
+        p->SetAttribute("Max", 360);
+        p->SetEditor("SpinCtrl");
+    }
 
     if (has_pan) {
         p = grid->Append(new wxIntProperty("Pan Orientation", "DmxPanOrient", pan_orient));
@@ -314,8 +329,8 @@ void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid) {
     grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
 
-int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-
+int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
+{
     if ("MeshOnly" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("MeshOnly");
         mesh_only = event.GetValue().GetBool();
@@ -335,6 +350,14 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
 
     if (has_jaw) {
         if (jaw_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+            return 0;
+        }
+        if ("DmxJawOrient" == event.GetPropertyName()) {
+            ModelXml->DeleteAttribute("DmxJawOrient");
+            ModelXml->AddAttribute("DmxJawOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DmxJawOrient");
+            AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DmxJawOrient");
+            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DmxJawOrient");
             return 0;
         }
     }
@@ -423,7 +446,8 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     return DmxModel::OnPropertyGridChange(grid, event);
 }
 
-void DmxSkull::FixObjFile(wxXmlNode* node, const std::string& objfile) {
+void DmxSkull::FixObjFile(wxXmlNode* node, const std::string& objfile)
+{
     if (node->HasAttribute("ObjFile")) {
         node->DeleteAttribute("ObjFile");
     }
@@ -431,7 +455,8 @@ void DmxSkull::FixObjFile(wxXmlNode* node, const std::string& objfile) {
     node->AddAttribute("ObjFile", f);
 }
 
-void DmxSkull::AddServo(Servo** _servo, const std::string& name, int type, const std::string& style) {
+void DmxSkull::AddServo(Servo** _servo, const std::string& name, int type, const std::string& style)
+{
     if (*_servo == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, name);
         ModelXml->AddChild(new_node);
@@ -447,7 +472,8 @@ void DmxSkull::AddServo(Servo** _servo, const std::string& name, int type, const
     (*_servo)->Set16Bit(_16bit);
 }
 
-void DmxSkull::AddMesh(Mesh** _mesh, const std::string& name, const std::string& objfile, bool set_size) {
+void DmxSkull::AddMesh(Mesh** _mesh, const std::string& name, const std::string& objfile, bool set_size)
+{
     if (*_mesh == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, name);
         ModelXml->AddChild(new_node);
@@ -458,7 +484,8 @@ void DmxSkull::AddMesh(Mesh** _mesh, const std::string& name, const std::string&
     (*_mesh)->Init(this, set_size);
 }
 
-void DmxSkull::InitModel() {
+void DmxSkull::InitModel()
+{
     DmxModel::InitModel();
     DisplayAs = "DmxSkull";
     screenLocation.SetRenderSize(1, 1, 1);
@@ -468,6 +495,7 @@ void DmxSkull::InitModel() {
     blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "18"));
     white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
     eye_brightness_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeBrtChannel", "15"));
+    jaw_orient = wxAtoi(ModelXml->GetAttribute("DmxJawOrient", std::to_string(default_orient[JAW])));
     pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", std::to_string(default_orient[PAN])));
     tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", std::to_string(default_orient[TILT])));
     nod_orient = wxAtoi(ModelXml->GetAttribute("DmxNodOrient", std::to_string(default_orient[NOD])));
@@ -496,51 +524,42 @@ void DmxSkull::InitModel() {
                 FixObjFile(n, "SkullHead.obj");
                 head_mesh = new Mesh(n, "HeadMesh");
             }
-        }
-        else if ("JawMesh" == name) {
+        } else if ("JawMesh" == name) {
             if (jaw_mesh == nullptr) {
                 FixObjFile(n, "SkullJaw.obj");
                 jaw_mesh = new Mesh(n, "JawMesh");
             }
-        }
-        else if ("EyeMeshL" == name) {
+        } else if ("EyeMeshL" == name) {
             if (eye_l_mesh == nullptr) {
                 FixObjFile(n, "Eyeball.obj");
                 eye_l_mesh = new Mesh(n, "EyeMeshL");
             }
-        }
-        else if ("EyeMeshR" == name) {
+        } else if ("EyeMeshR" == name) {
             if (eye_r_mesh == nullptr) {
                 FixObjFile(n, "Eyeball.obj");
                 eye_r_mesh = new Mesh(n, "EyeMeshR");
             }
-        }
-        else if ("JawServo" == name) {
+        } else if ("JawServo" == name) {
             if (has_jaw && jaw_servo == nullptr) {
                 jaw_servo = new Servo(n, "JawServo", false);
             }
-        }
-        else if ("PanServo" == name) {
+        } else if ("PanServo" == name) {
             if (has_pan && pan_servo == nullptr) {
                 pan_servo = new Servo(n, "PanServo", false);
             }
-        }
-        else if ("TiltServo" == name) {
+        } else if ("TiltServo" == name) {
             if (has_tilt && tilt_servo == nullptr) {
                 tilt_servo = new Servo(n, "TiltServo", false);
             }
-        }
-        else if ("NodServo" == name) {
+        } else if ("NodServo" == name) {
             if (has_nod && nod_servo == nullptr) {
                 nod_servo = new Servo(n, "NodServo", false);
             }
-        }
-        else if ("EyeUpDownServo" == name) {
+        } else if ("EyeUpDownServo" == name) {
             if (has_eye_ud && eye_ud_servo == nullptr) {
                 eye_ud_servo = new Servo(n, "EyeUpDownServo", false);
             }
-        }
-        else if ("EyeLeftRightServo" == name) {
+        } else if ("EyeLeftRightServo" == name) {
             if (has_eye_lr && eye_lr_servo == nullptr) {
                 eye_lr_servo = new Servo(n, "EyeLeftRightServo", false);
             }
@@ -549,16 +568,22 @@ void DmxSkull::InitModel() {
     }
 
     // create any missing servos
-    if( has_jaw ) AddServo(&jaw_servo, "JawServo", JAW, "Rotate X");
-    if (has_pan) AddServo(&pan_servo, "PanServo", PAN, "Rotate Y");
-    if (has_tilt) AddServo(&tilt_servo, "TiltServo", TILT, "Rotate Z");
-    if (has_nod) AddServo(&nod_servo, "NodServo", NOD, "Rotate X");
-    if (has_eye_ud) AddServo(&eye_ud_servo, "EyeUpDownServo", EYE_UD, "Rotate X");
-    if (has_eye_lr) AddServo(&eye_lr_servo, "EyeLeftRightServo", EYE_LR, "Rotate Y");
+    if (has_jaw)
+        AddServo(&jaw_servo, "JawServo", JAW, "Rotate X");
+    if (has_pan)
+        AddServo(&pan_servo, "PanServo", PAN, "Rotate Y");
+    if (has_tilt)
+        AddServo(&tilt_servo, "TiltServo", TILT, "Rotate Z");
+    if (has_nod)
+        AddServo(&nod_servo, "NodServo", NOD, "Rotate X");
+    if (has_eye_ud)
+        AddServo(&eye_ud_servo, "EyeUpDownServo", EYE_UD, "Rotate X");
+    if (has_eye_lr)
+        AddServo(&eye_lr_servo, "EyeLeftRightServo", EYE_LR, "Rotate Y");
 
     // create any missing meshes
     AddMesh(&head_mesh, "HeadMesh", "SkullHead.obj", false);
-    head_mesh->SetHalfHeight();  // obj file is shifted up so its twice as tall as it need to be
+    head_mesh->SetHalfHeight(); // obj file is shifted up so its twice as tall as it need to be
     AddMesh(&jaw_mesh, "JawMesh", "SkullJaw.obj", false);
     AddMesh(&eye_l_mesh, "EyeMeshL", "Eyeball.obj", false);
     AddMesh(&eye_r_mesh, "EyeMeshR", "Eyeball.obj", false);
@@ -573,7 +598,8 @@ void DmxSkull::InitModel() {
     }
 }
 
-float DmxSkull::GetServoPos(Servo* _servo, bool active) {
+float DmxSkull::GetServoPos(Servo* _servo, bool active)
+{
     float servo_pos = 0.0f;
     if (active && _servo->GetChannel() > 0) {
         servo_pos = _servo->GetPosition(GetChannelValue(_servo->GetChannel() - 1, _servo->Is16Bit()));
@@ -585,43 +611,43 @@ float DmxSkull::GetServoPos(Servo* _servo, bool active) {
     return servo_pos;
 }
 
-
-
-void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
-                                      xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is_3d,
-                                      const xlColor* c, bool allowSelected, bool wiring,
-                                      bool highlightFirst, int highlightpixel,
-                                      float *boundingBox) {
-    if (!IsActive()) return;
+void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+                                    xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
+                                    const xlColor* c, bool allowSelected, bool wiring,
+                                    bool highlightFirst, int highlightpixel,
+                                    float* boundingBox)
+{
+    if (!IsActive())
+        return;
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(1, 1, 1);
-    
-    sprogram->addStep([=](xlGraphicsContext *ctx) {
+
+    sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
-            ctx->Scale(1.0, 1.0, 0.001);
+            ctx->ScaleViewMatrix(1.0, 1.0, 0.001f);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
-        ctx->Scale(0.7, 0.7, 0.7);
-        ctx->Translate(0, -0.7, is_3d ? 0 : 0.5);
+        ctx->Scale(0.7f, 0.7f, 0.7f);
+        ctx->Translate(0, -0.7f, is_3d ? 0 : 0.5f);
     });
-    tprogram->addStep([=](xlGraphicsContext *ctx) {
+    tprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
-            ctx->Scale(1.0, 1.0, 0.001);
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
-        ctx->Scale(0.7, 0.7, 0.7);
-        ctx->Translate(0, -0.7, is_3d ? 0 : 0.5);
+        ctx->Scale(0.7f, 0.7f, 0.7f);
+        ctx->Translate(0, -0.7f, is_3d ? 0 : 0.5f);
     });
     DrawModel(preview, ctx, sprogram, tprogram, is_3d, !allowSelected, c);
-    sprogram->addStep([=](xlGraphicsContext *ctx) {
+    sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PopMatrix();
     });
-    tprogram->addStep([=](xlGraphicsContext *ctx) {
+    tprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PopMatrix();
     });
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
@@ -632,11 +658,15 @@ void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ct
         }
     }
 }
-void DmxSkull::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
-    if (!IsActive() && preview->IsNoCurrentModel()) { return; }
-    
+
+void DmxSkull::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+{
+    if (!IsActive() && preview->IsNoCurrentModel()) {
+        return;
+    }
+
     bool mustEnd = false;
-    xlGraphicsContext *ctx = preview->getCurrentGraphicsContext();
+    xlGraphicsContext* ctx = preview->getCurrentGraphicsContext();
     if (ctx == nullptr) {
         bool success = preview->StartDrawing(pointSize);
         if (success) {
@@ -647,9 +677,9 @@ void DmxSkull::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     if (ctx) {
         int w, h;
         preview->GetSize(&w, &h);
-        float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
-        float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
-        
+        float scaleX = float(w) * 0.95f / GetModelScreenLocation().RenderWi;
+        float scaleY = float(h) * 0.95f / GetModelScreenLocation().RenderHt;
+
         float aspect = screenLocation.GetScaleX();
         aspect /= screenLocation.GetScaleY();
         if (scaleY < scaleX) {
@@ -661,30 +691,30 @@ void DmxSkull::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         GetMinScreenXY(ml, mb);
         ml += GetModelScreenLocation().RenderWi / 2;
         mb += GetModelScreenLocation().RenderHt / 2;
-        
-        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext* ctx) {
             ctx->PushMatrix();
-            ctx->Scale(1.0, 1.0, 0.001);
-            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
-                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
-            ctx->Scale(scaleX, scaleY, 1.0);
-            ctx->Scale(0.5, 0.5, 0.5);
-            ctx->Translate(0, -0.7, 0.5);
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
+            ctx->TranslateViewMatrix(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
+                                     h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0f);
+            ctx->ScaleViewMatrix(0.5f, 0.5f, 0.5f);
+            ctx->TranslateViewMatrix(0, -0.7f, 0.5f);
         });
-        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
             ctx->PushMatrix();
-            ctx->Scale(1.0, 1.0, 0.001);
-            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
-                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
-            ctx->Scale(scaleX, scaleY, 1.0);
-            ctx->Scale(0.5, 0.5, 0.5);
-            ctx->Translate(0, -0.7, 0.5);
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.0001f);
+            ctx->TranslateViewMatrix(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
+                                     h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0f);
+            ctx->ScaleViewMatrix(0.5f, 0.5f, 1.0f);
+            ctx->TranslateViewMatrix(0, -0.7f, 0.5f);
         });
         DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), false, true, nullptr);
-        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext* ctx) {
             ctx->PopMatrix();
         });
-        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
             ctx->PopMatrix();
         });
     }
@@ -693,25 +723,85 @@ void DmxSkull::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     }
 }
 
-void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c) {
-    
-    size_t NodeCount=Nodes.size();
+std::list<std::string> DmxSkull::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    int nodeCount = Nodes.size();
+
+    if (has_color && red_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s red channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), red_channel, nodeCount));
+    }
+    if (has_color && green_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s green channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), green_channel, nodeCount));
+    }
+    if (has_color && blue_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s blue channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), blue_channel, nodeCount));
+    }
+    if (has_color && eye_brightness_channel > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s eye brightness channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), eye_brightness_channel, nodeCount));
+    }
+
+    if (has_jaw && jaw_servo->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s jaw servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), jaw_servo->GetChannel(), nodeCount));
+    }
+    if (has_pan && pan_servo->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s pan servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), pan_servo->GetChannel(), nodeCount));
+    }
+    if (has_tilt && tilt_servo->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s tilt servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), tilt_servo->GetChannel(), nodeCount));
+    }
+    if (has_nod && nod_servo->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s nod servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), nod_servo->GetChannel(), nodeCount));
+    }
+    if (has_eye_ud && eye_ud_servo->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s eye up/down servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), eye_ud_servo->GetChannel(), nodeCount));
+    }
+    if (has_eye_lr && eye_lr_servo->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s eye left/right servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), eye_lr_servo->GetChannel(), nodeCount));
+    }
+
+    res.splice(res.end(), Model::CheckModelSettings());
+    return res;
+}
+
+void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
+{
+    size_t NodeCount = Nodes.size();
 
     // crash protection
-    if( eye_brightness_channel > NodeCount ||
+    if (has_color && (eye_brightness_channel > NodeCount ||
         red_channel > NodeCount ||
         green_channel > NodeCount ||
-        blue_channel > NodeCount ) {
+        blue_channel > NodeCount)) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
 
-    if (has_jaw && jaw_servo->GetChannel() > Nodes.size()) { return; }
-    if (has_pan && pan_servo->GetChannel() > Nodes.size()) { return; }
-    if (has_tilt && tilt_servo->GetChannel() > Nodes.size()) { return; }
-    if (has_nod && nod_servo->GetChannel() > Nodes.size()) { return; }
-    if (has_eye_ud && eye_ud_servo->GetChannel() > Nodes.size()) { return; }
-    if (has_eye_lr && eye_lr_servo->GetChannel() > Nodes.size()) { return; }
-
+    if (has_jaw && jaw_servo->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (has_pan && pan_servo->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (has_tilt && tilt_servo->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (has_nod && nod_servo->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (has_eye_ud && eye_ud_servo->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (has_eye_lr && eye_lr_servo->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
 
     xlColor ccolor(xlWHITE);
     xlColor eye_color(xlWHITE);
@@ -724,20 +814,24 @@ void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
     }
 
     xlColor color_angle;
-    GetColor(eye_color, transparency, blackTransparency, !active, c, Nodes);
-    
+    if( has_color ) {
+        GetColor(eye_color, transparency, blackTransparency, !active, c, Nodes);
+    } else {
+        eye_color = xlBLACK;
+        Model::ApplyTransparency(eye_color, blackTransparency, blackTransparency);
+    }
+
     int trans = color == xlBLACK ? blackTransparency : transparency;
     ApplyTransparency(ccolor, trans, trans);
     ApplyTransparency(base_color, trans, trans);
     ApplyTransparency(base_color2, trans, trans);
 
-
     // Get servo positions
     float pan_pos, tilt_pos, nod_pos, jaw_pos, eye_x_pos, eye_y_pos;
-    pan_pos = GetServoPos(pan_servo, active && has_pan) + (active? pan_orient : 0.0f);
+    pan_pos = GetServoPos(pan_servo, active && has_pan) + (active ? pan_orient : 0.0f);
     tilt_pos = GetServoPos(tilt_servo, active && has_tilt) + (active ? tilt_orient : 0.0f);
     nod_pos = GetServoPos(nod_servo, active && has_nod) + (active ? nod_orient : 0.0f);
-    jaw_pos = GetServoPos(jaw_servo, active && has_jaw);
+    jaw_pos = GetServoPos(jaw_servo, active && has_jaw) + (active ? jaw_orient : 0.0f);
     eye_x_pos = GetServoPos(eye_lr_servo, active && has_eye_lr) + (active ? eye_lr_orient : 0.0f);
     eye_y_pos = GetServoPos(eye_ud_servo, active && has_eye_ud) + (active ? eye_ud_orient : 0.0f);
 
@@ -750,15 +844,21 @@ void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
     glm::mat4 eye_y_matrix = Identity;
 
     // Fill motion matrices
-    if (has_jaw) jaw_servo->FillMotionMatrix(jaw_pos, jaw_matrix);
-    if (has_pan) pan_servo->FillMotionMatrix(pan_pos, pan_matrix);
-    if (has_tilt) tilt_servo->FillMotionMatrix(tilt_pos, tilt_matrix);
-    if (has_nod) nod_servo->FillMotionMatrix(nod_pos, nod_matrix);
-    if (has_eye_lr) eye_lr_servo->FillMotionMatrix(eye_x_pos, eye_x_matrix);
-    if (has_eye_ud) eye_ud_servo->FillMotionMatrix(eye_y_pos, eye_y_matrix);
+    if (has_jaw)
+        jaw_servo->FillMotionMatrix(jaw_pos, jaw_matrix);
+    if (has_pan)
+        pan_servo->FillMotionMatrix(pan_pos, pan_matrix);
+    if (has_tilt)
+        tilt_servo->FillMotionMatrix(tilt_pos, tilt_matrix);
+    if (has_nod)
+        nod_servo->FillMotionMatrix(nod_pos, nod_matrix);
+    if (has_eye_lr)
+        eye_lr_servo->FillMotionMatrix(eye_x_pos, eye_x_matrix);
+    if (has_eye_ud)
+        eye_ud_servo->FillMotionMatrix(eye_y_pos, eye_y_matrix);
 
     // Adjust scaling to render size of 1
-    float jaw_pivot_y = 3.3f;;
+    float jaw_pivot_y = 3.3f;
     float jaw_pivot_z = 0.4f;
     if (head_mesh->GetExists(this, ctx)) {
         float w = head_mesh->GetWidth();
@@ -783,7 +883,7 @@ void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
     eye_l_mesh->SetColor(eye_color, "EyeColor");
     eye_r_mesh->SetColor(eye_color, "EyeColor");
     head_mesh->Draw(this, preview, sprogram, tprogram, Identity, head_matrix, false, 0, 0, 0, false, false);
-    jaw_mesh->Draw(this, preview,  sprogram, tprogram, head_matrix, jaw_matrix, false, 0, jaw_pivot_y, jaw_pivot_z, true, false);
+    jaw_mesh->Draw(this, preview, sprogram, tprogram, head_matrix, jaw_matrix, false, 0, jaw_pivot_y, jaw_pivot_z, true, false);
     eye_l_mesh->Draw(this, preview, sprogram, tprogram, head_matrix, eye_x_matrix, false, 0, 0, 0, false, false);
     eye_r_mesh->Draw(this, preview, sprogram, tprogram, head_matrix, eye_x_matrix, false, 0, 0, 0, false, false);
 }
@@ -793,15 +893,18 @@ void DmxSkull::ExportXlightsModel()
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
     wxFile f(filename);
-    //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    //    bool isnew = !FileExists(filename);
+    if (!f.Create(filename, true) || !f.IsOpened())
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
     ExportBaseParameters(f);
 
+    wxString jo = ModelXml->GetAttribute("DmxJawOrient", std::to_string(default_orient[JAW]));
     wxString po = ModelXml->GetAttribute("DmxPanOrient", std::to_string(default_orient[PAN]));
     wxString to = ModelXml->GetAttribute("DmxTiltOrient", std::to_string(default_orient[TILT]));
     wxString no = ModelXml->GetAttribute("DmxNodOrient", std::to_string(default_orient[NOD]));
@@ -822,6 +925,7 @@ void DmxSkull::ExportXlightsModel()
     wxString eb = ModelXml->GetAttribute("DmxEyeBrtChannel", "23");
     wxString bits = ModelXml->GetAttribute("Bits16");
 
+    f.Write(wxString::Format("DmxJawOrient=\"%s\" ", jo));
     f.Write(wxString::Format("DmxPanOrient=\"%s\" ", po));
     f.Write(wxString::Format("DmxTiltOrient=\"%s\" ", to));
     f.Write(wxString::Format("DmxNodOrient=\"%s\" ", no));
@@ -845,21 +949,25 @@ void DmxSkull::ExportXlightsModel()
 
     wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
 
-    if (has_jaw) jaw_servo->Serialise(ModelXml, f, show_dir);
-    if (has_pan) pan_servo->Serialise(ModelXml, f, show_dir);
-    if (has_tilt) tilt_servo->Serialise(ModelXml, f, show_dir);
-    if (has_nod) nod_servo->Serialise(ModelXml, f, show_dir);
-    if (has_eye_lr) eye_lr_servo->Serialise(ModelXml, f, show_dir);
-    if (has_eye_ud) eye_ud_servo->Serialise(ModelXml, f, show_dir);
+    if (has_jaw)
+        jaw_servo->Serialise(ModelXml, f, show_dir);
+    if (has_pan)
+        pan_servo->Serialise(ModelXml, f, show_dir);
+    if (has_tilt)
+        tilt_servo->Serialise(ModelXml, f, show_dir);
+    if (has_nod)
+        nod_servo->Serialise(ModelXml, f, show_dir);
+    if (has_eye_lr)
+        eye_lr_servo->Serialise(ModelXml, f, show_dir);
+    if (has_eye_ud)
+        eye_ud_servo->Serialise(ModelXml, f, show_dir);
 
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString groups = SerialiseGroups();
@@ -870,96 +978,89 @@ void DmxSkull::ExportXlightsModel()
     f.Close();
 }
 
-void DmxSkull::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    // We have already loaded gdtf properties
-    if (EndsWith(filename, "gdtf")) return;
+void DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "dmxmodel") {
+        ImportBaseParameters(root);
 
-    wxXmlDocument doc(filename);
+        wxString name = root->GetAttribute("name");
+        wxString v = root->GetAttribute("SourceVersion");
 
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
+        wxString jo = root->GetAttribute("DmxJawOrient");
+        wxString po = root->GetAttribute("DmxPanOrient");
+        wxString to = root->GetAttribute("DmxTiltOrient");
+        wxString no = root->GetAttribute("DmxNodOrient");
+        wxString eud = root->GetAttribute("DmxEyeUDOrient");
+        wxString elr = root->GetAttribute("DmxEyeLROrient");
+        wxString hj = root->GetAttribute("HasJaw");
+        wxString hp = root->GetAttribute("HasPan");
+        wxString ht = root->GetAttribute("HasTilt");
+        wxString hn = root->GetAttribute("HasNod");
+        wxString heu = root->GetAttribute("HasEyeUD");
+        wxString hel = root->GetAttribute("HasEyeLR");
+        wxString hc = root->GetAttribute("HasColor");
+        wxString is = root->GetAttribute("Skulltronix");
+        wxString rc = root->GetAttribute("DmxRedChannel");
+        wxString gc = root->GetAttribute("DmxGreenChannel");
+        wxString bc = root->GetAttribute("DmxBlueChannel");
+        wxString wc = root->GetAttribute("DmxWhiteChannel");
+        wxString eb = root->GetAttribute("DmxEyeBrtChannel");
+        wxString bits = root->GetAttribute("Bits16");
 
-        if (root->GetName() == "dmxmodel")
-        {
-            ImportBaseParameters(root);
+        // Add any model version conversion logic here
+        // Source version will be the program version that created the custom model
 
-            wxString name = root->GetAttribute("name");
-            wxString v = root->GetAttribute("SourceVersion");
+        SetProperty("DmxJawOrient", jo);
+        SetProperty("DmxPanOrient", po);
+        SetProperty("DmxTiltOrient", to);
+        SetProperty("DmxNodOrient", no);
+        SetProperty("DmxEyeUDOrient", eud);
+        SetProperty("DmxEyeLROrient", elr);
+        SetProperty("HasJaw", hj);
+        SetProperty("HasPan", hp);
+        SetProperty("HasTilt", ht);
+        SetProperty("HasNod", hn);
+        SetProperty("HasEyeUD", heu);
+        SetProperty("HasEyeLR", hel);
+        SetProperty("HasColor", hc);
+        SetProperty("Skulltronix", is);
+        SetProperty("DmxRedChannel", rc);
+        SetProperty("DmxGreenChannel", gc);
+        SetProperty("DmxBlueChannel", bc);
+        SetProperty("DmxWhiteChannel", wc);
+        SetProperty("DmxEyeBrtChannel", eb);
+        SetProperty("Bits16", bits);
 
-            wxString po = root->GetAttribute("DmxPanOrient");
-            wxString to = root->GetAttribute("DmxTiltOrient");
-            wxString no = root->GetAttribute("DmxNodOrient");
-            wxString eud = root->GetAttribute("DmxEyeUDOrient");
-            wxString elr = root->GetAttribute("DmxEyeLROrient");
-            wxString hj = root->GetAttribute("HasJaw");
-            wxString hp = root->GetAttribute("HasPan");
-            wxString ht = root->GetAttribute("HasTilt");
-            wxString hn = root->GetAttribute("HasNod");
-            wxString heu = root->GetAttribute("HasEyeUD");
-            wxString hel = root->GetAttribute("HasEyeLR");
-            wxString hc = root->GetAttribute("HasColor");
-            wxString is = root->GetAttribute("Skulltronix");
-            wxString rc = root->GetAttribute("DmxRedChannel");
-            wxString gc = root->GetAttribute("DmxGreenChannel");
-            wxString bc = root->GetAttribute("DmxBlueChannel");
-            wxString wc = root->GetAttribute("DmxWhiteChannel");
-            wxString eb = root->GetAttribute("DmxEyeBrtChannel");
-            wxString bits = root->GetAttribute("Bits16");
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        GetModelScreenLocation().Write(ModelXml);
+        SetProperty("name", newname, true);
 
-            // Add any model version conversion logic here
-            // Source version will be the program version that created the custom model
+        wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
 
-            SetProperty("DmxPanOrient", po);
-            SetProperty("DmxTiltOrient", to);
-            SetProperty("DmxNodOrient", no);
-            SetProperty("DmxEyeUDOrient", eud);
-            SetProperty("DmxEyeLROrient", elr);
-            SetProperty("HasJaw", hj);
-            SetProperty("HasPan", hp);
-            SetProperty("HasTilt", ht);
-            SetProperty("HasNod", hn);
-            SetProperty("HasEyeUD", heu);
-            SetProperty("HasEyeLR", hel);
-            SetProperty("HasColor", hc);
-            SetProperty("Skulltronix", is);
-            SetProperty("DmxRedChannel", rc);
-            SetProperty("DmxGreenChannel", gc);
-            SetProperty("DmxBlueChannel", bc);
-            SetProperty("DmxWhiteChannel", wc);
-            SetProperty("DmxEyeBrtChannel", eb);
-            SetProperty("Bits16", bits);
+        if (hj == "1")
+            jaw_servo->Serialise(root, ModelXml, show_dir);
+        if (hp == "1")
+            pan_servo->Serialise(root, ModelXml, show_dir);
+        if (ht == "1")
+            tilt_servo->Serialise(root, ModelXml, show_dir);
+        if (hn == "1")
+            nod_servo->Serialise(root, ModelXml, show_dir);
+        if (hel == "1")
+            eye_lr_servo->Serialise(root, ModelXml, show_dir);
+        if (heu == "1")
+            eye_ud_servo->Serialise(root, ModelXml, show_dir);
 
-            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-            GetModelScreenLocation().Write(ModelXml);
-            SetProperty("name", newname, true);
+        ImportModelChildren(root, xlights, newname);
 
-            wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
-
-            if (hj == "1") jaw_servo->Serialise(root, ModelXml, show_dir);
-            if (hp == "1") pan_servo->Serialise(root, ModelXml, show_dir);
-            if (ht == "1") tilt_servo->Serialise(root, ModelXml, show_dir);
-            if (hn == "1") nod_servo->Serialise(root, ModelXml, show_dir);
-            if (hel == "1") eye_lr_servo->Serialise(root, ModelXml, show_dir);
-            if (heu == "1") eye_ud_servo->Serialise(root, ModelXml, show_dir);
-
-            ImportModelChildren(root, xlights, newname);
-
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkull::ImportXlightsModel");
-        }
-        else
-        {
-            DisplayError("Failure loading DmxSkull model file.");
-        }
-    }
-    else
-    {
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkull::ImportXlightsModel");
+    } else {
         DisplayError("Failure loading DmxSkull model file.");
     }
 }
 
-void DmxSkull::SetupServo(Servo* _servo, int channel, float min_limit, float max_limit, float range_of_motion, bool _16bit) {
+void DmxSkull::SetupServo(Servo* _servo, int channel, float min_limit, float max_limit, float range_of_motion, bool _16bit)
+{
     if (_servo != nullptr) {
         _servo->SetMinLimit(min_limit);
         _servo->SetMaxLimit(max_limit);
@@ -969,8 +1070,8 @@ void DmxSkull::SetupServo(Servo* _servo, int channel, float min_limit, float max
     }
 }
 
-void DmxSkull::SetupSkulltronix() {
-
+void DmxSkull::SetupSkulltronix()
+{
     SetupServo(jaw_servo, 9, 500, 750, -20, true);
     SetupServo(pan_servo, 13, 400, 1100, 180, true);
     SetupServo(tilt_servo, 19, 442, 836, -40, true);
@@ -978,6 +1079,8 @@ void DmxSkull::SetupSkulltronix() {
     SetupServo(eye_ud_servo, 15, 575, 1000, 70, true);
     SetupServo(eye_lr_servo, 17, 499, 878, -70, true);
 
+    ModelXml->DeleteAttribute("DmxJawOrient");
+    ModelXml->AddAttribute("DmxJawOrient", "0");
     ModelXml->DeleteAttribute("DmxPanOrient");
     ModelXml->AddAttribute("DmxPanOrient", "90");
     ModelXml->DeleteAttribute("DmxTiltOrient");
@@ -1004,6 +1107,7 @@ void DmxSkull::SetupSkulltronix() {
     blue_channel = 17;
     white_channel = 0;
     eye_brightness_channel = 23;
+    jaw_orient = 0;
     pan_orient = 90;
     tilt_orient = -45;
     nod_orient = 29;

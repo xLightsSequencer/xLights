@@ -463,57 +463,6 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
 
     propertyGrid->Append(new wxStringProperty("Description", "ControllerDescription", GetDescription()));
 
-    if (IsNeedsId()) {
-        p = propertyGrid->Append(new wxUIntProperty("Id", "ControllerId", GetId()));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 65335);
-        p->SetEditor("SpinCtrl");
-        p->SetHelpString("For controllers that don't support universes the Id can be used with some start channel addressing modes.");
-    }
-
-    if (SupportsAutoLayout()) {
-        p = propertyGrid->Append(new wxBoolProperty("Auto Layout Models", "AutoLayout", IsAutoLayout()));
-        p->SetEditor("CheckBox");
-        p->SetHelpString("Auto layout models causes xLights to move models around in the controllers channel range to optimise them. It also needs to be set to allow you to move modes in the visualiser between controllers.");
-    }
-    if (SupportsAutoUpload()) {
-        p = propertyGrid->Append(new wxBoolProperty("Auto Upload Configuration", "AutoUpload", IsAutoUpload()));
-        p->SetEditor("CheckBox");
-        p->SetHelpString("This option will send your controller configuration to the controller when you turn on output to lights. This is known to cause delays in turning on output to lights when controllers are not reachable.");
-    }
-    if (SupportsAutoSize()) {
-        p = propertyGrid->Append(new wxBoolProperty("Auto Size", "AutoSize", IsAutoSize()));
-        p->SetEditor("CheckBox");
-        p->SetHelpString("This option will cause xLights to dynamically resize the number of channels on the controller to ensure there are exactly enough for the models on the controller.");
-    }
-    if (SupportsFullxLightsControl()) {
-        p = propertyGrid->Append(new wxBoolProperty("Full xLights Control", "FullxLightsControl", IsFullxLightsControl()));
-        p->SetEditor("CheckBox");
-        p->SetHelpString("This option will when uploading erase the configuration of all unused ports on the controller per the configuration in xLights.");
-
-        if (IsFullxLightsControl()) {
-            p = propertyGrid->Append(new wxUIntProperty("Default Port Brightness", "DefaultBrightnessUnderFullxLightsControl", GetDefaultBrightnessUnderFullControl()));
-            p->SetAttribute("Min", 5);
-            p->SetAttribute("Max", 100);
-            p->SetEditor("SpinCtrl");
-            p->SetHelpString("This option will set the brightness of all ports to this value unless specifically overriden by a model.");
-
-            p = propertyGrid->Append(new wxFloatProperty("Default Port Gamma", "DefaultGammaUnderFullxLightsControl", GetDefaultGammaUnderFullControl()));
-            p->SetAttribute("Min", 0.1F);
-            p->SetAttribute("Max", 5.0F);
-            p->SetEditor("SpinCtrlDouble");
-            p->SetHelpString("This option will set the Gamma of all ports to this value unless specifically overriden by a model.");
-        }
-    }
-
-    if (ACTIVETYPENAMES.IsEmpty()) {
-        ACTIVETYPENAMES.push_back("Active");
-        ACTIVETYPENAMES.push_back("Inactive");
-        ACTIVETYPENAMES.push_back("xLights Only");
-    }
-    p = propertyGrid->Append(new wxEnumProperty("Active", "Active", ACTIVETYPENAMES, wxArrayInt(), (int)_active));
-    p->SetHelpString("When inactive no data is output and any upload to FPP or xSchedule will also not output to the lights. When xLights only it will output when played in xLights but again FPP and xSchedule will not output to the lights.");
-
     int v = 0;
     wxPGChoices vendors;
     for (const auto& it : ControllerCaps::GetVendors(GetType())) {
@@ -558,6 +507,62 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
             }
         }
     }
+
+    if (IsNeedsId()) {
+        p = propertyGrid->Append(new wxUIntProperty("Id", "ControllerId", GetId()));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 65335);
+        p->SetEditor("SpinCtrl");
+        p->SetHelpString("For controllers that don't support universes the Id can be used with some start channel addressing modes.");
+    }
+
+    if (SupportsAutoLayout()) {
+        p = propertyGrid->Append(new wxBoolProperty("Auto Layout Models", "AutoLayout", IsAutoLayout()));
+        p->SetEditor("CheckBox");
+        p->SetHelpString("Auto layout models causes xLights to move models around in the controllers channel range to optimise them. It also needs to be set to allow you to move modes in the visualiser between controllers.");
+    }
+    if (SupportsAutoUpload()) {
+        p = propertyGrid->Append(new wxBoolProperty("Auto Upload Configuration", "AutoUpload", IsAutoUpload()));
+        p->SetEditor("CheckBox");
+        p->SetHelpString("This option will send your controller configuration to the controller when you turn on output to lights. This is known to cause delays in turning on output to lights when controllers are not reachable.");
+    }
+    if (SupportsAutoSize()) {
+        p = propertyGrid->Append(new wxBoolProperty("Auto Size", "AutoSize", IsAutoSize()));
+        p->SetEditor("CheckBox");
+        p->SetHelpString("This option will cause xLights to dynamically resize the number of channels on the controller to ensure there are exactly enough for the models on the controller.");
+    }
+    if (SupportsFullxLightsControl()) {
+        p = propertyGrid->Append(new wxBoolProperty("Full xLights Control", "FullxLightsControl", IsFullxLightsControl()));
+        p->SetEditor("CheckBox");
+        p->SetHelpString("This option will when uploading erase the configuration of all unused ports on the controller per the configuration in xLights.");
+
+        if (IsFullxLightsControl()) {
+            if (SupportsDefaultBrightness()) {
+                p = propertyGrid->Append(new wxUIntProperty("Default Port Brightness", "DefaultBrightnessUnderFullxLightsControl", GetDefaultBrightnessUnderFullControl()));
+                p->SetAttribute("Min", 5);
+                p->SetAttribute("Max", 100);
+                p->SetEditor("SpinCtrl");
+                p->SetHelpString("This option will set the brightness of all ports to this value unless specifically overriden by a model.");
+            }
+
+            if (SupportsDefaultGamma()) {
+                p = propertyGrid->Append(new wxFloatProperty("Default Port Gamma", "DefaultGammaUnderFullxLightsControl", GetDefaultGammaUnderFullControl()));
+                p->SetAttribute("Min", 0.1F);
+                p->SetAttribute("Max", 5.0F);
+                p->SetEditor("SpinCtrlDouble");
+                p->SetHelpString("This option will set the Gamma of all ports to this value unless specifically overriden by a model.");
+            }
+        }
+    }
+
+    if (ACTIVETYPENAMES.IsEmpty()) {
+        ACTIVETYPENAMES.push_back("Active");
+        ACTIVETYPENAMES.push_back("Inactive");
+        ACTIVETYPENAMES.push_back("xLights Only");
+    }
+    p = propertyGrid->Append(new wxEnumProperty("Active", "Active", ACTIVETYPENAMES, wxArrayInt(), (int)_active));
+    p->SetHelpString("When inactive no data is output and any upload to FPP or xSchedule will also not output to the lights. When xLights only it will output when played in xLights but again FPP and xSchedule will not output to the lights.");
+       
 
     if (SupportsSuppressDuplicateFrames()) {
         p = propertyGrid->Append(new wxBoolProperty("Suppress Duplicate Frames", "SuppressDuplicates", IsSuppressDuplicateFrames()));

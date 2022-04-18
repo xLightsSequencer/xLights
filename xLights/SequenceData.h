@@ -14,44 +14,56 @@
 #include <memory>
 #include <mutex>
 
-class FrameData {
-    FrameData(const FrameData&) = delete;
-    FrameData &operator=(const FrameData& d) = delete;
-    
-    static const unsigned char _constzero;
-    unsigned char _zero;
-    unsigned int _numChannels;
-    unsigned char* _data;
-    friend class SequenceData;
-    
-    FrameData() : _zero(0), _numChannels(0), _data(nullptr) {}
-    FrameData(unsigned int nc, unsigned char *d) : _zero(0), _numChannels(nc), _data(d) {}
-
-public:
-    FrameData(const FrameData && d) noexcept : _zero(d._zero), _numChannels(d._numChannels), _data(d._data) {}
-    
-    void Zero() {
-        memset(_data, 0x00, _numChannels);
-    }
-    void Zero(unsigned int start, unsigned int count) {
-        if (start < 0) return;
-        if (count < 1) return;
-        if (start + count > _numChannels) return;
-        memset(&_data[start], 0x00, count);
-    }
-    
-    unsigned char &operator[](unsigned int channel) {
-        wxASSERT(_zero == 0);
-        return channel < _numChannels ? _data[channel] : _zero;
-    }
-    
-    const unsigned char *operator[](unsigned int channel) const {
-        const unsigned char* cdata = _data;
-        return channel < _numChannels ? &cdata[channel] : &_constzero;
-    }
-};
+#ifdef __WXOSX__
+#include <sys/mman.h>
+#include <mach/vm_statistics.h>
+#define USE_MMAP_BLOCKS
+#elif defined(LINUX)
+#include <sys/mman.h>
+#define USE_MMAP_BLOCKS
+#else
+//Windows
+#endif
 
 class SequenceData {
+public:
+    class FrameData {
+        FrameData(const FrameData&) = delete;
+        FrameData &operator=(const FrameData& d) = delete;
+        
+        static const unsigned char _constzero;
+        unsigned char _zero;
+        unsigned int _numChannels;
+        unsigned char* _data;
+        friend class SequenceData;
+        
+        FrameData() : _zero(0), _numChannels(0), _data(nullptr) {}
+        FrameData(unsigned int nc, unsigned char *d) : _zero(0), _numChannels(nc), _data(d) {}
+
+    public:
+        FrameData(const FrameData && d) noexcept : _zero(d._zero), _numChannels(d._numChannels), _data(d._data) {}
+        
+        void Zero() {
+            memset(_data, 0x00, _numChannels);
+        }
+        void Zero(unsigned int start, unsigned int count) {
+            if (start < 0) return;
+            if (count < 1) return;
+            if (start + count > _numChannels) return;
+            memset(&_data[start], 0x00, count);
+        }
+        
+        unsigned char &operator[](unsigned int channel) {
+            wxASSERT(_zero == 0);
+            return channel < _numChannels ? _data[channel] : _zero;
+        }
+        
+        const unsigned char *operator[](unsigned int channel) const {
+            const unsigned char* cdata = _data;
+            return channel < _numChannels ? &cdata[channel] : &_constzero;
+        }
+    };
+
     enum class BlockType {
         NORMAL,
         HUGE_PAGE

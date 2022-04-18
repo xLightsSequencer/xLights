@@ -64,6 +64,17 @@ glm::vec3 BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool Shift
     IncrementChangeCount();
     return GetBaseObjectScreenLocation().GetHandlePosition(handle);
 }
+glm::vec3 BaseObject::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+    if (GetBaseObjectScreenLocation().IsLocked()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
+
+    int i = GetBaseObjectScreenLocation().MoveHandle3D(scale, handle, rot, mov);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    if (i) {
+        SetFromXml(ModelXml);
+    }
+    IncrementChangeCount();
+    return GetBaseObjectScreenLocation().GetHandlePosition(handle);
+}
 
 void BaseObject::SelectHandle(int handle) {
     GetBaseObjectScreenLocation().SelectHandle(handle);

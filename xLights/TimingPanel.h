@@ -18,6 +18,7 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
+#include <wx/combobox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/scrolwin.h>
@@ -56,14 +57,14 @@ class TimingPanel: public xlEffectPanel
 		BulkEditChoice* Choice_In_Transition_Type;
 		BulkEditChoice* Choice_LayerMethod;
 		BulkEditChoice* Choice_Out_Transition_Type;
+		BulkEditComboBox* TextCtrl_Fadein;
+		BulkEditComboBox* TextCtrl_Fadeout;
 		BulkEditSlider* Slider_EffectLayerMix;
 		BulkEditSlider* Slider_In_Adjust;
 		BulkEditSlider* Slider_Out_Adjust;
 		BulkEditSpinCtrl* SpinCtrl_FreezeEffectAtFrame;
 		BulkEditSpinCtrl* SpinCtrl_SuppressEffectUntil;
 		BulkEditTextCtrl* TextCtrl_EffectLayerMix;
-		BulkEditTextCtrl* TextCtrl_Fadein;
-		BulkEditTextCtrl* TextCtrl_Fadeout;
 		BulkEditTextCtrl* TextCtrl_In_Adjust;
 		BulkEditTextCtrl* TextCtrl_Out_Adjust;
 		BulkEditValueCurveButton* BitmapButton_In_Transition_Adjust;
@@ -136,6 +137,8 @@ class TimingPanel: public xlEffectPanel
 		void OnButton_AboutClick(wxCommandEvent& event);
 		void OnTextCtrl_FadeinText(wxCommandEvent& event);
 		void OnTextCtrl_FadeoutText(wxCommandEvent& event);
+		void OnTextCtrl_FadeinDropdown(wxCommandEvent& event);
+		void OnTextCtrl_FadeoutDropdown(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

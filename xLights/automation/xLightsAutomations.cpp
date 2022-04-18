@@ -22,6 +22,7 @@
 #include "../../xSchedule/wxJSON/jsonreader.h"
 #include "../../xSchedule/wxJSON/jsonwriter.h"
 #include "../UtilFunctions.h"
+#include "../ExternalHooks.h"
 #include "../xLightsApp.h"
 #include "../JukeboxPanel.h"
 #include "../outputs/E131Output.h"
@@ -35,10 +36,10 @@
 
 std::string xLightsFrame::FindSequence(const std::string& seq)
 {
-    if (wxFile::Exists(seq))
+    if (FileExists(seq))
         return seq;
 
-    if (wxFile::Exists(CurrentDir + wxFileName::GetPathSeparator() + seq))
+    if (FileExists(CurrentDir + wxFileName::GetPathSeparator() + seq))
         return CurrentDir + wxFileName::GetPathSeparator() + seq;
     
     return "";
@@ -146,7 +147,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             }
         } else {
             std::string seq = FindSequence(fname);
-            if (seq == "") {
+            if (seq.empty()) {
                 return sendResponse("Sequence not found.", "msg", 503, false);
             }
             if (CurrentSeqXmlFile != nullptr && force) {
@@ -216,19 +217,41 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (CurrentSeqXmlFile == nullptr) {
             return sendResponse("No sequence open.", "msg", 503, false);
         }
+        auto ld = _lowDefinitionRender;
+        auto highdef = params["highdef"];
+        if (highdef == "true" && _lowDefinitionRender) {
+            // override definition
+            _lowDefinitionRender = false;
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::renderAll");
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::renderAll");
+        }
         RenderAll();
         while (mRendering) {
             wxYield();
         }
+        if (ld != _lowDefinitionRender) {
+            _lowDefinitionRender = ld;
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::renderAll");
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::renderAll");
+        }
         return sendResponse("Rendered.", "msg", 200, false);
     } else if (cmd == "batchRender") {
         wxArrayString files;
-                
+
+        auto ld = _lowDefinitionRender;
+        auto highdef = params["highdef"];
+        if (highdef == "true" && _lowDefinitionRender) {
+            // override definition
+            _lowDefinitionRender = false;
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::batchRender");
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::batchRender");
+        }
+
         auto seqs = params["seqs_0"];
         int snum = 0;
         while (seqs != "") {
             auto seq = FindSequence(seqs);
-            if (seq == "") {
+            if (seq.empty()) {
                 return sendResponse("Sequence not found '" + seq + "'", "msg", 503, false);
             }
             files.push_back(seq);
@@ -239,6 +262,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         _promptBatchRenderIssues = ReadBool(params["promptIssues"]);
 
         _renderMode = true;
+        _saveLowDefinitionRender = _lowDefinitionRender;
         OpenRenderAndSaveSequences(files, false);
 
         while (_renderMode) {
@@ -246,6 +270,11 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         _promptBatchRenderIssues = oldPrompt;
+        if (ld != _lowDefinitionRender) {
+            _lowDefinitionRender = ld;
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::batchRender");
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::batchRender");
+        }
         return sendResponse("Sequence batch rendered.", "msg", 200, false);
     } else if (cmd == "uploadController") {
         auto ip = params["ip"];
@@ -326,14 +355,14 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         auto xsq = params["seq"];
         xsq = FindSequence(xsq);
 
-        if (xsq == "") {
+        if (xsq.empty()) {
             return sendResponse("Sequence not found.", "msg", 503, false);
         }
 
         auto fseq = xLightsXmlFile::GetFSEQForXSQ(xsq, GetFseqDirectory());
         auto m2 = xLightsXmlFile::GetMediaForXSQ(xsq, CurrentDir, GetMediaFolders());
 
-        if (!wxFile::Exists(fseq)) {
+        if (!FileExists(fseq)) {
             return sendResponse("Unable to find sequence FSEQ file.", "msg", 503, false);
         }
 
@@ -431,7 +460,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
     } else if (cmd == "checkSequence") {
         auto seq = params["seq"];
         seq = FindSequence(seq);
-        if (seq == "") {
+        if (seq.empty()) {
             return sendResponse("Sequence not found.", "msg", 503, false);
         }
         auto file = OpenAndCheckSequence(seq);
@@ -490,7 +519,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
 
         auto proxy = controller->GetFPPProxy();
 
-        if (proxy == "") {
+        if (proxy.empty()) {
             return "{\"res\":504,\"msg\":\"Controller has no proxy.\"}";
         }
 
@@ -537,9 +566,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             format = "FPP";
         } else if (format == "eseqcompressed") {
             format = "FPPCompressed";
-        } else if (format == "avicompressed") {
+        } else if (format == "avicompressed" || format == "mp4compressed") {
             format = "Com";
-        } else if (format == "aviuncompressed") {
+        } else if (format == "aviuncompressed" || format == "mp4uncompressed") {
             format = "Unc";
         } else if (format == "minleon") {
             format = "Min";
@@ -552,6 +581,69 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (DoExportModel(0, 0, model, filename, format, false)) {
             return sendResponse("Model exported.", "msg", 200, false);
         } else {
+            return sendResponse("Failed to export.", "msg", 503, false);
+        }
+    } else if (cmd == "exportModelWithRender") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+
+        auto ld = _lowDefinitionRender;
+        auto highdef = params["highdef"];
+        if (highdef == "true" && _lowDefinitionRender) {
+            // override definition
+            _lowDefinitionRender = false;
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::exportModelWithRender");
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::exportModelWithRender");
+        }
+
+        auto model = params["model"];
+        if (AllModels.GetModel(model) == nullptr) {
+            return sendResponse("Unknown model.", "msg", 503, false);
+        }
+
+        auto filename = params["filename"];
+        auto format = params["format"];
+
+        if (format == "lsp") {
+            format = "LSP";
+        } else if (format == "lorclipboard") {
+            format = "Lcb";
+        } else if (format == "lorclipboards5") {
+            format = "LcbS5";
+        } else if (format == "vixenroutine") {
+            format = "Vir";
+        } else if (format == "hls") {
+            format = "HLS";
+        } else if (format == "eseq") {
+            format = "FPP";
+        } else if (format == "eseqcompressed") {
+            format = "FPPCompressed";
+        } else if (format == "avicompressed" || format == "mp4compressed") {
+            format = "Com";
+        } else if (format == "aviuncompressed" || format == "mp4uncompressed") {
+            format = "Unc";
+        } else if (format == "minleon") {
+            format = "Min";
+        } else if (format == "gif") {
+            format = "GIF";
+        } else {
+            return sendResponse("Unknown format.", "msg", 503, false);
+        }
+
+        if (DoExportModel(0, 0, model, filename, format, true)) {
+            if (ld != _lowDefinitionRender) {
+                _lowDefinitionRender = ld;
+                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::exportModelWithRender");
+                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::exportModelWithRender");
+            }
+            return sendResponse("Model exported.", "msg", 200, false);
+        } else {
+            if (ld != _lowDefinitionRender) {
+                _lowDefinitionRender = ld;
+                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::exportModelWithRender");
+                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::exportModelWithRender");
+            }
             return sendResponse("Failed to export.", "msg", 503, false);
         }
     } else if (cmd == "closexLights") {
@@ -667,7 +759,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         return sendResponse("Export Video Preview Failed", "msg", 503, true);
     } else if (cmd == "runScript") {
         auto filename = params["filename"];
-        if (filename.empty() || filename == "null" || !wxFile::Exists(filename)) {
+        if (filename.empty() || filename == "null" || !FileExists(filename)) {
             return sendResponse("Invalid Script Path.", "msg", 503, false);
         }
 
@@ -717,10 +809,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         if (to == nullptr) {
-            return sendResponse("target element doesnt exists.", "msg", 503, false);
+            return sendResponse("target element doesn't exists.", "msg", 503, false);
         }
         _sequenceElements.get_undo_mgr().CreateUndoStep();
-        while (to->GetEffectLayerCount() < layer) {
+        while (to->GetEffectLayerCount() < layer + 1) {
             to->AddEffectLayer();
         }
         auto valid = to->GetEffectLayer(layer)->AddEffect(0, effect, settings, palette,
@@ -731,35 +823,141 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
     } else if (cmd == "getModels") {
         std::string models;
         for (auto m = (&AllModels)->begin(); m != (&AllModels)->end(); ++m) {
-            models += (m->first);
-            models += ",";
+            models += "\"" + JSONSafe(m->first) + "\",";
         }
-        if (models.size() != 0) {
+        if (!models.empty()) {
             models.pop_back();//remove last comma
         }
-        return sendResponse(JSONSafe(models), "msg", 200, false);
+        models = "[" + models + "]";
+        return sendResponse(models, "models", 200, true);
     } else if (cmd == "getControllerNames") {
         std::string controllers;
         for (const auto& it : _outputManager.GetControllerNames()) {
-                controllers += it;
-            controllers += ",";
+            controllers += "\"" + JSONSafe(it) + "\",";
         }
-        if (controllers.size() != 0) {
+        if (!controllers.empty()) {
             controllers.pop_back();//remove last comma
         }
-        return sendResponse(JSONSafe(controllers), "msg", 200, false);
+        controllers = "[" + controllers + "]";
+        return sendResponse(controllers, "controllers", 200, true);
     } else if (cmd == "getControllerIPs") {
         std::string ipAddresses;
         for (const auto& it : _outputManager.GetControllers()) {
             if (!it->GetIP().empty()) {
-                ipAddresses += (it->GetIP());
-                ipAddresses += ",";
+                ipAddresses += "\"" + JSONSafe(it->GetIP()) + "\",";
             }
         }
-        if (ipAddresses.size() != 0) {
+        if (!ipAddresses.empty()) {
             ipAddresses.pop_back();//remove last comma
         }
-        return sendResponse(JSONSafe(ipAddresses), "msg", 200, false);
+        ipAddresses = "[" + ipAddresses + "]";
+        return sendResponse(ipAddresses, "controllers", 200, true);
+    } else if (cmd == "getEffectIDs") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        auto model = params["model"];
+        Element* ele = _sequenceElements.GetElement(model);
+        if (ele == nullptr) {
+            return sendResponse("target element doesn't exists.", "msg", 503, false);
+        }
+        std::string layers = "[";
+        for (int i = 0; i < ele->GetEffectLayerCount(); ++i) {
+            std::string ids;
+            auto effects = ele->GetEffectLayer(i)->GetAllEffects();
+            for (auto* eff : effects) {
+                ids += "\"" + std::to_string(eff->GetID()) + "\",";
+            }
+            if (!ids.empty()) {
+                ids.pop_back(); // remove last comma
+            }
+            ids.insert(0, "[");
+            ids.append( "],");
+            layers.append( ids );
+        }
+        layers.pop_back(); // remove last comma
+        layers += "]";
+        return sendResponse(layers, "effects", 200, true);
+    } else if (cmd == "getEffectSettings") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        int id = 0;
+        int layer = 0;
+
+        if (!params["id"].empty()) {
+            id = std::stoi(params["id"]);
+        }
+        if (!params["layer"].empty()) {
+            layer = std::stoi(params["layer"]);
+        }
+        auto const& model = params["model"];
+        Element* ele = _sequenceElements.GetElement(model);
+        if (ele == nullptr) {
+            return sendResponse("target element doesn't exists.", "msg", 503, false);
+        }
+        auto* lay = ele->GetEffectLayer(layer);
+        if (lay == nullptr) {
+            return sendResponse("target layer doesn't exists.", "msg", 503, false);
+        }
+        auto* eff = lay->GetEffectFromID(id);
+        if (eff != nullptr) {
+
+            std::string json = "{\"name\":\"" + eff->GetEffectName() + "\"" +
+                                ",\"settings\":" + eff->GetSettingsAsJSON() +
+                               ",\"palette\":" + eff->GetPaletteAsJSON() +
+                               ",\"startTime\":" + std::to_string(eff->GetStartTimeMS()) +
+                               ",\"endTime\":" + std::to_string(eff->GetEndTimeMS()) +
+                                ",\"selected\":" + std::to_string(eff->GetSelected()) + "}";
+            return sendResponse(json, "", 200, true);
+        }        
+        return sendResponse("target effect doesn't exists.", "msg", 503, false);
+    } else if (cmd == "setEffectSettings") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        int id = 0;
+        int layer = 0;
+
+        if (!params["id"].empty()) {
+            id = std::stoi(params["id"]);
+        }
+        if (!params["layer"].empty()) {
+            layer = std::stoi(params["layer"]);
+        }
+        auto const& model = params["model"];
+        Element* ele = _sequenceElements.GetElement(model);
+        if (ele == nullptr) {
+            return sendResponse("target element doesn't exists.", "msg", 503, false);
+        }
+        auto* lay = ele->GetEffectLayer(layer);
+        if (lay == nullptr) {
+            return sendResponse("target layer doesn't exists.", "msg", 503, false);
+        }
+        auto* eff = lay->GetEffectFromID(id);
+        if (eff != nullptr) {
+
+            if (!params["name"].empty()) {
+                eff->SetEffectName(params["name"]);
+            }
+            if (!params["startTime"].empty()) {
+                eff->SetStartTimeMS(std::stoi(params["startTime"]));
+            }
+            if (!params["endTime"].empty()) {
+                eff->SetEndTimeMS(std::stoi(params["endTime"]));
+            }
+            if (!params["settings"].empty()) {
+                eff->SetSettings(params["settings"], true , true);
+            }
+            if (!params["palette"].empty()) {
+                eff->SetColourOnlyPalette(params["palette"], true);
+            }
+            mainSequencer->PanelEffectGrid->Refresh();
+            mainSequencer->SelectEffect(eff);
+            std::string response = wxString::Format("{\"msg\":\"Set Effect Settings.\",\"worked\":\"%s\"}", JSONSafe(toStr(eff != nullptr)));
+            return sendResponse(response, "", 200, true);
+        }
+        return sendResponse("target effect doesn't exists.", "msg", 503, false);
     }
 
     return false;

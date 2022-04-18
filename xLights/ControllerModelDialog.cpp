@@ -2799,11 +2799,13 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     if (_autoLayout) {
         return wxString::Format("Name: %s\n%sController Name: %s\n%s%sStrings %d\n%sPort: %d\nProtocol: %s%s%s%s%s",
             mob->GetDisplayName(), shadow, controllerName, mc, sccc,
-            m->GetNumPhysicalStrings(), sr, mob->GetPort() != nullptr ? mob->GetPort()->GetPort() : 0, m->GetControllerProtocol(), dmx, mdescription, stringSettings, special).ToStdString();
+                                m->GetNumPhysicalStrings(), sr, mob->GetPort() != nullptr ? (mob->GetPort()->GetPort() == 0 ? m->GetControllerPort() : mob->GetPort()->GetPort()) : m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special)
+            .ToStdString();
     } else {
         return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\n%sStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s%s",
             mob->GetDisplayName(), shadow, controllerName, universe, sccc,
-            m->GetNumPhysicalStrings(), sr, mob->GetPort() != nullptr ? mob->GetPort()->GetPort() : 0, m->GetControllerProtocol(), dmx, mdescription, stringSettings, special).ToStdString();
+                                m->GetNumPhysicalStrings(), sr, mob->GetPort() != nullptr ? (mob->GetPort()->GetPort() == 0 ? m->GetControllerPort() : mob->GetPort()->GetPort()) : m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special)
+            .ToStdString();
     }
 }
 

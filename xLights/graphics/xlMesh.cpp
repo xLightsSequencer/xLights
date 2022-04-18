@@ -4,10 +4,15 @@
 #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "xlMesh.h"
 
+#include <filesystem>
 #include <algorithm>
-#include <log4cpp/Category.hh>
+
 #include <wx/filename.h>
 
+#include "../ExternalHooks.h"
+#include "../UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(ctx), filename(f) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -41,24 +46,25 @@ xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(c
         materials[idx].color.Set((uint8_t)red, (uint8_t)green, (uint8_t)blue, (uint8_t)dissolve);
         if (m.diffuse_texname != "") {
             wxString texName = m.diffuse_texname;
-            if (!wxFileName::Exists(texName)) {
+            if (!FileExists(texName)) {
                 texName = fn.GetPath() + fn.GetPathSeparator() + m.diffuse_texname;
             }
-            if (!wxFileName::Exists(texName)) {
+            if (!FileExists(texName)) {
                 texName = m.diffuse_texname;
                 if (texName.Contains(("/"))) {
                     texName = texName.substr(texName.Last('/') + 1);
                 }
                 texName = fn.GetPath() + fn.GetPathSeparator() + texName;
             }
-            wxImage image(texName);
-            if (image.IsOk()) {
-                image = image.Mirror(false);
-                materials[idx].texture = ctx->createTexture(image);
-                materials[idx].texture->SetName(m.diffuse_texname);
-                materials[idx].texture->Finalize();
-            } else {
-                materials[idx].color.Set(128, 128, 128, (uint8_t)dissolve);
+            if (FileExists(texName)) {
+                ObtainAccessToURL(texName);
+                wxImage image(texName);
+                if (image.IsOk()) {
+                    image = image.Mirror(false);
+                    materials[idx].texture = ctx->createTexture(image);
+                    materials[idx].texture->SetName(m.diffuse_texname);
+                    materials[idx].texture->Finalize();
+                }
             }
         }
         materials[idx].origColor = materials[idx].color;
@@ -101,4 +107,73 @@ void xlMesh::SetMaterialColor(const std::string materialName, const xlColor *c) 
         }
     }
 }
+
+// this list should contain 0 or more .mtl files ... if it just contains 2 and one does not end in mtl then it is likely a space in the mtl file name
+bool xlMesh::InvalidMaterialsList(const std::vector<std::string>& materialFiles)
+{
+    if (materialFiles.size() == 2) {
+        for (const auto& it : materialFiles) {
+            if (!EndsWith(Lower(it), ".mtl")) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+std::vector<std::string> xlMesh::GetMaterialFilenamesFromOBJ(const std::string &obj, bool strict) {
+    std::vector<std::string> ret;
+
+    std::ifstream input(obj);
+    for (std::string line; std::getline(input, line);) {
+        if (line.rfind("mtllib ", 0) == 0) {
+            line = line.substr(7);
+            auto idx = line.find(' ');
+            while (strict && idx != std::string::npos) {
+                std::string f = line.substr(0, idx);
+                ret.push_back(f);
+                line = line.substr(idx + 1);
+                idx = line.find(' ');
+            }
+            if (line != "") {
+                ret.push_back(line);
+            }
+        }
+    }
+    return ret;
+}
+
+void xlMesh::FixMaterialFilenamesInOBJ(const std::string &obj) {
+    std::filesystem::copy(obj, obj + ".bak");
+    
+    std::filesystem::path path(obj);
+
+    std::ifstream input(obj + ".bak");
+    std::ofstream output(obj, std::ofstream::out | std::ofstream::trunc);
+    for (std::string line; std::getline(input, line); ) {
+        if (line.rfind("mtllib ", 0) == 0) {
+            output << "mtllib ";
+            line = line.substr(7);
+            int idx = line.find(' ');
+            if (idx != std::string::npos) {
+                std::filesystem::path mtlpath(path);
+                mtlpath.replace_filename(line);
+                if (std::filesystem::exists(mtlpath)) {
+                    std::replace(line.begin(), line.end(), ' ', '_');
+                    std::filesystem::path nmtlpath(path);
+                    nmtlpath.replace_filename(line);
+                    std::filesystem::copy(mtlpath, nmtlpath);
+                    output << line << "\n";
+                } else {
+                    output << line << "\n";
+                }
+            } else {
+                output << line << "\n";
+            }
+        } else {
+            output << line << "\n";
+        }
+    }
+}
+
 

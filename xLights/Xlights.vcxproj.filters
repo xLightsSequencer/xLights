@@ -941,6 +941,45 @@
     <ClCompile Include="..\common\xlBaseApp.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="Mouse3DManager.cpp" />
+    <ClCompile Include="effects\FX.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsHardwareVideoReader.cpp" />
+    <ClCompile Include="ColourReplaceDialog.cpp" />
+    <ClCompile Include="models\BoxedScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\PolyPointScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\ThreePointScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\TwoPointScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="FindDataPanel.cpp" />
+    <ClCompile Include="models\MultiPointModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\MultiPointScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="SearchPanel.cpp" />
+    <ClCompile Include="effects\SketchEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SketchPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SketchEffectDrawing.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\assist\SketchAssistPanel.cpp" />
+    <ClCompile Include="effects\assist\SketchCanvasPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1889,6 +1928,45 @@
     </ClInclude>
     <ClInclude Include="..\common\xlStackWalker.h">
       <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="Mouse3DManager.h" />
+    <ClInclude Include="effects\FX.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsHardwareVideoReader.h" />
+    <ClInclude Include="ColourReplaceDialog.h" />
+    <ClInclude Include="models\BoxedScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\PolyPointScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\ThreePointScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\TwoPointScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="FindDataPanel.h" />
+    <ClInclude Include="models\MultiPointModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\MultiPointScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="SearchPanel.h" />
+    <ClInclude Include="effects\SketchEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SketchPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SketchEffectDrawing.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\assist\SketchAssistPanel.h" />
+    <ClInclude Include="effects\assist\SketchCanvasPanel.h">
+      <Filter>Effects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

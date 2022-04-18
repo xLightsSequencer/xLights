@@ -22,22 +22,30 @@
 #define WAVE_HEIGHT_MAX 100
 
 #define WAVE_SPEED_MIN 0
-#define WAVE_SPEED_MAX 50
+#define WAVE_SPEED_MAX 5000
+#define WAVE_SPEED_DIVISOR 100
 
 #define WAVE_YOFFSET_MIN -250
 #define WAVE_YOFFSET_MAX 250
 
 class WaveEffect : public RenderableEffect
 {
-    public:
-        WaveEffect(int id);
-        virtual ~WaveEffect();
-        virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool AppropriateOnNodes() const override { return false; }
-        virtual bool CanBeRandom() override { return false; }
+public:
+    WaveEffect(int id);
+    virtual ~WaveEffect();
+    virtual void SetDefaultParameters() override;
+    virtual void Render(Effect* effect, SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual bool AppropriateOnNodes() const override
+    {
+        return false;
+    }
+    virtual bool CanBeRandom() override
+    {
+        return false;
+    }
 
-    protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
-    private:
+protected:
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
+    virtual bool needToAdjustSettings(const std::string& version) override;
+    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
 };

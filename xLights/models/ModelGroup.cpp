@@ -37,15 +37,15 @@ static const std::string PER_MODEL_DEFAULT("Per Model Default");
 static const std::string PER_MODEL_PER_PREVIEW("Per Model Per Preview");
 static const std::string PER_MODEL_SINGLE_LINE("Per Model Single Line");
 static const std::string PER_MODEL_DEFAULT_DEEP("Per Model Default Deep");
+static const std::string PER_MODEL_VERT_STRAND("Per Model Vertical Per Strand");
+static const std::string PER_MODEL_HORIZ_STRAND("Per Model Horizontal Per Strand");
 
 std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES;
 
 Model* ModelGroup::GetModel(std::string modelName) const
 {
-    for (const auto& it : models)
-    {
-        if (it->GetFullName() == modelName)
-        {
+    for (const auto& it : models) {
+        if (it->GetFullName() == modelName) {
             return it;
         }
     }
@@ -55,18 +55,16 @@ Model* ModelGroup::GetModel(std::string modelName) const
 
 Model* ModelGroup::GetFirstModel() const
 {
-    for (const auto& it : models)
-    {
-        if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel")
-        {
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {
             return it;
         }
     }
     return nullptr;
 }
 
-// Gets a list of models in the group flattening out any groups and removing any duplicates - submodels will be included if they are in the groups
-std::list<Model*> ModelGroup::GetFlatModels() const
+// Gets a list of models in the group flattening out any groups and optionally removing any duplicates - submodels will be included if they are in the groups
+std::list<Model*> ModelGroup::GetFlatModels(bool removeDuplicates) const
 {
     std::list<Model*> res;
 
@@ -76,21 +74,17 @@ std::list<Model*> ModelGroup::GetFlatModels() const
             if (m->GetDisplayAs() == "ModelGroup") {
                 auto mg = dynamic_cast<ModelGroup*>(m);
                 if (mg != nullptr) {
-                    for (const auto& it : mg->GetFlatModels()) {
-                        if (std::find(begin(res), end(res), it) == end(res)) {
+                    for (const auto& it : mg->GetFlatModels(removeDuplicates)) {
+                        if (!removeDuplicates || (std::find(begin(res), end(res), it) == end(res))) {
                             res.push_back(it);
                         }
                     }
                 }
-            }
-            else {
-                if (std::find(begin(res), end(res), m) == end(res)) {
-                    res.push_back(m);
-                }
+            } else if (!removeDuplicates || (std::find(begin(res), end(res), m) == end(res))) {
+                res.push_back(m);
             }
         }
     }
-
     return res;
 }
 
@@ -290,6 +284,9 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
             GROUP_BUFFER_STYLES.push_back(PER_MODEL_SINGLE_LINE);
 
             GROUP_BUFFER_STYLES.push_back(PER_MODEL_DEFAULT_DEEP);
+
+            GROUP_BUFFER_STYLES.push_back( PER_MODEL_VERT_STRAND);
+            GROUP_BUFFER_STYLES.push_back( PER_MODEL_HORIZ_STRAND);
         }
     };
     static Initializer ListInitializationGuard;
@@ -388,6 +385,12 @@ void LoadRenderBufferNodes(Model *m, const std::string &type, const std::string 
 
     if (m == nullptr) return;
 
+    // This skips over initialising inactive models so they also wont appear in groups.
+    // There is a downside of doing this ... by never adding them to the group the size of the group changes which could change the appearance of some effects.
+    // I am adding this now but I could well see us undoing this change if the solution is worse than the problem
+    if (!m->IsActive())
+        return; 
+
     if (m->GetDisplayAs() == "ModelGroup")
     {
         ModelGroup *g = dynamic_cast<ModelGroup*>(m);
@@ -433,6 +436,7 @@ bool ModelGroup::Reset(bool zeroBased) {
     int gridSize = wxAtoi(ModelXml->GetAttribute("GridSize", "400"));
     int offsetX = wxAtoi(ModelXml->GetAttribute("XCentreOffset", "0"));
     int offsetY = wxAtoi(ModelXml->GetAttribute("YCentreOffset", "0"));
+    modelTagColour = wxColour(ModelXml->GetAttribute("TagColour", "Black"));
     std::string layout = ModelXml->GetAttribute("layout", "minimalGrid").ToStdString();
     defaultBufferStyle = layout;
     if (layout.compare(0, 9, "Per Model") == 0) {
@@ -947,7 +951,8 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
                                        const std::string& camera,
                                        const std::string& transform,
                                        std::vector<NodeBaseClassPtr>& Nodes,
-                                       int& BufferWi, int& BufferHt) const {
+                                       int& BufferWi, int& BufferHt, bool deep) const
+{
     CheckForChanges();
     std::string type = tp;
     if (type.compare(0, 9, "Per Model") == 0) {
@@ -1216,9 +1221,10 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
     } else if (type == SINGLE_LINE) {
         BufferHt = 1;
         BufferWi = 0;
-        for (const auto& it : modelNames) {
-            Model* m = modelManager[it];
-            if (m != nullptr) {
+        if (deep) {
+            for (const auto& it : GetFlatModels(false)) {
+                Model* m = it;
+                wxASSERT(m != nullptr);
                 int start = Nodes.size();
                 int x, y;
                 m->InitRenderBufferNodes("Single Line", "2D", "None", Nodes, x, y);
@@ -1229,6 +1235,23 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
                     }
                     start++;
                     BufferWi++;
+                }
+            }
+        } else {
+            for (const auto& it : modelNames) {
+                Model* m = modelManager[it];
+                if (m != nullptr) {
+                    int start = Nodes.size();
+                    int x, y;
+                    m->InitRenderBufferNodes("Single Line", "2D", "None", Nodes, x, y);
+                    while (start < Nodes.size()) {
+                        for (auto& it2 : Nodes[start]->Coords) {
+                            it2.bufX = BufferWi;
+                            it2.bufY = 0;
+                        }
+                        start++;
+                        BufferWi++;
+                    }
                 }
             }
         }

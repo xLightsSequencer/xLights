@@ -16,7 +16,7 @@
 #include "../../xLights/AudioManager.h"
 #include <log4cpp/Category.hh>
 
-ListenerSMPTE::ListenerSMPTE(int mode, ListenerManager* listenerManager) : ListenerBase(listenerManager)
+ListenerSMPTE::ListenerSMPTE(int mode, ListenerManager* listenerManager) : ListenerBase(listenerManager, "")
 {
     _mode = mode;
     _frameMS = 50;
@@ -26,7 +26,7 @@ void ListenerSMPTE::Start()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SMPTE listener starting.");
-    _thread = new ListenerThread(this);
+    _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerSMPTE::Stop()
@@ -43,7 +43,7 @@ void ListenerSMPTE::Stop()
     }
 }
 
-void ListenerSMPTE::StartProcess()
+void ListenerSMPTE::StartProcess(const std::string& localIP)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

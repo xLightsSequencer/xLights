@@ -447,7 +447,7 @@ std::string Minleon::DecodeInputProtocol(int protocol) const {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-Minleon::Minleon(const std::string& ip, const std::string& proxy) : BaseController(ip, proxy) {
+Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::string& forceLocalIP) : BaseController(ip, proxy) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -459,7 +459,7 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy) : BaseControll
     logger_base.debug("Connecting to Minleon on %s.", (const char*)_ip.c_str());
 
     logger_base.debug("Getting minleon status.");
-    auto status = DDPOutput::Query(_ip, DDP_ID_STATUS);
+    auto status = DDPOutput::Query(_ip, DDP_ID_STATUS, forceLocalIP);
 
 #ifdef USEDDP
     if (!status.IsNull()) {

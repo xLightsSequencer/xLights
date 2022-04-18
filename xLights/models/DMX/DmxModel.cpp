@@ -45,7 +45,7 @@ void DmxModel::GetBufferSize(const std::string& type, const std::string& camera,
 }
 
 void DmxModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform,
-    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi) const
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, bool deep) const
 {
     BufferHi = 1;
     BufferWi = GetNodeCount();
@@ -211,6 +211,45 @@ void DmxModel::SetNodeNames(const std::string& default_names, bool force)
         SetProperty("NodeNames", nn);
         ModelXml->DeleteAttribute("NodeNames");
         ModelXml->AddAttribute("NodeNames", nn);
+    }
+}
+
+void DmxModel::DrawInvalid(xlGraphicsProgram* pg, ModelScreenLocation* msl, bool is_3d, bool applyTransform)
+{
+    if (applyTransform) {
+        pg->addStep([msl, is_3d](xlGraphicsContext* ctx) {
+            ctx->PushMatrix();
+            if (!is_3d) {
+                //not 3d, flatten to the 0.5 plane
+                ctx->Translate(0, 0, 0.5f);
+                ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
+            }
+            msl->ApplyModelViewMatrices(ctx);
+        });
+    }
+    auto vac = pg->getAccumulator();
+    int start = vac->getCount();
+    vac->PreAlloc(12);
+    vac->AddVertex(-0.5, -0.5, 0, *wxRED);
+    vac->AddVertex(-0.5, 0.5, 0, *wxRED);
+    vac->AddVertex(-0.5, 0.5, 0, *wxRED);
+    vac->AddVertex(0.5, 0.5, 0, *wxRED);
+    vac->AddVertex(0.5, 0.5, 0, *wxRED);
+    vac->AddVertex(0.5, -0.5, 0, *wxRED);
+    vac->AddVertex(0.5, -0.5, 0, *wxRED);
+    vac->AddVertex(-0.5, -0.5, 0, *wxRED);
+    vac->AddVertex(-0.5, -0.5, 0, *wxRED);
+    vac->AddVertex(0.5, 0.5, 0, *wxRED);
+    vac->AddVertex(-0.5, 0.5, 0, *wxRED);
+    vac->AddVertex(0.5, -0.5, 0, *wxRED);
+    int end = vac->getCount();
+    pg->addStep([=](xlGraphicsContext* ctx) {
+        ctx->drawLines(vac, start, end - start);
+    });
+    if (applyTransform) {
+        pg->addStep([=](xlGraphicsContext* ctx) {
+            ctx->PopMatrix();
+        });
     }
 }
 

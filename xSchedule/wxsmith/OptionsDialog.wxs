@@ -462,7 +462,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE5" variable="Choice1" member="yes" />
+						<object class="wxChoice" name="ID_CHOICE5" variable="Choice1" member="yes">
+							<tooltip>When set this will override any forced IP on all controllers. If you want to set individual controllers to specific network cards then you must do this in xLights.</tooltip>
+						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>

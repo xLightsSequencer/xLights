@@ -15,6 +15,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../UtilFunctions.h"
 
 #include "../../include/shockwave-16.xpm"
 #include "../../include/shockwave-24.xpm"
@@ -66,7 +67,6 @@ void ShockwaveEffect::SetDefaultParameters() {
     SetCheckBoxValue(sp->CheckBox_Shockwave_Blend_Edges, true);
 }
 
-const double PI = 3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
 void ShockwaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {

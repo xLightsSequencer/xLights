@@ -21,8 +21,8 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
     
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
                                    int &BufferWi, int &BufferHi) const override;
-        virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+        virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform,
+                                           std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep = false) const override;
         virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override {}
         virtual std::string GetDimension() const override { return ""; }
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;

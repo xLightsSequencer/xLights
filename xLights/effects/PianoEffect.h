@@ -50,7 +50,7 @@ class PianoEffect : public RenderableEffect
 		void DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end, int scale, int xoffset);
 		bool IsSharp(float f);
 		bool KeyDown(std::list<float>* pdata, int ch);
-        std::map<int, std::list<float>> LoadTimingTrack(std::string track, int intervalMS);
-        std::list<std::string> ExtractNotes(std::string& label);
-        int ConvertNote(std::string& note);
+        std::map<int, std::list<float>> LoadTimingTrack(const std::string& track, int intervalMS);
+        std::list<std::string> ExtractNotes(const std::string& label);
+        int ConvertNote(const std::string& note);
 };

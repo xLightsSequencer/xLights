@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "ViewObject.h"
+#include "TwoPointScreenLocation.h"
 
 class ModelPreview;
 

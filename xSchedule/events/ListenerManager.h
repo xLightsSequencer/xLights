@@ -45,7 +45,7 @@ class ListenerManager
         void ProcessPacket(const std::string& source, bool result, const std::string& ip);
         void ProcessPacket(const std::string& source, const std::string& topic, const std::string& data);
         void Stop();
-        void StartListeners();
+        void StartListeners(const std::string& localIP);
         void SetRemoteOSC();
         void SetRemoteFPP();
         void SetRemoteCSVFPP();

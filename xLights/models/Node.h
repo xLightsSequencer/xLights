@@ -111,6 +111,12 @@ public:
         Coords.push_back(c);
     }
 
+    // does this node exist within this channel range
+    bool ContainsChannel(uint32_t startChannel, uint32_t endChannel)
+    {
+        return !(endChannel < ActChan || startChannel > ActChan + GetChanCount() - 1);
+    }
+
     virtual void SetColor(const xlColor& color)
     {
         c[0] = color.red;

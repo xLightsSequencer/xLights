@@ -250,6 +250,7 @@
 		<Unit filename="../xLights/Discovery.h" />
 		<Unit filename="../xLights/ExportSettings.cpp" />
 		<Unit filename="../xLights/ExportSettings.h" />
+		<Unit filename="../xLights/ExternalHooks.h" />
 		<Unit filename="../xLights/IPEntryDialog.h" />
 		<Unit filename="../xLights/JobPool.cpp" />
 		<Unit filename="../xLights/JobPool.h" />

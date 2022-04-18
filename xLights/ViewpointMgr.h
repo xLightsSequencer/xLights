@@ -35,6 +35,7 @@ public:
     float GetPosZ() const { return posZ; }
     float GetAngleX() const { return angleX; }
     float GetAngleY() const { return angleY; }
+    float GetAngleZ() const { return angleZ; }
     float GetDistance() const { return distance; }
     float GetZoom() const { return zoom; }
     float GetPanX() const { return panx; }
@@ -51,6 +52,7 @@ public:
     void SetPosY(float value) { posY = value; mat_valid = false; }
     void SetAngleX(float value);
     void SetAngleY(float value);
+    void SetAngleZ(float value);
     void SetDistance(float value) { distance = value; mat_valid = false; }
     void SetZoom(float value) { zoom = value; mat_valid = false; }
     void SetPanX(float value) { panx = value; mat_valid = false; }
@@ -67,6 +69,7 @@ protected:
     float posZ;
     float angleX;
     float angleY;
+    float angleZ;
     float distance;
     float zoom;
     float panx;

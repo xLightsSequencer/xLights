@@ -15,7 +15,7 @@
 #include "AudioManager.h"
 #include "ControllerCaps.h"
 #include "ControllerUploadData.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 #include "HinksPixExportDialog.h"
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
@@ -449,15 +449,18 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
     wxDir directory;
     directory.Open(dir);
 
-    wxString file;
-    bool fcont = directory.GetFirst(&file, "*.x*");
+    wxArrayString files;
+    GetAllFilesInDir(dir, files, "*.x*");
     static const int BUFFER_SIZE = 1024 * 12;
     std::vector<char> buf(BUFFER_SIZE); //12K buffer
-    while (fcont) {
-        if (file != "xlights_rgbeffects.xml" && file != OutputManager::GetNetworksFileName() && file != "xlights_keybindings.xml" && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))) {
+    for (auto &filename : files) {
+        wxFileName fn(filename);
+        wxString file =fn.GetFullName();
+        if (file != "xlights_rgbeffects.xml" && file != OutputManager::GetNetworksFileName() && file != "xlights_keybindings.xml" && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))
+            && FileExists(filename)) {
             // this could be a sequence file ... lets open it and check
             //just check if <xsequence" is in the first 512 bytes, parsing every XML is way too expensive
-            wxFile doc(dir + wxFileName::GetPathSeparator() + file);
+            wxFile doc(filename);
             SP_XmlPullParser* parser = new SP_XmlPullParser();
             size_t read = doc.Read(&buf[0], BUFFER_SIZE);
             parser->append(&buf[0], read);
@@ -517,7 +520,7 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
             std::string fseqName = frame->GetFseqDirectory() + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
             if (isSequence) {
                 //need to check for existence of fseq
-                if (!wxFile::Exists(fseqName)) {
+                if (!FileExists(fseqName)) {
                     fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
                 }
                 if (!wxFile::Exists(fseqName)) {
@@ -525,18 +528,18 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
                 }
             }
             if (!mediaName.empty()) {
-                if (!wxFile::Exists(mediaName)) {
+                if (!FileExists(mediaName)) {
                     wxFileName fn(mediaName);
                     for (auto const& md : frame->GetMediaFolders()) {
                         std::string tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
-                        if (wxFile::Exists(tmn)) {
+                        if (FileExists(tmn)) {
                             mediaName = tmn;
                             break;
                         }
                     }
-                    if (!wxFile::Exists(mediaName)) {
+                    if (!FileExists(mediaName)) {
                         const std::string fixedMN = FixFile(frame->CurrentDir, mediaName);
-                        if (!wxFile::Exists(fixedMN)) {
+                        if (!FileExists(fixedMN)) {
                             logger_base.info("Could not find media: %s", mediaName.c_str());
                             mediaName = "";
                         } else {
@@ -554,10 +557,10 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
                 }
             }
         }
-        fcont = directory.GetNext(&file);
     }
     if (ChoiceFilter->GetSelection() == 0) {
-        fcont = directory.GetFirst(&file, wxEmptyString, wxDIR_DIRS);
+        wxString file;
+        bool fcont = directory.GetFirst(&file, wxEmptyString, wxDIR_DIRS);
         while (fcont) {
             if (file != "Backup") {
                 LoadSequencesFromFolder(dir + wxFileName::GetPathSeparator() + file);
@@ -1285,10 +1288,12 @@ std::vector<HinksChannelMap> HinksPixExportDialog::getModelChannelMap(Controller
     UDController cud(hinks, m_outputManager, m_modelManager, false);
     int32_t hinkstartChan = 1;
 
-    //serial first
-    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxSerialPort(); port++) {
-        if (cud.HasSerialPort(port)) {
-            UDControllerPort* portData = cud.GetControllerSerialPort(port);
+    wxASSERT(hinks->GetControllerCaps()->DMXAfterPixels());
+
+    //pixels first
+    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxPixelPort(); port++) {
+        if (cud.HasPixelPort(port)) {
+            UDControllerPort* portData = cud.GetControllerPixelPort(port);
             for (auto const& m : portData->GetModels()) {
                 auto sizeofchan = m->Channels();
                 auto startChan = m->GetStartChannel();
@@ -1299,10 +1304,10 @@ std::vector<HinksChannelMap> HinksPixExportDialog::getModelChannelMap(Controller
         }
     }
 
-    //pixels second
-    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxPixelPort(); port++) {
-        if (cud.HasPixelPort(port)) {
-            UDControllerPort* portData = cud.GetControllerPixelPort(port);
+    // serial second
+    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxSerialPort(); port++) {
+        if (cud.HasSerialPort(port)) {
+            UDControllerPort* portData = cud.GetControllerSerialPort(port);
             for (auto const& m : portData->GetModels()) {
                 auto sizeofchan = m->Channels();
                 auto startChan = m->GetStartChannel();

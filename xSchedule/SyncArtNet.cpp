@@ -119,7 +119,7 @@ public:
     }
 };
 
-SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncBase(sm, rm, options)
+SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) : SyncBase(sm, rm, options)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -132,13 +132,13 @@ SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& option
     if (sm == SYNCMODE::ARTNETMASTER)
     {
         wxIPV4address localaddr;
-        if (IPOutput::GetLocalIP() == "")
+        if (localIP == "")
         {
             localaddr.AnyAddress();
         }
         else
         {
-            localaddr.Hostname(IPOutput::GetLocalIP());
+            localaddr.Hostname(localIP);
         }
 
         _artnetSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);

@@ -27,6 +27,7 @@
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "xLightsApp.h"
+#include "ExternalHooks.h"
 #include "sequencer/MainSequencer.h"
 #include "sequencer/SequenceElements.h"
 
@@ -1529,28 +1530,23 @@ void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("ValueCurveDialog Scanning directory for *.xvc files: %s.", (const char *)directory.GetNameWithSep().c_str());
 
-    wxString filename;
     auto existing = PresetSizer->GetChildren();
 
-    bool cont = directory.GetFirst(&filename, "*.xvc", wxDIR_FILES);
+    wxArrayString files;
+    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.xvc");
     int count = 0;
-
-    while (cont)
-    {
-        wxFileName fn(directory.GetNameWithSep() + filename);
+    for (auto &filename : files) {
+        wxFileName fn(filename);
         count++;
         bool found = false;
-        for (const auto& it : existing)
-        {
-            if (it->GetWindow()->GetLabel() == fn.GetFullPath())
-            {
+        for (const auto& it : existing) {
+            if (it->GetWindow()->GetLabel() == fn.GetFullPath()) {
                 // already there
                 found = true;
                 break;
             }
         }
-        if (!found)
-        {
+        if (!found) {
             ValueCurve vc("");
             vc.LoadXVC(fn);
             long id = wxNewId();
@@ -1561,16 +1557,13 @@ void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
             PresetSizer->Add(bmb);
             Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ValueCurveDialog::OnButtonPresetClick);
         }
-
-        cont = directory.GetNext(&filename);
     }
     logger_base.info("    Found %d.", count);
 
-    if (subdirs)
-    {
-        cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
-        while (cont)
-        {
+    if (subdirs) {
+        wxString filename;
+        bool cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        while (cont) {
             wxDir dir(directory.GetNameWithSep() + filename);
             ProcessPresetDir(dir, subdirs);
             cont = directory.GetNext(&filename);

@@ -453,7 +453,7 @@ void RippleEffect::Drawheart(RenderBuffer& buffer, int Movement, int xc, int yc,
 {
     xlColor color(hsv);
 
-    for (float i = 0; i < Ripple_Thickness; i += .5) {
+    for (float i = 0; i < Ripple_Thickness; i += 0.5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
                 color.alpha = 255.0 * (1.0 - (float(i) / float(Ripple_Thickness)));
@@ -462,20 +462,37 @@ void RippleEffect::Drawheart(RenderBuffer& buffer, int Movement, int xc, int yc,
                 color = hsv;
             }
         }
+
         if (Movement == MOVEMENT_EXPLODE) {
             radius = radius + i;
         } else {
             radius = radius - i;
         }
+
         if (radius >= 0) {
-            for (double x = -2.0; x <= 2.0; x += 0.01f) {
+            double xincr = 0.01;
+            for (double x = -2.0; x <= 2.0; x += xincr) {
+
                 double y1 = std::sqrt(1.0 - (std::abs(x) - 1.0) * (std::abs(x) - 1.0));
                 double y2 = std::acos(1.0 - std::abs(x)) - M_PI;
 
-                double r = radius;
-                if (r >= 0) {
-                    buffer.SetPixel(std::round(x * r / 2.0) + xc, std::round(y1 * r / 2.0) + yc, color);
-                    buffer.SetPixel(std::round(x * r / 2.0) + xc, std::round(y2 * r / 2.0) + yc, color);
+                double xx1 = std::round((x * radius) / 2.0) + xc;
+                double yy1 = (y1 * radius) / 2.0 + yc;
+                double yy2 = (y2 * radius) / 2.0 + yc;
+
+                if (radius >= 0) {
+                    buffer.SetPixel(xx1, std::round(yy1), color);
+                    buffer.SetPixel(xx1, std::round(yy2), color);
+
+                    if (x + xincr > 2.0 || x == -2.0 + xincr) {
+
+                        if (yy1 > yy2)
+                            std::swap(yy1, yy2);
+
+                        for (double z = yy1; z < yy2; z += 0.5) {
+                            buffer.SetPixel(xx1, std::round(z), color);
+                        }
+                    }
                 } else {
                     break;
                 }

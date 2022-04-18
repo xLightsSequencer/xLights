@@ -195,7 +195,7 @@ void PlayListItemOSC::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fram
                 }
             }
 
-            packet.Send(_ip, _port);
+            packet.Send(_ip, _port, GetLocalIP());
             logger_base.info("OSC Sent.");
         }
         else             {

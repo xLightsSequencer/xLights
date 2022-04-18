@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="SearchPanel">
+		<size>600,600</size>
+		<hidden>1</hidden>
+		<minsize>-1,-1</minsize>
+		<id_arg>0</id_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>3</cols>
+			<growablecols>1</growablecols>
+			<growablerows>2</growablerows>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+					<label>Model:</label>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxComboBox" name="ID_COMBOBOX_SEARCH_MODEL" variable="ComboBox_Search_Model" member="yes">
+					<style>wxCB_SORT|wxCB_READONLY|wxTE_PROCESS_ENTER</style>
+					<handler function="OnComboBox_Search_ModelDropdown" entry="EVT_COMBOBOX_DROPDOWN" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_SEARCH_REGEX" variable="CheckBox_Search_Regex" member="yes">
+					<label>Regex</label>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+					<label>Search:</label>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_SEARCH" variable="TextCtrlSearch" member="yes">
+					<style>wxTE_PROCESS_ENTER</style>
+					<handler function="OnTextCtrlSearchTextEnter" entry="EVT_TEXT_ENTER" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxButton" name="ID_BUTTON_SEARCH_FIND" variable="Button_Search_Find" member="yes">
+					<label>Find</label>
+					<handler function="OnButton_Search_FindClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxListBox" name="ID_LISTBOX_RESULTS" variable="ListBoxResults" member="yes">
+					<default>-1</default>
+					<style>wxLB_EXTENDED|wxLB_SORT</style>
+					<handler function="OnListBoxResultsSelect" entry="EVT_LISTBOX" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxButton" name="ID_BUTTON_SELECT_ALL" variable="ButtonSelectAll" member="yes">
+					<label>Select All</label>
+					<handler function="OnButtonSelectAllClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

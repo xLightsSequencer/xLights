@@ -25,11 +25,15 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual std::list<std::string> CheckModelSettings() override;
+        virtual bool SupportsLowDefinitionRender() const override
+        {
+            return SingleNode != true; // we cant do low def on single node matrices
+        }
 
         bool isVerticalMatrix() const { return vMatrix; }
     protected:

@@ -30,6 +30,7 @@ class DmxServo3d : public DmxModel
 
         virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
+        virtual std::list<std::string> CheckModelSettings() override;
 
         Servo* GetAxis(int num) { return num < num_servos ? servos[num] : servos[0]; }
         int GetNumServos() const { return num_servos; }
@@ -46,7 +47,7 @@ class DmxServo3d : public DmxModel
         void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active);
 
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
         float brightness = 100.0f;
 

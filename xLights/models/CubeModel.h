@@ -26,9 +26,9 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return false; }
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, bool deep = false) const override;
         virtual int NodeRenderOrder() override { return 1; }
         virtual int GetStrandLength(int strand) const override { return _strandLength; }
         virtual int GetNumStrands() const override { return _strands; };

@@ -160,11 +160,11 @@ public:
 	void ClearEvents()
 	{
 		// delete all our music events
-		for(int i = 0; i < _events.size(); i++)
+		for(int i = 0; i < _events.size(); ++i)
 		{
-			for (auto it = _events[i]->begin(); it != _events[i]->end(); ++it)
+			for (const auto& it : *_events[i])
 			{
-				delete *it;
+				delete it;
 			}
 			_events[i]->clear();
 		}
@@ -175,9 +175,9 @@ public:
 	};
     virtual ~MusicRenderCache() {
         ClearEvents();
-        for (auto it = _events.begin(); it != _events.end(); ++it)
+        for (const auto& it : _events)
         {
-            delete *it;
+            delete it;
         }
         _events.clear();
 	};
@@ -280,7 +280,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
     if (actualbars == 0) actualbars = 1; // stop divide by zero error
     int notesperbar = (endnote - startnote + 1) / actualbars;
     int actualendnote = startnote + std::min(endnote, actualbars * notesperbar);
-    int lightsperbar = 0.5 + (float)(buffer.BufferWi - offsetx) / (float)actualbars;
+    float lightsperbar = (float)(buffer.BufferWi - offsetx) / (float)actualbars;
 
     // Check for config changes which require us to reset
     if (buffer.needToInit)
@@ -293,7 +293,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
         CreateEvents(buffer, _events, startnote, actualendnote, actualbars, nScaleNotes, sensitivity, logarithmicX);
     }
 
-    int per = 1;
+    float per = 1.0;
     if (scale)
     {
         per = lightsperbar;
@@ -301,26 +301,26 @@ void MusicEffect::Render(RenderBuffer &buffer,
 
     try
     {
-        for (int x = 0; x < _events.size(); x++)
+        for (int x = 0; x < _events.size(); ++x)
         {
-            for (int i = 0; i < per; i++)
+            for (int xx = ((float)x * per) + offsetx; xx < ((float)(x + 1) * per) + offsetx; ++xx)
             {
                 switch (nType)
                 {
                 case 1:
-                    RenderMorph(buffer, (x*per) + i + offsetx, bars, startnote, endnote, *_events[x], nTreatment, false, fade);
+                    RenderMorph(buffer, xx, bars, startnote, endnote, *_events[x], nTreatment, false, fade);
                     break;
                 case 2:
-                    RenderMorph(buffer, (x*per) + i + offsetx, bars, startnote, endnote, *_events[x], nTreatment, true, fade);
+                    RenderMorph(buffer, xx, bars, startnote, endnote, *_events[x], nTreatment, true, fade);
                     break;
                 case 3:
-                    RenderCollide(buffer, (x*per) + i + offsetx, bars, startnote, endnote, true /* collide */, *_events[x], nTreatment, fade);
+                    RenderCollide(buffer, xx, bars, startnote, endnote, true /* collide */, *_events[x], nTreatment, fade);
                     break;
                 case 4:
-                    RenderCollide(buffer, (x*per) + i + offsetx, bars, startnote, endnote, false /* uncollide */,* _events[x], nTreatment, fade);
+                    RenderCollide(buffer, xx, bars, startnote, endnote, false /* uncollide */,* _events[x], nTreatment, fade);
                     break;
                 case 5:
-                    RenderOn(buffer, (x*per) + i + offsetx, bars, startnote, endnote, *_events[x], nTreatment, fade);
+                    RenderOn(buffer, xx, bars, startnote, endnote, *_events[x], nTreatment, fade);
                     break;
                 }
             }
@@ -351,13 +351,13 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
     std::map<int /*bar*/, float> max;
     float overallmax = 0.0;
 
-    for (int b = 0; b < bars; b++)
+    for (int b = 0; b < bars; ++b)
     {
         max[b] = 0.0;
     }
 
     // go through each frame and extract the data i need
-    for (int f = buffer.curEffStartPer; f <= buffer.curEffEndPer; f++)
+    for (int f = buffer.curEffStartPer; f <= buffer.curEffEndPer; ++f)
     {
         std::list<float> const * const pdata = buffer.GetMedia()->GetFrameData(f, FRAMEDATATYPE::FRAMEDATA_VU, "");
 
@@ -366,12 +366,12 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
             auto pn = pdata->cbegin();
 
             // skip to start note
-            for (int i = 0; i < startNote && pn != pdata->end(); i++)
+            for (int i = 0; i < startNote && pn != pdata->end(); ++i)
             {
                 ++pn;
             }
 
-            for (int b = 0; b < bars && pn != pdata->end(); b++)
+            for (int b = 0; b < bars && pn != pdata->end(); ++b)
             {
                 float val = 0.0;
                 int thisper = static_cast<int>(notesperbar);
@@ -379,7 +379,7 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
                 {
                     thisper = LogarithmicScale::GetLogSum(b + 1) - LogarithmicScale::GetLogSum(b);
                 }
-                for (auto n = 0; n < thisper && pn != pdata->end(); n++)
+                for (auto n = 0; n < thisper && pn != pdata->end(); ++n)
                 {
                     val = std::max(val, *pn);
                     ++pn;
@@ -391,7 +391,7 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
         }
     }
 
-    for (int b = 0; b < bars; b++)
+    for (int b = 0; b < bars; ++b)
     {
         events.push_back(new std::list<MusicEvent*>());
         float notesensitivity;
@@ -419,16 +419,16 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
                 while (f != data[b].end() && f->second > notesensitivity)
                 {
                     ++f;
-                    frame++;
+                    ++frame;
                 }
                 --f;
-                frame--;
+                --frame;
                 if (frame - startframe >= MINIMUMEVENTLENGTH)
                 {
                     events[b]->push_back(new MusicEvent(startframe, frame - startframe));
                 }
             }
-            frame++;
+            ++frame;
         }
     }
 }
@@ -437,19 +437,19 @@ void MusicEffect::RenderMorph(RenderBuffer &buffer, int x, int bars, int startNo
 {
     bool up = true;
     int event = -1;
-    for (auto it = events.begin(); it != events.end(); ++it)
+    for (const auto& it : events)
     {
-        event++;
+        ++event;
         up = !up;
-        if ((*it)->IsEventActive(buffer.curPeriod))
+        if (it->IsEventActive(buffer.curPeriod))
         {
-            float progress = (*it)->OffsetInDuration(buffer.curPeriod);
+            float progress = it->OffsetInDuration(buffer.curPeriod);
 
             int length = buffer.BufferHt;
             int start = -1 * length + progress * 2 * length + 1;
             int end = start + length;
 
-            for (int y = std::max(0, start); y < std::min(end, buffer.BufferHt); y++)
+            for (int y = std::max(0, start); y < std::min(end, buffer.BufferHt); ++y)
             {
                 xlColor c = xlWHITE;
                 float proportion = ((float)end - (float)y) / (float)length;
@@ -457,7 +457,7 @@ void MusicEffect::RenderMorph(RenderBuffer &buffer, int x, int bars, int startNo
                 {
                     // distinct
                     float percolour = 1.0 / (float)buffer.GetColorCount();
-                    for (int i = 0; i < buffer.GetColorCount(); i++)
+                    for (int i = 0; i < buffer.GetColorCount(); ++i)
                     {
                         if (proportion <= ((float)i + 1.0)*percolour)
                         {
@@ -497,12 +497,12 @@ void MusicEffect::RenderMorph(RenderBuffer &buffer, int x, int bars, int startNo
 void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int startNote, int endNote, bool in, std::list<MusicEvent*>& events, int colourTreatment, bool fade)
 {
     int event = -1;
-    for (auto it = events.begin(); it != events.end(); ++it)
+    for (const auto& it : events)
     {
-        event++;
-        if ((*it)->IsEventActive(buffer.curPeriod))
+        ++event;
+        if (it->IsEventActive(buffer.curPeriod))
         {
-            float progress = (*it)->OffsetInDuration(buffer.curPeriod);
+            float progress = it->OffsetInDuration(buffer.curPeriod);
 
             int mid = buffer.BufferHt / 2;
             int length = buffer.BufferHt;
@@ -526,7 +526,7 @@ void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int start
                 loopstart = 0;
             }
 
-            for (int y = loopstart; y < leftend; y++)
+            for (int y = loopstart; y < leftend; ++y)
             {
                 xlColor c = xlWHITE;
                 float proportion = ((float)y - (float)leftstart) / (float)mid;
@@ -534,7 +534,7 @@ void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int start
                 {
                     // distinct
                     float percolour = 1.0 / (float)buffer.GetColorCount();
-                    for (int i = 0; i < buffer.GetColorCount(); i++)
+                    for (int i = 0; i < buffer.GetColorCount(); ++i)
                     {
                         if (proportion <= ((float)i + 1.0)*percolour)
                         {
@@ -568,15 +568,15 @@ void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int start
 void MusicEffect::RenderOn(RenderBuffer &buffer, int x, int bars, int startNote, int endNote, std::list<MusicEvent*>& events, int colourTreatment, bool fade)
 {
     int event = -1;
-    for (auto it = events.begin(); it != events.end(); ++it)
+    for (const auto& it : events)
     {
-        event++;
-        if ((*it)->IsEventActive(buffer.curPeriod))
+        ++event;
+        if (it->IsEventActive(buffer.curPeriod))
         {
-            float progress = (*it)->OffsetInDuration(buffer.curPeriod);
+            float progress = it->OffsetInDuration(buffer.curPeriod);
 
 
-            for (int y = 0; y < buffer.BufferHt; y++)
+            for (int y = 0; y < buffer.BufferHt; ++y)
             {
                 xlColor c = xlWHITE;
                 float proportion = (float)y / (float)buffer.BufferHt;
@@ -584,7 +584,7 @@ void MusicEffect::RenderOn(RenderBuffer &buffer, int x, int bars, int startNote,
                 {
                     // distinct
                     float percolour = 1.0 / (float)buffer.GetColorCount();
-                    for (int i = 0; i < buffer.GetColorCount(); i++)
+                    for (int i = 0; i < buffer.GetColorCount(); ++i)
                     {
                         if (proportion <= ((float)i + 1.0)*percolour)
                         {

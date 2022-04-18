@@ -21,7 +21,7 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
                                    int &BufferWi, int &BufferHi) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, bool deep = false) const override;
         virtual int GetNumPhysicalStrings() const override { return 1; }
 
         virtual int GetLightsPerNode() const override { return parm3; } // default to one unless a model supports this
@@ -31,7 +31,7 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual bool SupportsWiringView() const override { return true; }
         virtual bool SupportsXlightsModel() override { return true; }
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
         virtual std::string GetDimension() const override;
         virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
 

@@ -35,6 +35,7 @@
 #include "WholeHouseModel.h"
 #include "SingleLineModel.h"
 #include "PolyLineModel.h"
+#include "MultiPointModel.h"
 #include "ModelGroup.h"
 #include "WindowFrameModel.h"
 #include "WreathModel.h"
@@ -431,7 +432,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                     //I think it makes sense to add the model if the group is in the xmodel file.
                     const auto& newNames = wxSplit(grpModels, ',');
                     for (const auto& it : newNames) {
-                        auto mmnmn = mmg->ModelNames();
+                        auto& mmnmn = mmg->ModelNames();
                         if (Contains(it, "/")) {
                             auto mgmn = wxString(it);
                             mgmn.Replace("EXPORTEDMODEL", mname);
@@ -648,8 +649,8 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
 
     // valid if i can follow the chain to blank
     int checks = 0;
-    auto current = startModel;
-    auto next = chain;
+    std::string current = startModel;
+    std::string next = chain;
     while (checks <= sameOutput.size())
     {
         bool found = false;
@@ -693,6 +694,12 @@ bool ModelManager::ReworkStartChannel() const
     for (const auto& it : outputManager->GetControllers())
     {
         auto caps = it->GetControllerCaps();
+
+        wxString serialPrefix;
+        if (caps && caps->DMXAfterPixels()) {
+            serialPrefix = "zzz";
+        }
+
         std::map<std::string, std::list<Model*>> cmodels;
         std::lock_guard<std::recursive_mutex> lock(_modelMutex);
         for (auto itm : models)
@@ -709,7 +716,7 @@ bool ModelManager::ReworkStartChannel() const
                 }
                 else
                 {
-                    cc = wxString::Format("%s:%02d", itm.second->GetControllerProtocol(), itm.second->GetControllerPort()).Lower();
+                    cc = wxString::Format("%s%s:%02d", serialPrefix, itm.second->GetControllerProtocol(), itm.second->GetControllerPort()).Lower();
                 }
                 if (cmodels.find(cc) == cmodels.end())
                 {
@@ -850,7 +857,7 @@ bool ModelManager::ReworkStartChannel() const
                     if (itm->GetModelChain() == last ||
                         itm->GetModelChain() == ">" + last ||
                         ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == "")) {
-                        auto osc = itm->ModelStartChannel;
+                        std::string osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
@@ -860,7 +867,7 @@ bool ModelManager::ReworkStartChannel() const
                             outputsChanged = true;
                         }
                     } else {
-                        auto osc = itm->ModelStartChannel;
+                        std::string osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
@@ -872,7 +879,7 @@ bool ModelManager::ReworkStartChannel() const
                         }
                     }
                 } else if (itm->IsLEDPanelMatrixProtocol()) {
-                    auto osc = itm->ModelStartChannel;
+                    std::string osc = itm->ModelStartChannel;
                     sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
                     itm->SetStartChannel(sc);
                     itm->ClearIndividualStartChannels();
@@ -911,7 +918,7 @@ bool ModelManager::ReworkStartChannel() const
                     {
                         // when not chained use dmx channel
                         uint32_t msc = chstart + itm->GetControllerDMXChannel() - 1;
-                        auto osc = itm->ModelStartChannel;
+                        std::string osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", msc);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
@@ -979,7 +986,7 @@ bool ModelManager::ReworkStartChannel() const
         std::lock_guard<std::recursive_mutex> lock(_modelMutex);
         for (auto itm : models) {
             std::list<std::string> visited;
-            if (ModelHasNoDependencyOnNoController(itm.second, visited)) {
+            if (ModelHasNoDependencyOnNoController(itm.second, visited) || itm.second->GetControllerName() == NO_CONTROLLER) {
                 if (itm.second->GetControllerName() != NO_CONTROLLER) {
                     lastChannel = std::max(lastChannel, itm.second->GetLastChannel() + 1);
                 } else {
@@ -1298,6 +1305,8 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         model = new SingleLineModel(node, *this, false);
     } else if (type == "Poly Line") {
         model = new PolyLineModel(node, *this, false);
+    } else if (type == "MultiPoint") {
+        model = new MultiPointModel(node, *this, false);
     } else if (type == "Cube") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "5");
@@ -1452,6 +1461,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         model = new SingleLineModel(node, *this, zeroBased);
     } else if (type == "Poly Line") {
         model = new PolyLineModel(node, *this, zeroBased);
+    } else if (type == "MultiPoint") {
+        model = new MultiPointModel(node, *this, zeroBased);
     } else if (type == "Cube") {
         model = new CubeModel(node, *this, zeroBased);
     } else if (type == "Custom") {

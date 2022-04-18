@@ -169,7 +169,7 @@ class HinksPix : public BaseController
     std::map<wxString, wxString> StringToMap(wxString const& text) const;
     
     void UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, int32_t hinkstartChan) const;
-    void UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode) const;
+    void UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse) const;
     void UploadPixelOutputs(bool& worked) const;
     void UpdateUniverseControlerChannels(UDControllerPort* stringData, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse);
     void UploadExpansionBoardData(int expansion, int startport, int length, bool& worked) const;

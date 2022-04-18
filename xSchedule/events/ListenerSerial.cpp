@@ -14,7 +14,7 @@
 #include "../../xLights/outputs/SerialOutput.h"
 #include "ListenerManager.h"
 
-ListenerSerial::ListenerSerial(ListenerManager* listenerManager, std::string commPort, std::string serialConfig, int baudRate, std::string protocol) : ListenerBase(listenerManager)
+ListenerSerial::ListenerSerial(ListenerManager* listenerManager, const std::string& commPort, const std::string& serialConfig, int baudRate, const std::string& protocol) : ListenerBase(listenerManager, "")
 {
     _serial = nullptr;
     _commPort = commPort;
@@ -29,7 +29,7 @@ void ListenerSerial::Start()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Serial listener starting.");
-    _thread = new ListenerThread(this);
+    _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerSerial::Stop()
@@ -49,7 +49,7 @@ void ListenerSerial::Stop()
     }
 }
 
-void ListenerSerial::StartProcess()
+void ListenerSerial::StartProcess(const std::string& localIP)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

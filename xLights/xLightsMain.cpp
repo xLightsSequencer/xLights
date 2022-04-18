@@ -57,6 +57,7 @@
 #include "BatchRenderDialog.h"
 #include "VideoExporter.h"
 #include "JukeboxPanel.h"
+#include "FindDataPanel.h"
 #include "EffectAssist.h"
 #include "EffectsPanel.h"
 #include "MultiControllerUploadDialog.h"
@@ -99,6 +100,7 @@
 #include "GPURenderUtils.h"
 #include "ViewsModelsPanel.h"
 #include "graphics/opengl/xlGLCanvas.h"
+#include "ColourReplaceDialog.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -137,6 +139,7 @@ const long xLightsFrame::ID_AUITOOLBAR_STOP = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_FIRST_FRAME = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_LAST_FRAME = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_REPLAY_SECTION = wxNewId();
+const long xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM2 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM5 = wxNewId();
@@ -170,14 +173,10 @@ const long xLightsFrame::ID_AUITOOLBARITEM_ACBACKGROUND = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_AC = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM14 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_VIEW = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON_TAB_INFO = wxNewId();
-const long xLightsFrame::ID_BUTTON_STOP_NOW = wxNewId();
-const long xLightsFrame::ID_BUTTON_LIGHTS_OFF = wxNewId();
-const long xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_OUTPUT = wxNewId();
 const long xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
 const long xLightsFrame::ID_BUTTON3 = wxNewId();
 const long xLightsFrame::ID_BUTTON11 = wxNewId();
+const long xLightsFrame::ID_BUTTON13 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_SAVE_SETUP = wxNewId();
 const long xLightsFrame::ID_BUTTON9 = wxNewId();
@@ -222,6 +221,7 @@ const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const long xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
 const long xLightsFrame::ID_SHIFT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MNU_SHIFT_SELECTED_EFFECTS = wxNewId();
+const long xLightsFrame::ID_MNU_COLOURREPLACE = wxNewId();
 const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MNU_CHECKSEQ = wxNewId();
 const long xLightsFrame::ID_MNU_CLEANUPFILE = wxNewId();
@@ -270,8 +270,10 @@ const long xLightsFrame::ID_MNU_VALUECURVES = wxNewId();
 const long xLightsFrame::ID_MNU_COLOURDROPPER = wxNewId();
 const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
+const long xLightsFrame::ID_MENUITEM_SEARCH_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
 const long xLightsFrame::ID_MNU_JUKEBOX = wxNewId();
+const long xLightsFrame::ID_MNU_FINDDATA = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_DOCKALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM11 = wxNewId();
@@ -540,6 +542,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     PlayToolBar->AddTool(ID_AUITOOLBAR_FIRST_FRAME, _("Item label"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_BACKWARD")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("First Frame"), wxEmptyString, NULL);
     PlayToolBar->AddTool(ID_AUITOOLBAR_LAST_FRAME, _("Item label"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_FORWARD")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Last Frame"), wxEmptyString, NULL);
     PlayToolBar->AddTool(ID_AUITOOLBAR_REPLAY_SECTION, _("Item label"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_REPLAY")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Replay Section"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_CHECKBOX_LIGHT_OUTPUT, _("Output To Lights"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Output To Lights"), wxEmptyString, NULL);
     PlayToolBar->Realize();
     MainAuiManager->AddPane(PlayToolBar, wxAuiPaneInfo().Name(_T("Play Tool Bar")).ToolbarPane().Caption(_("Play Tool Bar")).CloseButton(false).Layer(10).Position(11).Top().Gripper());
     WindowMgmtToolbar = new xlAuiToolBar(this, ID_AUIWINDOWTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -620,13 +623,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     ViewToolBar->AddTool(ID_AUITOOLBARITEM14, _("Sequence Settings"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_SETTINGS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Settings"), wxEmptyString, NULL);
     ViewToolBar->Realize();
     MainAuiManager->AddPane(ViewToolBar, wxAuiPaneInfo().Name(_T("View Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(13).Top().Gripper());
-    OutputToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_OUTPUT, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-    OutputToolBar->AddTool(ID_BITMAPBUTTON_TAB_INFO, _("Information"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_INFORMATION")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Tips for using current tab"), wxEmptyString, NULL);
-    OutputToolBar->AddTool(ID_BUTTON_STOP_NOW, _("Stop"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_STOP_NOW")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Stop Now!"), wxEmptyString, NULL);
-    OutputToolBar->AddTool(ID_BUTTON_LIGHTS_OFF, _("Lights Off"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LIGHTS_OFF")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Lights Off"), wxEmptyString, NULL);
-    OutputToolBar->AddTool(ID_CHECKBOX_LIGHT_OUTPUT, _("Output To Lights"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Output To Lights"), wxEmptyString, NULL);
-    OutputToolBar->Realize();
-    MainAuiManager->AddPane(OutputToolBar, wxAuiPaneInfo().Name(_T("Output Tool Bar")).ToolbarPane().Caption(_("Output Tool Bar")).CloseButton(false).Layer(10).Position(25).Top().Gripper());
     EffectsToolBar = new xlAuiToolBar(this, ID_AUIEFFECTSTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     EffectsToolBar->Realize();
     MainAuiManager->AddPane(EffectsToolBar, wxAuiPaneInfo().Name(_T("EffectsToolBar")).ToolbarPane().Caption(_("Effects")).CloseButton(false).Layer(5).Top().Gripper());
@@ -643,8 +639,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     GridBagSizer1->Add(Button03, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_CheckShowFolderTemporarily = new wxButton(PanelSetup, ID_BUTTON11, _("Change Temporarily"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
     GridBagSizer1->Add(Button_CheckShowFolderTemporarily, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_ChangeTemporarilyAgain = new wxButton(PanelSetup, ID_BUTTON13, _("Change Temporarily Again"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON13"));
+    Button_ChangeTemporarilyAgain->Hide();
+    GridBagSizer1->Add(Button_ChangeTemporarilyAgain, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ShowDirectoryLabel = new wxStaticText(PanelSetup, ID_STATICTEXT4, _("{Show Directory not set}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-    GridBagSizer1->Add(ShowDirectoryLabel, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(ShowDirectoryLabel, wxGBPosition(0, 4), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer1->Add(GridBagSizer1, 1, wxALL|wxEXPAND, 5);
     FlexGridSizerSetup->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, PanelSetup, _("Controllers"));
@@ -819,6 +818,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Menu3->Append(MenuItemShiftEffects);
     MenuItemShiftSelectedEffects = new wxMenuItem(Menu3, ID_MNU_SHIFT_SELECTED_EFFECTS, _("Shift Selected Effects"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItemShiftSelectedEffects);
+    Menu3->AppendSeparator();
+    MenuItem_ColorReplace = new wxMenuItem(Menu3, ID_MNU_COLOURREPLACE, _("Color Replace"), wxEmptyString, wxITEM_NORMAL);
+    Menu3->Append(MenuItem_ColorReplace);
     MenuBar->Append(Menu3, _("&Edit"));
     Menu1 = new wxMenu();
     ActionTestMenuItem = new wxMenuItem(Menu1, ID_MENUITEM13, _("&Test"), wxEmptyString, wxITEM_NORMAL);
@@ -933,10 +935,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     MenuItem18->Append(MenuItemEffectAssist);
     MenuItemSelectEffect = new wxMenuItem(MenuItem18, ID_MENUITEM_SELECT_EFFECT, _("Select Effect"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemSelectEffect);
+    MenuItemSearchEffects = new wxMenuItem(MenuItem18, ID_MENUITEM_SEARCH_EFFECTS, _("Search Effects"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemSearchEffects);
     MenuItemVideoPreview = new wxMenuItem(MenuItem18, ID_MENUITEM_VIDEOPREVIEW, _("Video Preview"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemVideoPreview);
     MenuItemJukebox = new wxMenuItem(MenuItem18, ID_MNU_JUKEBOX, _("Jukebox"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemJukebox);
+    MenuItemFindData = new wxMenuItem(MenuItem18, ID_MNU_FINDDATA, _("Find Effect Data"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemFindData);
     MenuItem18->AppendSeparator();
     MenuItem26 = new wxMenuItem(MenuItem18, ID_MENUITEM_WINDOWS_PERSPECTIVE, _("Perspectives"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem26);
@@ -1025,6 +1031,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(ID_AUITOOLBAR_FIRST_FRAME,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarFirstFrameClick);
     Connect(ID_AUITOOLBAR_LAST_FRAME,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarLastFrameClick);
     Connect(ID_AUITOOLBAR_REPLAY_SECTION,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemReplaySectionClick);
+    Connect(ID_CHECKBOX_LIGHT_OUTPUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxLightOutputClick);
     Connect(ID_AUITOOLBARITEM2,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectSettingsWindow);
     Connect(ID_AUITOOLBARITEM5,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
     Connect(ID_AUITOOLBARITEM7,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideBufferSettingsWindow);
@@ -1056,12 +1063,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(wxID_ZOOM_IN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(wxID_ZOOM_OUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_AUITOOLBARITEM14,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
-    Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
-    Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
-    Connect(ID_BUTTON_LIGHTS_OFF,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonLightsOffClick);
-    Connect(ID_CHECKBOX_LIGHT_OUTPUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxLightOutputClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ChangeShowFolderTemporarily);
+    Connect(ID_BUTTON13,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ChangeTemporarilyAgainClick);
     Connect(ID_BUTTON_SAVE_SETUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveSetupClick);
     Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerSerialClick);
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerEthernetClick);
@@ -1094,6 +1098,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(wxID_EXIT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnQuit);
     Connect(ID_SHIFT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftEffectsSelected);
     Connect(ID_MNU_SHIFT_SELECTED_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftSelectedEffectsSelected);
+    Connect(ID_MNU_COLOURREPLACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ColorReplaceSelected);
     Connect(ID_MENUITEM13,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
     Connect(ID_MNU_CHECKSEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemCheckSequenceSelected);
     Connect(ID_MNU_CLEANUPFILE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_CleanupFileLocationsSelected);
@@ -1143,8 +1148,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(ID_MNU_COLOURDROPPER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ColourDropperSelected);
     Connect(ID_MENUITEM_EFFECT_ASSIST_WINDOW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
     Connect(ID_MENUITEM_SELECT_EFFECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSelectEffectSelected);
+    Connect(ID_MENUITEM_SEARCH_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSearchEffectsSelected);
     Connect(ID_MENUITEM_VIDEOPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShowHideVideoPreview);
     Connect(ID_MNU_JUKEBOX,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_JukeboxSelected);
+    Connect(ID_MNU_FINDDATA,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFindDataSelected);
     Connect(ID_MENUITEM_WINDOWS_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePerspectivesWindow);
     Connect(ID_MENUITEM_WINDOWS_DOCKALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuDockAllSelected);
     Connect(ID_MENUITEM11,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetWindowsToDefaultPositions);
@@ -1183,6 +1190,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
 
+    Connect(wxEVT_HELP, (wxObjectEventFunction)&xLightsFrame::OnHelp);
+    Notebook1->Connect(wxEVT_HELP, (wxObjectEventFunction) & xLightsFrame::OnHelp, 0, this);
+
     logger_base.debug("BB");
 
     logger_base.debug("xLightsFrame constructor UI code done.");
@@ -1211,6 +1221,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 	mRendering = false;
 
     _appProgress = std::make_unique<wxAppProgressIndicator>(this);
+    _appProgress->SetRange(100);
+    _appProgress->Reset();
 
     AddEffectToolbarButtons(effectManager, EffectsToolBar);
     wxSize sz = EffectsToolBar->GetSize();
@@ -1222,7 +1234,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
     SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date );
 
-    CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
+    CheckBoxLightOutput = new AUIToolbarButtonWrapper(PlayToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
     ButtonPasteByTime = new AUIToolbarButtonWrapper(EditToolBar, ID_PASTE_BY_TIME);
     ButtonPasteByCell = new AUIToolbarButtonWrapper(EditToolBar, ID_PASTE_BY_CELL);
 
@@ -1267,7 +1279,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     mBackupOnLaunch = true;
     mSuppressFadeHints = false;
     me131Sync = false;
-    mLocalIP = "";
     mAltBackupDir = "";
     mIconSize = 16;
     _modelHandleSize = 1;
@@ -1326,6 +1337,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
     config->Read("xLightsModelBlendDefaultOff", &_modelBlendDefaultOff, false);
     logger_base.debug("Model Blend Default Off: %s.", toStr( _modelBlendDefaultOff ));
+
+    config->Read("xLightsLowDefinitionRender", &_lowDefinitionRender, false);
+    logger_base.debug("Low Defintion Render: %s.", toStr(_lowDefinitionRender));
 
     config->Read("xLightsSnapToTimingMarks", &_snapToTimingMarks, false);
     logger_base.debug("Snap To Timing Marks: %s.", toStr( _snapToTimingMarks ));
@@ -1698,17 +1712,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     _outputManager.SetSyncEnabled(me131Sync);
     logger_base.debug("Sync: %s.", toStr( me131Sync ));
 
+    // this is no longer used ... as it is now stored in the networks file
     wxString tmpString;
     config->Read("xLightsLocalIP", &tmpString, "");
-
-    if (IsValidLocalIP(tmpString) || tmpString == "") {
-        mLocalIP = tmpString;
-        _outputManager.SetForceFromIP(mLocalIP);
-    }
-    else {
-        wxMessageBox(wxString::Format("Local IP : %s : Not currently available so clearing that setting.", tmpString));
-        mLocalIP = "";
-        _outputManager.SetForceFromIP("");
+    if (IsValidLocalIP(tmpString) && tmpString != "") {
+        _outputManager.SetGlobalForceLocalIP(tmpString);
+        config->DeleteEntry("xLightsLocalIP");
     }
 
     SetControllersProperties();
@@ -1878,6 +1887,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsPlayControlsOnPreview", _playControlsOnPreview);
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
     config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
+    config->Write("xLightsLowDefinitionRender", _lowDefinitionRender);
     config->Write("xLightsSnapToTimingMarks", _snapToTimingMarks);
     config->Write("xLightsFSEQVersion", _fseqVersion);
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
@@ -1885,7 +1895,6 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
     config->Write("xLightsSuppressFadeHints", mSuppressFadeHints);
     config->Write("xLightse131Sync", me131Sync);
-    config->Write("xLightsLocalIP", wxString(mLocalIP));
     config->Write("xLightsEffectAssistMode", mEffectAssistMode);
     config->Write("xLightsAltBackupDir", mAltBackupDir);
     config->Write("xFadePort", _xFadePort);
@@ -1964,6 +1973,11 @@ xLightsFrame::~xLightsFrame()
     reenter = false;
 }
 
+void xLightsFrame::OnHelp(wxHelpEvent& event)
+{
+    // deliberately do nothing
+}
+
 void xLightsFrame::DoPostStartupCommands() {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("In Post Startup");
@@ -1999,15 +2013,15 @@ void xLightsFrame::OnQuit(wxCommandEvent& event)
 {
     static bool inQuit = false;
 
-    if (inQuit) return;
+    if (inQuit)
+        return;
 
     inQuit = true;
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Quit");
-	wxCloseEvent evt;
-    if (QuitMenuItem->IsEnabled())
-    {
+    wxCloseEvent evt;
+    if (QuitMenuItem->IsEnabled()) {
         OnClose(evt);
     }
 
@@ -2092,10 +2106,11 @@ void xLightsFrame::OnOutputTimerTrigger(wxTimerEvent& event)
 
 void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
 {
+    event.Skip();
+
     wxString caption, msg;
 
-    switch (Notebook1->GetSelection())
-    {
+    switch (Notebook1->GetSelection()) {
     case SETUPTAB:
         caption = _("Setup Tab");
         msg = _("Show Directory\n\nThe first thing you need to know about xLights is that it expects you to organize all of your sequence files and associated audio or video files into a single directory. For example, you can have a directory called '2012 Show'. Once you have your show directory created and populated with the relevant files, you are ready to proceed. Tell xLights where your new show directory is by clicking the 'Change' button on the Setup tab, navigate to your show directory, then click 'OK'.\n\nLighting Networks\n\nThe next thing you will need to do is define your lighting network(s). xLights ignores most of the information about your lighting network contained in your LOR or Vixen sequence. Thus this step is very important! Add a row in the lower half of the Setup tab for each network used in your display. xLights can drive a mixture of network types (for example, the first network can be DMX, and the second one LOR, and the third one Renard). When you are finished, do not forget to SAVE YOUR CHANGES by clicking the 'Save Setup' button.");
@@ -2111,23 +2126,20 @@ void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
     default:
         break;
     }
-    wxMessageBox(msg, caption);
+    wxMessageBox(msg, caption, 5L, this);
 }
 
 void xLightsFrame::ResetAllSequencerWindows()
 {
-    wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
+    wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
     bool update = false;
-    for (size_t x = 0; x < info.size(); x++)
-    {
-        if (info[x].IsFloating() && info[x].IsShown())
-        {
+    for (size_t x = 0; x < info.size(); x++) {
+        if (info[x].IsFloating() && info[x].IsShown()) {
             info[x].Dock();
             update = true;
         }
     }
-    if (update)
-    {
+    if (update) {
         m_mgr->Update();
     }
 }
@@ -2272,40 +2284,30 @@ void xLightsFrame::RenderLayout()
 
 void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
 {
-    int pagenum=event.GetSelection(); //Notebook1->GetSelection();
-	if (pagenum == LAYOUTTAB)
-    {
+    int pagenum = event.GetSelection(); // Notebook1->GetSelection();
+    if (pagenum == LAYOUTTAB) {
         GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "OnNotebook1PageChanged");
         SetStatusText(_(""));
         MenuItem_File_Save->Enable(true);
         MenuItem_File_Save->SetItemLabel("Save Layout\tCTRL-s");
-    }
-    else if (pagenum == NEWSEQUENCER)
-    {
+    } else if (pagenum == NEWSEQUENCER) {
         InitSequencer();
         ShowHideAllSequencerWindows(true);
         EffectSettingsTimer.Start(50, wxTIMER_ONE_SHOT);
         MenuItem_File_Save->SetItemLabel("Save Sequence\tCTRL-s");
         MenuItem_File_Save->Enable(MenuItem_File_SaveAs_Sequence->IsEnabled());
-    }
-    else if (pagenum == SETUPTAB)
-    {
+    } else if (pagenum == SETUPTAB) {
         MenuItem_File_Save->SetItemLabel("Save Setup\tCTRL-s");
         MenuItem_File_Save->Enable(true);
         SetStatusText(_(""));
         SetControllersProperties();
-    }
-    else
-    {
+    } else {
         MenuItem_File_Save->SetItemLabel("Save");
         SetStatusText(_(""));
     }
     SetAudioControls();
 }
 
-void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event) {
-    DisableOutputs();
-}
 void xLightsFrame::CycleOutputsIfOn() {
     if (_outputManager.IsOutputting()) {
         _outputManager.StopOutput();
@@ -2313,6 +2315,7 @@ void xLightsFrame::CycleOutputsIfOn() {
         ForceEnableOutputs();
     }
 }
+
 bool xLightsFrame::ForceEnableOutputs() {
     bool outputting = false;
     if (!_outputManager.IsOutputting()) {
@@ -2466,11 +2469,6 @@ bool xLightsFrame::ShowFolderIsInProgramFiles(const std::string showdir)
 
     return false;
 
-}
-
-void xLightsFrame::OnButtonStopNowClick(wxCommandEvent& event)
-{
-    StopNow();
 }
 
 //make these static so they can be accessed outside of xLightsFrame: -DJ
@@ -2649,37 +2647,38 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool res = false;
-    wxString fname;
     wxString srcDirName = srcDir.GetNameWithSep();
     wxFileName srcFile;
     srcFile.SetPath(srcDir.GetNameWithSep());
 
-    bool cont = srcDir.GetFirst(&fname, wildcard, wxDIR_FILES);
-    while (cont) {
-        logger_base.debug("Backing up file %s.", (const char*)(srcDirName + fname).c_str());
-        res = true;
+    wxArrayString files;
+    GetAllFilesInDir(srcDir.GetNameWithSep(), files, wildcard);
+    for (auto &file : files) {
+        auto const fname = wxFileName(file).GetFullName();
+        srcFile.SetFullName(file);
+        if (FileExists(srcFile.GetFullPath())) { //checking if exists will force it to be downloaded if in the cloud
+            logger_base.debug("Backing up file %s.", (const char*)(srcFile.GetFullPath()).c_str());
+            res = true;
 
-        CreateMissingDirectories(targetDirName, lastCreatedDirectory, errors);
+            CreateMissingDirectories(targetDirName, lastCreatedDirectory, errors);
 
-        srcFile.SetFullName(fname);
 
-        wxULongLong fsize = srcFile.GetSize();
-        if (!forceallfiles && fsize > MAXBACKUPFILE_MB * 1024 * 1024) // skip any xml files > MAXBACKUPFILE_MB mbytes, they are something other than xml files
-        {
-            logger_base.warn("    Skipping file as it is too large.");
-            cont = srcDir.GetNext(&fname);
-            continue;
+            wxULongLong fsize = srcFile.GetSize();
+            if (!forceallfiles && fsize > MAXBACKUPFILE_MB * 1024 * 1024) // skip any xml files > MAXBACKUPFILE_MB mbytes, they are something other than xml files
+            {
+                logger_base.warn("    Skipping file as it is too large.");
+                continue;
+            }
+
+            logger_base.debug("    to %s.", (const char*)(targetDirName + wxFileName::GetPathSeparator() + fname).c_str());
+            SetStatusText("Copying File \"" + srcFile.GetFullPath());
+            bool success = wxCopyFile(srcFile.GetFullPath(),
+                targetDirName + wxFileName::GetPathSeparator() + fname);
+            if (!success) {
+                logger_base.error("    Copy Failed.");
+                errors += "Unable to copy file \"" + srcDir.GetNameWithSep() + fname + "\"\n";
+            }
         }
-
-        logger_base.debug("    to %s.", (const char*)(targetDirName + wxFileName::GetPathSeparator() + fname).c_str());
-        SetStatusText("Copying File \"" + srcFile.GetFullPath());
-        bool success = wxCopyFile(srcDirName + fname,
-            targetDirName + wxFileName::GetPathSeparator() + fname);
-        if (!success) {
-            logger_base.error("    Copy Failed.");
-            errors += "Unable to copy file \"" + srcDir.GetNameWithSep() + fname + "\"\n";
-        }
-        cont = srcDir.GetNext(&fname);
     }
 
     return res;
@@ -2707,7 +2706,7 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
         // I dont think backup should follow symbolic links
         bool cont = srcDir.GetFirst(&dir, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
         while (cont) {
-            if (dir != "Backup") {
+            if (dir.Lower() != "backup") {
                 wxDir subdir(srcDir.GetNameWithSep() + dir);
                 BackupDirectory(subdir.GetNameWithSep(), targetDirName + wxFileName::GetPathSeparator() + dir, lastCreatedDirectory, forceallfiles, errors);
             }
@@ -3070,6 +3069,8 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
     int playStatus = GetPlayStatus();
     SetPlayStatus(PLAY_TYPE_STOPPED);
 
+    wxStopWatch sw;
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Writing house-preview video to %s.", (const char *)path.c_str());
 
@@ -3114,7 +3115,7 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
             videoExporter.setGetAudioCallback(audioLambda);
         }
         auto videoLambda = [=](AVFrame *f, uint8_t* buf, int bufSize, unsigned frameIndex) {
-            const FrameData& frameData(this->_seqData[frameIndex]);
+            const SequenceData::FrameData& frameData(this->_seqData[frameIndex]);
             const uint8_t* data = frameData[0];
             housePreview->captureNextFrame(width*contentScaleFactor, height*contentScaleFactor);
             housePreview->Render(data, false);
@@ -3137,8 +3138,11 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
         m_mgr->Update();
     }
 
+
     if (exportStatus) {
         logger_base.debug( "Finished writing house-preview video." );
+        float elapsedTime = sw.Time()/1000.0; //msec => sec
+        SetStatusText(wxString::Format("'%s' exported in %4.3f sec.", path.c_str(), elapsedTime));
     } else {
         DisplayError( "Exporting house preview video failed.  " + emsg, this );
     }
@@ -3403,7 +3407,7 @@ void xLightsFrame::CheckUnsavedChanges()
             effectsFile.AssignDir(CurrentDir);
             effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
             wxFileName fn(effectsFile.GetFullPath());
-            if (wxFile::Exists(fn.GetFullPath()))
+            if (FileExists(fn.GetFullPath()))
             {
                 fn.Touch();
             }
@@ -3755,13 +3759,13 @@ static void AddLogFile(const wxString& CurrentDir, const wxString& fileName, wxD
 #ifdef __LINUX__
     wxString filename = "/tmp/" + fileName;
 #endif
-    if (wxFile::Exists(filename)) {
+    if (FileExists(filename)) {
         report.AddFile(filename, fileName);
     }
-    else if (wxFile::Exists(wxFileName(CurrentDir, fileName).GetFullPath())) {
+    else if (FileExists(wxFileName(CurrentDir, fileName).GetFullPath())) {
         report.AddFile(wxFileName(CurrentDir, fileName).GetFullPath(), fileName);
     }
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), fileName).GetFullPath())) {
+    else if (FileExists(wxFileName(wxGetCwd(), fileName).GetFullPath())) {
         report.AddFile(wxFileName(wxGetCwd(), fileName).GetFullPath(), fileName);
     }
 }
@@ -3770,13 +3774,13 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
 {
 
     wxFileName fn(CurrentDir, OutputManager::GetNetworksFileName());
-    if (fn.Exists()) {
+    if (FileExists(fn)) {
         report.AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
     }
-    if (wxFileName(CurrentDir, "xlights_rgbeffects.xml").Exists()) {
+    if (FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xml"))) {
         report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
     }
-    if (UnsavedRgbEffectsChanges && wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").Exists()) {
+    if (UnsavedRgbEffectsChanges && FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp"))) {
         report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
     }
 
@@ -3786,11 +3790,11 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
 
     if (GetSeqXmlFileName() != "") {
         wxFileName fn2(GetSeqXmlFileName());
-        if (fn2.Exists() && !fn2.IsDir()) {
+        if (FileExists(fn2) && !fn2.IsDir()) {
             report.AddFile(GetSeqXmlFileName(), fn2.GetName());
             if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
                 wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
-                if (fnb.Exists()) {
+                if (FileExists(fnb)) {
                     report.AddFile(fnb.GetFullPath(), fnb.GetName());
                 }
             }
@@ -3798,7 +3802,7 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
         else {
             if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
                 wxFileName fnb(CurrentDir + "/" + "__.xbkp");
-                if (fnb.Exists()) {
+                if (FileExists(fnb)) {
                     report.AddFile(fnb.GetFullPath(), fnb.GetName());
                 }
             }
@@ -3807,7 +3811,7 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
     else {
         if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
             wxFileName fnb(CurrentDir + "/" + "__.xbkp");
-            if (fnb.Exists()) {
+            if (FileExists(fnb)) {
                 report.AddFile(fnb.GetFullPath(), fnb.GetName());
             }
         }
@@ -4267,6 +4271,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
         worksheet_write_string(modelsheet, 0, i, model_header_cols[i].c_str(), header_format);
         _model_col_widths[i] = model_header_cols[i].size() + FACTOR; //estimate column width
     }
+    worksheet_freeze_panes(modelsheet, 1, 0);
 
     int modelCount = 0;
     int row = 1;
@@ -4361,7 +4366,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
         worksheet_write_string(groupsheet, 0, i, groupHeader[i].c_str(), header_format);
         _group_col_widths[i] = groupHeader[i].size() + FACTOR; //estimate column width
     }
-
+    worksheet_freeze_panes(groupsheet, 1, 0);
     int groupCount = 0;
     row = 1;
     for (auto const& m : AllModels) {
@@ -4401,6 +4406,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
         worksheet_write_string(controllersheet, 0, i, control_cols[i].c_str(), header_format);
         _controller_col_widths[i] = control_cols[i].size() + FACTOR; //estimate column width
     }
+    worksheet_freeze_panes(controllersheet, 1, 0);
 
     for (const auto& it : _outputManager.GetControllers()) {
         auto scolumns = it->GetExport();
@@ -4544,13 +4550,13 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxString filename = "/tmp/" + fileName;
 #endif
     wxString fn = "";
-    if (wxFile::Exists(filename)) {
+    if (FileExists(filename)) {
         fn = filename;
     }
-    else if (wxFile::Exists(wxFileName(CurrentDir, fileName).GetFullPath())) {
+    else if (FileExists(wxFileName(CurrentDir, fileName).GetFullPath())) {
         fn = wxFileName(CurrentDir, fileName).GetFullPath();
     }
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), fileName).GetFullPath())) {
+    else if (FileExists(wxFileName(wxGetCwd(), fileName).GetFullPath())) {
         fn = wxFileName(wxGetCwd(), fileName).GetFullPath();
     }
 
@@ -4679,8 +4685,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     wxDatagramSocket *testSocket;
     wxIPV4address addr;
     wxString fullhostname = wxGetFullHostName();
-    if (mLocalIP != "") {
-        addr.Hostname(mLocalIP);
+    if (_outputManager.GetGlobalForceLocalIP() != "") {
+        addr.Hostname(_outputManager.GetGlobalForceLocalIP());
         testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
     }
     else {
@@ -4779,6 +4785,20 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         wxString msg = wxString::Format("    WARN: Autosave is disabled ... you will lose work if xLights abnormally terminates.");
         LogAndWrite(f, msg.ToStdString());
         warncount++;
+    }
+
+    if (_lowDefinitionRender) {
+        wxString msg = wxString::Format("    WARN: Rendering in low definition is active.");
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
+    if (mBackgroundImage != "") {
+        if (!wxIsReadable(mBackgroundImage) || !wxImage::CanRead(mBackgroundImage)) {
+            wxString msg = wxString::Format("    ERR: Layout Background image not loadable as an image: %s.", mBackgroundImage);
+            LogAndWrite(f, msg.ToStdString());
+            errcount++;
+        }
     }
 
     if (errcount + warncount == errcountsave + warncountsave) {
@@ -5459,12 +5479,12 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     for (const auto& it : AllModels) {
         std::list<std::string> warnings = it.second->CheckModelSettings();
-        for (auto s = warnings.begin(); s != warnings.end(); ++s) {
-            LogAndWrite(f, *s);
-            if (s->find("WARN:") != std::string::npos) {
+        for (const auto& it : warnings) {
+            LogAndWrite(f, it);
+            if (it.find("WARN:") != std::string::npos) {
                 warncount++;
             }
-            else if (s->find("ERR:") != std::string::npos) {
+            else if (it.find("ERR:") != std::string::npos) {
                 errcount++;
             }
         }
@@ -5478,12 +5498,12 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     for (const auto& it : AllObjects) {
         std::list<std::string> warnings = it.second->CheckModelSettings();
-        for (auto s = warnings.begin(); s != warnings.end(); ++s) {
-            LogAndWrite(f, *s);
-            if (s->find("WARN:") != std::string::npos) {
+        for (const auto& it : warnings) {
+            LogAndWrite(f, it);
+            if (it.find("WARN:") != std::string::npos) {
                 warncount++;
             }
-            else if (s->find("ERR:") != std::string::npos) {
+            else if (it.find("ERR:") != std::string::npos) {
                 errcount++;
             }
         }
@@ -5635,7 +5655,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                             std::string warn = mg->Name() + m->Name() + e->second->Name();
                             if (warned.find(warn) == end(warned)) {
                                 warned[warn] = true;
-                                wxString msg = wxString::Format("    WARN: Model group '%s' contains model '%s' and model '%s' which contain at least one overlapping node (ch %lu). This may not render as expected.", (const char*)mg->Name().c_str(), (const char*)m->GetFullName().c_str(), (const char*)e->second->GetFullName().c_str(), n->ActChan);
+                                wxString msg = wxString::Format("    WARN: Model group '%s' contains model '%s' and model '%s' which contain at least one overlapping node (ch %u). This may not render as expected.", (const char*)mg->Name().c_str(), (const char*)m->GetFullName().c_str(), (const char*)e->second->GetFullName().c_str(), n->ActChan);
                                 LogAndWrite(f, msg.ToStdString());
                                 warncount++;
                             }
@@ -5807,7 +5827,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
         for (const auto& fit : facefiles) {
             auto ff = wxSplit(fit, '|');
-            if (!wxFile::Exists(ff[1])) {
+            if (!FileExists(ff[1])) {
                 wxString msg = wxString::Format("    ERR: Model '%s' face '%s' image missing %s.", it.second->GetFullName(), ff[0], ff[1]);
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
@@ -5913,7 +5933,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             LogAndWrite(f, "");
             LogAndWrite(f, "Checking media file");
 
-            if (!wxFileExists(CurrentSeqXmlFile->GetMediaFile())) {
+            if (!FileExists(CurrentSeqXmlFile->GetMediaFile())) {
                 wxString msg = wxString::Format("    ERR: media file %s does not exist.", CurrentSeqXmlFile->GetMediaFile());
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
@@ -6145,7 +6165,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         wxString ff = FixFile(showDirectory, it);
         if (ff.StartsWith(showDirectory)) // only check files in show folder
         {
-            if (wxFile::Exists(ff)) {
+            if (FileExists(ff)) {
                 ff = ff.substr(showDirectory.size());
                 wxArrayString folders = Split(ff, delimiters);
 
@@ -6210,7 +6230,7 @@ void xLightsFrame::ValidateEffectAssets()
     std::string missing;
     for (const auto& it : _sequenceElements.GetAllReferencedFiles()) {
         auto f = FixFile("", it);
-        if (!wxFile::Exists(f)) {
+        if (!FileExists(f, false)) {
             missing += it + "\n";
         }
     }
@@ -6966,7 +6986,7 @@ std::string AddFileToZipFile(const std::string& baseDirectory, const std::string
     if (actualfile == "") filetoactuallyzip = file;
 
     std::string lost = "";
-    if (wxFile::Exists(filetoactuallyzip))
+    if (FileExists(filetoactuallyzip))
     {
         wxFileName bd(baseDirectory);
         std::string showdir = bd.GetName().ToStdString();
@@ -7208,7 +7228,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     for (const auto& f : modelfiles) {
         i++;
         wxFileName fnf(f);
-        if (fnf.Exists()) {
+        if (FileExists(fnf)) {
             prog.Update(10 + (int)(10.0 * i / (float)modelfiles.size()), fnf.GetFullName());
             lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
             if (lost != "") {
@@ -7293,7 +7313,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     for (auto f : effectfiles) {
         i++;
         wxFileName fnf(f);
-        if (fnf.Exists()) {
+        if (FileExists(fnf)) {
             prog.Update(35 + (int)(59.0 * i / (float)effectfiles.size()), fnf.GetFullName());
             lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
             if (lost != "") {
@@ -7346,8 +7366,8 @@ bool xLightsFrame::IsInShowFolder(const std::string& file) const
 bool xLightsFrame::FilesMatch(const std::string & file1, const std::string & file2) const
 {
     // only equal if they both exist
-    if (!wxFile::Exists(file1)) return false;
-    if (!wxFile::Exists(file2)) return false;
+    if (!FileExists(file1)) return false;
+    if (!FileExists(file2)) return false;
 
     // and they are the same size
     wxFileName f1(file1);
@@ -7406,12 +7426,12 @@ std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::s
     target += fn.GetFullName();
 
     int i = 1;
-    while (wxFile::Exists(target) && !FilesMatch(file, target))
+    while (FileExists(target) && !FilesMatch(file, target))
     {
         target = dir + wxFileName::GetPathSeparator() + fn.GetName() + "_" + wxString::Format("%d", i++) + "." + fn.GetExt();
     }
 
-    if (!wxFile::Exists(target))
+    if (!FileExists(target))
     {
         logger_base.debug("Copying file %s to %s.", (const char*)file.c_str(), (const char *)target.c_str());
         wxCopyFile(file, target, false);
@@ -7428,7 +7448,7 @@ void xLightsFrame::CleanupSequenceFileLocations()
     }
 
     wxString media = CurrentSeqXmlFile->GetMediaFile();
-    if (wxFile::Exists(media) && !IsInShowFolder(media))
+    if (FileExists(media) && !IsInShowFolder(media))
     {
         CurrentSeqXmlFile->SetMediaFile(GetShowDirectory(), MoveToShowFolder(media, wxString(wxFileName::GetPathSeparator()) + "Audio"), false);
         _sequenceElements.IncrementChangeCount(nullptr);
@@ -7461,7 +7481,7 @@ void xLightsFrame::CleanupSequenceFileLocations()
 
 void xLightsFrame::CleanupRGBEffectsFileLocations()
 {
-    if (wxFile::Exists(mBackgroundImage) && !IsInShowFolder(mBackgroundImage))
+    if (FileExists(mBackgroundImage) && !IsInShowFolder(mBackgroundImage))
     {
         wxString bi = MoveToShowFolder(mBackgroundImage, wxString(wxFileName::GetPathSeparator()));
         SetPreviewBackgroundImage(bi);
@@ -7553,14 +7573,6 @@ void xLightsFrame::PlayerError(const wxString& msg)
 }
 
 #pragma region Settings Menu
-
-void xLightsFrame::SetLocalIP(const std::string &ip)
-{
-    mLocalIP = ip;
-    _outputManager.SetForceFromIP(mLocalIP);
-
-    CycleOutputsIfOn();
-}
 
 void xLightsFrame::ShowACLights()
 {
@@ -8464,7 +8476,7 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
         // now create the phenome timing track
         std::string name = _sequenceElements.UniqueElementName(dlg.GetLyricName());
         int timingCount = _sequenceElements.GetNumberOfTimingElements();
-        Element* e = _sequenceElements.AddElement(timingCount, name, "timing", true, false, true, false);
+        Element* e = _sequenceElements.AddElement(timingCount, name, "timing", true, false, true, false, false);
         _sequenceElements.AddTimingToCurrentView(name);
         TimingElement* timing = dynamic_cast<TimingElement*>(e);
         timing->AddEffectLayer();
@@ -8537,25 +8549,30 @@ void xLightsFrame::OnMenuItem_CrashXLightsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     BatchRenderDialog dlg(this);
     if (dlg.Prepare(this->GetShowDirectory()) && dlg.ShowModal() == wxID_OK && CloseSequence()) {
         wxArrayString files = dlg.GetFileList();
         wxArrayString filesToRender;
         for (auto f : files) {
             wxFileName fname(this->GetShowDirectory() + wxFileName::GetPathSeparator() + f);
-            if(fname.FileExists())
+            if (FileExists(fname))
                 filesToRender.push_back(fname.GetFullPath());
             else
                 logger_base.info("BatchRender: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
         }
         if (filesToRender.size() > 0) {
             _renderMode = true;
+            _saveLowDefinitionRender = _lowDefinitionRender;
+            if (dlg.CheckBox_ForceHighDefinition->IsChecked()) {
+                _lowDefinitionRender = false;
+            }
             OpenRenderAndSaveSequences(filesToRender, false);
-            if (filesToRender.size() == 0) _renderMode = false;
-        }
-        else
-        {
+            if (filesToRender.size() == 0) {
+                _lowDefinitionRender = _saveLowDefinitionRender;
+                _renderMode = false;
+            }
+        } else {
             logger_base.info("BatchRender: No Sequences Selected.");
         }
     }
@@ -8926,8 +8943,7 @@ void xLightsFrame::DoBackupPurge()
 
         // We dont follow symbolic links
         bool cont = dir.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
-        while (cont)
-        {
+        while (cont) {
             auto fdc = wxSplit(filename, '-');
 
             if (fdc.size() > 3)
@@ -9098,7 +9114,7 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
         {
             ToggleOutputs();
             m_mgr->Update();
-            OutputToolBar->Refresh();
+            PlayToolBar->Refresh();
         }
         else if (type == "OPEN_SEQUENCE")
         {
@@ -9248,8 +9264,7 @@ void xLightsFrame::OnMenuItem_Generate2DPathSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // This exists solely to provide an easy way to test AudioManager::CreateAudioFile()
 #if 0
@@ -9263,16 +9278,14 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 #endif
 
     wxString filename = wxFileSelector("Choose reaper file describing the changes required to the audio.",
-        CurrentDir, wxEmptyString, "*.rrp",
-        "Reaper files (*.rpp)|*.rpp|xAudio files (*.xaudio)|*.xaudio|All files (*.*)|*.*",
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+                                       CurrentDir, wxEmptyString, "*.rrp",
+                                       "Reaper files (*.rpp)|*.rpp|xAudio files (*.xaudio)|*.xaudio|All files (*.*)|*.*",
+                                       wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
-    if (filename != "")
-    {
-        logger_base.debug("Prepare audio: %s.", (const char *)filename.c_str());
+    if (filename != "") {
+        logger_base.debug("Prepare audio: %s.", (const char*)filename.c_str());
 
-        struct musicEdit
-        {
+        struct musicEdit {
             std::string file;
             double start;
             double length;
@@ -9285,9 +9298,9 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             musicEdit(const std::string& f, double s, double l, double so, double fi, double fo, double v, bool cfi, bool cfo) :
                 file(f), start(s), length(l), sourceoffset(so), fadein(fi), fadeout(fo), volume(v), crossfadein(cfi), crossfadeout(cfo)
             {
-                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.debug("        Source file: %s Source Pos: %0.3f Length: %0.3f Target Pos: %0.3f Fade In: %0.3f Fade Out: %0.3f Volume: %0.3f",
-                    (const char *)file.c_str(), sourceoffset, length, start, fadein, fadeout, volume);
+                                  (const char*)file.c_str(), sourceoffset, length, start, fadein, fadeout, volume);
             }
         };
 
@@ -9295,19 +9308,16 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
         wxFileName targetFile;
         targetFile.SetPath(CurrentDir);
 
-        if (filename.Lower().EndsWith(".rpp"))
-        {
+        if (filename.Lower().EndsWith(".rpp")) {
             wxFile reaper;
-            if (reaper.Open(filename))
-            {
+            if (reaper.Open(filename)) {
                 wxString reaperContent;
                 reaper.ReadAll(&reaperContent);
 
                 wxRegEx regexTgt("RENDER_FILE \\\"[^\\\"]*?\\/([^\\\"\\/]*)\\\"", wxRE_ADVANCED | wxRE_NEWLINE);
-                if (regexTgt.Matches(reaperContent))
-                {
+                if (regexTgt.Matches(reaperContent)) {
                     targetFile.SetName(regexTgt.GetMatch(reaperContent, 1));
-                    logger_base.debug("    Target file: %s", (const char *)targetFile.GetFullPath().c_str());
+                    logger_base.debug("    Target file: %s", (const char*)targetFile.GetFullPath().c_str());
                 }
 
                 wxRegEx regexPosition("POSITION ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
@@ -9320,8 +9330,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                 wxRegEx regexVolume("VOLPAN [0-9\\.]* [0-9\\.]* ([0-9\\.]*) ", wxRE_ADVANCED | wxRE_NEWLINE);
                 wxRegEx regexSourceFile(" FILE \\\"[^\\\"]*?\\/([^\\\"\\/]*)\\\"", wxRE_ADVANCED | wxRE_NEWLINE);
 
-                while (regexPosition.Matches(reaperContent))
-                {
+                while (regexPosition.Matches(reaperContent)) {
                     regexLength.Matches(reaperContent);
                     regexSourceOffset.Matches(reaperContent);
                     regexFadeIn1.Matches(reaperContent);
@@ -9341,40 +9350,31 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                     double fadeout2 = 0;
                     double volume = 1;
 
-                    if (regexPosition.GetMatchCount() > 1)
-                    {
+                    if (regexPosition.GetMatchCount() > 1) {
                         start = std::atof(regexPosition.GetMatch(reaperContent, 1).c_str());
                     }
-                    if (regexLength.GetMatchCount() > 1)
-                    {
+                    if (regexLength.GetMatchCount() > 1) {
                         length = std::atof(regexLength.GetMatch(reaperContent, 1).c_str());
                     }
-                    if (regexSourceOffset.GetMatchCount() > 1)
-                    {
+                    if (regexSourceOffset.GetMatchCount() > 1) {
                         sourceoffset = std::atof(regexSourceOffset.GetMatch(reaperContent, 1).c_str());
                     }
-                    if (regexFadeIn1.GetMatchCount() > 1)
-                    {
+                    if (regexFadeIn1.GetMatchCount() > 1) {
                         fadein1 = std::atof(regexFadeIn1.GetMatch(reaperContent, 1).c_str());
                     }
-                    if (regexFadeIn2.GetMatchCount() > 1)
-                    {
+                    if (regexFadeIn2.GetMatchCount() > 1) {
                         fadein2 = std::atof(regexFadeIn2.GetMatch(reaperContent, 1).c_str());
                     }
-                    if (regexFadeOut1.GetMatchCount() > 1)
-                    {
+                    if (regexFadeOut1.GetMatchCount() > 1) {
                         fadeout1 = std::atof(regexFadeOut1.GetMatch(reaperContent, 1).c_str());
                     }
-                    if (regexFadeOut2.GetMatchCount() > 1)
-                    {
+                    if (regexFadeOut2.GetMatchCount() > 1) {
                         fadeout2 = std::atof(regexFadeOut2.GetMatch(reaperContent, 1).c_str());
                     }
-                    if (regexVolume.GetMatchCount() > 1)
-                    {
+                    if (regexVolume.GetMatchCount() > 1) {
                         volume = std::atof(regexVolume.GetMatch(reaperContent, 1).c_str());
                     }
-                    if (regexSourceFile.GetMatchCount() > 1)
-                    {
+                    if (regexSourceFile.GetMatchCount() > 1) {
                         size_t s, l;
                         regexSourceFile.GetMatch(&s, &l, 0);
                         sourcefile = regexSourceFile.GetMatch(reaperContent, 1).c_str();
@@ -9383,15 +9383,12 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                     edits.push_back(musicEdit(sourcefile, start, length, sourceoffset, std::max(fadein1, fadein2), std::max(fadeout1, fadeout2), volume, fadein1 < fadein2, fadeout1 < fadeout2));
                 }
 
-                if (edits.size() == 0)
-                {
+                if (edits.size() == 0) {
                     SetStatusText("No edits found in RPP file.");
                     return;
                 }
             }
-        }
-        else if (filename.Lower().EndsWith(".xaudio"))
-        {
+        } else if (filename.Lower().EndsWith(".xaudio")) {
             // Sample
             //
             // <xaudio>
@@ -9422,26 +9419,18 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 
             wxXmlDocument doc(filename);
 
-            if (doc.IsOk())
-            {
-                for (wxXmlNode* r = doc.GetRoot(); r != nullptr; r = r->GetNext())
-                {
-                    for (wxXmlNode* n = r->GetChildren(); n != nullptr; n = n->GetNext())
-                    {
+            if (doc.IsOk()) {
+                for (wxXmlNode* r = doc.GetRoot(); r != nullptr; r = r->GetNext()) {
+                    for (wxXmlNode* n = r->GetChildren(); n != nullptr; n = n->GetNext()) {
                         auto name = n->GetName().Lower();
-                        if (name == "targetfile")
-                        {
+                        if (name == "targetfile") {
                             if (n->GetChildren() != nullptr) {
                                 targetFile.SetName(n->GetChildren()->GetContent());
                             }
-                        }
-                        else if (name == "items")
-                        {
-                            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
-                            {
+                        } else if (name == "items") {
+                            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
                                 name = nn->GetName().Lower();
-                                if (name == "item")
-                                {
+                                if (name == "item") {
                                     std::string sourcefile = "";
                                     double start = 0;
                                     double length = 0;
@@ -9452,55 +9441,37 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                                     bool fadeoutcrossfade = false;
                                     double volume = 1;
 
-                                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
-                                    {
+                                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
                                         name = nnn->GetName().Lower();
-                                        if (name == "file")
-                                        {
+                                        if (name == "file") {
                                             if (nnn->GetChildren() != nullptr) {
                                                 sourcefile = nnn->GetChildren()->GetContent();
                                             }
-                                        }
-                                        else if (name == "targettime")
-                                        {
+                                        } else if (name == "targettime") {
                                             if (nnn->GetChildren() != nullptr) {
                                                 start = std::atof(nnn->GetChildren()->GetContent().c_str());
                                             }
-                                        }
-                                        else if (name == "length")
-                                        {
+                                        } else if (name == "length") {
                                             if (nnn->GetChildren() != nullptr) {
                                                 length = std::atof(nnn->GetChildren()->GetContent().c_str());
                                             }
-                                        }
-                                        else if (name == "sourcetime")
-                                        {
+                                        } else if (name == "sourcetime") {
                                             if (nnn->GetChildren() != nullptr) {
                                                 sourceoffset = std::atof(nnn->GetChildren()->GetContent().c_str());
                                             }
-                                        }
-                                        else if (name == "fadeinsecs")
-                                        {
+                                        } else if (name == "fadeinsecs") {
                                             if (nnn->GetChildren() != nullptr) {
                                                 fadein = std::atof(nnn->GetChildren()->GetContent().c_str());
                                             }
-                                        }
-                                        else if (name == "fadeoutsecs")
-                                        {
+                                        } else if (name == "fadeoutsecs") {
                                             if (nnn->GetChildren() != nullptr) {
                                                 fadeout = std::atof(nnn->GetChildren()->GetContent().c_str());
                                             }
-                                        }
-                                        else if (name == "fadeincrossfade")
-                                        {
+                                        } else if (name == "fadeincrossfade") {
                                             fadeincrossfade = true;
-                                        }
-                                        else if (name == "fadeoutcrossfade")
-                                        {
+                                        } else if (name == "fadeoutcrossfade") {
                                             fadeoutcrossfade = true;
-                                        }
-                                        else if (name == "gain")
-                                        {
+                                        } else if (name == "gain") {
                                             if (nnn->GetChildren() != nullptr) {
                                                 volume = std::atof(nnn->GetChildren()->GetContent().c_str());
                                             }
@@ -9512,14 +9483,11 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                         }
                     }
                 }
-                if (edits.size() == 0)
-                {
+                if (edits.size() == 0) {
                     SetStatusText("No edits found in xAudio file.");
                     return;
                 }
-            }
-            else
-            {
+            } else {
                 SetStatusText("Invalid xAudio file.");
                 return;
             }
@@ -9530,23 +9498,18 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
         // load the audio files
         std::map<std::string, AudioManager*> sourceSongs;
         double outputLength = 0;
-        for (const auto& it : edits)
-        {
+        for (const auto& it : edits) {
             outputLength = std::max(outputLength, it.start + it.length);
 
-            if (sourceSongs.find(it.file) == sourceSongs.end())
-            {
+            if (sourceSongs.find(it.file) == sourceSongs.end()) {
                 wxString music = wxFileSelector("Choose your copy of " + it.file + ".",
-                    CurrentDir, wxEmptyString, wxEmptyString,
-                    "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.wmv;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg",
-                    wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+                                                CurrentDir, wxEmptyString, wxEmptyString,
+                                                "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.wmv;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg",
+                                                wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
-                if (music != "")
-                {
+                if (music != "") {
                     sourceSongs[it.file] = new AudioManager(music);
-                }
-                else
-                {
+                } else {
                     sourceSongs[it.file] = nullptr;
                 }
             }
@@ -9555,18 +9518,12 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
         bool ok = true;
 
         long outputRate = -1;
-        for (const auto& it : sourceSongs)
-        {
-            if (it.second != nullptr)
-            {
-                if (outputRate == -1)
-                {
+        for (const auto& it : sourceSongs) {
+            if (it.second != nullptr) {
+                if (outputRate == -1) {
                     outputRate = it.second->GetRate();
-                }
-                else
-                {
-                    if (ok && outputRate != it.second->GetRate())
-                    {
+                } else {
+                    if (ok && outputRate != it.second->GetRate()) {
                         logger_base.debug("Songs do not all have the same bitrate ... unable to do the required mixing.");
                         wxMessageBox("In order to prepare the audio all the input songs must have the same bitrate.");
                         ok = false;
@@ -9575,14 +9532,12 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             }
         }
 
-        if (outputRate == -1)
-        {
+        if (outputRate == -1) {
             SetStatusText("Audio file creation failed - No input audio.");
             ok = false;
         }
 
-        if (ok)
-        {
+        if (ok) {
             long totalSamples = outputRate * outputLength;
             logger_base.debug("    New file will:");
             logger_base.debug("        have %ld samples.", totalSamples);
@@ -9590,25 +9545,23 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             std::vector<float> left(totalSamples);
             std::vector<float> right(totalSamples);
 
-            for (const auto& it : edits)
-            {
+            for (const auto& it : edits) {
                 auto audio = sourceSongs[it.file];
-                if (audio != nullptr)
-                {
+                if (audio != nullptr) {
                     // check the data is actually loaded
                     audio->GetRawLeftData(audio->GetTrackSize() - 1);
 
                     SetStatusText("Combining audio clips.");
 
-                    logger_base.debug("Processing sample from %s.", (const char *)it.file.c_str());
+                    logger_base.debug("Processing sample from %s.", (const char*)it.file.c_str());
                     long startOutput = outputRate * it.start;
                     long outputSamples = outputRate * it.length;
-                    //logger_base.debug("    Sample Output Start %ld-%ld [%ld].", startOutput, startOutput + outputSamples - 1, outputSamples);
+                    // logger_base.debug("    Sample Output Start %ld-%ld [%ld].", startOutput, startOutput + outputSamples - 1, outputSamples);
                     wxASSERT(startOutput + outputSamples - 1 <= totalSamples);
                     long startSample = audio->GetRate() * it.sourceoffset;
                     long inputSamples = audio->GetRate() * it.length;
-                    //logger_base.debug("    Input file samples %ld", audio->GetTrackSize());
-                    //logger_base.debug("    Sample Input Start %ld-%ld [%ld].", startSample, startSample + inputSamples - 1, inputSamples);
+                    // logger_base.debug("    Input file samples %ld", audio->GetTrackSize());
+                    // logger_base.debug("    Sample Input Start %ld-%ld [%ld].", startSample, startSample + inputSamples - 1, inputSamples);
                     wxASSERT(startSample + inputSamples - 1 < audio->GetTrackSize());
 
                     // this code does not handle mixed sample rates
@@ -9620,66 +9573,64 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                     long fadeoutsamples = it.fadeout * audio->GetRate();
                     long fadeoutstart = inputSamples - fadeoutsamples;
 
-                    for (long i = 0; i < inputSamples; i++)
-                    {
+                    for (long i = 0; i < inputSamples; i++) {
                         float l = lsource[i] * it.volume;
                         float r;
                         if (rsource != nullptr) {
                             r = rsource[i] * it.volume;
-                        }
-                        else                             {
+                        } else {
                             r = l;
                         }
-                        if (i < fadeinsamples)
-                        {
+                        if (i < fadeinsamples) {
                             // Linear
-                            //l *= (double)i / fadeinsamples; // linear fade for now
-                            //r *= (double)i / fadeinsamples; // linear fade for now
+                            // l *= (double)i / fadeinsamples; // linear fade for now
+                            // r *= (double)i / fadeinsamples; // linear fade for now
 
-                            if (it.crossfadein)
-                            {
+                            if (it.crossfadein) {
                                 // cross fade in
                                 // log10(x/fadeinsamples+.1)*10/11
-                                double f = log10((double)i / fadeinsamples + 0.1)*10.0 / 11.0;
-                                if (f < 0) f = 0.0;
-                                if (f > 1) f = 1.0;
+                                double f = log10((double)i / fadeinsamples + 0.1) * 10.0 / 11.0;
+                                if (f < 0)
+                                    f = 0.0;
+                                if (f > 1)
+                                    f = 1.0;
                                 l *= f;
                                 r *= f;
-                            }
-                            else
-                            {
+                            } else {
                                 // exponent in
                                 //(10 ^ (x/fadeinsamples - 1)-.1) * 1.1
                                 double f = pow(10.0, ((double)i / fadeinsamples - 1.0) - 0.1) * 1.1;
-                                if (f < 0) f = 0.0;
-                                if (f > 1) f = 1.0;
+                                if (f < 0)
+                                    f = 0.0;
+                                if (f > 1)
+                                    f = 1.0;
                                 l *= f;
                                 r *= f;
                             }
                         }
-                        if (i > fadeoutstart)
-                        {
+                        if (i > fadeoutstart) {
                             // Linear
-                            //l *= (double)(inputSamples - i) / fadeoutsamples; // linear fade for now
-                            //r *= (double)(inputSamples - i) / fadeoutsamples; // linear fade for now
+                            // l *= (double)(inputSamples - i) / fadeoutsamples; // linear fade for now
+                            // r *= (double)(inputSamples - i) / fadeoutsamples; // linear fade for now
 
-                            if (it.crossfadeout)
-                            {
+                            if (it.crossfadeout) {
                                 // cross fade out
                                 //  1 - 10 ^ (x/fadeoutsamples - .95) + .1
-                                double f = 1.0 - log10((double)(inputSamples - i) / fadeinsamples + 0.1)*10.0 / 11.0;
-                                if (f < 0) f = 0.0;
-                                if (f > 1) f = 1.0;
+                                double f = 1.0 - log10((double)(inputSamples - i) / fadeinsamples + 0.1) * 10.0 / 11.0;
+                                if (f < 0)
+                                    f = 0.0;
+                                if (f > 1)
+                                    f = 1.0;
                                 l *= f;
                                 r *= f;
-                            }
-                            else
-                            {
+                            } else {
                                 // exponent out
                                 // 1 - log 10 (x/fadeoutsamples +.1)
                                 double f = 1.0 - pow(10.0, ((double)(inputSamples - i) / fadeinsamples - 1.0) - 0.1) * 1.1;
-                                if (f < 0) f = 0.0;
-                                if (f > 1) f = 1.0;
+                                if (f < 0)
+                                    f = 0.0;
+                                if (f > 1)
+                                    f = 1.0;
                                 l *= f;
                                 r *= f;
                             }
@@ -9691,56 +9642,45 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             }
 
             // Clip it
-            for (auto& it : left)
-            {
-                if (it > 1.0) it = 1.0;
+            for (auto& it : left) {
+                if (it > 1.0)
+                    it = 1.0;
             }
-            for (auto& it : right)
-            {
-                if (it > 1.0) it = 1.0;
+            for (auto& it : right) {
+                if (it > 1.0)
+                    it = 1.0;
             }
 
-            if (targetFile.Exists())
-            {
-                if (wxMessageBox(targetFile.GetFullPath() + " already exists. Do you want to overwrite it?", "Replace", wxYES_NO | wxCENTRE, this) == wxNO)
-                {
+            if (FileExists(targetFile)) {
+                if (wxMessageBox(targetFile.GetFullPath() + " already exists. Do you want to overwrite it?", "Replace", wxYES_NO | wxCENTRE, this) == wxNO) {
                     wxFileDialog fd(this,
-                        "Choose filename to save the audio as.",
-                        targetFile.GetPath(),
-                        targetFile.GetName(),
-                        "MP3 Files|*.mp3",
-                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+                                    "Choose filename to save the audio as.",
+                                    targetFile.GetPath(),
+                                    targetFile.GetName(),
+                                    "MP3 Files|*.mp3",
+                                    wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-                    if (fd.ShowModal() == wxID_OK)
-                    {
+                    if (fd.ShowModal() == wxID_OK) {
                         targetFile.SetPath(fd.GetDirectory());
                         targetFile.SetName(fd.GetFilename());
-                    }
-                    else
-                    {
+                    } else {
                         return;
                     }
                 }
             }
             SetStatusText("Saving output file.");
 
-            if (!AudioManager::CreateAudioFile(left, right, targetFile.GetFullPath(), outputRate))
-            {
+            if (!AudioManager::CreateAudioFile(left, right, targetFile.GetFullPath(), outputRate)) {
                 wxMessageBox("Error creating audio file. See log for details.");
                 SetStatusText("Audio file creation failed.");
-            }
-            else
-            {
+            } else {
                 SetStatusText("Audio file created: " + targetFile.GetFullPath());
             }
-        }
-        else
-        {
+        } else {
             SetStatusText("Audio file creation failed.");
         }
 
-        for (const auto& it : sourceSongs)
-        {
+        for (const auto& it : sourceSongs) {
             delete it.second;
         }
     }
@@ -10038,7 +9978,9 @@ void xLightsFrame::UpdateViewMenu()
         { "EffectAssist", MenuItemEffectAssist },
         { "SelectEffect", MenuItemSelectEffect },
         { "SequenceVideo", MenuItemVideoPreview },
-        { "Jukebox", MenuItemJukebox }
+        { "Jukebox", MenuItemJukebox },
+        { "FindData", MenuItemFindData },
+        { "SearchPanel", MenuItemSearchEffects }
     };
 
     wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
@@ -10050,4 +9992,50 @@ void xLightsFrame::UpdateViewMenu()
             }
         }
     }
+}
+
+void xLightsFrame::OnMenuItem_ColorReplaceSelected(wxCommandEvent& event)
+{
+    ColourReplaceDialog dlg(this, this);
+    dlg.ShowModal();
+
+    // need to update the colour panel as the colours may have changed on the selected effect
+    if (GetMainSequencer()->GetSelectedEffect() != nullptr) {
+        SelectedEffectChangedEvent event(GetMainSequencer()->GetSelectedEffect(), false, true);
+        SelectedEffectChanged(event);
+    }
+
+    // user will need to render as this does not force a re-render.
+}
+
+void xLightsFrame::OnMenuItemFindDataSelected(wxCommandEvent& event)
+{
+    wxAuiPaneInfo& pane = m_mgr->GetPane("FindData");
+
+    pane.IsShown() ? pane.Hide() : pane.Show();
+    m_mgr->Update();
+    UpdateViewMenu();
+}
+
+void xLightsFrame::ShowDataFindPanel()
+{
+    wxAuiPaneInfo& pane = m_mgr->GetPane("FindData");
+
+    if (!pane.IsShown()) {
+        pane.Show();
+        m_mgr->Update();
+        UpdateViewMenu();
+    }
+}
+
+void xLightsFrame::OnMenuItemSearchEffectsSelected(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("SearchPanel").IsShown();
+    if (visible) {
+        m_mgr->GetPane("SearchPanel").Hide();
+    } else {
+        m_mgr->GetPane("SearchPanel").Show();
+    }
+    m_mgr->Update();
+    UpdateViewMenu();
 }

@@ -64,6 +64,9 @@ THE SOFTWARE.
 #include <string>
 #include <vector>
 
+#include "../ExternalHooks.h"
+
+
 namespace tinyobj {
 
 // TODO(syoyo): Better C++11 detection for older compiler
@@ -2337,6 +2340,7 @@ bool MaterialFileReader::operator()(const std::string &matId,
     for (size_t i = 0; i < paths.size(); i++) {
       std::string filepath = JoinPath(paths[i], matId);
 
+      FileExists(filepath);
       std::ifstream matIStream(filepath.c_str());
       if (matIStream) {
         LoadMtl(matMap, materials, &matIStream, warn, err);
@@ -2355,6 +2359,7 @@ bool MaterialFileReader::operator()(const std::string &matId,
 
   } else {
     std::string filepath = matId;
+    FileExists(filepath);
     std::ifstream matIStream(filepath.c_str());
     if (matIStream) {
       LoadMtl(matMap, materials, &matIStream, warn, err);
@@ -2405,6 +2410,7 @@ bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
 
   std::stringstream errss;
 
+  FileExists(std::string(filename));
   std::ifstream ifs(filename);
   if (!ifs) {
     errss << "Cannot open file [" << filename << "]\n";

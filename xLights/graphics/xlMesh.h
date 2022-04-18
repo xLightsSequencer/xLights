@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include "../Color.h"
 #include "tiny_obj_loader.h"
 #include "xlGraphicsContext.h"
@@ -13,8 +14,6 @@ public:
  
     void SetName(const std::string &n) { name = n; }
     const std::string &GetName() const { return name; }
-    
-    
     
     class Material {
     public:
@@ -43,6 +42,11 @@ public:
     float GetZMax() const { return zMax; }
     
     void SetMaterialColor(const std::string materialName, const xlColor *c);
+    
+    static bool InvalidMaterialsList(const std::vector<std::string>& mtls);
+    static std::vector<std::string> GetMaterialFilenamesFromOBJ(const std::string& obj, bool strict = true);
+    static void FixMaterialFilenamesInOBJ(const std::string &obj);
+
 protected:
     std::string name;
     

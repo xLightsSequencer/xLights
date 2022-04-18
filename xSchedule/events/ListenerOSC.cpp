@@ -20,7 +20,7 @@
 
 #include <log4cpp/Category.hh>
 
-ListenerOSC::ListenerOSC(ListenerManager* listenerManager) : ListenerBase(listenerManager)
+ListenerOSC::ListenerOSC(ListenerManager* listenerManager, const std::string& localIP) : ListenerBase(listenerManager, localIP)
 {
     _frameMS = 50;
     _socket = nullptr;
@@ -30,7 +30,7 @@ void ListenerOSC::Start()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("OSC listener starting.");
-    _thread = new ListenerThread(this);
+    _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerOSC::Stop()
@@ -52,18 +52,18 @@ void ListenerOSC::Stop()
     }
 }
 
-void ListenerOSC::StartProcess()
+void ListenerOSC::StartProcess(const std::string& localIP)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
+    if (localIP == "")
     {
         localaddr.AnyAddress();
     }
     else
     {
-        localaddr.Hostname(IPOutput::GetLocalIP());
+        localaddr.Hostname(localIP);
     }
     int port = _listenerManager->GetScheduleManager()->GetOptions()->GetOSCOptions()->GetClientPort();
     localaddr.Service(port);

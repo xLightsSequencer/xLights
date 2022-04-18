@@ -230,7 +230,7 @@ void CandyCaneModel::GetBufferSize(const std::string &type, const std::string &c
 }
 
 void CandyCaneModel::InitRenderBufferNodes(const std::string &type, const std::string &camera,  const std::string &transform,
-                                        std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
+                                        std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, bool deep) const {
     if (type == "Single Line") {
         BufferHi = 1;
         BufferWi = GetNodeCount();

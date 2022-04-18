@@ -96,6 +96,10 @@ public:
 
         if (curl != nullptr)
         {
+#ifdef _DEBUG
+            curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, CurlDebug);
+            curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+#endif
             struct curl_slist *headerlist = nullptr;
             static const char buf[] = "Expect:";
             headerlist = curl_slist_append(headerlist, buf);

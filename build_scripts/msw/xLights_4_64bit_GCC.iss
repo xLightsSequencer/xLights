@@ -113,17 +113,20 @@ Source: "../../bin64/libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignorevers
 Source: "../../bin64/liblog4cpp.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; avlib - video and audio
-Source: "../../bin64/avcodec-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/avformat-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/avutil-56.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/swresample-3.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/swscale-5.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avcodec-59.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avformat-59.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avutil-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/swresample-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/swscale-6.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; SDL - audio playing
 Source: "../../bin64/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; libcurl
 Source: "../../bin64/libcurl-x64.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+
+; hidapi
+Source: "../../bin64/hidapi.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; Added files for doing Papagayo effects
 Source: "../../bin/extended_dictionary"; DestDir: "{app}"
@@ -159,8 +162,10 @@ Source: "../../scripts/*.*"; DestDir: "{app}/scripts"   ; Flags: ignoreversion r
 [Icons]
 Name: "{group}\xLights64"; Filename: "{app}\xLights.EXE"; WorkingDir: "{app}"
 Name: "{group}\xSchedule64"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"
+Name: "{group}\xScanner64"; Filename: "{app}\xScanner.EXE"; WorkingDir: "{app}"
 Name: "{commondesktop}\xLights64"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xLights64.ico";
 Name: "{commondesktop}\xSchedule64"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule64.ico";
+Name: "{commondesktop}\xScanner64"; Filename: "{app}\xScanner.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xScanner64.ico";
 
 [Run]
 Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 

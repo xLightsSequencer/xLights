@@ -44,7 +44,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         const std::vector<Model *> &Models() const { return models;}
         Model* GetModel(std::string modelName) const;
         Model* GetFirstModel() const;
-        std::list<Model*> GetFlatModels() const;
+        std::list<Model*> GetFlatModels(bool removeDuplicates = true) const;
         bool ContainsModelGroup(ModelGroup* mg);
         bool ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited);
         bool DirectlyContainsModel(Model* m) const;
@@ -59,7 +59,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+                                           std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep = false) const override;
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
 

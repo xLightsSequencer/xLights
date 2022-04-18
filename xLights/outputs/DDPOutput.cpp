@@ -39,11 +39,11 @@ void DDPOutput::OpenDatagram() {
     if (_datagram != nullptr) return;
 
     wxIPV4address localaddr;
-    if (IPOutput::__localIP == "") {
+    if (GetForceLocalIP() == "") {
         localaddr.AnyAddress();
     }
     else {
-        localaddr.Hostname(IPOutput::__localIP);
+        localaddr.Hostname(GetForceLocalIP());
     }
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
@@ -108,7 +108,7 @@ wxXmlNode* DDPOutput::Save() {
 #pragma endregion
 
 #pragma region Static Functions
-void DDPOutput::SendSync() {
+void DDPOutput::SendSync(const std::string& localIP) {
 
     log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static uint8_t syncdata[DDP_SYNCPACKET_LEN];
@@ -125,11 +125,11 @@ void DDPOutput::SendSync() {
         syncdata[3] = DDP_ID_DISPLAY;
 
         wxIPV4address localaddr;
-        if (IPOutput::__localIP == "") {
+        if (localIP == "") {
             localaddr.AnyAddress();
         }
         else {
-            localaddr.Hostname(IPOutput::__localIP);
+            localaddr.Hostname(localIP);
         }
 
         if (syncdatagram != nullptr) {
@@ -168,7 +168,7 @@ void DDPOutput::SendSync() {
 }
 
 #ifndef EXCLUDENETWORKUI
-wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type)
+wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::string& localIP)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -181,11 +181,11 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type)
     packet[3] = type;
 
     wxIPV4address localaddr;
-    if (IPOutput::__localIP == "") {
+    if (localIP == "") {
         localaddr.AnyAddress();
     }
     else {
-        localaddr.Hostname(IPOutput::__localIP);
+        localaddr.Hostname(localIP);
     }
 
     logger_base.debug(" DDP query using %s", (const char*)localaddr.IPAddress().c_str());

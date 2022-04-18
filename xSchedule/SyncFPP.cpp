@@ -24,7 +24,7 @@
 #define FPP_SEQ_SYNC_INTERVAL_INITIAL_FRAMES 4
 #define FPP_SEQ_SYNC_INITIAL_NUMBER_OF_FRAMES 32
 
-void SyncFPP::Ping(bool remote)
+void SyncFPP::Ping(bool remote, const std::string& localIP)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -33,13 +33,13 @@ void SyncFPP::Ping(bool remote)
     remoteAddr.Service(FPP_CTRL_PORT);
 
     wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
+    if (localIP == "")
     {
         localaddr.Hostname(wxGetFullHostName());
     }
     else
     {
-        localaddr.Hostname(IPOutput::GetLocalIP());
+        localaddr.Hostname(localIP);
     }
     wxString ipAddr = localaddr.IPAddress();
 
@@ -441,7 +441,8 @@ SyncMulticastFPP::~SyncMulticastFPP()
     }
 }
 
-SyncBroadcastFPP::SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncFPP(sm, rm, options)
+SyncBroadcastFPP::SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncFPP(sm, rm, options)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -451,13 +452,13 @@ SyncBroadcastFPP::SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOpt
         _remoteAddr.Service(FPP_CTRL_PORT);
 
         wxIPV4address localaddr;
-        if (IPOutput::GetLocalIP() == "")
+        if (localIP == "")
         {
             localaddr.AnyAddress();
         }
         else
         {
-            localaddr.Hostname(IPOutput::GetLocalIP());
+            localaddr.Hostname(localIP);
         }
 
         _fppBroadcastSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
@@ -489,20 +490,21 @@ SyncBroadcastFPP::SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOpt
     }
 }
 
-SyncUnicastFPP::SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncFPP(sm, rm, options)
+SyncUnicastFPP::SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncFPP(sm, rm, options)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (sm == SYNCMODE::FPPUNICASTMASTER)
     {
         wxIPV4address localaddr;
-        if (IPOutput::GetLocalIP() == "")
+        if (localIP == "")
         {
             localaddr.AnyAddress();
         }
         else
         {
-            localaddr.Hostname(IPOutput::GetLocalIP());
+            localaddr.Hostname(localIP);
         }
 
         _remotes = options.GetFPPRemotes();
@@ -538,20 +540,20 @@ SyncUnicastFPP::SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions
     }
 }
 
-SyncUnicastCSVFPP::SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncFPP(sm, rm, options)
+SyncUnicastCSVFPP::SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) : SyncFPP(sm, rm, options)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (sm == SYNCMODE::FPPUNICASTCSVMASTER)
     {
         wxIPV4address localaddr;
-        if (IPOutput::GetLocalIP() == "")
+        if (localIP == "")
         {
             localaddr.AnyAddress();
         }
         else
         {
-            localaddr.Hostname(IPOutput::GetLocalIP());
+            localaddr.Hostname(localIP);
         }
 
         _remotes = options.GetFPPRemotes();
@@ -587,7 +589,7 @@ SyncUnicastCSVFPP::SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleO
     }
 }
 
-SyncMulticastFPP::SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncFPP(sm, rm, options)
+SyncMulticastFPP::SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) : SyncFPP(sm, rm, options)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -597,13 +599,13 @@ SyncMulticastFPP::SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOpt
         _remoteAddr.Service(FPP_CTRL_PORT);
 
         wxIPV4address localaddr;
-        if (IPOutput::GetLocalIP() == "")
+        if (localIP == "")
         {
             localaddr.AnyAddress();
         }
         else
         {
-            localaddr.Hostname(IPOutput::GetLocalIP());
+            localaddr.Hostname(localIP);
         }
 
         _fppMulticastSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);

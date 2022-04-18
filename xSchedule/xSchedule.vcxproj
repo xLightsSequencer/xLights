@@ -80,7 +80,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../xLights/ffmpeg-dev/include;..\include;..\include\zlib</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../include/ffmpeg-5/include;..\include;..\include\zlib</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows;GL;../xlights/ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -90,7 +90,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;..\xlights\ffmpeg-dev\include;..\include\zlib</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;../include/ffmpeg-5/include;..\include\zlib</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
@@ -240,6 +240,7 @@
     <ClCompile Include="..\xLights\vamp-hostsdk\PluginWrapper.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\RealTime.cpp" />
     <ClCompile Include="..\xLights\VideoReader.cpp" />
+    <ClCompile Include="..\xLights\WindowsHardwareVideoReader.cpp" />
     <ClCompile Include="..\xLights\xLightsTimer.cpp" />
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="AddReverseDialog.cpp" />
@@ -440,6 +441,7 @@
     <ClInclude Include="..\xLights\controllers\Falcon.h" />
     <ClInclude Include="..\xLights\Discovery.h" />
     <ClInclude Include="..\xLights\effects\GIFImage.h" />
+    <ClInclude Include="..\xLights\ExternalHooks.h" />
     <ClInclude Include="..\xLights\FSEQFile.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
     <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
@@ -476,6 +478,7 @@
     <ClInclude Include="..\xLights\TraceLog.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
     <ClInclude Include="..\xLights\VideoReader.h" />
+    <ClInclude Include="..\xLights\WindowsHardwareVideoReader.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />
     <ClInclude Include="..\xLights\xLightsVersion.h" />
     <ClInclude Include="AddReverseDialog.h" />

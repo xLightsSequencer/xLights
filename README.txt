@@ -11,7 +11,135 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (gil)   Add new render buffer "Per Model Default Deep" that will recurse nested model groups.
+2022.08 April 12, 2022
+   -- enh (keith)    Better music/piano effect horizontal scaling
+   -- enh (scott)    Updates to effect search to use regex, other options
+   -- enh (kevin)    New "Sketch Effect"
+   -- enh (dkulp)    Allow ENTER/RETURN to end Polyline (request from FMM)
+   -- enh (dkulp)    Add "Remove Models from Group" to popup menu (request from FMM)
+   -- enh (keith)    New Controller Oriented test channel selection
+   -- enh (scott)    Attempt to auto-find singing faces files
+   -- enh (scott)    Several updates to Faces dialog
+   -- enh (keith)    Add tag color to model groups
+   -- enh (keith)    Check Sequence - flag invalide/missing background images
+   -- enh (keith)    Move some toolbar buttons around, reduce screen usage of toolbars
+   -- enh (keith)    State Effect  - Significantly increase maximum states supported
+   -- enh (keith)    Select all timing events using right click on a timing track
+   -- bug (keith)    Only show default brightness and gamma on controllers that support it
+   -- bug (scott)    Fix Hinkspix Serial issues, move DMX to end
+   -- bug (keith)    Fix crash in check sequence with mesh's with spaces in MTL files
+   -- bug (keith)    Some videos may not fully play due to strange way they calculate length
+   -- bug (keith)    Make backup of backup folder exclusion case insensitive
+   -- bug (keith)    State  Effect - fix not rendering on first dropped
+   -- bug (keith)    Node layout for custom model with multiple strings but no indiv start nodes incorrectly shows the string number
+   -- bug (dkulp)    Fix Image Model transparency issues, make sure not "dark" on layout panel
+   -- bug (keith)    Reset to default waveform on load of new audio after custom filter applied
+2022.07 March 28, 2022
+   -- enh (gil)      Add Jaw Orientation property for the DMXSkull model
+   -- enh (gil)      DMXSkull model changed so color error checking is only done when color channels are active
+   -- enh (scott)    Added Effect Settings Search Panel.
+   -- enh (scott)    Added Text Replace to Text Effect ${TITLE},${ARTIST},${ALBUM},${FILENAME}.
+   -- enh (scott)    Added Support to Import S5 .lorprev Preview Files.
+   -- enh (scott)    Added WLED Dig-Uno ESP32 Variant with correct pins.
+   -- enh (scott)    Added WLED Warning For Firmware v0.13 & v0.13.1 not working with Controller Upload, use v0.13.2 or v0.13b5.
+   -- enh (scott)    Added xLightsAutomations APIs to get and set Effect Settings.
+   -- enh (scott)    Added Lua commands for TableToJSON and Table Logging.
+   -- enh (dkulp)    Add a timer for video export
+   -- enh (dkulp)    Move 3D checkbox so it does not get lost when screen sizes are changed
+   -- enh (keith)    Add the minleon 4 port NDB controller
+   -- enh (keith)    Use number aware sorting in test dialog for models and submodels
+   -- enh (keith)    Add the ability to split the current effect
+   -- bug (scott)    Fixed wrong HSV value with On Effect added in 2022.6
+   -- bug (keith)    Fix state dialog shows colours even when force colours is not set
+   -- bug (keith)    Fix wave effect frozen at frame rates over 20ms
+   -- bug (keith)    Fix visualiser does not show port number for models on other controllers
+   -- bug (keith)    Fix jerky model video playback due to frame count interpretation error
+   -- bug (keith)    Restore AVI export on windows for model video so lossless compression works
+   -- bug (keith)    Fix issues with make all model start channels valid not working
+   -- bug (keith)    Fix xSchedule POST requests issued as GET requests ... this will need to be re-setup.
+   -- bug (keith)    Fix uploading to minleon controllers
+   -- bug (keith)    Fix sequence number bug in KiNet protocol
+   -- bug (keith)    Fix crash in text effect in animation sequences
+   -- bug (keith)    Fix save sequence does not update MRU
+2022.06 March 6, 2022
+   -- enh (gil)      Add auto repeat option to Morph.  Automatically scales the repeat to model size.
+   -- enh (keith)    Add a low definition rendering mode to matrices
+   -- enh (keith)    Enhance we way transition times are set
+   -- enh (keith)    Add exportModelWithRender to API
+   -- enh (keith)    Add radial colour curves to the on effect
+   -- enh (keith)    Add greater precision to wave effect speed
+   -- enh (keith)    Allow disabling of render at the element level
+   -- enh (keith)    Add word flip movement to the text effect
+   -- enh (keith)    Add a reverse lookup from rendered data to source effects
+   -- enh (cpinkham) Add z coordinate to the FPP virtual display map
+   -- enh (dkulp)    Adjust xLights calls to FPP to use tweaked API
+   -- bug (keith)    Fix presets using per model buffers dont preview correctly
+   -- bug (keith)    Fix model default type causes face definition to not save correctly
+   -- bug (keith)    Fix polyline reports incorrect real world dimensions
+   -- bug (keith)    Fix missing gridlines in morph effect assist
+   -- bug (keith)    Fix blended circles have an incorrect coloured halo
+   -- bug (keith)    Fix when effect dragged from palette drop location not shown in the waveform
+   -- bug (keith)    Dont add inactive models to a model group ... this will stop them displaying but may create other issues
+   -- bug (dkulp)    Provide a workaround to spaces in material file names
+   -- bug (scott)    Fix issues with ordered node selection for submodels
+2022.05 February 26, 2022
+   -- enh (keith) Upgrade windows to use FFMPEG v5 
+   -- enh (keith) Rewrite windows hardware video processing
+   -- enh (keith) Reduce minimum frame time to 10ms
+   -- enh (keith) Allow xmodels to include shadow models for simpler import
+   -- enh (keith) Improve the face defaults based on the type of model
+   -- enh (keith) Add to the model export dialog the type of export
+   -- enh (keith) Add a colour search and replace function to edit menu
+   -- enh (keith) Where DMX models cant render draw an error box and also explain why in check sequence
+   -- enh (scott) Add 3D mouse support to windows 
+   -- enh (scott) Allow selection of matrix faces by double clicking the row title
+   -- enh (dkulp) Add bulk edit of pixel appearance settings 
+   -- enh (dkulp) When control held down and object selected rotate/move the view rather than the object 
+   -- bug (scott) Fix batch render
+   -- bug (scott) Fix Q1 pin on QuinLED-Dig-Quad
+   -- bug (dklup) Fix FX not rendering 
+   -- bug (dkulp) OSX Fix node select grid colours in dark mode 
+   -- bug (dkulp) OSC Fix fallback for 3D mouse where drivers are missing
+   -- bug (slupsky) Fix default view for new sequences 
+   -- bug (keith) Fix ruler does not initialise if you are not in 3D mode 
+   -- bug (keith) Fix heart render has inconsistencies 
+   -- bug (keith) Universe per string allocates too many universes for serial port models 
+   -- bug (keith) Sequence save as does not update recent sequences menu 
+   -- bug (keith) Fix DMX general model does not display 
+2022.04 February 5, 2022
+   -- enh (dkulp) MacOS: Move to FFMPEG 5 for accelerated ProRes video decoding on M1 Pro/Max
+   -- enh (dkulp) MacOS: Update 3D Mouse support to manipulate individual control points
+   -- enh (dkulp) MacOS: Enhanced iCloud support to make sure files are fully downloaded when needed
+   -- enh (dkulp) Change export model videos to mp4 (from avi) to fix issues trying to import into various apps (like FinalCut)
+   -- enh (keith) Add FX to single strand effect. This is a port of WS2812FX/FastLED as modified by WLED into xLights.
+   -- enh (keith) Add keybindings for model data, faces, states and submodels
+   -- enh (keith) VUMeter: Use sensitivity setting in VU Meter Timing Event Colour to control the transparency of the colour when no timing mark is actually present
+   -- enh (scott) Change xlDo controller and model commands to use JSON list type. Added more lua type wrappers to methods
+   -- enh (keith) Add ability to change temporarily multiple times before restoring to permanent
+   -- enh (keith) Warn user if they change show folder to a non-empty folder that does not contain networks or rgbeffects
+   -- bug (MikeSoukup) Include middle pixel for Single Strand / From Middle effect with odd number of nodes
+   -- bug (keith) Fix falcon WAV file header validation
+   -- bug (keith) Prevent negative drops on icicles
+   -- bug (keith) F1 on layout tab can cause a never ending loop
+   -- bug (dkulp) Fix undo of view object movements
+   -- bug (dkulp) Fix video preview on Windows
+   -- bug (keith) VUMeter:  Level colour shows white before it is first triggered
+   -- bug (keith) Crash loading submodel which references nodes that are out of range in the model
+   -- bug (dkulp) Fix arch/single line/candycane rotation around center
+   -- bug (gil)   Fix issue with Per Model Default Deep not creating large enough buffer
+2022.03 January 22, 2022
+   -- enh (dkulp) MacOS: Initial support for 3DConnexion 3D mice in Preview windows
+   -- enh (dkulp) MacOS: Support for using normals for shading 3D meshes
+   -- enh (sslupsky) Add support for differential ports for BBB16v2
+   -- enh (gil)   Add new render buffer "Per Model Default Deep" that will recurse nested model groups
+   -- bug (dkulp) MacOS: Fix scrolling/displays on OSX after play finishes
+   -- bug (dkulp) Fix group centering + if  submodels are in the group
+   -- bug (dkulp) Fix several issues with mesh/obj files not rendering properly
+   -- bug (dkulp) Fix crashes if material files cannot be loaded
+   -- bug (dkulp) Fix problems on OpenGL with single color strings
+   -- bug (scott) Fix crashes in custom model wiring view
+   -- bug (gil)   Fix issues with PolyLine caused by multiple string upgrades
+   -- bug (keith) Fix cyan first pixel on some models showing incorrectly
 2022.02 January 15, 2022
    Note: macOS now requires macOS 10.14.  10.12 and 10.13 are no longer supported
    Note: The DMX models have changed from using world coordinates for various sizes (like beam lengths) to

@@ -22,6 +22,7 @@
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 #include "../effects/RenderableEffect.h"
+#include "../ExternalHooks.h"
 
 #include <unordered_map>
 
@@ -324,14 +325,18 @@ void Effect::SetEffectName(const std::string & name)
     }
 }
 
-wxString Effect::GetDescription() const
+std::string Effect::GetSetting(const std::string& id) const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
-    if (mSettings.Contains("X_Effect_Description"))
-    {
-        return mSettings["X_Effect_Description"];
+    if (mSettings.Contains(id)) {
+        return mSettings[id];
     }
     return "";
+}
+
+wxString Effect::GetDescription() const
+{
+        return GetSetting("X_Effect_Description");
 }
 
 void Effect::SetStartTimeMS(int startTimeMS)
@@ -405,13 +410,29 @@ void Effect::ConvertTo(int effectIndex)
     }
 }
 
-bool Effect::IsRenderDisabled() const
+bool Effect::IsModelRenderDisabled() const
+{
+    Element* e = GetParentEffectLayer()->GetParentElement();
+    if (e != nullptr) {
+        return e->IsRenderDisabled();
+    }
+    return false;
+}
+
+bool Effect::IsEffectRenderDisabled() const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
     return mSettings.Contains("X_Effect_RenderDisabled");
 }
 
-void Effect::SetRenderDisabled(bool disabled)
+bool Effect::IsRenderDisabled() const
+{
+    if (IsModelRenderDisabled())
+        return true;
+    return IsEffectRenderDisabled();
+}
+
+void Effect::SetEffectRenderDisabled(bool disabled)
 {
     std::unique_lock<std::recursive_mutex> getlock(settingsLock);
     if (disabled) {
@@ -457,7 +478,13 @@ std::string Effect::GetSettingsAsString() const
     return mSettings.AsString();
 }
 
-void Effect::SetSettings(const std::string& settings, bool keepxsettings) {
+std::string Effect::GetSettingsAsJSON() const
+{
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    return mSettings.AsJSON();
+}
+
+void Effect::SetSettings(const std::string& settings, bool keepxsettings, bool json) {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
     auto old = GetSettingsAsString();
@@ -470,7 +497,7 @@ void Effect::SetSettings(const std::string& settings, bool keepxsettings) {
             }
         }
     }
-    mSettings.Parse(settings);
+    json ? mSettings.ParseJson(settings) : mSettings.Parse(settings);
     if (keepxsettings) {
         for (const auto& it : x) {
             mSettings[it.first] = it.second;
@@ -480,6 +507,23 @@ void Effect::SetSettings(const std::string& settings, bool keepxsettings) {
     if (old != GetSettingsAsString()) {
         IncrementChangeCount();
     }
+}
+
+// this is not sensitive to the order of the settings in the string ... it compares the effect settings with the provide settings string and return true if anything has changed
+bool Effect::SettingsChanged(const std::string& settings)
+{
+    SettingsMap x;
+    x.Parse(settings);
+
+    if (mSettings.size() != x.size())
+        return true;
+
+    for (const auto& it: mSettings) {
+        if (it.second != x[it.first])
+            return true;
+    }
+
+    return false;
 }
 
 void Effect::PressButton(RenderableEffect* re, const std::string& id)
@@ -558,13 +602,13 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
                                 pth += dirs[j] + fn.GetPathSeparator();
                             }
                             pth += file;
-                            if (wxFile::Exists(pth)) {
+                            if (FileExists(pth)) {
                                 // found it
                                 mSettings[realid] = pth;
                                 break;
                             }
                         }
-                        if (origName == mSettings[realid] && !wxFile::Exists(origName)) {
+                        if (origName == mSettings[realid] && !FileExists(origName)) {
                             logger_base.warn("Unable to correct show folder '%s' : '%s' to '%s'", (const char*)realid.c_str(), (const char*)origName.c_str(), (const char*)value.c_str());
                         }
                     }
@@ -575,6 +619,48 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
         }
     }
     IncrementChangeCount();
+}
+
+bool Effect::UsesColour(const std::string& from)
+{
+    for (auto it : mPaletteMap) {
+        if (StartsWith(it.first, "C_BUTTON")) { // only check the colours
+            if (Lower(it.second) == Lower(from)) { // check the colours match
+                std::string setting = "C_CHECKBOX" + it.first.substr(8);
+                if (mPaletteMap.Get(setting, "0") == "1") { // check the colours checkbox is checked
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+int Effect::ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to)
+{
+    int res = 0;
+    for (auto it : mPaletteMap) {
+        if (StartsWith(it.first, "C_BUTTON")) {
+            if (Lower(it.second) == Lower(from)) {
+                std::string setting = "C_CHECKBOX" + it.first.substr(8);
+                if (mPaletteMap.Get(setting, "0") == "1") {
+                    mPaletteMap[it.first] = to;
+                    res++;
+                }
+            }
+        }
+    }
+
+    if (res > 0) {
+        ParseColorMap(mPaletteMap, mColors, mCC);
+
+        // we changed so this effect needs to re-render
+        frame->RenderEffectForModel(GetParentEffectLayer()->GetParentElement()->GetModelName(),
+                                    GetStartTimeMS(),
+                                    GetEndTimeMS());
+    }
+
+    return res;
 }
 
 void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
@@ -633,6 +719,12 @@ std::string Effect::GetPaletteAsString() const
     return mPaletteMap.AsString();
 }
 
+std::string Effect::GetPaletteAsJSON() const
+{
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    return mPaletteMap.AsJSON();
+}
+
 void Effect::SetPalette(const std::string& i)
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
@@ -651,7 +743,7 @@ void Effect::SetPalette(const std::string& i)
 }
 
 // This only updates the colour palette ... preserving all the other colour settings
-void Effect::SetColourOnlyPalette(const std::string& i)
+void Effect::SetColourOnlyPalette(const std::string& i, bool json)
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
@@ -659,7 +751,7 @@ void Effect::SetColourOnlyPalette(const std::string& i)
     auto oldPalette = mPaletteMap;
 
     // parse in the new one
-    mPaletteMap.Parse(i);
+    json ? mPaletteMap.ParseJson(i) : mPaletteMap.Parse(i);
 
     // copy over all the non colour entries
     for (auto it = oldPalette.begin(); it != oldPalette.end(); ++it)

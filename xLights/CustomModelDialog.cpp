@@ -559,7 +559,7 @@ void CustomModelDialog::Setup(CustomModel* m)
     SliderCustomLightness->SetValue(lightness);
     std::string data = m->GetCustomData();
 
-    if (background_image != "" && wxFile::Exists(background_image)) {
+    if (background_image != "" && FileExists(background_image)) {
         bkg_image = new wxImage(background_image);
     }
 
@@ -2529,7 +2529,7 @@ void CustomModelDialog::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event
     background_image = FilePickerCtrl1->GetFileName().GetFullPath();
     if (background_image != "") {
         ObtainAccessToURL(background_image);
-        if (wxFile::Exists(background_image)) {
+        if (FileExists(background_image)) {
             bkg_image = new wxImage(background_image);
             if (!bkg_image->IsOk()) {
                 delete bkg_image;

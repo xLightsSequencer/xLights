@@ -24,6 +24,7 @@
 #include "../xLightsMain.h" 
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
+#include "../ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -47,7 +48,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
         }
     }
 
-    if (filename == "" || !wxFileExists(filename))
+    if (filename == "" || !FileExists(filename))
     {
         res.push_back(wxString::Format("    ERR: Video effect video file '%s' does not exist. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
@@ -141,16 +142,13 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect, boo
 
     std::string file = settings["E_FILEPICKERCTRL_Video_Filename"];
 
-    if (file != "")
-    {
-        if (!wxFile::Exists(file))
-        {
+    if (file != "") {
+        if (!FileExists(file, false)) {
             settings["E_FILEPICKERCTRL_Video_Filename"] = FixFile("", file);
         }
     }
 
-    if (settings.Contains("E_SLIDER_Video_Starttime"))
-    {
+    if (settings.Contains("E_SLIDER_Video_Starttime")) {
         settings.erase("E_SLIDER_Video_Starttime");
         //long st = wxAtol(settings["E_SLIDER_Video_Starttime"]);
         //settings["E_SLIDER_Video_Starttime"] = wxString::Format(wxT("%i"), st / 10);
@@ -191,7 +189,7 @@ bool VideoEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Setting
 {
     bool rc = false;
     wxString file = SettingsMap["E_FILEPICKERCTRL_Video_Filename"];
-    if (wxFile::Exists(file))
+    if (FileExists(file))
     {
         if (!frame->IsInShowFolder(file))
         {
@@ -330,7 +328,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         {
             logger_base.warn("VideoEffect::Cannot render video onto a 1 pixel high model. Have you set it to single line?");
         }
-        else if (wxFileExists(filename))
+        else if (FileExists(filename))
         {
             // have to open the file
             int width = buffer.BufferWi * 100 / (cropRight - cropLeft);

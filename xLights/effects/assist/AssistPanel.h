@@ -18,6 +18,8 @@
 
 #include "../../xlGridCanvas.h"
 
+#include <optional>
+
 class xLightsFrame;
 class Model;
 
@@ -33,7 +35,7 @@ class AssistPanel: public wxPanel
         void SetGridCanvas(xlGridCanvas* canvas);
         void SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent);
         void RefreshEffect();
-        void AddPanel(wxPanel* panel);
+        void AddPanel(wxPanel* panel, std::optional<int> panelFlags=std::nullopt);
 
 		//(*Declarations(AssistPanel)
 		wxFlexGridSizer* FlexGridSizer1;

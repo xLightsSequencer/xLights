@@ -19,7 +19,7 @@
 #include <log4cpp/Category.hh>
 #include "../xLights/UtilFunctions.h"
 
-SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncBase(mode, remoteMode, options)
+SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) : SyncBase(mode, remoteMode, options)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -35,13 +35,13 @@ SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& op
         logger_base.error("OSC Sync sending to %s port %d", (const char*)options.GetOSCOptions()->GetIPAddress().c_str(), port);
 
         wxIPV4address localaddr;
-        if (IPOutput::GetLocalIP() == "")
+        if (localIP == "")
         {
             localaddr.AnyAddress();
         }
         else
         {
-            localaddr.Hostname(IPOutput::GetLocalIP());
+            localaddr.Hostname(localIP);
         }
 
         _oscSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);

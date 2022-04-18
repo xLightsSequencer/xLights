@@ -15,6 +15,7 @@
 
 #include <algorithm>
 
+#include "DmxModel.h"
 #include "DmxImage.h"
 #include "../../UtilFunctions.h"
 #include "../../ExternalHooks.h"
@@ -327,7 +328,7 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
-        if (wxFileExists(_imageFile)) {
+        if (FileExists(_imageFile)) {
             logger_base.debug("Loading image model %s file %s for preview %s.",
                 (const char*)base->GetName().c_str(),
                 (const char*)_imageFile.c_str(),
@@ -403,24 +404,7 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *
         });
 
     } else if (only_image) {
-        auto vac = pg->getAccumulator();
-        int start = vac->getCount();
-        vac->AddVertex(-0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, -0.5, 0, *wxRED);
-        vac->AddVertex(0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(-0.5, 0.5, 0, *wxRED);
-        vac->AddVertex(0.5, -0.5, 0, *wxRED);
-        int end = vac->getCount();
-        pg->addStep([=](xlGraphicsContext *ctx) {
-            ctx->drawLines(vac, start, end - start);
-        });
+        DmxModel::DrawInvalid(pg, nullptr, false, false);
     }
 }
 

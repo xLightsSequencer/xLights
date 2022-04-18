@@ -47,6 +47,7 @@
 #include "ShimmerEffect.h"
 #include "ShockwaveEffect.h"
 #include "SingleStrandEffect.h"
+#include "SketchEffect.h"
 #include "SnowflakesEffect.h"
 #include "SnowstormEffect.h"
 #include "SpiralsEffect.h"
@@ -113,6 +114,7 @@ EffectManager::EffectManager()
     add(createEffect(eff_SHIMMER));
     add(createEffect(eff_SHOCKWAVE));
     add(createEffect(eff_SINGLESTRAND));
+    add(createEffect(eff_SKETCH));
     add(createEffect(eff_SNOWFLAKES));
     add(createEffect(eff_SNOWSTORM));
     add(createEffect(eff_SPIRALS));
@@ -182,6 +184,7 @@ RenderableEffect *EffectManager::createEffect(RGB_EFFECTS_e eff) {
         case eff_SHIMMER: return new ShimmerEffect(eff_SHIMMER);
         case eff_SHOCKWAVE: return new ShockwaveEffect(eff_SHOCKWAVE);
         case eff_SINGLESTRAND: return new SingleStrandEffect(eff_SINGLESTRAND);
+        case eff_SKETCH: return new SketchEffect(eff_SKETCH);
         case eff_SNOWFLAKES: return new SnowflakesEffect(eff_SNOWFLAKES);
         case eff_SNOWSTORM: return new SnowstormEffect(eff_SNOWSTORM);
         case eff_SPIRALS: return new SpiralsEffect(eff_SPIRALS);

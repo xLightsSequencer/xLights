@@ -137,9 +137,43 @@ public:
     }
 
 
-    void Parse(const std::string &str) {
+    void ParseJson(const std::string &str) {
         clear();
         std::string before,after,name,value;
+        std::string settings(str);
+        ReplaceAll(settings, "{", "");
+        ReplaceAll(settings, "}", "");
+        while (!settings.empty()) {
+            size_t start_pos = settings.find(',');
+            if (start_pos != std::string::npos) {
+                before = settings.substr(0, start_pos);
+                settings = settings.substr(start_pos + 1);
+            } else {
+                before = settings;
+                settings = "";
+            }
+
+            start_pos = before.find(':');
+            name = before.substr(0, start_pos);
+            value = before.substr(start_pos + 1);
+            ReplaceAll(name, "\"", "");
+            ReplaceAll(value, "\"", "");
+            Trim(name);
+            Trim(value);
+            ReplaceAll(value, "&comma;", ","); //unescape the commas
+            ReplaceAll(value, "&amp;", "&"); //unescape the amps
+
+            RemapKey(name, value);
+            if (!name.empty()) {
+                (*this)[name]=value;
+            }
+        }
+    }
+
+    void Parse(const std::string& str)
+    {
+        clear();
+        std::string before, after, name, value;
         std::string settings(str);
         while (!settings.empty()) {
             size_t start_pos = settings.find(',');
@@ -154,12 +188,12 @@ public:
             start_pos = before.find('=');
             name = before.substr(0, start_pos);
             value = before.substr(start_pos + 1);
-            ReplaceAll(value, "&comma;", ","); //unescape the commas
-            ReplaceAll(value, "&amp;", "&"); //unescape the amps
+            ReplaceAll(value, "&comma;", ","); // unescape the commas
+            ReplaceAll(value, "&amp;", "&");   // unescape the amps
 
             RemapKey(name, value);
             if (!name.empty()) {
-                (*this)[name]=value;
+                (*this)[name] = value;
             }
         }
     }
@@ -178,6 +212,22 @@ public:
         }
         return ret;
     }
+    [[nodiscard]]std::string AsJSON() const
+    {
+        std::string ret ;
+        for (std::map<std::string, std::string>::const_iterator it = begin(); it != end(); ++it) {
+            if (ret.length() != 0) {
+                ret += ",";
+            }
+            std::string value = it->second;
+            ReplaceAll(value, "&", "&amp;");   // need to escape the amps
+            ReplaceAll(value, ",", "&comma;"); // need to escape the commas
+            ret += "\"" + it->first + "\":\"" + value + "\"";
+        }
+        ret.insert(0,"{");
+        ret.append("}");
+        return ret;
+    }
 
 private:
 
@@ -187,6 +237,12 @@ private:
             str.replace(start_pos, from.length(), to);
             start_pos += to.length();
         }
+    }
+
+    static void Trim(std::string& s)
+    {
+        s.erase(s.begin(), std::find_if_not(s.begin(), s.end(), [](char c) { return std::isspace(c); }));
+        s.erase(std::find_if_not(s.rbegin(), s.rend(), [](char c) { return std::isspace(c); }).base(), s.end());
     }
 
     static const std::string EMPTY_STRING;

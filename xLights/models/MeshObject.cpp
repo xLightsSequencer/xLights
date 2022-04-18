@@ -14,11 +14,12 @@
 #include <wx/regex.h>
 
 #include <algorithm>
+#include <filesystem>
 
 #include "MeshObject.h"
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 #include "xLightsMain.h"
 
 #include <log4cpp/Category.hh>
@@ -87,6 +88,27 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
     if ("ObjFile" == event.GetPropertyName()) {
         obj_loaded = false;
         _objFile = event.GetValue().GetString();
+        auto mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile, false);
+        bool hasSpaces = false;
+        std::filesystem::path path(_objFile);
+        for (auto &mtf : mtfs) {
+            if (mtf.find(' ') != std::string::npos) {
+                std::filesystem::path mtlpath(path);
+                mtlpath.replace_filename(mtf);
+                if (std::filesystem::exists(mtlpath)) {
+                    // has spaces, but is found so we can fix it
+                    hasSpaces = true;
+                }
+            }
+        }
+        if (hasSpaces) {
+            if (wxMessageBox("The OBJ file contains materials with spaces in the filename.  This will prevent the materials from working.  Should we attempt to fix the file?",
+                         "Files with spaces",
+                             wxYES_NO | wxCENTRE | wxICON_WARNING) == wxYES) {
+                
+                xlMesh::FixMaterialFilenamesInOBJ(_objFile);
+            }
+        }
         checkAccessToFile(_objFile);
         ModelXml->DeleteAttribute("ObjFile");
         ModelXml->AddAttribute("ObjFile", _objFile);
@@ -123,7 +145,7 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
 bool MeshObject::CleanupFileLocations(xLightsFrame* frame)
 {
     bool rc = false;
-    if (wxFile::Exists(_objFile)) {
+    if (FileExists(_objFile)) {
         if (!frame->IsInShowFolder(_objFile)) {
             auto fr = GetFileReferences();
             for (auto f: fr) {
@@ -144,7 +166,7 @@ bool MeshObject::CleanupFileLocations(xLightsFrame* frame)
 }
 
 void MeshObject::checkAccessToFile(const std::string &url) {
-    if (!ObtainAccessToURL(url) && wxFileExists(url)) {
+    if (FileExists(url) && !ObtainAccessToURL(url)) {
         wxMessageBox("Could not obtain access to " + url + "\n\nTry giving xLights permission to access to the directory.",
                      "Access Denied");
         wxFileName fn(url);
@@ -155,34 +177,11 @@ void MeshObject::checkAccessToFile(const std::string &url) {
     }
 }
 
-std::string MeshObject::ReadMaterialFileFromObj(const std::string& filename)
-{
-    std::string res = "";
-    auto f = new wxTextFile(filename);
-
-    if (f != nullptr) {
-        if (f->Open()) {
-            wxRegEx re("^\\s*mtllib\\s+(.*mtl)$", wxRE_ADVANCED);
-            wxString line = f->GetFirstLine();
-            do {
-                if (re.Matches(wxString(line))) {
-                    res = re.GetMatch(wxString(line), 1).ToStdString();
-                }
-                line = f->GetNextLine();
-            } while (res == "" && !f->Eof());
-
-            f->Close();
-        }
-        delete f;
-    }
-    return res;
-}
-
 std::list<std::string> MeshObject::CheckModelSettings()
 {
     std::list<std::string> res;
 
-    if (_objFile == "" || !wxFile::Exists(_objFile)) {
+    if (_objFile == "" || !FileExists(_objFile)) {
         res.push_back(wxString::Format("    ERR: Mesh object '%s' cant find obj file '%s'", GetName(), _objFile).ToStdString());
     } else {
         if (!IsFileInShowDir(xLightsFrame::CurrentDir, _objFile)) {
@@ -191,21 +190,31 @@ std::list<std::string> MeshObject::CheckModelSettings()
 
         wxFileName fn(_objFile);
         checkAccessToFile(_objFile);
-        fn.SetExt("mtl");
-        if (!fn.Exists()) {
-            auto mtf = ReadMaterialFileFromObj(_objFile);
-            if (mtf != "") {
+        auto mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile);
+
+        if (mtfs.empty() || xlMesh::InvalidMaterialsList(mtfs)) {
+            mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile, false);
+            if (!mtfs.empty()) {
+                res.push_back(wxString::Format("    WARN: Mesh object '%s' obj file '%s' has a space in the mesh file name : %s.", GetName(), _objFile, mtfs.front()).ToStdString());
+            }
+        }
+
+        if (!mtfs.empty()) {
+            for (auto & mtf : mtfs) {
                 mtf = fn.GetPath() + wxFileName::GetPathSeparator() + mtf;
-                fn = wxFileName(mtf);
-                if (!fn.Exists()) {
-                    res.push_back(wxString::Format("    WARN: Mesh object '%s' does not have a material file '%s'.", GetName(), fn.GetFullPath()).ToStdString());
+                wxFileName fn2 = wxFileName(mtf);
+                if (!FileExists(fn2)) {
+                    // we should also check in a folder with the same name as the mesh file
+                    auto mtf2 = fn.GetPath() + wxFileName::GetPathSeparator() + fn.GetName() + wxFileName::GetPathSeparator() + mtf;
+                    wxFileName fn3 = wxFileName(mtf2);
+                    if (!FileExists(fn3)) {
+                        // still not there so report the warning
+                        res.push_back(wxString::Format("    WARN: Mesh object '%s' is missing material file '%s'.", GetName(), fn2.GetFullPath()).ToStdString());
+                    }
                 }
             }
-            else {
-                res.push_back(wxString::Format("    WARN: Mesh object '%s' does not have a material file '%s'.", GetName(), fn.GetFullPath()).ToStdString());
-            }
         } else {
-            checkAccessToFile(fn.GetFullPath());
+            res.push_back(wxString::Format("    WARN: Mesh object '%s' does not have a material file '%s'.", GetName(), fn.GetFullPath()).ToStdString());
         }
 
         std::string base_path = fn.GetPath();
@@ -220,10 +229,13 @@ std::list<std::string> MeshObject::CheckModelSettings()
             if (m.diffuse_texname.length() > 0) {
                 wxFileName tex(m.diffuse_texname);
                 tex.SetPath(fn.GetPath());
-                if (!tex.Exists()) {
-                    wxFileName tex2(fn.GetPath() + "/" + m.diffuse_texname);
-                    if (!tex2.Exists()) {
-                        res.push_back(wxString::Format("    ERR: Mesh object '%s' cant find texture file '%s'", GetName(), tex.GetFullPath()).ToStdString());
+                if (!FileExists(tex)) {
+                    wxFileName tex2(fn.GetPath() + wxFileName::GetPathSeparator() + m.diffuse_texname);
+                    if (!FileExists(tex2)) {
+                        wxFileName tex3(fn.GetPath() + wxFileName::GetPathSeparator() + fn.GetName() + wxFileName::GetPathSeparator() + m.diffuse_texname);
+                        if (!FileExists(tex3)) {
+                            res.push_back(wxString::Format("    ERR: Mesh object '%s' cant find texture file '%s'", GetName(), tex.GetFullPath()).ToStdString());
+                        }
                     }
                 }
             }
@@ -237,24 +249,22 @@ std::list<std::string> MeshObject::CheckModelSettings()
 std::list<std::string> MeshObject::GetFileReferences()
 {
     std::list<std::string> res;
-    if (wxFile::Exists(_objFile)) {
+    if (FileExists(_objFile)) {
         res.push_back(_objFile);
 
-        wxFileName mtl(_objFile);
-        mtl.SetExt("mtl");
+        wxFileName path(_objFile);
+        auto mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile);
 
-        if (mtl.Exists()) {
-            res.push_back(mtl.GetFullPath());
-            checkAccessToFile(mtl.GetFullPath());
-        } else {
-            auto mtf = ReadMaterialFileFromObj(_objFile);
-            if (mtf != "") {
-                mtf = mtl.GetPath() + wxFileName::GetPathSeparator() + mtf;
-                mtl = wxFileName(mtf);
-                if (mtl.Exists()) {
-                    res.push_back(mtl.GetFullPath());
-                    checkAccessToFile(mtl.GetFullPath());
-                }
+        if (mtfs.empty() || xlMesh::InvalidMaterialsList(mtfs)) {
+            mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile, false);
+        }
+
+        for (auto &mtf : mtfs) {
+            mtf = path.GetPath() + wxFileName::GetPathSeparator() + mtf;
+            wxFileName mtl = wxFileName(mtf);
+            if (FileExists(mtl)) {
+                res.push_back(mtl.GetFullPath());
+                checkAccessToFile(mtl.GetFullPath());
             }
         }
     }
@@ -263,7 +273,7 @@ std::list<std::string> MeshObject::GetFileReferences()
 
 void MeshObject::loadObject(xlGraphicsContext *ctx)
 {
-    if (wxFileExists(_objFile)) {
+    if (FileExists(_objFile)) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         logger_base.debug("Loading mesh model '%s' file '%s'.",
@@ -274,7 +284,7 @@ void MeshObject::loadObject(xlGraphicsContext *ctx)
 
         wxFileName mtl(_objFile);
         mtl.SetExt("mtl");
-        if (mtl.Exists()) {
+        if (FileExists(mtl)) {
             checkAccessToFile(mtl.GetFullPath());
         }
         mesh = ctx->loadMeshFromObjFile(fn.GetFullPath());

@@ -18,6 +18,7 @@
 
 #include "SequencePackage.h"
 #include "xLightsMain.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -244,7 +245,7 @@ void SequencePackage::Extract() {
     prog.Update(100);
     prog.Update(100);
 
-    if (!_xsqFile.IsOk() || !_xsqFile.Exists()) {
+    if (!_xsqFile.IsOk() || !FileExists(_xsqFile)) {
         logger_base.error("No sequence file found in package '%s'", (const char*)_pkgFile.GetFullName().c_str());
     } else {
         InitDefaultImportOptions();
@@ -265,9 +266,9 @@ void SequencePackage::FindRGBEffectsFile()
 
 bool SequencePackage::IsValid() const {
     if (_xsqOnly) {
-        return _xsqFile.IsOk() && _xsqFile.Exists();
+        return _xsqFile.IsOk() && FileExists(_xsqFile);
     } else {
-        return  _xsqFile.IsOk() && _xsqFile.Exists() && _rgbEffects.IsOk();
+        return  _xsqFile.IsOk() && FileExists(_xsqFile) && _rgbEffects.IsOk();
     }
 }
 
@@ -353,7 +354,7 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
         // import the asset if we have it, otherwise track it as missing
         wxFileName fileToCopy = _media[picFilePath.GetFullName()];
 
-        if (fileToCopy.IsOk() && fileToCopy.Exists()) {
+        if (fileToCopy.IsOk() && FileExists(fileToCopy)) {
             wxFileName copiedAsset = CopyMediaToTarget(targetMediaFolder, fileToCopy);
             settings.erase(settingEffectFile);
             wxString newSetting = copiedAsset.GetFullPath().ToStdString();
@@ -427,7 +428,7 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, 
                                         // import the asset if we have it, otherwise track it as missing
                                         wxFileName fileToCopy = _media[faceFile.GetFullName()];
 
-                                        if (fileToCopy.IsOk() && fileToCopy.Exists()) {
+                                        if (fileToCopy.IsOk() && FileExists(fileToCopy)) {
                                             wxFileName copiedAsset = CopyMediaToTarget(_importOptions.GetDir(MediaTargetDir::FACES_DIR), fileToCopy);
                                             newFaceInfo->AddAttribute(attrName, copiedAsset.GetFullPath());
                                         } else {
@@ -457,7 +458,7 @@ wxFileName SequencePackage::CopyMediaToTarget(const std::string& targetFolder, c
     wxFileName targetFile = wxString::Format("%s%c%s", targetFolder, PATH_SEP, mediaToCopy.GetFullName());
 
     // Only import if file doesn't alrady exist in target folder
-    if (!targetFile.Exists()) {
+    if (!FileExists(targetFile)) {
         // make sure dir exists first
         if (!wxDirExists(targetFile.GetPath())) {
             wxFileName::Mkdir(targetFile.GetPath(), wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);

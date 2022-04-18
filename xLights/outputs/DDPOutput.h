@@ -76,10 +76,10 @@ public:
     #pragma endregion
 
     #pragma region Static Functions
-    static void SendSync();
+    static void SendSync(const std::string& localIP);
 
     #ifndef EXCLUDEDISCOVERY
-    static wxJSONValue Query(const std::string& ip, uint8_t type);
+    static wxJSONValue Query(const std::string& ip, uint8_t type, const std::string& localIP);
     static void PrepareDiscovery(Discovery& discovery);
     #endif
 

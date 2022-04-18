@@ -76,6 +76,8 @@ public:
     bool NoWebUI() const;
     bool SupportsPixelPortBrightness() const;
     bool SupportsPixelPortGamma() const;
+    bool SupportsDefaultGamma() const;
+    bool SupportsDefaultBrightness() const;
     bool SupportsPixelPortNullPixels() const;
     bool SupportsPixelPortEndNullPixels() const;
     bool SupportsPixelPortGrouping() const;
@@ -86,6 +88,7 @@ public:
     bool SupportsSerialInputProtols() const;
     bool NeedsFullUniverseForDMX() const;
     bool AllSmartRemoteTypesPerPortMustBeSame() const;
+    bool DMXAfterPixels() const;
 
     int GetSmartRemoteCount() const;
     int GetMaxInputE131Universes() const;
@@ -115,6 +118,7 @@ public:
     std::string GetVariantName() const;
     std::string GetID() const;
 
+    std::string GetPreferredInputProtocol() const;
 
     std::vector<std::string> GetInputProtocols() const;
     std::vector<std::string> GetPixelProtocols() const;

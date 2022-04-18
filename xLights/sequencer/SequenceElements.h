@@ -71,8 +71,8 @@ public:
     bool LoadSequencerFile(xLightsXmlFile& xml_file, const wxString& ShowDir);
     void Clear();
     void PrepareViews(xLightsXmlFile& xml_file);
-    Element* AddElement(const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected);
-    Element* AddElement(int index, const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected);
+    Element* AddElement(const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected, bool renderDisabled);
+    Element* AddElement(int index, const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected, bool renderDisabled);
     Element* GetElement(const std::string &name) const;
     int GetElementIndex(const std::string &name, int view = MASTER_VIEW);
     Element* GetElement(size_t index, int view = MASTER_VIEW) const;
@@ -91,6 +91,7 @@ public:
     Effect* SelectEffectUsingDescription(std::string description);
     Effect* SelectEffectUsingElementLayerTime(std::string element, int layer, int time);
     std::list<std::string> GetAllEffectDescriptions();
+    std::list<std::string> GetUniqueEffectPropertyValues(const std::string& id);
     std::list<std::string> GetAllReferencedFiles();
     std::list<std::string> GetAllUsedEffectTypes() const;
     std::list<std::string> GetAllElementNamesWithEffects();
@@ -173,6 +174,8 @@ public:
     int GetFrameMS();
     int GetMinPeriod();
 
+    std::vector<std::string> GetUsedColours(bool selectedOnly) const;
+    int ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to, bool selectedOnly);
     int SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS, int endMS);
     int SelectVisibleEffectsInRowAndTimeRange(int startRow, int endRow, int startMS, int endMS);
     int SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol, int endCol);
@@ -183,7 +186,7 @@ public:
     void SelectAllElements();
     void UnSelectAllElements();
 
-    EffectLayer* GetEffectLayer(Row_Information_Struct *s) const;
+    EffectLayer* GetEffectLayer(const Row_Information_Struct *s) const;
     EffectLayer* GetEffectLayer(int row);
     EffectLayer* GetVisibleEffectLayer(int row);
 

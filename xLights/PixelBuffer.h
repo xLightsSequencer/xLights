@@ -53,7 +53,7 @@
  * \brief enumeration of the different techniques used in layering effects
  */
 
-enum MixTypes
+enum class MixTypes
 {
     Mix_Normal,  /** Layered with Alpha channel considered **/
     Mix_Effect1, /**<  Effect 1 only */
@@ -116,14 +116,13 @@ private:
             valueadjust = 0;
             contrast = 0;
             fadeFactor = 0.0;
-            mixType = Mix_Normal;
+            mixType = MixTypes::Mix_Normal;
             effectMixThreshold = 0.0;
             effectMixVaries = false;
             canvas = false;
             BufferHt = BufferWi = 0;
             persistent = false;
-            usingModelBuffers = false;
-            usingModelBuffersDeep = false;
+            modelBuffers = nullptr;
             freezeAfterFrame = 10000;
             suppressUntil = 0;
             fadeInSteps = fadeOutSteps = 0;
@@ -210,9 +209,10 @@ private:
         bool outTransitionReverse;
         float inMaskFactor;
         float outMaskFactor;
-        bool usingModelBuffers;
-        bool usingModelBuffersDeep;
-        std::vector<std::unique_ptr<RenderBuffer>> modelBuffers;
+
+        std::vector<std::unique_ptr<RenderBuffer>> *modelBuffers = nullptr;
+        std::vector<std::unique_ptr<RenderBuffer>> shallowModelBuffers;
+        std::vector<std::unique_ptr<RenderBuffer>> deepModelBuffers;
         bool isChromaKey = false;
         xlColor chromaKeyColour = xlBLACK;
         xlColor sparklesColour = xlWHITE;

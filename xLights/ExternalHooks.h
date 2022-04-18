@@ -27,6 +27,10 @@
 #ifndef __XL_EXTERNAL_HOOKS__
 
 #include <functional>
+#include <wx/file.h>
+#include <wx/filename.h>
+#include <wx/dir.h>
+#include "Color.h"
 
 #define xlSetRetinaCanvasViewport(w,a,b,c,d)
 #define xlTranslateToRetina(a, x) x
@@ -40,6 +44,7 @@
 #define GetOSFormattedClipboardData() ""
 #define StartGraphicsSyncPoint()
 #define EndGraphicsSyncPoint()
+#define SetThreadQOS(a)
 
 inline double xlOSGetMainScreenContentScaleFactor() { return 1.0; }
 inline bool ObtainAccessToURL(const std::string &path) { return true; }
@@ -47,5 +52,19 @@ inline bool IsFromAppStore() { return false; }
 inline void AdjustColorToDeviceColorspace(const wxColor& c, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a) { r = c.Red(); g = c.Green(); b = c.Blue(); a = c.Alpha();}
 inline bool IsMouseEventFromTouchpad() { return false; }
 inline void RunInAutoReleasePool(std::function<void()> &&f) { f(); }
+
+inline bool FileExists(const std::string &s, bool waitForDownload = true) {
+    return wxFile::Exists(s);
+}
+inline bool FileExists(const wxString &s, bool waitForDownload = true) {
+    return wxFile::Exists(s);
+}
+inline bool FileExists(const wxFileName &fn, bool waitForDownload = true) {
+    return fn.FileExists();
+}
+inline void GetAllFilesInDir(const wxString& dir, wxArrayString& files, const wxString& filespec, int flags = wxDIR_FILES)
+{
+    wxDir::GetAllFiles(dir, &files, filespec, flags);
+}
 
 #endif

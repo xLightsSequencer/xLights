@@ -24,7 +24,6 @@
 
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
-#include <wx/regex.h>
 #include <wx/sstream.h>
 
 #include <log4cpp/Category.hh>
@@ -32,7 +31,7 @@
 #pragma region HinksPixOutput
 void HinksPixOutput::Dump() const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("    Output %d Uni %d StartChan %d Pixels %d Dir %d Proto %d Nulls %d ColorOrder %d Brightness %d Gamma %d ControlerStartChannel %d ControlerEndChannel %d",
+    logger_base.debug("    Output %d Uni %d StartChan %d Pixels %d Dir %d Protocol %d Nulls %d ColorOrder %d Brightness %d Gamma %d ControlerStartChannel %d ControlerEndChannel %d",
                       output,
                       universe,
                       startChannel,
@@ -506,7 +505,7 @@ void HinksPix::UploadPixelOutputsEasyLights(bool& worked)
 
     logger_base.info("Set String Output Information for EasyLights.");
 
-    //Expansion Board board "row" 'setting' commands are 3041, 3042, 3043 for expansion 1,2,3
+    //Expansion Board "row" 'setting' commands are 3041, 3042, 3043 for expansion 1,2,3
     auto const pixelRet = GetControllerData(3041, requestString);
     if (pixelRet != "done") {
         logger_base.error("%d Return %s", 3041, (const char*)pixelRet.c_str());
@@ -613,7 +612,8 @@ void HinksPix::UpdateUniverseControlerChannels(UDControllerPort* stringData, std
     }
 }
 
-void HinksPix::UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode) const {
+void HinksPix::UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse) const
+{
     const int sc = serialData->GetStartChannel();
     const int usc = serialData->GetUniverseStartChannel();
     int maxChan = serialData->GetEndChannel() - sc + 1;
@@ -641,6 +641,20 @@ void HinksPix::UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData
         if (!pd.e131Enabled) {
             pd.e131Enabled = true;
             pd.upload = true;
+        }
+
+        if (individualUniverse) {
+            auto const uni = serialData->GetUniverse();
+            auto inpUn = std::find_if(inputUniverses.begin(), inputUniverses.end(), [uni](auto const& inp) { return inp.universe == uni; });
+            if (inpUn != inputUniverses.end()) {
+                (*inpUn).index = index;
+                (*inpUn).hinksPixStartChannel = hinkstartChan;
+                (*inpUn).numOfChan = maxChan;
+                index++;
+                hinkstartChan += maxChan;
+            } 
+        } else {
+            hinkstartChan += maxChan;
         }
     } else { //1 is DDP
         if (pd.ddpDMXStartChannel != sc) {
@@ -726,7 +740,7 @@ void HinksPix::CalculateSmartRecievers(UDControllerPort* stringData) {
                     }
                     else if (it->GetSmartRemoteType().find("16") != std::string::npos && ((id % 4) == 0)) {
                         smartPort.type = 1;
-                        //fluff the Recievers
+                        //fluff the Receivers
                         _smartOutputs[expansionBoard][bank].emplace_back(id + 1);
                         _smartOutputs[expansionBoard][bank].emplace_back(id + 2);
                         _smartOutputs[expansionBoard][bank].emplace_back(id + 3);
@@ -799,7 +813,7 @@ std::string HinksPix::GetJSONControllerData(std::string const& url, std::string 
     return res;
 }
 
-//the reboot command reboots the controller with no responce, not proper HTTP Request format but just timeout
+//the reboot command reboots the controller with no response, not proper HTTP Request format but just timeout
 void HinksPix::PostToControllerNoResponce(std::string const& url, std::string const& data) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string res;
@@ -1043,7 +1057,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         mode = 1;
 
         if (controller->IsUniversePerString()) {
-            DisplayError("HinksPix Upload Error:\nUniverse Per String not allowws with DDP Ouptup", parent);
+            DisplayError("HinksPix Upload Error:\nUniverse Per String not allows with DDP Output", parent);
             progress.Update(100, "Aborting.");
             return false;
         }
@@ -1115,29 +1129,29 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         }
     }
 
+    logger_base.info("Figuring Out DMX Output Information.");
+    progress.Update(40, "Figuring Out DMX Output Information.");
+
+    if (cud.HasSerialPort(1)) {
+        UDControllerPort* portData = cud.GetControllerSerialPort(1);
+        UpdateSerialData(*_serialOutput, portData, mode, inputUniverses, hinkstartChan, univIdx, controller->IsUniversePerString());
+    }
+
     logger_base.info("Uploading Input Universes Information.");
-    progress.Update(40, "Uploading Input Universes Information.");
+    progress.Update(50, "Uploading Input Universes Information.");
     worked &= UploadInputUniverses(controller, inputUniverses);
 
     logger_base.info("Uploading SmartRecievers Information.");
-    progress.Update(50, "Uploading SmartRecievers Information.");
+    progress.Update(60, "Uploading SmartRecievers Information.");
     UploadSmartRecievers(worked);
 
     logger_base.info("Uploading String Output Information.");
-    progress.Update(60, "Uploading String Output Information.");
+    progress.Update(70, "Uploading String Output Information.");
     if (_controllerType == "E") {
         UploadPixelOutputsEasyLights(worked);
     }
     else {
         UploadPixelOutputs(worked);
-    }
-
-    logger_base.info("Figuring Out DMX Output Information.");
-    progress.Update(70, "Figuring Out DMX Output Information.");
-
-    if (cud.HasSerialPort(1)) {
-        UDControllerPort* portData = cud.GetControllerSerialPort(1);
-        UpdateSerialData(*_serialOutput, portData, mode);
     }
 
     logger_base.info("Uploading DMX Output Information.");

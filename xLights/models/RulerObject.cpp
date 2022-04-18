@@ -24,6 +24,9 @@ RulerObject::RulerObject(wxXmlNode *node, const ViewObjectManager &manager)
 {
 	__rulerObject = this;
     SetFromXml(node);
+
+    // we need to call this so we can use it to measure in 2D
+    screenLocation.PrepareToDraw(false, false);
 }
 
 RulerObject::~RulerObject()

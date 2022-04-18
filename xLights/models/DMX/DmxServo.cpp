@@ -42,28 +42,30 @@ DmxServo::~DmxServo()
     Clear();
 }
 
-void DmxServo::Clear() {
+void DmxServo::Clear()
+{
     for (auto it = servos.begin(); it != servos.end(); ++it) {
         if (*it != nullptr) {
-            delete* it;
+            delete *it;
         }
     }
     servos.clear();
     for (auto it = motion_images.begin(); it != motion_images.end(); ++it) {
         if (*it != nullptr) {
-            delete* it;
+            delete *it;
         }
     }
     motion_images.clear();
     for (auto it = static_images.begin(); it != static_images.end(); ++it) {
         if (*it != nullptr) {
-            delete* it;
+            delete *it;
         }
     }
     static_images.clear();
 }
 
-void DmxServo::AddTypeProperties(wxPropertyGridInterface* grid) {
+void DmxServo::AddTypeProperties(wxPropertyGridInterface* grid)
+{
     DmxModel::AddTypeProperties(grid);
 
     wxPGProperty* p = grid->Append(new wxUIntProperty("Num Servos", "NumServos", (int)num_servos));
@@ -84,22 +86,23 @@ void DmxServo::AddTypeProperties(wxPropertyGridInterface* grid) {
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
-    for (auto it = servos.begin(); it != servos.end(); ++it) {
-        (*it)->AddTypeProperties(grid);
+    for (const auto& it : servos) {
+        it->AddTypeProperties(grid);
     }
 
-    for (auto it = static_images.begin(); it != static_images.end(); ++it) {
-        (*it)->AddTypeProperties(grid);
+    for (const auto& it : static_images) {
+        it->AddTypeProperties(grid);
     }
 
-    for (auto it = motion_images.begin(); it != motion_images.end(); ++it) {
-        (*it)->AddTypeProperties(grid);
+    for (const auto& it : motion_images) {
+        it->AddTypeProperties(grid);
     }
 
     grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
 
-int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+int DmxServo::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
+{
     std::string name = event.GetPropertyName().ToStdString();
 
     if ("DmxChannelCount" == event.GetPropertyName()) {
@@ -131,18 +134,17 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         if (event.GetValue().GetBool()) {
             _16bit = true;
             ModelXml->AddAttribute("Bits16", "1");
-        }
-        else {
+        } else {
             _16bit = false;
             ModelXml->AddAttribute("Bits16", "0");
         }
 
         for (int i = 0; i < num_servos; ++i) {
-            if( servos[i] != nullptr ) {
+            if (servos[i] != nullptr) {
                 servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
             }
         }
- 
+
         int min_channels = num_servos * (_16bit ? 2 : 1);
         if (parm1 < min_channels) {
             UpdateChannelCount(min_channels, true);
@@ -170,20 +172,20 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         return 0;
     }
 
-    for (auto it = servos.begin(); it != servos.end(); ++it) {
-        if ((*it)->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+    for (const auto& it : servos) {
+        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
             return 0;
         }
     }
 
-    for (auto it = static_images.begin(); it != static_images.end(); ++it) {
-        if ((*it)->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+    for (const auto& it : static_images) {
+        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
             return 0;
         }
     }
 
-    for (auto it = motion_images.begin(); it != motion_images.end(); ++it) {
-        if ((*it)->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+    for (const auto& it : motion_images) {
+        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
             return 0;
         }
     }
@@ -191,7 +193,8 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     return DmxModel::OnPropertyGridChange(grid, event);
 }
 
-void DmxServo::InitModel() {
+void DmxServo::InitModel()
+{
     num_servos = wxAtoi(ModelXml->GetAttribute("NumServos", "1"));
     _16bit = wxAtoi(ModelXml->GetAttribute("Bits16", "1"));
 
@@ -253,29 +256,25 @@ void DmxServo::InitModel() {
         int static_idx = name.find("StaticImage");
         int motion_idx = name.find("MotionImage");
 
-        if ("StaticImage" == name) {  // convert original name that had no number
+        if ("StaticImage" == name) { // convert original name that had no number
             // copy attributes to new name
             wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "StaticImage1");
             ModelXml->AddChild(new_node);
-            for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext())
-            {
+            for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
                 new_node->AddAttribute(a->GetName(), a->GetValue());
             }
             snode = n;
             static_images[0] = new DmxImage(new_node, "StaticImage1");
-        }
-        else if ("MotionImage" == name) {  // convert original name that had no number
+        } else if ("MotionImage" == name) { // convert original name that had no number
             // copy attributes to new name
             wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "MotionImage1");
             ModelXml->AddChild(new_node);
-            for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext())
-            {
+            for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
                 new_node->AddAttribute(a->GetName(), a->GetValue());
             }
             mnode = n;
             motion_images[0] = new DmxImage(new_node, "MotionImage1");
-        }
-        else if (static_idx != std::string::npos) {
+        } else if (static_idx != std::string::npos) {
             std::string num = name.substr(11, name.length());
             int id = atoi(num.c_str()) - 1;
             if (id < num_servos) {
@@ -283,8 +282,7 @@ void DmxServo::InitModel() {
                     static_images[id] = new DmxImage(n, name);
                 }
             }
-        }
-        else if (motion_idx != std::string::npos) {
+        } else if (motion_idx != std::string::npos) {
             std::string num = name.substr(11, name.length());
             int id = atoi(num.c_str()) - 1;
             if (id < num_servos) {
@@ -292,8 +290,7 @@ void DmxServo::InitModel() {
                     motion_images[id] = new DmxImage(n, name);
                 }
             }
-        }
-        else if (servo_idx != std::string::npos) {
+        } else if (servo_idx != std::string::npos) {
             std::string num = name.substr(5, name.length());
             int id = atoi(num.c_str()) - 1;
             if (id < num_servos) {
@@ -328,14 +325,14 @@ void DmxServo::InitModel() {
             wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
             ModelXml->AddChild(new_node);
             motion_images[i] = new DmxImage(new_node, new_name);
-            motion_images[i]->SetOffsetZ(i * 0.01f, this);  // offset on creation so its not hidden
+            motion_images[i]->SetOffsetZ(i * 0.01f, this); // offset on creation so its not hidden
         }
         if (servos[i] == nullptr) {
             std::string new_name = "Servo" + std::to_string(i + 1);
             wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
             ModelXml->AddChild(new_node);
             servos[i] = new Servo(new_node, new_name, true);
-            servos[i]->SetChannel(_16bit ? i*2+1 : i+1, this);
+            servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
         }
     }
 
@@ -364,8 +361,7 @@ void DmxServo::InitModel() {
         }
         if (_16bit) {
             names += "Servo" + std::to_string(index) + ",-Servo" + std::to_string(index);
-        }
-        else {
+        } else {
             names += "Servo" + std::to_string(index);
         }
         index++;
@@ -374,19 +370,20 @@ void DmxServo::InitModel() {
     update_node_names = false;
 }
 
-void DmxServo::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
-                                    xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d,
+void DmxServo::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+                                    xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d,
                                     const xlColor* c, bool allowSelected, bool wiring,
                                     bool highlightFirst, int highlightpixel,
-                                    float *boundingBox) {
-    if (!IsActive()) return;
+                                    float* boundingBox)
+{
+    if (!IsActive())
+        return;
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(Nodes);
-    
-    
-    xlGraphicsProgram *program = transparentProgram;
-    program->addStep([=](xlGraphicsContext *ctx) {
+
+    xlGraphicsProgram* program = transparentProgram;
+    program->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
@@ -395,7 +392,7 @@ void DmxServo::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ct
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
     DrawModel(preview, ctx, program, c, !allowSelected);
-    program->addStep([=](xlGraphicsContext *ctx) {
+    program->addStep([=](xlGraphicsContext* ctx) {
         ctx->PopMatrix();
     });
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
@@ -406,11 +403,15 @@ void DmxServo::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ct
         }
     }
 }
-void DmxServo::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
-    if (!IsActive() && preview->IsNoCurrentModel()) { return; }
-    
+
+void DmxServo::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+{
+    if (!IsActive() && preview->IsNoCurrentModel()) {
+        return;
+    }
+
     bool mustEnd = false;
-    xlGraphicsContext *ctx = preview->getCurrentGraphicsContext();
+    xlGraphicsContext* ctx = preview->getCurrentGraphicsContext();
     if (ctx == nullptr) {
         bool success = preview->StartDrawing(pointSize);
         if (success) {
@@ -423,7 +424,7 @@ void DmxServo::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         preview->GetSize(&w, &h);
         float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
         float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
-        
+
         float aspect = screenLocation.GetScaleX();
         aspect /= screenLocation.GetScaleY();
         if (scaleY < scaleX) {
@@ -435,15 +436,15 @@ void DmxServo::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         GetMinScreenXY(ml, mb);
         ml += GetModelScreenLocation().RenderWi / 2;
         mb += GetModelScreenLocation().RenderHt / 2;
-        
-        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext* ctx) {
             ctx->PushMatrix();
-            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
-                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Translate(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
             ctx->Scale(scaleX, scaleY, 1.0);
         });
         DrawModel(preview, ctx, preview->getCurrentTransparentProgram(), nullptr, true);
-        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext *ctx) {
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext* ctx) {
             ctx->PopMatrix();
         });
     }
@@ -452,17 +453,46 @@ void DmxServo::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     }
 }
 
-void DmxServo::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *program, const xlColor* c, bool active) {
+std::list<std::string> DmxServo::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    int nodeCount = Nodes.size();
+    int min_channels = num_servos * (_16bit ? 2 : 1);
+
+    if (min_channels > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s requires more channels %d than have been allocated to it %d.", GetName(), min_channels, nodeCount));
+    }
+    if (motion_images.size() < num_servos) {
+        res.push_back(wxString::Format("    ERR: Model %s Insufficient images defined %d when %d required.", GetName(), motion_images.size(), num_servos));
+    }
+    int i = 1;
+    for (const auto& it : servos) {
+        if (it->GetChannel() > nodeCount) {
+            res.push_back(wxString::Format("    ERR: Model %s servo %d is assigned to channel %d but the model only has %d channels.", GetName(), i, it->GetChannel(), nodeCount));
+        }
+        i++;
+    }
+
+    res.splice(res.end(), Model::CheckModelSettings());
+    return res;
+}
+
+void DmxServo::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* program, const xlColor* c, bool active)
+{
     // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);
     if (min_channels > Nodes.size()) {
+        DmxModel::DrawInvalid(program, &(GetModelScreenLocation()), false, false);
         return;
     }
     if (motion_images.size() < num_servos) {
+        DmxModel::DrawInvalid(program, &(GetModelScreenLocation()), false, false);
         return;
     }
-    for (auto it = servos.begin(); it != servos.end(); ++it) {
-        if ((*it)->GetChannel() > Nodes.size()) {
+    for (const auto& it : servos) {
+        if (it->GetChannel() > Nodes.size()) {
+            DmxModel::DrawInvalid(program, &(GetModelScreenLocation()), false, false);
             return;
         }
     }
@@ -484,18 +514,18 @@ void DmxServo::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
                                servos[i]->GetPivotOffsetX(), servos[i]->GetPivotOffsetY(),
                                servos[i]->IsRotate(), !active);
     }
-
 }
-
 
 void DmxServo::ExportXlightsModel()
 {
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
     wxFile f(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    if (!f.Create(filename, true) || !f.IsOpened())
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxservo \n");
 
@@ -522,13 +552,11 @@ void DmxServo::ExportXlightsModel()
     }
 
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString groups = SerialiseGroups();
@@ -539,86 +567,67 @@ void DmxServo::ExportXlightsModel()
     f.Close();
 }
 
-void DmxServo::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    // We have already loaded gdtf properties
-    if (EndsWith(filename, "gdtf")) return;
+void DmxServo::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "dmxservo") {
+        ImportBaseParameters(root);
 
-    wxXmlDocument doc(filename);
+        wxString name = root->GetAttribute("name");
+        wxString v = root->GetAttribute("SourceVersion");
+        wxString bits = ModelXml->GetAttribute("Bits16", "1");
+        wxString brt = root->GetAttribute("Brightness", "100");
+        wxString trans = root->GetAttribute("Transparency", "0");
 
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
+        // Add any model version conversion logic here
+        // Source version will be the program version that created the custom model
 
-        if (root->GetName() == "dmxservo")
-        {
-            ImportBaseParameters(root);
+        wxXmlNode* n = root->GetChildren();
+        while (n != nullptr) {
+            std::string name = n->GetName();
 
-            wxString name = root->GetAttribute("name");
-            wxString v = root->GetAttribute("SourceVersion");
-            wxString bits = ModelXml->GetAttribute("Bits16", "1");
-            wxString brt = root->GetAttribute("Brightness", "100");
-            wxString trans = root->GetAttribute("Transparency", "0");
-
-            // Add any model version conversion logic here
-            // Source version will be the program version that created the custom model
-
-            wxXmlNode* n = root->GetChildren();
-            while (n != nullptr) {
-                std::string name = n->GetName();
-
-                if ("StaticImage" == name) {  // convert original name that had no number
-                    // copy attributes to new name
-                    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "StaticImage1");
-                    root->AddChild(new_node);
-                    for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext())
-                    {
-                        new_node->AddAttribute(a->GetName(), a->GetValue());
-                    }
+            if ("StaticImage" == name) { // convert original name that had no number
+                // copy attributes to new name
+                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "StaticImage1");
+                root->AddChild(new_node);
+                for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
+                    new_node->AddAttribute(a->GetName(), a->GetValue());
                 }
-                else if ("MotionImage" == name) {  // convert original name that had no number
-                    // copy attributes to new name
-                    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "MotionImage1");
-                    root->AddChild(new_node);
-                    for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext())
-                    {
-                        new_node->AddAttribute(a->GetName(), a->GetValue());
-                    }
+            } else if ("MotionImage" == name) { // convert original name that had no number
+                // copy attributes to new name
+                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "MotionImage1");
+                root->AddChild(new_node);
+                for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
+                    new_node->AddAttribute(a->GetName(), a->GetValue());
                 }
-                n = n->GetNext();
             }
-
-            SetProperty("Bits16", bits);
-            SetProperty("Brightness", brt);
-            SetProperty("Transparency", trans);
-
-            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-            GetModelScreenLocation().Write(ModelXml);
-            SetProperty("name", newname, true);
-
-            wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
-
-            for (auto it = static_images.begin(); it != static_images.end(); ++it) {
-                (*it)->Serialise(root, ModelXml, show_dir);
-            }
-            for (auto it = motion_images.begin(); it != motion_images.end(); ++it) {
-                (*it)->Serialise(root, ModelXml, show_dir);
-            }
-            for (auto it = servos.begin(); it != servos.end(); ++it) {
-                (*it)->Serialise(root, ModelXml, show_dir);
-            }
-
-            ImportModelChildren(root, xlights, newname);
-
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo::ImportXlightsModel");
+            n = n->GetNext();
         }
-        else
-        {
-            DisplayError("Failure loading DmxServo model file.");
+
+        SetProperty("Bits16", bits);
+        SetProperty("Brightness", brt);
+        SetProperty("Transparency", trans);
+
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        GetModelScreenLocation().Write(ModelXml);
+        SetProperty("name", newname, true);
+
+        wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
+
+        for (auto it = static_images.begin(); it != static_images.end(); ++it) {
+            (*it)->Serialise(root, ModelXml, show_dir);
         }
-    }
-    else
-    {
+        for (auto it = motion_images.begin(); it != motion_images.end(); ++it) {
+            (*it)->Serialise(root, ModelXml, show_dir);
+        }
+        for (auto it = servos.begin(); it != servos.end(); ++it) {
+            (*it)->Serialise(root, ModelXml, show_dir);
+        }
+
+        ImportModelChildren(root, xlights, newname);
+
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo::ImportXlightsModel");
+    } else {
         DisplayError("Failure loading DmxServo model file.");
     }
 }

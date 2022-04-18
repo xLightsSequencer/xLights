@@ -22,6 +22,8 @@
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
 
+#include <log4cpp/Category.hh>
+
 MatrixModel::MatrixModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
     SetFromXml(node, zeroBased);
@@ -234,36 +236,36 @@ void MatrixModel::InitModel() {
 // parm1=NumStrings
 // parm2=PixelsPerString
 // parm3=StrandsPerString
-void MatrixModel::InitVMatrix(int firstExportStrand) {
+void MatrixModel::InitVMatrix(int firstExportStrand)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     vMatrix = true;
-    int stringnum,segmentnum;
+    int stringnum, segmentnum;
     if (parm3 > parm2) {
         parm3 = parm2;
     }
-    int NumStrands=parm1*parm3;
-    int PixelsPerStrand=parm2/parm3;
-    int PixelsPerString=PixelsPerStrand*parm3;
-    SetBufferSize(PixelsPerStrand, NumStrands);
-    SetNodeCount(parm1,PixelsPerString, rgbOrder);
+    int NumStrands = parm1 * parm3;
+    int PixelsPerStrand = parm2 / parm3;
+    int PixelsPerString = PixelsPerStrand * parm3;
+    SetBufferSize(ApplyLowDefinition(PixelsPerStrand), ApplyLowDefinition(NumStrands));
+    SetNodeCount(parm1, PixelsPerString, rgbOrder);
     screenLocation.SetRenderSize(NumStrands, PixelsPerStrand, 2.0f);
     int chanPerNode = GetNodeChannelCount(StringType);
 
     // create output mapping
     if (SingleNode) {
-        int x=0;
+        int x = 0;
         float sx = 0;
-        for (size_t n=0; n<Nodes.size(); n++) {
+        for (size_t n = 0; n < Nodes.size(); n++) {
             Nodes[n]->ActChan = stringStartChan[n];
             float sy = 0;
-            for (auto& c : Nodes[n]->Coords)
-            {
+            for (auto& c : Nodes[n]->Coords) {
                 c.screenX = isBotToTop ? sx : (NumStrands * parm3) - sx - 1;
                 c.screenX -= ((float)NumStrands - 1.0) / 2.0;
                 c.screenY = sy - ((float)PixelsPerStrand - 1.0) / 2.0;
                 c.screenZ = 0;
                 sy++;
-                if (sy >= PixelsPerStrand)
-                {
+                if (sy >= PixelsPerStrand) {
                     sy = 0;
                     sx++;
                 }
@@ -303,34 +305,77 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
             }
         }
 
-        for (int x=0; x < NumStrands; x++) {
-            stringnum = x / parm3;
-            segmentnum = x % parm3;
-            for(int y=0; y < PixelsPerStrand; y++) {
-                int idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
-                Nodes[idx]->ActChan = strandStartChan[x] + y*chanPerNode;
-                Nodes[idx]->Coords[0].bufX=IsLtoR ? x : NumStrands-x-1;
-                Nodes[idx]->StringNum=stringnum;
-                if (_alternateNodes) {
-                  if (isBotToTop) {
-                    if (y + 1 <= (PixelsPerStrand + 1) / 2) {
-                      Nodes[idx]->Coords[0].bufY = y * 2;
+        if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().GetXLightsFrame()->IsLowDefinitionRender()) {
+            for (int x = 0; x < NumStrands; x++) {
+                stringnum = x / parm3;
+                segmentnum = x % parm3;
+                for (int y = 0; y < PixelsPerStrand; y++) {
+                    int idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
+                    Nodes[idx]->ActChan = strandStartChan[x] + y * chanPerNode;
+                    Nodes[idx]->Coords[0].bufX = IsLtoR ? x : NumStrands - x - 1;
+                    Nodes[idx]->StringNum = stringnum;
+                    if (_alternateNodes) {
+                        if (isBotToTop) {
+                            if (y + 1 <= (PixelsPerStrand + 1) / 2) {
+                                Nodes[idx]->Coords[0].bufY = y * 2;
+                            } else {
+                                Nodes[idx]->Coords[0].bufY = ((PixelsPerStrand - (y + 1)) * 2 + 1);
+                            }
+                        } else {
+                            if (y + 1 <= (PixelsPerStrand + 1) / 2) {
+                                Nodes[idx]->Coords[0].bufY = (PixelsPerStrand - 1) - (y * 2);
+                            } else {
+                                Nodes[idx]->Coords[0].bufY = (PixelsPerStrand - 1) - ((PixelsPerStrand - (y + 1)) * 2 + 1);
+                            }
+                        }
                     } else {
-                      Nodes[idx]->Coords[0].bufY = ((PixelsPerStrand - (y + 1)) * 2 + 1);
+                        Nodes[idx]->Coords[0].bufY = isBotToTop == (segmentnum % 2 == 0) ? y : PixelsPerStrand - y - 1;
                     }
-                  } else {
-                    if (y + 1 <= (PixelsPerStrand + 1) / 2) {
-                      Nodes[idx]->Coords[0].bufY = (PixelsPerStrand - 1) - (y * 2);
+                }
+            }
+            CopyBufCoord2ScreenCoord();
+        } else {
+            logger_base.debug("Building low definition buffer at %d%%", _lowDefFactor);
+
+            int xoffset = NumStrands / 2;
+            int yoffset = PixelsPerStrand / 2;
+
+            for (int x = 0; x < NumStrands; x++) {
+                stringnum = x / parm3;
+                segmentnum = x % parm3;
+                for (int y = 0; y < PixelsPerStrand; y++) {
+                    int idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
+                    Nodes[idx]->ActChan = strandStartChan[x] + y * chanPerNode;
+                    Nodes[idx]->Coords[0].bufX = IsLtoR ? x : NumStrands - x - 1;
+                    Nodes[idx]->StringNum = stringnum;
+                    if (_alternateNodes) {
+                        if (isBotToTop) {
+                            if (y + 1 <= (PixelsPerStrand + 1) / 2) {
+                                Nodes[idx]->Coords[0].bufY = y * 2;
+                            } else {
+                                Nodes[idx]->Coords[0].bufY = ((PixelsPerStrand - (y + 1)) * 2 + 1);
+                            }
+                        } else {
+                            if (y + 1 <= (PixelsPerStrand + 1) / 2) {
+                                Nodes[idx]->Coords[0].bufY = (PixelsPerStrand - 1) - (y * 2);
+                            } else {
+                                Nodes[idx]->Coords[0].bufY = (PixelsPerStrand - 1) - ((PixelsPerStrand - (y + 1)) * 2 + 1);
+                            }
+                        }
                     } else {
-                      Nodes[idx]->Coords[0].bufY = (PixelsPerStrand - 1) - ((PixelsPerStrand - (y + 1)) * 2 + 1);
+                        Nodes[idx]->Coords[0].bufY = isBotToTop == (segmentnum % 2 == 0) ? y : PixelsPerStrand - y - 1;
                     }
-                  }
-                } else {
-                  Nodes[idx]->Coords[0].bufY= isBotToTop == (segmentnum % 2 == 0) ? y:PixelsPerStrand-y-1;
+                    // before we adjust the buffer capture the screen coordinates
+                    for (size_t c = 0; c < GetCoordCount(idx); c++) {
+                        Nodes[idx]->Coords[c].screenX = Nodes[idx]->Coords[0].bufX - xoffset;
+                        Nodes[idx]->Coords[c].screenY = Nodes[idx]->Coords[0].bufY - yoffset;
+                    }
+                    // now we need to adjust the buffer coords
+                    Nodes[idx]->Coords[0].bufX = ApplyLowDefinition(Nodes[idx]->Coords[0].bufX);
+                    Nodes[idx]->Coords[0].bufY = ApplyLowDefinition(Nodes[idx]->Coords[0].bufY);
                 }
             }
         }
-        CopyBufCoord2ScreenCoord();
     }
 }
 
@@ -339,6 +384,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
 // parm2=PixelsPerString
 // parm3=StrandsPerString
 void MatrixModel::InitHMatrix() {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     vMatrix = false;
     int idx,stringnum,segmentnum,xincr;
     if (parm3 > parm2) {
@@ -347,7 +393,7 @@ void MatrixModel::InitHMatrix() {
     int NumStrands=parm1*parm3;
     int PixelsPerStrand=parm2/parm3;
     int PixelsPerString=PixelsPerStrand*parm3;
-    SetBufferSize(NumStrands, PixelsPerStrand);
+    SetBufferSize(ApplyLowDefinition(NumStrands), ApplyLowDefinition(PixelsPerStrand));
     SetNodeCount(parm1,PixelsPerString,rgbOrder);
     screenLocation.SetRenderSize(PixelsPerStrand, NumStrands, 2.0f);
     
@@ -390,36 +436,81 @@ void MatrixModel::InitHMatrix() {
         GetModelScreenLocation().SetRenderSize(PixelsPerStrand, NumStrands, GetModelScreenLocation().GetRenderDp());
 
     } else {
-        for (int y=0; y < NumStrands; y++) {
-            stringnum=y / parm3;
-            segmentnum=y % parm3;
-            for(int x=0; x<PixelsPerStrand; x++) {
-                idx=stringnum * PixelsPerString + segmentnum * PixelsPerStrand + x;
-                Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*chanPerNode + x*chanPerNode;
+        if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().GetXLightsFrame()->IsLowDefinitionRender()) {
+            for (int y = 0; y < NumStrands; y++) {
+                stringnum = y / parm3;
+                segmentnum = y % parm3;
+                for (int x = 0; x < PixelsPerStrand; x++) {
+                    idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + x;
+                    Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand * chanPerNode + x * chanPerNode;
 
-                Nodes[idx]->Coords[0].bufY= isBotToTop ? y :NumStrands-y-1;
-                Nodes[idx]->StringNum=stringnum;
+                    Nodes[idx]->Coords[0].bufY = isBotToTop ? y : NumStrands - y - 1;
+                    Nodes[idx]->StringNum = stringnum;
 
-                if (_alternateNodes) {
-                    if (IsLtoR) {
-                        if (x + 1 <= (PixelsPerStrand + 1) / 2) {
-                            Nodes[idx]->Coords[0].bufX = x * 2;
+                    if (_alternateNodes) {
+                        if (IsLtoR) {
+                            if (x + 1 <= (PixelsPerStrand + 1) / 2) {
+                                Nodes[idx]->Coords[0].bufX = x * 2;
+                            } else {
+                                Nodes[idx]->Coords[0].bufX = ((PixelsPerStrand - (x + 1)) * 2 + 1);
+                            }
                         } else {
-                            Nodes[idx]->Coords[0].bufX = ((PixelsPerStrand - (x + 1)) * 2 + 1);
+                            if (x + 1 <= (PixelsPerStrand + 1) / 2) {
+                                Nodes[idx]->Coords[0].bufX = (PixelsPerStrand - 1) - (x * 2);
+                            } else {
+                                Nodes[idx]->Coords[0].bufX = (PixelsPerStrand - 1) - ((PixelsPerStrand - (x + 1)) * 2 + 1);
+                            }
                         }
                     } else {
-                        if (x + 1 <= (PixelsPerStrand + 1) / 2) {
-                            Nodes[idx]->Coords[0].bufX = (PixelsPerStrand - 1) - (x * 2);
-                        } else {
-                            Nodes[idx]->Coords[0].bufX = (PixelsPerStrand - 1) - ((PixelsPerStrand - (x + 1)) * 2 + 1);
-                        }
+                        Nodes[idx]->Coords[0].bufX = IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand - x - 1 : x;
                     }
-                } else {
-                    Nodes[idx]->Coords[0].bufX = IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand - x - 1 : x;
+                }
+            }
+            CopyBufCoord2ScreenCoord();
+        } else {
+            logger_base.debug("Building low definition buffer at %d%%", _lowDefFactor);
+
+            int xoffset = PixelsPerStrand / 2;
+            int yoffset = NumStrands / 2;
+
+            for (int y = 0; y < NumStrands; y++) {
+                stringnum = y / parm3;
+                segmentnum = y % parm3;
+                for (int x = 0; x < PixelsPerStrand; x++) {
+                    idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + x;
+                    Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand * chanPerNode + x * chanPerNode;
+
+                    Nodes[idx]->Coords[0].bufY = isBotToTop ? y : NumStrands - y - 1;
+                    Nodes[idx]->StringNum = stringnum;
+
+                    if (_alternateNodes) {
+                        if (IsLtoR) {
+                            if (x + 1 <= (PixelsPerStrand + 1) / 2) {
+                                Nodes[idx]->Coords[0].bufX = x * 2;
+                            } else {
+                                Nodes[idx]->Coords[0].bufX = ((PixelsPerStrand - (x + 1)) * 2 + 1);
+                            }
+                        } else {
+                            if (x + 1 <= (PixelsPerStrand + 1) / 2) {
+                                Nodes[idx]->Coords[0].bufX = (PixelsPerStrand - 1) - (x * 2);
+                            } else {
+                                Nodes[idx]->Coords[0].bufX = (PixelsPerStrand - 1) - ((PixelsPerStrand - (x + 1)) * 2 + 1);
+                            }
+                        }
+                    } else {
+                        Nodes[idx]->Coords[0].bufX = IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand - x - 1 : x;
+                    }
+                    // before we adjust the buffer capture the screen coordinates
+                    for (size_t c = 0; c < GetCoordCount(idx); c++) {
+                        Nodes[idx]->Coords[c].screenX = Nodes[idx]->Coords[0].bufX - xoffset;
+                        Nodes[idx]->Coords[c].screenY = Nodes[idx]->Coords[0].bufY - yoffset;
+                    }
+                    // now we need to adjust the buffer coords
+                    Nodes[idx]->Coords[0].bufX = ApplyLowDefinition(Nodes[idx]->Coords[0].bufX);
+                    Nodes[idx]->Coords[0].bufY = ApplyLowDefinition(Nodes[idx]->Coords[0].bufY);
                 }
             }
         }
-        CopyBufCoord2ScreenCoord();
     }
 }
 
@@ -430,7 +521,7 @@ void MatrixModel::ExportXlightsModel()
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
-    //    bool isnew = !wxFile::Exists(filename);
+    //    bool isnew = !FileExists(filename);
     if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
@@ -446,6 +537,7 @@ void MatrixModel::ExportXlightsModel()
     wxString nn = ModelXml->GetAttribute("NodeNames");
     wxString da = ModelXml->GetAttribute("DisplayAs");
     wxString an = ModelXml->GetAttribute("AlternateNodes", "false");
+    wxString ld = ModelXml->GetAttribute("LowDefinition", "100");
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<matrixmodel \n");
     f.Write(wxString::Format("name=\"%s\" ", name));
@@ -464,6 +556,7 @@ void MatrixModel::ExportXlightsModel()
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(wxString::Format("LowDefinition=\"%s\" ", ld));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString state = SerialiseState();
@@ -489,73 +582,74 @@ void MatrixModel::ExportXlightsModel()
     f.Close();
 }
 
-void MatrixModel::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    wxXmlDocument doc(filename);
+void MatrixModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "matrixmodel") {
+        wxString name = root->GetAttribute("name");
+        wxString p1 = root->GetAttribute("parm1");
+        wxString p2 = root->GetAttribute("parm2");
+        wxString p3 = root->GetAttribute("parm3");
+        wxString st = root->GetAttribute("StringType");
+        wxString ps = root->GetAttribute("PixelSize");
+        wxString t = root->GetAttribute("Transparency");
+        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString a = root->GetAttribute("Antialias");
+        wxString ss = root->GetAttribute("StartSide");
+        wxString dir = root->GetAttribute("Dir");
+        wxString sn = root->GetAttribute("StrandNames");
+        wxString nn = root->GetAttribute("NodeNames");
+        wxString v = root->GetAttribute("SourceVersion");
+        wxString da = root->GetAttribute("DisplayAs");
+        wxString pc = root->GetAttribute("PixelCount");
+        wxString pt = root->GetAttribute("PixelType");
+        wxString psp = root->GetAttribute("PixelSpacing");
+        wxString an = root->GetAttribute("AlternateNodes");
+        wxString ld = root->GetAttribute("LowDefinition", "100");
 
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
+        // generally xmodels dont have these ... but there are some cases where we do where it would point to a shadow model ... in those cases we want to bring it in
+        wxString smf = root->GetAttribute("ShadowModelFor");
+        wxString sc = root->GetAttribute("StartChannel");
 
-        if (root->GetName() == "matrixmodel")
-        {
-            wxString name = root->GetAttribute("name");
-            wxString p1 = root->GetAttribute("parm1");
-            wxString p2 = root->GetAttribute("parm2");
-            wxString p3 = root->GetAttribute("parm3");
-            wxString st = root->GetAttribute("StringType");
-            wxString ps = root->GetAttribute("PixelSize");
-            wxString t = root->GetAttribute("Transparency");
-            wxString mb = root->GetAttribute("ModelBrightness");
-            wxString a = root->GetAttribute("Antialias");
-            wxString ss = root->GetAttribute("StartSide");
-            wxString dir = root->GetAttribute("Dir");
-            wxString sn = root->GetAttribute("StrandNames");
-            wxString nn = root->GetAttribute("NodeNames");
-            wxString v = root->GetAttribute("SourceVersion");
-            wxString da = root->GetAttribute("DisplayAs");
-            wxString pc = root->GetAttribute("PixelCount");
-            wxString pt = root->GetAttribute("PixelType");
-            wxString psp = root->GetAttribute("PixelSpacing");
-            wxString an = root->GetAttribute("AlternateNodes");
+        // Add any model version conversion logic here
+        // Source version will be the program version that created the custom model
 
-            // Add any model version conversion logic here
-            // Source version will be the program version that created the custom model
-
-            SetProperty("parm1", p1);
-            SetProperty("parm2", p2);
-            SetProperty("parm3", p3);
-            SetProperty("StringType", st);
-            SetProperty("PixelSize", ps);
-            SetProperty("Transparency", t);
-            SetProperty("ModelBrightness", mb);
-            SetProperty("Antialias", a);
-            SetProperty("StartSide", ss);
-            SetProperty("Dir", dir);
-            SetProperty("StrandNames", sn);
-            SetProperty("NodeNames", nn);
-            SetProperty("DisplayAs", da);
-            SetProperty("PixelCount", pc);
-            SetProperty("PixelType", pt);
-            SetProperty("PixelSpacing", psp);
-            SetProperty("AlternateNodes", an);
-
-            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-            GetModelScreenLocation().Write(ModelXml);
-            SetProperty("name", newname, true);
-
-            ImportSuperStringColours(root);
-            ImportModelChildren(root, xlights, newname);
-
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::ImportXlightsModel");
+        SetProperty("parm1", p1);
+        SetProperty("parm2", p2);
+        SetProperty("parm3", p3);
+        SetProperty("StringType", st);
+        SetProperty("PixelSize", ps);
+        SetProperty("Transparency", t);
+        SetProperty("ModelBrightness", mb);
+        SetProperty("Antialias", a);
+        SetProperty("StartSide", ss);
+        SetProperty("Dir", dir);
+        SetProperty("StrandNames", sn);
+        SetProperty("NodeNames", nn);
+        SetProperty("DisplayAs", da);
+        SetProperty("PixelCount", pc);
+        SetProperty("PixelType", pt);
+        SetProperty("PixelSpacing", psp);
+        SetProperty("AlternateNodes", an);
+        SetProperty("LowDefinition", ld);
+        if (smf != "") {
+            SetProperty("ShadowModelFor", smf);
         }
-        else
-        {
-            DisplayError("Failure loading Matrix model file.");
+        if (sc != "") {
+            SetControllerName("Use Start Channel");
+            SetProperty("StartChannel", sc);
         }
-    }
-    else
-    {
+
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        GetModelScreenLocation().Write(ModelXml);
+        SetProperty("name", newname, true);
+
+        ImportSuperStringColours(root);
+        ImportModelChildren(root, xlights, newname);
+
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::ImportXlightsModel");
+    } else {
         DisplayError("Failure loading Matrix model file.");
     }
 }
+

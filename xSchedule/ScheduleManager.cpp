@@ -24,6 +24,7 @@
 #include "PlayList/PlayList.h"
 #include "../xLights/outputs/OutputManager.h"
 #include "../xLights/outputs/Output.h"
+#include "../xLights/outputs/ControllerEthernet.h"
 #include "PlayList/PlayListStep.h"
 #include "RunningSchedule.h"
 #include "../xLights/xLightsVersion.h"
@@ -47,6 +48,7 @@
 #include "../xLights/VideoReader.h"
 #include "../xLights/outputs/Controller.h"
 #include "OutputProcessExcludeDim.h"
+#include "../xLights/Parallel.h"
 
 #include <memory>
 
@@ -171,23 +173,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     _outputManager->Load(_showDir, _scheduleOptions->IsSync());
     logger_base.info("Loaded outputs from %s.", (const char *)(_showDir + "/" + _outputManager->GetNetworksFileName()).c_str());
 
-    wxString localIP;
-    wxConfig *xlconfig = new wxConfig(_("xLights"));
-    if (xlconfig != nullptr)
-    {
-        xlconfig->Read(_("xLightsLocalIP"), &localIP, "");
-        if (localIP != "")
-        {
-            if (IsValidLocalIP(localIP)) {
-                _outputManager->SetForceFromIP(localIP.ToStdString());
-                logger_base.info("Forcing output via %s.", (const char*)localIP.c_str());
-            }
-            else {
-                logger_base.warn("Forcing output via %s IGNORED as the IP does not exist on this machine at this time.", (const char*)localIP.c_str());
-            }
-        }
-        delete xlconfig;
-    }
+    SetForceLocalIP(GetForceLocalIP());
 
     if (_scheduleOptions->IsSendOffWhenNotRunning())
     {
@@ -210,7 +196,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
 
     _listenerManager = new ListenerManager(this);
 
-    _syncManager->Start(_mode, _remoteMode);
+    _syncManager->Start(_mode, _remoteMode, GetForceLocalIP());
 
     // This is out frame data buffer ... it cannot be resized
     logger_base.info("Allocated frame buffer of %ld bytes", _outputManager->GetTotalChannels());
@@ -250,7 +236,7 @@ int ScheduleManager::GetPPS() const
 
 void ScheduleManager::StartListeners()
 {
-    _listenerManager->StartListeners();
+    _listenerManager->StartListeners(GetForceLocalIP());
 }
 
 int ScheduleManager::Sync(const std::string& filename, long ms)
@@ -442,7 +428,7 @@ ScheduleManager::~ScheduleManager()
         }
     }
 
-    _syncManager->Stop();
+    _syncManager->Stop(GetForceLocalIP());
 
     if (_listenerManager != nullptr) {
         _listenerManager->Stop();
@@ -804,11 +790,14 @@ void ScheduleManager::ApplyBrightness()
     auto ed = OutputProcess::GetExcludeDim(_outputProcessing, 1, totalChannels);
 
     if (ed.size() == 0) { // handle the simple case fast
-        uint8_t* pb = _buffer;
-        for (size_t i = 0; i < totalChannels; ++i) {
-            *pb = _brightnessArray[*pb];
-            pb++;
-        }
+        //uint8_t* pb = _buffer;
+        //for (size_t i = 0; i < totalChannels; ++i) {
+        //    *pb = _brightnessArray[*pb];
+        //    pb++;
+        //}
+        parallel_for(0, totalChannels, [this](int i) {
+            _buffer[i] = _brightnessArray[_buffer[i]];
+        });
     }
     else {
         auto exclude = ed.begin();
@@ -4268,6 +4257,17 @@ void ScheduleManager::ToggleMute()
     }
 }
 
+void ScheduleManager::ToggleBrightness()
+{
+    static int savebrightness = 100;
+    if (GetBrightness() > 0) {
+        savebrightness = GetBrightness();
+        SetBrightness(0);
+    } else {
+        SetBrightness(savebrightness);
+    }
+}
+
 void ScheduleManager::SetMode(int mode, REMOTEMODE remote)
 {
     _mode = mode;
@@ -4278,7 +4278,7 @@ void ScheduleManager::SetMode(int mode, REMOTEMODE remote)
     config->Write(_("RemoteMode"), (long)_remoteMode);
     config->Flush();
 
-    _syncManager->Start(mode, remote);
+    _syncManager->Start(mode, remote, GetForceLocalIP());
 }
 
 PlayList* ScheduleManager::GetPlayList(int id) const
@@ -4372,9 +4372,9 @@ std::string ScheduleManager::GetOurIP() const
 
     wxDatagramSocket *testSocket;
     wxIPV4address addr;
-    if (IPOutput::GetLocalIP() != "")
+    if (GetForceLocalIP() != "")
     {
-        addr.Hostname(IPOutput::GetLocalIP());
+        addr.Hostname(GetForceLocalIP());
         testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
     }
     else
@@ -4442,10 +4442,10 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     LogAndWrite(f, "Checking schedule.");
     wxDatagramSocket *testSocket;
     wxIPV4address addr;
-    if (IPOutput::GetLocalIP() != "")
+    if (GetForceLocalIP() != "")
     {
-        LogAndWrite(f, "Forced local IP address." + IPOutput::GetLocalIP());
-        addr.Hostname(IPOutput::GetLocalIP());
+        LogAndWrite(f, "Forced local IP address." + GetForceLocalIP());
+        addr.Hostname(GetForceLocalIP());
         testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
     }
     else
@@ -5916,4 +5916,54 @@ void ScheduleManager::TestFrame(uint8_t* buffer, long totalChannels, long msec)
             buffer[tc + 1] = b;
         }
     }
+}
+
+void ScheduleManager::ForceLocalIP(const std::string& forceLocalIP)
+{
+    // if blank then we do nothing
+    if (forceLocalIP == "")
+        return;
+
+    _outputManager->SetGlobalForceLocalIP(forceLocalIP);
+    for (auto& it : _outputManager->GetControllers()) {
+        if (dynamic_cast<ControllerEthernet*>(it) != nullptr)
+            dynamic_cast<ControllerEthernet*>(it)->SetForceLocalIP(""); // clear any controller force local ips
+    }
+}
+
+void ScheduleManager::SetForceLocalIP(const std::string& forceLocalIP)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsLocalIP", wxString(forceLocalIP));
+
+    if (forceLocalIP != "") {
+        ForceLocalIP(forceLocalIP);
+    }
+    else {
+        // here we have an issue ... the networks file essentially needs to be reloaded to restore all the forced ips
+        bool outputting = false;
+        if (_outputManager->IsOutputting()) {
+            _outputManager->StopOutput();
+        }
+        _outputManager->Load(_showDir);
+        if (outputting) {
+            _outputManager->StartOutput();
+        }
+    }
+}
+
+std::string ScheduleManager::GetForceLocalIP() const
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxConfigBase* config = wxConfigBase::Get();
+    wxString localIP;
+    config->Read(_("xLightsLocalIP"), &localIP, "");
+    if (localIP != "") {
+        if (IsValidLocalIP(localIP)) {
+            logger_base.info("Forcing output via %s.", (const char*)localIP.c_str());
+        } else {
+            logger_base.warn("Forcing output via %s IGNORED as the IP does not exist on this machine at this time.", (const char*)localIP.c_str());
+        }
+    }
+    return localIP;
 }

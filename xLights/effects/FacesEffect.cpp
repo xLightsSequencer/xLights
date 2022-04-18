@@ -22,14 +22,13 @@
 #include "../UtilFunctions.h"
 #include "../xLightsMain.h" 
 #include "PicturesEffect.h"
+#include "../ExternalHooks.h"
 
 #include <wx/tokenzr.h>
 
 #include "../../include/corofaces.xpm"
 
 #include <log4cpp/Category.hh>
-
-#define PI 3.1415926
 
 class FacesRenderCache : public EffectRenderCache {
     std::map<std::string, RenderBuffer*> _imageCache;
@@ -194,13 +193,13 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
                 std::string picture = it2.second;
 
                 if (picture != "") {
-                    if (!wxFileExists(picture)) {
+                    if (!FileExists(picture)) {
                         res.push_back(wxString::Format("    ERR: Face effect image file not found '%s'. Model '%s', Start %s", picture, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                     } else if (!IsFileInShowDir(xLightsFrame::CurrentDir, picture)) {
                         res.push_back(wxString::Format("    WARN: Faces effect image file '%s' not under show directory. Model '%s', Start %s", picture, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                     }
 
-                    if (wxFileExists(picture)) {
+                    if (FileExists(picture)) {
                         wxImage i;
                         i.LoadFile(picture);
                         if (i.IsOk()) {
@@ -755,7 +754,7 @@ static bool parse_model(const wxString& want_model)
     wxXmlDocument pgoXml;
     pgoFile.AssignDir(xLightsFrame::CurrentDir);
     pgoFile.SetFullName(_(XLIGHTS_PGOFACES_FILE));
-    if (!pgoFile.FileExists()) return false;
+    if (!FileExists(pgoFile)) return false;
     if (!pgoXml.Load(pgoFile.GetFullPath())) return false;
     wxXmlNode* root = pgoXml.GetRoot();
     if (!root || (root->GetName() != "papagayo")) return false;

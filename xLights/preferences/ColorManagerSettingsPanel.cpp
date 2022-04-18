@@ -130,17 +130,17 @@ void ColorManagerSettingsPanel::AddButtonsToDialog()
         Connect(bitmapbutton_id,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerSettingsPanel::ColorButtonSelected);
 
         switch (frame->color_mgr.xLights_color[i].category) {
-        case ColorManager::COLOR_CAT_TIMINGS:
+        case ColorManager::ColorCategory::COLOR_CAT_TIMINGS:
             Sizer_Timing_Tracks->Add(txt, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
             Sizer_Timing_Tracks->Add(btn, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
             break;
 
-        case ColorManager::COLOR_CAT_EFFECT_GRID:
+        case ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID:
             Sizer_Effect_Grid->Add(txt, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
             Sizer_Effect_Grid->Add(btn, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
             break;
 
-        case ColorManager::COLOR_CAT_LAYOUT_TAB:
+        case ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB:
             Sizer_Layout_Tab->Add(txt, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
             Sizer_Layout_Tab->Add(btn, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
             break;

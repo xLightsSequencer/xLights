@@ -300,6 +300,7 @@
 		<Unit filename="../xLights/AudioManager.h" />
 		<Unit filename="../xLights/Discovery.cpp" />
 		<Unit filename="../xLights/Discovery.h" />
+		<Unit filename="../xLights/ExternalHooks.h" />
 		<Unit filename="../xLights/FSEQFile.cpp" />
 		<Unit filename="../xLights/FSEQFile.h" />
 		<Unit filename="../xLights/JobPool.cpp" />

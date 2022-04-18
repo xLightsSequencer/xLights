@@ -126,6 +126,15 @@
 						</object>
 						<label>Item label</label>
 					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_CHECKBOX_LIGHT_OUTPUT" variable="CheckBoxLightOutput" member="yes">
+							<bitmap stock_id="xlART_OUTPUT_LIGHTS" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Output To Lights</shorthelp>
+							<itemkind>Check</itemkind>
+							<handler function="OnCheckBoxLightOutputClick" entry="EVT_TOOL" />
+						</object>
+						<label>Output To Lights</label>
+					</object>
 				</object>
 				<name>Play Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>
@@ -533,59 +542,6 @@
 				<firstadd>0</firstadd>
 			</object>
 			<object class="AuiManagerItem">
-				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_OUTPUT" subclass="xlAuiToolBar" variable="OutputToolBar" member="yes">
-					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_BITMAPBUTTON_TAB_INFO" variable="BitmapButtonTabInfo" member="yes">
-							<bitmap stock_id="wxART_INFORMATION" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Tips for using current tab</shorthelp>
-							<handler function="OnBitmapButtonTabInfoClick" entry="EVT_TOOL" />
-						</object>
-						<label>Information</label>
-					</object>
-					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_BUTTON_STOP_NOW" variable="ButtonStopNow" member="yes">
-							<bitmap stock_id="xlART_STOP_NOW" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Stop Now!</shorthelp>
-							<handler function="OnButtonStopNowClick" entry="EVT_TOOL" />
-						</object>
-						<label>Stop</label>
-					</object>
-					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_BUTTON_LIGHTS_OFF" variable="ButtonLightsOff" member="yes">
-							<bitmap stock_id="xlART_LIGHTS_OFF" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Lights Off</shorthelp>
-							<handler function="OnButtonLightsOffClick" entry="EVT_TOOL" />
-						</object>
-						<label>Lights Off</label>
-					</object>
-					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_CHECKBOX_LIGHT_OUTPUT" variable="CheckBoxLightOutput" member="yes">
-							<bitmap stock_id="xlART_OUTPUT_LIGHTS" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Output To Lights</shorthelp>
-							<itemkind>Check</itemkind>
-							<handler function="OnCheckBoxLightOutputClick" entry="EVT_TOOL" />
-						</object>
-						<label>Output To Lights</label>
-					</object>
-				</object>
-				<name>Output Tool Bar</name>
-				<standardpanetype>Toolbar</standardpanetype>
-				<caption>Output Tool Bar</caption>
-				<captionvisible>0</captionvisible>
-				<minimizebutton>0</minimizebutton>
-				<maximizebutton>0</maximizebutton>
-				<pinbutton>0</pinbutton>
-				<closebutton>0</closebutton>
-				<layer>10</layer>
-				<position>25</position>
-				<dockfixed>0</dockfixed>
-				<dockabledirection></dockabledirection>
-				<resizable>0</resizable>
-				<gripper>Default</gripper>
-				<destroyonclose>0</destroyonclose>
-				<firstadd>0</firstadd>
-			</object>
-			<object class="AuiManagerItem">
 				<object class="wxAuiToolBar" name="ID_AUIEFFECTSTOOLBAR" subclass="xlAuiToolBar" variable="EffectsToolBar" member="yes">
 					<extra_code>AddEffectButtonsToToolbar(toolbar);</extra_code>
 				</object>
@@ -655,10 +611,22 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON13" variable="Button_ChangeTemporarilyAgain" member="yes">
+														<label>Change Temporarily Again</label>
+														<hidden>1</hidden>
+														<handler function="OnButton_ChangeTemporarilyAgainClick" entry="EVT_BUTTON" />
+													</object>
+													<col>3</col>
+													<row>0</row>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
 													<object class="wxStaticText" name="ID_STATICTEXT4" variable="ShowDirectoryLabel" member="yes">
 														<label>{Show Directory not set}</label>
 													</object>
-													<col>3</col>
+													<col>4</col>
 													<row>0</row>
 													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
@@ -1107,6 +1075,11 @@
 					<label>Shift Selected Effects</label>
 					<handler function="OnMenuItemShiftSelectedEffectsSelected" entry="EVT_MENU" />
 				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="ID_MNU_COLOURREPLACE" variable="MenuItem_ColorReplace" member="yes">
+					<label>Color Replace</label>
+					<handler function="OnMenuItem_ColorReplaceSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu1" member="yes">
 				<label>&amp;Tools</label>
@@ -1343,6 +1316,11 @@
 						<handler function="OnMenuItemSelectEffectSelected" entry="EVT_MENU" />
 						<checkable>1</checkable>
 					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_SEARCH_EFFECTS" variable="MenuItemSearchEffects" member="yes">
+						<label>Search Effects</label>
+						<handler function="OnMenuItemSearchEffectsSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_VIDEOPREVIEW" variable="MenuItemVideoPreview" member="yes">
 						<label>Video Preview</label>
 						<handler function="OnMenuItemShowHideVideoPreview" entry="EVT_MENU" />
@@ -1351,6 +1329,11 @@
 					<object class="wxMenuItem" name="ID_MNU_JUKEBOX" variable="MenuItemJukebox" member="yes">
 						<label>Jukebox</label>
 						<handler function="OnMenuItem_JukeboxSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_FINDDATA" variable="MenuItemFindData" member="yes">
+						<label>Find Effect Data</label>
+						<handler function="OnMenuItemFindDataSelected" entry="EVT_MENU" />
 						<checkable>1</checkable>
 					</object>
 					<object class="separator" />

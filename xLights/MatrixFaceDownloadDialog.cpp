@@ -21,6 +21,7 @@
 #include <wx/log.h>
 #include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 
 CachedFileDownloader& MatrixFaceDownloadDialog::GetCache() {
     return CachedFileDownloader::GetDefaultCache();
@@ -215,7 +216,7 @@ public:
 
     void DownloadFace()
     {
-        if (!_faceFile.Exists())
+        if (!FileExists(_faceFile))
         {
             _faceFile = MatrixFaceDownloadDialog::GetCache().GetFile(_faceLink, CACHEFOR::CACHETIME_LONG);
         }
@@ -424,7 +425,7 @@ wxXmlDocument* MatrixFaceDownloadDialog::GetXMLFromURL(wxURI url, std::string& f
 {
     filename = "";
     wxFileName fn = wxFileName(MatrixFaceDownloadDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION));
-    if (fn.Exists())
+    if (FileExists(fn))
     {
         filename = fn.GetFullPath();
         return new wxXmlDocument(fn.GetFullPath());
@@ -676,7 +677,7 @@ std::list<MFace*> MatrixFaceDownloadDialog::GetFaces(const std::string& category
 
 void MatrixFaceDownloadDialog::LoadFaceImage(wxFileName imageFile)
 {
-    if (imageFile.Exists())
+    if (FileExists(imageFile))
     {
         _faceImage.LoadFile(imageFile.GetFullPath());
         if (_faceImage.IsOk())
@@ -697,7 +698,7 @@ void MatrixFaceDownloadDialog::PopulateFacePanel(MFace* face)
     }
 
     face->DownloadImages();
-    if (face->_imageFile.Exists())
+    if (FileExists(face->_imageFile))
     {
         StaticBitmap_FaceImage->Show();
         LoadFaceImage(face->_imageFile);

@@ -17,6 +17,7 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
+#include <wx/clrpicker.h>
 #include <wx/listctrl.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -71,6 +72,7 @@ public:
 	wxCheckBox* CheckBox_ShowSubmodels;
 	wxChoice* ChoiceModelLayoutType;
 	wxChoice* ChoicePreviews;
+	wxColourPickerCtrl* ColourPickerCtrl_ModelGroupTagColour;
 	wxFlexGridSizer* Panel_Sizer;
 	wxListCtrl* ListBoxAddToModelGroup;
 	wxListCtrl* ListBoxModelsInGroup;
@@ -79,6 +81,8 @@ public:
 	wxSpinCtrl* SpinCtrl_YCentreOffset;
 	wxStaticText* GridSizeLabel;
 	wxStaticText* LabelModelGroupName;
+	wxStaticText* StaticText10;
+	wxStaticText* StaticText11;
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText2;
 	wxStaticText* StaticText3;
@@ -99,9 +103,12 @@ protected:
 	static const long ID_SPINCTRL1;
 	static const long ID_CHOICE_PREVIEWS;
 	static const long ID_STATICTEXT7;
+	static const long ID_STATICTEXT10;
 	static const long ID_SPINCTRL2;
-	static const long ID_STATICTEXT8;
+	static const long ID_STATICTEXT11;
 	static const long ID_SPINCTRL3;
+	static const long ID_STATICTEXT8;
+	static const long ID_COLOURPICKERCTRL_MG_TAGCOLOUR;
 	static const long ID_CHECKBOX1;
 	static const long ID_CHECKBOX3;
 	static const long ID_CHECKBOX2;
@@ -156,6 +163,7 @@ private:
 	void OnTextCtrl_FilterText(wxCommandEvent& event);
 	void OnCheckBox_ShowInactiveModelsClick(wxCommandEvent& event);
 	void OnCheckBox_ShowOnlyModelsInCurrentViewClick(wxCommandEvent& event);
+	void OnColourPickerCtrl_ModelGroupTagColourColourChanged(wxColourPickerEvent& event);
 	//*)
 
 	DECLARE_EVENT_TABLE()

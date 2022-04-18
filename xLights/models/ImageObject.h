@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "ViewObject.h"
+#include "BoxedScreenLocation.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 
 class ModelPreview;

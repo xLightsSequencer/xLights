@@ -12,7 +12,7 @@
 #include <wx/image.h>
 #include "xlGLCanvas.h"
 #include "UtilFunctions.h"
-#include "ExternalHooks.h"
+#include "../../ExternalHooks.h"
 
 BEGIN_EVENT_TABLE(xlGLCanvas, wxGLCanvas)
     EVT_SIZE(xlGLCanvas::Resized)
@@ -26,6 +26,10 @@ END_EVENT_TABLE()
 #include "Image.h"
 #include "../xlMesh.h"
 #include "DrawGLUtils.h"
+
+#ifndef GL_POINT_SMOOTH
+#define GL_POINT_SMOOTH                0x0B10
+#endif
 
 static const int DEPTH_BUFFER_BITS[] = {32, 24, 16, 12, 10, 8};
 
@@ -662,7 +666,7 @@ public:
             LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, _texId ) );
 
             GLuint tp = bgr ? GL_BGRA : GL_RGBA;
-            LOG_GL_ERRORV( glTexImage2D( GL_TEXTURE_2D, 0, tp, w, h, 0, tp, GL_UNSIGNED_BYTE, nullptr ) );
+            LOG_GL_ERRORV( glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, tp, GL_UNSIGNED_BYTE, nullptr ) );
             LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ) );
             LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ) );
             LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE ) );
@@ -703,18 +707,15 @@ public:
 
     virtual xlVertexAccumulator *createVertexAccumulator() override {
         DrawGLUtils::xlVertexAccumulator *r = new DrawGLUtils::xlVertexAccumulator();
-        r->SetCoordsPerVertex(3);
         return r;
     }
     virtual xlVertexColorAccumulator *createVertexColorAccumulator() override {
         DrawGLUtils::xlVertexColorAccumulator *r = new DrawGLUtils::xlVertexColorAccumulator();
-        r->SetCoordsPerVertex(3);
         return r;
     }
 
     virtual xlVertexTextureAccumulator *createVertexTextureAccumulator() override {
         DrawGLUtils::xlVertexTextureAccumulator *r = new DrawGLUtils::xlVertexTextureAccumulator();
-        r->SetCoordsPerVertex(3);
         return r;
     }
     virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) override {
@@ -860,7 +861,7 @@ public:
             vac.FlushRange(0, getCount());
         }
         
-        DrawGLUtils::xlVertex3ColorAccumulator vac;
+        DrawGLUtils::xlVertexColorAccumulator vac;
         std::vector<uint32_t> colorIndexes;
         std::vector<xlColor> colors;
     };
@@ -1045,7 +1046,7 @@ public:
     virtual xlMesh *loadMeshFromObjFile(const std::string &file) override {
         return new xlGLMesh(file, this);
     }
-    virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness, bool applyShading) override {
+    virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness, bool useViewMatrix) override {
         xlGLMesh *glm = (xlGLMesh*)mesh;
         glm->create3DMesh(this);
         if (glm->mesh) {
@@ -1126,6 +1127,15 @@ public:
         DrawGLUtils::Scale(w, h, z);
         return this;
     }
+    virtual xlGraphicsContext* ScaleViewMatrix(float w, float h, float z) override {
+        DrawGLUtils::Scale(w, h, z);
+        return this;
+    }
+    virtual xlGraphicsContext* TranslateViewMatrix(float x, float y, float z) override {
+        DrawGLUtils::Translate(x, y, z);
+        return this;
+    }
+
     virtual xlGraphicsContext* SetCamera(const glm::mat4 &m) override {
         DrawGLUtils::SetCamera(m);
         return this;

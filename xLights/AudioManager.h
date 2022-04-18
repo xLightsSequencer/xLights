@@ -339,7 +339,7 @@ struct AudioParams
    int            bytesPerSample;
 
    AudioParams()
-    : channelCount(0), sampleFormat( AV_SAMPLE_FMT_NONE ), sampleRate( 0 ), bytesPerSample( 0 ) {}
+    : channelCount(0), sampleFormat(AVSampleFormat::AV_SAMPLE_FMT_NONE ), sampleRate( 0 ), bytesPerSample( 0 ) {}
    AudioParams( int i_cc, AVSampleFormat i_sf, int i_sampleRate, int i_bytesPerSample )
     : channelCount( i_cc ), sampleFormat( i_sf ), sampleRate( i_sampleRate ), bytesPerSample( i_bytesPerSample ) {}
 };
@@ -363,11 +363,11 @@ public:
     AudioLoader( const std::string& path, bool forceLittleEndian=false );
     virtual ~AudioLoader();
 
-    enum State { Ok, NoInit, ReaderDecoderInitFails, ResamplerInitFails, LoadAudioFails };
+    enum class State { Ok, NoInit, ReaderDecoderInitFails, ResamplerInitFails, LoadAudioFails };
 
     bool loadAudioData();
 
-    State state() const { return _state; }
+    AudioLoader::State state() const { return _state; }
     bool readerDecoderInitState( AudioReaderDecoderInitState& state ) const;
     bool resamplerInitState( AudioResamplerInitState& state ) const;
 

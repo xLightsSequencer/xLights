@@ -26,6 +26,13 @@ extern "C"
 
 class wxWindow;
 
+#define MAX_EXPORT_BUFFER_FRAMES 20
+
+// Uncomment this to turn on avlib debug logging
+//#define VIDEOWRITE_DEBUG
+
+void my_av_log_callback(void* ptr, int level, const char* fmt, va_list vargs);
+
 class GenericVideoExporter
 {
 public:
@@ -84,7 +91,7 @@ protected:
    AVCodecContext*         _videoCodecContext = nullptr;
    AVCodecContext*         _audioCodecContext = nullptr;
    AVFrame*                _colorConversionFrame = nullptr;
-   AVFrame*                _videoFrame = nullptr;
+   AVFrame*                _videoFrames[MAX_EXPORT_BUFFER_FRAMES];
    AVFrame*                _audioFrame = nullptr;
    AVPacket*               _videoPacket = nullptr;
    AVPacket*               _audioPacket = nullptr;
@@ -92,6 +99,8 @@ protected:
    GetAudioFrameCb         _getAudio = nullptr;
    QueryForCancelCb        _queryForCancel = nullptr;
    ProgressReportCb        _progressReporter = nullptr;
+   uint32_t                _curVideoFrame = 0;
+   int64_t                 _curPts = 0LL;
 };
 
 class VideoExporter : public GenericVideoExporter

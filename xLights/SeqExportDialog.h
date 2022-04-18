@@ -30,6 +30,7 @@ public:
     SeqExportDialog(wxWindow* parent, const std::string& model, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
     virtual ~SeqExportDialog();
     void ModelExportTypes(bool isgroup);
+    void SetExportType(bool selectedEffects, bool render);
 
     //(*Declarations(SeqExportDialog)
     wxButton* ButtonCancel;

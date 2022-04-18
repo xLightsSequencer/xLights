@@ -16,14 +16,16 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
-#include <UtilFunctions.h>
+#include "../UtilFunctions.h"
 #include "../models/Model.h"
+#include "../Parallel.h"
 
 #include "../../include/liquid-16.xpm"
 #include "../../include/liquid-24.xpm"
 #include "../../include/liquid-32.xpm"
 #include "../../include/liquid-48.xpm"
 #include "../../include/liquid-64.xpm"
+
 #include <log4cpp/Category.hh>
 
 //#define LE_INTERPOLATE
@@ -56,8 +58,9 @@ std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-void LiquidEffect::SetDefaultParameters() {
-    LiquidPanel *tp = (LiquidPanel*)panel;
+void LiquidEffect::SetDefaultParameters()
+{
+    LiquidPanel* tp = (LiquidPanel*)panel;
     if (tp == nullptr) {
         return;
     }
@@ -141,58 +144,58 @@ void LiquidEffect::SetDefaultParameters() {
     tp->BitmapButton_Liquid_SourceSize4->SetActive(false);
 }
 
-void LiquidEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void LiquidEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
-        SettingsMap.GetBool("CHECKBOX_TopBarrier", false),
-        SettingsMap.GetBool("CHECKBOX_BottomBarrier", false),
-        SettingsMap.GetBool("CHECKBOX_LeftBarrier", false),
-        SettingsMap.GetBool("CHECKBOX_RightBarrier", false),
+           SettingsMap.GetBool("CHECKBOX_TopBarrier", false),
+           SettingsMap.GetBool("CHECKBOX_BottomBarrier", false),
+           SettingsMap.GetBool("CHECKBOX_LeftBarrier", false),
+           SettingsMap.GetBool("CHECKBOX_RightBarrier", false),
 
-        GetValueCurveInt("LifeTime", 1000, SettingsMap, oset, LIQUID_LIFETIME_MIN, LIQUID_LIFETIME_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        SettingsMap.GetBool("CHECKBOX_HoldColor", true),
-        SettingsMap.GetBool("CHECKBOX_MixColors", false),
-        SettingsMap.GetInt("TEXTCTRL_Size", 500),
-        SettingsMap.GetInt("TEXTCTRL_WarmUpFrames", 0),
+           GetValueCurveInt("LifeTime", 1000, SettingsMap, oset, LIQUID_LIFETIME_MIN, LIQUID_LIFETIME_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetBool("CHECKBOX_HoldColor", true),
+           SettingsMap.GetBool("CHECKBOX_MixColors", false),
+           SettingsMap.GetInt("TEXTCTRL_Size", 500),
+           SettingsMap.GetInt("TEXTCTRL_WarmUpFrames", 0),
 
-        GetValueCurveInt("Direction1", 270, SettingsMap, oset, LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("X1", 50, SettingsMap, oset, LIQUID_X_MIN, LIQUID_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Y1", 50, SettingsMap, oset, LIQUID_Y_MIN, LIQUID_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Velocity1", 100, SettingsMap, oset, LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Flow1", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Liquid_SourceSize1", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        SettingsMap.GetBool("CHECKBOX_FlowMusic1", false),
+           GetValueCurveInt("Direction1", 270, SettingsMap, oset, LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("X1", 50, SettingsMap, oset, LIQUID_X_MIN, LIQUID_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Y1", 50, SettingsMap, oset, LIQUID_Y_MIN, LIQUID_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Velocity1", 100, SettingsMap, oset, LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Flow1", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Liquid_SourceSize1", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetBool("CHECKBOX_FlowMusic1", false),
 
-        SettingsMap.GetBool("CHECKBOX_Enabled2", false),
-        GetValueCurveInt("Direction2", 270, SettingsMap, oset, LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("X2", 50, SettingsMap, oset, LIQUID_X_MIN, LIQUID_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Y2", 50, SettingsMap, oset, LIQUID_Y_MIN, LIQUID_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Velocity2", 100, SettingsMap, oset, LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Flow2", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Liquid_SourceSize2", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        SettingsMap.GetBool("CHECKBOX_FlowMusic2", false),
+           SettingsMap.GetBool("CHECKBOX_Enabled2", false),
+           GetValueCurveInt("Direction2", 270, SettingsMap, oset, LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("X2", 50, SettingsMap, oset, LIQUID_X_MIN, LIQUID_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Y2", 50, SettingsMap, oset, LIQUID_Y_MIN, LIQUID_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Velocity2", 100, SettingsMap, oset, LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Flow2", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Liquid_SourceSize2", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetBool("CHECKBOX_FlowMusic2", false),
 
-        SettingsMap.GetBool("CHECKBOX_Enabled3", false),
-        GetValueCurveInt("Direction3", 270, SettingsMap, oset, LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("X3", 50, SettingsMap, oset, LIQUID_X_MIN, LIQUID_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Y3", 50, SettingsMap, oset, LIQUID_Y_MIN, LIQUID_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Velocity3", 100, SettingsMap, oset, LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Flow3", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Liquid_SourceSize3", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        SettingsMap.GetBool("CHECKBOX_FlowMusic3", false),
+           SettingsMap.GetBool("CHECKBOX_Enabled3", false),
+           GetValueCurveInt("Direction3", 270, SettingsMap, oset, LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("X3", 50, SettingsMap, oset, LIQUID_X_MIN, LIQUID_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Y3", 50, SettingsMap, oset, LIQUID_Y_MIN, LIQUID_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Velocity3", 100, SettingsMap, oset, LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Flow3", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Liquid_SourceSize3", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetBool("CHECKBOX_FlowMusic3", false),
 
-        SettingsMap.GetBool("CHECKBOX_Enabled4", false),
-        GetValueCurveInt("Direction4", 270, SettingsMap, oset, LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("X4", 50, SettingsMap, oset, LIQUID_X_MIN, LIQUID_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Y4", 50, SettingsMap, oset, LIQUID_Y_MIN, LIQUID_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Velocity4", 100, SettingsMap, oset, LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Flow4", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Liquid_SourceSize4", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        SettingsMap.GetBool("CHECKBOX_FlowMusic4", false),
-        SettingsMap.Get("CHOICE_ParticleType", "Elastic"),
-        SettingsMap.GetInt("TEXTCTRL_Despeckle", 0),
-        GetValueCurveDouble("Liquid_Gravity", 10.0, SettingsMap, oset, LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), LIQUID_GRAVITY_DIVISOR)
-    );
+           SettingsMap.GetBool("CHECKBOX_Enabled4", false),
+           GetValueCurveInt("Direction4", 270, SettingsMap, oset, LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("X4", 50, SettingsMap, oset, LIQUID_X_MIN, LIQUID_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Y4", 50, SettingsMap, oset, LIQUID_Y_MIN, LIQUID_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Velocity4", 100, SettingsMap, oset, LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Flow4", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Liquid_SourceSize4", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetBool("CHECKBOX_FlowMusic4", false),
+           SettingsMap.Get("CHOICE_ParticleType", "Elastic"),
+           SettingsMap.GetInt("TEXTCTRL_Despeckle", 0),
+           GetValueCurveDouble("Liquid_Gravity", 10.0, SettingsMap, oset, LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), LIQUID_GRAVITY_DIVISOR));
 }
 
 class LiquidRenderCache : public EffectRenderCache {
@@ -321,12 +324,9 @@ void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColo
 
     if (despeckle > 0)
     {
-        for (size_t y = 0; y < buffer.BufferHt; ++y)
-        {
-            for (size_t x = 0; x < buffer.BufferWi; ++x)
-            {
-                if (buffer.GetPixel(x, y) == xlBLACK)
-                {
+        for (size_t y = 0; y < buffer.BufferHt; y++) {
+            for (size_t x = 0; x < buffer.BufferWi; ++x) {
+                if (buffer.GetPixel(x, y) == xlBLACK) {
                     buffer.SetPixel(x, y, GetDespeckleColor(buffer, x, y, despeckle));
                 }
             }
@@ -662,7 +662,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     {
          xlColor color;
         buffer.palette.GetColor(0, color);
-        Draw(buffer, ps, color, holdcolor | mixcolors, despeckle);
+        Draw(buffer, ps, color, holdcolor || mixcolors, despeckle);
     }
 
     // because of memory usage delete our world when rendered the last frame

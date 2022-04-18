@@ -135,10 +135,10 @@ void InitialiseLogging(bool fromMain)
 #endif
 #ifdef __WXOSX__
         std::string initFileName = "xlights.mac.properties";
-        if (!wxFile::Exists(initFileName)) {
+        if (!FileExists(initFileName)) {
             if (fromMain) {
                 return;
-            } else if (wxFile::Exists(wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties")) {
+            } else if (FileExists(wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties")) {
                 initFileName = wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties";
             }
         }
@@ -147,20 +147,20 @@ void InitialiseLogging(bool fromMain)
 #endif
 #ifdef __LINUX__
         std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xlights.linux.properties";
-        if (!wxFile::Exists(initFileName)) {
+        if (!FileExists(initFileName)) {
             initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/share/xLights/xlights.linux.properties";
         }
 #endif
 
 #ifdef _MSC_VER
-        if (!wxFile::Exists(initFileName)) {
+        if (!FileExists(initFileName)) {
             wxFileName f(wxStandardPaths::Get().GetExecutablePath());
             wxString appPath(f.GetPath());
             initFileName = appPath + "\\" + initFileName;
         }
 #endif
 
-        if (!wxFile::Exists(initFileName))
+        if (!FileExists(initFileName))
         {
 #ifdef _MSC_VER
             // the app is not initialized so GUI is not available and no event loop.
@@ -482,7 +482,7 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
     ObtainAccessToURL(fileName);
 
     wxString showDir = wxPathOnly(fileName);
-    while (showDir != "" && !wxFile::Exists(showDir + "/" + "xlights_rgbeffects.xml")) {
+    while (showDir != "" && !FileExists(showDir + "/" + "xlights_rgbeffects.xml")) {
         auto old = showDir;
         showDir = wxPathOnly(showDir);
         if (showDir == old) showDir = "";
@@ -671,9 +671,9 @@ bool xLightsApp::OnInit()
             }
             if (showDir.IsNull()) {
                 showDir=wxPathOnly(sequenceFile);
-                while (showDir != "" && !wxFile::Exists(showDir + "/" + "xlights_rgbeffects.xml"))
+                while (showDir != "" && !FileExists(showDir + "/" + "xlights_rgbeffects.xml"))
                 {
-                    auto old = showDir;
+                    wxString old = showDir;
                     showDir = wxPathOnly(showDir);
                     if (showDir == old) showDir = "";
                 }

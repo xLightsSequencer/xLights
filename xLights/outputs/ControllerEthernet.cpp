@@ -94,6 +94,7 @@ ControllerEthernet::ControllerEthernet(OutputManager* om, wxXmlNode* node, const
     SetVersion(wxAtoi(node->GetAttribute("Version", "1")));
     _expanded = node->GetAttribute("Expanded", "FALSE") == "TRUE";
     _universePerString = node->GetAttribute("UPS", "FALSE") == "TRUE";
+    _forceLocalIP = node->GetAttribute("ForceLocalIP", "");
     _dirty = false;
 }
 
@@ -127,6 +128,7 @@ wxXmlNode* ControllerEthernet::Save() {
     um->AddAttribute("Version", wxString::Format("%d", _version));
     um->AddAttribute("Expanded", _expanded ? _("TRUE") : _("FALSE"));
     um->AddAttribute("UPS", _universePerString ? _("TRUE") : _("FALSE"));
+    um->AddAttribute("ForceLocalIP", _forceLocalIP);
 
     return um;
 }
@@ -253,6 +255,39 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
     while (oldoutputs.size() > 0) {
         delete oldoutputs.front();
         oldoutputs.pop_front();
+    }
+}
+
+std::string ControllerEthernet::GetForceLocalIP() const
+{
+    if (_forceLocalIP != "") {
+        return _forceLocalIP;
+    }
+
+    // a controller should not proxy itself
+    return _outputManager->GetGlobalForceLocalIP();
+}
+
+std::string ControllerEthernet::GetControllerForceLocalIP() const
+{
+    return _forceLocalIP;
+}
+
+void ControllerEthernet::SetForceLocalIP(const std::string& localIP)
+{
+    if (_forceLocalIP != localIP) {
+        _forceLocalIP = localIP;
+        _dirty = true;
+        for (auto& it : _outputs) {
+            it->SetForceLocalIP(localIP);
+        }
+    }
+}
+
+void ControllerEthernet::SetGlobalForceLocalIP(const std::string& localIP)
+{
+    for (const auto& it : _outputs) {
+        it->SetGlobalForceLocalIP(localIP);
     }
 }
 
@@ -448,7 +483,32 @@ bool ControllerEthernet::SupportsFullxLightsControl() const
     return false;
 }
 
-std::string ControllerEthernet::GetChannelMapping(int32_t ch) const {
+bool ControllerEthernet::SupportsDefaultBrightness() const
+{
+    if (_type == OUTPUT_ZCPP)
+        return false;
+
+    auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
+    if (c != nullptr) {
+        return c->SupportsDefaultBrightness();
+    }
+    return false;
+}
+
+bool ControllerEthernet::SupportsDefaultGamma() const
+{
+    if (_type == OUTPUT_ZCPP)
+        return false;
+
+    auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
+    if (c != nullptr) {
+        return c->SupportsDefaultGamma();
+    }
+    return false;
+}
+
+std::string ControllerEthernet::GetChannelMapping(int32_t ch) const
+{
 
     wxString res = wxString::Format("Channel %d maps to ...\nType: %s\nName: %s\nIP: %s\n", ch, GetProtocol(), GetName(), GetIP());
 
@@ -496,6 +556,14 @@ std::string ControllerEthernet::GetColumn3Label() const {
 void ControllerEthernet::VMVChanged()
 {
     SetUniversePerString(false);
+    auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
+    if (c != nullptr) {
+        auto const& prefer = c->GetPreferredInputProtocol();
+        bool autoLayout = IsAutoLayout();
+        if (!prefer.empty() && autoLayout) {
+            SetProtocol(prefer);
+        }
+    }
 }
 
 Output::PINGSTATE ControllerEthernet::Ping() {
@@ -599,11 +667,20 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
         int universes = 0;
         if (IsUniversePerString() && models.size() > 0) {
             // number of universes should equal sum(((stringsize -1) / 510) + 1)
+            int lastSerialPort = -1;
             for (const auto& m : models) {
-                for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
-                    size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
-                    if (chs > 0) {
-                        universes += ((chs - 1) / channels_per_universe) + 1;
+                if (m->IsSerialProtocol() && m->GetControllerPort() == lastSerialPort) {
+                    // skip this one
+                } else if (m->IsSerialProtocol()) {
+                    universes++;
+                    lastSerialPort = m->GetControllerPort();
+                }
+                else {
+                    for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
+                        size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
+                        if (chs > 0) {
+                            universes += ((chs - 1) / channels_per_universe) + 1;
+                        }
                     }
                 }
             }
@@ -657,6 +734,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
             _outputs.back()->SetIP(oldIP);
             _outputs.back()->SetUniverse(lastUsedUniverse + 1);
             _outputs.back()->SetFPPProxyIP(_fppProxy);
+            _outputs.back()->SetForceLocalIP(_forceLocalIP);
             _outputs.back()->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
             _outputs.back()->Enable(IsActive());
         }
@@ -664,20 +742,43 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
         if (IsUniversePerString() && models.size() > 0) {
             // now we have the right number of outputs ... we just need to set their sizes
             auto o = begin(_outputs);
+            int lastSerialPort = -1;
             for (const auto& m : models) {
-                for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
-                    size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
-
-                    if (m->GetNumPhysicalStrings() == 1) {
-                        chs = m->GetChanCount();
-                    }
-
-                    while (chs > 0) {
-                        size_t uch = std::min(chs, (size_t)channels_per_universe);
-                        wxASSERT(o != end(_outputs));
-                        (*o)->SetChannels(uch);
-                        chs -= uch;
+                if (m->IsSerialProtocol() && m->GetControllerPort() == lastSerialPort) {
+                    // do nothing
+                } else if (m->IsSerialProtocol()) {
+                    if (GetControllerCaps()->NeedsFullUniverseForDMX()) {
+                        (*o)->SetChannels(GetControllerCaps() == nullptr ? 510 : GetControllerCaps()->GetMaxSerialPortChannels()); // serial universes are always their max or 510 if we dont know the max
                         ++o;
+                    } else {
+                        // this is tricky ... we need to work out how many channels we need for this port
+                        uint32_t chs = 0;
+                        for (const auto& mm : models) {
+                            if (mm->GetControllerProtocol() == m->GetControllerProtocol() && mm->GetControllerPort() == m->GetControllerPort()) {
+                                chs += mm->GetChanCount();
+                            }
+                        }
+                        if (chs == 0)
+                            chs = 1;
+                        (*o)->SetChannels(chs);
+                        ++o;
+                    }
+                    lastSerialPort = m->GetControllerPort();
+                } else {
+                    for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
+                        size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
+
+                        if (m->GetNumPhysicalStrings() == 1) {
+                            chs = m->GetChanCount();
+                        }
+
+                        while (chs > 0) {
+                            size_t uch = std::min(chs, (size_t)channels_per_universe);
+                            wxASSERT(o != end(_outputs));
+                            (*o)->SetChannels(uch);
+                            chs -= uch;
+                            ++o;
+                        }
                     }
                 }
             }
@@ -763,6 +864,17 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
+
+    auto ips = GetLocalIPs();
+    wxPGChoices choices;
+    int val = 0;
+    choices.Add("");
+    for (const auto& it : ips) {
+        if (it == _forceLocalIP)
+            val = choices.GetCount();
+        choices.Add(it);
+    }
+    propertyGrid->Append(new wxEnumProperty("Force Local IP", "ForceLocalIP", choices, val));
 
     if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {
         auto u = "Start Universe";
@@ -951,8 +1063,25 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::FPPProxy");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::FPPProxy", nullptr);
         return true;
-    }
-    else if (name == "Managed") {
+    } else if (name == "ForceLocalIP") {
+        auto ips = GetLocalIPs();
+
+        if (event.GetValue().GetLong() == 0) {
+            SetForceLocalIP("");
+        } else {
+            if (event.GetValue().GetLong() >= ips.size() + 1) { // need to add one as dropdown has blank first entry
+                // likely the number of IPs changed after the list was loaded so ignore
+            } else {
+                auto it = begin(ips);
+                std::advance(it, event.GetValue().GetLong() - 1);
+                SetForceLocalIP(*it);
+            }
+        }
+
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::ForceLocalIP");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::ForceLocalIP", nullptr);
+        return true;
+    } else if (name == "Managed") {
         SetManaged(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Managed");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Managed", nullptr);

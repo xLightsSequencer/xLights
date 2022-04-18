@@ -16,7 +16,7 @@
 			<object class="sizeritem">
 				<object class="wxSpinCtrl" name="ID_SPINCTRL_Interval" variable="SpinCtrl_Interval" member="yes">
 					<value>33</value>
-					<min>15</min>
+					<min>10</min>
 					<max>1000</max>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

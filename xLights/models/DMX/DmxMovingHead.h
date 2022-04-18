@@ -33,6 +33,7 @@ class DmxMovingHead : public DmxModel, public DmxColorAbility, public DmxPanTilt
                                       float *boundingBox = nullptr) override;
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
         virtual void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
+        virtual std::list<std::string> CheckModelSettings() override;
 
     protected:
         void Draw3DDMXBaseLeft(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle);
@@ -43,7 +44,7 @@ class DmxMovingHead : public DmxModel, public DmxColorAbility, public DmxPanTilt
         virtual void InitModel() override;
 
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
         virtual float GetDefaultBeamWidth() const { return 30; }
 

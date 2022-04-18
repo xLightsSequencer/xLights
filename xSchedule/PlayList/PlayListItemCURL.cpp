@@ -24,12 +24,12 @@ class CurlThread : public wxThread
 {
     std::string _url;
     std::string _body;
-    std::string _type;
+    std::string _curlType;
     std::string _contenttype;
 
 public:
     CurlThread(const std::string& url, const std::string& body, const std::string& type, const std::string& contenttype) : 
-        _url(url), _body(body), _type(type), _contenttype(contenttype) { }
+        _url(url), _body(body), _curlType(type), _contenttype(contenttype) { }
 
     virtual void* Entry() override
     {
@@ -39,7 +39,7 @@ public:
 
         logger_base.info("Calling URL %s.", (const char*)_url.c_str());
 
-        if (_type == "POST")
+        if (_curlType == "POST")
         {
             auto res = Curl::HTTPSPost(_url, _body, "", "", _contenttype);
             logger_base.info("CURL POST : %s", (const char*)res.c_str());
@@ -65,7 +65,7 @@ void PlayListItemCURL::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
     _url = node->GetAttribute("URL", "");
-    _curltype = node->GetAttribute("Type", "GET");
+    _curlType = node->GetAttribute("CurlType", "GET");
     _body = node->GetAttribute("Body", "");
     _contentType = node->GetAttribute("ContentType", "");
 }
@@ -79,7 +79,7 @@ PlayListItem* PlayListItemCURL::Copy(const bool isClone) const
 {
     PlayListItemCURL* res = new PlayListItemCURL();
     res->_url = _url;
-    res->_curltype = _curltype;
+    res->_curlType = _curlType;
     res->_body = _body;
     res->_started = false;
     res->_contentType = _contentType;
@@ -93,7 +93,7 @@ wxXmlNode* PlayListItemCURL::Save()
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("URL", _url);
-    node->AddAttribute("Type", _curltype);
+    node->AddAttribute("CurlType", _curlType);
     node->AddAttribute("Body", _body);
     node->AddAttribute("ContentType", _contentType);
 
@@ -146,7 +146,7 @@ void PlayListItemCURL::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
             return;
         }
 
-        CurlThread* thread = new CurlThread(url, body, _type, _contentType);
+        CurlThread* thread = new CurlThread(url, body, _curlType, _contentType);
         thread->Run();
         wxMicroSleep(1); // encourage the thread to run
     }

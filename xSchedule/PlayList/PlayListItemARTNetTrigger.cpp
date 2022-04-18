@@ -202,13 +202,14 @@ void PlayListItemARTNetTrigger::Frame(uint8_t* buffer, size_t size, size_t ms, s
             bool ok = true;
 
             wxIPV4address localaddr;
-            if (IPOutput::__localIP == "")
+            auto localIP = GetLocalIP();
+            if (localIP == "")
             {
                 localaddr.AnyAddress();
             }
             else
             {
-                localaddr.Hostname(IPOutput::__localIP);
+                localaddr.Hostname(localIP);
             }
 
             wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);

@@ -13,21 +13,23 @@
 #include "../ScheduleManager.h"
 #include <log4cpp/Category.hh>
 
-ListenerBase::ListenerBase(ListenerManager* listenerManager)
+ListenerBase::ListenerBase(ListenerManager* listenerManager, const std::string& localIP)
 {
     _listenerManager = listenerManager;
     _stop = false;
     _thread = nullptr;
     _isOk = false;
+    _localIP = localIP;
 }
 
-ListenerThread::ListenerThread(ListenerBase* listener) : wxThread(wxTHREAD_JOINABLE)
+ListenerThread::ListenerThread(ListenerBase* listener, const std::string& localIP) : wxThread(wxTHREAD_JOINABLE)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _listener = listener;
     _stop = false;
     _running = false;
+    _localIP = localIP;
     if (Run() != wxTHREAD_NO_ERROR)
     {
         logger_base.error("Failed to start listener thread for %s", (const char *)listener->GetType().c_str());
@@ -51,7 +53,7 @@ void* ListenerThread::Entry()
     _running = true;
     logger_base.info("Listener thread for %s running.", (const char *)_listener->GetType().c_str());
 
-    _listener->StartProcess();
+    _listener->StartProcess(_localIP);
 
     if (_listener->IsOk())
     {

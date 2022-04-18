@@ -25,6 +25,7 @@
 #include "UtilFunctions.h"
 #include "PixelBuffer.h"
 #include "Parallel.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -248,20 +249,19 @@ public:
                             static const std::string DEEP("Deep");
                             const std::string& bt = layer->GetEffect(e)->GetSettings().Get(CHOICE_BufferStyle, DEFAULT);
                             if (bt.compare(0, 9, PER_MODEL) == 0) {
-                                perModelEffects = true;
                                 if (bt.compare(bt.length() - 4, 4, DEEP) == 0) {
                                     perModelEffectsDeep = true;
+                                } else {
+                                    perModelEffects = true;
                                 }
                             }
                         }
-                        if (perModelEffects)
-                        {
-                            const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
-                            if (perModelEffectsDeep) {
-                                mainBuffer->InitPerModelBuffersDeep(*grp, l, data.FrameTime());
-                            } else {
-                                mainBuffer->InitPerModelBuffers(*grp, l, data.FrameTime());
-                            }
+                        const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
+                        if (perModelEffectsDeep) {
+                            mainBuffer->InitPerModelBuffersDeep(*grp, l, data.FrameTime());
+                        }
+                        if (perModelEffects) {
+                            mainBuffer->InitPerModelBuffers(*grp, l, data.FrameTime());
                         }
                     }
                 }
@@ -1876,12 +1876,11 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         WriteFalconPiModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), v2);
     } else if (Out3 == "Com") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        oName.SetExt(_("avi"));
+        oName.SetExt(_("mp4"));
         fullpath = oName.GetFullPath();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), true);
     } else if (Out3 == "Unc") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        oName.SetExt(_("avi"));
         fullpath = oName.GetFullPath();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false);
     } else if (Out3 == "Min") {
@@ -1895,7 +1894,9 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         fullpath = oName.GetFullPath();
         WriteGIFModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), _seqData.FrameTime());
     }
-    SetStatusText(wxString::Format("Finished writing model: %s in %ld ms ", fullpath, sw.Time()));
+    float s = sw.Time();
+    s /= 1000;
+    SetStatusText(wxString::Format("Finished writing model: %s in %0.3fs ", fullpath, s));
 
     delete data;
     EnableSequenceControls(true);
@@ -1903,7 +1904,7 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     return true;
 }
 
-    void xLightsFrame::ExportModel(wxCommandEvent& command)
+void xLightsFrame::ExportModel(wxCommandEvent& command)
 {
     unsigned int startFrame = 0;
     unsigned int endFrame = _seqData.NumFrames();
@@ -1930,9 +1931,11 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
 
     SeqExportDialog dialog(this, m->GetName());
     dialog.ModelExportTypes(isgroup || !isboxed);
+    dialog.SetExportType(command.GetString().Contains('|'), command.GetInt() == 1);
 
     if (dialog.ShowModal() == wxID_OK) {
         wxString filename = dialog.TextCtrlFilename->GetValue();
+        ObtainAccessToURL(filename);
         EnableSequenceControls(false);
         wxString format = dialog.ChoiceFormat->GetStringSelection();
 

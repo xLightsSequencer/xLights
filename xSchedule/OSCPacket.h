@@ -52,7 +52,7 @@ public:
     virtual ~OSCPacket();
     uint8_t* GetBuffer() const {return _buffer; }
     int GetBuffSize() const { return _buffsize; };
-    void Send(const std::string& ip, int port);
+    void Send(const std::string& ip, int port, const std::string& localIP);
     std::string GetPath() const { return _path; }
     static bool IsPathValid(const std::string& path);
     std::string GetP1() const;

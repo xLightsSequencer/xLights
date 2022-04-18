@@ -79,6 +79,16 @@
 										</object>
 										<label>Models</label>
 									</object>
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL4" variable="Panel_Controllers" member="yes">
+											<object class="wxFlexGridSizer" variable="FlexGridSizer_Controllers" member="yes">
+												<cols>1</cols>
+												<growablecols>0</growablecols>
+												<growablerows>0</growablerows>
+											</object>
+										</object>
+										<label>Controllers</label>
+									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>

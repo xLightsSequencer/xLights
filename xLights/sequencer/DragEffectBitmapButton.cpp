@@ -15,6 +15,47 @@
 #include "../effects/RenderableEffect.h"
 #include "../RenderCommandEvent.h"
 #include "../UtilFunctions.h"
+#include "MainSequencer.h"
+#include <log4cpp/Category.hh>
+
+class EffectButtonDropSource : public wxDropSource
+{
+    xLightsFrame* _frame = nullptr;
+
+public:
+#ifdef __linux__
+    EffectButtonDropSource(xLightsFrame* frame, wxWindow* window, const wxIcon& cursorCopy = wxNullIcon, const wxIcon& cursorMove = wxNullIcon, const wxIcon& cursorStop = wxNullIcon) :
+        wxDropSource(window,
+                     cursorCopy,
+                     cursorMove,
+                     cursorStop)
+    {
+        _frame = frame;
+    }
+#else
+    EffectButtonDropSource(xLightsFrame* frame, wxWindow* window, const wxCursor& cursorCopy = wxNullCursor, const wxCursor& cursorMove = wxNullCursor, const wxCursor& cursorStop = wxNullCursor) :
+        wxDropSource(window,
+                     cursorCopy,
+                     cursorMove,
+                     cursorStop)
+    {
+        _frame = frame;
+    }
+#endif
+
+    virtual bool GiveFeedback(wxDragResult effect) override
+    {
+        EffectsGrid* eg = _frame->GetMainSequencer()->PanelEffectGrid;
+        if (eg->CanDropEffect()) {
+            eg->UpdateMousePosition(eg->GetDropStartMS());
+            return wxDropSource::GiveFeedback(effect);
+        } else {
+            eg->UpdateMousePosition(-1);
+            eg->SetCursor(wxCURSOR_NO_ENTRY);
+            return true;
+        }
+    }
+};
 
 DragEffectBitmapButton::DragEffectBitmapButton (wxWindow *parent, wxWindowID id, const wxBitmap &bitmap, const wxPoint &pos,
                                 const wxSize &size, long style, const wxValidator &validator,
@@ -99,7 +140,7 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
     wxCursor dragCursor(mEffect->GetEffectIcon(16, true).ConvertToImage());
 #endif
 
-    wxDropSource dragSource(this,dragCursor,dragCursor,dragCursor );
+    EffectButtonDropSource dragSource((xLightsFrame*)wxTheApp->GetMainTopWindow(), this, dragCursor, dragCursor, dragCursor);
 
     dragSource.SetData( dragData );
     dragSource.DoDragDrop( wxDragMove );

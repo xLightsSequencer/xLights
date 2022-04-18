@@ -185,4 +185,5 @@ public:
     static void GetRangeParm4(const std::string& type, float& low, float &high);
     void Reverse();
     void Flip();
+    void ConvertDivider(int oldDivider, int newDivider);
 };

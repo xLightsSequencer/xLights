@@ -20,6 +20,7 @@
         <SupportsAutoLayout/>
         <MergeConsecutiveVirtualStrings/>
 		<SupportsRemotes/>
+        <SupportsDefaultBrightness/>
 
         <MaxInputUniverses>96</MaxInputUniverses>
         <MaxSerialPortChannels>512</MaxSerialPortChannels>

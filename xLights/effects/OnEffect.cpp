@@ -17,6 +17,9 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../UtilFunctions.h"
+#include "../Parallel.h"
+#include <log4cpp/Category.hh>
 
 static const std::string TEXTCTRL_Eff_On_Start("TEXTCTRL_Eff_On_Start");
 static const std::string TEXTCTRL_Eff_On_End("TEXTCTRL_Eff_On_End");
@@ -221,24 +224,41 @@ void OnEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffe
 
     //Every Node set to selected color
     if (spatialcolour || buffer.dmx_buffer) {
-        for (int x=0; x<buffer.BufferWi; ++x) {
-            for (int y=0; y<buffer.BufferHt; ++y) {
-                buffer.palette.GetSpatialColor(cidx, (float)x / (float)buffer.BufferWi, (float)y / (float)buffer.BufferHt, color);
+
+        // doing x in parallel for large buffers
+        parallel_for(0, buffer.BufferWi, [&buffer, cidx, start, end, adjust, transparency, color](int x) {
+            auto col = color;
+            for (int y = 0; y < buffer.BufferHt; ++y) {
+                if (buffer.palette.IsRadial(cidx)) {
+                    float zeroedx = (x - (buffer.BufferWi / 2));
+                    float zeroedy = (y - (buffer.BufferHt / 2));
+                    float round = 0;
+                    if (zeroedx != 0 || zeroedy != 0) {
+                        float signx = zeroedx > 0.0 ? 1.0 : (zeroedx < 0.0 ? -1.0 : 0.0);
+                        float signy = zeroedy > 0.0 ? 1.0 : (zeroedy < 0.0 ? -1.0 : 0.0);
+                        float signxy = zeroedx * zeroedy > 0.0 ? 1.0 : (zeroedx * zeroedy < 0.0 ? -1.0 : 0.0);
+                        float signsignysigny = signy * signy > 0.0 ? 1.0 : (signy * signy < 0.0 ? -1.0 : 0.0);
+                        round = (PI - PI / 2.0 * (1.0 + signx) * (1.0 - signsignysigny) - PI / 4.0 * (2.0 + signx) * signy - signxy * std::asin((std::abs(zeroedx) - std::abs(zeroedy)) / std::sqrt(2.0 * zeroedx * zeroedx + 2.0 * zeroedy * zeroedy))) / (2.0 * PI);
+                    }
+                    buffer.palette.GetSpatialColor(cidx, buffer.BufferWi / 2, buffer.BufferHt / 2, x, y, round, std::max(buffer.BufferWi, buffer.BufferHt) / 2, col);
+                } else {
+                    buffer.palette.GetSpatialColor(cidx, (float)x / (float)buffer.BufferWi, (float)y / (float)buffer.BufferHt, col);
+                }
                 if (start == 100 && end == 100) {
                 } else {
-                    HSVValue hsv = color.asHSV();
+                    HSVValue hsv = col.asHSV();
                     double d = adjust;
                     d = start + (end - start) * d;
                     d = d / 100.0;
                     hsv.value = hsv.value * d;
-                    color = hsv;
+                    col = hsv;
                 }
                 if (transparency) {
-                    color.alpha = 255 - transparency;
+                    col.alpha = 255 - transparency;
                 }
-                buffer.SetPixel(x,y,color);
+                buffer.SetPixel(x, y, col);
             }
-        }
+        });
     } else {
         buffer.Fill(color);
     }    

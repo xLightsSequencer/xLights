@@ -131,8 +131,10 @@ void xlGridCanvas::DrawBaseGrid(xlGraphicsContext *ctx)
     float inset = mapLogicalToAbsolute(5.0) + 0.25;
     va->PreAlloc((mRows + mColumns + 2) * 2 * 3);
 
-    //use triangles as lines on retina displays are VERY thin, almost invisible
     float lwidth = mapLogicalToAbsolute(0.8);
+    if (lwidth < 1.1)
+        lwidth = 1.1;
+
     for (int row = 0; row <= mRows; row++ ) {
         float y = std::round(cellSize * row + inset) - lwidth / 2.0;
         va->AddVertex(inset, y);
@@ -152,6 +154,7 @@ void xlGridCanvas::DrawBaseGrid(xlGraphicsContext *ctx)
         va->AddVertex(x + lwidth, inset + height);
     }
 
+    // use triangles as lines on retina displays are VERY thin, almost invisible
     ctx->drawTriangles(va, *mGridlineColor);
     delete va;
 }

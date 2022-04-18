@@ -27,10 +27,11 @@ class FPPEventThread : public wxThread
     int _major;
     int _minor;
     int _method = 2;
+    std::string _localIP;
 
 public:
-    FPPEventThread(const std::string& ip, int method, int major, int minor) :
-        _ip(ip), _major(major), _minor(minor), _method(method)
+    FPPEventThread(const std::string& ip, int method, int major, int minor, const std::string& localIP) :
+        _ip(ip), _major(major), _minor(minor), _method(method), _localIP(localIP)
     {
     }
 
@@ -75,11 +76,11 @@ public:
 
             // Open the socket
             wxIPV4address localaddr;
-            if (IPOutput::GetLocalIP() == "") {
+            if (_localIP == "") {
                 localaddr.AnyAddress();
             }
             else {
-                localaddr.Hostname(IPOutput::GetLocalIP());
+                localaddr.Hostname(_localIP);
             }
 
             wxDatagramSocket* socket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
@@ -218,7 +219,7 @@ void PlayListItemFPPEvent::Frame(uint8_t* buffer, size_t size, size_t ms, size_t
     {
         _started = true;
 
-        FPPEventThread* thread = new FPPEventThread(_ip, _method, _major, _minor);
+        FPPEventThread* thread = new FPPEventThread(_ip, _method, _major, _minor, GetLocalIP());
         thread->Run();
         wxMicroSleep(1); // encourage the thread to run        }
     }

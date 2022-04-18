@@ -35,7 +35,7 @@ bool ListenerFPP::IsValidHeader(uint8_t* buffer)
             buffer[3] == 'D';
 }
 
-ListenerFPP::ListenerFPP(ListenerManager* listenerManager) : ListenerBase(listenerManager)
+ListenerFPP::ListenerFPP(ListenerManager* listenerManager, const std::string& localIP) : ListenerBase(listenerManager, localIP)
 {
     _frameMS = 50;
     _socket = nullptr;
@@ -45,7 +45,7 @@ void ListenerFPP::Start()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("FPP listener starting.");
-    _thread = new ListenerThread(this);
+    _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerFPP::Stop()
@@ -67,7 +67,7 @@ void ListenerFPP::Stop()
     }
 }
 
-void ListenerFPP::StartProcess()
+void ListenerFPP::StartProcess(const std::string& localIP)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

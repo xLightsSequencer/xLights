@@ -885,8 +885,10 @@ void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, double radius,
 {
     double interpolation = 0.75;
     double t = (double)thickness - 1.0 + interpolation;
+    double radRot = (rotation) * (M_PI / 180.0);
 
-    for (double x = -2.0; x <= 2.0; x += 0.01f)
+    double xincr = 0.01;
+    for (double x = -2.0; x <= 2.0; x += xincr)
     {
         double y1 = std::sqrt(1.0 - (std::abs(x) - 1.0) * (std::abs(x) - 1.0));
         double y2 = std::acos(1.0 - std::abs(x)) - M_PI;
@@ -895,22 +897,31 @@ void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, double radius,
 
         for (double i = 0.0; i < t; i += interpolation)
         {
-            if (r >= 0)
+            if (r >= 0.0)
             {
-				double xx1 = std::round(x * r / 2.0);
-				double yy1 = std::round(y1 * r / 2.0);
+				double xx = (x * r) / 2.0;
+				double yy1 = (y1 * r) / 2.0;
+				double yy2 = (y2 * r) / 2.0;
 
-				double xx2 = std::round(x * r / 2.0);
-				double yy2 = std::round(y2 * r / 2.0);
 				//now rotation
-				double radRot = (rotation) * (M_PI / 180.0);
-				double rx1 = (xx1 * cos(radRot)) - (yy1 * sin(radRot));
-				double ry1 = (yy1 * cos(radRot)) + (xx1 * sin(radRot));
-				double rx2 = (xx2 * cos(radRot)) - (yy2 * sin(radRot));
-				double ry2 = (yy2 * cos(radRot)) + (xx2 * sin(radRot));
+				double rx1 = (xx * cos(radRot)) - (yy1 * sin(radRot)) + xc;
+				double ry1 = (yy1 * cos(radRot)) + (xx * sin(radRot)) + yc;
+				double rx2 = (xx * cos(radRot)) - (yy2 * sin(radRot)) + xc;
+				double ry2 = (yy2 * cos(radRot)) + (xx * sin(radRot)) + yc;
 
-                buffer.SetPixel(rx1 + xc, ry1 + yc, color);
-                buffer.SetPixel(rx2 + xc, ry2 + yc, color);
+                buffer.SetPixel(std::round(rx1), std::round(ry1), color);
+                buffer.SetPixel(std::round(rx2), std::round(ry2), color);
+
+                if (x + xincr > 2.0 || x == -2.0 + xincr) {
+                    if (yy1 > yy2)
+                        std::swap(yy1, yy2);
+                    for (double z = yy1; z < yy2; z += 0.5) {
+                        // we have to rotate here as well
+                        double rx1 = (xx * cos(radRot)) - (z * sin(radRot)) + xc;
+                        double ry1 = (z * cos(radRot)) + (xx * sin(radRot)) + yc;
+                        buffer.SetPixel(std::round(rx1), std::round(ry1), color);
+                    }
+                }
             }
             else
             {

@@ -27,6 +27,7 @@
 #include "BufferPanel.h"
 #include "EffectIconPanel.h"
 #include "JukeboxPanel.h"
+#include "FindDataPanel.h"
 #include "EffectsPanel.h"
 #include "TimingPanel.h"
 #include "ColorPanel.h"
@@ -38,6 +39,7 @@
 #include "ColoursPanel.h"
 #include "sequencer/MainSequencer.h"
 #include "HousePreviewPanel.h"
+#include "ExternalHooks.h"
 
 #include "xLightsVersion.h"
 
@@ -83,7 +85,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     wxString myString = "Hello";
     UnsavedRgbEffectsChanges = false;
 
-    if (!effectsFile.FileExists()) {
+    if (!FileExists(effectsFile)) {
         // file does not exist, so create an empty xml doc
         CreateDefaultEffectsXml();
     }
@@ -94,7 +96,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         xx.SetExt("xbkp");
         wxString asfile = xx.GetLongPath();
 
-        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && wxFile::Exists(asfile)) {
+        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && FileExists(asfile)) {
             // the autosave file exists
             wxDateTime xmltime = fn.GetModificationTime();
             wxFileName asfn(asfile);
@@ -117,7 +119,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
                     wxRenameFile(asfile, effectsFile.GetFullPath());
                 }
                 else {
-                    if (wxFile::Exists(fn.GetFullPath())) {
+                    if (FileExists(fn.GetFullPath())) {
                         //set the backup to be older than the XML files to avoid re-promting
                         xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resolution is 2 seconds
                         asfn.SetTimes(&xmltime, &xmltime, &xmltime);
@@ -267,18 +269,18 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
     mBackgroundImage = FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage", ""));
     ObtainAccessToURL(mBackgroundImage.ToStdString());
-    if (mBackgroundImage != "" && (!wxFileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage))) {
+    if (mBackgroundImage != "" && (!FileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage))) {
         //image doesn't exist there, lets look for it in media directories
         wxString bgImg = GetXmlSetting("backgroundImage", "");
         for (auto &dir : mediaDirectories) {
             wxString fn = FixFile(dir, bgImg);
             ObtainAccessToURL(fn.ToStdString());
-            if (wxFileExists(fn) && wxIsReadable(fn)) {
+            if (FileExists(fn) && wxIsReadable(fn)) {
                 mBackgroundImage = fn;
                 break;
             }
         }
-        if (!wxFileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage)) {
+        if (!FileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage)) {
             wxFileName name(mBackgroundImage);
             name.SetPath(CurrentDir);
             if (name.Exists()) {
@@ -1178,6 +1180,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (origFilenames.IsEmpty()) {
+        _lowDefinitionRender = _saveLowDefinitionRender;
         _renderMode = false;
         EnableSequenceControls(true);
         logger_base.debug("Batch render done.");
@@ -1313,6 +1316,9 @@ void xLightsFrame::SaveSequence()
         xmlFileName.SetExt("xsq");
         CurrentSeqXmlFile->SetPath(xmlFileName.GetPath());
         CurrentSeqXmlFile->SetFullName(xmlFileName.GetFullName());
+
+        AddToMRU(xmlFileName.GetFullPath());
+        UpdateRecentFilesList(false);
 
         wxFileName fseqFileName(NewFilename);//create FSEQ file name in seq folder
         fseqFileName.SetExt("fseq");
@@ -1482,6 +1488,8 @@ void xLightsFrame::SaveAsSequence(const std::string& filename)
     _renderCache.SetSequence(renderCacheDirectory, oName.GetName());
     SaveSequence();
     SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);
+    AddToMRU(filename);
+    UpdateRecentFilesList(false);
 }
 
 void xLightsFrame::RenderAll()
@@ -1574,8 +1582,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllToolbarControls(ACToolbar, enableSeq);
     mainSequencer->CheckBox_SuspendRender->Enable(enableSeq);
     enableAllToolbarControls(ViewToolBar, enable);
-    enableAllToolbarControls(OutputToolBar, enable);
-
+    PlayToolBar->EnableTool(ID_CHECKBOX_LIGHT_OUTPUT, enable);
 
     enableAllChildControls(EffectsPanel1, enableSeqNotAC);
     if (enableSeqNotAC) EffectsPanel1->ValidateWindow();
@@ -1594,7 +1601,8 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllChildControls(_coloursPanel, enableSeqNotAC);
     //if (enableSeqNotAC) _coloursPanel->ValidateWindow();
     enableAllChildControls(jukeboxPanel, enableSeqNotAC);
-    //if (enableSeqNotAC) jukeboxPanel->ValidateWindow();
+    enableAllChildControls(_findDataPanel, enableSeq);
+    // if (enableSeqNotAC) jukeboxPanel->ValidateWindow();
     UpdateACToolbar(enable);
 
     enableAllMenubarControls(MenuBar, enable);
@@ -1616,6 +1624,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItem_ImportEffects->Enable(false);
         MenuItemShiftEffects->Enable(false);
         MenuItemShiftSelectedEffects->Enable(false);
+        MenuItem_ColorReplace->Enable(false);
     }
     if (!enable && _seqData.NumFrames() > 0) {
         //file is loaded, but we're doing something that requires controls disabled (such as rendering)

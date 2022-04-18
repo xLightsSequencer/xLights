@@ -60,8 +60,10 @@ Output::Output(Output* output) {
     _suppressDuplicateFrames = output->IsSuppressDuplicateFrames();
     _description_CONVERT = output->GetDescription_CONVERT();
     _autoSize_CONVERT = output->IsAutoSize_CONVERT();
+    _forceLocalIP = output->GetForceLocalIP();
     _fppProxy = output->GetFPPProxyIP();
     _globalFPPProxy = output->_globalFPPProxy;
+    _globalForceLocalIP = output->_globalForceLocalIP;
     _enabled = output->IsEnabled();
 }
 
@@ -180,6 +182,16 @@ void Output::SetIP(const std::string& ip) {
         _resolvedIp = _ip;
         _dirty = true;
     }
+}
+
+std::string Output::GetForceLocalIPToUse() const
+{
+    auto lip = GetForceLocalIP();
+    if (lip == "")
+        lip = _globalForceLocalIP;
+    if (lip != "" && !IsValidLocalIP(lip))
+        lip = "";
+    return lip;
 }
 
 void Output::SetTransientData(int32_t& startChannel, int nullnumber) {

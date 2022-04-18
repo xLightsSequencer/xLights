@@ -39,7 +39,7 @@ protected:
     #pragma endregion 
 
     #pragma region Private Functions
-    static void Heartbeat(int mode);
+    static void Heartbeat(int mode, const std::string& localIP);
     void OpenDatagram();
     #pragma endregion
 

@@ -71,6 +71,9 @@ std::string Command::GetParametersTip() const
         case PARMTYPE::STRING:
             tip += "<text>";
             break;
+        case PARMTYPE::OPTIONALSTRING:
+            tip += "[text]";
+            break;
         case PARMTYPE::COMMAND:
             tip += "<command>";
             break;
@@ -86,151 +89,130 @@ std::string Command::GetParametersTip() const
     return tip;
 }
 
+size_t Command::GetMandatoryParametersCount() const
+{
+    size_t count = 0;
+    for (const auto it : _parmtype) {
+        if (it != PARMTYPE::OPTIONALSTRING)
+            count++;
+    }
+    return count;
+}
+
 #ifndef EXCLUDE_COMMAND_VALIDATION
 bool Command::IsValid(wxString parms, PlayList* selectedPlayList, PlayListStep* selectedPlayListStep, Schedule* selectedSchedule, ScheduleManager* scheduleManager, wxString& msg, bool queuedMode) const
 {
     auto components = wxSplit(parms, ',');
 
-    if (_parms != -1 && components.Count() != _parms)
-    {
-        msg = wxString::Format("Invalid number of parameters. Found %d when there should be %d.", (int)components.Count(), _parms).ToStdString();
+    if (_parms != -1 && components.Count() != GetMandatoryParametersCount()) {
+        msg = wxString::Format("Invalid number of parameters. Found %d when there should be %d.", (int)components.Count(), GetMandatoryParametersCount()).ToStdString();
         return false;
     }
 
-    if (queuedMode && !_worksInQueuedMode)
-    {
+    if (queuedMode && !_worksInQueuedMode) {
         msg = "Command not valid when running in queued mode.";
         return false;
     }
 
-    if (!_worksInSlaveMode && scheduleManager->IsSlave())
-    {
+    if (!_worksInSlaveMode && scheduleManager->IsSlave()) {
         msg = "Command not valid when running in FPP Remote mode.";
         return false;
     }
 
-    if (_requiresSelectedPlaylist && selectedPlayList == nullptr)
-    {
+    if (_requiresSelectedPlaylist && selectedPlayList == nullptr) {
         msg = "Playlist not selected.";
         return false;
     }
 
-    if (_requiresSelectedPlaylistStep && selectedPlayListStep == nullptr)         {
+    if (_requiresSelectedPlaylistStep && selectedPlayListStep == nullptr) {
         msg = "Playlist step not selected.";
         return false;
     }
 
-    if (_requiresSelectedSchedule && selectedSchedule == nullptr)
-    {
+    if (_requiresSelectedSchedule && selectedSchedule == nullptr) {
         msg = "Schedule not selected.";
         return false;
     }
 
     PlayList* pl = scheduleManager->GetRunningPlayList();
-    if (_requiresPlayingPlaylist && pl == nullptr && scheduleManager->GetEventPlayLists().size() == 0 && scheduleManager->GetNonStoppedCount() == 0)
-    {
+    if (_requiresPlayingPlaylist && pl == nullptr && scheduleManager->GetEventPlayLists().size() == 0 && scheduleManager->GetNonStoppedCount() == 0) {
         msg = "Playlist not playing.";
         return false;
     }
 
     RunningSchedule* sch = scheduleManager->GetRunningSchedule();
-    if (_requiresPlayingSchedule && sch == nullptr && scheduleManager->GetNonStoppedCount() == 0)
-    {
+    if (_requiresPlayingSchedule && sch == nullptr && scheduleManager->GetNonStoppedCount() == 0) {
         msg = "Schedule not playing.";
         return false;
     }
 
-    for (int i = 0; i < _parms; i++)
-    {
-
-        if (_parmtype[i] == PARMTYPE::INTEGER && !components[i].IsNumber())
-        {
+    for (int i = 0; i < _parms; i++) {
+        if (_parmtype[i] == PARMTYPE::INTEGER && !components[i].IsNumber()) {
             msg = wxString::Format("Parameter %d: '%s' is not a number.", i + 1, components[i].c_str()).ToStdString();
             return false;
-        }
-        else if (_parmtype[i] == PARMTYPE::PLAYLIST && scheduleManager->GetPlayList(components[i].ToStdString()) == nullptr && scheduleManager->GetPlayList(scheduleManager->DecodePlayList(components[i].ToStdString())) == nullptr)
-        {
+        } else if (_parmtype[i] == PARMTYPE::PLAYLIST && scheduleManager->GetPlayList(components[i].ToStdString()) == nullptr && scheduleManager->GetPlayList(scheduleManager->DecodePlayList(components[i].ToStdString())) == nullptr) {
             msg = wxString::Format("Parameter %d: '%s' is not a known playlist.", i + 1, components[i].c_str()).ToStdString();
             return false;
-        }
-        else if (_parmtype[i] == PARMTYPE::STEP)
-        {
+        } else if (_parmtype[i] == PARMTYPE::STEP) {
             // assume the prior parameter is a playlist ... this is important
-            if (components.Count() < 2)
-            {
+            if (components.Count() < 2) {
                 pl = scheduleManager->GetRunningPlayList();
-                if (pl == nullptr)
-                {
+                if (pl == nullptr) {
                     msg = "No playlist running.";
                     return false;
                 }
-            }
-            else
-            {
+            } else {
                 pl = scheduleManager->GetPlayList(components[i - 1].ToStdString());
-                if (pl == nullptr)
-                {
-                    pl = scheduleManager->GetPlayList(scheduleManager->DecodePlayList(components[i-1].ToStdString()));
+                if (pl == nullptr) {
+                    pl = scheduleManager->GetPlayList(scheduleManager->DecodePlayList(components[i - 1].ToStdString()));
 
-                    if (pl == nullptr)
-                    {
+                    if (pl == nullptr) {
                         msg = wxString::Format("Parameter %d: '%s' is not a known playlist.", i, components[i - 1].c_str()).ToStdString();
                         return false;
                     }
                 }
             }
 
-            if (pl->GetStep(components[i].ToStdString()) == nullptr && pl->GetStep(scheduleManager->DecodeStep(components[i].ToStdString())) == nullptr)
-            {
-                msg = wxString::Format("Parameter %d: '%s' is not a known step in playlist '%s'.", i+1, components[i].c_str(), pl->GetNameNoTime().c_str()).ToStdString();
+            if (pl->GetStep(components[i].ToStdString()) == nullptr && pl->GetStep(scheduleManager->DecodeStep(components[i].ToStdString())) == nullptr) {
+                msg = wxString::Format("Parameter %d: '%s' is not a known step in playlist '%s'.", i + 1, components[i].c_str(), pl->GetNameNoTime().c_str()).ToStdString();
                 return false;
             }
-        }
-        else if (_parmtype[i] == PARMTYPE::ITEM)
-        {
+        } else if (_parmtype[i] == PARMTYPE::ITEM) {
             // assume the prior parameters are playlist and step ... this is important
-            if (components.Count() < 3)
-            {
-                    msg = "Not enough parameters.";
-                    return false;
+            if (components.Count() < 3) {
+                msg = "Not enough parameters.";
+                return false;
             }
 
             pl = scheduleManager->GetPlayList(components[i - 2].ToStdString());
-            if (pl == nullptr)
-            {
+            if (pl == nullptr) {
                 pl = scheduleManager->GetPlayList(scheduleManager->DecodePlayList(components[i - 2].ToStdString()));
 
-                if (pl == nullptr)
-                {
+                if (pl == nullptr) {
                     msg = wxString::Format("Parameter %d: '%s' is not a known playlist.", i - 1, components[i - 2].c_str()).ToStdString();
                     return false;
                 }
             }
 
             PlayListStep* pls = pl->GetStep(components[i - 1].ToStdString());
-            if (pls == nullptr)
-            {
+            if (pls == nullptr) {
                 pls = pl->GetStep(scheduleManager->DecodeStep(components[i - 1].ToStdString()));
-                if (pls == nullptr)
-                {
+                if (pls == nullptr) {
                     msg = wxString::Format("Parameter %d: '%s' is not a known step in playlist '%s'.", i, components[i - 1].c_str(), pl->GetNameNoTime().c_str()).ToStdString();
                     return false;
                 }
             }
 
             PlayListItem* pli = pls->GetItem(components[i].ToStdString());
-            if (pli == nullptr)
-            {
+            if (pli == nullptr) {
                 pli = pls->GetItem(scheduleManager->DecodeItem(components[i].ToStdString()));
-                if (pli == nullptr)
-                {
+                if (pli == nullptr) {
                     msg = wxString::Format("Parameter %d: '%s' is not a known item in step '%s' in playlist '%s'.", i + 1, components[i].c_str(), pls->GetNameNoTime().c_str(), pl->GetNameNoTime().c_str()).ToStdString();
                     return false;
                 }
             }
 
-            if (pli->GetTitle() != "Run Process")
-            {
+            if (pli->GetTitle() != "Run Process") {
                 msg = wxString::Format("Parameter %d: '%s' is not a run process item in step '%s' in playlist '%s'.", i + 1, components[i].c_str(), pls->GetNameNoTime().c_str(), pl->GetNameNoTime().c_str()).ToStdString();
                 return false;
             }
@@ -288,6 +270,7 @@ CommandManager::CommandManager()
     PARMTYPE s[] = { PARMTYPE::STRING };
     PARMTYPE ss[] = { PARMTYPE::STRING, PARMTYPE::STRING };
     PARMTYPE sss[] = { PARMTYPE::STRING, PARMTYPE::STRING, PARMTYPE::STRING };
+    PARMTYPE sst[] = { PARMTYPE::STRING, PARMTYPE::STRING, PARMTYPE::OPTIONALSTRING };
     PARMTYPE iiss[] = { PARMTYPE::INTEGER, PARMTYPE::INTEGER, PARMTYPE::STRING, PARMTYPE::STRING };
     PARMTYPE sch[] = { PARMTYPE::SCHEDULE };
     // PARMTYPE c[] = { PARMTYPE::COMMAND };
@@ -401,5 +384,5 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Fire plugin event", 1, s, false, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Start plugin", 1, s, false, false, false, false, false, false, true, true, false));
     _commands.push_back(new Command("Stop plugin", 1, s, false, false, false, false, false, false, true, true, false));
-    _commands.push_back(new Command("Send command to plugin", 3, sss, false, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Send command to plugin", 3, sst, false, false, false, false, false, false, true, true, false));
 }

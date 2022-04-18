@@ -90,29 +90,6 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
 }
 
 
-static bool inSyncPoint = false;
-static std::list<id<CAMetalDrawable>> drawablesToPresent;
-static std::list<id<MTLCommandBuffer>> buffersToComplete;
-void StartMetalGraphicsSyncPoint() {
-    inSyncPoint = true;
-}
-void EndMetalGraphicsSyncPoint() {
-    inSyncPoint = false;
-    while (!buffersToComplete.empty()) {
-        id<MTLCommandBuffer> buffer = buffersToComplete.front();
-        buffersToComplete.pop_front();
-        [buffer waitUntilCompleted];
-        [buffer release];
-
-    }
-    while (!drawablesToPresent.empty()) {
-        id<CAMetalDrawable> drawable = drawablesToPresent.front();
-        drawablesToPresent.pop_front();
-        [drawable present];
-        [drawable release];
-    }
-}
-
 
 xlMetalGraphicsContext::~xlMetalGraphicsContext() {
     if (drawable != nil) {
@@ -124,7 +101,7 @@ void xlMetalGraphicsContext::Commit(bool displayOnScreen, id<MTLBuffer> captureB
     if (encoder != nil) {
         @autoreleasepool {
             [encoder endEncoding];
-            if (!inSyncPoint && displayOnScreen) {
+            if (!xlMetalCanvas::isInSyncPoint() && displayOnScreen) {
                 [buffer presentDrawable:drawable];
             }
             if (!displayOnScreen) {
@@ -152,13 +129,12 @@ void xlMetalGraphicsContext::Commit(bool displayOnScreen, id<MTLBuffer> captureB
 
             if (!displayOnScreen) {
                 [buffer waitUntilCompleted];
-            } else if (!inSyncPoint) {
+            } else if (!xlMetalCanvas::isInSyncPoint()) {
                 [drawable release];
                 drawable = nil;
             } else {
                 [buffer retain];
-                buffersToComplete.push_back(buffer);
-                drawablesToPresent.push_back(drawable);
+                wxMetalCanvas::addToSyncPoint(buffer, drawable);
                 drawable = nil;
                 buffer = nil;
             }
@@ -1299,7 +1275,11 @@ public:
         NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
         [vbuffer setLabel:n];
         sz = indexes.size() * sizeof(uint32_t);
-        ibuffer = [wxMetalCanvas::getMTLDevice() newBufferWithBytes:&indexes[0] length:sz options:MTLResourceStorageModeManaged];
+        if (sz == 0) {
+            ibuffer = [wxMetalCanvas::getMTLDevice() newBufferWithLength:12 options:MTLResourceStorageModeManaged];
+        } else {
+            ibuffer = [wxMetalCanvas::getMTLDevice() newBufferWithBytes:&indexes[0] length:sz options:MTLResourceStorageModeManaged];
+        }
         n2 = name + " Indexes";
         n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
         [ibuffer setLabel:n];
@@ -1321,7 +1301,7 @@ xlMesh *xlMetalGraphicsContext::loadMeshFromObjFile(const std::string &file) {
     return new xlMetalMesh(this, file);
 }
 
-xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brightness, bool applyShading) {
+xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brightness, bool useViewMatrix) {
     xlMetalMesh *xlm = (xlMetalMesh*)mesh;
     if (xlm->vbuffer == nil) {
         xlm->LoadBuffers();
@@ -1339,7 +1319,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
     
     frameData.brightness = brightness;
     frameData.brightness /= 100.0;
-    frameData.applyShading = applyShading;
+    frameData.useViewMatrix = useViewMatrix;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
     
     [encoder setDepthStencilState:canvas->getDepthStencilStateL()];
@@ -1777,12 +1757,15 @@ xlGraphicsContext* xlMetalGraphicsContext::SetViewport(int topleft_x, int toplef
 //manipulating the matrices
 xlGraphicsContext* xlMetalGraphicsContext::PushMatrix() {
     matrixStack.push(frameData.MVP);
+    matrixStack.push(frameData.viewMatrix);
     matrixStack.push(frameData.modelMatrix);
     return this;
 }
 xlGraphicsContext* xlMetalGraphicsContext::PopMatrix() {
     if (!matrixStack.empty()) {
         frameData.modelMatrix = matrixStack.top();
+        matrixStack.pop();
+        frameData.viewMatrix = matrixStack.top();
         matrixStack.pop();
         frameData.MVP = matrixStack.top();
         matrixStack.pop();
@@ -1802,10 +1785,26 @@ inline simd::float4x4 mapMatrix(const glm::mat4 &m) {
 xlGraphicsContext* xlMetalGraphicsContext::SetCamera(const glm::mat4 &m) {
     simd::float4x4 vm = mapMatrix(m);
     frameData.MVP = matrix_multiply(frameData.MVP, vm);
-    frameData.modelMatrix = matrix_multiply(frameData.modelMatrix, vm);
+    frameData.viewMatrix = matrix_multiply(frameData.viewMatrix, vm);
     frameDataChanged = true;
     return this;
 }
+xlGraphicsContext* xlMetalGraphicsContext::ScaleViewMatrix(float w, float h, float z) {
+    simd::float4x4 m = matrix4x4_scale(w, h, z);
+    frameData.MVP = matrix_multiply(frameData.MVP, m);
+    frameData.viewMatrix = matrix_multiply(frameData.viewMatrix, m);
+    frameDataChanged = true;
+    return this;
+}
+xlGraphicsContext* xlMetalGraphicsContext::TranslateViewMatrix(float x, float y, float z) {
+    simd::float4x4 m = matrix4x4_translation(x, y, z);
+    frameData.MVP = matrix_multiply(frameData.MVP, m);
+    frameData.viewMatrix = matrix_multiply(frameData.viewMatrix, m);
+    frameDataChanged = true;
+    return this;
+}
+
+
 xlGraphicsContext* xlMetalGraphicsContext::SetModelMatrix(const glm::mat4 &m) {
     simd::float4x4 vm = mapMatrix(m);
     frameData.MVP = matrix_multiply(frameData.MVP, vm);

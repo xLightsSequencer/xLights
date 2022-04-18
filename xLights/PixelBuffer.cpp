@@ -203,8 +203,6 @@ namespace
       return a.x * b.x + a.y * b.y + a.z * b.z;
    }
 
-   const float PI = 3.14159265359f;
-
    // code for fold transition
    xlColor foldIn( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress, bool isReverse )
    {
@@ -974,13 +972,13 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->BufferHt, buf->BufferWi, "None");
         GPURenderUtils::setupRenderBuffer(this, buf);
-        layers[layer]->modelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
+        layers[layer]->shallowModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
 
 void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int layer, int timing)
 {
-    for (const auto& it : model.GetFlatModels()) {
+    for (const auto& it : model.GetFlatModels(false)) {
         Model* m = it;
         wxASSERT(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame);
@@ -988,20 +986,17 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->BufferHt, buf->BufferWi, "None");
         GPURenderUtils::setupRenderBuffer(this, buf);
-        layers[layer]->modelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
+        layers[layer]->deepModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
 
 void PixelBufferClass::InitBuffer(const Model& pbc, int layers, int timing, bool zeroBased)
 {
     modelName = pbc.GetFullName();
-    if (zeroBased)
-    {
+    if (zeroBased) {
         zbModel = pbc.GetModelManager().CreateModel(pbc.GetModelXml(), 0, 0, zeroBased);
         model = zbModel;
-    }
-    else
-    {
+    } else {
         model = &pbc;
     }
     reset(layers + 1, timing);
@@ -1080,32 +1075,32 @@ uint32_t PixelBufferClass::GetChanCountPerNode() const
 
 bool MixTypeHandlesAlpha(MixTypes mt)
 {
-    return mt == Mix_Normal;
+    return mt == MixTypes::Mix_Normal;
 }
 
 static std::map<std::string, MixTypes> MixTypesMap = {
-    {"Effect 1", Mix_Effect1},
-    {"Effect 2", Mix_Effect2},
-    {"1 is Mask", Mix_Mask1},
-    {"2 is Mask", Mix_Mask2},
-    {"1 is Unmask", Mix_Unmask1},
-    {"2 is Unmask", Mix_Unmask2},
-    {"1 is True Unmask", Mix_TrueUnmask1},
-    {"2 is True Unmask", Mix_TrueUnmask2},
-    {"1 reveals 2", Mix_1_reveals_2},
-    {"2 reveals 1", Mix_2_reveals_1},
-    {"Shadow 1 on 2", Mix_Shadow_1on2},
-    {"Shadow 2 on 1", Mix_Shadow_2on1},
-    {"Layered", Mix_Layered},
-    {"Normal", Mix_Normal},
-    {"Additive", Mix_Additive},
-    {"Subtractive", Mix_Subtractive},
-    {"Brightness", Mix_AsBrightness},
-    {"Average", Mix_Average},
-    {"Bottom-Top", Mix_BottomTop},
-    {"Left-Right", Mix_LeftRight},
-    {"Max", Mix_Max},
-    {"Min", Mix_Min}
+    { "Effect 1", MixTypes::Mix_Effect1 },
+    { "Effect 2", MixTypes::Mix_Effect2 },
+    { "1 is Mask", MixTypes::Mix_Mask1 },
+    { "2 is Mask", MixTypes::Mix_Mask2 },
+    { "1 is Unmask", MixTypes::Mix_Unmask1 },
+    { "2 is Unmask", MixTypes::Mix_Unmask2 },
+    { "1 is True Unmask", MixTypes::Mix_TrueUnmask1 },
+    { "2 is True Unmask", MixTypes::Mix_TrueUnmask2 },
+    { "1 reveals 2", MixTypes::Mix_1_reveals_2 },
+    { "2 reveals 1", MixTypes::Mix_2_reveals_1 },
+    { "Shadow 1 on 2", MixTypes::Mix_Shadow_1on2 },
+    { "Shadow 2 on 1", MixTypes::Mix_Shadow_2on1 },
+    { "Layered", MixTypes::Mix_Layered },
+    { "Normal", MixTypes::Mix_Normal },
+    { "Additive", MixTypes::Mix_Additive },
+    { "Subtractive", MixTypes::Mix_Subtractive },
+    { "Brightness", MixTypes::Mix_AsBrightness },
+    { "Average", MixTypes::Mix_Average },
+    { "Bottom-Top", MixTypes::Mix_BottomTop },
+    { "Left-Right", MixTypes::Mix_LeftRight },
+    { "Max", MixTypes::Mix_Max },
+    { "Min", MixTypes::Mix_Min }
 };
 
 std::vector<std::string> PixelBufferClass::GetMixTypes()
@@ -1122,7 +1117,7 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
 {
     auto it = MixTypesMap.find(MixName);
     if (it == MixTypesMap.end()) {
-        layers[layer]->mixType = Mix_Effect1;
+        layers[layer]->mixType = MixTypes::Mix_Effect1;
     } else {
         layers[layer]->mixType = it->second;
     }
@@ -1167,12 +1162,12 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
     float effectMixThreshold = layer->outputEffectMixThreshold;
     switch (layer->mixType)
     {
-    case Mix_Normal:
+    case MixTypes::Mix_Normal:
         fg.alpha = fg.alpha * layer->fadeFactor * (1.0 - effectMixThreshold);
         bg.AlphaBlendForgroundOnto(fg);
         break;
-    case Mix_Effect1:
-    case Mix_Effect2:
+    case MixTypes::Mix_Effect1:
+    case MixTypes::Mix_Effect2:
     {
         double emt, emtNot;
         if (!layer->effectMixVaries) {
@@ -1191,7 +1186,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             emtNot = 1 - effectMixThreshold;
         }
 
-        if (layer->mixType == Mix_Effect2) {
+        if (layer->mixType == MixTypes::Mix_Effect2) {
             fg.Set(fg.Red()*(emtNot),fg.Green()*(emtNot), fg.Blue()*(emtNot));
             bg.Set(bg.Red()*(emt),bg.Green()*(emt), bg.Blue()*(emt));
         } else {
@@ -1201,7 +1196,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         bg.Set(fg.Red()+bg.Red(), fg.Green()+bg.Green(), fg.Blue()+bg.Blue());
         break;
     }
-    case Mix_Mask1:
+    case MixTypes::Mix_Mask1:
     {
         // first masks second
         HSVValue hsv0 = fg.asHSV();
@@ -1210,7 +1205,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Mask2:
+    case MixTypes::Mix_Mask2:
     {
         // second masks first
         HSVValue hsv1 = bg.asHSV();
@@ -1221,7 +1216,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Unmask1:
+    case MixTypes::Mix_Unmask1:
     {
         // first unmasks second
         HSVValue hsv0 = fg.asHSV();
@@ -1234,7 +1229,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_TrueUnmask1:
+    case MixTypes::Mix_TrueUnmask1:
     {
         // first unmasks second
         HSVValue hsv0 = fg.asHSV();
@@ -1243,7 +1238,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Unmask2:
+    case MixTypes::Mix_Unmask2:
     {
         // second unmasks first
         HSVValue hsv1 = bg.asHSV();
@@ -1257,7 +1252,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_TrueUnmask2:
+    case MixTypes::Mix_TrueUnmask2:
     {
         // second unmasks first
         HSVValue hsv1 = bg.asHSV();
@@ -1269,7 +1264,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Shadow_1on2:
+    case MixTypes::Mix_Shadow_1on2:
     {
         // Effect 1 shadows onto effect 2
         HSVValue hsv0 = fg.asHSV();
@@ -1285,7 +1280,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         //   }
         break;
     }
-    case Mix_Shadow_2on1:
+    case MixTypes::Mix_Shadow_2on1:
     {
         // Effect 2 shadows onto effect 1
         HSVValue hsv0 = fg.asHSV();
@@ -1297,7 +1292,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         bg = hsv0;
         break;
     }
-    case Mix_Layered:
+    case MixTypes::Mix_Layered:
     {
         HSVValue hsv1 = bg.asHSV();
         if (hsv1.value <= effectMixThreshold) {
@@ -1305,7 +1300,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Average:
+    case MixTypes::Mix_Average:
         // only average when both colors are non-black
         if (bg == xlBLACK) {
             bg = fg;
@@ -1313,25 +1308,25 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             bg.Set( (fg.Red()+bg.Red())/2, (fg.Green()+bg.Green())/2, (fg.Blue()+bg.Blue())/2 );
         }
         break;
-    case Mix_BottomTop:
+    case MixTypes::Mix_BottomTop:
         bg = y < layer->BufferHt/2 ? fg : bg;
         break;
-    case Mix_LeftRight:
+    case MixTypes::Mix_LeftRight:
         bg = x < layer->BufferWi/2 ? fg : bg;
         break;
-    case Mix_1_reveals_2:
+    case MixTypes::Mix_1_reveals_2:
     {
         HSVValue hsv0 = fg.asHSV();
         bg = hsv0.value > effectMixThreshold ? fg : bg; // if effect 1 is non black
         break;
     }
-    case Mix_2_reveals_1:
+    case MixTypes::Mix_2_reveals_1:
     {
         HSVValue hsv1 = bg.asHSV();
         bg = hsv1.value > effectMixThreshold ? bg : fg; // if effect 2 is non black
         break;
     }
-    case Mix_Additive:
+    case MixTypes::Mix_Additive:
         {
             int r = fg.red + bg.red;
             int g = fg.green + bg.green;
@@ -1342,7 +1337,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             bg.Set(r, g, b);
         }
         break;
-    case Mix_Subtractive:
+    case MixTypes::Mix_Subtractive:
         {
             int r = bg.red - fg.red;
             int g = bg.green - fg.green;
@@ -1354,7 +1349,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
 
-    case Mix_Min:
+    case MixTypes::Mix_Min:
         {
             int r = std::min(fg.red, bg.red);
             int g = std::min(fg.green, bg.green);
@@ -1362,7 +1357,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             bg.Set(r, g, b);
         }
         break;
-    case Mix_Max:
+    case MixTypes::Mix_Max:
         {
             int r = std::max(fg.red, bg.red);
             int g = std::max(fg.green, bg.green);
@@ -1370,7 +1365,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             bg.Set(r, g, b);
         }
         break;
-    case Mix_AsBrightness:
+    case MixTypes::Mix_AsBrightness:
         {
         int r = fg.red * bg.red / 255;
         int g = fg.green *  bg.green / 255;
@@ -2036,8 +2031,8 @@ void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors, xlColorCu
 {
     RenderBuffer& buf = layers[layer]->buffer;
     buf.SetPalette(newcolors, newcc);
-    if (layers[layer]->usingModelBuffers) {
-        for (auto& it : layers[layer]->modelBuffers) {
+    if (layers[layer]->modelBuffers) {
+        for (auto& it : *(layers[layer]->modelBuffers)) {
             it->SetPalette(newcolors, newcc);
         }
     }
@@ -2426,7 +2421,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->camera = settingsMap.Get(CHOICE_PerPreviewCamera, "2D");
     inf->transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
 
-    const std::string &type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
+    std::string type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
     const std::string &camera = settingsMap.Get(CHOICE_PerPreviewCamera, "2D");
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
     const std::string &subBuffer = settingsMap.Get(CUSTOM_SubBuffer, STR_EMPTY);
@@ -2480,13 +2475,28 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         // 2019-02-22 This was "Horizontal Per Model" but it causes DMX Model issues ...
         // so I have changed it to "Single Line". In theory both should create all the nodes
         auto tt = type;
-        if (StartsWith(type, "Per Model")) {
-            tt = "Single Line";
+        bool go_deep = false;
+        if (model->Name() == "PRESET_Matrix_XYZZY") {
+            // for presets we just turn it into the non-per model style
+            if (StartsWith(type, "Per Model")) {
+                type = type.substr(10);
+                if (EndsWith(type, "Deep")) {
+                    type = type.substr(0, type.length() - 5);
+                }
+            }
+        } else {
+            if (StartsWith(type, "Per Model")) {
+                tt = "Single Line";
+                if (type.compare(type.length() - 4, 4, "Deep") == 0) {
+                    go_deep = true;
+                }
+            }
         }
-        model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+
+        model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, go_deep);
         if (origNodeCount != 0 && origNodeCount != inf->buffer.Nodes.size()) {
             inf->buffer.Nodes.clear();
-            model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+            model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, go_deep);
         }
 
         int curBH = inf->BufferHt;
@@ -2538,47 +2548,51 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
         GPURenderUtils::setupRenderBuffer(this, &inf->buffer);
 
-        if (type.compare(0, 9, "Per Model") == 0) {
-            inf->usingModelBuffers = true;
+        if (type.compare(0, 9, "Per Model") == 0 && model->GetDisplayAs() == "ModelGroup") {
             if (type.compare(type.length()-4, 4, "Deep") == 0) {
-                inf->usingModelBuffersDeep = true;
+                inf->modelBuffers = &inf->deepModelBuffers;
                 const ModelGroup* gp = dynamic_cast<const ModelGroup*>(model);
-                std::list<Model*> flat_models = gp->GetFlatModels();
-                std::list<Model*>::iterator it_m = flat_models.begin();
-                for (const auto& it : inf->modelBuffers) {
-                    std::string ntype = type.substr(10, type.length() - 10);
-                    int bw, bh;
-                    it->Nodes.clear();
-                    (*it_m)->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
-                    if (bw == 0)
-                        bw = 1; // zero sized buffers are a problem
-                    if (bh == 0)
-                        bh = 1;
-                    it->InitBuffer(bh, bw, bh, bw, transform);
-                    it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
-                    GPURenderUtils::setupRenderBuffer(this, it.get());
-                    ++it_m;
+                if (gp != nullptr) {
+                    std::list<Model*> flat_models = gp->GetFlatModels(false);
+                    std::list<Model*>::iterator it_m = flat_models.begin();
+                    for (const auto& it : inf->deepModelBuffers) {
+                        std::string ntype = "Default"; // type.substr(10, type.length() - 10);
+                        int bw, bh;
+                        it->Nodes.clear();
+                        (*it_m)->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
+                        if (bw == 0)
+                            bw = 1; // zero sized buffers are a problem
+                        if (bh == 0)
+                            bh = 1;
+                        it->InitBuffer(bh, bw, bh, bw, transform);
+                        it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
+                        GPURenderUtils::setupRenderBuffer(this, it.get());
+                        ++it_m;
+                    }
                 }
             } else {
+                inf->modelBuffers = &inf->shallowModelBuffers;
                 const ModelGroup* gp = dynamic_cast<const ModelGroup*>(model);
-                int cnt = 0;
-                for (const auto& it : inf->modelBuffers) {
-                    std::string ntype = type.substr(10, type.length() - 10);
-                    int bw, bh;
-                    it->Nodes.clear();
-                    gp->Models()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
-                    if (bw == 0)
-                        bw = 1; // zero sized buffers are a problem
-                    if (bh == 0)
-                        bh = 1;
-                    it->InitBuffer(bh, bw, bh, bw, transform);
-                    it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
-                    GPURenderUtils::setupRenderBuffer(this, it.get());
-                    ++cnt;
+                if (gp != nullptr) {
+                    int cnt = 0;
+                    for (const auto& it : inf->shallowModelBuffers) {
+                        std::string ntype = type.substr(10, type.length() - 10);
+                        int bw, bh;
+                        it->Nodes.clear();
+                        gp->Models()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
+                        if (bw == 0)
+                            bw = 1; // zero sized buffers are a problem
+                        if (bh == 0)
+                            bh = 1;
+                        it->InitBuffer(bh, bw, bh, bw, transform);
+                        it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
+                        GPURenderUtils::setupRenderBuffer(this, it.get());
+                        ++cnt;
+                    }
                 }
             }
         } else {
-            inf->usingModelBuffers = false;
+            inf->modelBuffers = nullptr;
         }
     }
 }
@@ -2599,53 +2613,48 @@ int PixelBufferClass::GetSuppressUntil(int layer)
 
 RenderBuffer& PixelBufferClass::BufferForLayer(int layer, int idx)
 {
-    if (idx >= 0 && layers[layer]->usingModelBuffers && idx < layers[layer]->modelBuffers.size()) {
-        return *layers[layer]->modelBuffers[idx];
+    if (idx >= 0 && layers[layer]->modelBuffers && idx < layers[layer]->modelBuffers->size()) {
+        return *(*layers[layer]->modelBuffers)[idx];
     }
     return layers[layer]->buffer;
 }
 
 uint32_t PixelBufferClass::BufferCountForLayer(int layer)
 {
-    if (layers[layer]->usingModelBuffers) {
-        return layers[layer]->modelBuffers.size();
+    if (layers[layer]->modelBuffers) {
+        return layers[layer]->modelBuffers->size();
     }
     return 1;
 }
 
 void PixelBufferClass::MergeBuffersForLayer(int layer) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (layers[layer]->usingModelBuffers) {
+    if (layers[layer]->modelBuffers) {
         //get all the data
         xlColor color;
         int nc = 0;
-        for (auto& modelBuffer : layers[layer]->modelBuffers) {
+        for (auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             GPURenderUtils::waitForRenderCompletion(modelBuffer.get());
         }
-        for (const auto& modelBuffer : layers[layer]->modelBuffers) {
+        for (const auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             for (const auto& node : modelBuffer->Nodes) {
-                if (nc < layers[layer]->buffer.Nodes.size())
-                {
+                if (nc < layers[layer]->buffer.Nodes.size()) {
                     modelBuffer->GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
                     for (const auto& coord : layers[layer]->buffer.Nodes[nc]->Coords) {
                         layers[layer]->buffer.SetPixel(coord.bufX, coord.bufY, color);
                     }
                     nc++;
-                }
-                else
-                {
+                } else {
                     // Where this happens it is usually a sign that there is a bug in one of our models where it creates a different number of nodes depending on the render buffer size
                     // To find the cause uncomment the model group function TestNodeInit and the call in PixelBuffer::SetLayerSettings
 
-                    if (layers[layer]->buffer.curPeriod == layers[layer]->buffer.curEffStartPer)
-                    {
+                    if (layers[layer]->buffer.curPeriod == layers[layer]->buffer.curEffStartPer) {
                         logger_base.warn("PixelBufferClass::MergeBuffersForLayer(%d) Model '%s' Mismatch in number of nodes across layers.", layer, (const char*)modelName.c_str());
-                        for (int i = 0; i < GetLayerCount(); i++)
-                        {
+                        for (int i = 0; i < GetLayerCount(); i++) {
                             logger_base.warn("    Layer %d node count %d buffer '%s'", i, (int)layers[i]->buffer.Nodes.size(), (const char*)layers[i]->bufferType.c_str());
                         }
                         int mbnodes = 0;
-                        for (const auto& mb : layers[layer]->modelBuffers) {
+                        for (const auto& mb : *(layers[layer]->modelBuffers)) {
                             mbnodes += mb->Nodes.size();
                         }
                         wxASSERT(false);
@@ -2659,24 +2668,21 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
 void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
 {
     layers[layer]->buffer.SetState(period, resetState, modelName);
-    if (layers[layer]->usingModelBuffersDeep) {
-        int cnt = 0;
+    if (layers[layer]->modelBuffers == &layers[layer]->deepModelBuffers) {
         const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
-        std::list<Model*> flat_models = grp->GetFlatModels();
+        std::list<Model*> flat_models = grp->GetFlatModels(false);
         std::list<Model*>::iterator it_m = flat_models.begin();
-        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it, it_m++) {
-            if (frame->AllModels[(*it_m)->Name()] == nullptr)
-                {
-                (*it)->SetState(period, resetState, grp->Models()[cnt]->GetFullName());
+        for (auto it = layers[layer]->modelBuffers->begin(); it != layers[layer]->modelBuffers->end(); ++it, it_m++) {
+            if (frame->AllModels[(*it_m)->Name()] == nullptr) {
+                (*it)->SetState(period, resetState, (*it_m)->GetFullName());
             } else {
-                (*it)->SetState(period, resetState, grp->Models()[cnt]->Name());
+                (*it)->SetState(period, resetState, (*it_m)->Name());
             }
         }
-    }
-    else if (layers[layer]->usingModelBuffers) {
+    } else if (layers[layer]->modelBuffers) {
         int cnt = 0;
         const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
-        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it, cnt++) {
+        for (auto it = layers[layer]->modelBuffers->begin(); it != layers[layer]->modelBuffers->end(); ++it, cnt++) {
             if (frame->AllModels[grp->Models()[cnt]->Name()] == nullptr) {
                 (*it)->SetState(period, resetState, grp->Models()[cnt]->GetFullName());
             } else {
@@ -2689,8 +2695,8 @@ void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
 void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 {
     layers[layer]->buffer.SetEffectDuration(startTime, endTime);
-    if (layers[layer]->usingModelBuffers) {
-        for (const auto& it : layers[layer]->modelBuffers) {
+    if (layers[layer]->modelBuffers) {
+        for (const auto& it : *(layers[layer]->modelBuffers)) {
             it->SetEffectDuration(startTime, endTime);
         }
     }
@@ -3199,8 +3205,8 @@ static int DecodeType(const std::string &type)
 }
 void PixelBufferClass::LayerInfo::clear() {
     buffer.Clear();
-    if (usingModelBuffers) {
-        for (auto it = modelBuffers.begin();  it != modelBuffers.end(); ++it) {
+    if (modelBuffers) {
+        for (auto it = modelBuffers->begin();  it != modelBuffers->end(); ++it) {
             (*it)->Clear();
         }
     }

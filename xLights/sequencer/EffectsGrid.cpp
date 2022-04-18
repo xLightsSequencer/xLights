@@ -41,6 +41,7 @@
 #include "models/Model.h"
 #include "PixelBuffer.h"
 #include "../VideoReader.h"
+#include "../FindDataPanel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -76,6 +77,7 @@ const long EffectsGrid::ID_GRID_MNU_LOCK = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_UNLOCK = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_RENDERDISABLE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_RENDERENABLE = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_FINDEFFECTFORDATA = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_TIMING = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_UNDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_REDO = wxNewId();
@@ -91,6 +93,78 @@ const long EffectsGrid::ID_GRID_MNU_ALIGN_CENTERPOINTS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_MATCH_DURATION = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_START_TIMES_SHIFT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_END_TIMES_SHIFT = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_SPLIT_EFFECT = wxNewId();
+
+int findDataEffect::GetStrand() const
+{
+    if (nl != nullptr) {
+        StrandElement* parent = dynamic_cast<StrandElement*>(nl->GetParentElement());
+        if (parent != nullptr) {
+            return parent->GetStrand();
+        }
+    } else if (e != nullptr && e->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+        return dynamic_cast<StrandElement*>(e)->GetStrand();
+    }
+    return -1;
+}
+
+int findDataEffect::GetNode() const
+{
+    if (nl != nullptr) {
+        StrandElement* parent = dynamic_cast<StrandElement*>(nl->GetParentElement());
+        if (parent != nullptr) {
+            return parent->GetNodeNumber(nl);
+        }
+    }
+    return -1;
+}
+
+std::string findDataEffect::GetTypeDescription() const
+{
+    if (e != nullptr) {
+        return e->GetTypeDescription();
+    }
+    return "UNKNOWN";
+}
+
+std::string findDataEffect::GetName() const
+{
+    if (e != nullptr) {
+        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            return e->GetName();
+        } else if (e->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
+            SubModelElement* sm = dynamic_cast<SubModelElement*>(e);
+            if (sm != nullptr) {
+                return sm->GetModelElement()->GetName();
+            }
+        } else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+            StrandElement* se = dynamic_cast<StrandElement*>(e);
+            if (se != nullptr) {
+                return se->GetModelName();
+            }
+        }
+    } else if (dl != nullptr) {
+        return dl->GetName() + " " + dl->GetSource();
+    }
+    return "UNKNOWN";
+}
+
+std::string findDataEffect::GetStrandSubmodel() const
+{
+    if (e != nullptr) {
+        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            return "";
+        } else if (e->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
+            SubModelElement* sm = dynamic_cast<SubModelElement*>(e);
+            return sm->GetName();
+        } else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+            return wxString::Format("Strand %d", GetStrand() + 1).ToStdString();
+        }
+    } else if (dl != nullptr) {
+        return "";
+    }
+    return "UNKNOWN";
+}
 
 EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint& pos, const wxSize& size,
     long style, const wxString& name)
@@ -285,6 +359,12 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             menu_paste->Enable(false);
         }
 
+        wxMenuItem* menu_split = mnuLayer.Append(ID_GRID_MNU_SPLIT_EFFECT, "Split");
+        if (mSelectedEffect == nullptr || MultipleEffectsSelected() || (mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS() <= mSequenceElements->GetFrameMS()))
+        {
+            menu_split->Enable(false);
+        }
+
         // Undo
         mnuLayer.AppendSeparator();
         wxString undo_string = mSequenceElements->get_undo_mgr().GetUndoString();
@@ -341,6 +421,17 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             menu_effect_lock->Enable(false);
             menu_effect_renderdisable->Enable(false);
             menu_effect_renderenable->Enable(false);
+        }
+
+        if (ri->nodeIndex >= 0)             {
+            wxMenuItem* menu_effect_findeffect = mnuLayer.Append(ID_GRID_MNU_FINDEFFECTFORDATA, "Find Possible Source Effects");
+            _findDataRI = ri;
+            _findDataMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+
+            // we can only do this in the master view ... other views likely wont contain the effects the user needs to look at
+            if (mSequenceElements->GetCurrentView() != MASTER_VIEW) {
+                menu_effect_findeffect->Enable(false);
+            }
         }
 
         wxMenuItem* menu_effect_timing = mnuLayer.Append(ID_GRID_MNU_TIMING, "Timing");
@@ -411,6 +502,126 @@ void EffectsGrid::sendRenderEvent(const std::string &model, int start, int end, 
     wxPostEvent(mParent, event);
 }
 
+uint32_t EffectsGrid::FindChannel(Element* element, int strandIndex, int nodeIndex, uint8_t& channelsPerNode) const
+{
+    if (element->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+        strandIndex -= dynamic_cast<StrandElement*>(element)->GetModelElement()->GetSubModelCount();
+    }
+    Model* model = xlights->GetModel(element->GetModelName());
+    if (model != nullptr) {
+        channelsPerNode = model->GetChanCountPerNode();
+        return model->GetChannelForNode(strandIndex, nodeIndex);
+    }
+    return 0xFFFFFFFF;
+}
+
+void EffectsGrid::FindEffectsForData(uint32_t channel, uint8_t chans, uint32_t _findDataMS) const
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // find all effects at this time
+    std::vector<findDataEffect> possible;
+    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
+        Element* e = mSequenceElements->GetElement(i);
+        ModelElement* me = dynamic_cast<ModelElement*>(e);
+        if (me != nullptr) {
+            for (auto it : e->GetEffectLayers()) {
+                if (it->HasEffectsInTimeRange(_findDataMS, _findDataMS)) {
+                    possible.push_back({ e, it, nullptr, it->GetEffectAtTime(_findDataMS), nullptr });
+                }
+            }
+
+            for (size_t j = 0; j < me->GetStrandCount(); ++j) {
+                StrandElement* se = me->GetStrand(j);
+                for (auto it : se->GetEffectLayers()) {
+                    if (it->HasEffectsInTimeRange(_findDataMS, _findDataMS)) {
+                        possible.push_back({ se, it, nullptr, it->GetEffectAtTime(_findDataMS), nullptr });
+                    }
+                }
+                for (size_t j = 0; j < se->GetNodeLayerCount(); ++j) {
+                    NodeLayer* nl = se->GetNodeEffectLayer(j);
+                    if (nl->HasEffectsInTimeRange(_findDataMS, _findDataMS)) {
+                        possible.push_back({ se, nullptr, nl, nl->GetEffectAtTime(_findDataMS), nullptr });
+                    }
+                }
+            }
+
+            for (size_t j = 0; j < me->GetSubModelCount(); ++j) {
+                SubModelElement* sm = me->GetSubModel(j);
+                for (auto it : sm->GetEffectLayers()) {
+                    if (it->HasEffectsInTimeRange(_findDataMS, _findDataMS)) {
+                        possible.push_back({ sm, it, nullptr, it->GetEffectAtTime(_findDataMS), nullptr });
+                    }
+                }
+            }
+        }
+    }
+
+    // look at the layer the effect is on and work out if it impacts this channel
+    std::vector<findDataEffect> actual;
+    for (const auto& it : possible) {
+        Model* model = xlights->GetModel(it.e->GetModelName());
+        if (model != nullptr) {
+            if (it.el != nullptr) {
+                if (it.e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                    if (model->ContainsChannel(channel, channel + chans - 1)) {
+                        actual.push_back(it);
+                    }
+                } else if (it.e->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                    StrandElement* se = dynamic_cast<StrandElement*>(it.e);
+                    if (model->ContainsChannel(se->GetStrand(), channel, channel + chans - 1)) {
+                        actual.push_back(it);
+                    }
+                } else if (it.e->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
+                    SubModelElement* sm = dynamic_cast<SubModelElement*>(it.e);
+                    if (model->ContainsChannel(sm->GetName(), channel, channel + chans - 1)) {
+                        actual.push_back(it);
+                    }
+                }
+            } else if (it.nl != nullptr) {
+                StrandElement* parent = dynamic_cast<StrandElement*>(it.nl->GetParentElement());
+                uint8_t channelsPerNode = 0;
+                uint32_t ch = FindChannel(parent->GetModelElement(), parent->GetStrand(), parent->GetNodeNumber(it.nl), channelsPerNode);
+                if (ch != 0xFFFFFFFF) {
+                    if (!(ch + channelsPerNode - 1 < channel || ch > channel + chans - 1)) {
+                        actual.push_back(it);
+                    }
+                }
+            }
+        }
+    }
+
+    auto& dls = xlights->CurrentSeqXmlFile->GetDataLayers();
+    for (size_t i = 0; i < dls.GetNumLayers(); i++) {
+        auto dl = dls.GetDataLayer(i);
+        if (dl != nullptr && dl->GetSource() != "<auto-generated>") {
+            auto start = dl->GetChannelOffset();
+            auto end = start + dl->GetNumChannels() - 1;
+            if (!(end < channel || start > channel + chans)) {
+                actual.push_back({ nullptr, nullptr, nullptr, nullptr, dl });
+            }
+        }
+    }
+
+    // for now just log the output
+    for (const auto& it : actual) {
+        if (it.dl != nullptr) {
+            logger_base.debug("          Possible effect: Data layer: %s", (char*)it.GetName().c_str());
+        } else {
+            logger_base.debug("          Possible effect: Element: %s %s %s", (char*)it.GetTypeDescription().c_str(), (char*)it.GetName().c_str(), (char*)it.GetStrandSubmodel().c_str());
+            if (it.el != nullptr) {
+                logger_base.debug("                             Layer: %d", it.el->GetLayerNumber());
+            } else if (it.nl != nullptr) {
+                logger_base.debug("                             Node: %s strand %d node %d", (char*)it.nl->GetName().c_str(), it.GetStrand() + 1, it.GetNode() + 1);
+            }
+            logger_base.debug("                             Effect: %s start %0.2fms", (char*)it.ef->GetEffectName().c_str(), (float)it.ef->GetStartTimeMS() / 1000.0);
+        }
+    }
+
+    xlights->ShowDataFindPanel();
+    xlights->GetFindDataPanel()->UpdateEffects(actual, this);
+}
+
 void EffectsGrid::OnGridPopup(wxCommandEvent& event)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -446,6 +657,25 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if (id == ID_GRID_MNU_RENDERDISABLE) {
         logger_base.debug("OnGridPopup - RENDERDISABLE");
         DisableRenderEffects(true);
+    }
+    else if (id == ID_GRID_MNU_FINDEFFECTFORDATA) {
+        uint8_t chans = 0;
+        uint32_t channel = FindChannel(_findDataRI->element, _findDataRI->strandIndex, _findDataRI->nodeIndex, chans);
+        if (channel != 0xFFFFFFFF) {
+            int strandAdj = 0;
+            std::string parent;
+            if (_findDataRI->element->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                strandAdj -= dynamic_cast<StrandElement*>(_findDataRI->element)->GetModelElement()->GetSubModelCount();
+                parent = dynamic_cast<StrandElement*>(_findDataRI->element)->GetModelElement()->GetName();
+            }
+            logger_base.debug("FIND EFFECTS IMPACTING NODE: Element: %s %s %s strand %d node %d -> channels %u-%u", (char*)_findDataRI->element->GetTypeDescription().c_str(), (char*)_findDataRI->element->GetName().c_str(), (char*)parent.c_str(), _findDataRI->strandIndex + 1 + strandAdj, _findDataRI->nodeIndex + 1, channel + 1, channel + chans);
+            FindEffectsForData(channel, chans, _findDataMS);
+        }
+        else {
+            std::vector<findDataEffect> actual;
+            xlights->ShowDataFindPanel();
+            xlights->GetFindDataPanel()->UpdateEffects(actual, this);
+        }
     }
     else if (id == ID_GRID_MNU_RENDERENABLE) {
         logger_base.debug("OnGridPopup - RENDERENABLE");
@@ -495,12 +725,33 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if (id == ID_GRID_MNU_ALIGN_START_TIMES_SHIFT) {
         logger_base.debug("OnGridPopup - ALIGN_START_TIMES_SHIFT");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_START_TIMES_SHIFT);
-    }
-    else if (id == ID_GRID_MNU_ALIGN_END_TIMES_SHIFT) {
+    } else if (id == ID_GRID_MNU_ALIGN_END_TIMES_SHIFT) {
         logger_base.debug("OnGridPopup - ALIGN_END_TIMES_SHIFT");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_END_TIMES_SHIFT);
-    }
-    else if (id == ID_GRID_MNU_PRESETS) {
+    } else if (id == ID_GRID_MNU_SPLIT_EFFECT) {
+        logger_base.debug("OnGridPopup - SPLIT_EFFECT");
+        if (mSelectedEffect != nullptr) {
+            long s = mSelectedEffect->GetStartTimeMS();
+            long e = mSelectedEffect->GetEndTimeMS();
+            if (e - s > mSequenceElements->GetFrameMS()) {
+                auto el = mSelectedEffect->GetParentEffectLayer();
+                float splitf = (float)(e - s) / 2.0f;
+                mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), mSelectedEffect->GetID(), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString());
+                mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(el->GetParentElement()->GetModelName(), el->GetIndex(), mSelectedEffect->GetID(), mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS());
+                long newend = TimeLine::RoundToMultipleOfPeriod((float)s + splitf, mSequenceElements->GetFrameMS());
+                mSelectedEffect->SetEndTimeMS(newend);
+
+                long newstart = newend;
+                newend = e;
+
+                Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newend, EFFECT_SELECTED, false);
+                mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
+                mSelectedEffect->SetSelected(EFFECT_SELECTED);
+            }
+        }
+    }    
+    else if (id == ID_GRID_MNU_PRESETS)
+    {
         logger_base.debug("OnGridPopup - PRESETS");
 
         //xlights->CreatePresetIcons();
@@ -692,7 +943,7 @@ Effect* EffectsGrid::FillRandomEffects()
             if (timingIndex1 > timingIndex2) {
                 std::swap(timingIndex1, timingIndex2);
             }
-            Effect* lastEffect = nullptr;
+//            Effect* lastEffect = nullptr;
             if (timingIndex1 != -1 && timingIndex2 != -1) {
                 wxProgressDialog prog("Generating random effects", "This may take some time", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
                 prog.Show();
@@ -718,7 +969,7 @@ Effect* EffectsGrid::FillRandomEffects()
                                         false);
                                     if (res == nullptr) res = ef;
                                     if (ef != nullptr) {
-                                        lastEffect = ef;
+//                                        lastEffect = ef;
                                         mSequenceElements->get_undo_mgr().CaptureAddedEffect(effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID());
                                         RaiseSelectedEffectChanged(ef, true, false);
                                         mSelectedEffect = ef;
@@ -1053,7 +1304,7 @@ void EffectsGrid::CreateEffectForFile(int x, int y, const std::string& effectNam
 
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
 
-    EffectRange effectRange;
+    EffectRange effectRange = {0};
     effectRange.Layer = effectLayer;
     // Store start and end time. The effect text will be supplied by parent class
     effectRange.StartTime = mDropStartTimeMS;
@@ -1815,8 +2066,8 @@ Effect* EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensi
                 sendRenderEvent(el->GetParentElement()->GetModelName(), startMS, endMS);
             }
             break;
-            case SELECT:
-            case NILTYPEOVERRIDE:
+            case ACTYPE::SELECT:
+            case ACTYPE::NILTYPEOVERRIDE:
                 break;
             }
 
@@ -3805,7 +4056,7 @@ void EffectsGrid::DisableRenderEffects(bool disable)
 
         if (efs.size() > 0) {
             for (auto it = efs.begin(); it != efs.end(); ++it) {
-                (*it)->SetRenderDisabled(disable);
+                (*it)->SetEffectRenderDisabled(disable);
             }
         }
     }
@@ -5155,7 +5406,7 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex, int x, int y)
 void EffectsGrid::SetEffectStatusText(Effect* eff) const
 {
     if (eff != nullptr) {
-        wxString e = wxString::Format("start: %s end: %s duration: %s %s %s %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()), eff->GetEffectName(), eff->GetDescription(), eff->IsRenderDisabled() ? _("DISABLED") : _(""));
+        wxString e = wxString::Format("start: %s end: %s duration: %s %s %s %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()), eff->GetEffectName(), eff->GetDescription(), eff->IsEffectRenderDisabled() ? _("DISABLED") : _(""));
         xlights->SetStatusText(e, true);
     }
     else {
@@ -5235,6 +5486,11 @@ void EffectsGrid::UpdateMousePosition(int time) const
     wxCommandEvent eventMousePos(EVT_MOUSE_POSITION);
     eventMousePos.SetInt(time);
     wxPostEvent(mParent, eventMousePos);
+}
+
+bool EffectsGrid::CanDropEffect() const
+{
+    return (mDropStartTimeMS >= 0 && mDropRow >= mSequenceElements->GetNumberOfTimingRows());
 }
 
 void EffectsGrid::UpdateZoomPosition(int time) const
@@ -5719,8 +5975,8 @@ void EffectsGrid::DrawEffects(xlGraphicsContext *ctx)
                     drawIcon = 0;
                 }
 
-                if (mode != SCREEN_L_R_OFF) {
-                    if (mode == SCREEN_L_R_ON || mode == SCREEN_L_ON) {
+                if (mode != EFFECT_SCREEN_MODE::SCREEN_L_R_OFF) {
+                    if (mode == EFFECT_SCREEN_MODE::SCREEN_L_R_ON || mode == EFFECT_SCREEN_MODE::SCREEN_L_ON) {
                         if (effectIndex > 0) {
                             // Draw left line if effect has different start time then previous effect or
                             // previous effect was not selected, or only left was selected
@@ -5737,13 +5993,13 @@ void EffectsGrid::DrawEffects(xlGraphicsContext *ctx)
                     }
 
                     // Draw Right line
-                    if (mode == SCREEN_L_R_ON || mode == SCREEN_R_ON) {
+                    if (mode == EFFECT_SCREEN_MODE::SCREEN_L_R_ON || mode == EFFECT_SCREEN_MODE::SCREEN_R_ON) {
                         linesRight->AddVertex(x2, y1);
                         linesRight->AddVertex(x2, y2);
                     }
 
                     // Draw horizontal
-                    if (mode != SCREEN_L_R_OFF) {
+                    if (mode != EFFECT_SCREEN_MODE::SCREEN_L_R_OFF) {
                         if (drawIcon) {
                             if (x > (DEFAULT_ROW_HEADING_HEIGHT + 4)) {
                                 double sz = (DEFAULT_ROW_HEADING_HEIGHT - 6.0) / (2.0 * drawIcon) + 1.0;
@@ -5888,7 +6144,7 @@ void EffectsGrid::DrawTimingEffects(int row)
     for (int effectIndex = 0; effectIndex < effectLayer->GetEffectCount(); effectIndex++) {
         Effect *eff = effectLayer->GetEffect(effectIndex);
 
-        EFFECT_SCREEN_MODE mode = SCREEN_L_R_OFF;
+        EFFECT_SCREEN_MODE mode = EFFECT_SCREEN_MODE::SCREEN_L_R_OFF;
 
         int y1 = (row*DEFAULT_ROW_HEADING_HEIGHT) + 4;
         int y2 = ((row + 1)*DEFAULT_ROW_HEADING_HEIGHT) - 4;
@@ -5915,9 +6171,9 @@ void EffectsGrid::DrawTimingEffects(int row)
                 eff->GetSelected() == EFFECT_LT_SELECTED ? timingEffLines : selectedLines;
         }
 
-        if (mode != SCREEN_L_R_OFF) {
+        if (mode != EFFECT_SCREEN_MODE::SCREEN_L_R_OFF) {
             // Draw Left line
-            if (mode == SCREEN_L_R_ON || mode == SCREEN_L_ON) {
+            if (mode == EFFECT_SCREEN_MODE::SCREEN_L_R_ON || mode == EFFECT_SCREEN_MODE::SCREEN_L_ON) {
                 if (effectIndex > 0) {
                     // Draw left line if effect has different start time then previous effect or
                     // previous effect was not selected, or only left was selected
@@ -5938,7 +6194,7 @@ void EffectsGrid::DrawTimingEffects(int row)
                 }
             }
             // Draw Right line
-            if (mode == SCREEN_L_R_ON || mode == SCREEN_R_ON) {
+            if (mode == EFFECT_SCREEN_MODE::SCREEN_L_R_ON || mode == EFFECT_SCREEN_MODE::SCREEN_R_ON) {
                 linesRight->AddVertex(x2, y1);
                 linesRight->AddVertex(x2, y2);
                 if (element->GetActive() && ri->layerIndex == 0) {
@@ -5947,7 +6203,7 @@ void EffectsGrid::DrawTimingEffects(int row)
                 }
             }
             // Draw horizontal
-            if (mode != SCREEN_L_R_OFF) {
+            if (mode != EFFECT_SCREEN_MODE::SCREEN_L_R_OFF) {
                 int half_width = (x2 - x1) / 2;
                 if (eff->GetEffectName() != "" && (x2 - x1) > 20) {
                     int max_width = x2 - x1 - 18;
@@ -5971,7 +6227,7 @@ void EffectsGrid::DrawTimingEffects(int row)
                     timingLines->AddRectAsLines(label_start - 0.4, y1 - 2 - 0.4, label_start + width + 0.4, y2 + 2 + 0.4, xlights->color_mgr.GetColor(ColorManager::COLOR_LABEL_OUTLINE));
 
                     // trim the text to fit
-                    auto name = eff->GetEffectName();
+                    std::string name = eff->GetEffectName();
                     while (name != "" && font.widthOf(name, factor) > width) {
                         name = name.substr(0, name.size() - 1);
                     }

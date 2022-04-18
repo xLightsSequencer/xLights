@@ -54,6 +54,7 @@ class wxScrolledWindow;
 class LayoutGroup;
 class wxStringInputStream;
 class impTreeItemData;
+class Motion3DEvent;
 
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
 
@@ -127,12 +128,12 @@ class LayoutPanel: public wxPanel
 		static const long ID_PANEL3;
 		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
+		static const long ID_CHECKBOX_3D;
 		static const long ID_CHECKBOXOVERLAP;
 		static const long ID_BUTTON_SAVE_PREVIEW;
 		static const long ID_PANEL5;
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE_PREVIEWS;
-		static const long ID_CHECKBOX_3D;
 		static const long ID_SCROLLBAR1;
 		static const long ID_SCROLLBAR2;
 		static const long ID_PANEL1;
@@ -158,6 +159,10 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_BULKEDIT_SETINACTIVE;
         static const long ID_PREVIEW_BULKEDIT_SMARTREMOTE;
         static const long ID_PREVIEW_BULKEDIT_TAGCOLOUR;
+        static const long ID_PREVIEW_BULKEDIT_PIXELSIZE;
+        static const long ID_PREVIEW_BULKEDIT_PIXELSTYLE;
+        static const long ID_PREVIEW_BULKEDIT_TRANSPARENCY;
+        static const long ID_PREVIEW_BULKEDIT_BLACKTRANSPARENCY;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERSTARTNULLNODES;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERENDNULLNODES;
@@ -256,6 +261,8 @@ class LayoutPanel: public wxPanel
 		void OnNotebook_ObjectsPageChanged(wxNotebookEvent& event);
 		//*)
 
+        void OnPreviewMotion3DButtonEvent(wxCommandEvent &event);
+        void OnPreviewMotion3D(Motion3DEvent &event);
         void OnPropertyGridSelection(wxPropertyGridEvent& event);
         void OnPropertyGridItemCollapsed(wxPropertyGridEvent& event);
         void OnPropertyGridItemExpanded(wxPropertyGridEvent& event);
@@ -268,6 +275,7 @@ class LayoutPanel: public wxPanel
         void DoCut(wxCommandEvent& event);
         void DoPaste(wxCommandEvent& event);
         void DoUndo(wxCommandEvent& event);
+        void RemoveSelectedModelsFromGroup();
         void DeleteSelectedModels();
 		void DeleteSelectedObject();
         void DeleteSelectedGroups();
@@ -331,11 +339,19 @@ class LayoutPanel: public wxPanel
         void BulkEditControllerName();
         void BulkEditActive(bool active);
         void BulkEditTagColour();
+        void BulkEditPixelSize();
+        void BulkEditPixelStyle();
+        void BulkEditTransparency();
+        void BulkEditBlackTranparency();   
         void BulkEditControllerConnection(int type);
         void BulkEditControllerPreview();
         void BulkEditDimmingCurves();
         void ReplaceModel();
         void ShowNodeLayout();
+        void EditSubmodels();
+        void EditFaces();
+        void EditStates();
+        void EditModelData();
         void ShowWiring();
         void ExportModelAsCAD();
         void ExportLayoutDXF();
@@ -421,9 +437,9 @@ class LayoutPanel: public wxPanel
         wxTreeListItem selectedPrimaryTreeItem = nullptr;
         bool selectionLatched = false;
         int over_handle = -1;
-        glm::vec3 last_centerpos;
-        glm::vec3 last_worldrotate;
-        glm::vec3 last_worldscale;
+        glm::vec3 last_centerpos = {0,0,0};
+        glm::vec3 last_worldrotate = {0,0,0};
+        glm::vec3 last_worldscale = {0,0,0};
 
         void clearPropGrid();
         bool stringPropsVisible = false;
@@ -524,6 +540,7 @@ class LayoutPanel: public wxPanel
         void HandleSelectionChanged();
         void OnItemContextMenu(wxTreeListEvent& event);
 
+        static const long ID_MNU_REMOVE_MODEL_FROM_GROUP;
         static const long ID_MNU_DELETE_MODEL;
         static const long ID_MNU_DELETE_MODEL_GROUP;
         static const long ID_MNU_DELETE_EMPTY_MODEL_GROUPS;

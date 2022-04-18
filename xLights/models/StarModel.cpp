@@ -109,7 +109,7 @@ void StarModel::GetBufferSize(const std::string& type, const std::string& camera
 void StarModel::InitRenderBufferNodes(const std::string& type,
     const std::string& camera,
     const std::string& transform,
-    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi) const
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, bool deep) const
 {
     if (type == "Layer Star") {
         BufferHi = GetNumStrands();
@@ -660,7 +660,7 @@ void StarModel::ExportXlightsModel()
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
-    //    bool isnew = !wxFile::Exists(filename);
+    //    bool isnew = !FileExists(filename);
     if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
@@ -720,82 +720,75 @@ void StarModel::ExportXlightsModel()
     f.Close();
 }
 
-void StarModel::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    wxXmlDocument doc(filename);
-
-    if (doc.IsOk()) {
-        wxXmlNode* root = doc.GetRoot();
-
-        if (root->GetName() == "starmodel") {
-            wxString name = root->GetAttribute("name");
-            wxString p1 = root->GetAttribute("parm1");
-            wxString p2 = root->GetAttribute("parm2");
-            wxString p3 = root->GetAttribute("parm3");
-            wxString st = root->GetAttribute("StringType");
-            wxString ps = root->GetAttribute("PixelSize");
-            wxString t = root->GetAttribute("Transparency");
-            wxString mb = root->GetAttribute("ModelBrightness");
-            wxString a = root->GetAttribute("Antialias");
-            wxString sts = root->GetAttribute("StartSide");
-            wxString ls = root->GetAttribute("starSizes");
-            if (ls == "") {
-                ls = root->GetAttribute("LayerSizes");
-            }
-            wxString sr = root->GetAttribute("starRatio");
-            wxString scp = root->GetAttribute("starCenterPercent", "-1");
-            wxString dir = root->GetAttribute("Dir");
-            wxString ssl = root->GetAttribute("StarStartLocation");
-            wxString sn = root->GetAttribute("StrandNames");
-            wxString nn = root->GetAttribute("NodeNames");
-            wxString v = root->GetAttribute("SourceVersion");
-            wxString da = root->GetAttribute("DisplayAs");
-            wxString pc = root->GetAttribute("PixelCount");
-            wxString pt = root->GetAttribute("PixelType");
-            wxString psp = root->GetAttribute("PixelSpacing");
-
-            // Add any model version conversion logic here
-            // Source version will be the program version that created the custom model
-            if (sr.IsEmpty())
-                sr = "2.618034";
-
-            SetProperty("parm1", p1);
-            SetProperty("parm2", p2);
-            SetProperty("parm3", p3);
-            SetProperty("StringType", st);
-            SetProperty("PixelSize", ps);
-            SetProperty("Transparency", t);
-            SetProperty("ModelBrightness", mb);
-            SetProperty("Antialias", a);
-            SetProperty("LayerSizes", ls);
-            SetProperty("starRatio", sr);
-            if (scp != "-1") {
-                SetProperty("starCenterPercent", scp);
-            }
-            SetProperty("StrandNames", sn);
-            SetProperty("NodeNames", nn);
-            SetProperty("DisplayAs", da);
-            SetProperty("PixelCount", pc);
-            SetProperty("PixelType", pt);
-            SetProperty("PixelSpacing", psp);
-
-            if (ssl != "") {
-                SetProperty("StarStartLocation", ssl);
-            } else {
-                SetProperty("StarStartLocation", ConvertFromDirStartSide(dir, sts));
-            }
-
-            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-            GetModelScreenLocation().Write(ModelXml);
-            SetProperty("name", newname, true);
-
-            ImportSuperStringColours(root);
-            ImportModelChildren(root, xlights, newname);
-
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::ImportXlightsModel");
-        } else {
-            DisplayError("Failure loading Star model file.");
+void StarModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "starmodel") {
+        wxString name = root->GetAttribute("name");
+        wxString p1 = root->GetAttribute("parm1");
+        wxString p2 = root->GetAttribute("parm2");
+        wxString p3 = root->GetAttribute("parm3");
+        wxString st = root->GetAttribute("StringType");
+        wxString ps = root->GetAttribute("PixelSize");
+        wxString t = root->GetAttribute("Transparency");
+        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString a = root->GetAttribute("Antialias");
+        wxString sts = root->GetAttribute("StartSide");
+        wxString ls = root->GetAttribute("starSizes");
+        if (ls == "") {
+            ls = root->GetAttribute("LayerSizes");
         }
+        wxString sr = root->GetAttribute("starRatio");
+        wxString scp = root->GetAttribute("starCenterPercent", "-1");
+        wxString dir = root->GetAttribute("Dir");
+        wxString ssl = root->GetAttribute("StarStartLocation");
+        wxString sn = root->GetAttribute("StrandNames");
+        wxString nn = root->GetAttribute("NodeNames");
+        wxString v = root->GetAttribute("SourceVersion");
+        wxString da = root->GetAttribute("DisplayAs");
+        wxString pc = root->GetAttribute("PixelCount");
+        wxString pt = root->GetAttribute("PixelType");
+        wxString psp = root->GetAttribute("PixelSpacing");
+
+        // Add any model version conversion logic here
+        // Source version will be the program version that created the custom model
+        if (sr.IsEmpty())
+            sr = "2.618034";
+
+        SetProperty("parm1", p1);
+        SetProperty("parm2", p2);
+        SetProperty("parm3", p3);
+        SetProperty("StringType", st);
+        SetProperty("PixelSize", ps);
+        SetProperty("Transparency", t);
+        SetProperty("ModelBrightness", mb);
+        SetProperty("Antialias", a);
+        SetProperty("LayerSizes", ls);
+        SetProperty("starRatio", sr);
+        if (scp != "-1") {
+            SetProperty("starCenterPercent", scp);
+        }
+        SetProperty("StrandNames", sn);
+        SetProperty("NodeNames", nn);
+        SetProperty("DisplayAs", da);
+        SetProperty("PixelCount", pc);
+        SetProperty("PixelType", pt);
+        SetProperty("PixelSpacing", psp);
+
+        if (ssl != "") {
+            SetProperty("StarStartLocation", ssl);
+        } else {
+            SetProperty("StarStartLocation", ConvertFromDirStartSide(dir, sts));
+        }
+
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        GetModelScreenLocation().Write(ModelXml);
+        SetProperty("name", newname, true);
+
+        ImportSuperStringColours(root);
+        ImportModelChildren(root, xlights, newname);
+
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::ImportXlightsModel");
     } else {
         DisplayError("Failure loading Star model file.");
     }

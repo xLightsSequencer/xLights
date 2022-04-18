@@ -264,9 +264,9 @@ void PianoEffect::ReduceChannels(std::list<float>* pdata, int start, int end, bo
 		{
 			float n = *it - 1.0;
 			bool found = false;
-			for (auto c = pdata->begin(); c != pdata->end(); ++c)
+			for (const auto& c : *pdata)
 			{
-				if (*c == n)
+				if (c == n)
 				{
 					// already there
 					found = true;
@@ -294,9 +294,9 @@ void PianoEffect::ReduceChannels(std::list<float>* pdata, int start, int end, bo
 
 bool PianoEffect::KeyDown(std::list<float>* pdata, int ch)
 {
-	for (auto it = pdata->begin(); it != pdata->end(); ++it)
+	for (const auto& it : *pdata)
 	{
-		if (ch == (int)(*it))
+		if (ch == (int)(it))
 		{
 			return true;
 		}
@@ -318,7 +318,7 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 		{
 			sharpstart = i;
 		}
-		i++;
+		++i;
 	}
 
 	int sharpend = -1;
@@ -329,7 +329,7 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 		{
 			sharpend = i;
 		}
-		i--;
+		--i;
 	}
 
 	int whitestart = -1;
@@ -340,7 +340,7 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 		{
 			whitestart = i;
 		}
-		i++;
+		++i;
 	}
 
 	int whiteend = -1;
@@ -351,30 +351,30 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 		{
 			whiteend = i;
 		}
-		i--;
+		--i;
 	}
 
 	int wkcount = 0;
 	if (whitestart != -1 && whiteend != -1)
 	{
-		for (i = whitestart; i <= whiteend; i++)
+		for (i = whitestart; i <= whiteend; ++i)
 		{
 			if (!IsSharp(i))
 			{
-				wkcount++;
+				++wkcount;
 			}
 		}
 	}
     if (wkcount == 0) wkcount = 1; // avoid a divide by zero error
 
-	int fwkw = buffer.BufferWi / wkcount;
-	int wkw = fwkw;
-	int maxx = wkcount * fwkw;
+	float fwkw = (float)buffer.BufferWi / (float)wkcount;
+	float wkw = fwkw;
+	float maxx = (float)wkcount * fwkw;
 	bool border = false;
 	if (wkw > 3)
 	{
 		border = true;
-		wkw--;
+		--wkw;
 	}
 
 	// Get the colours
@@ -420,8 +420,8 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 	}
 
 	// Draw white keys
-	int x = truexoffset;
-	for (i = start; i <= end; i++)
+	float x = truexoffset;
+	for (i = start; i <= end; ++i)
 	{
 		if (!IsSharp(i))
 		{
@@ -441,7 +441,7 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 	if (border)
 	{
 		x = fwkw + truexoffset;
-		for (int j = 0; j < wkcount; j++)
+		for (int j = 0; j < wkcount; ++j)
 		{
 			buffer.DrawLine(x, 0, x, buffer.BufferHt * scale / 100, kbcolour);
 			x += fwkw;
@@ -454,17 +454,17 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 		// Draw the black keys
 		if (IsSharp(start))
 		{
-			x = -1 * fwkw / 2 + truexoffset;
+			x = -1.0 * fwkw / 2.0 + truexoffset;
 		}
 		else if (IsSharp(start + 1))
 		{
-			x = fwkw / 2 + truexoffset;
+			x = fwkw / 2.0 + truexoffset;
 		}
 		else
 		{
-			x = fwkw + fwkw / 2 + truexoffset;
+			x = fwkw + fwkw / 2.0 + truexoffset;
 		}
-		for (i = start; i <= end; i++)
+		for (i = start; i <= end; ++i)
 		{
 			if (IsSharp(i))
 			{
@@ -502,17 +502,17 @@ void PianoEffect::DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, b
 	}
 	else
 	{
-		for (int i = start; i <= end; i++)
+		for (int i = start; i <= end; ++i)
 		{
 			if (!IsSharp(i))
 			{
-				kcount++;
+				++kcount;
 			}
 		}
 	}
 
     if (kcount == 0) kcount = 1; // avoid divide by zero error
-	int fwkw = buffer.BufferWi / kcount;
+	float fwkw = (float)buffer.BufferWi / (float)kcount;
 
 	// Get the colours
 	if (buffer.GetColorCount() > 0)
@@ -549,14 +549,14 @@ void PianoEffect::DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, b
 	}
 
 	// Draw keys
-	int x = 0 + truexoffset;
+	float x = 0.0 + truexoffset;
 	int wkh = buffer.BufferHt;
 	if (sharps)
 	{
 		wkh = buffer.BufferHt * 2.0 * scale / 300.0;
 	}
 	int bkb = buffer.BufferHt * scale / 300.0;
-	for (int i = start; i <= end; i++)
+	for (int i = start; i <= end; ++i)
 	{
 		if (!IsSharp(i))
 		{
@@ -610,7 +610,7 @@ std::vector<float> PianoEffect::Parse(wxString& l)
 	return res;
 }
 
-std::list<std::string> PianoEffect::ExtractNotes(std::string& label)
+std::list<std::string> PianoEffect::ExtractNotes(const std::string& label)
 {
     std::string n = label;
     std::transform(n.begin(), n.end(), n.begin(), ::toupper);
@@ -618,9 +618,9 @@ std::list<std::string> PianoEffect::ExtractNotes(std::string& label)
     std::list<std::string> res;
 
     std::string s = "";
-    for (auto it = n.begin(); it != n.end(); ++it)
+    for (const auto& it : n)
     {
-        if (*it == ':' || *it == ' ' || *it == ';' || *it == ',')
+        if (it == ':' || it == ' ' || it == ';' || it == ',')
         {
             if (s != "")
             {
@@ -630,11 +630,11 @@ std::list<std::string> PianoEffect::ExtractNotes(std::string& label)
         }
         else
         {
-            if ((*it >= 'A' && *it <= 'G') ||
-                (*it == '#') ||
-                (*it >= '0' && *it <= '9'))
+            if ((it >= 'A' && it <= 'G') ||
+                (it == '#') ||
+                (it >= '0' && it <= '9'))
             {
-                s += *it;
+                s += it;
             }
         }
     }
@@ -647,7 +647,7 @@ std::list<std::string> PianoEffect::ExtractNotes(std::string& label)
     return res;
 }
 
-int PianoEffect::ConvertNote(std::string& note)
+int PianoEffect::ConvertNote(const std::string& note)
 {
     std::string n = note;
     int nletter;
@@ -721,7 +721,7 @@ int PianoEffect::ConvertNote(std::string& note)
     return number;
 }
 
-std::map<int, std::list<float>> PianoEffect::LoadTimingTrack(std::string track, int intervalMS)
+std::map<int, std::list<float>> PianoEffect::LoadTimingTrack(const std::string& track, int intervalMS)
 {
     static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<float>> res;
@@ -743,16 +743,16 @@ std::map<int, std::list<float>> PianoEffect::LoadTimingTrack(std::string track, 
         return res;
     }
 
-    for (int j = 0; j < el->GetEffectCount(); j++)
+    for (int j = 0; j < el->GetEffectCount(); ++j)
     {
         std::list<float> notes;
         int starttime = el->GetEffect(j)->GetStartTimeMS();
         int endtime = el->GetEffect(j)->GetEndTimeMS();
         std::string label = el->GetEffect(j)->GetEffectName();
         std::list<std::string> notelabels = ExtractNotes(label);
-        for (auto s = notelabels.begin(); s != notelabels.end(); ++s)
+        for (const auto& s : notelabels)
         {
-            float n = (float)ConvertNote(*s);
+            float n = (float)ConvertNote(s);
             if (n >= 0)
             {
                 notes.push_back(n);

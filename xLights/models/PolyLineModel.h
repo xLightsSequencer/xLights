@@ -28,7 +28,7 @@ public:
     virtual bool SupportsWiringView() const override { return false; }
     virtual int GetNumStrands() const override;
     virtual const std::vector<std::string>& GetBufferStyles() const override;
-    virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi) const override;
+    virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep = false) const override;
     virtual int NodesPerString() const override;
     virtual int GetNumPhysicalStrings() const override;
 
@@ -38,7 +38,7 @@ public:
     virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
 
     virtual bool SupportsXlightsModel() override { return true; }
-    virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+    virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
     virtual void ExportXlightsModel() override;
 
     virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;

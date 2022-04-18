@@ -60,6 +60,10 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
         }
     }
     auto proxy = controller->GetFPPProxy();
+    std::string flip = "";
+    if (dynamic_cast<ControllerEthernet*>(controller) != nullptr) {
+        flip = dynamic_cast<ControllerEthernet*>(controller)->GetFirstOutput()->GetForceLocalIPToUse();
+    }
     
     if (vendor == "Falcon") {
         bc = new Falcon(ip, proxy);
@@ -78,7 +82,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
     } else if (vendor == "FPP" || vendor == "KulpLights" || vendor == "Hanson Electronics") {
         bc = new FPP(ip, proxy, caps->GetModel());
     } else if (vendor == "Minleon") {
-        bc = new Minleon(ip, proxy);
+        bc = new Minleon(ip, proxy, flip);
     } else if (vendor == "WLED") {
         bc = new WLED(ip, proxy);
     } else {

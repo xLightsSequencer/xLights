@@ -17,6 +17,7 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <log4cpp/Category.hh>
+#include "ExternalHooks.h"
 
 double CorrectForGamma(double value)
 {
@@ -181,26 +182,26 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
     _systemFile = system;
 
     _systemFound = true;
-    if (system == "" || !wxFile::Exists(_systemFile))
+    if (system == "" || !FileExists(_systemFile))
     {
         wxFileName seq(_filename);
         _systemFile = seq.GetPath() + wxFileName::GetPathSeparator() + "SystemConfig.xml";
         logger_base.debug("Looking for Vixen SystemConfig in %s", (const char*)_systemFile.c_str());
 
-        if (!wxFile::Exists(_systemFile))
+        if (!FileExists(_systemFile))
         {
             _systemFile = seq.GetPath() + wxFileName::GetPathSeparator() + "SystemData" + wxFileName::GetPathSeparator() + "SystemConfig.xml";
             logger_base.debug("Looking for Vixen SystemConfig in %s", (const char*)_systemFile.c_str());
         }
 
-        if (!wxFile::Exists(_systemFile))
+        if (!FileExists(_systemFile))
         {
             int lastFolder = seq.GetPath().Last(wxFileName::GetPathSeparator());
             _systemFile = seq.GetPath().Left(lastFolder) + wxFileName::GetPathSeparator() + "SystemData" + wxFileName::GetPathSeparator() + "SystemConfig.xml";
             logger_base.debug("Looking for Vixen SystemConfig in %s", (const char*)_systemFile.c_str());
         }
 
-        if (!wxFile::Exists(_systemFile))
+        if (!FileExists(_systemFile))
         {
             logger_base.debug("Looking for Vixen SystemConfig ... FAILED ... NOT FOUND");
             _systemFound = false;
@@ -209,7 +210,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
 
     std::map<std::string, std::string> models;
 
-    if (wxFile::Exists(_systemFile))
+    if (FileExists(_systemFile))
     {
         wxXmlDocument sysDoc(_systemFile);
 

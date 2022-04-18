@@ -85,7 +85,8 @@ class DmxSkull : public DmxModel, public DmxColorAbility
         float GetServoPos(Servo* _servo, bool active);
 
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual std::list<std::string> CheckModelSettings() override;
 
         Mesh* head_mesh = nullptr;
         Mesh* jaw_mesh = nullptr;
@@ -104,6 +105,7 @@ class DmxSkull : public DmxModel, public DmxColorAbility
         int default_min_limit[6];
         int default_max_limit[6];
         float default_orient[6];
+        int jaw_orient;
         int pan_orient;
         int tilt_orient;
         int nod_orient;

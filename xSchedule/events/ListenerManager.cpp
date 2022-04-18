@@ -40,10 +40,10 @@ ListenerManager::ListenerManager(ScheduleManager* scheduleManager) :
     _scheduleManager(scheduleManager),
     _notifyScan(nullptr)
 {
-    StartListeners();
+    StartListeners(scheduleManager->GetForceLocalIP());
 }
 
-void ListenerManager::StartListeners()
+void ListenerManager::StartListeners(const std::string& localIP)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     auto it = _listeners.begin();
@@ -343,7 +343,7 @@ void ListenerManager::StartListeners()
 
             if (!e131Exists)
             {
-                _listeners.push_back(new ListenerE131(this));
+                _listeners.push_back(new ListenerE131(this, localIP));
                 _listeners.back()->Start();
                 pl = dynamic_cast<ListenerE131*>(_listeners.back());
             }
@@ -369,7 +369,7 @@ void ListenerManager::StartListeners()
 
             if (!artnetExists)
             {
-                _listeners.push_back(new ListenerARTNet(this));
+                _listeners.push_back(new ListenerARTNet(this, localIP));
                 _listeners.back()->Start();
             }
         }
@@ -389,7 +389,7 @@ void ListenerManager::StartListeners()
 
             if (!fppExists)
             {
-                _listeners.push_back(new ListenerFPP(this));
+                _listeners.push_back(new ListenerFPP(this, localIP));
                 _listeners.back()->Start();
             }
             else
@@ -397,7 +397,7 @@ void ListenerManager::StartListeners()
                 // because FPP binds to the type of sync packet it sees (broadcast/multicast/unicast) we need to delete and recreate to ensure it can pick up anything new
                 current->Stop();
                 _listeners.erase(std::find(_listeners.begin(), _listeners.end(), current));
-                _listeners.push_back(new ListenerFPP(this));
+                _listeners.push_back(new ListenerFPP(this, localIP));
                 _listeners.back()->Start();
             }
         }
@@ -417,7 +417,7 @@ void ListenerManager::StartListeners()
 
             if (!fppExists)
             {
-                _listeners.push_back(new ListenerCSVFPP(this));
+                _listeners.push_back(new ListenerCSVFPP(this, localIP));
                 _listeners.back()->Start();
             }
             else
@@ -425,7 +425,7 @@ void ListenerManager::StartListeners()
                 // because FPP binds to the type of sync packet it sees (broadcast/multicast/unicast) we need to delete and recreate to ensure it can pick up anything new
                 current->Stop();
                 _listeners.erase(std::find(_listeners.begin(), _listeners.end(), current));
-                _listeners.push_back(new ListenerCSVFPP(this));
+                _listeners.push_back(new ListenerCSVFPP(this, localIP));
                 _listeners.back()->Start();
             }
         }
@@ -526,7 +526,7 @@ void ListenerManager::StartListeners()
 
             if (!oscExists)
             {
-                _listeners.push_back(new ListenerOSC(this));
+                _listeners.push_back(new ListenerOSC(this, localIP));
                 _listeners.back()->Start();
             }
         }
@@ -566,7 +566,7 @@ void ListenerManager::StartListeners()
 
         if (!fppExists)
         {
-            _listeners.push_back(new ListenerFPP(this));
+            _listeners.push_back(new ListenerFPP(this, localIP));
             _listeners.back()->Start();
         }
     }
@@ -584,7 +584,7 @@ void ListenerManager::StartListeners()
 
         if (!oscExists)
         {
-            _listeners.push_back(new ListenerOSC(this));
+            _listeners.push_back(new ListenerOSC(this, localIP));
             _listeners.back()->Start();
         }
     }
@@ -602,7 +602,7 @@ void ListenerManager::StartListeners()
 
         if (!artnetExists)
         {
-            _listeners.push_back(new ListenerARTNet(this));
+            _listeners.push_back(new ListenerARTNet(this, localIP));
             _listeners.back()->Start();
         }
     }
@@ -645,7 +645,7 @@ void ListenerManager::StartListeners()
 
         if (!fppExists)
         {
-            _listeners.push_back(new ListenerCSVFPP(this));
+            _listeners.push_back(new ListenerCSVFPP(this, localIP));
             _listeners.back()->Start();
         }
     }
@@ -673,43 +673,43 @@ void ListenerManager::StartListeners()
 void ListenerManager::SetRemoteOSC()
 {
     _sync = 2;
-    StartListeners();
+    StartListeners(_scheduleManager->GetForceLocalIP());
 }
 
 void ListenerManager::SetRemoteFPP()
 {
     _sync = 1;
-    StartListeners();
+    StartListeners(_scheduleManager->GetForceLocalIP());
 }
 
 void ListenerManager::SetRemoteCSVFPP()
 {
     _sync = 6;
-    StartListeners();
+    StartListeners(_scheduleManager->GetForceLocalIP());
 }
 
 void ListenerManager::SetRemoteMIDI()
 {
     _sync = 5;
-    StartListeners();
+    StartListeners(_scheduleManager->GetForceLocalIP());
 }
 
 void ListenerManager::SetRemoteSMPTE()
 {
     _sync = 7;
-    StartListeners();
+    StartListeners(_scheduleManager->GetForceLocalIP());
 }
 
 void ListenerManager::SetRemoteNone()
 {
     _sync = 0;
-    StartListeners();
+    StartListeners(_scheduleManager->GetForceLocalIP());
 }
 
 void ListenerManager::SetRemoteArtNet()
 {
     _sync = 3;
-    StartListeners();
+    StartListeners(_scheduleManager->GetForceLocalIP());
 }
 
 void ListenerManager::MidiRedirect(wxWindow* notify, int deviceId)
@@ -722,7 +722,7 @@ void ListenerManager::MidiRedirect(wxWindow* notify, int deviceId)
     {
         _notifyScan = nullptr;
         // this will stop the MIDI if it isnt meant to be running
-        StartListeners();
+        StartListeners(_scheduleManager->GetForceLocalIP());
     }
     else if (_notifyScan == nullptr && notify != nullptr)
     {

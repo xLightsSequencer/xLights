@@ -58,6 +58,7 @@ public:
         eff_SHIMMER,
         eff_SHOCKWAVE,
         eff_SINGLESTRAND,
+        eff_SKETCH,
         eff_SNOWFLAKES,
         eff_SNOWSTORM,
         eff_SPIRALS,

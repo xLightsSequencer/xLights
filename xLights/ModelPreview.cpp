@@ -50,6 +50,8 @@ const long ModelPreview::ID_VIEWPOINT2D = wxNewId();
 const long ModelPreview::ID_VIEWPOINT3D = wxNewId();
 const long ModelPreview::ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE = wxNewId();
 
+
+
 void ModelPreview::setupCameras()
 {
     camera3d = new PreviewCamera(true);
@@ -138,6 +140,78 @@ void ModelPreview::OnZoomGesture(wxZoomGestureEvent& event) {
         }
     }
     m_last_mouse_x = (event.GetZoomFactor() * 1000);
+}
+
+void ModelPreview::OnMotion3DButtonEvent(wxCommandEvent &event) {
+    if (event.GetString() == "BUTTON_MENU") {
+        wxMouseEvent mev;
+        rightClick(mev);
+    } else if (event.GetString() == "BUTTON_V1"
+               || event.GetString() == "BUTTON_V2"
+               || event.GetString() == "BUTTON_V3"
+               || event.GetString() == "BUTTON_ISO1"
+               || event.GetString() == "BUTTON_ISO2"
+               || event.GetString() == "BUTTON_TOP"
+               || event.GetString() == "BUTTON_FRONT"
+               || event.GetString() == "BUTTON_LEFT"
+               || event.GetString() == "BUTTON_BOTTOM"
+               || event.GetString() == "BUTTON_RIGHT") {
+        std::string name = event.GetString();
+        name = name.substr(7);
+        if (is3d) {
+            for (int x = 0; x < xlights->viewpoint_mgr.GetNum3DCameras(); x++) {
+                if (xlights->viewpoint_mgr.GetCamera3D(x)->GetName() == name) {
+                    SetCamera3D(x);
+                    render();
+                    break;
+                }
+            }
+        } else {
+            for (int x = 0; x < xlights->viewpoint_mgr.GetNum2DCameras(); x++) {
+                if (xlights->viewpoint_mgr.GetCamera2D(x)->GetName() == name) {
+                    SetCamera2D(x);
+                    render();
+                    break;
+                }
+            }
+        }
+        render();
+    } else if (event.GetString() == "BUTTON_FIT") {
+        Reset();
+        render();
+    //} else {
+        //printf("Click: %s\n", (const char *)event.GetString().c_str());
+    }
+}
+void ModelPreview::OnMotion3DEvent(Motion3DEvent &event) {
+    /*
+    printf("Got event!!!  %s\n", (const char *)GetName().c_str());
+    printf("         Translate: %0.3f  %0.3f  %0.3f\n         Rotate: %0.3f  %0.3f  %0.3f\n",
+           event.translations.x, event.translations.y, event.translations.z,
+           event.rotations.x, event.rotations.y, event.rotations.z);
+     */   
+    float scale = 10; //10 degrees per full 1.0 aka: max speed
+
+    camera3d->SetAngleX(camera3d->GetAngleX() + event.rotations.x * scale);
+    camera3d->SetAngleY(camera3d->GetAngleY() - event.rotations.z * scale); //we have Z going up instead of Y
+    camera3d->SetAngleZ(camera3d->GetAngleZ() + event.rotations.y * scale);
+    
+    scale = translateToBacking(1.0) * 20.0; //20 pixels at max speed
+    if (is3d) {
+        camera3d->SetPanX(camera3d->GetPanX() + event.translations.x * GetZoom() * scale);
+        camera3d->SetPanY(camera3d->GetPanY() - event.translations.z * GetZoom() * scale);
+        camera3d->SetPanZ(camera3d->GetPanZ() + event.translations.y * GetZoom() * scale);
+    } else {
+        camera2d->SetPanX(camera2d->GetPanX() + (event.translations.x * GetZoom() * scale));
+        camera2d->SetPanY(camera2d->GetPanY() - (event.translations.z + event.translations.y) * GetZoom() * scale);
+    }
+    mWindowResized = true;
+    
+    _cameraView_last_offsetx = 0;
+    _cameraView_last_offsety = 0;
+    _cameraView_latched_x = camera3d->GetAngleX();
+    _cameraView_latched_y = camera3d->GetAngleY();
+    render();
 }
 
 void ModelPreview::mouseMoved(wxMouseEvent& event) {
@@ -457,7 +531,7 @@ void ModelPreview::render()
             if (is3d) {
                 RenderModel(model, _wiring, _highlightFirst);
             } else {
-                model->DisplayEffectOnWindow(this, 2);
+                model->DisplayEffectOnWindow(this, PIXEL_SIZE_ON_DIALOGS);
             }
         } else {
             if (!StartDrawing(mPointSize, true)) return;
@@ -752,6 +826,7 @@ void ModelPreview::Reset()
     mWindowResized = true;
 }
 
+
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int styles, bool apc, bool showFirstPixel)
     : GRAPHICS_BASE_CLASS(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", false),
     virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
@@ -770,7 +845,9 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
 
     if (!allowSelected) {
         EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
-        Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
+        Bind(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, this);
+        Bind(EVT_MOTION3D, (wxObjectEventFunction)&ModelPreview::OnMotion3DEvent, this);
+        Bind(EVT_MOTION3D_BUTTONCLICKED, (wxObjectEventFunction)&ModelPreview::OnMotion3DButtonEvent, this);
     }
 #ifdef XL_DRAWING_WITH_METAL
     renderOrder = 0;
@@ -779,6 +856,8 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
     config->Read("OGLRenderOrder", &renderOrder, 0);
 #endif
     is3d = false;
+    
+    Mouse3DManager::INSTANCE.enableMotionEvents(this);
 }
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
@@ -798,7 +877,9 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     _cameraPos_latched_y = camera3d->GetPosY();
 
     EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
-    Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
+    Bind(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, this);
+    Bind(EVT_MOTION3D, (wxObjectEventFunction)&ModelPreview::OnMotion3DEvent, this);
+    Bind(EVT_MOTION3D_BUTTONCLICKED, (wxObjectEventFunction)&ModelPreview::OnMotion3DButtonEvent, this);
 
 #ifdef XL_DRAWING_WITH_METAL
     renderOrder = 0;
@@ -807,6 +888,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     config->Read("OGLRenderOrder", &renderOrder, 0);
 #endif
     is3d = false;
+    Mouse3DManager::INSTANCE.enableMotionEvents(this);
 }
 
 ModelPreview::~ModelPreview()
@@ -846,7 +928,7 @@ void ModelPreview::InitializePreview(wxString img, int brightness, int alpha, bo
             background = nullptr;
         }
         mBackgroundImage = img;
-        mBackgroundImageExists = wxFileExists(mBackgroundImage) && wxIsReadable(mBackgroundImage) && wxImage::CanRead(mBackgroundImage);
+        mBackgroundImageExists = FileExists(mBackgroundImage) && wxIsReadable(mBackgroundImage) && wxImage::CanRead(mBackgroundImage);
     }
     mBackgroundBrightness = brightness;
     mBackgroundAlpha = alpha;
@@ -871,7 +953,7 @@ void ModelPreview::SetbackgroundImage(wxString img)
             background = nullptr;
         }
         mBackgroundImage = img;
-        mBackgroundImageExists = wxFileExists(mBackgroundImage) && wxIsReadable(mBackgroundImage) && wxImage::CanRead(mBackgroundImage);
+        mBackgroundImageExists = FileExists(mBackgroundImage) && wxIsReadable(mBackgroundImage) && wxImage::CanRead(mBackgroundImage);
     }
 }
 
@@ -1120,7 +1202,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, camera3d->GetDistance() * camera3d->GetZoom()));
         glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleX()), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleY()), glm::vec3(0.0f, 1.0f, 0.0f));
-        ViewMatrix = ViewTranslateDistance * ViewRotateX * ViewRotateY * ViewTranslatePan;
+        glm::mat4 ViewRotateZ = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleZ()), glm::vec3(0.0f, 0.0f, 1.0f));
+        ViewMatrix = ViewTranslateDistance * ViewRotateX * ViewRotateY * ViewRotateZ * ViewTranslatePan;
         ProjMatrix = glm::perspective(glm::radians(45.0f), (float)translateToBacking(mWindowWidth) / (float)translateToBacking(mWindowHeight), 1.0f, 200000.0f);  // this must match prepare3DViewport call // bumped from 20,000 to 200,000 to allow bigger models without clipping
         ProjViewMatrix = ProjMatrix * ViewMatrix;
 

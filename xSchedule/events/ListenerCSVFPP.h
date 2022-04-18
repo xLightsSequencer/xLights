@@ -23,12 +23,12 @@ class ListenerCSVFPP : public ListenerBase
     bool IsValidHeader(uint8_t* buffer);
 
 	public:
-        ListenerCSVFPP(ListenerManager* _listenerManager);
+        ListenerCSVFPP(ListenerManager* _listenerManager, const std::string& localIP);
 		virtual ~ListenerCSVFPP() {}
 		virtual void Start() override;
         virtual void Stop() override;
         virtual std::string GetType() const override { return "FPP CSV"; }
-        virtual void StartProcess() override;
+        virtual void StartProcess(const std::string& localIP) override;
         virtual void StopProcess() override;
         virtual void Poll() override;
 };

@@ -18,7 +18,7 @@
 #include "../RenderBuffer.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -56,7 +56,7 @@ void ImageModel::GetBufferSize(const std::string &type, const std::string &camer
 }
 
 void ImageModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-    std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
+    std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, bool deep) const {
     BufferHi = 1;
     BufferWi = 1;
 
@@ -242,7 +242,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
         preview->GetSize(&w, &h);
 
         xlTexture *texture = _images[preview->GetName().ToStdString()];
-        if (texture == nullptr && wxFileExists(_imageFile)) {
+        if (texture == nullptr && FileExists(_imageFile)) {
             wxImage img(_imageFile);
             if (img.IsOk()) {
                 bool mAlpha = img.HasAlpha();
@@ -350,7 +350,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
     preview->GetVirtualCanvasSize(w, h);
     
     xlTexture *texture = _images[preview->GetName().ToStdString()];
-    if (texture == nullptr && wxFileExists(_imageFile)) {
+    if (texture == nullptr && FileExists(_imageFile)) {
         wxImage img(_imageFile);
         if (img.IsOk()) {
             bool mAlpha = img.HasAlpha();
@@ -368,6 +368,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
             
             width = img.GetWidth();
             height = img.GetHeight();
+            hasAlpha = img.HasAlpha();
             texture = ctx->createTexture(img);
             texture->SetName(GetName());
             texture->Finalize();
@@ -377,7 +378,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
    
     
-    xlGraphicsProgram *program = transparency == 0 ? solidProgram : transparentProgram;
+    xlGraphicsProgram *program = (transparency != 0 || hasAlpha) ? transparentProgram : solidProgram;
     if (texture) {
         xlVertexTextureAccumulator *va = ctx->createVertexTextureAccumulator();
         
@@ -391,13 +392,16 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
 
         int alpha = (100.0 - transparency) / 100.0 * 255.0;
         int brightness = (float)_offBrightness + (float)(100 - _offBrightness) * (float)GetChannelValue(0) / 255.0;
+        if (color) {
+            brightness = color->red;
+            brightness /= 2.55f;
+        }
 
         preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
             if (!is_3d) {
-                //not 3d, flatten to the 0.5 plane
-                ctx->Translate(0, 0, 0.5);
-                ctx->Scale(1.0, 1.0, 0.001);
+                //not 3d, flatten to the 0 plane
+                ctx->ScaleViewMatrix(1.0f, 1.0f, 0.0f);
             }
             GetModelScreenLocation().ApplyModelViewMatrices(ctx);
             ctx->drawTexture(va, texture, brightness, alpha, 0, va->getCount());
@@ -446,7 +450,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
 bool ImageModel::CleanupFileLocations(xLightsFrame* frame)
 {
     bool rc = false;
-    if (wxFile::Exists(_imageFile)) {
+    if (FileExists(_imageFile)) {
         if (!frame->IsInShowFolder(_imageFile)) {
             _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
             ModelXml->DeleteAttribute("Image");
@@ -462,7 +466,7 @@ bool ImageModel::CleanupFileLocations(xLightsFrame* frame)
 std::list<std::string> ImageModel::GetFileReferences()
 {
     std::list<std::string> res;
-    if (wxFile::Exists(_imageFile)) {
+    if (FileExists(_imageFile)) {
         res.push_back(_imageFile);
     }
     return res;
@@ -474,6 +478,8 @@ std::list<std::string> ImageModel::CheckModelSettings()
 
     if (_imageFile == "" || !wxFile::Exists(_imageFile)) {
         res.push_back(wxString::Format("    ERR: Image model '%s' cant find image file '%s'", GetName(), _imageFile).ToStdString());
+    } else if (!wxIsReadable(_imageFile) || !wxImage::CanRead(_imageFile)) {
+        res.push_back(wxString::Format("    ERR: Image model '%s' cant load image file '%s'", GetName(), _imageFile).ToStdString());
     } else {
         if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {
             res.push_back(wxString::Format("    WARN: Image model '%s' image file '%s' not under show/media/resource directories.", GetName(), _imageFile).ToStdString());

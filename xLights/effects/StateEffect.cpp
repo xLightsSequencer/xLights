@@ -106,7 +106,7 @@ void StateEffect::SetPanelStatus(Model *cls) {
         if (m != nullptr)
         {
             for (const auto& it : m->stateInfo) {
-                if (std::find(begin(used), end(used), it.first) == end(used) && it.second.size() > 30) // actually it should be about 120
+                if (std::find(begin(used), end(used), it.first) == end(used)) 
                 {
                     fp->Choice_StateDefinitonChoice->Append(it.first);
                     used.push_back(it.first);

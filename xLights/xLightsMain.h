@@ -93,11 +93,13 @@ class ConvertLogDialog;
 class RenderTreeData;
 class HousePreviewPanel;
 class SelectPanel;
+class SearchPanel;
 class SequenceVideoPanel;
 class EffectIconPanel;
 class ValueCurvesPanel;
 class ColoursPanel;
 class JukeboxPanel;
+class FindDataPanel;
 class TimingPanel;
 class ColorPanel;
 class EffectsPanel;
@@ -446,9 +448,7 @@ public:
     void OnButtonNetworkMoveDownClick(wxCommandEvent& event);
     void OnButtonSaveSetupClick(wxCommandEvent& event);
     void OnBitmapButtonTabInfoClick(wxCommandEvent& event);
-    void OnButtonLightsOffClick(wxCommandEvent& event);
     void OnCheckBoxLightOutputClick(wxCommandEvent& event);
-    void OnButtonStopNowClick(wxCommandEvent& event);
     void OnBitmapButtonOpenSeqClick(wxCommandEvent& event);
     void OnBitmapButtonSaveSeqClick(wxCommandEvent& event);
     void OnClose(wxCloseEvent& event);
@@ -594,9 +594,15 @@ public:
     void OnMenuItem_xScannerSelected(wxCommandEvent& event);
     void OnButton_OpenProxyClick(wxCommandEvent& event);
     void OnMenuItemRunScriptSelected(wxCommandEvent& event);
+    void OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event);
+    void OnMenuItem_ColorReplaceSelected(wxCommandEvent& event);
+    void OnMenuItemFindDataSelected(wxCommandEvent& event);
+    void OnMenuItemSearchEffectsSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
-private:
+    void OnHelp(wxHelpEvent& event);
+
+private :
 
     //void OnMenuItem53Selected(wxCommandEvent& event);
 
@@ -624,6 +630,7 @@ public:
     static const long ID_AUITOOLBAR_FIRST_FRAME;
     static const long ID_AUITOOLBAR_LAST_FRAME;
     static const long ID_AUITOOLBAR_REPLAY_SECTION;
+    static const long ID_CHECKBOX_LIGHT_OUTPUT;
     static const long ID_AUITOOLBAR_PLAY;
     static const long ID_AUITOOLBARITEM2;
     static const long ID_AUITOOLBARITEM5;
@@ -657,14 +664,10 @@ public:
     static const long ID_AUITOOLBAR_AC;
     static const long ID_AUITOOLBARITEM14;
     static const long ID_AUITOOLBAR_VIEW;
-    static const long ID_BITMAPBUTTON_TAB_INFO;
-    static const long ID_BUTTON_STOP_NOW;
-    static const long ID_BUTTON_LIGHTS_OFF;
-    static const long ID_CHECKBOX_LIGHT_OUTPUT;
-    static const long ID_AUITOOLBAR_OUTPUT;
     static const long ID_AUIEFFECTSTOOLBAR;
     static const long ID_BUTTON3;
     static const long ID_BUTTON11;
+    static const long ID_BUTTON13;
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON_SAVE_SETUP;
     static const long ID_BUTTON9;
@@ -709,6 +712,7 @@ public:
     static const long ID_FILE_ALTBACKUP;
     static const long ID_SHIFT_EFFECTS;
     static const long ID_MNU_SHIFT_SELECTED_EFFECTS;
+    static const long ID_MNU_COLOURREPLACE;
     static const long ID_MENUITEM13;
     static const long ID_MNU_CHECKSEQ;
     static const long ID_MNU_CLEANUPFILE;
@@ -757,8 +761,10 @@ public:
     static const long ID_MNU_COLOURDROPPER;
     static const long ID_MENUITEM_EFFECT_ASSIST_WINDOW;
     static const long ID_MENUITEM_SELECT_EFFECT;
+    static const long ID_MENUITEM_SEARCH_EFFECTS;
     static const long ID_MENUITEM_VIDEOPREVIEW;
     static const long ID_MNU_JUKEBOX;
+    static const long ID_MNU_FINDDATA;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM_WINDOWS_DOCKALL;
     static const long ID_MENUITEM11;
@@ -826,6 +832,7 @@ public:
     wxButton* ButtonUploadInput;
     wxButton* ButtonUploadOutput;
     wxButton* ButtonVisualise;
+    wxButton* Button_ChangeTemporarilyAgain;
     wxButton* Button_CheckShowFolderTemporarily;
     wxButton* Button_OpenProxy;
     wxChoice* ChoiceParm1;
@@ -869,6 +876,7 @@ public:
     wxMenuItem* MenuItemEffectAssist;
     wxMenuItem* MenuItemEffectDropper;
     wxMenuItem* MenuItemEffectSettings;
+    wxMenuItem* MenuItemFindData;
     wxMenuItem* MenuItemHinksPixExport;
     wxMenuItem* MenuItemHousePreview;
     wxMenuItem* MenuItemJukebox;
@@ -877,6 +885,7 @@ public:
     wxMenuItem* MenuItemLoadEditPerspective;
     wxMenuItem* MenuItemModelPreview;
     wxMenuItem* MenuItemRunScript;
+    wxMenuItem* MenuItemSearchEffects;
     wxMenuItem* MenuItemSelectEffect;
     wxMenuItem* MenuItemShiftEffects;
     wxMenuItem* MenuItemShiftSelectedEffects;
@@ -887,6 +896,7 @@ public:
     wxMenuItem* MenuItemViewSavePerspective;
     wxMenuItem* MenuItem_ACLIghts;
     wxMenuItem* MenuItem_CleanupFileLocations;
+    wxMenuItem* MenuItem_ColorReplace;
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
     wxMenuItem* MenuItem_DownloadSequences;
@@ -953,7 +963,6 @@ public:
     xlAuiToolBar* EditToolBar;
     xlAuiToolBar* EffectsToolBar;
     xlAuiToolBar* MainToolBar;
-    xlAuiToolBar* OutputToolBar;
     xlAuiToolBar* PlayToolBar;
     xlAuiToolBar* ViewToolBar;
     xlAuiToolBar* WindowMgmtToolbar;
@@ -1013,6 +1022,8 @@ public:
     bool _autoShowHousePreview = false;
     bool _smallWaveform = false;
     bool _modelBlendDefaultOff = true;
+    bool _lowDefinitionRender = false;
+    bool _saveLowDefinitionRender = false; // saves the value of the low definition render during batch render when it may be temporarily overridden
     bool _snapToTimingMarks = true;
     bool _autoSavePerspecive = true;
     bool _ignoreVendorModelRecommendations = false;
@@ -1101,9 +1112,6 @@ public:
     bool E131Sync() const {return me131Sync;}
     void SetE131Sync(bool b);
 
-    const std::string &LocalIP() const { return mLocalIP; }
-    void SetLocalIP(const std::string &ip);
-
     int SuppressDuplicateFrames() const;
     void SetSuppressDuplicateFrames(int i);
 
@@ -1146,7 +1154,14 @@ public:
 
     bool ModelBlendDefaultOff() const { return _modelBlendDefaultOff;}
     void SetModelBlendDefaultOff(bool b) { _modelBlendDefaultOff = b;}
-
+    void SetLowDefinitionRender(bool b)
+    {
+        _lowDefinitionRender = b;
+    }
+    bool IsLowDefinitionRender() const
+    {
+        return _lowDefinitionRender;
+    }
     const wxString &EnableRenderCache() const { return _enableRenderCache; }
     void SetEnableRenderCache(const wxString &t);
 
@@ -1244,6 +1259,7 @@ public:
     void OnMRUSequence(wxCommandEvent& event);
     bool SetDir(const wxString& dirname, bool permanent);
     void UpdateRecentFilesList(bool reload);
+    void AddToMRU(const std::string& filename);
     bool PromptForShowDirectory(bool permanent);
     bool SaveNetworksFile();
     bool IsControllersAndLayoutTabSaveLinked() { return _linkedSave == "Controllers and Layout Tab"; }
@@ -1457,7 +1473,6 @@ private:
     bool mBackupOnLaunch = true;
     bool me131Sync = false;
     bool mSuppressFadeHints = false;
-    std::string mLocalIP;
     wxString mAltBackupDir;
     int mIconSize;
     int mGridSpacing;
@@ -1555,6 +1570,11 @@ public:
     void ResetPanelDefaultSettings(const std::string& effect, const Model* model, bool optionbased);
 
     void UnselectEffect();
+    FindDataPanel* GetFindDataPanel() const
+    {
+        return _findDataPanel;
+    }
+    void ShowDataFindPanel();
 
 private:
 
@@ -1579,13 +1599,15 @@ private:
     EffectIconPanel* effectPalettePanel = nullptr;
     ValueCurvesPanel* _valueCurvesPanel = nullptr;
     ColoursPanel* _coloursPanel = nullptr;
-    JukeboxPanel *jukeboxPanel = nullptr;
-    BufferPanel *bufferPanel = nullptr;
+    JukeboxPanel* jukeboxPanel = nullptr;
+    FindDataPanel* _findDataPanel = nullptr;
+    BufferPanel* bufferPanel = nullptr;
     ViewsModelsPanel *displayElementsPanel = nullptr;
     TopEffectsPanel* effectsPnl = nullptr;
     EffectsPanel* EffectsPanel1 = nullptr;
     SelectPanel *_selectPanel = nullptr;
     SequenceVideoPanel* sequenceVideoPanel = nullptr;
+    SearchPanel* _searchPanel = nullptr;
     std::unique_ptr<ScriptsDialog> _scriptsDialog;
     int mMediaLengthMS;
 

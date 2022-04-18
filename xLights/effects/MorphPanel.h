@@ -39,6 +39,7 @@ class MorphPanel: public xlEffectPanel
 
 		//(*Declarations(MorphPanel)
 		BulkEditButton* ButtonSwap;
+		BulkEditCheckBox* CheckBox_Morph_AutoRepeat;
 		BulkEditCheckBox* CheckBox_ShowHeadAtStart;
 		BulkEditSlider* Slider_MorphAccel;
 		BulkEditSlider* Slider_MorphDuration;
@@ -99,6 +100,7 @@ class MorphPanel: public xlEffectPanel
 		wxStaticText* StaticText99;
 		xlLockButton* BitmapButton_MorphStagger;
 		xlLockButton* BitmapButton_Morph_Accel;
+		xlLockButton* BitmapButton_Morph_AutoRepeat;
 		xlLockButton* BitmapButton_Morph_Duration;
 		xlLockButton* BitmapButton_Morph_EndLength;
 		xlLockButton* BitmapButton_Morph_EndX1;
@@ -200,6 +202,8 @@ class MorphPanel: public xlEffectPanel
 		static const long ID_BITMAPBUTTON_SLIDER_Morph_Stagger;
 		static const long ID_CHECKBOX_ShowHeadAtStart;
 		static const long ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart;
+		static const long ID_CHECKBOX_Morph_AutoRepeat;
+		static const long ID_BITMAPBUTTON_CHECKBOX_Morph_AutoRepeat;
 		static const long ID_BUTTON_MORPH_SWAP;
 		static const long ID_PANEL30;
 		static const long ID_NOTEBOOK_Morph;

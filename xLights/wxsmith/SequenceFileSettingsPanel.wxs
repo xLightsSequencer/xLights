@@ -16,13 +16,25 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_LowDefinitionRender" member="yes">
+					<label>Low Definition Render</label>
+					<handler function="OnCheckBox_LowDefinitionRenderClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>1</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX2" variable="FSEQSaveCheckBox" member="yes">
 					<label>Save FSEQ File On Save</label>
 					<handler function="OnFSEQSaveCheckBoxClick" entry="EVT_CHECKBOX" />
 				</object>
 				<colspan>2</colspan>
 				<col>0</col>
-				<row>7</row>
+				<row>9</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -32,7 +44,7 @@
 					<label>Default Model Blending for New Sequences</label>
 				</object>
 				<col>0</col>
-				<row>1</row>
+				<row>2</row>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -47,7 +59,7 @@
 					<handler function="OnModelBlendDefaultChoiceSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
-				<row>1</row>
+				<row>2</row>
 				<flag>wxALL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -57,7 +69,7 @@
 					<label>Render Cache</label>
 				</object>
 				<col>0</col>
-				<row>3</row>
+				<row>4</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -73,7 +85,7 @@
 					<handler function="OnRenderCacheChoiceSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
-				<row>3</row>
+				<row>4</row>
 				<flag>wxALL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -83,7 +95,7 @@
 					<label>Auto Save Interval</label>
 				</object>
 				<col>0</col>
-				<row>5</row>
+				<row>6</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -102,7 +114,7 @@
 					<handler function="OnAutoSaveIntervalChoiceSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
-				<row>5</row>
+				<row>6</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -124,7 +136,7 @@
 						<item>V2 ZSTD (Default)</item>
 						<item>V2 Uncompressed</item>
 						<item>V2 ZLIB</item>
-                        <item>V2 ZSTD/sparse</item>
+						<item>V2 ZSTD/sparse</item>
 					</content>
 					<selection>1</selection>
 					<handler function="OnFSEQVersionChoiceSelect" entry="EVT_CHOICE" />
@@ -160,7 +172,7 @@
 				</object>
 				<colspan>2</colspan>
 				<col>0</col>
-				<row>4</row>
+				<row>5</row>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -190,7 +202,7 @@
 				</object>
 				<colspan>2</colspan>
 				<col>0</col>
-				<row>9</row>
+				<row>10</row>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -244,7 +256,7 @@
 				</object>
 				<colspan>2</colspan>
 				<col>0</col>
-				<row>6</row>
+				<row>7</row>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
@@ -254,15 +266,18 @@
 					<label>Default View for New Sequences</label>
 				</object>
 				<col>0</col>
-				<row>2</row>
+				<row>3</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_VIEW_DEFAULT" variable="VeiwDefaultChoice" member="yes" />
+				<object class="wxChoice" name="ID_CHOICE_VIEW_DEFAULT" variable="ViewDefaultChoice" member="yes">
+					<tooltip>This option is used to select which models will populate the master view when a new sequence is created.</tooltip>
+					<handler function="OnViewDefaultChoiceSelect" entry="EVT_CHOICE" />
+				</object>
 				<col>1</col>
-				<row>2</row>
+				<row>3</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>

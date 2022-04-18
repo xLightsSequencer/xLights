@@ -627,6 +627,11 @@ void ViewsModelsPanel::RemoveSelectedModels()
         }
 
         if (!hasEffects || wxMessageBox("Delete all effects and layers for the selected model(s)?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+
+            // we need to unselect the current effect because we may be about to delete it
+            wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
+            wxPostEvent(GetParent(), eventUnSelected);
+
             for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
                 if (IsItemSelected(ListCtrlModels, i)) {
                     // Got a selected item so handle it
@@ -704,7 +709,7 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
                         p + selcnt, (const char*)(_sequenceElements->GetElement(p + selcnt) == nullptr) ? "N/A" : _sequenceElements->GetElement(p + selcnt)->GetName().c_str());
 #endif
 
-                    Element* e = _sequenceElements->AddElement(p + selcnt, ListCtrlNonModels->GetItemText(i, 1).ToStdString(), type, true, false, false, false);
+                    Element* e = _sequenceElements->AddElement(p + selcnt, ListCtrlNonModels->GetItemText(i, 1).ToStdString(), type, true, false, false, false, false);
                     if (e != nullptr) {
                         e->AddEffectLayer();
                     }
@@ -1591,7 +1596,7 @@ void ViewsModelsPanel::SetMasterViewModels(const wxArrayString& models)
     for (size_t i = 0; i < models.size(); ++i) {
         int index = _sequenceElements->GetElementIndex(models[i].ToStdString(), MASTER_VIEW);
         if (index < 0) {
-            _sequenceElements->AddElement(i + GetTimingCount(), models[i].ToStdString(), "model", true, false, false, false);
+            _sequenceElements->AddElement(i + GetTimingCount(), models[i].ToStdString(), "model", true, false, false, false, false);
         }
         else {
             _sequenceElements->MoveSequenceElement(index, i + GetTimingCount(), MASTER_VIEW);

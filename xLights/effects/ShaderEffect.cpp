@@ -73,7 +73,7 @@
 #include "../TimingPanel.h"
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 #include "../../xSchedule/wxJSON/jsonreader.h"
 #include "graphics/opengl/DrawGLUtils.h"
 
@@ -214,7 +214,7 @@ std::list<std::string> ShaderEffect::CheckEffectSettings(const SettingsMap& sett
 
     wxString ifsFilename = settings.Get("E_0FILEPICKERCTRL_IFS", "");
 
-    if (ifsFilename == "" || !wxFile::Exists(ifsFilename))
+    if (ifsFilename == "" || !FileExists(ifsFilename))
     {
         res.push_back(wxString::Format("    ERR: Shader effect cant find file '%s'. Model '%s', Start %s", ifsFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
@@ -239,7 +239,7 @@ bool ShaderEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& Settin
 {
     bool rc = false;
     wxString file = SettingsMap["E_0FILEPICKERCTRL_IFS"];
-    if (wxFile::Exists(file))
+    if (FileExists(file))
     {
         if (!frame->IsInShowFolder(file))
         {
@@ -253,7 +253,7 @@ bool ShaderEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& Settin
 
 ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceElements* sequenceElements)
 {
-    if (!wxFile::Exists(filename)) return nullptr;
+    if (!FileExists(filename)) return nullptr;
 
     wxFile f(filename);
     if (!f.IsOpened()) return nullptr;
@@ -330,7 +330,7 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
 
     std::string file = settings["E_0FILEPICKERCTRL_IFS"];
     if (file != "") {
-        if (!wxFile::Exists(file)) {
+        if (!FileExists(file)) {
             settings["E_0FILEPICKERCTRL_IFS"] = FixFile("", file);
         }
     }

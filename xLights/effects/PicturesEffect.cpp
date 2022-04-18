@@ -29,6 +29,7 @@
 #include "../xLightsXmlFile.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
+#include "../ExternalHooks.h"
 #include "GIFImage.h"
 #include "../xLightsMain.h" 
 
@@ -56,7 +57,7 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
 
     wxString pictureFilename = settings.Get("E_FILEPICKER_Pictures_Filename", "");
 
-    if (pictureFilename == "" || !wxFile::Exists(pictureFilename))
+    if (pictureFilename == "" || !FileExists(pictureFilename))
     {
         res.push_back(wxString::Format("    ERR: Picture effect cant find image file '%s'. Model '%s', Start %s", pictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
@@ -146,7 +147,7 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
     std::string file = settings["E_FILEPICKER_Pictures_Filename"];
     if (file != "")
     {
-        if (!wxFile::Exists(file))
+        if (!FileExists(file, false))
         {
             settings["E_FILEPICKER_Pictures_Filename"] = FixFile("", file);
         }
@@ -301,7 +302,7 @@ void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug,
     if (rawimage.GetWidth() && rawimage.GetHeight()) rawimage.Clear(); //CAUTION: image must be non-empty to clear it (memory error otherwise)
 
     if (!cache->PictureName.CmpNoCase(filename)) { wrdebug("no change: " + filename); return; }
-    if (!wxFileExists(filename)) { wrdebug("not found: " + filename); return; }
+    if (!FileExists(filename)) { wrdebug("not found: " + filename); return; }
     wxTextFile f;
     cache->PixelsByFrame.clear();
     if (!f.Open(filename.c_str())) { wrdebug("can't open: " + filename); return; }
@@ -436,7 +437,7 @@ bool PicturesEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Sett
 {
     bool rc = false;
     wxString file = SettingsMap["E_FILEPICKER_Pictures_Filename"];
-    if (wxFile::Exists(file))
+    if (FileExists(file))
     {
         if (!frame->IsInShowFolder(file))
         {
@@ -544,7 +545,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             //    yes
             wxString BasePicture = fn.GetPathWithSep() + fn.GetName().Left(fn.GetName().Length() - 2);
             wxString sTmpPicture = wxString::Format("%s-2.%s", BasePicture, extension);
-            if (!wxFileExists(sTmpPicture)) {
+            if (!FileExists(sTmpPicture)) {
                 // not a movie file as frame 2 does not exist
             }
             else {
@@ -556,7 +557,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                     sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
                     for (frame = 1; frame <= 9999; frame++) {
                         sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
-                        if (wxFileExists(sPicture)) {
+                        if (FileExists(sPicture)) {
                             cache->maxmovieframes = frame;
                         }
                         else {
@@ -592,7 +593,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             buffer.needToInit = false;
             scale_image = true;
 
-            if (!wxFile::Exists(NewPictureName)) {
+            if (!FileExists(NewPictureName)) {
                 noImageFile = true;
             } else {
                 wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331

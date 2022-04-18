@@ -50,6 +50,7 @@
 #include "../xLightsVersion.h"
 #include "../Parallel.h"
 #include "ControllerCaps.h"
+#include "../ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 #include "ControllerUploadData.h"
@@ -613,7 +614,7 @@ static inline void addString(wxMemoryBuffer &buffer, const std::string &str) {
 bool FPP::GetPathAsJSON(const std::string &path, wxJSONValue &val) {
     wxFileName fn;
     fn = path;
-    if (fn.Exists()) {
+    if (FileExists(fn)) {
         wxJSONReader reader;
         wxFile tf(fn.GetFullPath());
         wxString json;
@@ -1323,8 +1324,8 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) 
             }
         }
         for (auto [x,y,z, ch] : modelPts) {
-            ret += wxString::Format("%d,%d,%d,%d,%s\n",
-                (int)std::round(x), (int)std::round(y), ch,
+            ret += wxString::Format("%d,%d,%d,%d,%d,%s\n",
+                (int)std::round(x), (int)std::round(y), (int)std::round(z), ch,
                 model->GetChanCountPerNode(), stringType.c_str());
         }
 
@@ -2689,18 +2690,30 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
     setRangesToChannelCount(inst);
 }
 
-static void ProcessFPPSystems(Discovery &discovery, const std::string &systems) {
+static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsString) {
     wxJSONValue origJson;
     wxJSONReader reader;
-    bool parsed = reader.Parse(systems, &origJson) == 0;
+    bool parsed = reader.Parse(systemsString, &origJson) == 0;
     if (!parsed) {
         return;
     }
 
-    for (int x = 0; x < origJson.Size(); x++) {
-        wxJSONValue system = origJson[x];
-        std::string address = system["IP"].AsString();
-        std::string hostName = system["HostName"].IsNull() ? "" : system["HostName"].AsString();
+    wxString IPKey = "IP";
+    wxString PlatformKey = "Platform";
+    wxString HostNameKey = "HostName";
+    wxString ModeStringKey = "fppMode";
+    if (origJson.HasMember("systems")) {
+        IPKey = "address";
+        PlatformKey = "type";
+        HostNameKey = "hostname";
+        ModeStringKey = "fppModeString";
+    }
+    wxJSONValue systems = origJson.HasMember("systems") ? origJson["systems"] : origJson;
+
+    for (int x = 0; x < systems.Size(); x++) {
+        wxJSONValue &system = systems[x];
+        std::string address = system[IPKey].AsString();
+        std::string hostName = system[HostNameKey].IsNull() ? "" : system[HostNameKey].AsString();
         if (address == "null" || hostName == "null") {
             continue;
         }
@@ -2711,8 +2724,8 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systems) 
         DiscoveredData *found = discovery.FindByIp(address, hostName);
         DiscoveredData inst;
         inst.hostname = hostName;
-        if (!system["Platform"].IsNull()) {
-            inst.platform = system["Platform"].AsString();
+        if (!system[PlatformKey].IsNull()) {
+            inst.platform = system[PlatformKey].AsString();
         }
 
         if (!system["model"].IsNull()) {
@@ -2737,8 +2750,8 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systems) 
         if (!system["HostDescription"].IsNull()) {
             inst.description = system["HostDescription"].AsString();
         }
-        if (!system["fppMode"].IsNull()) {
-            inst.mode = system["fppMode"].AsString();
+        if (!system[ModeStringKey].IsNull()) {
+            inst.mode = system[ModeStringKey].AsString();
         }
         if (inst.typeId == 0xC2 || inst.typeId == 0xC3) {
             inst.pixelControllerType = inst.platformModel;
@@ -3137,6 +3150,16 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
             return true;
         });
     }
+    discovery.AddCurl("localhost", "/api/system/info", [&discovery](int rc, const std::string &buffer, const std::string &err) {
+        ProcessFPPSysinfo(discovery, "localhost", "", buffer);
+        return true;
+    });
+    discovery.AddCurl("localhost", "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
+        if (rc == 200) {
+            ProcessFPPSystems(discovery, buffer);
+        }
+        return true;
+    });
 
     discovery.AddMulticast("239.70.80.80", FPP_CTRL_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *buffer, int len) {
         ProcessFPPPingPacket(discovery, buffer, len);

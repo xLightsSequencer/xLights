@@ -16,7 +16,7 @@
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
 #include "xLightsMain.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 
@@ -115,7 +115,7 @@ bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphics
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 
     if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
-        if (wxFileExists(_imageFile)) {
+        if (FileExists(_imageFile)) {
             logger_base.debug("Loading image model %s file %s for preview %s.",
                 (const char *)GetName().c_str(),
                 (const char *)_imageFile.c_str(),
@@ -209,8 +209,10 @@ std::list<std::string> ImageObject::CheckModelSettings()
 {
     std::list<std::string> res;
 
-    if (_imageFile == "" || !wxFile::Exists(_imageFile)) {
+    if (_imageFile == "" || !FileExists(_imageFile)) {
         res.push_back(wxString::Format("    ERR: Image object '%s' cant find image file '%s'", GetName(), _imageFile).ToStdString());
+    } else if (!wxIsReadable(_imageFile) || !wxImage::CanRead(_imageFile)) {
+        res.push_back(wxString::Format("    ERR: Image object '%s' cant load image file '%s'", GetName(), _imageFile).ToStdString());
     } else {
         if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {
             res.push_back(wxString::Format("    WARN: Image object '%s' image file '%s' not under show/media/resource directories.", GetName(), _imageFile).ToStdString());
@@ -223,7 +225,7 @@ std::list<std::string> ImageObject::CheckModelSettings()
 bool ImageObject::CleanupFileLocations(xLightsFrame* frame)
 {
     bool rc = false;
-    if (wxFile::Exists(_imageFile)) {
+    if (FileExists(_imageFile)) {
         if (!frame->IsInShowFolder(_imageFile)) {
             _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
             ModelXml->DeleteAttribute("Image");
@@ -238,7 +240,7 @@ bool ImageObject::CleanupFileLocations(xLightsFrame* frame)
 std::list<std::string> ImageObject::GetFileReferences()
 {
     std::list<std::string> res;
-    if (wxFile::Exists(_imageFile)) {
+    if (FileExists(_imageFile)) {
         res.push_back(_imageFile);
     }
     return res;
