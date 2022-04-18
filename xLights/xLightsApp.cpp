@@ -398,40 +398,33 @@ void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
         report->SetCompressedFileDirectory(topFrame->CurrentDir);
 
         wxFileName fn(topFrame->CurrentDir, OutputManager::GetNetworksFileName());
-        if (fn.Exists()) {
+        if (FileExists(fn)) {
             report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
         }
-        if (wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").Exists()) {
+        if (FileExists(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml"))) {
             report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
         }
-        if (topFrame->UnsavedRgbEffectsChanges &&  wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp").Exists()) {
+        if (topFrame->UnsavedRgbEffectsChanges &&  FileExists(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp"))) {
             report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
         }
 
         if (topFrame->GetSeqXmlFileName() != "") {
             wxFileName fn2(topFrame->GetSeqXmlFileName());
-            if (fn2.Exists() && !fn2.IsDir()) {
+            if (FileExists(fn2) && !fn2.IsDir()) {
                 report->AddFile(topFrame->GetSeqXmlFileName(), fn2.GetName());
                 wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
-                if (fnb.Exists())
-                {
+                if (FileExists(fnb)) {
                     report->AddFile(fnb.GetFullPath(), fnb.GetName());
                 }
-            }
-            else
-            {
+            } else {
                 wxFileName fnb(topFrame->CurrentDir + "/" + "__.xbkp");
-                if (fnb.Exists())
-                {
+                if (FileExists(fnb)) {
                     report->AddFile(fnb.GetFullPath(), fnb.GetName());
                 }
             }
-        }
-        else
-        {
+        } else {
             wxFileName fnb(topFrame->CurrentDir + "/" + "__.xbkp");
-            if (fnb.Exists())
-            {
+            if (FileExists(fnb)) {
                 report->AddFile(fnb.GetFullPath(), fnb.GetName());
             }
         }

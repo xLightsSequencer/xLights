@@ -2488,11 +2488,11 @@ void xScheduleFrame::CreateDebugReport(xlCrashHandler* crashHandler)
 
     if (xScheduleFrame::GetScheduleManager() != nullptr) {
         wxFileName fn(xScheduleFrame::GetScheduleManager()->GetShowDir(), OutputManager::GetNetworksFileName());
-        if (fn.Exists()) {
+        if (FileExists(fn)) {
             crashHandler->GetDebugReport().AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
         }
 
-        if (wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()).Exists()) {
+        if (FileExists(wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()))) {
             crashHandler->GetDebugReport().AddFile(wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()).GetFullPath(), ScheduleManager::GetScheduleFile());
         }
     }
