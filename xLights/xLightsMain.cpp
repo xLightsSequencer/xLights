@@ -3647,6 +3647,93 @@ void xLightsFrame::MaybePackageAndSendDebugFiles() {
     }
 }
 
+void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxDebugReportCompress* const report = &crashHandler->GetDebugReport();
+
+    report->SetCompressedFileDirectory(CurrentDir);
+
+    wxFileName fn(CurrentDir, OutputManager::GetNetworksFileName());
+    if (FileExists(fn))
+    {
+        report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
+    }
+    if (FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xml")))
+    {
+        report->AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
+    }
+    if (UnsavedRgbEffectsChanges &&  FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp")))
+    {
+        report->AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
+    }
+
+    if (GetSeqXmlFileName() != "")
+    {
+        wxFileName fn2(GetSeqXmlFileName());
+        if (FileExists(fn2) && !fn2.IsDir())
+        {
+            report->AddFile(GetSeqXmlFileName(), fn2.GetName());
+            wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
+            if (FileExists(fnb))
+            {
+                report->AddFile(fnb.GetFullPath(), fnb.GetName());
+            }
+        }
+        else
+        {
+            wxFileName fnb(CurrentDir + "/" + "__.xbkp");
+            if (FileExists(fnb))
+            {
+                report->AddFile(fnb.GetFullPath(), fnb.GetName());
+            }
+        }
+    }
+    else
+    {
+        wxFileName fnb(CurrentDir + "/" + "__.xbkp");
+        if (FileExists(fnb))
+        {
+            report->AddFile(fnb.GetFullPath(), fnb.GetName());
+        }
+    }
+
+    std::string threadStatus = "User Email: " + _userEmail.ToStdString() + "\n";
+    threadStatus += "\n";
+
+    //add thread status - must be done on main thread due to mutex locks potentially being problematic
+    threadStatus += "Render Pool:\n";
+    threadStatus += GetThreadStatusReport();
+    threadStatus += "\n";
+    threadStatus += "Parallel Job Pool:\n";
+    threadStatus += ParallelJobPool::POOL.GetThreadStatus();
+    threadStatus += "\n";
+
+    std::list<std::string> trc;
+    TraceLog::GetTraceMessages(trc);
+    threadStatus += "Crashed thread traces:\n";
+    for (auto &a : trc)
+    {
+        threadStatus += a;
+        threadStatus += "\n";
+    }
+
+    threadStatus += "\n";
+    threadStatus += "Main thread traces:\n";
+    std::list<std::string> traceMessages;
+    TraceLog::GetTraceMessages(traceMessages);
+    for (auto &a : traceMessages)
+    {
+        threadStatus += a;
+        threadStatus += "\n";
+    }
+
+    report->AddText("threads.txt", threadStatus, "Threads Status");
+    logger_base.crit("%s", (const char *)threadStatus.c_str());
+
+    crashHandler->ProcessCrashReport(xlCrashHandler::SendReportOptions::ASK_USER_TO_SEND);
+}
+
 void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
 {
     PackageDebugFiles();

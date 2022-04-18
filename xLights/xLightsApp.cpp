@@ -360,16 +360,17 @@ IMPLEMENT_APP(xLightsApp);
 wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 #endif
 
-xLightsFrame *topFrame = nullptr;
+xLightsApp::xLightsApp() :
+    xlGLBaseApp("xLights")
+{
+}
 
 wxString xLightsFrame::GetThreadStatusReport() {
     return jobPool.GetThreadStatus();
 }
-
 void xLightsFrame::PushTraceContext() {
     TraceLog::PushTraceContext();
 }
-
 void xLightsFrame::PopTraceContext() {
     TraceLog::PopTraceContext();
 }
@@ -382,87 +383,6 @@ void xLightsFrame::ClearTraceMessages() {
     TraceLog::ClearTraceMessages();
 }
 
-xLightsApp::xLightsApp() :
-    xlGLBaseApp("xLights")
-{
-}
-
-void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxDebugReportCompress* const report = &crashHandler->GetDebugReport();
-
-    // It is possible we crashed during startup (prior to creating the GUI).
-    if (topFrame != nullptr)
-    {
-        report->SetCompressedFileDirectory(topFrame->CurrentDir);
-
-        wxFileName fn(topFrame->CurrentDir, OutputManager::GetNetworksFileName());
-        if (FileExists(fn)) {
-            report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
-        }
-        if (FileExists(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml"))) {
-            report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
-        }
-        if (topFrame->UnsavedRgbEffectsChanges &&  FileExists(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp"))) {
-            report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
-        }
-
-        if (topFrame->GetSeqXmlFileName() != "") {
-            wxFileName fn2(topFrame->GetSeqXmlFileName());
-            if (FileExists(fn2) && !fn2.IsDir()) {
-                report->AddFile(topFrame->GetSeqXmlFileName(), fn2.GetName());
-                wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
-                if (FileExists(fnb)) {
-                    report->AddFile(fnb.GetFullPath(), fnb.GetName());
-                }
-            } else {
-                wxFileName fnb(topFrame->CurrentDir + "/" + "__.xbkp");
-                if (FileExists(fnb)) {
-                    report->AddFile(fnb.GetFullPath(), fnb.GetName());
-                }
-            }
-        } else {
-            wxFileName fnb(topFrame->CurrentDir + "/" + "__.xbkp");
-            if (FileExists(fnb)) {
-                report->AddFile(fnb.GetFullPath(), fnb.GetName());
-            }
-        }
-
-        std::string threadStatus = "User Email: " + topFrame->_userEmail.ToStdString() + "\n";
-        threadStatus += "\n";
-
-        //add thread status - must be done on main thread due to mutex locks potentially being problematic
-        threadStatus += "Render Pool:\n";
-        threadStatus += topFrame->GetThreadStatusReport();
-        threadStatus += "\n";
-        threadStatus += "Parallel Job Pool:\n";
-        threadStatus += ParallelJobPool::POOL.GetThreadStatus();
-        threadStatus += "\n";
-
-        std::list<std::string> trc;
-        TraceLog::GetTraceMessages(trc);
-        threadStatus += "Crashed thread traces:\n";
-        for (auto &a : trc) {
-            threadStatus += a;
-            threadStatus += "\n";
-        }
-
-        threadStatus += "\n";
-        threadStatus += "Main thread traces:\n";
-        std::list<std::string> traceMessages;
-        TraceLog::GetTraceMessages(traceMessages);
-        for (auto &a : traceMessages) {
-            threadStatus += a;
-            threadStatus += "\n";
-        }
-
-        report->AddText("threads.txt", threadStatus, "Threads Status");
-        logger_base.crit("%s", (const char *)threadStatus.c_str());
-    }
-
-    crashHandler->ProcessCrashReport(xlCrashHandler::SendReportOptions::ASK_USER_TO_SEND);
-}
 
 #ifdef __WXOSX__
 void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
@@ -697,7 +617,7 @@ bool xLightsApp::OnInit()
     }
     //*)
 
-    topFrame = (xLightsFrame*)GetTopWindow();
+    xLightsFrame* const topFrame = (xLightsFrame*)GetTopWindow();
     __frame = topFrame;
 
     if (parser.Found("r")) {
