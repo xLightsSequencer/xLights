@@ -21,8 +21,9 @@ class xScheduleApp : public xlBaseApp
     wxSingleInstanceChecker* _checker = nullptr;
 
     public:
+        xScheduleApp();
+
         virtual bool OnInit() override;
-        virtual void OnFatalException() override;
         void WipeSettings();
         virtual int OnExit() override;
         xScheduleFrame* GetFrame() { return (xScheduleFrame*)GetTopWindow(); }

@@ -205,6 +205,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\IPEntryDialog.h" />
+    <ClInclude Include="..\common\xlBaseApp.h" />
     <ClInclude Include="..\common\xlStackWalker.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />

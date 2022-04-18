@@ -1802,7 +1802,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
         try
         {
             xlCrashHandler::SetupCrashHandlerForNonWxThread();
-            throw "HEY";
             std::this_thread::sleep_for(std::chrono::seconds(3));
             this->CallAfter(&xLightsFrame::DoPostStartupCommands);
         }
@@ -1972,11 +1971,11 @@ void xLightsFrame::DoPostStartupCommands() {
     // dont check for updates if batch rendering
     if (!_renderMode && !_checkSequenceMode) {
 // Don't bother checking for updates when debugging.
-// #ifndef _DEBUG
+#ifndef _DEBUG
         if (!IsFromAppStore()) {
             CheckForUpdate(1, true, false);
         }
-// #endif
+#endif
         if (_userEmail == "") CollectUserEmail();
         if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
     }
@@ -2047,13 +2046,6 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
     dlg.LegalTextLabel->Wrap(dlg.LegalTextLabel->GetClientSize().GetWidth() - 10);
     dlg.MainSizer->Fit(&dlg);
     dlg.MainSizer->SetSizeHints(&dlg);
-
-    // wxASSERT(false);
-
-    // char* p = 0;
-    // strcpy(p, "Let's crash");
-
-    throw "HEY";
 
     if (IsFromAppStore()) {
         dlg.PrivacyHyperlinkCtrl->SetURL("http://kulplights.com/xlights/privacy_policy.html");
@@ -3630,64 +3622,6 @@ void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
     UpdateViewMenu();
 }
 
-void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report) {
-    wxHTTP http;
-    http.Connect("dankulp.com");
-
-    const char *bound = "--------------------------b29a7c2fe47b9481";
-
-    wxDateTime now = wxDateTime::Now();
-    int millis = wxGetUTCTimeMillis().GetLo() % 1000;
-
-    wxString ver = xlights_version_string + xlights_qualifier;
-    ver.Trim();
-    for (int x = 0; x < ver.length(); x++) {
-        if (ver[x] == ' ') ver[x] = '-';
-    }
-
-    wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth()+1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
-
-
-    wxString qualifier = GetBitness();
-#ifdef __WXOSX__
-#if defined(__x86_64__)
-    qualifier = "x86_64";
-#elif defined(__aarch64__)
-    qualifier = "arm64";
-#endif
-#endif
-    wxString fn = wxString::Format("xlights-%s_%s_%s_%s.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), ver, qualifier, ts);
-    const char *ct = "Content-Type: application/octet-stream\n";
-    std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
-
-    wxMemoryBuffer memBuff;
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(ct, strlen(ct));
-    memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
-
-
-    wxFile f_in(report.GetCompressedFileName());
-    wxFileOffset fLen=f_in.Length();
-    void* tmp=memBuff.GetAppendBuf(fLen);
-    size_t iRead=f_in.Read(tmp, fLen);
-    memBuff.UngetAppendBuf(iRead);
-    f_in.Close();
-
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("--\n", 3);
-
-    http.SetMethod("POST");
-    http.SetPostBuffer("multipart/form-data; boundary=------------------------b29a7c2fe47b9481", memBuff);
-    wxInputStream * is = http.GetInputStream("/" + loc + "/index.php");
-    char buf[1024];
-    is->Read(buf, 1024);
-    //printf("%s\n", buf);
-    delete is;
-    http.Close();
-}
-
 void xLightsFrame::MaybePackageAndSendDebugFiles() {
     wxString message = "You forced the OpenGL setting to a non-default value.  Is it OK to send the debug logs to the developers for analysis?";
     wxMessageDialog dlg(this, message, "Send Debug Files",wxYES_NO|wxCENTRE);
@@ -3704,7 +3638,7 @@ void xLightsFrame::MaybePackageAndSendDebugFiles() {
         report.AddText("description", ted.GetValue(), "description");
         AddDebugFilesToReport(report);
         report.Process();
-        SendReport("oglUpload", report);
+        xlCrashHandler::SendReport("xLights", "oglUpload", report);
         wxRemoveFile(report.GetCompressedFileName());
     }
 }

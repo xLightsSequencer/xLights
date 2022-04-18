@@ -44,6 +44,7 @@
     <ClInclude Include="E131Receiver.h" />
     <ClInclude Include="ArtNETReceiver.h" />
     <ClInclude Include="UniverseData.h" />
+    <ClInclude Include="..\common\xlBaseApp.h" />
     <ClInclude Include="..\common\xlStackWalker.h" />
     <ClInclude Include="..\xSchedule\wxJSON\json_defs.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h" />

@@ -77,7 +77,7 @@
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "oleaut32.lib")
-#pragma comment(lib, "odbc32.lib") 
+#pragma comment(lib, "odbc32.lib")
 #pragma comment(lib, "odbccp32.lib")
 #pragma comment(lib, "kernel32.lib")
 #pragma comment(lib, "user32.lib")
@@ -93,6 +93,10 @@ static std::string __xScheduleURL;
 static bool __started = false;
 static p_xSchedule_Action __action;
 
+RemoteFalconApp::RemoteFalconApp() :
+    xlBaseApp("RemoteFalcon")
+{
+}
 
 static void WipeSettings()
 {

@@ -18,6 +18,8 @@ typedef bool (*p_xSchedule_Action)(const char* command, const wchar_t* parameter
 class RemoteFalconApp : public xlBaseApp
 {
 public:
+    RemoteFalconApp();
+
     virtual bool OnInit() override;
     virtual int OnExit() override;
 };

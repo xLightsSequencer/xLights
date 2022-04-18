@@ -34,6 +34,7 @@
 #include <wx/timer.h>
 //*)
 
+#include "../common/xlBaseApp.h"
 #include "../xLights/xLightsTimer.h"
 #include <map>
 #include <wx/socket.h>
@@ -52,7 +53,7 @@ class wxFont;
 wxDECLARE_EVENT(EVT_FLASH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TAG, wxCommandEvent);
 
-class xFadeFrame : public wxFrame
+class xFadeFrame : public xlFrame
 {
     const int JUKEBOXBUTTONS = 50;
     const int BUTTONWIDTH = 20;
@@ -95,8 +96,7 @@ public:
 
         xFadeFrame(wxWindow* parent, wxWindowID id = -1);
         virtual ~xFadeFrame();
-        void CreateDebugReport(wxDebugReportCompress *report);
-        void SendReport(const wxString &loc, wxDebugReportCompress &report);
+        virtual void CreateDebugReport(xlCrashHandler* crashHandler) override;
 
 private:
 

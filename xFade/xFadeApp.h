@@ -19,13 +19,14 @@
 #endif
 #endif
 
-#include <wx/app.h>
+#include "../common/xlBaseApp.h"
 
-class xFadeApp : public wxApp
+class xFadeApp : public xlBaseApp
 {
     public:
+        xFadeApp();
+
         virtual bool OnInit() override;
-        virtual void OnFatalException() override;
         void WipeSettings();
         virtual int OnExit() override;
 };

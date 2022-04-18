@@ -34,6 +34,7 @@
 #include <wx/treelist.h>
 #include <wx/file.h>
 
+#include "../common/xlBaseApp.h"
 #include "ScanWork.h"
 
 class wxDebugReportCompress;
@@ -56,7 +57,7 @@ enum class TITLE_PRIORITY {
     TP_NONE
 };
 
-class xScannerFrame : public wxFrame
+class xScannerFrame : public xlFrame
 {
     std::pair<std::string, std::string> nullPair = { "","" };
     wxTreeListCtrl* _tree = nullptr;
@@ -81,8 +82,7 @@ public:
 
         xScannerFrame(wxWindow* parent, bool singleThreaded, wxWindowID id = -1);
         virtual ~xScannerFrame();
-        void CreateDebugReport(wxDebugReportCompress *report);
-        void SendReport(const wxString &loc, wxDebugReportCompress &report);
+        virtual void CreateDebugReport(xlCrashHandler* crashHandler) override;
         void ExportItem(int skip, wxTreeListItem& item, wxFile& f);
         void ProcessScanResult(std::list<std::pair<std::string, std::string>>& res);
         void ProcessScanResults();

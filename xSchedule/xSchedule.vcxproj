@@ -432,6 +432,7 @@
     <ClCompile Include="Xyzzy.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\xlBaseApp.h" />
     <ClInclude Include="..\common\xlStackWalker.h" />
     <ClInclude Include="..\xLights\AudioManager.h" />
     <ClInclude Include="..\xLights\controllers\BaseController.h" />

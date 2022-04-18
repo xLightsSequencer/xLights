@@ -19,6 +19,8 @@ class xLightsApp : public xlGLBaseApp
     void WipeSettings();
 
 public:
+    xLightsApp();
+
     virtual bool OnInit() override;
     static xLightsFrame* GetFrame() { return __frame; }
     static wxString showDir;
@@ -26,7 +28,9 @@ public:
     static wxArrayString sequenceFiles;
     static xLightsFrame* __frame;
 
-    virtual void CreateDebugReport(wxDebugReportCompress& report) override;
+    #ifdef __WXOSX__
+    virtual void MacOpenFiles(wxArrayString const& fileNames) override;
+    #endif
     virtual bool ProcessIdle() override;
     uint64_t _nextIdleTime = 0;
 };

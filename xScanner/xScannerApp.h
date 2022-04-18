@@ -15,6 +15,8 @@
 class xScannerApp : public xlBaseApp
 {
     public:
+        xScannerApp();
+
         virtual bool OnInit() override;
         void WipeSettings();
         virtual int OnExit() override;

@@ -347,7 +347,7 @@ int main(int argc, char **argv)
         }
     }
     #endif
-    
+
     logger_base.info("Main: Starting wxWidgets ...");
     int rc =  wxEntry(argc, argv);
     logger_base.info("Main: wxWidgets exited with rc=" + wxString::Format("%d", rc));
@@ -382,79 +382,21 @@ void xLightsFrame::ClearTraceMessages() {
     TraceLog::ClearTraceMessages();
 }
 
-static std::condition_variable crashDoneSignal;
-
-void xLightsApp::CreateDebugReport(wxDebugReportCompress& report) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (!wxThread::IsMain() && topFrame != nullptr)
-    {
-        std::mutex crashMutex;
-        std::unique_lock<std::mutex> lock(crashMutex);
-        topFrame->CallAfter(&xLightsFrame::CreateDebugReport, &report);
-        crashDoneSignal.wait(lock);
-    }
-    else if (topFrame != nullptr)
-    {
-        topFrame->CreateDebugReport(&report);
-    }
-    else
-    {
-        // unable to create debug report
-        logger_base.crit("Unable to tell user about debug report. Crash report saved to %s.", (const char*)report.GetCompressedFileName().c_str());
-    }
+xLightsApp::xLightsApp() :
+    xlGLBaseApp("xLights")
+{
 }
-    
-void xLightsFrame::CreateDebugReport(wxDebugReportCompress* report) {
+
+void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
+{
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    static bool inHere = false;
-
-    // if we are in here a second time ... just return
-    if (inHere) return;
-    
-#ifdef __WXOSX__
-    wxMessageBox("If you haven't already, please turn on the system settings to share crash data with the app developers.\n\n To do that, go to:\n"
-                 "System Preferences -> Security and Privacy -> Privacy -> Analytics & Improvements\n\n"
-                 "and turn on the \"Share Mac Analytics\" setting and also the \"Share with App Developers\" setting.\n\n"
-                 "This provides more information to the xLights developers than just our normal crash logs.");
-#endif
-
-    inHere = true;
-
-    report->SetCompressedFileDirectory(topFrame->CurrentDir);
-
-    wxString dir;
-#ifdef __WXMSW__
-    wxGetEnv("APPDATA", &dir);
-    std::string filename = std::string(dir.c_str()) + "/xLights_l4cpp.log";
-#endif
-#ifdef __WXOSX__
-    wxFileName home;
-    home.AssignHomeDir();
-    dir = home.GetFullPath();
-    std::string filename = std::string(dir.c_str()) + "/Library/Logs/xLights_l4cpp.log";
-#endif
-#ifdef __LINUX__
-    std::string filename = "/tmp/xLights_l4cpp.log";
-#endif
-
-    if (wxFile::Exists(filename))
-    {
-        report->AddFile(filename, "xLights_l4cpp.log");
-    }
-    else if ((topFrame != nullptr) && wxFile::Exists(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath()))
-    {
-        report->AddFile(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
-    }
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath()))
-    {
-        report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
-    }
+    wxDebugReportCompress* const report = &crashHandler->GetDebugReport();
 
     // It is possible we crashed during startup (prior to creating the GUI).
     if (topFrame != nullptr)
     {
+        report->SetCompressedFileDirectory(topFrame->CurrentDir);
+
         wxFileName fn(topFrame->CurrentDir, OutputManager::GetNetworksFileName());
         if (fn.Exists()) {
             report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
@@ -526,15 +468,7 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress* report) {
         logger_base.crit("%s", (const char *)threadStatus.c_str());
     }
 
-    if (wxDebugReportPreviewStd().Show(*report)) {
-        report->Process();
-        SendReport("crashUpload", *report);
-        wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
-    }
-    logger_base.crit("Exiting after creating debug report: %s", (const char *)report->GetCompressedFileName().c_str());
-
-    inHere = false;
-    crashDoneSignal.notify_all();
+    crashHandler->ProcessCrashReport(xlCrashHandler::SendReportOptions::ASK_USER_TO_SEND);
 }
 
 #ifdef __WXOSX__

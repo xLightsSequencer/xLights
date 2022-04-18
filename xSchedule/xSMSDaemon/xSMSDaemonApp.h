@@ -18,6 +18,8 @@ typedef bool (*p_xSchedule_Action)(const char* command, const wchar_t* parameter
 class xSMSDaemonApp : public xlBaseApp
 {
 public:
+    xSMSDaemonApp();
+    
     static p_xSchedule_Action GetAction();
     virtual bool OnInit() override;
     virtual int OnExit() override;

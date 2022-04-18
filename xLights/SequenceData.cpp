@@ -24,6 +24,7 @@
 //Windows
 #endif
 
+#include "../common/xlBaseApp.h"
 #include "SequenceData.h"
 #include "UtilFunctions.h"
 
