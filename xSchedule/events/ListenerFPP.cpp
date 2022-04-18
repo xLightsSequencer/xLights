@@ -275,6 +275,31 @@ void ListenerFPP::Poll()
                     _listenerManager->ProcessPacket(GetType(), std::string((char*)(buffer + sizeof(ControlPkt))));
                 } else if (cp->pktType == CTRL_PKT_CMD) {
                     //FIXME - command?
+                    std::string str(buffer, buffer + sizeof(buffer));
+                    std::vector<std::string> parms;
+                    std::string parm;
+                    for (int i = 5; i < sizeof(buffer);++i)
+                    {
+                        if (0x20 > buffer[i] || 0x7E < buffer[i])
+                        {
+                            if (!parm.empty())
+                            {
+                                parms.push_back(parm);
+                                parm.clear();
+                            }
+                        }
+                        else
+                        {
+                            parm += buffer[i];
+                        }
+                    }
+                    if (parms.size() == 4)
+                    {
+                        if (parms[2].compare("Trigger Command Preset") == 0)
+                        {
+                            _listenerManager->ProcessPacket("FPPCommandPreset", parms[3]);
+                        }
+                    }
                 } else if (cp->pktType == CTRL_PKT_BLANK) {
                     //FIXME - blank data
                 } else if (cp->pktType == CTRL_PKT_PING) {

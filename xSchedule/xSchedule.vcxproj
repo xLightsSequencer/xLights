@@ -263,6 +263,7 @@
     <ClCompile Include="EventDialog.cpp" />
     <ClCompile Include="EventE131Panel.cpp" />
     <ClCompile Include="EventFPPPanel.cpp" />
+    <ClCompile Include="EventFPPCommandPresetPanel.cpp" />
     <ClCompile Include="EventLorPanel.cpp" />
     <ClCompile Include="EventMIDIPanel.cpp" />
     <ClCompile Include="EventMQTTPanel.cpp" />
@@ -277,6 +278,7 @@
     <ClCompile Include="events\EventData.cpp" />
     <ClCompile Include="events\EventE131.cpp" />
     <ClCompile Include="events\EventFPP.cpp" />
+    <ClCompile Include="events\EventFPPCommandPreset.cpp" />
     <ClCompile Include="events\EventLor.cpp" />
     <ClCompile Include="events\EventMIDI.cpp" />
     <ClCompile Include="events\EventMQTT.cpp" />
@@ -501,6 +503,7 @@
     <ClInclude Include="EventDialog.h" />
     <ClInclude Include="EventE131Panel.h" />
     <ClInclude Include="EventFPPPanel.h" />
+    <ClInclude Include="EventFPPCommandPresetPanel.h" />
     <ClInclude Include="EventLorPanel.h" />
     <ClInclude Include="EventMIDIPanel.h" />
     <ClInclude Include="EventMQTTPanel.h" />
@@ -515,6 +518,7 @@
     <ClInclude Include="events\EventData.h" />
     <ClInclude Include="events\EventE131.h" />
     <ClInclude Include="events\EventFPP.h" />
+    <ClInclude Include="events\EventFPPCommandPreset.h" />
     <ClInclude Include="events\EventLor.h" />
     <ClInclude Include="events\EventMIDI.h" />
     <ClInclude Include="events\EventMQTT.h" />

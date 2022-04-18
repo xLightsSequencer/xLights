@@ -558,6 +558,12 @@
       <Filter>OutputProcessing</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\WindowsHardwareVideoReader.cpp" />
+    <ClCompile Include="events\EventFPPCommandPreset.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="EventFPPCommandPresetPanel.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -1110,6 +1116,12 @@
     </ClInclude>
     <ClInclude Include="..\xLights\ExternalHooks.h" />
     <ClInclude Include="..\xLights\WindowsHardwareVideoReader.h" />
+    <ClInclude Include="events\EventFPPCommandPreset.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="EventFPPCommandPresetPanel.h">
+      <Filter>Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">
