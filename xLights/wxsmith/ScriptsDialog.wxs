@@ -21,6 +21,7 @@
 			<object class="sizeritem">
 				<object class="wxListBox" name="ID_LISTBOX_SCRIPTS" variable="ListBoxScripts" member="yes">
 					<default>-1</default>
+					<handler function="OnListBoxScriptsDClick" entry="EVT_LISTBOX_DCLICK" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

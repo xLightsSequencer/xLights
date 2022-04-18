@@ -70,20 +70,6 @@ std::list<std::string> LuaRunner::PromptSequences() const
     return sequenceList;
 }
 
-std::list<std::string> LuaRunner::GetContollers() const
-{
-    return _frame->GetOutputManager()->GetControllerNames();
-}
-
-std::list<std::string> LuaRunner::GetModels() const
-{
-    std::list<std::string> models;
-    for (auto m = (& _frame->AllModels)->begin();m != (&_frame->AllModels)->end(); ++m){
-        models.push_back(m->first);
-    }
-    return models;
-}
-
 std::list<std::string> LuaRunner::SplitString(std::string const& text, char const& delimiter) const
 {
     auto items = wxSplit(text, delimiter);
@@ -107,7 +93,7 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
 { 
     sol::state lua;
     // open some common libraries
-    lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::table);
+    lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::table, sol::lib::os, sol::lib::io, sol::lib::string, sol::lib::math );
 
     lua.set("showfolder", _frame->GetShowDirectory());
     lua.set_function("RunCommand", &LuaRunner::RunCommand, this);
@@ -115,8 +101,6 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
     lua.set_function("ShowMessage", &LuaRunner::ShowMessage, this);
     lua.set_function("PromptString", &LuaRunner::PromptString, this);
     lua.set_function("PromptSelection", &LuaRunner::PromptSelection, this);
-    lua.set_function("GetContollers", &LuaRunner::GetContollers, this);
-    lua.set_function("GetModels", &LuaRunner::GetModels, this);
     lua.set_function("SplitString", &LuaRunner::SplitString, this);
     lua.set_function("JoinString", &LuaRunner::JoinString, this);
     lua.set_function("Log", SendResponce);

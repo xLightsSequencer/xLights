@@ -75,6 +75,7 @@ ScriptsDialog::ScriptsDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos
     SetSizer(FlexGridSizer1);
     Layout();
 
+    Connect(ID_LISTBOX_SCRIPTS,wxEVT_COMMAND_LISTBOX_DOUBLECLICKED,(wxObjectEventFunction)&ScriptsDialog::OnListBoxScriptsDClick);
     Connect(ID_BUTTON_RUN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ScriptsDialog::OnButton_RunClick);
     Connect(ID_BUTTON_REFRESH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ScriptsDialog::OnButton_RefreshClick);
     Connect(ID_BUTTON_CLEAR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ScriptsDialog::OnButton_ClearClick);
@@ -100,32 +101,13 @@ void ScriptsDialog::OnButton_RefreshClick(wxCommandEvent& event)
 
 void ScriptsDialog::OnButton_RunClick(wxCommandEvent& event)
 {
-    int sel = ListBoxScripts->GetSelection();
-    if (sel == wxNOT_FOUND) {
-        DisplayError(_("Select an script before clicking the Run Button"), this);
-        return;
-    }
-    SetCursor(wxCURSOR_WAIT);
-
-    ListBoxScripts->Disable();
-    Button_Run->Disable();
-    Button_Refresh->Disable();
-
-    auto filePath = _scripts.at(sel);
-
-    Run_Lua_Script(filePath);
-
-    ListBoxScripts->Enable();
-    Button_Run->Enable();
-    Button_Refresh->Enable();
-    SetCursor(wxCURSOR_ARROW);
+    Run_Selected_Script();
 }
 
 void ScriptsDialog::OnButton_ClearClick(wxCommandEvent& event)
 {
     TextCtrl_Log->Clear();
 }
-
 
 void ScriptsDialog::OnListRClick(wxContextMenuEvent& event)
 {
@@ -154,6 +136,11 @@ void ScriptsDialog::OnPopup(wxCommandEvent& event)
             wxExecute(command);
         }
     }
+}
+
+void ScriptsDialog::OnListBoxScriptsDClick(wxCommandEvent& event)
+{
+    Run_Selected_Script();
 }
 
 
@@ -205,6 +192,29 @@ void ScriptsDialog::ProcessScriptDir(wxString const& dir)
     }
 }
 
+void ScriptsDialog::Run_Selected_Script()
+{
+    int sel = ListBoxScripts->GetSelection();
+    if (sel == wxNOT_FOUND) {
+        DisplayError(_("Please Select an script before trying to Run it"), this);
+        return;
+    }
+    SetCursor(wxCURSOR_WAIT);
+
+    ListBoxScripts->Disable();
+    Button_Run->Disable();
+    Button_Refresh->Disable();
+
+    auto filePath = _scripts.at(sel);
+
+    Run_Lua_Script(filePath);
+
+    ListBoxScripts->Enable();
+    Button_Run->Enable();
+    Button_Refresh->Enable();
+    SetCursor(wxCURSOR_ARROW);
+}
+
 void ScriptsDialog::Run_Lua_Script(wxString const& filepath) const
 {
     wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets
@@ -218,3 +228,5 @@ void ScriptsDialog::Run_Lua_Script(wxString const& filepath) const
     };
     _runner->Run_Script(filepath, LogMessage);
 }
+
+

@@ -851,8 +851,11 @@ public:
             vac.FlushRange(start, len);
         }
         virtual void FlushColors(uint32_t start, uint32_t len) override {
-            for (int x = start; x < std::min((uint32_t)colorIndexes.size(), start + len); x++) {
-                vac.SetVertex(x, colors[colorIndexes[x]]);
+            for (int x = 0; x < getCount(); x++) {
+                int idx = colorIndexes[x];
+                if (idx >= start && (idx < (start + len))) {
+                    vac.SetVertex(x, colors[idx]);
+                }
             }
             vac.FlushRange(0, getCount());
         }
@@ -960,13 +963,14 @@ public:
                         float tc[3][2];
                         GLint texture = -1;
                         uint8_t color[3][4];
-                        
-                        if (this->materials[s.mesh.material_ids[idx]].texture && !this->materials[s.mesh.material_ids[idx]].forceColor) {
-                            xlGLTexture *t = (xlGLTexture*)this->materials[s.mesh.material_ids[idx]].texture;
-                            texture = t->image.getID();
+                        xlColor c(xlWHITE);
+                        if (s.mesh.material_ids[idx] >= 0) {
+                            if (this->materials[s.mesh.material_ids[idx]].texture && !this->materials[s.mesh.material_ids[idx]].forceColor) {
+                                xlGLTexture *t = (xlGLTexture*)this->materials[s.mesh.material_ids[idx]].texture;
+                                texture = t->image.getID();
+                            }
+                            c = this->materials[s.mesh.material_ids[idx]].color;
                         }
-                        xlColor c = this->materials[s.mesh.material_ids[idx]].color;
-
                         for (int x = 0; x < 3; x++) {
                             tinyobj::index_t vi = s.mesh.indices[idx*3 + x];
 
@@ -1041,13 +1045,15 @@ public:
     virtual xlMesh *loadMeshFromObjFile(const std::string &file) override {
         return new xlGLMesh(file, this);
     }
-    virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness) override {
+    virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness, bool applyShading) override {
         xlGLMesh *glm = (xlGLMesh*)mesh;
         glm->create3DMesh(this);
         if (glm->mesh) {
+            glDepthFunc(GL_LESS);
             DrawGLUtils::xlAccumulator vac;
             vac.AddMesh(glm->mesh, false, brightness, false);
             DrawGLUtils::Draw(vac);
+            glDepthFunc(GL_LEQUAL);
         }
         return this;
     }
@@ -1055,9 +1061,11 @@ public:
         xlGLMesh *glm = (xlGLMesh*)mesh;
         glm->create3DMesh(this);
         if (glm->mesh) {
+            glDepthFunc(GL_LESS);
             DrawGLUtils::xlAccumulator vac;
             vac.AddMesh(glm->mesh, false, brightness, true);
             DrawGLUtils::Draw(vac);
+            glDepthFunc(GL_LEQUAL);
         }
         return this;
     }
@@ -1065,9 +1073,11 @@ public:
         xlGLMesh *glm = (xlGLMesh*)mesh;
         glm->create3DMesh(this);
         if (glm->mesh) {
+            glDepthFunc(GL_LESS);
             DrawGLUtils::xlAccumulator vac;
             vac.AddMesh(glm->mesh, true, brightness, false);
             DrawGLUtils::Draw(vac);
+            glDepthFunc(GL_LEQUAL);
         }
         return this;
     }

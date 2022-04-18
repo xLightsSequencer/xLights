@@ -69,7 +69,7 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
         [encoder setLabel:n];
         
         if (c->RequiresDepthBuffer()) {
-            [encoder setDepthStencilState:c->getDepthStencilState()];
+            [encoder setDepthStencilState:c->getDepthStencilStateLE()];
         }
         
         [renderPass release];
@@ -1321,7 +1321,7 @@ xlMesh *xlMetalGraphicsContext::loadMeshFromObjFile(const std::string &file) {
     return new xlMetalMesh(this, file);
 }
 
-xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brightness) {
+xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brightness, bool applyShading) {
     xlMetalMesh *xlm = (xlMetalMesh*)mesh;
     if (xlm->vbuffer == nil) {
         xlm->LoadBuffers();
@@ -1336,21 +1336,26 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
     [encoder pushDebugGroup:n];
 
     [encoder setVertexBuffer:xlm->vbuffer offset:0 atIndex:BufferIndexMeshPositions];
+    
     frameData.brightness = brightness;
     frameData.brightness /= 100.0;
+    frameData.applyShading = applyShading;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
+    
+    [encoder setDepthStencilState:canvas->getDepthStencilStateL()];
+
     
     xlTexture *lastTexture = nullptr;
     bool lastIsSolid = true;
     for (auto sm : xlm->subMeshes) {
         int mid = sm->material;
-        if (xlm->GetMaterial(mid).color.alpha == 255) {
-            if (!xlm->GetMaterial(mid).texture || xlm->GetMaterial(mid).forceColor) {
+        if (mid < 0 || xlm->GetMaterial(mid).color.alpha == 255) {
+            if (mid < 0 || !xlm->GetMaterial(mid).texture || xlm->GetMaterial(mid).forceColor) {
                 if (!lastIsSolid) {
                     lastIsSolid = true;
                     [encoder setRenderPipelineState:solidPS];
                 }
-                simd::float4 color =  xlm->GetMaterial(mid).color.asFloat4();
+                simd::float4 color = mid < 0 ? xlWHITE.asFloat4() : xlm->GetMaterial(mid).color.asFloat4();
                 if (sm->type == MTLPrimitiveTypeLine) {
                     color = {0.0, 0.0, 0.0, 1.0};
                 }
@@ -1395,6 +1400,8 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
                            indexBuffer:xlm->ibuffer
                      indexBufferOffset:(xlm->linesStart*4)];
     }
+    [encoder setDepthStencilState:canvas->getDepthStencilStateLE()];
+
     [encoder popDebugGroup];
     return this;
 }
@@ -1417,12 +1424,13 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshTransparents(xlMesh *mesh, in
     frameData.brightness = brightness;
     frameData.brightness /= 100.0;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
+    [encoder setDepthStencilState:canvas->getDepthStencilStateL()];
 
     xlTexture *lastTexture = nullptr;
     bool lastIsSolid = true;
     for (auto sm : xlm->subMeshes) {
         int mid = sm->material;
-        if (xlm->GetMaterial(mid).color.alpha != 255) {
+        if (mid >= 0 && xlm->GetMaterial(mid).color.alpha != 255) {
             if (xlm->GetMaterial(mid).texture) {
                 if (lastIsSolid) {
                     lastIsSolid = false;
@@ -1459,6 +1467,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshTransparents(xlMesh *mesh, in
     if (!lastIsSolid) {
         [encoder setRenderPipelineState:solidPS];
     }
+    [encoder setDepthStencilState:canvas->getDepthStencilStateLE()];
     [encoder popDebugGroup];
     return this;
 }
@@ -1467,7 +1476,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshWireframe(xlMesh *mesh, int b
     if (m->vbuffer == nil) {
         m->LoadBuffers();
     }
-    setPipelineState("meshSolidProgram", "meshVertexShader", "meshSolidFragmentShader");
+    setPipelineState("meshWireframeProgram", "meshWireframeVertexShader", "meshSolidFragmentShader");
     std::string n2 = m->GetName() + " Wireframe";
     NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
     [encoder pushDebugGroup:n];

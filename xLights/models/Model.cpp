@@ -861,7 +861,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
 void Model::ClearIndividualStartChannels()
 {
     // dont clear custom models
-    if (IsCustom()) return;
+    if (IsCustom() || IsPolyLine()) return;
 
     ModelXml->DeleteAttribute("Advanced");
     // remove per strand start channels if individual isnt selected
@@ -4227,6 +4227,10 @@ bool Model::IsCustom(void) {
     return (DisplayAs == "Custom");
 }
 
+bool Model::IsPolyLine(void) {
+    return (DisplayAs == "PolyLine");
+}
+
 //convert # to AA format so it matches Custom Model grid display:
 //this makes it *so* much easier to visually compare with Custom Model grid display
 //A - Z == 1 - 26
@@ -5227,7 +5231,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                             int count = cache->vica->getCount();
                             cache->program->addStep([=](xlGraphicsContext *ctx) {
                                 if (lastPixelStyle > 1) {
-                                    ctx->drawTriangles(cache->vica, startVertex, count);
+                                    ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                                 } else {
                                     ModelPreview *preview = (ModelPreview *)ctx->getWindow();
                                     float pointSize = preview->calcPixelSize(lastPixelSize * pointScale);
@@ -5255,7 +5259,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 int count = cache->vica->getCount();
                 cache->program->addStep([=](xlGraphicsContext *ctx) {
                     if (lastPixelStyle > 1) {
-                        ctx->drawTriangles(cache->vica, startVertex, count);
+                        ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                     } else {
                         ModelPreview *preview = (ModelPreview *)ctx->getWindow();
                         float pointSize = preview->calcPixelSize(lastPixelSize * pointScale);

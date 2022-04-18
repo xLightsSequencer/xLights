@@ -530,19 +530,14 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                         }
 
                         if (sm->GroupSelected || sm->Selected) {
-                            m->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d,
-                                                    color, allowSelected, false, highlightFirst);
                             
                             float bounds[6];
                             bounds[0] = bounds[1] = bounds[2] = 999999;
                             bounds[3] = bounds[4] = bounds[5] = -999999;
                             
+                            sm->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d,
+                                                     color, allowSelected, false, highlightFirst, 0, bounds);
 
-                            
-                            m->DisplayModelOnWindow(this, currentContext, solidProgram,
-                                                    transparentProgram, is3d, defColor,
-                                                    false, false, highlightFirst, 0, bounds);
-                            
                             if (color == selColor) {
                                 m->GetModelScreenLocation().TranslatePoint(bounds[0], bounds[1], bounds[2]);
                                 m->GetModelScreenLocation().TranslatePoint(bounds[3], bounds[4], bounds[5]);
@@ -581,12 +576,11 @@ void ModelPreview::DrawGroupCentre(float x, float y)
 {
     auto acc = solidProgram->getAccumulator();
     int start = acc->getCount();
-    acc->AddVertex(x - 20, y, xlREDTRANSLUCENT);
-    acc->AddVertex(x + 20, y, xlREDTRANSLUCENT);
-    acc->AddVertex(x, y - 20, xlREDTRANSLUCENT);
-    acc->AddVertex(x, y + 20, xlREDTRANSLUCENT);
-    solidProgram->addStep([start, this, acc](xlGraphicsContext* ctx) {
-        ctx->drawLines(acc, start, 4);
+    acc->AddRectAsTriangles(x-20.5, y-0.5, x+20.5, y+0.5, xlREDTRANSLUCENT);
+    acc->AddRectAsTriangles(x-0.5, y-20.5, x+0.5, y+20.5, xlREDTRANSLUCENT);
+    int end = acc->getCount();
+    solidProgram->addStep([start, end, this, acc](xlGraphicsContext* ctx) {
+        ctx->drawTriangles(acc, start, end - start);
     });
 }
 

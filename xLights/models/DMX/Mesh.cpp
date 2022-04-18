@@ -469,7 +469,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *spro
             if (mesh_only) {
                 ctx->drawMeshWireframe(mesh3d, this->brightness);
             } else {
-                ctx->drawMeshSolids(mesh3d, this->brightness);
+                ctx->drawMeshSolids(mesh3d, this->brightness, preview->Is3D());
             }
             if (end != start) {
                 if (rotation) {

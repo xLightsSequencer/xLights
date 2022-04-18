@@ -29,7 +29,8 @@ public:
     virtual int GetNumStrands() const override;
     virtual const std::vector<std::string>& GetBufferStyles() const override;
     virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi) const override;
-    virtual int GetNumPhysicalStrings() const override { return 1; }
+    virtual int NodesPerString() const override;
+    virtual int GetNumPhysicalStrings() const override;
 
     virtual void InsertHandle(int after_handle, float zoom, int scale) override;
     virtual void DeleteHandle(int handle) override;
@@ -46,6 +47,8 @@ public:
     virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual bool IsNodeFirst(int node) const override;
+    virtual int NodesPerString(int string) const override;
+    virtual int MapPhysicalStringToLogicalString(int string) const override;
 
 protected:
     static std::vector<std::string> POLYLINE_BUFFER_STYLES;
@@ -68,6 +71,13 @@ protected:
     virtual void DistributeLightsAcrossCurveSegment(int lights, int segment, size_t& idx, std::vector<xlPolyPoint>& pPos,
         std::vector<int>& dropSizes, unsigned int& drop_index, float& mheight, int& xx, int maxH);
 
+    static std::string StartNodeAttrName(int idx)
+    {
+        return wxString::Format(wxT("PolyNode%i"), idx + 1).ToStdString(); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
+    }
+    std::string ComputeStringStartNode(int x) const;
+    int GetCustomNodeStringNumber(int node) const;
+
     float total_length = 0.0f;
     int num_segments = 0;
     std::vector<int> polyLineSizes;
@@ -78,4 +88,6 @@ protected:
     unsigned int numDropPoints = 0;
     float height = 1.0f;
     bool _alternateNodes = false;
+    int _strings;
+    std::vector<int> stringStartNodes;
 };

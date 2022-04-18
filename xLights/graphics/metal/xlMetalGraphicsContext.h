@@ -65,7 +65,7 @@ public:
                                            int brightness = 100, int alpha = 255) override;
     virtual xlGraphicsContext* drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, const xlColor &c, int start = 0, int count = -1) override;
     virtual xlGraphicsContext* drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, int brightness, uint8_t alpha, int start, int count) override;
-    virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness) override;
+    virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness, bool applyShading) override;
     virtual xlGraphicsContext* drawMeshTransparents(xlMesh *mesh, int brightness) override;
     virtual xlGraphicsContext* drawMeshWireframe(xlMesh *mesh, int brightness) override;
 
