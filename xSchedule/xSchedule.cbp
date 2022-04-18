@@ -447,6 +447,8 @@
 		<Unit filename="EventE131Panel.h" />
 		<Unit filename="EventFPPPanel.cpp" />
 		<Unit filename="EventFPPPanel.h" />
+		<Unit filename="EventFPPCommandPresetPanel.cpp" />
+		<Unit filename="EventFPPCommandPresetPanel.h" />
 		<Unit filename="EventLorPanel.cpp" />
 		<Unit filename="EventLorPanel.h" />
 		<Unit filename="EventMIDIPanel.cpp" />
@@ -703,6 +705,8 @@
 		<Unit filename="events/EventE131.h" />
 		<Unit filename="events/EventFPP.cpp" />
 		<Unit filename="events/EventFPP.h" />
+		<Unit filename="events/EventFPPCommandPreset.cpp" />
+		<Unit filename="events/EventFPPCommandPreset.h" />
 		<Unit filename="events/EventLor.cpp" />
 		<Unit filename="events/EventLor.h" />
 		<Unit filename="events/EventMIDI.cpp" />
@@ -785,6 +789,7 @@
 		<Unit filename="wxsmith/EventDialog.wxs" />
 		<Unit filename="wxsmith/EventE131Panel.wxs" />
 		<Unit filename="wxsmith/EventFPPPanel.wxs" />
+		<Unit filename="wxsmith/EventFPPCommandPresetPanel.wxs" />
 		<Unit filename="wxsmith/EventLorPanel.wxs" />
 		<Unit filename="wxsmith/EventMIDIPanel.wxs" />
 		<Unit filename="wxsmith/EventMQTTPanel.wxs" />
@@ -929,6 +934,7 @@
 					<wxPanel wxs="wxsmith/EventOSCPanel.wxs" src="EventOSCPanel.cpp" hdr="EventOSCPanel.h" fwddecl="0" i18n="1" name="EventOSCPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventDataPanel.wxs" src="EventDataPanel.cpp" hdr="EventDataPanel.h" fwddecl="0" i18n="1" name="EventDataPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventFPPPanel.wxs" src="EventFPPPanel.cpp" hdr="EventFPPPanel.h" fwddecl="0" i18n="1" name="EventFPPPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EventFPPCommandPresetPanel.wxs" src="EventFPPCommandPresetPanel.cpp" hdr="EventFPPCommandPresetPanel.h" fwddecl="0" i18n="1" name="EventFPPCommandPresetPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventStatePanel.wxs" src="EventStatePanel.cpp" hdr="EventStatePanel.h" fwddecl="0" i18n="1" name="EventStatePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventLorPanel.wxs" src="EventLorPanel.cpp" hdr="EventLorPanel.h" fwddecl="0" i18n="1" name="EventLorPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/SustainDialog.wxs" src="SustainDialog.cpp" hdr="SustainDialog.h" fwddecl="0" i18n="1" name="SustainDialog" language="CPP" />

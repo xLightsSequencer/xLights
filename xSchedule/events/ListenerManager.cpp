@@ -246,7 +246,7 @@ void ListenerManager::StartListeners(const std::string& localIP)
                 bool found = false;
                 for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
                 {
-                    if (it2->GetType() == "FPP")
+                    if (it2->GetType() == "FPP" || (*it)->GetType() == "FPPCommandPreset")
                     {
                         found = true;
                     }
@@ -373,7 +373,7 @@ void ListenerManager::StartListeners(const std::string& localIP)
                 _listeners.back()->Start();
             }
         }
-        else if (it3->GetType() == "FPP")
+        else if (it3->GetType() == "FPP" || it3->GetType()== "FPPCommandPreset")
         {
             ListenerBase* current = nullptr;
             bool fppExists = false;

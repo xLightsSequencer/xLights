@@ -27,6 +27,7 @@
 #include "events/EventPing.h"
 #include "events/EventOSC.h"
 #include "events/EventFPP.h"
+#include "events/EventFPPCommandPreset.h"
 #include "events/EventMIDI.h"
 #include "events/EventMQTT.h"
 #include "events/EventState.h"
@@ -114,6 +115,9 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
                 }
                 else if (n2->GetName() == "EventFPP") {
                     _events.push_back(new EventFPP(n2));
+                } 
+                else if (n2->GetName() == "EventFPPCommandPreset") {
+                    _events.push_back(new EventFPPCommandPreset(n2));
                 }
                 else if (n2->GetName() == "EventMIDI") {
                     _events.push_back(new EventMIDI(n2));

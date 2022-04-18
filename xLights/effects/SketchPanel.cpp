@@ -102,7 +102,7 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
     thicknessControlsSizer->Add(BitmapButton_Thickness, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
 
     sketchDefSizer->Add(label3, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-    sketchDefSizer->Add(thicknessControlsSizer, 1, wxALL | wxEXPAND, 0);
+    sketchDefSizer->Add(thicknessControlsSizer, 1, wxALL | wxEXPAND, 2);
     sketchDefSizer->Add(TextCtrl_Thickness, 1, wxALL | wxALIGN_CENTER_VERTICAL, 2);
 
     // Motion

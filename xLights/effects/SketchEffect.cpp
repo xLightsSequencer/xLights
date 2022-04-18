@@ -34,6 +34,11 @@ namespace
                    ? (loOut + (hiOut - loOut) * interpolater((x - loIn) / (hiIn - loIn)))
                    : ((loOut + hiOut) / 2);
     }
+
+    double calcPercentage(double v, double s, double e)
+    {
+        return (v - s) / (e - s);
+    }
 }
 
 SketchEffect::SketchEffect(int id) :
@@ -53,8 +58,8 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffe
     std::string sketchDef = settings.Get("TEXTCTRL_SketchDef", "");
     double drawPercentage = GetValueCurveDouble("DrawPercentage", 40, settings, progress, 1, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int thickness = GetValueCurveInt("Thickness", 1, settings, progress, 1, 10, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool motionEnabled = std::stoi(settings.Get("CHECKBOX_MotionEnabled", "0"));
-    int motionPercentage = std::stoi(settings.Get("SLIDER_MotionPercentage", "100"));
+    bool motionEnabled = settings.GetBool("CHECKBOX_MotionEnabled");
+    int motionPercentage = settings.GetInt("SLIDER_MotionPercentage", 100);
 
     xlColorVector colors(buffer.GetColorCount());
     for (size_t i = 0; i < buffer.GetColorCount(); ++i)
@@ -185,16 +190,29 @@ void SketchEffect::renderSketch(const SketchEffectSketch& sketch, wxImage& img, 
     double maxProgress = hasMotion ? (1. + motionPercentage) : 1.;
     double adjustedProgress = interpolate(progress, 0., 0., 1., maxProgress, LinearInterpolater());
 
-    // ... but we do a different adjustment for the non-motion case
-    if (!hasMotion) {
+    // ... but we do a slightly different adjustment for the non-motion case
+    if (!hasMotion)
         adjustedProgress = interpolate(progress, 0.0, 0.0, drawPercentage, 1.0, LinearInterpolater());
-    }
-    
-
+  
     double totalLength = 0.;
     for (const auto& path : paths)
         totalLength += path->Length();
-    
+
+    // Single closed path with motion is a special case for now... since the motion is supposed to
+    // wrap to the beginning of the path, it's unclear when we would ever move on to the next path
+    // unless a new setting was added
+    if (hasMotion && paths.size() == 1 && paths.front()->isClosed()) {
+        auto path = paths.front();
+        wxColor color(colors[0].asWxColor());
+        wxPen pen(color, lineThickness);
+        gc->SetPen(pen);
+
+        path->drawPartialPath(gc.get(), sz, progress, progress + motionPercentage);
+        if (progress + motionPercentage > 1.)
+            path->drawPartialPath(gc.get(), sz, 0., progress + motionPercentage - 1.);
+        return;
+    }
+ 
     double cumulativeLength = 0.;
     int i = 0;
     for (auto iter = paths.cbegin(); iter != paths.cend(); ++iter, ++i)
@@ -209,11 +227,11 @@ void SketchEffect::renderSketch(const SketchEffectSketch& sketch, wxImage& img, 
             (*iter)->drawEntirePath(gc.get(), sz);
         else {
             double percentageAtStartOfThisPath = cumulativeLength / totalLength;
-            double percentageThroughThisPath = (adjustedProgress - percentageAtStartOfThisPath) / (percentageAtEndOfThisPath - percentageAtStartOfThisPath);
+            double percentageThroughThisPath = calcPercentage(adjustedProgress, percentageAtStartOfThisPath, percentageAtEndOfThisPath);
             if (!hasMotion)
                 (*iter)->drawPartialPath(gc.get(), sz, std::nullopt, percentageThroughThisPath);
             else {
-                double drawPercentageThroughThisPath = (adjustedProgress - motionPercentage - percentageAtStartOfThisPath) / (percentageAtEndOfThisPath - percentageAtStartOfThisPath);
+                double drawPercentageThroughThisPath = calcPercentage(adjustedProgress - motionPercentage, percentageAtStartOfThisPath, percentageAtEndOfThisPath);
                 drawPercentageThroughThisPath = std::clamp(drawPercentageThroughThisPath, 0., 1.);
 
                 (*iter)->drawPartialPath(gc.get(), sz, drawPercentageThroughThisPath, percentageThroughThisPath);

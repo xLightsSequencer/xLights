@@ -24,6 +24,7 @@
 #include "effects/CurtainEffect.h"
 #include "effects/FireEffect.h"
 #include "effects/GarlandsEffect.h"
+#include "effects/MarqueeEffect.h"
 #include "effects/MeteorsEffect.h"
 #include "effects/PinwheelEffect.h"
 #include "effects/SnowflakesEffect.h"
@@ -142,6 +143,7 @@ std::string LOREditEffect::GetxLightsEffect() const
 
     if (effectType == "colorwash") return "Color Wash";
     if (effectType == "picture") return "Pictures";
+    if (effectType == "picturexy") return "Pictures";
     if (effectType == "lineshorizontal") return "Lines";
     if (effectType == "linesvertical") return "Lines";
     if (effectType == "straightlines") return "Lines";
@@ -568,6 +570,33 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         else if (repeat == "once_fit_to_duration") {
             settings += ",E_TEXTCTRL_Garlands_Cycles=1.0";
         }
+    } 
+    else if (et == "marquee") {
+        //4,1,1,12
+        //spacing,filled space,size,speed
+        wxString spacing = parms[0];
+        wxString filledspace = parms[1];
+        wxString size = parms[2];
+        wxString speed = parms[4];
+        wxString vcSpacing;
+        spacing = RescaleWithRangeI(spacing, "E_SLIDER_Marquee_Skip_Size", 1, 20, 1, 20, vcSpacing, MARQUEE_SKIP_SIZE_MIN, MARQUEE_SKIP_SIZE_MAX);
+        settings += ",E_SLIDER_Marquee_Skip_Size=" + spacing;
+        settings += vcSpacing;
+
+        wxString vcBandSize;
+        filledspace = RescaleWithRangeI(filledspace, "E_SLIDER_Marquee_Band_Size", 1, 100, 1, 100, vcBandSize, MARQUEE_BAND_SIZE_MIN, MARQUEE_BAND_SIZE_MAX);
+        settings += ",E_SLIDER_Marquee_Band_Size=" + filledspace;
+        settings += vcBandSize;
+
+        wxString vcSize;
+        size = RescaleWithRangeI(size, "E_SLIDER_Marquee_Thickness", 1, 20, 1, 20, vcSize, MARQUEE_THICKNESS_MIN, MARQUEE_THICKNESS_MAX);
+        settings += ",E_SLIDER_Marquee_Thickness=" + size;
+        settings += vcSize;
+
+        wxString vcSpeed;
+        speed = RescaleWithRangeI(speed, "E_SLIDER_Marquee_Speed", 1, 50, 1, 50, vcSpeed, MARQUEE_SPEED_MIN, MARQUEE_SPEED_MAX);
+        settings += ",E_SLIDER_Marquee_Speed=" + speed;
+        settings += vcSpeed;
     }
     else if (et == "meteors") {
         // rainbow,10,25,down,0,12
@@ -665,6 +694,55 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_CHOICE_Pictures_Direction=" + movement;
         settings += ",E_SLIDER_PicturesXC=" + x;
         settings += ",E_TEXTCTRL_Pictures_Speed=" + speed;
+    } else if (et == "picturexy") {
+        // file.jpg,71,104,0,R32R0R1.00,100,100,100,100,FFFF
+        // file.jpg,58,136,0,0         ,100,100,100,100,FFFF,0
+
+        wxString file = parms[0];
+        wxString scaleX = parms[1];
+        //wxString scaleY = parms[2];
+        wxString movementLeft = parms[3];
+        wxString movementTop = parms[4];
+
+        while (file.Contains("%")) {
+            int pos = file.Find("%");
+            if (pos < file.Length() - 2) {
+                char c = HexToChar(file[pos + 1], file[pos + 2]);
+                file.Replace(file.substr(pos, 3), wxString(c));
+            }
+        }
+
+        settings += ",E_FILEPICKER_Pictures_Filename=" + file;
+        settings += ",E_CHOICE_Scaling=No Scaling";       
+
+        settings += ",E_CHOICE_Pictures_Direction=vector";
+        if (movementLeft.Contains("R")) 
+        {
+            wxArrayString rr = wxSplit(movementLeft, 'R');
+            settings += ",E_SLIDER_PicturesXC=" + rr[1];
+            settings += ",E_SLIDER_PicturesEndXC=" + rr[2];
+        } else if (movementLeft.IsNumber()) {
+            settings += ",E_SLIDER_PicturesXC=" + movementLeft;
+            settings += ",E_SLIDER_PicturesEndXC=" + movementLeft;
+        }
+        if (movementTop.Contains("R")) {
+            wxArrayString rr = wxSplit(movementTop, 'R');
+            settings += ",E_SLIDER_PicturesYC=" + rr[1];
+            settings += ",E_SLIDER_PicturesEndYC=" + rr[2];
+        } else if (movementTop.IsNumber()) {
+            settings += ",E_SLIDER_PicturesYC=" + movementTop;
+            settings += ",E_SLIDER_PicturesEndYC=" + movementTop;
+        }
+        if (scaleX.Contains("R")) {
+            wxArrayString rr = wxSplit(scaleX, 'R');
+            settings += ",E_SLIDER_Pictures_StartScale=" + rr[1];
+            settings += ",E_SLIDER_Pictures_EndScale=" + rr[2];
+        } else if (scaleX.IsNumber()) {
+            settings += ",E_SLIDER_Pictures_StartScale=" + scaleX;
+            settings += ",E_SLIDER_Pictures_EndScale=" + scaleX;
+        }
+        
+        settings += ",E_TEXTCTRL_Pictures_Speed=1.0";
     }
     else if (et == "spinner") {
         //           style,   colour_mode, arms, arm width, inner_radius, bend, curvature, speed, width, height,   x,   y
