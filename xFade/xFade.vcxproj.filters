@@ -23,6 +23,7 @@
     <ClCompile Include="ArtNETReceiver.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
+    <ClCompile Include="..\common\xlBaseApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
@@ -49,6 +50,7 @@
     <ClInclude Include="..\xSchedule\wxJSON\json_defs.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonval.h" />
+    <ClInclude Include="..\xLights\ExternalHooks.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
