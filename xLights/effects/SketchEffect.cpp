@@ -133,6 +133,8 @@ void SketchEffect::SetDefaultParameters()
     SetSliderValue(p->Slider_DrawPercentage, SketchPanel::DrawPercentageDef);
     SetSliderValue(p->Slider_Thickness, SketchPanel::ThicknessDef);
     SetSliderValue(p->Slider_MotionPercentage, SketchPanel::MotionPercentageDef);
+
+    p->ValidateWindow();
 }
 
 bool SketchEffect::needToAdjustSettings( const std::string& /*version*/ )

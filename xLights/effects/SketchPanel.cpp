@@ -73,6 +73,9 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
     sketchDefSizer->Add(TextCtrl_SketchDef, 1, wxALL | wxEXPAND, 2);
     sketchDefSizer->AddStretchSpacer();
 
+    // Bulk Edit is weird... apparently the secret sauce is for the
+    // TextCtrl id to be "IDD_" instead of "ID_"
+
     // Draw Percentage
     auto label2 = new wxStaticText(this, wxID_ANY, "Draw Percentage:");
     Slider_DrawPercentage = new BulkEditSlider(this, ID_SLIDER_DrawPercentage,
@@ -82,7 +85,7 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
                                                                wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_DrawPercentage"));
     TextCtrl_DrawPercentage = new BulkEditTextCtrl(this, ID_TEXTCTRL_DrawPercentage,
                                                    wxEmptyString, wxDefaultPosition,
-                                                   wxDLG_UNIT(this, wxSize(20, -1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_DrawPercentage"));
+                                                   wxDLG_UNIT(this, wxSize(20, -1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_DrawPercentage"));
 
     auto drawPctControlsSizer = new wxFlexGridSizer(1, 2, 0, 0);
     drawPctControlsSizer->AddGrowableCol(0);
@@ -102,7 +105,7 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
                                                           wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Thickness"));
     TextCtrl_Thickness = new BulkEditTextCtrl(this, ID_TEXTCTRL_Thickness,
                                               wxEmptyString, wxDefaultPosition,
-                                              wxDLG_UNIT(this, wxSize(20, -1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Thickness"));
+                                              wxDLG_UNIT(this, wxSize(20, -1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Thickness"));
 
     auto thicknessControlsSizer = new wxFlexGridSizer(1, 2, 0, 0);
     thicknessControlsSizer->AddGrowableCol(0);
@@ -124,7 +127,7 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
 
     TextCtrl_MotionPercentage = new BulkEditTextCtrl(this, ID_TEXTCTRL_MotionPercentage,
                                                      wxEmptyString, wxDefaultPosition,
-                                                     wxDLG_UNIT(this, wxSize(20, -1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_MotionPercentage"));
+                                                     wxDLG_UNIT(this, wxSize(20, -1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_MotionPercentage"));
 
     auto motionControlsSizer = new wxFlexGridSizer(1, 3, 0, 0);
     motionControlsSizer->AddGrowableCol(1);
@@ -144,14 +147,14 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
     mainSizer->Fit(this);
     mainSizer->SetSizeHints(this);
 
-    SetName("ID_PANEL_SKETCH");
-
     Connect(ID_VALUECURVE_DrawPercentage, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Thickness, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_MotionPercentage, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchPanel::OnVCButtonClick);
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SketchPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&SketchPanel::OnValidateWindow, 0, this);
+
+    SetName("ID_PANEL_SKETCH");
 
     Slider_DrawPercentage->SetRange(DrawPercentageMin, DrawPercentageMax);
     Slider_Thickness->SetRange(ThicknessMin, ThicknessMax);
