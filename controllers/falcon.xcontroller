@@ -164,7 +164,8 @@
         <SupportsAutoLayout/>
         <MergeConsecutiveVirtualStrings/>
         <SupportsPixelPortEndNullPixels/>
-        <MaxStartNulls>20</MaxStartNulls>
+        <SupportsDefaultBrightness/>
+	<MaxStartNulls>20</MaxStartNulls>
         <MaxEndNulls>20</MaxEndNulls>
         <MaxGroup>10</MaxGroup>
         <MinGroup>1</MinGroup>
