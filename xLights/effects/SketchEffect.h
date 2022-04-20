@@ -18,10 +18,7 @@ public:
         return false;
     }
     void Render( Effect* effect, SettingsMap& settings, RenderBuffer& buffer ) override;
-    bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override
-    {
-        return false;
-    }
+
     void SetDefaultParameters() override;
     bool needToAdjustSettings( const std::string& version ) override;
     void adjustSettings( const std::string& version, Effect* effect, bool removeDefaults = true ) override;

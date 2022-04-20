@@ -25,7 +25,20 @@ public:
     BulkEditTextCtrl* TextCtrl_Thickness = nullptr;
     BulkEditCheckBox* CheckBox_MotionEnabled = nullptr;
     BulkEditSlider* Slider_MotionPercentage = nullptr;
+    BulkEditValueCurveButton* BitmapButton_MotionPercentage = nullptr;
     BulkEditTextCtrl* TextCtrl_MotionPercentage = nullptr;
+
+    static const int DrawPercentageMin = 0;
+    static const int DrawPercentageDef = 40;
+    static const int DrawPercentageMax = 100;
+
+    static const int ThicknessMin = 1;
+    static const int ThicknessDef = 1;
+    static const int ThicknessMax = 25;
+
+    static const int MotionPercentageMin = 1;
+    static const int MotionPercentageDef = 100;
+    static const int MotionPercentageMax = 100;
 
 protected:
     static const long ID_TEXTCTRL_SketchDef;
@@ -37,6 +50,7 @@ protected:
     static const long ID_TEXTCTRL_Thickness;
     static const long ID_CHECKBOX_MotionEnabled;
     static const long ID_SLIDER_MotionPercentage;
+    static const long ID_VALUECURVE_MotionPercentage;
     static const long ID_TEXTCTRL_MotionPercentage;
 
  private:
