@@ -153,7 +153,7 @@
             <BankSize>16</BankSize>
 		</Variant>
 	</Controller>
-    <AbstractVariant Name="BaseV4FalconSettings">
+    <AbstractVariant Name="BaseV4FalconSettings" Base="Falcon:BaseFalconSettings">
         <SupportsUpload/>
         <SupportsInputOnlyUpload/>
 		<SupportsPixelPortCommonSettings/>
