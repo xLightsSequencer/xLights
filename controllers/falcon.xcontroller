@@ -169,6 +169,7 @@
         <MaxGroup>10</MaxGroup>
         <MinGroup>1</MinGroup>
         <AllSmartRemoteTypesPerPortMustBeSame/>
+        <SupportsDefaultBrightness/>
         <MaxInputUniverses>192</MaxInputUniverses>
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
         <SerialProtocols>

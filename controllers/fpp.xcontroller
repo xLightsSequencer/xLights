@@ -317,6 +317,17 @@
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
     </Controller>
+    <Controller Name="BBB16-Exp">
+        <Variant Name="" ID="BBB16-Exp" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>17,16</fpp1>
+            <fpp2>33,16</fpp2>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
     <Controller Name="Mirage">
         <Variant Name="No Receivers" ID="Mirage" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>24</MaxPixelPort>
