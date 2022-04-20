@@ -2,7 +2,6 @@
     <AbstractVariant Name="BaseFalconSettings">
         <SupportsUpload/>
         <SupportsInputOnlyUpload/>
-        <!--SupportsAutoUpload/-->
         
 		<SupportsPixelPortCommonSettings/>
         
@@ -12,14 +11,16 @@
         <SupportsMultipleSimultaneousInputProtocols/>
         <UniversesMustBeInNumericalOrder/>
         
-        <!--SupportsLEDPanelMatrix/-->
+        <!--SupportsAutoUpload/-->
+	<!--SupportsLEDPanelMatrix/-->
         <!--AllInputUniversesMustBeSameSize/-->
         <!--UniversesMustBeSequential/-->
         <!--NoWebUI/-->
+	
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
         <MergeConsecutiveVirtualStrings/>
-		<SupportsRemotes/>
+	<SupportsRemotes/>
         <SupportsDefaultBrightness/>
 
         <MaxInputUniverses>96</MaxInputUniverses>
@@ -154,15 +155,6 @@
 		</Variant>
 	</Controller>
     <AbstractVariant Name="BaseV4FalconSettings" Base="Falcon:BaseFalconSettings">
-        <SupportsUpload/>
-        <SupportsInputOnlyUpload/>
-		<SupportsPixelPortCommonSettings/>
-		<SupportsFullxLightsControl/>
-        <SupportsMultipleSimultaneousOutputProtocols/>
-        <SupportsMultipleSimultaneousInputProtocols/>
-        <SupportsVirtualStrings/>
-        <SupportsAutoLayout/>
-        <MergeConsecutiveVirtualStrings/>
         <SupportsPixelPortEndNullPixels/>
         <MaxStartNulls>20</MaxStartNulls>
         <MaxEndNulls>20</MaxEndNulls>
@@ -176,22 +168,21 @@
             <Protocol>renard</Protocol>
         </SerialProtocols>
         <PixelProtocols>
-            <Protocol>ws2811</Protocol>
-			<Protocol>apa102</Protocol>
-			<Protocol>apa109</Protocol>
-			<Protocol>lpd6803</Protocol>
-			<Protocol>lpd8806</Protocol>
-			<Protocol>sm16716</Protocol>
-			<Protocol>tls3001</Protocol>
-			<Protocol>tm1814</Protocol>
-			<Protocol>tm1829</Protocol>
-			<Protocol>ucs8903</Protocol>
-			<Protocol>ucs8903 16 bit</Protocol>
-			<Protocol>ucs8904</Protocol>
-			<Protocol>ucs8904 16 bit</Protocol>
-			<Protocol>ws2801</Protocol>
-			<Protocol>ws2811</Protocol>
-			<Protocol>ws2811 slow</Protocol>
+            <Protocol>apa102</Protocol>
+	    <Protocol>apa109</Protocol>
+	    <Protocol>lpd6803</Protocol>
+	    <Protocol>lpd8806</Protocol>
+	    <Protocol>sm16716</Protocol>
+	    <Protocol>tls3001</Protocol>
+	    <Protocol>tm1814</Protocol>
+	    <Protocol>tm1829</Protocol>
+	    <Protocol>ucs8903</Protocol>
+	    <Protocol>ucs8903 16 bit</Protocol>
+	    <Protocol>ucs8904</Protocol>
+	    <Protocol>ucs8904 16 bit</Protocol>
+	    <Protocol>ws2801</Protocol>
+	    <Protocol>ws2811</Protocol>
+	    <Protocol>ws2811 slow</Protocol>
 	</PixelProtocols>
         <InputProtocols>
             <Protocol>e131</Protocol>
