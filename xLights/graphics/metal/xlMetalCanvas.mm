@@ -304,8 +304,6 @@ bool xlMetalCanvas::getFrameForExport(int w, int h, AVFrame *f, uint8_t *buffer,
         return true;
     }
     static CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    uint8_t *src = (uint8_t*)captureBuffer->buffer.contents;
-    uint8_t *dst = buffer;
     
     if (f->format == AV_PIX_FMT_VIDEOTOOLBOX) {
         @autoreleasepool {
@@ -321,6 +319,8 @@ bool xlMetalCanvas::getFrameForExport(int w, int h, AVFrame *f, uint8_t *buffer,
         }
         return false;
     }
+    uint8_t *src = (uint8_t*)captureBuffer->buffer.contents;
+    uint8_t *dst = buffer;
     for (int x = 0; x < w * h; x++, src += 4, dst += 3) {
         dst[0] = src[2];
         dst[1] = src[1];

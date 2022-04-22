@@ -132,6 +132,17 @@ GenericVideoExporter::~GenericVideoExporter()
 
 void GenericVideoExporter::initialize()
 {
+    /*
+    void *cio = nullptr;
+    const AVCodec *ci = ::av_codec_iterate(&cio);
+    while (ci != nullptr) {
+        if (::av_codec_is_encoder(ci)) {
+            printf("%s: %s\n", ci->name, ci->long_name);
+        }
+        ci = ::av_codec_iterate(&cio);
+    }
+    */
+    
     // Initialize video & audio
     AVOutputFormat* fmt = (AVOutputFormat*)::av_guess_format(nullptr, _path.c_str(), nullptr);
     enum AVCodecID origGuess = fmt->video_codec;
@@ -219,7 +230,8 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
     _videoCodecContext->thread_count = 8;
     if (codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
         _videoCodecContext->pix_fmt = AV_PIX_FMT_VIDEOTOOLBOX;
-        ::av_opt_set_int(_videoCodecContext->priv_data, "allow_sw", 1, AV_OPT_SEARCH_CHILDREN);
+        // sw encoder seems to have issues if frames aren't sent in real time, stick with hw encoder
+        ::av_opt_set_int(_videoCodecContext->priv_data, "allow_sw", 0, AV_OPT_SEARCH_CHILDREN);
     } else {
         ::av_opt_set(_videoCodecContext->priv_data, "preset", "fast", 0);
         ::av_opt_set(_videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN);
@@ -228,7 +240,29 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
         _videoCodecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     }
     int status = ::avcodec_open2(_videoCodecContext, nullptr, nullptr);
+    if (status != 0 && codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
+        // could not initialize hardware encoder, drop to ffmpeg mpeg4
+        if (strcmp(codec->name, "hevc_videotoolbox") == 0) {
+            //first try downgrade from h265 -> h264
+            codec = ::avcodec_find_encoder_by_name("h264_videotoolbox");
+            if (codec == nullptr) {
+                codec = ::avcodec_find_encoder_by_name("mpeg4");
+            }
+        } else {
+            //still couldn't get the hardware encoder, default to software mpeg4 encoder
+            codec = ::avcodec_find_encoder_by_name("mpeg4");
+        }
+        if (codec) {
+            ::avcodec_free_context(&_videoCodecContext);
+            _videoCodecContext = nullptr;
+            return initializeVideo(codec);
+        }
+    }
     if (status != 0) {
+        if (_videoCodecContext) {
+            ::avcodec_free_context(&_videoCodecContext);
+            _videoCodecContext = nullptr;
+        }
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("VideoExporter - Error opening video codec context: %d", status);
         return false;
