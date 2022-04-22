@@ -4,6 +4,7 @@
 
 class wxImage;
 
+class SketchAssistPanel;
 class SketchEffectSketch;
 class SketchPanel;
 
@@ -39,5 +40,13 @@ protected:
                       double drawPercentage, int lineThickness, bool hasMotion, double motionPercentage,
                       const xlColorVector& colors);
 
+    void updateSketchAssistBackground() const;
+
+    // Since SketchEffect and SketchPanel are more-or-less singletons,
+    // having a raw pointer to the effect's panel is sufficient
     SketchPanel* m_panel = nullptr;
+
+    // Assist panels come and go and are owned by the window passed into
+    // GetAssistPanel()... so we just store the latest one as a weak_ptr
+    SketchAssistPanel* m_sketchAssistPanel = nullptr;
 };

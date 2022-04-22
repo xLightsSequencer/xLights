@@ -10,9 +10,7 @@
 #include <wx/panel.h>
 
 class wxButton;
-class wxFilePickerCtrl;
 class wxListBox;
-class wxSlider;
 
 class SketchAssistPanel : public wxPanel,
                           public ISketchCanvasParent
@@ -24,6 +22,8 @@ public:
     typedef std::function<void(const std::string&)> SketchUpdateCallback;
 
     SketchAssistPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+
+    // Assist panels seem to be created/destroyed quite frequently when switching between effects
     virtual ~SketchAssistPanel() = default;
 
     void SetSketchDef(const std::string& sketchDef);
@@ -42,11 +42,10 @@ public:
     void NotifyPathStateUpdated(SketchCanvasPathState state) override;
     void SelectLastPath() override;
 
+    void UpdateSketchBackground(const wxString& imagePath, int opacity);
+
 private:
     DECLARE_EVENT_TABLE()
-
-    void OnFilePickerCtrl_FileChanged(wxCommandEvent& event);
-    void OnSlider_BgAlphaChanged(wxCommandEvent& event);
 
     void OnButton_StartPath(wxCommandEvent& event);
     void OnButton_EndPath(wxCommandEvent& event);
@@ -67,8 +66,6 @@ private:
     SketchUpdateCallback m_sketchUpdateCB;
 
     SketchCanvasPanel* m_sketchCanvasPanel = nullptr;
-    wxFilePickerCtrl* m_filePicker = nullptr;
-    wxSlider* m_bgAlphaSlider = nullptr;
     wxButton* m_startPathBtn = nullptr;
     wxButton* m_endPathBtn = nullptr;
     wxButton* m_closePathBtn = nullptr;
@@ -77,6 +74,7 @@ private:
     wxListBox* m_pathsListBox = nullptr;
     static long ID_MENU_Delete;
 
+    wxString m_bgImagePath;
     wxImage m_bgImage;
     unsigned char m_bitmapAlpha = 0x30;
     int m_pathIndexToDelete = -1;

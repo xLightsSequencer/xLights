@@ -130,9 +130,12 @@ void SketchEffect::SetDefaultParameters()
 
     SetCheckBoxValue(p->CheckBox_MotionEnabled, false);
 
+    SetSliderValue(p->Slider_SketchBackgroundOpacity, 0x30);
     SetSliderValue(p->Slider_DrawPercentage, SketchPanel::DrawPercentageDef);
     SetSliderValue(p->Slider_Thickness, SketchPanel::ThicknessDef);
     SetSliderValue(p->Slider_MotionPercentage, SketchPanel::MotionPercentageDef);
+
+    p->FilePicker_SketchBackground->SetFileName(wxFileName());
 
     p->ValidateWindow();
 }
@@ -173,6 +176,9 @@ AssistPanel* SketchEffect::GetAssistPanel(wxWindow* parent, xLightsFrame* /*xl_f
     sketchAssistPanel->SetSketchUpdateCallback(lambda);
     //sketchAssistPanel->SetxLightsFrame(xl_frame);
     assistPanel->AddPanel(sketchAssistPanel, wxALL | wxEXPAND);
+
+    m_sketchAssistPanel = sketchAssistPanel;
+    updateSketchAssistBackground();
 
     return assistPanel;
 }
@@ -248,4 +254,15 @@ void SketchEffect::renderSketch(const SketchEffectSketch& sketch, wxImage& img, 
         }
         cumulativeLength += pathLength;
     }
+}
+
+void SketchEffect::updateSketchAssistBackground() const
+{
+    if (m_panel == nullptr || m_sketchAssistPanel == nullptr)
+        return;
+
+    wxString path(m_panel->FilePicker_SketchBackground->GetFileName().GetFullPath());
+    int opacity = m_panel->Slider_SketchBackgroundOpacity->GetValue();
+
+    m_sketchAssistPanel->UpdateSketchBackground(path, opacity);
 }
