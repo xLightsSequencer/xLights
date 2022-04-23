@@ -26,6 +26,7 @@ BEGIN_EVENT_TABLE(SketchAssistPanel, wxPanel)
 END_EVENT_TABLE()
 
 long SketchAssistPanel::ID_MENU_Delete = wxNewId();
+long SketchAssistPanel::ID_MENU_Reverse = wxNewId();
 
 SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*/, const wxPoint& pos /*wxDefaultPosition*/, const wxSize& size /*wxDefaultSize*/) :
     wxPanel(parent, id, pos, size)
@@ -277,9 +278,11 @@ void SketchAssistPanel::OnListBox_ContextMenu(wxContextMenuEvent& event)
         return;
 
     wxString str;
-    str.sprintf("Delete Path %d", 1 + m_pathIndexToDelete);
 
     wxMenu mnu;
+    str.sprintf("Reverse Path %d", 1 + m_pathIndexToDelete);
+    mnu.Append(ID_MENU_Reverse, str);
+    str.sprintf("Delete Path %d", 1 + m_pathIndexToDelete);
     mnu.Append(ID_MENU_Delete, str);
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SketchAssistPanel::OnPopupCommand, nullptr, this);
     PopupMenu(&mnu);
@@ -287,9 +290,19 @@ void SketchAssistPanel::OnListBox_ContextMenu(wxContextMenuEvent& event)
 
 void SketchAssistPanel::OnPopupCommand(wxCommandEvent& event)
 {
-    if (event.GetId() == ID_MENU_Delete && m_pathIndexToDelete < m_sketch.pathCount()) {
-        m_sketch.deletePath(m_pathIndexToDelete);
+    if (m_pathIndexToDelete >= m_sketch.pathCount())
+        return;
+    bool update = false;
 
+    if (event.GetId() == ID_MENU_Delete) {
+        m_sketch.deletePath(m_pathIndexToDelete);
+        update = true;
+    } else if (event.GetId() == ID_MENU_Reverse) {
+        m_sketch.reversePath(m_pathIndexToDelete);
+        update = true;
+    }
+
+    if (update) {
         m_sketchCanvasPanel->ResetHandlesState();
 
         populatePathListBoxFromSketch();

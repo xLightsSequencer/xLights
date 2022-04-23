@@ -562,7 +562,11 @@ void SketchCanvasPanel::UpdateHandlesForPath(long pathIndex)
 
     auto iter = sketch.paths().cbegin();
     std::advance(iter, pathIndex);
-
+ 
+    enum SegmentType { Unknown,
+                       Line,
+                       Quadratic,
+                       Cubic } finalSegmentType = Unknown;
     auto pathSegments((*iter)->segments());
     m_handles.push_back(HandlePoint(pathSegments.front()->StartPoint()));
     for (auto iter = pathSegments.cbegin(); iter != pathSegments.cend(); ++iter) {
@@ -572,18 +576,34 @@ void SketchCanvasPanel::UpdateHandlesForPath(long pathIndex)
         std::shared_ptr<SketchCubicBezier> cubic;
         if (std::dynamic_pointer_cast<SketchLine>(pathSegment) != nullptr) {
             m_handles.push_back(HandlePoint(pathSegment->EndPoint()));
+            finalSegmentType = Line;
         } else if ((quadratic = std::dynamic_pointer_cast<SketchQuadraticBezier>(pathSegment)) != nullptr) {
             m_handles.push_back(HandlePoint(quadratic->ControlPoint(), QuadraticControlPt));
             m_handles.push_back(HandlePoint(quadratic->EndPoint(), QuadraticCurveEnd));
+            finalSegmentType = Quadratic;
         } else if ((cubic = std::dynamic_pointer_cast<SketchCubicBezier>(pathSegment)) != nullptr) {
             m_handles.push_back(HandlePoint(cubic->ControlPoint1(), CubicControlPt1));
             m_handles.push_back(HandlePoint(cubic->ControlPoint2(), CubicControlPt2));
             m_handles.push_back(HandlePoint(cubic->EndPoint(), CubicCurveEnd));
+            finalSegmentType = Cubic;
         }
     }
 
     if ((*iter)->isClosed() && m_handles.size() >= 3) {
-        m_handles.pop_back();
+        switch (finalSegmentType) {
+        case Line:
+            m_handles.pop_back();
+            break;
+        case Quadratic:
+            m_handles.pop_back();
+            m_handles.pop_back();
+            break;
+        case Cubic:
+            m_handles.pop_back();
+            m_handles.pop_back();
+            m_handles.pop_back();
+            break;
+        }
         m_pathClosed = true;
     }
 
