@@ -73,6 +73,7 @@ private:
     wxButton* m_clearSketchBtn = nullptr;
     wxListBox* m_pathsListBox = nullptr;
     static long ID_MENU_Delete;
+    static long ID_MENU_Reverse;
 
     wxString m_bgImagePath;
     wxImage m_bgImage;
