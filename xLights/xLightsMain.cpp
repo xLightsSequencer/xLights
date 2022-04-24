@@ -3700,27 +3700,17 @@ void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
     }
 
     std::string threadStatus = "User Email: " + _userEmail.ToStdString() + "\n";
-    threadStatus += "\n";
 
-    //add thread status - must be done on main thread due to mutex locks potentially being problematic
+    threadStatus += "\n";
     threadStatus += "Render Pool:\n";
     threadStatus += GetThreadStatusReport();
+
     threadStatus += "\n";
     threadStatus += "Parallel Job Pool:\n";
     threadStatus += ParallelJobPool::POOL.GetThreadStatus();
-    threadStatus += "\n";
-
-    std::list<std::string> trc;
-    TraceLog::GetTraceMessages(trc);
-    threadStatus += "Crashed thread traces:\n";
-    for (auto &a : trc)
-    {
-        threadStatus += a;
-        threadStatus += "\n";
-    }
 
     threadStatus += "\n";
-    threadStatus += "Main thread traces:\n";
+    threadStatus += "Thread traces:\n";
     std::list<std::string> traceMessages;
     TraceLog::GetTraceMessages(traceMessages);
     for (auto &a : traceMessages)
