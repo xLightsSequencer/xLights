@@ -1554,7 +1554,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
         DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
     }
 
-    if (!parent->ForceEnableOutputs()) {
+    if (!parent->ForceEnableOutputs(false)) {
         DisplayWarning("At least one output could not be started. See log file for details.", this);
     }
     Timer1.Start(50, wxTIMER_CONTINUOUS);
@@ -2914,7 +2914,7 @@ void PixelTestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 
         xLightsFrame* f = (xLightsFrame*)GetParent();
 
-        if (!f->ForceEnableOutputs()) {
+        if (!f->ForceEnableOutputs(false)) {
             DisplayWarning("At least one output could not be started. See log file for details.", this);
         }
         Timer1.Start(50, wxTIMER_CONTINUOUS);
