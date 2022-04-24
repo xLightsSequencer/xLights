@@ -2305,13 +2305,14 @@ void xLightsFrame::CycleOutputsIfOn() {
     }
 }
 
-bool xLightsFrame::ForceEnableOutputs() {
+bool xLightsFrame::ForceEnableOutputs(bool startTimer) {
     bool outputting = false;
     if (!_outputManager.IsOutputting()) {
         DisableSleepModes();
         outputting = _outputManager.StartOutput();
-        printf("Starting timer - EnableOutput\n");
-        OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+        if (startTimer) {
+            OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+        }
         if (outputting) {
             for (auto &controller : _outputManager.GetControllers()) {
                 if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
