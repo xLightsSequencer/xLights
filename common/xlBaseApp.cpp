@@ -31,9 +31,6 @@
 #include "xlBaseApp.h"
 #include "xlStackWalker.h"
 
-
-static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
 xlCrashHandler::xlCrashHandler(std::string const& appName) :
     m_appName(appName),
     m_crashMutex(),
@@ -47,6 +44,8 @@ xlCrashHandler::xlCrashHandler(std::string const& appName) :
 
 void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const& msg)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     try
     {
 #if defined(_DEBUG)
@@ -223,6 +222,8 @@ void xlCrashHandler::HandleUnhandledException()
 
 void xlCrashHandler::ProcessCrashReport(SendReportOptions sendOption)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if ((sendOption == SendReportOptions::ALWAYS_SEND) || ((sendOption == SendReportOptions::ASK_USER_TO_SEND) && wxDebugReportPreviewStd().Show(*m_report)))
     {
         m_report->Process();
@@ -240,6 +241,8 @@ void xlCrashHandler::ProcessCrashReport(SendReportOptions sendOption)
 
 void xlCrashHandler::SendReport(std::string const& appName, std::string const& loc, wxDebugReportCompress& report)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxHTTP http;
     http.Connect("dankulp.com");
 
@@ -289,6 +292,8 @@ void xlCrashHandler::SendReport(std::string const& appName, std::string const& l
     wxInputStream* is = http.GetInputStream("/" + loc + "/index.php");
     char buf[1024];
     is->Read(buf, 1024);
+    logger_base.debug("Sent debug log to server: %s", (const char*)fn.c_str());
+    logger_base.debug("%s", (const char*) buf);
     //printf("%s\n", buf);
     delete is;
     http.Close();
