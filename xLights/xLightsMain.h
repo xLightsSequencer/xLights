@@ -339,7 +339,7 @@ public:
     void MarkEffectsFileDirty();
     void MarkModelsAsNeedingRender();
     void CheckUnsavedChanges();
-    void SetStatusText(const wxString &msg, int filename = 0);
+    void SetStatusText(const wxString &msg, int filename = 0) override;
     void SetStatusTextColor(const wxString &msg, const wxColor& colour);
 	std::string GetChannelToControllerMapping(int32_t channel);
     void GetControllerDetailsForChannel(int32_t channel, std::string& controllername, std::string& type, std::string& protocol, std::string& description, int32_t& channeloffset, std::string &ip, std::string& u, std::string& inactive, std::string& baud, int& start_universe, int& start_universe_channel);
