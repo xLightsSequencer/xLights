@@ -10,41 +10,27 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#ifdef _MSC_VER
-#include <stdlib.h>
-//#define VISUALSTUDIO_MEMORYLEAKDETECTION
-#ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
-#endif
-
-#include <wx/app.h>
-#include <wx/cmdline.h>
-#include <wx/glcanvas.h>
+#include "../common/xlBaseApp.h"
 
 class xLightsFrame;
 
-class xLightsApp : public wxGLApp
+class xLightsApp : public xlGLBaseApp
 {
     void WipeSettings();
 
 public:
+    xLightsApp();
+
     virtual bool OnInit() override;
     static xLightsFrame* GetFrame() { return __frame; }
-    static bool WantDebug; //debug flag from command-line -DJ
-    static wxString DebugPath; //path name for debug log file -DJ
     static wxString showDir;
     static wxString mediaDir;
     static wxArrayString sequenceFiles;
     static xLightsFrame* __frame;
 
     #ifdef __WXOSX__
-    virtual void MacOpenFiles(const wxArrayString &fileNames) override;
+    virtual void MacOpenFiles(wxArrayString const& fileNames) override;
     #endif
-
-    virtual void OnFatalException() override;
-    
     virtual bool ProcessIdle() override;
     uint64_t _nextIdleTime = 0;
 };

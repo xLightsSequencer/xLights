@@ -37,6 +37,7 @@
 #include <wx/timer.h>
 //*)
 
+#include "../common/xlBaseApp.h"
 #include "../xLights/xLightsTimer.h"
 #include <list>
 #include <wx/socket.h>
@@ -75,7 +76,7 @@ public:
     void FillInMissingFrames(int frameTime);
 };
 
-class xCaptureFrame : public wxFrame
+class xCaptureFrame : public xlFrame
 {
     void ValidateWindow();
 
@@ -111,8 +112,7 @@ public:
 
         xCaptureFrame(wxWindow* parent, const std::string& showdir = "", const std::string& playlist = "", wxWindowID id = -1);
         virtual ~xCaptureFrame();
-        void CreateDebugReport(wxDebugReportCompress *report);
-        void SendReport(const wxString &loc, wxDebugReportCompress &report);
+        virtual void CreateDebugReport(xlCrashHandler* crashHandler) override;
 
         static const long ID_E131SOCKET;
         static const long ID_ARTNETSOCKET;

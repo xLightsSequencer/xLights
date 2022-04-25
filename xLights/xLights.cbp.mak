@@ -3392,7 +3392,7 @@ xLightsImportChannelMapDialog.h: Color.h SequencePackage.h
 
 MediaImportOptionsDialog.h: SequencePackage.h
 
-xLightsApp.cpp: xLightsMain.h xLightsApp.h xLightsVersion.h Parallel.h UtilFunctions.h TraceLog.h ExternalHooks.h MSWStackWalk.h
+xLightsApp.cpp: xLightsMain.h xLightsApp.h xLightsVersion.h Parallel.h UtilFunctions.h TraceLog.h ExternalHooks.h xlStackWalker.h
 
 xLightsVersion.cpp: xLightsVersion.h
 

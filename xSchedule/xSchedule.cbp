@@ -33,6 +33,7 @@
 					<Add directory="../xSchedule" />
 					<Add directory="../xLights/ffmpeg-dev/include" />
 					<Add directory="../include" />
+					<Add directory="../xLights" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -91,6 +92,7 @@
 					<Add directory="../xSchedule" />
 					<Add directory="../xLights/ffmpeg-dev/include" />
 					<Add directory="../include" />
+					<Add directory="../xLights" />
 					<Add directory="$(#wx)/include" />
 				</Compiler>
 				<ResourceCompiler>
@@ -161,6 +163,7 @@
 					<Add directory="include" />
 					<Add directory="../xSchedule" />
 					<Add directory="../include" />
+					<Add directory="../xLights" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd -lcurl" />
@@ -197,6 +200,7 @@
 					<Add directory="include" />
 					<Add directory="../xSchedule" />
 					<Add directory="../include" />
+					<Add directory="../xLights" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd -lcurl" />
@@ -237,6 +241,7 @@
 					<Add directory="../xSchedule" />
 					<Add directory="../xLights/ffmpeg-dev/include" />
 					<Add directory="../include" />
+					<Add directory="../xLights" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 					<Add directory="$(#wx)/include" />
 				</Compiler>
@@ -295,6 +300,9 @@
 		<ResourceCompiler>
 			<Add directory="$(#wx)/include" />
 		</ResourceCompiler>
+		<Unit filename="../common/xlBaseApp.cpp" />
+		<Unit filename="../common/xlBaseApp.h" />
+		<Unit filename="../common/xlStackWalker.h" />
 		<Unit filename="../xLights/AudioManager.cpp" />
 		<Unit filename="../xLights/AudioManager.h" />
 		<Unit filename="../xLights/Discovery.cpp" />
@@ -304,7 +312,6 @@
 		<Unit filename="../xLights/FSEQFile.h" />
 		<Unit filename="../xLights/JobPool.cpp" />
 		<Unit filename="../xLights/JobPool.h" />
-		<Unit filename="../xLights/MSWStackWalk.h" />
 		<Unit filename="../xLights/Parallel.cpp" />
 		<Unit filename="../xLights/Parallel.h" />
 		<Unit filename="../xLights/SequenceData.cpp" />

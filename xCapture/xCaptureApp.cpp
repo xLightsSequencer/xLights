@@ -71,7 +71,7 @@
     #pragma comment(lib, "shell32.lib")
     #pragma comment(lib, "ole32.lib")
     #pragma comment(lib, "oleaut32.lib")
-    #pragma comment(lib, "odbc32.lib") 
+    #pragma comment(lib, "odbc32.lib")
     #pragma comment(lib, "odbccp32.lib")
     #pragma comment(lib, "kernel32.lib")
     #pragma comment(lib, "user32.lib")
@@ -80,6 +80,11 @@
 #endif
 
 IMPLEMENT_APP(xCaptureApp)
+
+xCaptureApp::xCaptureApp() :
+    xlBaseApp("xCapture")
+{
+}
 
 std::string DecodeOS(wxOperatingSystemId o)
 {
@@ -223,115 +228,6 @@ void InitialiseLogging(bool fromMain)
     }
 }
 
-xCaptureFrame *topFrame = nullptr;
-
-#ifndef __WXMSW__
-#include <execinfo.h>
-#else
-#include "../xLights/MSWStackWalk.h"
-#endif
-
-void handleCrash(void *data) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.crit("Crash handler called.");
-    wxDebugReportCompress *report = new wxDebugReportCompress();
-    //if (xCaptureFrame::GetCaptureManager() != nullptr)
-    //{
-    //    report->SetCompressedFileDirectory(xCaptureFrame::GetCaptureManager()->GetShowDir());
-    //}
-
-#ifndef __WXMSW__
-    // dont call these for windows as they dont seem to do anything.
-    report->AddAll(wxDebugReport::Context_Exception);
-    //report->AddAll(wxDebugReport::Context_Current);
-#endif
-
-    //if (xCaptureFrame::GetCaptureManager() != nullptr)
-    //{
-    //    wxFileName fn(xCaptureFrame::GetCaptureManager()->GetShowDir(), OutputManager::GetNetworksFileName());
-    //    if (fn.Exists()) {
-    //        report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
-    //    }
-
-    //    if (wxFileName(xCaptureFrame::GetCaptureManager()->GetShowDir(), CaptureManager::GetCaptureFile()).Exists()) {
-    //        report->AddFile(wxFileName(xCaptureFrame::GetCaptureManager()->GetShowDir(), CaptureManager::GetCaptureFile()).GetFullPath(), CaptureManager::GetCaptureFile());
-    //    }
-    //}
-
-    wxString trace = wxString::Format("xCapture version %s\n\n", GetDisplayVersionString());
-
-#ifndef __WXMSW__
-    void* callstack[128];
-    int i, frames = backtrace(callstack, 128);
-    char** strs = backtrace_symbols(callstack, frames);
-    for (i = 0; i < frames; ++i) {
-        trace += strs[i];
-        trace += "\n";
-    }
-    free(strs);
-#else
-    trace += windows_get_stacktrace(data);
-#endif
-
-    int id = (int)wxThread::GetCurrentId();
-    trace += wxString::Format("\nCrashed thread id: 0x%X or %d\n", id, id);
-
-    logger_base.crit(trace);
-
-    report->AddText("backtrace.txt", trace, "Backtrace");
-
-    wxString dir;
-#ifdef __WXMSW__
-    wxGetEnv("APPDATA", &dir);
-    std::string filename = std::string(dir.c_str()) + "/xcapture_l4cpp.log";
-#endif
-#ifdef __WXOSX__
-    wxFileName home;
-    home.AssignHomeDir();
-    dir = home.GetFullPath();
-    std::string filename = std::string(dir.c_str()) + "/Library/Logs/xcapture_l4cpp.log";
-#endif
-#ifdef __LINUX__
-    std::string filename = "/tmp/xcapture_l4cpp.log";
-#endif
-
-    if (wxFile::Exists(filename))
-    {
-        report->AddFile(filename, "xCapture_l4cpp.log");
-    }
-    //else if (wxFile::Exists(wxFileName(xCaptureFrame::GetCaptureManager()->GetShowDir(), "xcapture_l4cpp.log").GetFullPath()))
-    //{
-    //    report->AddFile(wxFileName(xCaptureFrame::GetCaptureManager()->GetShowDir(), "xcapture_l4cpp.log").GetFullPath(), "xcapture_l4cpp.log");
-    //}
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), "xcapture_l4cpp.log").GetFullPath()))
-    {
-        report->AddFile(wxFileName(wxGetCwd(), "xcapture_l4cpp.log").GetFullPath(), "xcapture_l4cpp.log");
-    }
-
-    //if (xCaptureFrame::GetCaptureManager() != nullptr)
-    //{
-    //    xCaptureFrame::GetCaptureManager()->CheckCaptureIntegrity(false);
-    //}
-
-    if (!wxThread::IsMain() && topFrame != nullptr) {
-        topFrame->CallAfter(&xCaptureFrame::CreateDebugReport, report);
-        wxSleep(600000);
-    }
-    else {
-        topFrame->CreateDebugReport(report);
-    }
-}
-
-#if !(wxUSE_ON_FATAL_EXCEPTION)
-#include <windows.h>
-//MinGW needs to do this manually
-LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
-{
-    handleCrash(ExceptionInfo->ContextRecord);
-    return 0;
-}
-#endif
-
 void xCaptureApp::WipeSettings()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -360,14 +256,6 @@ bool xCaptureApp::OnInit()
 #ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-#endif
-
-#if wxUSE_ON_FATAL_EXCEPTION
-    #if !defined(_DEBUG) || !defined(_MSC_VER)
-        wxHandleFatalExceptions();
-    #endif
-#else
-    SetUnhandledExceptionFilter(windows_exception_handler);
 #endif
 
     InitialiseLogging(false);
@@ -422,10 +310,4 @@ bool xCaptureApp::OnInit()
     }
     //*)
     return wxsOK;
-}
-
-// CODE COPIED FROM XLIGHTS TO DUMP STACK TRACES
-
-void xCaptureApp::OnFatalException() {
-    handleCrash(nullptr);
 }

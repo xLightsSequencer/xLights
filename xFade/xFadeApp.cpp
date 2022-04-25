@@ -62,7 +62,7 @@
 #pragma comment(lib, "msvcprt.lib")
 #pragma comment(lib, "portmidi.lib")
 #endif
-#pragma comment(lib, "libcurl.dll.a") 
+#pragma comment(lib, "libcurl.dll.a")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "WS2_32.Lib")
 #pragma comment(lib, "comdlg32.lib")
@@ -73,7 +73,7 @@
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "oleaut32.lib")
-#pragma comment(lib, "odbc32.lib") 
+#pragma comment(lib, "odbc32.lib")
 #pragma comment(lib, "odbccp32.lib")
 #pragma comment(lib, "kernel32.lib")
 #pragma comment(lib, "user32.lib")
@@ -84,6 +84,11 @@
 #endif
 
 IMPLEMENT_APP(xFadeApp)
+
+xFadeApp::xFadeApp() :
+    xlBaseApp("xFade")
+{
+}
 
 std::string DecodeOS(wxOperatingSystemId o)
 {
@@ -227,115 +232,6 @@ void InitialiseLogging(bool fromMain)
     }
 }
 
-xFadeFrame *topFrame = nullptr;
-
-#ifndef __WXMSW__
-#include <execinfo.h>
-#else
-#include "../xLights/MSWStackWalk.h"
-#endif
-
-void handleCrash(void *data) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.crit("Crash handler called.");
-    wxDebugReportCompress *report = new wxDebugReportCompress();
-    //if (xFadeFrame::GetCaptureManager() != nullptr)
-    //{
-    //    report->SetCompressedFileDirectory(xFadeFrame::GetCaptureManager()->GetShowDir());
-    //}
-
-#ifndef __WXMSW__
-    // dont call these for windows as they dont seem to do anything.
-    report->AddAll(wxDebugReport::Context_Exception);
-    //report->AddAll(wxDebugReport::Context_Current);
-#endif
-
-    //if (xFadeFrame::GetCaptureManager() != nullptr)
-    //{
-    //    wxFileName fn(xFadeFrame::GetCaptureManager()->GetShowDir(), OutputManager::GetNetworksFileName());
-    //    if (fn.Exists()) {
-    //        report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
-    //    }
-
-    //    if (wxFileName(xFadeFrame::GetCaptureManager()->GetShowDir(), CaptureManager::GetCaptureFile()).Exists()) {
-    //        report->AddFile(wxFileName(xFadeFrame::GetCaptureManager()->GetShowDir(), CaptureManager::GetCaptureFile()).GetFullPath(), CaptureManager::GetCaptureFile());
-    //    }
-    //}
-
-    wxString trace = wxString::Format("xFade version %s\n\n", GetDisplayVersionString());
-
-#ifndef __WXMSW__
-    void* callstack[128];
-    int i, frames = backtrace(callstack, 128);
-    char** strs = backtrace_symbols(callstack, frames);
-    for (i = 0; i < frames; ++i) {
-        trace += strs[i];
-        trace += "\n";
-    }
-    free(strs);
-#else
-    trace += windows_get_stacktrace(data);
-#endif
-
-    int id = (int)wxThread::GetCurrentId();
-    trace += wxString::Format("\nCrashed thread id: 0x%X or %d\n", id, id);
-
-    logger_base.crit(trace);
-
-    report->AddText("backtrace.txt", trace, "Backtrace");
-
-    wxString dir;
-#ifdef __WXMSW__
-    wxGetEnv("APPDATA", &dir);
-    std::string filename = std::string(dir.c_str()) + "/xFade_l4cpp.log";
-#endif
-#ifdef __WXOSX__
-    wxFileName home;
-    home.AssignHomeDir();
-    dir = home.GetFullPath();
-    std::string filename = std::string(dir.c_str()) + "/Library/Logs/xFade_l4cpp.log";
-#endif
-#ifdef __LINUX__
-    std::string filename = "/tmp/xFade_l4cpp.log";
-#endif
-
-    if (wxFile::Exists(filename))
-    {
-        report->AddFile(filename, "xFade_l4cpp.log");
-    }
-    //else if (wxFile::Exists(wxFileName(xFadeFrame::GetCaptureManager()->GetShowDir(), "xFade_l4cpp.log").GetFullPath()))
-    //{
-    //    report->AddFile(wxFileName(xFadeFrame::GetCaptureManager()->GetShowDir(), "xFade_l4cpp.log").GetFullPath(), "xFade_l4cpp.log");
-    //}
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), "xFade_l4cpp.log").GetFullPath()))
-    {
-        report->AddFile(wxFileName(wxGetCwd(), "xFade_l4cpp.log").GetFullPath(), "xFade_l4cpp.log");
-    }
-
-    //if (xFadeFrame::GetCaptureManager() != nullptr)
-    //{
-    //    xFadeFrame::GetCaptureManager()->CheckCaptureIntegrity(false);
-    //}
-
-    if (!wxThread::IsMain() && topFrame != nullptr) {
-        topFrame->CallAfter(&xFadeFrame::CreateDebugReport, report);
-        wxSleep(600000);
-    }
-    else {
-        topFrame->CreateDebugReport(report);
-    }
-}
-
-#if !(wxUSE_ON_FATAL_EXCEPTION)
-#include <windows.h>
-//MinGW needs to do this manually
-LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
-{
-    handleCrash(ExceptionInfo->ContextRecord);
-    return 0;
-}
-#endif
-
 void xFadeApp::WipeSettings()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -364,14 +260,6 @@ bool xFadeApp::OnInit()
 #ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-#endif
-
-#if wxUSE_ON_FATAL_EXCEPTION
-    #if !defined(_DEBUG) || !defined(_MSC_VER)
-        wxHandleFatalExceptions();
-    #endif
-#else
-    SetUnhandledExceptionFilter(windows_exception_handler);
 #endif
 
     InitialiseLogging(false);
@@ -426,10 +314,4 @@ bool xFadeApp::OnInit()
     }
     //*)
     return wxsOK;
-}
-
-// CODE COPIED FROM XLIGHTS TO DUMP STACK TRACES
-
-void xFadeApp::OnFatalException() {
-    handleCrash(nullptr);
 }

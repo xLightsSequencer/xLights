@@ -62,7 +62,6 @@ class RemoteFalconFrame : public wxFrame
     bool _viewerControlEnabled = false;
 
     void ValidateWindow();
-    void SendReport(const wxString &loc, wxDebugReportCompress &report);
     void AddMessage(const std::string& msg);
     void DoAddMessage(const std::string& msg);
     void DoNotifyStatus(const std::string& status);

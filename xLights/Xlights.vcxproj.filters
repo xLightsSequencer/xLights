@@ -938,6 +938,9 @@
     <ClCompile Include="automation\LuaRunner.cpp">
       <Filter>automation</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\xlBaseApp.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
     <ClCompile Include="Mouse3DManager.cpp" />
     <ClCompile Include="effects\FX.cpp">
       <Filter>Effects</Filter>
@@ -989,7 +992,6 @@
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
-    <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\GIFImage.h" />
     <ClInclude Include="IPEntryDialog.h" />
@@ -1921,6 +1923,12 @@
     <ClInclude Include="automation\LuaRunner.h">
       <Filter>automation</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\xlBaseApp.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\xlStackWalker.h">
+      <Filter>common</Filter>
+    </ClInclude>
     <ClInclude Include="Mouse3DManager.h" />
     <ClInclude Include="effects\FX.h">
       <Filter>Effects</Filter>
@@ -1994,6 +2002,9 @@
     </Filter>
     <Filter Include="automation">
       <UniqueIdentifier>{4712b6e7-2234-4c16-8ba5-b15d04dcba71}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{d66f2316-0042-426b-8102-445d990406d2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

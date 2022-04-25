@@ -61,6 +61,7 @@
 #include "EffectAssist.h"
 #include "EffectsPanel.h"
 #include "MultiControllerUploadDialog.h"
+#include "Parallel.h"
 #include "outputs/IPOutput.h"
 #include "outputs/E131Output.h"
 #include "GenerateLyricsDialog.h"
@@ -1808,8 +1809,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
 
     std::thread th([this]() {
-        std::this_thread::sleep_for(std::chrono::seconds(3));
-        this->CallAfter(&xLightsFrame::DoPostStartupCommands);
+        try
+        {
+            xlCrashHandler::SetupCrashHandlerForNonWxThread();
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+            this->CallAfter(&xLightsFrame::DoPostStartupCommands);
+        }
+        catch (...)
+        {
+            wxTheApp->OnUnhandledException();
+        }
     });
     th.detach();
     wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
@@ -1976,9 +1985,12 @@ void xLightsFrame::DoPostStartupCommands() {
 
     // dont check for updates if batch rendering
     if (!_renderMode && !_checkSequenceMode) {
+// Don't bother checking for updates when debugging.
+#ifndef _DEBUG
         if (!IsFromAppStore()) {
             CheckForUpdate(1, true, false);
         }
+#endif
         if (_userEmail == "") CollectUserEmail();
         if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
     }
@@ -3616,64 +3628,6 @@ void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
     UpdateViewMenu();
 }
 
-void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report) {
-    wxHTTP http;
-    http.Connect("dankulp.com");
-
-    const char *bound = "--------------------------b29a7c2fe47b9481";
-
-    wxDateTime now = wxDateTime::Now();
-    int millis = wxGetUTCTimeMillis().GetLo() % 1000;
-
-    wxString ver = xlights_version_string + xlights_qualifier;
-    ver.Trim();
-    for (int x = 0; x < ver.length(); x++) {
-        if (ver[x] == ' ') ver[x] = '-';
-    }
-
-    wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth()+1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
-
-
-    wxString qualifier = GetBitness();
-#ifdef __WXOSX__
-#if defined(__x86_64__)
-    qualifier = "x86_64";
-#elif defined(__aarch64__)
-    qualifier = "arm64";
-#endif
-#endif
-    wxString fn = wxString::Format("xlights-%s_%s_%s_%s.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), ver, qualifier, ts);
-    const char *ct = "Content-Type: application/octet-stream\n";
-    std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
-
-    wxMemoryBuffer memBuff;
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(ct, strlen(ct));
-    memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
-
-
-    wxFile f_in(report.GetCompressedFileName());
-    wxFileOffset fLen=f_in.Length();
-    void* tmp=memBuff.GetAppendBuf(fLen);
-    size_t iRead=f_in.Read(tmp, fLen);
-    memBuff.UngetAppendBuf(iRead);
-    f_in.Close();
-
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("--\n", 3);
-
-    http.SetMethod("POST");
-    http.SetPostBuffer("multipart/form-data; boundary=------------------------b29a7c2fe47b9481", memBuff);
-    wxInputStream * is = http.GetInputStream("/" + loc + "/index.php");
-    char buf[1024];
-    is->Read(buf, 1024);
-    //printf("%s\n", buf);
-    delete is;
-    http.Close();
-}
-
 void xLightsFrame::MaybePackageAndSendDebugFiles() {
     wxString message = "You forced the OpenGL setting to a non-default value.  Is it OK to send the debug logs to the developers for analysis?";
     wxMessageDialog dlg(this, message, "Send Debug Files",wxYES_NO|wxCENTRE);
@@ -3690,9 +3644,86 @@ void xLightsFrame::MaybePackageAndSendDebugFiles() {
         report.AddText("description", ted.GetValue(), "description");
         AddDebugFilesToReport(report);
         report.Process();
-        SendReport("oglUpload", report);
+        xlCrashHandler::SendReport("xLights", "oglUpload", report);
         wxRemoveFile(report.GetCompressedFileName());
     }
+}
+
+void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxDebugReportCompress* const report = &crashHandler->GetDebugReport();
+
+    report->SetCompressedFileDirectory(CurrentDir);
+
+    wxFileName fn(CurrentDir, OutputManager::GetNetworksFileName());
+    if (FileExists(fn))
+    {
+        report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
+    }
+    if (FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xml")))
+    {
+        report->AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
+    }
+    if (UnsavedRgbEffectsChanges &&  FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp")))
+    {
+        report->AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
+    }
+
+    if (GetSeqXmlFileName() != "")
+    {
+        wxFileName fn2(GetSeqXmlFileName());
+        if (FileExists(fn2) && !fn2.IsDir())
+        {
+            report->AddFile(GetSeqXmlFileName(), fn2.GetName());
+            wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
+            if (FileExists(fnb))
+            {
+                report->AddFile(fnb.GetFullPath(), fnb.GetName());
+            }
+        }
+        else
+        {
+            wxFileName fnb(CurrentDir + "/" + "__.xbkp");
+            if (FileExists(fnb))
+            {
+                report->AddFile(fnb.GetFullPath(), fnb.GetName());
+            }
+        }
+    }
+    else
+    {
+        wxFileName fnb(CurrentDir + "/" + "__.xbkp");
+        if (FileExists(fnb))
+        {
+            report->AddFile(fnb.GetFullPath(), fnb.GetName());
+        }
+    }
+
+    std::string threadStatus = "User Email: " + _userEmail.ToStdString() + "\n";
+
+    threadStatus += "\n";
+    threadStatus += "Render Pool:\n";
+    threadStatus += GetThreadStatusReport();
+
+    threadStatus += "\n";
+    threadStatus += "Parallel Job Pool:\n";
+    threadStatus += ParallelJobPool::POOL.GetThreadStatus();
+
+    threadStatus += "\n";
+    threadStatus += "Thread traces:\n";
+    std::list<std::string> traceMessages;
+    TraceLog::GetTraceMessages(traceMessages);
+    for (auto &a : traceMessages)
+    {
+        threadStatus += a;
+        threadStatus += "\n";
+    }
+
+    report->AddText("threads.txt", threadStatus, "Threads Status");
+    logger_base.crit("%s", (const char *)threadStatus.c_str());
+
+    crashHandler->ProcessCrashReport(xlCrashHandler::SendReportOptions::ASK_USER_TO_SEND);
 }
 
 void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)

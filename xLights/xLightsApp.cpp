@@ -15,6 +15,8 @@
 
 #include <wx/stdpaths.h>
 #include <wx/config.h>
+#include <wx/cmdline.h>
+#include <wx/debugrpt.h>
 #include <wx/version.h>
 #include <wx/dirdlg.h>
 
@@ -26,7 +28,6 @@
 
 #include "xLightsApp.h"
 #include "xLightsVersion.h"
-#include "Parallel.h"
 #include "UtilFunctions.h"
 #include "TraceLog.h"
 #include "ExternalHooks.h"
@@ -41,12 +42,6 @@
 
 #ifdef LINUX
 #include <GL/glut.h>
-#endif
-
-#ifndef __WXMSW__
-#include <execinfo.h>
-#else
-#include "MSWStackWalk.h"
 #endif
 
 #ifdef _MSC_VER
@@ -326,7 +321,7 @@ int main(int argc, char **argv)
     // it seems to need to be a folder that exists ... ideally it would create it but it doesnt seem to
     // it needs to be:
     //     a folder the user can write to
-    //     predictable ... as we want the handleCrash function to be able to locate the file to include it in the crash
+    //     predictable ... as we want the HandleCrash function to be able to locate the file to include it in the crash
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* XLights main function executing.");
 
@@ -351,7 +346,7 @@ int main(int argc, char **argv)
         }
     }
     #endif
-    
+
     logger_base.info("Main: Starting wxWidgets ...");
     int rc =  wxEntry(argc, argv);
     logger_base.info("Main: wxWidgets exited with rc=" + wxString::Format("%d", rc));
@@ -364,147 +359,11 @@ IMPLEMENT_APP(xLightsApp);
 wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 #endif
 
-#include <wx/debugrpt.h>
-
-xLightsFrame *topFrame = nullptr;
-static std::condition_variable CRASH_DONE_SIGNAL;
-
-void handleCrash(void *data) {
-    static volatile bool inCrashHandler = false;
-
-    if (inCrashHandler) {
-        //need to ignore any crashes in the crash handler
-        return;
-    }
-    inCrashHandler = true;
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.crit("Crash handler called.");
-	wxDebugReportCompress *report = new wxDebugReportCompress();
-    report->SetCompressedFileDirectory(topFrame->CurrentDir);
-
-    #ifndef __WXMSW__
-        // dont call these for windows as they dont seem to do anything.
-        report->AddAll(wxDebugReport::Context_Exception);
-    #endif
-
-    wxFileName fn(topFrame->CurrentDir, OutputManager::GetNetworksFileName());
-    if (FileExists(fn)) {
-        report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
-    }
-    if (FileExists(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml"))) {
-        report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
-    }
-    if (topFrame->UnsavedRgbEffectsChanges &&  FileExists(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp"))) {
-        report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
-    }
-
-    if (topFrame->GetSeqXmlFileName() != "") {
-        wxFileName fn2(topFrame->GetSeqXmlFileName());
-        if (FileExists(fn2) && !fn2.IsDir()) {
-            report->AddFile(topFrame->GetSeqXmlFileName(), fn2.GetName());
-            wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
-            if (FileExists(fnb)) {
-                report->AddFile(fnb.GetFullPath(), fnb.GetName());
-            }
-        } else {
-            wxFileName fnb(topFrame->CurrentDir + "/" + "__.xbkp");
-            if (FileExists(fnb)) {
-                report->AddFile(fnb.GetFullPath(), fnb.GetName());
-            }
-        }
-    } else {
-        wxFileName fnb(topFrame->CurrentDir + "/" + "__.xbkp");
-        if (FileExists(fnb)) {
-            report->AddFile(fnb.GetFullPath(), fnb.GetName());
-        }
-    }
-    wxString trace = wxString::Format("xLights version %s\n", GetDisplayVersionString());
-    trace += "Time: " + wxDateTime::Now().FormatISOCombined() + "\n\n";
-
-#ifndef __WXMSW__
-    void* callstack[128];
-    int i, frames = backtrace(callstack, 128);
-    char** strs = backtrace_symbols(callstack, frames);
-    for (i = 0; i < frames; ++i) {
-        trace += strs[i];
-        trace += "\n";
-    }
-    free(strs);
-#else
-    trace += windows_get_stacktrace(data);
-#endif
-
-    if (wxThread::IsMain()) {
-        trace += wxString::Format("\nCrashed thread the Main Thread\n");
-    } else {
-
-        std::stringstream ret;
-        ret << std::showbase // show the 0x prefix
-            << std::internal // fill between the prefix and the number
-            << std::setfill('0') << std::setw(10)
-            << std::hex << std::this_thread::get_id();
-
-        std::string id = ret.str();
-        trace += wxString::Format("\nCrashed thread id: %s\n", id.c_str());
-    }
-    //These will be added on the main thread
-    //trace += topFrame->GetThreadStatusReport();
-    //trace += ParallelJobPool::POOL.GetThreadStatus();
-
-    trace += "\n<email>"+ topFrame->_userEmail +"</email>\n";
-
-    report->AddText("backtrace.txt", trace, "Backtrace");
-
-    logger_base.crit("%s", (const char *)trace.c_str());
-
-    wxString dir;
-#ifdef __WXMSW__
-    wxGetEnv("APPDATA", &dir);
-    std::string filename = std::string(dir.c_str()) + "/xLights_l4cpp.log";
-#endif
-#ifdef __WXOSX__
-    wxFileName home;
-    home.AssignHomeDir();
-    dir = home.GetFullPath();
-    std::string filename = std::string(dir.c_str()) + "/Library/Logs/xLights_l4cpp.log";
-#endif
-#ifdef __LINUX__
-    std::string filename = "/tmp/xLights_l4cpp.log";
-#endif
-
-    if (FileExists(filename))
-    {
-        report->AddFile(filename, "xLights_l4cpp.log");
-    }
-    else if (FileExists(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath()))
-    {
-        report->AddFile(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
-    }
-    else if (FileExists(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath()))
-    {
-        report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
-    }
-
-    std::list<std::string> trc;
-    TraceLog::GetTraceMessages(trc);
-    if (!wxThread::IsMain() && topFrame != nullptr)
-    {
-        std::mutex mut;
-        std::unique_lock<std::mutex> lock(mut);
-        topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report, trc);
-        CRASH_DONE_SIGNAL.wait(lock);
-    }
-    else if (topFrame != nullptr)
-    {
-        topFrame->CreateDebugReport(report, trc);
-    }
-    else
-    {
-        // unable to create debug report
-        logger_base.crit("Unable to tell user about debug report. Crash report saved to %s.", (const char *)report->GetCompressedFileName().c_str());
-    }
+xLightsApp::xLightsApp() :
+    xlGLBaseApp("xLights")
+{
 }
+
 wxString xLightsFrame::GetThreadStatusReport() {
     return jobPool.GetThreadStatus();
 }
@@ -523,79 +382,6 @@ void xLightsFrame::ClearTraceMessages() {
     TraceLog::ClearTraceMessages();
 }
 
-void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report, std::list<std::string> trc) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    static bool inHere = false;
-
-    // if we are in here a second time ... just return
-    if (inHere) return;
-    
-#ifdef __WXOSX__
-    wxMessageBox("If you haven't already, please turn on the system settings to share crash data with the app developers.\n\n To do that, go to:\n"
-                 "System Preferences -> Security and Privacy -> Privacy -> Analytics & Improvements\n\n"
-                 "and turn on the \"Share Mac Analytics\" setting and also the \"Share with App Developers\" setting.\n\n"
-                 "This provides more information to the xLights developers than just our normal crash logs.");
-#endif
-
-    inHere = true;
-
-    //add thread status - must be done on main thread
-    //due to mutex locks potentially being problematic
-    std::string status = "Render Pool:\n";
-    status += topFrame->GetThreadStatusReport();
-    status += "\nParallel Job Pool:\n";
-    status += ParallelJobPool::POOL.GetThreadStatus();
-    if (!trc.empty()) {
-        status += "\nCrashed thread traces:\n";
-        for (auto &a : trc) {
-            status += a;
-            status += "\n";
-        }
-    }
-    status += "\nMain thread traces:\n";
-    std::list<std::string> traceMessages;
-    TraceLog::GetTraceMessages(traceMessages);
-    for (auto &a : traceMessages) {
-        status += a;
-        status += "\n";
-    }
-
-    wxFileName fileName(report->GetDirectory(), "backtrace.txt");
-    wxFile file(fileName.GetFullPath(),  wxFile::write_append);
-    file.Write("\n");
-    file.Write(status);
-    file.Flush();
-    file.Close();
-    logger_base.crit("%s", (const char *)status.c_str());
-
-
-    if (wxDebugReportPreviewStd().Show(*report)) {
-        report->Process();
-        SendReport("crashUpload", *report);
-        wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
-    }
-    logger_base.crit("Exiting after creating debug report: %s", (const char *)report->GetCompressedFileName().c_str());
-	delete report;
-
-    inHere = false;
-
-#ifndef __WXOSX__
-    exit(1);
-#endif
-    CRASH_DONE_SIGNAL.notify_all();
-}
-
-
-#if !(wxUSE_ON_FATAL_EXCEPTION)
-#include <windows.h>
-//MinGW needs to do this manually
-LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
-{
-    handleCrash(ExceptionInfo->ContextRecord);
-    return 0;
-}
-#endif
 
 #ifdef __WXOSX__
 void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
@@ -631,67 +417,6 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
         logger_base.info("       No xLightsFrame");
     }
 }
-
-#include <signal.h>
-
-extern "C" {
-static void xlFatalSignalHandler(int sig) {
-    if ( wxTheApp ) {
-        // give the user a chance to do something special about this
-        wxTheApp->OnFatalException();
-    }
-    signal(sig, SIG_DFL);
-    raise(sig);
-}
-}
-
-bool SetupFatalExceptionHandlers() {
-    // old sig handlers
-    static bool s_savedHandlers = false;
-    static struct sigaction s_handlerFPE,
-                            s_handlerILL,
-                            s_handlerBUS,
-                            s_handlerSEGV;
-
-    bool ok = true;
-    if (!s_savedHandlers) {
-        // install the signal handler
-        struct sigaction act;
-
-        // some systems extend it with non std fields, so zero everything
-        memset(&act, 0, sizeof(act));
-
-        act.sa_handler = xlFatalSignalHandler;
-        sigemptyset(&act.sa_mask);
-        act.sa_flags = SA_RESETHAND;
-
-        ok &= sigaction(SIGFPE, &act, &s_handlerFPE) == 0;
-        ok &= sigaction(SIGILL, &act, &s_handlerILL) == 0;
-        ok &= sigaction(SIGBUS, &act, &s_handlerBUS) == 0;
-        ok &= sigaction(SIGSEGV, &act, &s_handlerSEGV) == 0;
-
-        if (!ok) {
-            wxLogDebug(wxT("Failed to install our signal handler."));
-        }
-        s_savedHandlers = true;
-    } else if (s_savedHandlers) {
-        // uninstall the signal handler
-        ok &= sigaction(SIGFPE, &s_handlerFPE, NULL) == 0;
-        ok &= sigaction(SIGILL, &s_handlerILL, NULL) == 0;
-        ok &= sigaction(SIGBUS, &s_handlerBUS, NULL) == 0;
-        ok &= sigaction(SIGSEGV, &s_handlerSEGV, NULL) == 0;
-        if (!ok) {
-            wxLogDebug(wxT("Failed to uninstall our signal handler."));
-        }
-
-        s_savedHandlers = false;
-    }
-    return ok;
-}
-#else
-bool SetupFatalExceptionHandlers() {
-    return wxHandleFatalExceptions();
-}
 #endif
 
 bool xLightsApp::OnInit()
@@ -723,14 +448,6 @@ bool xLightsApp::OnInit()
 #endif
 #endif
 
-#if wxUSE_ON_FATAL_EXCEPTION
-    #if !defined(_DEBUG) || !defined(_MSC_VER)
-        SetupFatalExceptionHandlers();
-    #endif
-#else
-    SetUnhandledExceptionFilter(windows_exception_handler);
-#endif
-
 //check for options on command line: -DJ
 //TODO: maybe use wxCmdLineParser instead?
 //do this before instantiating xLightsFrame so it can use info gathered here
@@ -739,7 +456,6 @@ bool xLightsApp::OnInit()
     static const wxCmdLineEntryDesc cmdLineDesc [] =
     {
         { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters", wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
-        { wxCMD_LINE_SWITCH, "d", "debug", "enable debug mode"},
         { wxCMD_LINE_SWITCH, "r", "render", "render files and exit"},
         { wxCMD_LINE_SWITCH, "cs", "checksequence", "run check sequence and exit"},
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
@@ -840,11 +556,6 @@ bool xLightsApp::OnInit()
             info += _("Wiping settings\n");
             WipeSettings();
         }
-        WantDebug = parser.Found("d");
-        if (WantDebug) {
-            logger_base.info("-d: Debug is ON");
-            info += _("Debug is ON\n");
-        }
         if (parser.Found("s", &showDir)) {
             logger_base.info("-s: Show directory set to %s.", (const char *)showDir.c_str());
             info += _("Setting show directory to ") + showDir + "\n";
@@ -905,7 +616,7 @@ bool xLightsApp::OnInit()
     }
     //*)
 
-    topFrame = (xLightsFrame*)GetTopWindow();
+    xLightsFrame* const topFrame = (xLightsFrame*)GetTopWindow();
     __frame = topFrame;
 
     if (parser.Found("r")) {
@@ -935,10 +646,6 @@ bool xLightsApp::OnInit()
     return wxsOK;
 }
 
-void xLightsApp::OnFatalException() {
-    handleCrash(nullptr);
-}
-
 void xLightsApp::WipeSettings()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -958,8 +665,6 @@ bool xLightsApp::ProcessIdle() {
 }
 
 //global flags from command line:
-bool xLightsApp::WantDebug = false;
-wxString xLightsApp::DebugPath;
 wxString xLightsApp::mediaDir;
 wxString xLightsApp::showDir;
 wxArrayString xLightsApp::sequenceFiles;

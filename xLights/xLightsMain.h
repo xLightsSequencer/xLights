@@ -62,6 +62,7 @@
 #include <windows.h>
 #endif
 
+#include "../common/xlBaseApp.h"
 #include "outputs/OutputManager.h"
 #include "PixelBuffer.h"
 #include "SequenceData.h"
@@ -275,7 +276,7 @@ private:
     int id;
 };
 
-class xLightsFrame: public wxFrame
+class xLightsFrame: public xlFrame
 {
 public:
 
@@ -385,7 +386,8 @@ public:
     void CreatePresetIcons();
     void ClearSequenceData();
     void LoadAudioData(xLightsXmlFile& xml_file);
-    void CreateDebugReport(wxDebugReportCompress *report, std::list<std::string> trc);
+    virtual void CreateDebugReport(xlCrashHandler* crashHandler) override;
+    virtual std::string GetCurrentDir() const override { return CurrentDir.ToStdString(); }
     wxString GetThreadStatusReport();
     void PushTraceContext();
     void PopTraceContext();
@@ -610,7 +612,6 @@ private :
 	void SetEffectAssistWindowState(bool show);
     void UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect);
     void MaybePackageAndSendDebugFiles();
-    void SendReport(const wxString &loc, wxDebugReportCompress &report);
     void AddDebugFilesToReport(wxDebugReport &report);
 
 public:

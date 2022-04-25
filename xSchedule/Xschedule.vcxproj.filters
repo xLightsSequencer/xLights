@@ -566,6 +566,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\xlBaseApp.h" />
+    <ClInclude Include="..\common\xlStackWalker.h" />
     <ClInclude Include="..\xLights\AudioManager.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
     <ClInclude Include="..\xLights\outputs\TestPreset.h" />
@@ -604,7 +606,6 @@
     <ClInclude Include="wxJSON\jsonreader.h" />
     <ClInclude Include="wxJSON\jsonval.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
-    <ClInclude Include="..\xLights\MSWStackWalk.h" />
     <ClInclude Include="FPPRemotesDialog.h" />
     <ClInclude Include="VideoCache.h" />
     <ClInclude Include="ConfigureOSC.h" />

@@ -36,6 +36,7 @@
 					<Add directory="include" />
 					<Add directory="../../xSchedule/xSMSDaemon" />
 					<Add directory="../../include" />
+					<Add directory="../../xLights" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -88,6 +89,7 @@
 					<Add directory="include" />
 					<Add directory="../../xSchedule/xSMSDaemon" />
 					<Add directory="../../include" />
+					<Add directory="../../xLights" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -167,6 +169,7 @@
 					<Add directory="include" />
 					<Add directory="../xSchedule/xSMSDaemon" />
 					<Add directory="../include" />
+					<Add directory="../../xLights" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
@@ -206,6 +209,7 @@
 					<Add directory="include" />
 					<Add directory="../xSchedule/xSMSDaemon" />
 					<Add directory="../include" />
+					<Add directory="../../xLights" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
@@ -247,6 +251,7 @@
 					<Add directory="include" />
 					<Add directory="../../xSchedule/xSMSDaemon" />
 					<Add directory="../../include" />
+					<Add directory="../../xLights" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 					<Add directory="$(#wx)/include" />
 				</Compiler>
@@ -312,6 +317,9 @@
 		<ResourceCompiler>
 			<Add directory="$(#wx)/include" />
 		</ResourceCompiler>
+		<Unit filename="../../common/xlBaseApp.cpp" />
+		<Unit filename="../../common/xlBaseApp.h" />
+		<Unit filename="../../common/xlStackWalker.h" />
 		<Unit filename="../../xLights/UtilFunctions.cpp" />
 		<Unit filename="../../xLights/UtilFunctions.h" />
 		<Unit filename="../../xLights/xLightsTimer.cpp" />

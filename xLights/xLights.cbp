@@ -433,6 +433,9 @@
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
 		</Compiler>
+		<Unit filename="../common/xlBaseApp.cpp" />
+		<Unit filename="../common/xlBaseApp.h" />
+		<Unit filename="../common/xlStackWalker.h" />
 		<Unit filename="../xFade/wxLED.cpp" />
 		<Unit filename="../xFade/wxLED.h" />
 		<Unit filename="../xSchedule/md5.cpp" />
@@ -599,7 +602,6 @@
 		<Unit filename="MIDI/MidiEventList.cpp" />
 		<Unit filename="MIDI/MidiFile.cpp" />
 		<Unit filename="MIDI/MidiMessage.cpp" />
-		<Unit filename="MSWStackWalk.h" />
 		<Unit filename="MatrixFaceDownloadDialog.cpp" />
 		<Unit filename="MatrixFaceDownloadDialog.h" />
 		<Unit filename="MediaImportOptionsDialog.cpp" />

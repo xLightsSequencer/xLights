@@ -417,7 +417,7 @@ void xScannerFrame::ProcessHTTPResult(std::list<std::pair<std::string, std::stri
     }
 }
 
-std::list<std::string> xScannerFrame::GetStartsWith(std::list<std::pair<std::string, std::string>>& res, const std::string& prefix) 
+std::list<std::string> xScannerFrame::GetStartsWith(std::list<std::pair<std::string, std::string>>& res, const std::string& prefix)
 {
     std::list<std::string> result;
 
@@ -619,7 +619,7 @@ void xScannerFrame::ProcessxScheduleResult(std::list<std::pair<std::string, std:
     // Type
     // Port
     // Version
-       
+
     auto ip = GetItem(res, "IP");
     auto item = GetIPItem(ip);
 
@@ -721,58 +721,9 @@ void xScannerFrame::OnResize(wxSizeEvent& event)
     Layout();
 }
 
-void xScannerFrame::CreateDebugReport(wxDebugReportCompress *report) {
-    if (wxDebugReportPreviewStd().Show(*report)) {
-        report->Process();
-        SendReport("crashUpload", *report);
-        wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
-    }
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.crit("Exiting after creating debug report: " + report->GetCompressedFileName());
-    delete report;
-    exit(1);
-}
-
-void xScannerFrame::SendReport(const wxString &loc, wxDebugReportCompress &report) {
-    wxHTTP http;
-    http.Connect("dankulp.com");
-
-    const char *bound = "--------------------------b29a7c2fe47b9481";
-
-    wxDateTime now = wxDateTime::Now();
-    int millis = wxGetUTCTimeMillis().GetLo() % 1000;
-    wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth()+1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
-
-    wxString fn = wxString::Format("xScanner-%s_%s_%s_%s.zip", wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), xlights_version_string, GetBitness(), ts);
-    const char *ct = "Content-Type: application/octet-stream\n";
-    std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
-
-    wxMemoryBuffer memBuff;
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(ct, strlen(ct));
-    memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
-
-
-    wxFile f_in(report.GetCompressedFileName());
-    wxFileOffset fLen = f_in.Length();
-    void* tmp = memBuff.GetAppendBuf(fLen);
-    size_t iRead = f_in.Read(tmp, fLen);
-    memBuff.UngetAppendBuf(iRead);
-    f_in.Close();
-
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("--\n", 3);
-
-    http.SetMethod("POST");
-    http.SetPostBuffer("multipart/form-data; boundary=------------------------b29a7c2fe47b9481", memBuff);
-    wxInputStream * is = http.GetInputStream("/" + loc + "/index.php");
-    char buf[1024];
-    is->Read(buf, 1024);
-    //printf("%s\n", buf);
-    delete is;
-    http.Close();
+void xScannerFrame::CreateDebugReport(xlCrashHandler* crashHandler)
+{
+    crashHandler->ProcessCrashReport(xlCrashHandler::SendReportOptions::ASK_USER_TO_SEND);
 }
 
 void xScannerFrame::OnKeyDown(wxKeyEvent& event)
@@ -865,7 +816,7 @@ void xScannerFrame::OnPopup(wxCommandEvent& event)
         ExportItem(0, item, f);
     }
     else if (event.GetId() == ID_MNU_RESCAN) {
-        
+
         // reset the work manager ... this cleans most current activities out
         _workManager.Restart();
 

@@ -14,6 +14,7 @@
 #include <log4cpp/Category.hh>
 
 
+#include "../common/xlBaseApp.h"
 #include "SequenceData.h"
 #include "UtilFunctions.h"
 
@@ -47,38 +48,47 @@ SequenceData::SequenceData() : _invalidFrame()
     if (firstSeq) {
         firstSeq = false;
         std::thread([]{
-            _hugePageAllocSize = 32 * 1024 * 1024;
-            size_t blockSize = 0;
-            BlockType type = BlockType::NORMAL;
-            unsigned char* block = AllocBlock(32 * 1024 * 1024, blockSize, type);
-            if (type == BlockType::HUGE_PAGE) {
-                _hugePageAllocSize = DEFAULT_HUGE_ALLOC_SIZE;
-                std::unique_lock<std::mutex> lock(HUGE_BLOCK_LOCK);
-                HUGE_BLOCK_CACHE.push_back(std::make_unique<DataBlock>(blockSize, block, type));
-                lock.unlock();
-            } else {
-                // couldn't even get a small block, don't waste time trying larger blocks
-                munmap(block, blockSize);
-                return;
-            }
-            
-            size_t sizeRemaining = MAX_BLOCK_SIZE;
-            block = AllocBlock(sizeRemaining, blockSize, type);
-            while (block) {
+            try
+            {
+                xlCrashHandler::SetupCrashHandlerForNonWxThread();
+
+                _hugePageAllocSize = 32 * 1024 * 1024;
+                size_t blockSize = 0;
+                BlockType type = BlockType::NORMAL;
+                unsigned char* block = AllocBlock(32 * 1024 * 1024, blockSize, type);
                 if (type == BlockType::HUGE_PAGE) {
+                    _hugePageAllocSize = DEFAULT_HUGE_ALLOC_SIZE;
                     std::unique_lock<std::mutex> lock(HUGE_BLOCK_LOCK);
                     HUGE_BLOCK_CACHE.push_back(std::make_unique<DataBlock>(blockSize, block, type));
                     lock.unlock();
-                    if (blockSize > sizeRemaining) {
-                        sizeRemaining -= blockSize;
-                        block = AllocBlock(sizeRemaining, blockSize, type);
+                } else {
+                    // couldn't even get a small block, don't waste time trying larger blocks
+                    munmap(block, blockSize);
+                    return;
+                }
+                
+                size_t sizeRemaining = MAX_BLOCK_SIZE;
+                block = AllocBlock(sizeRemaining, blockSize, type);
+                while (block) {
+                    if (type == BlockType::HUGE_PAGE) {
+                        std::unique_lock<std::mutex> lock(HUGE_BLOCK_LOCK);
+                        HUGE_BLOCK_CACHE.push_back(std::make_unique<DataBlock>(blockSize, block, type));
+                        lock.unlock();
+                        if (blockSize > sizeRemaining) {
+                            sizeRemaining -= blockSize;
+                            block = AllocBlock(sizeRemaining, blockSize, type);
+                        } else {
+                            block = nullptr;
+                        }
                     } else {
+                        munmap(block, blockSize);
                         block = nullptr;
                     }
-                } else {
-                    munmap(block, blockSize);
-                    block = nullptr;
                 }
+            }
+            catch (...)
+            {
+                wxTheApp->OnUnhandledException();
             }
         }).detach();
     }

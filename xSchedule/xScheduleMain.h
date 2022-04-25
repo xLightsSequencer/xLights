@@ -30,6 +30,7 @@ class BrightnessControl;
 #include <wx/treectrl.h>
 //*)
 
+#include "../common/xlBaseApp.h"
 #include "../xLights/xLightsTimer.h"
 #include "PluginManager.h"
 #include <list>
@@ -56,7 +57,7 @@ wxDECLARE_EVENT(EVT_XYZZYEVENT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_RUNACTION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CHANGESHOWFOLDER, wxCommandEvent);
 
-class xScheduleFrame : public wxFrame
+class xScheduleFrame : public xlFrame
 {
     FILE* _f = nullptr;
     WebServer* _webServer = nullptr;
@@ -84,7 +85,6 @@ class xScheduleFrame : public wxFrame
     void CreateButtons();
     void UpdateStatus(bool force = false);
     void UpdateSchedule();
-    void SendReport(const wxString &loc, wxDebugReportCompress &report);
     std::string GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const;
     void LoadSchedule();
     bool HandleHotkeys(wxKeyEvent& event);
@@ -128,7 +128,7 @@ public:
         static ScheduleManager* GetScheduleManager() { return __schedule; }
         xScheduleFrame(wxWindow* parent, const std::string& showdir = "", const std::string& playlist = "", wxWindowID id = -1);
         virtual ~xScheduleFrame();
-        void CreateDebugReport(wxDebugReportCompress *report);
+        virtual void CreateDebugReport(xlCrashHandler* crashHandler) override;
         void CreateButton(const std::string& label, const wxColor& c);
         void SetTempMessage(const std::string& msg);
         PluginManager& GetPluginManager() { return _pluginManager; }
