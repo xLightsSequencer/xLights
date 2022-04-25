@@ -97,12 +97,7 @@ enum {
 
 
 ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size):
-    m_creating_bound_rect(false),
-    m_bound_start_x(0),
-    m_bound_start_y(0),
-    m_bound_end_x(0),
-    m_bound_end_y(0),
-    mPointSize(2)
+    mPointSize(PIXEL_SIZE_ON_DIALOGS)
 {
 	//(*Initialize(ModelStateDialog)
 	wxButton* AddButton;
@@ -281,24 +276,24 @@ ModelStateDialog::~ModelStateDialog()
     //*)
 }
 
-void ModelStateDialog::SetStateInfo(Model *cls, std::map< std::string, std::map<std::string, std::string> > &finfo) {
+void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>>& finfo)
+{
     NodeRangeGrid->SetColSize(COLOUR_COL, 50);
     SingleNodeGrid->SetColSize(COLOUR_COL, 50);
     NameChoice->Clear();
     model = cls;
     modelPreview->SetModel(cls);
 
-    for (std::map< std::string, std::map<std::string, std::string> >::iterator it = finfo.begin();
+    for (std::map<std::string, std::map<std::string, std::string>>::iterator it = finfo.begin();
          it != finfo.end(); ++it) {
-
         std::string name = it->first;
-        std::map<std::string, std::string> &info = it->second;
+        std::map<std::string, std::string>& info = it->second;
 
         NameChoice->Append(name);
 
         std::string type2 = info["Type"];
         if (type2 == "") {
-            //old style, map
+            // old style, map
             if (name == "Coro" || name == "SingleNode") {
                 info["Type"] = "SingleNode";
             } else if (name == "NodeRange") {
@@ -327,13 +322,13 @@ void ModelStateDialog::SetStateInfo(Model *cls, std::map< std::string, std::map<
     }
 
     for (int x = 0; x < SingleNodeGrid->GetNumberRows(); x++) {
-        wxGridCellTextEditor *neditor = new wxGridCellTextEditor();
+        wxGridCellTextEditor* neditor = new wxGridCellTextEditor();
         wxString nfilter("abcdefghijklmnopqrstuvwxyz0123456789-_/\\|#");
         wxTextValidator nvalidator(wxFILTER_INCLUDE_CHAR_LIST);
         nvalidator.SetCharIncludes(nfilter);
         neditor->SetValidator(nvalidator);
 
-        NodesGridCellEditor *editor = new NodesGridCellEditor();
+        NodesGridCellEditor* editor = new NodesGridCellEditor();
         editor->names = names;
 
         SingleNodeGrid->SetCellEditor(x, NAME_COL, neditor);
@@ -342,13 +337,13 @@ void ModelStateDialog::SetStateInfo(Model *cls, std::map< std::string, std::map<
     }
 
     for (int x = 0; x < NodeRangeGrid->GetNumberRows(); x++) {
-        wxGridCellTextEditor *reditor = new wxGridCellTextEditor();
+        wxGridCellTextEditor* reditor = new wxGridCellTextEditor();
         wxString filter("0123456789,-");
         wxTextValidator validator(wxFILTER_INCLUDE_CHAR_LIST);
         validator.SetCharIncludes(filter);
         reditor->SetValidator(validator);
 
-        wxGridCellTextEditor *neditor2 = new wxGridCellTextEditor();
+        wxGridCellTextEditor* neditor2 = new wxGridCellTextEditor();
         wxString nfilter2("abcdefghijklmnopqrstuvwxyz0123456789-_/\\|#");
         wxTextValidator nvalidator2(wxFILTER_INCLUDE_CHAR_LIST);
         nvalidator2.SetCharIncludes(nfilter2);
@@ -360,6 +355,12 @@ void ModelStateDialog::SetStateInfo(Model *cls, std::map< std::string, std::map<
     }
 
     ValidateWindow();
+
+    auto grid = NodeRangeGrid;
+    if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
+        grid = SingleNodeGrid;
+    }
+    SelectRow(grid, -1);
 }
 
 void ModelStateDialog::GetStateInfo(std::map< std::string, std::map<std::string, std::string> > &finfo) {
@@ -603,7 +604,7 @@ void ModelStateDialog::SelectRow(wxGrid* grid, int const r) {
         }
     }
     grid->Refresh();
-    model->DisplayEffectOnWindow(modelPreview, PIXEL_SIZE_ON_DIALOGS);
+    model->DisplayEffectOnWindow(modelPreview, mPointSize);
 }
 
 void ModelStateDialog::SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c) {
@@ -1296,7 +1297,7 @@ void ModelStateDialog::RenderModel()
     if (m_creating_bound_rect) {
         modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
     }
-    model->DisplayEffectOnWindow(modelPreview, PIXEL_SIZE_ON_DIALOGS);
+    model->DisplayEffectOnWindow(modelPreview, mPointSize);
     modelPreview->EndDrawing();
 }
 

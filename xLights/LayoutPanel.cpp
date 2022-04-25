@@ -2017,7 +2017,7 @@ void LayoutPanel::BulkEditPixelStyle() {
     if (dlg.ShowModal() == wxID_OK) {
         style = dlg.GetSelection();
         for (Model* model: modelsToEdit) {
-            model->SetPixelStyle(style);
+            model->SetPixelStyle((Model::PIXEL_STYLE)style);
         }
 
         // see comment in BulkEditActive()

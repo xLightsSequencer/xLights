@@ -100,7 +100,7 @@ void DmxFloodlight::GetColors(xlColor& center, xlColor& edge, bool allowSelected
 {
     GetColor(center, transparency, blackTransparency, allowSelected, c, Nodes);
     edge = center;
-    if (pixelStyle != 2) {
+    if (_pixelStyle != PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE) {
         edge.alpha = 0;
     }
 }

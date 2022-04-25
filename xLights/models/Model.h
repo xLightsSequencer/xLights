@@ -82,6 +82,14 @@ class Model : public BaseObject
     friend class SubModel;
 
 public:
+
+    enum class PIXEL_STYLE {
+        PIXEL_STYLE_SQUARE,
+        PIXEL_STYLE_SMOOTH,
+        PIXEL_STYLE_SOLID_CIRCLE,
+        PIXEL_STYLE_BLENDED_CIRCLE
+    };
+
     Model(const ModelManager& manager);
     virtual ~Model();
     static wxArrayString GetLayoutGroups(const ModelManager& mm);
@@ -115,9 +123,9 @@ public:
     virtual std::string GetFullName() const { return name; }
     void Rename(std::string const& newName);
     int GetNumStrings() const { return parm1; }
-    int GetPixelStyle() const { return pixelStyle; }
-    void SetPixelStyle(int style);
-    static std::string GetPixelStyleDescription(int pixelStyle);
+    PIXEL_STYLE GetPixelStyle() const { return _pixelStyle; }
+    void SetPixelStyle(PIXEL_STYLE style);
+    static std::string GetPixelStyleDescription(PIXEL_STYLE pixelStyle);
     virtual int GetNumPhysicalStrings() const;
     ControllerCaps* GetControllerCaps() const;
     Controller* GetController() const;
@@ -252,7 +260,7 @@ protected:
     void SetLineCoord();
     std::string GetNextName();
 
-    int pixelStyle = 1; // 0 - default, 1 - smooth, 2 - circle
+    PIXEL_STYLE _pixelStyle = PIXEL_STYLE::PIXEL_STYLE_SMOOTH; 
     int pixelSize = 2;
     int transparency = 0;
     int blackTransparency = 0;

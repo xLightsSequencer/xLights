@@ -591,10 +591,10 @@ uint32_t Model::ApplyLowDefinition(uint32_t val) const
     return (val * _lowDefFactor) /  100;
 }
 
-std::string Model::GetPixelStyleDescription(int pixelStyle)
+std::string Model::GetPixelStyleDescription(PIXEL_STYLE pixelStyle)
 {
-    if (pixelStyle < PIXEL_STYLES.size()) {
-        return PIXEL_STYLES[pixelStyle];
+    if ((int)pixelStyle < PIXEL_STYLES.size()) {
+        return PIXEL_STYLES[(int)pixelStyle];
     }
     return "";
 }
@@ -848,7 +848,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     sp->SetAttribute("Max", 300);
     sp->SetEditor("SpinCtrl");
 
-    grid->AppendIn(p, new wxEnumProperty("Pixel Style", "ModelPixelStyle", PIXEL_STYLES, wxArrayInt(), pixelStyle));
+    grid->AppendIn(p, new wxEnumProperty("Pixel Style", "ModelPixelStyle", PIXEL_STYLES, wxArrayInt(), (int)_pixelStyle));
     sp = grid->AppendIn(p, new wxUIntProperty("Transparency", "ModelPixelTransparency", transparency));
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 100);
@@ -1337,9 +1337,9 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         IncrementChangeCount();
         return 0;
     } else if (event.GetPropertyName() == "ModelPixelStyle") {
-        pixelStyle = event.GetValue().GetLong();
+        _pixelStyle = (PIXEL_STYLE)event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Antialias");
-        ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), pixelStyle));
+        ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), (int)_pixelStyle));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelPixelStyle");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::ModelPixelStyle");
@@ -2805,9 +2805,9 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     customColor = xlColor(ModelNode->GetAttribute("CustomColor", "#000000").ToStdString());
 
     long n;
-    tempstr = ModelNode->GetAttribute("Antialias", "1");
+    tempstr = ModelNode->GetAttribute("Antialias", wxString::Format("%d", (int)PIXEL_STYLE::PIXEL_STYLE_SMOOTH));
     tempstr.ToLong(&n);
-    pixelStyle = n;
+    _pixelStyle = (PIXEL_STYLE)n;
     tempstr = ModelNode->GetAttribute("PixelSize", "2");
     tempstr.ToLong(&n);
     pixelSize = n;
@@ -4879,7 +4879,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
         for (const auto& it : Nodes) {
             vcount += it.get()->Coords.size();
         }
-        if (pixelStyle > 1) {
+        if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE ||  _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
             int f = pixelSize;
             if (pixelSize < 16) {
                 f = 16;
@@ -4890,7 +4890,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
             maxVertexCount = vcount;
         }
         bool needTransparent = false;
-        if (pixelStyle == 3 || transparency != 0 || blackTransparency != 0) {
+        if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE || transparency != 0 || blackTransparency != 0) {
             needTransparent = true;
         }
         cache->isTransparent = needTransparent;
@@ -4898,12 +4898,12 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
         cache->vica = ctx->createVertexIndexedColorAccumulator();
         cache->vica->SetName(GetName() + (is_3d ? " - 3DPreview" : " - 2DPreview"));
         cache->vica->PreAlloc(vcount);
-        cache->vica->SetColorCount(pixelStyle == 3 ? NodeCount * 2 : NodeCount);
+        cache->vica->SetColorCount(_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE ? NodeCount * 2 : NodeCount);
 
         float modelPixelSize = pixelSize;
         //pixelSize is in world coordinate sizes, not model size.  Thus, we need to reverse the matrices to
         //get the size to use for the pixelStyle 3/4 that use triangles
-        if (pixelStyle >= 2) {
+        if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE) {
             modelPixelSize = preview->calcPixelSize(pixelSize);
             
             float x1 = -1, y1 = -1, z1 = -1;
@@ -4969,11 +4969,11 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
                     cache->boundingBox[4] = std::max(sy, cache->boundingBox[4]);
                     cache->boundingBox[5] = std::max(sz, cache->boundingBox[5]);
                 }
-                if (pixelStyle < 2) {
+                if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH) {
                     cache->vica->AddVertex(sx, sy, sz, n);
                 } else {
                     int eidx = n;
-                    if (pixelStyle == 3) {
+                    if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                         eidx += NodeCount;
                     }
                     cache->vica->AddCircleAsTriangles(sx, sy, sz, ((float)modelPixelSize) / 2.0f, n, eidx, pixelSize);
@@ -4983,12 +4983,12 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
             lastChan = Nodes[n]->ActChan;
         }
         cache->program->addStep([=](xlGraphicsContext *ctx) {
-            if (pixelStyle > 1) {
+            if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                 ctx->drawTriangles(cache->vica, 0, cache->vica->getCount());
             } else {
                 ModelPreview *preview = (ModelPreview *)ctx->getWindow();
                 float pointSize = preview->calcPixelSize(pixelSize);
-                ctx->drawPoints(cache->vica, pointSize, pixelStyle == 1, 0, cache->vica->getCount());
+                ctx->drawPoints(cache->vica, pointSize, _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH, 0, cache->vica->getCount());
             }
         });
     }
@@ -5015,7 +5015,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
         }
         ApplyTransparency(color, transparency, blackTransparency);
         cache->vica->SetColor(n, color);
-        if (pixelStyle == 3) {
+        if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
             xlColor c2(color);
             c2.alpha = 0;
             cache->vica->SetColor(n + NodeCount, c2);
@@ -5024,7 +5024,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
     if (created) {
         cache->vica->Finalize(false, true);
     } else {
-        cache->vica->FlushColors(0, pixelStyle == 3 ? NodeCount * 2 : NodeCount);
+        cache->vica->FlushColors(0, _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE ? NodeCount * 2 : NodeCount);
     }
     if (boundingBox) {
         boundingBox[0] = cache->boundingBox[0];
@@ -5272,7 +5272,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 pointScale = GetModelScreenLocation().RenderWi;
             }
 
-            int lastPixelStyle = pixelStyle;
+            PIXEL_STYLE lastPixelStyle = _pixelStyle;
             int lastPixelSize = pixelSize;
 
             // layer calculation and map to output
@@ -5326,31 +5326,35 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                     float newsx = Nodes[n]->Coords[c].screenX;
                     float newsy = Nodes[n]->Coords[c].screenY;
 
-                    if (lastPixelStyle != Nodes[n]->model->pixelStyle
+                    if (lastPixelStyle != Nodes[n]->model->_pixelStyle
                         || lastPixelSize != Nodes[n]->model->pixelSize) {
 
-                        if (cache->vica->getCount() && (lastPixelStyle < 2 || Nodes[n]->model->pixelStyle < 2)) {
+                        if (cache->vica->getCount() && (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE || 
+                                                        lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH || 
+                                                        Nodes[n]->model->_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE || 
+                                                        Nodes[n]->model->_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH)) {
                             int count = cache->vica->getCount();
                             cache->program->addStep([=](xlGraphicsContext *ctx) {
-                                if (lastPixelStyle > 1) {
+                                if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                                     ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                                 } else {
                                     ModelPreview *preview = (ModelPreview *)ctx->getWindow();
                                     float pointSize = preview->calcPixelSize(lastPixelSize * pointScale);
-                                    ctx->drawPoints(cache->vica, pointSize, lastPixelStyle == 1, startVertex, count - startVertex);
+                                    ctx->drawPoints(cache->vica, pointSize, lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH, startVertex, count - startVertex);
                                 }
                             });
                             startVertex = count;
                         }
-                        lastPixelStyle = Nodes[n]->model->pixelStyle;
+                        lastPixelStyle = Nodes[n]->model->_pixelStyle;
                         lastPixelSize = Nodes[n]->model->pixelSize;
                     }
 
-                    if (lastPixelStyle < 2) {
+                    if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE ||
+                        lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH) {
                         cache->vica->AddVertex(newsx, newsy, n);
                     } else {
                         uint32_t ecolor = n;
-                        if (lastPixelStyle == 3) {
+                        if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                             ecolor += NodeCount;
                         }
                         cache->vica->AddCircleAsTriangles(newsx, newsy, 0, lastPixelSize*pointScale, n, ecolor);
@@ -5360,12 +5364,12 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             if (cache->vica->getCount() > startVertex) {
                 int count = cache->vica->getCount();
                 cache->program->addStep([=](xlGraphicsContext *ctx) {
-                    if (lastPixelStyle > 1) {
+                    if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                         ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                     } else {
                         ModelPreview *preview = (ModelPreview *)ctx->getWindow();
                         float pointSize = preview->calcPixelSize(lastPixelSize * pointScale);
-                        ctx->drawPoints(cache->vica, pointSize, lastPixelStyle == 1, startVertex, count - startVertex);
+                        ctx->drawPoints(cache->vica, pointSize, lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH, startVertex, count - startVertex);
                     }
                 });
             }
@@ -5386,7 +5390,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             xlColor c2(color);
             ApplyTransparency(c2, Nodes[n]->model->transparency, Nodes[n]->model->blackTransparency);
             cache->vica->SetColor(n, c2);
-            if (Nodes[n]->model->pixelStyle == 3) {
+            if (Nodes[n]->model->_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                 c2.alpha = 0;
                 cache->vica->SetColor(n + NodeCount, c2);
                 maxFlush = n + NodeCount + 1;
@@ -6376,6 +6380,7 @@ void Model::SetPixelSize(int size) {
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetPixelSize");
     }
 }
+
 void Model::SetTransparency(int t) {
     if (t != transparency) {
         transparency = t;
@@ -6385,6 +6390,7 @@ void Model::SetTransparency(int t) {
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTransparency");
     }
 }
+
 void Model::SetBlackTransparency(int t) {
     if (t != blackTransparency) {
         blackTransparency = t;
@@ -6394,16 +6400,16 @@ void Model::SetBlackTransparency(int t) {
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetBlackTransparency");
     }
 }
-void Model::SetPixelStyle(int style) {
-    if (pixelStyle != style) {
-        pixelStyle = style;
+
+void Model::SetPixelStyle(PIXEL_STYLE style) {
+    if (_pixelStyle != style) {
+        _pixelStyle = style;
         ModelXml->DeleteAttribute("Antialias");
-        ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), pixelStyle));
+        ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), (int)_pixelStyle));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetPixelStyle");
     }
 }
-
 
 int32_t Model::GetStringStartChan(int x) const
 {

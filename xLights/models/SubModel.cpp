@@ -318,7 +318,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
     this->ModelStartChannel = wxString::Format("%u", (startChannel + 1));
 
     // inherit pixel properties from parent model
-    pixelStyle = p->pixelStyle;
+    _pixelStyle = p->_pixelStyle;
     transparency = p->transparency;
     blackTransparency = p->blackTransparency;
     pixelSize = p->pixelSize;
