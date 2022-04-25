@@ -617,6 +617,7 @@ PacketData::PacketData(long type, wxByte* packet, int len)
         if (packet[10] != 0x2e) return;
         if (packet[11] != 0x31) return;
         if (packet[12] != 0x37) return;
+        if (packet[125] != 0x00) return; // not lighting data
 
         _seq = (int)packet[111];
         _length = (((int)packet[115] - 0x70) << 8) + (int)packet[116] - 11;
