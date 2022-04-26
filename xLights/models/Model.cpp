@@ -4903,7 +4903,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
         float modelPixelSize = pixelSize;
         //pixelSize is in world coordinate sizes, not model size.  Thus, we need to reverse the matrices to
         //get the size to use for the pixelStyle 3/4 that use triangles
-        if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE) {
+        if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
             modelPixelSize = preview->calcPixelSize(pixelSize);
             
             float x1 = -1, y1 = -1, z1 = -1;
