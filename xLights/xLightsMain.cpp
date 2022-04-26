@@ -3078,7 +3078,7 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
 
     int width = housePreview->getWidth();
     int height = housePreview->getHeight();
-    double contentScaleFactor = GetContentScaleFactor();
+    double contentScaleFactor = housePreview->GetContentScaleFactor();
 #ifdef _WIN32
     contentScaleFactor = 1.;
 #endif // WIN32
