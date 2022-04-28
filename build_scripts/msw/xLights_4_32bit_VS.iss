@@ -2,7 +2,6 @@
 ; File used for building xLights.exe
 
 ;  SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
-; mar 3,2015: added new line for bin/xlights.map
 ; mar 3,2016:  added Source: "bin/avcodec-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 ; mar 3,2016:  added Source: "bin/avformat-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 ; mar 3,2016:  added Source: "bin/avutil-55.dll"; DestDir: "{app}";  Flags: "ignoreversion"
@@ -39,7 +38,6 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "D
 
 [Files]
 Source: "../../xLights/Release/xLights.exe"; DestDir: "{app}"
-Source: "../../xLights/Release/xlights.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xlights.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/special.options"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include\xlights.ico"; DestDir: "{app}"
