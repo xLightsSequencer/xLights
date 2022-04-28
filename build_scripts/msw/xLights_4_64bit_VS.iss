@@ -2,7 +2,6 @@
 ; File used for building xLights.exe
 
 ;  SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
-; mar 3,2015: added new line for bin/xlights.map
 ; mar 3,2016:  added Source: "bin/avcodec-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 ; mar 3,2016:  added Source: "bin/avformat-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 ; mar 3,2016:  added Source: "bin/avutil-55.dll"; DestDir: "{app}";  Flags: "ignoreversion"
@@ -47,7 +46,6 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "D
 
 [Files]
 Source: "../../xlights/x64/Release/xLights.exe"; DestDir: "{app}"
-Source: "../../xlights/x64/Release/xlights.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xlights.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/special.options"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include\xlights64.ico"; DestDir: "{app}"
@@ -55,7 +53,6 @@ Source: "../../include\xLights_nutcracker.ico"; DestDir: "{app}"
 
 ; xSchedule
 Source: "../../xSchedule/x64/Release/xSchedule.exe"; DestDir: "{app}"
-Source: "../../xSchedule/x64/Release/xSchedule.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: ignoreversion recursesubdirs
 Source: "../../include\xSchedule64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
@@ -63,20 +60,17 @@ Source: "../../documentation/xSchedule API Documentation.txt"; DestDir: "{app}"
 
 ; xCapture
 Source: "../../xCapture/x64/Release/xCapture.exe"; DestDir: "{app}"
-Source: "../../xCapture/x64/Release/xCapture.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xcapture.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include\xcapture64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xScanner
 Source: "../../xScanner/x64/Release/xScanner.exe"; DestDir: "{app}"
-Source: "../../xScanner/x64/Release/xScanner.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xScanner.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include/xScanner64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xScanner/MacLookup.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xFade
 Source: "../../xFade/x64/Release/xFade.exe"; DestDir: "{app}"
-Source: "../../xFade/x64/Release/xFade.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xfade.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include\xfade64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
@@ -86,14 +80,12 @@ Source: "../../documentation/xlDo Commands.txt"; DestDir: "{app}"
 
 ; xSMSDaemon
 Source: "../../xSchedule/xSMSDaemon/x64/Release/xSMSDaemon.dll"; DestDir: "{app}"
-Source: "../../xSchedule/xSMSDaemon/x64/Release/xSMSDaemon.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xSchedule\xSMSDaemon\Blacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xSchedule\xSMSDaemon\Whitelist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xSchedule\xSMSDaemon\PhoneBlacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; RemoteFalcon
 Source: "../../xSchedule/RemoteFalcon/x64/Release/RemoteFalcon.dll"; DestDir: "{app}"
-Source: "../../xSchedule/RemoteFalcon/x64/Release/RemoteFalcon.map"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; wxWidgets
 ; Statically linkes
