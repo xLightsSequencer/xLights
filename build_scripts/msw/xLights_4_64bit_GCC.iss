@@ -53,7 +53,6 @@ Source: "../../include\xLights_nutcracker.ico"; DestDir: "{app}"
 
 ; xSchedule
 Source: "../../bin64/xSchedule.exe"; DestDir: "{app}"
-Source: "../../bin64/xSchedule.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: ignoreversion recursesubdirs
 Source: "../../include\xSchedule64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
@@ -61,20 +60,17 @@ Source: "../../documentation/xSchedule API Documentation.txt"; DestDir: "{app}"
 
 ; xCapture
 Source: "../../bin64/xCapture.exe"; DestDir: "{app}"
-Source: "../../bin64/xCapture.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xcapture.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include\xcapture64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xScanner
 Source: "../../bin64/xScanner.exe"; DestDir: "{app}"
-Source: "../../bin64/xScanner.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xScanner.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include/xScanner64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xScanner/MacLookup.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xFade
 Source: "../../bin64/xFade.exe"; DestDir: "{app}"
-Source: "../../bin64/xFade.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xfade.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include/xfade64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
@@ -84,14 +80,12 @@ Source: "../../documentation/xlDo Commands.txt"; DestDir: "{app}"
 
 ; xSMSDaemon
 Source: "../../bin64/xSMSDaemon.dll"; DestDir: "{app}"
-Source: "../../bin64/xSMSDaemon.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xSchedule\xSMSDaemon\Blacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xSchedule\xSMSDaemon\Whitelist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xSchedule\xSMSDaemon\PhoneBlacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; RemoteFalcon
 Source: "../../bin64/RemoteFalcon.dll"; DestDir: "{app}"
-Source: "../../bin64/RemoteFalcon.map"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; wxWidgets
 Source: "../../bin64/wxmsw314u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
