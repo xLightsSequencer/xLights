@@ -18,7 +18,7 @@ LIBDIR =
 LIB = 
 LDFLAGS = 
 
-INC_LINUX_DEBUG = $(INC) -Iinclude -I../xSchedule -I../include
+INC_LINUX_DEBUG = $(INC) -Iinclude -I../xSchedule -I../include -I../xLights
 CFLAGS_LINUX_DEBUG = $(CFLAGS) -Wall -g -std=c++1z `wx-config --version=3.1 --cflags` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` -Winvalid-pch -DWX_PRECOMP -DLINUX -D__WXDEBUG__ -D__cdecl=""
 RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
@@ -29,7 +29,7 @@ OBJDIR_LINUX_DEBUG = .objs_debug
 DEP_LINUX_DEBUG = 
 OUT_LINUX_DEBUG = ../bin/xSchedule
 
-INC_LINUX_RELEASE = $(INC) -Iinclude -I../xSchedule -I../include
+INC_LINUX_RELEASE = $(INC) -Iinclude -I../xSchedule -I../include -I../xLights
 CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -Wall -std=c++1z `wx-config --version=3.1 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -D__cdecl='' -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
@@ -40,9 +40,9 @@ OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../bin/xSchedule
 
-OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/SustainDialog.o $(OBJDIR_LINUX_DEBUG)/SyncArtNet.o $(OBJDIR_LINUX_DEBUG)/SyncFPP.o $(OBJDIR_LINUX_DEBUG)/SyncMIDI.o $(OBJDIR_LINUX_DEBUG)/SetDialog.o $(OBJDIR_LINUX_DEBUG)/SyncManager.o $(OBJDIR_LINUX_DEBUG)/SyncOSC.o $(OBJDIR_LINUX_DEBUG)/SyncSMPTE.o $(OBJDIR_LINUX_DEBUG)/ThreeToFourDialog.o $(OBJDIR_LINUX_DEBUG)/Schedule.o $(OBJDIR_LINUX_DEBUG)/PluginManager.o $(OBJDIR_LINUX_DEBUG)/RemapDialog.o $(OBJDIR_LINUX_DEBUG)/RemoteModeConfigDialog.o $(OBJDIR_LINUX_DEBUG)/RunningSchedule.o $(OBJDIR_LINUX_DEBUG)/UserButton.o $(OBJDIR_LINUX_DEBUG)/ScheduleDialog.o $(OBJDIR_LINUX_DEBUG)/ScheduleManager.o $(OBJDIR_LINUX_DEBUG)/ScheduleOptions.o $(OBJDIR_LINUX_DEBUG)/events/EventLor.o $(OBJDIR_LINUX_DEBUG)/events/EventBase.o $(OBJDIR_LINUX_DEBUG)/events/EventData.o $(OBJDIR_LINUX_DEBUG)/events/EventE131.o $(OBJDIR_LINUX_DEBUG)/events/EventFPP.o $(OBJDIR_LINUX_DEBUG)/events/EventMIDI.o $(OBJDIR_LINUX_DEBUG)/events/EventMQTT.o $(OBJDIR_LINUX_DEBUG)/events/EventOSC.o $(OBJDIR_LINUX_DEBUG)/VideoCache.o $(OBJDIR_LINUX_DEBUG)/VirtualMatricesDialog.o $(OBJDIR_LINUX_DEBUG)/VirtualMatrix.o $(OBJDIR_LINUX_DEBUG)/VirtualMatrixDialog.o $(OBJDIR_LINUX_DEBUG)/WebServer.o $(OBJDIR_LINUX_DEBUG)/Xyzzy.o $(OBJDIR_LINUX_DEBUG)/events/EventARTNet.o $(OBJDIR_LINUX_DEBUG)/events/EventARTNetTrigger.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemRunCommandPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemProjectorPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemRDS.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemRDSPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemRunCommand.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemRunProcess.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemRunProcessPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemScreenMap.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemScreenMapPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMQTTPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMicrophone.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMicrophonePanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemOSC.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemOSCPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemPlugin.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemPluginPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemProjector.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemVideoPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListSimpleDialog.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListStep.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemVideo.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListStepPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayerFrame.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayerWindow.o $(OBJDIR_LINUX_DEBUG)/PlayList/VideoWindowPositionDialog.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemTest.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemSerial.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemSerialPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemSetColour.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemSetColourPanel.o $(OBJDIR_LINUX_DEBUG)/events/EventPing.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemTestPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemText.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemTextPanel.o $(OBJDIR_LINUX_DEBUG)/xScheduleApp.o $(OBJDIR_LINUX_DEBUG)/xScheduleMain.o $(OBJDIR_LINUX_DEBUG)/events/ListenerSMPTE.o $(OBJDIR_LINUX_DEBUG)/events/ListenerMIDI.o $(OBJDIR_LINUX_DEBUG)/events/ListenerMQTT.o $(OBJDIR_LINUX_DEBUG)/events/ListenerManager.o $(OBJDIR_LINUX_DEBUG)/events/ListenerOSC.o $(OBJDIR_LINUX_DEBUG)/events/ListenerSerial.o $(OBJDIR_LINUX_DEBUG)/md5.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/connection.o $(OBJDIR_LINUX_DEBUG)/events/EventSerial.o $(OBJDIR_LINUX_DEBUG)/events/EventState.o $(OBJDIR_LINUX_DEBUG)/events/ListenerARTNet.o $(OBJDIR_LINUX_DEBUG)/events/ListenerBase.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/context.o $(OBJDIR_LINUX_DEBUG)/events/ListenerCSVFPP.o $(OBJDIR_LINUX_DEBUG)/events/ListenerE131.o $(OBJDIR_LINUX_DEBUG)/events/ListenerFPP.o $(OBJDIR_LINUX_DEBUG)/events/ListenerLor.o $(OBJDIR_LINUX_DEBUG)/wxMIDI/src/wxMidiDatabase.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/message.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/pages.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/request.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/response.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/server.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/sha1.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/status.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMQTT.o $(OBJDIR_LINUX_DEBUG)/wxJSON/jsonreader.o $(OBJDIR_LINUX_DEBUG)/wxJSON/jsonval.o $(OBJDIR_LINUX_DEBUG)/wxJSON/jsonwriter.o $(OBJDIR_LINUX_DEBUG)/wxMIDI/src/wxMidi.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxSerialOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ZCPPOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/serial.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxEthernetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/TestPreset.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/Files.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginBufferingAdapter.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginChannelAdapter.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginHostAdapter.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginInputDomainAdapter.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginLoader.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginWrapper.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OpenDMXOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OpenPixelNetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Output.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OutputManager.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/RealTime.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/PixelNetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/RenardOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/SerialOutput.o $(OBJDIR_LINUX_DEBUG)/ConfigureMIDITimecodeDialog.o $(OBJDIR_LINUX_DEBUG)/ConfigureOSC.o $(OBJDIR_LINUX_DEBUG)/ConfigureTest.o $(OBJDIR_LINUX_DEBUG)/DeadChannelDialog.o $(OBJDIR_LINUX_DEBUG)/DimDialog.o $(OBJDIR_LINUX_DEBUG)/DimWhiteDialog.o $(OBJDIR_LINUX_DEBUG)/ESEQFile.o $(OBJDIR_LINUX_DEBUG)/EventARTNetPanel.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/AddReverseDialog.o $(OBJDIR_LINUX_DEBUG)/BackgroundPlaylistDialog.o $(OBJDIR_LINUX_DEBUG)/Blend.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OPCOutput.o $(OBJDIR_LINUX_DEBUG)/ButtonDetailsDialog.o $(OBJDIR_LINUX_DEBUG)/City.o $(OBJDIR_LINUX_DEBUG)/ColourOrderDialog.o $(OBJDIR_LINUX_DEBUG)/CommandManager.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/BaseController.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/ControllerCaps.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/Falcon.o $(OBJDIR_LINUX_DEBUG)/__/xLights/effects/GIFImage.o $(OBJDIR_LINUX_DEBUG)/__/xLights/VideoReader.o $(OBJDIR_LINUX_DEBUG)/__/xLights/kiss_fft/kiss_fft.o $(OBJDIR_LINUX_DEBUG)/__/xLights/kiss_fft/tools/kiss_fftr.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ArtNetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Controller.o $(OBJDIR_LINUX_DEBUG)/__/xLights/Discovery.o $(OBJDIR_LINUX_DEBUG)/__/xLights/FSEQFile.o $(OBJDIR_LINUX_DEBUG)/__/xLights/JobPool.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerEthernet.o $(OBJDIR_LINUX_DEBUG)/__/xLights/Parallel.o $(OBJDIR_LINUX_DEBUG)/__/xLights/SequenceData.o $(OBJDIR_LINUX_DEBUG)/__/xLights/TraceLog.o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorController.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/KinetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LOROptimisedOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LOROutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/IPOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorControllers.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/NullOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerNull.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerSerial.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/DDPOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/DMXOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/E131Output.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/GenericSerialOutput.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemCURLPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemColourOrgan.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemColourOrganPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDelay.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemCURL.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDelayPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDim.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDimPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemESEQ.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAllOff.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListDialog.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItem.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemARTNetTrigger.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemARTNetTriggerPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemESEQPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAllOffPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAudio.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAudioPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemJukebox.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFile.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFilePanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemImage.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemImagePanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemJukeboxPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMIDI.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMIDIPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFPPEvent.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFPPEventPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQ.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQVideo.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQVideoPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFade.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFadePanel.o $(OBJDIR_LINUX_DEBUG)/EventPingPanel.o $(OBJDIR_LINUX_DEBUG)/EventSerialPanel.o $(OBJDIR_LINUX_DEBUG)/EventStatePanel.o $(OBJDIR_LINUX_DEBUG)/EventsDialog.o $(OBJDIR_LINUX_DEBUG)/EventOSCPanel.o $(OBJDIR_LINUX_DEBUG)/ExcludeDimDialog.o $(OBJDIR_LINUX_DEBUG)/ExtraIPDialog.o $(OBJDIR_LINUX_DEBUG)/ExtraIPsDialog.o $(OBJDIR_LINUX_DEBUG)/FPPRemotesDialog.o $(OBJDIR_LINUX_DEBUG)/EventFPPPanel.o $(OBJDIR_LINUX_DEBUG)/EventARTNetTriggerPanel.o $(OBJDIR_LINUX_DEBUG)/EventDataPanel.o $(OBJDIR_LINUX_DEBUG)/EventDialog.o $(OBJDIR_LINUX_DEBUG)/EventE131Panel.o $(OBJDIR_LINUX_DEBUG)/EventLorPanel.o $(OBJDIR_LINUX_DEBUG)/EventMIDIPanel.o $(OBJDIR_LINUX_DEBUG)/EventMQTTPanel.o $(OBJDIR_LINUX_DEBUG)/OutputProcessDimWhite.o $(OBJDIR_LINUX_DEBUG)/OutputProcessExcludeDim.o $(OBJDIR_LINUX_DEBUG)/OutputProcessGamma.o $(OBJDIR_LINUX_DEBUG)/OutputProcessRemap.o $(OBJDIR_LINUX_DEBUG)/OutputProcessReverse.o $(OBJDIR_LINUX_DEBUG)/OutputProcessSet.o $(OBJDIR_LINUX_DEBUG)/OutputProcessSustain.o $(OBJDIR_LINUX_DEBUG)/OutputProcessDim.o $(OBJDIR_LINUX_DEBUG)/OutputProcessThreeToFour.o $(OBJDIR_LINUX_DEBUG)/OutputProcessingDialog.o $(OBJDIR_LINUX_DEBUG)/Pinger.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayList.o $(OBJDIR_LINUX_DEBUG)/OSCPacket.o $(OBJDIR_LINUX_DEBUG)/GammaDialog.o $(OBJDIR_LINUX_DEBUG)/MatricesDialog.o $(OBJDIR_LINUX_DEBUG)/MatrixDialog.o $(OBJDIR_LINUX_DEBUG)/MatrixMapper.o $(OBJDIR_LINUX_DEBUG)/__/xLights/AudioManager.o $(OBJDIR_LINUX_DEBUG)/OptionsDialog.o $(OBJDIR_LINUX_DEBUG)/OutputProcess.o $(OBJDIR_LINUX_DEBUG)/OutputProcessColourOrder.o $(OBJDIR_LINUX_DEBUG)/OutputProcessDeadChannel.o
+OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/SustainDialog.o $(OBJDIR_LINUX_DEBUG)/SyncArtNet.o $(OBJDIR_LINUX_DEBUG)/SyncFPP.o $(OBJDIR_LINUX_DEBUG)/SyncMIDI.o $(OBJDIR_LINUX_DEBUG)/SetDialog.o $(OBJDIR_LINUX_DEBUG)/SyncManager.o $(OBJDIR_LINUX_DEBUG)/SyncOSC.o $(OBJDIR_LINUX_DEBUG)/SyncSMPTE.o $(OBJDIR_LINUX_DEBUG)/ThreeToFourDialog.o $(OBJDIR_LINUX_DEBUG)/Schedule.o $(OBJDIR_LINUX_DEBUG)/PluginManager.o $(OBJDIR_LINUX_DEBUG)/RemapDialog.o $(OBJDIR_LINUX_DEBUG)/RemoteModeConfigDialog.o $(OBJDIR_LINUX_DEBUG)/RunningSchedule.o $(OBJDIR_LINUX_DEBUG)/UserButton.o $(OBJDIR_LINUX_DEBUG)/ScheduleDialog.o $(OBJDIR_LINUX_DEBUG)/ScheduleManager.o $(OBJDIR_LINUX_DEBUG)/ScheduleOptions.o $(OBJDIR_LINUX_DEBUG)/events/EventFPPCommandPreset.o $(OBJDIR_LINUX_DEBUG)/events/EventBase.o $(OBJDIR_LINUX_DEBUG)/events/EventData.o $(OBJDIR_LINUX_DEBUG)/events/EventE131.o $(OBJDIR_LINUX_DEBUG)/events/EventFPP.o $(OBJDIR_LINUX_DEBUG)/events/EventLor.o $(OBJDIR_LINUX_DEBUG)/events/EventMIDI.o $(OBJDIR_LINUX_DEBUG)/events/EventMQTT.o $(OBJDIR_LINUX_DEBUG)/events/EventOSC.o $(OBJDIR_LINUX_DEBUG)/VideoCache.o $(OBJDIR_LINUX_DEBUG)/VirtualMatricesDialog.o $(OBJDIR_LINUX_DEBUG)/VirtualMatrix.o $(OBJDIR_LINUX_DEBUG)/VirtualMatrixDialog.o $(OBJDIR_LINUX_DEBUG)/WebServer.o $(OBJDIR_LINUX_DEBUG)/Xyzzy.o $(OBJDIR_LINUX_DEBUG)/events/EventARTNet.o $(OBJDIR_LINUX_DEBUG)/events/EventARTNetTrigger.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemRunCommandPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemProjectorPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemRDS.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemRDSPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemRunCommand.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemRunProcess.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemRunProcessPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemScreenMap.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemScreenMapPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMQTTPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMicrophone.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMicrophonePanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemOSC.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemOSCPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemPlugin.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemPluginPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemProjector.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemVideoPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListSimpleDialog.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListStep.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemVideo.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListStepPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayerFrame.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayerWindow.o $(OBJDIR_LINUX_DEBUG)/PlayList/VideoWindowPositionDialog.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemTest.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemSerial.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemSerialPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemSetColour.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemSetColourPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemTestPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemText.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemTextPanel.o $(OBJDIR_LINUX_DEBUG)/xScheduleApp.o $(OBJDIR_LINUX_DEBUG)/xScheduleMain.o $(OBJDIR_LINUX_DEBUG)/events/ListenerMIDI.o $(OBJDIR_LINUX_DEBUG)/events/ListenerMQTT.o $(OBJDIR_LINUX_DEBUG)/events/ListenerManager.o $(OBJDIR_LINUX_DEBUG)/events/ListenerOSC.o $(OBJDIR_LINUX_DEBUG)/events/ListenerLor.o $(OBJDIR_LINUX_DEBUG)/events/ListenerSMPTE.o $(OBJDIR_LINUX_DEBUG)/events/ListenerSerial.o $(OBJDIR_LINUX_DEBUG)/md5.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/connection.o $(OBJDIR_LINUX_DEBUG)/events/ListenerBase.o $(OBJDIR_LINUX_DEBUG)/events/EventPing.o $(OBJDIR_LINUX_DEBUG)/events/EventSerial.o $(OBJDIR_LINUX_DEBUG)/events/EventState.o $(OBJDIR_LINUX_DEBUG)/events/ListenerARTNet.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/context.o $(OBJDIR_LINUX_DEBUG)/events/ListenerCSVFPP.o $(OBJDIR_LINUX_DEBUG)/events/ListenerE131.o $(OBJDIR_LINUX_DEBUG)/events/ListenerFPP.o $(OBJDIR_LINUX_DEBUG)/wxMIDI/src/wxMidiDatabase.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/message.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/pages.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/request.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/response.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/server.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/sha1.o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/status.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMQTT.o $(OBJDIR_LINUX_DEBUG)/wxJSON/jsonreader.o $(OBJDIR_LINUX_DEBUG)/wxJSON/jsonval.o $(OBJDIR_LINUX_DEBUG)/wxJSON/jsonwriter.o $(OBJDIR_LINUX_DEBUG)/wxMIDI/src/wxMidi.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/TestPreset.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ZCPPOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/serial.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxEthernetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxSerialOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/Files.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginBufferingAdapter.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginChannelAdapter.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginHostAdapter.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginInputDomainAdapter.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginLoader.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OutputManager.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OPCOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OpenDMXOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OpenPixelNetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Output.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginWrapper.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/PixelNetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/RenardOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/SerialOutput.o $(OBJDIR_LINUX_DEBUG)/DeadChannelDialog.o $(OBJDIR_LINUX_DEBUG)/ConfigureMIDITimecodeDialog.o $(OBJDIR_LINUX_DEBUG)/ConfigureOSC.o $(OBJDIR_LINUX_DEBUG)/ConfigureTest.o $(OBJDIR_LINUX_DEBUG)/CommandManager.o $(OBJDIR_LINUX_DEBUG)/DimDialog.o $(OBJDIR_LINUX_DEBUG)/DimWhiteDialog.o $(OBJDIR_LINUX_DEBUG)/ESEQFile.o $(OBJDIR_LINUX_DEBUG)/EventARTNetPanel.o $(OBJDIR_LINUX_DEBUG)/Blend.o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/RealTime.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/AddReverseDialog.o $(OBJDIR_LINUX_DEBUG)/BackgroundPlaylistDialog.o $(OBJDIR_LINUX_DEBUG)/ButtonDetailsDialog.o $(OBJDIR_LINUX_DEBUG)/City.o $(OBJDIR_LINUX_DEBUG)/ColourOrderDialog.o $(OBJDIR_LINUX_DEBUG)/__/xLights/VideoReader.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/BaseController.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/ControllerCaps.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/Falcon.o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_DEBUG)/__/xLights/effects/GIFImage.o $(OBJDIR_LINUX_DEBUG)/__/xLights/kiss_fft/kiss_fft.o $(OBJDIR_LINUX_DEBUG)/__/xLights/kiss_fft/tools/kiss_fftr.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ArtNetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Controller.o $(OBJDIR_LINUX_DEBUG)/__/xLights/AudioManager.o $(OBJDIR_LINUX_DEBUG)/__/xLights/Discovery.o $(OBJDIR_LINUX_DEBUG)/__/xLights/FSEQFile.o $(OBJDIR_LINUX_DEBUG)/__/xLights/JobPool.o $(OBJDIR_LINUX_DEBUG)/__/xLights/Parallel.o $(OBJDIR_LINUX_DEBUG)/__/xLights/SequenceData.o $(OBJDIR_LINUX_DEBUG)/__/xLights/TraceLog.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/IPOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/KinetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LOROptimisedOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LOROutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorController.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorControllers.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/NullOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerEthernet.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerNull.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerSerial.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/DDPOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/DMXOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/E131Output.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/GenericSerialOutput.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDelay.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemCURL.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemCURLPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemColourOrgan.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemColourOrganPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDelayPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDim.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDimPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemESEQ.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListDialog.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItem.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemARTNetTrigger.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemARTNetTriggerPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAllOff.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAllOffPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAudio.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAudioPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFile.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFilePanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemImage.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemImagePanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFadePanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemJukebox.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemJukeboxPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMIDI.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMIDIPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemESEQPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFPPEvent.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFPPEventPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQ.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayList.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQVideo.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQVideoPanel.o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFade.o $(OBJDIR_LINUX_DEBUG)/EventOSCPanel.o $(OBJDIR_LINUX_DEBUG)/EventPingPanel.o $(OBJDIR_LINUX_DEBUG)/EventSerialPanel.o $(OBJDIR_LINUX_DEBUG)/EventStatePanel.o $(OBJDIR_LINUX_DEBUG)/EventMQTTPanel.o $(OBJDIR_LINUX_DEBUG)/EventsDialog.o $(OBJDIR_LINUX_DEBUG)/ExcludeDimDialog.o $(OBJDIR_LINUX_DEBUG)/ExtraIPDialog.o $(OBJDIR_LINUX_DEBUG)/ExtraIPsDialog.o $(OBJDIR_LINUX_DEBUG)/EventFPPPanel.o $(OBJDIR_LINUX_DEBUG)/EventARTNetTriggerPanel.o $(OBJDIR_LINUX_DEBUG)/EventDataPanel.o $(OBJDIR_LINUX_DEBUG)/EventDialog.o $(OBJDIR_LINUX_DEBUG)/EventE131Panel.o $(OBJDIR_LINUX_DEBUG)/FPPRemotesDialog.o $(OBJDIR_LINUX_DEBUG)/EventFPPCommandPresetPanel.o $(OBJDIR_LINUX_DEBUG)/EventLorPanel.o $(OBJDIR_LINUX_DEBUG)/EventMIDIPanel.o $(OBJDIR_LINUX_DEBUG)/OutputProcessSustain.o $(OBJDIR_LINUX_DEBUG)/OutputProcessDim.o $(OBJDIR_LINUX_DEBUG)/OutputProcessDimWhite.o $(OBJDIR_LINUX_DEBUG)/OutputProcessExcludeDim.o $(OBJDIR_LINUX_DEBUG)/OutputProcessGamma.o $(OBJDIR_LINUX_DEBUG)/OutputProcessRemap.o $(OBJDIR_LINUX_DEBUG)/OutputProcessReverse.o $(OBJDIR_LINUX_DEBUG)/OutputProcessSet.o $(OBJDIR_LINUX_DEBUG)/OutputProcessThreeToFour.o $(OBJDIR_LINUX_DEBUG)/OutputProcessingDialog.o $(OBJDIR_LINUX_DEBUG)/Pinger.o $(OBJDIR_LINUX_DEBUG)/GammaDialog.o $(OBJDIR_LINUX_DEBUG)/MatricesDialog.o $(OBJDIR_LINUX_DEBUG)/MatrixDialog.o $(OBJDIR_LINUX_DEBUG)/MatrixMapper.o $(OBJDIR_LINUX_DEBUG)/__/common/xlBaseApp.o $(OBJDIR_LINUX_DEBUG)/OSCPacket.o $(OBJDIR_LINUX_DEBUG)/OptionsDialog.o $(OBJDIR_LINUX_DEBUG)/OutputProcess.o $(OBJDIR_LINUX_DEBUG)/OutputProcessColourOrder.o $(OBJDIR_LINUX_DEBUG)/OutputProcessDeadChannel.o
 
-OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/SustainDialog.o $(OBJDIR_LINUX_RELEASE)/SyncArtNet.o $(OBJDIR_LINUX_RELEASE)/SyncFPP.o $(OBJDIR_LINUX_RELEASE)/SyncMIDI.o $(OBJDIR_LINUX_RELEASE)/SetDialog.o $(OBJDIR_LINUX_RELEASE)/SyncManager.o $(OBJDIR_LINUX_RELEASE)/SyncOSC.o $(OBJDIR_LINUX_RELEASE)/SyncSMPTE.o $(OBJDIR_LINUX_RELEASE)/ThreeToFourDialog.o $(OBJDIR_LINUX_RELEASE)/Schedule.o $(OBJDIR_LINUX_RELEASE)/PluginManager.o $(OBJDIR_LINUX_RELEASE)/RemapDialog.o $(OBJDIR_LINUX_RELEASE)/RemoteModeConfigDialog.o $(OBJDIR_LINUX_RELEASE)/RunningSchedule.o $(OBJDIR_LINUX_RELEASE)/UserButton.o $(OBJDIR_LINUX_RELEASE)/ScheduleDialog.o $(OBJDIR_LINUX_RELEASE)/ScheduleManager.o $(OBJDIR_LINUX_RELEASE)/ScheduleOptions.o $(OBJDIR_LINUX_RELEASE)/events/EventLor.o $(OBJDIR_LINUX_RELEASE)/events/EventBase.o $(OBJDIR_LINUX_RELEASE)/events/EventData.o $(OBJDIR_LINUX_RELEASE)/events/EventE131.o $(OBJDIR_LINUX_RELEASE)/events/EventFPP.o $(OBJDIR_LINUX_RELEASE)/events/EventMIDI.o $(OBJDIR_LINUX_RELEASE)/events/EventMQTT.o $(OBJDIR_LINUX_RELEASE)/events/EventOSC.o $(OBJDIR_LINUX_RELEASE)/VideoCache.o $(OBJDIR_LINUX_RELEASE)/VirtualMatricesDialog.o $(OBJDIR_LINUX_RELEASE)/VirtualMatrix.o $(OBJDIR_LINUX_RELEASE)/VirtualMatrixDialog.o $(OBJDIR_LINUX_RELEASE)/WebServer.o $(OBJDIR_LINUX_RELEASE)/Xyzzy.o $(OBJDIR_LINUX_RELEASE)/events/EventARTNet.o $(OBJDIR_LINUX_RELEASE)/events/EventARTNetTrigger.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemRunCommandPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemProjectorPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemRDS.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemRDSPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemRunCommand.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemRunProcess.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemRunProcessPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemScreenMap.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemScreenMapPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMQTTPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMicrophone.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMicrophonePanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemOSC.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemOSCPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemPlugin.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemPluginPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemProjector.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemVideoPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListSimpleDialog.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListStep.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemVideo.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListStepPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayerFrame.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayerWindow.o $(OBJDIR_LINUX_RELEASE)/PlayList/VideoWindowPositionDialog.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemTest.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemSerial.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemSerialPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemSetColour.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemSetColourPanel.o $(OBJDIR_LINUX_RELEASE)/events/EventPing.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemTestPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemText.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemTextPanel.o $(OBJDIR_LINUX_RELEASE)/xScheduleApp.o $(OBJDIR_LINUX_RELEASE)/xScheduleMain.o $(OBJDIR_LINUX_RELEASE)/events/ListenerSMPTE.o $(OBJDIR_LINUX_RELEASE)/events/ListenerMIDI.o $(OBJDIR_LINUX_RELEASE)/events/ListenerMQTT.o $(OBJDIR_LINUX_RELEASE)/events/ListenerManager.o $(OBJDIR_LINUX_RELEASE)/events/ListenerOSC.o $(OBJDIR_LINUX_RELEASE)/events/ListenerSerial.o $(OBJDIR_LINUX_RELEASE)/md5.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/connection.o $(OBJDIR_LINUX_RELEASE)/events/EventSerial.o $(OBJDIR_LINUX_RELEASE)/events/EventState.o $(OBJDIR_LINUX_RELEASE)/events/ListenerARTNet.o $(OBJDIR_LINUX_RELEASE)/events/ListenerBase.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/context.o $(OBJDIR_LINUX_RELEASE)/events/ListenerCSVFPP.o $(OBJDIR_LINUX_RELEASE)/events/ListenerE131.o $(OBJDIR_LINUX_RELEASE)/events/ListenerFPP.o $(OBJDIR_LINUX_RELEASE)/events/ListenerLor.o $(OBJDIR_LINUX_RELEASE)/wxMIDI/src/wxMidiDatabase.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/message.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/pages.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/request.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/response.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/server.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/sha1.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/status.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMQTT.o $(OBJDIR_LINUX_RELEASE)/wxJSON/jsonreader.o $(OBJDIR_LINUX_RELEASE)/wxJSON/jsonval.o $(OBJDIR_LINUX_RELEASE)/wxJSON/jsonwriter.o $(OBJDIR_LINUX_RELEASE)/wxMIDI/src/wxMidi.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxSerialOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ZCPPOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/serial.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxEthernetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/TestPreset.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/Files.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginBufferingAdapter.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginChannelAdapter.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginHostAdapter.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginInputDomainAdapter.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginLoader.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginWrapper.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OpenDMXOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OpenPixelNetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Output.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OutputManager.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/RealTime.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/PixelNetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/RenardOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/SerialOutput.o $(OBJDIR_LINUX_RELEASE)/ConfigureMIDITimecodeDialog.o $(OBJDIR_LINUX_RELEASE)/ConfigureOSC.o $(OBJDIR_LINUX_RELEASE)/ConfigureTest.o $(OBJDIR_LINUX_RELEASE)/DeadChannelDialog.o $(OBJDIR_LINUX_RELEASE)/DimDialog.o $(OBJDIR_LINUX_RELEASE)/DimWhiteDialog.o $(OBJDIR_LINUX_RELEASE)/ESEQFile.o $(OBJDIR_LINUX_RELEASE)/EventARTNetPanel.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/AddReverseDialog.o $(OBJDIR_LINUX_RELEASE)/BackgroundPlaylistDialog.o $(OBJDIR_LINUX_RELEASE)/Blend.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OPCOutput.o $(OBJDIR_LINUX_RELEASE)/ButtonDetailsDialog.o $(OBJDIR_LINUX_RELEASE)/City.o $(OBJDIR_LINUX_RELEASE)/ColourOrderDialog.o $(OBJDIR_LINUX_RELEASE)/CommandManager.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/BaseController.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/ControllerCaps.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/Falcon.o $(OBJDIR_LINUX_RELEASE)/__/xLights/effects/GIFImage.o $(OBJDIR_LINUX_RELEASE)/__/xLights/VideoReader.o $(OBJDIR_LINUX_RELEASE)/__/xLights/kiss_fft/kiss_fft.o $(OBJDIR_LINUX_RELEASE)/__/xLights/kiss_fft/tools/kiss_fftr.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ArtNetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Controller.o $(OBJDIR_LINUX_RELEASE)/__/xLights/Discovery.o $(OBJDIR_LINUX_RELEASE)/__/xLights/FSEQFile.o $(OBJDIR_LINUX_RELEASE)/__/xLights/JobPool.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerEthernet.o $(OBJDIR_LINUX_RELEASE)/__/xLights/Parallel.o $(OBJDIR_LINUX_RELEASE)/__/xLights/SequenceData.o $(OBJDIR_LINUX_RELEASE)/__/xLights/TraceLog.o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorController.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/KinetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LOROptimisedOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LOROutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/IPOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorControllers.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/NullOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerNull.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerSerial.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/DDPOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/DMXOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/E131Output.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/GenericSerialOutput.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemCURLPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemColourOrgan.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemColourOrganPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDelay.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemCURL.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDelayPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDim.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDimPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemESEQ.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAllOff.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListDialog.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItem.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemARTNetTrigger.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemARTNetTriggerPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemESEQPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAllOffPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAudio.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAudioPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemJukebox.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFile.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFilePanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemImage.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemImagePanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemJukeboxPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMIDI.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMIDIPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFPPEvent.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFPPEventPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQ.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQVideo.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQVideoPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFade.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFadePanel.o $(OBJDIR_LINUX_RELEASE)/EventPingPanel.o $(OBJDIR_LINUX_RELEASE)/EventSerialPanel.o $(OBJDIR_LINUX_RELEASE)/EventStatePanel.o $(OBJDIR_LINUX_RELEASE)/EventsDialog.o $(OBJDIR_LINUX_RELEASE)/EventOSCPanel.o $(OBJDIR_LINUX_RELEASE)/ExcludeDimDialog.o $(OBJDIR_LINUX_RELEASE)/ExtraIPDialog.o $(OBJDIR_LINUX_RELEASE)/ExtraIPsDialog.o $(OBJDIR_LINUX_RELEASE)/FPPRemotesDialog.o $(OBJDIR_LINUX_RELEASE)/EventFPPPanel.o $(OBJDIR_LINUX_RELEASE)/EventARTNetTriggerPanel.o $(OBJDIR_LINUX_RELEASE)/EventDataPanel.o $(OBJDIR_LINUX_RELEASE)/EventDialog.o $(OBJDIR_LINUX_RELEASE)/EventE131Panel.o $(OBJDIR_LINUX_RELEASE)/EventLorPanel.o $(OBJDIR_LINUX_RELEASE)/EventMIDIPanel.o $(OBJDIR_LINUX_RELEASE)/EventMQTTPanel.o $(OBJDIR_LINUX_RELEASE)/OutputProcessDimWhite.o $(OBJDIR_LINUX_RELEASE)/OutputProcessExcludeDim.o $(OBJDIR_LINUX_RELEASE)/OutputProcessGamma.o $(OBJDIR_LINUX_RELEASE)/OutputProcessRemap.o $(OBJDIR_LINUX_RELEASE)/OutputProcessReverse.o $(OBJDIR_LINUX_RELEASE)/OutputProcessSet.o $(OBJDIR_LINUX_RELEASE)/OutputProcessSustain.o $(OBJDIR_LINUX_RELEASE)/OutputProcessDim.o $(OBJDIR_LINUX_RELEASE)/OutputProcessThreeToFour.o $(OBJDIR_LINUX_RELEASE)/OutputProcessingDialog.o $(OBJDIR_LINUX_RELEASE)/Pinger.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayList.o $(OBJDIR_LINUX_RELEASE)/OSCPacket.o $(OBJDIR_LINUX_RELEASE)/GammaDialog.o $(OBJDIR_LINUX_RELEASE)/MatricesDialog.o $(OBJDIR_LINUX_RELEASE)/MatrixDialog.o $(OBJDIR_LINUX_RELEASE)/MatrixMapper.o $(OBJDIR_LINUX_RELEASE)/__/xLights/AudioManager.o $(OBJDIR_LINUX_RELEASE)/OptionsDialog.o $(OBJDIR_LINUX_RELEASE)/OutputProcess.o $(OBJDIR_LINUX_RELEASE)/OutputProcessColourOrder.o $(OBJDIR_LINUX_RELEASE)/OutputProcessDeadChannel.o
+OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/SustainDialog.o $(OBJDIR_LINUX_RELEASE)/SyncArtNet.o $(OBJDIR_LINUX_RELEASE)/SyncFPP.o $(OBJDIR_LINUX_RELEASE)/SyncMIDI.o $(OBJDIR_LINUX_RELEASE)/SetDialog.o $(OBJDIR_LINUX_RELEASE)/SyncManager.o $(OBJDIR_LINUX_RELEASE)/SyncOSC.o $(OBJDIR_LINUX_RELEASE)/SyncSMPTE.o $(OBJDIR_LINUX_RELEASE)/ThreeToFourDialog.o $(OBJDIR_LINUX_RELEASE)/Schedule.o $(OBJDIR_LINUX_RELEASE)/PluginManager.o $(OBJDIR_LINUX_RELEASE)/RemapDialog.o $(OBJDIR_LINUX_RELEASE)/RemoteModeConfigDialog.o $(OBJDIR_LINUX_RELEASE)/RunningSchedule.o $(OBJDIR_LINUX_RELEASE)/UserButton.o $(OBJDIR_LINUX_RELEASE)/ScheduleDialog.o $(OBJDIR_LINUX_RELEASE)/ScheduleManager.o $(OBJDIR_LINUX_RELEASE)/ScheduleOptions.o $(OBJDIR_LINUX_RELEASE)/events/EventFPPCommandPreset.o $(OBJDIR_LINUX_RELEASE)/events/EventBase.o $(OBJDIR_LINUX_RELEASE)/events/EventData.o $(OBJDIR_LINUX_RELEASE)/events/EventE131.o $(OBJDIR_LINUX_RELEASE)/events/EventFPP.o $(OBJDIR_LINUX_RELEASE)/events/EventLor.o $(OBJDIR_LINUX_RELEASE)/events/EventMIDI.o $(OBJDIR_LINUX_RELEASE)/events/EventMQTT.o $(OBJDIR_LINUX_RELEASE)/events/EventOSC.o $(OBJDIR_LINUX_RELEASE)/VideoCache.o $(OBJDIR_LINUX_RELEASE)/VirtualMatricesDialog.o $(OBJDIR_LINUX_RELEASE)/VirtualMatrix.o $(OBJDIR_LINUX_RELEASE)/VirtualMatrixDialog.o $(OBJDIR_LINUX_RELEASE)/WebServer.o $(OBJDIR_LINUX_RELEASE)/Xyzzy.o $(OBJDIR_LINUX_RELEASE)/events/EventARTNet.o $(OBJDIR_LINUX_RELEASE)/events/EventARTNetTrigger.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemRunCommandPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemProjectorPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemRDS.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemRDSPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemRunCommand.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemRunProcess.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemRunProcessPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemScreenMap.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemScreenMapPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMQTTPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMicrophone.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMicrophonePanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemOSC.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemOSCPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemPlugin.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemPluginPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemProjector.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemVideoPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListSimpleDialog.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListStep.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemVideo.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListStepPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayerFrame.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayerWindow.o $(OBJDIR_LINUX_RELEASE)/PlayList/VideoWindowPositionDialog.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemTest.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemSerial.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemSerialPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemSetColour.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemSetColourPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemTestPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemText.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemTextPanel.o $(OBJDIR_LINUX_RELEASE)/xScheduleApp.o $(OBJDIR_LINUX_RELEASE)/xScheduleMain.o $(OBJDIR_LINUX_RELEASE)/events/ListenerMIDI.o $(OBJDIR_LINUX_RELEASE)/events/ListenerMQTT.o $(OBJDIR_LINUX_RELEASE)/events/ListenerManager.o $(OBJDIR_LINUX_RELEASE)/events/ListenerOSC.o $(OBJDIR_LINUX_RELEASE)/events/ListenerLor.o $(OBJDIR_LINUX_RELEASE)/events/ListenerSMPTE.o $(OBJDIR_LINUX_RELEASE)/events/ListenerSerial.o $(OBJDIR_LINUX_RELEASE)/md5.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/connection.o $(OBJDIR_LINUX_RELEASE)/events/ListenerBase.o $(OBJDIR_LINUX_RELEASE)/events/EventPing.o $(OBJDIR_LINUX_RELEASE)/events/EventSerial.o $(OBJDIR_LINUX_RELEASE)/events/EventState.o $(OBJDIR_LINUX_RELEASE)/events/ListenerARTNet.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/context.o $(OBJDIR_LINUX_RELEASE)/events/ListenerCSVFPP.o $(OBJDIR_LINUX_RELEASE)/events/ListenerE131.o $(OBJDIR_LINUX_RELEASE)/events/ListenerFPP.o $(OBJDIR_LINUX_RELEASE)/wxMIDI/src/wxMidiDatabase.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/message.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/pages.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/request.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/response.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/server.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/sha1.o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/status.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMQTT.o $(OBJDIR_LINUX_RELEASE)/wxJSON/jsonreader.o $(OBJDIR_LINUX_RELEASE)/wxJSON/jsonval.o $(OBJDIR_LINUX_RELEASE)/wxJSON/jsonwriter.o $(OBJDIR_LINUX_RELEASE)/wxMIDI/src/wxMidi.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/TestPreset.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ZCPPOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/serial.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxEthernetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxSerialOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/Files.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginBufferingAdapter.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginChannelAdapter.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginHostAdapter.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginInputDomainAdapter.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginLoader.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OutputManager.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OPCOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OpenDMXOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OpenPixelNetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Output.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginWrapper.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/PixelNetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/RenardOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/SerialOutput.o $(OBJDIR_LINUX_RELEASE)/DeadChannelDialog.o $(OBJDIR_LINUX_RELEASE)/ConfigureMIDITimecodeDialog.o $(OBJDIR_LINUX_RELEASE)/ConfigureOSC.o $(OBJDIR_LINUX_RELEASE)/ConfigureTest.o $(OBJDIR_LINUX_RELEASE)/CommandManager.o $(OBJDIR_LINUX_RELEASE)/DimDialog.o $(OBJDIR_LINUX_RELEASE)/DimWhiteDialog.o $(OBJDIR_LINUX_RELEASE)/ESEQFile.o $(OBJDIR_LINUX_RELEASE)/EventARTNetPanel.o $(OBJDIR_LINUX_RELEASE)/Blend.o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/RealTime.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/AddReverseDialog.o $(OBJDIR_LINUX_RELEASE)/BackgroundPlaylistDialog.o $(OBJDIR_LINUX_RELEASE)/ButtonDetailsDialog.o $(OBJDIR_LINUX_RELEASE)/City.o $(OBJDIR_LINUX_RELEASE)/ColourOrderDialog.o $(OBJDIR_LINUX_RELEASE)/__/xLights/VideoReader.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/BaseController.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/ControllerCaps.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/Falcon.o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_RELEASE)/__/xLights/effects/GIFImage.o $(OBJDIR_LINUX_RELEASE)/__/xLights/kiss_fft/kiss_fft.o $(OBJDIR_LINUX_RELEASE)/__/xLights/kiss_fft/tools/kiss_fftr.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ArtNetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Controller.o $(OBJDIR_LINUX_RELEASE)/__/xLights/AudioManager.o $(OBJDIR_LINUX_RELEASE)/__/xLights/Discovery.o $(OBJDIR_LINUX_RELEASE)/__/xLights/FSEQFile.o $(OBJDIR_LINUX_RELEASE)/__/xLights/JobPool.o $(OBJDIR_LINUX_RELEASE)/__/xLights/Parallel.o $(OBJDIR_LINUX_RELEASE)/__/xLights/SequenceData.o $(OBJDIR_LINUX_RELEASE)/__/xLights/TraceLog.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/IPOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/KinetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LOROptimisedOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LOROutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorController.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorControllers.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/NullOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerEthernet.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerNull.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerSerial.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/DDPOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/DMXOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/E131Output.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/GenericSerialOutput.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDelay.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemCURL.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemCURLPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemColourOrgan.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemColourOrganPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDelayPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDim.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDimPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemESEQ.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListDialog.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItem.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemARTNetTrigger.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemARTNetTriggerPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAllOff.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAllOffPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAudio.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAudioPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFile.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFilePanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemImage.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemImagePanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFadePanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemJukebox.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemJukeboxPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMIDI.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMIDIPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemESEQPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFPPEvent.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFPPEventPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQ.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayList.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQVideo.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQVideoPanel.o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFade.o $(OBJDIR_LINUX_RELEASE)/EventOSCPanel.o $(OBJDIR_LINUX_RELEASE)/EventPingPanel.o $(OBJDIR_LINUX_RELEASE)/EventSerialPanel.o $(OBJDIR_LINUX_RELEASE)/EventStatePanel.o $(OBJDIR_LINUX_RELEASE)/EventMQTTPanel.o $(OBJDIR_LINUX_RELEASE)/EventsDialog.o $(OBJDIR_LINUX_RELEASE)/ExcludeDimDialog.o $(OBJDIR_LINUX_RELEASE)/ExtraIPDialog.o $(OBJDIR_LINUX_RELEASE)/ExtraIPsDialog.o $(OBJDIR_LINUX_RELEASE)/EventFPPPanel.o $(OBJDIR_LINUX_RELEASE)/EventARTNetTriggerPanel.o $(OBJDIR_LINUX_RELEASE)/EventDataPanel.o $(OBJDIR_LINUX_RELEASE)/EventDialog.o $(OBJDIR_LINUX_RELEASE)/EventE131Panel.o $(OBJDIR_LINUX_RELEASE)/FPPRemotesDialog.o $(OBJDIR_LINUX_RELEASE)/EventFPPCommandPresetPanel.o $(OBJDIR_LINUX_RELEASE)/EventLorPanel.o $(OBJDIR_LINUX_RELEASE)/EventMIDIPanel.o $(OBJDIR_LINUX_RELEASE)/OutputProcessSustain.o $(OBJDIR_LINUX_RELEASE)/OutputProcessDim.o $(OBJDIR_LINUX_RELEASE)/OutputProcessDimWhite.o $(OBJDIR_LINUX_RELEASE)/OutputProcessExcludeDim.o $(OBJDIR_LINUX_RELEASE)/OutputProcessGamma.o $(OBJDIR_LINUX_RELEASE)/OutputProcessRemap.o $(OBJDIR_LINUX_RELEASE)/OutputProcessReverse.o $(OBJDIR_LINUX_RELEASE)/OutputProcessSet.o $(OBJDIR_LINUX_RELEASE)/OutputProcessThreeToFour.o $(OBJDIR_LINUX_RELEASE)/OutputProcessingDialog.o $(OBJDIR_LINUX_RELEASE)/Pinger.o $(OBJDIR_LINUX_RELEASE)/GammaDialog.o $(OBJDIR_LINUX_RELEASE)/MatricesDialog.o $(OBJDIR_LINUX_RELEASE)/MatrixDialog.o $(OBJDIR_LINUX_RELEASE)/MatrixMapper.o $(OBJDIR_LINUX_RELEASE)/__/common/xlBaseApp.o $(OBJDIR_LINUX_RELEASE)/OSCPacket.o $(OBJDIR_LINUX_RELEASE)/OptionsDialog.o $(OBJDIR_LINUX_RELEASE)/OutputProcess.o $(OBJDIR_LINUX_RELEASE)/OutputProcessColourOrder.o $(OBJDIR_LINUX_RELEASE)/OutputProcessDeadChannel.o
 
 all: linux_debug linux_release
 
@@ -63,6 +63,7 @@ before_linux_debug:
 	@test -d $(OBJDIR_LINUX_DEBUG)/__/xLights/effects || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/xLights/effects
 	@test -d $(OBJDIR_LINUX_DEBUG)/__/xLights/kiss_fft || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/xLights/kiss_fft
 	@test -d $(OBJDIR_LINUX_DEBUG)/__/xLights/kiss_fft/tools || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/xLights/kiss_fft/tools
+	@test -d $(OBJDIR_LINUX_DEBUG)/__/common || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/common
 
 after_linux_debug: 
 
@@ -125,8 +126,8 @@ $(OBJDIR_LINUX_DEBUG)/ScheduleManager.o: ScheduleManager.cpp
 $(OBJDIR_LINUX_DEBUG)/ScheduleOptions.o: ScheduleOptions.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ScheduleOptions.cpp -o $(OBJDIR_LINUX_DEBUG)/ScheduleOptions.o
 
-$(OBJDIR_LINUX_DEBUG)/events/EventLor.o: events/EventLor.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/EventLor.cpp -o $(OBJDIR_LINUX_DEBUG)/events/EventLor.o
+$(OBJDIR_LINUX_DEBUG)/events/EventFPPCommandPreset.o: events/EventFPPCommandPreset.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/EventFPPCommandPreset.cpp -o $(OBJDIR_LINUX_DEBUG)/events/EventFPPCommandPreset.o
 
 $(OBJDIR_LINUX_DEBUG)/events/EventBase.o: events/EventBase.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/EventBase.cpp -o $(OBJDIR_LINUX_DEBUG)/events/EventBase.o
@@ -139,6 +140,9 @@ $(OBJDIR_LINUX_DEBUG)/events/EventE131.o: events/EventE131.cpp
 
 $(OBJDIR_LINUX_DEBUG)/events/EventFPP.o: events/EventFPP.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/EventFPP.cpp -o $(OBJDIR_LINUX_DEBUG)/events/EventFPP.o
+
+$(OBJDIR_LINUX_DEBUG)/events/EventLor.o: events/EventLor.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/EventLor.cpp -o $(OBJDIR_LINUX_DEBUG)/events/EventLor.o
 
 $(OBJDIR_LINUX_DEBUG)/events/EventMIDI.o: events/EventMIDI.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/EventMIDI.cpp -o $(OBJDIR_LINUX_DEBUG)/events/EventMIDI.o
@@ -266,9 +270,6 @@ $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemSetColour.o: PlayList/PlayListItemSet
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemSetColourPanel.o: PlayList/PlayListItemSetColourPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemSetColourPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemSetColourPanel.o
 
-$(OBJDIR_LINUX_DEBUG)/events/EventPing.o: events/EventPing.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/EventPing.cpp -o $(OBJDIR_LINUX_DEBUG)/events/EventPing.o
-
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemTestPanel.o: PlayList/PlayListItemTestPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemTestPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemTestPanel.o
 
@@ -284,9 +285,6 @@ $(OBJDIR_LINUX_DEBUG)/xScheduleApp.o: xScheduleApp.cpp
 $(OBJDIR_LINUX_DEBUG)/xScheduleMain.o: xScheduleMain.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xScheduleMain.cpp -o $(OBJDIR_LINUX_DEBUG)/xScheduleMain.o
 
-$(OBJDIR_LINUX_DEBUG)/events/ListenerSMPTE.o: events/ListenerSMPTE.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/ListenerSMPTE.cpp -o $(OBJDIR_LINUX_DEBUG)/events/ListenerSMPTE.o
-
 $(OBJDIR_LINUX_DEBUG)/events/ListenerMIDI.o: events/ListenerMIDI.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/ListenerMIDI.cpp -o $(OBJDIR_LINUX_DEBUG)/events/ListenerMIDI.o
 
@@ -299,6 +297,12 @@ $(OBJDIR_LINUX_DEBUG)/events/ListenerManager.o: events/ListenerManager.cpp
 $(OBJDIR_LINUX_DEBUG)/events/ListenerOSC.o: events/ListenerOSC.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/ListenerOSC.cpp -o $(OBJDIR_LINUX_DEBUG)/events/ListenerOSC.o
 
+$(OBJDIR_LINUX_DEBUG)/events/ListenerLor.o: events/ListenerLor.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/ListenerLor.cpp -o $(OBJDIR_LINUX_DEBUG)/events/ListenerLor.o
+
+$(OBJDIR_LINUX_DEBUG)/events/ListenerSMPTE.o: events/ListenerSMPTE.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/ListenerSMPTE.cpp -o $(OBJDIR_LINUX_DEBUG)/events/ListenerSMPTE.o
+
 $(OBJDIR_LINUX_DEBUG)/events/ListenerSerial.o: events/ListenerSerial.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/ListenerSerial.cpp -o $(OBJDIR_LINUX_DEBUG)/events/ListenerSerial.o
 
@@ -308,6 +312,12 @@ $(OBJDIR_LINUX_DEBUG)/md5.o: md5.cpp
 $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/connection.o: wxHTTPServer/connection.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c wxHTTPServer/connection.cpp -o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/connection.o
 
+$(OBJDIR_LINUX_DEBUG)/events/ListenerBase.o: events/ListenerBase.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/ListenerBase.cpp -o $(OBJDIR_LINUX_DEBUG)/events/ListenerBase.o
+
+$(OBJDIR_LINUX_DEBUG)/events/EventPing.o: events/EventPing.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/EventPing.cpp -o $(OBJDIR_LINUX_DEBUG)/events/EventPing.o
+
 $(OBJDIR_LINUX_DEBUG)/events/EventSerial.o: events/EventSerial.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/EventSerial.cpp -o $(OBJDIR_LINUX_DEBUG)/events/EventSerial.o
 
@@ -316,9 +326,6 @@ $(OBJDIR_LINUX_DEBUG)/events/EventState.o: events/EventState.cpp
 
 $(OBJDIR_LINUX_DEBUG)/events/ListenerARTNet.o: events/ListenerARTNet.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/ListenerARTNet.cpp -o $(OBJDIR_LINUX_DEBUG)/events/ListenerARTNet.o
-
-$(OBJDIR_LINUX_DEBUG)/events/ListenerBase.o: events/ListenerBase.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/ListenerBase.cpp -o $(OBJDIR_LINUX_DEBUG)/events/ListenerBase.o
 
 $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/context.o: wxHTTPServer/context.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c wxHTTPServer/context.cpp -o $(OBJDIR_LINUX_DEBUG)/wxHTTPServer/context.o
@@ -331,9 +338,6 @@ $(OBJDIR_LINUX_DEBUG)/events/ListenerE131.o: events/ListenerE131.cpp
 
 $(OBJDIR_LINUX_DEBUG)/events/ListenerFPP.o: events/ListenerFPP.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/ListenerFPP.cpp -o $(OBJDIR_LINUX_DEBUG)/events/ListenerFPP.o
-
-$(OBJDIR_LINUX_DEBUG)/events/ListenerLor.o: events/ListenerLor.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c events/ListenerLor.cpp -o $(OBJDIR_LINUX_DEBUG)/events/ListenerLor.o
 
 $(OBJDIR_LINUX_DEBUG)/wxMIDI/src/wxMidiDatabase.o: wxMIDI/src/wxMidiDatabase.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c wxMIDI/src/wxMidiDatabase.cpp -o $(OBJDIR_LINUX_DEBUG)/wxMIDI/src/wxMidiDatabase.o
@@ -374,8 +378,8 @@ $(OBJDIR_LINUX_DEBUG)/wxJSON/jsonwriter.o: wxJSON/jsonwriter.cpp
 $(OBJDIR_LINUX_DEBUG)/wxMIDI/src/wxMidi.o: wxMIDI/src/wxMidi.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c wxMIDI/src/wxMidi.cpp -o $(OBJDIR_LINUX_DEBUG)/wxMIDI/src/wxMidi.o
 
-$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxSerialOutput.o: ../xLights/outputs/xxxSerialOutput.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/xxxSerialOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxSerialOutput.o
+$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/TestPreset.o: ../xLights/outputs/TestPreset.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/TestPreset.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/TestPreset.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ZCPPOutput.o: ../xLights/outputs/ZCPPOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/ZCPPOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ZCPPOutput.o
@@ -386,8 +390,8 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/serial.o: ../xLights/outputs/serial.cpp
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxEthernetOutput.o: ../xLights/outputs/xxxEthernetOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/xxxEthernetOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxEthernetOutput.o
 
-$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/TestPreset.o: ../xLights/outputs/TestPreset.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/TestPreset.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/TestPreset.o
+$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxSerialOutput.o: ../xLights/outputs/xxxSerialOutput.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/xxxSerialOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxSerialOutput.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/Files.o: ../xLights/vamp-hostsdk/Files.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/vamp-hostsdk/Files.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/Files.o
@@ -407,8 +411,11 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginInputDomainAdapter.o: ../xLi
 $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginLoader.o: ../xLights/vamp-hostsdk/PluginLoader.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/vamp-hostsdk/PluginLoader.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginLoader.o
 
-$(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginWrapper.o: ../xLights/vamp-hostsdk/PluginWrapper.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/vamp-hostsdk/PluginWrapper.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginWrapper.o
+$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OutputManager.o: ../xLights/outputs/OutputManager.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/OutputManager.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OutputManager.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OPCOutput.o: ../xLights/outputs/OPCOutput.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/OPCOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OPCOutput.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OpenDMXOutput.o: ../xLights/outputs/OpenDMXOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/OpenDMXOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OpenDMXOutput.o
@@ -419,11 +426,8 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OpenPixelNetOutput.o: ../xLights/output
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Output.o: ../xLights/outputs/Output.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/Output.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Output.o
 
-$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OutputManager.o: ../xLights/outputs/OutputManager.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/OutputManager.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OutputManager.o
-
-$(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/RealTime.o: ../xLights/vamp-hostsdk/RealTime.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/vamp-hostsdk/RealTime.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/RealTime.o
+$(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginWrapper.o: ../xLights/vamp-hostsdk/PluginWrapper.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/vamp-hostsdk/PluginWrapper.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/PluginWrapper.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/PixelNetOutput.o: ../xLights/outputs/PixelNetOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/PixelNetOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/PixelNetOutput.o
@@ -434,6 +438,9 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/RenardOutput.o: ../xLights/outputs/Rena
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/SerialOutput.o: ../xLights/outputs/SerialOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/SerialOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/SerialOutput.o
 
+$(OBJDIR_LINUX_DEBUG)/DeadChannelDialog.o: DeadChannelDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c DeadChannelDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/DeadChannelDialog.o
+
 $(OBJDIR_LINUX_DEBUG)/ConfigureMIDITimecodeDialog.o: ConfigureMIDITimecodeDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ConfigureMIDITimecodeDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ConfigureMIDITimecodeDialog.o
 
@@ -443,8 +450,8 @@ $(OBJDIR_LINUX_DEBUG)/ConfigureOSC.o: ConfigureOSC.cpp
 $(OBJDIR_LINUX_DEBUG)/ConfigureTest.o: ConfigureTest.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ConfigureTest.cpp -o $(OBJDIR_LINUX_DEBUG)/ConfigureTest.o
 
-$(OBJDIR_LINUX_DEBUG)/DeadChannelDialog.o: DeadChannelDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c DeadChannelDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/DeadChannelDialog.o
+$(OBJDIR_LINUX_DEBUG)/CommandManager.o: CommandManager.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c CommandManager.cpp -o $(OBJDIR_LINUX_DEBUG)/CommandManager.o
 
 $(OBJDIR_LINUX_DEBUG)/DimDialog.o: DimDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c DimDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/DimDialog.o
@@ -458,6 +465,12 @@ $(OBJDIR_LINUX_DEBUG)/ESEQFile.o: ESEQFile.cpp
 $(OBJDIR_LINUX_DEBUG)/EventARTNetPanel.o: EventARTNetPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EventARTNetPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EventARTNetPanel.o
 
+$(OBJDIR_LINUX_DEBUG)/Blend.o: Blend.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c Blend.cpp -o $(OBJDIR_LINUX_DEBUG)/Blend.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/RealTime.o: ../xLights/vamp-hostsdk/RealTime.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/vamp-hostsdk/RealTime.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/vamp-hostsdk/RealTime.o
+
 $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsTimer.o: ../xLights/xLightsTimer.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/xLightsTimer.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsTimer.o
 
@@ -470,12 +483,6 @@ $(OBJDIR_LINUX_DEBUG)/AddReverseDialog.o: AddReverseDialog.cpp
 $(OBJDIR_LINUX_DEBUG)/BackgroundPlaylistDialog.o: BackgroundPlaylistDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c BackgroundPlaylistDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/BackgroundPlaylistDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/Blend.o: Blend.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c Blend.cpp -o $(OBJDIR_LINUX_DEBUG)/Blend.o
-
-$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OPCOutput.o: ../xLights/outputs/OPCOutput.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/OPCOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OPCOutput.o
-
 $(OBJDIR_LINUX_DEBUG)/ButtonDetailsDialog.o: ButtonDetailsDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ButtonDetailsDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ButtonDetailsDialog.o
 
@@ -485,8 +492,8 @@ $(OBJDIR_LINUX_DEBUG)/City.o: City.cpp
 $(OBJDIR_LINUX_DEBUG)/ColourOrderDialog.o: ColourOrderDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ColourOrderDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ColourOrderDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/CommandManager.o: CommandManager.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c CommandManager.cpp -o $(OBJDIR_LINUX_DEBUG)/CommandManager.o
+$(OBJDIR_LINUX_DEBUG)/__/xLights/VideoReader.o: ../xLights/VideoReader.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/VideoReader.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/VideoReader.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/BaseController.o: ../xLights/controllers/BaseController.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/controllers/BaseController.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/BaseController.o
@@ -497,11 +504,11 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/ControllerCaps.o: ../xLights/contro
 $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/Falcon.o: ../xLights/controllers/Falcon.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/controllers/Falcon.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/Falcon.o
 
+$(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o
+
 $(OBJDIR_LINUX_DEBUG)/__/xLights/effects/GIFImage.o: ../xLights/effects/GIFImage.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/effects/GIFImage.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/effects/GIFImage.o
-
-$(OBJDIR_LINUX_DEBUG)/__/xLights/VideoReader.o: ../xLights/VideoReader.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/VideoReader.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/VideoReader.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/kiss_fft/kiss_fft.o: ../xLights/kiss_fft/kiss_fft.c
 	$(CC) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/kiss_fft/kiss_fft.c -o $(OBJDIR_LINUX_DEBUG)/__/xLights/kiss_fft/kiss_fft.o
@@ -515,6 +522,9 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ArtNetOutput.o: ../xLights/outputs/ArtN
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Controller.o: ../xLights/outputs/Controller.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/Controller.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Controller.o
 
+$(OBJDIR_LINUX_DEBUG)/__/xLights/AudioManager.o: ../xLights/AudioManager.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/AudioManager.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/AudioManager.o
+
 $(OBJDIR_LINUX_DEBUG)/__/xLights/Discovery.o: ../xLights/Discovery.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/Discovery.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/Discovery.o
 
@@ -523,9 +533,6 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/FSEQFile.o: ../xLights/FSEQFile.cpp
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/JobPool.o: ../xLights/JobPool.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/JobPool.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/JobPool.o
-
-$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerEthernet.o: ../xLights/outputs/ControllerEthernet.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/ControllerEthernet.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerEthernet.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/Parallel.o: ../xLights/Parallel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/Parallel.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/Parallel.o
@@ -536,11 +543,8 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/SequenceData.o: ../xLights/SequenceData.cpp
 $(OBJDIR_LINUX_DEBUG)/__/xLights/TraceLog.o: ../xLights/TraceLog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/TraceLog.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/TraceLog.o
 
-$(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o
-
-$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorController.o: ../xLights/outputs/LorController.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/LorController.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorController.o
+$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/IPOutput.o: ../xLights/outputs/IPOutput.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/IPOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/IPOutput.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/KinetOutput.o: ../xLights/outputs/KinetOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/KinetOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/KinetOutput.o
@@ -551,14 +555,17 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LOROptimisedOutput.o: ../xLights/output
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LOROutput.o: ../xLights/outputs/LOROutput.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/LOROutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LOROutput.o
 
-$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/IPOutput.o: ../xLights/outputs/IPOutput.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/IPOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/IPOutput.o
+$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorController.o: ../xLights/outputs/LorController.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/LorController.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorController.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorControllers.o: ../xLights/outputs/LorControllers.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/LorControllers.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorControllers.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/NullOutput.o: ../xLights/outputs/NullOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/NullOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/NullOutput.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerEthernet.o: ../xLights/outputs/ControllerEthernet.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/ControllerEthernet.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerEthernet.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerNull.o: ../xLights/outputs/ControllerNull.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/ControllerNull.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerNull.o
@@ -578,6 +585,12 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/E131Output.o: ../xLights/outputs/E131Ou
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/GenericSerialOutput.o: ../xLights/outputs/GenericSerialOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/GenericSerialOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/GenericSerialOutput.o
 
+$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDelay.o: PlayList/PlayListItemDelay.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemDelay.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDelay.o
+
+$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemCURL.o: PlayList/PlayListItemCURL.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemCURL.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemCURL.o
+
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemCURLPanel.o: PlayList/PlayListItemCURLPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemCURLPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemCURLPanel.o
 
@@ -586,12 +599,6 @@ $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemColourOrgan.o: PlayList/PlayListItemC
 
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemColourOrganPanel.o: PlayList/PlayListItemColourOrganPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemColourOrganPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemColourOrganPanel.o
-
-$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDelay.o: PlayList/PlayListItemDelay.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemDelay.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDelay.o
-
-$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemCURL.o: PlayList/PlayListItemCURL.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemCURL.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemCURL.o
 
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDelayPanel.o: PlayList/PlayListItemDelayPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemDelayPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDelayPanel.o
@@ -605,9 +612,6 @@ $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemDimPanel.o: PlayList/PlayListItemDimP
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemESEQ.o: PlayList/PlayListItemESEQ.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemESEQ.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemESEQ.o
 
-$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAllOff.o: PlayList/PlayListItemAllOff.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemAllOff.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAllOff.o
-
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListDialog.o: PlayList/PlayListDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListDialog.o
 
@@ -620,8 +624,8 @@ $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemARTNetTrigger.o: PlayList/PlayListIte
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemARTNetTriggerPanel.o: PlayList/PlayListItemARTNetTriggerPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemARTNetTriggerPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemARTNetTriggerPanel.o
 
-$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemESEQPanel.o: PlayList/PlayListItemESEQPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemESEQPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemESEQPanel.o
+$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAllOff.o: PlayList/PlayListItemAllOff.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemAllOff.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAllOff.o
 
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAllOffPanel.o: PlayList/PlayListItemAllOffPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemAllOffPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAllOffPanel.o
@@ -631,9 +635,6 @@ $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAudio.o: PlayList/PlayListItemAudio.c
 
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAudioPanel.o: PlayList/PlayListItemAudioPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemAudioPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemAudioPanel.o
-
-$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemJukebox.o: PlayList/PlayListItemJukebox.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemJukebox.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemJukebox.o
 
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFile.o: PlayList/PlayListItemFile.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemFile.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFile.o
@@ -647,6 +648,12 @@ $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemImage.o: PlayList/PlayListItemImage.c
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemImagePanel.o: PlayList/PlayListItemImagePanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemImagePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemImagePanel.o
 
+$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFadePanel.o: PlayList/PlayListItemFadePanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemFadePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFadePanel.o
+
+$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemJukebox.o: PlayList/PlayListItemJukebox.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemJukebox.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemJukebox.o
+
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemJukeboxPanel.o: PlayList/PlayListItemJukeboxPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemJukeboxPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemJukeboxPanel.o
 
@@ -655,6 +662,12 @@ $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMIDI.o: PlayList/PlayListItemMIDI.cpp
 
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMIDIPanel.o: PlayList/PlayListItemMIDIPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemMIDIPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemMIDIPanel.o
+
+$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQPanel.o: PlayList/PlayListItemFSEQPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemFSEQPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQPanel.o
+
+$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemESEQPanel.o: PlayList/PlayListItemESEQPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemESEQPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemESEQPanel.o
 
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFPPEvent.o: PlayList/PlayListItemFPPEvent.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemFPPEvent.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFPPEvent.o
@@ -665,8 +678,8 @@ $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFPPEventPanel.o: PlayList/PlayListIte
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQ.o: PlayList/PlayListItemFSEQ.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemFSEQ.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQ.o
 
-$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQPanel.o: PlayList/PlayListItemFSEQPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemFSEQPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQPanel.o
+$(OBJDIR_LINUX_DEBUG)/PlayList/PlayList.o: PlayList/PlayList.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayList.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayList.o
 
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQVideo.o: PlayList/PlayListItemFSEQVideo.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemFSEQVideo.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQVideo.o
@@ -677,8 +690,8 @@ $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFSEQVideoPanel.o: PlayList/PlayListIt
 $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFade.o: PlayList/PlayListItemFade.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemFade.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFade.o
 
-$(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFadePanel.o: PlayList/PlayListItemFadePanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayListItemFadePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayListItemFadePanel.o
+$(OBJDIR_LINUX_DEBUG)/EventOSCPanel.o: EventOSCPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EventOSCPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EventOSCPanel.o
 
 $(OBJDIR_LINUX_DEBUG)/EventPingPanel.o: EventPingPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EventPingPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EventPingPanel.o
@@ -689,11 +702,11 @@ $(OBJDIR_LINUX_DEBUG)/EventSerialPanel.o: EventSerialPanel.cpp
 $(OBJDIR_LINUX_DEBUG)/EventStatePanel.o: EventStatePanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EventStatePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EventStatePanel.o
 
+$(OBJDIR_LINUX_DEBUG)/EventMQTTPanel.o: EventMQTTPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EventMQTTPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EventMQTTPanel.o
+
 $(OBJDIR_LINUX_DEBUG)/EventsDialog.o: EventsDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EventsDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/EventsDialog.o
-
-$(OBJDIR_LINUX_DEBUG)/EventOSCPanel.o: EventOSCPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EventOSCPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EventOSCPanel.o
 
 $(OBJDIR_LINUX_DEBUG)/ExcludeDimDialog.o: ExcludeDimDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ExcludeDimDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ExcludeDimDialog.o
@@ -703,9 +716,6 @@ $(OBJDIR_LINUX_DEBUG)/ExtraIPDialog.o: ExtraIPDialog.cpp
 
 $(OBJDIR_LINUX_DEBUG)/ExtraIPsDialog.o: ExtraIPsDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ExtraIPsDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ExtraIPsDialog.o
-
-$(OBJDIR_LINUX_DEBUG)/FPPRemotesDialog.o: FPPRemotesDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c FPPRemotesDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/FPPRemotesDialog.o
 
 $(OBJDIR_LINUX_DEBUG)/EventFPPPanel.o: EventFPPPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EventFPPPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EventFPPPanel.o
@@ -722,14 +732,23 @@ $(OBJDIR_LINUX_DEBUG)/EventDialog.o: EventDialog.cpp
 $(OBJDIR_LINUX_DEBUG)/EventE131Panel.o: EventE131Panel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EventE131Panel.cpp -o $(OBJDIR_LINUX_DEBUG)/EventE131Panel.o
 
+$(OBJDIR_LINUX_DEBUG)/FPPRemotesDialog.o: FPPRemotesDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c FPPRemotesDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/FPPRemotesDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/EventFPPCommandPresetPanel.o: EventFPPCommandPresetPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EventFPPCommandPresetPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EventFPPCommandPresetPanel.o
+
 $(OBJDIR_LINUX_DEBUG)/EventLorPanel.o: EventLorPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EventLorPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EventLorPanel.o
 
 $(OBJDIR_LINUX_DEBUG)/EventMIDIPanel.o: EventMIDIPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EventMIDIPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EventMIDIPanel.o
 
-$(OBJDIR_LINUX_DEBUG)/EventMQTTPanel.o: EventMQTTPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EventMQTTPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EventMQTTPanel.o
+$(OBJDIR_LINUX_DEBUG)/OutputProcessSustain.o: OutputProcessSustain.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c OutputProcessSustain.cpp -o $(OBJDIR_LINUX_DEBUG)/OutputProcessSustain.o
+
+$(OBJDIR_LINUX_DEBUG)/OutputProcessDim.o: OutputProcessDim.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c OutputProcessDim.cpp -o $(OBJDIR_LINUX_DEBUG)/OutputProcessDim.o
 
 $(OBJDIR_LINUX_DEBUG)/OutputProcessDimWhite.o: OutputProcessDimWhite.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c OutputProcessDimWhite.cpp -o $(OBJDIR_LINUX_DEBUG)/OutputProcessDimWhite.o
@@ -749,12 +768,6 @@ $(OBJDIR_LINUX_DEBUG)/OutputProcessReverse.o: OutputProcessReverse.cpp
 $(OBJDIR_LINUX_DEBUG)/OutputProcessSet.o: OutputProcessSet.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c OutputProcessSet.cpp -o $(OBJDIR_LINUX_DEBUG)/OutputProcessSet.o
 
-$(OBJDIR_LINUX_DEBUG)/OutputProcessSustain.o: OutputProcessSustain.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c OutputProcessSustain.cpp -o $(OBJDIR_LINUX_DEBUG)/OutputProcessSustain.o
-
-$(OBJDIR_LINUX_DEBUG)/OutputProcessDim.o: OutputProcessDim.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c OutputProcessDim.cpp -o $(OBJDIR_LINUX_DEBUG)/OutputProcessDim.o
-
 $(OBJDIR_LINUX_DEBUG)/OutputProcessThreeToFour.o: OutputProcessThreeToFour.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c OutputProcessThreeToFour.cpp -o $(OBJDIR_LINUX_DEBUG)/OutputProcessThreeToFour.o
 
@@ -763,12 +776,6 @@ $(OBJDIR_LINUX_DEBUG)/OutputProcessingDialog.o: OutputProcessingDialog.cpp
 
 $(OBJDIR_LINUX_DEBUG)/Pinger.o: Pinger.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c Pinger.cpp -o $(OBJDIR_LINUX_DEBUG)/Pinger.o
-
-$(OBJDIR_LINUX_DEBUG)/PlayList/PlayList.o: PlayList/PlayList.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayList/PlayList.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayList/PlayList.o
-
-$(OBJDIR_LINUX_DEBUG)/OSCPacket.o: OSCPacket.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c OSCPacket.cpp -o $(OBJDIR_LINUX_DEBUG)/OSCPacket.o
 
 $(OBJDIR_LINUX_DEBUG)/GammaDialog.o: GammaDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c GammaDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/GammaDialog.o
@@ -782,8 +789,11 @@ $(OBJDIR_LINUX_DEBUG)/MatrixDialog.o: MatrixDialog.cpp
 $(OBJDIR_LINUX_DEBUG)/MatrixMapper.o: MatrixMapper.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MatrixMapper.cpp -o $(OBJDIR_LINUX_DEBUG)/MatrixMapper.o
 
-$(OBJDIR_LINUX_DEBUG)/__/xLights/AudioManager.o: ../xLights/AudioManager.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/AudioManager.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/AudioManager.o
+$(OBJDIR_LINUX_DEBUG)/__/common/xlBaseApp.o: ../common/xlBaseApp.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../common/xlBaseApp.cpp -o $(OBJDIR_LINUX_DEBUG)/__/common/xlBaseApp.o
+
+$(OBJDIR_LINUX_DEBUG)/OSCPacket.o: OSCPacket.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c OSCPacket.cpp -o $(OBJDIR_LINUX_DEBUG)/OSCPacket.o
 
 $(OBJDIR_LINUX_DEBUG)/OptionsDialog.o: OptionsDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c OptionsDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/OptionsDialog.o
@@ -815,6 +825,7 @@ before_linux_release:
 	@test -d $(OBJDIR_LINUX_RELEASE)/__/xLights/effects || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/xLights/effects
 	@test -d $(OBJDIR_LINUX_RELEASE)/__/xLights/kiss_fft || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/xLights/kiss_fft
 	@test -d $(OBJDIR_LINUX_RELEASE)/__/xLights/kiss_fft/tools || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/xLights/kiss_fft/tools
+	@test -d $(OBJDIR_LINUX_RELEASE)/__/common || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/common
 
 after_linux_release: 
 
@@ -877,8 +888,8 @@ $(OBJDIR_LINUX_RELEASE)/ScheduleManager.o: ScheduleManager.cpp
 $(OBJDIR_LINUX_RELEASE)/ScheduleOptions.o: ScheduleOptions.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ScheduleOptions.cpp -o $(OBJDIR_LINUX_RELEASE)/ScheduleOptions.o
 
-$(OBJDIR_LINUX_RELEASE)/events/EventLor.o: events/EventLor.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/EventLor.cpp -o $(OBJDIR_LINUX_RELEASE)/events/EventLor.o
+$(OBJDIR_LINUX_RELEASE)/events/EventFPPCommandPreset.o: events/EventFPPCommandPreset.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/EventFPPCommandPreset.cpp -o $(OBJDIR_LINUX_RELEASE)/events/EventFPPCommandPreset.o
 
 $(OBJDIR_LINUX_RELEASE)/events/EventBase.o: events/EventBase.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/EventBase.cpp -o $(OBJDIR_LINUX_RELEASE)/events/EventBase.o
@@ -891,6 +902,9 @@ $(OBJDIR_LINUX_RELEASE)/events/EventE131.o: events/EventE131.cpp
 
 $(OBJDIR_LINUX_RELEASE)/events/EventFPP.o: events/EventFPP.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/EventFPP.cpp -o $(OBJDIR_LINUX_RELEASE)/events/EventFPP.o
+
+$(OBJDIR_LINUX_RELEASE)/events/EventLor.o: events/EventLor.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/EventLor.cpp -o $(OBJDIR_LINUX_RELEASE)/events/EventLor.o
 
 $(OBJDIR_LINUX_RELEASE)/events/EventMIDI.o: events/EventMIDI.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/EventMIDI.cpp -o $(OBJDIR_LINUX_RELEASE)/events/EventMIDI.o
@@ -1018,9 +1032,6 @@ $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemSetColour.o: PlayList/PlayListItemS
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemSetColourPanel.o: PlayList/PlayListItemSetColourPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemSetColourPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemSetColourPanel.o
 
-$(OBJDIR_LINUX_RELEASE)/events/EventPing.o: events/EventPing.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/EventPing.cpp -o $(OBJDIR_LINUX_RELEASE)/events/EventPing.o
-
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemTestPanel.o: PlayList/PlayListItemTestPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemTestPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemTestPanel.o
 
@@ -1036,9 +1047,6 @@ $(OBJDIR_LINUX_RELEASE)/xScheduleApp.o: xScheduleApp.cpp
 $(OBJDIR_LINUX_RELEASE)/xScheduleMain.o: xScheduleMain.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xScheduleMain.cpp -o $(OBJDIR_LINUX_RELEASE)/xScheduleMain.o
 
-$(OBJDIR_LINUX_RELEASE)/events/ListenerSMPTE.o: events/ListenerSMPTE.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/ListenerSMPTE.cpp -o $(OBJDIR_LINUX_RELEASE)/events/ListenerSMPTE.o
-
 $(OBJDIR_LINUX_RELEASE)/events/ListenerMIDI.o: events/ListenerMIDI.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/ListenerMIDI.cpp -o $(OBJDIR_LINUX_RELEASE)/events/ListenerMIDI.o
 
@@ -1051,6 +1059,12 @@ $(OBJDIR_LINUX_RELEASE)/events/ListenerManager.o: events/ListenerManager.cpp
 $(OBJDIR_LINUX_RELEASE)/events/ListenerOSC.o: events/ListenerOSC.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/ListenerOSC.cpp -o $(OBJDIR_LINUX_RELEASE)/events/ListenerOSC.o
 
+$(OBJDIR_LINUX_RELEASE)/events/ListenerLor.o: events/ListenerLor.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/ListenerLor.cpp -o $(OBJDIR_LINUX_RELEASE)/events/ListenerLor.o
+
+$(OBJDIR_LINUX_RELEASE)/events/ListenerSMPTE.o: events/ListenerSMPTE.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/ListenerSMPTE.cpp -o $(OBJDIR_LINUX_RELEASE)/events/ListenerSMPTE.o
+
 $(OBJDIR_LINUX_RELEASE)/events/ListenerSerial.o: events/ListenerSerial.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/ListenerSerial.cpp -o $(OBJDIR_LINUX_RELEASE)/events/ListenerSerial.o
 
@@ -1060,6 +1074,12 @@ $(OBJDIR_LINUX_RELEASE)/md5.o: md5.cpp
 $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/connection.o: wxHTTPServer/connection.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c wxHTTPServer/connection.cpp -o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/connection.o
 
+$(OBJDIR_LINUX_RELEASE)/events/ListenerBase.o: events/ListenerBase.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/ListenerBase.cpp -o $(OBJDIR_LINUX_RELEASE)/events/ListenerBase.o
+
+$(OBJDIR_LINUX_RELEASE)/events/EventPing.o: events/EventPing.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/EventPing.cpp -o $(OBJDIR_LINUX_RELEASE)/events/EventPing.o
+
 $(OBJDIR_LINUX_RELEASE)/events/EventSerial.o: events/EventSerial.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/EventSerial.cpp -o $(OBJDIR_LINUX_RELEASE)/events/EventSerial.o
 
@@ -1068,9 +1088,6 @@ $(OBJDIR_LINUX_RELEASE)/events/EventState.o: events/EventState.cpp
 
 $(OBJDIR_LINUX_RELEASE)/events/ListenerARTNet.o: events/ListenerARTNet.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/ListenerARTNet.cpp -o $(OBJDIR_LINUX_RELEASE)/events/ListenerARTNet.o
-
-$(OBJDIR_LINUX_RELEASE)/events/ListenerBase.o: events/ListenerBase.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/ListenerBase.cpp -o $(OBJDIR_LINUX_RELEASE)/events/ListenerBase.o
 
 $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/context.o: wxHTTPServer/context.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c wxHTTPServer/context.cpp -o $(OBJDIR_LINUX_RELEASE)/wxHTTPServer/context.o
@@ -1083,9 +1100,6 @@ $(OBJDIR_LINUX_RELEASE)/events/ListenerE131.o: events/ListenerE131.cpp
 
 $(OBJDIR_LINUX_RELEASE)/events/ListenerFPP.o: events/ListenerFPP.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/ListenerFPP.cpp -o $(OBJDIR_LINUX_RELEASE)/events/ListenerFPP.o
-
-$(OBJDIR_LINUX_RELEASE)/events/ListenerLor.o: events/ListenerLor.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c events/ListenerLor.cpp -o $(OBJDIR_LINUX_RELEASE)/events/ListenerLor.o
 
 $(OBJDIR_LINUX_RELEASE)/wxMIDI/src/wxMidiDatabase.o: wxMIDI/src/wxMidiDatabase.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c wxMIDI/src/wxMidiDatabase.cpp -o $(OBJDIR_LINUX_RELEASE)/wxMIDI/src/wxMidiDatabase.o
@@ -1126,8 +1140,8 @@ $(OBJDIR_LINUX_RELEASE)/wxJSON/jsonwriter.o: wxJSON/jsonwriter.cpp
 $(OBJDIR_LINUX_RELEASE)/wxMIDI/src/wxMidi.o: wxMIDI/src/wxMidi.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c wxMIDI/src/wxMidi.cpp -o $(OBJDIR_LINUX_RELEASE)/wxMIDI/src/wxMidi.o
 
-$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxSerialOutput.o: ../xLights/outputs/xxxSerialOutput.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/xxxSerialOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxSerialOutput.o
+$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/TestPreset.o: ../xLights/outputs/TestPreset.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/TestPreset.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/TestPreset.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ZCPPOutput.o: ../xLights/outputs/ZCPPOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/ZCPPOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ZCPPOutput.o
@@ -1138,8 +1152,8 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/serial.o: ../xLights/outputs/serial.c
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxEthernetOutput.o: ../xLights/outputs/xxxEthernetOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/xxxEthernetOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxEthernetOutput.o
 
-$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/TestPreset.o: ../xLights/outputs/TestPreset.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/TestPreset.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/TestPreset.o
+$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxSerialOutput.o: ../xLights/outputs/xxxSerialOutput.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/xxxSerialOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxSerialOutput.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/Files.o: ../xLights/vamp-hostsdk/Files.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/vamp-hostsdk/Files.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/Files.o
@@ -1159,8 +1173,11 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginInputDomainAdapter.o: ../x
 $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginLoader.o: ../xLights/vamp-hostsdk/PluginLoader.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/vamp-hostsdk/PluginLoader.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginLoader.o
 
-$(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginWrapper.o: ../xLights/vamp-hostsdk/PluginWrapper.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/vamp-hostsdk/PluginWrapper.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginWrapper.o
+$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OutputManager.o: ../xLights/outputs/OutputManager.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/OutputManager.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OutputManager.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OPCOutput.o: ../xLights/outputs/OPCOutput.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/OPCOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OPCOutput.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OpenDMXOutput.o: ../xLights/outputs/OpenDMXOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/OpenDMXOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OpenDMXOutput.o
@@ -1171,11 +1188,8 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OpenPixelNetOutput.o: ../xLights/outp
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Output.o: ../xLights/outputs/Output.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/Output.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Output.o
 
-$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OutputManager.o: ../xLights/outputs/OutputManager.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/OutputManager.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OutputManager.o
-
-$(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/RealTime.o: ../xLights/vamp-hostsdk/RealTime.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/vamp-hostsdk/RealTime.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/RealTime.o
+$(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginWrapper.o: ../xLights/vamp-hostsdk/PluginWrapper.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/vamp-hostsdk/PluginWrapper.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/PluginWrapper.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/PixelNetOutput.o: ../xLights/outputs/PixelNetOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/PixelNetOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/PixelNetOutput.o
@@ -1186,6 +1200,9 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/RenardOutput.o: ../xLights/outputs/Re
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/SerialOutput.o: ../xLights/outputs/SerialOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/SerialOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/SerialOutput.o
 
+$(OBJDIR_LINUX_RELEASE)/DeadChannelDialog.o: DeadChannelDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c DeadChannelDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/DeadChannelDialog.o
+
 $(OBJDIR_LINUX_RELEASE)/ConfigureMIDITimecodeDialog.o: ConfigureMIDITimecodeDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ConfigureMIDITimecodeDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ConfigureMIDITimecodeDialog.o
 
@@ -1195,8 +1212,8 @@ $(OBJDIR_LINUX_RELEASE)/ConfigureOSC.o: ConfigureOSC.cpp
 $(OBJDIR_LINUX_RELEASE)/ConfigureTest.o: ConfigureTest.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ConfigureTest.cpp -o $(OBJDIR_LINUX_RELEASE)/ConfigureTest.o
 
-$(OBJDIR_LINUX_RELEASE)/DeadChannelDialog.o: DeadChannelDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c DeadChannelDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/DeadChannelDialog.o
+$(OBJDIR_LINUX_RELEASE)/CommandManager.o: CommandManager.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c CommandManager.cpp -o $(OBJDIR_LINUX_RELEASE)/CommandManager.o
 
 $(OBJDIR_LINUX_RELEASE)/DimDialog.o: DimDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c DimDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/DimDialog.o
@@ -1210,6 +1227,12 @@ $(OBJDIR_LINUX_RELEASE)/ESEQFile.o: ESEQFile.cpp
 $(OBJDIR_LINUX_RELEASE)/EventARTNetPanel.o: EventARTNetPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EventARTNetPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EventARTNetPanel.o
 
+$(OBJDIR_LINUX_RELEASE)/Blend.o: Blend.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c Blend.cpp -o $(OBJDIR_LINUX_RELEASE)/Blend.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/RealTime.o: ../xLights/vamp-hostsdk/RealTime.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/vamp-hostsdk/RealTime.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/vamp-hostsdk/RealTime.o
+
 $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsTimer.o: ../xLights/xLightsTimer.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/xLightsTimer.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsTimer.o
 
@@ -1222,12 +1245,6 @@ $(OBJDIR_LINUX_RELEASE)/AddReverseDialog.o: AddReverseDialog.cpp
 $(OBJDIR_LINUX_RELEASE)/BackgroundPlaylistDialog.o: BackgroundPlaylistDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c BackgroundPlaylistDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/BackgroundPlaylistDialog.o
 
-$(OBJDIR_LINUX_RELEASE)/Blend.o: Blend.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c Blend.cpp -o $(OBJDIR_LINUX_RELEASE)/Blend.o
-
-$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OPCOutput.o: ../xLights/outputs/OPCOutput.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/OPCOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OPCOutput.o
-
 $(OBJDIR_LINUX_RELEASE)/ButtonDetailsDialog.o: ButtonDetailsDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ButtonDetailsDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ButtonDetailsDialog.o
 
@@ -1237,8 +1254,8 @@ $(OBJDIR_LINUX_RELEASE)/City.o: City.cpp
 $(OBJDIR_LINUX_RELEASE)/ColourOrderDialog.o: ColourOrderDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ColourOrderDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ColourOrderDialog.o
 
-$(OBJDIR_LINUX_RELEASE)/CommandManager.o: CommandManager.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c CommandManager.cpp -o $(OBJDIR_LINUX_RELEASE)/CommandManager.o
+$(OBJDIR_LINUX_RELEASE)/__/xLights/VideoReader.o: ../xLights/VideoReader.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/VideoReader.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/VideoReader.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/BaseController.o: ../xLights/controllers/BaseController.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/controllers/BaseController.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/BaseController.o
@@ -1249,11 +1266,11 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/ControllerCaps.o: ../xLights/cont
 $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/Falcon.o: ../xLights/controllers/Falcon.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/controllers/Falcon.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/Falcon.o
 
+$(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o
+
 $(OBJDIR_LINUX_RELEASE)/__/xLights/effects/GIFImage.o: ../xLights/effects/GIFImage.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/effects/GIFImage.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/effects/GIFImage.o
-
-$(OBJDIR_LINUX_RELEASE)/__/xLights/VideoReader.o: ../xLights/VideoReader.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/VideoReader.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/VideoReader.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/kiss_fft/kiss_fft.o: ../xLights/kiss_fft/kiss_fft.c
 	$(CC) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/kiss_fft/kiss_fft.c -o $(OBJDIR_LINUX_RELEASE)/__/xLights/kiss_fft/kiss_fft.o
@@ -1267,6 +1284,9 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ArtNetOutput.o: ../xLights/outputs/Ar
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Controller.o: ../xLights/outputs/Controller.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/Controller.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Controller.o
 
+$(OBJDIR_LINUX_RELEASE)/__/xLights/AudioManager.o: ../xLights/AudioManager.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/AudioManager.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/AudioManager.o
+
 $(OBJDIR_LINUX_RELEASE)/__/xLights/Discovery.o: ../xLights/Discovery.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/Discovery.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/Discovery.o
 
@@ -1275,9 +1295,6 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/FSEQFile.o: ../xLights/FSEQFile.cpp
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/JobPool.o: ../xLights/JobPool.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/JobPool.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/JobPool.o
-
-$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerEthernet.o: ../xLights/outputs/ControllerEthernet.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/ControllerEthernet.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerEthernet.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/Parallel.o: ../xLights/Parallel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/Parallel.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/Parallel.o
@@ -1288,11 +1305,8 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/SequenceData.o: ../xLights/SequenceData.cpp
 $(OBJDIR_LINUX_RELEASE)/__/xLights/TraceLog.o: ../xLights/TraceLog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/TraceLog.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/TraceLog.o
 
-$(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o
-
-$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorController.o: ../xLights/outputs/LorController.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/LorController.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorController.o
+$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/IPOutput.o: ../xLights/outputs/IPOutput.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/IPOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/IPOutput.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/KinetOutput.o: ../xLights/outputs/KinetOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/KinetOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/KinetOutput.o
@@ -1303,14 +1317,17 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LOROptimisedOutput.o: ../xLights/outp
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LOROutput.o: ../xLights/outputs/LOROutput.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/LOROutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LOROutput.o
 
-$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/IPOutput.o: ../xLights/outputs/IPOutput.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/IPOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/IPOutput.o
+$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorController.o: ../xLights/outputs/LorController.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/LorController.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorController.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorControllers.o: ../xLights/outputs/LorControllers.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/LorControllers.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorControllers.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/NullOutput.o: ../xLights/outputs/NullOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/NullOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/NullOutput.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerEthernet.o: ../xLights/outputs/ControllerEthernet.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/ControllerEthernet.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerEthernet.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerNull.o: ../xLights/outputs/ControllerNull.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/ControllerNull.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerNull.o
@@ -1330,6 +1347,12 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/E131Output.o: ../xLights/outputs/E131
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/GenericSerialOutput.o: ../xLights/outputs/GenericSerialOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/GenericSerialOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/GenericSerialOutput.o
 
+$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDelay.o: PlayList/PlayListItemDelay.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemDelay.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDelay.o
+
+$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemCURL.o: PlayList/PlayListItemCURL.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemCURL.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemCURL.o
+
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemCURLPanel.o: PlayList/PlayListItemCURLPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemCURLPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemCURLPanel.o
 
@@ -1338,12 +1361,6 @@ $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemColourOrgan.o: PlayList/PlayListIte
 
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemColourOrganPanel.o: PlayList/PlayListItemColourOrganPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemColourOrganPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemColourOrganPanel.o
-
-$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDelay.o: PlayList/PlayListItemDelay.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemDelay.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDelay.o
-
-$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemCURL.o: PlayList/PlayListItemCURL.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemCURL.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemCURL.o
 
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDelayPanel.o: PlayList/PlayListItemDelayPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemDelayPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDelayPanel.o
@@ -1357,9 +1374,6 @@ $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemDimPanel.o: PlayList/PlayListItemDi
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemESEQ.o: PlayList/PlayListItemESEQ.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemESEQ.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemESEQ.o
 
-$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAllOff.o: PlayList/PlayListItemAllOff.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemAllOff.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAllOff.o
-
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListDialog.o: PlayList/PlayListDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListDialog.o
 
@@ -1372,8 +1386,8 @@ $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemARTNetTrigger.o: PlayList/PlayListI
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemARTNetTriggerPanel.o: PlayList/PlayListItemARTNetTriggerPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemARTNetTriggerPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemARTNetTriggerPanel.o
 
-$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemESEQPanel.o: PlayList/PlayListItemESEQPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemESEQPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemESEQPanel.o
+$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAllOff.o: PlayList/PlayListItemAllOff.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemAllOff.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAllOff.o
 
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAllOffPanel.o: PlayList/PlayListItemAllOffPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemAllOffPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAllOffPanel.o
@@ -1383,9 +1397,6 @@ $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAudio.o: PlayList/PlayListItemAudio
 
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAudioPanel.o: PlayList/PlayListItemAudioPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemAudioPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemAudioPanel.o
-
-$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemJukebox.o: PlayList/PlayListItemJukebox.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemJukebox.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemJukebox.o
 
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFile.o: PlayList/PlayListItemFile.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemFile.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFile.o
@@ -1399,6 +1410,12 @@ $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemImage.o: PlayList/PlayListItemImage
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemImagePanel.o: PlayList/PlayListItemImagePanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemImagePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemImagePanel.o
 
+$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFadePanel.o: PlayList/PlayListItemFadePanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemFadePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFadePanel.o
+
+$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemJukebox.o: PlayList/PlayListItemJukebox.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemJukebox.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemJukebox.o
+
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemJukeboxPanel.o: PlayList/PlayListItemJukeboxPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemJukeboxPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemJukeboxPanel.o
 
@@ -1407,6 +1424,12 @@ $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMIDI.o: PlayList/PlayListItemMIDI.c
 
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMIDIPanel.o: PlayList/PlayListItemMIDIPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemMIDIPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemMIDIPanel.o
+
+$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQPanel.o: PlayList/PlayListItemFSEQPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemFSEQPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQPanel.o
+
+$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemESEQPanel.o: PlayList/PlayListItemESEQPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemESEQPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemESEQPanel.o
 
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFPPEvent.o: PlayList/PlayListItemFPPEvent.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemFPPEvent.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFPPEvent.o
@@ -1417,8 +1440,8 @@ $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFPPEventPanel.o: PlayList/PlayListI
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQ.o: PlayList/PlayListItemFSEQ.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemFSEQ.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQ.o
 
-$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQPanel.o: PlayList/PlayListItemFSEQPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemFSEQPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQPanel.o
+$(OBJDIR_LINUX_RELEASE)/PlayList/PlayList.o: PlayList/PlayList.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayList.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayList.o
 
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQVideo.o: PlayList/PlayListItemFSEQVideo.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemFSEQVideo.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQVideo.o
@@ -1429,8 +1452,8 @@ $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFSEQVideoPanel.o: PlayList/PlayList
 $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFade.o: PlayList/PlayListItemFade.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemFade.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFade.o
 
-$(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFadePanel.o: PlayList/PlayListItemFadePanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayListItemFadePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayListItemFadePanel.o
+$(OBJDIR_LINUX_RELEASE)/EventOSCPanel.o: EventOSCPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EventOSCPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EventOSCPanel.o
 
 $(OBJDIR_LINUX_RELEASE)/EventPingPanel.o: EventPingPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EventPingPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EventPingPanel.o
@@ -1441,11 +1464,11 @@ $(OBJDIR_LINUX_RELEASE)/EventSerialPanel.o: EventSerialPanel.cpp
 $(OBJDIR_LINUX_RELEASE)/EventStatePanel.o: EventStatePanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EventStatePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EventStatePanel.o
 
+$(OBJDIR_LINUX_RELEASE)/EventMQTTPanel.o: EventMQTTPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EventMQTTPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EventMQTTPanel.o
+
 $(OBJDIR_LINUX_RELEASE)/EventsDialog.o: EventsDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EventsDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/EventsDialog.o
-
-$(OBJDIR_LINUX_RELEASE)/EventOSCPanel.o: EventOSCPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EventOSCPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EventOSCPanel.o
 
 $(OBJDIR_LINUX_RELEASE)/ExcludeDimDialog.o: ExcludeDimDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ExcludeDimDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ExcludeDimDialog.o
@@ -1455,9 +1478,6 @@ $(OBJDIR_LINUX_RELEASE)/ExtraIPDialog.o: ExtraIPDialog.cpp
 
 $(OBJDIR_LINUX_RELEASE)/ExtraIPsDialog.o: ExtraIPsDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ExtraIPsDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ExtraIPsDialog.o
-
-$(OBJDIR_LINUX_RELEASE)/FPPRemotesDialog.o: FPPRemotesDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c FPPRemotesDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/FPPRemotesDialog.o
 
 $(OBJDIR_LINUX_RELEASE)/EventFPPPanel.o: EventFPPPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EventFPPPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EventFPPPanel.o
@@ -1474,14 +1494,23 @@ $(OBJDIR_LINUX_RELEASE)/EventDialog.o: EventDialog.cpp
 $(OBJDIR_LINUX_RELEASE)/EventE131Panel.o: EventE131Panel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EventE131Panel.cpp -o $(OBJDIR_LINUX_RELEASE)/EventE131Panel.o
 
+$(OBJDIR_LINUX_RELEASE)/FPPRemotesDialog.o: FPPRemotesDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c FPPRemotesDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/FPPRemotesDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/EventFPPCommandPresetPanel.o: EventFPPCommandPresetPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EventFPPCommandPresetPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EventFPPCommandPresetPanel.o
+
 $(OBJDIR_LINUX_RELEASE)/EventLorPanel.o: EventLorPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EventLorPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EventLorPanel.o
 
 $(OBJDIR_LINUX_RELEASE)/EventMIDIPanel.o: EventMIDIPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EventMIDIPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EventMIDIPanel.o
 
-$(OBJDIR_LINUX_RELEASE)/EventMQTTPanel.o: EventMQTTPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EventMQTTPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EventMQTTPanel.o
+$(OBJDIR_LINUX_RELEASE)/OutputProcessSustain.o: OutputProcessSustain.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c OutputProcessSustain.cpp -o $(OBJDIR_LINUX_RELEASE)/OutputProcessSustain.o
+
+$(OBJDIR_LINUX_RELEASE)/OutputProcessDim.o: OutputProcessDim.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c OutputProcessDim.cpp -o $(OBJDIR_LINUX_RELEASE)/OutputProcessDim.o
 
 $(OBJDIR_LINUX_RELEASE)/OutputProcessDimWhite.o: OutputProcessDimWhite.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c OutputProcessDimWhite.cpp -o $(OBJDIR_LINUX_RELEASE)/OutputProcessDimWhite.o
@@ -1501,12 +1530,6 @@ $(OBJDIR_LINUX_RELEASE)/OutputProcessReverse.o: OutputProcessReverse.cpp
 $(OBJDIR_LINUX_RELEASE)/OutputProcessSet.o: OutputProcessSet.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c OutputProcessSet.cpp -o $(OBJDIR_LINUX_RELEASE)/OutputProcessSet.o
 
-$(OBJDIR_LINUX_RELEASE)/OutputProcessSustain.o: OutputProcessSustain.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c OutputProcessSustain.cpp -o $(OBJDIR_LINUX_RELEASE)/OutputProcessSustain.o
-
-$(OBJDIR_LINUX_RELEASE)/OutputProcessDim.o: OutputProcessDim.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c OutputProcessDim.cpp -o $(OBJDIR_LINUX_RELEASE)/OutputProcessDim.o
-
 $(OBJDIR_LINUX_RELEASE)/OutputProcessThreeToFour.o: OutputProcessThreeToFour.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c OutputProcessThreeToFour.cpp -o $(OBJDIR_LINUX_RELEASE)/OutputProcessThreeToFour.o
 
@@ -1515,12 +1538,6 @@ $(OBJDIR_LINUX_RELEASE)/OutputProcessingDialog.o: OutputProcessingDialog.cpp
 
 $(OBJDIR_LINUX_RELEASE)/Pinger.o: Pinger.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c Pinger.cpp -o $(OBJDIR_LINUX_RELEASE)/Pinger.o
-
-$(OBJDIR_LINUX_RELEASE)/PlayList/PlayList.o: PlayList/PlayList.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayList/PlayList.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayList/PlayList.o
-
-$(OBJDIR_LINUX_RELEASE)/OSCPacket.o: OSCPacket.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c OSCPacket.cpp -o $(OBJDIR_LINUX_RELEASE)/OSCPacket.o
 
 $(OBJDIR_LINUX_RELEASE)/GammaDialog.o: GammaDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c GammaDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/GammaDialog.o
@@ -1534,8 +1551,11 @@ $(OBJDIR_LINUX_RELEASE)/MatrixDialog.o: MatrixDialog.cpp
 $(OBJDIR_LINUX_RELEASE)/MatrixMapper.o: MatrixMapper.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MatrixMapper.cpp -o $(OBJDIR_LINUX_RELEASE)/MatrixMapper.o
 
-$(OBJDIR_LINUX_RELEASE)/__/xLights/AudioManager.o: ../xLights/AudioManager.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/AudioManager.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/AudioManager.o
+$(OBJDIR_LINUX_RELEASE)/__/common/xlBaseApp.o: ../common/xlBaseApp.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../common/xlBaseApp.cpp -o $(OBJDIR_LINUX_RELEASE)/__/common/xlBaseApp.o
+
+$(OBJDIR_LINUX_RELEASE)/OSCPacket.o: OSCPacket.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c OSCPacket.cpp -o $(OBJDIR_LINUX_RELEASE)/OSCPacket.o
 
 $(OBJDIR_LINUX_RELEASE)/OptionsDialog.o: OptionsDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c OptionsDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/OptionsDialog.o
@@ -1554,41 +1574,43 @@ clean_linux_release:
 
 SustainDialog.cpp: SustainDialog.h xScheduleMain.h ScheduleManager.h
 
-xScheduleMain.h: PluginManager.h
+xScheduleMain.h: ../xLights/xLightsTimer.h PluginManager.h
 
 PluginManager.h: xSchedulePlugin.h
 
 ScheduleManager.h: Schedule.h CommandManager.h Blend.h SyncManager.h
 
-SyncArtNet.cpp: SyncArtNet.h ScheduleOptions.h ScheduleManager.h
+SyncArtNet.cpp: SyncArtNet.h ScheduleOptions.h ScheduleManager.h ../xLights/UtilFunctions.h
 
 SyncArtNet.h: SyncManager.h ScheduleOptions.h
 
 ScheduleOptions.h: MatrixMapper.h VirtualMatrix.h SyncManager.h
 
-SyncFPP.cpp: SyncFPP.h ScheduleOptions.h Control.h
+SyncFPP.cpp: SyncFPP.h ScheduleOptions.h ../xLights/UtilFunctions.h Control.h ../xLights/xLightsVersion.h
 
 SyncFPP.h: SyncManager.h ScheduleOptions.h
 
-SyncMIDI.cpp: SyncMIDI.h ScheduleOptions.h ScheduleManager.h
+SyncMIDI.cpp: SyncMIDI.h ScheduleOptions.h ScheduleManager.h ../xLights/UtilFunctions.h
 
 SyncMIDI.h: SyncManager.h ScheduleOptions.h
 
 SetDialog.cpp: SetDialog.h xScheduleMain.h ScheduleManager.h
 
-SyncManager.cpp: SyncManager.h ScheduleOptions.h ScheduleManager.h SyncOSC.h SyncFPP.h SyncMIDI.h SyncArtNet.h SyncSMPTE.h
+SyncManager.cpp: SyncManager.h ScheduleOptions.h ScheduleManager.h ../xLights/UtilFunctions.h SyncOSC.h SyncFPP.h SyncMIDI.h SyncArtNet.h SyncSMPTE.h
 
 SyncOSC.h: SyncManager.h ScheduleOptions.h
 
 SyncSMPTE.h: SyncManager.h ScheduleOptions.h
 
-SyncOSC.cpp: SyncOSC.h OSCPacket.h ScheduleOptions.h
+SyncOSC.cpp: SyncOSC.h OSCPacket.h ScheduleOptions.h ../xLights/UtilFunctions.h
 
-SyncSMPTE.cpp: SyncSMPTE.h ScheduleOptions.h
+SyncSMPTE.cpp: SyncSMPTE.h ScheduleOptions.h ../xLights/UtilFunctions.h
 
 ThreeToFourDialog.cpp: ThreeToFourDialog.h xScheduleMain.h ScheduleManager.h
 
 Schedule.cpp: Schedule.h ScheduleDialog.h City.h
+
+City.h: ../xLights/UtilFunctions.h
 
 PluginManager.cpp: PluginManager.h xSchedulePlugin.h xScheduleMain.h xScheduleApp.h ScheduleManager.h
 
@@ -1604,11 +1626,15 @@ UserButton.h: CommandManager.h
 
 ScheduleDialog.cpp: ScheduleDialog.h Schedule.h
 
-ScheduleManager.cpp: ScheduleManager.h ScheduleOptions.h RunningSchedule.h xScheduleMain.h xScheduleApp.h UserButton.h OutputProcess.h Xyzzy.h Pinger.h OutputProcessExcludeDim.h
+ScheduleManager.cpp: ScheduleManager.h ScheduleOptions.h RunningSchedule.h ../xLights/xLightsVersion.h ../xLights/AudioManager.h xScheduleMain.h xScheduleApp.h UserButton.h OutputProcess.h Xyzzy.h ../xLights/UtilFunctions.h Pinger.h ../xLights/VideoReader.h OutputProcessExcludeDim.h ../xLights/Parallel.h
 
 OutputProcessExcludeDim.h: OutputProcess.h
 
-ScheduleOptions.cpp: ScheduleOptions.h UserButton.h CommandManager.h
+../xLights/Parallel.h: ../xLights/JobPool.h
+
+ScheduleOptions.cpp: ScheduleOptions.h ../xLights/AudioManager.h UserButton.h CommandManager.h
+
+events/EventFPPCommandPreset.cpp: ScheduleManager.h
 
 events/EventBase.cpp: ScheduleManager.h
 
@@ -1622,7 +1648,9 @@ events/EventMQTT.cpp: ScheduleManager.h
 
 events/EventOSC.cpp: ScheduleManager.h
 
-VideoCache.cpp: VideoCache.h
+VideoCache.cpp: VideoCache.h ../xLights/VideoReader.h ../xLights/UtilFunctions.h
+
+VideoCache.h: ../xLights/JobPool.h
 
 VirtualMatricesDialog.cpp: VirtualMatricesDialog.h VirtualMatrix.h VirtualMatrixDialog.h ScheduleOptions.h
 
@@ -1630,15 +1658,15 @@ VirtualMatrix.cpp: VirtualMatrix.h xScheduleApp.h ScheduleOptions.h
 
 VirtualMatrixDialog.cpp: VirtualMatrixDialog.h xScheduleMain.h ScheduleManager.h
 
-WebServer.cpp: WebServer.h xScheduleMain.h ScheduleManager.h xScheduleApp.h ScheduleOptions.h md5.h
+WebServer.cpp: WebServer.h xScheduleMain.h ScheduleManager.h xScheduleApp.h ScheduleOptions.h ../xLights/UtilFunctions.h md5.h
 
-Xyzzy.cpp: Xyzzy.h xScheduleMain.h ScheduleManager.h ScheduleOptions.h MatrixMapper.h xScheduleApp.h VirtualMatrix.h
+Xyzzy.cpp: Xyzzy.h xScheduleMain.h ScheduleManager.h ScheduleOptions.h MatrixMapper.h xScheduleApp.h ../xLights/UtilFunctions.h VirtualMatrix.h
 
 PlayList/PlayListItemRunCommandPanel.cpp: xScheduleMain.h CommandManager.h ScheduleManager.h
 
 PlayList/PlayListItemProjectorPanel.cpp: ProjectorCodes.h
 
-PlayList/PlayListItemRDS.cpp: xScheduleMain.h ScheduleManager.h
+PlayList/PlayListItemRDS.cpp: xScheduleMain.h ScheduleManager.h ../xLights/AudioManager.h
 
 PlayList/PlayListItemRunCommand.cpp: xScheduleMain.h xScheduleApp.h ScheduleManager.h
 
@@ -1648,6 +1676,8 @@ PlayList/PlayListItemScreenMap.cpp: MatrixMapper.h xScheduleMain.h ScheduleManag
 
 PlayList/PlayListItemScreenMapPanel.cpp: xScheduleMain.h ScheduleOptions.h ScheduleManager.h MatrixMapper.h
 
+PlayList/PlayListItemMicrophone.cpp: ../xLights/AudioManager.h
+
 PlayList/PlayListItemMicrophonePanel.cpp: xScheduleMain.h ScheduleManager.h
 
 PlayList/PlayListItemOSC.cpp: xScheduleMain.h ScheduleManager.h
@@ -1656,13 +1686,13 @@ PlayList/PlayListItemPlugin.cpp: xScheduleApp.h xScheduleMain.h PluginManager.h 
 
 PlayList/PlayListItemPluginPanel.cpp: xScheduleApp.h xScheduleMain.h PluginManager.h
 
-PlayList/PlayListItemProjector.cpp: xScheduleMain.h ScheduleManager.h md5.h
+PlayList/PlayListItemProjector.cpp: ../xLights/AudioManager.h xScheduleMain.h ScheduleManager.h md5.h ../xLights/UtilFunctions.h
 
-PlayList/PlayListSimpleDialog.cpp: MyTreeItemData.h ScheduleOptions.h
+PlayList/PlayListSimpleDialog.cpp: MyTreeItemData.h ../xLights/UtilFunctions.h ScheduleOptions.h
 
-PlayList/PlayListStep.cpp: xScheduleMain.h ScheduleManager.h ReentrancyCounter.h ScheduleOptions.h
+PlayList/PlayListStep.cpp: xScheduleMain.h ScheduleManager.h ReentrancyCounter.h ../xLights/UtilFunctions.h ../xLights/FSEQFile.h ScheduleOptions.h
 
-PlayList/PlayListItemVideo.cpp: VideoCache.h xScheduleApp.h xScheduleMain.h ScheduleManager.h ScheduleOptions.h
+PlayList/PlayListItemVideo.cpp: VideoCache.h ../xLights/VideoReader.h xScheduleApp.h xScheduleMain.h ScheduleManager.h ../xLights/UtilFunctions.h ScheduleOptions.h
 
 PlayList/PlayerFrame.cpp: ../include/xLights.xpm
 
@@ -1670,9 +1700,9 @@ PlayList/PlayerWindow.cpp: VirtualMatrix.h
 
 PlayList/VideoWindowPositionDialog.cpp: ScheduleOptions.h
 
-PlayList/PlayListItemSetColourPanel.cpp: xScheduleMain.h ScheduleManager.h
+PlayList/PlayListItemSerial.cpp: ../xLights/UtilFunctions.h
 
-events/EventPing.cpp: ScheduleManager.h
+PlayList/PlayListItemSetColourPanel.cpp: xScheduleMain.h ScheduleManager.h
 
 PlayList/PlayListItemTestPanel.cpp: xScheduleMain.h ScheduleManager.h
 
@@ -1680,51 +1710,75 @@ PlayList/PlayListItemText.cpp: MatrixMapper.h xScheduleMain.h ScheduleManager.h 
 
 PlayList/PlayListItemTextPanel.cpp: xScheduleMain.h ScheduleOptions.h ScheduleManager.h MatrixMapper.h
 
-xScheduleApp.cpp: xScheduleApp.h xScheduleMain.h ScheduleManager.h
+xScheduleApp.cpp: xScheduleApp.h xScheduleMain.h ScheduleManager.h ../xLights/xLightsVersion.h
 
-xScheduleMain.cpp: xScheduleMain.h MyTreeItemData.h ScheduleManager.h Schedule.h ScheduleOptions.h OptionsDialog.h WebServer.h RunningSchedule.h UserButton.h OutputProcessingDialog.h BackgroundPlaylistDialog.h MatricesDialog.h VirtualMatricesDialog.h FPPRemotesDialog.h ConfigureOSC.h ConfigureTest.h Pinger.h EventsDialog.h ConfigureMIDITimecodeDialog.h City.h ExtraIPsDialog.h SyncFPP.h RemoteModeConfigDialog.h ../include/xs_save.xpm ../include/xs_otlon.xpm ../include/xs_otloff.xpm ../include/xs_otlautoon.xpm ../include/xs_otlautooff.xpm ../include/xs_scheduled.xpm ../include/xs_queued.xpm ../include/xs_notscheduled.xpm ../include/xs_inactive.xpm ../include/xs_pllooped.xpm ../include/xs_plnotlooped.xpm ../include/xs_plsteplooped.xpm ../include/xs_plstepnotlooped.xpm ../include/xs_playing.xpm ../include/xs_idle.xpm ../include/xs_paused.xpm ../include/xs_random.xpm ../include/xs_notrandom.xpm ../include/xs_volume_down.xpm ../include/xs_volume_up.xpm ../include/xs_falcon.xpm ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm ../include/slow.xpm ../include/web_icon.xpm ../include/no_web_icon.xpm
+xScheduleMain.cpp: xScheduleMain.h MyTreeItemData.h ScheduleManager.h Schedule.h ScheduleOptions.h OptionsDialog.h WebServer.h ../xLights/xLightsVersion.h RunningSchedule.h UserButton.h OutputProcessingDialog.h BackgroundPlaylistDialog.h MatricesDialog.h VirtualMatricesDialog.h FPPRemotesDialog.h ConfigureOSC.h ConfigureTest.h Pinger.h EventsDialog.h ../xLights/UtilFunctions.h ConfigureMIDITimecodeDialog.h City.h ExtraIPsDialog.h SyncFPP.h ../xLights/VideoReader.h ../xLights/SpecialOptions.h ../xLights/AudioManager.h RemoteModeConfigDialog.h ../include/xs_save.xpm ../include/xs_otlon.xpm ../include/xs_otloff.xpm ../include/xs_otlautoon.xpm ../include/xs_otlautooff.xpm ../include/xs_scheduled.xpm ../include/xs_queued.xpm ../include/xs_notscheduled.xpm ../include/xs_inactive.xpm ../include/xs_pllooped.xpm ../include/xs_plnotlooped.xpm ../include/xs_plsteplooped.xpm ../include/xs_plstepnotlooped.xpm ../include/xs_playing.xpm ../include/xs_idle.xpm ../include/xs_paused.xpm ../include/xs_random.xpm ../include/xs_notrandom.xpm ../include/xs_volume_down.xpm ../include/xs_volume_up.xpm ../include/xs_falcon.xpm ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm ../include/slow.xpm ../include/web_icon.xpm ../include/no_web_icon.xpm
 
 ConfigureMIDITimecodeDialog.h: SyncManager.h
 
 ExtraIPsDialog.h: ScheduleOptions.h
 
-events/ListenerSMPTE.cpp: xScheduleMain.h ScheduleManager.h ScheduleOptions.h
+../xLights/SpecialOptions.h: ../xLights/ExternalHooks.h
+
+../xLights/ExternalHooks.h: ../xLights/Color.h
 
 events/ListenerMIDI.cpp: xScheduleMain.h ScheduleManager.h ScheduleOptions.h
 
-events/ListenerMQTT.cpp: ScheduleManager.h ScheduleOptions.h
+events/ListenerMQTT.cpp: ScheduleManager.h ScheduleOptions.h ../xLights/UtilFunctions.h
 
 events/ListenerManager.cpp: ScheduleManager.h ScheduleOptions.h
 
-events/ListenerOSC.cpp: ScheduleManager.h ScheduleOptions.h OSCPacket.h
+events/ListenerOSC.cpp: ScheduleManager.h ScheduleOptions.h ../xLights/UtilFunctions.h OSCPacket.h
+
+events/ListenerSMPTE.cpp: xScheduleMain.h ScheduleManager.h ScheduleOptions.h ../xLights/AudioManager.h
 
 md5.cpp: md5.h
 
-events/EventState.cpp: ScheduleManager.h
-
-events/ListenerARTNet.cpp: ScheduleManager.h ScheduleOptions.h
-
 events/ListenerBase.cpp: ScheduleManager.h
 
-events/ListenerCSVFPP.cpp: Control.h
+events/EventPing.cpp: ScheduleManager.h
 
-events/ListenerFPP.cpp: Control.h
+events/EventState.cpp: ScheduleManager.h
 
-PlayList/PlayListItemMQTT.cpp: xScheduleMain.h ScheduleManager.h
+events/ListenerARTNet.cpp: ../xLights/UtilFunctions.h ScheduleManager.h ScheduleOptions.h
+
+events/ListenerCSVFPP.cpp: Control.h ../xLights/UtilFunctions.h
+
+events/ListenerE131.cpp: ../xLights/UtilFunctions.h
+
+events/ListenerFPP.cpp: Control.h ../xLights/UtilFunctions.h ../xLights/xLightsVersion.h
+
+PlayList/PlayListItemMQTT.cpp: xScheduleMain.h ScheduleManager.h ../xLights/UtilFunctions.h
+
+../xLights/outputs/TestPreset.cpp: ../xLights/UtilFunctions.h
+
+../xLights/outputs/ZCPPOutput.cpp: ../xLights/UtilFunctions.h ../xLights/OutputModelManager.h ../xLights/ExternalHooks.h ../xLights/Discovery.h
+
+../xLights/outputs/xxxEthernetOutput.cpp: ../xLights/UtilFunctions.h
+
+../xLights/outputs/OutputManager.cpp: ../xLights/Parallel.h ../xLights/UtilFunctions.h
+
+../xLights/outputs/OPCOutput.cpp: ../xLights/UtilFunctions.h
+
+../xLights/outputs/Output.cpp: ../xLights/UtilFunctions.h
+
+../xLights/outputs/SerialOutput.cpp: ../xLights/UtilFunctions.h
+
+DeadChannelDialog.cpp: DeadChannelDialog.h xScheduleMain.h ScheduleManager.h
 
 ConfigureMIDITimecodeDialog.cpp: ConfigureMIDITimecodeDialog.h
 
-ConfigureOSC.cpp: ConfigureOSC.h ScheduleOptions.h OSCPacket.h
+ConfigureOSC.cpp: ConfigureOSC.h ScheduleOptions.h OSCPacket.h ../xLights/UtilFunctions.h
 
 ConfigureTest.cpp: ConfigureTest.h ScheduleOptions.h
 
-DeadChannelDialog.cpp: DeadChannelDialog.h xScheduleMain.h ScheduleManager.h
+CommandManager.cpp: CommandManager.h ScheduleManager.h Schedule.h
 
 DimDialog.cpp: DimDialog.h xScheduleMain.h ScheduleManager.h
 
 DimWhiteDialog.cpp: DimWhiteDialog.h xScheduleMain.h ScheduleManager.h
 
-ESEQFile.cpp: ESEQFile.h
+ESEQFile.cpp: ESEQFile.h ../xLights/UtilFunctions.h
 
 ESEQFile.h: Blend.h
 
@@ -1732,11 +1786,15 @@ EventARTNetPanel.cpp: EventARTNetPanel.h
 
 EventARTNetPanel.h: EventPanel.h
 
+Blend.cpp: Blend.h
+
+../xLights/xLightsTimer.cpp: ../xLights/xLightsTimer.h
+
+../xLights/xLightsVersion.cpp: ../xLights/xLightsVersion.h
+
 AddReverseDialog.cpp: AddReverseDialog.h xScheduleMain.h ScheduleManager.h
 
 BackgroundPlaylistDialog.cpp: BackgroundPlaylistDialog.h
-
-Blend.cpp: Blend.h
 
 ButtonDetailsDialog.cpp: ButtonDetailsDialog.h xScheduleMain.h CommandManager.h
 
@@ -1744,35 +1802,111 @@ City.cpp: City.h
 
 ColourOrderDialog.cpp: ColourOrderDialog.h xScheduleMain.h ScheduleManager.h
 
-CommandManager.cpp: CommandManager.h ScheduleManager.h Schedule.h
+../xLights/VideoReader.cpp: ../xLights/VideoReader.h ../xLights/SpecialOptions.h ../xLights/WindowsHardwareVideoReader.h
 
-../xLights/FSEQFile.cpp: ../include/zstd.h
+../xLights/controllers/ControllerCaps.cpp: ../xLights/UtilFunctions.h ../xLights/ExternalHooks.h
+
+../xLights/controllers/Falcon.cpp: ../xLights/UtilFunctions.h
+
+../xLights/UtilFunctions.cpp: ../xLights/UtilFunctions.h ../xLights/xLightsVersion.h ../xLights/ExternalHooks.h
+
+../xLights/outputs/ArtNetOutput.cpp: ../xLights/UtilFunctions.h ../xLights/Discovery.h
+
+../xLights/outputs/Controller.cpp: ../xLights/UtilFunctions.h ../xLights/OutputModelManager.h
+
+../xLights/AudioManager.cpp: ../xLights/AudioManager.h md5.h ../xLights/ExternalHooks.h ../xLights/Parallel.h
+
+../xLights/Discovery.cpp: ../xLights/Discovery.h ../xLights/UtilFunctions.h
+
+../xLights/FSEQFile.cpp: ../xLights/FSEQFile.h ../include/zstd.h
+
+../xLights/JobPool.cpp: ../xLights/JobPool.h ../xLights/ExternalHooks.h ../xLights/TraceLog.h
+
+../xLights/Parallel.cpp: ../xLights/Parallel.h ../xLights/JobPool.h
+
+../xLights/SequenceData.cpp: ../xLights/SequenceData.h ../xLights/UtilFunctions.h
+
+../xLights/TraceLog.cpp: ../xLights/TraceLog.h
+
+../xLights/outputs/IPOutput.cpp: ../xLights/UtilFunctions.h
+
+../xLights/outputs/KinetOutput.cpp: ../xLights/UtilFunctions.h
+
+../xLights/outputs/LOROptimisedOutput.cpp: ../xLights/OutputModelManager.h ../xLights/UtilFunctions.h
+
+../xLights/outputs/LorController.cpp: ../xLights/UtilFunctions.h
+
+../xLights/outputs/NullOutput.cpp: ../xLights/OutputModelManager.h
+
+../xLights/outputs/ControllerEthernet.cpp: ../xLights/UtilFunctions.h ../xLights/SpecialOptions.h ../xLights/OutputModelManager.h ../xLights/xLightsMain.h
+
+../xLights/xLightsMain.h: ../xLights/PixelBuffer.h ../xLights/SequenceData.h ../xLights/xLightsTimer.h ../xLights/JobPool.h ../xLights/SequenceViewManager.h ../xLights/ColorManager.h ../xLights/ViewpointMgr.h ../xLights/PhonemeDictionary.h ../xLights/xLightsXmlFile.h ../xLights/RenderCache.h ../xLights/OutputModelManager.h ../xLights/SequencePackage.h ../xLights/ScriptsDialog.h
+
+../xLights/PixelBuffer.h: ../xLights/RenderBuffer.h ../xLights/ValueCurve.h ../xLights/RenderUtils.h ../xLights/Color.h
+
+../xLights/RenderBuffer.h: ../include/globals.h ../xLights/Color.h ../xLights/ColorCurve.h
+
+../xLights/ColorCurve.h: ../xLights/Color.h
+
+../xLights/ColorManager.h: ../xLights/Color.h
+
+../xLights/xLightsXmlFile.h: ../xLights/DataLayer.h ../xLights/AudioManager.h ../xLights/Vixen3.h
+
+../xLights/DataLayer.h: ../xLights/SequenceData.h
+
+../xLights/outputs/ControllerNull.cpp: ../xLights/UtilFunctions.h ../xLights/SpecialOptions.h ../xLights/OutputModelManager.h
+
+../xLights/outputs/ControllerSerial.cpp: ../xLights/OutputModelManager.h ../xLights/UtilFunctions.h ../xLights/SpecialOptions.h
+
+../xLights/outputs/DDPOutput.cpp: ../xLights/UtilFunctions.h ../xLights/OutputModelManager.h ../xLights/Discovery.h
+
+../xLights/outputs/E131Output.cpp: ../xLights/UtilFunctions.h
+
+PlayList/PlayListItemColourOrgan.cpp: ../xLights/AudioManager.h
 
 PlayList/PlayListItemColourOrganPanel.cpp: xScheduleMain.h ScheduleManager.h
 
+PlayList/PlayListItemDim.cpp: ../xLights/Parallel.h
+
 PlayList/PlayListItemDimPanel.cpp: xScheduleMain.h ScheduleManager.h
 
-PlayList/PlayListDialog.cpp: MyTreeItemData.h
+PlayList/PlayListItemESEQ.cpp: ../xLights/UtilFunctions.h
 
-PlayList/PlayListItem.cpp: xScheduleMain.h ScheduleManager.h ScheduleOptions.h RunningSchedule.h
+PlayList/PlayListDialog.cpp: MyTreeItemData.h ../xLights/UtilFunctions.h
 
-PlayList/PlayListItemARTNetTrigger.cpp: Control.h
+PlayList/PlayListItem.cpp: xScheduleMain.h ScheduleManager.h ScheduleOptions.h ../xLights/AudioManager.h RunningSchedule.h
+
+PlayList/PlayListItemARTNetTrigger.cpp: Control.h ../xLights/UtilFunctions.h
 
 PlayList/PlayListItemAllOffPanel.cpp: xScheduleMain.h ScheduleManager.h
 
+PlayList/PlayListItemAudio.cpp: ../xLights/AudioManager.h ../xLights/UtilFunctions.h
+
 PlayList/PlayListItemFile.cpp: xScheduleMain.h ScheduleManager.h
 
-PlayList/PlayListItemImage.cpp: xScheduleApp.h xScheduleMain.h ScheduleManager.h ScheduleOptions.h
-
-PlayList/PlayListItemFPPEvent.cpp: Control.h
-
-PlayList/PlayListItemFSEQPanel.cpp: xScheduleMain.h ScheduleManager.h
-
-PlayList/PlayListItemFSEQVideo.cpp: VideoCache.h xScheduleApp.h xScheduleMain.h ScheduleManager.h ScheduleOptions.h
-
-PlayList/PlayListItemFSEQVideoPanel.cpp: xScheduleMain.h ScheduleManager.h
+PlayList/PlayListItemImage.cpp: xScheduleApp.h xScheduleMain.h ScheduleManager.h ../xLights/UtilFunctions.h ScheduleOptions.h
 
 PlayList/PlayListItemFadePanel.cpp: xScheduleMain.h ScheduleManager.h
+
+PlayList/PlayListItemJukebox.cpp: ../xLights/UtilFunctions.h
+
+PlayList/PlayListItemMIDI.cpp: ../xLights/UtilFunctions.h
+
+PlayList/PlayListItemFSEQPanel.cpp: xScheduleMain.h ScheduleManager.h ../xLights/FSEQFile.h
+
+PlayList/PlayListItemFPPEvent.cpp: Control.h ../xLights/UtilFunctions.h
+
+PlayList/PlayListItemFSEQ.cpp: ../xLights/AudioManager.h ../xLights/UtilFunctions.h ../xLights/FSEQFile.h
+
+PlayList/PlayList.cpp: Schedule.h xScheduleMain.h ScheduleOptions.h xScheduleApp.h ScheduleManager.h ReentrancyCounter.h ../xLights/UtilFunctions.h
+
+PlayList/PlayListItemFSEQVideo.cpp: ../xLights/AudioManager.h ../xLights/VideoReader.h VideoCache.h xScheduleApp.h xScheduleMain.h ScheduleManager.h ../xLights/FSEQFile.h ../xLights/UtilFunctions.h ScheduleOptions.h
+
+PlayList/PlayListItemFSEQVideoPanel.cpp: xScheduleMain.h ScheduleManager.h ../xLights/FSEQFile.h
+
+EventOSCPanel.cpp: EventOSCPanel.h EventDialog.h
+
+EventOSCPanel.h: EventPanel.h
 
 EventPingPanel.cpp: EventPingPanel.h
 
@@ -1786,21 +1920,19 @@ EventStatePanel.cpp: EventStatePanel.h
 
 EventStatePanel.h: EventPanel.h
 
+EventMQTTPanel.cpp: EventMQTTPanel.h EventDialog.h ../xLights/UtilFunctions.h
+
+EventMQTTPanel.h: EventPanel.h
+
 EventsDialog.cpp: EventsDialog.h ScheduleOptions.h EventDialog.h
-
-EventOSCPanel.cpp: EventOSCPanel.h EventDialog.h
-
-EventOSCPanel.h: EventPanel.h
 
 ExcludeDimDialog.cpp: ExcludeDimDialog.h xScheduleMain.h ScheduleManager.h
 
-ExtraIPDialog.cpp: ExtraIPDialog.h
+ExtraIPDialog.cpp: ExtraIPDialog.h ../xLights/UtilFunctions.h
 
 ExtraIPDialog.h: ScheduleOptions.h
 
 ExtraIPsDialog.cpp: ExtraIPsDialog.h ExtraIPDialog.h
-
-FPPRemotesDialog.cpp: FPPRemotesDialog.h
 
 EventFPPPanel.cpp: EventFPPPanel.h
 
@@ -1814,23 +1946,33 @@ EventDataPanel.cpp: EventDataPanel.h EventDialog.h xScheduleMain.h ScheduleManag
 
 EventDataPanel.h: EventPanel.h
 
-EventDialog.cpp: EventDialog.h EventE131Panel.h EventDataPanel.h EventSerialPanel.h EventLorPanel.h EventARTNetPanel.h EventARTNetTriggerPanel.h EventPingPanel.h EventOSCPanel.h EventFPPPanel.h EventMIDIPanel.h EventMQTTPanel.h EventStatePanel.h xScheduleMain.h ScheduleManager.h CommandManager.h
+EventDialog.cpp: EventDialog.h EventE131Panel.h EventDataPanel.h EventSerialPanel.h EventLorPanel.h EventARTNetPanel.h EventARTNetTriggerPanel.h EventPingPanel.h EventOSCPanel.h EventFPPPanel.h EventFPPCommandPresetPanel.h EventMIDIPanel.h EventMQTTPanel.h EventStatePanel.h xScheduleMain.h ScheduleManager.h CommandManager.h
 
 EventE131Panel.h: EventPanel.h
 
 EventLorPanel.h: EventPanel.h
 
+EventFPPCommandPresetPanel.h: EventPanel.h
+
 EventMIDIPanel.h: EventPanel.h
 
-EventMQTTPanel.h: EventPanel.h
-
 EventE131Panel.cpp: EventE131Panel.h
+
+FPPRemotesDialog.cpp: FPPRemotesDialog.h ../xLights/UtilFunctions.h
+
+EventFPPCommandPresetPanel.cpp: EventFPPCommandPresetPanel.h
 
 EventLorPanel.cpp: EventLorPanel.h
 
 EventMIDIPanel.cpp: EventMIDIPanel.h xScheduleMain.h ScheduleManager.h EventDialog.h
 
-EventMQTTPanel.cpp: EventMQTTPanel.h EventDialog.h
+OutputProcessSustain.cpp: OutputProcessSustain.h
+
+OutputProcessSustain.h: OutputProcess.h
+
+OutputProcessDim.cpp: OutputProcessDim.h OutputProcessExcludeDim.h
+
+OutputProcessDim.h: OutputProcess.h
 
 OutputProcessDimWhite.cpp: OutputProcessDimWhite.h OutputProcessExcludeDim.h
 
@@ -1854,14 +1996,6 @@ OutputProcessSet.cpp: OutputProcessSet.h
 
 OutputProcessSet.h: OutputProcess.h
 
-OutputProcessSustain.cpp: OutputProcessSustain.h
-
-OutputProcessSustain.h: OutputProcess.h
-
-OutputProcessDim.cpp: OutputProcessDim.h OutputProcessExcludeDim.h
-
-OutputProcessDim.h: OutputProcess.h
-
 OutputProcessThreeToFour.cpp: OutputProcessThreeToFour.h
 
 OutputProcessThreeToFour.h: OutputProcess.h
@@ -1872,11 +2006,7 @@ OutputProcessColourOrder.h: OutputProcess.h
 
 OutputProcessDeadChannel.h: OutputProcess.h
 
-Pinger.cpp: Pinger.h
-
-PlayList/PlayList.cpp: Schedule.h xScheduleMain.h ScheduleOptions.h xScheduleApp.h ScheduleManager.h ReentrancyCounter.h
-
-OSCPacket.cpp: OSCPacket.h ScheduleOptions.h
+Pinger.cpp: Pinger.h ../xLights/UtilFunctions.h
 
 GammaDialog.cpp: GammaDialog.h xScheduleMain.h ScheduleManager.h
 
@@ -1886,9 +2016,11 @@ MatrixDialog.cpp: MatrixDialog.h xScheduleMain.h ScheduleManager.h
 
 MatrixMapper.cpp: MatrixMapper.h
 
-../xLights/AudioManager.cpp: md5.h
+../common/xlBaseApp.cpp: ../xLights/ExternalHooks.h ../xLights/xLightsVersion.h
 
-OptionsDialog.cpp: OptionsDialog.h ScheduleOptions.h ButtonDetailsDialog.h UserButton.h CommandManager.h City.h
+OSCPacket.cpp: OSCPacket.h ../xLights/UtilFunctions.h ScheduleOptions.h
+
+OptionsDialog.cpp: OptionsDialog.h ScheduleOptions.h ButtonDetailsDialog.h UserButton.h CommandManager.h ../xLights/xLightsVersion.h ../xLights/AudioManager.h City.h ../xLights/UtilFunctions.h xScheduleMain.h ScheduleManager.h
 
 OutputProcess.cpp: OutputProcess.h OutputProcessDim.h OutputProcessExcludeDim.h OutputProcessDimWhite.h OutputProcessThreeToFour.h OutputProcessSet.h OutputProcessSustain.h OutputProcessRemap.h OutputProcessReverse.h OutputProcessGamma.h OutputProcessColourOrder.h OutputProcessDeadChannel.h
 
