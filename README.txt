@@ -11,6 +11,25 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.09 April 29, 2022
+   -- enh (kevin) Allow for reverse of sketch-effect paths
+   -- enh (kevin) Sketch effect remembers background image and opacity
+   -- enh (kevin) Add value curve for Sketch effect motion-percentage
+   -- enh (kevin) Add closed paths with motion to Sketch effect
+   -- enh (dkulp) Add value curve for Sketch effect draw percentage
+   -- enh (scott) Add BBB16 Expansion
+   -- enh (scott) Preliminary support for Picture XY and Marquee LOR S5 Import
+   -- enh (dkulp) Add "Remove models from group" to Popup for SubModels in groups
+   -- bug (dkulp) Fix finding of images for Sketch effect on MacOS
+   -- bug (scott) Fix picture XY movement settings
+   -- bug (gil)   Fix DmxServo3D Import problems
+   -- bug (scott) Fix Falcon v3 pixel type decoding and prevent lockup of controllers
+   -- bug (scott) Fix Falcon v4 missing Default Brightness
+   -- bug (dkulp) Fix problems with exported House video if Hardware encoders are unavailable/busy
+   -- bug (keith) Fix test mode outputting double frames
+   -- bug (keith) Fix xCapture not ignoring non lighting data E1.31 packets.
+   -- bug (dkulp) Fix content scale in export House Videos on mixed Retina/non-Retina multi monitor setups
+   -- bug (robfallone) Fix stack traces in crash logs on Windows
 2022.08 April 12, 2022
    -- enh (keith)    Better music/piano effect horizontal scaling
    -- enh (scott)    Updates to effect search to use regex, other options
