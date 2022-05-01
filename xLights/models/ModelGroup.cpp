@@ -1136,7 +1136,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         Model::InitRenderBufferNodes("Per Preview", "2D", "None", Nodes, BufferWi, BufferHt);
         for (auto modelName : modelNames) {
             Model* c = modelManager.GetModel(modelName);
-            if (c != nullptr) {
+            if (c != nullptr && c->IsActive()) {
                 int cx = 0;
                 int cy = 0;
                 int cnt = 0;
