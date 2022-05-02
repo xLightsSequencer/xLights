@@ -5483,7 +5483,8 @@ void Model::DeleteHandle(int handle) {
 }
 
 int Model::GetStrandLength(int strand) const {
-    return GetNodeCount() / GetNumStrands();
+    int numStrands = std::max( 1, GetNumStrands() );
+    return GetNodeCount() / numStrands;
 }
 
 int Model::MapToNodeIndex(int strand, int node) const {
