@@ -5050,6 +5050,7 @@ void LayoutPanel::PreviewModelAlignWithGround()
         }
     }
 
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::PreviewModelAlignWithGround");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignWithGround");
 
     ReselectTreeModels(selectedModelPaths);
@@ -5065,13 +5066,14 @@ void LayoutPanel::EditSubmodels()
     dlg.Setup(md);
     if (dlg.ShowModal() == wxID_OK) {
         dlg.Save();
+        md->IncrementChangeCount();
+        md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditSubmodels");
     }
     if (dlg.ReloadLayout) { //force grid to reload
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(md->GetModelManager().GetXLightsFrame(), eventForceRefresh);
-        md->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Model::SubModelsDialog::SubModels");
-        md->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SubModelsDialog::SubModels");
-        md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SubModelsDialog::SubModels");
+        md->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::EditSubmodels");
+        md->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::EditSubmodels");
     }
 }
 
@@ -5086,6 +5088,8 @@ void LayoutPanel::EditFaces()
     if (dlg.ShowModal() == wxID_OK) {
         md->faceInfo.clear();
         dlg.GetFaceInfo(md->faceInfo);
+        md->IncrementChangeCount();
+        md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditFaces");
     }
 }
 
@@ -5100,6 +5104,8 @@ void LayoutPanel::EditStates()
     if (dlg.ShowModal() == wxID_OK) {
         md->stateInfo.clear();
         dlg.GetStateInfo(md->stateInfo);
+        md->IncrementChangeCount();
+        md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditStates");
     }
 }
 
@@ -5117,6 +5123,8 @@ void LayoutPanel::EditModelData()
     if (dlg.ShowModal() == wxID_OK) {
         dlg.Save(md);
         md->RestoreDisplayDimensions();
+        md->IncrementChangeCount();
+        md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditModelData");
     } else {
         md->RestoreDisplayDimensions();
         md->GetModelManager().GetXLightsFrame()->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CustomModel::CancelCustomData");
