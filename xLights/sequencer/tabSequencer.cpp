@@ -2481,6 +2481,7 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool res = true;
+    auto orig = name;
     wxWindow* ContextWin = nullptr;
 	if (name.StartsWith("E_"))
 	{
@@ -2574,11 +2575,18 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
 
 			wxChoice* ctrl = (wxChoice*)CtrlWin;
 			ctrl->SetStringSelection(value);
-
-			wxCommandEvent event(wxEVT_CHOICE, ctrl->GetId());
-			event.SetEventObject(ctrl);
-			event.SetString(value);
-			ctrl->ProcessWindowEvent(event);
+            if (ctrl->GetStringSelection() != value) {
+                // if did not take ... possibly because it has not loaded the values yet
+                wxCommandEvent event(EVT_SETEFFECTCHOICE);
+                event.SetString(orig + "|" + value);
+                wxPostEvent(this, event);
+            }
+            else {
+                wxCommandEvent event(wxEVT_CHOICE, ctrl->GetId());
+                event.SetEventObject(ctrl);
+                event.SetString(value);
+                ctrl->ProcessWindowEvent(event);
+            }
 		}
 		else if (name.StartsWith("ID_BUTTON"))
 		{
@@ -2663,6 +2671,17 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
         }
 	}
     return res;
+}
+
+void xLightsFrame::SetEffectChoice(wxCommandEvent& event)
+{
+    auto v = wxSplit(event.GetString(), '|');
+    if (v.size() == 2) {
+        ApplySetting(v[0], v[1]);
+    }
+    else {
+        wxASSERT(false);
+    }
 }
 
 void xLightsFrame::ApplyLast(wxCommandEvent& event)
