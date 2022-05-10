@@ -69,4 +69,42 @@
 			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
+	<Controller Name="NDB Pro">
+		<Variant Name="">
+			<!--SupportsUpload/-->
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
+			<SupportsTs/>
+			<SupportsFullxLightsControl/>
+			<MaxInputUniverses>16</MaxInputUniverses>
+			<MaxPixelPort>8</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>1380</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<UniversesMustBeSequential/>
+			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
+			<MinInputUniverseChannels>510</MinInputUniverseChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>apa104</Protocol>
+				<Protocol>sm16703</Protocol>
+				<Protocol>ucs2903</Protocol>
+				<Protocol>gs820x</Protocol>
+				<Protocol>sk6812</Protocol>
+				<Protocol>rm2021</Protocol>
+				<Protocol>rgb+</Protocol>
+				<Protocol>rgbw+</Protocol>
+				<Protocol>rgb+2</Protocol>
+			</PixelProtocols>
+			<SerialProtocols/>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
+			</InputProtocols>
+			<UniversesMustBeInNumericalOrder/>
+		</Variant>
+	</Controller>
 </Vendor>
