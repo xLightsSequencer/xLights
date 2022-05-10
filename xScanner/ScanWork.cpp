@@ -318,8 +318,10 @@ std::string HTTPWork::GetControllerTypeBasedOnPageContent(const std::string& pag
         return "SanDevices E681";
     if (Contains(page, "This URI does not exist"))
         return "Twinkly";
+    if (Contains(page, "NDBPRO"))
+        return "Minleon NDBPro";
     if (Contains(page, "NDB"))
-        return "Minleon NDB";
+        return "Minleon NDB+";
 	if (Contains(page, "WLED")) return "WLED";         // this is speculative ... I have no idea if this will work
 	if (Contains(page, "Hinkspix")) return "Hinkspix"; // this is speculative ... I have no idea if this will work
 	if (Contains(page, "Alphapix")) return "Alphapix"; // this is speculative ... I have no idea if this will work

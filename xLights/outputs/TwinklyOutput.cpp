@@ -152,7 +152,7 @@ void TwinklyOutput::EndFrame(int suppressFrames)
         packet[i++] = 3;
 
         // 8 bytes token
-        std::memcpy(&packet[i], m_decodedToken.data(), TOKEN_SIZE);
+        memcpy(&packet[i], m_decodedToken.data(), TOKEN_SIZE);
         i += TOKEN_SIZE;
 
         // 2 zeros
@@ -164,7 +164,7 @@ void TwinklyOutput::EndFrame(int suppressFrames)
 
         // send 900 channels
         int payloadSize = std::min(900, (int)_channels);
-        std::memcpy(&packet[i], &m_channelData[offset], payloadSize);
+        memcpy(&packet[i], &m_channelData[offset], payloadSize);
         offset += payloadSize;
         i += payloadSize;
 
@@ -197,7 +197,7 @@ void TwinklyOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t
 }
 void TwinklyOutput::AllOff()
 {
-    std::memset(m_channelData.data(), 0, m_channelData.size());
+    memset(m_channelData.data(), 0x00, m_channelData.size());
 }
 #pragma endregion
 
