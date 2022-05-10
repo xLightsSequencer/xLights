@@ -1248,6 +1248,8 @@
 		<Unit filename="outputs/SerialOutput.h" />
 		<Unit filename="outputs/TestPreset.cpp" />
 		<Unit filename="outputs/TestPreset.h" />
+		<Unit filename="outputs/TwinklyOutput.cpp" />
+		<Unit filename="outputs/TwinklyOutput.h" />
 		<Unit filename="outputs/ZCPP.h" />
 		<Unit filename="outputs/ZCPPOutput.cpp" />
 		<Unit filename="outputs/ZCPPOutput.h" />

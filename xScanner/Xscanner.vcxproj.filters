@@ -136,6 +136,10 @@
     <ClCompile Include="..\xLights\automation\automation.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\xlBaseApp.cpp" />
+    <ClCompile Include="..\xLights\outputs\TwinklyOutput.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
@@ -283,6 +287,11 @@
       <Filter>xLights</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\ExternalHooks.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\xlBaseApp.h" />
+    <ClInclude Include="..\common\xlStackWalker.h" />
+    <ClInclude Include="..\xLights\outputs\TwinklyOutput.h">
       <Filter>xLights</Filter>
     </ClInclude>
   </ItemGroup>

@@ -53,6 +53,7 @@
 #include "outputs/DDPOutput.h"
 #include "outputs/DMXOutput.h"
 #include "outputs/LOROptimisedOutput.h"
+#include "outputs/TwinklyOutput.h"
 #include "Discovery.h"
 
 #include "../xFade/wxLED.h"
@@ -1314,6 +1315,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
     ArtNetOutput::PrepareDiscovery(discovery);
     ZCPPOutput::PrepareDiscovery(discovery);
     DDPOutput::PrepareDiscovery(discovery);
+    TwinklyOutput::PrepareDiscovery(discovery);
     FPP::PrepareDiscovery(discovery);
     Pixlite16::PrepareDiscovery(discovery);
     discovery.Discover();

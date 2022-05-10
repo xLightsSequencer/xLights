@@ -24,6 +24,7 @@
 #include "DMXOutput.h"
 #include "xxxSerialOutput.h"
 #include "xxxEthernetOutput.h"
+#include "TwinklyOutput.h"
 #include "OPCOutput.h"
 #include "PixelNetOutput.h"
 #include "RenardOutput.h"
@@ -161,6 +162,8 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
     }
     else if (type == OUTPUT_xxxETHERNET) {
         return new xxxEthernetOutput(node);
+    } else if (type == OUTPUT_TWINKLY) {
+        return new TwinklyOutput(node);
     }
 
     logger_base.warn("Unknown network type %s ignored.", (const char *)type.c_str());

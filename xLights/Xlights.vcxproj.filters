@@ -980,6 +980,9 @@
     <ClCompile Include="effects\assist\SketchCanvasPanel.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
+    <ClCompile Include="outputs\TwinklyOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1967,6 +1970,9 @@
     <ClInclude Include="effects\assist\SketchAssistPanel.h" />
     <ClInclude Include="effects\assist\SketchCanvasPanel.h">
       <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\TwinklyOutput.h">
+      <Filter>Outputs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

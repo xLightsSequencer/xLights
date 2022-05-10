@@ -24,6 +24,7 @@
 #include "DDPOutput.h"
 #include "KinetOutput.h"
 #include "xxxEthernetOutput.h"
+#include "TwinklyOutput.h"
 #include "OPCOutput.h"
 #include "../controllers/ControllerCaps.h"
 #include "../models/ModelManager.h"
@@ -46,6 +47,8 @@ wxPGChoices ControllerEthernet::GetProtocols() const
         else if (it == "kinet") types.Add(OUTPUT_KINET);
         else if (it == "ddp") types.Add(OUTPUT_DDP);
         else if (it == "opc") types.Add(OUTPUT_OPC);
+        else if (it == "twinkly")
+            types.Add(OUTPUT_TWINKLY);
         else if (it == "xxx ethernet") {
             if (SpecialOptions::GetOption("xxx") == "true" || GetProtocol() == OUTPUT_xxxETHERNET) {
                 types.Add(OUTPUT_xxxETHERNET);
@@ -67,6 +70,7 @@ void ControllerEthernet::InitialiseTypes(bool forceXXX) {
         if (SpecialOptions::GetOption("xxx") == "true" || forceXXX) {
             __types.Add(OUTPUT_xxxETHERNET);
         }
+        __types.Add(OUTPUT_TWINKLY);
     }
     else if (forceXXX) {
         bool found = false;
@@ -160,7 +164,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
 
     _type = protocol;
 
-    if (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP) {
+    if (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP || _type == OUTPUT_TWINKLY) {
         if (_type == OUTPUT_ZCPP) {
             auto zo = new ZCPPOutput();
             _outputs.push_back(zo);
@@ -177,6 +181,15 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                 ddpo->SetId(oldoutputs.front()->GetUniverse());
             }
             SetId(ddpo->GetId());
+        } else if (_type == OUTPUT_TWINKLY) {
+            auto to = new TwinklyOutput();
+            _outputs.push_back(to);
+            if (_outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+                to->SetId(_outputManager->UniqueId());
+            } else {
+                to->SetId(oldoutputs.front()->GetUniverse());
+            }
+            SetId(to->GetId());
         }
         _outputs.front()->SetChannels(totchannels);
         _outputs.front()->SetFPPProxyIP(oldoutputs.front()->GetFPPProxyIP());
@@ -657,7 +670,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
         it2->EndFrame(0);
     }
 
-    if (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP) {
+    if (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP || _type == OUTPUT_TWINKLY) {
         _outputs.front()->SetChannels(channels);
         return true;
     }
