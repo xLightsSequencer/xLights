@@ -817,7 +817,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         inst->SetRestartFlag();
                     }                    
                 }
-                 //if restart flag is now set, restart and recheck range
+                //if restart flag is now set, restart and recheck range
                 inst->Restart("", true);
             } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) && controller.size() == 1) {
                 BaseController *bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
