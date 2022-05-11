@@ -357,8 +357,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             CheckBox1->SetValue(inst->mode != "remote");
             FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             if (inst->IsVersionAtLeast(2, 6)) {
-
-                 wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, MODELS_COL + rowStr);
+                wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, MODELS_COL + rowStr);
                 wxFont font = Choice1->GetFont();
                 font.SetPointSize(font.GetPointSize() - 2);
                 Choice1->SetFont(font);
@@ -368,10 +367,6 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
                 Choice1->Append(_("Local"));
                 Choice1->SetSelection(0);
                 FPPInstanceSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
-
-                //CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MODELS_COL + rowStr);
-                //CheckBox1->SetValue(false);
-                //FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             } else {
                 FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             }
@@ -822,13 +817,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         inst->SetRestartFlag();
                     }                    
                 }
-                //if (GetCheckValue(MODELS_COL + rowStr)) {
-                //    wxJSONValue const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels);
-                //    cancelled |= inst->UploadModels(memoryMaps);
-                //    cancelled |= inst->UploadDisplayMap(displayMap);
-                //    inst->SetRestartFlag();
-                //}
-                //if restart flag is now set, restart and recheck range
+                 //if restart flag is now set, restart and recheck range
                 inst->Restart("", true);
             } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) && controller.size() == 1) {
                 BaseController *bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
