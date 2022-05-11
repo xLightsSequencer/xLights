@@ -71,7 +71,7 @@
 	</Controller>
 	<Controller Name="NDB Pro">
 		<Variant Name="">
-			<!--SupportsUpload/-->
+			<SupportsUpload/>
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
 			<SupportsTs/>
@@ -80,7 +80,7 @@
 			<MaxPixelPort>8</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
-			<MaxPixelPortChannels>1380</MaxPixelPortChannels>
+			<MaxPixelPortChannels>2760</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
 			<UniversesMustBeSequential/>
 			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
