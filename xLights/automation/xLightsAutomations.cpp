@@ -332,9 +332,15 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             fpp->SetRestartFlag();
         }
 
-        if (models == "true") {
-            wxJSONValue memoryMaps = FPP::CreateModelMemoryMap(&AllModels);
+        if (models == "true" || models == "all") {
+            wxJSONValue memoryMaps = fpp->CreateModelMemoryMap(&AllModels, 0, std::numeric_limits<int32_t>::max());
             fpp->UploadModels(memoryMaps);
+        } else if (udp == "local") {
+            auto c = _outputManager.GetControllers(fpp->ipAddress);
+            if (c.size() == 1) {
+                wxJSONValue const& memoryMaps = fpp->CreateModelMemoryMap(&AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
+                fpp->UploadModels(memoryMaps);
+            }
         }
 
         if (map == "true") {

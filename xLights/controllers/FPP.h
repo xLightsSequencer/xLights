@@ -74,7 +74,7 @@ class FPP : public BaseController
     bool IsMultiSyncEnabled();
     bool IsDDPInputEnabled();
 
-    bool IsVersionAtLeast(uint32_t maj, uint32_t min);
+    bool IsVersionAtLeast(uint32_t maj, uint32_t min) const;
     bool IsDrive();
 
 #ifndef DISCOVERYONLY
@@ -124,7 +124,7 @@ class FPP : public BaseController
     static std::list<FPP*> GetInstances(wxWindow* frame, OutputManager* outputManager);
 
 #ifndef DISCOVERYONLY
-    static wxJSONValue CreateModelMemoryMap(ModelManager* allmodels);
+    wxJSONValue CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
     static std::string CreateVirtualDisplayMap(ModelManager* allmodels, bool center0);
     static wxJSONValue CreateUniverseFile(const std::list<Controller*>& controllers, bool input, std::map<int, int> *rngs = nullptr);
     static wxJSONValue CreateUniverseFile(Controller* controller, bool input);

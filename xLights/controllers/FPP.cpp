@@ -567,7 +567,7 @@ bool FPP::IsDrive() {
     return ipAddress.find("/") != std::string::npos || ipAddress.find("\\") != std::string::npos;
 }
 
-bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min) {
+bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min) const{
     if (majorVersion < maj) {
         return false;
     }
@@ -1156,7 +1156,7 @@ bool FPP::UploadDisplayMap(const std::string &displayMap) {
         wxFile tf(fn.GetFullPath());
         tf.Write(displayMap);
         tf.Close();
-    } else if (IsVersionAtLeast(3, 6)) {
+    } else if (IsVersionAtLeast(3, 6) && !IsVersionAtLeast(6, 0)) {
         PostToURL("/api/configfile/virtualdisplaymap", displayMap);
     }
     return false;
@@ -1183,17 +1183,23 @@ bool FPP::UploadUDPOut(const wxJSONValue &udp) {
     return false;
 }
 
-wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels) {
+wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel) {
     wxJSONValue json;
     wxJSONValue models;
+    std::vector<wxString> names;
     for (const auto& m : *allmodels) {
         Model* model = m.second;
 
-        if (model->GetDisplayAs() == "ModelGroup")
+        if (model->GetDisplayAs() == "ModelGroup") {
             continue;
+        }
 
         wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
         int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+        if (ch < startChan || ch > endChannel) {
+            continue;
+        }
+        
         wxString name(model->name);
         name.Replace(" ", "_");
 
@@ -1237,8 +1243,41 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels) {
         corner += model->GetIsLtoR() ? "L" : "R";
         jm["StartCorner"] = corner;
 
+        if (IsVersionAtLeast(6, 0)) {
+            jm["Type"] = wxString("Channel");
+        }
+        names.emplace_back(name);
         models.Append(jm);
     }
+
+    if (IsVersionAtLeast(5, 0)) {//API was probably added before 5....
+        wxJSONValue ogModelJSON;
+        if (GetURLAsJSON("/api/models", ogModelJSON)) {
+            auto ogModels = ogModelJSON.AsArray();
+            for (size_t i = 0; i < ogModels->Count(); i++) {
+                if (!ogModels->Item(i).HasMember("Name") || !ogModels->Item(i).HasMember("StartChannel")) {
+                    continue;
+                }
+                if (!ogModels->Item(i).Item(i)["Name"].IsString() || !ogModels->Item(i).Item(i)["StartChannel"].IsInt32()) {
+                    continue;
+                }
+                auto ogName = ogModels->Item(i)["Name"].AsString();
+                auto ogStartChan = ogModels->Item(i)["StartChannel"].AsInt32();
+                auto wasAutoCreated = false;
+                if (ogModels->Item(i).HasMember("autoCreated") && ogModels->Item(i).Item(i)["autoCreated"].IsBool()) {
+                    wasAutoCreated = ogModels->Item(i)["autoCreated"].AsBool();
+                }
+                if (ogStartChan < startChan || ogStartChan > endChannel || wasAutoCreated) {
+                    continue;
+                }
+                if (std::find(names.cbegin(), names.cend(), ogName) != names.end()) { // only add if name doesn't exist
+                    continue;
+                }
+                models.Append(ogModels->Item(i));
+            }
+        }
+    }
+
     json["models"] = models;
     return json;
 }
