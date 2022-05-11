@@ -219,7 +219,6 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
         //origin.z = 0.0f;
         //point2.z = 0.0f;
     }
-    center = glm::vec3(RenderWi / 2.0f, 0.0f, 0.0f);
 
     glm::vec3 a = point2 - origin;
     scalex = scaley = scalez = glm::length(a) / RenderWi;
@@ -245,6 +244,7 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
 
     if (allow_selected) {
         // save processing time by skipping items not needed for view only preview
+        center = glm::vec3(RenderWi / 2.0f, 0.0f, 0.0f);
         ModelMatrix = TranslateMatrix * rotationMatrix;
         glm::vec4 ctr = matrix * glm::vec4(center, 1.0f);
         center = glm::vec3(ctr);
@@ -447,26 +447,25 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
 
     if (_locked) return 0;
 
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
-
-    VectorMath::ScreenPosToWorldRay(
-        mouseX, preview->getHeight() - mouseY,
-        preview->getWidth(), preview->getHeight(),
-        preview->GetProjViewMatrix(),
-        ray_origin,
-        ray_direction
-    );
-
-    float posx = ray_origin.x - center.x;
-    float posy = ray_origin.y - center.y;
-
     if (handle == SHEAR_HANDLE) {
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+
+        VectorMath::ScreenPosToWorldRay(
+            mouseX, preview->getHeight() - mouseY,
+            preview->getWidth(), preview->getHeight(),
+            preview->GetProjViewMatrix(),
+            ray_origin,
+            ray_direction
+        );
+
+        float posx = ray_origin.x - center.x;
+        float posy = ray_origin.y - center.y;
+
         float ymax = RenderHt;
         if (ymax < 0.01f) {
             ymax = 0.01f;
         }
-
         //Calculate angle of mouse from center.
         if (supportsAngle) {
             if (posy == 0.0f) return 0;
@@ -477,11 +476,9 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
             }
             if (posy >= 0) {
                 angle = angle1;
-            }
-            else if (posx <= 0) {
+            } else if (posx <= 0) {
                 angle = 90 + (90 + angle1);
-            }
-            else {
+            } else {
                 angle = -90 - (90 - angle1);
             }
             if (ShiftKeyPressed) {
@@ -489,36 +486,30 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
             }
             float length = std::sqrt(posy*posy + posx * posx);
             height = length / (RenderHt * scaley);
-        }
-        else if (supportsShear) {
+        } else if (supportsShear) {
             glm::mat4 m = glm::inverse(matrix);
             glm::vec3 v = glm::vec3(m * glm::vec4(ray_origin, 1.0f));
             if (height < 0.0f) {
                 shear -= (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
-            }
-            else {
+            } else {
                 shear += (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
             }
             if (shear < -3.0f) {
                 shear = -3.0f;
-            }
-            else if (shear > 3.0f) {
+            } else if (shear > 3.0f) {
                 shear = 3.0f;
             }
             height = posy / (RenderHt * scaley);
-        }
-        else {
+        } else {
             height = height * posy / ymax;
         }
         if (std::abs(height) < 0.01f) {
             if (height < 0.0f) {
                 height = -0.01f;
-            }
-            else {
+            } else {
                 height = 0.01f;
             }
         }
-
         return 1;
     }
 

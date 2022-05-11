@@ -3718,12 +3718,9 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             pcamera = xLightsApp::GetFrame()->viewpoint_mgr.GetNamedCamera3D(camera);
         }
 
-        if (pcamera != nullptr && camera != "2D")
-        {
+        if (pcamera != nullptr && camera != "2D") {
             GetModelScreenLocation().PrepareToDraw(true, false);
-        }
-        else
-        {
+        } else {
             GetModelScreenLocation().PrepareToDraw(false, false);
         }
 
