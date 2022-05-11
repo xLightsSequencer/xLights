@@ -18,15 +18,16 @@ cd ..
 cd ..
 cd ..
 
-git clone --recurse-submodules -b xlights_2021.31b https://github.com/xLightsSequencer/wxWidgets wxWidgets
+git clone --recurse-submodules -b xlights_2022.09 https://github.com/xLightsSequencer/wxWidgets wxWidgets
 
 cd wxWidgets
-msbuild.exe /m .\build\msw\wx_vc16.sln /p:Configuration="Debug" /p:Platform="x64"
+msbuild.exe /m .\build\msw\wx_vc17.sln /p:Configuration="Debug" /p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 
 
-msbuild.exe /m .\build\msw\wx_vc16.sln /p:Configuration="Release" /p:Platform="x64"
+msbuild.exe /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
+
 
 
 goto exit
@@ -38,3 +39,4 @@ pause
 exit 1
 
 :exit
+pause
