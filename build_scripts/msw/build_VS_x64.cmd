@@ -75,7 +75,7 @@ cd ..
 cd ..
 
 mkdir build_scripts\msw\RemoteFalcon
-copy xScedhule\RemoteFalcon\x64\Release\*.pdb build_scripts\msw\RemoteFalcon
+copy xSchedule\RemoteFalcon\x64\Release\*.pdb build_scripts\msw\RemoteFalcon
 
 cd xLights
 msbuild.exe -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x64"
