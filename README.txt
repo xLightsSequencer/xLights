@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.10 May 15, 2022
+   -- enh (aarcangeli/keith) Add support for Twinkly controllers including discovery
+   -- enh (keith) Add ability to import Twinkly pixel layout into a custom model
+   -- enh (keith) Add support for the Minleon NDBPro
+   -- enh (scott) Update FPP Connect model generation to support all models, models only on controller and get models from FPP
+   -- bug (keith) Fix crash in effects rendering with model as a pixel on inactive models in a group
+   -- bug (keith) Fix when editing faces/states/submodels using key binding rgb effects file not marked as dirty
+   -- bug (keith) Fix choice controls try to set before list is populated resulting in loss of value
+   -- bug (keith) Fix DMX model export creates invalid xmodel file
+   -- bug (scott) Fix a crash when working with Hinkspix 16 port remotes
+   -- bug (dklup) Fix issues with shear on 3 point models
 2022.09 April 29, 2022
    -- enh (kevin) Allow for reverse of sketch-effect paths
    -- enh (kevin) Sketch effect remembers background image and opacity
