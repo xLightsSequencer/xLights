@@ -106,7 +106,7 @@ ControllerEthernet::ControllerEthernet(OutputManager* om, bool acceptDuplicates)
 
     _managed = !acceptDuplicates;
     InitialiseTypes(false);
-    _name = om->UniqueName("Ethernet_");
+    _name = (om == nullptr) ? "Dummy" : om->UniqueName("Ethernet_");
     _type = OUTPUT_E131;
     _expanded = false;
     E131Output* o = new E131Output();
@@ -146,7 +146,7 @@ void ControllerEthernet::SetIP(const std::string& ip) {
         _ip = iip;
         _resolvedIp = ResolveIP(_ip);
         _dirty = true;
-        _outputManager->UpdateUnmanaged();
+        if (_outputManager != nullptr) _outputManager->UpdateUnmanaged();
 
         for (auto& it : GetOutputs()) {
             it->SetIP(_ip);
@@ -174,7 +174,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
         else if (_type == OUTPUT_DDP) {
             auto ddpo = new DDPOutput();
             _outputs.push_back(ddpo);
-            if (_outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+            if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
                 ddpo->SetId(_outputManager->UniqueId());
             }
             else {
@@ -184,7 +184,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
         } else if (_type == OUTPUT_TWINKLY) {
             auto to = new TwinklyOutput();
             _outputs.push_back(to);
-            if (_outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+            if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
                 to->SetId(_outputManager->UniqueId());
             } else {
                 to->SetId(oldoutputs.front()->GetUniverse());
@@ -226,7 +226,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
             int left = universes * CONVERT_CHANNELS_PER_UNIVERSE;
 
             int u = 0;
-            if (_outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+            if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
                 u = _outputManager->UniqueId() - 1;
             }
             else {
@@ -278,7 +278,9 @@ std::string ControllerEthernet::GetForceLocalIP() const
     }
 
     // a controller should not proxy itself
-    return _outputManager->GetGlobalForceLocalIP();
+    if (_outputManager != nullptr) return _outputManager->GetGlobalForceLocalIP();
+
+    return "";
 }
 
 std::string ControllerEthernet::GetControllerForceLocalIP() const
@@ -322,7 +324,7 @@ std::string ControllerEthernet::GetFPPProxy() const {
     }
 
     // a controller should not proxy itself
-    if (_ip != _outputManager->GetGlobalFPPProxy()) {
+    if (_outputManager != nullptr && _ip != _outputManager->GetGlobalFPPProxy()) {
         return _outputManager->GetGlobalFPPProxy();
     }
 

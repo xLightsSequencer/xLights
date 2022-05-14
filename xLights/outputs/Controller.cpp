@@ -119,7 +119,7 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
 
 Controller::Controller(OutputManager* om) : _outputManager(om) {
     // everything else is initialised in the header
-    _id = om->UniqueId();
+    if (om != nullptr) _id = om->UniqueId();
 }
 
 Controller::~Controller() {
@@ -309,11 +309,11 @@ void Controller::ClearDirty() {
 }
 
 void Controller::EnsureUniqueId() {
-    _id = _outputManager->UniqueId();
+    if (_outputManager != nullptr) _id = _outputManager->UniqueId();
 }
 
 void Controller::EnsureUniqueName() {
-    SetName(_outputManager->UniqueName(GetName()));
+    if (_outputManager != nullptr) SetName(_outputManager->UniqueName(GetName()));
 }
 
 void Controller::SetAutoLayout(bool autoLayout) {

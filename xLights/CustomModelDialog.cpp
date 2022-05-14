@@ -16,6 +16,7 @@
 #include <wx/file.h>
 #include <wx/numdlg.h>
 #include <wx/config.h>
+#include <wx/choicdlg.h>
 
 //(*InternalHeaders(CustomModelDialog)
 #include <wx/artprov.h>
@@ -43,6 +44,8 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 #include "ModelPreview.h"
+#include "outputs/TwinklyOutput.h"
+#include "Discovery.h"
 
 //(*IdInit(CustomModelDialog)
 const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
@@ -62,6 +65,7 @@ const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_BKGRD = wxNewId();
 const long CustomModelDialog::ID_CHECKBOX_AUTO_NUMBER = wxNewId();
 const long CustomModelDialog::ID_CHECKBOX_AUTO_INCREMENT = wxNewId();
 const long CustomModelDialog::ID_SPINCTRL_NEXT_CHANNEL = wxNewId();
+const long CustomModelDialog::ID_BUTTON4 = wxNewId();
 const long CustomModelDialog::ID_BUTTON1 = wxNewId();
 const long CustomModelDialog::ID_BUTTON2 = wxNewId();
 const long CustomModelDialog::ID_NOTEBOOK1 = wxNewId();
@@ -313,6 +317,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 {
 	//(*Initialize(CustomModelDialog)
 	wxFlexGridSizer* FlexGridSizer11;
+	wxFlexGridSizer* FlexGridSizer12;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -415,7 +420,11 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer4->Add(SpinCtrlNextChannel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxEXPAND, 5);
 	StaticBoxSizer1->Add(FlexGridSizer3, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Sizer2->Add(StaticBoxSizer1, 1, wxALIGN_LEFT, 5);
+	Sizer2->Add(StaticBoxSizer1, 1, wxEXPAND, 5);
+	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
+	Button_ImportFromController = new wxButton(this, ID_BUTTON4, _("Import From Controller"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	FlexGridSizer12->Add(Button_ImportFromController, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Sizer2->Add(FlexGridSizer12, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
 	ButtonOk = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer7->Add(ButtonOk, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -470,6 +479,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_CHECKBOX_AUTO_NUMBER,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnCheckBoxAutoNumberClick);
 	Connect(ID_CHECKBOX_AUTO_INCREMENT,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnCheckBoxAutoIncrementClick);
 	Connect(ID_SPINCTRL_NEXT_CHANNEL,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnSpinCtrlNextChannelChange);
+	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_ImportFromControllerClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButtonOkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButtonCancelClick);
 	Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&CustomModelDialog::OnNotebook1PageChanged);
@@ -654,6 +664,17 @@ void CustomModelDialog::ResizeCustomGrid()
 {
     int numCols = WidthSpin->GetValue();
     int numRows = HeightSpin->GetValue();
+    int numLayers = SpinCtrl_Depth->GetValue();
+
+    // remove/add layers first
+    while (Notebook1->GetPageCount() < numLayers) {
+        AddPage();
+    }
+
+    while (Notebook1->GetPageCount() > numLayers) {
+        RemovePage();
+    }
+
     for (auto grid : _grids) {
         int deltaCols = numCols - grid->GetNumberCols();
         int deltaRows = numRows - grid->GetNumberRows();
@@ -728,15 +749,7 @@ void CustomModelDialog::OnHeightSpinChange(wxSpinEvent& event)
 void CustomModelDialog::OnSpinCtrl_DepthChange(wxSpinEvent& event)
 {
     _changed = true;
-    while (Notebook1->GetPageCount() < SpinCtrl_Depth->GetValue())
-    {
-        AddPage();
-    }
-
-    while (Notebook1->GetPageCount() > SpinCtrl_Depth->GetValue())
-    {
-        RemovePage();
-    }
+    ResizeCustomGrid();
     UpdatePreview();
 }
 
@@ -3078,4 +3091,127 @@ void CustomModelDialog::OnSwitchGrid(wxCommandEvent& event)
         }
     }
     UpdateHighlight(-1, -1);
+}
+
+float CustomModelDialog::GetLineLen(const std::tuple<float, float, float>& pt1, const std::tuple<float, float, float>& pt2) const
+{
+    float xdiff = std::get<0>(pt1) - std::get<0>(pt2);
+    float ydiff = std::get<1>(pt1) - std::get<1>(pt2);
+    return std::sqrt((xdiff * xdiff) + (ydiff * ydiff));
+}
+
+void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event)
+{
+    wxArrayString choices;
+
+    Discovery discovery(this, nullptr); // need to make sure we dont try to discover anything that cares about the output manager pointer
+    TwinklyOutput::PrepareDiscovery(discovery);
+
+    discovery.Discover();
+
+    for (int x = 0; x < discovery.GetResults().size(); x++) {
+        auto discovered = discovery.GetResults()[x];
+        if (!discovered->controller) {
+            continue;
+        }
+        ControllerEthernet* it = discovered->controller;
+
+        if (it->GetProtocol() == OUTPUT_TWINKLY) {
+            int32_t startchannel = 1;
+            int nullnumber = 0;
+            it->SetTransientData(startchannel, nullnumber);
+            choices.push_back(it->GetLongDescription());
+        }
+    }
+
+    wxSingleChoiceDialog dlg(this, "Select controller to load from", "Download from controller", choices);
+
+    if (dlg.ShowModal() == wxID_OK) {
+        ControllerEthernet* downloadFrom = nullptr;
+        for (int x = 0; x < discovery.GetResults().size(); x++) {
+            auto discovered = discovery.GetResults()[x];
+            if (!discovered->controller) {
+                continue;
+            }
+            ControllerEthernet* it = discovered->controller;
+            if (it->GetLongDescription() == choices[dlg.GetSelection()]) {
+                downloadFrom = it;
+                break;
+            }
+        }
+
+        if (downloadFrom != nullptr) {
+            std::vector<std::tuple<float, float, float>> modelData;
+            TwinklyOutput::Get2dLayout(downloadFrom->GetResolvedIP(), modelData);
+
+            if (modelData.size() > 0) {
+                // set the z size to 1
+                SpinCtrl_Depth->SetValue(1);
+
+                // clear existing model data
+                DeleteCells();
+
+                // now we need to work out a good size to hold the data
+                std::tuple<float, float, float> last = { 9999, 9999, 9999 };
+                float minDiff = 9999.0;
+                float minX = 9999.0;
+                float minY = 9999.0;
+                for (const auto& it : modelData) {
+                    if (std::get<0>(last) == 9999) {
+                        // dont process the first one
+                    } else {
+                        if (GetLineLen(last, it) < minDiff) {
+                            minDiff = GetLineLen(last, it);
+                        }
+                    }
+                    if (std::get<0>(it) < minX)
+                        minX = std::get<0>(it);
+                    if (std::get<1>(it) < minY)
+                        minY = std::get<1>(it);
+                    last = it;
+                }
+                if (minDiff == 0)
+                    minDiff = 0.01f;
+                if (minDiff == 9999.0) {
+                    // must just be one node
+                    for (auto& it : modelData) {
+                        it = { 0, 0, 0 };
+                    }
+                    HeightSpin->SetValue(1);
+                    WidthSpin->SetValue(1);
+                } else {
+                    float multiplier = 1.0 / (minDiff + 0.00001f);
+                    float maxX = 0;
+                    float maxY = 0;
+
+                    // rescale everything and zero base it
+                    for (auto& it : modelData) {
+                        it = { (std::get<0>(it) - minX) * multiplier, (std::get<1>(it) - minY) * multiplier, 0 };
+                        if (std::get<0>(it) > maxX)
+                            maxX = std::get<0>(it);
+                        if (std::get<1>(it) > maxY)
+                            maxY = std::get<1>(it);
+                    }
+                    HeightSpin->SetValue(maxY+1);
+                    WidthSpin->SetValue(maxX+1);
+                }
+
+                ResizeCustomGrid();
+
+                auto grid = GetLayerGrid(0);
+
+                int i = 1;
+                for (const auto& it : modelData) {
+                    auto x = std::get<0>(it);
+                    auto y = std::get<1>(it);
+                    if (grid->GetCellValue(y, x) == "") {
+                        grid->SetCellValue(y, x, wxString::Format("%d", i++));
+                    }
+                }
+
+                UpdatePreview();
+                ValidateWindow();
+            }
+        }
+    }
 }
