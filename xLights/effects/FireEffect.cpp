@@ -230,11 +230,11 @@ void FireEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     }
     if (HeightPct<1) HeightPct=1;
 
-    int maxMHt = buffer.ModelBufferHt;
-    int maxMWi = buffer.ModelBufferWi;
+    int maxMHt = buffer.BufferHt;
+    int maxMWi = buffer.BufferWi;
     if (loc == 2 || loc == 3) {
-        maxMHt = buffer.ModelBufferWi;
-        maxMWi = buffer.ModelBufferHt;
+        maxMHt = buffer.BufferWi;
+        maxMWi = buffer.BufferHt;
     }
 
     int maxHt = buffer.BufferHt;

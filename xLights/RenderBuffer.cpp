@@ -601,8 +601,6 @@ RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
 {
     BufferHt = 0;
     BufferWi = 0;
-    ModelBufferHt = 0;
-    ModelBufferWi = 0;
     curPeriod = 0;
     curEffStartPer = 0;
     curEffEndPer = 0;
@@ -662,10 +660,8 @@ TextDrawingContext * RenderBuffer::GetTextDrawingContext()
     return _textDrawingContext;
 }
 
-void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform, bool nodeBuffer)
+void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform, bool nodeBuffer)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (_pathDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {
         _pathDrawingContext->ResetSize(newBufferWi, newBufferHt);
     }
@@ -675,13 +671,8 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
     _nodeBuffer = nodeBuffer;
     BufferHt = newBufferHt;
     BufferWi = newBufferWi;
-    ModelBufferHt = newModelBufferHt;
-    ModelBufferWi = newModelBufferWi;
-    if (ModelBufferHt * ModelBufferWi < std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi)) {
-        wxASSERT(false);
-        logger_base.warn("RenderBuffer had to be expanded for %s from %d to %d pixels", (const char *)GetModelName().c_str(), ModelBufferHt * ModelBufferWi, std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi));
-    }
-    size_t NumPixels = std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi);
+    
+    size_t NumPixels = BufferHt * BufferWi;
     // This is an absurdly high number but there are circumstances right now when creating a buffer based on a zoomed in camera when these can be hit.
     //wxASSERT(NumPixels < 500000);
     
@@ -1425,8 +1416,6 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     _nodeBuffer = buffer._nodeBuffer;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
-    ModelBufferHt = buffer.ModelBufferHt;
-    ModelBufferWi = buffer.ModelBufferWi;
     infoCache = buffer.infoCache;
 
     pixels = &pixelVector[0];

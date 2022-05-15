@@ -2477,7 +2477,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     //colorPanel->Thaw();
 }
 
-bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
+bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool res = true;
@@ -2575,16 +2575,19 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
 
 			wxChoice* ctrl = (wxChoice*)CtrlWin;
 			ctrl->SetStringSelection(value);
-            if (ctrl->GetStringSelection() != value) {
+            if (ctrl->GetStringSelection() != value && count < 10) {
                 // if did not take ... possibly because it has not loaded the values yet
+                // If it doesn't take after 10 attempts, the "value" is not in the list of possible values
+                // so we'll just use whatever the default/last value is to prevent an infinite loop
+                // waiting for the value to to be added
                 wxCommandEvent event(EVT_SETEFFECTCHOICE);
                 event.SetString(orig + "|" + value);
+                event.SetInt(count + 1);
                 wxPostEvent(this, event);
-            }
-            else {
+            } else {
                 wxCommandEvent event(wxEVT_CHOICE, ctrl->GetId());
                 event.SetEventObject(ctrl);
-                event.SetString(value);
+                event.SetString(ctrl->GetStringSelection());
                 ctrl->ProcessWindowEvent(event);
             }
 		}
@@ -2677,7 +2680,7 @@ void xLightsFrame::SetEffectChoice(wxCommandEvent& event)
 {
     auto v = wxSplit(event.GetString(), '|');
     if (v.size() == 2) {
-        ApplySetting(v[0], v[1]);
+        ApplySetting(v[0], v[1], event.GetInt());
     }
     else {
         wxASSERT(false);

@@ -91,8 +91,6 @@ private:
     class LayerInfo {
     public:
         LayerInfo(xLightsFrame *frame) : buffer(frame) {
-            ModelBufferHt = 0;
-            ModelBufferWi = 0;
             inMaskFactor = 0;
             outMaskFactor = 0;
 			blur = 0;
@@ -152,8 +150,6 @@ private:
         std::string rotoZoom;
         int BufferHt;
         int BufferWi;
-        int ModelBufferHt;
-        int ModelBufferWi;
         ValueCurve BlurValueCurve;
         ValueCurve SparklesValueCurve;
         ValueCurve BrightnessValueCurve;
