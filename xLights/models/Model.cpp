@@ -7186,7 +7186,8 @@ void Model::ImportXlightsModel(std::string const& filename, xLightsFrame* xlight
     if (EndsWith(filename, "gdtf"))
         return;
 
-    if (!wxString(filename).Lower().EndsWith("xmodel")) {
+    std::string lower = Lower(filename);
+    if (!EndsWith(lower, "xmodel")) {
         CustomModel* cm = dynamic_cast<CustomModel*>(this);
         if (cm != nullptr) {
             return cm->ImportLORModel(filename, xlights, min_x, max_x, min_y, max_y);
