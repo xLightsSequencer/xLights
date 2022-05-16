@@ -858,15 +858,13 @@ bool xLightsFrame::SaveNetworksFile() {
 void xLightsFrame::UpdateControllerSave() {
     if (UnsavedNetworkChanges || (IsControllersAndLayoutTabSaveLinked() && UnsavedRgbEffectsChanges)) {
 #ifdef __WXOSX__
-        ButtonSaveSetup->SetBackgroundColour(wxColour(255, 0, 0));
-        ButtonSaveSetup->Refresh();
+        SetButtonBackground(ButtonSaveSetup, wxColour(255, 0, 0), 0);
 #else
         ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
 #endif
     } else {
 #ifdef __WXOSX__
-        ButtonSaveSetup->SetBackgroundColour(wxTransparentColour);
-        ButtonSaveSetup->Refresh();
+        SetButtonBackground(ButtonSaveSetup, wxTransparentColour, 0);
 #else
         ButtonSaveSetup->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 #endif
@@ -876,15 +874,13 @@ void xLightsFrame::UpdateControllerSave() {
 void xLightsFrame::UpdateLayoutSave() {
     if (UnsavedRgbEffectsChanges || (IsControllersAndLayoutTabSaveLinked() && UnsavedNetworkChanges)) {
 #ifdef __WXOSX__
-        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxColour(255, 0, 0));
-        layoutPanel->ButtonSavePreview->Refresh();
+        SetButtonBackground(layoutPanel->ButtonSavePreview, wxColour(255, 0, 0), 2);
 #else
         layoutPanel->ButtonSavePreview->SetBackgroundColour(wxColour(255, 108, 108));
 #endif
     } else {
 #ifdef __WXOSX__
-        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxTransparentColour);
-        layoutPanel->ButtonSavePreview->Refresh();
+        SetButtonBackground(layoutPanel->ButtonSavePreview, wxTransparentColour, 2);
 #else
         layoutPanel->ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 #endif
