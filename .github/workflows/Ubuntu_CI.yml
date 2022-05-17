@@ -13,6 +13,8 @@ on:
       - 'documentation/**'
       - 'download/**'
       - 'images/**'
+      - 'lib/windows/**'
+      - 'lib/windows64/**'
       - 'meshobjects/**'
       - 'palettes/**'
       - 'scripts/**'
