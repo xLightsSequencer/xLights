@@ -696,6 +696,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
 #ifdef __WXOSX__
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnDragPossible);
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_DROP, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnDragDrop);
+    TreeListCtrl_Mapping->EnableDropTarget(wxDataFormat(wxDF_TEXT));
 #else
     MDTextDropTarget* mdt = new MDTextDropTarget(this, TreeListCtrl_Mapping, "Map");
     TreeListCtrl_Mapping->SetDropTarget(mdt);
@@ -1442,9 +1443,12 @@ void xLightsImportChannelMapDialog::OnDragPossible(wxDataViewEvent& event) {
 void xLightsImportChannelMapDialog::OnDragDrop(wxDataViewEvent& event) {
     if (event.GetItem().IsOk()) {
         wxDataViewItem  item = event.GetItem();
-        wxDataObjectComposite *comp = (wxDataObjectComposite*)event.GetDataObject();
-        wxTextDataObject *obj = (wxTextDataObject*)comp->GetObject(wxDF_TEXT);
-        wxString txt = obj->GetText();
+        wxDataObjectComposite *comp = dynamic_cast<wxDataObjectComposite*>(event.GetDataObject());
+        wxTextDataObject *obj = dynamic_cast<wxTextDataObject*>(event.GetDataObject());
+        if (obj == nullptr && comp != nullptr) {
+            obj = (wxTextDataObject*)comp->GetObject(wxDF_TEXT);
+        }
+        wxString txt = obj != nullptr ? obj->GetText() : "";
         txt.Trim(true).Trim(false);
         if (txt.length() < 4) {
             return;
