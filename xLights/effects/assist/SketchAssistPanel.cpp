@@ -1,6 +1,11 @@
 #include "SketchAssistPanel.h"
 #include "SketchCanvasPanel.h"
 
+#include "../../xSchedule/wxJSON/jsonreader.h"
+#include "../../xSchedule/wxJSON/jsonwriter.h"
+#include "UtilFunctions.h"
+#include <xLightsMain.h>
+
 #include <wx/button.h>
 #include <wx/listbox.h>
 #include <wx/menu.h>
@@ -8,6 +13,8 @@
 #include <wx/statbox.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/filepicker.h>
+#include <wx/wfstream.h>
 
 namespace
 {
@@ -65,6 +72,8 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     auto pathSketchCtrlsSizer = new wxFlexGridSizer(1, 3, 0, 5);
     auto sketchCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Sketch");
 
+    auto importCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Import/Export");
+
     auto sketchUISizer = new wxFlexGridSizer(2, 1, 5, 0);
     sketchUISizer->AddGrowableRow(1);
     sketchUISizer->AddGrowableCol(0);
@@ -88,6 +97,8 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     m_continuePathBtn = new wxButton(this, wxID_ANY, "Continue");
 
     m_clearSketchBtn = new wxButton(this, wxID_ANY, "Clear");
+    m_importSketchBtn = new wxButton(this, wxID_ANY, "Import");
+    m_exportSketchBtn = new wxButton(this, wxID_ANY, "Export");
 
     auto pathCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Path");
     pathCtrlsSizer->Add(m_startPathBtn, 1, wxALL | wxEXPAND, 3);
@@ -97,9 +108,13 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
 
     sketchCtrlsSizer->Add(m_clearSketchBtn, 1, wxALL | wxEXPAND, 3);
 
+    importCtrlsSizer->Add(m_importSketchBtn, 1, wxALL | wxEXPAND, 3);
+    importCtrlsSizer->Add(m_exportSketchBtn, 1, wxALL | wxEXPAND, 3);
+
     pathSketchCtrlsSizer->AddGrowableCol(2);
     pathSketchCtrlsSizer->Add(pathCtrlsSizer, 1, wxALL, 2);
     pathSketchCtrlsSizer->Add(sketchCtrlsSizer, 1, wxALL, 2);
+    pathSketchCtrlsSizer->Add(importCtrlsSizer, 1, wxALL, 2);
 
     // Hotkeys text
     hotkeysSizer->Add(new wxStaticText(hotkeysSizer->GetStaticBox(), wxID_ANY, HotkeysText), 1, wxALL | wxEXPAND, 3);
@@ -126,6 +141,8 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     Connect(m_closePathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ClosePath);
     Connect(m_continuePathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ContinuePath);
     Connect(m_clearSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ClearSketch);
+    Connect(m_importSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ImportSketch);
+    Connect(m_exportSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ExportSketch);
 
     m_pathsListBox->Connect(wxEVT_LISTBOX, (wxObjectEventFunction)&SketchAssistPanel::OnListBox_PathSelected, nullptr, this);
     m_pathsListBox->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&SketchAssistPanel::OnListBox_ContextMenu, nullptr, this);
@@ -261,6 +278,41 @@ void SketchAssistPanel::OnButton_ClearSketch(wxCommandEvent& /*event*/)
 
     m_sketchCanvasPanel->ResetHandlesState();
     NotifySketchUpdated();
+}
+
+void SketchAssistPanel::OnButton_ImportSketch(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector(_("Choose xLights Sketch File"), xLightsFrame::CurrentDir, wxEmptyString, wxEmptyString, "Sketch Files (*.xsketch)|*.xsketch", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (!filename.empty()) {
+        wxJSONReader reader;
+        wxFile skfile(filename);
+        wxString json;
+        wxJSONValue data;
+        skfile.ReadAll(&json);
+        reader.Parse(json, &data);
+        skfile.Close();
+        if (data.HasMember("sketchdata") && data["sketchdata"].IsString()) {
+            SetSketchDef(data["sketchdata"].AsString());
+            NotifySketchUpdated();
+        }
+    }
+}
+
+void SketchAssistPanel::OnButton_ExportSketch(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector(_("Save xLights Sketch File"), xLightsFrame::CurrentDir, wxEmptyString, wxEmptyString, "Sketch Files (*.xsketch)|*.xsketch", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (!filename.IsEmpty()) {
+        wxJSONValue data;
+        data["sketchdata"] = m_sketch.toString();
+        data["imagepath"] = m_bgImagePath;
+        data["bitmapalpha"] = m_bitmapAlpha;
+        wxFileOutputStream skfile(filename);
+        wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
+        writer.Write(data, skfile);
+        skfile.Close();
+    }    
 }
 
 void SketchAssistPanel::OnListBox_PathSelected(wxCommandEvent& /*event*/)

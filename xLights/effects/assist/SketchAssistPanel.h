@@ -52,6 +52,8 @@ private:
     void OnButton_ClosePath(wxCommandEvent& event);
     void OnButton_ContinuePath(wxCommandEvent& event);
     void OnButton_ClearSketch(wxCommandEvent& event);
+    void OnButton_ImportSketch(wxCommandEvent& event);
+    void OnButton_ExportSketch(wxCommandEvent& event);
 
     void OnListBox_PathSelected(wxCommandEvent& event);
     void OnListBox_ContextMenu(wxContextMenuEvent& event);
@@ -71,6 +73,9 @@ private:
     wxButton* m_closePathBtn = nullptr;
     wxButton* m_continuePathBtn = nullptr;
     wxButton* m_clearSketchBtn = nullptr;
+    wxButton* m_importSketchBtn = nullptr;
+    wxButton* m_exportSketchBtn = nullptr;
+
     wxListBox* m_pathsListBox = nullptr;
     static long ID_MENU_Delete;
     static long ID_MENU_Reverse;
