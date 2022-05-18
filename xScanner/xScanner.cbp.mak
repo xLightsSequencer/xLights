@@ -40,9 +40,9 @@ OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../bin/xScanner
 
-OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ZCPPOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/TestPreset.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/SerialOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/RenardOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/PixelNetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OutputManager.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/serial.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Output.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OpenPixelNetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OpenDMXOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OPCOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/NullOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorControllers.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorController.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonwriter.o $(OBJDIR_LINUX_DEBUG)/xScannerMain.o $(OBJDIR_LINUX_DEBUG)/xScannerApp.o $(OBJDIR_LINUX_DEBUG)/ScanWork.o $(OBJDIR_LINUX_DEBUG)/MAC.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonval.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonreader.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxSerialOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxEthernetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/Pixlite16.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/Falcon.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/FPP.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/ControllerCaps.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/BaseController.o $(OBJDIR_LINUX_DEBUG)/__/xLights/automation/automation.o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_DEBUG)/__/xLights/TraceLog.o $(OBJDIR_LINUX_DEBUG)/__/xLights/Parallel.o $(OBJDIR_LINUX_DEBUG)/__/xLights/JobPool.o $(OBJDIR_LINUX_DEBUG)/__/xLights/ExportSettings.o $(OBJDIR_LINUX_DEBUG)/__/xLights/Discovery.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LOROutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LOROptimisedOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/KinetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/IPOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/GenericSerialOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/E131Output.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/DMXOutput.o $(OBJDIR_LINUX_DEBUG)/__/common/xlBaseApp.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/DDPOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerSerial.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerNull.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerEthernet.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Controller.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ArtNetOutput.o
+OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OutputManager.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ZCPPOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/TwinklyOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/TestPreset.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/SerialOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/RenardOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/PixelNetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Output.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OpenPixelNetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OpenDMXOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OPCOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/NullOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorControllers.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonwriter.o $(OBJDIR_LINUX_DEBUG)/xScannerMain.o $(OBJDIR_LINUX_DEBUG)/xScannerApp.o $(OBJDIR_LINUX_DEBUG)/ScanWork.o $(OBJDIR_LINUX_DEBUG)/MAC.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorController.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonval.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonreader.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxSerialOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxEthernetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/serial.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/Pixlite16.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/Falcon.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/FPP.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/ControllerCaps.o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/BaseController.o $(OBJDIR_LINUX_DEBUG)/__/xLights/automation/automation.o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_DEBUG)/__/xLights/TraceLog.o $(OBJDIR_LINUX_DEBUG)/__/xLights/Parallel.o $(OBJDIR_LINUX_DEBUG)/__/xLights/JobPool.o $(OBJDIR_LINUX_DEBUG)/__/xLights/ExportSettings.o $(OBJDIR_LINUX_DEBUG)/__/xLights/Discovery.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/DMXOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LOROutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LOROptimisedOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/KinetOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/IPOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/GenericSerialOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/E131Output.o $(OBJDIR_LINUX_DEBUG)/__/common/xlBaseApp.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/DDPOutput.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerSerial.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerNull.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ControllerEthernet.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Controller.o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ArtNetOutput.o
 
-OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ZCPPOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/TestPreset.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/SerialOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/RenardOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/PixelNetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OutputManager.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/serial.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Output.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OpenPixelNetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OpenDMXOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OPCOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/NullOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorControllers.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorController.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonwriter.o $(OBJDIR_LINUX_RELEASE)/xScannerMain.o $(OBJDIR_LINUX_RELEASE)/xScannerApp.o $(OBJDIR_LINUX_RELEASE)/ScanWork.o $(OBJDIR_LINUX_RELEASE)/MAC.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonval.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonreader.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxSerialOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxEthernetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/Pixlite16.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/Falcon.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/FPP.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/ControllerCaps.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/BaseController.o $(OBJDIR_LINUX_RELEASE)/__/xLights/automation/automation.o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_RELEASE)/__/xLights/TraceLog.o $(OBJDIR_LINUX_RELEASE)/__/xLights/Parallel.o $(OBJDIR_LINUX_RELEASE)/__/xLights/JobPool.o $(OBJDIR_LINUX_RELEASE)/__/xLights/ExportSettings.o $(OBJDIR_LINUX_RELEASE)/__/xLights/Discovery.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LOROutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LOROptimisedOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/KinetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/IPOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/GenericSerialOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/E131Output.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/DMXOutput.o $(OBJDIR_LINUX_RELEASE)/__/common/xlBaseApp.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/DDPOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerSerial.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerNull.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerEthernet.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Controller.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ArtNetOutput.o
+OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OutputManager.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ZCPPOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/TwinklyOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/TestPreset.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/SerialOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/RenardOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/PixelNetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Output.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OpenPixelNetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OpenDMXOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OPCOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/NullOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorControllers.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonwriter.o $(OBJDIR_LINUX_RELEASE)/xScannerMain.o $(OBJDIR_LINUX_RELEASE)/xScannerApp.o $(OBJDIR_LINUX_RELEASE)/ScanWork.o $(OBJDIR_LINUX_RELEASE)/MAC.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorController.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonval.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonreader.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxSerialOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxEthernetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/serial.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/Pixlite16.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/Falcon.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/FPP.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/ControllerCaps.o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/BaseController.o $(OBJDIR_LINUX_RELEASE)/__/xLights/automation/automation.o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_RELEASE)/__/xLights/TraceLog.o $(OBJDIR_LINUX_RELEASE)/__/xLights/Parallel.o $(OBJDIR_LINUX_RELEASE)/__/xLights/JobPool.o $(OBJDIR_LINUX_RELEASE)/__/xLights/ExportSettings.o $(OBJDIR_LINUX_RELEASE)/__/xLights/Discovery.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/DMXOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LOROutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LOROptimisedOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/KinetOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/IPOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/GenericSerialOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/E131Output.o $(OBJDIR_LINUX_RELEASE)/__/common/xlBaseApp.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/DDPOutput.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerSerial.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerNull.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ControllerEthernet.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Controller.o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ArtNetOutput.o
 
 all: linux_debug linux_release
 
@@ -65,8 +65,14 @@ linux_debug: before_linux_debug out_linux_debug after_linux_debug
 out_linux_debug: before_linux_debug $(OBJ_LINUX_DEBUG) $(DEP_LINUX_DEBUG)
 	$(LD) $(LIBDIR_LINUX_DEBUG) -o $(OUT_LINUX_DEBUG) $(OBJ_LINUX_DEBUG)  $(LDFLAGS_LINUX_DEBUG) $(LIB_LINUX_DEBUG)
 
+$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OutputManager.o: ../xLights/outputs/OutputManager.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/OutputManager.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OutputManager.o
+
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ZCPPOutput.o: ../xLights/outputs/ZCPPOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/ZCPPOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/ZCPPOutput.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/TwinklyOutput.o: ../xLights/outputs/TwinklyOutput.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/TwinklyOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/TwinklyOutput.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/TestPreset.o: ../xLights/outputs/TestPreset.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/TestPreset.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/TestPreset.o
@@ -79,12 +85,6 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/RenardOutput.o: ../xLights/outputs/Rena
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/PixelNetOutput.o: ../xLights/outputs/PixelNetOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/PixelNetOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/PixelNetOutput.o
-
-$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OutputManager.o: ../xLights/outputs/OutputManager.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/OutputManager.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/OutputManager.o
-
-$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/serial.o: ../xLights/outputs/serial.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/serial.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/serial.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Output.o: ../xLights/outputs/Output.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/Output.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/Output.o
@@ -104,9 +104,6 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/NullOutput.o: ../xLights/outputs/NullOu
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorControllers.o: ../xLights/outputs/LorControllers.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/LorControllers.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorControllers.o
 
-$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorController.o: ../xLights/outputs/LorController.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/LorController.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorController.o
-
 $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonwriter.o: ../xSchedule/wxJSON/jsonwriter.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xSchedule/wxJSON/jsonwriter.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonwriter.o
 
@@ -122,6 +119,9 @@ $(OBJDIR_LINUX_DEBUG)/ScanWork.o: ScanWork.cpp
 $(OBJDIR_LINUX_DEBUG)/MAC.o: MAC.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MAC.cpp -o $(OBJDIR_LINUX_DEBUG)/MAC.o
 
+$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorController.o: ../xLights/outputs/LorController.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/LorController.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LorController.o
+
 $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonval.o: ../xSchedule/wxJSON/jsonval.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xSchedule/wxJSON/jsonval.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxJSON/jsonval.o
 
@@ -136,6 +136,9 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxSerialOutput.o: ../xLights/outputs/x
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxEthernetOutput.o: ../xLights/outputs/xxxEthernetOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/xxxEthernetOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/xxxEthernetOutput.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/serial.o: ../xLights/outputs/serial.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/serial.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/serial.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/Pixlite16.o: ../xLights/controllers/Pixlite16.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/controllers/Pixlite16.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/controllers/Pixlite16.o
@@ -173,6 +176,9 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/ExportSettings.o: ../xLights/ExportSettings.cpp
 $(OBJDIR_LINUX_DEBUG)/__/xLights/Discovery.o: ../xLights/Discovery.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/Discovery.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/Discovery.o
 
+$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/DMXOutput.o: ../xLights/outputs/DMXOutput.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/DMXOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/DMXOutput.o
+
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LOROutput.o: ../xLights/outputs/LOROutput.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/LOROutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/LOROutput.o
 
@@ -190,9 +196,6 @@ $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/GenericSerialOutput.o: ../xLights/outpu
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/E131Output.o: ../xLights/outputs/E131Output.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/E131Output.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/E131Output.o
-
-$(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/DMXOutput.o: ../xLights/outputs/DMXOutput.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/outputs/DMXOutput.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/outputs/DMXOutput.o
 
 $(OBJDIR_LINUX_DEBUG)/__/common/xlBaseApp.o: ../common/xlBaseApp.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../common/xlBaseApp.cpp -o $(OBJDIR_LINUX_DEBUG)/__/common/xlBaseApp.o
@@ -235,8 +238,14 @@ linux_release: before_linux_release out_linux_release after_linux_release
 out_linux_release: before_linux_release $(OBJ_LINUX_RELEASE) $(DEP_LINUX_RELEASE)
 	$(LD) $(LIBDIR_LINUX_RELEASE) -o $(OUT_LINUX_RELEASE) $(OBJ_LINUX_RELEASE)  $(LDFLAGS_LINUX_RELEASE) $(LIB_LINUX_RELEASE)
 
+$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OutputManager.o: ../xLights/outputs/OutputManager.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/OutputManager.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OutputManager.o
+
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ZCPPOutput.o: ../xLights/outputs/ZCPPOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/ZCPPOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ZCPPOutput.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/TwinklyOutput.o: ../xLights/outputs/TwinklyOutput.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/TwinklyOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/TwinklyOutput.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/TestPreset.o: ../xLights/outputs/TestPreset.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/TestPreset.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/TestPreset.o
@@ -249,12 +258,6 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/RenardOutput.o: ../xLights/outputs/Re
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/PixelNetOutput.o: ../xLights/outputs/PixelNetOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/PixelNetOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/PixelNetOutput.o
-
-$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OutputManager.o: ../xLights/outputs/OutputManager.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/OutputManager.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/OutputManager.o
-
-$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/serial.o: ../xLights/outputs/serial.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/serial.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/serial.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Output.o: ../xLights/outputs/Output.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/Output.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Output.o
@@ -274,9 +277,6 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/NullOutput.o: ../xLights/outputs/Null
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorControllers.o: ../xLights/outputs/LorControllers.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/LorControllers.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorControllers.o
 
-$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorController.o: ../xLights/outputs/LorController.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/LorController.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorController.o
-
 $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonwriter.o: ../xSchedule/wxJSON/jsonwriter.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xSchedule/wxJSON/jsonwriter.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonwriter.o
 
@@ -292,6 +292,9 @@ $(OBJDIR_LINUX_RELEASE)/ScanWork.o: ScanWork.cpp
 $(OBJDIR_LINUX_RELEASE)/MAC.o: MAC.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MAC.cpp -o $(OBJDIR_LINUX_RELEASE)/MAC.o
 
+$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorController.o: ../xLights/outputs/LorController.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/LorController.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LorController.o
+
 $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonval.o: ../xSchedule/wxJSON/jsonval.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xSchedule/wxJSON/jsonval.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxJSON/jsonval.o
 
@@ -306,6 +309,9 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxSerialOutput.o: ../xLights/outputs
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxEthernetOutput.o: ../xLights/outputs/xxxEthernetOutput.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/xxxEthernetOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/xxxEthernetOutput.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/serial.o: ../xLights/outputs/serial.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/serial.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/serial.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/Pixlite16.o: ../xLights/controllers/Pixlite16.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/controllers/Pixlite16.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/controllers/Pixlite16.o
@@ -343,6 +349,9 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/ExportSettings.o: ../xLights/ExportSettings.c
 $(OBJDIR_LINUX_RELEASE)/__/xLights/Discovery.o: ../xLights/Discovery.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/Discovery.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/Discovery.o
 
+$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/DMXOutput.o: ../xLights/outputs/DMXOutput.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/DMXOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/DMXOutput.o
+
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LOROutput.o: ../xLights/outputs/LOROutput.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/LOROutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/LOROutput.o
 
@@ -360,9 +369,6 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/GenericSerialOutput.o: ../xLights/out
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/E131Output.o: ../xLights/outputs/E131Output.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/E131Output.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/E131Output.o
-
-$(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/DMXOutput.o: ../xLights/outputs/DMXOutput.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/outputs/DMXOutput.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/DMXOutput.o
 
 $(OBJDIR_LINUX_RELEASE)/__/common/xlBaseApp.o: ../common/xlBaseApp.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../common/xlBaseApp.cpp -o $(OBJDIR_LINUX_RELEASE)/__/common/xlBaseApp.o
@@ -388,25 +394,25 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/ArtNetOutput.o: ../xLights/outputs/Ar
 clean_linux_release: 
 	rm -f $(OBJ_LINUX_RELEASE) $(OUT_LINUX_RELEASE)
 
+../xLights/outputs/OutputManager.cpp: ../xLights/Parallel.h ../xLights/UtilFunctions.h
+
+../xLights/Parallel.h: ../xLights/JobPool.h
+
 ../xLights/outputs/ZCPPOutput.cpp: ../xLights/UtilFunctions.h ../xLights/OutputModelManager.h ../xLights/ExternalHooks.h ../xLights/Discovery.h
 
 ../xLights/ExternalHooks.h: ../xLights/Color.h
 
+../xLights/outputs/TwinklyOutput.cpp: ../xLights/UtilFunctions.h ../xLights/Discovery.h
+
 ../xLights/outputs/TestPreset.cpp: ../xLights/UtilFunctions.h
 
 ../xLights/outputs/SerialOutput.cpp: ../xLights/UtilFunctions.h
-
-../xLights/outputs/OutputManager.cpp: ../xLights/Parallel.h ../xLights/UtilFunctions.h
-
-../xLights/Parallel.h: ../xLights/JobPool.h
 
 ../xLights/outputs/Output.cpp: ../xLights/UtilFunctions.h
 
 ../xLights/outputs/OPCOutput.cpp: ../xLights/UtilFunctions.h
 
 ../xLights/outputs/NullOutput.cpp: ../xLights/OutputModelManager.h
-
-../xLights/outputs/LorController.cpp: ../xLights/UtilFunctions.h
 
 xScannerMain.cpp: xScannerMain.h ../xLights/xLightsVersion.h ../xLights/UtilFunctions.h ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm
 
@@ -415,6 +421,8 @@ xScannerMain.h: ScanWork.h
 xScannerApp.cpp: xScannerApp.h xScannerMain.h ../xLights/xLightsVersion.h
 
 ScanWork.cpp: ScanWork.h ../xLights/Parallel.h xScannerMain.h xScannerApp.h ../xLights/UtilFunctions.h ../xLights/Discovery.h MAC.h
+
+../xLights/outputs/LorController.cpp: ../xLights/UtilFunctions.h
 
 ../xLights/xLightsVersion.cpp: ../xLights/xLightsVersion.h
 

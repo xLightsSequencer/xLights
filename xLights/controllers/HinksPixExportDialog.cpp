@@ -10,6 +10,7 @@
 #include <wx/progdlg.h>
 #include <wx/volume.h>
 #include <wx/wfstream.h>
+#include <wx/artprov.h>
 
 #include "AudioManager.h"
 #include "ControllerCaps.h"

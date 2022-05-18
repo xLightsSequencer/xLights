@@ -10,7 +10,8 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "wx/bitmap.h"
+#include <wx/bitmap.h>
+#include <wx/bmpbndl.h>
 
 class BitmapCache {
 public:

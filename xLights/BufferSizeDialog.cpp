@@ -23,6 +23,7 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/artprov.h>
 #include <wx/filename.h>
 
 #include <log4cpp/Category.hh>

@@ -9,12 +9,13 @@
  **************************************************************/
 
  //(*InternalHeaders(ModelGroupPanel)
- #include <wx/bitmap.h>
- #include <wx/image.h>
- #include <wx/intl.h>
- #include <wx/string.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/string.h>
  //*)
 
+#include <wx/artprov.h>
 #include <wx/xml/xml.h>
 #include <wx/time.h>
 

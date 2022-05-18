@@ -16,6 +16,7 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/artprov.h>
 #include <wx/numdlg.h>
 #include <wx/filedlg.h>
 #include <wx/treectrl.h>

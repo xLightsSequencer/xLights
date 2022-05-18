@@ -27,6 +27,7 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/artprov.h>
 #include <wx/dnd.h>
 #include <wx/valnum.h>
 #include <wx/wfstream.h>

@@ -10,6 +10,7 @@
 
 #include "CustomModelDialog.h"
 
+#include <wx/artprov.h>
 #include <wx/msgdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/graphics.h>

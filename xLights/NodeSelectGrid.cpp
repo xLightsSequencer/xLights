@@ -15,6 +15,7 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/artprov.h>
 #include <wx/tokenzr.h>
 #include <wx/settings.h>
 #include <wx/settings.h>

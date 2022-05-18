@@ -10,6 +10,7 @@
 
 #include "EffectPanelUtils.h"
 
+#include <wx/artprov.h>
 #include <wx/scrolwin.h>
 #include <wx/notebook.h>
 #include <wx/sizer.h>

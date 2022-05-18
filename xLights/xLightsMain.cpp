@@ -12,6 +12,7 @@
 // Copyright: Matt Brown ()
 
 #include <wx/msgdlg.h>
+#include <wx/artprov.h>
 #include <wx/tokenzr.h>
 #include <wx/dir.h>
 #include <wx/textdlg.h>
