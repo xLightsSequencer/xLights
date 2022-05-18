@@ -127,7 +127,7 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
             cnt++;
             int menuID = wxNewId();
             mruf_MenuItem[x] = new wxMenuItem(RecentSequencesMenu, menuID, mruFiles[x]);
-            mruf_MenuItem[x]->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER));
+            mruf_MenuItem[x]->SetBitmap(wxArtProvider::GetBitmapBundle("wxART_FILE_OPEN", wxART_MENU));
             Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMRUSequence);
             RecentSequencesMenu->Append(mruf_MenuItem[x]);
         } else {
@@ -240,7 +240,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     for (size_t i = 0; i < cnt; i++) {
         int menuID = wxNewId();
         mrud_MenuItem[i] = new wxMenuItem(RecentShowFoldersMenu, menuID, mruDirectories[i]);
-        mrud_MenuItem[i]->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER));
+        mrud_MenuItem[i]->SetBitmap(wxArtProvider::GetBitmapBundle("wxART_FOLDER_OPEN", wxART_MENU));
         Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
         RecentShowFoldersMenu->Append(mrud_MenuItem[i]);
     }

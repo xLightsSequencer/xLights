@@ -145,7 +145,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_VALUECURVE_Video_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Video_Speed" member="yes">
-											<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+											<bitmap code="GetValueCurveNotSelectedBitmap()" />
 											<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 											<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 										</object>
@@ -211,7 +211,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_VALUECURVE_Video_CropLeft" subclass="BulkEditValueCurveButton" variable="BitmapButton_Video_CropLeftVC" member="yes">
-													<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+													<bitmap code="GetValueCurveNotSelectedBitmap()" />
 													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 													<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 												</object>
@@ -257,7 +257,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_VALUECURVE_Video_CropRight" subclass="BulkEditValueCurveButton" variable="BitmapButton_Video_CropRightVC" member="yes">
-													<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+													<bitmap code="GetValueCurveNotSelectedBitmap()" />
 													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 													<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 												</object>
@@ -303,7 +303,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_VALUECURVE_Video_CropTop" subclass="BulkEditValueCurveButton" variable="BitmapButton_Video_CropTopVC" member="yes">
-													<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+													<bitmap code="GetValueCurveNotSelectedBitmap()" />
 													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 													<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 												</object>
@@ -348,7 +348,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_VALUECURVE_Video_CropBottom" subclass="BulkEditValueCurveButton" variable="BitmapButton_Video_CropBottomVC" member="yes">
-													<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+													<bitmap code="GetValueCurveNotSelectedBitmap()" />
 													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 													<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 												</object>

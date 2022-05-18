@@ -24,7 +24,7 @@ class ValueCurveButton :
 public:
     ValueCurveButton(wxWindow *parent,
         wxWindowID id,
-        const wxBitmap& bitmap,
+        const wxBitmapBundle& bitmap,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
         long style = wxBU_AUTODRAW,
@@ -40,5 +40,5 @@ public:
     void UpdateBitmap();
     void NotifyChange();
 
-    static wxBitmap disabledBitmap;
+    static wxBitmapBundle disabledBitmap;
 };

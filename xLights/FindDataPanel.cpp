@@ -46,8 +46,6 @@ FindDataPanel::FindDataPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	ListView_FoundEffects = new wxListView(this, ID_LISTVIEW1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTVIEW1"));
 	FlexGridSizer1->Add(ListView_FoundEffects, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&FindDataPanel::OnListView_FoundEffectsItemActivated);
 	//*)

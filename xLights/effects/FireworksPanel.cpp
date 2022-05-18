@@ -14,7 +14,6 @@
 #include "FireworksEffect.h"
 
 //(*InternalHeaders(FireworksPanel)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
@@ -109,7 +108,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl_Fireworks_Explosions = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Fireworks_Explosions, _("16"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Fireworks_Explosions"));
 	TextCtrl_Fireworks_Explosions->SetMaxLength(2);
 	FlexGridSizer73->Add(TextCtrl_Fireworks_Explosions, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_FireworksNumberExplosions = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fireworks_Explosions, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fireworks_Explosions"));
+	BitmapButton_FireworksNumberExplosions = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fireworks_Explosions, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fireworks_Explosions"));
 	BitmapButton_FireworksNumberExplosions->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer73->Add(BitmapButton_FireworksNumberExplosions, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText91 = new wxStaticText(this, ID_STATICTEXT_Fireworks_Count, _("Particles in Explosion"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fireworks_Count"));
@@ -118,13 +117,13 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer1->AddGrowableCol(0);
 	Slider_Fireworks_Count = new BulkEditSlider(this, ID_SLIDER_Fireworks_Count, 50, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_Count"));
 	FlexGridSizer1->Add(Slider_Fireworks_Count, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Fireworks_Count = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_Count, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_Count"));
+	BitmapButton_Fireworks_Count = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_Count, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_Count"));
 	FlexGridSizer1->Add(BitmapButton_Fireworks_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer73->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Fireworks_Count = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Fireworks_Count, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Fireworks_Count"));
 	TextCtrl_Fireworks_Count->SetMaxLength(3);
 	FlexGridSizer73->Add(TextCtrl_Fireworks_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_FireworksCount = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fireworks_Count, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fireworks_Count"));
+	BitmapButton_FireworksCount = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fireworks_Count, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fireworks_Count"));
 	BitmapButton_FireworksCount->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer73->Add(BitmapButton_FireworksCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText93 = new wxStaticText(this, ID_STATICTEXT_Fireworks_Velocity, _("Velocity of Particles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fireworks_Velocity"));
@@ -133,13 +132,13 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer2->AddGrowableCol(0);
 	Slider_Fireworks_Velocity = new BulkEditSlider(this, ID_SLIDER_Fireworks_Velocity, 2, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_Velocity"));
 	FlexGridSizer2->Add(Slider_Fireworks_Velocity, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Fireworks_Velocity = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_Velocity, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_Velocity"));
+	BitmapButton_Fireworks_Velocity = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_Velocity, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_Velocity"));
 	FlexGridSizer2->Add(BitmapButton_Fireworks_Velocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer73->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Fireworks_Velocity = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Fireworks_Velocity, _("2"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Fireworks_Velocity"));
 	TextCtrl_Fireworks_Velocity->SetMaxLength(2);
 	FlexGridSizer73->Add(TextCtrl_Fireworks_Velocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_FireworksVelocity = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity"));
+	BitmapButton_FireworksVelocity = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity"));
 	BitmapButton_FireworksVelocity->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer73->Add(BitmapButton_FireworksVelocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT1, _("X Velocity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
@@ -148,7 +147,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer3->AddGrowableCol(0);
 	Slider_Fireworks_XVelocity = new BulkEditSlider(this, ID_SLIDER_Fireworks_XVelocity, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_XVelocity"));
 	FlexGridSizer3->Add(Slider_Fireworks_XVelocity, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Fireworks_XVelocity = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_XVelocity, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_XVelocity"));
+	BitmapButton_Fireworks_XVelocity = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_XVelocity, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_XVelocity"));
 	FlexGridSizer3->Add(BitmapButton_Fireworks_XVelocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer73->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	TextCtrl1 = new BulkEditTextCtrl(this, ID_TEXTCTRL_Fireworks_XVelocity, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fireworks_XVelocity"));
@@ -161,7 +160,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer4->AddGrowableCol(0);
 	Slider_Fireworks_YVelocity = new BulkEditSlider(this, ID_SLIDER_Fireworks_YVelocity, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_YVelocity"));
 	FlexGridSizer4->Add(Slider_Fireworks_YVelocity, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Fireworks_YVelocity = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_YVelocity, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_YVelocity"));
+	BitmapButton_Fireworks_YVelocity = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_YVelocity, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_YVelocity"));
 	FlexGridSizer4->Add(BitmapButton_Fireworks_YVelocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer73->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	TextCtrl2 = new BulkEditTextCtrl(this, ID_TEXTCTRL_Fireworks_YVelocity, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fireworks_YVelocity"));
@@ -174,7 +173,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer5->AddGrowableCol(0);
 	Slider_Fireworks_XLocation = new BulkEditSlider(this, ID_SLIDER_Fireworks_XLocation, -1, -1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_XLocation"));
 	FlexGridSizer5->Add(Slider_Fireworks_XLocation, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Fireworks_XLocation = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_XLocation, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_XLocation"));
+	BitmapButton_Fireworks_XLocation = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_XLocation, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_XLocation"));
 	FlexGridSizer5->Add(BitmapButton_Fireworks_XLocation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer73->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Fireworks_XLocation = new BulkEditTextCtrl(this, ID_TEXTCTRL_Fireworks_XLocation, _("-1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fireworks_XLocation"));
@@ -187,7 +186,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer6->AddGrowableCol(0);
 	Slider_Fireworks_YLocation = new BulkEditSlider(this, ID_SLIDER_Fireworks_YLocation, -1, -1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_YLocation"));
 	FlexGridSizer6->Add(Slider_Fireworks_YLocation, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Fireworks_YLocation = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_YLocation, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_YLocation"));
+	BitmapButton_Fireworks_YLocation = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_YLocation, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_YLocation"));
 	FlexGridSizer6->Add(BitmapButton_Fireworks_YLocation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer73->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Fireworks_YLocation = new BulkEditTextCtrl(this, ID_TEXTCTRL_Fireworks_YLocation, _("-1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fireworks_YLocation"));
@@ -212,13 +211,13 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer7->AddGrowableCol(0);
 	Slider_Fireworks_Fade = new BulkEditSlider(this, ID_SLIDER_Fireworks_Fade, 50, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_Fade"));
 	FlexGridSizer7->Add(Slider_Fireworks_Fade, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Fireworks_Fade = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_Fade, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_Fade"));
+	BitmapButton_Fireworks_Fade = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_Fade, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_Fade"));
 	FlexGridSizer7->Add(BitmapButton_Fireworks_Fade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer73->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Fireworks_Fade = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Fireworks_Fade, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Fireworks_Fade"));
 	TextCtrl_Fireworks_Fade->SetMaxLength(3);
 	FlexGridSizer73->Add(TextCtrl_Fireworks_Fade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_FireworksFade = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fireworks_Fade, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fireworks_Fade"));
+	BitmapButton_FireworksFade = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fireworks_Fade, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fireworks_Fade"));
 	BitmapButton_FireworksFade->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer73->Add(BitmapButton_FireworksFade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -226,7 +225,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Fireworks_UseMusic->SetValue(false);
 	FlexGridSizer73->Add(CheckBox_Fireworks_UseMusic, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Fireworks_UseMusic = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Fireworks_UseMusic, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Fireworks_UseMusic"));
+	BitmapButton_Fireworks_UseMusic = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Fireworks_UseMusic, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Fireworks_UseMusic"));
 	BitmapButton_Fireworks_UseMusic->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer73->Add(BitmapButton_Fireworks_UseMusic, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Fireworks_Sensitivity, _("Trigger level"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fireworks_Sensitivity"));
@@ -236,7 +235,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl_Fireworks_Sensitivity = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Fireworks_Sensitivity, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Fireworks_Sensitivity"));
 	TextCtrl_Fireworks_Sensitivity->SetMaxLength(3);
 	FlexGridSizer73->Add(TextCtrl_Fireworks_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Fireworks_Sensitivity = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fireworks_Sensitivity, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fireworks_Sensitivity"));
+	BitmapButton_Fireworks_Sensitivity = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fireworks_Sensitivity, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fireworks_Sensitivity"));
 	BitmapButton_Fireworks_Sensitivity->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer73->Add(BitmapButton_Fireworks_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -244,7 +243,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_FireTiming->SetValue(false);
 	FlexGridSizer73->Add(CheckBox_FireTiming, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton1 = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_FIRETIMING, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_FIRETIMING"));
+	BitmapButton1 = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_FIRETIMING, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_FIRETIMING"));
 	BitmapButton1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer73->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT_FIRETIMINGTRACK, _("Timing Track"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_FIRETIMINGTRACK"));
@@ -255,8 +254,6 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer73);
-	FlexGridSizer73->Fit(this);
-	FlexGridSizer73->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Explosions,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Fireworks_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnVCButtonClick);

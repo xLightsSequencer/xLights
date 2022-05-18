@@ -22,7 +22,7 @@
 									<cols>3</cols>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_RANDOMIZE" variable="BitmapButtonRandomize" member="yes">
-											<bitmap stock_id="xlART_DICE_ICON" stock_client="wxART_BUTTON" />
+											<bitmap code=' wxArtProvider::GetBitmapBundle(&quot;xlART_DICE_ICON&quot;, wxART_BUTTON)' />
 											<tooltip>Randomize color and effect settings without a Lock</tooltip>
 											<handler function="OnButtonRandomizeEffectClick" entry="EVT_BUTTON" />
 										</object>
@@ -44,7 +44,7 @@
 											<bitmap code="Off" />
 											<size>13,13</size>
 											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+											<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 											<handler function="OnBitmapButtonSelectedEffectClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

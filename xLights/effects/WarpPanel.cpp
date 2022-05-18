@@ -155,8 +155,6 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	FlexGridSizer4->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHOICE_Warp_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&WarpPanel::OnChoice_Warp_TypeSelect);
 	Connect(ID_CHOICE_Warp_Treatment_APPLYLAST,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&WarpPanel::OnChoice_Warp_TreatmentSelect);

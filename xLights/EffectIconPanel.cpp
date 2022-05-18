@@ -53,8 +53,6 @@ EffectIconPanel::EffectIconPanel(const EffectManager &m, wxWindow* parent,wxWind
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	GridSizer1 = new wxGridSizer(0, 5, 0, 0);
 	SetSizer(GridSizer1);
-	GridSizer1->Fit(this);
-	GridSizer1->SetSizeHints(this);
 
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&EffectIconPanel::OnResize);
 	//*)

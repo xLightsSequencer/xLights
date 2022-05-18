@@ -41,12 +41,8 @@ AssistPanel::AssistPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(0);
 	ScrolledWindowAssist->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(ScrolledWindowAssist);
-	FlexGridSizer2->SetSizeHints(ScrolledWindowAssist);
 	FlexGridSizer1->Add(ScrolledWindowAssist, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 	//*)
 }
 

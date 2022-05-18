@@ -12,11 +12,8 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(StrobePanel)
-#include <wx/artprov.h>
-#include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
-#include <wx/image.h>
 #include <wx/intl.h>
 #include <wx/settings.h>
 #include <wx/sizer.h>
@@ -66,7 +63,7 @@ StrobePanel::StrobePanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl_Number_Strobes = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Number_Strobes, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Number_Strobes"));
 	TextCtrl_Number_Strobes->SetMaxLength(3);
 	FlexGridSizer87->Add(TextCtrl_Number_Strobes, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_NumberStrobes = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Number_Strobes, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Number_Strobes"));
+	BitmapButton_NumberStrobes = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Number_Strobes, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Number_Strobes"));
 	BitmapButton_NumberStrobes->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer87->Add(BitmapButton_NumberStrobes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText111 = new wxStaticText(this, ID_STATICTEXT_Strobe_Duration, _("Strobe Duration"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Strobe_Duration"));
@@ -76,7 +73,7 @@ StrobePanel::StrobePanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl_Strobe_Duration = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Strobe_Duration, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Strobe_Duration"));
 	TextCtrl_Strobe_Duration->SetMaxLength(3);
 	FlexGridSizer87->Add(TextCtrl_Strobe_Duration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_StrobeDuration = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Strobe_Duration, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Strobe_Duration"));
+	BitmapButton_StrobeDuration = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Strobe_Duration, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Strobe_Duration"));
 	BitmapButton_StrobeDuration->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer87->Add(BitmapButton_StrobeDuration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText112 = new wxStaticText(this, ID_STATICTEXT_Strobe_Type, _("Strobe Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Strobe_Type"));
@@ -86,7 +83,7 @@ StrobePanel::StrobePanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl_Strobe_Type = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Strobe_Type, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Strobe_Type"));
 	TextCtrl_Strobe_Type->SetMaxLength(1);
 	FlexGridSizer87->Add(TextCtrl_Strobe_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Strobe_Type = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Strobe_Type, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Strobe_Type"));
+	BitmapButton_Strobe_Type = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Strobe_Type, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Strobe_Type"));
 	BitmapButton_Strobe_Type->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer87->Add(BitmapButton_Strobe_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer87->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -94,13 +91,11 @@ StrobePanel::StrobePanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Strobe_Music->SetValue(false);
 	FlexGridSizer87->Add(CheckBox_Strobe_Music, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer87->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Strobe_Music = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Strobe_Music, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Strobe_Music"));
+	BitmapButton_Strobe_Music = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Strobe_Music, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Strobe_Music"));
 	BitmapButton_Strobe_Music->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer87->Add(BitmapButton_Strobe_Music, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer85->Add(FlexGridSizer87, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer85);
-	FlexGridSizer85->Fit(this);
-	FlexGridSizer85->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_SLIDER_Number_Strobes,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrobePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Strobe_Duration,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrobePanel::OnLockButtonClick);

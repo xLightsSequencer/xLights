@@ -131,7 +131,7 @@ void ValueCurvesPanel::UpdateValueCurveButtons(bool reload) {
         bmb->SetLabel("VALUECURVE_CLEAR");
         bmb->UnsetToolTip();
         bmb->SetValueCurve("VALUECURVE_CLEAR");
-        bmb->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_colorpanel_delete_xpm"))));
+        bmb->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_colorpanel_delete_xpm", wxART_BUTTON));
         added++;
     }
 
@@ -196,16 +196,10 @@ ValueCurvesPanel::ValueCurvesPanel(wxWindow* parent,wxWindowID id,const wxPoint&
 	ScrolledWindow1 = new wxScrolledWindow(Panel_Sizer, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
 	GridSizer1 = new wxGridSizer(0, 3, 0, 0);
 	ScrolledWindow1->SetSizer(GridSizer1);
-	GridSizer1->Fit(ScrolledWindow1);
-	GridSizer1->SetSizeHints(ScrolledWindow1);
 	FlexGridSizer2->Add(ScrolledWindow1, 1, wxALL|wxEXPAND, 5);
 	Panel_Sizer->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(Panel_Sizer);
-	FlexGridSizer2->SetSizeHints(Panel_Sizer);
 	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ValueCurvesPanel::OnResize);
 	//*)

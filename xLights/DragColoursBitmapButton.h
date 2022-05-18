@@ -15,7 +15,7 @@
 class DragColoursBitmapButton : public wxBitmapButton
 {
 public:
-    DragColoursBitmapButton(wxWindow* parent, wxWindowID id, const wxBitmap& bitmap, const wxPoint& pos = wxDefaultPosition,
+    DragColoursBitmapButton(wxWindow* parent, wxWindowID id, const wxBitmapBundle& bitmap, const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize, long style = wxBU_AUTODRAW, const wxValidator& validator = wxDefaultValidator,
         const wxString& name = wxButtonNameStr);
     virtual void DoSetSizeHints(int minW, int minH,
@@ -23,7 +23,7 @@ public:
         int incW, int incH);
     virtual ~DragColoursBitmapButton();
     void OnMouseLeftDown(wxMouseEvent& event);
-    void SetBitmap(const wxBitmap& bmp);
+    void SetBitmap(const wxBitmapBundle& bmp);
     void SetColour(const std::string& colour);
     const std::string& GetColour() const { return _c; }
 

@@ -52,9 +52,9 @@
 															<growablecols>1</growablecols>
 															<object class="sizeritem">
 																<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" subclass="xlSizedBitmapButton" variable="BitmapButton_ShuffleColours" member="yes">
-																	<bitmap stock_id="xlART_colorpanel_switch_xpm" stock_client="wxART_BUTTON" />
+																	<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_switch_xpm&quot;, wxART_BUTTON)' />
 																	<size>24,24</size>
-																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																	<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 																	<handler function="OnBitmapButton_ShuffleColoursClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -72,9 +72,9 @@
 															</object>
 															<object class="sizeritem">
 																<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" subclass="xlSizedBitmapButton" variable="BitmapButton_SavePalette" member="yes">
-																	<bitmap stock_id="xlART_colorpanel_save_xpm" stock_client="wxART_BUTTON" />
+																	<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_save_xpm&quot;, wxART_BUTTON)' />
 																	<size>24,24</size>
-																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																	<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 																	<handler function="OnBitmapButton_SavePaletteClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -97,9 +97,9 @@
 															</object>
 															<object class="sizeritem">
 																<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" subclass="xlSizedBitmapButton" variable="BitmapButton_DeletePalette" member="yes">
-																	<bitmap stock_id="xlART_colorpanel_delete_xpm" stock_client="wxART_BUTTON" />
+																	<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_delete_xpm&quot;, wxART_BUTTON)' />
 																	<size>24,24</size>
-																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																	<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 																	<handler function="OnBitmapButton_DeletePaletteClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -200,8 +200,8 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_SparkleFrequency" subclass="BulkEditValueCurveButton" variable="BitmapButton_SparkleFrequencyVC" member="yes">
-															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<bitmap code="GetValueCurveNotSelectedBitmap()" />
+															<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -223,10 +223,9 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_SparkleFrequency" subclass="xlLockButton" variable="BitmapButton_SparkleFrequency" member="yes">
-													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -254,10 +253,9 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_MusicSparkles" subclass="xlLockButton" variable="BitmapButton_MusicSparkles" member="yes">
-													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -285,8 +283,8 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Brightness" subclass="BulkEditValueCurveButton" variable="BitmapButton_VCBrightness" member="yes">
-															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<bitmap code="GetValueCurveNotSelectedBitmap()" />
+															<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -307,10 +305,9 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Brightness" subclass="xlLockButton" variable="BitmapButton_Brightness" member="yes">
-													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -339,10 +336,9 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Contrast" subclass="xlLockButton" variable="BitmapButton_Contrast" member="yes">
-													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -393,8 +389,8 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_HueAdjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Color_HueAdjust" member="yes">
-															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<bitmap code="GetValueCurveNotSelectedBitmap()" />
+															<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -435,8 +431,8 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_SaturationAdjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Color_SaturationAdjust" member="yes">
-															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<bitmap code="GetValueCurveNotSelectedBitmap()" />
+															<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -477,8 +473,8 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_ValueAdjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Color_ValueAdjust" member="yes">
-															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<bitmap code="GetValueCurveNotSelectedBitmap()" />
+															<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

@@ -271,7 +271,7 @@ public:
     bool IsChecked();
     void SetValue(bool b);
     void Enable(bool b);
-    void SetBitmap(const wxBitmap &bmp);
+    void SetBitmap(const wxBitmapBundle &bmp);
 private:
     wxAuiToolBar *toolbar = nullptr;
     int id;

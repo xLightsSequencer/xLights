@@ -585,69 +585,30 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     }
 }
 
-void AddIcon(wxImageList &list, const std::string &id, double scaleFactor) {
-    wxSize iconSize = list.GetSize();
-    wxBitmap bmp =  wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(id), wxART_LIST, wxDefaultSize);
-    if (bmp.GetSize() != iconSize) {
-        wxImage img = bmp.ConvertToImage();
-#ifdef __WXOSX__
-        img.Rescale(iconSize.x * scaleFactor, iconSize.y * scaleFactor);
-        wxBitmap bmp2 = wxBitmap(img, -1, scaleFactor);
-        wxIcon icon;
-        icon.CopyFromBitmap(bmp2);
-        list.Add(icon);
-#else
-        img.Rescale(iconSize.x, iconSize.y);
-        wxBitmap bmp2 = wxBitmap(img);
-        wxIcon icon;
-        icon.CopyFromBitmap(bmp2);
-        list.Add(icon);
-#endif
-    } else {
-        wxIcon icon;
-        icon.CopyFromBitmap(bmp);
-        list.Add(icon);
-    }
-}
-
 void LayoutPanel::InitImageList()
 {
-    double scaleFactor = GetContentScaleFactor();
-    wxSize iconSize = wxArtProvider::GetSizeHint(wxART_LIST);
-    if ( iconSize == wxDefaultSize ) {
-        iconSize = wxSize(ScaleWithSystemDPI(scaleFactor, 16),
-                          ScaleWithSystemDPI(scaleFactor, 16));
-#if !defined(__WXOSX__) && !defined(__WXMSW__)
-    } else {
-        iconSize = wxSize(ScaleWithSystemDPI(scaleFactor, iconSize.x),
-                          ScaleWithSystemDPI(scaleFactor, iconSize.y));
-#endif
-    }
-
-    m_imageList = new wxImageList(iconSize.x, iconSize.y);
-
-    AddIcon(*m_imageList, "wxART_NORMAL_FILE", scaleFactor);
-    AddIcon(*m_imageList, "xlART_GROUP_CLOSED", scaleFactor);
-    AddIcon(*m_imageList, "xlART_GROUP_OPEN", scaleFactor);
-    AddIcon(*m_imageList, "xlART_ARCH_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_CANE_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_CIRCLE_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_CHANNELBLOCK_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_CUBE_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_CUSTOM_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_DMX_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_ICICLE_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_IMAGE_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_LINE_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_MATRIX_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_POLY_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_SPHERE_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_SPINNER_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_STAR_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_SUBMODEL_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_TREE_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_WINDOW_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_WREATH_ICON", scaleFactor);
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("wxART_NORMAL_FILE", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_GROUP_CLOSED", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_GROUP_OPEN", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_ARCH_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CANE_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CIRCLE_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CHANNELBLOCK_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CUBE_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CUSTOM_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_DMX_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_ICICLE_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_IMAGE_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_LINE_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_MATRIX_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_POLY_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SPHERE_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SPINNER_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_STAR_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SUBMODEL_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_TREE_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_WINDOW_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_WREATH_ICON", wxART_LIST));
 }
 
 wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
@@ -656,7 +617,7 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
         tree = new wxTreeListCtrl(panel, ID_TREELISTVIEW_MODELS,
                                   wxDefaultPosition, wxDefaultSize,
                                   style, "ID_TREELISTVIEW_MODELS");
-    tree->SetImageList(m_imageList);
+    tree->SetImages(m_imageList);
 
     tree->AppendColumn(MODELCOLNAME,
                        wxCOL_WIDTH_AUTOSIZE,
@@ -838,7 +799,6 @@ LayoutPanel::~LayoutPanel()
     }
     TreeListViewModels->SetItemComparator(nullptr);
     TreeListViewModels->DeleteAllItems();
-    delete m_imageList;
 	//(*Destroy(LayoutPanel)
 	//*)
 }

@@ -27,14 +27,14 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
 
   b) Select a base directory to place all your souce code in. From now on this is represented as <basedir>
 
-  c) Download and build wxWidgets for Windows (currently using a patched version of 3.1.5)
+  c) Download and build wxWidgets for Windows (currently using a patched version of 3.1.6)
 
-    git clone  --recurse-submodules -b xlights_2021.31b https://github.com/xLightsSequencer/wxWidgets
+    git clone  --recurse-submodules -b xlights_2022.11 https://github.com/xLightsSequencer/wxWidgets
 
      1) Also if you have built wxWidgets before you should delete the following 2 folders
         - <basedir>\wxWidgets\build\msw\vc_mswuddll
         - <basedir>\wxWidgets\build\msw\vc_mswudll
-     2) Open the project <basedir>\wxWidgets\build\msw\vc16.sln
+     2) Open the project <basedir>\wxWidgets\build\msw\vc17.sln
      3) Also if you have built wxWidgets64 before you should delete the following 2 folders (if they exist) to force
         a rebuild using new configuration
         - wxWidgets\lib\vc_x64_dll

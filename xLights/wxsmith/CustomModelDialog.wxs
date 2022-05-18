@@ -112,7 +112,7 @@
 							<cols>7</cols>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_CUT" variable="BitmapButtonCustomCut" member="yes">
-									<bitmap stock_id="wxART_CUT" />
+									<bitmap code='wxArtProvider::GetBitmapBundle(&quot;wxART_CUT&quot;, wxART_BUTTON)' />
 									<tooltip>Cut</tooltip>
 									<handler function="OnBitmapButtonCustomCutClick" entry="EVT_BUTTON" />
 								</object>
@@ -122,7 +122,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_COPY" variable="BitmapButtonCustomCopy" member="yes">
-									<bitmap stock_id="wxART_COPY" />
+									<bitmap code='wxArtProvider::GetBitmapBundle(&quot;wxART_COPY&quot;, wxART_BUTTON)' />
 									<default>1</default>
 									<tooltip>Copy</tooltip>
 									<handler function="OnBitmapButtonCustomCopyClick" entry="EVT_BUTTON" />
@@ -133,7 +133,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_PASTE" variable="BitmapButtonCustomPaste" member="yes">
-									<bitmap stock_id="wxART_PASTE" />
+									<bitmap code='wxArtProvider::GetBitmapBundle(&quot;wxART_PASTE&quot;, wxART_BUTTON)' />
 									<default>1</default>
 									<tooltip>Paste</tooltip>
 									<handler function="OnBitmapButtonCustomPasteClick" entry="EVT_BUTTON" />
@@ -201,7 +201,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_BKGRD" variable="BitmapButtonCustomBkgrd" member="yes">
-											<bitmap stock_id="wxART_FIND" />
+											<bitmap code='wxArtProvider::GetBitmapBundle(&quot;wxART_FIND&quot;, wxART_BUTTON)' />
 											<default>1</default>
 											<minsize>24,-1</minsize>
 											<handler function="OnBitmapButtonCustomBkgrdClick" entry="EVT_BUTTON" />
@@ -346,7 +346,6 @@
 					<object class="sizeritem">
 						<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 							<sashpos>30</sashpos>
-							<minpanesize>0</minpanesize>
 							<object class="wxPanel" name="ID_PANEL2" variable="Panel11" member="yes">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
 									<cols>1</cols>

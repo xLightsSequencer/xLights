@@ -17,7 +17,7 @@
 							<value>The Kaleidoscope effect distorts the pixels in the layers below it. The Canvas option in Layer Blending must be enabled for it to work.</value>
 							<size>99,32d</size>
 							<enabled>0</enabled>
-							<style>wxTE_NO_VSCROLL|wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER</style>
+							<style>wxTE_NO_VSCROLL|wxTE_MULTILINE|wxTE_READONLY|wxBORDER_NONE</style>
 						</object>
 						<flag>wxEXPAND</flag>
 						<border>2</border>
@@ -83,7 +83,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Kaleidoscope_X" subclass="BulkEditValueCurveButton" variable="BitmapButton_Kaleidoscope_X" member="yes">
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -125,7 +125,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Kaleidoscope_Y" subclass="BulkEditValueCurveButton" variable="BitmapButton_Kaleidoscope_Y" member="yes">
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -168,7 +168,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Kaleidoscope_Size" subclass="BulkEditValueCurveButton" variable="BitmapButton_Kaleidoscope_Size" member="yes">
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -210,7 +210,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Kaleidoscope_Rotation" subclass="BulkEditValueCurveButton" variable="BitmapButton_Kaleidoscope_Rotation" member="yes">
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

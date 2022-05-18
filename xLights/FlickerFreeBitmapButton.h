@@ -17,7 +17,7 @@ class FlickerFreeBitmapButton : public wxBitmapButton
     public:
          FlickerFreeBitmapButton(wxWindow* parent,
                                  wxWindowID id,
-                                 const wxBitmap& bitmap,
+                                 const wxBitmapBundle& bitmap,
                                  const wxPoint& pos,
                                  const wxSize& size = wxDefaultSize,
                                  long style = 0,
