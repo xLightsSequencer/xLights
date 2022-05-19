@@ -17,6 +17,11 @@
 #include <wx/filepicker.h>
 #include <wx/wfstream.h>
 
+//included in wx
+#include "../../3rdparty/nanosvg/src/nanosvg.h"
+
+#include <cmath>
+
 namespace
 {
     const wxString imgSelect("Select an image file");
@@ -40,7 +45,7 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     wxPanel(parent, id, pos, size)
 {
     /*
- 
+
     mainSizer
      \
       pathUISizer (canvas, bg-image controls, and path/sketch controls)
@@ -56,10 +61,12 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
       |
       sketchUISizer (hotkeys text and paths listbox)
       |\
-      | hotkeysSizer (Canvas hotkeys)
+      | pathsSizer (m_pathsListBox)
       |
       |\
-      | pathsSizer (m_pathsListBox)
+      | hotkeysSizer (Canvas hotkeys)
+      |
+
 
     */
     auto mainSizer = new wxFlexGridSizer(3, 1, 0, 0);
@@ -100,6 +107,7 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     m_clearSketchBtn = new wxButton(this, wxID_ANY, "Clear");
     m_importSketchBtn = new wxButton(this, wxID_ANY, "Import");
     m_exportSketchBtn = new wxButton(this, wxID_ANY, "Export");
+    m_importSVGBtn = new wxButton(this, wxID_ANY, "Import SVG");
 
     auto pathCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Path");
     pathCtrlsSizer->Add(m_startPathBtn, 1, wxALL | wxEXPAND, 3);
@@ -111,6 +119,7 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
 
     importCtrlsSizer->Add(m_importSketchBtn, 1, wxALL | wxEXPAND, 3);
     importCtrlsSizer->Add(m_exportSketchBtn, 1, wxALL | wxEXPAND, 3);
+    importCtrlsSizer->Add(m_importSVGBtn, 1, wxALL | wxEXPAND, 3);
 
     pathSketchCtrlsSizer->AddGrowableCol(2);
     pathSketchCtrlsSizer->Add(pathCtrlsSizer, 1, wxALL, 2);
@@ -124,8 +133,8 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     m_pathsListBox = new wxListBox(this, wxID_ANY);
     pathsSizer->Add(m_pathsListBox, 1, wxALL | wxEXPAND, 3);
 
-    sketchUISizer->Add(hotkeysSizer, 1, wxALL | wxEXPAND);
     sketchUISizer->Add(pathsSizer, 1, wxALL | wxEXPAND, 5);
+    sketchUISizer->Add(hotkeysSizer, 1, wxALL | wxEXPAND);
 
     pathUISizer->Add(canvasFrame, 1, wxALL | wxEXPAND, 5);
     pathUISizer->Add(pathSketchCtrlsSizer, 1, wxALL | wxEXPAND, 5);
@@ -144,6 +153,7 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     Connect(m_clearSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ClearSketch);
     Connect(m_importSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ImportSketch);
     Connect(m_exportSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ExportSketch);
+    Connect(m_importSVGBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ImportSVG);
 
     m_pathsListBox->Connect(wxEVT_LISTBOX, (wxObjectEventFunction)&SketchAssistPanel::OnListBox_PathSelected, nullptr, this);
     m_pathsListBox->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&SketchAssistPanel::OnListBox_ContextMenu, nullptr, this);
@@ -326,7 +336,55 @@ void SketchAssistPanel::OnButton_ExportSketch(wxCommandEvent& event)
         wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
         writer.Write(data, skfile);
         skfile.Close();
-    }    
+    }
+}
+
+void SketchAssistPanel::OnButton_ImportSVG(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector(_("Choose SVG File"), xLightsFrame::CurrentDir, wxEmptyString, wxEmptyString, "SVG Files (*.svg)|*.svg", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (!filename.IsEmpty()) {
+        m_sketch = SketchEffectSketch();
+
+        //100px scaling seems to scale the SVG parser right
+        auto* image = nsvgParseFromFile(filename.ToStdString().c_str(), "px", 100);
+
+        if ( nullptr == image) {
+            DisplayError(wxString::Format("Could not open SVG image %s.", filename).ToStdString());
+            return;
+        }
+
+        float h = image->height;
+        float w = image->width;
+        for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
+            for (NSVGpath* path = shape->paths; path != nullptr; path = path->next) {
+                auto skpath = std::make_shared<SketchEffectPath>();
+                for (int i = 0; i < path->npts - 1; i += 3) {
+                    float* p = &path->pts[i * 2];
+                    //sketch points are 0-1, need to scale from pixel xy
+                    //1-h, everything was upside down for some reason
+                    wxPoint2DDouble start(p[0] / w, 1 - (p[1] / h));
+                    wxPoint2DDouble cp1(p[2] / w, 1 - (p[3] / h));
+                    wxPoint2DDouble cp2(p[4] / w, 1 - (p[5] / h));
+                    wxPoint2DDouble end(p[6] / w, 1 - (p[7] / h));
+                    if (areCollinear(start,cp1,end, 0.001) && areCollinear(start,cp2,end, 0.001)) {//check if its a straight line
+                        skpath->appendSegment(std::make_shared<SketchLine>(start, end));
+                    } else if (areSame(end.m_x, cp2.m_x, 0.001) && areSame(end.m_y, cp2.m_y, 0.001)) { // check if control points2 is the end
+                        skpath->appendSegment(std::make_shared<SketchQuadraticBezier>(start, cp1, end));
+                    } else {
+                        skpath->appendSegment(std::make_shared<SketchCubicBezier>(start, cp1, cp2, end));
+                    }
+                }
+                m_sketch.appendPath(skpath);
+            }
+        }
+        // Delete svg pointer
+        nsvgDelete(image);
+        //redraw screen
+        m_sketchCanvasPanel->ResetHandlesState();
+        populatePathListBoxFromSketch();
+        Refresh();
+        NotifySketchUpdated();
+    }
 }
 
 void SketchAssistPanel::OnListBox_PathSelected(wxCommandEvent& /*event*/)
@@ -411,4 +469,20 @@ bool SketchAssistPanel::canContinuePath() const
         return false;
     auto paths(m_sketch.paths());
     return !paths[index]->isClosed();
+}
+
+bool SketchAssistPanel::areSame(double a, double b, float eps) const
+{
+    return std::fabs(a - b) < eps;
+}
+
+bool SketchAssistPanel::areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, float eps) const
+{
+    //use dot product to determine if point are in a strait line
+    auto [a_x, a_y] = a;
+    auto [b_x, b_y] = b;
+    auto [c_x, c_y] = c;
+
+    auto test = (b_x - a_x) * (c_y - a_y) - (c_x - a_x) * (b_y - a_y);
+    return std::abs(test) < eps;
 }

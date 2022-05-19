@@ -54,6 +54,7 @@ private:
     void OnButton_ClearSketch(wxCommandEvent& event);
     void OnButton_ImportSketch(wxCommandEvent& event);
     void OnButton_ExportSketch(wxCommandEvent& event);
+    void OnButton_ImportSVG(wxCommandEvent& event);
 
     void OnListBox_PathSelected(wxCommandEvent& event);
     void OnListBox_ContextMenu(wxContextMenuEvent& event);
@@ -62,6 +63,9 @@ private:
     void updateBgImage();
     void populatePathListBoxFromSketch();
     bool canContinuePath() const;
+
+    bool areSame(double a, double b, float eps) const;
+    bool areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, float eps) const;
 
     std::string m_sketchDef;
     SketchEffectSketch m_sketch;
@@ -75,6 +79,7 @@ private:
     wxButton* m_clearSketchBtn = nullptr;
     wxButton* m_importSketchBtn = nullptr;
     wxButton* m_exportSketchBtn = nullptr;
+    wxButton* m_importSVGBtn = nullptr;
 
     wxListBox* m_pathsListBox = nullptr;
     static long ID_MENU_Delete;
