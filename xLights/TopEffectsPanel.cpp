@@ -82,7 +82,7 @@ TopEffectsPanel::~TopEffectsPanel()
 }
 
 
-void TopEffectsPanel::SetDragIconBuffer(const wxBitmap &buffer)
+void TopEffectsPanel::SetDragIconBuffer(const wxBitmapBundle &buffer)
 {
     BitmapButtonSelectedEffect->SetBitmap(buffer);
 }

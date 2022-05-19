@@ -49,29 +49,8 @@ RenderableEffect::~RenderableEffect()
     //dtor
 }
 
-const wxBitmap &RenderableEffect::GetEffectIcon(int size, bool exact) const {
-    if (exact || GetSystemContentScaleFactor() < 1.5) {
-        if (size <= 16) {
-            return icon16e;
-        } else if (size <= 24) {
-            return icon24e;
-        } else if (size <= 32) {
-            return icon32e;
-        } else if (size <= 48) {
-            return icon48e;
-        }
-    }
-    if (size <= 16) {
-        return icon16;
-    } else if (size <= 24) {
-        return icon24;
-    } else if (size <= 32) {
-        return icon32;
-    } else if (size <= 48) {
-        return icon48;
-    } else {
-        return icon64;
-    }
+const wxBitmapBundle &RenderableEffect::GetEffectIcon() const {
+    return icon;
 }
 
 
@@ -112,36 +91,31 @@ void AdjustAndSetBitmap(int size, wxImage &image, wxImage &dbl, wxBitmap&bitmap)
         bitmap = wxBitmap(scaled);
     }
 }
-
-void AdjustAndSetBitmap(int size, wxImage &image, wxBitmap&bitmap) {
-    if (image.GetHeight() == size) {
-        bitmap = wxBitmap(image);
-    } else {
-        wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
-        bitmap = wxBitmap(scaled);
-    }
-}
-
 void RenderableEffect::initBitmaps(const char **data16,
                                    const char **data24,
                                    const char **data32,
                                    const char **data48,
                                    const char **data64) {
-    wxImage image16(data16);
-    wxImage image24(data24);
-    wxImage image32(data32);
-    wxImage image48(data48);
-    wxImage image64(data64);
-    AdjustAndSetBitmap(16, image16, image32, icon16);
-    AdjustAndSetBitmap(24, image24, image48, icon24);
-    AdjustAndSetBitmap(32, image32, image64, icon32);
-    AdjustAndSetBitmap(48, image48, icon48);
-    AdjustAndSetBitmap(64, image64, icon64);
-    AdjustAndSetBitmap(16, image16, icon16e);
-    AdjustAndSetBitmap(24, image24, icon24e);
-    AdjustAndSetBitmap(32, image32, icon32e);
-    AdjustAndSetBitmap(48, image48, icon48e);
-    AdjustAndSetBitmap(48, image64, icon64e);
+    wxVector<wxBitmap> bitmaps;
+    wxImage image(data16);
+    if (image.GetHeight() != 16) {
+        wxImage scaled = image.Scale(16, 16, wxIMAGE_QUALITY_HIGH);
+        bitmaps.push_back(wxBitmap(scaled));
+    }
+    bitmaps.push_back(wxBitmap(image));
+    if (data24 != data16) {
+        bitmaps.push_back(wxBitmap(data24));
+    }
+    if (data32 != data24) {
+        bitmaps.push_back(wxBitmap(data32));
+    }
+    if (data48 != data32) {
+        bitmaps.push_back(wxBitmap(data48));
+    }
+    if (data64 != data48) {
+        bitmaps.push_back(wxBitmap(data64));
+    }
+    icon = wxBitmapBundle::FromBitmaps(bitmaps);
 }
 
 // return true if version string is older than compare string

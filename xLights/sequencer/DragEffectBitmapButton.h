@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <wx/wx.h>
+#include <wx/bmpbndl.h>
 
 class RenderableEffect;
 
@@ -27,7 +28,7 @@ public:
         int incW, int incH);
     virtual ~DragEffectBitmapButton();
     void OnMouseLeftDown(wxMouseEvent& event);
-    void SetBitmap(const wxBitmap& bmp);
+    void SetBitmap(const wxBitmapBundle& bmp);
 
     void SetEffect(RenderableEffect* effect, int sz = 16);
 

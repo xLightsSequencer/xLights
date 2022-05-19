@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "sequencer/DragEffectBitmapButton.h"
+#include <wx/bmpbndl.h>
 
 //(*Headers(TopEffectsPanel)
 #include <wx/bmpbuttn.h>
@@ -31,7 +32,7 @@ class TopEffectsPanel: public wxPanel
 		TopEffectsPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~TopEffectsPanel();
 
-		void SetDragIconBuffer(const wxBitmap &buffer);
+		void SetDragIconBuffer(const wxBitmapBundle &buffer);
 
 		//(*Declarations(TopEffectsPanel)
 		DragEffectBitmapButton* BitmapButtonSelectedEffect;

@@ -1082,8 +1082,6 @@ void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchB
         items.push_back(colorsButton);
         
         for (auto it = effectManager.begin(); it != effectManager.end(); ++it) {
-            wxBitmap ico = (*it)->GetEffectIcon(16, false);
-            
             wxButton *b = new wxButton(touchBarSupport.GetControlParent(), wxID_ANY,
                                        "",
                                        wxDefaultPosition,
@@ -1091,7 +1089,7 @@ void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchB
                                        0,
                                        wxDefaultValidator,
                                        (*it)->Name());
-            b->SetBitmap(ico);
+            b->SetBitmap((*it)->GetEffectIcon());
             b->Connect(wxEVT_BUTTON, (wxObjectEventFunction)&MainSequencer::TouchButtonEvent, nullptr, this);
             
             items.push_back(new wxControlTouchBarItem(b));

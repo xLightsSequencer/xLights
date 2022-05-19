@@ -1207,7 +1207,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
     }
     if (event.updateUI || event.updateBtn) {
         RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
-        effectsPnl->SetDragIconBuffer(eff->GetEffectIcon(16));
+        effectsPnl->SetDragIconBuffer(eff->GetEffectIcon());
         effectsPnl->BitmapButtonSelectedEffect->SetEffect(eff, mIconSize);
         if( effect != nullptr ) {
             UpdateEffectAssistWindow(effect, eff);
