@@ -163,9 +163,11 @@ AssistPanel* SketchEffect::GetAssistPanel(wxWindow* parent, xLightsFrame* /*xl_f
 {
     if (m_panel == nullptr)
         return nullptr;
-    auto lambda = [this](const std::string& sketchDef) {
+    auto lambda = [this](const std::string& sketchDef, const std::string& picPath, unsigned char alpha) {
         if (m_panel != nullptr) {
             m_panel->TextCtrl_SketchDef->SetValue(sketchDef);
+            m_panel->FilePicker_SketchBackground->SetFileName(wxFileName(picPath));
+            SetSliderValue(m_panel->Slider_SketchBackgroundOpacity, alpha);
         }
     };
 

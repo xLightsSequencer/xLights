@@ -5,6 +5,7 @@
 #include "../../xSchedule/wxJSON/jsonwriter.h"
 #include "UtilFunctions.h"
 #include <xLightsMain.h>
+#include "../../ExternalHooks.h"
 
 #include <wx/button.h>
 #include <wx/listbox.h>
@@ -180,7 +181,7 @@ void SketchAssistPanel::NotifySketchUpdated()
 {
     m_sketchDef = m_sketch.toString();
     if (m_sketchUpdateCB != nullptr)
-        m_sketchUpdateCB(m_sketchDef);
+        m_sketchUpdateCB(m_sketchDef, m_bgImagePath, m_bitmapAlpha);
 }
 
 void SketchAssistPanel::NotifySketchPathsUpdated()
@@ -292,6 +293,19 @@ void SketchAssistPanel::OnButton_ImportSketch(wxCommandEvent& event)
         skfile.ReadAll(&json);
         reader.Parse(json, &data);
         skfile.Close();
+
+        wxString bgImagePath;
+        unsigned char bitmapAlpha = m_bitmapAlpha;
+
+        if (data.HasMember("imagepath") && data["imagepath"].IsString()) {
+            bgImagePath = data["imagepath"].AsString();
+        }
+        if (data.HasMember("bitmapalpha") && data["bitmapalpha"].AsInt()) {
+            bitmapAlpha = data["bitmapalpha"].AsInt();
+        }
+        if (bgImagePath != "" && FileExists(bgImagePath)) {
+            UpdateSketchBackground(bgImagePath, bitmapAlpha);
+        }
         if (data.HasMember("sketchdata") && data["sketchdata"].IsString()) {
             SetSketchDef(data["sketchdata"].AsString());
             NotifySketchUpdated();

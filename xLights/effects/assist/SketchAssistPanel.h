@@ -19,7 +19,7 @@ public:
     // Effect panels are static (a single panel for the lifetime of the app) but
     // assist panels are not... so it seems like it should be safe for an assist
     // panel to reference an effect panel via a lambda 'this' capture
-    typedef std::function<void(const std::string&)> SketchUpdateCallback;
+    typedef std::function<void(const std::string&, const std::string&, unsigned char)> SketchUpdateCallback;
 
     SketchAssistPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 
