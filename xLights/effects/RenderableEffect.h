@@ -46,7 +46,7 @@ class RenderableEffect
 
         virtual const std::string &ToolTip() const { return tooltip;};
 
-        virtual const wxBitmapBundle &GetEffectIcon() const;
+        virtual const wxBitmapBundle &GetEffectIcon(int defSize = 16) const;
         virtual int GetId() const { return id; }
         virtual int GetColorSupportedCount() const { return -1; } // -1 is no limit
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const { return false; }
@@ -115,6 +115,9 @@ class RenderableEffect
         int id;
         xlEffectPanel *panel;
         SequenceElements *mSequenceElements;
-        wxBitmapBundle icon;
+        wxBitmapBundle icon16;
+        wxBitmapBundle icon24;
+        wxBitmapBundle icon32;
+        wxBitmapBundle icon48;
     private:
 };
