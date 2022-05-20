@@ -17,8 +17,8 @@
 #include <wx/filepicker.h>
 #include <wx/wfstream.h>
 
-//included in wx
-#include "../3rdparty/nanosvg/src/nanosvg.h"
+//in includes dir
+#include "nanosvg/src/nanosvg.h"
 
 #include <cmath>
 
