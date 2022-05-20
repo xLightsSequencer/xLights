@@ -204,6 +204,7 @@ const long DMXPanel::ID_PANEL3 = wxNewId();
 const long DMXPanel::ID_NOTEBOOK1 = wxNewId();
 const long DMXPanel::ID_BUTTON1 = wxNewId();
 const long DMXPanel::ID_BUTTON2 = wxNewId();
+const long DMXPanel::ID_BUTTON_LOAD_STATE = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(DMXPanel,wxPanel)
@@ -344,6 +345,8 @@ DMXPanel::DMXPanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl_DMX10 = new BulkEditTextCtrl(ChannelPanel1, IDD_TEXTCTRL_DMX10, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel1,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX10"));
 	FlexGridSizer_Panel1->Add(TextCtrl_DMX10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	ChannelPanel1->SetSizer(FlexGridSizer_Panel1);
+	FlexGridSizer_Panel1->Fit(ChannelPanel1);
+	FlexGridSizer_Panel1->SetSizeHints(ChannelPanel1);
 	ChannelPanel2 = new wxPanel(Notebook7, ID_PANEL28, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL28"));
 	FlexGridSizer_Panel2 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer_Panel2->AddGrowableCol(1);
@@ -428,6 +431,8 @@ DMXPanel::DMXPanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl_DMX20 = new BulkEditTextCtrl(ChannelPanel2, IDD_TEXTCTRL_DMX20, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel2,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX20"));
 	FlexGridSizer_Panel2->Add(TextCtrl_DMX20, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	ChannelPanel2->SetSizer(FlexGridSizer_Panel2);
+	FlexGridSizer_Panel2->Fit(ChannelPanel2);
+	FlexGridSizer_Panel2->SetSizeHints(ChannelPanel2);
 	ChannelPanel3 = new wxPanel(Notebook7, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
@@ -512,6 +517,8 @@ DMXPanel::DMXPanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl_DMX30 = new BulkEditTextCtrl(ChannelPanel3, IDD_TEXTCTRL_DMX30, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel3,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX30"));
 	FlexGridSizer1->Add(TextCtrl_DMX30, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	ChannelPanel3->SetSizer(FlexGridSizer1);
+	FlexGridSizer1->Fit(ChannelPanel3);
+	FlexGridSizer1->SetSizeHints(ChannelPanel3);
 	ChannelPanel4 = new wxPanel(Notebook7, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
@@ -596,6 +603,8 @@ DMXPanel::DMXPanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl_DMX40 = new BulkEditTextCtrl(ChannelPanel4, IDD_TEXTCTRL_DMX40, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel4,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX40"));
 	FlexGridSizer2->Add(TextCtrl_DMX40, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	ChannelPanel4->SetSizer(FlexGridSizer2);
+	FlexGridSizer2->Fit(ChannelPanel4);
+	FlexGridSizer2->SetSizeHints(ChannelPanel4);
 	Notebook7->AddPage(ChannelPanel1, _("Channels 1-10"), false);
 	Notebook7->AddPage(ChannelPanel2, _("Channels 11-20"), false);
 	Notebook7->AddPage(ChannelPanel3, _("Channels 21-30"), false);
@@ -606,8 +615,12 @@ DMXPanel::DMXPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer3->Add(ButtonRemap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_SaveAsState = new wxButton(this, ID_BUTTON2, _("Save As State"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer3->Add(Button_SaveAsState, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Load_State = new wxButton(this, ID_BUTTON_LOAD_STATE, _("Load From State"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LOAD_STATE"));
+	FlexGridSizer3->Add(Button_Load_State, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer_Main->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer_Main);
+	FlexGridSizer_Main->Fit(this);
+	FlexGridSizer_Main->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_DMX1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_DMX2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPanel::OnVCButtonClick);
@@ -651,6 +664,7 @@ DMXPanel::DMXPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_VALUECURVE_DMX40,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPanel::OnVCButtonClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPanel::OnButtonRemapClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPanel::OnButton_SaveAsStateClick);
+	Connect(ID_BUTTON_LOAD_STATE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPanel::OnButton_Load_StateClick);
 	//*)
     SetName("ID_PANEL_DMX");
 
@@ -894,7 +908,7 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 				}
 			}
 		}
-		else 			{
+		else {
 			stateName = "\x10";
 		}
 	}
@@ -932,7 +946,7 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 				auto val = wxString::Format("#%02x%02x%02x", slider->GetValue(), slider->GetValue(), slider->GetValue());
 				n->AddAttribute(attr, val);
 			}
-			else 				{
+			else {
 				auto attr = wxString::Format("s%d-Name", i + 1);
 				n->AddAttribute(attr, "");
 				attr = wxString::Format("s%d", i + 1);
@@ -948,4 +962,53 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 		}
 		wxPostEvent(xLightsApp::GetFrame(), wxCommandEvent(EVT_RGBEFFECTS_CHANGED));
 	}
+}
+
+void DMXPanel::OnButton_Load_StateClick(wxCommandEvent& event)
+{
+    uint32_t maxChannels{40};
+
+    auto models = GetActiveModels();
+    if (models.size() < 1) {
+       return;
+    }
+
+    auto m = models.front();
+    if (nullptr == m) {
+       return;
+    }
+    maxChannels = std::min(maxChannels, m->GetChanCount());
+    wxArrayString choices;
+    std::transform(m->stateInfo.begin(), m->stateInfo.end(), std::back_inserter(choices),
+                   [](auto const& key) { return key.first; });
+    wxSingleChoiceDialog dlg(this, "Select State", "Select State", choices);
+
+    if (dlg.ShowModal() != wxID_OK) {
+       return;
+    }
+    std::string stateName = dlg.GetStringSelection();
+    auto states = m->stateInfo.at(stateName);
+
+    if (states["CustomColors"] != "1" || states["Type"] != "SingleNode") {
+        DisplayError("State does not have Force Custom Colors or Single Node Type");
+       return;
+    }
+
+    for (int i = 0; i< maxChannels; ++i) {
+       auto attr = wxString::Format("s%d-Name", i + 1);
+       if(states.count(attr) != 0) {
+            auto colattr = wxString::Format("s%d-Color", i + 1);
+            xlColor dmxValue(states[colattr]);
+            wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i + 1);
+            wxSlider* slider = (wxSlider*)(this->FindWindowByName(slider_ctrl));
+            wxASSERT(slider != nullptr);
+            slider->SetValue(dmxValue.red);
+
+            wxString text_ctrl = wxString::Format("IDD_TEXTCTRL_DMX%d", i + 1);
+            wxTextCtrl* text = (wxTextCtrl*)(this->FindWindowByName(text_ctrl));
+            wxASSERT(text != nullptr);
+            text->SetValue(wxString::Format("%d", dmxValue.red));
+       }
+    }
+    FireChangeEvent();
 }

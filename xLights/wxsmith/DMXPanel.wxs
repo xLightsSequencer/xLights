@@ -1509,6 +1509,15 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_LOAD_STATE" variable="Button_Load_State" member="yes">
+							<label>Load From State</label>
+							<handler function="OnButton_Load_StateClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
