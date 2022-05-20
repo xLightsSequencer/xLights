@@ -18,7 +18,7 @@
 #include <wx/wfstream.h>
 
 //included in wx
-#include "../../3rdparty/nanosvg/src/nanosvg.h"
+#include "../3rdparty/nanosvg/src/nanosvg.h"
 
 #include <cmath>
 
