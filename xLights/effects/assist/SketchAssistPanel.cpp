@@ -18,6 +18,7 @@
 #include <wx/wfstream.h>
 
 //in includes dir
+#define NANOSVG_IMPLEMENTATION
 #include "nanosvg/src/nanosvg.h"
 
 #include <cmath>
