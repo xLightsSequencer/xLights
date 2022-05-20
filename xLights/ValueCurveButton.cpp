@@ -108,19 +108,12 @@ void ValueCurveButton::ToggleActive()
     UpdateState();
 }
 
-wxBitmapBundle ValueCurveButton::disabledBitmap;
-
 void ValueCurveButton::UpdateBitmap() {
-    if (GetValue()->IsActive())
-    {
+    if (GetValue()->IsActive()) {
         RenderNewBitmap();
-    }
-    else
-    {
-        if (!disabledBitmap.IsOk()) {
-            disabledBitmap = wxArtProvider::GetBitmapBundle("xlART_valuecurve_notselected", wxART_BUTTON);
-        }
-        SetBitmap(disabledBitmap);
+    } else {
+        static wxBitmapBundle nsBitmap = wxArtProvider::GetBitmapBundle("xlART_valuecurve_notselected", wxART_BUTTON);
+        SetBitmap(nsBitmap);
     }
 }
 

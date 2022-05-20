@@ -17,10 +17,31 @@ class BitmapCache {
 public:
     static void SetupArtProvider();
     
-    static const wxBitmapBundle &GetPapgayoIcon();
-    static const wxBitmapBundle &GetPapgayoXIcon();
-    static const wxBitmapBundle &GetModelGroupIcon();
+    static wxBitmapBundle GetPapgayoIcon();
+    static wxBitmapBundle GetPapgayoXIcon();
+    static wxBitmapBundle GetModelGroupIcon();
     
-    static const wxBitmapBundle &GetLockIcon(bool locked);
+    static wxBitmapBundle GetLockIcon(bool locked);
     static const wxImage &GetCornerIcon(int position, int size);
+};
+
+
+class xlNamedBitmapBundleImpl : public wxBitmapBundleImpl {
+public:
+    // The vector must not be empty, caller is supposed to have checked for it.
+    xlNamedBitmapBundleImpl(const std::string &n, int i, const wxVector<wxBitmap>& b);
+    xlNamedBitmapBundleImpl(const std::string &n, const wxSize &sz, const wxVector<wxBitmap>& b);
+    virtual ~xlNamedBitmapBundleImpl();
+
+    virtual wxSize GetDefaultSize() const wxOVERRIDE;
+    virtual wxSize GetPreferredBitmapSizeAtScale(double scale) const override;
+    virtual wxBitmap GetBitmap(const wxSize& size) override;
+        
+private:
+    std::string name;
+    wxSize size;
+    wxVector<wxBitmap> bitmaps;
+    
+    wxSize lastSize;
+    wxBitmap lastBitmap;
 };

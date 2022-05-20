@@ -39,6 +39,4 @@ public:
     void UpdateState();
     void UpdateBitmap();
     void NotifyChange();
-
-    static wxBitmapBundle disabledBitmap;
 };

@@ -29,6 +29,7 @@
 #include "SpiralsEffect.h"
 #include "PinwheelEffect.h"
 #include "EffectPanelUtils.h"
+#include "../BitmapCache.h"
 
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
@@ -99,61 +100,6 @@ void AdjustAndSetBitmap(int size, wxImage &image, wxImage &dbl, wxBitmap&bitmap)
     }
 }
 
-class xlEffectBitmapBundleImpl : public wxBitmapBundleImpl {
-public:
-    // The vector must not be empty, caller is supposed to have checked for it.
-    xlEffectBitmapBundleImpl(const std::string &n, int i, const wxVector<wxBitmap>& b) : name(n), size(i), bitmaps(b) {
-    }
-
-    virtual wxSize GetDefaultSize() const wxOVERRIDE {
-        return wxSize(size, size);
-    }
-    virtual wxSize GetPreferredBitmapSizeAtScale(double scale) const override {
-        double s = size;
-        s *= scale;
-        return wxSize(s, s);
-    }
-    virtual wxBitmap GetBitmap(const wxSize& size) override {
-        int newSize = size.GetHeight();
-        if (newSize == lastSize) {
-            return lastBitmap;
-        }
-        int idx = 0;
-        for (int x = 0; x < bitmaps.size(); x++) {
-            if (newSize == bitmaps[x].GetHeight()) {
-                lastSize = newSize;
-                lastBitmap = bitmaps[x];
-                return lastBitmap;
-            }
-            if (newSize > bitmaps[x].GetHeight()) {
-                idx = x;
-            }
-        }
-        if (idx < (bitmaps.size() - 1)) {
-            idx++;
-        }
-        // don't have an exact match size, but idx is pointing to the next largest so we'll
-        // rescale that one down
-        wxImage i = bitmaps[idx].ConvertToImage();
-        i.Rescale(newSize, newSize);
-        lastBitmap = wxBitmap(i);
-        if (idx == (bitmaps.size() - 1) && newSize > bitmaps[idx].GetHeight()) {
-            // this is bigger than the last one in the list, we'll keep it
-            bitmaps.push_back(lastBitmap);
-        }
-        lastSize = newSize;
-        return lastBitmap;
-    }
-private:
-    std::string name;
-    int size;
-    wxVector<wxBitmap> bitmaps;
-    
-    int lastSize = -2;
-    wxBitmap lastBitmap;
-};
-
-
 void RenderableEffect::initBitmaps(const char **data16,
                                    const char **data24,
                                    const char **data32,
@@ -198,10 +144,10 @@ void RenderableEffect::initBitmaps(const char **data16,
     } else {
         bitmaps.push_back(wxBitmap(image));
     }
-    icon16 = wxBitmapBundle::FromImpl(new xlEffectBitmapBundleImpl(name, 16, bitmaps));
-    icon24 = wxBitmapBundle::FromImpl(new xlEffectBitmapBundleImpl(name, 24, bitmaps));
-    icon32 = wxBitmapBundle::FromImpl(new xlEffectBitmapBundleImpl(name, 32, bitmaps));
-    icon48 = wxBitmapBundle::FromImpl(new xlEffectBitmapBundleImpl(name, 48, bitmaps));
+    icon16 = wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(name, 16, bitmaps));
+    icon24 = wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(name, 24, bitmaps));
+    icon32 = wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(name, 32, bitmaps));
+    icon48 = wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(name, 48, bitmaps));
 }
 
 // return true if version string is older than compare string

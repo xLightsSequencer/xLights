@@ -17,8 +17,25 @@
 #include <wx/filepicker.h>
 #include <wx/wfstream.h>
 
-//in includes dir
+#if defined(__WXOSX__)
+#ifndef NDEBUG
+//debug builds on Mac need the Implementation defined as it's not
+//exported from the shlibs.  However, release builds that use
+//lto based static linking will get the implementation from
+//wxwidgets
 #define NANOSVG_IMPLEMENTATION
+#define NANOSVG_ALL_COLOR_KEYWORDS
+#endif
+
+#elif defined(__LINUX__)
+#define NANOSVG_IMPLEMENTATION
+#define NANOSVG_ALL_COLOR_KEYWORDS
+
+#elif defined(__WXMSW__)
+//don't need anything?
+#endif
+
+//in includes dir
 #include "nanosvg/src/nanosvg.h"
 
 #include <cmath>

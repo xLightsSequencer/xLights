@@ -153,18 +153,16 @@ void BitmapCache::SetupArtProvider() {
 class xlBitmapBundleImplSet : public wxBitmapBundleImpl
 {
 public:
-    xlBitmapBundleImplSet(int ps, const wxString &i, std::vector<const char **> d): preferredSize(ps), data(d), id(i) {
+    xlBitmapBundleImplSet(const wxSize &ps, const wxString &i, std::vector<const char **> d): preferredSize(ps), data(d), id(i) {
     }
 
     ~xlBitmapBundleImplSet() {}
 
     virtual wxSize GetDefaultSize() const override {
-        return wxSize(preferredSize, preferredSize);
+        return preferredSize;
     }
     virtual wxSize GetPreferredBitmapSizeAtScale(double scale) const override {
-        double d = preferredSize;
-        d *= scale;
-        return wxSize(d, d);
+        return wxSize(scale * (double)preferredSize.GetX(), scale * (double)preferredSize.GetY());
     }
     virtual wxBitmap GetBitmap(const wxSize& bsize) override {
         if (bsize != lastSize) {
@@ -214,7 +212,7 @@ public:
         return lastBitmap;
     }
     
-    int preferredSize = 32;
+    wxSize preferredSize;
     std::vector<const char **> data;
     wxString id;
     
@@ -222,13 +220,71 @@ public:
     wxBitmap lastBitmap;
 };
 
+static std::list<std::string> NAMED;
+
+xlNamedBitmapBundleImpl::xlNamedBitmapBundleImpl(const std::string &n, int i, const wxVector<wxBitmap>& b) : name(n), size(i, i), bitmaps(b) {
+    NAMED.push_back(name);
+}
+xlNamedBitmapBundleImpl::xlNamedBitmapBundleImpl(const std::string &n, const wxSize &sz, const wxVector<wxBitmap>& b) : name(n), size(sz), bitmaps(b)  {
+    NAMED.push_back(name);
+}
+xlNamedBitmapBundleImpl::~xlNamedBitmapBundleImpl() {
+    const auto &idx = std::find(NAMED.begin(), NAMED.end(), name);
+    if (idx == NAMED.end()) {
+        printf("Not found\n");
+    } else {
+        NAMED.erase(idx);
+    }
+}
+
+
+wxSize xlNamedBitmapBundleImpl::GetDefaultSize() const {
+    return size;
+}
+wxSize xlNamedBitmapBundleImpl::GetPreferredBitmapSizeAtScale(double scale) const {
+    return wxSize(scale * (double)size.GetX(), scale * (double)size.GetY());
+}
+wxBitmap xlNamedBitmapBundleImpl::GetBitmap(const wxSize& size) {
+    wxSize newSize = size;
+    if (newSize == lastSize) {
+        return lastBitmap;
+    }
+    int idx = 0;
+    for (int x = 0; x < bitmaps.size(); x++) {
+        if (newSize == bitmaps[x].GetSize()) {
+            lastSize = newSize;
+            lastBitmap = bitmaps[x];
+            return lastBitmap;
+        }
+        if (newSize.GetY() > bitmaps[x].GetHeight()) {
+            idx = x;
+        }
+    }
+    if (idx < (bitmaps.size() - 1)) {
+        idx++;
+    }
+    // don't have an exact match size, but idx is pointing to the next largest so we'll
+    // rescale that one down
+    wxImage i = bitmaps[idx].ConvertToImage();
+    i.Rescale(newSize.GetX(), newSize.GetY());
+    lastBitmap = wxBitmap(i);
+    if (idx == (bitmaps.size() - 1) && newSize.GetY() > bitmaps[idx].GetHeight()) {
+        // this is bigger than the last one in the list, we'll keep it
+        bitmaps.push_back(lastBitmap);
+    }
+    lastSize = newSize;
+    return lastBitmap;
+}
+
+
 static wxBitmapBundle CreateBitmapBundleFromXPMs(int defSize, const wxString &id, std::vector<const char **> data) {
     if (defSize != -1) {
-        return wxBitmapBundle::FromImpl(new xlBitmapBundleImplSet(defSize, id, data));
+        return wxBitmapBundle::FromImpl(new xlBitmapBundleImplSet(wxSize(defSize, defSize), id, data));
     }
     
     wxVector<wxBitmap> bitmaps;
     const char **last = nullptr;
+    wxSize sz(-1, -1);
     for (auto d : data) {
         if (d != last) {
             last = d;
@@ -236,11 +292,15 @@ static wxBitmapBundle CreateBitmapBundleFromXPMs(int defSize, const wxString &id
             if (image.HasMask() && !image.HasAlpha()) {
                 image.InitAlpha();
             }
+            if (sz.GetX() == -1) {
+                sz = image.GetSize();
+            }
             bitmaps.push_back(wxBitmap(image));
         }
     }
-    return wxBitmapBundle::FromBitmaps(bitmaps);
+    return wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(id, sz, bitmaps));
 }
+
 static wxBitmapBundle CreateBitmapBundleFromPNGs(const wxString &id,
                                                  const unsigned char *data, int size,
                                                  const unsigned char *dataDouble = nullptr, int sizeDoube = -1) {
@@ -254,7 +314,7 @@ static wxBitmapBundle CreateBitmapBundleFromPNGs(const wxString &id,
         img.Rescale(img.GetWidth() * 2, img.GetHeight() * 2);
         bitmaps.push_back(wxBitmap(img));
     }
-    return wxBitmapBundle::FromBitmaps(bitmaps);
+    return wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(id, bitmaps[0].GetSize(), bitmaps));
 }
 
 
@@ -527,19 +587,16 @@ wxIconBundle xlArtProvider::CreateIconBundle(const wxArtID& id,
 
 
 
-const wxBitmapBundle &BitmapCache::GetPapgayoIcon() {
-    static wxBitmapBundle bundle = CreateBitmapBundleFromXPMs(16, "Papagayo", {papagayo_16, papagayo_64, papagayo_64, papagayo_64, papagayo_64});
-    return bundle;
+wxBitmapBundle BitmapCache::GetPapgayoIcon() {
+    return CreateBitmapBundleFromXPMs(16, "Papagayo", {papagayo_16, papagayo_64, papagayo_64, papagayo_64, papagayo_64});
 }
 
-const wxBitmapBundle &BitmapCache::GetPapgayoXIcon() {
-    static wxBitmapBundle bundle = CreateBitmapBundleFromXPMs(16, "PapagayoX", {papagayo_x_16, papagayo_x_64, papagayo_x_64, papagayo_x_64, papagayo_x_64});
-    return bundle;
+wxBitmapBundle BitmapCache::GetPapgayoXIcon() {
+    return CreateBitmapBundleFromXPMs(16, "PapagayoX", {papagayo_x_16, papagayo_x_64, papagayo_x_64, papagayo_x_64, papagayo_x_64});
 }
 
-const wxBitmapBundle &BitmapCache::GetModelGroupIcon() {
-    static wxBitmapBundle bundle = CreateBitmapBundleFromXPMs(16, "ModelGroup", {model_16, model_64, model_64, model_64, model_64});
-    return bundle;
+wxBitmapBundle BitmapCache::GetModelGroupIcon() {
+    return CreateBitmapBundleFromXPMs(16, "ModelGroup", {model_16, model_64, model_64, model_64, model_64});
 }
 
 const wxImage &BitmapCache::GetCornerIcon(int position, int size) {
@@ -576,7 +633,7 @@ const wxImage &BitmapCache::GetCornerIcon(int position, int size) {
     return images16[position];
 }
 
-const wxBitmapBundle &BitmapCache::GetLockIcon(bool locked) {
+wxBitmapBundle BitmapCache::GetLockIcon(bool locked) {
     static wxBitmapBundle lockedIcon = CreateBitmapBundleFromXPMs(14, "Locked", {padlock_close_14, padlock_close_28});
     static wxBitmapBundle unlockedIcon = CreateBitmapBundleFromXPMs(14, "Unlocked", {padlock_open_14, padlock_open_28});
     return locked ? lockedIcon : unlockedIcon;
