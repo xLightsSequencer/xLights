@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.11 May 21, 2022
+   -- enh (scott) Added Load from State to DMX Effect
+   -- enh (scott) Add import from SVG to Sketch Assistant Panel
+   -- bug (dkulp) Fix toolbars/images on Windows with non-100% scaling (WIP)
+   -- bug (dkulp) Fix drag/drop in Import Dialog on MacOS
+   -- bug (dkulp) Fix video stream of exported House Videos if codec has to change from defaults
+   -- bug (dkulp) Maybe fix green video export on MacOS
+   -- bug (dkulp) Change how buttons with background colors set are drawn on MacOS
+   -- bug (dkulp) Fix hang with drag/drop of Faces Effect
+   -- bug (dkulp) Fix a crash situation if a buffer is reported as being larger than it actually is
+   -- bug (keith) Fix a possible OpenGL crash  if context cannot be created
 2022.10 May 15, 2022
    -- enh (aarcangeli/keith) Add support for Twinkly controllers including discovery
    -- enh (keith) Add ability to import Twinkly pixel layout into a custom model
