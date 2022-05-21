@@ -65,7 +65,7 @@ private:
     bool canContinuePath() const;
 
     bool areSame(double a, double b, float eps) const;
-    bool areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, float eps) const;
+    bool areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, double eps) const;
 
     std::string m_sketchDef;
     SketchEffectSketch m_sketch;

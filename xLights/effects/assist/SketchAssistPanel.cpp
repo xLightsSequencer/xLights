@@ -494,7 +494,7 @@ bool SketchAssistPanel::areSame(double a, double b, float eps) const
     return std::fabs(a - b) < eps;
 }
 
-bool SketchAssistPanel::areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, float eps) const
+bool SketchAssistPanel::areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, double eps) const
 {
     //use dot product to determine if point are in a strait line
     auto [a_x, a_y] = a;
