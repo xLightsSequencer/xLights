@@ -266,7 +266,7 @@ void FacesEffect::SetPanelStatus(Model* cls) {
 
             std::list<std::string> used;
             for (const auto& it : m->stateInfo) {
-                if (std::find(begin(used), end(used), it.first) == end(used) && it.second.size() > 30) // actually it should be about 120
+                if (std::find(begin(used), end(used), it.first) == end(used) /* && it.second.size() > 30*/) // actually it should be about 120
                 {
                     fp->Choice1->Append(it.first);
                     used.push_back(it.first);
