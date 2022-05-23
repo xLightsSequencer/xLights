@@ -19,7 +19,7 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual ~MatrixModel();
         virtual int GetNumStrands() const override;
 
-        virtual bool StrandsZigZagOnString() const override { return true;};
+        virtual bool StrandsZigZagOnString() const override { return true; }
 
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return true; }
