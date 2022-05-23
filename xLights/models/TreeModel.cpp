@@ -35,8 +35,15 @@ TreeModel::~TreeModel()
 {
 }
 
+static const char* TREE_DIRECTION_VALUES[] = {
+    "Horizontal",
+    "Vertical"
+};
+static wxPGChoices TREE_DIRECTIONS(wxArrayString(2, TREE_DIRECTION_VALUES));
+
 void TreeModel::InitModel() {
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
+    bool isHMatrix = (ModelXml->GetAttribute("StrandDir", TREE_DIRECTION_VALUES[1]) == TREE_DIRECTION_VALUES[0]);
     wxStringTokenizer tkz(DisplayAs, " ");
     wxString token = tkz.GetNextToken();
 
@@ -47,7 +54,11 @@ void TreeModel::InitModel() {
     if (firstStrand < 0) {
         firstStrand = 0;
     }
-    InitVMatrix(firstStrand);
+    if (isHMatrix) {
+        InitHMatrix();
+    } else {
+        InitVMatrix(firstStrand);
+    }
     token = tkz.GetNextToken();
     token.ToLong(&degrees);
     treeType = 0;
@@ -315,6 +326,14 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreePerspective");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreePerspective");
         return 0;
+    } else if ("StrandDir" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("StrandDir");
+        ModelXml->AddAttribute("StrandDir", event.GetPropertyValue().GetLong() ? TREE_DIRECTION_VALUES[1] : TREE_DIRECTION_VALUES[0]);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::StrandDir");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::StrandDir");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::StrandDir");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::StrandDir");
+        return 0;
     }
     return MatrixModel::OnPropertyGridChange(grid, event);
 }
@@ -368,6 +387,8 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
     p->SetEditor("CheckBox");
+
+    p = grid->Append(new wxEnumProperty("Strand Direction", "StrandDir", TREE_DIRECTIONS, vMatrix ? 1 : 0));
 }
 
 void TreeModel::ExportXlightsModel()
@@ -397,10 +418,12 @@ void TreeModel::ExportXlightsModel()
     wxString tr = ModelXml->GetAttribute("TreeRotation", "3");
     wxString tsr = ModelXml->GetAttribute("TreeSpiralRotations", "0.0");
     wxString an = ModelXml->GetAttribute("AlternateNodes", "false");
+    wxString sdr = ModelXml->GetAttribute("StrandDir", TREE_DIRECTION_VALUES[1]);
     wxString v = xlights_version_string;
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<treemodel \n");
     f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
+    f.Write(wxString::Format("StrandDir=\"%s\" ", sdr));
     f.Write(wxString::Format("name=\"%s\" ", name));
     f.Write(wxString::Format("parm1=\"%s\" ", p1));
     f.Write(wxString::Format("parm2=\"%s\" ", p2));
@@ -472,9 +495,14 @@ void TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         wxString pt = root->GetAttribute("PixelType");
         wxString psp = root->GetAttribute("PixelSpacing");
         wxString an = root->GetAttribute("AlternateNodes");
+        wxString sdr = root->GetAttribute("StrandDir");
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
+        if (sdr == "")
+        {
+            sdr = TREE_DIRECTION_VALUES[1];
+        }
 
         SetProperty("parm1", p1);
         SetProperty("parm2", p2);
@@ -497,6 +525,7 @@ void TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         SetProperty("PixelType", pt);
         SetProperty("PixelSpacing", psp);
         SetProperty("AlternateNodes", an);
+        SetProperty("StrandDir", sdr);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);
