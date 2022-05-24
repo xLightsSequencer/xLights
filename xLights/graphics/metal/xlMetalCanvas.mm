@@ -297,7 +297,7 @@ void xlMetalCanvas::captureNextFrame(int w, int h) {
 }
 
 
-extern void VideoToolboxCreateFrame(CIImage *image, AVFrame *f);
+extern void VideoToolboxCreateFrame(CIImage *image, AVFrame *f, id<MTLDevice> d);
 
 bool xlMetalCanvas::getFrameForExport(int w, int h, AVFrame *f, uint8_t *buffer, int bufferSize) {
     if (captureBuffer == nullptr || captureBuffer->buffer == nil) {
@@ -313,7 +313,7 @@ bool xlMetalCanvas::getFrameForExport(int w, int h, AVFrame *f, uint8_t *buffer,
             CIImage *image = [CIImage imageWithMTLTexture:captureBuffer->target options:dict];
             CIImage *i2 = [image imageByApplyingCGOrientation:kCGImagePropertyOrientationDownMirrored];
                         
-            VideoToolboxCreateFrame(i2, f);
+            VideoToolboxCreateFrame(i2, f, getMTLDevice());
             
             [dict release];
         }

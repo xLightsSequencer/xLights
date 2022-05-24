@@ -11,7 +11,6 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
-					<minpanesize>100</minpanesize>
 					<style>wxSP_3D|wxSP_3DSASH</style>
 					<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="HinkControllerList" member="yes">
 						<minsize>-1,150d</minsize>
@@ -80,7 +79,7 @@
 									<orient>wxVERTICAL</orient>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_MOVE_UP" variable="BitmapButtonMoveUp" member="yes">
-											<bitmap stock_id="wxART_GO_UP" stock_client="wxART_TOOLBAR" />
+											<bitmap code='wxArtProvider::GetBitmapBundle(&quot;wxART_GO_UP&quot;, wxART_BUTTON)' />
 											<handler function="OnBitmapButtonMoveUpClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
@@ -89,7 +88,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_MOVE_DOWN" variable="BitmapButtonMoveDown" member="yes">
-											<bitmap stock_id="wxART_GO_DOWN" stock_client="wxART_TOOLBAR" />
+											<bitmap code='wxArtProvider::GetBitmapBundle(&quot;wxART_GO_DOWN&quot;, wxART_BUTTON)' />
 											<handler function="OnBitmapButtonMoveDownClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>

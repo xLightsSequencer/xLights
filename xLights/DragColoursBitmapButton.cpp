@@ -13,7 +13,7 @@
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
 
-DragColoursBitmapButton::DragColoursBitmapButton(wxWindow* parent, wxWindowID id, const wxBitmap& bitmap, const wxPoint& pos,
+DragColoursBitmapButton::DragColoursBitmapButton(wxWindow* parent, wxWindowID id, const wxBitmapBundle& bitmap, const wxPoint& pos,
     const wxSize& size, long style, const wxValidator& validator,
     const wxString& name)
     : wxBitmapButton(parent, id, bitmap, pos, size, style, validator, name)
@@ -79,8 +79,7 @@ void DragColoursBitmapButton::OnMouseLeftDown(wxMouseEvent& event)
     dragSource.DoDragDrop(wxDragCopy);
 }
 
-void DragColoursBitmapButton::SetBitmap(const wxBitmap& bpm)
+void DragColoursBitmapButton::SetBitmap(const wxBitmapBundle& bpm)
 {
     wxBitmapButton::SetBitmap(bpm);
-    wxBitmapButton::SetBitmapDisabled(bpm.ConvertToDisabled());
 }

@@ -19,7 +19,7 @@ public:
     // Effect panels are static (a single panel for the lifetime of the app) but
     // assist panels are not... so it seems like it should be safe for an assist
     // panel to reference an effect panel via a lambda 'this' capture
-    typedef std::function<void(const std::string&)> SketchUpdateCallback;
+    typedef std::function<void(const std::string&, const std::string&, unsigned char)> SketchUpdateCallback;
 
     SketchAssistPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 
@@ -52,6 +52,9 @@ private:
     void OnButton_ClosePath(wxCommandEvent& event);
     void OnButton_ContinuePath(wxCommandEvent& event);
     void OnButton_ClearSketch(wxCommandEvent& event);
+    void OnButton_ImportSketch(wxCommandEvent& event);
+    void OnButton_ExportSketch(wxCommandEvent& event);
+    void OnButton_ImportSVG(wxCommandEvent& event);
 
     void OnListBox_PathSelected(wxCommandEvent& event);
     void OnListBox_ContextMenu(wxContextMenuEvent& event);
@@ -60,6 +63,9 @@ private:
     void updateBgImage();
     void populatePathListBoxFromSketch();
     bool canContinuePath() const;
+
+    bool areSame(double a, double b, float eps) const;
+    bool areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, double eps) const;
 
     std::string m_sketchDef;
     SketchEffectSketch m_sketch;
@@ -71,6 +77,10 @@ private:
     wxButton* m_closePathBtn = nullptr;
     wxButton* m_continuePathBtn = nullptr;
     wxButton* m_clearSketchBtn = nullptr;
+    wxButton* m_importSketchBtn = nullptr;
+    wxButton* m_exportSketchBtn = nullptr;
+    wxButton* m_importSVGBtn = nullptr;
+
     wxListBox* m_pathsListBox = nullptr;
     static long ID_MENU_Delete;
     static long ID_MENU_Reverse;

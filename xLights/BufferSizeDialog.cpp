@@ -16,7 +16,6 @@
 #include "ExternalHooks.h"
 
 //(*InternalHeaders(BufferSizeDialog)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/button.h>
 #include <wx/image.h>
@@ -24,6 +23,7 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/artprov.h>
 #include <wx/filename.h>
 
 #include <log4cpp/Category.hh>
@@ -58,6 +58,12 @@ BEGIN_EVENT_TABLE(BufferSizeDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
+static const wxBitmapBundle& GetValueCurveNotSelectedBitmap() {
+    static wxBitmapBundle bundle = wxArtProvider::GetBitmapBundle("xlART_valuecurve_notselected", wxART_BUTTON);
+    return bundle;
+}
+
+
 BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     //(*Initialize(BufferSizeDialog)
@@ -66,7 +72,7 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc, wxWindowID id, 
     wxFlexGridSizer* FlexGridSizer3;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
-    Create(parent, id, _("Buffer Size"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER, _T("id"));
+    Create(parent, id, _("Buffer Size"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("id"));
     SetClientSize(wxDefaultSize);
     Move(wxDefaultPosition);
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -74,84 +80,83 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc, wxWindowID id, 
     FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer2->AddGrowableCol(1);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Top"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer2->Add(StaticText1, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_Top = new wxSpinCtrlDouble(this, ID_SPINCTRL1, _T("100"), wxDefaultPosition, wxDefaultSize, 0, 1, 200, 100, 1, _T("ID_SPINCTRL1"));
     SpinCtrl_Top->SetValue(_T("100"));
-    FlexGridSizer2->Add(SpinCtrl_Top, 1, wxALL | wxEXPAND, 5);
-    ValueCurve_Top = new ValueCurveButton(this, ID_VALUECURVE_BufferTop, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_BufferTop"));
-    FlexGridSizer2->Add(ValueCurve_Top, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(SpinCtrl_Top, 1, wxALL|wxEXPAND, 5);
+    ValueCurve_Top = new ValueCurveButton(this, ID_VALUECURVE_BufferTop, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_BufferTop"));
+    FlexGridSizer2->Add(ValueCurve_Top, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Left"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer2->Add(StaticText2, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_Left = new wxSpinCtrlDouble(this, ID_SPINCTRL2, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 99, 0, 1, _T("ID_SPINCTRL2"));
     SpinCtrl_Left->SetValue(_T("0"));
-    FlexGridSizer2->Add(SpinCtrl_Left, 1, wxALL | wxEXPAND, 5);
-    ValueCurve_Left = new ValueCurveButton(this, ID_VALUECURVE_BufferLeft, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_BufferLeft"));
-    FlexGridSizer2->Add(ValueCurve_Left, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(SpinCtrl_Left, 1, wxALL|wxEXPAND, 5);
+    ValueCurve_Left = new ValueCurveButton(this, ID_VALUECURVE_BufferLeft, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_BufferLeft"));
+    FlexGridSizer2->Add(ValueCurve_Left, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Bottom"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-    FlexGridSizer2->Add(StaticText3, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_Bottom = new wxSpinCtrlDouble(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 99, 0, 1, _T("ID_SPINCTRL3"));
     SpinCtrl_Bottom->SetValue(_T("0"));
-    FlexGridSizer2->Add(SpinCtrl_Bottom, 1, wxALL | wxEXPAND, 5);
-    ValueCurve_Bottom = new ValueCurveButton(this, ID_VALUECURVE_BufferBottom, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_BufferBottom"));
-    FlexGridSizer2->Add(ValueCurve_Bottom, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(SpinCtrl_Bottom, 1, wxALL|wxEXPAND, 5);
+    ValueCurve_Bottom = new ValueCurveButton(this, ID_VALUECURVE_BufferBottom, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_BufferBottom"));
+    FlexGridSizer2->Add(ValueCurve_Bottom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Right"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-    FlexGridSizer2->Add(StaticText4, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_Right = new wxSpinCtrlDouble(this, ID_SPINCTRL4, _T("100"), wxDefaultPosition, wxDefaultSize, 0, 1, 200, 100, 1, _T("ID_SPINCTRL4"));
     SpinCtrl_Right->SetValue(_T("100"));
-    FlexGridSizer2->Add(SpinCtrl_Right, 1, wxALL | wxEXPAND, 5);
-    ValueCurve_Right = new ValueCurveButton(this, ID_VALUECURVE_BufferRight, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_BufferRight"));
-    FlexGridSizer2->Add(ValueCurve_Right, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(SpinCtrl_Right, 1, wxALL|wxEXPAND, 5);
+    ValueCurve_Right = new ValueCurveButton(this, ID_VALUECURVE_BufferRight, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_BufferRight"));
+    FlexGridSizer2->Add(ValueCurve_Right, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("X Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-    FlexGridSizer2->Add(StaticText5, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_XC = new wxSpinCtrlDouble(this, ID_SPINCTRLDOUBLE1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 100, 0, 1, _T("ID_SPINCTRLDOUBLE1"));
     SpinCtrl_XC->SetValue(_T("0"));
-    FlexGridSizer2->Add(SpinCtrl_XC, 1, wxALL | wxEXPAND, 5);
-    ValueCurve_XC = new ValueCurveButton(this, ID_VALUECURVE_BufferXC, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_BufferXC"));
-    FlexGridSizer2->Add(ValueCurve_XC, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(SpinCtrl_XC, 1, wxALL|wxEXPAND, 5);
+    ValueCurve_XC = new ValueCurveButton(this, ID_VALUECURVE_BufferXC, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_BufferXC"));
+    FlexGridSizer2->Add(ValueCurve_XC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Y Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
-    FlexGridSizer2->Add(StaticText6, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_YC = new wxSpinCtrlDouble(this, ID_SPINCTRLDOUBLE2, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 100, 0, 1, _T("ID_SPINCTRLDOUBLE2"));
     SpinCtrl_YC->SetValue(_T("0"));
-    FlexGridSizer2->Add(SpinCtrl_YC, 1, wxALL | wxEXPAND, 5);
-    ValueCurve_YC = new ValueCurveButton(this, ID_VALUECURVE_BufferYC, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_BufferYC"));
-    FlexGridSizer2->Add(ValueCurve_YC, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer2->Add(SpinCtrl_YC, 1, wxALL|wxEXPAND, 5);
+    ValueCurve_YC = new ValueCurveButton(this, ID_VALUECURVE_BufferYC, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_BufferYC"));
+    FlexGridSizer2->Add(ValueCurve_YC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer3->AddGrowableCol(0);
-    ComboBoxBufferPresets = new wxComboBox(this, ID_COMBOBOX_BUFFER_PRESET, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT | wxCB_READONLY, wxDefaultValidator, _T("ID_COMBOBOX_BUFFER_PRESET"));
-    FlexGridSizer3->Add(ComboBoxBufferPresets, 1, wxALL | wxEXPAND, 5);
-    BitmapButtonSave = new xlSizedBitmapButton(this, ID_BITMAPBUTTON_SAVE, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_colorpanel_save_xpm")), wxART_BUTTON), wxDefaultPosition, wxSize(24, 24), wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SAVE"));
+    ComboBoxBufferPresets = new wxComboBox(this, ID_COMBOBOX_BUFFER_PRESET, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT|wxCB_READONLY, wxDefaultValidator, _T("ID_COMBOBOX_BUFFER_PRESET"));
+    FlexGridSizer3->Add(ComboBoxBufferPresets, 1, wxALL|wxEXPAND, 5);
+    BitmapButtonSave = new xlSizedBitmapButton(this, ID_BITMAPBUTTON_SAVE, wxArtProvider::GetBitmapBundle("xlART_colorpanel_save_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SAVE"));
     BitmapButtonSave->SetToolTip(_("Save Buffer Preset"));
-    FlexGridSizer3->Add(BitmapButtonSave, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButtonDelete = new xlSizedBitmapButton(this, ID_BITMAPBUTTON_DELETE, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_colorpanel_delete_xpm")), wxART_BUTTON), wxDefaultPosition, wxSize(24, 24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_DELETE"));
+    FlexGridSizer3->Add(BitmapButtonSave, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButtonDelete = new xlSizedBitmapButton(this, ID_BITMAPBUTTON_DELETE, wxArtProvider::GetBitmapBundle("xlART_colorpanel_delete_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_DELETE"));
     BitmapButtonDelete->SetToolTip(_("Delete Buffer Preset"));
-    FlexGridSizer3->Add(BitmapButtonDelete, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL | wxEXPAND, 5);
-    StaticLine1 = new wxStaticLine(this, ID_STATICLINE1, wxDefaultPosition, wxSize(10, -1), wxLI_HORIZONTAL, _T("ID_STATICLINE1"));
-    FlexGridSizer1->Add(StaticLine1, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer3->Add(BitmapButtonDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
+    StaticLine1 = new wxStaticLine(this, ID_STATICLINE1, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL, _T("ID_STATICLINE1"));
+    FlexGridSizer1->Add(StaticLine1, 1, wxALL|wxEXPAND, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
     StdDialogButtonSizer1->Realize();
-    FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
-    FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
-    Connect(ID_SPINCTRL1, wxEVT_SPINCTRLDOUBLE, (wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_TopChange);
-    Connect(ID_VALUECURVE_BufferTop, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
-    Connect(ID_SPINCTRL2, wxEVT_SPINCTRLDOUBLE, (wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_LeftChange);
-    Connect(ID_VALUECURVE_BufferLeft, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
-    Connect(ID_SPINCTRL3, wxEVT_SPINCTRLDOUBLE, (wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_BottomChange);
-    Connect(ID_VALUECURVE_BufferBottom, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
-    Connect(ID_SPINCTRL4, wxEVT_SPINCTRLDOUBLE, (wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_RightChange);
-    Connect(ID_VALUECURVE_BufferRight, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
-    Connect(ID_SPINCTRLDOUBLE1, wxEVT_SPINCTRLDOUBLE, (wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_XCChange);
-    Connect(ID_VALUECURVE_BufferXC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
-    Connect(ID_SPINCTRLDOUBLE2, wxEVT_SPINCTRLDOUBLE, (wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_YCChange);
-    Connect(ID_VALUECURVE_BufferYC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
-    Connect(ID_BITMAPBUTTON_SAVE, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&BufferSizeDialog::OnBitmapButtonSaveClick);
-    Connect(ID_BITMAPBUTTON_DELETE, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&BufferSizeDialog::OnBitmapButtonDeleteClick);
+    Connect(ID_SPINCTRL1,wxEVT_SPINCTRLDOUBLE,(wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_TopChange);
+    Connect(ID_VALUECURVE_BufferTop,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
+    Connect(ID_SPINCTRL2,wxEVT_SPINCTRLDOUBLE,(wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_LeftChange);
+    Connect(ID_VALUECURVE_BufferLeft,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
+    Connect(ID_SPINCTRL3,wxEVT_SPINCTRLDOUBLE,(wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_BottomChange);
+    Connect(ID_VALUECURVE_BufferBottom,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
+    Connect(ID_SPINCTRL4,wxEVT_SPINCTRLDOUBLE,(wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_RightChange);
+    Connect(ID_VALUECURVE_BufferRight,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
+    Connect(ID_SPINCTRLDOUBLE1,wxEVT_SPINCTRLDOUBLE,(wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_XCChange);
+    Connect(ID_VALUECURVE_BufferXC,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
+    Connect(ID_SPINCTRLDOUBLE2,wxEVT_SPINCTRLDOUBLE,(wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_YCChange);
+    Connect(ID_VALUECURVE_BufferYC,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
+    Connect(ID_BITMAPBUTTON_SAVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnBitmapButtonSaveClick);
+    Connect(ID_BITMAPBUTTON_DELETE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnBitmapButtonDeleteClick);
     //*)
 
     Connect(wxID_ANY, wxEVT_COMBOBOX_DROPDOWN, (wxObjectEventFunction)&BufferSizeDialog::OnBufferChoiceDropDown, 0, this);

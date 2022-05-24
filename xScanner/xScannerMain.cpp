@@ -610,6 +610,7 @@ void xScannerFrame::ProcessDiscoverResult(std::list<std::pair<std::string, std::
         AddItemUnderParentIfNotBlank(item, "Platform Model", GetItem(res, "Platform Model"));
         AddItemUnderParentIfNotBlank(item, "Version", GetItem(res, "Version"));
         AddItemUnderParentIfNotBlank(item, "Mode", GetItem(res, "Mode"));
+        AddItemUnderParentIfNotBlank(item, "Pixels", GetItem(res, "Pixels"));
     }
 }
 

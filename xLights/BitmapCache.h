@@ -10,14 +10,38 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "wx/bitmap.h"
+#include <wx/bitmap.h>
+#include <wx/bmpbndl.h>
 
 class BitmapCache {
 public:
+    static void SetupArtProvider();
+    
+    static wxBitmapBundle GetPapgayoIcon();
+    static wxBitmapBundle GetPapgayoXIcon();
+    static wxBitmapBundle GetModelGroupIcon();
+    
+    static wxBitmapBundle GetLockIcon(bool locked);
+    static const wxImage &GetCornerIcon(int position, int size);
+};
 
-    static const wxBitmap &GetPapgayoIcon(wxString &toolTip, int size, bool exact);
-    static const wxBitmap &GetPapgayoXIcon(wxString &toolTip, int size, bool exact);
-    static const wxBitmap &GetModelGroupIcon(wxString &toolTip, int size, bool exact);
-    static const wxBitmap &GetCornerIcon(int position, wxString &toolTip, int size, bool exact);
-    static const wxBitmap &GetLockIcon(bool locked);
+
+class xlNamedBitmapBundleImpl : public wxBitmapBundleImpl {
+public:
+    // The vector must not be empty, caller is supposed to have checked for it.
+    xlNamedBitmapBundleImpl(const std::string &n, int i, const wxVector<wxBitmap>& b);
+    xlNamedBitmapBundleImpl(const std::string &n, const wxSize &sz, const wxVector<wxBitmap>& b);
+    virtual ~xlNamedBitmapBundleImpl();
+
+    virtual wxSize GetDefaultSize() const wxOVERRIDE;
+    virtual wxSize GetPreferredBitmapSizeAtScale(double scale) const override;
+    virtual wxBitmap GetBitmap(const wxSize& size) override;
+        
+private:
+    std::string name;
+    wxSize size;
+    wxVector<wxBitmap> bitmaps;
+    
+    wxSize lastSize;
+    wxBitmap lastBitmap;
 };

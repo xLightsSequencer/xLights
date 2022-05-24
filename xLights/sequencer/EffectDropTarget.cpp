@@ -64,13 +64,13 @@ bool EffectDropTarget::OnDropText(wxCoord x, wxCoord y,const wxString &data )
 wxDragResult EffectDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult defResult)
 {
     // check if we can drag here
-    if(mParent->DragOver(x,y)) {
+    wxDragResult dr = wxDragNone;
+    if (mParent->DragOver(x,y) && mParent->CanDropEffect()) {
         // check what is being dragged is ok
-        return OnData(x ,y, wxDragNone);
+        dr = OnData(x ,y, wxDragNone);
         //return wxDragCopy;
     }
-
-    return wxDragNone;
+    return dr;
 }
 
 wxDragResult EffectDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)

@@ -118,7 +118,6 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinimumPaneSize(100);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel3 = new wxPanel(SplitterWindow1, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -167,8 +166,6 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	SingleNodeGrid->SetDefaultCellTextColour( SingleNodeGrid->GetForegroundColour() );
 	FlexGridSizer2->Add(SingleNodeGrid, 1, wxALL|wxEXPAND, 5);
 	CoroPanel->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(CoroPanel);
-	FlexGridSizer2->SetSizeHints(CoroPanel);
 	NodeRangePanel = new wxPanel(StateTypeChoice, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer5->AddGrowableCol(0);
@@ -196,8 +193,6 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	NodeRangeGrid->SetDefaultCellTextColour( NodeRangeGrid->GetForegroundColour() );
 	FlexGridSizer5->Add(NodeRangeGrid, 1, wxALL|wxEXPAND, 5);
 	NodeRangePanel->SetSizer(FlexGridSizer5);
-	FlexGridSizer5->Fit(NodeRangePanel);
-	FlexGridSizer5->SetSizeHints(NodeRangePanel);
 	StateTypeChoice->AddPage(CoroPanel, _("Single Nodes"), false);
 	StateTypeChoice->AddPage(NodeRangePanel, _("Node Ranges"), false);
 	FlexGridSizer4->Add(StateTypeChoice, 1, wxALL|wxEXPAND, 5);
@@ -207,19 +202,14 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	StdDialogButtonSizer1->Realize();
 	FlexGridSizer4->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel3->SetSizer(FlexGridSizer4);
-	FlexGridSizer4->Fit(Panel3);
-	FlexGridSizer4->SetSizeHints(Panel3);
 	ModelPreviewPanelLocation = new wxPanel(SplitterWindow1, ID_PANEL_PREVIEW, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_PREVIEW"));
 	PreviewSizer = new wxFlexGridSizer(0, 1, 0, 0);
 	PreviewSizer->AddGrowableCol(0);
 	PreviewSizer->AddGrowableRow(0);
 	ModelPreviewPanelLocation->SetSizer(PreviewSizer);
-	PreviewSizer->Fit(ModelPreviewPanelLocation);
-	PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
 	SplitterWindow1->SplitVertically(Panel3, ModelPreviewPanelLocation);
 	FlexGridSizer1->Add(SplitterWindow1, 0, wxEXPAND, 0);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelStateDialog::OnMatrixNameChoiceSelect);

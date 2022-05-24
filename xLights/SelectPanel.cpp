@@ -112,8 +112,6 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	Button_Select_Refresh = new wxButton(this, ID_BUTTON_SELECT_REFRESH, _("Refresh"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_REFRESH"));
 	FlexGridSizer1->Add(Button_Select_Refresh, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_COMBOBOX_SELECT_EFFECT,wxEVT_COMMAND_COMBOBOX_SELECTED,(wxObjectEventFunction)&SelectPanel::OnComboBox_Select_EffectSelected);
 	Connect(ID_COMBOBOX_SELECT_EFFECT,wxEVT_COMMAND_COMBOBOX_DROPDOWN,(wxObjectEventFunction)&SelectPanel::OnComboBox_Select_EffectDropdown);

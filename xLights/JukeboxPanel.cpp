@@ -119,10 +119,8 @@ JukeboxPanel::JukeboxPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
     GridSizer1 = new wxGridSizer(0, 5, 0, 0);
     SetSizer(GridSizer1);
-    GridSizer1->Fit(this);
-    GridSizer1->SetSizeHints(this);
 
-    Connect(wxEVT_SIZE, (wxObjectEventFunction)&JukeboxPanel::OnResize);
+    Connect(wxEVT_SIZE,(wxObjectEventFunction)&JukeboxPanel::OnResize);
     //*)
 
     GridSizer1->SetCols(5);

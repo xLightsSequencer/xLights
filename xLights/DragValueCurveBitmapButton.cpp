@@ -13,7 +13,7 @@
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
 
-DragValueCurveBitmapButton::DragValueCurveBitmapButton(wxWindow* parent, wxWindowID id, const wxBitmap& bitmap, const wxPoint& pos,
+DragValueCurveBitmapButton::DragValueCurveBitmapButton(wxWindow* parent, wxWindowID id, const wxBitmapBundle& bitmap, const wxPoint& pos,
     const wxSize& size, long style, const wxValidator& validator,
     const wxString& name)
     : wxBitmapButton(parent, id, bitmap, pos, size, style, validator, name)
@@ -75,8 +75,7 @@ void DragValueCurveBitmapButton::OnMouseLeftDown(wxMouseEvent& event)
     dragSource.DoDragDrop(wxDragCopy);
 }
 
-void DragValueCurveBitmapButton::SetBitmap(const wxBitmap& bpm)
+void DragValueCurveBitmapButton::SetBitmap(const wxBitmapBundle& bpm)
 {
     wxBitmapButton::SetBitmap(bpm);
-    wxBitmapButton::SetBitmapDisabled(bpm.ConvertToDisabled());
 }

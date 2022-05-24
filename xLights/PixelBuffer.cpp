@@ -955,9 +955,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
         layers[x]->pivotpointyValueCurve = "";
         layers[x]->xpivotValueCurve = "";
         layers[x]->ypivotValueCurve = "";
-        layers[x]->ModelBufferHt = layers[x]->BufferHt;
-        layers[x]->ModelBufferWi = layers[x]->BufferWi;
-        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->ModelBufferHt, layers[x]->ModelBufferWi, layers[x]->bufferTransform, isNode);
+        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->bufferTransform, isNode);
         GPURenderUtils::setupRenderBuffer(this, &layers[x]->buffer);
     }
 }
@@ -970,7 +968,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
         RenderBuffer* buf = new RenderBuffer(frame);
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
-        buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->BufferHt, buf->BufferWi, "None");
+        buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
         GPURenderUtils::setupRenderBuffer(this, buf);
         layers[layer]->shallowModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
@@ -984,7 +982,7 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
         RenderBuffer* buf = new RenderBuffer(frame);
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
-        buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->BufferHt, buf->BufferWi, "None");
+        buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
         GPURenderUtils::setupRenderBuffer(this, buf);
         layers[layer]->deepModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
@@ -2127,103 +2125,6 @@ void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve,
     theValueCurve.Deserialise(valueCurve);
 }
 
-// Works out the maximum buffer size reached based on a subbuffer - this may be larger than the model size but never less than the model size
-void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, int& maxHt, int& maxWi, long startMS, long endMS)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (subBuffer.find("Active=TRUE") != std::string::npos) {
-        // value curve present ... we have work to do
-        wxString sb = subBuffer;
-        sb.Replace("Max", "yyz");
-
-        wxArrayString v = wxSplit(sb, 'x');
-
-        bool fx1vc = v.size() > 0 && v[0].Contains("Active=TRUE");
-        bool fy1vc = v.size() > 1 && v[1].Contains("Active=TRUE");
-        bool fx2vc = v.size() > 2 && v[2].Contains("Active=TRUE");
-        bool fy2vc = v.size() > 3 && v[3].Contains("Active=TRUE");
-
-        // We can ignore x and y centre as this works on the difference and the centre cancels out
-
-        // the larger the number the more fine grained the buffer assessment will be ... makes crashes less likely
-        #define VCITERATIONS (10.0 * VC_X_POINTS)
-
-        float maxX = 0;
-        if (fx1vc || fx2vc)
-        {
-            v[0].Replace("yyz", "Max");
-            v[2].Replace("yyz", "Max");
-            ValueCurve vcx1(v[0].ToStdString());
-            ValueCurve vcx2(v[2].ToStdString());
-            vcx1.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
-            vcx2.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
-            for (int i = 0; i < VCITERATIONS; ++i)
-            {
-                float valx1 = 0.0;
-                if (fx1vc)
-                {
-                    valx1 = vcx1.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
-                }
-                float valx2 = BufferWi;
-                if (fx2vc)
-                {
-                    valx2 = vcx2.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
-                }
-                float diff = std::abs(valx2 - valx1);
-                if (diff > maxX)
-                {
-                    maxX = diff;
-                }
-            }
-        }
-
-        float maxY = 0;
-        if (fy1vc || fy2vc)
-        {
-            v[1].Replace("yyz", "Max");
-            v[3].Replace("yyz", "Max");
-            ValueCurve vcy1(v[1].ToStdString());
-            ValueCurve vcy2(v[3].ToStdString());
-            vcy1.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
-            vcy2.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
-            for (int i = 0; i < VCITERATIONS; ++i)
-            {
-                float valy1 = 0.0;
-                if (fy1vc)
-                {
-                    valy1 = vcy1.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
-                }
-                float valy2 = BufferHt;
-                if (fy2vc)
-                {
-                    valy2 = vcy2.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
-                }
-                float diff = std::abs(valy2 - valy1);
-                if (diff > maxY)
-                {
-                    maxY = diff;
-                }
-            }
-        }
-
-        maxX *= (float)BufferWi;
-        maxY *= (float)BufferHt;
-        maxX /= 100.0;
-        maxY /= 100.0;
-
-        maxWi = std::max((int)std::ceil(maxX), BufferWi);
-        maxHt = std::max((int)std::ceil(maxY), BufferHt);
-
-        logger_base.debug("Max buffer calculated to be %dx%d on model of size %dx%d <= %s", maxWi, maxHt, BufferWi, BufferHt, (const char *)subBuffer.c_str());
-    }
-    else
-    {
-        maxHt = BufferHt;
-        maxWi = BufferWi;
-    }
-}
-
 void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi, float progress, long startMS, long endMS) {
 
     if (subBuffer == STR_EMPTY) {
@@ -2499,15 +2400,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
             model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, go_deep);
         }
 
-        int curBH = inf->BufferHt;
-        int curBW = inf->BufferWi;
         ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, 0, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS());
-
-        curBH = std::max(curBH, inf->BufferHt);
-        curBW = std::max(curBW, inf->BufferWi);
-
-        // save away the full model buffer size ... some effects need to know this
-        ComputeMaxBuffer(subBuffer, curBH, curBW, inf->ModelBufferHt, inf->ModelBufferWi, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS());
 
         ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
         ComputeValueCurve(hueAdjustValueCurve, inf->HueAdjustValueCurve);
@@ -2545,7 +2438,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->ypivotValueCurve = ypivotValueCurve;
 
         // we create the buffer oversized to prevent issues
-        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
+        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->bufferTransform);
         GPURenderUtils::setupRenderBuffer(this, &inf->buffer);
 
         if (type.compare(0, 9, "Per Model") == 0 && model->GetDisplayAs() == "ModelGroup") {
@@ -2564,7 +2457,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                             bw = 1; // zero sized buffers are a problem
                         if (bh == 0)
                             bh = 1;
-                        it->InitBuffer(bh, bw, bh, bw, transform);
+                        it->InitBuffer(bh, bw, transform);
                         it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
                         GPURenderUtils::setupRenderBuffer(this, it.get());
                         ++it_m;
@@ -2584,7 +2477,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                             bw = 1; // zero sized buffers are a problem
                         if (bh == 0)
                             bh = 1;
-                        it->InitBuffer(bh, bw, bh, bw, transform);
+                        it->InitBuffer(bh, bw, transform);
                         it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
                         GPURenderUtils::setupRenderBuffer(this, it.get());
                         ++cnt;

@@ -11,11 +11,11 @@
 #include <wx/dnd.h>
 #include "TopEffectsPanel.h"
 #include <wx/event.h>
+#include <wx/artprov.h>
 #include "sequencer/EffectDropTarget.h"
 #include "../include/Off.xpm"
 
 //(*InternalHeaders(TopEffectsPanel)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/intl.h>
@@ -50,7 +50,7 @@ TopEffectsPanel::TopEffectsPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer3->AddGrowableCol(2);
 	FlexGridSizer3->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
-	BitmapButtonRandomize = new wxBitmapButton(this, ID_BITMAPBUTTON_RANDOMIZE, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_DICE_ICON")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_RANDOMIZE"));
+	BitmapButtonRandomize = new wxBitmapButton(this, ID_BITMAPBUTTON_RANDOMIZE,  wxArtProvider::GetBitmapBundle("xlART_DICE_ICON", wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_RANDOMIZE"));
 	BitmapButtonRandomize->SetToolTip(_("Randomize color and effect settings without a Lock"));
 	FlexGridSizer5->Add(BitmapButtonRandomize, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonUpdateEffect = new wxButton(this, ID_BUTTON_UpdateEffect, _("Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_UpdateEffect"));
@@ -65,8 +65,6 @@ TopEffectsPanel::TopEffectsPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer2->Add(EffectSizer, 1, wxALL|wxEXPAND, 0);
 	MainSizer->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	SetSizer(MainSizer);
-	MainSizer->Fit(this);
-	MainSizer->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_RANDOMIZE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TopEffectsPanel::OnButtonRandomizeEffectClick);
 	Connect(ID_BUTTON_UpdateEffect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TopEffectsPanel::OnButtonUpdateEffectClick);
@@ -84,7 +82,7 @@ TopEffectsPanel::~TopEffectsPanel()
 }
 
 
-void TopEffectsPanel::SetDragIconBuffer(const wxBitmap &buffer)
+void TopEffectsPanel::SetDragIconBuffer(const wxBitmapBundle &buffer)
 {
     BitmapButtonSelectedEffect->SetBitmap(buffer);
 }

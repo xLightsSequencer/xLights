@@ -67,7 +67,11 @@ public:
     {
         if (val["port"].IsInt()) {
             // this is the web request response
-            _port = val["port"].AsInt();
+            if (val.HasMember("port")) {
+                _port = val["port"].AsInt();
+            } else {
+                _port = val["p"].AsInt();
+            }
             _tees = val["ts"].AsInt();
             _reverse = (val["rev"].AsInt() == 1);
             _nodes = val["l"].AsInt();
@@ -75,7 +79,11 @@ public:
         }
         else {
             // This is the DDP config response
-            _port = wxAtoi(val["port"].AsString());
+            if (val.HasMember("port")) {
+                _port = wxAtoi(val["port"].AsString());
+            } else {
+                _port = val["p"].AsInt();
+            }
             _tees = wxAtoi(val["ts"].AsString());
             _reverse = false;
             _nodes = wxAtoi(val["l"].AsString());
@@ -189,53 +197,85 @@ void Minleon::SetTimingsFromProtocol()
 {
     if (_protocol == "ws2811") {
         _t0h = 350;
-        _t1h = 500;
+        _t1h = 650;
         _tbit = 1250;
         _tres = 280;
-    }
-    else if (_protocol == "sk6812") {
-        _t0h = 300;
-        _t1h = 600;
-        _tbit = 1250;
-        _tres = 80;
-    }
-    else if (_protocol == "gs820x") {
-        _t0h = 310;
-        _t1h = 930;
-        _tbit = 1250;
-        _tres = 300;
-    }
-    else if (_protocol == "ucs2903") {
-        _t0h = 250;
-        _t1h = 1000;
-        _tbit = 1250;
-        _tres = 24;
-    }
-    else if (_protocol == "tm18xx") {
-        _t0h = 500;
-        _t1h = 1000;
-        _tbit = 1500;
-        _tres = 10;
-    }
-    else if (_protocol == "sm16703") {
-        _t0h = 300;
-        _t1h = 900;
-        _tbit = 1250;
-        _tres = 80;
-    }
-    else if (_protocol == "apa104") {
+    } else if (_protocol == "ws2812b") {
         _t0h = 400;
         _t1h = 800;
         _tbit = 1250;
         _tres = 50;
-    }
-    else if (_protocol == "ucs8903") {
+    } else if (_protocol == "ws2818") {
+        _t0h = 400;
+        _t1h = 800;
+        _tbit = 1250;
+        _tres = 300;
+    } else if (_protocol == "sk6812") {
+        _t0h = 300;
+        _t1h = 600;
+        _tbit = 1250;
+        _tres = 80;
+    } else if (_protocol == "gs820x") {
+        _t0h = 310;
+        _t1h = 930;
+        _tbit = 1250;
+        _tres = 300;
+    } else if (_protocol == "gs8206/8") {
+        _t0h = 310;
+        _t1h = 930;
+        _tbit = 1250;
+        _tres = 300;
+    } else if (_protocol == "ucs2903") {
+        _t0h = 250;
+        _t1h = 1000;
+        _tbit = 1250;
+        _tres = 24;
+    } else if (_protocol == "tm18xx") {
+        _t0h = 500;
+        _t1h = 1000;
+        _tbit = 1500;
+        _tres = 10;
+    } else if (_protocol == "tm1804") {
+        _t0h = 500;
+        _t1h = 1000;
+        _tbit = 1500;
+        _tres = 10;
+    } else if (_protocol == "sm16703") {
+        _t0h = 300;
+        _t1h = 900;
+        _tbit = 1250;
+        _tres = 80;
+    } else if (_protocol == "apa104") {
+        _t0h = 400;
+        _t1h = 800;
+        _tbit = 1250;
+        _tres = 50;
+    } else if (_protocol == "ucs8903") {
         _t0h = 400;
         _t1h = 850;
         _tbit = 1260;
         _tres = 100;
-    }
-    else {
+    } else if (_protocol == "rgb+") {
+        _t0h = 400;
+        _t1h = 850;
+        _tbit = 1260;
+        _tres = 1000;
+    } else if (_protocol == "rgbw+") {
+        _t0h = 400;
+        _t1h = 850;
+        _tbit = 1260;
+        _tres = 1000;
+    } else if (_protocol == "rgb+2") {
+        _t0h = 350;
+        _t1h = 700;
+        _tbit = 1250;
+        _tres = 250;
+    } else if (_protocol == "rm2021") {
+        _t0h = 300;
+        _t1h = 900;
+        _tbit = 1250;
+        _tres = 200;
+    } else {
         _t0h = 400;
         _t1h = 850;
         _tbit = 1260;
@@ -245,7 +285,20 @@ void Minleon::SetTimingsFromProtocol()
 
 void Minleon::PostURL(const std::string& url, const std::string& data) const
 {
-    Curl::HTTPSPost("http://" + _ip + url, data);
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    auto response = Curl::HTTPSPost("http://" + _ip + url, data);
+    logger_base.debug("%s", (const char*)response.c_str());
+}
+
+int Minleon::GetMax8PortPixels(const std::string& chip) const
+{
+    if (chip == "rgb+")
+        return 460;
+    if (chip == "rgbw+")
+        return 345;
+    if (chip == "rgb+2")
+        return 613;
+    return 920;
 }
 
 int Minleon::GetMax16PortPixels(const std::string& chip) const
@@ -258,11 +311,51 @@ int Minleon::GetMax16PortPixels(const std::string& chip) const
 #pragma endregion
 
 #pragma region Port Handling
-void Minleon::Upload(bool reboot) {
+void Minleon::UploadNDBPro(bool reboot)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int universe = 0;
+    if (_startUniverse != -1)
+        universe = _startUniverse;
+
+    std::string data = wxString::Format("{\"chip\":\"%d\",\"conv\":\"%s\",\"t0h\":\"%d\",\"t1h\":\"%d\",\"tbit\":\"%d\",\"trst\":\"%d\",\"proto\":\"%d\",\"universe\":\"%d\",\"ports\":[", 
+        EncodeStringPortProtocol(_chip),
+        _conv,
+        _t0h, _t1h, _tbit, _tres, 
+        EncodeInputProtocol(_protocol),
+        universe);
+    bool first = true;
+    for (const auto& it : _stringPorts) {
+        if (!first) {
+            data += ",";
+        } else {
+            first = false;
+        }
+        data += wxString::Format("{\"p\":%d,\"ts\":\"%d\",\"l\":\"%d\",\"rev\":\"%d\",\"ss\":\"%d\"}",
+                                 it->_port,
+                                 it->_tees,
+                                 it->_nodes,
+                                 it->_reverse ? 1 : 0,
+            it->_startChannel
+            );
+    }
+    data += "]}";
+
+    logger_base.debug("%s", (const char*)data.c_str());
+
+    PostURL("/api/config", data);
+}
+
+void Minleon::Upload(bool reboot)
+{
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     SetTimingsFromProtocol();
+
+    if (_ndbPro) {
+        return UploadNDBPro(reboot);
+    }
 
     int universe = 0;
     if (_startUniverse != -1) universe = _startUniverse;
@@ -374,48 +467,37 @@ void Minleon::Upload(bool reboot) {
 #pragma endregion
 
 #pragma region Encode and Decode
-int Minleon::EncodeStringPortProtocol(const std::string& protocol) const {
+static std::map<int, std::string> NDBProProtocols = {
+    { 1, "ucs8903" },
+    { 2, "rgbw+" },
+    { 3, "sk6812" },
+    { 4, "ws2811" },
+    { 5, "ws2811" },
+    { 6, "ws2811" },
+    { 7, "gs820x" },
+    { 8, "ucs2903" },
+    { 9, "tm18xx" },
+    { 10, "sm16703" },
+    { 11, "apa104" },
+    { 12, "rgb+2" },
+    { 13, "ws2811" },
+    { 14, "rm2021" }
+};
 
-    wxString p(protocol);
-    p = p.Lower();
-    if (p == "sk6812") return 3;
-    if (p == "ws2811") return 6;
-    if (p == "gs820x") return 7;
-    if (p == "ucs2903") return 8;
-    if (p == "tm18xx") return 9;
-    if (p == "sm16703") return 10;
-    if (p == "apa104") return 11;
-
-    return -1;
+std::string Minleon::DecodeStringPortProtocol(int protocol) const
+{
+    if (NDBProProtocols.find(protocol) != NDBProProtocols.end())
+        return NDBProProtocols[protocol];
+    return "ws2811";
 }
 
-std::string Minleon::DecodeStringPortProtocol(int protocol) const {
-
-    switch (protocol)
-    {
-    case 1:
-        return "ucs8903";
-    case 3:
-        return "sk6812";
-    case 4:
-        return "ws2811";
-    case 5:
-        return "ws2811";
-    case 6:
-        return "ws2811";
-    case 7:
-        return "gs820x";
-    case 8:
-        return "ucs2903";
-    case 9:
-        return "tm18xx";
-    case 10:
-        return "sm16703";
-    case 11:
-        return "apa104";
+int Minleon::EncodeStringPortProtocol(const std::string& protocol) const
+{
+    for (const auto& it : NDBProProtocols) {
+        if (it.second == protocol)
+            return it.first;
     }
-
-    return "ucs8903";
+    return 6;
 }
 
 int Minleon::EncodeInputProtocol(const std::string& protocol) const {
@@ -447,8 +529,9 @@ std::string Minleon::DecodeInputProtocol(int protocol) const {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::string& forceLocalIP) : BaseController(ip, proxy) {
-
+Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::string& forceLocalIP) :
+    BaseController(ip, proxy)
+{
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _version = "";
@@ -478,11 +561,13 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
         logger_base.debug("Downloaded string data.");
         DumpStringData(_stringPorts, -1);
         _connected = true;
-    }
-    else {
+    } else {
 #endif
         _connected = true;
         std::string html = GetURL("/");
+        if (html == "") {
+            html = GetURL("/psys.html");
+        }
         logger_base.debug("/:\n%s", (const char*)html.c_str());
         //</script>NDB+ v2.2
         //<p><form>
@@ -490,19 +575,30 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
         if (extractVersion.Matches(wxString(html))) {
             _version = extractVersion.GetMatch(wxString(html), 1).ToStdString();
             logger_base.debug("Firmware version : %s", (const char*)_version.c_str());
-        }
-        else {
+        } else {
             logger_base.debug("Firmware version : Unable to determine.");
         }
 
         std::string configJSON = GetURL("/01.html");
 
-        if (configJSON == "") {
-            logger_base.error("    Error retrieving 01.html from Minleon controller.");
-            _connected = false;
-            return;
+        if (configJSON == "" || configJSON == "This URI does not exist") {
+            logger_base.warn("    Error retrieving 01.html from Minleon controller.");
+
+            configJSON = GetURL("/api/config");
+
+            if (configJSON == "" || configJSON == "This URI does not exist") {
+                logger_base.warn("    Error retrieving api/config from Minleon controller.");
+                _connected = false;
+                return;
+            }
+
+            _ndbPro = true;
+
+            logger_base.debug("api/config:\n%s", (const char*)configJSON.c_str());
+
+        } else {
+            logger_base.debug("01.html:\n%s", (const char*)configJSON.c_str());
         }
-        logger_base.debug("01.html:\n%s", (const char*)configJSON.c_str());
 
         wxJSONValue val;
         wxJSONReader reader;
@@ -516,24 +612,45 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
         _tres = wxAtoi(val["config"]["tres"].AsString());
         _conv = val["config"]["conv"].AsString();
 
-        auto p = val["config"]["protocol"].AsString();
-        if (p == "E1.31") {
+        std::string p;
+        if (val["config"].HasMember("protocol")) {
+            p = val["config"]["protocol"].AsString();
+        } else {
+            html = GetURL("/pout.html");
+            wxRegEx extractProtocol("type=\"radio\"[^>]*value=\"([^\"]*)[^>]* checked>", wxRE_ADVANCED | wxRE_NEWLINE);
+            if (extractProtocol.Matches(wxString(html))) {
+                p = extractProtocol.GetMatch(wxString(html), 1).ToStdString();
+            }
+        }
+        if (p == "E1.31" || p == "2") {
             _protocol = OUTPUT_E131;
-        }
-        else if (p == "Art-Net") {
+        } else if (p == "Art-Net" || p == "1") {
             _protocol = OUTPUT_ARTNET;
-        }
-        else if (p == "DDP") {
+        } else if (p == "DDP" || p == "0") {
             _protocol = OUTPUT_DDP;
+        } else {
+            _protocol = p;
         }
-        else _protocol = p;
+
         if (_protocol != OUTPUT_DDP) {
-            _startUniverse = wxAtoi(val["config"]["universe"].AsString());
+            if (val["config"].HasMember("universe")) {
+                _startUniverse = wxAtoi(val["config"]["universe"].AsString());
+            } else {
+                _startUniverse = wxAtoi(val["config"]["univ"].AsString());
+            }
         }
 
         _chip = DecodeStringPortProtocol(wxAtoi(val["config"]["chip"].AsString()));
-        _ports = wxAtoi(val["config"]["nports"].AsString());
-        _grouping = wxAtoi(val["config"]["rpt"].AsString());
+        if (val["config"].HasMember("nports")) {
+            _ports = wxAtoi(val["config"]["nports"].AsString());
+        } else {
+            _ports = val["config"]["ports"].AsArray()->Count();
+        }
+        if (val["config"].HasMember("rpt")) {
+            _grouping = wxAtoi(val["config"]["rpt"].AsString());
+        } else {
+            _grouping = 1;
+        }
         ParseStringPorts(_stringPorts, val["config"]["ports"]);
 
         logger_base.debug("Downloaded string data.");
@@ -653,13 +770,14 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
                             chipSet = true;
                             _chip = vs->_protocol;
                         }
-                        if (!groupingSet && vs->_groupCountSet) {
-                            groupingSet = true;
-                            if (vs->_groupCount <= 1) {
-                                _grouping = 0;
-                            }
-                            else {
-                                _grouping = (maxChannels / 3) / vs->_groupCount;
+                        if (!_ndbPro) {
+                            if (!groupingSet && vs->_groupCountSet) {
+                                groupingSet = true;
+                                if (vs->_groupCount <= 1) {
+                                    _grouping = 0;
+                                } else {
+                                    _grouping = (maxChannels / 3) / vs->_groupCount;
+                                }
                             }
                         }
                         if (!rgbSet && vs->_colourOrderSet) {

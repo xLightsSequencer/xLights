@@ -331,6 +331,8 @@
 		<Unit filename="../xLights/outputs/SerialOutput.h" />
 		<Unit filename="../xLights/outputs/TestPreset.cpp" />
 		<Unit filename="../xLights/outputs/TestPreset.h" />
+		<Unit filename="../xLights/outputs/TwinklyOutput.cpp" />
+		<Unit filename="../xLights/outputs/TwinklyOutput.h" />
 		<Unit filename="../xLights/outputs/ZCPP.h" />
 		<Unit filename="../xLights/outputs/ZCPPOutput.cpp" />
 		<Unit filename="../xLights/outputs/ZCPPOutput.h" />

@@ -139,8 +139,6 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer7->Add(TextCtrl_Faces_TransparentBlack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer47->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer47);
-	FlexGridSizer47->Fit(this);
-	FlexGridSizer47->SetSizeHints(this);
 
 	Connect(IDD_RADIOBUTTON_Faces_Phoneme,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&FacesPanel::OnMouthMovementTypeSelected);
 	Connect(IDD_RADIOBUTTON_Faces_TimingTrack,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&FacesPanel::OnMouthMovementTypeSelected);

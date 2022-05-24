@@ -79,7 +79,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
         wxFileName fn(report.GetDirectory(), report.GetReportName(), wxT("dmp"));
         wxCrashReport::SetFileName(fn.GetFullPath());
 
-        int const crashRptFlags = wxCRASH_REPORT_LOCATION | wxCRASH_REPORT_STACK | wxCRASH_REPORT_GLOBALS;
+        int const crashRptFlags = wxCRASH_REPORT_LOCATION | wxCRASH_REPORT_STACK; // | wxCRASH_REPORT_GLOBALS; - remove globals to limit size of DMP file
 
         if ((ctx == wxDebugReport::Context_Exception) ? wxCrashReport::Generate(crashRptFlags) : wxCrashReport::GenerateNow(crashRptFlags))
         {

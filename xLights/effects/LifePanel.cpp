@@ -12,10 +12,7 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(LifePanel)
-#include <wx/artprov.h>
-#include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
-#include <wx/image.h>
 #include <wx/intl.h>
 #include <wx/settings.h>
 #include <wx/sizer.h>
@@ -62,7 +59,7 @@ LifePanel::LifePanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl32 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Life_Count, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Life_Count"));
 	TextCtrl32->SetMaxLength(3);
 	FlexGridSizer40->Add(TextCtrl32, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_LifeCount = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Life_Count, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Life_Count"));
+	BitmapButton_LifeCount = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Life_Count, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Life_Count"));
 	BitmapButton_LifeCount->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer40->Add(BitmapButton_LifeCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText37 = new wxStaticText(this, ID_STATICTEXT_Life_Seed, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Life_Seed"));
@@ -72,7 +69,7 @@ LifePanel::LifePanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl31 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Life_Seed, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Life_Seed"));
 	TextCtrl31->SetMaxLength(2);
 	FlexGridSizer40->Add(TextCtrl31, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_LifeSpeed = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Life_Seed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Life_Seed"));
+	BitmapButton_LifeSpeed = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Life_Seed, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Life_Seed"));
 	BitmapButton_LifeSpeed->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer40->Add(BitmapButton_LifeSpeed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText134 = new wxStaticText(this, ID_STATICTEXT_Life_Speed, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Life_Speed"));
@@ -83,8 +80,6 @@ LifePanel::LifePanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl30->SetMaxLength(2);
 	FlexGridSizer40->Add(TextCtrl30, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	SetSizer(FlexGridSizer40);
-	FlexGridSizer40->Fit(this);
-	FlexGridSizer40->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_SLIDER_Life_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LifePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Life_Seed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LifePanel::OnLockButtonClick);

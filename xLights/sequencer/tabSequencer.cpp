@@ -1207,7 +1207,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
     }
     if (event.updateUI || event.updateBtn) {
         RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
-        effectsPnl->SetDragIconBuffer(eff->GetEffectIcon(16));
+        effectsPnl->SetDragIconBuffer(eff->GetEffectIcon());
         effectsPnl->BitmapButtonSelectedEffect->SetEffect(eff, mIconSize);
         if( effect != nullptr ) {
             UpdateEffectAssistWindow(effect, eff);
@@ -2477,10 +2477,11 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     //colorPanel->Thaw();
 }
 
-bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
+bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool res = true;
+    auto orig = name;
     wxWindow* ContextWin = nullptr;
 	if (name.StartsWith("E_"))
 	{
@@ -2574,11 +2575,21 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
 
 			wxChoice* ctrl = (wxChoice*)CtrlWin;
 			ctrl->SetStringSelection(value);
-
-			wxCommandEvent event(wxEVT_CHOICE, ctrl->GetId());
-			event.SetEventObject(ctrl);
-			event.SetString(value);
-			ctrl->ProcessWindowEvent(event);
+            if (ctrl->GetStringSelection() != value && count < 10) {
+                // if did not take ... possibly because it has not loaded the values yet
+                // If it doesn't take after 10 attempts, the "value" is not in the list of possible values
+                // so we'll just use whatever the default/last value is to prevent an infinite loop
+                // waiting for the value to to be added
+                wxCommandEvent event(EVT_SETEFFECTCHOICE);
+                event.SetString(orig + "|" + value);
+                event.SetInt(count + 1);
+                wxPostEvent(this, event);
+            } else {
+                wxCommandEvent event(wxEVT_CHOICE, ctrl->GetId());
+                event.SetEventObject(ctrl);
+                event.SetString(ctrl->GetStringSelection());
+                ctrl->ProcessWindowEvent(event);
+            }
 		}
 		else if (name.StartsWith("ID_BUTTON"))
 		{
@@ -2663,6 +2674,17 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
         }
 	}
     return res;
+}
+
+void xLightsFrame::SetEffectChoice(wxCommandEvent& event)
+{
+    auto v = wxSplit(event.GetString(), '|');
+    if (v.size() == 2) {
+        ApplySetting(v[0], v[1], event.GetInt());
+    }
+    else {
+        wxASSERT(false);
+    }
 }
 
 void xLightsFrame::ApplyLast(wxCommandEvent& event)

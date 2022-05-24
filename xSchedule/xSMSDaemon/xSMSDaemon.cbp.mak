@@ -18,7 +18,7 @@ LIBDIR =
 LIB = 
 LDFLAGS = 
 
-INC_LINUX_DEBUG = $(INC) -Iinclude -I../xSchedule/xSMSDaemon -I../include
+INC_LINUX_DEBUG = $(INC) -Iinclude -I../xSchedule/xSMSDaemon -I../include -I../../xLights
 CFLAGS_LINUX_DEBUG =  -Wall -g -fPIC `wx-config --version=3.1 --cflags` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags log4cpp` `curl-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DEXCLUDE_COMMAND_VALIDATION -D__WXDEBUG__ -D__cdecl=""
 RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
@@ -29,7 +29,7 @@ OBJDIR_LINUX_DEBUG = .objs_debug
 DEP_LINUX_DEBUG = 
 OUT_LINUX_DEBUG = ../../bin/xSMSDaemon.so
 
-INC_LINUX_RELEASE = $(INC) -Iinclude -I../xSchedule/xSMSDaemon -I../include
+INC_LINUX_RELEASE = $(INC) -Iinclude -I../xSchedule/xSMSDaemon -I../include -I../../xLights
 CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -Wall -fPIC `wx-config --version=3.1 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags log4cpp` `curl-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -DEXCLUDE_COMMAND_VALIDATION -D__cdecl='' -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
@@ -40,9 +40,9 @@ OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../../bin/xSMSDaemon.so
 
-OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/MagicWordDialog.o $(OBJDIR_LINUX_DEBUG)/MagicWordsDialog.o $(OBJDIR_LINUX_DEBUG)/TestMessagesDialog.o $(OBJDIR_LINUX_DEBUG)/MagicWord.o $(OBJDIR_LINUX_DEBUG)/xSMSDaemonApp.o $(OBJDIR_LINUX_DEBUG)/xSMSDaemonMain.o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/__/wxJSON/jsonreader.o $(OBJDIR_LINUX_DEBUG)/__/wxJSON/jsonval.o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_DEBUG)/SMSDaemonOptions.o $(OBJDIR_LINUX_DEBUG)/SMSMessage.o $(OBJDIR_LINUX_DEBUG)/SMSSettingsDialog.o
+OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/MagicWord.o $(OBJDIR_LINUX_DEBUG)/MagicWordDialog.o $(OBJDIR_LINUX_DEBUG)/MagicWordsDialog.o $(OBJDIR_LINUX_DEBUG)/TestMessagesDialog.o $(OBJDIR_LINUX_DEBUG)/xSMSDaemonApp.o $(OBJDIR_LINUX_DEBUG)/xSMSDaemonMain.o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/__/wxJSON/jsonreader.o $(OBJDIR_LINUX_DEBUG)/__/__/common/xlBaseApp.o $(OBJDIR_LINUX_DEBUG)/__/wxJSON/jsonval.o $(OBJDIR_LINUX_DEBUG)/SMSDaemonOptions.o $(OBJDIR_LINUX_DEBUG)/SMSMessage.o $(OBJDIR_LINUX_DEBUG)/SMSSettingsDialog.o
 
-OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/MagicWordDialog.o $(OBJDIR_LINUX_RELEASE)/MagicWordsDialog.o $(OBJDIR_LINUX_RELEASE)/TestMessagesDialog.o $(OBJDIR_LINUX_RELEASE)/MagicWord.o $(OBJDIR_LINUX_RELEASE)/xSMSDaemonApp.o $(OBJDIR_LINUX_RELEASE)/xSMSDaemonMain.o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/__/wxJSON/jsonreader.o $(OBJDIR_LINUX_RELEASE)/__/wxJSON/jsonval.o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_RELEASE)/SMSDaemonOptions.o $(OBJDIR_LINUX_RELEASE)/SMSMessage.o $(OBJDIR_LINUX_RELEASE)/SMSSettingsDialog.o
+OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/MagicWord.o $(OBJDIR_LINUX_RELEASE)/MagicWordDialog.o $(OBJDIR_LINUX_RELEASE)/MagicWordsDialog.o $(OBJDIR_LINUX_RELEASE)/TestMessagesDialog.o $(OBJDIR_LINUX_RELEASE)/xSMSDaemonApp.o $(OBJDIR_LINUX_RELEASE)/xSMSDaemonMain.o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/__/wxJSON/jsonreader.o $(OBJDIR_LINUX_RELEASE)/__/__/common/xlBaseApp.o $(OBJDIR_LINUX_RELEASE)/__/wxJSON/jsonval.o $(OBJDIR_LINUX_RELEASE)/SMSDaemonOptions.o $(OBJDIR_LINUX_RELEASE)/SMSMessage.o $(OBJDIR_LINUX_RELEASE)/SMSSettingsDialog.o
 
 all: linux_debug linux_release
 
@@ -53,6 +53,7 @@ before_linux_debug:
 	@test -d $(OBJDIR_LINUX_DEBUG) || mkdir -p $(OBJDIR_LINUX_DEBUG)
 	@test -d $(OBJDIR_LINUX_DEBUG)/__/__/xLights || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/__/xLights
 	@test -d $(OBJDIR_LINUX_DEBUG)/__/wxJSON || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/wxJSON
+	@test -d $(OBJDIR_LINUX_DEBUG)/__/__/common || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/__/common
 
 after_linux_debug: 
 
@@ -60,6 +61,9 @@ linux_debug: before_linux_debug out_linux_debug after_linux_debug
 
 out_linux_debug: before_linux_debug $(OBJ_LINUX_DEBUG) $(DEP_LINUX_DEBUG)
 	$(LD) -shared $(LIBDIR_LINUX_DEBUG) $(OBJ_LINUX_DEBUG)  -o $(OUT_LINUX_DEBUG) $(LDFLAGS_LINUX_DEBUG) $(LIB_LINUX_DEBUG)
+
+$(OBJDIR_LINUX_DEBUG)/MagicWord.o: MagicWord.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MagicWord.cpp -o $(OBJDIR_LINUX_DEBUG)/MagicWord.o
 
 $(OBJDIR_LINUX_DEBUG)/MagicWordDialog.o: MagicWordDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MagicWordDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/MagicWordDialog.o
@@ -70,14 +74,14 @@ $(OBJDIR_LINUX_DEBUG)/MagicWordsDialog.o: MagicWordsDialog.cpp
 $(OBJDIR_LINUX_DEBUG)/TestMessagesDialog.o: TestMessagesDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c TestMessagesDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/TestMessagesDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/MagicWord.o: MagicWord.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MagicWord.cpp -o $(OBJDIR_LINUX_DEBUG)/MagicWord.o
-
 $(OBJDIR_LINUX_DEBUG)/xSMSDaemonApp.o: xSMSDaemonApp.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xSMSDaemonApp.cpp -o $(OBJDIR_LINUX_DEBUG)/xSMSDaemonApp.o
 
 $(OBJDIR_LINUX_DEBUG)/xSMSDaemonMain.o: xSMSDaemonMain.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xSMSDaemonMain.cpp -o $(OBJDIR_LINUX_DEBUG)/xSMSDaemonMain.o
+
+$(OBJDIR_LINUX_DEBUG)/__/__/xLights/UtilFunctions.o: ../../xLights/UtilFunctions.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/UtilFunctions.o
 
 $(OBJDIR_LINUX_DEBUG)/__/__/xLights/xLightsTimer.o: ../../xLights/xLightsTimer.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../../xLights/xLightsTimer.cpp -o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/xLightsTimer.o
@@ -88,11 +92,11 @@ $(OBJDIR_LINUX_DEBUG)/__/__/xLights/xLightsVersion.o: ../../xLights/xLightsVersi
 $(OBJDIR_LINUX_DEBUG)/__/wxJSON/jsonreader.o: ../wxJSON/jsonreader.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../wxJSON/jsonreader.cpp -o $(OBJDIR_LINUX_DEBUG)/__/wxJSON/jsonreader.o
 
+$(OBJDIR_LINUX_DEBUG)/__/__/common/xlBaseApp.o: ../../common/xlBaseApp.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../../common/xlBaseApp.cpp -o $(OBJDIR_LINUX_DEBUG)/__/__/common/xlBaseApp.o
+
 $(OBJDIR_LINUX_DEBUG)/__/wxJSON/jsonval.o: ../wxJSON/jsonval.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../wxJSON/jsonval.cpp -o $(OBJDIR_LINUX_DEBUG)/__/wxJSON/jsonval.o
-
-$(OBJDIR_LINUX_DEBUG)/__/__/xLights/UtilFunctions.o: ../../xLights/UtilFunctions.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/UtilFunctions.o
 
 $(OBJDIR_LINUX_DEBUG)/SMSDaemonOptions.o: SMSDaemonOptions.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SMSDaemonOptions.cpp -o $(OBJDIR_LINUX_DEBUG)/SMSDaemonOptions.o
@@ -111,6 +115,7 @@ before_linux_release:
 	@test -d $(OBJDIR_LINUX_RELEASE) || mkdir -p $(OBJDIR_LINUX_RELEASE)
 	@test -d $(OBJDIR_LINUX_RELEASE)/__/__/xLights || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/__/xLights
 	@test -d $(OBJDIR_LINUX_RELEASE)/__/wxJSON || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/wxJSON
+	@test -d $(OBJDIR_LINUX_RELEASE)/__/__/common || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/__/common
 
 after_linux_release: 
 
@@ -118,6 +123,9 @@ linux_release: before_linux_release out_linux_release after_linux_release
 
 out_linux_release: before_linux_release $(OBJ_LINUX_RELEASE) $(DEP_LINUX_RELEASE)
 	$(LD) -shared $(LIBDIR_LINUX_RELEASE) $(OBJ_LINUX_RELEASE)  -o $(OUT_LINUX_RELEASE) $(LDFLAGS_LINUX_RELEASE) $(LIB_LINUX_RELEASE)
+
+$(OBJDIR_LINUX_RELEASE)/MagicWord.o: MagicWord.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MagicWord.cpp -o $(OBJDIR_LINUX_RELEASE)/MagicWord.o
 
 $(OBJDIR_LINUX_RELEASE)/MagicWordDialog.o: MagicWordDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MagicWordDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/MagicWordDialog.o
@@ -128,14 +136,14 @@ $(OBJDIR_LINUX_RELEASE)/MagicWordsDialog.o: MagicWordsDialog.cpp
 $(OBJDIR_LINUX_RELEASE)/TestMessagesDialog.o: TestMessagesDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c TestMessagesDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/TestMessagesDialog.o
 
-$(OBJDIR_LINUX_RELEASE)/MagicWord.o: MagicWord.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MagicWord.cpp -o $(OBJDIR_LINUX_RELEASE)/MagicWord.o
-
 $(OBJDIR_LINUX_RELEASE)/xSMSDaemonApp.o: xSMSDaemonApp.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xSMSDaemonApp.cpp -o $(OBJDIR_LINUX_RELEASE)/xSMSDaemonApp.o
 
 $(OBJDIR_LINUX_RELEASE)/xSMSDaemonMain.o: xSMSDaemonMain.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xSMSDaemonMain.cpp -o $(OBJDIR_LINUX_RELEASE)/xSMSDaemonMain.o
+
+$(OBJDIR_LINUX_RELEASE)/__/__/xLights/UtilFunctions.o: ../../xLights/UtilFunctions.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/UtilFunctions.o
 
 $(OBJDIR_LINUX_RELEASE)/__/__/xLights/xLightsTimer.o: ../../xLights/xLightsTimer.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../../xLights/xLightsTimer.cpp -o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/xLightsTimer.o
@@ -146,11 +154,11 @@ $(OBJDIR_LINUX_RELEASE)/__/__/xLights/xLightsVersion.o: ../../xLights/xLightsVer
 $(OBJDIR_LINUX_RELEASE)/__/wxJSON/jsonreader.o: ../wxJSON/jsonreader.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../wxJSON/jsonreader.cpp -o $(OBJDIR_LINUX_RELEASE)/__/wxJSON/jsonreader.o
 
+$(OBJDIR_LINUX_RELEASE)/__/__/common/xlBaseApp.o: ../../common/xlBaseApp.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../../common/xlBaseApp.cpp -o $(OBJDIR_LINUX_RELEASE)/__/__/common/xlBaseApp.o
+
 $(OBJDIR_LINUX_RELEASE)/__/wxJSON/jsonval.o: ../wxJSON/jsonval.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../wxJSON/jsonval.cpp -o $(OBJDIR_LINUX_RELEASE)/__/wxJSON/jsonval.o
-
-$(OBJDIR_LINUX_RELEASE)/__/__/xLights/UtilFunctions.o: ../../xLights/UtilFunctions.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/UtilFunctions.o
 
 $(OBJDIR_LINUX_RELEASE)/SMSDaemonOptions.o: SMSDaemonOptions.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SMSDaemonOptions.cpp -o $(OBJDIR_LINUX_RELEASE)/SMSDaemonOptions.o
@@ -164,37 +172,45 @@ $(OBJDIR_LINUX_RELEASE)/SMSSettingsDialog.o: SMSSettingsDialog.cpp
 clean_linux_release: 
 	rm -f $(OBJ_LINUX_RELEASE) $(OUT_LINUX_RELEASE)
 
+MagicWord.cpp: MagicWord.h SMSMessage.h xSMSDaemonApp.h
+
+SMSMessage.h: Curl.h ../../xLights/UtilFunctions.h
+
 MagicWordDialog.cpp: MagicWordDialog.h MagicWord.h
 
 MagicWordsDialog.cpp: MagicWordsDialog.h MagicWordDialog.h SMSDaemonOptions.h MagicWord.h
 
 TestMessagesDialog.cpp: TestMessagesDialog.h
 
-MagicWord.cpp: MagicWord.h SMSMessage.h xSMSDaemonApp.h
+xSMSDaemonApp.cpp: xSMSDaemonMain.h xSMSDaemonApp.h ../../xLights/xLightsVersion.h
 
-SMSMessage.h: Curl.h
-
-xSMSDaemonApp.cpp: xSMSDaemonMain.h xSMSDaemonApp.h
-
-xSMSDaemonMain.h: SMSService.h SMSDaemonOptions.h xSMSDaemonApp.h
+xSMSDaemonMain.h: SMSService.h ../../xLights/xLightsTimer.h SMSDaemonOptions.h xSMSDaemonApp.h
 
 SMSService.h: SMSMessage.h SMSDaemonOptions.h MagicWord.h
 
-xSMSDaemonMain.cpp: Curl.h xSMSDaemonMain.h SMSSettingsDialog.h SMSDaemonOptions.h SMSService.h TestMessagesDialog.h Bandwidth.h voip_ms.h Twilio.h
+xSMSDaemonMain.cpp: Curl.h ../../xLights/xLightsVersion.h xSMSDaemonMain.h SMSSettingsDialog.h SMSDaemonOptions.h SMSService.h TestMessagesDialog.h Bandwidth.h voip_ms.h Twilio.h
 
-Bandwidth.h: Curl.h SMSMessage.h SMSService.h
+Bandwidth.h: Curl.h ../../xLights/UtilFunctions.h SMSMessage.h SMSService.h
 
-voip_ms.h: Curl.h SMSMessage.h SMSService.h
+voip_ms.h: Curl.h ../../xLights/UtilFunctions.h SMSMessage.h SMSService.h
 
-Twilio.h: Curl.h SMSMessage.h SMSService.h
+Twilio.h: Curl.h ../../xLights/UtilFunctions.h SMSMessage.h SMSService.h
 
-../../xLights/UtilFunctions.cpp: Curl.h
+../../xLights/UtilFunctions.cpp: ../../xLights/UtilFunctions.h ../../xLights/xLightsVersion.h ../../xLights/ExternalHooks.h Curl.h
 
-SMSDaemonOptions.cpp: SMSDaemonOptions.h MagicWord.h
+../../xLights/ExternalHooks.h: ../../xLights/Color.h
+
+../../xLights/xLightsTimer.cpp: ../../xLights/xLightsTimer.h
+
+../../xLights/xLightsVersion.cpp: ../../xLights/xLightsVersion.h
+
+../../common/xlBaseApp.cpp: ../../xLights/ExternalHooks.h ../../xLights/xLightsVersion.h
+
+SMSDaemonOptions.cpp: SMSDaemonOptions.h ../../xLights/UtilFunctions.h MagicWord.h
 
 SMSMessage.cpp: SMSMessage.h
 
-SMSSettingsDialog.cpp: SMSSettingsDialog.h MagicWordsDialog.h SMSDaemonOptions.h
+SMSSettingsDialog.cpp: SMSSettingsDialog.h MagicWordsDialog.h SMSDaemonOptions.h ../../xLights/UtilFunctions.h
 
 .PHONY: before_linux_debug after_linux_debug clean_linux_debug before_linux_release after_linux_release clean_linux_release
 

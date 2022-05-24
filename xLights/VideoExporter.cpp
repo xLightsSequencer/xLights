@@ -213,12 +213,6 @@ void GenericVideoExporter::initialize()
 
 bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
 {
-    AVStream* video_st = ::avformat_new_stream(_formatContext, nullptr);
-    video_st->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
-    video_st->time_base.num = 1;
-    video_st->time_base.den = _outParams.fps;
-    video_st->id = _formatContext->nb_streams - 1;
-
     _videoCodecContext = ::avcodec_alloc_context3(codec);
     _videoCodecContext->time_base.num = 1;
     _videoCodecContext->time_base.den = _outParams.fps;
@@ -268,6 +262,11 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
         return false;
     }
 
+    AVStream* video_st = ::avformat_new_stream(_formatContext, nullptr);
+    video_st->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+    video_st->time_base.num = 1;
+    video_st->time_base.den = _outParams.fps;
+    video_st->id = _formatContext->nb_streams - 1;
     status = ::avcodec_parameters_from_context(video_st->codecpar, _videoCodecContext);
     if (status != 0)
         throw std::runtime_error("VideoExporter - Error setting video stream parameters");

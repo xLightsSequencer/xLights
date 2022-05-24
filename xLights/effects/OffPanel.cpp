@@ -43,8 +43,6 @@ OffPanel::OffPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Transparent->SetValue(false);
 	FlexGridSizer77->Add(CheckBox_Transparent, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer77);
-	FlexGridSizer77->Fit(this);
-	FlexGridSizer77->SetSizeHints(this);
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&OffPanel::OnVCChanged, 0, this);

@@ -264,8 +264,6 @@ void DmxFloodlight::ExportXlightsModel()
     if (!f.Create(filename, true) || !f.IsOpened())
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
-    ExportBaseParameters(f);
-
     wxString rc = ModelXml->GetAttribute("DmxRedChannel", "0");
     wxString gc = ModelXml->GetAttribute("DmxGreenChannel", "0");
     wxString bc = ModelXml->GetAttribute("DmxBlueChannel", "0");
@@ -274,6 +272,7 @@ void DmxFloodlight::ExportXlightsModel()
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
+    ExportBaseParameters(f);
     f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));
     f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
     f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));

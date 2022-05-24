@@ -34,7 +34,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferTop" subclass="ValueCurveButton" variable="ValueCurve_Top" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>
@@ -63,7 +63,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferLeft" subclass="ValueCurveButton" variable="ValueCurve_Left" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>
@@ -92,7 +92,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferBottom" subclass="ValueCurveButton" variable="ValueCurve_Bottom" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>
@@ -122,7 +122,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferRight" subclass="ValueCurveButton" variable="ValueCurve_Right" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>
@@ -150,7 +150,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferXC" subclass="ValueCurveButton" variable="ValueCurve_XC" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>
@@ -178,7 +178,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferYC" subclass="ValueCurveButton" variable="ValueCurve_YC" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>
@@ -205,10 +205,9 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SAVE" subclass="xlSizedBitmapButton" variable="BitmapButtonSave" member="yes">
-							<bitmap stock_id="xlART_colorpanel_save_xpm" stock_client="wxART_BUTTON" />
+							<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_save_xpm&quot;, wxART_BUTTON)' />
 							<size>24,24</size>
 							<tooltip>Save Buffer Preset</tooltip>
-							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnBitmapButtonSaveClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -217,7 +216,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_DELETE" subclass="xlSizedBitmapButton" variable="BitmapButtonDelete" member="yes">
-							<bitmap stock_id="xlART_colorpanel_delete_xpm" stock_client="wxART_BUTTON" />
+							<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_delete_xpm&quot;, wxART_BUTTON)' />
 							<size>24,24</size>
 							<tooltip>Delete Buffer Preset</tooltip>
 							<handler function="OnBitmapButtonDeleteClick" entry="EVT_BUTTON" />

@@ -275,8 +275,6 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     ScrollBarEffectsHorizontal->SetScrollbar(0, 1, 100, 1);
     FlexGridSizer1->Add(ScrollBarEffectsHorizontal, 1, wxALL|wxEXPAND, 0);
     SetSizer(FlexGridSizer1);
-    FlexGridSizer1->Fit(this);
-    FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_TOP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
@@ -1033,12 +1031,12 @@ void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchB
             ToggleHousePreview();
         },
                                                  "Toggle House Preview",
-                                                 wxArtProvider::GetBitmap("xlART_HOUSE_PREVIEW")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_HOUSE_PREVIEW", wxART_TOOLBAR)));
         pvitems.push_back(new ButtonTouchBarItem([this]() {
             ToggleModelPreview();
         },
                                                  "Toggle Model Preview",
-                                                 wxArtProvider::GetBitmap("xlART_MODEL_PREVIEW")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_MODEL_PREVIEW", wxART_TOOLBAR)));
         items.push_back(new GroupTouchBarItem("Previews", pvitems));
         
         
@@ -1046,19 +1044,19 @@ void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchB
         
         pbitems.push_back(new ButtonTouchBarItem([this]() { TouchPlayControl("Play"); },
                                                  "Play",
-                                                 wxArtProvider::GetBitmap("xlART_PLAY")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_PLAY", wxART_TOOLBAR)));
         pbitems.push_back(new ButtonTouchBarItem([this]() { TouchPlayControl("Pause"); },
                                                  "Pause",
-                                                 wxArtProvider::GetBitmap("xlART_PAUSE")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_PAUSE", wxART_TOOLBAR)));
         pbitems.push_back(new ButtonTouchBarItem([this]() { TouchPlayControl("Stop"); },
                                                  "Stop",
-                                                 wxArtProvider::GetBitmap("xlART_STOP")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_STOP", wxART_TOOLBAR)));
         pbitems.push_back(new ButtonTouchBarItem([this]() { TouchPlayControl("Back"); },
                                                  "Backward",
-                                                 wxArtProvider::GetBitmap("xlART_BACKWARD")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_BACKWARD", wxART_TOOLBAR)));
         pbitems.push_back(new ButtonTouchBarItem([this]() { TouchPlayControl("Forward"); },
                                                  "Forward",
-                                                 wxArtProvider::GetBitmap("xlART_FORWARD")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_FORWARD", wxART_TOOLBAR)));
         
         items.push_back(new GroupTouchBarItem("Playback Controls", pbitems));
         
@@ -1068,12 +1066,12 @@ void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchB
             PanelTimeLine->ZoomIn();
         },
                                                  "Zoom In",
-                                                 wxArtProvider::GetBitmap("xlART_ZOOM_IN")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_ZOOM_IN", wxART_TOOLBAR)));
         zitems.push_back(new ButtonTouchBarItem([this]() {
             PanelTimeLine->ZoomOut();
         },
                                                  "Zoom Out",
-                                                 wxArtProvider::GetBitmap("xlART_ZOOM_OUT")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_ZOOM_OUT", wxART_TOOLBAR)));
         items.push_back(new GroupTouchBarItem("Zoom", zitems));
         
 
@@ -1084,8 +1082,6 @@ void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchB
         items.push_back(colorsButton);
         
         for (auto it = effectManager.begin(); it != effectManager.end(); ++it) {
-            wxBitmap ico = (*it)->GetEffectIcon(16, false);
-            
             wxButton *b = new wxButton(touchBarSupport.GetControlParent(), wxID_ANY,
                                        "",
                                        wxDefaultPosition,
@@ -1093,7 +1089,7 @@ void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchB
                                        0,
                                        wxDefaultValidator,
                                        (*it)->Name());
-            b->SetBitmap(ico);
+            b->SetBitmap((*it)->GetEffectIcon());
             b->Connect(wxEVT_BUTTON, (wxObjectEventFunction)&MainSequencer::TouchButtonEvent, nullptr, this);
             
             items.push_back(new wxControlTouchBarItem(b));

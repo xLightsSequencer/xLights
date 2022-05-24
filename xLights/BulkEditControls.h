@@ -269,7 +269,7 @@ protected:
 
 public:
 
-    BulkEditValueCurveButton(wxWindow *parent, wxWindowID id, const wxBitmap& bitmap, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxBU_AUTODRAW, const wxValidator& validator = wxDefaultValidator, const wxString& name = wxButtonNameStr);
+    BulkEditValueCurveButton(wxWindow *parent, wxWindowID id, const wxBitmapBundle& bitmap, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxBU_AUTODRAW, const wxValidator& validator = wxDefaultValidator, const wxString& name = wxButtonNameStr);
     virtual ~BulkEditValueCurveButton() {}
     void OnRightDown(wxMouseEvent& event);
     void OnValueCurvePopup(wxCommandEvent &event);

@@ -11,14 +11,14 @@
  **************************************************************/
 
  //(*Headers(CirclesPanel)
-#include <wx/panel.h>
-class wxBitmapButton;
-class wxCheckBox;
-class wxFlexGridSizer;
-class wxSlider;
-class wxStaticText;
-class wxTextCtrl;
-//*)
+ #include <wx/panel.h>
+ class wxBitmapButton;
+ class wxCheckBox;
+ class wxFlexGridSizer;
+ class wxSlider;
+ class wxStaticText;
+ class wxTextCtrl;
+ //*)
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"

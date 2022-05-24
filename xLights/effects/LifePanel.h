@@ -11,13 +11,13 @@
  **************************************************************/
 
  //(*Headers(LifePanel)
-#include <wx/panel.h>
-class wxBitmapButton;
-class wxFlexGridSizer;
-class wxSlider;
-class wxStaticText;
-class wxTextCtrl;
-//*)
+ #include <wx/panel.h>
+ class wxBitmapButton;
+ class wxFlexGridSizer;
+ class wxSlider;
+ class wxStaticText;
+ class wxTextCtrl;
+ //*)
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"

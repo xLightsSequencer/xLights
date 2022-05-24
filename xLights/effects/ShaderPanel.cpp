@@ -20,7 +20,6 @@
 #include "../TimingPanel.h"
 
  //(*InternalHeaders(ShaderPanel)
- #include <wx/artprov.h>
  #include <wx/bitmap.h>
  #include <wx/image.h>
  #include <wx/intl.h>
@@ -114,7 +113,7 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     FlexGridSizer3->Add(StaticText_Shader_Speed, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Shader_Speed = new BulkEditSliderF2(this, ID_SLIDER_Shader_Speed, 100, -1000, 1000, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("ID_SLIDER_Shader_Speed"));
     FlexGridSizer3->Add(Slider_Shader_Speed, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shader_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Speed"));
+    BitmapButton_Shader_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Speed, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Speed"));
     FlexGridSizer3->Add(BitmapButton_Shader_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     TextCtrl_Shader_Speed = new BulkEditTextCtrlF2(this, IDD_TEXTCTRL_Shader_Speed, _("1.00"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("IDD_TEXTCTRL_Shader_Speed"));
     FlexGridSizer3->Add(TextCtrl_Shader_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -122,7 +121,7 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     FlexGridSizer3->Add(StaticText_Shader_Offset_X, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Shader_Offset_X = new BulkEditSlider(this, IDD_SLIDER_Shader_Offset_X, 0, -100, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Shader_Offset_X"));
     FlexGridSizer3->Add(Slider_Shader_Offset_X, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shader_Offset_X = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Offset_X, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Offset_X"));
+    BitmapButton_Shader_Offset_X = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Offset_X, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Offset_X"));
     FlexGridSizer3->Add(BitmapButton_Shader_Offset_X, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     TextCtrl_Shader_Offset_X = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shader_Offset_X, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Shader_Offset_X"));
     FlexGridSizer3->Add(TextCtrl_Shader_Offset_X, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -130,7 +129,7 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     FlexGridSizer3->Add(StaticText_Shader_Offset_Y, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Shader_Offset_Y = new BulkEditSlider(this, IDD_SLIDER_Shader_Offset_Y, 0, -100, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Shader_Offset_Y"));
     FlexGridSizer3->Add(Slider_Shader_Offset_Y, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shader_Offset_Y = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Offset_Y, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Offset_Y"));
+    BitmapButton_Shader_Offset_Y = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Offset_Y, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Offset_Y"));
     FlexGridSizer3->Add(BitmapButton_Shader_Offset_Y, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     TextCtrl_Shader_Offset_Y = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shader_Offset_Y, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Shader_Offset_Y"));
     FlexGridSizer3->Add(TextCtrl_Shader_Offset_Y, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -138,7 +137,7 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     FlexGridSizer3->Add(StaticText_Shader_Zoom, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Shader_Zoom = new BulkEditSlider(this, IDD_SLIDER_Shader_Zoom, 0, -100, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Shader_Zoom"));
     FlexGridSizer3->Add(Slider_Shader_Zoom, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shader_Zoom = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Zoom, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Zoom"));
+    BitmapButton_Shader_Zoom = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Zoom, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Zoom"));
     FlexGridSizer3->Add(BitmapButton_Shader_Zoom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     TextCtrl_Shader_Zoom = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shader_Zoom, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Shader_Zoom"));
     FlexGridSizer3->Add(TextCtrl_Shader_Zoom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -147,8 +146,6 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     FlexGridSizer_Dynamic->AddGrowableCol(1);
     FlexGridSizer1->Add(FlexGridSizer_Dynamic, 1, wxALL|wxEXPAND, 2);
     SetSizer(FlexGridSizer1);
-    FlexGridSizer1->Fit(this);
-    FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_0FILEPICKERCTRL_IFS,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&ShaderPanel::OnFilePickerCtrl1FileChanged);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShaderPanel::OnButton_DownloadClick);
@@ -315,7 +312,7 @@ bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceEl
                     auto slider = new BulkEditSliderF2(this, wxNewId(), it._default * 100, it._min * 100, it._max * 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER));
                     sizer->Add(slider, 1, wxALL | wxEXPAND, 2);
                     auto id = wxNewId();
-                    auto vcb = new BulkEditValueCurveButton(this, id, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE));
+                    auto vcb = new BulkEditValueCurveButton(this, id, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE));
                     sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                     vcb->GetValue()->SetLimits(it._min * 100, it._max * 100);
                     vcb->GetValue()->SetDivisor(100);
@@ -340,7 +337,7 @@ bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceEl
                     auto slider = new BulkEditSlider(this, wxNewId(), it._default, it._min, it._max, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER));
                     sizer->Add(slider, 1, wxALL | wxEXPAND, 2);
                     auto id = wxNewId();
-                    auto vcb = new BulkEditValueCurveButton(this, id, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE));
+                    auto vcb = new BulkEditValueCurveButton(this, id, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE));
                     sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                     vcb->GetValue()->SetLimits(it._min, it._max);
                     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
@@ -406,7 +403,7 @@ bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceEl
                     auto slider = new BulkEditSliderF2(this, wxNewId(), it._defaultPt.x * 100, it._minPt.x * 100, it._maxPt.x * 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER) + "X");
                     sizer->Add(slider, 1, wxALL | wxEXPAND, 2);
                     auto id = wxNewId();
-                    auto vcb = new BulkEditValueCurveButton(this, id, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "X");
+                    auto vcb = new BulkEditValueCurveButton(this, id, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "X");
                     sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                     vcb->GetValue()->SetLimits(it._minPt.x * 100, it._maxPt.x * 100);
                     vcb->GetValue()->SetDivisor(100);
@@ -430,7 +427,7 @@ bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceEl
                     slider = new BulkEditSliderF2(this, wxNewId(), it._defaultPt.y * 100, it._minPt.y * 100, it._maxPt.y * 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER) + "Y");
                     sizer->Add(slider, 1, wxALL | wxEXPAND, 2);
                     id = wxNewId();
-                    vcb = new BulkEditValueCurveButton(this, id, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "Y");
+                    vcb = new BulkEditValueCurveButton(this, id, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "Y");
                     sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                     vcb->GetValue()->SetLimits(it._minPt.y * 100, it._maxPt.y * 100);
                     vcb->GetValue()->SetDivisor(100);

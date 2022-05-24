@@ -11,12 +11,12 @@
  **************************************************************/
 
  //(*Headers(GlediatorPanel)
-#include <wx/panel.h>
-class wxChoice;
-class wxFilePickerCtrl;
-class wxFlexGridSizer;
-class wxStaticText;
-//*)
+ #include <wx/panel.h>
+ class wxChoice;
+ class wxFilePickerCtrl;
+ class wxFlexGridSizer;
+ class wxStaticText;
+ //*)
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"

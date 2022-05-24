@@ -97,8 +97,6 @@ StatePanel::StatePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer1->Add(Choice_State_Color, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer47->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer47);
-	FlexGridSizer47->Fit(this);
-	FlexGridSizer47->SetSizeHints(this);
 
 	Connect(ID_CHOICE_State_StateDefinition,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&StatePanel::OnState_StateDefinitonChoiceSelect);
 	Connect(IDD_RADIOBUTTON_State_State,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StatePanel::OnMouthMovementTypeSelected);

@@ -148,7 +148,6 @@ void TwoPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) cons
         scalez = 1.0;
         localWorldZ = 0;
     }
-    center = glm::vec3(RenderWi / 2.0f, 0.0f, 0.0f);
 
     glm::vec3 a = point2 - origin;
     glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector2(origin, point2);
@@ -160,6 +159,7 @@ void TwoPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) cons
 
     if (allow_selected) {
         // save processing time by skipping items not needed for view only preview
+        center = glm::vec3(RenderWi / 2.0f, 0.0f, 0.0f);
         ModelMatrix = TranslateMatrix * rotationMatrix;
         glm::vec4 ctr = matrix * glm::vec4(center, 1.0f);
         center = glm::vec3(ctr);

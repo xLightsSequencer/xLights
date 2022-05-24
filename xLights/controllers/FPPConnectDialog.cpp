@@ -357,9 +357,16 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             CheckBox1->SetValue(inst->mode != "remote");
             FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             if (inst->IsVersionAtLeast(2, 6)) {
-                CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MODELS_COL + rowStr);
-                CheckBox1->SetValue(false);
-                FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+                wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, MODELS_COL + rowStr);
+                wxFont font = Choice1->GetFont();
+                font.SetPointSize(font.GetPointSize() - 2);
+                Choice1->SetFont(font);
+
+                Choice1->Append(_("None"));
+                Choice1->Append(_("All"));
+                Choice1->Append(_("Local"));
+                Choice1->SetSelection(0);
+                FPPInstanceSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
             } else {
                 FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             }
@@ -751,7 +758,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     std::map<int, int> udpRanges;
     wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
     wxProgressDialog prgs("", "", 1001, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    wxJSONValue memoryMaps = FPP::CreateModelMemoryMap(&frame->AllModels);
+    
     std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, frame->GetDisplay2DCenter0());
     for (const auto& inst : instances) {
         inst->progressDialog = &prgs;
@@ -796,10 +803,19 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
                     }
                 }
-                if (GetCheckValue(MODELS_COL + rowStr)) {
+                if (GetChoiceValueIndex(MODELS_COL + rowStr) == 1) {
+                    wxJSONValue const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
                     cancelled |= inst->UploadModels(memoryMaps);
                     cancelled |= inst->UploadDisplayMap(displayMap);
                     inst->SetRestartFlag();
+                } else if (GetChoiceValueIndex(MODELS_COL + rowStr) == 2) {
+                    auto c = _outputManager->GetControllers(inst->ipAddress);
+                    if (c.size() == 1) {
+                        wxJSONValue const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
+                        cancelled |= inst->UploadModels(memoryMaps);
+                        // cancelled |= inst->UploadDisplayMap(displayMap);
+                        inst->SetRestartFlag();
+                    }                    
                 }
                 //if restart flag is now set, restart and recheck range
                 inst->Restart("", true);
@@ -980,7 +996,9 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     prgs.Hide();
     if (!cancelled) {
         SaveSettings();
+#ifndef _DEBUG
         EndDialog(wxID_CLOSE);
+#endif
     }
 }
 
@@ -1188,7 +1206,7 @@ void FPPConnectDialog::SaveSettings(bool onlyInsts)
         config->Write("FPPConnectUpload_" + keyPostfx, GetCheckValue(CHECK_COL + rowStr));
         config->Write("FPPConnectUploadMedia_" + keyPostfx, GetCheckValue(MEDIA_COL + rowStr));
         config->Write("FPPConnectUploadFSEQType_" + keyPostfx, GetChoiceValueIndex(FSEQ_COL + rowStr));
-        config->Write("FPPConnectUploadModels_" + keyPostfx, GetCheckValue(MODELS_COL + rowStr));
+        config->Write("FPPConnectUploadModels_" + keyPostfx, GetChoiceValueIndex(MODELS_COL + rowStr));
         config->Write("FPPConnectUploadUDPOut_" + keyPostfx, GetChoiceValueIndex(UDP_COL + rowStr));
         config->Write("FPPConnectUploadPixelOut_" + keyPostfx, GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr));
         row++;
@@ -1232,8 +1250,8 @@ void FPPConnectDialog::ApplySavedHostSettings()
             if (config->Read("FPPConnectUploadMedia_" + keyPostfx, &bval)) {
                 SetCheckValue(MEDIA_COL + rowStr, bval);
             }
-            if (config->Read("FPPConnectUploadModels_" + keyPostfx, &bval)) {
-                SetCheckValue(MODELS_COL + rowStr, bval);
+            if (config->Read("FPPConnectUploadModels_" + keyPostfx, &lval)) {
+                SetChoiceValueIndex(MODELS_COL + rowStr, lval);
             }
             if (config->Read("FPPConnectUploadUDPOut_" + keyPostfx, &lval)) {
                 SetChoiceValueIndex(UDP_COL + rowStr, lval);

@@ -30,6 +30,7 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/dir.h>
+#include <wx/button.h>
 #include "Color.h"
 
 #define xlSetRetinaCanvasViewport(w,a,b,c,d)
@@ -65,6 +66,10 @@ inline bool FileExists(const wxFileName &fn, bool waitForDownload = true) {
 inline void GetAllFilesInDir(const wxString& dir, wxArrayString& files, const wxString& filespec, int flags = wxDIR_FILES)
 {
     wxDir::GetAllFiles(dir, &files, filespec, flags);
+}
+inline void SetButtonBackground(wxButton *b, const wxColour &c, int bgType) {
+    b->SetBackgroundColour(c);
+    b->Refresh();
 }
 
 #endif

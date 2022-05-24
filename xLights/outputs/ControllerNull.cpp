@@ -88,7 +88,7 @@ void ControllerNull::Convert(wxXmlNode* node, std::string showDir) {
 }
 
 std::string ControllerNull::GetChannelMapping(int32_t ch) const {
-    return wxString::Format("Channel %ld maps to ...\nTYPE: NULL\nName: %s\nChannel: %ld\n%s", 
+    return wxString::Format("Channel %d maps to ...\nTYPE: NULL\nName: %s\nChannel: %d\n%s",
         ch, 
         GetName(), 
         ch - GetStartChannel() + 1, 
@@ -96,7 +96,7 @@ std::string ControllerNull::GetChannelMapping(int32_t ch) const {
 }
 
 std::string ControllerNull::GetExport() const {
-    return wxString::Format("%s,%ld,%ld,%s,NULL,,,,\"%s\",%d,%ld,%s,,%s,%s,,,%s",
+    return wxString::Format("%s,%d,%d,%s,NULL,,,,\"%s\",%d,%d,%s,,%s,%s,,,%s",
         GetName(),
         GetStartChannel(),
         GetEndChannel(),

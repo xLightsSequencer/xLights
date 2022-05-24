@@ -22,6 +22,7 @@
 #include "../xLights/outputs/ZCPPOutput.h"
 #include "../xLights/outputs/DDPOutput.h"
 #include "../xLights/outputs/ArtNetOutput.h"
+#include "../xLights/outputs/TwinklyOutput.h"
 #include "../xLights/controllers/FPP.h"
 #include "../xLights/outputs/ControllerEthernet.h"
 #include "MAC.h"
@@ -313,8 +314,14 @@ std::string HTTPWork::GetControllerTypeBasedOnPageContent(const std::string& pag
 	if (Contains(page, "ECG-PIXAD8")) return "J1Sys PIXAD8";
 	if (Contains(page, "E6804")) return "SanDevices E6804";
 	if (Contains(page, "E682")) return "SanDevices E682";
-	if (Contains(page, "E681")) return "SanDevices E681";
-	if (Contains(page, "NDB")) return "Minleon NDB";
+    if (Contains(page, "E681"))
+        return "SanDevices E681";
+    if (Contains(page, "This URI does not exist"))
+        return "Twinkly";
+    if (Contains(page, "NDBPRO"))
+        return "Minleon NDBPro";
+    if (Contains(page, "NDB"))
+        return "Minleon NDB+";
 	if (Contains(page, "WLED")) return "WLED";         // this is speculative ... I have no idea if this will work
 	if (Contains(page, "Hinkspix")) return "Hinkspix"; // this is speculative ... I have no idea if this will work
 	if (Contains(page, "Alphapix")) return "Alphapix"; // this is speculative ... I have no idea if this will work
@@ -760,6 +767,7 @@ void DiscoverWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 	ArtNetOutput::PrepareDiscovery(discovery);
 	DDPOutput::PrepareDiscovery(discovery);
 	FPP::PrepareDiscovery(discovery);
+    TwinklyOutput::PrepareDiscovery(discovery);
 
 	discovery.Discover();
 
@@ -777,7 +785,10 @@ void DiscoverWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			results.push_back({ "Discovered", "TRUE" });
 			if (discovered->vendor != "") {
 				results.push_back({ "Vendor", discovered->vendor });
-			}
+            } else if (discovered->controller != nullptr && discovered->controller->GetProtocol() == "Twinkly") {
+                results.push_back({ "Vendor", "Twinkly" });
+                results.push_back({ "Pixels", wxString::Format("%d", discovered->controller->GetChannels()).ToStdString() });
+            }
 			if (discovered->model != "") {
 				results.push_back({ "Model", discovered->model });
 			}

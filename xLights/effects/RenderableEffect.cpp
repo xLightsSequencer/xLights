@@ -29,6 +29,7 @@
 #include "SpiralsEffect.h"
 #include "PinwheelEffect.h"
 #include "EffectPanelUtils.h"
+#include "../BitmapCache.h"
 
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
@@ -49,29 +50,15 @@ RenderableEffect::~RenderableEffect()
     //dtor
 }
 
-const wxBitmap &RenderableEffect::GetEffectIcon(int size, bool exact) const {
-    if (exact || GetSystemContentScaleFactor() < 1.5) {
-        if (size <= 16) {
-            return icon16e;
-        } else if (size <= 24) {
-            return icon24e;
-        } else if (size <= 32) {
-            return icon32e;
-        } else if (size <= 48) {
-            return icon48e;
-        }
-    }
-    if (size <= 16) {
-        return icon16;
-    } else if (size <= 24) {
-        return icon24;
-    } else if (size <= 32) {
-        return icon32;
-    } else if (size <= 48) {
+const wxBitmapBundle &RenderableEffect::GetEffectIcon(int sz) const {
+    if (sz >= 48) {
         return icon48;
-    } else {
-        return icon64;
+    } else if (sz >= 32) {
+        return icon32;
+    } else if (sz >= 24) {
+        return icon24;
     }
+    return icon16;
 }
 
 
@@ -113,35 +100,54 @@ void AdjustAndSetBitmap(int size, wxImage &image, wxImage &dbl, wxBitmap&bitmap)
     }
 }
 
-void AdjustAndSetBitmap(int size, wxImage &image, wxBitmap&bitmap) {
-    if (image.GetHeight() == size) {
-        bitmap = wxBitmap(image);
-    } else {
-        wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
-        bitmap = wxBitmap(scaled);
-    }
-}
-
 void RenderableEffect::initBitmaps(const char **data16,
                                    const char **data24,
                                    const char **data32,
                                    const char **data48,
                                    const char **data64) {
-    wxImage image16(data16);
-    wxImage image24(data24);
-    wxImage image32(data32);
-    wxImage image48(data48);
-    wxImage image64(data64);
-    AdjustAndSetBitmap(16, image16, image32, icon16);
-    AdjustAndSetBitmap(24, image24, image48, icon24);
-    AdjustAndSetBitmap(32, image32, image64, icon32);
-    AdjustAndSetBitmap(48, image48, icon48);
-    AdjustAndSetBitmap(64, image64, icon64);
-    AdjustAndSetBitmap(16, image16, icon16e);
-    AdjustAndSetBitmap(24, image24, icon24e);
-    AdjustAndSetBitmap(32, image32, icon32e);
-    AdjustAndSetBitmap(48, image48, icon48e);
-    AdjustAndSetBitmap(48, image64, icon64e);
+    wxVector<wxBitmap> bitmaps;
+    wxImage image(data16);
+    if (image.GetHeight() != 16) {
+        wxImage scaled = image.Scale(16, 16, wxIMAGE_QUALITY_HIGH);
+        bitmaps.push_back(wxBitmap(scaled));
+    } else {
+        bitmaps.push_back(wxBitmap(image));
+    }
+    image = wxImage(data24);
+    if (image.GetHeight() != 24) {
+        wxImage scaled = image.Scale(24, 24, wxIMAGE_QUALITY_HIGH);
+        bitmaps.push_back(wxBitmap(scaled));
+    } else {
+        bitmaps.push_back(wxBitmap(image));
+    }
+    image = wxImage(data32);
+    if (image.GetHeight() != 32) {
+        wxImage scaled = image.Scale(32, 32, wxIMAGE_QUALITY_HIGH);
+        bitmaps.push_back(wxBitmap(scaled));
+    } else {
+        bitmaps.push_back(wxBitmap(image));
+    }
+    image = wxImage(data48);
+    if (image.GetHeight() != 48) {
+        wxImage scaled = image.Scale(48, 48, wxIMAGE_QUALITY_HIGH);
+        bitmaps.push_back(wxBitmap(scaled));
+    } else {
+        bitmaps.push_back(wxBitmap(image));
+    }
+    image = wxImage(data64);
+    if (image.GetHeight() != 64) {
+        wxImage scaled = image.Scale(64, 64, wxIMAGE_QUALITY_HIGH);
+        bitmaps.push_back(wxBitmap(scaled));
+        if (image.GetHeight() > 64) {
+            bitmaps.push_back(wxBitmap(image));
+        }
+    } else {
+        bitmaps.push_back(wxBitmap(image));
+    }
+    icon16 = wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(name, 16, bitmaps));
+    icon24 = wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(name, 24, bitmaps));
+    icon32 = wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(name, 32, bitmaps));
+    icon48 = wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(name, 48, bitmaps));
 }
 
 // return true if version string is older than compare string

@@ -39,7 +39,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_SingleStrand_Colors" subclass="xlLockButton" variable="BitmapButton_SingleStrand_Colors" member="yes">
-										<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -75,7 +74,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Number_Chases" subclass="BulkEditValueCurveButton" variable="BitmapButton_Number_ChasesVC" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
 												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 											</object>
 											<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -97,7 +96,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Number_Chases" subclass="xlLockButton" variable="BitmapButton_Number_Chases" member="yes">
-										<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -130,7 +128,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Color_Mix1" subclass="BulkEditValueCurveButton" variable="BitmapButton_Color_Mix1VC" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
 												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
@@ -153,7 +151,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Color_Mix1" subclass="xlLockButton" variable="BitmapButton_Color_Mix1" member="yes">
-										<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -187,7 +184,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Chase_Rotations" subclass="BulkEditValueCurveButton" variable="BitmapButton_Chase_Rotations" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
 												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
@@ -210,7 +207,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Chase_Rotations" subclass="xlLockButton" variable="BitmapButton_ChaseRotations" member="yes">
-										<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -254,7 +250,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Chase_Type1" subclass="xlLockButton" variable="BitmapButton_Chase_Type1" member="yes">
-										<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -284,7 +279,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1" subclass="xlLockButton" variable="BitmapButton_Chase_3dFade1" member="yes">
-										<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -314,7 +308,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Chase_Group_All" subclass="xlLockButton" variable="BitmapButton_Chase_Group_All" member="yes">
-										<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -367,7 +360,6 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Skips_BandSize" subclass="xlLockButton" variable="BitmapButton_Skips_BandSize" member="yes">
-												<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 												<size>14,14</size>
 												<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -415,7 +407,6 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Skips_SkipSize" subclass="xlLockButton" variable="BitmapButton_Skips_SkipSize" member="yes">
-												<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 												<size>14,14</size>
 												<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -464,7 +455,6 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Skips_StartPos" subclass="xlLockButton" variable="BitmapButton_Skips_StartingPosition" member="yes">
-												<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 												<size>14,14</size>
 												<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -509,7 +499,6 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Skips_Advance" subclass="xlLockButton" variable="BitmapButton_SkipsAdvance" member="yes">
-												<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 												<size>14,14</size>
 												<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -551,7 +540,6 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Skips_Direction" subclass="xlLockButton" variable="BitmapButton_Skips_Direction" member="yes">
-												<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 												<size>14,14</size>
 												<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -643,7 +631,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_FX_Intensity" subclass="BulkEditValueCurveButton" variable="BitmapButton_FX_IntensityVC" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
 												<size>18,30</size>
 												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 											</object>
@@ -691,7 +679,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_FX_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_FX_SpeedVC" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
 												<size>18,30</size>
 												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 											</object>

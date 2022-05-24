@@ -53,6 +53,7 @@
 #include "outputs/DDPOutput.h"
 #include "outputs/DMXOutput.h"
 #include "outputs/LOROptimisedOutput.h"
+#include "outputs/TwinklyOutput.h"
 #include "Discovery.h"
 
 #include "../xFade/wxLED.h"
@@ -126,7 +127,7 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
             cnt++;
             int menuID = wxNewId();
             mruf_MenuItem[x] = new wxMenuItem(RecentSequencesMenu, menuID, mruFiles[x]);
-            mruf_MenuItem[x]->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER));
+            mruf_MenuItem[x]->SetBitmap(wxArtProvider::GetBitmapBundle("wxART_FILE_OPEN", wxART_MENU));
             Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMRUSequence);
             RecentSequencesMenu->Append(mruf_MenuItem[x]);
         } else {
@@ -239,7 +240,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     for (size_t i = 0; i < cnt; i++) {
         int menuID = wxNewId();
         mrud_MenuItem[i] = new wxMenuItem(RecentShowFoldersMenu, menuID, mruDirectories[i]);
-        mrud_MenuItem[i]->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER));
+        mrud_MenuItem[i]->SetBitmap(wxArtProvider::GetBitmapBundle("wxART_FOLDER_OPEN", wxART_MENU));
         Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
         RecentShowFoldersMenu->Append(mrud_MenuItem[i]);
     }
@@ -857,15 +858,13 @@ bool xLightsFrame::SaveNetworksFile() {
 void xLightsFrame::UpdateControllerSave() {
     if (UnsavedNetworkChanges || (IsControllersAndLayoutTabSaveLinked() && UnsavedRgbEffectsChanges)) {
 #ifdef __WXOSX__
-        ButtonSaveSetup->SetBackgroundColour(wxColour(255, 0, 0));
-        ButtonSaveSetup->Refresh();
+        SetButtonBackground(ButtonSaveSetup, wxColour(255, 0, 0), 0);
 #else
         ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
 #endif
     } else {
 #ifdef __WXOSX__
-        ButtonSaveSetup->SetBackgroundColour(wxTransparentColour);
-        ButtonSaveSetup->Refresh();
+        SetButtonBackground(ButtonSaveSetup, wxTransparentColour, 0);
 #else
         ButtonSaveSetup->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 #endif
@@ -875,15 +874,13 @@ void xLightsFrame::UpdateControllerSave() {
 void xLightsFrame::UpdateLayoutSave() {
     if (UnsavedRgbEffectsChanges || (IsControllersAndLayoutTabSaveLinked() && UnsavedNetworkChanges)) {
 #ifdef __WXOSX__
-        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxColour(255, 0, 0));
-        layoutPanel->ButtonSavePreview->Refresh();
+        SetButtonBackground(layoutPanel->ButtonSavePreview, wxColour(255, 0, 0), 2);
 #else
         layoutPanel->ButtonSavePreview->SetBackgroundColour(wxColour(255, 108, 108));
 #endif
     } else {
 #ifdef __WXOSX__
-        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxTransparentColour);
-        layoutPanel->ButtonSavePreview->Refresh();
+        SetButtonBackground(layoutPanel->ButtonSavePreview, wxTransparentColour, 2);
 #else
         layoutPanel->ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 #endif
@@ -1314,6 +1311,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
     ArtNetOutput::PrepareDiscovery(discovery);
     ZCPPOutput::PrepareDiscovery(discovery);
     DDPOutput::PrepareDiscovery(discovery);
+    TwinklyOutput::PrepareDiscovery(discovery);
     FPP::PrepareDiscovery(discovery);
     Pixlite16::PrepareDiscovery(discovery);
     discovery.Discover();

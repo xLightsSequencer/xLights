@@ -564,6 +564,10 @@
     <ClCompile Include="EventFPPCommandPresetPanel.cpp">
       <Filter>Events</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\xlBaseApp.cpp" />
+    <ClCompile Include="..\xLights\outputs\TwinklyOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\xlBaseApp.h" />
@@ -1122,6 +1126,9 @@
     </ClInclude>
     <ClInclude Include="EventFPPCommandPresetPanel.h">
       <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\TwinklyOutput.h">
+      <Filter>Outputs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -31,6 +31,7 @@
 #include "UtilFunctions.h"
 #include "TraceLog.h"
 #include "ExternalHooks.h"
+#include "BitmapCache.h"
 
 #ifndef __WXMSW__
 #include "automation/automation.h"
@@ -605,6 +606,7 @@ bool xLightsApp::OnInit()
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
+    BitmapCache::SetupArtProvider();
     if (wxsOK)
     {
     	xLightsFrame* Frame = new xLightsFrame(nullptr, ab);
