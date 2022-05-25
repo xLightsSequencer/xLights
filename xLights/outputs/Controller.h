@@ -36,7 +36,7 @@ class Model;
 #define CONTROLLER_NULL "Null"
 #define CONTROLLER_ETHERNET "Ethernet"
 #define CONTROLLER_SERIAL "Serial"
-#pragma endregion 
+#pragma endregion
 
 class Controller
 {
@@ -67,7 +67,7 @@ protected:
     bool _suppressDuplicateFrames = false;   // should we suppress duplicate fromes
     Output::PINGSTATE _lastPingResult = Output::PINGSTATE::PING_UNKNOWN; // last ping result
     bool _tempDisable = false;
-    
+
     std::map<std::string, std::string> _runtimeProperties;  // place to store various properties/state/etc that may be needed at runtime
 #pragma endregion
 
@@ -78,7 +78,7 @@ public:
     Controller(OutputManager* om);
     virtual ~Controller();
     virtual wxXmlNode* Save();
-    #pragma endregion 
+    #pragma endregion
 
     #pragma region Static Functions
     // encodes/decodes string lists to indices
@@ -89,7 +89,7 @@ public:
 
     static Controller* Create(OutputManager* om, wxXmlNode* node, std::string showDir);
     static void ConvertOldTypeToVendorModel(const std::string& old, std::string& vendor, std::string& model, std::string &variant);
-        
+
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
@@ -118,7 +118,7 @@ public:
 
     const std::string &GetDescription() const { return _description; }
     void SetDescription(const std::string& description) { if (_description != description) { _description = description; _dirty = true; } }
-    
+
     bool IsAutoSize() const { return IsAutoLayout() && _autoSize; }
 
     void SetFullxLightsControl(bool fullxLightsControl) { if (_fullxLightsControl != fullxLightsControl) { _fullxLightsControl = fullxLightsControl; _dirty = true; } }
@@ -155,6 +155,7 @@ public:
     void SetVariant(const std::string& variant) { if (_variant != variant) { _variant = variant; _dirty = true;  VMVChanged(); } }
     std::string GetVMV() const;
     ControllerCaps* GetControllerCaps() const;
+    void SearchForNewVendor( std::string const& vendor, std::string const& model, std::string const& variant);
 
     bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
     void SetSuppressDuplicateFrames(bool suppress);
@@ -162,7 +163,7 @@ public:
     void SetGlobalFPPProxy(const std::string& globalFPPProxy);
 
     Output::PINGSTATE GetLastPingState() const { return _lastPingResult; }
-    
+
     const std::string &GetRuntimeProperty(const std::string &p, const std::string &def = "") const {
         const auto &a = _runtimeProperties.find(p);
         if (a != _runtimeProperties.end()) {
@@ -218,7 +219,7 @@ public:
 
     // true if config needs to be rebuilt
     virtual bool NeedsControllerConfig() const { return false; }
-    
+
     // Maximum number of outputs this controller supports ... some only support the one
     virtual int GetMaxOutputs() const { return 1; }
 
@@ -254,12 +255,12 @@ public:
 
     virtual std::string GetSortName() const { return GetName(); }
     virtual std::string GetExport() const = 0;
-    
+
     #pragma endregion
 
     #pragma region Operators
     bool operator==(const Controller& controller) const { return _id == controller._id; }
-    #pragma endregion 
+    #pragma endregion
 
     #pragma region UI
     #ifndef EXCLUDENETWORKUI
