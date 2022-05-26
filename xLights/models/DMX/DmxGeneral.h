@@ -13,18 +13,16 @@
 #include "DmxModel.h"
 #include "DmxColorAbility.h"
 
-class DmxGeneral : public DmxModel, public DmxColorAbility
+class DmxGeneral : public DmxModel
 {
     public:
         DmxGeneral(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~DmxGeneral();
 
-        virtual bool HasColorAbility() override { return true; }
-
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-    
+
     protected:
         virtual void InitModel() override;
 
@@ -37,7 +35,6 @@ class DmxGeneral : public DmxModel, public DmxColorAbility
                                           float* boundingBox = nullptr) override;
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
         virtual void DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c);
-        virtual std::list<std::string> CheckModelSettings() override;
 
     private:
 };

@@ -13,6 +13,7 @@
 #include <wx/xml/xml.h>
 
 #include "DmxFloodlight.h"
+#include "DmxColorAbilityRGB.h"
 #include "../../ModelPreview.h"
 #include "../../UtilFunctions.h"
 #include "../../xLightsMain.h"
@@ -21,7 +22,7 @@
 DmxFloodlight::DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     : DmxModel(node, manager, zeroBased), beam_length(1)
 {
-    color_ability = this;
+    //color_ability = this;
     SetFromXml(node, zeroBased);
 }
 
@@ -33,7 +34,9 @@ DmxFloodlight::~DmxFloodlight()
 void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid) {
 
     DmxModel::AddTypeProperties(grid);
-    AddColorTypeProperties(grid);
+    if (nullptr != color_ability) {
+        color_ability->AddColorTypeProperties(grid);
+    }
     AddShutterTypeProperties(grid);
 
     auto p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
@@ -71,7 +74,7 @@ int DmxFloodlight::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         return 0;
     }
 
-    if (OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
     }
 
@@ -86,10 +89,9 @@ void DmxFloodlight::InitModel()
 {
     DmxModel::InitModel();
     DisplayAs = "DmxFloodlight";
-    red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "1"));
-    green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "2"));
-    blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "3"));
-    white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
+
+    color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+
     shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
     shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
     beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "1.0"));
@@ -98,7 +100,7 @@ void DmxFloodlight::InitModel()
 
 void DmxFloodlight::GetColors(xlColor& center, xlColor& edge, bool allowSelected, const xlColor* c)
 {
-    GetColor(center, transparency, blackTransparency, allowSelected, c, Nodes);
+    color_ability->GetColor(center, transparency, blackTransparency, allowSelected, c, Nodes);
     edge = center;
     if (_pixelStyle != PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE) {
         edge.alpha = 0;
@@ -108,29 +110,6 @@ void DmxFloodlight::GetColors(xlColor& center, xlColor& edge, bool allowSelected
 void DmxFloodlight::DrawModel(xlVertexColorAccumulator* vac, xlColor& center, xlColor& edge, float beam_length)
 {
     vac->AddCircleAsTriangles(0, 0, 0, 0.5, center, edge, beam_length);
-}
-
-std::list<std::string> DmxFloodlight::CheckModelSettings()
-{
-    std::list<std::string> res;
-
-    int nodeCount = Nodes.size();
-
-    if (red_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s red channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), red_channel, nodeCount));
-    }
-    if (green_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s green channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), green_channel, nodeCount));
-    }
-    if (blue_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s blue channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), blue_channel, nodeCount));
-    }
-    if (white_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s white channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), white_channel, nodeCount));
-    }
-
-    res.splice(res.end(), Model::CheckModelSettings());
-    return res;
 }
 
 void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
@@ -151,10 +130,7 @@ void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
     bool shutter_open = allowSelected || IsShutterOpen(Nodes);
 
     size_t NodeCount = Nodes.size();
-    if (red_channel > NodeCount ||
-        green_channel > NodeCount ||
-        blue_channel > NodeCount ||
-        white_channel > NodeCount) {
+    if (!color_ability->IsValidModelSettings(this)) {
         DmxModel::DrawInvalid(solidProgram, &(GetModelScreenLocation()), is_3d, true);
     } else {
         xlColor center, edge;

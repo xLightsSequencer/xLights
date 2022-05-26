@@ -21,6 +21,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxModel.h"
+#include "DmxColorAbility.h"
+#include "DmxColorAbilityRGB.h"
+#include "DmxColorAbilityWheel.h"
 #include "../ModelScreenLocation.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
@@ -212,6 +215,23 @@ void DmxModel::SetNodeNames(const std::string& default_names, bool force)
         ModelXml->DeleteAttribute("NodeNames");
         ModelXml->AddAttribute("NodeNames", nn);
     }
+}
+
+void DmxModel::InitColorAbility()
+{
+
+}
+
+std::list<std::string> DmxModel::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    if (nullptr != color_ability) {
+        res = color_ability->CheckModelSettings(this);
+    }
+
+    res.splice(res.end(), Model::CheckModelSettings());
+    return res;
 }
 
 void DmxModel::DrawInvalid(xlGraphicsProgram* pg, ModelScreenLocation* msl, bool is_3d, bool applyTransform)

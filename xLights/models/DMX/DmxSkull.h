@@ -16,7 +16,7 @@
 
 class Mesh;
 
-class DmxSkull : public DmxModel, public DmxColorAbility
+class DmxSkull : public DmxModel
 {
     public:
         DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
@@ -35,7 +35,6 @@ class DmxSkull : public DmxModel, public DmxColorAbility
         virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
         virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
 
-        virtual bool HasColorAbility() override { return true; }
         bool Is16Bit() const { return _16bit; }
         bool IsSkulltronix() const { return is_skulltronix; }
         bool HasJaw() const { return has_jaw; }

@@ -1,0 +1,56 @@
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include "DmxColorAbility.h"
+
+
+
+class wxPropertyGridInterface;
+class wxPropertyGridEvent;
+class BaseObject;
+class wxXmlNode;
+
+class DmxColorAbilityRGB : public DmxColorAbility
+{
+    public:
+    DmxColorAbilityRGB(wxXmlNode* ModelXml) :
+        DmxColorAbility()
+    {
+        InitColor(ModelXml);
+    };
+        void InitColor( wxXmlNode* ModelXml) override;
+        bool IsColorChannel(uint32_t channel)const override;
+        void SetColorPixels(const xlColor& color, xlColorVector & pixelVector ) const override;
+        void AddColorTypeProperties(wxPropertyGridInterface *grid) const override;
+        int OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) override;
+        std::list<std::string> CheckModelSettings(Model *m) const override;
+        bool IsValidModelSettings(Model* m) const;
+        xlColor GetBeamColor( const std::vector<NodeBaseClassPtr>& Nodes) const;
+
+        void GetColor(xlColor &color, int transparency, int blackTransparency,
+                      bool allowSelected, const xlColor *c, const std::vector<NodeBaseClassPtr> &Nodes) const override;
+
+        bool ApplyChannelTransparency( xlColor &color, int transparency, uint32_t channel) const override;
+
+        std::string GetTypeName() const override{ return "RGBW" ;};
+        void ExportParameters(wxFile& f) const override;
+
+        [[nodiscard]] int GetRedChannel() const { return red_channel; }
+        [[nodiscard]] int GetGreenChannel() const { return green_channel; }
+        [[nodiscard]] int GetBlueChannel() const { return blue_channel; }
+        [[nodiscard]] int GetWhiteChannel() const { return white_channel; }
+    private:
+        int red_channel;
+        int green_channel;
+        int blue_channel;
+        int white_channel;
+};

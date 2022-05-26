@@ -18,6 +18,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxMovingHead.h"
+#include "DmxColorAbilityRGB.h"
+#include "DmxColorAbilityWheel.h"
 #include "../ModelScreenLocation.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
@@ -30,7 +32,7 @@ DmxMovingHead::DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool 
     dmx_style_val(0), beam_length(4)
 {
     beam_width = GetDefaultBeamWidth();
-    color_ability = this;
+    //color_ability = this;
     SetFromXml(node, zeroBased);
 }
 
@@ -120,7 +122,12 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("UseCheckbox", true);
 
     AddPanTiltTypeProperties(grid);
-    AddColorTypeProperties(grid);
+
+    if (nullptr != color_ability) {
+        int selected = DMX_COLOR_TYPES.Index(color_ability->GetTypeName());
+        grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES, selected));
+        color_ability->AddColorTypeProperties(grid);
+    }
     AddShutterTypeProperties(grid);
 
     p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
@@ -140,8 +147,7 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface *grid) {
 
 int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
-
-    if (OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
     }
 
@@ -204,6 +210,23 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DMXBeamWidth");
         return 0;
     }
+    else if ("DmxColorType" == event.GetPropertyName()) {
+        int color_type = event.GetPropertyValue().GetInteger();
+
+        ModelXml->DeleteAttribute("DmxColorType");
+        ModelXml->AddAttribute("DmxColorType", wxString::Format("%d", color_type));
+
+        if (color_type == 0) {
+            color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+        } else {
+            color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+        }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
+        return 0;
+    }
 
     return DmxModel::OnPropertyGridChange(grid, event);
 }
@@ -223,10 +246,12 @@ void DmxMovingHead::InitModel() {
     hide_body = ModelXml->GetAttribute("HideBody", "False") == "True";
 	dmx_style = ModelXml->GetAttribute("DmxStyle", "Moving Head Top");
 
-    red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "0"));
-    green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "0"));
-    blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "0"));
-    white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
+    int color_type = wxAtoi(ModelXml->GetAttribute("DmxColorType", "0"));
+    if (color_type == 0) {
+        color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+    }else {
+        color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+    }
 
     pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "0"));
 	pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "0"));
@@ -376,18 +401,6 @@ std::list<std::string> DmxMovingHead::CheckModelSettings()
 
     int nodeCount = Nodes.size();
 
-    if (red_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s red channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), red_channel, nodeCount));
-    }
-    if (green_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s green channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), green_channel, nodeCount));
-    }
-    if (blue_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s blue channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), blue_channel, nodeCount));
-    }
-    if (white_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s white channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), white_channel, nodeCount));
-    }
     if (pan_channel > nodeCount) {
         res.push_back(wxString::Format("    ERR: Model %s pan channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), pan_channel, nodeCount));
     }
@@ -395,7 +408,9 @@ std::list<std::string> DmxMovingHead::CheckModelSettings()
         res.push_back(wxString::Format("    ERR: Model %s tilt channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), tilt_channel, nodeCount));
     }
 
-    res.splice(res.end(), Model::CheckModelSettings());
+    res.splice(res.end(), color_ability->CheckModelSettings(this));
+
+    res.splice(res.end(), DmxModel::CheckModelSettings());
     return res;
 }
 
@@ -406,17 +421,13 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
 
     if (pan_channel > NodeCount ||
         tilt_channel > NodeCount ||
-        red_channel > NodeCount ||
-        green_channel > NodeCount ||
-        blue_channel > NodeCount ||
-        white_channel > NodeCount) {
+        !color_ability->IsValidModelSettings(this)) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
 
     xlColor ccolor(xlWHITE);
     xlColor pnt_color(xlRED);
-    xlColor beam_color(xlWHITE);
     xlColor marker_color(xlBLACK);
     xlColor black(xlBLACK);
     xlColor base_color(200, 200, 200);
@@ -430,34 +441,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
 
     int trans = color == xlBLACK ? blackTransparency : transparency;
 
-    if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
-        xlColor proxy = xlBLACK;
-        if (white_channel > 0 && white_channel <= NodeCount) {
-            Nodes[white_channel - 1]->GetColor(proxy);
-            beam_color = proxy;
-        }
-
-        if (proxy == xlBLACK) {
-            if (red_channel <= NodeCount) {
-                Nodes[red_channel - 1]->GetColor(proxy);
-                beam_color.red = proxy.red;
-            }
-            if (green_channel <= NodeCount) {
-                Nodes[green_channel - 1]->GetColor(proxy);
-                beam_color.green = proxy.red;
-            }
-            if (blue_channel <= NodeCount) {
-                Nodes[blue_channel - 1]->GetColor(proxy);
-                beam_color.blue = proxy.red;
-            }
-        }
-    } else if (white_channel > 0 && white_channel <= NodeCount) {
-        xlColor proxy;
-        Nodes[white_channel - 1]->GetColor(proxy);
-        beam_color.red = proxy.red;
-        beam_color.green = proxy.red;
-        beam_color.blue = proxy.red;
-    }
+    xlColor beam_color = color_ability->GetBeamColor(Nodes);
 
     if (!active) {
         beam_color = xlWHITE;
@@ -673,15 +657,9 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
         dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS) {
         // draw the bars
         xlColor proxy;
-        xlColor red(xlRED);
-        xlColor green(xlGREEN);
-        xlColor blue(xlBLUE);
-        xlColor white(xlWHITE);
         xlColor pink(255, 51, 255);
         xlColor turqoise(64, 224, 208);
-        ApplyTransparency(red, trans, trans);
-        ApplyTransparency(green, trans, trans);
-        ApplyTransparency(blue, trans, trans);
+
         ApplyTransparency(pink, trans, trans);
         ApplyTransparency(turqoise, trans, trans);
 
@@ -697,18 +675,11 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
             Nodes[i - 1]->GetColor(proxy);
             float val = (float)proxy.red;
             float offsetx = val / 255.0f * 0.8f;
-            if (i == pan_channel) {
+            if (color_ability->ApplyChannelTransparency(proxy, trans, i)) {
+            } else if (i == pan_channel) {
                 proxy = pink;
             } else if (i == tilt_channel) {
                 proxy = turqoise;
-            } else if (i == red_channel) {
-                proxy = red;
-            } else if (i == green_channel) {
-                proxy = green;
-            } else if (i == blue_channel) {
-                proxy = blue;
-            } else if (i == white_channel) {
-                proxy = white;
             } else {
                 proxy = ccolor;
             }

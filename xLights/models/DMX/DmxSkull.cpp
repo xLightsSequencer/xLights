@@ -37,7 +37,7 @@ DmxSkull::DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased)
     obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/Skull/";
 #endif
 
-    color_ability = this;
+    //color_ability = this;
     default_channels[JAW] = 1;
     default_channels[PAN] = 3;
     default_channels[TILT] = 5;
@@ -322,8 +322,9 @@ void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid)
         p->SetAttribute("Min", 0);
         p->SetAttribute("Max", 512);
         p->SetEditor("SpinCtrl");
-
-        AddColorTypeProperties(grid);
+        if (nullptr != color_ability) {
+            color_ability->AddColorTypeProperties(grid);
+        }
     }
 
     grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
@@ -343,7 +344,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
     }
 
     if (has_color) {
-        if (OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
             return 0;
         }
     }
@@ -490,10 +491,8 @@ void DmxSkull::InitModel()
     DisplayAs = "DmxSkull";
     screenLocation.SetRenderSize(1, 1, 1);
 
-    red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "16"));
-    green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "17"));
-    blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "18"));
-    white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
+    DmxModel::InitColorAbility();
+
     eye_brightness_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeBrtChannel", "15"));
     jaw_orient = wxAtoi(ModelXml->GetAttribute("DmxJawOrient", std::to_string(default_orient[JAW])));
     pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", std::to_string(default_orient[PAN])));
@@ -729,15 +728,6 @@ std::list<std::string> DmxSkull::CheckModelSettings()
 
     int nodeCount = Nodes.size();
 
-    if (has_color && red_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s red channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), red_channel, nodeCount));
-    }
-    if (has_color && green_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s green channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), green_channel, nodeCount));
-    }
-    if (has_color && blue_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s blue channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), blue_channel, nodeCount));
-    }
     if (has_color && eye_brightness_channel > nodeCount) {
         res.push_back(wxString::Format("    ERR: Model %s eye brightness channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), eye_brightness_channel, nodeCount));
     }
@@ -761,7 +751,7 @@ std::list<std::string> DmxSkull::CheckModelSettings()
         res.push_back(wxString::Format("    ERR: Model %s eye left/right servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), eye_lr_servo->GetChannel(), nodeCount));
     }
 
-    res.splice(res.end(), Model::CheckModelSettings());
+    res.splice(res.end(), DmxModel::CheckModelSettings());
     return res;
 }
 
@@ -771,9 +761,8 @@ void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphi
 
     // crash protection
     if (has_color && (eye_brightness_channel > NodeCount ||
-        red_channel > NodeCount ||
-        green_channel > NodeCount ||
-        blue_channel > NodeCount)) {
+        !color_ability->IsValidModelSettings(this)))
+    {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
@@ -814,8 +803,8 @@ void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphi
     }
 
     xlColor color_angle;
-    if( has_color ) {
-        GetColor(eye_color, transparency, blackTransparency, !active, c, Nodes);
+    if( has_color && nullptr != color_ability ) {
+        color_ability->GetColor(eye_color, transparency, blackTransparency, !active, c, Nodes);
     } else {
         eye_color = xlBLACK;
         Model::ApplyTransparency(eye_color, blackTransparency, blackTransparency);
@@ -1102,10 +1091,10 @@ void DmxSkull::SetupSkulltronix()
     ModelXml->DeleteAttribute("DmxWhiteChannel");
     ModelXml->AddAttribute("DmxWhiteChannel", "0");
 
-    red_channel = 24;
-    green_channel = 25;
-    blue_channel = 17;
-    white_channel = 0;
+    //red_channel = 24;
+    //green_channel = 25;
+    //blue_channel = 17;
+    //white_channel = 0;
     eye_brightness_channel = 23;
     jaw_orient = 0;
     pan_orient = 90;

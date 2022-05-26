@@ -21,7 +21,7 @@
 DmxFloodArea::DmxFloodArea(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     : DmxFloodlight(node, manager, zeroBased)
 {
-    color_ability = this;
+    //color_ability = this;
 }
 
 DmxFloodArea::~DmxFloodArea()
