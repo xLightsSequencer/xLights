@@ -84,6 +84,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;..\include\ffmpeg-5\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.2.2\</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\lib\windows;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64;..\dependencies\lua\src</LibraryPath>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -307,6 +308,8 @@
     <ClCompile Include="models\ChannelBlockModel.cpp" />
     <ClCompile Include="models\CubeModel.cpp" />
     <ClCompile Include="models\DMX\DmxColorAbility.cpp" />
+    <ClCompile Include="models\DMX\DmxColorAbilityRGB.cpp" />
+    <ClCompile Include="models\DMX\DmxColorAbilityWheel.cpp" />
     <ClCompile Include="models\DMX\DmxFloodArea.cpp" />
     <ClCompile Include="models\DMX\DmxFloodlight.cpp" />
     <ClCompile Include="models\DMX\DmxGeneral.cpp" />
@@ -771,6 +774,8 @@
     <ClInclude Include="models\ChannelBlockModel.h" />
     <ClInclude Include="models\CubeModel.h" />
     <ClInclude Include="models\DMX\DmxColorAbility.h" />
+    <ClInclude Include="models\DMX\DmxColorAbilityRGB.h" />
+    <ClInclude Include="models\DMX\DmxColorAbilityWheel.h" />
     <ClInclude Include="models\DMX\DmxFloodArea.h" />
     <ClInclude Include="models\DMX\DmxFloodlight.h" />
     <ClInclude Include="models\DMX\DmxGeneral.h" />
