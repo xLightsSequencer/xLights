@@ -77,19 +77,23 @@ void DmxGeneral::ExportXlightsModel()
     if (!f.Create(filename, true) || !f.IsOpened())
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
+    wxString sc = ModelXml->GetAttribute("DmxShutterChannel");
+    wxString so = ModelXml->GetAttribute("DmxShutterOpen");
+    wxString sov = ModelXml->GetAttribute("DmxShutterOnValue");
+    wxString bl = ModelXml->GetAttribute("DmxBeamLimit");
+    wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
+    wxString dbw = ModelXml->GetAttribute("DmxBeamWidth", "1");
+
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxgeneral \n");
 
+    f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
+    f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
+    f.Write(wxString::Format("DmxShutterOnValue=\"%s\" ", sov));
+    f.Write(wxString::Format("DmxBeamLimit=\"%s\" ", bl));
+    f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
+    f.Write(wxString::Format("DmxBeamWidth=\"%s\" ", dbw));
     ExportBaseParameters(f);
-
-    //wxString rc = ModelXml->GetAttribute("DmxRedChannel", "0");
-    //wxString gc = ModelXml->GetAttribute("DmxGreenChannel", "0");
-    //wxString bc = ModelXml->GetAttribute("DmxBlueChannel", "0");
-    //wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
-    //
-    //f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));
-    //f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
-    //f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
-    //f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
+    color_ability->ExportParameters(f,ModelXml);
 
     f.Write(" >\n");
 
@@ -117,12 +121,9 @@ void DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
         wxString name = root->GetAttribute("name");
         wxString v = root->GetAttribute("SourceVersion");
 
-        //wxString rc = root->GetAttribute("DmxRedChannel");
-        //wxString gc = root->GetAttribute("DmxGreenChannel");
-        //wxString bc = root->GetAttribute("DmxBlueChannel");
-        //wxString wc = root->GetAttribute("DmxWhiteChannel");
         wxString sc = root->GetAttribute("DmxShutterChannel");
         wxString so = root->GetAttribute("DmxShutterOpen");
+        wxString sov = root->GetAttribute("DmxShutterOnValue");
         wxString bl = root->GetAttribute("DmxBeamLimit");
         wxString dbl = root->GetAttribute("DmxBeamLength", "1");
         wxString dbw = root->GetAttribute("DmxBeamWidth", "1");
@@ -130,10 +131,14 @@ void DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
 
-        //SetProperty("DmxRedChannel", rc);
-        //SetProperty("DmxGreenChannel", gc);
-        //SetProperty("DmxBlueChannel", bc);
-        //SetProperty("DmxWhiteChannel", wc);
+        SetProperty("DmxShutterChannel", sc);
+        SetProperty("DmxShutterOpen", so);
+        SetProperty("DmxShutterOnValue", sov);
+        SetProperty("DmxBeamLimit", bl);
+        SetProperty("DmxBeamLength", dbl);
+        SetProperty("DmxBeamWidth", dbw);
+
+        color_ability->ImportParameters(root, this);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);

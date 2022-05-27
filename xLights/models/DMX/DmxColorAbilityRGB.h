@@ -33,8 +33,8 @@ class DmxColorAbilityRGB : public DmxColorAbility
         void AddColorTypeProperties(wxPropertyGridInterface *grid) const override;
         int OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) override;
         [[nodiscard]] std::list<std::string> CheckModelSettings(Model *m) const override;
-        [[nodiscard]] bool IsValidModelSettings(Model* m) const;
-        [[nodiscard]] xlColor GetBeamColor( const std::vector<NodeBaseClassPtr>& Nodes) const;
+        [[nodiscard]] bool IsValidModelSettings(Model* m) const override;
+        [[nodiscard]] xlColor GetBeamColor( const std::vector<NodeBaseClassPtr>& Nodes) const override;
 
         void GetColor(xlColor &color, int transparency, int blackTransparency,
                       bool allowSelected, const xlColor *c, const std::vector<NodeBaseClassPtr> &Nodes) const override;
@@ -43,6 +43,7 @@ class DmxColorAbilityRGB : public DmxColorAbility
 
         [[nodiscard]] std::string GetTypeName() const override{ return "RGBW" ;};
         void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const override;
+        void ImportParameters(wxXmlNode* ImportXml, Model* m) const override;
 
         [[nodiscard]] int GetRedChannel() const { return red_channel; }
         [[nodiscard]] int GetGreenChannel() const { return green_channel; }

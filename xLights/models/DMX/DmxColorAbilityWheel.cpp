@@ -295,6 +295,11 @@ void DmxColorAbilityWheel::ExportParameters(wxFile& f, wxXmlNode* ModelXml) cons
     }
 }
 
+void DmxColorAbilityWheel::ImportParameters(wxXmlNode* ImportXml, Model* m) const
+{
+
+}
+
 void DmxColorAbilityWheel::ReadColorSettings(wxXmlNode* ModelXml)
 {
     for (int i =0; i< MAX_COLORS; ++i) {

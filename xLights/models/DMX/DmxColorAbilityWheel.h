@@ -39,16 +39,17 @@ class DmxColorAbilityWheel : public DmxColorAbility
         bool IsColorChannel(uint32_t channel)const override;
         void SetColorPixels(const xlColor& color, xlColorVector & pixelVector ) const override;
         void AddColorTypeProperties(wxPropertyGridInterface *grid)const override;
-        int OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base);
+        int OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) override;
         std::list<std::string> CheckModelSettings(Model *m) const override;
         bool IsValidModelSettings(Model* m) const override;
-        xlColor GetBeamColor(const std::vector<NodeBaseClassPtr>& Nodes) const;
+        xlColor GetBeamColor(const std::vector<NodeBaseClassPtr>& Nodes) const override;
         void GetColor(xlColor &color, int transparency, int blackTransparency,
                       bool allowSelected, const xlColor *c, const std::vector<NodeBaseClassPtr> &Nodes) const override;
         [[nodiscard]] xlColor GetColorPixels(xlColorVector const& pixelVector ) const override;
         bool ApplyChannelTransparency(xlColor& color,int transparency, uint32_t channel) const override;
         std::string GetTypeName() const override{ return "ColorWheel" ;};
         void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const override;
+        void ImportParameters(wxXmlNode* ImportXml, Model* m) const override;
 
     private:
         int wheel_channel;

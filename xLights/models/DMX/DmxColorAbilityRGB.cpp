@@ -281,3 +281,16 @@ void DmxColorAbilityRGB::ExportParameters(wxFile& f, wxXmlNode* ModelXml) const
     f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
     f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
 }
+
+void DmxColorAbilityRGB::ImportParameters(wxXmlNode* ImportXml, Model* m) const
+{
+    wxString rc = ImportXml->GetAttribute("DmxRedChannel");
+    wxString gc = ImportXml->GetAttribute("DmxGreenChannel");
+    wxString bc = ImportXml->GetAttribute("DmxBlueChannel");
+    wxString wc = ImportXml->GetAttribute("DmxWhiteChannel");
+
+    m->SetProperty("DmxRedChannel", rc);
+    m->SetProperty("DmxGreenChannel", gc);
+    m->SetProperty("DmxBlueChannel", bc);
+    m->SetProperty("DmxWhiteChannel", wc);
+}

@@ -1121,17 +1121,14 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         wxString tc = root->GetAttribute("DmxTiltChannel");
         wxString to = root->GetAttribute("DmxTiltOrient");
         wxString tsl = root->GetAttribute("DmxTiltSlewLimit");
-        wxString rc = root->GetAttribute("DmxRedChannel");
-        wxString gc = root->GetAttribute("DmxGreenChannel");
-        wxString bc = root->GetAttribute("DmxBlueChannel");
-        wxString wc = root->GetAttribute("DmxWhiteChannel");
+
         wxString sc = root->GetAttribute("DmxShutterChannel");
         wxString so = root->GetAttribute("DmxShutterOpen");
         wxString sv = root->GetAttribute("DmxShutterOnValue");
         wxString bl = root->GetAttribute("DmxBeamLimit");
         wxString dbl = root->GetAttribute("DmxBeamLength", "1");
         wxString dbw = root->GetAttribute("DmxBeamWidth", "1");
-        wxString dct = ModelXml->GetAttribute("DmxColorType", "0");
+        wxString dct = root->GetAttribute("DmxColorType", "0");
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
@@ -1145,10 +1142,7 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         SetProperty("DmxTiltChannel", tc);
         SetProperty("DmxTiltOrient", to);
         SetProperty("DmxTiltSlewLimit", tsl);
-        SetProperty("DmxRedChannel", rc);
-        SetProperty("DmxGreenChannel", gc);
-        SetProperty("DmxBlueChannel", bc);
-        SetProperty("DmxWhiteChannel", wc);
+
         SetProperty("DmxShutterChannel", sc);
         SetProperty("DmxShutterOpen", so);
         SetProperty("DmxShutterOnValue", sv);
@@ -1156,6 +1150,8 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         SetProperty("DmxBeamLength", dbl);
         SetProperty("DmxBeamWidth", dbw);
         SetProperty("DmxColorType", dct);
+
+        color_ability->ImportParameters(root, this);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);

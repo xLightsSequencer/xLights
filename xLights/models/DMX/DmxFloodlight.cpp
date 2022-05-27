@@ -241,19 +241,13 @@ void DmxFloodlight::ExportXlightsModel()
     if (!f.Create(filename, true) || !f.IsOpened())
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
-    wxString rc = ModelXml->GetAttribute("DmxRedChannel", "0");
-    wxString gc = ModelXml->GetAttribute("DmxGreenChannel", "0");
-    wxString bc = ModelXml->GetAttribute("DmxBlueChannel", "0");
-    wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
+
     wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
     ExportBaseParameters(f);
-    f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));
-    f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
-    f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
-    f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
+    color_ability->ExportParameters(f,ModelXml);
     f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
 
     f.Write(" >\n");
@@ -281,19 +275,12 @@ void DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         wxString name = root->GetAttribute("name");
         wxString v = root->GetAttribute("SourceVersion");
 
-        wxString rc = root->GetAttribute("DmxRedChannel");
-        wxString gc = root->GetAttribute("DmxGreenChannel");
-        wxString bc = root->GetAttribute("DmxBlueChannel");
-        wxString wc = root->GetAttribute("DmxWhiteChannel");
         wxString dbl = root->GetAttribute("DmxBeamLength", "1");
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
 
-        SetProperty("DmxRedChannel", rc);
-        SetProperty("DmxGreenChannel", gc);
-        SetProperty("DmxBlueChannel", bc);
-        SetProperty("DmxWhiteChannel", wc);
+        color_ability->ImportParameters(root, this);
         SetProperty("DmxBeamLength", dbl);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());

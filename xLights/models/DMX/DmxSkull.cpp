@@ -907,10 +907,6 @@ void DmxSkull::ExportXlightsModel()
     wxString hel = ModelXml->GetAttribute("HasEyeLR", "1");
     wxString hc = ModelXml->GetAttribute("HasColor", "1");
     wxString is = ModelXml->GetAttribute("Skulltronix", "0");
-    wxString rc = ModelXml->GetAttribute("DmxRedChannel", "24");
-    wxString gc = ModelXml->GetAttribute("DmxGreenChannel", "25");
-    wxString bc = ModelXml->GetAttribute("DmxBlueChannel", "26");
-    wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
     wxString eb = ModelXml->GetAttribute("DmxEyeBrtChannel", "23");
     wxString bits = ModelXml->GetAttribute("Bits16");
 
@@ -928,12 +924,9 @@ void DmxSkull::ExportXlightsModel()
     f.Write(wxString::Format("HasEyeLR=\"%s\" ", hel));
     f.Write(wxString::Format("HasColor=\"%s\" ", hc));
     f.Write(wxString::Format("Skulltronix=\"%s\" ", is));
-    f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));
-    f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
-    f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
-    f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
     f.Write(wxString::Format("DmxEyeBrtChannel=\"%s\" ", eb));
     f.Write(wxString::Format("Bits16=\"%s\" ", bits));
+    color_ability->ExportParameters(f,ModelXml);
     f.Write(" >\n");
 
     wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
@@ -989,10 +982,6 @@ void DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
         wxString hel = root->GetAttribute("HasEyeLR");
         wxString hc = root->GetAttribute("HasColor");
         wxString is = root->GetAttribute("Skulltronix");
-        wxString rc = root->GetAttribute("DmxRedChannel");
-        wxString gc = root->GetAttribute("DmxGreenChannel");
-        wxString bc = root->GetAttribute("DmxBlueChannel");
-        wxString wc = root->GetAttribute("DmxWhiteChannel");
         wxString eb = root->GetAttribute("DmxEyeBrtChannel");
         wxString bits = root->GetAttribute("Bits16");
 
@@ -1013,12 +1002,10 @@ void DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
         SetProperty("HasEyeLR", hel);
         SetProperty("HasColor", hc);
         SetProperty("Skulltronix", is);
-        SetProperty("DmxRedChannel", rc);
-        SetProperty("DmxGreenChannel", gc);
-        SetProperty("DmxBlueChannel", bc);
-        SetProperty("DmxWhiteChannel", wc);
         SetProperty("DmxEyeBrtChannel", eb);
         SetProperty("Bits16", bits);
+
+        color_ability->ImportParameters(root, this);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);

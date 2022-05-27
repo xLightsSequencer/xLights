@@ -1115,10 +1115,7 @@ void DmxSkulltronix::ExportXlightsModel()
     wxString po = ModelXml->GetAttribute("DmxPanOrient", "90");
     wxString tc = ModelXml->GetAttribute("DmxTiltChannel", "19");
     wxString to = ModelXml->GetAttribute("DmxTiltOrient", "315");
-    wxString rc = ModelXml->GetAttribute("DmxRedChannel", "24");
-    wxString gc = ModelXml->GetAttribute("DmxGreenChannel", "25");
-    wxString bc = ModelXml->GetAttribute("DmxBlueChannel", "26");
-    wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
+
     wxString sc = ModelXml->GetAttribute("DmxShutterChannel", "0");
     wxString so = ModelXml->GetAttribute("DmxShutterOpen", "1");
     wxString sv = ModelXml->GetAttribute("DmxShutterOnValue", "0");
@@ -1150,10 +1147,7 @@ void DmxSkulltronix::ExportXlightsModel()
     f.Write(wxString::Format("DmxPanOrient=\"%s\" ", po));
     f.Write(wxString::Format("DmxTiltChannel=\"%s\" ", tc));
     f.Write(wxString::Format("DmxTiltOrient=\"%s\" ", to));
-    f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));
-    f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
-    f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
-    f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
+
     f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
     f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
     f.Write(wxString::Format("DmxShutterOnValue=\"%s\" ", sv));
@@ -1177,6 +1171,8 @@ void DmxSkulltronix::ExportXlightsModel()
     f.Write(wxString::Format("DmxEyeLRChannel=\"%s\" ", elrc));
     f.Write(wxString::Format("DmxEyeLRMinLimit=\"%s\" ", elml));
     f.Write(wxString::Format("DmxEyeLRMaxLimit=\"%s\" ", elrmxl));
+
+    color_ability->ExportParameters(f,ModelXml);
     f.Write(" >\n");
     wxString submodel = SerialiseSubmodel();
     if (submodel != "") {
@@ -1211,10 +1207,6 @@ void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
         wxString tc = root->GetAttribute("DmxTiltChannel");
         wxString to = root->GetAttribute("DmxTiltOrient");
         wxString tsl = root->GetAttribute("DmxTiltSlewLimit");
-        wxString rc = root->GetAttribute("DmxRedChannel");
-        wxString gc = root->GetAttribute("DmxGreenChannel");
-        wxString bc = root->GetAttribute("DmxBlueChannel");
-        wxString wc = root->GetAttribute("DmxWhiteChannel");
         wxString sc = root->GetAttribute("DmxShutterChannel");
         wxString so = root->GetAttribute("DmxShutterOpen");
         wxString sv = root->GetAttribute("DmxShutterOnValue");
@@ -1252,10 +1244,6 @@ void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
         SetProperty("DmxTiltChannel", tc);
         SetProperty("DmxTiltOrient", to);
         SetProperty("DmxTiltSlewLimit", tsl);
-        SetProperty("DmxRedChannel", rc);
-        SetProperty("DmxGreenChannel", gc);
-        SetProperty("DmxBlueChannel", bc);
-        SetProperty("DmxWhiteChannel", wc);
         SetProperty("DmxShutterChannel", sc);
         SetProperty("DmxShutterOpen", so);
         SetProperty("DmxShutterOnValue", sv);
@@ -1280,6 +1268,8 @@ void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
         SetProperty("DmxEyeLRChannel", elrc);
         SetProperty("DmxEyeLRMinLimit", elml);
         SetProperty("DmxEyeLRMaxLimit", elrmxl);
+
+        color_ability->ImportParameters(root, this);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);
