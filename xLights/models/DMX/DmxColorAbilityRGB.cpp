@@ -294,3 +294,19 @@ void DmxColorAbilityRGB::ImportParameters(wxXmlNode* ImportXml, Model* m) const
     m->SetProperty("DmxBlueChannel", bc);
     m->SetProperty("DmxWhiteChannel", wc);
 }
+
+void DmxColorAbilityRGB::SetNodeNames(std::vector<std::string>& names) const
+{
+    if (0 != red_channel && red_channel < names.size()) {
+        names[red_channel - 1] = "Red";
+    }
+    if (0 != blue_channel && blue_channel < names.size()) {
+        names[blue_channel - 1] = "Blue";
+    }
+    if (0 != green_channel && green_channel < names.size()) {
+        names[green_channel - 1] = "Green";
+    }
+    if (0 != white_channel && white_channel < names.size()) {
+        names[white_channel - 1] = "White";
+    }
+}

@@ -294,3 +294,13 @@ void DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         DisplayError("Failure loading DmxFloodlight model file.");
     }
 }
+
+std::vector<std::string> DmxFloodlight::GenerateNodeNames() const
+{
+    std::vector<std::string> names = DmxModel::GenerateNodeNames();
+
+    if (0 != shutter_channel && shutter_channel < names.size()) {
+        names[shutter_channel - 1] = "Shutter";
+    }
+    return names;
+}

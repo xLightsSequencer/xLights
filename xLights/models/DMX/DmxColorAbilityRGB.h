@@ -44,6 +44,7 @@ class DmxColorAbilityRGB : public DmxColorAbility
         [[nodiscard]] std::string GetTypeName() const override{ return "RGBW" ;};
         void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const override;
         void ImportParameters(wxXmlNode* ImportXml, Model* m) const override;
+        void SetNodeNames(std::vector<std::string> & names) const override;
 
         [[nodiscard]] int GetRedChannel() const { return red_channel; }
         [[nodiscard]] int GetGreenChannel() const { return green_channel; }

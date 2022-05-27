@@ -17,10 +17,12 @@
 
 #include <sstream>
 #include "models/Model.h"
+#include "models/DMX/DmxModel.h"
 
 //(*IdInit(StrandNodeNamesDialog)
 const long StrandNodeNamesDialog::ID_GRID2 = wxNewId();
 const long StrandNodeNamesDialog::ID_GRID1 = wxNewId();
+const long StrandNodeNamesDialog::ID_BUTTON_GEN_NAMES = wxNewId();
 const long StrandNodeNamesDialog::ID_BUTTONOK = wxNewId();
 const long StrandNodeNamesDialog::ID_BUTTONCANCEL = wxNewId();
 //*)
@@ -39,7 +41,7 @@ StrandNodeNamesDialog::StrandNodeNamesDialog(wxWindow* parent,wxWindowID id,cons
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText2;
 
-	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
+	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -67,6 +69,10 @@ StrandNodeNamesDialog::StrandNodeNamesDialog(wxWindow* parent,wxWindowID id,cons
 	NodesGrid->SetDefaultCellFont( NodesGrid->GetFont() );
 	NodesGrid->SetDefaultCellTextColour( NodesGrid->GetForegroundColour() );
 	FlexGridSizer2->Add(NodesGrid, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonGenNames = new wxButton(this, ID_BUTTON_GEN_NAMES, _("Generate Node Names"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_GEN_NAMES"));
+	ButtonGenNames->Hide();
+	FlexGridSizer2->Add(ButtonGenNames, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	ButtonOk = new wxButton(this, ID_BUTTONOK, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONOK"));
@@ -81,6 +87,7 @@ StrandNodeNamesDialog::StrandNodeNamesDialog(wxWindow* parent,wxWindowID id,cons
 
 	Connect(ID_GRID2,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&StrandNodeNamesDialog::OnStrandsGridCellChanged);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&StrandNodeNamesDialog::OnNodesGridCellChanged);
+	Connect(ID_BUTTON_GEN_NAMES,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrandNodeNamesDialog::OnButtonGenNamesClick);
 	Connect(ID_BUTTONOK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrandNodeNamesDialog::OnButtonOkClick);
 	Connect(ID_BUTTONCANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrandNodeNamesDialog::OnButtonCancelClick);
 	//*)
@@ -96,7 +103,9 @@ StrandNodeNamesDialog::~StrandNodeNamesDialog()
 	//*)
 }
 
-void StrandNodeNamesDialog::Setup(const Model *md, const std::string &nodeNames, const std::string &strandNames) {
+void StrandNodeNamesDialog::Setup(const Model* md, const std::string& nodeNames, const std::string& strandNames)
+{
+    m = md;
     std::vector<wxString> strands;
     std::vector<wxString> nodes;
     wxString tempstr = strandNames;
@@ -157,6 +166,11 @@ void StrandNodeNamesDialog::Setup(const Model *md, const std::string &nodeNames,
         NodesGrid->SetCellValue(x, 0, nodes[x]);
     }
     NodesGrid->EndBatch();
+
+    if (md->IsDMXModel())
+    {
+        ButtonGenNames->Show();
+    }
 
     ValidateWindow();
 }
@@ -247,4 +261,15 @@ void StrandNodeNamesDialog::OnStrandsGridCellChanged(wxGridEvent& event)
 void StrandNodeNamesDialog::OnNodesGridCellChanged(wxGridEvent& event)
 {
     ValidateWindow();
+}
+
+void StrandNodeNamesDialog::OnButtonGenNamesClick(wxCommandEvent& event)
+{
+    if (m->IsDMXModel()) {
+        DmxModel* dmx = (DmxModel*)m;
+        auto names = dmx->GenerateNodeNames();
+        for (int x = 0; x < names.size(); x++) {
+            NodesGrid->SetCellValue(x, 0, names[x]);
+        }
+    }
 }

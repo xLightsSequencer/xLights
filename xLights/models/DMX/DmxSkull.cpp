@@ -22,6 +22,7 @@
 #include "Mesh.h"
 #include "Servo.h"
 #include "SkullConfigDialog.h"
+#include "DmxColorAbilityRGB.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -490,7 +491,7 @@ void DmxSkull::InitModel()
     DisplayAs = "DmxSkull";
     screenLocation.SetRenderSize(1, 1, 1);
 
-    DmxModel::InitColorAbility();
+    color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
 
     eye_brightness_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeBrtChannel", "15"));
     jaw_orient = wxAtoi(ModelXml->GetAttribute("DmxJawOrient", std::to_string(default_orient[JAW])));

@@ -54,6 +54,8 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool IsDMXModel() const override { return true; }
         virtual std::list<std::string> CheckModelSettings() override;
 
+        [[nodiscard]] virtual std::vector<std::string> GenerateNodeNames() const;
+
     protected:
         virtual void InitModel() override;
         void ExportBaseParameters(wxFile& f);

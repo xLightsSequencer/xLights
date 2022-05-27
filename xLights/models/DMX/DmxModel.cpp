@@ -332,3 +332,15 @@ void DmxModel::ImportBaseParameters(wxXmlNode* root)
     SetProperty("NodeNames", nn);
     SetProperty("DisplayAs", da);
 }
+
+std::vector<std::string> DmxModel::GenerateNodeNames() const
+{
+    std::vector<std::string> names;
+    for (int i=0; i< parm1; ++i) {// parm1 is channel count
+        names.push_back("");
+    }
+    if (nullptr != color_ability) {
+        color_ability->SetNodeNames(names);
+    }
+    return names;
+}

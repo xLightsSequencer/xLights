@@ -297,7 +297,37 @@ void DmxColorAbilityWheel::ExportParameters(wxFile& f, wxXmlNode* ModelXml) cons
 
 void DmxColorAbilityWheel::ImportParameters(wxXmlNode* ImportXml, Model* m) const
 {
+    wxString cwc = ImportXml->GetAttribute("DmxColorWheelChannel");
+    wxString dc = ImportXml->GetAttribute("DmxDimmerChannel");
+    wxString bc = ImportXml->GetAttribute("DmxBlueChannel");
+    wxString wc = ImportXml->GetAttribute("DmxWhiteChannel");
 
+    m->SetProperty("DmxColorWheelChannel", cwc);
+    m->SetProperty("DmxDimmerChannel", dc);
+
+
+    for (int i = 0; i < MAX_COLORS; ++i) {
+        auto dmxkey = wxString::Format("DmxColorWheelDMX%d", i);
+        auto colorkey = wxString::Format("DmxColorWheelColor%d", i);
+        if (!ImportXml->HasAttribute(dmxkey) || !ImportXml->HasAttribute(colorkey)) {
+            break;
+        }
+
+        wxString dmx = ImportXml->GetAttribute(dmxkey, "0");
+        wxString color = ImportXml->GetAttribute(colorkey, "0");
+        m->SetProperty( dmxkey, dmx);
+        m->SetProperty( colorkey, color);
+    }
+}
+
+void DmxColorAbilityWheel::SetNodeNames(std::vector<std::string>& names) const
+{
+    if (0 != wheel_channel && wheel_channel < names.size()) {
+        names[wheel_channel - 1] = "Color Wheel";
+    }
+    if (0 != dimmer_channel && dimmer_channel < names.size()) {
+        names[dimmer_channel - 1] = "Dimmer";
+    }
 }
 
 void DmxColorAbilityWheel::ReadColorSettings(wxXmlNode* ModelXml)

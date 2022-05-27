@@ -360,10 +360,6 @@ void DmxSkulltronix::InitModel()
     tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "315"));
     tilt_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxTiltDegOfRot", "90"));
     tilt_slew_limit = wxAtof(ModelXml->GetAttribute("DmxTiltSlewLimit", "0"));
-    //red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "24"));
-    //green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "25"));
-    //blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "26"));
-    //white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
     tilt_min_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMinLimit", "442"));
     tilt_max_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMaxLimit", "836"));
     pan_min_limit = wxAtoi(ModelXml->GetAttribute("DmxPanMinLimit", "250"));

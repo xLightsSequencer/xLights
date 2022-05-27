@@ -1174,3 +1174,19 @@ void DmxMovingHead::EnableFixedChannels(xlColorVector& pixelVector)
         }
     }
 }
+
+std::vector<std::string> DmxMovingHead::GenerateNodeNames() const
+{
+    std::vector<std::string> names = DmxModel::GenerateNodeNames();
+
+    if (0 != shutter_channel && shutter_channel < names.size()) {
+        names[shutter_channel - 1] = "Shutter";
+    }
+    if (0 != pan_channel && pan_channel < names.size()) {
+        names[pan_channel - 1] = "Pan";
+    }
+    if (0 != tilt_channel && tilt_channel < names.size()) {
+        names[tilt_channel - 1] = "Tilt";
+    }
+    return names;
+}
