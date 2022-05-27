@@ -1447,5 +1447,6 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
             DmxColorAbility* dmx_color = dmx->GetColorAbility();
             dmx_color->SetColorPixels(color,pixelVector);
         }
+        dmx->EnableFixedChannels(pixelVector);
     }
 }

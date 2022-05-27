@@ -94,6 +94,7 @@ void DmxFloodlight::InitModel()
 
     shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
     shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
+    shutter_on_value = wxAtoi(ModelXml->GetAttribute("DmxShutterOnValue", "0"));
     beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "1.0"));
     screenLocation.SetRenderSize(1, 1, 1);
 }

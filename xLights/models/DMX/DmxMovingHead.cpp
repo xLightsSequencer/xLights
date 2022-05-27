@@ -263,6 +263,7 @@ void DmxMovingHead::InitModel() {
 	tilt_slew_limit = wxAtof(ModelXml->GetAttribute("DmxTiltSlewLimit", "0"));
 	shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
 	shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
+    shutter_on_value = wxAtoi(ModelXml->GetAttribute("DmxShutterOnValue", "0"));
 	beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "4.0"));
     beam_width = GetDefaultBeamWidth();
     if (ModelXml->HasAttribute("DmxBeamWidth")) {
@@ -1061,6 +1062,7 @@ void DmxMovingHead::ExportXlightsModel()
     wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
     wxString sc = ModelXml->GetAttribute("DmxShutterChannel", "0");
     wxString so = ModelXml->GetAttribute("DmxShutterOpen", "1");
+    wxString sv = ModelXml->GetAttribute("DmxShutterOnValue", "0");
     wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
     wxString dbw = ModelXml->GetAttribute("DmxBeamWidth", "1");
 
@@ -1081,6 +1083,7 @@ void DmxMovingHead::ExportXlightsModel()
     f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
     f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
     f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
+    f.Write(wxString::Format("DmxShutterOnValue=\"%s\" ", sv));
     f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
     f.Write(wxString::Format("DmxBeamWidth=\"%s\" ", dbw));
 
@@ -1125,6 +1128,7 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         wxString wc = root->GetAttribute("DmxWhiteChannel");
         wxString sc = root->GetAttribute("DmxShutterChannel");
         wxString so = root->GetAttribute("DmxShutterOpen");
+        wxString sv = root->GetAttribute("DmxShutterOnValue");
         wxString bl = root->GetAttribute("DmxBeamLimit");
         wxString dbl = root->GetAttribute("DmxBeamLength", "1");
         wxString dbw = root->GetAttribute("DmxBeamWidth", "1");
@@ -1147,6 +1151,7 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         SetProperty("DmxWhiteChannel", wc);
         SetProperty("DmxShutterChannel", sc);
         SetProperty("DmxShutterOpen", so);
+        SetProperty("DmxShutterOnValue", sv);
         SetProperty("DmxBeamLimit", bl);
         SetProperty("DmxBeamLength", dbl);
         SetProperty("DmxBeamWidth", dbw);
@@ -1161,5 +1166,15 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHead::ImportXlightsModel");
     } else {
         DisplayError("Failure loading DmxMovingHead model file.");
+    }
+}
+
+void DmxMovingHead::EnableFixedChannels(xlColorVector& pixelVector)
+{
+    if (shutter_channel != 0 && shutter_on_value != 0) {       
+        if (Nodes.size() > shutter_channel - 1) {
+            xlColor c(shutter_on_value, shutter_on_value, shutter_on_value);
+            pixelVector[shutter_channel - 1] = c;
+        } 
     }
 }

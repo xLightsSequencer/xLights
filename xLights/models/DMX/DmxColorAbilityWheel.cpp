@@ -114,7 +114,7 @@ void DmxColorAbilityWheel::AddColorTypeProperties(wxPropertyGridInterface *grid)
 
 int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) {
 
-    if ("DmxRedChannel" == event.GetPropertyName()) {
+    if ("DmxColorWheelChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxColorWheelChannel");
         ModelXml->AddAttribute("DmxColorWheelChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelChannel");
@@ -151,11 +151,11 @@ int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *gri
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelSize");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxColorAbility::OnPropertyGridChange::DmxColorWheelSize");
         return 0;
-    } else if (event.GetPropertyName().StartsWith("DmxColorWheelDMX")) {
+    } else if (event.GetPropertyName().StartsWith("DmxColorWheelSize.DmxColorWheelDMX")) {
         int dxmVal = (int)event.GetPropertyValue().GetInteger();
         wxString namekey = event.GetPropertyName();
-        namekey.Replace("DmxColorWheelDMX", "");
-        int index = wxAtoi(namekey)-1;
+        namekey.Replace("DmxColorWheelSize.DmxColorWheelDMX", "");
+        int index = wxAtoi(namekey);
         if (index >= 0 && index < colors.size()) {
             colors[index].dmxValue = dxmVal;
             WriteColorSettings(ModelXml);
@@ -166,12 +166,12 @@ int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *gri
             base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDMX");
         }
     }
-    else if (event.GetPropertyName().StartsWith("DmxColorWheelColor") ){
+    else if (event.GetPropertyName().StartsWith("DmxColorWheelSize.DmxColorWheelColor") ){
         wxColour wheeleColour = *wxBLACK;
         wheeleColour << event.GetProperty()->GetValue();
         wxString namekey = event.GetPropertyName();
-        namekey.Replace("DmxColorWheelColor", "");
-        int index = wxAtoi(namekey)-1;
+        namekey.Replace("DmxColorWheelSize.DmxColorWheelColor", "");
+        int index = wxAtoi(namekey);
         if (index >= 0 && index<colors.size()) {
             colors[index].color = xlColor(wheeleColour);
             WriteColorSettings(ModelXml);

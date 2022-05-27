@@ -27,7 +27,6 @@
 DmxSkulltronix::DmxSkulltronix(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     : DmxModel(node, manager, zeroBased)
 {
-    //color_ability = this;
     SetFromXml(node, zeroBased);
 }
 
@@ -1122,6 +1121,7 @@ void DmxSkulltronix::ExportXlightsModel()
     wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
     wxString sc = ModelXml->GetAttribute("DmxShutterChannel", "0");
     wxString so = ModelXml->GetAttribute("DmxShutterOpen", "1");
+    wxString sv = ModelXml->GetAttribute("DmxShutterOnValue", "0");
 
     wxString tml = ModelXml->GetAttribute("DmxTiltMinLimit", "442");
     wxString tmxl = ModelXml->GetAttribute("DmxTiltMaxLimit", "836");
@@ -1156,6 +1156,7 @@ void DmxSkulltronix::ExportXlightsModel()
     f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
     f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
     f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
+    f.Write(wxString::Format("DmxShutterOnValue=\"%s\" ", sv));
 
     f.Write(wxString::Format("DmxTiltMinLimit=\"%s\" ", tml));
     f.Write(wxString::Format("DmxTiltMaxLimit=\"%s\" ", tmxl));
@@ -1216,6 +1217,7 @@ void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
         wxString wc = root->GetAttribute("DmxWhiteChannel");
         wxString sc = root->GetAttribute("DmxShutterChannel");
         wxString so = root->GetAttribute("DmxShutterOpen");
+        wxString sv = root->GetAttribute("DmxShutterOnValue");
         wxString bl = root->GetAttribute("DmxBeamLimit");
 
         wxString tml = root->GetAttribute("DmxTiltMinLimit");
@@ -1256,6 +1258,7 @@ void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
         SetProperty("DmxWhiteChannel", wc);
         SetProperty("DmxShutterChannel", sc);
         SetProperty("DmxShutterOpen", so);
+        SetProperty("DmxShutterOnValue", sv);
         SetProperty("DmxBeamLimit", bl);
 
         SetProperty("DmxTiltMinLimit", tml);

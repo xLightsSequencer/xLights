@@ -28,13 +28,14 @@ class DmxShutterAbility
 
         int GetShutterChannel() { return shutter_channel; }
         int GetShutterThreshold() { return shutter_threshold; }
+        int GetShutterOnValue() { return shutter_on_value; }
 
     protected:
         bool IsShutterOpen(const std::vector<NodeBaseClassPtr> &Nodes) const;
-
     
         int shutter_channel;
         int shutter_threshold;
+        int shutter_on_value;
 
     private:
 };
