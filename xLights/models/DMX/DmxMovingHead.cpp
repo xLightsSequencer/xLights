@@ -1056,15 +1056,14 @@ void DmxMovingHead::ExportXlightsModel()
     wxString po = ModelXml->GetAttribute("DmxPanOrient", "0");
     wxString tc = ModelXml->GetAttribute("DmxTiltChannel", "0");
     wxString to = ModelXml->GetAttribute("DmxTiltOrient", "0");
-    wxString rc = ModelXml->GetAttribute("DmxRedChannel", "0");
-    wxString gc = ModelXml->GetAttribute("DmxGreenChannel", "0");
-    wxString bc = ModelXml->GetAttribute("DmxBlueChannel", "0");
-    wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
+
     wxString sc = ModelXml->GetAttribute("DmxShutterChannel", "0");
     wxString so = ModelXml->GetAttribute("DmxShutterOpen", "1");
     wxString sv = ModelXml->GetAttribute("DmxShutterOnValue", "0");
     wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
     wxString dbw = ModelXml->GetAttribute("DmxBeamWidth", "1");
+
+    wxString dct = ModelXml->GetAttribute("DmxColorType", "0");
 
     if (s.empty()) {
         s = "Moving Head Top";
@@ -1077,15 +1076,15 @@ void DmxMovingHead::ExportXlightsModel()
     f.Write(wxString::Format("DmxPanOrient=\"%s\" ", po));
     f.Write(wxString::Format("DmxTiltChannel=\"%s\" ", tc));
     f.Write(wxString::Format("DmxTiltOrient=\"%s\" ", to));
-    f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));
-    f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
-    f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
-    f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
+
     f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
     f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
     f.Write(wxString::Format("DmxShutterOnValue=\"%s\" ", sv));
     f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
     f.Write(wxString::Format("DmxBeamWidth=\"%s\" ", dbw));
+
+    f.Write(wxString::Format("DmxColorType=\"%s\" ", dct));
+    color_ability->ExportParameters(f,ModelXml);
 
     f.Write(" >\n");
 
@@ -1132,6 +1131,7 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         wxString bl = root->GetAttribute("DmxBeamLimit");
         wxString dbl = root->GetAttribute("DmxBeamLength", "1");
         wxString dbw = root->GetAttribute("DmxBeamWidth", "1");
+        wxString dct = ModelXml->GetAttribute("DmxColorType", "0");
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
@@ -1155,6 +1155,7 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         SetProperty("DmxBeamLimit", bl);
         SetProperty("DmxBeamLength", dbl);
         SetProperty("DmxBeamWidth", dbw);
+        SetProperty("DmxColorType", dct);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);
@@ -1171,10 +1172,10 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
 
 void DmxMovingHead::EnableFixedChannels(xlColorVector& pixelVector)
 {
-    if (shutter_channel != 0 && shutter_on_value != 0) {       
+    if (shutter_channel != 0 && shutter_on_value != 0) {
         if (Nodes.size() > shutter_channel - 1) {
             xlColor c(shutter_on_value, shutter_on_value, shutter_on_value);
             pixelVector[shutter_channel - 1] = c;
-        } 
+        }
     }
 }

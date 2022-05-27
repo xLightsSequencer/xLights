@@ -32,17 +32,17 @@ class DmxColorAbilityRGB : public DmxColorAbility
         void SetColorPixels(const xlColor& color, xlColorVector & pixelVector ) const override;
         void AddColorTypeProperties(wxPropertyGridInterface *grid) const override;
         int OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) override;
-        std::list<std::string> CheckModelSettings(Model *m) const override;
-        bool IsValidModelSettings(Model* m) const;
-        xlColor GetBeamColor( const std::vector<NodeBaseClassPtr>& Nodes) const;
+        [[nodiscard]] std::list<std::string> CheckModelSettings(Model *m) const override;
+        [[nodiscard]] bool IsValidModelSettings(Model* m) const;
+        [[nodiscard]] xlColor GetBeamColor( const std::vector<NodeBaseClassPtr>& Nodes) const;
 
         void GetColor(xlColor &color, int transparency, int blackTransparency,
                       bool allowSelected, const xlColor *c, const std::vector<NodeBaseClassPtr> &Nodes) const override;
-
+        [[nodiscard]] xlColor GetColorPixels(xlColorVector const& pixelVector ) const override;
         bool ApplyChannelTransparency( xlColor &color, int transparency, uint32_t channel) const override;
 
-        std::string GetTypeName() const override{ return "RGBW" ;};
-        void ExportParameters(wxFile& f) const override;
+        [[nodiscard]] std::string GetTypeName() const override{ return "RGBW" ;};
+        void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const override;
 
         [[nodiscard]] int GetRedChannel() const { return red_channel; }
         [[nodiscard]] int GetGreenChannel() const { return green_channel; }

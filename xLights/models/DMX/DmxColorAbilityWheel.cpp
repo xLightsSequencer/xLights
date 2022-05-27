@@ -28,9 +28,10 @@ void DmxColorAbilityWheel::InitColor( wxXmlNode* ModelXml)
     ReadColorSettings(ModelXml);
 
     if (colors.empty()) {
-        colors.emplace_back(xlRED, 50);
-        colors.emplace_back(xlGREEN, 100);
-        colors.emplace_back(xlBLUE, 150);
+        colors.emplace_back(xlWHITE, 10);
+        colors.emplace_back(xlRED, 30);
+        colors.emplace_back(xlGREEN, 50);
+        colors.emplace_back(xlBLUE, 70);
     }
 }
 
@@ -227,7 +228,7 @@ bool DmxColorAbilityWheel::ApplyChannelTransparency(xlColor& color, int transpar
 
 void DmxColorAbilityWheel::GetColor(xlColor &color, int transparency, int blackTransparency, bool allowSelected,
                                const xlColor *c, const std::vector<NodeBaseClassPtr> &Nodes) const {
-    xlColor beam_color(xlWHITE);
+    xlColor beam_color(xlBLACK);
     if (c != nullptr) {
         beam_color = *c;
     } else if (!allowSelected) {
@@ -253,8 +254,46 @@ void DmxColorAbilityWheel::GetColor(xlColor &color, int transparency, int blackT
     color = beam_color;
 }
 
-void DmxColorAbilityWheel::ExportParameters(wxFile& f) const
-{}
+[[nodiscard]] xlColor DmxColorAbilityWheel::GetColorPixels(xlColorVector const& pixelVector) const
+{
+    xlColor beam_color(xlBLACK);
+    if (pixelVector.size() > wheel_channel - 1) {
+        xlColor const& proxy = pixelVector[wheel_channel - 1];
+        if (auto const& colordata = GetWheelColorFromDMXValue(proxy); colordata) {
+            beam_color = *colordata;
+            if (pixelVector.size() > dimmer_channel - 1) {
+                xlColor const& proxy = pixelVector[dimmer_channel - 1];
+
+                HSVValue hsv = proxy.asHSV();
+                beam_color.red = (beam_color.red * hsv.value);
+                beam_color.blue = (beam_color.blue * hsv.value);
+                beam_color.green = (beam_color.green * hsv.value);
+            }
+        }
+    }
+    return beam_color;
+}
+
+void DmxColorAbilityWheel::ExportParameters(wxFile& f, wxXmlNode* ModelXml) const
+{
+    wxString cwc = ModelXml->GetAttribute("DmxColorWheelChannel", "0");
+    wxString dc = ModelXml->GetAttribute("DmxDimmerChannel", "0");
+    f.Write(wxString::Format("DmxColorWheelChannel=\"%s\" ", cwc));
+    f.Write(wxString::Format("DmxDimmerChannel=\"%s\" ", dc));
+
+    for (int i = 0; i < MAX_COLORS; ++i) {
+        auto dmxkey = wxString::Format("DmxColorWheelDMX%d", i);
+        auto colorkey = wxString::Format("DmxColorWheelColor%d", i);
+        if (!ModelXml->HasAttribute(dmxkey) || !ModelXml->HasAttribute(colorkey)) {
+            break;
+        }
+
+        wxString dmx = ModelXml->GetAttribute(dmxkey, "0");
+        wxString color = ModelXml->GetAttribute(colorkey, "0");
+        f.Write(wxString::Format("%s=\"%s\" ", dmxkey, dmx));
+        f.Write(wxString::Format("%s=\"%s\" ", colorkey, color));
+    }
+}
 
 void DmxColorAbilityWheel::ReadColorSettings(wxXmlNode* ModelXml)
 {

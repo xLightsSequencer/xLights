@@ -544,5 +544,6 @@ private:
     TextDrawingContext *_textDrawingContext = nullptr;
 
     void SetPixelDMXModel(int x, int y, const xlColor& color);
+    const xlColor& GetPixelDMXModel(int x, int y) const;
     void Forget();
 };

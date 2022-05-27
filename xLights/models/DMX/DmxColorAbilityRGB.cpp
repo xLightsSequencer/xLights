@@ -249,7 +249,35 @@ void DmxColorAbilityRGB::GetColor(xlColor &color, int transparency, int blackTra
     color = beam_color;
 }
 
-void DmxColorAbilityRGB::ExportParameters(wxFile& f) const
+[[nodiscard]] xlColor DmxColorAbilityRGB::GetColorPixels(xlColorVector const& pixelVector ) const
 {
+    xlColor beam_color( xlBLACK );
+    if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
+        if (white_channel > 0) {
+            beam_color = pixelVector[white_channel - 1];
+        }
 
+        if (beam_color == xlBLACK) {
+            beam_color.red = pixelVector[red_channel - 1].red;
+            beam_color.green = pixelVector[green_channel - 1].red;
+            beam_color.blue = pixelVector[blue_channel - 1].red;
+        }
+    } else if (white_channel > 0) {
+        beam_color.red = pixelVector[white_channel - 1].red;
+        beam_color.green = pixelVector[white_channel - 1].red;
+        beam_color.blue = pixelVector[white_channel - 1].red;
+    }
+    return beam_color;
+}
+
+void DmxColorAbilityRGB::ExportParameters(wxFile& f, wxXmlNode* ModelXml) const
+{
+    wxString rc = ModelXml->GetAttribute("DmxRedChannel", "0");
+    wxString gc = ModelXml->GetAttribute("DmxGreenChannel", "0");
+    wxString bc = ModelXml->GetAttribute("DmxBlueChannel", "0");
+    wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
+    f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));
+    f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
+    f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
+    f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
 }

@@ -45,9 +45,10 @@ class DmxColorAbilityWheel : public DmxColorAbility
         xlColor GetBeamColor(const std::vector<NodeBaseClassPtr>& Nodes) const;
         void GetColor(xlColor &color, int transparency, int blackTransparency,
                       bool allowSelected, const xlColor *c, const std::vector<NodeBaseClassPtr> &Nodes) const override;
+        [[nodiscard]] xlColor GetColorPixels(xlColorVector const& pixelVector ) const override;
         bool ApplyChannelTransparency(xlColor& color,int transparency, uint32_t channel) const override;
         std::string GetTypeName() const override{ return "ColorWheel" ;};
-        void ExportParameters(wxFile& f) const override;
+        void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const override;
 
     private:
         int wheel_channel;

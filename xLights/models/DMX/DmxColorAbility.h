@@ -34,14 +34,14 @@ class DmxColorAbility
         virtual int OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) = 0;
         virtual void GetColor(xlColor& color, int transparency, int blackTransparency,
                               bool allowSelected, const xlColor* c, const std::vector<NodeBaseClassPtr>& Nodes) const = 0;
-
+        [[nodiscard]] virtual xlColor GetColorPixels(xlColorVector const& pixelVector ) const = 0;
         [[nodiscard]] virtual std::list<std::string> CheckModelSettings(Model *m) const = 0;
         [[nodiscard]] virtual bool IsValidModelSettings(Model* m) const = 0;
 
         [[nodiscard]] virtual xlColor GetBeamColor( const std::vector<NodeBaseClassPtr>& Nodes) const = 0;
         virtual bool ApplyChannelTransparency(xlColor& color, int transparency, uint32_t channel) const = 0;
         [[nodiscard]] virtual std::string GetTypeName() const = 0;
-        virtual void ExportParameters(wxFile& f) const = 0;
+        virtual void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const = 0;
 
     protected:
         DmxColorAbility() = default;
