@@ -217,11 +217,6 @@ void DmxModel::SetNodeNames(const std::string& default_names, bool force)
     }
 }
 
-void DmxModel::InitColorAbility()
-{
-
-}
-
 std::list<std::string> DmxModel::CheckModelSettings()
 {
     std::list<std::string> res;

@@ -22,7 +22,6 @@
 DmxFloodlight::DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     : DmxModel(node, manager, zeroBased), beam_length(1)
 {
-    //color_ability = this;
     SetFromXml(node, zeroBased);
 }
 

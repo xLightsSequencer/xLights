@@ -37,7 +37,6 @@ DmxMovingHead3D::DmxMovingHead3D(wxXmlNode *node, const ModelManager &manager, b
 #else
     obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/MovingHead3D/";
 #endif
-    //color_ability = this;
     SetFromXml(node, zeroBased);
 }
 

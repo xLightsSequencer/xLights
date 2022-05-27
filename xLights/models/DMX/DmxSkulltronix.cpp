@@ -387,7 +387,6 @@ void DmxSkulltronix::InitModel()
     SetNodeNames(",,,,,,,Power,Jaw,-Jaw Fine,Nod,-Nod Fine,Pan,-Pan Fine,Eye UD,-Eye UD Fine,Eye LR,-Eye LR Fine,Tilt,-Tilt Fine,-Torso,-Torso Fine,Eye Brightness,Eye Red,Eye Green,Eye Blue");
 }
 
-
 void DmxSkulltronix::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
                                           xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
                                           const xlColor* c, bool allowSelected, bool wiring,

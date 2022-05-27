@@ -32,7 +32,6 @@ DmxMovingHead::DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool 
     dmx_style_val(0), beam_length(4)
 {
     beam_width = GetDefaultBeamWidth();
-    //color_ability = this;
     SetFromXml(node, zeroBased);
 }
 

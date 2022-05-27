@@ -24,7 +24,6 @@
 DmxGeneral::DmxGeneral(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
   : DmxModel(node, manager, zeroBased)
 {
-    //color_ability = this;
     SetFromXml(node, zeroBased);
 }
 

@@ -37,7 +37,6 @@ DmxSkull::DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased)
     obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/Skull/";
 #endif
 
-    //color_ability = this;
     default_channels[JAW] = 1;
     default_channels[PAN] = 3;
     default_channels[TILT] = 5;
