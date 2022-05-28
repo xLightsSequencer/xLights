@@ -408,8 +408,6 @@ std::list<std::string> DmxMovingHead::CheckModelSettings()
         res.push_back(wxString::Format("    ERR: Model %s tilt channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), tilt_channel, nodeCount));
     }
 
-    res.splice(res.end(), color_ability->CheckModelSettings(this));
-
     res.splice(res.end(), DmxModel::CheckModelSettings());
     return res;
 }
