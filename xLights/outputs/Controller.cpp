@@ -107,6 +107,7 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     SetAutoLayout(node->GetAttribute("AutoLayout", "1") == "1");
     _fullxLightsControl = node->GetAttribute("FullxLightsControl", "FALSE") == "TRUE";
     _defaultBrightnessUnderFullControl = wxAtoi(node->GetAttribute("DefaultBrightnessUnderFullControl", "100"));
+    _defaultGammaUnderFullControl = wxAtof(node->GetAttribute("DefaultGammaUnderFullControl", "1.0"));
     SetAutoUpload(node->GetAttribute("AutoUpload", "0") == "1");
     if (!_autoLayout) _autoSize = false;
     _vendor = node->GetAttribute("Vendor");
@@ -143,7 +144,7 @@ wxXmlNode* Controller::Save() {
     node->AddAttribute("AutoSize", _autoSize ? "1" : "0");
     if (_fullxLightsControl) node->AddAttribute("FullxLightsControl", "TRUE");
     node->AddAttribute("DefaultBrightnessUnderFullControl", wxString::Format("%d", _defaultBrightnessUnderFullControl));
-
+    node->AddAttribute("DefaultGammaUnderFullControl", wxString::Format("%g", _defaultGammaUnderFullControl));
     node->AddAttribute("ActiveState", DecodeActiveState(_active));
     node->AddAttribute("AutoLayout", _autoLayout ? "1" : "0");
     node->AddAttribute("AutoUpload", _autoUpload && SupportsAutoUpload() ? "1" : "0");
