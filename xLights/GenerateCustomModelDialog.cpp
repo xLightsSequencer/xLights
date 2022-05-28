@@ -134,8 +134,8 @@ public:
         SetType(wxBitmapType::wxBITMAP_TYPE_BMP);
     }
 
-    ProcessedImage(wxImage* image, P_IMG_FRAME_TYPE imageType) :
-        wxImage(image->Copy()), _imageType(imageType)
+    ProcessedImage(const wxImage &image, P_IMG_FRAME_TYPE imageType) :
+        wxImage(image), _imageType(imageType)
     {
         SetType(wxBitmapType::wxBITMAP_TYPE_BMP);
     }
@@ -157,13 +157,13 @@ public:
 
     }
 
-    void UpdateFrom(wxImage* image)
+    void UpdateFrom(const wxImage &image)
     {
-        wxASSERT(GetWidth() == image->GetWidth() && GetHeight() == image->GetHeight());
-        if (GetWidth() != image->GetWidth() || GetHeight() != image->GetHeight())
+        wxASSERT(GetWidth() == image.GetWidth() && GetHeight() == image.GetHeight());
+        if (GetWidth() != image.GetWidth() || GetHeight() != image.GetHeight())
             return;
 
-        memcpy(GetData(), image->GetData(), GetPixels() * (HasAlpha() ? 4 : 3));
+        memcpy(GetData(), image.GetData(), GetPixels() * (HasAlpha() ? 4 : 3));
     }
 
     inline uint8_t GetPixel(uint32_t x, uint32_t y, uint32_t width, uint8_t channels, uint8_t* data)
@@ -798,7 +798,7 @@ public:
     void ProcessA(int contrast, uint8_t blur, std::function<void(ProcessedImage*)> displayCallback = nullptr)
     {
         if (blur > 1) {
-            UpdateFrom(&(Blur(blur)));
+            UpdateFrom(Blur(blur));
 //#ifdef SHOW_PROCESSED_IMAGE
 //            if (displayCallback != nullptr) {
 //                displayCallback(this);
@@ -1315,7 +1315,7 @@ protected:
         Reset();
         _filename = filename;
         if (_filename != "") {
-            _firstFrame = new VideoFrame(new ProcessedImage(&wxImage(_filename), ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), 0, false);
+            _firstFrame = new VideoFrame(new ProcessedImage(wxImage(_filename), ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), 0, false);
         } else {
             _firstFrame = new VideoFrame(800, 600);
         }
@@ -1555,7 +1555,7 @@ protected:
     }
 #pragma endregion
 
-    void AddFrame(wxImage* img, uint32_t timestamp, VideoFrame::VIDEO_FRAME_TYPE type = VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_PIXEL)
+    void AddFrame(const wxImage &img, uint32_t timestamp, VideoFrame::VIDEO_FRAME_TYPE type = VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_PIXEL)
     {
         switch (type) {
         case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_OFF:
@@ -1707,12 +1707,12 @@ protected:
                     }
                 }
 
-                AddFrame(candidates[0]->GetColourImage(), candidates[0]->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START1);
-                AddFrame(candidates[1]->GetColourImage(), candidates[1]->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START2);
+                AddFrame(*candidates[0]->GetColourImage(), candidates[0]->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START1);
+                AddFrame(*candidates[1]->GetColourImage(), candidates[1]->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START2);
 
                 for (const auto& it : startScan) {
                     if (it->GetTimestamp() >= blankFrameTime) {
-                        AddFrame(it->GetColourImage(), it->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_OFF);
+                        AddFrame(*it->GetColourImage(), it->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_OFF);
 
 //#ifdef SHOW_PROCESSED_IMAGE
 //                        if (displayCallback != nullptr)
@@ -2640,7 +2640,7 @@ void GenerateCustomModelDialog::CreateDetectedImage(ProcessedImage* pi, bool dra
     if (_detectedImage != nullptr)
         delete _detectedImage;
 
-    _detectedImage = new ProcessedImage(&bmp.ConvertToImage(), ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_UNKNOWN);
+    _detectedImage = new ProcessedImage(bmp.ConvertToImage(), ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_UNKNOWN);
 
     ShowImage(_detectedImage);
 }
