@@ -1190,10 +1190,6 @@ void RenderBuffer::Fill(const xlColor& color) {
 // 0,0 is lower left
 void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
 {
-    if (dmx_buffer) {
-        color = GetPixelDMXModel(x, y);
-        return;
-    }
     // I also dont like this ... I shouldnt need to check against pixel size
     int pidx = y * BufferWi + x;
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixelVector.size()) {
@@ -1204,9 +1200,6 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
 }
 
 const xlColor& RenderBuffer::GetPixel(int x, int y) const {
-    if (dmx_buffer) {
-        return GetPixelDMXModel(x, y);
-    }
     int pidx = y * BufferWi + x;
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixelVector.size()) {
         return pixels[pidx];
@@ -1455,23 +1448,4 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
         }
         dmx->EnableFixedChannels(pixelVector);
     }
-}
-
-const xlColor& RenderBuffer::GetPixelDMXModel(int x, int y) const
-{
-    Model* model_info = GetModel();
-    if (model_info != nullptr) {
-        if (x != 0 || y != 0)
-            return xlBLACK; // Only render colors for the first pixel
-
-        if (pixelVector.size() == 1) { // pixel size equals 1 when putting "on" effect at node level
-            return pixels[0];
-        }
-        DmxModel* dmx = (DmxModel*)model_info;
-        if (dmx->HasColorAbility()) {
-            DmxColorAbility* dmx_color = dmx->GetColorAbility();
-            return dmx_color->GetColorPixels(pixelVector);
-        }
-    }
-    return xlBLACK;
 }

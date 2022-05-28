@@ -1148,6 +1148,12 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         SetProperty("DmxBeamWidth", dbw);
         SetProperty("DmxColorType", dct);
 
+        int color_type = wxAtoi(dct);
+        if (color_type == 0) {
+            color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+        } else {
+            color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+        }
         color_ability->ImportParameters(root, this);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
