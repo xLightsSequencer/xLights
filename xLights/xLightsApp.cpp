@@ -127,9 +127,7 @@ void InitialiseLogging(bool fromMain)
 {
     static bool loggingInitialised = false;
 
-    if (!loggingInitialised)
-    {
-
+    if (!loggingInitialised) {
 #ifdef __WXMSW__
         std::string initFileName = "xlights.windows.properties";
 #endif
@@ -160,52 +158,55 @@ void InitialiseLogging(bool fromMain)
         }
 #endif
 
-        if (!FileExists(initFileName))
-        {
+        if (!FileExists(initFileName)) {
 #ifdef _MSC_VER
             // the app is not initialized so GUI is not available and no event loop.
             wxMessageBox(initFileName + " not found in " + wxGetCwd() + ". Logging disabled.");
 #endif
-        }
-        else
-        {
-            try
-            {
+        } else {
+            try {
                 log4cpp::PropertyConfigurator::configure(initFileName);
-				static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
                 wxDateTime now = wxDateTime::Now();
                 int millis = wxGetUTCTimeMillis().GetLo() % 1000;
                 wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
-                logger_base.info("Start Time: %s.", (const char *)ts.c_str());
+                logger_base.info("Start Time: %s.", (const char*)ts.c_str());
 
-				logger_base.info("Log4CPP config read from %s.", (const char *)initFileName.c_str());
+                logger_base.info("Log4CPP config read from %s.", (const char*)initFileName.c_str());
+                logger_base.info("Current working directory %s.", (const char*)wxGetCwd().c_str());
 
-				auto categories = log4cpp::Category::getCurrentCategories();
+                auto categories = log4cpp::Category::getCurrentCategories();
 
-				for (auto it = categories->begin(); it != categories->end(); ++it)
-				{
-					std::string levels = "";
+                for (auto it = categories->begin(); it != categories->end(); ++it) {
+                    std::string levels = "";
 
-					if ((*it)->isAlertEnabled()) levels += "ALERT ";
-					if ((*it)->isCritEnabled()) levels += "CRIT ";
-					if ((*it)->isDebugEnabled()) levels += "DEBUG ";
-					if ((*it)->isEmergEnabled()) levels += "EMERG ";
-					if ((*it)->isErrorEnabled()) levels += "ERROR ";
-					if ((*it)->isFatalEnabled()) levels += "FATAL ";
-					if ((*it)->isInfoEnabled()) levels += "INFO ";
-					if ((*it)->isNoticeEnabled()) levels += "NOTICE ";
-					if ((*it)->isWarnEnabled()) levels += "WARN ";
+                    if ((*it)->isAlertEnabled())
+                        levels += "ALERT ";
+                    if ((*it)->isCritEnabled())
+                        levels += "CRIT ";
+                    if ((*it)->isDebugEnabled())
+                        levels += "DEBUG ";
+                    if ((*it)->isEmergEnabled())
+                        levels += "EMERG ";
+                    if ((*it)->isErrorEnabled())
+                        levels += "ERROR ";
+                    if ((*it)->isFatalEnabled())
+                        levels += "FATAL ";
+                    if ((*it)->isInfoEnabled())
+                        levels += "INFO ";
+                    if ((*it)->isNoticeEnabled())
+                        levels += "NOTICE ";
+                    if ((*it)->isWarnEnabled())
+                        levels += "WARN ";
 
-					logger_base.info("    %s : %s", (const char *)(*it)->getName().c_str(), (const char *)levels.c_str());
-				}
+                    logger_base.info("    %s : %s", (const char*)(*it)->getName().c_str(), (const char*)levels.c_str());
+                }
                 delete categories;
-			}
-            catch (log4cpp::ConfigureFailure& e) {
+            } catch (log4cpp::ConfigureFailure& e) {
                 // ignore config failure ... but logging wont work
                 printf("Log issue:  %s\n", e.what());
-            }
-            catch (const std::exception& ex) {
+            } catch (const std::exception& ex) {
                 printf("Log issue: %s\n", ex.what());
             }
         }
