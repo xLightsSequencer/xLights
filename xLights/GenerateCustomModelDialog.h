@@ -136,7 +136,7 @@ class GenerateCustomModelDialog: public wxDialog
     void CMTabEntry();
     wxSize CalcSize(wxPoint* offset = nullptr, float* multiplier = nullptr);
     void DoGenerateCustomModel();
-    std::function<void(ProcessedImage*)> DisplayImage();
+    std::function<void(ProcessedImage*)> DisplayImage(bool show);
     void ShowProgress(bool show);
     std::function<void(float)> Progress();
     void UpdateProgress(float progress);

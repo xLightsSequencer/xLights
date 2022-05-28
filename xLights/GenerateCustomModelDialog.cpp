@@ -2856,9 +2856,9 @@ void GenerateCustomModelDialog::DisplayImageCallbackCMG(ProcessedImage* image)
     ShowImage(image);
 }
 
-std::function<void(ProcessedImage*)> GenerateCustomModelDialog::DisplayImage()
+std::function<void(ProcessedImage*)> GenerateCustomModelDialog::DisplayImage(bool show)
 {
-    return CheckBox_Advanced->IsChecked() ?
+    return show ?
         std::bind(&GenerateCustomModelDialog::DisplayImageCallbackCMG, this, std::placeholders::_1) :
         (std::function<void(ProcessedImage*)>) nullptr;
 }
@@ -2903,12 +2903,12 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
         ShowProgress(true);
 
         SetCursor(wxCURSOR_WAIT);
-        _generator->FindStartFrames(DisplayImage(), Progress());
+        _generator->FindStartFrames(DisplayImage(true), Progress());
         if (_generator->GetActualStartFrame() != nullptr) {
 
             ShowImage(_generator->GetStartFrame()->GetColourImage());
 
-            _generator->ReadVideo(SpinCtrl_ProcessNodeCount->GetValue(), CheckBox_BI_IsSteady->IsChecked(), DisplayImage(), nullptr);
+            _generator->ReadVideo(SpinCtrl_ProcessNodeCount->GetValue(), CheckBox_BI_IsSteady->IsChecked(), DisplayImage(true), nullptr);
 
             ShowImage(_generator->GetStartFrame()->GetColourImage());
 
@@ -3067,7 +3067,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
             //                                 SliderToGamma(Slider_Gamma->GetValue()), Slider_Saturation->GetValue(), &pi, std::bind(&GenerateCustomModelDialog::DisplayImageCallbackCMG, this, std::placeholders::_1));
             _lights = _generator->FindLightsA(SpinCtrl_ProcessNodeCount->GetValue(), _clip.GetLeft(), _clip.GetRight(), _generator->GetFirstFrame()->GetHeight() - _clip.GetTop(), _generator->GetFirstFrame()->GetHeight() - _clip.GetBottom(),
                                               Slider_BI_Contrast->GetValue(), Slider_AdjustBlur->GetValue(), Slider_Despeckle->GetValue(), Slider_BI_Sensitivity->GetValue(),
-                                              SliderToGamma(Slider_Gamma->GetValue()), Slider_Saturation->GetValue(), &pi, DisplayImage(), Progress());
+                                              SliderToGamma(Slider_Gamma->GetValue()), Slider_Saturation->GetValue(), &pi, DisplayImage(CheckBox_Advanced->IsChecked()), Progress());
 
             if (CheckBox_GuessSingle->IsChecked()) {
                 GuessMissingBulbs();
@@ -3330,7 +3330,7 @@ void GenerateCustomModelDialog::OnButton_BI_RestoreDefaultClick(wxCommandEvent& 
 {
     if (!_busy) {
         SetBIDefault();
-            DoBulbIdentify();
+        DoBulbIdentify();
     }
 }
 
@@ -3341,17 +3341,17 @@ void GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScrollChanged(wxScrollEven
 
 void GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdScrollChanged(wxScrollEvent& event)
 {
-            DoBulbIdentify();
+    DoBulbIdentify();
 }
 
 void GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdScrollChanged(wxScrollEvent& event)
 {
-            DoBulbIdentify();
+    DoBulbIdentify();
 }
 
 void GenerateCustomModelDialog::OnSlider_BI_ContrastCmdScrollChanged(wxScrollEvent& event)
 {
-            DoBulbIdentify();
+    DoBulbIdentify();
 }
 
 void GenerateCustomModelDialog::OnCheckBox_BI_IsSteadyClick(wxCommandEvent& event)
