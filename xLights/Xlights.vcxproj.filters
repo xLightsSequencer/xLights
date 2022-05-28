@@ -983,6 +983,12 @@
     <ClCompile Include="outputs\TwinklyOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="models\DMX\DmxColorAbilityRGB.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxColorAbilityWheel.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1973,6 +1979,12 @@
     </ClInclude>
     <ClInclude Include="outputs\TwinklyOutput.h">
       <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxColorAbilityRGB.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxColorAbilityWheel.h">
+      <Filter>Models\DMX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -363,7 +363,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
             return newPath;
         }
     }
-    
+
     wxDir dir(sd);
     if (dir.IsOpened()) {
         wxString foldername;
@@ -401,7 +401,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
     wxString showfolder = fname;
     wxString sflc = showfolder;
     sflc.LowerCase();
-    
+
     wxString appendWin;
     wxString appendUnx;
 
@@ -458,7 +458,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
             return newPath;
         }
     }
-    
+
     if (ShowDir == "" && fnWin.GetDirCount() > 0) {
         return FixFile(sd + "\\" + fnWin.GetDirs().Last(), file);
     }
@@ -698,6 +698,14 @@ bool DoesXmlNodeExist(wxXmlNode* parent, const std::string& path)
     }
 
     return false;
+}
+
+void SetXmlNodeAttribute(wxXmlNode* node, wxString const& property, wxString const& value)
+{
+    if (node->HasAttribute(property)) {
+        node->DeleteAttribute(property);
+    }
+    node->AddAttribute(property, value);
 }
 
 void DownloadVamp()
@@ -1074,7 +1082,7 @@ std::list<std::string> GetLocalIPs()
         tmp = tmp->ifa_next;
     }
     freeifaddrs(interfaces);
-#endif   
+#endif
 
     return res;
 }
@@ -1315,7 +1323,7 @@ void EnsureWindowHeaderIsOnScreen(wxWindow* win)
         wxDisplay::GetFromPoint(wxPoint(pos.x, pos.y + headerHeight)) < 0 &&
         wxDisplay::GetFromPoint(wxPoint(pos.x + size.x, pos.y)) < 0 &&
         wxDisplay::GetFromPoint(wxPoint(pos.x + size.x, pos.y + headerHeight)) < 0) {
-        
+
         // window header is not on screen
         win->Move(0, 0);
     }

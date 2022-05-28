@@ -21,6 +21,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxModel.h"
+#include "DmxColorAbility.h"
+#include "DmxColorAbilityRGB.h"
+#include "DmxColorAbilityWheel.h"
 #include "../ModelScreenLocation.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
@@ -214,6 +217,18 @@ void DmxModel::SetNodeNames(const std::string& default_names, bool force)
     }
 }
 
+std::list<std::string> DmxModel::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    if (nullptr != color_ability) {
+        res = color_ability->CheckModelSettings(this);
+    }
+
+    res.splice(res.end(), Model::CheckModelSettings());
+    return res;
+}
+
 void DmxModel::DrawInvalid(xlGraphicsProgram* pg, ModelScreenLocation* msl, bool is_3d, bool applyTransform)
 {
     if (applyTransform) {
@@ -316,4 +331,16 @@ void DmxModel::ImportBaseParameters(wxXmlNode* root)
     SetProperty("StrandNames", sn);
     SetProperty("NodeNames", nn);
     SetProperty("DisplayAs", da);
+}
+
+std::vector<std::string> DmxModel::GenerateNodeNames() const
+{
+    std::vector<std::string> names;
+    for (int i=0; i< parm1; ++i) {// parm1 is channel count
+        names.push_back("");
+    }
+    if (nullptr != color_ability) {
+        color_ability->SetNodeNames(names);
+    }
+    return names;
 }
