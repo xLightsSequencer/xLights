@@ -337,7 +337,8 @@ bool TwinklyOutput::Get2dLayout(const std::string& ip, std::vector<std::tuple<fl
 
     for (uint32_t i = 0; i < coords->Count(); i++) {
         auto v = coords->Item(i);
-        result.push_back(std::tuple<float, float, float>(v["x"].AsDouble(), v["y"].AsDouble(), v["z"].AsDouble()));
+        // we invert Y as that is how it comes from Twinkly
+        result.push_back(std::tuple<float, float, float>(v["x"].AsDouble(), 1.0 - v["y"].AsDouble(), v["z"].AsDouble()));
     }
 
     return true;
