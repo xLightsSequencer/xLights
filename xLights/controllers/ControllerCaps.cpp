@@ -247,7 +247,7 @@ ControllerCaps* ControllerCaps::GetControllerConfig(const Controller* const cont
 
 ControllerCaps* ControllerCaps::GetControllerConfig(const std::string& vendor, const std::string& model, const std::string& variant) {
     LoadControllers();
-    std::list<std::string> versions;
+    //std::list<std::string> versions;
 
     auto v = __controllers.find(vendor);
     if (v != __controllers.end()) {
@@ -275,13 +275,28 @@ ControllerCaps* ControllerCaps::GetControllerConfigByID(const std::string& ID) {
     }
     return nullptr;
 }
+
+ControllerCaps* ControllerCaps::GetControllerConfigByModel( const std::string& model, const std::string& variant)
+{
+    LoadControllers();
+    // look for controller in other "vendors" if branding changes
+    for (auto [name, cap] : __controllers) {
+        auto con = cap.find(model);
+        if (con != cap.end()) {
+            auto f = FindVariant(con->second, variant);
+            if (f)
+                return f;
+        }
+    }
+    return nullptr;
+}
 #pragma endregion
 
 #pragma region Getters and Setters
 
 bool ControllerCaps::SupportsUpload() const {
 
-    return DoesXmlNodeExist(_config, "SupportsUpload") || 
+    return DoesXmlNodeExist(_config, "SupportsUpload") ||
            DoesXmlNodeExist(_config, "SupportsInputOnlyUpload");
 }
 
@@ -413,8 +428,8 @@ bool ControllerCaps::SupportsEthernetInputProtols() const
 bool ControllerCaps::SupportsSerialInputProtols() const
 {
     for (const auto& it : GetInputProtocols()) {
-        if (it == "dmx" || it == "lor" || it == "renard" || 
-            it == "opendmx" || it == "pixelnet" || it == "open pixelnet" || 
+        if (it == "dmx" || it == "lor" || it == "renard" ||
+            it == "opendmx" || it == "pixelnet" || it == "open pixelnet" ||
             it == "dlight" || it == "lor optimised" || it == "xxx serial" || it == "ddp-input") return true;
     }
     return false;

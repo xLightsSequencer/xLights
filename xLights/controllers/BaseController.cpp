@@ -37,7 +37,7 @@
 BaseController::BaseController(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("") {
     if (!_fppProxy.empty()) {
         _baseUrl = "/proxy/" + _ip;
-    } 
+    }
 }
 
 #ifndef DISCOVERYONLY
@@ -51,7 +51,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
     }
     std::string vendor = controller->GetVendor();
     BaseController* bc = nullptr;
-    
+
     if (ipOrig == "") {
         ip = controller->GetResolvedIP();
         if (ip == "MULTICAST") {
@@ -64,7 +64,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
     if (dynamic_cast<ControllerEthernet*>(controller) != nullptr) {
         flip = dynamic_cast<ControllerEthernet*>(controller)->GetFirstOutput()->GetForceLocalIPToUse();
     }
-    
+
     if (vendor == "Falcon") {
         bc = new Falcon(ip, proxy);
     } else if (vendor == "Advatek" || vendor == "LOR") {
@@ -79,14 +79,14 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
         bc = new HinksPix(ip, proxy);
     } else if (vendor == "HolidayCoro") {
         bc = new AlphaPix(ip, proxy);
-    } else if (vendor == "FPP" || vendor == "KulpLights" || vendor == "Hanson Electronics") {
+    } else if (vendor == "FPP" || vendor == "KulpLights" || vendor == "Hanson Electronics" || vendor == "ScottNation") {
         bc = new FPP(ip, proxy, caps->GetModel());
     } else if (vendor == "Minleon") {
         bc = new Minleon(ip, proxy, flip);
     } else if (vendor == "WLED") {
         bc = new WLED(ip, proxy);
     } else {
-        logger_base.warn("Vendor not recognised ... assuming it is a FPP based vendor : %s.", (const char*)vendor.c_str());
+        logger_base.warn("Vendor not recognized ... assuming it is a FPP based vendor : %s.", (const char*)vendor.c_str());
         bc = new FPP(ip, proxy, caps->GetModel());
     }
     return bc;
@@ -171,7 +171,7 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
         if (ret == CURLE_OK) {
             return buffer;
         }
-        logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));        
+        logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));
     }
 
     return "";

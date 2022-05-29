@@ -364,6 +364,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
     NodesGrid->SetCellHighlightPenWidth(3);
     NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
     SetEscapeId(wxID_CANCEL);
+    EnableCloseButton(false);
 }
 
 void SubModelsDialog::OnSubbufferSize(wxSizeEvent& event)

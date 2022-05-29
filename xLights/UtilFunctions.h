@@ -55,6 +55,7 @@ wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const s
 wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std::string& def = "");
 std::vector<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::string& path, const std::string& listNodeName);
 bool DoesXmlNodeExist(wxXmlNode* parent, const std::string& path);
+void SetXmlNodeAttribute(wxXmlNode* node, wxString const& property, wxString const& value);
 void DownloadVamp();
 bool IsFileInShowDir(const wxString& showDir, const std::string filename);
 void SetFixFileDirectories(const std::list<std::string>& dirs);
@@ -140,7 +141,7 @@ inline size_t CountStrings(const std::string& what, const std::string& in)
     size_t count = 0;
     size_t pos = 0;
     while ((pos = in.find(what, pos)) != std::string::npos) {
-        count++; 
+        count++;
         pos += what.size();
     }
     return count;

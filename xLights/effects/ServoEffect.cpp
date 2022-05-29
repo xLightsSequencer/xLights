@@ -96,13 +96,13 @@ void ServoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
         return;
     }
 
-    int num_channels = model_info->GetNumChannels();
+   uint32_t num_channels = model_info->GetNumChannels();
 
     const std::string& string_type = model_info->GetStringType();
 
     if (StartsWith(string_type, "Single Color")) {
         // handle channels for single color nodes
-        for(int i = 0; i <= num_channels; ++i) {
+        for(uint32_t i = 0; i <= num_channels; ++i) {
             std::string name = model_info->GetNodeName(i);
             if( name == sel_chan ) {
                 int min_limit = 0;
@@ -213,11 +213,7 @@ void ServoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                     }
                     if (dmx->HasColorAbility()) {
                         DmxColorAbility* dmx_color = dmx->GetColorAbility();
-                        int red_channel = dmx_color->GetRedChannel();
-                        int grn_channel = dmx_color->GetGreenChannel();
-                        int blu_channel = dmx_color->GetBlueChannel();
-                        int white_channel = dmx_color->GetWhiteChannel();
-                        if (red_channel == (i + 1) || grn_channel == (i + 1) || blu_channel == (i + 1) || white_channel == (i + 1) || brt_channel == (i + 1)) {
+                        if (dmx_color->IsColorChannel(i+1) || brt_channel == (i + 1)) {
                             min_limit = 0;
                             max_limit = 255;
                         }

@@ -53,13 +53,13 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
     ControllerNameVendorMap("AlphaPix", "AlphaPix 4", "Holiday Coro", "AlphaPix 4"),
     ControllerNameVendorMap("AlphaPix", "AlphaPix Flex", "Holiday Coro", "AlphaPix Flex"),
     ControllerNameVendorMap("", "ESPixelStick", "ESPixelStick", ""),
-        
+
     ControllerNameVendorMap("Falcon", "F16v2", "Falcon", "F16V2R", "Two Expansion Boards"),
     ControllerNameVendorMap("Falcon", "F16v3", "Falcon", "F16V3", "Two Expansion Boards"),
     ControllerNameVendorMap("Falcon", "F48v3", "Falcon", "F48"),
     ControllerNameVendorMap("Falcon", "F4v2", "Falcon", "F4V2", "One Expansion Board"),
     ControllerNameVendorMap("Falcon", "F4v3", "Falcon", "F4V3", "One Expansion Board"),
-    
+
     ControllerNameVendorMap("HinksPix", "EasyLights Pix16", "HinksPix", "EasyLights Pix16"),
     ControllerNameVendorMap("HinksPix", "HinksPix PRO", "HinksPix", "PRO"),
     ControllerNameVendorMap("J1Sys", "J1Sys P2", "J1Sys", "P2"),
@@ -107,14 +107,17 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     SetAutoLayout(node->GetAttribute("AutoLayout", "1") == "1");
     _fullxLightsControl = node->GetAttribute("FullxLightsControl", "FALSE") == "TRUE";
     _defaultBrightnessUnderFullControl = wxAtoi(node->GetAttribute("DefaultBrightnessUnderFullControl", "100"));
+    _defaultGammaUnderFullControl = wxAtof(node->GetAttribute("DefaultGammaUnderFullControl", "1.0"));
     SetAutoUpload(node->GetAttribute("AutoUpload", "0") == "1");
     if (!_autoLayout) _autoSize = false;
     _vendor = node->GetAttribute("Vendor");
     _model = node->GetAttribute("Model");
     _variant = node->GetAttribute("Variant");
+
     SetSuppressDuplicateFrames(node->GetAttribute("SuppressDuplicates", "0") == "1");
 
     _dirty = false;
+    SearchForNewVendor(_vendor, _model, _variant);
 }
 
 Controller::Controller(OutputManager* om) : _outputManager(om) {
@@ -141,7 +144,7 @@ wxXmlNode* Controller::Save() {
     node->AddAttribute("AutoSize", _autoSize ? "1" : "0");
     if (_fullxLightsControl) node->AddAttribute("FullxLightsControl", "TRUE");
     node->AddAttribute("DefaultBrightnessUnderFullControl", wxString::Format("%d", _defaultBrightnessUnderFullControl));
-
+    node->AddAttribute("DefaultGammaUnderFullControl", wxString::Format("%g", _defaultGammaUnderFullControl));
     node->AddAttribute("ActiveState", DecodeActiveState(_active));
     node->AddAttribute("AutoLayout", _autoLayout ? "1" : "0");
     node->AddAttribute("AutoUpload", _autoUpload && SupportsAutoUpload() ? "1" : "0");
@@ -198,7 +201,7 @@ std::string Controller::DecodeActiveState(Controller::ACTIVESTATE state)
 Controller* Controller::Create(OutputManager* om, wxXmlNode* node, std::string showDir) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
+
     std::string type = node->GetAttribute("Type", "").ToStdString();
 
     if (type == CONTROLLER_NULL) {
@@ -233,6 +236,25 @@ void Controller::ConvertOldTypeToVendorModel(const std::string& old, std::string
         vendor = caps->GetVendor();
         model = caps->GetModel();
         variant = caps->GetVariantName();
+    }
+}
+
+void Controller::SearchForNewVendor( std::string const& vendor, std::string const& model, std::string const& variant)
+{
+    //look if current vendor is good
+    ControllerCaps* cap = ControllerCaps::GetControllerConfig(vendor, model, variant);
+    if ( cap ) {
+        return;
+    }
+    // look for controller in other "vendors" if branding changes
+    ControllerCaps* newcap = ControllerCaps::GetControllerConfigByModel( model, variant);
+    if (newcap && vendor != newcap->GetVendor())
+    {
+        _vendor = newcap->GetVendor();
+        _model = newcap->GetModel();
+        _variant = newcap->GetVariantName();
+        _dirty = true;
+        VMVChanged();
     }
 }
 #pragma endregion
@@ -272,7 +294,7 @@ void Controller::DeleteAllOutputs() {
 int32_t Controller::GetStartChannel() const {
 
     if (_outputs.size() == 0) return 0;
-    
+
     return _outputs.front()->GetStartChannel();
 }
 
@@ -337,10 +359,10 @@ bool Controller::IsActive() const
 
 void Controller::SetActive(const std::string& active) {
     auto a = EncodeActiveState(active);
-    if (_active != a) { 
-        _active = a;  
-        _dirty = true; 
-    } 
+    if (_active != a) {
+        _active = a;
+        _dirty = true;
+    }
 
     // always cascade it ... just in case as I have seen some cases where this gets out of sync
     for (auto& it : _outputs) {
@@ -562,7 +584,7 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
     }
     p = propertyGrid->Append(new wxEnumProperty("Active", "Active", ACTIVETYPENAMES, wxArrayInt(), (int)_active));
     p->SetHelpString("When inactive no data is output and any upload to FPP or xSchedule will also not output to the lights. When xLights only it will output when played in xLights but again FPP and xSchedule will not output to the lights.");
-       
+
 
     if (SupportsSuppressDuplicateFrames()) {
         p = propertyGrid->Append(new wxBoolProperty("Suppress Duplicate Frames", "SuppressDuplicates", IsSuppressDuplicateFrames()));

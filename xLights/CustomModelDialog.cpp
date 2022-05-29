@@ -3136,7 +3136,7 @@ void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event
 
         if (downloadFrom != nullptr) {
             std::vector<std::tuple<float, float, float>> modelData;
-            TwinklyOutput::Get2dLayout(downloadFrom->GetResolvedIP(), modelData);
+            TwinklyOutput::GetLayout(downloadFrom->GetResolvedIP(), modelData);
 
             if (modelData.size() > 0) {
                 // set the z size to 1

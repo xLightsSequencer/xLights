@@ -140,7 +140,7 @@ public:
     void SetTransparency(int t);
     void SetBlackTransparency(int t);
 
-    
+
     virtual bool AllNodesAllocated() const { return true; }
     static void ParseFaceInfo(wxXmlNode* fiNode, std::map<std::string, std::map<std::string, std::string> >& faceInfo);
     static void WriteFaceInfo(wxXmlNode* fiNode, const std::map<std::string, std::map<std::string, std::string> >& faceInfo);
@@ -223,7 +223,7 @@ public:
     virtual ModelScreenLocation& GetModelScreenLocation() = 0;
 
     bool IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2);
-    
+
     static void ApplyTransparency(xlColor& color, int transparency, int blackTransparency);
 protected:
     void AdjustStringProperties(wxPropertyGridInterface* grid, int newNum);
@@ -260,7 +260,7 @@ protected:
     void SetLineCoord();
     std::string GetNextName();
 
-    PIXEL_STYLE _pixelStyle = PIXEL_STYLE::PIXEL_STYLE_SMOOTH; 
+    PIXEL_STYLE _pixelStyle = PIXEL_STYLE::PIXEL_STYLE_SMOOTH;
     int pixelSize = 2;
     int transparency = 0;
     int blackTransparency = 0;
@@ -390,20 +390,20 @@ public:
     virtual uint32_t GetLastChannel() const;
     uint32_t GetNumChannels();
     uint32_t GetNodeNumber(size_t nodenum) const;
-    long GetNodeNumber(int bufY, int bufX) const;
+    uint32_t GetNodeNumber(int bufY, int bufX) const;
     bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);
     int GetNumberFromChannelString(const std::string& sc) const;
     int GetNumberFromChannelString(const std::string& sc, bool& valid, std::string& dependsonmodel) const;
-    
+
     virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
                                       xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
                                       const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
                                       bool highlightFirst = false, int highlightpixel = 0,
                                       float *boundingBox = nullptr);
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
-    
-    
-    
+
+
+
     virtual int NodeRenderOrder() { return 0; }
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip);
     std::vector<int> GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end);
@@ -634,7 +634,7 @@ public:
 protected:
     std::vector<int> layerSizes; // inside to outside
     unsigned int maxVertexCount = 0;
-    
+
     class PreviewGraphicsCacheInfo {
     public:
         PreviewGraphicsCacheInfo() {
@@ -644,7 +644,7 @@ protected:
         xlVertexIndexedColorAccumulator *vica = nullptr;
         xlVertexColorAccumulator *vca = nullptr;
         xlVertexAccumulator *va = nullptr;
-        
+
         int width = 0;
         int height = 0;
         int renderWi = 0;
@@ -654,7 +654,7 @@ protected:
     };
     std::map<std::string, PreviewGraphicsCacheInfo*> uiCaches;
     virtual void deleteUIObjects();
-    
+
 };
 
 template <class ScreenLocation>

@@ -301,7 +301,7 @@ void TwinklyOutput::OpenDatagram()
 }
 #pragma endregion
 
-bool TwinklyOutput::Get2dLayout(const std::string& ip, std::vector<std::tuple<float, float, float>>& result)
+bool TwinklyOutput::GetLayout(const std::string& ip, std::vector<std::tuple<float, float, float>>& result)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -313,6 +313,8 @@ bool TwinklyOutput::Get2dLayout(const std::string& ip, std::vector<std::tuple<fl
         logger_base.error("Twinkly: Error %d : %s", responseCode, (const char*)httpResponse.c_str());
         return false;
     }
+
+    logger_base.debug("%s", (const char*)httpResponse.c_str());
 
     wxJSONReader reader;
     wxJSONValue jsonDoc;
@@ -337,15 +339,16 @@ bool TwinklyOutput::Get2dLayout(const std::string& ip, std::vector<std::tuple<fl
 
     for (uint32_t i = 0; i < coords->Count(); i++) {
         auto v = coords->Item(i);
-        result.push_back(std::tuple<float, float, float>(v["x"].AsDouble(), v["y"].AsDouble(), v["z"].AsDouble()));
+        // we invert Y as that is how it comes from Twinkly
+        result.push_back(std::tuple<float, float, float>(v["x"].AsDouble(), 1.0 - v["y"].AsDouble(), v["z"].AsDouble()));
     }
 
     return true;
 }
 
-bool TwinklyOutput::Get2dLayout(std::vector<std::tuple<float,float,float>>& result)
+bool TwinklyOutput::GetLayout(std::vector<std::tuple<float,float,float>>& result)
 {
-    return Get2dLayout(_ip, result);
+    return GetLayout(_ip, result);
 }
 
 #ifndef EXCLUDENETWORKUI
@@ -474,7 +477,7 @@ void TwinklyOutput::PrepareDiscovery(Discovery& discovery)
                 controller->SetName((char*)&response[6]);
 
                 std::vector<std::tuple<float, float, float>> pixels;
-                if (Get2dLayout(ip, pixels)) {
+                if (GetLayout(ip, pixels)) {
                     controller->SetChannelSize(pixels.size() * 3);
                 }
 

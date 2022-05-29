@@ -18,6 +18,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxSkulltronix.h"
+#include "DmxColorAbilityRGB.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -26,7 +27,6 @@
 DmxSkulltronix::DmxSkulltronix(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     : DmxModel(node, manager, zeroBased)
 {
-    color_ability = this;
     SetFromXml(node, zeroBased);
 }
 
@@ -191,12 +191,14 @@ void DmxSkulltronix::AddTypeProperties(wxPropertyGridInterface* grid)
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
-    AddColorTypeProperties(grid);
+    if (nullptr != color_ability) {
+        color_ability->AddColorTypeProperties(grid);
+    }
 }
 
 int DmxSkulltronix::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
-    if (OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
     }
 
@@ -348,6 +350,8 @@ void DmxSkulltronix::InitModel()
     DisplayAs = "DmxSkulltronix";
     screenLocation.SetRenderSize(1, 1);
 
+    color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+
     pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "13"));
     pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "90"));
     pan_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxPanDegOfRot", "180"));
@@ -356,10 +360,6 @@ void DmxSkulltronix::InitModel()
     tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "315"));
     tilt_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxTiltDegOfRot", "90"));
     tilt_slew_limit = wxAtof(ModelXml->GetAttribute("DmxTiltSlewLimit", "0"));
-    red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "24"));
-    green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "25"));
-    blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "26"));
-    white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
     tilt_min_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMinLimit", "442"));
     tilt_max_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMaxLimit", "836"));
     pan_min_limit = wxAtoi(ModelXml->GetAttribute("DmxPanMinLimit", "250"));
@@ -382,7 +382,6 @@ void DmxSkulltronix::InitModel()
 
     SetNodeNames(",,,,,,,Power,Jaw,-Jaw Fine,Nod,-Nod Fine,Pan,-Pan Fine,Eye UD,-Eye UD Fine,Eye LR,-Eye LR Fine,Tilt,-Tilt Fine,-Torso,-Torso Fine,Eye Brightness,Eye Red,Eye Green,Eye Blue");
 }
-
 
 void DmxSkulltronix::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
                                           xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
@@ -1111,12 +1110,10 @@ void DmxSkulltronix::ExportXlightsModel()
     wxString po = ModelXml->GetAttribute("DmxPanOrient", "90");
     wxString tc = ModelXml->GetAttribute("DmxTiltChannel", "19");
     wxString to = ModelXml->GetAttribute("DmxTiltOrient", "315");
-    wxString rc = ModelXml->GetAttribute("DmxRedChannel", "24");
-    wxString gc = ModelXml->GetAttribute("DmxGreenChannel", "25");
-    wxString bc = ModelXml->GetAttribute("DmxBlueChannel", "26");
-    wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
+
     wxString sc = ModelXml->GetAttribute("DmxShutterChannel", "0");
     wxString so = ModelXml->GetAttribute("DmxShutterOpen", "1");
+    wxString sv = ModelXml->GetAttribute("DmxShutterOnValue", "0");
 
     wxString tml = ModelXml->GetAttribute("DmxTiltMinLimit", "442");
     wxString tmxl = ModelXml->GetAttribute("DmxTiltMaxLimit", "836");
@@ -1145,12 +1142,10 @@ void DmxSkulltronix::ExportXlightsModel()
     f.Write(wxString::Format("DmxPanOrient=\"%s\" ", po));
     f.Write(wxString::Format("DmxTiltChannel=\"%s\" ", tc));
     f.Write(wxString::Format("DmxTiltOrient=\"%s\" ", to));
-    f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));
-    f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
-    f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
-    f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
+
     f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
     f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
+    f.Write(wxString::Format("DmxShutterOnValue=\"%s\" ", sv));
 
     f.Write(wxString::Format("DmxTiltMinLimit=\"%s\" ", tml));
     f.Write(wxString::Format("DmxTiltMaxLimit=\"%s\" ", tmxl));
@@ -1171,6 +1166,8 @@ void DmxSkulltronix::ExportXlightsModel()
     f.Write(wxString::Format("DmxEyeLRChannel=\"%s\" ", elrc));
     f.Write(wxString::Format("DmxEyeLRMinLimit=\"%s\" ", elml));
     f.Write(wxString::Format("DmxEyeLRMaxLimit=\"%s\" ", elrmxl));
+
+    color_ability->ExportParameters(f,ModelXml);
     f.Write(" >\n");
     wxString submodel = SerialiseSubmodel();
     if (submodel != "") {
@@ -1205,12 +1202,9 @@ void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
         wxString tc = root->GetAttribute("DmxTiltChannel");
         wxString to = root->GetAttribute("DmxTiltOrient");
         wxString tsl = root->GetAttribute("DmxTiltSlewLimit");
-        wxString rc = root->GetAttribute("DmxRedChannel");
-        wxString gc = root->GetAttribute("DmxGreenChannel");
-        wxString bc = root->GetAttribute("DmxBlueChannel");
-        wxString wc = root->GetAttribute("DmxWhiteChannel");
         wxString sc = root->GetAttribute("DmxShutterChannel");
         wxString so = root->GetAttribute("DmxShutterOpen");
+        wxString sv = root->GetAttribute("DmxShutterOnValue");
         wxString bl = root->GetAttribute("DmxBeamLimit");
 
         wxString tml = root->GetAttribute("DmxTiltMinLimit");
@@ -1245,12 +1239,9 @@ void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
         SetProperty("DmxTiltChannel", tc);
         SetProperty("DmxTiltOrient", to);
         SetProperty("DmxTiltSlewLimit", tsl);
-        SetProperty("DmxRedChannel", rc);
-        SetProperty("DmxGreenChannel", gc);
-        SetProperty("DmxBlueChannel", bc);
-        SetProperty("DmxWhiteChannel", wc);
         SetProperty("DmxShutterChannel", sc);
         SetProperty("DmxShutterOpen", so);
+        SetProperty("DmxShutterOnValue", sv);
         SetProperty("DmxBeamLimit", bl);
 
         SetProperty("DmxTiltMinLimit", tml);
@@ -1272,6 +1263,8 @@ void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
         SetProperty("DmxEyeLRChannel", elrc);
         SetProperty("DmxEyeLRMinLimit", elml);
         SetProperty("DmxEyeLRMaxLimit", elrmxl);
+
+        color_ability->ImportParameters(root, this);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);

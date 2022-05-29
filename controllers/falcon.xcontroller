@@ -166,7 +166,7 @@
         <SupportsPixelPortEndNullPixels/>
         <MaxStartNulls>20</MaxStartNulls>
         <MaxEndNulls>20</MaxEndNulls>
-        <MaxGroup>10</MaxGroup>
+        <MaxGroup>100</MaxGroup>
         <MinGroup>1</MinGroup>
         <AllSmartRemoteTypesPerPortMustBeSame/>
         <SupportsDefaultBrightness/>
