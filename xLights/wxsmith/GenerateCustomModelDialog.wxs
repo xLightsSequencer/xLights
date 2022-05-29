@@ -155,8 +155,9 @@
 										<object class="sizeritem">
 											<object class="wxSlider" name="ID_SLIDER_Intensity" variable="Slider_Intensity" member="yes">
 												<value>255</value>
-												<min>30</min>
+												<min>1</min>
 												<max>255</max>
+												<size>300,-1</size>
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>
