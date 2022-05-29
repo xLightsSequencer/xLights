@@ -327,7 +327,7 @@
 																				<object class="wxStaticText" name="ID_STATICTEXT13" variable="StaticText19" member="yes">
 																					<label>Node/Channel Count</label>
 																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND</flag>
 																				<border>2</border>
 																				<option>1</option>
 																			</object>
@@ -347,13 +347,36 @@
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
 																			<object class="sizeritem">
 																				<object class="wxCheckBox" name="ID_CHECKBOX_BI_IsSteady" variable="CheckBox_BI_IsSteady" member="yes">
 																					<label>Video is steady</label>
 																					<checked>1</checked>
 																					<handler function="OnCheckBox_BI_IsSteadyClick" entry="EVT_CHECKBOX" />
 																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_AdvancedStartScan" member="yes">
+																					<label>Preview video during scan (slower)</label>
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
 																				<border>2</border>
 																				<option>1</option>
 																			</object>

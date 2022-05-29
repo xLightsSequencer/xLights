@@ -166,6 +166,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxButton* Button_SF_Next;
 		wxButton* Button_Shrink;
 		wxCheckBox* CheckBox_Advanced;
+		wxCheckBox* CheckBox_AdvancedStartScan;
 		wxCheckBox* CheckBox_BI_IsSteady;
 		wxCheckBox* CheckBox_GuessSingle;
 		wxFileDialog* FileDialog1;
@@ -247,6 +248,7 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_STATICTEXT13;
 		static const long ID_SPINCTRL_PROCESSNODECOUNT;
 		static const long ID_CHECKBOX_BI_IsSteady;
+		static const long ID_CHECKBOX3;
 		static const long ID_GAUGE2;
 		static const long ID_BUTTON_CV_Back;
 		static const long ID_BUTTON_CV_Next;

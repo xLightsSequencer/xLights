@@ -2043,6 +2043,7 @@ const long GenerateCustomModelDialog::ID_BUTTON_GCM_SelectFile = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT13 = wxNewId();
 const long GenerateCustomModelDialog::ID_SPINCTRL_PROCESSNODECOUNT = wxNewId();
 const long GenerateCustomModelDialog::ID_CHECKBOX_BI_IsSteady = wxNewId();
+const long GenerateCustomModelDialog::ID_CHECKBOX3 = wxNewId();
 const long GenerateCustomModelDialog::ID_GAUGE2 = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_CV_Back = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_CV_Next = wxNewId();
@@ -2243,14 +2244,20 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	Button_GCM_SelectFile = new wxButton(Panel_ChooseVideo, ID_BUTTON_GCM_SelectFile, _("..."), wxDefaultPosition, wxSize(29,28), 0, wxDefaultValidator, _T("ID_BUTTON_GCM_SelectFile"));
 	FlexGridSizer22->Add(Button_GCM_SelectFile, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText19 = new wxStaticText(Panel_ChooseVideo, ID_STATICTEXT13, _("Node/Channel Count"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT13"));
-	FlexGridSizer22->Add(StaticText19, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer22->Add(StaticText19, 1, wxALL|wxEXPAND, 2);
 	SpinCtrl_ProcessNodeCount = new wxSpinCtrl(Panel_ChooseVideo, ID_SPINCTRL_PROCESSNODECOUNT, _T("100"), wxDefaultPosition, wxSize(100,-1), 0, 1, 99999, 100, _T("ID_SPINCTRL_PROCESSNODECOUNT"));
 	SpinCtrl_ProcessNodeCount->SetValue(_T("100"));
 	FlexGridSizer22->Add(SpinCtrl_ProcessNodeCount, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer22->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer22->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	CheckBox_BI_IsSteady = new wxCheckBox(Panel_ChooseVideo, ID_CHECKBOX_BI_IsSteady, _("Video is steady"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_BI_IsSteady"));
 	CheckBox_BI_IsSteady->SetValue(true);
-	FlexGridSizer22->Add(CheckBox_BI_IsSteady, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer22->Add(CheckBox_BI_IsSteady, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer22->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer22->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_AdvancedStartScan = new wxCheckBox(Panel_ChooseVideo, ID_CHECKBOX3, _("Preview video during scan (slower)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+	CheckBox_AdvancedStartScan->SetValue(false);
+	FlexGridSizer22->Add(CheckBox_AdvancedStartScan, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer21->Add(FlexGridSizer22, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer21->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Gauge_Progress1 = new wxGauge(Panel_ChooseVideo, ID_GAUGE2, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_GAUGE2"));
@@ -2794,11 +2801,13 @@ void GenerateCustomModelDialog::CVTabEntry()
     TextCtrl_GCM_Filename->Enable();
     SpinCtrl_ProcessNodeCount->Enable();
     CheckBox_BI_IsSteady->Enable();
+    CheckBox_AdvancedStartScan->Enable();
 
     if (SLRadioButton->GetValue())
     {
         StaticText_CM_Request->SetLabel("Select a picture of your static lights model.");
         CheckBox_BI_IsSteady->Hide();
+        CheckBox_AdvancedStartScan->Hide();
         SpinCtrl_ProcessNodeCount->Hide();
         StaticText19->Hide();
     }
@@ -2806,6 +2815,7 @@ void GenerateCustomModelDialog::CVTabEntry()
     {
         StaticText_CM_Request->SetLabel("Select the video you recorded of your model using the prepare tab.");
         CheckBox_BI_IsSteady->Show();
+        CheckBox_AdvancedStartScan->Show();
         SpinCtrl_ProcessNodeCount->Show();
         StaticText19->Show();
     }
@@ -2876,6 +2886,7 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
     TextCtrl_GCM_Filename->Disable();
     SpinCtrl_ProcessNodeCount->Disable();
     CheckBox_BI_IsSteady->Disable();
+    CheckBox_AdvancedStartScan->Disable();
 
     static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     logger_gcm.info("File: %s.", (const char *)TextCtrl_GCM_Filename->GetValue().c_str());
@@ -2903,7 +2914,7 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
         ShowProgress(true);
 
         SetCursor(wxCURSOR_WAIT);
-        _generator->FindStartFrames(DisplayImage(CheckBox_Advanced->IsChecked()), Progress());
+        _generator->FindStartFrames(DisplayImage(CheckBox_AdvancedStartScan->IsChecked()), Progress());
         if (_generator->GetActualStartFrame() != nullptr) {
 
             ShowImage(_generator->GetStartFrame()->GetColourImage());
@@ -3018,7 +3029,6 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         Slider_Saturation->Disable();
         Slider_Gamma->Disable();
         Slider_Despeckle->Disable();
-        CheckBox_BI_IsSteady->Disable();
         Button_CB_RestoreDefault->Disable();
         Button_BI_Next->Disable();
         Button_BI_Back->Disable();
@@ -3086,7 +3096,6 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         Slider_Despeckle->Enable();
         Slider_Gamma->Enable();
         Slider_Saturation->Enable();
-        CheckBox_BI_IsSteady->Enable();
         Button_CB_RestoreDefault->Enable();
         Button_BI_Next->Enable();
         Button_BI_Back->Enable();
