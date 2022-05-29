@@ -2903,7 +2903,7 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
         ShowProgress(true);
 
         SetCursor(wxCURSOR_WAIT);
-        _generator->FindStartFrames(DisplayImage(true), Progress());
+        _generator->FindStartFrames(DisplayImage(CheckBox_Advanced->IsChecked()), Progress());
         if (_generator->GetActualStartFrame() != nullptr) {
 
             ShowImage(_generator->GetStartFrame()->GetColourImage());
