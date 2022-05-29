@@ -410,27 +410,16 @@ public:
         }
     }
 
-    void ForceToRGorB()
+    void FillInRGB()
     {
-        uint8_t incr = HasAlpha() ? 4 : 3;
-#ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
-        parallel_for(0, GetPixels(), [this, incr](int i) {
-#else
-        for (uint32_t i = 0; i < GetPixels(); ++i) {
-#endif
-            uint8_t* data = GetData() + i * incr;
-            ForceToRGorBPixel(data);
-        }
-#ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
-        );
-#endif
-
         // now go through the same data and remove any black pixels largely surrounded by another colour
         ProcessedImage temp(this);
         uint32_t width = GetWidth();
         uint8_t* data = GetData();
+        uint8_t* tempData = temp.GetData();
+        uint8_t incr = HasAlpha() ? 4 : 3;
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
-        parallel_for(0, GetPixels(), [this, incr, data, width](int i) {
+        parallel_for(0, GetPixels(), [this, incr, data, tempData, width](int i) {
 #else
         for (uint32_t i = 0; i < GetPixels(); ++i) {
 #endif
@@ -446,9 +435,9 @@ public:
                     uint8_t b = 0;
                     for (int8_t x1 = -1; x1 <= 1; ++x1) {
                         for (int8_t y1 = -1; y1 <= 1; ++y1) {
-                            r += GetPixelC(x + x1, y + y1, width, incr, data, 0);
-                            g += GetPixelC(x + x1, y + y1, width, incr, data, 1);
-                            b += GetPixelC(x + x1, y + y1, width, incr, data, 2);
+                            r += GetPixelC(x + x1, y + y1, width, incr, tempData, 0);
+                            g += GetPixelC(x + x1, y + y1, width, incr, tempData, 1);
+                            b += GetPixelC(x + x1, y + y1, width, incr, tempData, 2);
                         }
                     }
 
@@ -464,6 +453,103 @@ public:
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
         );
 #endif
+    }
+
+    #define MAXIMUM_LOOK_RGB 50
+    void FillInRGBA()
+    {
+        // now go through the same data and remove any black pixels largely surrounded by another colour
+        ProcessedImage temp(this);
+        uint32_t width = GetWidth();
+        uint32_t height = GetHeight();
+        uint8_t* data = GetData();
+        uint8_t* tempData = temp.GetData();
+        uint8_t incr = HasAlpha() ? 4 : 3;
+#ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
+        parallel_for(0, GetPixels(), [this, incr, data, tempData, width, height](int i) {
+#else
+        for (uint32_t i = 0; i < GetPixels(); ++i) {
+#endif
+            if (*(data + i * incr) == 0 && *(data + i * incr + 1) == 0 && *(data + i * incr + 2) == 0) {
+
+                int32_t y = i / width;
+                int32_t x = i % width;
+
+                uint8_t n = 0x00;
+                uint8_t s = 0x00;
+                uint8_t e = 0x00;
+                uint8_t w = 0x00;
+
+                for (uint8_t j = 0; j <= MAXIMUM_LOOK_RGB; ++j) {
+                    // west x-
+                    if (w == 0x00 && x >= j) {
+                        w |= (GetPixelC(x - j, y, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
+                        w |= (GetPixelC(x - j, y, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
+                        w |= (GetPixelC(x - j, y, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                    }
+
+                    // east x+
+                    if (e == 0x00 && x < width - j - 1) {
+                        e |= (GetPixelC(x + j, y, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
+                        e |= (GetPixelC(x + j, y, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
+                        e |= (GetPixelC(x + j, y, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                    }
+
+                    // south y-
+                    if (s == 0x00 && y >= j) {
+                        s |= (GetPixelC(x, y - j, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
+                        s |= (GetPixelC(x, y - j, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
+                        s |= (GetPixelC(x, y - j, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                    }
+
+                    // north y+
+                    if (n == 0x00 && y < height - j - 1) {
+                        n |= (GetPixelC(x, y + j, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
+                        n |= (GetPixelC(x, y + j, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
+                        n |= (GetPixelC(x, y + j, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                    }
+
+                    uint8_t all = (n & s & e & w);
+
+                    if (all != 0 && all != 0x01 && all != 0x02 && all != 0x04)
+                        break; // different colours so dont set
+
+                    // done and pixel colour should be set
+                    if (all == 0x01) {
+                        SetPixelC(x, y, width, incr, data, 255, 0, 0);
+                        break;
+                    } else if (all == 0x02) {
+                        SetPixelC(x, y, width, incr, data, 0, 255, 0);
+                        break;
+                    } else if (all == 0x04) {
+                        SetPixelC(x, y, width, incr, data, 0, 0, 255);
+                        break;
+                    }
+                }
+            }
+        }
+#ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
+        );
+#endif
+    }
+
+    void ForceToRGorB()
+    {
+        uint8_t incr = HasAlpha() ? 4 : 3;
+#ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
+        parallel_for(0, GetPixels(), [this, incr](int i) {
+#else
+        for (uint32_t i = 0; i < GetPixels(); ++i) {
+#endif
+            uint8_t* data = GetData() + i * incr;
+            ForceToRGorBPixel(data);
+        }
+#ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
+        );
+#endif
+
+        //FillInRGB();
+        FillInRGBA();
     }
 
     inline void SaturatePixel(uint8_t* data, uint8_t sat)
@@ -1023,7 +1109,15 @@ public:
         }
 
         if (processRGB) {
+            
+//            if (displayCallback != nullptr) {
+//                displayCallback(_rawFrame);
+//            }
             _rawFrame->ForceToRGorB();
+//            if (displayCallback != nullptr) {
+//                displayCallback(_rawFrame);
+//            }
+
             _redFrame = new ProcessedImage(_rawFrame, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_RED);
             _redFrame->IsolateColour(0);
             _greenFrame = new ProcessedImage(_rawFrame, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_GREEN);
@@ -3323,10 +3417,10 @@ void GenerateCustomModelDialog::SetBIDefault()
     Slider_Despeckle->SetValue(0);
     TextCtrl_Despeckle->SetValue("0");
     if (NodesRadioButtonPg2->GetValue()) {
-        Slider_Gamma->SetValue(GammaToSlider(2.2f));
-        TextCtrl_Gamma->SetValue("2.2");
-        Slider_Saturation->SetValue(100);
-        TextCtrl_Saturation->SetValue("100");
+        Slider_Gamma->SetValue(GammaToSlider(1.0f)); // 2.2
+        TextCtrl_Gamma->SetValue("1.0");
+        Slider_Saturation->SetValue(20); // 100
+        TextCtrl_Saturation->SetValue("20");
     } else {
         Slider_Gamma->SetValue(GammaToSlider(1.0f));
         TextCtrl_Gamma->SetValue("1.0");
