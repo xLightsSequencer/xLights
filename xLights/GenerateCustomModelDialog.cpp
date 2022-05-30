@@ -1740,11 +1740,11 @@ protected:
         logger_gcm.debug("Looking through the largest deltas");
         std::vector<VideoFrame*> candidates;
         it1 = startScan.begin();
-        for (uint32_t j = 0; j < 20; ++j) {
+        for (uint32_t j = 0; j < 20 && !wxGetKeyState(WXK_ESCAPE) && (*it1)->GetFrameDelta() != 0; ++j) {
             //logger_gcm.debug("Frame %u delta %u", (*it1)->GetTimestamp(), (*it1)->GetFrameDelta());
             it2 = it1;
             ++it2;
-            for (uint32_t i = 0; i < 20; ++i) {
+            for (uint32_t i = 0; i < 20 && !wxGetKeyState(WXK_ESCAPE) && (*it2)->GetFrameDelta() != 0; ++i) {
                 // two signs must be different and separation must be right
                 auto diff = std::abs(std::abs((long)(*it1)->GetTimestamp() - (long)(*it2)->GetTimestamp()) - FLAGON);
                 auto sign = ((*it1)->GetFrameDelta() / std::abs((*it1)->GetFrameDelta())) *
@@ -1867,6 +1867,9 @@ protected:
 
         for (auto& it : _frames) {
             _processedFrames.push_back(it->Process(cropLeft, cropRight, cropTop, cropBottom, contrast, blur, erode_dilate, threshold, gamma, saturate, displayCallback));
+
+            if (wxGetKeyState(WXK_ESCAPE))
+                break;
         }
     }
 
@@ -1886,6 +1889,8 @@ protected:
                 ++cnt;
                 progressCallback((0.5 * cnt) / (float)_frames.size());
             }
+            if (wxGetKeyState(WXK_ESCAPE))
+                break;
         }
     }
 
@@ -1895,6 +1900,8 @@ protected:
 
         for (auto& it : _processedFrames) {
             it->ProcessB(erode_dilate, threshold, displayCallback);
+            if (wxGetKeyState(WXK_ESCAPE))
+                break;
         }
     }
 
@@ -1923,7 +1930,7 @@ protected:
             }
         }
 
-        for (uint32_t i = startat; i < bits; ++i) {
+        for (uint32_t i = startat; i < bits && !wxGetKeyState(WXK_ESCAPE); ++i) {
             switch (value[i]) {
             case '0':
                 logger_gcm.debug("   Applying red frame %d", i + 1);
@@ -1994,7 +2001,7 @@ protected:
             }
         }
 
-        for (uint32_t i = startat; i < bits; ++i) {
+        for (uint32_t i = startat; i < bits && !wxGetKeyState(WXK_ESCAPE); ++i) {
             switch (value[i]) {
             case '0':
                 logger_gcm.debug("   Applying red frame %d", i + 1);
@@ -2061,7 +2068,7 @@ protected:
         std::map<std::string, ProcessedImage*> cache;
 
         logger_gcm.debug("Found pixels:");
-        for (uint32_t p = 0; p < maxPixels; ++p) {
+        for (uint32_t p = 0; p < maxPixels && !wxGetKeyState(WXK_ESCAPE); ++p) {
             auto pt = FindLight(p + 1, maxPixels, cache, ppi, displayCallback);
             if (pt.x != -1) {
                 logger_gcm.debug("   %d: %d, %d", p + 1, pt.x, pt.y);
@@ -2096,7 +2103,7 @@ protected:
         std::map<std::string, ProcessedImage*> cache;
 
         logger_gcm.debug("Found pixels:");
-        for (uint32_t p = 0; p < maxPixels; ++p) {
+        for (uint32_t p = 0; p < maxPixels && !wxGetKeyState(WXK_ESCAPE); ++p) {
             auto pt = FindLightA(p + 1, maxPixels, erode_dilate, threshold, cache, ppi, displayCallback);
             if (pt.x != -1) {
                 logger_gcm.debug("   %d: %d, %d", p + 1, pt.x, pt.y);
