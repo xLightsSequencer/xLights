@@ -134,6 +134,8 @@ CandlePanel::CandlePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer38->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer38->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer38);
+	FlexGridSizer38->Fit(this);
+	FlexGridSizer38->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_Candle_FlameAgility,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Candle_FlameAgility,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnLockButtonClick);
