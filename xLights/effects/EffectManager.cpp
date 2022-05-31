@@ -18,6 +18,7 @@
 #include "ColorWashEffect.h"
 #include "CurtainEffect.h"
 #include "DMXEffect.h"
+#include "DMXPathEffect.h"
 #include "FacesEffect.h"
 #include "FanEffect.h"
 #include "FillEffect.h"
@@ -86,6 +87,7 @@ EffectManager::EffectManager()
     add(createEffect(eff_COLORWASH));
     add(createEffect(eff_CURTAIN));
     add(createEffect(eff_DMX));
+    add(createEffect(eff_DMXPATH));
     add(createEffect(eff_FACES));
     add(createEffect(eff_FAN));
     add(createEffect(eff_FILL));
@@ -156,6 +158,7 @@ RenderableEffect *EffectManager::createEffect(RGB_EFFECTS_e eff) {
         case eff_COLORWASH: return new ColorWashEffect(eff_COLORWASH);
         case eff_CURTAIN: return new CurtainEffect(eff_CURTAIN);
         case eff_DMX: return new DMXEffect(eff_DMX);
+        case eff_DMXPATH: return new DMXPathEffect(eff_DMXPATH);
         case eff_FACES: return new FacesEffect(eff_FACES);
         case eff_FAN: return new FanEffect(eff_FAN);
         case eff_FILL: return new FillEffect(eff_FILL);

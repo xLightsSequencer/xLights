@@ -132,6 +132,8 @@ CurtainPanel::CurtainPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer76->Add(BitmapButton_CurtainRepeat, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer7->Add(FlexGridSizer76, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer7);
+	FlexGridSizer7->Fit(this);
+	FlexGridSizer7->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Edge,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CurtainPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Effect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CurtainPanel::OnLockButtonClick);

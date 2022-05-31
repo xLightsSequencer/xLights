@@ -989,6 +989,12 @@
     <ClCompile Include="models\DMX\DmxColorAbilityWheel.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
+    <ClCompile Include="effects\DMXPathEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\DMXPathPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1985,6 +1991,12 @@
     </ClInclude>
     <ClInclude Include="models\DMX\DmxColorAbilityWheel.h">
       <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\DMXPathEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\DMXPathPanel.h">
+      <Filter>Effects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

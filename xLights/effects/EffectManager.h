@@ -30,6 +30,7 @@ public:
         eff_COLORWASH,
         eff_CURTAIN,
         eff_DMX,
+        eff_DMXPATH,
         eff_FACES,
         eff_FAN,
         eff_FILL,

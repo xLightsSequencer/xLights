@@ -251,6 +251,8 @@
     <ClCompile Include="DragColoursBitmapButton.cpp" />
     <ClCompile Include="DragValueCurveBitmapButton.cpp" />
     <ClCompile Include="effects\assist\SketchAssistPanel.cpp" />
+    <ClCompile Include="effects\DMXPathEffect.cpp" />
+    <ClCompile Include="effects\DMXPathPanel.cpp" />
     <ClCompile Include="effects\FX.cpp" />
     <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
     <ClCompile Include="effects\KaleidoscopePanel.cpp" />
@@ -724,6 +726,8 @@
     <ClInclude Include="effects\assist\xlGridCanvasEmpty.h" />
     <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
     <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
+    <ClInclude Include="effects\DMXPathEffect.h" />
+    <ClInclude Include="effects\DMXPathPanel.h" />
     <ClInclude Include="effects\FX.h" />
     <ClInclude Include="effects\KaleidoscopeEffect.h" />
     <ClInclude Include="effects\KaleidoscopePanel.h" />
