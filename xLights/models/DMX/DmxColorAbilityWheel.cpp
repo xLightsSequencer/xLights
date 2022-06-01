@@ -100,15 +100,16 @@ void DmxColorAbilityWheel::AddColorTypeProperties(wxPropertyGridInterface *grid)
 
     int index = 0;
     for (auto const& col : colors) {
+        grid->AppendIn(p,
+                       new wxColourProperty(wxString::Format("Color %d", 1 + index),
+                                            wxString::Format("DmxColorWheelColor%d", index), col.color.asWxColor()));
         auto sp = grid->AppendIn(p,
             new wxUIntProperty(wxString::Format("Color %d DMX", 1 + index),
                 wxString::Format("DmxColorWheelDMX%d", index), col.dmxValue));
         sp->SetAttribute("Min", 0);
         sp->SetAttribute("Max", 255);
         sp->SetEditor("SpinCtrl");
-        grid->AppendIn(p,
-            new wxColourProperty(wxString::Format("Color %d", 1 + index),
-                wxString::Format("DmxColorWheelColor%d", index), col.color.asWxColor()));
+
         ++index;
     }
 }
