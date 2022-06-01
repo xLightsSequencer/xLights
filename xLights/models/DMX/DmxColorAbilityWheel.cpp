@@ -347,6 +347,16 @@ void DmxColorAbilityWheel::ReadColorSettings(wxXmlNode* ModelXml)
 
 void DmxColorAbilityWheel::WriteColorSettings(wxXmlNode* ModelXml) const
 {
+    for (int i = 0; i < MAX_COLORS; ++i) {
+        auto dmxkey = wxString::Format("DmxColorWheelDMX%d", i);
+        auto colorkey = wxString::Format("DmxColorWheelColor%d", i);
+        if (ModelXml->HasAttribute(dmxkey)) {
+            ModelXml->DeleteAttribute(dmxkey);
+        }
+        if (ModelXml->HasAttribute(colorkey)) {
+            ModelXml->DeleteAttribute(colorkey);
+        }
+    }
     int index = 0;
     for (auto const& col : colors) {
         auto dmxkey = wxString::Format("DmxColorWheelDMX%d", index);
