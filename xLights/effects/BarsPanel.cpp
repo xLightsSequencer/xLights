@@ -159,8 +159,6 @@ BarsPanel::BarsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer10->Add(BitmapButton_Gradient, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer35->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer35);
-	FlexGridSizer35->Fit(this);
-	FlexGridSizer35->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_Bars_BarCount,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Bars_BarCount,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
