@@ -44,6 +44,7 @@
 #include "../outputs/E131Output.h"
 #include "../outputs/DDPOutput.h"
 #include "../outputs/KinetOutput.h"
+#include "../outputs/TwinklyOutput.h"
 #include "../outputs/ControllerEthernet.h"
 #include "../outputs/ControllerSerial.h"
 #include "../UtilFunctions.h"
@@ -1632,9 +1633,8 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
                     universe["universeCount"] = it2->GetOutputCount();
                     universes.Append(universe);
                     break;
-                } else {
-                    universe["universeCount"] = 1;
                 }
+                universe["universeCount"] = 1;
                 universes.Append(universe);
             } else if (it->GetType() == OUTPUT_DDP || it->GetType() == OUTPUT_ZCPP) {
                 if (!input) {
@@ -1655,11 +1655,21 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
                 if (!input && (it->GetIP() != "MULTICAST")) {
                     universe["address"] = wxString(it->GetIP());
                 }
+                if (allSameSize) {
+                    universe["universeCount"] = it2->GetOutputCount();
+                    universes.Append(universe);
+                    break;
+                }
+                universe["universeCount"] = 1;
                 universes.Append(universe);
             } else if (it->GetType() == OUTPUT_KINET) {
                 KinetOutput* kiNet = dynamic_cast<KinetOutput*>(it);
                 universe["address"] = wxString(kiNet->GetIP());
                 universe["type"] = kiNet->GetVersion() + 5;
+                universes.Append(universe);
+            } else if (it->GetType() == OUTPUT_TWINKLY) {
+                universe["address"] = wxString(it->GetIP());
+                universe["type"] = 8;
                 universes.Append(universe);
             }
         }
