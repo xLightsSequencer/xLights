@@ -1704,117 +1704,125 @@ protected:
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
         bool res = false;
+        bool abort = false;
 
         // read the first STARTSCANSECS seconds of video looking for 2 frames a frame apart with large changes
         std::list<VideoFrame*> startScan;
-        for (uint32_t ms = 0; ms < STARTSCANSECS * 1000 && !wxGetKeyState(WXK_ESCAPE) && ms < _vr->GetLengthMS(); ms += FRAMEMS) {
+        for (uint32_t ms = 0; ms < STARTSCANSECS * 1000 && !abort && ms < _vr->GetLengthMS(); ms += FRAMEMS) {
             auto img = ReadFrame(_vr->GetNextFrame(ms), ms, false);
             img->PrepareImages(false, 1.0, 0); // prepare as greyscale
             startScan.push_back(img);
-            if (displayCallback != nullptr) displayCallback(img->GetColourImage());
-            if (progressCallback != nullptr) progressCallback(((float)ms *0.7f) / ((float)STARTSCANSECS * 1000.0f));
-        }
-
-        // work out all the frame deltas ... we want the biggest with the right gap
-        logger_gcm.debug("Working out frame deltas");
-        auto it1 = startScan.begin();
-        auto it2 = it1;
-        ++it2;
-        ++it2;
-        uint32_t cnt = 0;
-        while (it2 != startScan.end()) {
-            (*it2)->SetFrameDelta(*it1);
-            logger_gcm.debug("Frame %u delta %d", (*it2)->GetTimestamp(), (*it2)->GetFrameDelta());
-            ++it1;
-            ++it2;
-            ++cnt;
+            if (displayCallback != nullptr)
+                displayCallback(img->GetColourImage());
             if (progressCallback != nullptr)
-                progressCallback(0.7f + (0.2f * (float)cnt)/(float)startScan.size());
+                progressCallback(((float)ms * 0.7f) / ((float)STARTSCANSECS * 1000.0f));
+            abort |= wxGetKeyState(WXK_ESCAPE);
         }
-        startScan.sort(VideoFrameDeltaCompare);
 
-        // find 4 high events separated by flag on duration
-        // find 2 high events separated by flag off duration
-        // only look through first 20 items as the frames should be there
-
-        logger_gcm.debug("Looking through the largest deltas");
-        std::vector<VideoFrame*> candidates;
-        it1 = startScan.begin();
-        for (uint32_t j = 0; j < 20 && !wxGetKeyState(WXK_ESCAPE) && (*it1)->GetFrameDelta() != 0; ++j) {
-            //logger_gcm.debug("Frame %u delta %u", (*it1)->GetTimestamp(), (*it1)->GetFrameDelta());
-            it2 = it1;
+        if (!abort) {
+            // work out all the frame deltas ... we want the biggest with the right gap
+            logger_gcm.debug("Working out frame deltas");
+            auto it1 = startScan.begin();
+            auto it2 = it1;
             ++it2;
-            for (uint32_t i = 0; i < 20 && !wxGetKeyState(WXK_ESCAPE) && (*it2)->GetFrameDelta() != 0; ++i) {
-                // two signs must be different and separation must be right
-                auto diff = std::abs(std::abs((long)(*it1)->GetTimestamp() - (long)(*it2)->GetTimestamp()) - FLAGON);
-                auto sign = ((*it1)->GetFrameDelta() / std::abs((*it1)->GetFrameDelta())) *
-                            ((*it2)->GetFrameDelta() / std::abs((*it2)->GetFrameDelta()));
-                if (sign < 0 && diff <= FRAMEMS) {
-                    auto cand = it2;
-                    if ((*it1)->GetTimestamp() < (*it2)->GetTimestamp()) {
-                        cand = it1;
+            ++it2;
+            uint32_t cnt = 0;
+            while (it2 != startScan.end()) {
+                (*it2)->SetFrameDelta(*it1);
+                logger_gcm.debug("Frame %u delta %d", (*it2)->GetTimestamp(), (*it2)->GetFrameDelta());
+                ++it1;
+                ++it2;
+                ++cnt;
+                if (progressCallback != nullptr)
+                    progressCallback(0.7f + (0.2f * (float)cnt) / (float)startScan.size());
+            }
+            startScan.sort(VideoFrameDeltaCompare);
+
+            // find 4 high events separated by flag on duration
+            // find 2 high events separated by flag off duration
+            // only look through first 20 items as the frames should be there
+
+            logger_gcm.debug("Looking through the largest deltas");
+            std::vector<VideoFrame*> candidates;
+            it1 = startScan.begin();
+            for (uint32_t j = 0; j < 20 && !abort && (*it1)->GetFrameDelta() != 0; ++j) {
+                // logger_gcm.debug("Frame %u delta %u", (*it1)->GetTimestamp(), (*it1)->GetFrameDelta());
+                it2 = it1;
+                ++it2;
+                for (uint32_t i = 0; i < 20 && !abort && (*it2)->GetFrameDelta() != 0; ++i) {
+                    // two signs must be different and separation must be right
+                    auto diff = std::abs(std::abs((long)(*it1)->GetTimestamp() - (long)(*it2)->GetTimestamp()) - FLAGON);
+                    auto sign = ((*it1)->GetFrameDelta() / std::abs((*it1)->GetFrameDelta())) *
+                                ((*it2)->GetFrameDelta() / std::abs((*it2)->GetFrameDelta()));
+                    if (sign < 0 && diff <= FRAMEMS) {
+                        auto cand = it2;
+                        if ((*it1)->GetTimestamp() < (*it2)->GetTimestamp()) {
+                            cand = it1;
+                        }
+                        // candidate frames must increase in brightness
+                        if ((*cand)->GetFrameDelta() > 0) {
+                            // check no close candidate frame is already in our list
+                            bool present = false;
+                            for (const auto& it : candidates) {
+                                if (std::abs((long)it->GetTimestamp() - (long)(*cand)->GetTimestamp()) < 150) {
+                                    present = true;
+                                    break;
+                                }
+                            }
+                            if (!present) {
+                                logger_gcm.debug("Candidate %u - %u, %ld", (*it1)->GetTimestamp(), (*it2)->GetTimestamp(), std::abs((long)(*it1)->GetTimestamp() - (long)(*it2)->GetTimestamp()) - FLAGON);
+                                candidates.push_back(*cand);
+                            }
+                        }
                     }
-                    // candidate frames must increase in brightness
-                    if ((*cand)->GetFrameDelta() > 0) {
-                        // check no close candidate frame is already in our list
-                        bool present = false;
-                        for (const auto& it : candidates) {
-                            if (std::abs((long)it->GetTimestamp() - (long)(*cand)->GetTimestamp()) < 150) {
-                                present = true;
+                    ++it2;
+                    abort |= wxGetKeyState(WXK_ESCAPE);
+                }
+                ++it1;
+            }
+
+            if (!abort) {
+                logger_gcm.info("We found %lu start flashes.", candidates.size());
+
+                std::sort(candidates.begin(), candidates.end(), VideoFrameTimestampCompare);
+                startScan.sort(VideoFrameTimestampCompare);
+
+                if (candidates.size() >= 2) {
+                    // make sure that the first and second flash are FLASHON + FLASHOFF separated and are both increases in brightness
+                    if (candidates[0]->GetFrameDelta() > 0 && candidates[1]->GetFrameDelta() > 0 && std::abs((long)candidates[1]->GetTimestamp() - (long)candidates[0]->GetTimestamp() - FLAGON - FLAGOFF) <= FRAMEMS) {
+                        // now find the blank frame
+                        uint32_t blankFrameTime = candidates[0]->GetTimestamp() + FLAGON + (FLAGOFF / 2);
+
+                        // I dont actually want to add the frame itself as it is when the flash started ... I really want to find the frame NODEON/2 further along ... so lets go find it
+                        bool repl1 = false;
+                        bool repl2 = false;
+                        for (const auto& it : startScan) {
+                            if (!repl1 && it->GetTimestamp() >= candidates[0]->GetTimestamp() + DELAYMSUNTILSAMPLE) {
+                                repl1 = true;
+                                candidates[0] = it;
+                            }
+                            if (!repl2 && it->GetTimestamp() >= candidates[1]->GetTimestamp() + DELAYMSUNTILSAMPLE) {
+                                repl2 = true;
+                                candidates[1] = it;
+                            }
+                        }
+
+                        AddFrame(*candidates[0]->GetColourImage(), candidates[0]->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START1);
+                        AddFrame(*candidates[1]->GetColourImage(), candidates[1]->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START2);
+
+                        for (const auto& it : startScan) {
+                            if (it->GetTimestamp() >= blankFrameTime) {
+                                AddFrame(*it->GetColourImage(), it->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_OFF);
+
+                                //#ifdef SHOW_PROCESSED_IMAGE
+                                //                        if (displayCallback != nullptr)
+                                //                            displayCallback(_offFrame->GetColourImage());
+                                //#endif
+
+                                res = true;
                                 break;
                             }
                         }
-                        if (!present) {
-                            logger_gcm.debug("Candidate %u - %u, %ld", (*it1)->GetTimestamp(), (*it2)->GetTimestamp(), std::abs((long)(*it1)->GetTimestamp() - (long)(*it2)->GetTimestamp()) - FLAGON);
-                            candidates.push_back(*cand);
-                        }
-                    }
-                 }
-                ++it2;
-            }
-            ++it1;
-        }
-
-        logger_gcm.info("We found %lu start flashes.", candidates.size());
-
-        std::sort(candidates.begin(), candidates.end(), VideoFrameTimestampCompare);
-        startScan.sort(VideoFrameTimestampCompare);
-
-        if (candidates.size() >= 2) {
-            // make sure that the first and second flash are FLASHON + FLASHOFF separated and are both increases in brightness
-            if (candidates[0]->GetFrameDelta() > 0 && candidates[1]->GetFrameDelta() > 0 && std::abs((long)candidates[1]->GetTimestamp() - (long)candidates[0]->GetTimestamp() - FLAGON - FLAGOFF) <= FRAMEMS) {
-
-                // now find the blank frame
-                uint32_t blankFrameTime = candidates[0]->GetTimestamp() + FLAGON + (FLAGOFF / 2);
-
-                // I dont actually want to add the frame itself as it is when the flash started ... I really want to find the frame NODEON/2 further along ... so lets go find it
-                bool repl1 = false;
-                bool repl2 = false;
-                for (const auto& it : startScan) {
-                    if (!repl1 && it->GetTimestamp() >= candidates[0]->GetTimestamp() + DELAYMSUNTILSAMPLE) {
-                        repl1 = true;
-                        candidates[0] = it;
-                    }
-                    if (!repl2 && it->GetTimestamp() >= candidates[1]->GetTimestamp() + DELAYMSUNTILSAMPLE) {
-                        repl2 = true;
-                        candidates[1] = it;
-                    }
-                }
-
-                AddFrame(*candidates[0]->GetColourImage(), candidates[0]->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START1);
-                AddFrame(*candidates[1]->GetColourImage(), candidates[1]->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START2);
-
-                for (const auto& it : startScan) {
-                    if (it->GetTimestamp() >= blankFrameTime) {
-                        AddFrame(*it->GetColourImage(), it->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_OFF);
-
-//#ifdef SHOW_PROCESSED_IMAGE
-//                        if (displayCallback != nullptr)
-//                            displayCallback(_offFrame->GetColourImage());
-//#endif
-
-                        res = true;
-                        break;
                     }
                 }
             }
@@ -1838,7 +1846,9 @@ protected:
         uint32_t framesToRead = GetBits(maxPixels);
         uint32_t currentTime = _startFrame1->GetTimestamp() + FLAGON + FLAGOFF + FLAGON + FLAGOFF; // we dont need to add node/2 as this was done then grabbing start frame
 
-        while (_frames.size() < framesToRead && currentTime < (uint32_t)_vr->GetLengthMS() && !wxGetKeyState(WXK_ESCAPE)) {
+        bool abort = false;
+
+        while (_frames.size() < framesToRead && currentTime < (uint32_t)_vr->GetLengthMS() && !abort) {
             if (progressCallback != nullptr) progressCallback((float)(currentTime * 100) / (float)_vr->GetLengthMS());
 
             logger_gcm.debug("Reading frame %u at %ums", (uint32_t)_frames.size() + 1, currentTime);
@@ -1846,9 +1856,10 @@ protected:
             _frames.push_back(img);
             if (displayCallback != nullptr) displayCallback(img->GetColourImage());
             currentTime += NODEON;
+            abort |= wxGetKeyState(WXK_ESCAPE);
         }
 
-        if (steady) {
+        if (!abort && steady) {
             // now remove all the backgrounds - we do this once regardless of other processing
             RemoveBackgroundFromFrames(displayCallback);
         }
@@ -1906,7 +1917,7 @@ protected:
     }
 
     // lights are 1 based
-    wxPoint FindLight(uint32_t pixel, uint32_t numPixels, std::map<std::string, ProcessedImage*> & cache, ProcessedImage** ppi, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    wxPoint FindLight(uint32_t pixel, uint32_t numPixels, std::map<std::string, ProcessedImage*>& cache, ProcessedImage** ppi, std::function<void(ProcessedImage*)> displayCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
         wxASSERT(_processedFrames.size() > 0);
@@ -1930,7 +1941,9 @@ protected:
             }
         }
 
-        for (uint32_t i = startat; i < bits && !wxGetKeyState(WXK_ESCAPE); ++i) {
+        bool abort = false;
+
+        for (uint32_t i = startat; i < bits && !abort; ++i) {
             switch (value[i]) {
             case '0':
                 logger_gcm.debug("   Applying red frame %d", i + 1);
@@ -1966,14 +1979,21 @@ protected:
             if (cache.find(key) == cache.end()) {
                 cache[key] = new ProcessedImage(img);
             }
+
+            abort |= wxGetKeyState(WXK_ESCAPE);
         }
 
-        auto res = img->FindPixel();
+        if (!abort) {
+            auto res = img->FindPixel();
 
-        delete img;
+            delete img;
 
-        // now only one key pixel should be in the image so find the largest connected white area
-        return res;
+            // now only one key pixel should be in the image so find the largest connected white area
+            return res;
+        } else {
+            delete img;
+            return wxPoint(-1, -1);
+        }
     }
 
     // lights are 1 based
@@ -2001,7 +2021,8 @@ protected:
             }
         }
 
-        for (uint32_t i = startat; i < bits && !wxGetKeyState(WXK_ESCAPE); ++i) {
+        bool abort = false;
+        for (uint32_t i = startat; i < bits && !abort; ++i) {
             switch (value[i]) {
             case '0':
                 logger_gcm.debug("   Applying red frame %d", i + 1);
@@ -2033,24 +2054,31 @@ protected:
                 displayCallback(img);
             }
 
-            std::string key = value.substr(0, i+1);
+            std::string key = value.substr(0, i + 1);
             if (cache.find(key) == cache.end()) {
                 cache[key] = new ProcessedImage(img);
             }
+
+            abort |= wxGetKeyState(WXK_ESCAPE);
         }
 
-        img->ProcessB(erode_dilate, threshold, displayCallback);
+        if (!abort) {
+            img->ProcessB(erode_dilate, threshold, displayCallback);
 
-        if (displayCallback != nullptr) {
-            displayCallback(img);
+            if (displayCallback != nullptr) {
+                displayCallback(img);
+            }
+
+            // auto res = img->FindPixel(); // find the largest white area
+            auto res = img->FindPixelA(); // find the centre of all white areas
+            delete img;
+
+            // now only one key pixel should be in the image so find the largest connected white area
+            return res;
+        } else {
+            delete img;
+            return wxPoint(-1, -1);
         }
-
-        //auto res = img->FindPixel(); // find the largest white area
-        auto res = img->FindPixelA(); // find the centre of all white areas
-        delete img;
-
-        // now only one key pixel should be in the image so find the largest connected white area
-        return res;
     }
 
     // turns rgb into b&w images then tries to find them
@@ -2068,17 +2096,21 @@ protected:
         std::map<std::string, ProcessedImage*> cache;
 
         logger_gcm.debug("Found pixels:");
-        for (uint32_t p = 0; p < maxPixels && !wxGetKeyState(WXK_ESCAPE); ++p) {
+        bool abort = false;
+        for (uint32_t p = 0; p < maxPixels && !abort; ++p) {
             auto pt = FindLight(p + 1, maxPixels, cache, ppi, displayCallback);
             if (pt.x != -1) {
                 logger_gcm.debug("   %d: %d, %d", p + 1, pt.x, pt.y);
                 res.push_back({ pt, p + 1 });
             }
+            abort |= wxGetKeyState(WXK_ESCAPE);
         }
 
         for (const auto& it : cache) {
             delete it.second;
         }
+
+        // I am deliberately not clearing when we abort as the user may want to see what was found
 
         return res;
     }
@@ -2103,7 +2135,8 @@ protected:
         std::map<std::string, ProcessedImage*> cache;
 
         logger_gcm.debug("Found pixels:");
-        for (uint32_t p = 0; p < maxPixels && !wxGetKeyState(WXK_ESCAPE); ++p) {
+        bool abort = false;
+        for (uint32_t p = 0; p < maxPixels && !abort; ++p) {
             auto pt = FindLightA(p + 1, maxPixels, erode_dilate, threshold, cache, ppi, displayCallback);
             if (pt.x != -1) {
                 logger_gcm.debug("   %d: %d, %d", p + 1, pt.x, pt.y);
@@ -2112,11 +2145,14 @@ protected:
             if (progressCallback != nullptr) {
                 progressCallback(0.5 + ((float)(p + 1) * 0.5) / (float)maxPixels);
             }
+            abort |= wxGetKeyState(WXK_ESCAPE);
         }
 
         for (const auto& it : cache) {
             delete it.second;
         }
+
+        // I am deliberately not deleting the points when aborted as the user is likely to want to see what was found before the abort
 
         return res;
     }
