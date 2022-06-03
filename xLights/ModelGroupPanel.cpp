@@ -489,10 +489,18 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
     ListBoxAddToModelGroup->Thaw();
 
     if (!ListBoxAddToModelGroup->IsEmpty()) {
-        ListBoxAddToModelGroup->EnsureVisible(spam);
+        if (spam < ListBoxAddToModelGroup->GetItemCount()) {
+            ListBoxAddToModelGroup->EnsureVisible(spam);
+        } else {
+            ListBoxAddToModelGroup->EnsureVisible(0);
+        }
     }
     if (!ListBoxModelsInGroup->IsEmpty()) {
-        ListBoxModelsInGroup->EnsureVisible(spig);
+        if (spig < ListBoxModelsInGroup->GetItemCount()) {
+            ListBoxModelsInGroup->EnsureVisible(spig);
+        } else {
+            ListBoxModelsInGroup->EnsureVisible(0);
+        }
     }
 
     if (_lastFirstSelectedModelIndex >= ListBoxAddToModelGroup->GetItemCount()) {
@@ -662,18 +670,16 @@ void ModelGroupPanel::SaveGroupChanges()
     ModelGroup *g = (ModelGroup*)mModels[mGroup];
 
     if (g == nullptr) return;
+    
+    mModels.GetXLightsFrame()->AbortRender();
 
     wxXmlNode *e = g->GetModelXml();
 
     wxString ModelsInGroup = "";
-    for (int i = 0; i < ListBoxModelsInGroup->GetItemCount(); i++)
-    {
-        if (i < ListBoxModelsInGroup->GetItemCount() - 1)
-        {
+    for (int i = 0; i < ListBoxModelsInGroup->GetItemCount(); i++) {
+        if (i < ListBoxModelsInGroup->GetItemCount() - 1) {
             ModelsInGroup += ListBoxModelsInGroup->GetItemText(i, 0) + ",";
-        }
-        else
-        {
+        } else {
             ModelsInGroup += ListBoxModelsInGroup->GetItemText(i, 0);
         }
     }
@@ -687,8 +693,7 @@ void ModelGroupPanel::SaveGroupChanges()
     e->DeleteAttribute("XCentreOffset");
     e->DeleteAttribute("YCentreOffset");
     e->DeleteAttribute("TagColour");
-    if (ChoiceModelLayoutType->GetSelection() == 1)
-    {
+    if (ChoiceModelLayoutType->GetSelection() == 1) {
         e->AddAttribute("XCentreOffset", wxString::Format("%d", SpinCtrl_XCentreOffset->GetValue()));
         e->AddAttribute("YCentreOffset", wxString::Format("%d", SpinCtrl_YCentreOffset->GetValue()));
     }
