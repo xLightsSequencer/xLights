@@ -436,7 +436,7 @@
 																	<growablerows>4</growablerows>
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText11" member="yes">
-																			<label>This is the frame the scan has identified as being the most likely to show all your bulbs. It should be a frame showing all the bulbs on.</label>
+																			<label>This is the frame the scan has identified as being the most likely to show all your bulbs. &#x0A;It should be a frame showing all the bulbs on.</label>
 																			<size>658,99</size>
 																			<style>wxALIGN_LEFT</style>
 																		</object>
@@ -547,7 +547,7 @@
 																					<value>1</value>
 																					<min>1</min>
 																					<max>5</max>
-																					<handler function="OnSlider_AdjustBlurCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_AdjustBlurCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																					<handler function="OnSlider_AdjustBlurCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
@@ -576,7 +576,7 @@
 																				<object class="wxSlider" name="ID_SLIDER_BI_Sensitivity" variable="Slider_BI_Sensitivity" member="yes">
 																					<value>127</value>
 																					<max>255</max>
-																					<handler function="OnSlider_BI_SensitivityCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_BI_SensitivityCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																					<handler function="OnSlider_BI_SensitivityCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
@@ -605,7 +605,7 @@
 																				<object class="wxSlider" name="ID_SLIDER_BI_MinSeparation" variable="Slider_BI_MinSeparation" member="yes">
 																					<value>1</value>
 																					<max>200</max>
-																					<handler function="OnSlider_BI_MinSeparationCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_BI_MinSeparationCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																					<handler function="OnSlider_BI_MinSeparationCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
@@ -633,7 +633,7 @@
 																			<object class="sizeritem">
 																				<object class="wxSlider" name="ID_SLIDER1" variable="Slider_Despeckle" member="yes">
 																					<max>5</max>
-																					<handler function="OnSlider_DespeckleCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_DespeckleCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																					<handler function="OnSlider_DespeckleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
@@ -662,7 +662,7 @@
 																				<object class="wxSlider" name="ID_SLIDER_BI_Contrast" variable="Slider_BI_Contrast" member="yes">
 																					<min>-20</min>
 																					<max>255</max>
-																					<handler function="OnSlider_BI_ContrastCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_BI_ContrastCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																					<handler function="OnSlider_BI_ContrastCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
@@ -689,7 +689,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxSlider" name="ID_SLIDER2" variable="Slider_Gamma" member="yes">
-																					<handler function="OnSlider_GammaCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_GammaCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																					<handler function="OnSlider_GammaCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
@@ -716,7 +716,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxSlider" name="ID_SLIDER3" variable="Slider_Saturation" member="yes">
-																					<handler function="OnSlider_SaturationCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_SaturationCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																					<handler function="OnSlider_SaturationCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
@@ -745,7 +745,7 @@
 																				<object class="wxSlider" name="ID_SLIDER_BI_MinScale" variable="Slider_BI_MinScale" member="yes">
 																					<value>1</value>
 																					<min>1</min>
-																					<handler function="OnSlider_BI_MinScaleCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_BI_MinScaleCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																					<handler function="OnSlider_BI_MinScaleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>

@@ -2330,8 +2330,6 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	Button_PCM_Run = new wxButton(Panel_Prepare, ID_BUTTON_PCM_Run, _("Run Capture Pattern"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PCM_Run"));
 	FlexGridSizer2->Add(Button_PCM_Run, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_Prepare->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(Panel_Prepare);
-	FlexGridSizer2->SetSizeHints(Panel_Prepare);
 	Panel_Generate = new wxPanel(AuiNotebook1, ID_PANEL_Generate, wxPoint(59,17), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Generate"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
@@ -2364,8 +2362,6 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	FlexGridSizer26->Add(Button_MT_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer24->Add(FlexGridSizer26, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel1->SetSizer(FlexGridSizer24);
-	FlexGridSizer24->Fit(Panel1);
-	FlexGridSizer24->SetSizeHints(Panel1);
 	Panel_ChooseVideo = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_ChooseVideo, wxPoint(18,15), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_ChooseVideo"));
 	FlexGridSizer21 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer21->AddGrowableCol(0);
@@ -2406,13 +2402,11 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	FlexGridSizer23->Add(Button_CV_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer21->Add(FlexGridSizer23, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_ChooseVideo->SetSizer(FlexGridSizer21);
-	FlexGridSizer21->Fit(Panel_ChooseVideo);
-	FlexGridSizer21->SetSizeHints(Panel_ChooseVideo);
 	Panel_StartFrame = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_StartFrame, wxPoint(43,126), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_StartFrame"));
 	FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer10->AddGrowableCol(0);
 	FlexGridSizer10->AddGrowableRow(4);
-	StaticText11 = new wxStaticText(Panel_StartFrame, ID_STATICTEXT3, _("This is the frame the scan has identified as being the most likely to show all your bulbs. It should be a frame showing all the bulbs on."), wxDefaultPosition, wxSize(658,99), wxALIGN_LEFT, _T("ID_STATICTEXT3"));
+	StaticText11 = new wxStaticText(Panel_StartFrame, ID_STATICTEXT3, _("This is the frame the scan has identified as being the most likely to show all your bulbs. \nIt should be a frame showing all the bulbs on."), wxDefaultPosition, wxSize(658,99), wxALIGN_LEFT, _T("ID_STATICTEXT3"));
 	FlexGridSizer10->Add(StaticText11, 1, wxALL|wxEXPAND, 2);
 	StaticText_StartFrameOk = new wxStaticText(Panel_StartFrame, ID_STATICTEXT_StartFrameOk, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE, _T("ID_STATICTEXT_StartFrameOk"));
 	wxFont StaticText_StartFrameOkFont(12,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
@@ -2428,8 +2422,6 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	FlexGridSizer12->Add(Button_SF_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer10->Add(FlexGridSizer12, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_StartFrame->SetSizer(FlexGridSizer10);
-	FlexGridSizer10->Fit(Panel_StartFrame);
-	FlexGridSizer10->SetSizeHints(Panel_StartFrame);
 	Panel_BulbIdentify = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_BulbIdentify, wxPoint(176,18), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_BulbIdentify"));
 	FlexGridSizer15 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer15->AddGrowableCol(0);
@@ -2510,8 +2502,6 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	FlexGridSizer17->Add(Button_BI_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer15->Add(FlexGridSizer17, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_BulbIdentify->SetSizer(FlexGridSizer15);
-	FlexGridSizer15->Fit(Panel_BulbIdentify);
-	FlexGridSizer15->SetSizeHints(Panel_BulbIdentify);
 	Panel_CustomModel = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_CustomModel, wxPoint(259,19), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_CustomModel"));
 	FlexGridSizer18 = new wxFlexGridSizer(4, 1, 0, 0);
 	FlexGridSizer18->AddGrowableCol(0);
@@ -2537,8 +2527,6 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	FlexGridSizer20->Add(Button_CM_Save, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer18->Add(FlexGridSizer20, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_CustomModel->SetSizer(FlexGridSizer18);
-	FlexGridSizer18->Fit(Panel_CustomModel);
-	FlexGridSizer18->SetSizeHints(Panel_CustomModel);
 	AuiNotebook_ProcessSettings->AddPage(Panel1, _("Model Type"));
 	AuiNotebook_ProcessSettings->AddPage(Panel_ChooseVideo, _("Choose Media"));
 	AuiNotebook_ProcessSettings->AddPage(Panel_StartFrame, _("Start Frame"));
@@ -2548,14 +2536,11 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	FlexGridSizer5->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
 	Panel_Generate->SetSizer(FlexGridSizer3);
-	FlexGridSizer3->Fit(Panel_Generate);
-	FlexGridSizer3->SetSizeHints(Panel_Generate);
 	AuiNotebook1->AddPage(Panel_Prepare, _("Prepare"), true);
 	AuiNotebook1->AddPage(Panel_Generate, _("Process"));
 	FlexGridSizer1->Add(AuiNotebook1, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 2);
 	SetSizer(FlexGridSizer1);
 	FileDialog1 = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_CHANGE_DIR, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
-	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BUTTON_PCM_Run,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_PCM_RunClick);
@@ -2568,21 +2553,21 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	Connect(ID_BUTTON_SF_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_SF_BackClick);
 	Connect(ID_BUTTON_SF_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_SF_NextClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnCheckBox_AdvancedClick);
-	Connect(ID_SLIDER_AdjustBlur,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScrollChanged);
+	Connect(ID_SLIDER_AdjustBlur,wxEVT_SCROLL_THUMBRELEASE,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScrollChanged);
 	Connect(ID_SLIDER_AdjustBlur,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScroll);
-	Connect(ID_SLIDER_BI_Sensitivity,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdScrollChanged);
+	Connect(ID_SLIDER_BI_Sensitivity,wxEVT_SCROLL_THUMBRELEASE,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdScrollChanged);
 	Connect(ID_SLIDER_BI_Sensitivity,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdSliderUpdated);
-	Connect(ID_SLIDER_BI_MinSeparation,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdScrollChanged);
+	Connect(ID_SLIDER_BI_MinSeparation,wxEVT_SCROLL_THUMBRELEASE,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdScrollChanged);
 	Connect(ID_SLIDER_BI_MinSeparation,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdSliderUpdated);
-	Connect(ID_SLIDER1,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_DespeckleCmdScrollChanged);
+	Connect(ID_SLIDER1,wxEVT_SCROLL_THUMBRELEASE,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_DespeckleCmdScrollChanged);
 	Connect(ID_SLIDER1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_DespeckleCmdSliderUpdated);
-	Connect(ID_SLIDER_BI_Contrast,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_ContrastCmdScrollChanged);
+	Connect(ID_SLIDER_BI_Contrast,wxEVT_SCROLL_THUMBRELEASE,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_ContrastCmdScrollChanged);
 	Connect(ID_SLIDER_BI_Contrast,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_ContrastCmdSliderUpdated);
-	Connect(ID_SLIDER2,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_GammaCmdScrollChanged);
+	Connect(ID_SLIDER2,wxEVT_SCROLL_THUMBRELEASE,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_GammaCmdScrollChanged);
 	Connect(ID_SLIDER2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_GammaCmdSliderUpdated);
-	Connect(ID_SLIDER3,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_SaturationCmdScrollChanged);
+	Connect(ID_SLIDER3,wxEVT_SCROLL_THUMBRELEASE,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_SaturationCmdScrollChanged);
 	Connect(ID_SLIDER3,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_SaturationCmdSliderUpdated);
-	Connect(ID_SLIDER_BI_MinScale,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_MinScaleCmdScrollChanged);
+	Connect(ID_SLIDER_BI_MinScale,wxEVT_SCROLL_THUMBRELEASE,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_MinScaleCmdScrollChanged);
 	Connect(ID_SLIDER_BI_MinScale,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_MinScaleCmdSliderUpdated);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnCheckBox_GuessSingleClick);
 	Connect(ID_BUTTON_CB_RestoreDefault,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BI_RestoreDefaultClick);
@@ -2632,6 +2617,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 GenerateCustomModelDialog::~GenerateCustomModelDialog()
 {
 	//(*Destroy(GenerateCustomModelDialog)
+	FileDialog1->Destroy();
 	//*)
 
     if (_generator != nullptr)
@@ -2660,7 +2646,7 @@ void GenerateCustomModelDialog::ValidateWindow()
     {
         wxString file = TextCtrl_GCM_Filename->GetValue();
         if (FileExists(file)) {
-            TextCtrl_GCM_Filename->SetBackgroundColour(*wxWHITE);
+            TextCtrl_GCM_Filename->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
             Button_CV_Next->Enable();
         } else {
             TextCtrl_GCM_Filename->SetBackgroundColour(*wxRED);
@@ -3627,7 +3613,11 @@ void GenerateCustomModelDialog::DoGenerateCustomModel()
     for (const auto& it : _lights) {
         wxPoint p = wxPoint((it.first.x - offset.x) * multiplier, (it.first.y - offset.y) * multiplier);
         Grid_CM_Result->SetCellValue(p.y, p.x, wxString::Format(wxT("%i"), it.second));
-        Grid_CM_Result->SetCellBackgroundColour(p.y, p.x, *wxGREEN);
+        if (wxSystemSettings::GetAppearance().IsDark()) {
+            Grid_CM_Result->SetCellBackgroundColour(p.y, p.x, wxColor(0, 128, 0));
+        } else {
+            Grid_CM_Result->SetCellBackgroundColour(p.y, p.x, *wxGREEN);
+        }
     }
 
     wxFont font = Grid_CM_Result->GetDefaultCellFont();
