@@ -20,6 +20,7 @@
 #include "DmxMovingHead.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxColorAbilityWheel.h"
+#include "DmxPresetAbility.h"
 #include "../ModelScreenLocation.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
@@ -419,7 +420,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
 
     if (pan_channel > NodeCount ||
         tilt_channel > NodeCount ||
-        !color_ability->IsValidModelSettings(this)) {
+        !color_ability->IsValidModelSettings(this) ||
+        !preset_ability->IsValidModelSettings(this)) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
@@ -1057,8 +1059,8 @@ void DmxMovingHead::ExportXlightsModel()
     wxString sc = ModelXml->GetAttribute("DmxShutterChannel", "0");
     wxString so = ModelXml->GetAttribute("DmxShutterOpen", "1");
     wxString sv = ModelXml->GetAttribute("DmxShutterOnValue", "0");
-    wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
-    wxString dbw = ModelXml->GetAttribute("DmxBeamWidth", "1");
+    wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "4");
+    wxString dbw = ModelXml->GetAttribute("DmxBeamWidth", "30");
 
     wxString dct = ModelXml->GetAttribute("DmxColorType", "0");
 
@@ -1123,8 +1125,8 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         wxString so = root->GetAttribute("DmxShutterOpen");
         wxString sv = root->GetAttribute("DmxShutterOnValue");
         wxString bl = root->GetAttribute("DmxBeamLimit");
-        wxString dbl = root->GetAttribute("DmxBeamLength", "1");
-        wxString dbw = root->GetAttribute("DmxBeamWidth", "1");
+        wxString dbl = root->GetAttribute("DmxBeamLength", "4");
+        wxString dbw = root->GetAttribute("DmxBeamWidth", "30");
         wxString dct = root->GetAttribute("DmxColorType", "0");
 
         // Add any model version conversion logic here
@@ -1177,6 +1179,7 @@ void DmxMovingHead::EnableFixedChannels(xlColorVector& pixelVector)
             pixelVector[shutter_channel - 1] = c;
         }
     }
+    DmxModel::EnableFixedChannels(pixelVector);
 }
 
 std::vector<std::string> DmxMovingHead::GenerateNodeNames() const

@@ -14,6 +14,7 @@
 
 #include "DmxFloodlight.h"
 #include "DmxColorAbilityRGB.h"
+#include "DmxPresetAbility.h"
 #include "../../ModelPreview.h"
 #include "../../UtilFunctions.h"
 #include "../../xLightsMain.h"
@@ -130,7 +131,7 @@ void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
     bool shutter_open = allowSelected || IsShutterOpen(Nodes);
 
     size_t NodeCount = Nodes.size();
-    if (!color_ability->IsValidModelSettings(this)) {
+    if (!color_ability->IsValidModelSettings(this) || !preset_ability->IsValidModelSettings(this)) {
         DmxModel::DrawInvalid(solidProgram, &(GetModelScreenLocation()), is_3d, true);
     } else {
         xlColor center, edge;

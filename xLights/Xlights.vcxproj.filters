@@ -989,6 +989,9 @@
     <ClCompile Include="models\DMX\DmxColorAbilityWheel.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
+    <ClCompile Include="models\DMX\DmxPresetAbility.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1984,6 +1987,9 @@
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="models\DMX\DmxColorAbilityWheel.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxPresetAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
   </ItemGroup>

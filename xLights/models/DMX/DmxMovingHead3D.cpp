@@ -19,6 +19,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxMovingHead3D.h"
+#include "DmxPresetAbility.h"
 #include "Mesh.h"
 
 #include "../ModelScreenLocation.h"
@@ -157,6 +158,7 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
     size_t NodeCount = Nodes.size();
 
     if (!color_ability->IsValidModelSettings(this) || pan_channel > NodeCount ||
+        !preset_ability->IsValidModelSettings(this) ||
         tilt_channel > NodeCount ||
         shutter_channel > NodeCount)
     {

@@ -20,6 +20,7 @@
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
 #include "DmxColorAbilityRGB.h"
+#include "DmxPresetAbility.h"
 
 DmxGeneral::DmxGeneral(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
   : DmxModel(node, manager, zeroBased)
@@ -156,7 +157,7 @@ void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
 {
     size_t nodeCount = Nodes.size();
 
-    if (!color_ability->IsValidModelSettings(this)) {
+    if (!color_ability->IsValidModelSettings(this) || !preset_ability->IsValidModelSettings(this)) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }

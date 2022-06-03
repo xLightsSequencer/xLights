@@ -15,4 +15,3 @@
 #include "DmxColorAbility.h"
 #include "../BaseObject.h"
 
-
