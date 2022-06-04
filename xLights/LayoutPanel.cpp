@@ -211,6 +211,7 @@ const long LayoutPanel::ID_ADD_OBJECT_RULER = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD_3D = wxNewId();
+const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD_ADV = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_GENERAL = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_SKULL = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_SERVO = wxNewId();
@@ -1343,6 +1344,7 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
     } else if (type == "DMXFloodlight" ||
                type == "DMXMovingHead" ||
                type == "DMXMovingHead3D" ||
+               type == "DMXMovingHeadAdv" ||
                type == "DMXSkull" ||
                type == "DMXGeneral") {
         return Icon_Dmx;
@@ -6105,6 +6107,7 @@ void LayoutPanel::DisplayAddDmxPopup() {
     AddObjectButton(mnuObjects, ID_ADD_DMX_GENERAL, "General", add_dmx_general_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_FLOODLIGHT, "Floodlight", add_dmx_floodlight_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_FLOODAREA, "Area Flood", add_dmx_floodlight_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_DMX_MOVING_HEAD_ADV, "Moving Head Adv", dmx_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_MOVING_HEAD_3D, "Moving Head 3D", dmx_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_MOVING_HEAD, "Moving Head", add_dmx_moving_head_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_SERVO, "Servo", add_dmx_servo_xpm);
@@ -6145,6 +6148,11 @@ void LayoutPanel::OnAddDmxPopup(wxCommandEvent& event)
     else if (id == ID_ADD_DMX_MOVING_HEAD_3D) {
         logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_MOVING_HEAD_3D");
         selectedDmxModelType = "DmxMovingHead3D";
+        object_created = true;
+    }
+    else if (id == ID_ADD_DMX_MOVING_HEAD_ADV) {
+        logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_MOVING_HEAD_ADV");
+        selectedDmxModelType = "DmxMovingHeadAdv";
         object_created = true;
     }
     else if (id == ID_ADD_DMX_SERVO) {
