@@ -33,8 +33,6 @@ EffectAssist::EffectAssist(wxWindow* parent, wxWindowID id)
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&EffectAssist::OnResize);
 	//*)

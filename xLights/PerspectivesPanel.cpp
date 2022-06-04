@@ -69,8 +69,6 @@ PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer2->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BUTTON_ADD_PERSPECTIVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PerspectivesPanel::OnButtonAddPerspectiveClick);
 	Connect(D_BUTTON_DELETE_PERSPECTIVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PerspectivesPanel::OnButtonDeletePerspectiveClick);

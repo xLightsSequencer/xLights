@@ -228,3 +228,12 @@ Last Pulled:
 Version:	 0.11.2
 License:     BSD/GPLv3
 Strategy:    Header added to repository. static libraries added for windows
+
+Library:     nanosvg
+Usage:       SVG Parser
+Link:        https://github.com/memononen/nanosvg
+Source:      https://github.com/memononen/nanosvg
+Last Pulled: 5/20/22
+Version:     [latest version available as at May 2022]
+License:     zlib License
+Strategy:    Header added to repository. Header only library

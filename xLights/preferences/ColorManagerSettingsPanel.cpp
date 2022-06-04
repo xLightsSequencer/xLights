@@ -151,8 +151,12 @@ void ColorManagerSettingsPanel::AddButtonsToDialog()
 }
 
 void ColorManagerSettingsPanel::SetButtonColor(wxBitmapButton* btn, const wxColour &c) {
+#ifdef __WXOSX__
+    SetButtonBackground(btn, c, 1);
+#else
     btn->SetBackgroundColour(c);
     btn->SetForegroundColour(c);
+#endif
     wxImage image(36,18);
     image.SetRGB(wxRect(0,0,36,18), c.Red(), c.Green(), c.Blue());
     wxBitmap bmp(image);

@@ -31,7 +31,7 @@
 template <class CTX>
 class ContextPool {
 public:
-    
+
     ContextPool(std::function<CTX* ()> alloc, std::string type = ""): allocator(alloc), _type(type) {
     }
     ~ContextPool() {
@@ -41,7 +41,7 @@ public:
             contexts.pop();
         }
     }
-    
+
     CTX *GetContext() {
         // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
         bool contextsEmpty = false;
@@ -65,7 +65,7 @@ public:
         std::unique_lock<std::mutex> locker(lock);
         contexts.push(pctx);
     }
-    
+
 private:
     std::mutex lock;
     std::queue<CTX*> contexts;
@@ -601,8 +601,6 @@ RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
 {
     BufferHt = 0;
     BufferWi = 0;
-    ModelBufferHt = 0;
-    ModelBufferWi = 0;
     curPeriod = 0;
     curEffStartPer = 0;
     curEffEndPer = 0;
@@ -620,7 +618,7 @@ RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
 }
 
 RenderBuffer::~RenderBuffer()
-{    
+{
     if (_isCopy) Forget();
 
     //dtor
@@ -648,7 +646,7 @@ PathDrawingContext * RenderBuffer::GetPathDrawingContext()
         _pathDrawingContext->ResetSize(BufferWi, BufferHt);
     }
 
-    return _pathDrawingContext; 
+    return _pathDrawingContext;
 }
 
 TextDrawingContext * RenderBuffer::GetTextDrawingContext()
@@ -662,10 +660,8 @@ TextDrawingContext * RenderBuffer::GetTextDrawingContext()
     return _textDrawingContext;
 }
 
-void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform, bool nodeBuffer)
+void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform, bool nodeBuffer)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (_pathDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {
         _pathDrawingContext->ResetSize(newBufferWi, newBufferHt);
     }
@@ -675,16 +671,11 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
     _nodeBuffer = nodeBuffer;
     BufferHt = newBufferHt;
     BufferWi = newBufferWi;
-    ModelBufferHt = newModelBufferHt;
-    ModelBufferWi = newModelBufferWi;
-    if (ModelBufferHt * ModelBufferWi < std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi)) {
-        wxASSERT(false);
-        logger_base.warn("RenderBuffer had to be expanded for %s from %d to %d pixels", (const char *)GetModelName().c_str(), ModelBufferHt * ModelBufferWi, std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi));
-    }
-    size_t NumPixels = std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi);
+
+    size_t NumPixels = BufferHt * BufferWi;
     // This is an absurdly high number but there are circumstances right now when creating a buffer based on a zoomed in camera when these can be hit.
     //wxASSERT(NumPixels < 500000);
-    
+
     pixelVector.resize(NumPixels);
     pixels = &pixelVector[0];
     tempbufVector.resize(NumPixels);
@@ -857,7 +848,6 @@ void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color, in
     Get2ColorBlend(coloridx1, coloridx2, ratio, color);
 }
 
-
 // 0,0 is lower left
 void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool useAlpha, bool dmx_ignore)
 {
@@ -865,7 +855,7 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
         SetPixelDMXModel(x, y, color);
         return;
     }
-        
+
     if (wrap) {
         while (x < 0) {
             x += BufferWi;
@@ -880,7 +870,7 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
             y -= BufferHt;
         }
     }
-    
+
     // I dont like this ... it should actually never happen
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixelVector.size())
     {
@@ -889,7 +879,7 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
         //{
             // transparent ... dont do anything
         //}
-        //else 
+        //else
         if (useAlpha && color.Alpha() != 255)
         {
             xlColor pnew = color;
@@ -1425,8 +1415,6 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     _nodeBuffer = buffer._nodeBuffer;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
-    ModelBufferHt = buffer.ModelBufferHt;
-    ModelBufferWi = buffer.ModelBufferWi;
     infoCache = buffer.infoCache;
 
     pixels = &pixelVector[0];
@@ -1453,43 +1441,11 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
             pixels[0] = color;
             return;
         }
-        xlColor c;
         DmxModel* dmx = (DmxModel*)model_info;
         if (dmx->HasColorAbility()) {
             DmxColorAbility* dmx_color = dmx->GetColorAbility();
-
-            int white_channel = dmx_color->GetWhiteChannel();
-            if (white_channel > 0 && color.red == color.green && color.red == color.blue)
-            {
-                c.red = color.red;
-                c.green = color.red;
-                c.blue = color.red;
-                if (pixelVector.size() > white_channel - 1) pixels[white_channel - 1] = c;
-            }
-            else
-            {
-                int red_channel = dmx_color->GetRedChannel();
-                int grn_channel = dmx_color->GetGreenChannel();
-                int blu_channel = dmx_color->GetBlueChannel();
-                if (red_channel != 0) {
-                    c.red = color.red;
-                    c.green = color.red;
-                    c.blue = color.red;
-                    if (pixelVector.size() > red_channel - 1) pixels[red_channel - 1] = c;
-                }
-                if (grn_channel != 0) {
-                    c.red = color.green;
-                    c.green = color.green;
-                    c.blue = color.green;
-                    if (pixelVector.size() > grn_channel - 1) pixels[grn_channel - 1] = c;
-                }
-                if (blu_channel != 0) {
-                    c.red = color.blue;
-                    c.green = color.blue;
-                    c.blue = color.blue;
-                    if (pixelVector.size() > blu_channel - 1) pixels[blu_channel - 1] = c;
-                }
-            }
+            dmx_color->SetColorPixels(color,pixelVector);
         }
+        dmx->EnableFixedChannels(pixelVector);
     }
 }

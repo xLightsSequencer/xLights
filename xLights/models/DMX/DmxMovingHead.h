@@ -15,13 +15,11 @@
 #include "DmxPanTiltAbility.h"
 #include "DmxShutterAbility.h"
 
-class DmxMovingHead : public DmxModel, public DmxColorAbility, public DmxPanTiltAbility, public DmxShutterAbility
+class DmxMovingHead : public DmxModel, public DmxPanTiltAbility, public DmxShutterAbility
 {
     public:
         DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~DmxMovingHead();
-
-        virtual bool HasColorAbility() override { return true; }
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
@@ -34,6 +32,8 @@ class DmxMovingHead : public DmxModel, public DmxColorAbility, public DmxPanTilt
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
         virtual void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
         virtual std::list<std::string> CheckModelSettings() override;
+        void EnableFixedChannels(xlColorVector& pixelVector) override;
+        [[nodiscard]] std::vector<std::string> GenerateNodeNames() const override;
 
     protected:
         void Draw3DDMXBaseLeft(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle);

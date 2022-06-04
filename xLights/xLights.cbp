@@ -433,6 +433,9 @@
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
 		</Compiler>
+		<Unit filename="../common/xlBaseApp.cpp" />
+		<Unit filename="../common/xlBaseApp.h" />
+		<Unit filename="../common/xlStackWalker.h" />
 		<Unit filename="../xFade/wxLED.cpp" />
 		<Unit filename="../xFade/wxLED.h" />
 		<Unit filename="../xSchedule/md5.cpp" />
@@ -599,7 +602,6 @@
 		<Unit filename="MIDI/MidiEventList.cpp" />
 		<Unit filename="MIDI/MidiFile.cpp" />
 		<Unit filename="MIDI/MidiMessage.cpp" />
-		<Unit filename="MSWStackWalk.h" />
 		<Unit filename="MatrixFaceDownloadDialog.cpp" />
 		<Unit filename="MatrixFaceDownloadDialog.h" />
 		<Unit filename="MediaImportOptionsDialog.cpp" />
@@ -1094,6 +1096,10 @@
 		<Unit filename="models/CustomModel.h" />
 		<Unit filename="models/DMX/DmxColorAbility.cpp" />
 		<Unit filename="models/DMX/DmxColorAbility.h" />
+		<Unit filename="models/DMX/DmxColorAbilityRGB.cpp" />
+		<Unit filename="models/DMX/DmxColorAbilityRGB.h" />
+		<Unit filename="models/DMX/DmxColorAbilityWheel.cpp" />
+		<Unit filename="models/DMX/DmxColorAbilityWheel.h" />
 		<Unit filename="models/DMX/DmxFloodArea.cpp" />
 		<Unit filename="models/DMX/DmxFloodArea.h" />
 		<Unit filename="models/DMX/DmxFloodlight.cpp" />
@@ -1110,6 +1116,8 @@
 		<Unit filename="models/DMX/DmxMovingHead3D.h" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.cpp" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.h" />
+		<Unit filename="models/DMX/DmxPresetAbility.cpp" />
+		<Unit filename="models/DMX/DmxPresetAbility.h" />
 		<Unit filename="models/DMX/DmxServo.cpp" />
 		<Unit filename="models/DMX/DmxServo.h" />
 		<Unit filename="models/DMX/DmxServo3D.cpp" />
@@ -1246,6 +1254,8 @@
 		<Unit filename="outputs/SerialOutput.h" />
 		<Unit filename="outputs/TestPreset.cpp" />
 		<Unit filename="outputs/TestPreset.h" />
+		<Unit filename="outputs/TwinklyOutput.cpp" />
+		<Unit filename="outputs/TwinklyOutput.h" />
 		<Unit filename="outputs/ZCPP.h" />
 		<Unit filename="outputs/ZCPPOutput.cpp" />
 		<Unit filename="outputs/ZCPPOutput.h" />

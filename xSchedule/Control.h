@@ -9,10 +9,11 @@
 // 239.F.P.P
 #define MULTISYNC_MULTICAST_ADDRESS "239.70.80.80"
 
-#define CTRL_PKT_CMD   0
 #define CTRL_PKT_SYNC  1
 #define CTRL_PKT_EVENT 2
 #define CTRL_PKT_BLANK 3
+#define CTRL_PKT_PING  4
+#define CTRL_PKT_CMD   6
 
 // Force the structures to not be aligned on boundaries
 #ifdef _MSC_VER
@@ -27,11 +28,11 @@
 
 PACK( typedef struct { char fppd[4]; uint8_t pktType; uint16_t extraDataLen; } ControlPkt);
 
-#define CTRL_PKT_CMD    0
 #define CTRL_PKT_SYNC   1
 #define CTRL_PKT_EVENT  2
 #define CTRL_PKT_BLANK  3
 #define CTRL_PKT_PING   4
+#define CTRL_PKT_CMD    6
 
 #define SYNC_PKT_START 0
 #define SYNC_PKT_STOP  1

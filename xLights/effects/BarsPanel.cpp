@@ -13,7 +13,6 @@
 #include "BarsEffect.h"
 
 //(*InternalHeaders(BarsPanel)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
@@ -83,13 +82,13 @@ BarsPanel::BarsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer123->AddGrowableCol(0);
 	Slider_Bars_BarCount = new BulkEditSlider(this, ID_SLIDER_Bars_BarCount, 1, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Bars_BarCount"));
 	FlexGridSizer123->Add(Slider_Bars_BarCount, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Bars_BarCount = new BulkEditValueCurveButton(this, ID_VALUECURVE_Bars_BarCount, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Bars_BarCount"));
+	BitmapButton_Bars_BarCount = new BulkEditValueCurveButton(this, ID_VALUECURVE_Bars_BarCount, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Bars_BarCount"));
 	FlexGridSizer123->Add(BitmapButton_Bars_BarCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	TextCtrl15 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Bars_BarCount, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Bars_BarCount"));
 	TextCtrl15->SetMaxLength(2);
 	FlexGridSizer123->Add(TextCtrl15, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer35->Add(FlexGridSizer123, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_PaletteRep = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Bars_BarCount, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Bars_BarCount"));
+	BitmapButton_PaletteRep = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Bars_BarCount, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Bars_BarCount"));
 	BitmapButton_PaletteRep->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer35->Add(BitmapButton_PaletteRep, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText177 = new wxStaticText(this, ID_STATICTEXT_Bars_Cycles, _("Cycles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Bars_Cycles"));
@@ -98,7 +97,7 @@ BarsPanel::BarsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer70->AddGrowableCol(0);
 	Slider_Bars_Cycles = new BulkEditSliderF1(this, IDD_SLIDER_Bars_Cycles, 10, 0, 500, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Bars_Cycles"));
 	FlexGridSizer70->Add(Slider_Bars_Cycles, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Bars_Cycles = new BulkEditValueCurveButton(this, ID_VALUECURVE_Bars_Cycles, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Bars_Cycles"));
+	BitmapButton_Bars_Cycles = new BulkEditValueCurveButton(this, ID_VALUECURVE_Bars_Cycles, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Bars_Cycles"));
 	FlexGridSizer70->Add(BitmapButton_Bars_Cycles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	TextCtrl35 = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Bars_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Bars_Cycles"));
 	TextCtrl35->SetMaxLength(4);
@@ -123,7 +122,7 @@ BarsPanel::BarsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Bars_Direction->Append(_("Custom Horz"));
 	Choice_Bars_Direction->Append(_("Custom Vert"));
 	FlexGridSizer35->Add(Choice_Bars_Direction, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Direction = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Bars_Direction, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Bars_Direction"));
+	BitmapButton_Direction = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Bars_Direction, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Bars_Direction"));
 	BitmapButton_Direction->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer35->Add(BitmapButton_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Bars_Center, _("Center Point"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Bars_Center"));
@@ -132,7 +131,7 @@ BarsPanel::BarsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer1->AddGrowableCol(0);
 	Slider_Bars_Center = new BulkEditSlider(this, IDD_SLIDER_Bars_Center, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Bars_Center"));
 	FlexGridSizer1->Add(Slider_Bars_Center, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Bars_Center = new BulkEditValueCurveButton(this, ID_VALUECURVE_Bars_Center, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Bars_Center"));
+	BitmapButton_Bars_Center = new BulkEditValueCurveButton(this, ID_VALUECURVE_Bars_Center, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Bars_Center"));
 	FlexGridSizer1->Add(BitmapButton_Bars_Center, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	TextCtrl_Bars_Center = new BulkEditTextCtrl(this, ID_TEXTCTRL_Bars_Center, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Bars_Center"));
 	FlexGridSizer1->Add(TextCtrl_Bars_Center, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -143,25 +142,23 @@ BarsPanel::BarsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Bars_Highlight = new BulkEditCheckBox(this, ID_CHECKBOX_Bars_Highlight, _("Highlight"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Bars_Highlight"));
 	CheckBox_Bars_Highlight->SetValue(false);
 	FlexGridSizer10->Add(CheckBox_Bars_Highlight, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Highlight = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight"));
+	BitmapButton_Highlight = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight"));
 	BitmapButton_Highlight->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer10->Add(BitmapButton_Highlight, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	CheckBox_Bars_3D = new BulkEditCheckBox(this, ID_CHECKBOX_Bars_3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Bars_3D"));
 	CheckBox_Bars_3D->SetValue(false);
 	FlexGridSizer10->Add(CheckBox_Bars_3D, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_3D = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Bars_3D, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Bars_3D"));
+	BitmapButton_3D = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Bars_3D, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Bars_3D"));
 	BitmapButton_3D->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer10->Add(BitmapButton_3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	CheckBox_Bars_Gradient = new BulkEditCheckBox(this, ID_CHECKBOX_Bars_Gradient, _("Gradient"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Bars_Gradient"));
 	CheckBox_Bars_Gradient->SetValue(false);
 	FlexGridSizer10->Add(CheckBox_Bars_Gradient, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Gradient = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Bars_Gradient, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Bars_Gradient"));
+	BitmapButton_Gradient = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Bars_Gradient, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Bars_Gradient"));
 	BitmapButton_Gradient->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer10->Add(BitmapButton_Gradient, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer35->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer35);
-	FlexGridSizer35->Fit(this);
-	FlexGridSizer35->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_Bars_BarCount,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Bars_BarCount,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);

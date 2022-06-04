@@ -118,7 +118,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxSpinCtrl" name="ID_SPINCTRL_NC_Count" variable="SpinCtrl_NC_Count" member="yes">
-												<value>1</value>
+												<value>100</value>
 												<min>1</min>
 												<max>99999</max>
 											</object>
@@ -155,8 +155,9 @@
 										<object class="sizeritem">
 											<object class="wxSlider" name="ID_SLIDER_Intensity" variable="Slider_Intensity" member="yes">
 												<value>255</value>
-												<min>30</min>
+												<min>1</min>
 												<max>255</max>
+												<size>300,-1</size>
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>
@@ -239,14 +240,6 @@
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
-																				<object class="wxRadioButton" name="ID_RADIOBUTTON4" variable="SCRadioButton" member="yes">
-																					<label>Single Channels</label>
-																				</object>
-																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																			<object class="sizeritem">
 																				<object class="wxRadioButton" name="ID_RADIOBUTTON5" variable="SLRadioButton" member="yes">
 																					<label>Static Lights</label>
 																				</object>
@@ -291,10 +284,11 @@
 																<object class="wxFlexGridSizer" variable="FlexGridSizer21" member="no">
 																	<cols>1</cols>
 																	<growablecols>0</growablecols>
-																	<growablerows>2</growablerows>
+																	<growablerows>4</growablerows>
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText_CM_Request" member="yes">
 																			<label>Insert text here</label>
+																			<style>wxALIGN_LEFT</style>
 																		</object>
 																		<flag>wxALL|wxEXPAND</flag>
 																		<border>2</border>
@@ -330,6 +324,63 @@
 																				<border>2</border>
 																				<option>1</option>
 																			</object>
+																			<object class="sizeritem">
+																				<object class="wxStaticText" name="ID_STATICTEXT13" variable="StaticText19" member="yes">
+																					<label>Node/Channel Count</label>
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxSpinCtrl" name="ID_SPINCTRL_PROCESSNODECOUNT" variable="SpinCtrl_ProcessNodeCount" member="yes">
+																					<value>100</value>
+																					<min>1</min>
+																					<max>99999</max>
+																					<size>100,-1</size>
+																				</object>
+																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxCheckBox" name="ID_CHECKBOX_BI_IsSteady" variable="CheckBox_BI_IsSteady" member="yes">
+																					<label>Video is steady</label>
+																					<checked>1</checked>
+																					<handler function="OnCheckBox_BI_IsSteadyClick" entry="EVT_CHECKBOX" />
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_AdvancedStartScan" member="yes">
+																					<label>Preview video during scan (slower)</label>
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
 																		</object>
 																		<flag>wxALL|wxEXPAND</flag>
 																		<border>2</border>
@@ -337,6 +388,12 @@
 																	</object>
 																	<object class="spacer">
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxGauge" name="ID_GAUGE2" variable="Gauge_Progress1" member="yes" />
+																		<flag>wxALL|wxEXPAND</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>
@@ -353,17 +410,8 @@
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON_CV_Manual" variable="Button_CV_Manual" member="yes">
-																					<label>Manual</label>
-																					<handler function="OnButton_CV_ManualClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON_CV_Next" variable="Button_CV_Next" member="yes">
-																					<label>Automatic</label>
+																					<label>Next</label>
 																					<handler function="OnButton_CV_NextClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -388,55 +436,12 @@
 																	<growablerows>4</growablerows>
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText11" member="yes">
-																			<label>This is the frame the scan has identified as being the most likely to show all your bulbs. It should be a frame showing all the bulbs on and it should be near the start of the first flash of all the bulbs before each bulb was lit in turn.&#x0A;You can move it forward or backwards with the buttons below.&#x0A;&#x0A;Click next when you are happy with it.</label>
+																			<label>This is the frame the scan has identified as being the most likely to show all your bulbs. &#x0A;It should be a frame showing all the bulbs on.</label>
 																			<size>658,99</size>
+																			<style>wxALIGN_LEFT</style>
 																		</object>
 																		<flag>wxALL|wxEXPAND</flag>
 																		<border>2</border>
-																		<option>1</option>
-																	</object>
-																	<object class="sizeritem">
-																		<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
-																			<cols>2</cols>
-																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON_Back1Frame" variable="Button_Back1Frame" member="yes">
-																					<label>Back 1 Frame</label>
-																					<handler function="OnButton_Back1FrameClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON_Forward1Frame" variable="Button_Forward1Frame" member="yes">
-																					<label>Forward 1 Frame</label>
-																					<handler function="OnButton_Forward1FrameClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON_Back10Frames" variable="Button_Back10Frames" member="yes">
-																					<label>Back 10 Frames</label>
-																					<handler function="OnButton_Back10FramesClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON_Forward10Frames" variable="Button_Forward10Frames" member="yes">
-																					<label>Forward 10 Frames</label>
-																					<handler function="OnButton_Forward10FramesClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
-																		<border>5</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
@@ -482,17 +487,8 @@
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON6" variable="Button_SF_Manual" member="yes">
-																					<label>Manual</label>
-																					<handler function="OnButton_SF_ManualClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON_SF_Next" variable="Button_SF_Next" member="yes">
-																					<label>Automatic</label>
+																					<label>Next</label>
 																					<handler function="OnButton_SF_NextClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -517,8 +513,18 @@
 																	<growablerows>5</growablerows>
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText_BI" member="yes">
-																			<label>The red circles on the image show the bulbs we have identify. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.&#x0A;&#x0A;Click next when you are happy that all bulbs have been detected.</label>
-																			<size>652,75</size>
+																			<label>The red circles on the image show the bulbs we have identify.&#x0A;Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.&#x0A;&#x0A;Click next when you are happy that all bulbs have been detected.</label>
+																			<size>-1,100</size>
+																			<style>wxALIGN_LEFT</style>
+																		</object>
+																		<flag>wxALL|wxEXPAND</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_Advanced" member="yes">
+																			<label>Advanced Controls</label>
+																			<handler function="OnCheckBox_AdvancedClick" entry="EVT_CHECKBOX" />
 																		</object>
 																		<flag>wxALL|wxEXPAND</flag>
 																		<border>5</border>
@@ -529,10 +535,10 @@
 																			<cols>3</cols>
 																			<growablecols>1</growablecols>
 																			<object class="sizeritem">
-																				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText9" member="yes">
+																				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText_Blur" member="yes">
 																					<label>Blur</label>
 																				</object>
-																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND</flag>
 																				<border>2</border>
 																				<option>1</option>
 																			</object>
@@ -540,8 +546,8 @@
 																				<object class="wxSlider" name="ID_SLIDER_AdjustBlur" variable="Slider_AdjustBlur" member="yes">
 																					<value>1</value>
 																					<min>1</min>
-																					<max>30</max>
-																					<handler function="OnSlider_AdjustBlurCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<max>5</max>
+																					<handler function="OnSlider_AdjustBlurCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																					<handler function="OnSlider_AdjustBlurCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
@@ -554,15 +560,15 @@
 																					<size>40,24</size>
 																					<style>wxTE_READONLY</style>
 																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND</flag>
 																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
-																				<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText_BI_Slider" member="yes">
+																				<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText_Sensitivity" member="yes">
 																					<label>Sensitivity</label>
 																				</object>
-																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND</flag>
 																				<border>2</border>
 																				<option>1</option>
 																			</object>
@@ -570,7 +576,7 @@
 																				<object class="wxSlider" name="ID_SLIDER_BI_Sensitivity" variable="Slider_BI_Sensitivity" member="yes">
 																					<value>127</value>
 																					<max>255</max>
-																					<handler function="OnSlider_BI_SensitivityCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_BI_SensitivityCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																					<handler function="OnSlider_BI_SensitivityCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
@@ -583,23 +589,23 @@
 																					<size>40,24</size>
 																					<style>wxTE_READONLY</style>
 																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
-																				<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText13" member="yes">
+																				<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText_MinSeparation" member="yes">
 																					<label>Minimum Separation</label>
 																				</object>
-																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND</flag>
 																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxSlider" name="ID_SLIDER_BI_MinSeparation" variable="Slider_BI_MinSeparation" member="yes">
-																					<value>100</value>
-																					<min>1</min>
-																					<handler function="OnSlider_BI_MinSeparationCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<value>1</value>
+																					<max>200</max>
+																					<handler function="OnSlider_BI_MinSeparationCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																					<handler function="OnSlider_BI_MinSeparationCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
@@ -608,27 +614,55 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxTextCtrl" name="ID_TEXTCTRL_BI_MinSeparation" variable="TextCtrl_BI_MinSeparation" member="yes">
-																					<value>100</value>
+																					<value>1</value>
 																					<size>40,24</size>
 																					<style>wxTE_READONLY</style>
 																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
-																				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText10" member="yes">
+																				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticTextDespeckle" member="yes">
+																					<label>Despeckle</label>
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxSlider" name="ID_SLIDER1" variable="Slider_Despeckle" member="yes">
+																					<max>5</max>
+																					<handler function="OnSlider_DespeckleCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
+																					<handler function="OnSlider_DespeckleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Despeckle" member="yes">
+																					<value>0</value>
+																					<size>40,24</size>
+																					<style>wxTE_READONLY</style>
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText_Contrast" member="yes">
 																					<label>Contrast</label>
 																				</object>
-																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND</flag>
 																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxSlider" name="ID_SLIDER_BI_Contrast" variable="Slider_BI_Contrast" member="yes">
-																					<min>-255</min>
+																					<min>-20</min>
 																					<max>255</max>
-																					<handler function="OnSlider_BI_ContrastCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_BI_ContrastCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																					<handler function="OnSlider_BI_ContrastCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
@@ -641,15 +675,69 @@
 																					<size>40,24</size>
 																					<style>wxTE_READONLY</style>
 																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND</flag>
 																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
-																				<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText16" member="yes">
+																				<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText_Gamma" member="yes">
+																					<label>Gamma</label>
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxSlider" name="ID_SLIDER2" variable="Slider_Gamma" member="yes">
+																					<handler function="OnSlider_GammaCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
+																					<handler function="OnSlider_GammaCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_Gamma" member="yes">
+																					<value>1.0</value>
+																					<size>40,24</size>
+																					<style>wxTE_READONLY</style>
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText_Saturation" member="yes">
+																					<label>Saturation</label>
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxSlider" name="ID_SLIDER3" variable="Slider_Saturation" member="yes">
+																					<handler function="OnSlider_SaturationCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
+																					<handler function="OnSlider_SaturationCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_Saturation" member="yes">
+																					<value>0</value>
+																					<size>40,24</size>
+																					<style>wxTE_READONLY</style>
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText_ModelScale" member="yes">
 																					<label>Model Scale</label>
 																				</object>
-																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND</flag>
 																				<border>2</border>
 																				<option>1</option>
 																			</object>
@@ -657,7 +745,7 @@
 																				<object class="wxSlider" name="ID_SLIDER_BI_MinScale" variable="Slider_BI_MinScale" member="yes">
 																					<value>1</value>
 																					<min>1</min>
-																					<handler function="OnSlider_BI_MinScaleCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_BI_MinScaleCmdScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																					<handler function="OnSlider_BI_MinScaleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
@@ -670,7 +758,7 @@
 																					<size>40,24</size>
 																					<style>wxTE_READONLY</style>
 																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND</flag>
 																				<border>2</border>
 																				<option>1</option>
 																			</object>
@@ -682,55 +770,10 @@
 																	<object class="sizeritem">
 																		<object class="wxBoxSizer" variable="BoxSizer1" member="no">
 																			<object class="sizeritem">
-																				<object class="wxCheckBox" name="ID_CHECKBOX_BI_IsSteady" variable="CheckBox_BI_IsSteady" member="yes">
-																					<label>Video is steady</label>
-																					<checked>1</checked>
-																					<handler function="OnCheckBox_BI_IsSteadyClick" entry="EVT_CHECKBOX" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																			<object class="sizeritem">
 																				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_GuessSingle" member="yes">
-																					<label>Guess location of single missing nodes</label>
+																					<label>Guess location of missing nodes</label>
 																					<checked>1</checked>
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																			<object class="sizeritem">
-																				<object class="wxCheckBox" name="ID_CHECKBOX_BI_ManualUpdate" variable="CheckBox_BI_ManualUpdate" member="yes">
-																					<label>Manual Update</label>
-																					<checked>1</checked>
-																					<handler function="OnCheckBox_BI_ManualUpdateClick" entry="EVT_CHECKBOX" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																			<object class="sizeritem">
-																				<object class="wxFlexGridSizer" variable="FlexGridSizer30" member="no">
-																					<cols>2</cols>
-																					<growablecols>1</growablecols>
-																					<object class="sizeritem">
-																						<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText18" member="yes">
-																							<label>Blank Frames Limit</label>
-																						</object>
-																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																						<border>5</border>
-																						<option>1</option>
-																					</object>
-																					<object class="sizeritem">
-																						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_MissingBulbLimit" member="yes">
-																							<value>30</value>
-																							<max>300</max>
-																						</object>
-																						<flag>wxALL|wxEXPAND</flag>
-																						<border>5</border>
-																						<option>1</option>
-																					</object>
+																					<handler function="OnCheckBox_GuessSingleClick" entry="EVT_CHECKBOX" />
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
 																				<border>5</border>
@@ -742,23 +785,8 @@
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
-																		<object class="wxGauge" name="ID_GAUGE1" variable="Gauge_Progress" member="yes" />
-																		<flag>wxALL|wxEXPAND</flag>
-																		<border>5</border>
-																		<option>1</option>
-																	</object>
-																	<object class="sizeritem">
 																		<object class="wxFlexGridSizer" variable="FlexGridSizer27" member="no">
 																			<cols>2</cols>
-																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON_BI_Update" variable="Button_BI_Update" member="yes">
-																					<label>Update</label>
-																					<handler function="OnButton_BI_UpdateClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON_CB_RestoreDefault" variable="Button_CB_RestoreDefault" member="yes">
 																					<label>Restore Default</label>
@@ -779,6 +807,12 @@
 																		</object>
 																		<flag>wxALL|wxEXPAND</flag>
 																		<border>2</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxGauge" name="ID_GAUGE1" variable="Gauge_Progress2" member="yes" />
+																		<flag>wxALL|wxEXPAND</flag>
+																		<border>5</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
@@ -812,141 +846,6 @@
 															<label>Bulb Identify</label>
 														</object>
 														<object class="AuiNotebookPage">
-															<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
-																<pos>482,20</pos>
-																<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-																	<cols>1</cols>
-																	<growablecols>0</growablecols>
-																	<growablerows>4</growablerows>
-																	<object class="sizeritem">
-																		<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText15" member="yes">
-																			<label>Click the image to place bulbs.</label>
-																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
-																		<option>1</option>
-																	</object>
-																	<object class="sizeritem">
-																		<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
-																			<cols>2</cols>
-																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON3" variable="Button_MI_PriorFrame" member="yes">
-																					<label>Prior Frame</label>
-																					<handler function="OnButton_MI_PriorFrameClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON1" variable="Button_MI_NextFrame" member="yes">
-																					<label>Next Frame</label>
-																					<handler function="OnButton_MI_NextFrameClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
-																		<option>1</option>
-																	</object>
-																	<object class="sizeritem">
-																		<object class="wxFlexGridSizer" variable="FlexGridSizer31" member="no">
-																			<cols>3</cols>
-																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON7" variable="ButtonBumpBack" member="yes">
-																					<label>&lt; Bump</label>
-																					<handler function="OnButtonBumpBackClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON8" variable="ButtonBumpFwd" member="yes">
-																					<label>Bump &gt;</label>
-																					<handler function="OnButtonBumpFwdClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
-																		<option>1</option>
-																	</object>
-																	<object class="sizeritem">
-																		<object class="wxFlexGridSizer" variable="FlexGridSizer28" member="no">
-																			<cols>3</cols>
-																			<object class="sizeritem">
-																				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText12" member="yes">
-																					<label>Current Number: </label>
-																				</object>
-																				<flag>wxALL|wxEXPAND</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
-																		<border>5</border>
-																		<option>1</option>
-																	</object>
-																	<object class="sizeritem">
-																		<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
-																			<cols>3</cols>
-																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON2" variable="Button_MI_UndoBulb" member="yes">
-																					<label>Undo Bulb</label>
-																					<handler function="OnButton_MI_UndoBulbClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
-																		<option>1</option>
-																	</object>
-																	<object class="spacer">
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
-																		<option>1</option>
-																	</object>
-																	<object class="sizeritem">
-																		<object class="wxFlexGridSizer" variable="FlexGridSizer13" member="no">
-																			<cols>2</cols>
-																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON4" variable="Button_MI_Back" member="yes">
-																					<label>Back</label>
-																					<handler function="OnButton_MI_BackClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																			<object class="sizeritem">
-																				<object class="wxButton" name="ID_BUTTON5" variable="Button_MI_Next" member="yes">
-																					<label>Next</label>
-																					<handler function="OnButton_MI_NextClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
-																		<option>1</option>
-																	</object>
-																</object>
-															</object>
-															<label>Manual Identify</label>
-														</object>
-														<object class="AuiNotebookPage">
 															<object class="wxPanel" name="ID_PANEL_CustomModel" variable="Panel_CustomModel" member="yes">
 																<pos>259,19</pos>
 																<object class="wxFlexGridSizer" variable="FlexGridSizer18" member="no">
@@ -957,6 +856,7 @@
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText17" member="yes">
 																			<label>This is the new custom model. Click save to create a model file that you can then import into your layout.</label>
+																			<style>wxALIGN_LEFT</style>
 																		</object>
 																		<flag>wxALL|wxEXPAND</flag>
 																		<border>2</border>

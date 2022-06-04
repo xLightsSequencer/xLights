@@ -14,7 +14,7 @@
 #include "DmxColorAbility.h"
 #include "DmxPanTiltAbility.h"
 
-class DmxSkulltronix : public DmxModel, public DmxColorAbility, public DmxPanTiltAbility
+class DmxSkulltronix : public DmxModel, public DmxPanTiltAbility
 {
     public:
         DmxSkulltronix(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
@@ -30,8 +30,6 @@ class DmxSkulltronix : public DmxModel, public DmxColorAbility, public DmxPanTil
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-
-        virtual bool HasColorAbility() override { return true; }
 
         int GetEyeBrightnessChannel() {return eye_brightness_channel;}
         int GetPanMinLimit() { return pan_min_limit; }

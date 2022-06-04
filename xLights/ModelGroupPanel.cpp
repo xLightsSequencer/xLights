@@ -9,13 +9,13 @@
  **************************************************************/
 
  //(*InternalHeaders(ModelGroupPanel)
- #include <wx/artprov.h>
- #include <wx/bitmap.h>
- #include <wx/image.h>
- #include <wx/intl.h>
- #include <wx/string.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/string.h>
  //*)
 
+#include <wx/artprov.h>
 #include <wx/xml/xml.h>
 #include <wx/time.h>
 
@@ -237,15 +237,15 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer1->Add(ListBoxAddToModelGroup, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer12->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);
-	ButtonAddModel = new wxBitmapButton(this, ID_BITMAPBUTTON4, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_FORWARD")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
+	ButtonAddModel = new wxBitmapButton(this, ID_BITMAPBUTTON4, wxArtProvider::GetBitmapBundle("wxART_GO_FORWARD", wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
 	FlexGridSizer11->Add(ButtonAddModel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-	ButtonRemoveModel = new wxBitmapButton(this, ID_BITMAPBUTTON3, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_BACK")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
+	ButtonRemoveModel = new wxBitmapButton(this, ID_BITMAPBUTTON3, wxArtProvider::GetBitmapBundle("wxART_GO_BACK", wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
 	FlexGridSizer11->Add(ButtonRemoveModel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
 	wxSize __SpacerSize_1 = wxDLG_UNIT(this,wxSize(-1,7));
 	FlexGridSizer11->Add(__SpacerSize_1.GetWidth(),__SpacerSize_1.GetHeight(),1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonMoveUp = new wxBitmapButton(this, ID_BITMAPBUTTON1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_UP")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
+	ButtonMoveUp = new wxBitmapButton(this, ID_BITMAPBUTTON1, wxArtProvider::GetBitmapBundle("wxART_GO_UP", wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
 	FlexGridSizer11->Add(ButtonMoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-	ButtonMoveDown = new wxBitmapButton(this, ID_BITMAPBUTTON2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_DOWN")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
+	ButtonMoveDown = new wxBitmapButton(this, ID_BITMAPBUTTON2, wxArtProvider::GetBitmapBundle("wxART_GO_DOWN", wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
 	FlexGridSizer11->Add(ButtonMoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer11->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -256,8 +256,6 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer3->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 0);
 	Panel_Sizer->Add(FlexGridSizer3, 0, wxEXPAND, 0);
 	SetSizer(Panel_Sizer);
-	Panel_Sizer->Fit(this);
-	Panel_Sizer->SetSizeHints(this);
 
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoiceModelLayoutTypeSelect);
 	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSizeSpinCtrlChange);
@@ -491,10 +489,18 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
     ListBoxAddToModelGroup->Thaw();
 
     if (!ListBoxAddToModelGroup->IsEmpty()) {
-        ListBoxAddToModelGroup->EnsureVisible(spam);
+        if (spam < ListBoxAddToModelGroup->GetItemCount()) {
+            ListBoxAddToModelGroup->EnsureVisible(spam);
+        } else {
+            ListBoxAddToModelGroup->EnsureVisible(0);
+        }
     }
     if (!ListBoxModelsInGroup->IsEmpty()) {
-        ListBoxModelsInGroup->EnsureVisible(spig);
+        if (spig < ListBoxModelsInGroup->GetItemCount()) {
+            ListBoxModelsInGroup->EnsureVisible(spig);
+        } else {
+            ListBoxModelsInGroup->EnsureVisible(0);
+        }
     }
 
     if (_lastFirstSelectedModelIndex >= ListBoxAddToModelGroup->GetItemCount()) {
@@ -664,18 +670,16 @@ void ModelGroupPanel::SaveGroupChanges()
     ModelGroup *g = (ModelGroup*)mModels[mGroup];
 
     if (g == nullptr) return;
+    
+    mModels.GetXLightsFrame()->AbortRender();
 
     wxXmlNode *e = g->GetModelXml();
 
     wxString ModelsInGroup = "";
-    for (int i = 0; i < ListBoxModelsInGroup->GetItemCount(); i++)
-    {
-        if (i < ListBoxModelsInGroup->GetItemCount() - 1)
-        {
+    for (int i = 0; i < ListBoxModelsInGroup->GetItemCount(); i++) {
+        if (i < ListBoxModelsInGroup->GetItemCount() - 1) {
             ModelsInGroup += ListBoxModelsInGroup->GetItemText(i, 0) + ",";
-        }
-        else
-        {
+        } else {
             ModelsInGroup += ListBoxModelsInGroup->GetItemText(i, 0);
         }
     }
@@ -689,8 +693,7 @@ void ModelGroupPanel::SaveGroupChanges()
     e->DeleteAttribute("XCentreOffset");
     e->DeleteAttribute("YCentreOffset");
     e->DeleteAttribute("TagColour");
-    if (ChoiceModelLayoutType->GetSelection() == 1)
-    {
+    if (ChoiceModelLayoutType->GetSelection() == 1) {
         e->AddAttribute("XCentreOffset", wxString::Format("%d", SpinCtrl_XCentreOffset->GetValue()));
         e->AddAttribute("YCentreOffset", wxString::Format("%d", SpinCtrl_YCentreOffset->GetValue()));
     }

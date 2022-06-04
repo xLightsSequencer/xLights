@@ -11,15 +11,15 @@
  **************************************************************/
 
  //(*Headers(FireworksPanel)
-#include <wx/panel.h>
-class wxBitmapButton;
-class wxCheckBox;
-class wxChoice;
-class wxFlexGridSizer;
-class wxSlider;
-class wxStaticText;
-class wxTextCtrl;
-//*)
+ #include <wx/panel.h>
+ class wxBitmapButton;
+ class wxCheckBox;
+ class wxChoice;
+ class wxFlexGridSizer;
+ class wxSlider;
+ class wxStaticText;
+ class wxTextCtrl;
+ //*)
 
 #include <list>
 #include "../BulkEditControls.h"

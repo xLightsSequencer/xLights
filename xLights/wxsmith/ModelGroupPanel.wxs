@@ -301,7 +301,7 @@
 									<cols>1</cols>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="ButtonAddModel" member="yes">
-											<bitmap stock_id="wxART_GO_FORWARD" stock_client="wxART_TOOLBAR" />
+											<bitmap code='wxArtProvider::GetBitmapBundle(&quot;wxART_GO_FORWARD&quot;, wxART_TOOLBAR)' />
 											<handler function="OnButtonAddToModelGroupClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -310,7 +310,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="ButtonRemoveModel" member="yes">
-											<bitmap stock_id="wxART_GO_BACK" stock_client="wxART_TOOLBAR" />
+											<bitmap code='wxArtProvider::GetBitmapBundle(&quot;wxART_GO_BACK&quot;, wxART_TOOLBAR)' />
 											<handler function="OnButtonRemoveFromModelGroupClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -325,7 +325,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="ButtonMoveUp" member="yes">
-											<bitmap stock_id="wxART_GO_UP" stock_client="wxART_TOOLBAR" />
+											<bitmap code='wxArtProvider::GetBitmapBundle(&quot;wxART_GO_UP&quot;, wxART_TOOLBAR)' />
 											<handler function="OnButtonUpClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -334,7 +334,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" variable="ButtonMoveDown" member="yes">
-											<bitmap stock_id="wxART_GO_DOWN" stock_client="wxART_TOOLBAR" />
+											<bitmap code='wxArtProvider::GetBitmapBundle(&quot;wxART_GO_DOWN&quot;, wxART_TOOLBAR)' />
 											<handler function="OnButtonDownClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

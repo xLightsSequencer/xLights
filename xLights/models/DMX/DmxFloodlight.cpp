@@ -13,6 +13,8 @@
 #include <wx/xml/xml.h>
 
 #include "DmxFloodlight.h"
+#include "DmxColorAbilityRGB.h"
+#include "DmxPresetAbility.h"
 #include "../../ModelPreview.h"
 #include "../../UtilFunctions.h"
 #include "../../xLightsMain.h"
@@ -21,7 +23,6 @@
 DmxFloodlight::DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     : DmxModel(node, manager, zeroBased), beam_length(1)
 {
-    color_ability = this;
     SetFromXml(node, zeroBased);
 }
 
@@ -33,7 +34,9 @@ DmxFloodlight::~DmxFloodlight()
 void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid) {
 
     DmxModel::AddTypeProperties(grid);
-    AddColorTypeProperties(grid);
+    if (nullptr != color_ability) {
+        color_ability->AddColorTypeProperties(grid);
+    }
     AddShutterTypeProperties(grid);
 
     auto p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
@@ -71,7 +74,7 @@ int DmxFloodlight::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         return 0;
     }
 
-    if (OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
     }
 
@@ -86,21 +89,21 @@ void DmxFloodlight::InitModel()
 {
     DmxModel::InitModel();
     DisplayAs = "DmxFloodlight";
-    red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "1"));
-    green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "2"));
-    blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "3"));
-    white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
+
+    color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+
     shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
     shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
+    shutter_on_value = wxAtoi(ModelXml->GetAttribute("DmxShutterOnValue", "0"));
     beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "1.0"));
     screenLocation.SetRenderSize(1, 1, 1);
 }
 
 void DmxFloodlight::GetColors(xlColor& center, xlColor& edge, bool allowSelected, const xlColor* c)
 {
-    GetColor(center, transparency, blackTransparency, allowSelected, c, Nodes);
+    color_ability->GetColor(center, transparency, blackTransparency, allowSelected, c, Nodes);
     edge = center;
-    if (pixelStyle != 2) {
+    if (_pixelStyle != PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE) {
         edge.alpha = 0;
     }
 }
@@ -108,29 +111,6 @@ void DmxFloodlight::GetColors(xlColor& center, xlColor& edge, bool allowSelected
 void DmxFloodlight::DrawModel(xlVertexColorAccumulator* vac, xlColor& center, xlColor& edge, float beam_length)
 {
     vac->AddCircleAsTriangles(0, 0, 0, 0.5, center, edge, beam_length);
-}
-
-std::list<std::string> DmxFloodlight::CheckModelSettings()
-{
-    std::list<std::string> res;
-
-    int nodeCount = Nodes.size();
-
-    if (red_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s red channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), red_channel, nodeCount));
-    }
-    if (green_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s green channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), green_channel, nodeCount));
-    }
-    if (blue_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s blue channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), blue_channel, nodeCount));
-    }
-    if (white_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s white channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), white_channel, nodeCount));
-    }
-
-    res.splice(res.end(), Model::CheckModelSettings());
-    return res;
 }
 
 void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
@@ -151,10 +131,7 @@ void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
     bool shutter_open = allowSelected || IsShutterOpen(Nodes);
 
     size_t NodeCount = Nodes.size();
-    if (red_channel > NodeCount ||
-        green_channel > NodeCount ||
-        blue_channel > NodeCount ||
-        white_channel > NodeCount) {
+    if (!color_ability->IsValidModelSettings(this) || !preset_ability->IsValidModelSettings(this)) {
         DmxModel::DrawInvalid(solidProgram, &(GetModelScreenLocation()), is_3d, true);
     } else {
         xlColor center, edge;
@@ -264,20 +241,13 @@ void DmxFloodlight::ExportXlightsModel()
     if (!f.Create(filename, true) || !f.IsOpened())
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
-    ExportBaseParameters(f);
 
-    wxString rc = ModelXml->GetAttribute("DmxRedChannel", "0");
-    wxString gc = ModelXml->GetAttribute("DmxGreenChannel", "0");
-    wxString bc = ModelXml->GetAttribute("DmxBlueChannel", "0");
-    wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
     wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
-    f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));
-    f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
-    f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
-    f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
+    ExportBaseParameters(f);
+    color_ability->ExportParameters(f,ModelXml);
     f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
 
     f.Write(" >\n");
@@ -305,19 +275,12 @@ void DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         wxString name = root->GetAttribute("name");
         wxString v = root->GetAttribute("SourceVersion");
 
-        wxString rc = root->GetAttribute("DmxRedChannel");
-        wxString gc = root->GetAttribute("DmxGreenChannel");
-        wxString bc = root->GetAttribute("DmxBlueChannel");
-        wxString wc = root->GetAttribute("DmxWhiteChannel");
         wxString dbl = root->GetAttribute("DmxBeamLength", "1");
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
 
-        SetProperty("DmxRedChannel", rc);
-        SetProperty("DmxGreenChannel", gc);
-        SetProperty("DmxBlueChannel", bc);
-        SetProperty("DmxWhiteChannel", wc);
+        color_ability->ImportParameters(root, this);
         SetProperty("DmxBeamLength", dbl);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
@@ -331,4 +294,14 @@ void DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
     } else {
         DisplayError("Failure loading DmxFloodlight model file.");
     }
+}
+
+std::vector<std::string> DmxFloodlight::GenerateNodeNames() const
+{
+    std::vector<std::string> names = DmxModel::GenerateNodeNames();
+
+    if (0 != shutter_channel && shutter_channel < names.size()) {
+        names[shutter_channel - 1] = "Shutter";
+    }
+    return names;
 }

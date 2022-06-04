@@ -52,6 +52,7 @@ public:
     static ControllerCaps* GetControllerConfig(const std::string& vendor, const std::string& model, const std::string& variant);
     static ControllerCaps* GetControllerConfig(const Controller* const controller);
     static ControllerCaps* GetControllerConfigByID(const std::string& ID);
+    static ControllerCaps* GetControllerConfigByModel(const std::string& model, const std::string& variant);
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
@@ -127,7 +128,7 @@ public:
     std::vector<std::string> GetSmartRemoteTypes() const;
 
     std::string GetCustomPropertyByPath(const std::string path, const std::string& def = "") const;
-    
+
     void Dump() const;
-    #pragma endregion 
+    #pragma endregion
 };

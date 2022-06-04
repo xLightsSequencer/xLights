@@ -1,0 +1,90 @@
+<Vendor Name="ScottNation">
+    <Controller Name="PB16">
+        <Variant Name="No Expansion" ID="PB16" Base="FPP:FPPStringCape">
+            <MaxPixelPort>16</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+        </Variant>
+        <Variant Name="Expansion" ID="PB16-EXP" Base="FPP:FPPStringCape">
+            <MaxPixelPort>32</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>17,16</fpp1>
+        </Variant>
+    </Controller>
+    <Controller Name="PB16v2">
+        <Variant Name="No Expansion" ID="PB16v2" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>20</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>21,-1</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="Expansion" ID="PB16v2-EXP" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>36</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>21,16</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
+    <Controller Name="BBB16">
+        <Variant Name="No Expansion" ID="BBB16" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>16</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>17,-1</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="Expansion" ID="BBB16-EXP" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>32</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>17,16</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
+    <Controller Name="BBB16v2">
+        <Variant Name="No Expansion" ID="BBB16v2" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>20</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>21,-1</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="w/Expansion" ID="BBB16v2-EXP" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>36</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>21,16</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
+    <Controller Name="BBB16-Flex">
+        <Variant Name="" ID="BBB16-Flex" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>17,16</fpp1>
+            <fpp2>33,16</fpp2>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
+    <Controller Name="BBB16-Exp">
+        <Variant Name="" ID="BBB16-Exp" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>17,16</fpp1>
+            <fpp2>33,16</fpp2>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
+</Vendor>

@@ -38,7 +38,7 @@ class FaceGrid;
 class xLightsFrame;
 class ModelManager;
 
-class ModelFaceDialog: public wxDialog
+class ModelFaceDialog : public wxDialog
 {
     const std::list<std::string> _phonemes = { "AI", "E", "etc", "FV", "L", "MBP", "O", "rest", "U", "WQ" };
     static wxColourData _colorData;
@@ -52,138 +52,134 @@ class ModelFaceDialog: public wxDialog
     void TryToFindPath(wxString& filename) const;
     void ValidateMatrixGrid(int r, int c) const;
 
-    public:
+public:
+    ModelFaceDialog(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    virtual ~ModelFaceDialog();
 
-		ModelFaceDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
-		virtual ~ModelFaceDialog();
+    //(*Declarations(ModelFaceDialog)
+    wxButton* ButtonImport;
+    wxButton* Button_DownloadImages;
+    wxButton* DeleteButton;
+    wxCheckBox* CustomColorNodeRanges;
+    wxCheckBox* CustomColorSingleNode;
+    wxChoice* MatrixImagePlacementChoice;
+    wxChoice* NameChoice;
+    wxChoicebook* FaceTypeChoice;
+    wxGrid* MatrixModelsGrid;
+    wxGrid* NodeRangeGrid;
+    wxGrid* SingleNodeGrid;
+    wxPanel* Matrix;
+    wxPanel* ModelPreviewPanelLocation;
+    wxPanel* Panel3;
+    wxPanel* Panel_Matrix;
+    wxPanel* Panel_NodeRanges;
+    wxPanel* Panel_SingleNode;
+    wxSplitterWindow* SplitterWindow1;
+    wxStaticText* StaticText3;
+    //*)
 
-		//(*Declarations(ModelFaceDialog)
-		wxButton* ButtonImport;
-		wxButton* Button_DownloadImages;
-		wxButton* DeleteButton;
-		wxCheckBox* CustomColorNodeRanges;
-		wxCheckBox* CustomColorSingleNode;
-		wxChoice* MatrixImagePlacementChoice;
-		wxChoice* NameChoice;
-		wxChoicebook* FaceTypeChoice;
-		wxGrid* MatrixModelsGrid;
-		wxGrid* NodeRangeGrid;
-		wxGrid* SingleNodeGrid;
-		wxPanel* Matrix;
-		wxPanel* ModelPreviewPanelLocation;
-		wxPanel* Panel3;
-		wxPanel* Panel_Matrix;
-		wxPanel* Panel_NodeRanges;
-		wxPanel* Panel_SingleNode;
-		wxSplitterWindow* SplitterWindow1;
-		wxStaticText* StaticText3;
-		//*)
+    static const long FACES_DIALOG_IMPORT_SUB;
+    static const long FACES_DIALOG_IMPORT_MODEL;
+    static const long FACES_DIALOG_IMPORT_FILE;
+    static const long FACES_DIALOG_COPY;
+    static const long FACES_DIALOG_RENAME;
+    static const long FACES_DIALOG_SHIFT;
+    static const long FACES_DIALOG_REVERSE;
 
-        static const long FACES_DIALOG_IMPORT_SUB;
-        static const long FACES_DIALOG_IMPORT_MODEL;
-        static const long FACES_DIALOG_IMPORT_FILE;
-        static const long FACES_DIALOG_COPY;
-        static const long FACES_DIALOG_RENAME;
-        static const long FACES_DIALOG_SHIFT;
-        static const long FACES_DIALOG_REVERSE;
+    void SetFaceInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>>& info);
+    void GetFaceInfo(std::map<std::string, std::map<std::string, std::string>>& info);
 
-        void SetFaceInfo(Model *cls, std::map<std::string, std::map<std::string, std::string> > &info);
-        void GetFaceInfo(std::map<std::string, std::map<std::string, std::string> > &info);
-	protected:
+protected:
+    //(*Identifiers(ModelFaceDialog)
+    static const long ID_STATICTEXT2;
+    static const long ID_CHOICE3;
+    static const long ID_BUTTON3;
+    static const long ID_BUTTON_IMPORT;
+    static const long ID_BUTTON4;
+    static const long ID_PANEL4;
+    static const long ID_CHECKBOX1;
+    static const long ID_GRID_COROFACES;
+    static const long ID_PANEL2;
+    static const long ID_PANEL8;
+    static const long ID_CHECKBOX2;
+    static const long ID_GRID3;
+    static const long ID_PANEL6;
+    static const long ID_PANEL7;
+    static const long ID_CHOICE2;
+    static const long ID_BUTTON1;
+    static const long ID_GRID1;
+    static const long ID_PANEL3;
+    static const long ID_CHOICEBOOK1;
+    static const long ID_PANEL5;
+    static const long ID_PANEL1;
+    static const long ID_SPLITTERWINDOW1;
+    //*)
 
-		//(*Identifiers(ModelFaceDialog)
-		static const long ID_STATICTEXT2;
-		static const long ID_CHOICE3;
-		static const long ID_BUTTON3;
-		static const long ID_BUTTON_IMPORT;
-		static const long ID_BUTTON4;
-		static const long ID_PANEL4;
-		static const long ID_CHECKBOX1;
-		static const long ID_GRID_COROFACES;
-		static const long ID_PANEL2;
-		static const long ID_PANEL8;
-		static const long ID_CHECKBOX2;
-		static const long ID_GRID3;
-		static const long ID_PANEL6;
-		static const long ID_PANEL7;
-		static const long ID_CHOICE2;
-		static const long ID_BUTTON1;
-		static const long ID_GRID1;
-		static const long ID_PANEL3;
-		static const long ID_CHOICEBOOK1;
-		static const long ID_PANEL5;
-		static const long ID_PANEL1;
-		static const long ID_SPLITTERWINDOW1;
-		//*)
+private:
+    //(*Handlers(ModelFaceDialog)
+    void OnMatrixNameChoiceSelect(wxCommandEvent& event);
+    void OnButtonMatrixAddClicked(wxCommandEvent& event);
+    void OnButtonMatrixDeleteClick(wxCommandEvent& event);
+    void OnMatrixModelsGridCellLeftClick(wxGridEvent& event);
+    void OnMatrixModelsGridCellChange(wxGridEvent& event);
+    void OnMatricImagePlacementChoiceSelect(wxCommandEvent& event);
+    void OnCustomColorCheckboxClick(wxCommandEvent& event);
+    void OnNodeRangeGridCellChange(wxGridEvent& event);
+    void OnSingleNodeGridCellChange(wxGridEvent& event);
+    void OnFaceTypeChoicePageChanged(wxChoicebookEvent& event);
+    void OnNodeRangeGridCellLeftDClick(wxGridEvent& event);
+    void OnSingleNodeGridCellLeftDClick(wxGridEvent& event);
+    void OnMatrixModelsGridCellSelect(wxGridEvent& event);
+    void OnMatrixModelsGridCellLeftClick1(wxGridEvent& event);
+    void OnSingleNodeGridCellSelect(wxGridEvent& event);
+    void OnSingleNodeGridCellLeftClick(wxGridEvent& event);
+    void OnNodeRangeGridCellLeftClick(wxGridEvent& event);
+    void OnNodeRangeGridCellSelect(wxGridEvent& event);
+    void Paint(wxPaintEvent& event);
+    void OnButton_DownloadImagesClick(wxCommandEvent& event);
+    void OnNodeRangeGridCellRightClick(wxGridEvent& event);
+    void OnNodeRangeGridLabelLeftDClick(wxGridEvent& event);
+    void OnButtonImportClick(wxCommandEvent& event);
+    void OnMatrixModelsGridLabelLeftDClick(wxGridEvent& event);
+    //*)
 
-	private:
+    void OnAddBtnPopup(wxCommandEvent& event);
+    void OnPreviewLeftUp(wxMouseEvent& event);
+    void OnPreviewMouseLeave(wxMouseEvent& event);
+    void OnPreviewLeftDown(wxMouseEvent& event);
+    void OnPreviewLeftDClick(wxMouseEvent& event);
+    void OnPreviewMouseMove(wxMouseEvent& event);
 
-		//(*Handlers(ModelFaceDialog)
-		void OnMatrixNameChoiceSelect(wxCommandEvent& event);
-		void OnButtonMatrixAddClicked(wxCommandEvent& event);
-		void OnButtonMatrixDeleteClick(wxCommandEvent& event);
-		void OnMatrixModelsGridCellLeftClick(wxGridEvent& event);
-		void OnMatrixModelsGridCellChange(wxGridEvent& event);
-		void OnMatricImagePlacementChoiceSelect(wxCommandEvent& event);
-		void OnCustomColorCheckboxClick(wxCommandEvent& event);
-		void OnNodeRangeGridCellChange(wxGridEvent& event);
-		void OnSingleNodeGridCellChange(wxGridEvent& event);
-		void OnFaceTypeChoicePageChanged(wxChoicebookEvent& event);
-		void OnNodeRangeGridCellLeftDClick(wxGridEvent& event);
-		void OnSingleNodeGridCellLeftDClick(wxGridEvent& event);
-		void OnMatrixModelsGridCellSelect(wxGridEvent& event);
-		void OnMatrixModelsGridCellLeftClick1(wxGridEvent& event);
-		void OnSingleNodeGridCellSelect(wxGridEvent& event);
-		void OnSingleNodeGridCellLeftClick(wxGridEvent& event);
-		void OnNodeRangeGridCellLeftClick(wxGridEvent& event);
-		void OnNodeRangeGridCellSelect(wxGridEvent& event);
-		void Paint(wxPaintEvent& event);
-		void OnButton_DownloadImagesClick(wxCommandEvent& event);
-		void OnNodeRangeGridCellRightClick(wxGridEvent& event);
-		void OnNodeRangeGridLabelLeftDClick(wxGridEvent& event);
-		void OnButtonImportClick(wxCommandEvent& event);
-		void OnMatrixModelsGridLabelLeftDClick(wxGridEvent& event);
-		//*)
+    DECLARE_EVENT_TABLE()
 
-        void OnAddBtnPopup(wxCommandEvent& event);
+    bool m_creating_bound_rect = false;
+    int m_bound_start_x = 0;
+    int m_bound_start_y = 0;
+    int m_bound_end_x = 0;
+    int m_bound_end_y = 0;
+    int mPointSize;
+    ModelPreview* modelPreview = nullptr;
+    Model* model = nullptr;
+    std::map<std::string, std::map<std::string, std::string>> faceData;
 
-		void OnPreviewLeftUp(wxMouseEvent& event);
-		void OnPreviewMouseLeave(wxMouseEvent& event);
-		void OnPreviewLeftDown(wxMouseEvent& event);
-		void OnPreviewLeftDClick(wxMouseEvent& event);
-		void OnPreviewMouseMove(wxMouseEvent& event);
-
-		DECLARE_EVENT_TABLE()
-
-		bool m_creating_bound_rect;
-		int m_bound_start_x;
-		int m_bound_start_y;
-		int m_bound_end_x;
-		int m_bound_end_y;
-		int mPointSize;
-
-    std::map<std::string, std::map<std::string, std::string> > faceData;
-    void SelectFaceModel(const std::string &s);
-    ModelPreview *modelPreview;
-    Model *model;
+    void SelectFaceModel(const std::string& s);
     void UpdatePreview(const std::string& channels, wxColor c);
-    void GetValue(wxGrid *grid, const int row, const int col, std::map<std::string, std::string> &info);
+    void GetValue(wxGrid* grid, const int row, const int col, std::map<std::string, std::string>& info);
     void OnGridPopup(const int rightEventID, wxGridEvent& gridEvent);
     void ImportSubmodel(wxGridEvent& event);
     wxString getSubmodelNodes(Model* sm);
     void ImportFaces(const wxString& filename);
     void ImportFacesFromModel();
-    void AddFaces(std::map<std::string, std::map<std::string, std::string> > faces);
+    void AddFaces(std::map<std::string, std::map<std::string, std::string>> faces);
     wxArrayString getModelList(ModelManager* modelManager);
     void CopyFaceData();
     void RenameFace();
-	void RemoveNodes();
+    void RemoveNodes();
     void ShiftFaceNodes();
     void ReverseFaceNodes();
 
-	void SelectMatrixImage(int r, int c);
-	void RenderModel();
-	void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
-	void SelectAllInBoundingRect(bool shiftdwn);
+    void SelectMatrixImage(int r, int c);
+    void RenderModel();
+    void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
+    void SelectAllInBoundingRect(bool shiftdwn);
 };
-

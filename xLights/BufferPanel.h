@@ -11,17 +11,17 @@
  **************************************************************/
 
  //(*Headers(BufferPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/choice.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
-#include <wx/scrolwin.h>
-#include <wx/sizer.h>
-#include <wx/slider.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-//*)
+ #include <wx/bmpbuttn.h>
+ #include <wx/checkbox.h>
+ #include <wx/choice.h>
+ #include <wx/notebook.h>
+ #include <wx/panel.h>
+ #include <wx/scrolwin.h>
+ #include <wx/sizer.h>
+ #include <wx/slider.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 #include <string>
 

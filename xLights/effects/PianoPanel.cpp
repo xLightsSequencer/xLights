@@ -9,7 +9,6 @@
  **************************************************************/
 
 //(*InternalHeaders(PianoPanel)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
@@ -97,7 +96,7 @@ PianoPanel::PianoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Piano_ShowSharps = new BulkEditCheckBox(this, ID_CHECKBOX_Piano_ShowSharps, _("Show Sharps and Flats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Piano_ShowSharps"));
 	CheckBox_Piano_ShowSharps->SetValue(true);
 	FlexGridSizer27->Add(CheckBox_Piano_ShowSharps, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Piano_ShowSharps = new xlLockButton(this, ID_BITMAPBUTTON_Piano_ShowSharps, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_ShowSharps"));
+	BitmapButton_Piano_ShowSharps = new xlLockButton(this, ID_BITMAPBUTTON_Piano_ShowSharps, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_ShowSharps"));
 	BitmapButton_Piano_ShowSharps->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer27->Add(BitmapButton_Piano_ShowSharps, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer27->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -115,7 +114,7 @@ PianoPanel::PianoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer4->AddGrowableCol(0);
 	Slider_Piano_Scale = new BulkEditSlider(this, ID_SLIDER_Piano_Scale, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano_Scale"));
 	FlexGridSizer4->Add(Slider_Piano_Scale, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Piano_ScaleVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Piano_Scale, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Piano_Scale"));
+	BitmapButton_Piano_ScaleVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Piano_Scale, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Piano_Scale"));
 	FlexGridSizer4->Add(BitmapButton_Piano_ScaleVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Piano_Scale = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Piano_Scale, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Piano_Scale"));
@@ -130,8 +129,6 @@ PianoPanel::PianoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer42->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
-	FlexGridSizer42->Fit(this);
-	FlexGridSizer42->SetSizeHints(this);
 
 	Connect(ID_SPINCTRL_Piano_StartMIDI,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PianoPanel::OnSpinCtrl_Piano_StartMIDIChange);
 	Connect(ID_SPINCTRL_Piano_EndMIDI,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PianoPanel::OnSpinCtrl_Piano_EndMIDIChange);

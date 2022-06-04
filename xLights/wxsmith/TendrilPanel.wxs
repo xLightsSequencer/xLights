@@ -47,11 +47,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Tendril_Movement" variable="BitmapButton_Tendril_Movement" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Tendril_Movement" subclass="xlLockButton" variable="BitmapButton_Tendril_Movement" member="yes">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -81,8 +80,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Tendril_TuneMovement" subclass="BulkEditValueCurveButton" variable="BitmapButton_Tendril_TuneMovementVC" member="yes">
-                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -105,11 +104,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_TuneMovement" variable="BitmapButton_Tendril_TuneMovement" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_TuneMovement" subclass="xlLockButton" variable="BitmapButton_Tendril_TuneMovement" member="yes">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -140,8 +138,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Tendril_Thickness" subclass="BulkEditValueCurveButton" variable="BitmapButton_Tendril_ThicknessVC" member="yes">
-                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -164,11 +162,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_Thickness" variable="BitmapButton_Tendril_Thickness" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_Thickness" subclass="xlLockButton" variable="BitmapButton_Tendril_Thickness" member="yes">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -203,11 +200,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_Friction" variable="BitmapButton_TendrilFriction" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_Friction" subclass="xlLockButton" variable="BitmapButton_TendrilFriction" member="yes">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -242,11 +238,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_Dampening" variable="BitmapButton_TendrilDampening" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_Dampening" subclass="xlLockButton" variable="BitmapButton_TendrilDampening" member="yes">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -281,11 +276,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_Tension" variable="BitmapButton_TendrilTension" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_Tension" subclass="xlLockButton" variable="BitmapButton_TendrilTension" member="yes">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -321,11 +315,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_Trails" variable="BitmapButton_TendrilTrails" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_Trails" subclass="xlLockButton" variable="BitmapButton_TendrilTrails" member="yes">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -360,11 +353,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_Length" variable="BitmapButton_TendrilLength" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_Length" subclass="xlLockButton" variable="BitmapButton_TendrilLength" member="yes">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -400,11 +392,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="IID_BITMAPBUTTON_SLIDER_Tendril_Speed" variable="BitmapButton_TendrilSpeed" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+						<object class="wxBitmapButton" name="IID_BITMAPBUTTON_SLIDER_Tendril_Speed" subclass="xlLockButton" variable="BitmapButton_TendrilSpeed" member="yes">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -433,8 +424,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Tendril_XOffset" subclass="BulkEditValueCurveButton" variable="BitmapButton_Tendril_XOffsetVC" member="yes">
-                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -457,11 +448,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_XOffset" variable="BitmapButton_Tendril_XOffset" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_XOffset" subclass="xlLockButton" variable="BitmapButton_Tendril_XOffset" member="yes">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -490,8 +480,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Tendril_YOffset" subclass="BulkEditValueCurveButton" variable="BitmapButton_Tendril_YOffsetVC" member="yes">
-                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -514,11 +504,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_YOffset" variable="BitmapButton_Tendril_YOffset" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Tendril_YOffset" subclass="xlLockButton" variable="BitmapButton_Tendril_YOffset" member="yes">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -545,8 +534,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Tendril_ManualX" subclass="BulkEditValueCurveButton" variable="BitmapButton_Tendril_ManualXVC" member="yes">
-                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -593,8 +582,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Tendril_ManualY" subclass="BulkEditValueCurveButton" variable="BitmapButton_Tendril_ManualYVC" member="yes">
-                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

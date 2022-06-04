@@ -405,7 +405,7 @@ public:
     RenderBuffer(xLightsFrame *frame);
     ~RenderBuffer();
     RenderBuffer(RenderBuffer& buffer);
-    void InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform, bool nodeBuffer = false);
+    void InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform, bool nodeBuffer = false);
     AudioManager* GetMedia() const;
     Model* GetModel() const;
     Model* GetPermissiveModel() const; // gets the model even if it is a submodel/strand
@@ -494,8 +494,6 @@ public:
 
     int BufferHt = 1;
     int BufferWi = 1;  // size of the buffer
-    int ModelBufferHt = 1;
-    int ModelBufferWi = 1;  // size of the buffer
 
 private:
     xlColorVector pixelVector; // this is the calculation buffer

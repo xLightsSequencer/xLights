@@ -31,13 +31,14 @@ class StrandNodeNamesDialog: public wxDialog
 
 		//(*Declarations(StrandNodeNamesDialog)
 		wxButton* ButtonCancel;
+		wxButton* ButtonGenNames;
 		wxButton* ButtonOk;
 		wxGrid* NodesGrid;
 		wxGrid* StrandsGrid;
 		//*)
 
         void Setup(const Model *md, const std::string &nodeNames, const std::string &strandNames);
-    
+
         std::string GetNodeNames();
         std::string GetStrandNames();
 	protected:
@@ -45,6 +46,7 @@ class StrandNodeNamesDialog: public wxDialog
 		//(*Identifiers(StrandNodeNamesDialog)
 		static const long ID_GRID2;
 		static const long ID_GRID1;
+		static const long ID_BUTTON_GEN_NAMES;
 		static const long ID_BUTTONOK;
 		static const long ID_BUTTONCANCEL;
 		//*)
@@ -56,7 +58,10 @@ class StrandNodeNamesDialog: public wxDialog
 		void OnButtonOkClick(wxCommandEvent& event);
 		void OnStrandsGridCellChanged(wxGridEvent& event);
 		void OnNodesGridCellChanged(wxGridEvent& event);
+		void OnButtonGenNamesClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
+
+		const Model* m;
 };

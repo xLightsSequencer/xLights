@@ -751,20 +751,14 @@ public:
                 iconSize = 16;
             }
 
-            wxBitmap bmp =  wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(iconType), wxART_LIST, wxDefaultSize);
+            wxBitmapBundle bmp =  wxArtProvider::GetBitmapBundle(wxART_MAKE_ART_ID_FROM_STR(iconType), wxART_BUTTON, wxDefaultSize);
             if (bmp.IsOk()) {
-                int height = bmp.GetScaledHeight();
-                if (height > iconSize) {
-                    wxImage img = bmp.ConvertToImage();
-                    img.Rescale(iconSize, iconSize);
-                    bmp = wxBitmap(img);
-                }
 #ifdef __WXOSX__
-                dc.DrawBitmap(bmp, location.x + sz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3) - bmp.GetScaledWidth(), pt.y);
+                dc.DrawBitmap(bmp.GetBitmap(wxSize(iconSize*2, iconSize*2)), location.x + sz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3) - iconSize, pt.y);
 #else
-                wxIcon icon;
-                icon.CopyFromBitmap(bmp);
-                dc.DrawIcon(icon, location.x + sz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3) - bmp.GetScaledWidth(), pt.y);
+                int i2 = ScaleWithSystemDPI(GetSystemContentScaleFactor(), iconSize);
+                wxIcon icon = bmp.GetIcon(wxSize(i2, i2));
+                dc.DrawIcon(icon, location.x + sz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3) - iconSize, pt.y);
 #endif
             }
 

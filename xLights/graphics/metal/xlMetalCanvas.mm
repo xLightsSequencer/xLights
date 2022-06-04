@@ -297,15 +297,13 @@ void xlMetalCanvas::captureNextFrame(int w, int h) {
 }
 
 
-extern void VideoToolboxCreateFrame(CIImage *image, AVFrame *f);
+extern void VideoToolboxCreateFrame(CIImage *image, AVFrame *f, id<MTLDevice> d);
 
 bool xlMetalCanvas::getFrameForExport(int w, int h, AVFrame *f, uint8_t *buffer, int bufferSize) {
     if (captureBuffer == nullptr || captureBuffer->buffer == nil) {
         return true;
     }
     static CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    uint8_t *src = (uint8_t*)captureBuffer->buffer.contents;
-    uint8_t *dst = buffer;
     
     if (f->format == AV_PIX_FMT_VIDEOTOOLBOX) {
         @autoreleasepool {
@@ -315,12 +313,14 @@ bool xlMetalCanvas::getFrameForExport(int w, int h, AVFrame *f, uint8_t *buffer,
             CIImage *image = [CIImage imageWithMTLTexture:captureBuffer->target options:dict];
             CIImage *i2 = [image imageByApplyingCGOrientation:kCGImagePropertyOrientationDownMirrored];
                         
-            VideoToolboxCreateFrame(i2, f);
+            VideoToolboxCreateFrame(i2, f, getMTLDevice());
             
             [dict release];
         }
         return false;
     }
+    uint8_t *src = (uint8_t*)captureBuffer->buffer.contents;
+    uint8_t *dst = buffer;
     for (int x = 0; x < w * h; x++, src += 4, dst += 3) {
         dst[0] = src[2];
         dst[1] = src[1];

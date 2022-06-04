@@ -109,12 +109,7 @@ enum {
 #endif
 
 ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id, const wxPoint& pos,const wxSize& size):
-    m_creating_bound_rect(false),
-    m_bound_start_x(0),
-    m_bound_start_y(0),
-    m_bound_end_x(0),
-    m_bound_end_y(0),
-    mPointSize(2)
+    mPointSize(PIXEL_SIZE_ON_DIALOGS)
 {
 	//(*Initialize(ModelFaceDialog)
 	wxButton* AddButton;
@@ -451,6 +446,8 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
     for (int x = 0; x < NodeRangeGrid->GetNumberRows(); x++) {
         NodeRangeGrid->SetReadOnly(x, 1);
     }
+
+    UpdatePreview("", *wxWHITE);
 }
 
 void ModelFaceDialog::GetFaceInfo(std::map< std::string, std::map<std::string, std::string> > &finfo) {
@@ -529,7 +526,6 @@ void ModelFaceDialog::SelectFaceModel(const std::string &name) {
         MatrixImagePlacementChoice->SetStringSelection(w);
     }
 }
-
 
 void ModelFaceDialog::OnMatrixNameChoiceSelect(wxCommandEvent& event)
 {
@@ -973,7 +969,7 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
             }
         }
     }
-    model->DisplayEffectOnWindow(modelPreview, PIXEL_SIZE_ON_DIALOGS);
+    model->DisplayEffectOnWindow(modelPreview, mPointSize);
 }
 
 void ModelFaceDialog::OnNodeRangeGridCellChange(wxGridEvent& event)
@@ -1749,7 +1745,7 @@ void ModelFaceDialog::RenderModel()
     if (m_creating_bound_rect) {
         modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
     }
-    model->DisplayEffectOnWindow(modelPreview, PIXEL_SIZE_ON_DIALOGS);
+    model->DisplayEffectOnWindow(modelPreview, mPointSize);
     modelPreview->EndDrawing();
 }
 

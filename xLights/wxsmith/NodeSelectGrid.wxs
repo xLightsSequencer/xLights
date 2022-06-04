@@ -141,7 +141,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButton1" member="yes">
-											<bitmap stock_id="wxART_FIND" />
+											<bitmap code=' wxArtProvider::GetBitmapBundle(&quot;wxART_FIND&quot;, wxART_BUTTON)' />
 											<handler function="OnBitmapButton1Click" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

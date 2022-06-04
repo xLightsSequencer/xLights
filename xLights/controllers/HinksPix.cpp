@@ -734,9 +734,11 @@ void HinksPix::CalculateSmartRecievers(UDControllerPort* stringData) {
                     smartOut->portStartPixel[subPort] = start_pixels;
                 } else {
                     auto& smartPort = _smartOutputs[expansionBoard][bank].emplace_back(id);
+                    smartPort.portStartPixel[subPort] = start_pixels;
                     if (it->GetSmartRemoteType().find("16ac") != std::string::npos) {
                         smartPort.type = 2;
                         smartPort.portStartPixel = { 0, 0, 0, 0 };
+                        smartPort.portStartPixel[subPort] = start_pixels;
                     }
                     else if (it->GetSmartRemoteType().find("16") != std::string::npos && ((id % 4) == 0)) {
                         smartPort.type = 1;
@@ -745,8 +747,6 @@ void HinksPix::CalculateSmartRecievers(UDControllerPort* stringData) {
                         _smartOutputs[expansionBoard][bank].emplace_back(id + 2);
                         _smartOutputs[expansionBoard][bank].emplace_back(id + 3);
                     }
-                    
-                    smartPort.portStartPixel[subPort] = start_pixels;
                 }
             }
 

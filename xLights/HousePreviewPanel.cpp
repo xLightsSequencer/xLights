@@ -86,12 +86,8 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 	StaticText_Time = new wxStaticText(Panel1, ID_STATICTEXT1, _("00:00.000"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	ButtonSizer->Add(StaticText_Time, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Panel1->SetSizer(ButtonSizer);
-	ButtonSizer->Fit(Panel1);
-	ButtonSizer->SetSizeHints(Panel1);
 	FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND, 4);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HousePreviewPanel::OnPlayButtonClick);
 	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HousePreviewPanel::OnPauseButtonClick);
@@ -108,12 +104,12 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 
     ValidateWindow(GetSize());
 
-    PlayButton->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PLAY"))));
-    PauseButton->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PAUSE"))));
-    StopButton->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_STOP"))));
-    RewindButton->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_BACKWARD"))));
-    Rewind10Button->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_REWIND10"))));
-    FastForward10Button->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_FFORWARD10"))));
+    PlayButton->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_PLAY", wxART_TOOLBAR));
+    PauseButton->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_PAUSE", wxART_TOOLBAR));
+    StopButton->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_STOP", wxART_TOOLBAR));
+    RewindButton->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_BACKWARD", wxART_TOOLBAR));
+    Rewind10Button->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_REWIND10", wxART_TOOLBAR));
+    FastForward10Button->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_FFORWARD10", wxART_TOOLBAR));
 
     Rewind10Button->SetToolTip("Rewind 10 seconds.");
     FastForward10Button->SetToolTip("Fast forward 10 seconds.");

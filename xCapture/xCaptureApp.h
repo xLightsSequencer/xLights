@@ -19,13 +19,14 @@
 #endif
 #endif
 
-#include <wx/app.h>
+#include "../common/xlBaseApp.h"
 
-class xCaptureApp : public wxApp
+class xCaptureApp : public xlBaseApp
 {
     public:
+        xCaptureApp();
+
         virtual bool OnInit() override;
-        virtual void OnFatalException() override;
         void WipeSettings();
         virtual int OnExit() override;
 };

@@ -601,7 +601,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
         {
         case 1:
             // random
-            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddle, buffer.ModelBufferWi, buffer.ModelBufferHt);
+            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddle, buffer.BufferWi, buffer.BufferHt);
             break;
         case 2:
             // corners
@@ -613,7 +613,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             {
                 _mv4 = 1;
             }
-            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startbottomleft, buffer.ModelBufferWi, buffer.ModelBufferHt);
+            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startbottomleft, buffer.BufferWi, buffer.BufferHt);
             break;
         case 3:
             // circles
@@ -624,7 +624,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             {
                 _mv3 = 1;
             }
-            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddle, buffer.ModelBufferWi, buffer.ModelBufferHt);
+            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddle, buffer.BufferWi, buffer.BufferHt);
             break;
         case 4:
             // horizontal zig zag
@@ -635,14 +635,14 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
                 _mv2 = 1;
             }
             _mv3 = 1; // direction
-            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddlebottom, buffer.ModelBufferWi, buffer.ModelBufferHt);
+            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddlebottom, buffer.BufferWi, buffer.BufferHt);
             break;
         case 5:
             // vertical zig zag
             _mv1 = 0 + truexoffset; // current x
             _mv2 = (double)tunemovement * 1.5;
             _mv3 = 1; // direction
-            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddleleft, buffer.ModelBufferWi, buffer.ModelBufferHt);
+            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddleleft, buffer.BufferWi, buffer.BufferHt);
             break;
         case 6:
             // line movement based on music
@@ -652,7 +652,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             {
                 _mv3 = 1;
             }
-            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startbottomleft, buffer.ModelBufferWi, buffer.ModelBufferHt);
+            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startbottomleft, buffer.BufferWi, buffer.BufferHt);
             break;
         case 7:
             // circle movement based on music
@@ -663,7 +663,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             {
                 _mv3 = 1;
             }
-            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddle, buffer.ModelBufferWi, buffer.ModelBufferHt);
+            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddle, buffer.BufferWi, buffer.BufferHt);
             break;
         case 9:
             // horizontal zig zag return
@@ -674,17 +674,17 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
                 _mv2 = 1;
             }
             _mv3 = 1; // direction
-            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddlebottom, buffer.ModelBufferWi, buffer.ModelBufferHt);
+            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddlebottom, buffer.BufferWi, buffer.BufferHt);
             break;
         case 8:
             // vertical zig zag return
             _mv1 = 0; // current x
             _mv2 = (double)tunemovement * 1.5;
             _mv3 = 1; // direction
-            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddleleft, buffer.ModelBufferWi, buffer.ModelBufferHt);
+            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddleleft, buffer.BufferWi, buffer.BufferHt);
             break;
         case 10:
-            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, wxPoint(manualx * buffer.BufferWi / 100, manualy * buffer.BufferHt / 100), buffer.ModelBufferWi, buffer.ModelBufferHt);
+            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, wxPoint(manualx * buffer.BufferWi / 100, manualy * buffer.BufferHt / 100), buffer.BufferWi, buffer.BufferHt);
             break;
         }
     }

@@ -19,11 +19,12 @@
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
+#include "DmxColorAbilityRGB.h"
+#include "DmxPresetAbility.h"
 
 DmxGeneral::DmxGeneral(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
   : DmxModel(node, manager, zeroBased)
 {
-    color_ability = this;
     SetFromXml(node, zeroBased);
 }
 
@@ -36,12 +37,14 @@ void DmxGeneral::AddTypeProperties(wxPropertyGridInterface* grid)
 {
     DmxModel::AddTypeProperties(grid);
 
-    AddColorTypeProperties(grid);
+    if (nullptr != color_ability) {
+        color_ability->AddColorTypeProperties(grid);
+    }
 }
 
 int DmxGeneral::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
-    if (OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
     }
 
@@ -53,15 +56,11 @@ void DmxGeneral::InitModel()
     DmxModel::InitModel();
 
     DisplayAs = "DmxGeneral";
+    color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
 
     StringType = "Single Color White";
     parm2 = 1;
     parm3 = 1;
-
-    red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "0"));
-    green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "0"));
-    blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "0"));
-    white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
 
     screenLocation.SetRenderSize(1, 1, 1);
 }
@@ -78,19 +77,23 @@ void DmxGeneral::ExportXlightsModel()
     if (!f.Create(filename, true) || !f.IsOpened())
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
+    wxString sc = ModelXml->GetAttribute("DmxShutterChannel");
+    wxString so = ModelXml->GetAttribute("DmxShutterOpen");
+    wxString sov = ModelXml->GetAttribute("DmxShutterOnValue");
+    wxString bl = ModelXml->GetAttribute("DmxBeamLimit");
+    wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
+    wxString dbw = ModelXml->GetAttribute("DmxBeamWidth", "1");
+
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxgeneral \n");
 
+    f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
+    f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
+    f.Write(wxString::Format("DmxShutterOnValue=\"%s\" ", sov));
+    f.Write(wxString::Format("DmxBeamLimit=\"%s\" ", bl));
+    f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
+    f.Write(wxString::Format("DmxBeamWidth=\"%s\" ", dbw));
     ExportBaseParameters(f);
-
-    wxString rc = ModelXml->GetAttribute("DmxRedChannel", "0");
-    wxString gc = ModelXml->GetAttribute("DmxGreenChannel", "0");
-    wxString bc = ModelXml->GetAttribute("DmxBlueChannel", "0");
-    wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
-
-    f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));
-    f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
-    f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
-    f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
+    color_ability->ExportParameters(f,ModelXml);
 
     f.Write(" >\n");
 
@@ -118,12 +121,9 @@ void DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
         wxString name = root->GetAttribute("name");
         wxString v = root->GetAttribute("SourceVersion");
 
-        wxString rc = root->GetAttribute("DmxRedChannel");
-        wxString gc = root->GetAttribute("DmxGreenChannel");
-        wxString bc = root->GetAttribute("DmxBlueChannel");
-        wxString wc = root->GetAttribute("DmxWhiteChannel");
         wxString sc = root->GetAttribute("DmxShutterChannel");
         wxString so = root->GetAttribute("DmxShutterOpen");
+        wxString sov = root->GetAttribute("DmxShutterOnValue");
         wxString bl = root->GetAttribute("DmxBeamLimit");
         wxString dbl = root->GetAttribute("DmxBeamLength", "1");
         wxString dbw = root->GetAttribute("DmxBeamWidth", "1");
@@ -131,10 +131,14 @@ void DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
 
-        SetProperty("DmxRedChannel", rc);
-        SetProperty("DmxGreenChannel", gc);
-        SetProperty("DmxBlueChannel", bc);
-        SetProperty("DmxWhiteChannel", wc);
+        SetProperty("DmxShutterChannel", sc);
+        SetProperty("DmxShutterOpen", so);
+        SetProperty("DmxShutterOnValue", sov);
+        SetProperty("DmxBeamLimit", bl);
+        SetProperty("DmxBeamLength", dbl);
+        SetProperty("DmxBeamWidth", dbw);
+
+        color_ability->ImportParameters(root, this);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);
@@ -149,37 +153,11 @@ void DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
     }
 }
 
-std::list<std::string> DmxGeneral::CheckModelSettings()
-{
-    std::list<std::string> res;
-
-    int nodeCount = Nodes.size();
-
-    if (red_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s red channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), red_channel, nodeCount));
-    }
-    if (green_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s green channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), green_channel, nodeCount));
-    }
-    if (blue_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s blue channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), blue_channel, nodeCount));
-    }
-    if (white_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s white channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), white_channel, nodeCount));
-    }
-
-    res.splice(res.end(), Model::CheckModelSettings());
-    return res;
-}
-
 void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
 {
     size_t nodeCount = Nodes.size();
 
-    if (red_channel > nodeCount ||
-        green_channel > nodeCount ||
-        blue_channel > nodeCount ||
-        white_channel > nodeCount) {
+    if (!color_ability->IsValidModelSettings(this) || !preset_ability->IsValidModelSettings(this)) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
@@ -192,7 +170,7 @@ void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
     }
 
     int trans = color == xlBLACK ? blackTransparency : transparency;
-
+    /*
     if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
         xlColor proxy = xlBLACK;
         if (white_channel > 0) {
@@ -208,7 +186,7 @@ void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
         xlColor proxy;
         Nodes[white_channel - 1]->GetColor(proxy);
     }
-
+    */
     ApplyTransparency(ccolor, trans, trans);
 
     // draw the bars
@@ -240,6 +218,8 @@ void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
     vac->AddRectAsTriangles(-0.5f, 0.9f, 1.5f, 0.85f, ccolor); // top side
     vac->AddRectAsTriangles(-0.5f, -0.9f, 1.5f, -0.85f, ccolor); // bottom side
 
+    auto rgbColor = static_cast<DmxColorAbilityRGB*>(color_ability.get());
+
     float lineSize = 1.7f / ((float)nodeCount);
     float barSize = lineSize * 0.8f;
     float lineStart = 0.825f;
@@ -247,13 +227,13 @@ void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
         Nodes[i - 1]->GetColor(proxy);
         float val = (float)proxy.red;
         float offsetx = val / 255.0f * 1.8f;
-        if (i == red_channel) {
+        if (i == rgbColor->GetRedChannel()) {
             proxy = red;
-        } else if (i == green_channel) {
+        } else if (i == rgbColor->GetGreenChannel()) {
             proxy = green;
-        } else if (i == blue_channel) {
+        } else if (i == rgbColor->GetBlueChannel()) {
             proxy = blue;
-        } else if (i == white_channel) {
+        } else if (i == rgbColor->GetWhiteChannel()) {
             proxy = white;
         } else {
             proxy = ccolor;

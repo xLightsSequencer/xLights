@@ -115,9 +115,9 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
 #else
     bool exact = true;
 #endif
-    papagayo_icon = BitmapCache::GetPapgayoIcon(tooltip, 16, exact);
-    papagayox_icon = BitmapCache::GetPapgayoXIcon(tooltip, 16, exact);
-    model_group_icon = BitmapCache::GetModelGroupIcon(tooltip, 16, exact);
+    papagayo_icon = BitmapCache::GetPapgayoIcon();
+    papagayox_icon = BitmapCache::GetPapgayoXIcon();
+    model_group_icon = BitmapCache::GetModelGroupIcon();
     mCanPaste = false;
 
     wxConfigBase* config = wxConfigBase::Get();
@@ -1575,7 +1575,7 @@ void RowHeading::Draw()
             Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
             if (m != nullptr) {
                 if (m->GetDisplayAs() == "ModelGroup") {
-                    dc.DrawBitmap(model_group_icon, getWidth() - ICON_SPACE, startY + 3, true);
+                    dc.DrawBitmap(model_group_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
                 } else if (StartsWith(m->GetStringType(), "Single Color") || m->GetStringType() == "Node Single Color") {
                     if (m->GetNodeCount() > 0) {
                         xlColor color;
@@ -1613,9 +1613,9 @@ void RowHeading::Draw()
                 dc.SetPen(penOutline);
                 dc.SetBrush(brush2);
                 if (rowInfo->element->GetEffectLayerCount() == 2) {
-                    dc.DrawBitmap(papagayox_icon, getWidth() - ICON_SPACE, startY + 3, true);
+                    dc.DrawBitmap(papagayox_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
                 } else if (rowInfo->element->GetEffectLayerCount() > 2) {
-                    dc.DrawBitmap(papagayo_icon, getWidth() - ICON_SPACE, startY + 3, true);
+                    dc.DrawBitmap(papagayo_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
                 }
             }
         }

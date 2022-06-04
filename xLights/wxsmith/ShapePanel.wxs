@@ -68,14 +68,6 @@
 								<family>swiss</family>
 								<face>Segoe UI Emoji</face>
 							</font>
-							<font>
-								<size>10</size>
-								<style>normal</style>
-								<weight>normal</weight>
-								<underlined>0</underlined>
-								<family>swiss</family>
-								<face>Segoe UI Emoji</face>
-							</font>
 							<style>wxFNTP_FONTDESC_AS_LABEL</style>
 							<handler function="OnFontPickerCtrl_FontFontChanged" entry="EVT_FONTPICKER_CHANGED" />
 						</object>
@@ -161,7 +153,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shape_Thickness" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shape_ThicknessVC" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -206,7 +198,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shape_Count" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shape_CountVC" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -250,7 +242,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shape_StartSize" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shape_StartSizeVC" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -312,7 +304,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shapes_Velocity" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shapes_Velocity" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -357,7 +349,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shapes_Direction" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shapes_Direction" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -402,7 +394,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shape_Lifetime" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shape_LifetimeVC" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -447,7 +439,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shape_Growth" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shape_GrowthVC" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -491,7 +483,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shape_CentreX" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shape_CentreXVC" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -535,7 +527,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shape_CentreY" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shape_CentreYVC" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -607,7 +599,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shape_Rotation" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shape_RotationVC" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>

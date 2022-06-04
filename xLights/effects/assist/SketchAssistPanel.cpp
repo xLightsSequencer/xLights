@@ -1,14 +1,44 @@
 #include "SketchAssistPanel.h"
 #include "SketchCanvasPanel.h"
 
-#include <wx/filepicker.h>
+#include "../../xSchedule/wxJSON/jsonreader.h"
+#include "../../xSchedule/wxJSON/jsonwriter.h"
+#include "UtilFunctions.h"
+#include <xLightsMain.h>
+#include "../../ExternalHooks.h"
+
+#include <wx/button.h>
 #include <wx/listbox.h>
 #include <wx/menu.h>
 #include <wx/sizer.h>
-#include <wx/slider.h>
 #include <wx/statbox.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/filepicker.h>
+#include <wx/wfstream.h>
+
+#if defined(__WXOSX__)
+#ifndef NDEBUG
+//debug builds on Mac need the Implementation defined as it's not
+//exported from the shlibs.  However, release builds that use
+//lto based static linking will get the implementation from
+//wxwidgets
+#define NANOSVG_IMPLEMENTATION
+#define NANOSVG_ALL_COLOR_KEYWORDS
+#endif
+
+#elif defined(__LINUX__)
+#define NANOSVG_IMPLEMENTATION
+#define NANOSVG_ALL_COLOR_KEYWORDS
+
+#elif defined(__WXMSW__)
+//don't need anything?
+#endif
+
+//in includes dir
+#include "nanosvg/src/nanosvg.h"
+
+#include <cmath>
 
 namespace
 {
@@ -27,20 +57,18 @@ BEGIN_EVENT_TABLE(SketchAssistPanel, wxPanel)
 END_EVENT_TABLE()
 
 long SketchAssistPanel::ID_MENU_Delete = wxNewId();
+long SketchAssistPanel::ID_MENU_Reverse = wxNewId();
 
 SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*/, const wxPoint& pos /*wxDefaultPosition*/, const wxSize& size /*wxDefaultSize*/) :
     wxPanel(parent, id, pos, size)
 {
     /*
- 
+
     mainSizer
      \
       pathUISizer (canvas, bg-image controls, and path/sketch controls)
       |\
       | canvasFrame (m_sketchCanvasPanel)
-      |\
-      | bgSizer (m_filePicker, m_bgAlphaSlider)
-      |
       |\
       | pathSketchCtrlsSizer
       | |\
@@ -51,25 +79,26 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
       |
       sketchUISizer (hotkeys text and paths listbox)
       |\
-      | hotkeysSizer (Canvas hotkeys)
+      | pathsSizer (m_pathsListBox)
       |
       |\
-      | pathsSizer (m_pathsListBox)
+      | hotkeysSizer (Canvas hotkeys)
+      |
+
 
     */
     auto mainSizer = new wxFlexGridSizer(3, 1, 0, 0);
     mainSizer->AddGrowableCol(0);
     mainSizer->AddGrowableRow(0);
 
-    auto pathUISizer = new wxFlexGridSizer(3, 1, 5, 0);
+    auto pathUISizer = new wxFlexGridSizer(/*3*/2, 1, 5, 0);
     pathUISizer->AddGrowableRow(0);
     pathUISizer->AddGrowableCol(0);
 
-    auto bgSizer = new wxFlexGridSizer(1, 3, 0, 0);
-    bgSizer->AddGrowableCol(1);
-
     auto pathSketchCtrlsSizer = new wxFlexGridSizer(1, 3, 0, 5);
     auto sketchCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Sketch");
+
+    auto importCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Import/Export");
 
     auto sketchUISizer = new wxFlexGridSizer(2, 1, 5, 0);
     sketchUISizer->AddGrowableRow(1);
@@ -87,16 +116,6 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     canvasFrameSizer->Add(m_sketchCanvasPanel, 1, wxALL | wxEXPAND);
     canvasFrame->SetSizer(canvasFrameSizer);
 
-    // background image controls
-    auto bgLabel = new wxStaticText(this, wxID_ANY, "Background:");
-    m_filePicker = new wxFilePickerCtrl(this, wxID_ANY, wxEmptyString, imgSelect, imgFilters, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL);
-    m_filePicker->GetTextCtrl()->SetEditable(false);
-    m_bgAlphaSlider = new wxSlider(this, wxID_ANY, m_bitmapAlpha, 0x00, 0xff);
-
-    bgSizer->Add(bgLabel, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-    bgSizer->Add(m_filePicker, 1, wxALL | wxEXPAND, 2);
-    bgSizer->Add(m_bgAlphaSlider, 1, wxALL | wxEXPAND, 2);
-
     // path / sketch controls
     m_startPathBtn = new wxButton(this, wxID_ANY, "Start");
     m_endPathBtn = new wxButton(this, wxID_ANY, "End");
@@ -104,6 +123,9 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     m_continuePathBtn = new wxButton(this, wxID_ANY, "Continue");
 
     m_clearSketchBtn = new wxButton(this, wxID_ANY, "Clear");
+    m_importSketchBtn = new wxButton(this, wxID_ANY, "Import");
+    m_exportSketchBtn = new wxButton(this, wxID_ANY, "Export");
+    m_importSVGBtn = new wxButton(this, wxID_ANY, "Import SVG");
 
     auto pathCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Path");
     pathCtrlsSizer->Add(m_startPathBtn, 1, wxALL | wxEXPAND, 3);
@@ -113,9 +135,14 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
 
     sketchCtrlsSizer->Add(m_clearSketchBtn, 1, wxALL | wxEXPAND, 3);
 
+    importCtrlsSizer->Add(m_importSketchBtn, 1, wxALL | wxEXPAND, 3);
+    importCtrlsSizer->Add(m_exportSketchBtn, 1, wxALL | wxEXPAND, 3);
+    importCtrlsSizer->Add(m_importSVGBtn, 1, wxALL | wxEXPAND, 3);
+
     pathSketchCtrlsSizer->AddGrowableCol(2);
     pathSketchCtrlsSizer->Add(pathCtrlsSizer, 1, wxALL, 2);
     pathSketchCtrlsSizer->Add(sketchCtrlsSizer, 1, wxALL, 2);
+    pathSketchCtrlsSizer->Add(importCtrlsSizer, 1, wxALL, 2);
 
     // Hotkeys text
     hotkeysSizer->Add(new wxStaticText(hotkeysSizer->GetStaticBox(), wxID_ANY, HotkeysText), 1, wxALL | wxEXPAND, 3);
@@ -124,11 +151,10 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     m_pathsListBox = new wxListBox(this, wxID_ANY);
     pathsSizer->Add(m_pathsListBox, 1, wxALL | wxEXPAND, 3);
 
-    sketchUISizer->Add(hotkeysSizer, 1, wxALL | wxEXPAND);
     sketchUISizer->Add(pathsSizer, 1, wxALL | wxEXPAND, 5);
+    sketchUISizer->Add(hotkeysSizer, 1, wxALL | wxEXPAND);
 
     pathUISizer->Add(canvasFrame, 1, wxALL | wxEXPAND, 5);
-    pathUISizer->Add(bgSizer, 1, wxALL | wxEXPAND);
     pathUISizer->Add(pathSketchCtrlsSizer, 1, wxALL | wxEXPAND, 5);
 
     mainSizer->Add(pathUISizer, 1, wxALL | wxEXPAND, 5);
@@ -136,14 +162,16 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
 
     SetSizer(mainSizer);
 
-    Connect(m_filePicker->GetId(), wxEVT_COMMAND_FILEPICKER_CHANGED, (wxObjectEventFunction)&SketchAssistPanel::OnFilePickerCtrl_FileChanged);
-    Connect(m_bgAlphaSlider->GetId(), wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&SketchAssistPanel::OnSlider_BgAlphaChanged);
+    SetName("ID_PANEL_SKETCH_ASSIST");
 
     Connect(m_startPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_StartPath);
     Connect(m_endPathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_EndPath);
     Connect(m_closePathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ClosePath);
     Connect(m_continuePathBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ContinuePath);
     Connect(m_clearSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ClearSketch);
+    Connect(m_importSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ImportSketch);
+    Connect(m_exportSketchBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ExportSketch);
+    Connect(m_importSVGBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SketchAssistPanel::OnButton_ImportSVG);
 
     m_pathsListBox->Connect(wxEVT_LISTBOX, (wxObjectEventFunction)&SketchAssistPanel::OnListBox_PathSelected, nullptr, this);
     m_pathsListBox->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&SketchAssistPanel::OnListBox_ContextMenu, nullptr, this);
@@ -181,7 +209,7 @@ void SketchAssistPanel::NotifySketchUpdated()
 {
     m_sketchDef = m_sketch.toString();
     if (m_sketchUpdateCB != nullptr)
-        m_sketchUpdateCB(m_sketchDef);
+        m_sketchUpdateCB(m_sketchDef, m_bgImagePath, m_bitmapAlpha);
 }
 
 void SketchAssistPanel::NotifySketchPathsUpdated()
@@ -228,21 +256,21 @@ void SketchAssistPanel::SelectLastPath()
     }
 }
 
-void SketchAssistPanel::OnFilePickerCtrl_FileChanged(wxCommandEvent& /*event*/)
+void SketchAssistPanel::UpdateSketchBackground(const wxString& imagePath, int opacity)
 {
-    wxImage img(m_filePicker->GetFileName().GetFullPath());
-    if (img.IsOk()) {
-        if (!img.HasAlpha())
-            img.InitAlpha();
+    if (imagePath == m_bgImagePath && opacity == m_bitmapAlpha)
+        return;
 
-        m_bgImage = img;
-        updateBgImage();
-    }
-}
+    wxImage img(imagePath);
+    if (!img.IsOk())
+        return;
 
-void SketchAssistPanel::OnSlider_BgAlphaChanged(wxCommandEvent& event)
-{
-    m_bitmapAlpha = static_cast<unsigned char>(m_bgAlphaSlider->GetValue());
+    if (!img.HasAlpha())
+        img.InitAlpha();
+
+    m_bgImagePath = imagePath;
+    m_bgImage = img;
+    m_bitmapAlpha = static_cast<unsigned char>(opacity);
     updateBgImage();
 }
 
@@ -281,6 +309,102 @@ void SketchAssistPanel::OnButton_ClearSketch(wxCommandEvent& /*event*/)
     NotifySketchUpdated();
 }
 
+void SketchAssistPanel::OnButton_ImportSketch(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector(_("Choose xLights Sketch File"), xLightsFrame::CurrentDir, wxEmptyString, wxEmptyString, "Sketch Files (*.xsketch)|*.xsketch", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (!filename.empty()) {
+        wxJSONReader reader;
+        wxFile skfile(filename);
+        wxString json;
+        wxJSONValue data;
+        skfile.ReadAll(&json);
+        reader.Parse(json, &data);
+        skfile.Close();
+
+        wxString bgImagePath;
+        unsigned char bitmapAlpha = m_bitmapAlpha;
+
+        if (data.HasMember("imagepath") && data["imagepath"].IsString()) {
+            bgImagePath = data["imagepath"].AsString();
+        }
+        if (data.HasMember("bitmapalpha") && data["bitmapalpha"].AsInt()) {
+            bitmapAlpha = data["bitmapalpha"].AsInt();
+        }
+        if (bgImagePath != "" && FileExists(bgImagePath)) {
+            UpdateSketchBackground(bgImagePath, bitmapAlpha);
+        }
+        if (data.HasMember("sketchdata") && data["sketchdata"].IsString()) {
+            SetSketchDef(data["sketchdata"].AsString());
+            NotifySketchUpdated();
+        }
+    }
+}
+
+void SketchAssistPanel::OnButton_ExportSketch(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector(_("Save xLights Sketch File"), xLightsFrame::CurrentDir, wxEmptyString, wxEmptyString, "Sketch Files (*.xsketch)|*.xsketch", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (!filename.IsEmpty()) {
+        wxJSONValue data;
+        data["sketchdata"] = m_sketch.toString();
+        data["imagepath"] = m_bgImagePath;
+        data["bitmapalpha"] = m_bitmapAlpha;
+        wxFileOutputStream skfile(filename);
+        wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
+        writer.Write(data, skfile);
+        skfile.Close();
+    }
+}
+
+void SketchAssistPanel::OnButton_ImportSVG(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector(_("Choose SVG File"), xLightsFrame::CurrentDir, wxEmptyString, wxEmptyString, "SVG Files (*.svg)|*.svg", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (!filename.IsEmpty()) {
+        m_sketch = SketchEffectSketch();
+
+        //100px scaling seems to scale the SVG parser right
+        auto* image = nsvgParseFromFile(filename.ToStdString().c_str(), "px", 100);
+
+        if ( nullptr == image) {
+            DisplayError(wxString::Format("Could not open SVG image %s.", filename).ToStdString());
+            return;
+        }
+
+        float h = image->height;
+        float w = image->width;
+        for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
+            for (NSVGpath* path = shape->paths; path != nullptr; path = path->next) {
+                auto skpath = std::make_shared<SketchEffectPath>();
+                for (int i = 0; i < path->npts - 1; i += 3) {
+                    float* p = &path->pts[i * 2];
+                    //sketch points are 0-1, need to scale from pixel xy
+                    //1-h, everything was upside down for some reason
+                    wxPoint2DDouble start(p[0] / w, 1 - (p[1] / h));
+                    wxPoint2DDouble cp1(p[2] / w, 1 - (p[3] / h));
+                    wxPoint2DDouble cp2(p[4] / w, 1 - (p[5] / h));
+                    wxPoint2DDouble end(p[6] / w, 1 - (p[7] / h));
+                    if (areCollinear(start,cp1,end, 0.001) && areCollinear(start,cp2,end, 0.001)) {//check if its a straight line
+                        skpath->appendSegment(std::make_shared<SketchLine>(start, end));
+                    } else if (areSame(end.m_x, cp2.m_x, 0.001) && areSame(end.m_y, cp2.m_y, 0.001)) { // check if control points2 is the end
+                        skpath->appendSegment(std::make_shared<SketchQuadraticBezier>(start, cp1, end));
+                    } else {
+                        skpath->appendSegment(std::make_shared<SketchCubicBezier>(start, cp1, cp2, end));
+                    }
+                }
+                m_sketch.appendPath(skpath);
+            }
+        }
+        // Delete svg pointer
+        nsvgDelete(image);
+        //redraw screen
+        m_sketchCanvasPanel->ResetHandlesState();
+        populatePathListBoxFromSketch();
+        Refresh();
+        NotifySketchUpdated();
+    }
+}
+
 void SketchAssistPanel::OnListBox_PathSelected(wxCommandEvent& /*event*/)
 {
     int index = m_pathsListBox->GetSelection();
@@ -296,9 +420,11 @@ void SketchAssistPanel::OnListBox_ContextMenu(wxContextMenuEvent& event)
         return;
 
     wxString str;
-    str.sprintf("Delete Path %d", 1 + m_pathIndexToDelete);
 
     wxMenu mnu;
+    str.sprintf("Reverse Path %d", 1 + m_pathIndexToDelete);
+    mnu.Append(ID_MENU_Reverse, str);
+    str.sprintf("Delete Path %d", 1 + m_pathIndexToDelete);
     mnu.Append(ID_MENU_Delete, str);
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SketchAssistPanel::OnPopupCommand, nullptr, this);
     PopupMenu(&mnu);
@@ -306,9 +432,19 @@ void SketchAssistPanel::OnListBox_ContextMenu(wxContextMenuEvent& event)
 
 void SketchAssistPanel::OnPopupCommand(wxCommandEvent& event)
 {
-    if (event.GetId() == ID_MENU_Delete && m_pathIndexToDelete < m_sketch.pathCount()) {
-        m_sketch.deletePath(m_pathIndexToDelete);
+    if (m_pathIndexToDelete >= m_sketch.pathCount())
+        return;
+    bool update = false;
 
+    if (event.GetId() == ID_MENU_Delete) {
+        m_sketch.deletePath(m_pathIndexToDelete);
+        update = true;
+    } else if (event.GetId() == ID_MENU_Reverse) {
+        m_sketch.reversePath(m_pathIndexToDelete);
+        update = true;
+    }
+
+    if (update) {
         m_sketchCanvasPanel->ResetHandlesState();
 
         populatePathListBoxFromSketch();
@@ -351,4 +487,20 @@ bool SketchAssistPanel::canContinuePath() const
         return false;
     auto paths(m_sketch.paths());
     return !paths[index]->isClosed();
+}
+
+bool SketchAssistPanel::areSame(double a, double b, float eps) const
+{
+    return std::fabs(a - b) < eps;
+}
+
+bool SketchAssistPanel::areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, double eps) const
+{
+    //use dot product to determine if point are in a strait line
+    auto [a_x, a_y] = a;
+    auto [b_x, b_y] = b;
+    auto [c_x, c_y] = c;
+
+    auto test = (b_x - a_x) * (c_y - a_y) - (c_x - a_x) * (b_y - a_y);
+    return std::abs(test) < eps;
 }

@@ -33,8 +33,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Spirals_Count" subclass="BulkEditValueCurveButton" variable="BitmapButton_VCSpiralsCount" member="yes">
-                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -57,11 +57,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Count" variable="BitmapButton_SpiralsCount" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Count" subclass="xlLockButton" variable="BitmapButton_SpiralsCount" member="yes">
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -93,8 +92,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Spirals_Rotation" subclass="BulkEditValueCurveButton" variable="BitmapButton_VCSpirals_Rotation" member="yes">
-                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -117,11 +116,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Rotation" variable="BitmapButton_SpiralsRotation" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Rotation" subclass="xlLockButton" variable="BitmapButton_SpiralsRotation" member="yes">
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -150,8 +148,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Spirals_Thickness" subclass="BulkEditValueCurveButton" variable="BitmapButton_VCSpirals_Thickness" member="yes">
-                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -174,11 +172,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Thickness" variable="BitmapButton_SpiralsThickness" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Thickness" subclass="xlLockButton" variable="BitmapButton_SpiralsThickness" member="yes">
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -209,8 +206,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Spirals_Movement" subclass="BulkEditValueCurveButton" variable="BitmapButton_VCSpirals_Movement" member="yes">
-                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -233,11 +230,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Movement" variable="BitmapButton_SpiralsDirection" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Movement" subclass="xlLockButton" variable="BitmapButton_SpiralsDirection" member="yes">
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -260,11 +256,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Blend" variable="BitmapButton_SpiralsBlend" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Blend" subclass="xlLockButton" variable="BitmapButton_SpiralsBlend" member="yes">
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -286,11 +281,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_3D" variable="BitmapButton_Spirals3D" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_3D" subclass="xlLockButton" variable="BitmapButton_Spirals3D" member="yes">
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -306,11 +300,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Grow" variable="BitmapButton_SpiralsGrow" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Grow" subclass="xlLockButton" variable="BitmapButton_SpiralsGrow" member="yes">
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -332,11 +325,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Shrink" variable="BitmapButton_SpiralsShrink" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Shrink" subclass="xlLockButton" variable="BitmapButton_SpiralsShrink" member="yes">
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

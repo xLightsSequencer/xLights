@@ -119,6 +119,7 @@ class DMXPanel: public xlEffectPanel
 		BulkEditValueCurveButton* ValueCurve_DMX8;
 		BulkEditValueCurveButton* ValueCurve_DMX9;
 		wxButton* ButtonRemap;
+		wxButton* Button_Load_State;
 		wxButton* Button_SaveAsState;
 		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* FlexGridSizer2;
@@ -342,6 +343,7 @@ class DMXPanel: public xlEffectPanel
 		static const long ID_NOTEBOOK1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
+		static const long ID_BUTTON_LOAD_STATE;
 		//*)
 
 	public:
@@ -349,6 +351,7 @@ class DMXPanel: public xlEffectPanel
 		//(*Handlers(DMXPanel)
 		void OnButtonRemapClick(wxCommandEvent& event);
 		void OnButton_SaveAsStateClick(wxCommandEvent& event);
+		void OnButton_Load_StateClick(wxCommandEvent& event);
 		//*)
 
         void OnButtonRemapRClick(wxCommandEvent& event);

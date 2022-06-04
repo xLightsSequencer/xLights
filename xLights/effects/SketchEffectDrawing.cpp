@@ -1,5 +1,7 @@
 #include "SketchEffectDrawing.h"
 
+#include <log4cpp/Category.hh>
+
 #include <wx/graphics.h>
 
 #include <iterator>
@@ -157,6 +159,13 @@ bool SketchLine::HitTest(const wxPoint2DDouble& pt) const
     return distSqr <= HIT_TEST_DIST_SQR_LIMIT;
 }
 
+void SketchLine::ReverseSegment()
+{
+    wxPoint2DDouble tmp = m_fromPt;
+    m_fromPt = m_toPt;
+    m_toPt = tmp;
+}
+
 
 double SketchQuadraticBezier::Length() const
 {
@@ -210,6 +219,13 @@ bool SketchQuadraticBezier::HitTest(const wxPoint2DDouble& pt) const
     return false;
 }
 
+void SketchQuadraticBezier::ReverseSegment()
+{
+    wxPoint2DDouble tmp = m_fromPt;
+    m_fromPt = m_toPt;
+    m_toPt = tmp;
+}
+
 
 double SketchCubicBezier::Length() const
 {
@@ -260,6 +276,17 @@ bool SketchCubicBezier::HitTest(const wxPoint2DDouble& pt) const
         startPt = points[i];
     }
     return false;
+}
+
+void SketchCubicBezier::ReverseSegment()
+{
+    wxPoint2DDouble tmp = m_fromPt;
+    m_fromPt = m_toPt;
+    m_toPt = tmp;
+
+    tmp = m_cp1;
+    m_cp1 = m_cp2;
+    m_cp2 = tmp;
 }
 
 
@@ -352,6 +379,14 @@ void SketchEffectPath::closePath()
     }
 }
 
+void SketchEffectPath::reversePath()
+{
+    for (const auto& segment : m_segments)
+        segment->ReverseSegment();
+
+    std::reverse(m_segments.begin(), m_segments.end());
+}
+
 std::string SketchEffectSketch::DefaultSketchString()
 {
     return "0.490716,0.0175163;L0.435564,0.0173168;L0.436271,0.174786;L0.0321957,0.17094;L0.21812,0.374054;L0.105848,0.374764;L0.311564,0.594017;L0.174158,0.596749;L0.45484,0.901005;Q0.493053,0.881147,0.530929,0.899586;L0.824461,0.599586;L0.667346,0.601709;L0.888037,0.373345;L0.77475,0.375473;L0.965797,0.170425;L0.559246,0.173291;L0.55832,0.0166076;L0.504768,0.0175163;L0.490716,0.0175163;c|0.493955,0.894099;Q0.434437,0.884836,0.421587,0.934047;Q0.44864,0.980943,0.496661,0.978048;Q0.553473,0.972837,0.574102,0.928258;Q0.549077,0.885415,0.496999,0.893521;L0.493955,0.894099;L0.493955,0.894099;c";
@@ -369,12 +404,11 @@ SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketc
     //  * within a path, ';' is the separator
     //  * paths always begin with a start point (followed by the ';' separator)
     //  * paths with a start point and no segments... probably do not work currently
-    //  * within a path, only four "commands" (in SVG syntax) are supported currently:
+    //  * within a path, only three "commands" (in SVG syntax) are supported currently:
     //      - 'L' for line segments
     //      - 'Q' for quadratic-curve segments
     //      - 'C' for cubic-curve segments
     //      - 'c' close the path with a line to the start point (must be the last command)
-    //      - 'p' pause time (probably in seconds) -- CURRENTLY UNIMPLEMENTED
     //
     static const std::regex pathsRegex("([^\\|]+)");
     static const std::regex pathComponentsRegex("([^;]+)");
@@ -395,55 +429,61 @@ SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketc
 
         std::string path_str((*iter).str());
         auto pathComponents_begin = sregex_iterator(path_str.cbegin(), path_str.cend(), pathComponentsRegex);
-        for (sregex_iterator iter2 = pathComponents_begin; iter2 != sregex_iterator(); ++iter2) {
-            std::string pathComponents_str((*iter2).str());
-            // Path always begins with a start point
-            if (iter2 == pathComponents_begin) {
-                auto startPt_begin = sregex_iterator(pathComponents_str.cbegin(), pathComponents_str.cend(), pathStartRegex);
-                if (std::distance(startPt_begin, sregex_iterator()) == 1 && (*startPt_begin).size() == 3) {
-                    prevPt.m_x = std::stod((*startPt_begin)[1]);
-                    prevPt.m_y = std::stod((*startPt_begin)[2]);
-                }
-            } else if (pathComponents_str.at(0) == 'L') {
-                wxPoint2DDouble toPt;
-                auto line_begin = sregex_iterator(pathComponents_str.cbegin(), pathComponents_str.cend(), lineRegex);
-                if (std::distance(line_begin, sregex_iterator()) == 1 && (*line_begin).size() == 3) {
-                    toPt.m_x = std::stod((*line_begin)[1]);
-                    toPt.m_y = std::stod((*line_begin)[2]);
-                    path->appendSegment(std::make_shared<SketchLine>(prevPt, toPt));
-                    prevPt = toPt;
-                }
-            } else if (pathComponents_str.at(0) == 'Q') {
-                wxPoint2DDouble ctrlPt, toPt;
-                auto curve_begin = sregex_iterator(pathComponents_str.cbegin(), pathComponents_str.cend(), quadraticRegex);
-                if (std::distance(curve_begin, sregex_iterator()) == 1 && (*curve_begin).size() == 5) {
-                    ctrlPt.m_x = std::stod((*curve_begin)[1]);
-                    ctrlPt.m_y = std::stod((*curve_begin)[2]);
-                    toPt.m_x = std::stod((*curve_begin)[3]);
-                    toPt.m_y = std::stod((*curve_begin)[4]);
-                    path->appendSegment(std::make_shared<SketchQuadraticBezier>(prevPt, ctrlPt, toPt));
-                    prevPt = toPt;
-                }
+        try {
+            for (sregex_iterator iter2 = pathComponents_begin; iter2 != sregex_iterator(); ++iter2) {
+                std::string pathComponents_str((*iter2).str());
+                // Path always begins with a start point
+                if (iter2 == pathComponents_begin) {
+                    auto startPt_begin = sregex_iterator(pathComponents_str.cbegin(), pathComponents_str.cend(), pathStartRegex);
+                    if (std::distance(startPt_begin, sregex_iterator()) == 1 && (*startPt_begin).size() == 3) {
+                        prevPt.m_x = std::stod((*startPt_begin)[1]);
+                        prevPt.m_y = std::stod((*startPt_begin)[2]);
+                    }
+                } else if (pathComponents_str.at(0) == 'L') {
+                    wxPoint2DDouble toPt;
+                    auto line_begin = sregex_iterator(pathComponents_str.cbegin(), pathComponents_str.cend(), lineRegex);
+                    if (std::distance(line_begin, sregex_iterator()) == 1 && (*line_begin).size() == 3) {
+                        toPt.m_x = std::stod((*line_begin)[1]);
+                        toPt.m_y = std::stod((*line_begin)[2]);
+                        path->appendSegment(std::make_shared<SketchLine>(prevPt, toPt));
+                        prevPt = toPt;
+                    }
+                } else if (pathComponents_str.at(0) == 'Q') {
+                    wxPoint2DDouble ctrlPt, toPt;
+                    auto curve_begin = sregex_iterator(pathComponents_str.cbegin(), pathComponents_str.cend(), quadraticRegex);
+                    if (std::distance(curve_begin, sregex_iterator()) == 1 && (*curve_begin).size() == 5) {
+                        ctrlPt.m_x = std::stod((*curve_begin)[1]);
+                        ctrlPt.m_y = std::stod((*curve_begin)[2]);
+                        toPt.m_x = std::stod((*curve_begin)[3]);
+                        toPt.m_y = std::stod((*curve_begin)[4]);
+                        path->appendSegment(std::make_shared<SketchQuadraticBezier>(prevPt, ctrlPt, toPt));
+                        prevPt = toPt;
+                    }
 
-            } else if (pathComponents_str.at(0) == 'C') {
-                wxPoint2DDouble ctrlPt1, ctrlPt2, toPt;
-                auto curve_begin = sregex_iterator(pathComponents_str.cbegin(), pathComponents_str.cend(), cubicRegex);
-                if (std::distance(curve_begin, sregex_iterator()) == 1 && (*curve_begin).size() == 7) {
-                    ctrlPt1.m_x = std::stod((*curve_begin)[1]);
-                    ctrlPt1.m_y = std::stod((*curve_begin)[2]);
-                    ctrlPt2.m_x = std::stod((*curve_begin)[3]);
-                    ctrlPt2.m_y = std::stod((*curve_begin)[4]);
-                    toPt.m_x = std::stod((*curve_begin)[5]);
-                    toPt.m_y = std::stod((*curve_begin)[6]);
-                    path->appendSegment(std::make_shared<SketchCubicBezier>(prevPt, ctrlPt1, ctrlPt2, toPt));
-                    prevPt = toPt;
+                } else if (pathComponents_str.at(0) == 'C') {
+                    wxPoint2DDouble ctrlPt1, ctrlPt2, toPt;
+                    auto curve_begin = sregex_iterator(pathComponents_str.cbegin(), pathComponents_str.cend(), cubicRegex);
+                    if (std::distance(curve_begin, sregex_iterator()) == 1 && (*curve_begin).size() == 7) {
+                        ctrlPt1.m_x = std::stod((*curve_begin)[1]);
+                        ctrlPt1.m_y = std::stod((*curve_begin)[2]);
+                        ctrlPt2.m_x = std::stod((*curve_begin)[3]);
+                        ctrlPt2.m_y = std::stod((*curve_begin)[4]);
+                        toPt.m_x = std::stod((*curve_begin)[5]);
+                        toPt.m_y = std::stod((*curve_begin)[6]);
+                        path->appendSegment(std::make_shared<SketchCubicBezier>(prevPt, ctrlPt1, ctrlPt2, toPt));
+                        prevPt = toPt;
+                    }
+                } else if (pathComponents_str.at(0) == 'c') {
+                    path->closePath();
                 }
-            } else if (pathComponents_str.at(0) == 'c') {
-                path->closePath();
             }
+        } catch (...) {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.error("Error parsing sketch path : \"%s\"", path_str.c_str());
         }
 
-        sketch.appendPath(path);
+        if (!path->segments().empty())
+            sketch.appendPath(path);
     }
 
     return sketch;
@@ -497,6 +537,14 @@ void SketchEffectSketch::updatePath(int index, std::shared_ptr<SketchEffectPath>
     if (index < 0 || index >= m_paths.size())
         return;
     m_paths[index] = path;
+}
+
+void SketchEffectSketch::reversePath(int pathIndex)
+{
+    if (pathIndex < 0 || pathIndex >= m_paths.size())
+        return;
+
+    m_paths[pathIndex]->reversePath();
 }
 
 void SketchEffectSketch::deletePath(int pathIndex)

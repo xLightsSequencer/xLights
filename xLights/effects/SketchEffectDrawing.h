@@ -30,6 +30,7 @@ public:
                                     std::optional<double> startPercentage,
                                     double endPercentage) const = 0;
     virtual bool HitTest(const wxPoint2DDouble& pt) const = 0;
+    virtual void ReverseSegment() = 0;
 };
 
 // A path is simply a collection of segments. If there are at least two segments,
@@ -47,6 +48,7 @@ public:
     void drawPartialPath(wxGraphicsContext* gc, const wxSize& sz,
                          std::optional<double> startPercentage,
                          double endPercentage) const;
+    void reversePath();
 
     const std::vector<std::shared_ptr<SketchPathSegment>>& segments() const
     {
@@ -94,6 +96,7 @@ public:
         m_paths.push_back(path);
     }
     void updatePath(int index, std::shared_ptr<SketchEffectPath> path);
+    void reversePath(int pathIndex);
     void deletePath(int pathIndex);
 
 protected:
@@ -132,6 +135,7 @@ public:
                             std::optional<double> startPercentage,
                             double endPercentage) const override;
     bool HitTest(const wxPoint2DDouble& pt) const override;
+    void ReverseSegment() override;
 
 protected:
     wxPoint2DDouble m_fromPt;
@@ -171,6 +175,7 @@ public:
                             std::optional<double> startPercentage,
                             double endPercentage) const override;
     bool HitTest(const wxPoint2DDouble& pt) const override;
+    void ReverseSegment() override;
 
     wxPoint2DDouble ControlPoint() const
     {
@@ -222,6 +227,7 @@ public:
                             std::optional<double> startPercentage,
                             double endPercentage) const override;
     bool HitTest(const wxPoint2DDouble& pt) const override;
+    void ReverseSegment() override;
 
     wxPoint2DDouble ControlPoint1() const
     {

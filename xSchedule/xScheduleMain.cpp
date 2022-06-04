@@ -2478,69 +2478,46 @@ void xScheduleFrame::OnBitmapButton_UnsavedClick(wxCommandEvent& event)
     UpdateUI();
 }
 
-void xScheduleFrame::CreateDebugReport(wxDebugReportCompress *report) {
+void xScheduleFrame::CreateDebugReport(xlCrashHandler* crashHandler)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.crit("Crash handler called.");
+    if (xScheduleFrame::GetScheduleManager() != nullptr) {
+        crashHandler->GetDebugReport().SetCompressedFileDirectory(xScheduleFrame::GetScheduleManager()->GetShowDir());
+    }
 
-    std::string cb = "Prompt user";
+    if (xScheduleFrame::GetScheduleManager() != nullptr) {
+        wxFileName fn(xScheduleFrame::GetScheduleManager()->GetShowDir(), OutputManager::GetNetworksFileName());
+        if (FileExists(fn)) {
+            crashHandler->GetDebugReport().AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
+        }
+
+        if (FileExists(wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()))) {
+            crashHandler->GetDebugReport().AddFile(wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()).GetFullPath(), ScheduleManager::GetScheduleFile());
+        }
+    }
+
+    if (xScheduleFrame::GetScheduleManager() != nullptr) {
+        xScheduleFrame::GetScheduleManager()->CheckScheduleIntegrity(false);
+    }
+
+    xlCrashHandler::SendReportOptions sendOption = xlCrashHandler::SendReportOptions::ASK_USER_TO_SEND;
+
     if (__schedule != nullptr && __schedule->GetOptions() != nullptr)
     {
-        cb = __schedule->GetOptions()->GetCrashBehaviour();
-    }
+        std::string const crashBehaviour = __schedule->GetOptions()->GetCrashBehaviour();
 
-    report->Process();
-
-    if (cb == "Silently exit after sending crash log" || (cb == "Prompt user" && wxDebugReportPreviewStd().Show(*report))) {
-        if (cb != "Silently exit after sending crash log")
+        if (crashBehaviour == "Silently exit after sending crash log")
         {
-            wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
+            sendOption = xlCrashHandler::SendReportOptions::ALWAYS_SEND;
         }
-        SendReport("crashUpload", *report);
+        else if (crashBehaviour == "Silently exit without sending crash log")
+        {
+            sendOption = xlCrashHandler::SendReportOptions::NEVER_SEND;
+        }
     }
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.crit("Exiting after creating debug report: " + report->GetCompressedFileName());
-    delete report;
-    exit(1);
-}
-
-void xScheduleFrame::SendReport(const wxString &loc, wxDebugReportCompress &report) {
-    wxHTTP http;
-    http.Connect("dankulp.com");
-
-    const char *bound = "--------------------------b29a7c2fe47b9481";
-
-    wxDateTime now = wxDateTime::Now();
-    int millis = wxGetUTCTimeMillis().GetLo() % 1000;
-    wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth()+1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
-
-    wxString fn = wxString::Format("xSchedule-%s_%s_%s_%s.zip", wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), xlights_version_string, GetBitness(), ts);
-    const char *ct = "Content-Type: application/octet-stream\n";
-    std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
-
-    wxMemoryBuffer memBuff;
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(ct, strlen(ct));
-    memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
-
-    wxFile f_in(report.GetCompressedFileName());
-    wxFileOffset fLen = f_in.Length();
-    void* tmp = memBuff.GetAppendBuf(fLen);
-    size_t iRead = f_in.Read(tmp, fLen);
-    memBuff.UngetAppendBuf(iRead);
-    f_in.Close();
-
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("--\n", 3);
-
-    http.SetMethod("POST");
-    http.SetPostBuffer("multipart/form-data; boundary=------------------------b29a7c2fe47b9481", memBuff);
-    wxInputStream * is = http.GetInputStream("/" + loc + "/index.php");
-    char buf[1024];
-    is->Read(buf, 1024);
-    //printf("%s\n", buf);
-    delete is;
-    http.Close();
+    crashHandler->ProcessCrashReport(sendOption);
 }
 
 void xScheduleFrame::OnKeyDown(wxKeyEvent& event)

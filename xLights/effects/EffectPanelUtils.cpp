@@ -10,6 +10,7 @@
 
 #include "EffectPanelUtils.h"
 
+#include <wx/artprov.h>
 #include <wx/scrolwin.h>
 #include <wx/notebook.h>
 #include <wx/sizer.h>
@@ -383,3 +384,9 @@ void xlEffectPanel::HandleNotebookChange(wxBookCtrlEvent& event) { event.Skip(tr
 void xlEffectPanel::HandleScrollChange(wxScrollEvent& event) { event.Skip(true); FireChangeEvent(); }
 void xlEffectPanel::HandleCommandChange(wxCommandEvent& event) { event.Skip(true); FireChangeEvent(); }
 void xlEffectPanel::HandleColorChange(wxColourPickerEvent& event) { event.Skip(true); FireChangeEvent(); }
+
+
+const wxBitmapBundle& xlEffectPanel::GetValueCurveNotSelectedBitmap() {
+    static wxBitmapBundle bundle = wxArtProvider::GetBitmapBundle("xlART_valuecurve_notselected", wxART_BUTTON);
+    return bundle;
+}

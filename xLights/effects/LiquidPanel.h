@@ -11,17 +11,17 @@
  **************************************************************/
 
  //(*Headers(LiquidPanel)
-#include <wx/panel.h>
-class wxBitmapButton;
-class wxCheckBox;
-class wxChoice;
-class wxFlexGridSizer;
-class wxNotebook;
-class wxNotebookEvent;
-class wxSlider;
-class wxStaticText;
-class wxTextCtrl;
-//*)
+ #include <wx/panel.h>
+ class wxBitmapButton;
+ class wxCheckBox;
+ class wxChoice;
+ class wxFlexGridSizer;
+ class wxNotebook;
+ class wxNotebookEvent;
+ class wxSlider;
+ class wxStaticText;
+ class wxTextCtrl;
+ //*)
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"

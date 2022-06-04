@@ -13,7 +13,7 @@
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_MAIN" subclass="xlAuiToolBar" variable="MainToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_OPENSHOW" variable="AuiToolBarItemOpenShowDirectory" member="no">
-							<bitmap stock_id="wxART_FOLDER_OPEN" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;wxART_FOLDER_OPEN&quot;)' />
 							<shorthelp>Select Show Directory</shorthelp>
 							<handler function="OnMenuOpenFolderSelected" entry="EVT_TOOL" />
 						</object>
@@ -21,7 +21,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_NEWSEQUENCE" variable="AuiToolBarItemNewSequence" member="no">
-							<bitmap stock_id="wxART_NEW" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;wxART_NEW&quot;)' />
 							<shorthelp>New Sequence</shorthelp>
 							<handler function="OnButtonNewSequenceClick" entry="EVT_TOOL" />
 						</object>
@@ -29,7 +29,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_OPEN" variable="AuiToolBarItemOpen" member="no">
-							<bitmap stock_id="wxART_FILE_OPEN" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;wxART_FILE_OPEN&quot;)' />
 							<shorthelp>Open Sequence</shorthelp>
 							<handler function="OnBitmapButtonOpenSeqClick" entry="EVT_TOOL" />
 						</object>
@@ -37,7 +37,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_SAVE" variable="AuiToolBarItemSave" member="no">
-							<bitmap stock_id="wxART_FILE_SAVE" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;wxART_FILE_SAVE&quot;)' />
 							<shorthelp>Save</shorthelp>
 							<handler function="OnBitmapButtonSaveSeqClick" entry="EVT_TOOL" />
 						</object>
@@ -45,7 +45,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_SAVEAS" variable="AuiToolBarItemSaveAs" member="no">
-							<bitmap stock_id="wxART_FILE_SAVE_AS" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;wxART_FILE_SAVE_AS&quot;)' />
 							<shorthelp>Save As</shorthelp>
 							<handler function="OnButtonClickSaveAs" entry="EVT_TOOL" />
 						</object>
@@ -53,7 +53,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_RENDERALL" variable="AuiToolBarItemRenderAll" member="no">
-							<bitmap stock_id="xlART_RENDER_ALL" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_RENDER_ALL&quot;)' />
 							<shorthelp>Render All</shorthelp>
 							<handler function="OnAuiToolBarItemRenderAllClick" entry="EVT_TOOL" />
 						</object>
@@ -80,7 +80,7 @@
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_PLAY" subclass="xlAuiToolBar" variable="PlayToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_PLAY_NOW" variable="AuiToolBarItemPlayButton" member="no">
-							<bitmap stock_id="xlART_PLAY" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_PLAY&quot;)' />
 							<shorthelp>Play</shorthelp>
 							<handler function="OnAuiToolBarItemPlayButtonClick" entry="EVT_TOOL" />
 						</object>
@@ -88,7 +88,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_PAUSE" variable="AuiToolBarItemPauseButton" member="no">
-							<bitmap stock_id="xlART_PAUSE" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_PAUSE&quot;)' />
 							<shorthelp>Pause</shorthelp>
 							<handler function="OnAuiToolBarItemPauseButtonClick" entry="EVT_TOOL" />
 						</object>
@@ -96,7 +96,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_STOP" variable="AuiToolBarItemStop" member="yes">
-							<bitmap stock_id="xlART_STOP" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_STOP&quot;)' />
 							<shorthelp>Stop</shorthelp>
 							<handler function="OnAuiToolBarItemStopClick" entry="EVT_TOOL" />
 						</object>
@@ -104,7 +104,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_FIRST_FRAME" variable="AuiToolBarFirstFrame" member="yes">
-							<bitmap stock_id="xlART_BACKWARD" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_BACKWARD&quot;)' />
 							<shorthelp>First Frame</shorthelp>
 							<handler function="OnAuiToolBarFirstFrameClick" entry="EVT_TOOL" />
 						</object>
@@ -112,7 +112,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_LAST_FRAME" variable="AuiToolBarLastFrame" member="yes">
-							<bitmap stock_id="xlART_FORWARD" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_FORWARD&quot;)' />
 							<shorthelp>Last Frame</shorthelp>
 							<handler function="OnAuiToolBarLastFrameClick" entry="EVT_TOOL" />
 						</object>
@@ -120,7 +120,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_REPLAY_SECTION" variable="AuiToolBarItemReplaySection" member="yes">
-							<bitmap stock_id="xlART_REPLAY" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_REPLAY&quot;)' />
 							<shorthelp>Replay Section</shorthelp>
 							<handler function="OnAuiToolBarItemReplaySectionClick" entry="EVT_TOOL" />
 						</object>
@@ -128,7 +128,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_CHECKBOX_LIGHT_OUTPUT" variable="CheckBoxLightOutput" member="yes">
-							<bitmap stock_id="xlART_OUTPUT_LIGHTS" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_OUTPUT_LIGHTS&quot;)' />
 							<shorthelp>Output To Lights</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnCheckBoxLightOutputClick" entry="EVT_TOOL" />
@@ -157,7 +157,7 @@
 				<object class="wxAuiToolBar" name="ID_AUIWINDOWTOOLBAR" subclass="xlAuiToolBar" variable="WindowMgmtToolbar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM2" variable="AuiToolBarEffectSettings" member="yes">
-							<bitmap stock_id="xlART_EFFECTSETTINGS" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_EFFECTSETTINGS&quot;)' />
 							<shorthelp>Effect Settings</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="ShowHideEffectSettingsWindow" entry="EVT_TOOL" />
@@ -166,7 +166,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM5" variable="AuiToolBarColors" member="yes">
-							<bitmap stock_id="xlART_COLORS" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_COLORS&quot;)' />
 							<shorthelp>Effect Colors</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="ShowHideColorWindow" entry="EVT_TOOL" />
@@ -175,7 +175,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM7" variable="AuiToolBarLayerSettings" member="yes">
-							<bitmap stock_id="xlART_LAYERS" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_LAYERS&quot;)' />
 							<shorthelp>Layer Settings</shorthelp>
 							<handler function="ShowHideBufferSettingsWindow" entry="EVT_TOOL" />
 						</object>
@@ -183,7 +183,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM3" variable="AuiToolBarLayers" member="yes">
-							<bitmap stock_id="xlART_LAYERS2" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_LAYERS2&quot;)' />
 							<shorthelp>Layer Blending</shorthelp>
 							<handler function="ShowHideLayerTimingWindow" entry="EVT_TOOL" />
 						</object>
@@ -191,7 +191,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_TOGGLE_MODEL_PREVIEW" variable="AuiToolBarButtonModelPreview" member="no">
-							<bitmap stock_id="xlART_MODEL_PREVIEW" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_MODEL_PREVIEW&quot;)' />
 							<shorthelp>Model Preview</shorthelp>
 							<handler function="ShowHideModelPreview" entry="EVT_TOOL" />
 						</object>
@@ -199,7 +199,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_TOGGLE_HOUSE_PREVIEW" variable="AuiToolBarButtonHousePreview" member="no">
-							<bitmap stock_id="xlART_HOUSE_PREVIEW" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_HOUSE_PREVIEW&quot;)' />
 							<shorthelp>House Preview</shorthelp>
 							<handler function="ShowHideHousePreview" entry="EVT_TOOL" />
 						</object>
@@ -207,7 +207,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM6" variable="AuiToolBarItemModels" member="no">
-							<bitmap stock_id="xlART_SEQUENCE_ELEMENTS" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_SEQUENCE_ELEMENTS&quot;)' />
 							<shorthelp>Display Elements</shorthelp>
 							<handler function="ShowHideDisplayElementsWindow" entry="EVT_TOOL" />
 						</object>
@@ -215,7 +215,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM8" variable="AuiToolBarItemEffects" member="no">
-							<bitmap stock_id="xlART_EFFECTS" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_EFFECTS&quot;)' />
 							<shorthelp>Effects</shorthelp>
 							<handler function="OnAuiToolBarItemShowHideEffects" entry="EVT_TOOL" />
 						</object>
@@ -223,7 +223,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM9" variable="AuiToolBarItemEffectsAsst" member="no">
-							<bitmap stock_id="xlART_EFFECTASSISTANT" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_EFFECTASSISTANT&quot;)' />
 							<shorthelp>Effects Assistant</shorthelp>
 							<handler function="ShowHideEffectAssistWindow" entry="EVT_TOOL" />
 						</object>
@@ -251,7 +251,7 @@
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_EDIT" subclass="xlAuiToolBar" variable="EditToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_PASTE_BY_TIME" variable="AuiToolBarItemPasteByTime" member="yes">
-							<bitmap stock_id="xlART_PASTE_BY_TIME" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_PASTE_BY_TIME&quot;)' />
 							<shorthelp>Paste By Time</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAuiToolBarItemPasteByTimeClick" entry="EVT_TOOL" />
@@ -260,7 +260,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_PASTE_BY_CELL" variable="AuiToolBarItemPasteByCell" member="yes">
-							<bitmap stock_id="xlART_PASTE_BY_CELL" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_PASTE_BY_CELL&quot;)' />
 							<shorthelp>Paste By Cell</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAuiToolBarItemPasteByCellClick" entry="EVT_TOOL" />
@@ -291,7 +291,7 @@
 					<handler function="OnACToolbarDropdown" entry="EVT_AUITOOLBAR_TOOL_DROPDOWN" />
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACDISABLED" variable="AC_Disable" member="yes">
-							<bitmap stock_id="xlAC_DISABLED" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_DISABLED&quot;)' />
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_DisableClick" entry="EVT_TOOL" />
 						</object>
@@ -303,7 +303,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACSELECT" variable="AC_Select" member="yes">
-							<bitmap stock_id="xlAC_SELECT" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_SELECT&quot;)' />
 							<shorthelp>Select - SHIFT L</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_SelectClick" entry="EVT_TOOL" />
@@ -312,7 +312,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACOFF" variable="AC_Off" member="yes">
-							<bitmap stock_id="xlAC_OFF" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_OFF&quot;)' />
 							<shorthelp>Off - DELETE</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_OffClick" entry="EVT_TOOL" />
@@ -321,7 +321,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACON" variable="AC_On" member="yes">
-							<bitmap stock_id="xlAC_ON" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_ON&quot;)' />
 							<shorthelp>On - O</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_OnClick" entry="EVT_TOOL" />
@@ -330,7 +330,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACSHIMMER" variable="AC_Shimmer" member="yes">
-							<bitmap stock_id="xlAC_SHIMMER" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_SHIMMER&quot;)' />
 							<shorthelp>Shimmer - S</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_ShimmerClick" entry="EVT_TOOL" />
@@ -339,7 +339,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACTWINKLE" variable="AC_Twinkle" member="yes">
-							<bitmap stock_id="xlAC_TWINKLE" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_TWINKLE&quot;)' />
 							<shorthelp>Twinkle - K</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_TwinkleClick" entry="EVT_TOOL" />
@@ -352,7 +352,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACINTENSITY" variable="AC_Intensity" member="yes">
-							<bitmap stock_id="xlAC_INTENSITY" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_INTENSITY&quot;)' />
 							<shorthelp>Intensity - I</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_IntensityClick" entry="EVT_TOOL" />
@@ -361,7 +361,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACRAMPUP" variable="AC_RampUp" member="yes">
-							<bitmap stock_id="xlAC_RAMPUP" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_RAMPUP&quot;)' />
 							<shorthelp>Ramp Up - U</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_RampUpClick" entry="EVT_TOOL" />
@@ -370,7 +370,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACRAMPDOWN" variable="AC_RampDown" member="yes">
-							<bitmap stock_id="xlAC_RAMPDOWN" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_RAMPDOWN&quot;)' />
 							<shorthelp>Ramp Down - D</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_RampDownClick" entry="EVT_TOOL" />
@@ -379,7 +379,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACRAMPUPDOWN" variable="AC_RampUpDown" member="yes">
-							<bitmap stock_id="xlAC_RAMPUPDOWN" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_RAMPUPDOWN&quot;)' />
 							<shorthelp>Ramp Up/Down - A</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_RampUpDownClick" entry="EVT_TOOL" />
@@ -442,7 +442,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACFILL" variable="AC_Fill" member="yes">
-							<bitmap stock_id="xlAC_FILL" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_FILL&quot;)' />
 							<shorthelp>Fill - F</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_FillClick" entry="EVT_TOOL" />
@@ -451,7 +451,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACCASCADE" variable="AC_Cascade" member="yes">
-							<bitmap stock_id="xlAC_CASCADE" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_CASCADE&quot;)' />
 							<shorthelp>Cascade - H</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_CascadeClick" entry="EVT_TOOL" />
@@ -464,7 +464,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACFOREGROUND" variable="AC_Foreground" member="yes">
-							<bitmap stock_id="xlAC_FOREGROUND" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_FOREGROUND&quot;)' />
 							<shorthelp>Foreground - G</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_ForegroundClick" entry="EVT_TOOL" />
@@ -473,7 +473,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACBACKGROUND" variable="AC_Background" member="yes">
-							<bitmap stock_id="xlAC_BACKGROUND" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlAC_BACKGROUND&quot;)' />
 							<shorthelp>Background - B</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_BackgroundClick" entry="EVT_TOOL" />
@@ -501,7 +501,7 @@
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_VIEW" subclass="xlAuiToolBar" variable="ViewToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="wxID_ZOOM_IN" variable="AuiToolBarItemZoomin" member="yes">
-							<bitmap stock_id="xlART_ZOOM_IN" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_ZOOM_IN&quot;)' />
 							<shorthelp>Zoom In</shorthelp>
 							<handler function="OnAuiToolBarItemZoominClick" entry="EVT_TOOL" />
 						</object>
@@ -509,15 +509,15 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="wxID_ZOOM_OUT" variable="AuiToolBarItem_ZoomOut" member="yes">
-							<bitmap stock_id="xlART_ZOOM_OUT" stock_client="wxART_TOOLBAR" />
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_ZOOM_OUT&quot;)' />
 							<shorthelp>Zoom Out</shorthelp>
 							<handler function="OnAuiToolBarItem_ZoomOutClick" entry="EVT_TOOL" />
 						</object>
 						<label>Zoom Out</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM14" variable="AuiToolBarItem13" member="yes">
-							<bitmap stock_id="xlART_SETTINGS" stock_client="wxART_TOOLBAR" />
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM14" variable="AuiToolBarItem_Settings" member="yes">
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_SETTINGS&quot;)' />
 							<shorthelp>Settings</shorthelp>
 							<handler function="OnMenu_Settings_SequenceSelected" entry="EVT_TOOL" />
 						</object>
@@ -707,7 +707,7 @@
 														<cols>1</cols>
 														<object class="sizeritem">
 															<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButtonMoveNetworkUp" member="yes">
-																<bitmap stock_id="wxART_GO_UP" />
+																<bitmap code='GetButtonBitmapBundle(&quot;wxART_GO_UP&quot;)' />
 																<tooltip>Move selected item up</tooltip>
 																<handler function="OnButtonNetworkMoveUpClick" entry="EVT_BUTTON" />
 															</object>
@@ -717,7 +717,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" variable="BitmapButtonMoveNetworkDown" member="yes">
-																<bitmap stock_id="wxART_GO_DOWN" />
+																<bitmap code='GetButtonBitmapBundle(&quot;wxART_GO_DOWN&quot;)' />
 																<tooltip>Move selected item down</tooltip>
 																<handler function="OnButtonNetworkMoveDownClick" entry="EVT_BUTTON" />
 															</object>
@@ -733,7 +733,6 @@
 												<object class="sizeritem">
 													<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindowControllers" member="yes">
 														<sashpos>1000</sashpos>
-														<minpanesize>250</minpanesize>
 														<orientation>vertical</orientation>
 														<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
 															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllers" member="yes">
@@ -960,13 +959,13 @@
 				<object class="wxMenuItem" name="ID_NEW_SEQUENCE" variable="MenuItem3" member="yes">
 					<label>New Sequence</label>
 					<accel>Ctrl-n</accel>
-					<bitmap stock_id="wxART_NEW" />
+					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_NEW&quot;)' />
 					<handler function="OnButtonNewSequenceClick" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_OPEN_SEQUENCE" variable="MenuItem_File_Open_Sequence" member="yes">
 					<label>Open Sequence</label>
 					<accel>CTRL-o</accel>
-					<bitmap stock_id="wxART_FILE_OPEN" />
+					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_FILE_OPEN&quot;)' />
 					<handler function="OnMenuItem_File_Open_SequenceSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM_OPENRECENTSEQUENCE" variable="RecentSequencesMenu" member="yes">
@@ -979,12 +978,12 @@
 					<label>Save</label>
 					<accel>CTRL-S</accel>
 					<enabled>0</enabled>
-					<bitmap stock_id="wxART_FILE_SAVE" />
+					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_FILE_SAVE&quot;)' />
 					<handler function="OnMenuItem_File_Save_Selected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_SAVE_AS_SEQUENCE" variable="MenuItem_File_SaveAs_Sequence" member="yes">
 					<label>Save Sequence As</label>
-					<bitmap stock_id="wxART_FILE_SAVE_AS" />
+					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_FILE_SAVE_AS&quot;)' />
 					<handler function="OnMenuItem_File_SaveAs_SequenceSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_CLOSE_SEQ" variable="MenuItem_File_Close_Sequence" member="yes">
@@ -1014,7 +1013,7 @@
 				<object class="separator" />
 				<object class="wxMenuItem" name="ID_MENUITEM2" variable="MenuItem5" member="no">
 					<label>Select Show Folder</label>
-					<bitmap stock_id="wxART_FOLDER_OPEN" />
+					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_FOLDER_OPEN&quot;)' />
 					<handler function="OnMenuOpenFolderSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM_RECENTFOLDERS" variable="RecentShowFoldersMenu" member="yes">
@@ -1026,7 +1025,7 @@
 				<object class="wxMenuItem" name="ID_FILE_BACKUP" variable="MenuItemBackup" member="yes">
 					<label>Backup</label>
 					<accel>F10</accel>
-					<bitmap stock_id="wxART_HARDDISK" />
+					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_HARDDISK&quot;)' />
 					<handler function="OnMenuItemBackupSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_FILE_ALTBACKUP" variable="mAltBackupMenuItem" member="yes">
@@ -1038,7 +1037,7 @@
 					<label>Quit</label>
 					<accel>Alt-F4</accel>
 					<help>Quit the application</help>
-					<bitmap stock_id="wxART_QUIT" />
+					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_QUIT&quot;)' />
 					<handler function="OnQuit" entry="EVT_MENU" />
 				</object>
 			</object>
@@ -1047,23 +1046,23 @@
 				<object class="wxMenuItem" name="wxID_UNDO" variable="MenuItem37" member="yes">
 					<label>Undo</label>
 					<accel>Ctrl-z</accel>
-					<bitmap stock_id="wxART_UNDO" />
+					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_UNDO&quot;)' />
 				</object>
 				<object class="separator" />
 				<object class="wxMenuItem" name="wxID_CUT" variable="MenuItem34" member="yes">
 					<label>Cut</label>
 					<accel>CTRL-x</accel>
-					<bitmap stock_id="wxART_CUT" />
+					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_CUT&quot;)' />
 				</object>
 				<object class="wxMenuItem" name="wxID_COPY" variable="MenuItem35" member="yes">
 					<label>Copy</label>
 					<accel>CTRL-c</accel>
-					<bitmap stock_id="wxART_COPY" />
+					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_COPY&quot;)' />
 				</object>
 				<object class="wxMenuItem" name="wxID_PASTE" variable="MenuItem36" member="yes">
 					<label>Paste</label>
 					<accel>CTRL-v</accel>
-					<bitmap stock_id="wxART_PASTE" />
+					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_PASTE&quot;)' />
 				</object>
 				<object class="separator" />
 				<object class="wxMenuItem" name="ID_SHIFT_EFFECTS" variable="MenuItemShiftEffects" member="yes">

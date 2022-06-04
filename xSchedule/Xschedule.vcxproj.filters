@@ -558,8 +558,20 @@
       <Filter>OutputProcessing</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\WindowsHardwareVideoReader.cpp" />
+    <ClCompile Include="events\EventFPPCommandPreset.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="EventFPPCommandPresetPanel.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\xlBaseApp.cpp" />
+    <ClCompile Include="..\xLights\outputs\TwinklyOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\xlBaseApp.h" />
+    <ClInclude Include="..\common\xlStackWalker.h" />
     <ClInclude Include="..\xLights\AudioManager.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
     <ClInclude Include="..\xLights\outputs\TestPreset.h" />
@@ -598,7 +610,6 @@
     <ClInclude Include="wxJSON\jsonreader.h" />
     <ClInclude Include="wxJSON\jsonval.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
-    <ClInclude Include="..\xLights\MSWStackWalk.h" />
     <ClInclude Include="FPPRemotesDialog.h" />
     <ClInclude Include="VideoCache.h" />
     <ClInclude Include="ConfigureOSC.h" />
@@ -1110,6 +1121,15 @@
     </ClInclude>
     <ClInclude Include="..\xLights\ExternalHooks.h" />
     <ClInclude Include="..\xLights\WindowsHardwareVideoReader.h" />
+    <ClInclude Include="events\EventFPPCommandPreset.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="EventFPPCommandPresetPanel.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\TwinklyOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">

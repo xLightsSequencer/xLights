@@ -82,6 +82,8 @@ public:
     void HandleScrollChange(wxScrollEvent& event);
     void HandleCommandChange(wxCommandEvent& event);
     void HandleColorChange(wxColourPickerEvent& event);
+    
+    static const wxBitmapBundle& GetValueCurveNotSelectedBitmap();
 
 protected:
     void FireChangeEvent();

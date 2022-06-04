@@ -13,7 +13,6 @@
 #include "CurtainEffect.h"
 
 //(*InternalHeaders(CurtainPanel)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
@@ -80,7 +79,7 @@ CurtainPanel::CurtainPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Curtain_Edge->Append(_("top"));
 	FlexGridSizer20->Add(Choice_Curtain_Edge, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer20->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_CurtainEdge = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Curtain_Edge, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Curtain_Edge"));
+	BitmapButton_CurtainEdge = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Curtain_Edge, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Curtain_Edge"));
 	BitmapButton_CurtainEdge->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer20->Add(BitmapButton_CurtainEdge, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT_Curtain_Effect, _("Effect"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Curtain_Effect"));
@@ -92,7 +91,7 @@ CurtainPanel::CurtainPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Curtain_Effect->Append(_("close then open"));
 	FlexGridSizer20->Add(Choice_Curtain_Effect, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer20->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_CurtainEffect = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Curtain_Effect, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Curtain_Effect"));
+	BitmapButton_CurtainEffect = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Curtain_Effect, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Curtain_Effect"));
 	BitmapButton_CurtainEffect->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer20->Add(BitmapButton_CurtainEffect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT_Curtain_Swag, _("Swag Width"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Curtain_Swag"));
@@ -101,13 +100,13 @@ CurtainPanel::CurtainPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer1->AddGrowableCol(0);
 	Slider_Curtain_Swag = new BulkEditSlider(this, ID_SLIDER_Curtain_Swag, 3, 0, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Curtain_Swag"));
 	FlexGridSizer1->Add(Slider_Curtain_Swag, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Curtain_SwagVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Curtain_Swag, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Curtain_Swag"));
+	BitmapButton_Curtain_SwagVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Curtain_Swag, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Curtain_Swag"));
 	FlexGridSizer1->Add(BitmapButton_Curtain_SwagVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer20->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	TextCtrl40 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Curtain_Swag, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Curtain_Swag"));
 	TextCtrl40->SetMaxLength(2);
 	FlexGridSizer20->Add(TextCtrl40, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_CurtainSwag = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Curtain_Swag, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Curtain_Swag"));
+	BitmapButton_CurtainSwag = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Curtain_Swag, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Curtain_Swag"));
 	BitmapButton_CurtainSwag->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer20->Add(BitmapButton_CurtainSwag, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText178 = new wxStaticText(this, ID_STATICTEXT_Curtain_Speed, _("Swag Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Curtain_Speed"));
@@ -116,7 +115,7 @@ CurtainPanel::CurtainPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer2->AddGrowableCol(0);
 	Slider_Curtain_Speed = new BulkEditSliderF1(this, IDD_SLIDER_Curtain_Speed, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Curtain_Speed"));
 	FlexGridSizer2->Add(Slider_Curtain_Speed, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Curtain_SpeedVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Curtain_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Curtain_Speed"));
+	BitmapButton_Curtain_SpeedVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Curtain_Speed, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Curtain_Speed"));
 	FlexGridSizer2->Add(BitmapButton_Curtain_SpeedVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer20->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	TextCtrl41 = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Curtain_Speed, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Curtain_Speed"));
@@ -128,13 +127,11 @@ CurtainPanel::CurtainPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Curtain_Repeat->SetValue(false);
 	FlexGridSizer76->Add(CheckBox_Curtain_Repeat, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer76->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	BitmapButton_CurtainRepeat = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat"));
+	BitmapButton_CurtainRepeat = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat"));
 	BitmapButton_CurtainRepeat->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer76->Add(BitmapButton_CurtainRepeat, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer7->Add(FlexGridSizer76, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer7);
-	FlexGridSizer7->Fit(this);
-	FlexGridSizer7->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Edge,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CurtainPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Effect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CurtainPanel::OnLockButtonClick);

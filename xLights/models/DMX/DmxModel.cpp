@@ -21,6 +21,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxModel.h"
+#include "DmxColorAbility.h"
+#include "DmxColorAbilityRGB.h"
+#include "DmxColorAbilityWheel.h"
+#include "DmxPresetAbility.h"
 #include "../ModelScreenLocation.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
@@ -65,6 +69,10 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid)
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
+
+    if (nullptr != preset_ability ) {
+        preset_ability->AddProperties(grid);
+    }
 }
 
 void DmxModel::DisableUnusedProperties(wxPropertyGridInterface* grid)
@@ -116,6 +124,10 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
         return 0;
     }
 
+    if (nullptr != preset_ability && preset_ability->OnPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        return 0;
+    }
+
     return Model::OnPropertyGridChange(grid, event);
 }
 
@@ -153,6 +165,7 @@ void DmxModel::InitModel()
         curNode++;
     }
     SetBufferSize(1, parm1);
+    preset_ability = std::make_unique<DmxPresetAbility>(ModelXml);
 }
 
 int DmxModel::GetChannelValue(int channel, bool bits16)
@@ -212,6 +225,22 @@ void DmxModel::SetNodeNames(const std::string& default_names, bool force)
         ModelXml->DeleteAttribute("NodeNames");
         ModelXml->AddAttribute("NodeNames", nn);
     }
+}
+
+std::list<std::string> DmxModel::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    if (nullptr != color_ability) {
+        res = color_ability->CheckModelSettings(this);
+    }
+
+    if (nullptr != preset_ability) {
+        res.splice(res.end(), preset_ability->CheckModelSettings(this));
+    }
+
+    res.splice(res.end(), Model::CheckModelSettings());
+    return res;
 }
 
 void DmxModel::DrawInvalid(xlGraphicsProgram* pg, ModelScreenLocation* msl, bool is_3d, bool applyTransform)
@@ -285,6 +314,10 @@ void DmxModel::ExportBaseParameters(wxFile& f)
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+
+    if (nullptr != preset_ability) {
+        preset_ability->ExportParameters(f, ModelXml);
+    }
 }
 
 void DmxModel::ImportBaseParameters(wxXmlNode* root)
@@ -316,4 +349,30 @@ void DmxModel::ImportBaseParameters(wxXmlNode* root)
     SetProperty("StrandNames", sn);
     SetProperty("NodeNames", nn);
     SetProperty("DisplayAs", da);
+
+    if (nullptr != preset_ability) {
+        preset_ability->ImportParameters(root, this);
+    }
+}
+
+std::vector<std::string> DmxModel::GenerateNodeNames() const
+{
+    std::vector<std::string> names;
+    for (int i=0; i< parm1; ++i) {// parm1 is channel count
+        names.push_back("");
+    }
+    if (nullptr != color_ability) {
+        color_ability->SetNodeNames(names);
+    }
+    if (nullptr != preset_ability) {
+        preset_ability->SetNodeNames(names);
+    }
+    return names;
+}
+
+void DmxModel::EnableFixedChannels(xlColorVector& pixelVector)
+{
+    if (nullptr != preset_ability) {
+         preset_ability->SetPresetValues(pixelVector);
+    }
 }

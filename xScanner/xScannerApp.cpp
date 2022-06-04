@@ -85,6 +85,11 @@
 
 IMPLEMENT_APP(xScannerApp)
 
+xScannerApp::xScannerApp() :
+    xlBaseApp("xScanner")
+{
+}
+
 std::string DecodeOS(wxOperatingSystemId o)
 {
     switch (o)
@@ -227,115 +232,6 @@ void InitialiseLogging(bool fromMain)
     }
 }
 
-xScannerFrame *topFrame = nullptr;
-
-#ifndef __WXMSW__
-#include <execinfo.h>
-#else
-#include "../xLights/MSWStackWalk.h"
-#endif
-
-void handleCrash(void *data) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.crit("Crash handler called.");
-    wxDebugReportCompress *report = new wxDebugReportCompress();
-    //if (xScannerFrame::GetScannerManager() != nullptr)
-    //{
-    //    report->SetCompressedFileDirectory(xScannerFrame::GetScannerManager()->GetShowDir());
-    //}
-
-#ifndef __WXMSW__
-    // dont call these for windows as they dont seem to do anything.
-    report->AddAll(wxDebugReport::Context_Exception);
-    //report->AddAll(wxDebugReport::Context_Current);
-#endif
-
-    //if (xScannerFrame::GetScannerManager() != nullptr)
-    //{
-    //    wxFileName fn(xScannerFrame::GetScannerManager()->GetShowDir(), OutputManager::GetNetworksFileName());
-    //    if (fn.Exists()) {
-    //        report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
-    //    }
-
-    //    if (wxFileName(xScannerFrame::GetScannerManager()->GetShowDir(), ScannerManager::GetScannerFile()).Exists()) {
-    //        report->AddFile(wxFileName(xScannerFrame::GetScannerManager()->GetShowDir(), ScannerManager::GetScannerFile()).GetFullPath(), ScannerManager::GetScannerFile());
-    //    }
-    //}
-
-    wxString trace = wxString::Format("xScanner version %s\n\n", GetDisplayVersionString());
-
-#ifndef __WXMSW__
-    void* callstack[128];
-    int i, frames = backtrace(callstack, 128);
-    char** strs = backtrace_symbols(callstack, frames);
-    for (i = 0; i < frames; ++i) {
-        trace += strs[i];
-        trace += "\n";
-    }
-    free(strs);
-#else
-    trace += windows_get_stacktrace(data);
-#endif
-
-    int id = (int)wxThread::GetCurrentId();
-    trace += wxString::Format("\nCrashed thread id: 0x%X or %d\n", id, id);
-
-    logger_base.crit(trace);
-
-    report->AddText("backtrace.txt", trace, "Backtrace");
-
-    wxString dir;
-#ifdef __WXMSW__
-    wxGetEnv("APPDATA", &dir);
-    std::string filename = std::string(dir.c_str()) + "/xScanner_l4cpp.log";
-#endif
-#ifdef __WXOSX__
-    wxFileName home;
-    home.AssignHomeDir();
-    dir = home.GetFullPath();
-    std::string filename = std::string(dir.c_str()) + "/Library/Logs/xScanner_l4cpp.log";
-#endif
-#ifdef __LINUX__
-    std::string filename = "/tmp/xScanner_l4cpp.log";
-#endif
-
-    if (wxFile::Exists(filename))
-    {
-        report->AddFile(filename, "xScanner_l4cpp.log");
-    }
-    //else if (wxFile::Exists(wxFileName(xScannerFrame::GetScannerManager()->GetShowDir(), "xScanner_l4cpp.log").GetFullPath()))
-    //{
-    //    report->AddFile(wxFileName(xScannerFrame::GetScannerManager()->GetShowDir(), "xScanner_l4cpp.log").GetFullPath(), "xScanner_l4cpp.log");
-    //}
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), "xScanner_l4cpp.log").GetFullPath()))
-    {
-        report->AddFile(wxFileName(wxGetCwd(), "xScanner_l4cpp.log").GetFullPath(), "xScanner_l4cpp.log");
-    }
-
-    //if (xScannerFrame::GetScannerManager() != nullptr)
-    //{
-    //    xScannerFrame::GetScannerManager()->CheckScannerIntegrity(false);
-    //}
-
-    if (!wxThread::IsMain() && topFrame != nullptr) {
-        topFrame->CallAfter(&xScannerFrame::CreateDebugReport, report);
-        wxSleep(600000);
-    }
-    else {
-        topFrame->CreateDebugReport(report);
-    }
-}
-
-#if !(wxUSE_ON_FATAL_EXCEPTION)
-#include <windows.h>
-//MinGW needs to do this manually
-LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
-{
-    handleCrash(ExceptionInfo->ContextRecord);
-    return 0;
-}
-#endif
-
 void xScannerApp::WipeSettings()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -364,14 +260,6 @@ bool xScannerApp::OnInit()
 #ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-#endif
-
-#if wxUSE_ON_FATAL_EXCEPTION
-    #if !defined(_DEBUG) || !defined(_MSC_VER)
-        wxHandleFatalExceptions();
-    #endif
-#else
-    SetUnhandledExceptionFilter(windows_exception_handler);
 #endif
 
     InitialiseLogging(false);
@@ -433,10 +321,4 @@ bool xScannerApp::OnInit()
     }
     //*)
     return wxsOK;
-}
-
-// CODE COPIED FROM XLIGHTS TO DUMP STACK TRACES
-
-void xScannerApp::OnFatalException() {
-    handleCrash(nullptr);
 }

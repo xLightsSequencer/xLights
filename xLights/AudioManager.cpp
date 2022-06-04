@@ -2103,7 +2103,7 @@ void AudioManager::SetFrameInterval(int intervalMS)
         logger_base.debug("Changing frame interval to %d", intervalMS);
 
         // save it and regenerate the frame data for effects that rely upon it ... but do it on a background thread
-        
+
         // need to lock first to make sure the background thread is done loading so to avoid
         // changing the _intervalMS (and thus the size of structures) in the middle of loading.
         std::unique_lock<std::shared_timed_mutex> locker(_mutex);

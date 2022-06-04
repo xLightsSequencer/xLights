@@ -180,9 +180,9 @@ void CandleEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer
         buffer.needToInit = false;
 
         if (perNode) {
-            for (size_t x = 0; x < buffer.ModelBufferWi; ++x) {
-                for (size_t y = 0; y < buffer.ModelBufferHt; ++y) {
-                    size_t index = y * buffer.ModelBufferWi + x;
+            for (size_t x = 0; x < buffer.BufferWi; ++x) {
+                for (size_t y = 0; y < buffer.BufferHt; ++y) {
+                    size_t index = y * buffer.BufferWi + x;
                     InitialiseState(index, states);
                 }
             }
@@ -194,7 +194,7 @@ void CandleEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer
     if (perNode) {
         parallel_for(0, buffer.BufferHt, [&buffer, &states, windVariability, flameAgility, windCalmness, windBaseline, this](int y) {
             for (size_t x = 0; x < buffer.BufferWi; x++) {
-                size_t index = y * buffer.ModelBufferWi + x;
+                size_t index = y * buffer.BufferWi + x;
                 if (index >= states.size()) {
                     // this should never happen
                     wxASSERT(false);

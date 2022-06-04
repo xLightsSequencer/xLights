@@ -67,9 +67,9 @@ private:
     bool ModelInView(const std::string& model, int view) const;
     void SetWidth(int w);
 
-    wxBitmap papagayo_icon;
-    wxBitmap papagayox_icon;
-    wxBitmap model_group_icon;
+    wxBitmapBundle papagayo_icon;
+    wxBitmapBundle papagayox_icon;
+    wxBitmapBundle model_group_icon;
 
     int mSelectedRow = -1;
     SequenceElements* mSequenceElements = nullptr;

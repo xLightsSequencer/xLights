@@ -75,27 +75,27 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include</IncludePath>
+    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include;..\..\xLights</IncludePath>
     <LibraryPath>..\..\..\wxWidgets\lib\vc_lib;..\..\lib\windows;GL;$(LibraryPath);$(VCToolsInstallDir)lib\x86</LibraryPath>
     <TargetExt>.dll</TargetExt>
     <OutDir>$(SolutionDir)..\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include</IncludePath>
+    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include;..\..\xLights</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\..\wxWidgets\lib\vc_x64_lib;..\..\lib\windows64;..\..\..\wxWidgets\lib\vc_x64_lib;..\..\lib\windows;GL;$(VCToolsInstallDir)lib\x64</LibraryPath>
     <TargetExt>.dll</TargetExt>
     <OutDir>$(SolutionDir)..\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include</IncludePath>
+    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include;..\..\xLights</IncludePath>
     <LibraryPath>..\..\..\wxWidgets\lib\vc_lib;..\..\lib\windows;GL;$(LibraryPath)</LibraryPath>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include</IncludePath>
+    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include;..\..\xLights</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\..\wxWidgets\lib\vc_x64_lib;..\..\lib\windows64;$(VCToolsInstallDir)lib\x64</LibraryPath>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
@@ -109,13 +109,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);__MSVC__;EXCLUDE_COMMAND_VALIDATION</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExceptionHandling>Async</ExceptionHandling>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
@@ -126,13 +126,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG; __WXDEBUG__;__MSVC__;_CRT_SECURE_NO_WARNINGS;EXCLUDE_COMMAND_VALIDATION</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExceptionHandling>Async</ExceptionHandling>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -144,6 +144,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions);__MSVC__;_CRT_SECURE_NO_WARNINGS;EXCLUDE_COMMAND_VALIDATION</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExceptionHandling>Async</ExceptionHandling>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -151,10 +153,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
-      <GenerateMapFile>true</GenerateMapFile>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -167,6 +166,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);__MSVC__;_CRT_SECURE_NO_WARNINGS;EXCLUDE_COMMAND_VALIDATION</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExceptionHandling>Async</ExceptionHandling>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -175,12 +176,11 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <Profile>true</Profile>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <GenerateMapFile>true</GenerateMapFile>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\xlBaseApp.cpp" />
     <ClCompile Include="..\..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="..\CommandManager.cpp" />
@@ -197,6 +197,9 @@
     <ClCompile Include="xSMSDaemonMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\common\xlBaseApp.h" />
+    <ClInclude Include="..\..\common\xlStackWalker.h" />
+    <ClInclude Include="..\..\xLights\ExternalHooks.h" />
     <ClInclude Include="..\..\xLights\xLightsVersion.h" />
     <ClInclude Include="..\CommandManager.h" />
     <ClInclude Include="..\wxJSON\jsonreader.h" />

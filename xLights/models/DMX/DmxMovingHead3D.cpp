@@ -19,6 +19,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxMovingHead3D.h"
+#include "DmxPresetAbility.h"
 #include "Mesh.h"
 
 #include "../ModelScreenLocation.h"
@@ -37,7 +38,6 @@ DmxMovingHead3D::DmxMovingHead3D(wxXmlNode *node, const ModelManager &manager, b
 #else
     obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/MovingHead3D/";
 #endif
-    color_ability = this;
     SetFromXml(node, zeroBased);
 }
 
@@ -137,18 +137,6 @@ std::list<std::string> DmxMovingHead3D::CheckModelSettings()
 
     int nodeCount = Nodes.size();
 
-    if (red_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s red channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), red_channel, nodeCount));
-    }
-    if (green_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s green channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), green_channel, nodeCount));
-    }
-    if (blue_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s blue channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), blue_channel, nodeCount));
-    }
-    if (white_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s white channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), white_channel, nodeCount));
-    }
     if (pan_channel > nodeCount) {
         res.push_back(wxString::Format("    ERR: Model %s pan channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), pan_channel, nodeCount));
     }
@@ -159,7 +147,7 @@ std::list<std::string> DmxMovingHead3D::CheckModelSettings()
         res.push_back(wxString::Format("    ERR: Model %s shutter channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), shutter_channel, nodeCount));
     }
 
-    res.splice(res.end(), Model::CheckModelSettings());
+    res.splice(res.end(), DmxModel::CheckModelSettings());
     return res;
 }
 
@@ -169,12 +157,9 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
     //int x1, x2, y1, y2;
     size_t NodeCount = Nodes.size();
 
-    if (pan_channel > NodeCount ||
+    if (!color_ability->IsValidModelSettings(this) || pan_channel > NodeCount ||
+        !preset_ability->IsValidModelSettings(this) ||
         tilt_channel > NodeCount ||
-        red_channel > NodeCount ||
-        green_channel > NodeCount ||
-        blue_channel > NodeCount ||
-        white_channel > NodeCount ||
         shutter_channel > NodeCount)
     {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
@@ -193,7 +178,7 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
         color = *c;
     }
 
-    GetColor(beam_color, transparency, blackTransparency, !active, c, Nodes);
+    color_ability->GetColor(beam_color, transparency, blackTransparency, !active, c, Nodes);
     
     int trans = color == xlBLACK ? blackTransparency : transparency;
     if (!active) {

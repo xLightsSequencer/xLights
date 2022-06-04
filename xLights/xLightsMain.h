@@ -62,6 +62,7 @@
 #include <windows.h>
 #endif
 
+#include "../common/xlBaseApp.h"
 #include "outputs/OutputManager.h"
 #include "PixelBuffer.h"
 #include "SequenceData.h"
@@ -185,6 +186,7 @@ wxDECLARE_EVENT(EVT_TURNONOUTPUTTOLIGHTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAYJUKEBOXITEM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SETEFFECTCHOICE, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights/FPP Sequences(*.fseq)|*.fseq|xLights Imports(*.iseq)|*.iseq";
@@ -269,13 +271,13 @@ public:
     bool IsChecked();
     void SetValue(bool b);
     void Enable(bool b);
-    void SetBitmap(const wxBitmap &bmp);
+    void SetBitmap(const wxBitmapBundle &bmp);
 private:
     wxAuiToolBar *toolbar = nullptr;
     int id;
 };
 
-class xLightsFrame: public wxFrame
+class xLightsFrame: public xlFrame
 {
 public:
 
@@ -324,7 +326,7 @@ public:
     void SetEffectControls(const SettingsMap &settings);
     void ApplyLast(wxCommandEvent& event);
     void SetEffectControlsApplyLast(const SettingsMap &settings);
-    bool ApplySetting(wxString name, const wxString &value);
+    bool ApplySetting(wxString name, const wxString &value, int count = 0);
     void LoadPerspectivesMenu(wxXmlNode* perspectivesNode);
     struct PerspectiveId {
         int id = 0;
@@ -338,7 +340,7 @@ public:
     void MarkEffectsFileDirty();
     void MarkModelsAsNeedingRender();
     void CheckUnsavedChanges();
-    void SetStatusText(const wxString &msg, int filename = 0);
+    void SetStatusText(const wxString &msg, int filename = 0) override;
     void SetStatusTextColor(const wxString &msg, const wxColor& colour);
 	std::string GetChannelToControllerMapping(int32_t channel);
     void GetControllerDetailsForChannel(int32_t channel, std::string& controllername, std::string& type, std::string& protocol, std::string& description, int32_t& channeloffset, std::string &ip, std::string& u, std::string& inactive, std::string& baud, int& start_universe, int& start_universe_channel);
@@ -385,7 +387,8 @@ public:
     void CreatePresetIcons();
     void ClearSequenceData();
     void LoadAudioData(xLightsXmlFile& xml_file);
-    void CreateDebugReport(wxDebugReportCompress *report, std::list<std::string> trc);
+    virtual void CreateDebugReport(xlCrashHandler* crashHandler) override;
+    virtual std::string GetCurrentDir() const override { return CurrentDir.ToStdString(); }
     wxString GetThreadStatusReport();
     void PushTraceContext();
     void PopTraceContext();
@@ -610,7 +613,6 @@ private :
 	void SetEffectAssistWindowState(bool show);
     void UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect);
     void MaybePackageAndSendDebugFiles();
-    void SendReport(const wxString &loc, wxDebugReportCompress &report);
     void AddDebugFilesToReport(wxDebugReport &report);
 
 public:
@@ -1208,7 +1210,7 @@ public:
     bool DisableOutputs();
     void CycleOutputsIfOn();
 
-    bool ForceEnableOutputs();
+    bool ForceEnableOutputs(bool startTimer = true);
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);
     void LogPerspective(const wxString& perspective) const;
@@ -1664,6 +1666,7 @@ private:
     void ShowDisplayElements(wxCommandEvent& event);
     void ShowHidePreviewWindow(wxCommandEvent& event);
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
+    void SetEffectChoice(wxCommandEvent& event);
 
     bool isRandom_(wxControl* ctl, const char*debug);
     void SetSyncUniverse(int syncUniverse);

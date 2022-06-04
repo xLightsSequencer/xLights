@@ -40,11 +40,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Curtain_Edge" variable="BitmapButton_CurtainEdge" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Curtain_Edge" subclass="xlLockButton" variable="BitmapButton_CurtainEdge" member="yes">
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -79,11 +78,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Curtain_Effect" variable="BitmapButton_CurtainEffect" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Curtain_Effect" subclass="xlLockButton" variable="BitmapButton_CurtainEffect" member="yes">
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -113,8 +111,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Curtain_Swag" subclass="BulkEditValueCurveButton" variable="BitmapButton_Curtain_SwagVC" member="yes">
-                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -135,11 +133,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Curtain_Swag" variable="BitmapButton_CurtainSwag" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Curtain_Swag" subclass="xlLockButton" variable="BitmapButton_CurtainSwag" member="yes">
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -168,8 +165,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Curtain_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Curtain_SpeedVC" member="yes">
-                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -211,11 +208,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat" variable="BitmapButton_CurtainRepeat" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat" subclass="xlLockButton" variable="BitmapButton_CurtainRepeat" member="yes">
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

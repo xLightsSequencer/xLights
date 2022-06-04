@@ -12,7 +12,6 @@
 #include "OnEffect.h"
 
 //(*InternalHeaders(OnPanel)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
@@ -91,7 +90,7 @@ OnPanel::OnPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer18->AddGrowableCol(0);
 	Slider_On_Transparency = new BulkEditSlider(this, IDD_SLIDER_On_Transparency, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_On_Transparency"));
 	FlexGridSizer18->Add(Slider_On_Transparency, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_On_Transparency = new BulkEditValueCurveButton(this, ID_VALUECURVE_On_Transparency, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_On_Transparency"));
+	BitmapButton_On_Transparency = new BulkEditValueCurveButton(this, ID_VALUECURVE_On_Transparency, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_On_Transparency"));
 	FlexGridSizer18->Add(BitmapButton_On_Transparency, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	TextCtrlOnTransparency = new BulkEditTextCtrl(this, ID_TEXTCTRL_On_Transparency, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_On_Transparency"));
 	TextCtrlOnTransparency->SetMaxLength(3);
@@ -113,8 +112,6 @@ OnPanel::OnPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBoxShimmer->SetValue(false);
 	FlexGridSizer92->Add(CheckBoxShimmer, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer92);
-	FlexGridSizer92->Fit(this);
-	FlexGridSizer92->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_On_Transparency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OnPanel::OnVCButtonClick);
 	//*)

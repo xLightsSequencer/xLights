@@ -11,23 +11,23 @@
  **************************************************************/
 
  //(*Headers(CustomModelDialog)
-#include <wx/dialog.h>
-class wxBitmapButton;
-class wxButton;
-class wxCheckBox;
-class wxFilePickerCtrl;
-class wxFlexGridSizer;
-class wxNotebook;
-class wxNotebookEvent;
-class wxPanel;
-class wxSlider;
-class wxSpinCtrl;
-class wxSpinEvent;
-class wxSplitterEvent;
-class wxSplitterWindow;
-class wxStaticBoxSizer;
-class wxStaticText;
-//*)
+ #include <wx/dialog.h>
+ class wxBitmapButton;
+ class wxButton;
+ class wxCheckBox;
+ class wxFilePickerCtrl;
+ class wxFlexGridSizer;
+ class wxNotebook;
+ class wxNotebookEvent;
+ class wxPanel;
+ class wxSlider;
+ class wxSpinCtrl;
+ class wxSpinEvent;
+ class wxSplitterEvent;
+ class wxSplitterWindow;
+ class wxStaticBoxSizer;
+ class wxStaticText;
+ //*)
 
 #include <wx/wx.h>
 #include <wx/grid.h>
@@ -119,6 +119,7 @@ class CustomModelDialog: public wxDialog
 
 		CustomModelDialog(wxWindow* parent);
 		virtual ~CustomModelDialog();
+        float GetLineLen(const std::tuple<float, float, float>& pt1, const std::tuple<float, float, float>& pt2) const;
 
 		//(*Declarations(CustomModelDialog)
 		CustomNotebook* Notebook1;
@@ -132,6 +133,7 @@ class CustomModelDialog: public wxDialog
 		wxButton* ButtonWiring;
 		wxButton* Button_CustomModelZoomIn;
 		wxButton* Button_CustomModelZoomOut;
+		wxButton* Button_ImportFromController;
 		wxCheckBox* CheckBoxAutoIncrement;
 		wxCheckBox* CheckBoxAutoNumber;
 		wxCheckBox* CheckBox_ShowWiring;
@@ -177,6 +179,7 @@ class CustomModelDialog: public wxDialog
 		static const long ID_CHECKBOX_AUTO_NUMBER;
 		static const long ID_CHECKBOX_AUTO_INCREMENT;
 		static const long ID_SPINCTRL_NEXT_CHANNEL;
+		static const long ID_BUTTON4;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		static const long ID_NOTEBOOK1;
@@ -225,6 +228,7 @@ class CustomModelDialog: public wxDialog
 		void OnNotebook1PageChanged(wxNotebookEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnCheckBox_ShowWiringClick(wxCommandEvent& event);
+		void OnButton_ImportFromControllerClick(wxCommandEvent& event);
 		//*)
 
         void OnMove(wxMoveEvent& event);

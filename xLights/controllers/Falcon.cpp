@@ -1813,7 +1813,7 @@ int Falcon::DecodeSerialOutputProtocol(std::string protocol) const {
     if (p == "dmx") return 0;
     if (p == "pixelnet") return 1;
     if (p == "renard") return 2;
-    return -1;
+    return 0;
 }
 
 int Falcon::DecodeStringPortProtocol(std::string protocol) const {
@@ -1829,8 +1829,13 @@ int Falcon::DecodeStringPortProtocol(std::string protocol) const {
     if (p == "gece") return 6;
     if (p == "lpd8806") return 7;
     if (p == "apa102") return 8;
+    if (p == "ucs1903") return 9;
+    if (p == "dm412") return 10;
+    if (p == "p9813") return 11;
+    if (p == "ucs2903") return 12;
+    if (p == "tm1814") return 14;
 
-    return -1;
+    return 0;
 }
 
 int Falcon::DecodeBrightness(int brightnessCode) const {

@@ -12,6 +12,7 @@
 // Copyright: Matt Brown ()
 
 #include <wx/msgdlg.h>
+#include <wx/artprov.h>
 #include <wx/tokenzr.h>
 #include <wx/dir.h>
 #include <wx/textdlg.h>
@@ -61,6 +62,7 @@
 #include "EffectAssist.h"
 #include "EffectsPanel.h"
 #include "MultiControllerUploadDialog.h"
+#include "Parallel.h"
 #include "outputs/IPOutput.h"
 #include "outputs/E131Output.h"
 #include "GenerateLyricsDialog.h"
@@ -114,7 +116,6 @@
 #include <xlsxwriter.h>
 
 //(*InternalHeaders(xLightsFrame)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/intl.h>
@@ -379,6 +380,7 @@ wxDEFINE_EVENT(EVT_SELECTED_EFFECT_CHANGED, SelectedEffectChangedEvent);
 wxDEFINE_EVENT(EVT_TURNONOUTPUTTOLIGHTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAYJUKEBOXITEM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SETEFFECTCHOICE, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
@@ -433,6 +435,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(29899, EVT_PLAYJUKEBOXITEM, xLightsFrame::PlayJukeboxItem)
     EVT_COMMAND(wxID_ANY, EVT_VC_CHANGED, xLightsFrame::VCChanged)
     EVT_COMMAND(wxID_ANY, EVT_COLOUR_CHANGED, xLightsFrame::ColourChanged)
+    EVT_COMMAND(wxID_ANY, EVT_SETEFFECTCHOICE, xLightsFrame::SetEffectChoice)
 
     EVT_SYS_COLOUR_CHANGED(xLightsFrame::OnSysColourChanged)
 END_EVENT_TABLE()
@@ -462,6 +465,18 @@ void AddEffectToolbarButtons(EffectManager& manager, xlAuiToolBar* EffectsToolBa
     EffectsToolBar->Realize();
 }
 
+inline wxBitmapBundle GetToolbarBitmapBundle(const wxString &id)  {
+    return wxArtProvider::GetBitmapBundle(id, wxART_TOOLBAR);
+}
+inline wxBitmapBundle GetMenuItemBitmapBundle(const wxString &id)  {
+    return wxArtProvider::GetBitmapBundle(id, wxART_MENU);
+}
+inline wxBitmapBundle GetOtherBitmapBundle(const wxString &id)  {
+    return wxArtProvider::GetBitmapBundle(id, wxART_OTHER);
+}
+inline wxBitmapBundle GetButtonBitmapBundle(const wxString &id)  {
+    return wxArtProvider::GetBitmapBundle(id, wxART_BUTTON);
+}
 xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     _sequenceElements(this),
     jobPool("RenderPool"),
@@ -527,39 +542,39 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     SetClientSize(wxSize(1411,1103));
     MainAuiManager = new wxAuiManager(this, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_DEFAULT);
     MainToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_MAIN, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-    MainToolBar->AddTool(ID_AUITOOLBAR_OPENSHOW, _("Open Show Directory"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Select Show Directory"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBAR_NEWSEQUENCE, _("New Sequence"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NEW")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("New Sequence"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBAR_OPEN, _("Open Sequence"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Open Sequence"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBAR_SAVE, _("Save"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Save"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBAR_SAVEAS, _("Save As"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE_AS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Save As"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBAR_RENDERALL, _("Render All"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_RENDER_ALL")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Render All"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_OPENSHOW, _("Open Show Directory"), GetToolbarBitmapBundle("wxART_FOLDER_OPEN"), wxNullBitmap, wxITEM_NORMAL, _("Select Show Directory"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_NEWSEQUENCE, _("New Sequence"), GetToolbarBitmapBundle("wxART_NEW"), wxNullBitmap, wxITEM_NORMAL, _("New Sequence"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_OPEN, _("Open Sequence"), GetToolbarBitmapBundle("wxART_FILE_OPEN"), wxNullBitmap, wxITEM_NORMAL, _("Open Sequence"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_SAVE, _("Save"), GetToolbarBitmapBundle("wxART_FILE_SAVE"), wxNullBitmap, wxITEM_NORMAL, _("Save"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_SAVEAS, _("Save As"), GetToolbarBitmapBundle("wxART_FILE_SAVE_AS"), wxNullBitmap, wxITEM_NORMAL, _("Save As"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_RENDERALL, _("Render All"), GetToolbarBitmapBundle("xlART_RENDER_ALL"), wxNullBitmap, wxITEM_NORMAL, _("Render All"), wxEmptyString, NULL);
     MainToolBar->Realize();
     MainAuiManager->AddPane(MainToolBar, wxAuiPaneInfo().Name(_T("Main Tool Bar")).ToolbarPane().Caption(_("Main Tool Bar")).CloseButton(false).Layer(10).Top().Gripper());
     PlayToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_PLAY, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-    PlayToolBar->AddTool(ID_AUITOOLBAR_PLAY_NOW, _("Play"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PLAY")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Play"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_AUITOOLBAR_PAUSE, _("Pause"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PAUSE")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Pause"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_AUITOOLBAR_STOP, _("Stop"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_STOP")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Stop"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_AUITOOLBAR_FIRST_FRAME, _("Item label"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_BACKWARD")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("First Frame"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_AUITOOLBAR_LAST_FRAME, _("Item label"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_FORWARD")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Last Frame"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_AUITOOLBAR_REPLAY_SECTION, _("Item label"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_REPLAY")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Replay Section"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_CHECKBOX_LIGHT_OUTPUT, _("Output To Lights"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Output To Lights"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_AUITOOLBAR_PLAY_NOW, _("Play"), GetToolbarBitmapBundle("xlART_PLAY"), wxNullBitmap, wxITEM_NORMAL, _("Play"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_AUITOOLBAR_PAUSE, _("Pause"), GetToolbarBitmapBundle("xlART_PAUSE"), wxNullBitmap, wxITEM_NORMAL, _("Pause"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_AUITOOLBAR_STOP, _("Stop"), GetToolbarBitmapBundle("xlART_STOP"), wxNullBitmap, wxITEM_NORMAL, _("Stop"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_AUITOOLBAR_FIRST_FRAME, _("Item label"), GetToolbarBitmapBundle("xlART_BACKWARD"), wxNullBitmap, wxITEM_NORMAL, _("First Frame"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_AUITOOLBAR_LAST_FRAME, _("Item label"), GetToolbarBitmapBundle("xlART_FORWARD"), wxNullBitmap, wxITEM_NORMAL, _("Last Frame"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_AUITOOLBAR_REPLAY_SECTION, _("Item label"), GetToolbarBitmapBundle("xlART_REPLAY"), wxNullBitmap, wxITEM_NORMAL, _("Replay Section"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_CHECKBOX_LIGHT_OUTPUT, _("Output To Lights"), GetToolbarBitmapBundle("xlART_OUTPUT_LIGHTS"), wxNullBitmap, wxITEM_CHECK, _("Output To Lights"), wxEmptyString, NULL);
     PlayToolBar->Realize();
     MainAuiManager->AddPane(PlayToolBar, wxAuiPaneInfo().Name(_T("Play Tool Bar")).ToolbarPane().Caption(_("Play Tool Bar")).CloseButton(false).Layer(10).Position(11).Top().Gripper());
     WindowMgmtToolbar = new xlAuiToolBar(this, ID_AUIWINDOWTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM2, _("Effect Settings"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_EFFECTSETTINGS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Effect Settings"), wxEmptyString, NULL);
-    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM5, _("Effect Colors"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_COLORS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Effect Colors"), wxEmptyString, NULL);
-    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM7, _("Layer Settings"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LAYERS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Layer Settings"), wxEmptyString, NULL);
-    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM3, _("Layer Blending"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LAYERS2")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Layer Blending"), wxEmptyString, NULL);
-    WindowMgmtToolbar->AddTool(ID_TOGGLE_MODEL_PREVIEW, _("Model Preview"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_MODEL_PREVIEW")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Model Preview"), wxEmptyString, NULL);
-    WindowMgmtToolbar->AddTool(ID_TOGGLE_HOUSE_PREVIEW, _("House Preview"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_HOUSE_PREVIEW")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("House Preview"), wxEmptyString, NULL);
-    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM6, _("Models"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_SEQUENCE_ELEMENTS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Display Elements"), wxEmptyString, NULL);
-    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM8, _("Effects"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_EFFECTS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Effects"), wxEmptyString, NULL);
-    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM9, _("Effects Assistant"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_EFFECTASSISTANT")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Effects Assistant"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM2, _("Effect Settings"), GetToolbarBitmapBundle("xlART_EFFECTSETTINGS"), wxNullBitmap, wxITEM_CHECK, _("Effect Settings"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM5, _("Effect Colors"), GetToolbarBitmapBundle("xlART_COLORS"), wxNullBitmap, wxITEM_CHECK, _("Effect Colors"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM7, _("Layer Settings"), GetToolbarBitmapBundle("xlART_LAYERS"), wxNullBitmap, wxITEM_NORMAL, _("Layer Settings"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM3, _("Layer Blending"), GetToolbarBitmapBundle("xlART_LAYERS2"), wxNullBitmap, wxITEM_NORMAL, _("Layer Blending"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_TOGGLE_MODEL_PREVIEW, _("Model Preview"), GetToolbarBitmapBundle("xlART_MODEL_PREVIEW"), wxNullBitmap, wxITEM_NORMAL, _("Model Preview"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_TOGGLE_HOUSE_PREVIEW, _("House Preview"), GetToolbarBitmapBundle("xlART_HOUSE_PREVIEW"), wxNullBitmap, wxITEM_NORMAL, _("House Preview"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM6, _("Models"), GetToolbarBitmapBundle("xlART_SEQUENCE_ELEMENTS"), wxNullBitmap, wxITEM_NORMAL, _("Display Elements"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM8, _("Effects"), GetToolbarBitmapBundle("xlART_EFFECTS"), wxNullBitmap, wxITEM_NORMAL, _("Effects"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM9, _("Effects Assistant"), GetToolbarBitmapBundle("xlART_EFFECTASSISTANT"), wxNullBitmap, wxITEM_NORMAL, _("Effects Assistant"), wxEmptyString, NULL);
     WindowMgmtToolbar->Realize();
     MainAuiManager->AddPane(WindowMgmtToolbar, wxAuiPaneInfo().Name(_T("Windows Tool Bar")).ToolbarPane().Caption(_("Windows Tool Bar")).CloseButton(false).Layer(10).Position(12).Top().Gripper());
     EditToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_EDIT, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-    EditToolBar->AddTool(ID_PASTE_BY_TIME, _("Paste By Time"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PASTE_BY_TIME")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Paste By Time"), wxEmptyString, NULL);
-    EditToolBar->AddTool(ID_PASTE_BY_CELL, _("Paste By Cell"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PASTE_BY_CELL")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Paste By Cell"), wxEmptyString, NULL);
+    EditToolBar->AddTool(ID_PASTE_BY_TIME, _("Paste By Time"), GetToolbarBitmapBundle("xlART_PASTE_BY_TIME"), wxNullBitmap, wxITEM_CHECK, _("Paste By Time"), wxEmptyString, NULL);
+    EditToolBar->AddTool(ID_PASTE_BY_CELL, _("Paste By Cell"), GetToolbarBitmapBundle("xlART_PASTE_BY_CELL"), wxNullBitmap, wxITEM_CHECK, _("Paste By Cell"), wxEmptyString, NULL);
     EditToolBar->Realize();
     MainAuiManager->AddPane(EditToolBar, wxAuiPaneInfo().Name(_T("Edit Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(5).Top().Gripper());
     ACToolbar = new xlAuiToolBar(this, ID_AUITOOLBAR_AC, wxPoint(1,30), wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -595,32 +610,32 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     ChoiceParm2->Append(_("80"));
     ChoiceParm2->Append(_("90"));
     ChoiceParm2->SetSelection( ChoiceParm2->Append(_("100")) );
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACDISABLED, _("Disable"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_DISABLED")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, wxEmptyString, wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACDISABLED, _("Disable"), GetToolbarBitmapBundle("xlAC_DISABLED"), wxNullBitmap, wxITEM_CHECK, wxEmptyString, wxEmptyString, NULL);
     ACToolbar->AddSeparator();
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACSELECT, _("Select"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_SELECT")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Select - SHIFT L"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACOFF, _("Off"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_OFF")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Off - DELETE"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACON, _("On"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_ON")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("On - O"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACSHIMMER, _("Shimmer"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_SHIMMER")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Shimmer - S"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACTWINKLE, _("Twinkle"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_TWINKLE")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Twinkle - K"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACSELECT, _("Select"), GetToolbarBitmapBundle("xlAC_SELECT"), wxNullBitmap, wxITEM_CHECK, _("Select - SHIFT L"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACOFF, _("Off"), GetToolbarBitmapBundle("xlAC_OFF"), wxNullBitmap, wxITEM_CHECK, _("Off - DELETE"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACON, _("On"), GetToolbarBitmapBundle("xlAC_ON"), wxNullBitmap, wxITEM_CHECK, _("On - O"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACSHIMMER, _("Shimmer"), GetToolbarBitmapBundle("xlAC_SHIMMER"), wxNullBitmap, wxITEM_CHECK, _("Shimmer - S"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACTWINKLE, _("Twinkle"), GetToolbarBitmapBundle("xlAC_TWINKLE"), wxNullBitmap, wxITEM_CHECK, _("Twinkle - K"), wxEmptyString, NULL);
     ACToolbar->AddSeparator();
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACINTENSITY, _("Intensity"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_INTENSITY")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Intensity - I"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUP, _("Ramp Up"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPUP")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Ramp Up - U"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPDOWN, _("Ramp Down"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPDOWN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Ramp Down - D"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUPDOWN, _("Ramp Up/Down"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPUPDOWN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Ramp Up/Down - A"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACINTENSITY, _("Intensity"), GetToolbarBitmapBundle("xlAC_INTENSITY"), wxNullBitmap, wxITEM_CHECK, _("Intensity - I"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUP, _("Ramp Up"), GetToolbarBitmapBundle("xlAC_RAMPUP"), wxNullBitmap, wxITEM_CHECK, _("Ramp Up - U"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPDOWN, _("Ramp Down"), GetToolbarBitmapBundle("xlAC_RAMPDOWN"), wxNullBitmap, wxITEM_CHECK, _("Ramp Down - D"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUPDOWN, _("Ramp Up/Down"), GetToolbarBitmapBundle("xlAC_RAMPUPDOWN"), wxNullBitmap, wxITEM_CHECK, _("Ramp Up/Down - A"), wxEmptyString, NULL);
     ACToolbar->AddControl(ChoiceParm1, _("Parm1"));
     ACToolbar->AddControl(ChoiceParm2, _("Parm2"));
     ACToolbar->AddSeparator();
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACFILL, _("Fill"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_FILL")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Fill - F"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACCASCADE, _("Cascade"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_CASCADE")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Cascade - H"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACFILL, _("Fill"), GetToolbarBitmapBundle("xlAC_FILL"), wxNullBitmap, wxITEM_CHECK, _("Fill - F"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACCASCADE, _("Cascade"), GetToolbarBitmapBundle("xlAC_CASCADE"), wxNullBitmap, wxITEM_CHECK, _("Cascade - H"), wxEmptyString, NULL);
     ACToolbar->AddSeparator();
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACFOREGROUND, _("Foreground"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_FOREGROUND")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Foreground - G"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACBACKGROUND, _("Background"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_BACKGROUND")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Background - B"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACFOREGROUND, _("Foreground"), GetToolbarBitmapBundle("xlAC_FOREGROUND"), wxNullBitmap, wxITEM_CHECK, _("Foreground - G"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACBACKGROUND, _("Background"), GetToolbarBitmapBundle("xlAC_BACKGROUND"), wxNullBitmap, wxITEM_CHECK, _("Background - B"), wxEmptyString, NULL);
     ACToolbar->Realize();
     MainAuiManager->AddPane(ACToolbar, wxAuiPaneInfo().Name(_T("ACToolbar")).ToolbarPane().Caption(_("AC Toolbar")).CloseButton(false).Layer(6).Top().Gripper());
     ViewToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_VIEW, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-    ViewToolBar->AddTool(wxID_ZOOM_IN, _("Zoom In"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_ZOOM_IN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Zoom In"), wxEmptyString, NULL);
-    ViewToolBar->AddTool(wxID_ZOOM_OUT, _("Zoom Out"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_ZOOM_OUT")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Zoom Out"), wxEmptyString, NULL);
-    ViewToolBar->AddTool(ID_AUITOOLBARITEM14, _("Sequence Settings"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_SETTINGS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Settings"), wxEmptyString, NULL);
+    ViewToolBar->AddTool(wxID_ZOOM_IN, _("Zoom In"), GetToolbarBitmapBundle("xlART_ZOOM_IN"), wxNullBitmap, wxITEM_NORMAL, _("Zoom In"), wxEmptyString, NULL);
+    ViewToolBar->AddTool(wxID_ZOOM_OUT, _("Zoom Out"), GetToolbarBitmapBundle("xlART_ZOOM_OUT"), wxNullBitmap, wxITEM_NORMAL, _("Zoom Out"), wxEmptyString, NULL);
+    ViewToolBar->AddTool(ID_AUITOOLBARITEM14, _("Sequence Settings"), GetToolbarBitmapBundle("xlART_SETTINGS"), wxNullBitmap, wxITEM_NORMAL, _("Settings"), wxEmptyString, NULL);
     ViewToolBar->Realize();
     MainAuiManager->AddPane(ViewToolBar, wxAuiPaneInfo().Name(_T("View Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(13).Top().Gripper());
     EffectsToolBar = new xlAuiToolBar(this, ID_AUIEFFECTSTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -663,23 +678,20 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     BoxSizer1->Add(ButtonDiscover, 1, wxALL|wxEXPAND, 3);
     FlexGridSizerNetworks->Add(BoxSizer1, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 0);
     FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
-    BitmapButtonMoveNetworkUp = new wxBitmapButton(PanelSetup, ID_BITMAPBUTTON1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_UP")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
+    BitmapButtonMoveNetworkUp = new wxBitmapButton(PanelSetup, ID_BITMAPBUTTON1, GetButtonBitmapBundle("wxART_GO_UP"), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
     BitmapButtonMoveNetworkUp->SetToolTip(_("Move selected item up"));
     FlexGridSizer9->Add(BitmapButtonMoveNetworkUp, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButtonMoveNetworkDown = new wxBitmapButton(PanelSetup, ID_BITMAPBUTTON2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_DOWN")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
+    BitmapButtonMoveNetworkDown = new wxBitmapButton(PanelSetup, ID_BITMAPBUTTON2, GetButtonBitmapBundle("wxART_GO_DOWN"), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
     BitmapButtonMoveNetworkDown->SetToolTip(_("Move selected item down"));
     FlexGridSizer9->Add(BitmapButtonMoveNetworkDown, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerNetworks->Add(FlexGridSizer9, 1, wxBOTTOM|wxLEFT|wxALIGN_LEFT|wxALIGN_TOP, 10);
     SplitterWindowControllers = new wxSplitterWindow(PanelSetup, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-    SplitterWindowControllers->SetMinimumPaneSize(250);
     SplitterWindowControllers->SetSashGravity(0.5);
     Panel2 = new wxPanel(SplitterWindowControllers, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     FlexGridSizerSetupControllers = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetupControllers->AddGrowableCol(0);
     FlexGridSizerSetupControllers->AddGrowableRow(0);
     Panel2->SetSizer(FlexGridSizerSetupControllers);
-    FlexGridSizerSetupControllers->Fit(Panel2);
-    FlexGridSizerSetupControllers->SetSizeHints(Panel2);
     Panel5 = new wxPanel(SplitterWindowControllers, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
     FlexGridSizerSetupRight = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetupRight->AddGrowableCol(0);
@@ -705,23 +717,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     FlexGridSizerSetupControllerButtons->Add(StaticTextDummy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerSetupRight->Add(FlexGridSizerSetupControllerButtons, 1, wxALL|wxEXPAND, 5);
     Panel5->SetSizer(FlexGridSizerSetupRight);
-    FlexGridSizerSetupRight->Fit(Panel5);
-    FlexGridSizerSetupRight->SetSizeHints(Panel5);
     SplitterWindowControllers->SplitVertically(Panel2, Panel5);
     SplitterWindowControllers->SetSashPosition(1000);
     FlexGridSizerNetworks->Add(SplitterWindowControllers, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2->Add(FlexGridSizerNetworks, 1, wxALL|wxEXPAND, 5);
     FlexGridSizerSetup->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
     PanelSetup->SetSizer(FlexGridSizerSetup);
-    FlexGridSizerSetup->Fit(PanelSetup);
-    FlexGridSizerSetup->SetSizeHints(PanelSetup);
     PanelPreview = new wxPanel(Notebook1, ID_PANEL_PREVIEW, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_PREVIEW"));
     FlexGridSizerPreview = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerPreview->AddGrowableCol(0);
     FlexGridSizerPreview->AddGrowableRow(0);
     PanelPreview->SetSizer(FlexGridSizerPreview);
-    FlexGridSizerPreview->Fit(PanelPreview);
-    FlexGridSizerPreview->SetSizeHints(PanelPreview);
     PanelSequencer = new wxPanel(Notebook1, XLIGHTS_SEQUENCER_TAB, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("XLIGHTS_SEQUENCER_TAB"));
     m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_DEFAULT);
     Notebook1->AddPage(PanelSetup, _("Controllers"), true);
@@ -739,35 +745,31 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     ProgressBar = new wxGauge(Panel1, ID_GAUGE1, 100, wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(100,-1)), 0, wxDefaultValidator, _T("ID_GAUGE1"));
     GaugeSizer->Add(ProgressBar, 0, wxEXPAND, 0);
     Panel1->SetSizer(GaugeSizer);
-    GaugeSizer->Fit(Panel1);
-    GaugeSizer->SetSizeHints(Panel1);
     StatusBarSizer->Add(Panel1, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     FileNameText = new wxStaticText(AUIStatusBar, ID_STATICTEXT7, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     StatusBarSizer->Add(FileNameText, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxEXPAND, 2);
     StatusBarSizer->AddGrowableRow(0);
     AUIStatusBar->SetSizer(StatusBarSizer);
-    StatusBarSizer->Fit(AUIStatusBar);
-    StatusBarSizer->SetSizeHints(AUIStatusBar);
     MainAuiManager->AddPane(AUIStatusBar, wxAuiPaneInfo().Name(_T("Status Bar")).DefaultPane().Caption(_("Status bar")).CaptionVisible(false).CloseButton(false).Bottom().DockFixed().Dockable(false).Floatable(false).FloatingPosition(wxPoint(0,0)).FloatingSize(wxSize(0,0)).Movable(false).PaneBorder(false));
     MainAuiManager->Update();
     MenuBar = new wxMenuBar();
     MenuFile = new wxMenu();
     MenuItem3 = new wxMenuItem(MenuFile, ID_NEW_SEQUENCE, _("New Sequence\tCtrl-n"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem3->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NEW")),wxART_OTHER));
+    MenuItem3->SetBitmap(GetMenuItemBitmapBundle("wxART_NEW"));
     MenuFile->Append(MenuItem3);
     MenuItem_File_Open_Sequence = new wxMenuItem(MenuFile, ID_OPEN_SEQUENCE, _("Open Sequence\tCTRL-o"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem_File_Open_Sequence->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER));
+    MenuItem_File_Open_Sequence->SetBitmap(GetMenuItemBitmapBundle("wxART_FILE_OPEN"));
     MenuFile->Append(MenuItem_File_Open_Sequence);
     RecentSequencesMenu = new wxMenu();
     MenuItem7 = new wxMenuItem(RecentSequencesMenu, ID_MENUITEM4, _("RECENT1"), wxEmptyString, wxITEM_NORMAL);
     RecentSequencesMenu->Append(MenuItem7);
     MenuFile->Append(ID_MENUITEM_OPENRECENTSEQUENCE, _("Open Recent Sequence"), RecentSequencesMenu, wxEmptyString);
     MenuItem_File_Save = new wxMenuItem(MenuFile, IS_SAVE_SEQ, _("Save\tCTRL-S"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem_File_Save->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_OTHER));
+    MenuItem_File_Save->SetBitmap(GetMenuItemBitmapBundle("wxART_FILE_SAVE"));
     MenuFile->Append(MenuItem_File_Save);
     MenuItem_File_Save->Enable(false);
     MenuItem_File_SaveAs_Sequence = new wxMenuItem(MenuFile, ID_SAVE_AS_SEQUENCE, _("Save Sequence As"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem_File_SaveAs_Sequence->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE_AS")),wxART_OTHER));
+    MenuItem_File_SaveAs_Sequence->SetBitmap(GetMenuItemBitmapBundle("wxART_FILE_SAVE_AS"));
     MenuFile->Append(MenuItem_File_SaveAs_Sequence);
     MenuItem_File_Close_Sequence = new wxMenuItem(MenuFile, ID_CLOSE_SEQ, _("Close Sequence"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem_File_Close_Sequence);
@@ -784,34 +786,34 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     MenuFile->Append(MenuItem_File_Export_Video);
     MenuFile->AppendSeparator();
     MenuItem5 = new wxMenuItem(MenuFile, ID_MENUITEM2, _("Select Show Folder"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem5->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER));
+    MenuItem5->SetBitmap(GetMenuItemBitmapBundle("wxART_FOLDER_OPEN"));
     MenuFile->Append(MenuItem5);
     RecentShowFoldersMenu = new wxMenu();
     MenuItem11 = new wxMenuItem(RecentShowFoldersMenu, ID_MENUITEM8, _("RECENTFOLDER1"), wxEmptyString, wxITEM_NORMAL);
     RecentShowFoldersMenu->Append(MenuItem11);
     MenuFile->Append(ID_MENUITEM_RECENTFOLDERS, _("Recent Show Folders"), RecentShowFoldersMenu, wxEmptyString);
     MenuItemBackup = new wxMenuItem(MenuFile, ID_FILE_BACKUP, _("Backup\tF10"), wxEmptyString, wxITEM_NORMAL);
-    MenuItemBackup->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_HARDDISK")),wxART_OTHER));
+    MenuItemBackup->SetBitmap(GetMenuItemBitmapBundle("wxART_HARDDISK"));
     MenuFile->Append(MenuItemBackup);
     mAltBackupMenuItem = new wxMenuItem(MenuFile, ID_FILE_ALTBACKUP, _("Alternate Backup\tF11"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(mAltBackupMenuItem);
     QuitMenuItem = new wxMenuItem(MenuFile, wxID_EXIT, _("Quit\tAlt-F4"), _("Quit the application"), wxITEM_NORMAL);
-    QuitMenuItem->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_QUIT")),wxART_OTHER));
+    QuitMenuItem->SetBitmap(GetMenuItemBitmapBundle("wxART_QUIT"));
     MenuFile->Append(QuitMenuItem);
     MenuBar->Append(MenuFile, _("&File"));
     Menu3 = new wxMenu();
     MenuItem37 = new wxMenuItem(Menu3, wxID_UNDO, _("Undo\tCtrl-z"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem37->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_UNDO")),wxART_OTHER));
+    MenuItem37->SetBitmap(GetMenuItemBitmapBundle("wxART_UNDO"));
     Menu3->Append(MenuItem37);
     Menu3->AppendSeparator();
     MenuItem34 = new wxMenuItem(Menu3, wxID_CUT, _("Cut\tCTRL-x"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem34->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_CUT")),wxART_OTHER));
+    MenuItem34->SetBitmap(GetMenuItemBitmapBundle("wxART_CUT"));
     Menu3->Append(MenuItem34);
     MenuItem35 = new wxMenuItem(Menu3, wxID_COPY, _("Copy\tCTRL-c"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem35->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_COPY")),wxART_OTHER));
+    MenuItem35->SetBitmap(GetMenuItemBitmapBundle("wxART_COPY"));
     Menu3->Append(MenuItem35);
     MenuItem36 = new wxMenuItem(Menu3, wxID_PASTE, _("Paste\tCTRL-v"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem36->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_PASTE")),wxART_OTHER));
+    MenuItem36->SetBitmap(GetMenuItemBitmapBundle("wxART_PASTE"));
     Menu3->Append(MenuItem36);
     Menu3->AppendSeparator();
     MenuItemShiftEffects = new wxMenuItem(Menu3, ID_SHIFT_EFFECTS, _("Shift Effects"), _("Use this options to shift all effects in the sequence."), wxITEM_NORMAL);
@@ -1421,8 +1423,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     for (int i = 0; i < MRUF_LENGTH; i++) {
         mruf_MenuItem[i] = nullptr;
     }
-    MenuFile->FindItem(ID_MENUITEM_RECENTFOLDERS)->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER));
-    MenuFile->FindItem(ID_MENUITEM_OPENRECENTSEQUENCE)->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_TOOLBAR));
+    MenuFile->FindItem(ID_MENUITEM_RECENTFOLDERS)->SetBitmap(GetMenuItemBitmapBundle("wxART_FOLDER_OPEN"));
+    MenuFile->FindItem(ID_MENUITEM_OPENRECENTSEQUENCE)->SetBitmap(GetMenuItemBitmapBundle("wxART_FILE_OPEN"));
 
     logger_base.debug("xLightsFrame constructor loading config.");
 
@@ -1808,8 +1810,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
 
     std::thread th([this]() {
-        std::this_thread::sleep_for(std::chrono::seconds(3));
-        this->CallAfter(&xLightsFrame::DoPostStartupCommands);
+        try
+        {
+            xlCrashHandler::SetupCrashHandlerForNonWxThread();
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+            this->CallAfter(&xLightsFrame::DoPostStartupCommands);
+        }
+        catch (...)
+        {
+            wxTheApp->OnUnhandledException();
+        }
     });
     th.detach();
     wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
@@ -1976,9 +1986,12 @@ void xLightsFrame::DoPostStartupCommands() {
 
     // dont check for updates if batch rendering
     if (!_renderMode && !_checkSequenceMode) {
+// Don't bother checking for updates when debugging.
+#ifndef _DEBUG
         if (!IsFromAppStore()) {
             CheckForUpdate(1, true, false);
         }
+#endif
         if (_userEmail == "") CollectUserEmail();
         if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
     }
@@ -2305,13 +2318,14 @@ void xLightsFrame::CycleOutputsIfOn() {
     }
 }
 
-bool xLightsFrame::ForceEnableOutputs() {
+bool xLightsFrame::ForceEnableOutputs(bool startTimer) {
     bool outputting = false;
     if (!_outputManager.IsOutputting()) {
         DisableSleepModes();
         outputting = _outputManager.StartOutput();
-        printf("Starting timer - EnableOutput\n");
-        OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+        if (startTimer) {
+            OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+        }
         if (outputting) {
             for (auto &controller : _outputManager.GetControllers()) {
                 if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
@@ -2346,7 +2360,7 @@ bool xLightsFrame::EnableOutputs(bool ignoreCheck) {
         DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
     }
     bool ok = ForceEnableOutputs();
-    CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS_ON")), wxART_TOOLBAR));
+    CheckBoxLightOutput->SetBitmap(GetToolbarBitmapBundle("xlART_OUTPUT_LIGHTS_ON"));
     CheckBoxLightOutput->SetValue(true);
     EnableNetworkChanges();
     return ok;
@@ -2373,7 +2387,7 @@ bool xLightsFrame::DisableOutputs() {
             }
         }
     }
-    CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR));
+    CheckBoxLightOutput->SetBitmap(GetToolbarBitmapBundle("xlART_OUTPUT_LIGHTS"));
     CheckBoxLightOutput->SetValue(false);
     EnableNetworkChanges();
     return true;
@@ -3065,7 +3079,7 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
 
     int width = housePreview->getWidth();
     int height = housePreview->getHeight();
-    double contentScaleFactor = GetContentScaleFactor();
+    double contentScaleFactor = housePreview->GetContentScaleFactor();
 #ifdef _WIN32
     contentScaleFactor = 1.;
 #endif // WIN32
@@ -3157,7 +3171,7 @@ void AUIToolbarButtonWrapper::SetValue(bool b)
     toolbar->ToggleTool(id, b);
 }
 
-void AUIToolbarButtonWrapper::SetBitmap(const wxBitmap &bmp)
+void AUIToolbarButtonWrapper::SetBitmap(const wxBitmapBundle &bmp)
 {
     toolbar->SetToolBitmap(id,bmp);
     toolbar->Refresh();
@@ -3615,64 +3629,6 @@ void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
     UpdateViewMenu();
 }
 
-void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report) {
-    wxHTTP http;
-    http.Connect("dankulp.com");
-
-    const char *bound = "--------------------------b29a7c2fe47b9481";
-
-    wxDateTime now = wxDateTime::Now();
-    int millis = wxGetUTCTimeMillis().GetLo() % 1000;
-
-    wxString ver = xlights_version_string + xlights_qualifier;
-    ver.Trim();
-    for (int x = 0; x < ver.length(); x++) {
-        if (ver[x] == ' ') ver[x] = '-';
-    }
-
-    wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth()+1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
-
-
-    wxString qualifier = GetBitness();
-#ifdef __WXOSX__
-#if defined(__x86_64__)
-    qualifier = "x86_64";
-#elif defined(__aarch64__)
-    qualifier = "arm64";
-#endif
-#endif
-    wxString fn = wxString::Format("xlights-%s_%s_%s_%s.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), ver, qualifier, ts);
-    const char *ct = "Content-Type: application/octet-stream\n";
-    std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
-
-    wxMemoryBuffer memBuff;
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(ct, strlen(ct));
-    memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
-
-
-    wxFile f_in(report.GetCompressedFileName());
-    wxFileOffset fLen=f_in.Length();
-    void* tmp=memBuff.GetAppendBuf(fLen);
-    size_t iRead=f_in.Read(tmp, fLen);
-    memBuff.UngetAppendBuf(iRead);
-    f_in.Close();
-
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("--\n", 3);
-
-    http.SetMethod("POST");
-    http.SetPostBuffer("multipart/form-data; boundary=------------------------b29a7c2fe47b9481", memBuff);
-    wxInputStream * is = http.GetInputStream("/" + loc + "/index.php");
-    char buf[1024];
-    is->Read(buf, 1024);
-    //printf("%s\n", buf);
-    delete is;
-    http.Close();
-}
-
 void xLightsFrame::MaybePackageAndSendDebugFiles() {
     wxString message = "You forced the OpenGL setting to a non-default value.  Is it OK to send the debug logs to the developers for analysis?";
     wxMessageDialog dlg(this, message, "Send Debug Files",wxYES_NO|wxCENTRE);
@@ -3689,9 +3645,86 @@ void xLightsFrame::MaybePackageAndSendDebugFiles() {
         report.AddText("description", ted.GetValue(), "description");
         AddDebugFilesToReport(report);
         report.Process();
-        SendReport("oglUpload", report);
+        xlCrashHandler::SendReport("xLights", "oglUpload", report);
         wxRemoveFile(report.GetCompressedFileName());
     }
+}
+
+void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxDebugReportCompress* const report = &crashHandler->GetDebugReport();
+
+    report->SetCompressedFileDirectory(CurrentDir);
+
+    wxFileName fn(CurrentDir, OutputManager::GetNetworksFileName());
+    if (FileExists(fn))
+    {
+        report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
+    }
+    if (FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xml")))
+    {
+        report->AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
+    }
+    if (UnsavedRgbEffectsChanges &&  FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp")))
+    {
+        report->AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
+    }
+
+    if (GetSeqXmlFileName() != "")
+    {
+        wxFileName fn2(GetSeqXmlFileName());
+        if (FileExists(fn2) && !fn2.IsDir())
+        {
+            report->AddFile(GetSeqXmlFileName(), fn2.GetName());
+            wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
+            if (FileExists(fnb))
+            {
+                report->AddFile(fnb.GetFullPath(), fnb.GetName());
+            }
+        }
+        else
+        {
+            wxFileName fnb(CurrentDir + "/" + "__.xbkp");
+            if (FileExists(fnb))
+            {
+                report->AddFile(fnb.GetFullPath(), fnb.GetName());
+            }
+        }
+    }
+    else
+    {
+        wxFileName fnb(CurrentDir + "/" + "__.xbkp");
+        if (FileExists(fnb))
+        {
+            report->AddFile(fnb.GetFullPath(), fnb.GetName());
+        }
+    }
+
+    std::string threadStatus = "User Email: " + _userEmail.ToStdString() + "\n";
+
+    threadStatus += "\n";
+    threadStatus += "Render Pool:\n";
+    threadStatus += GetThreadStatusReport();
+
+    threadStatus += "\n";
+    threadStatus += "Parallel Job Pool:\n";
+    threadStatus += ParallelJobPool::POOL.GetThreadStatus();
+
+    threadStatus += "\n";
+    threadStatus += "Thread traces:\n";
+    std::list<std::string> traceMessages;
+    TraceLog::GetTraceMessages(traceMessages);
+    for (auto &a : traceMessages)
+    {
+        threadStatus += a;
+        threadStatus += "\n";
+    }
+
+    report->AddText("threads.txt", threadStatus, "Threads Status");
+    logger_base.crit("%s", (const char *)threadStatus.c_str());
+
+    crashHandler->ProcessCrashReport(xlCrashHandler::SendReportOptions::ASK_USER_TO_SEND);
 }
 
 void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
@@ -5536,7 +5569,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             }
         }
 
-        if ((it.second->GetPixelStyle() == 2 || it.second->GetPixelStyle() == 3) && it.second->GetNodeCount() > 100) {
+        if ((it.second->GetPixelStyle() == Model::PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || it.second->GetPixelStyle() == Model::PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) && it.second->GetNodeCount() > 100) {
             wxString msg = wxString::Format("    WARN: model '%s' uses pixel style '%s' which is known to render really slowly. Consider using a different pixel style.", it.first, Model::GetPixelStyleDescription(it.second->GetPixelStyle()));
             LogAndWrite(f, msg.ToStdString());
             warncount++;
@@ -7847,19 +7880,16 @@ void xLightsFrame::UpdateACToolbar(bool forceState)
 void xLightsFrame::OnAC_DisableClick(wxCommandEvent& event)
 {
     UpdateACToolbar();
-    if (Button_ACDisabled->IsChecked() && _seqData.NumFrames() != 0 && _showACLights)
-    {
-        ACToolbar->SetToolBitmap(ID_AUITOOLBARITEM_ACDISABLED, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_ENABLED"))));
+    if (Button_ACDisabled->IsChecked() && _seqData.NumFrames() != 0 && _showACLights) {
+        ACToolbar->SetToolBitmap(ID_AUITOOLBARITEM_ACDISABLED, GetToolbarBitmapBundle("xlAC_ENABLED"));
         Button_ACSelect->SetValue(true);
         Button_ACIntensity->SetValue(true);
 
         if (mainSequencer->PanelEffectGrid->GetActiveTimingElement() == nullptr || mainSequencer->PanelEffectGrid->GetActiveTimingElement()->GetEffectLayer(0)->GetEffectCount() == 0) {
             wxMessageBox("You need a timing track selected and timing marks in order to use AC mode. Ideally a timing track with lots of timing marks as you can only place effects between those marks.", "Warning", 5L, this);
         }
-    }
-    else
-    {
-        ACToolbar->SetToolBitmap(ID_AUITOOLBARITEM_ACDISABLED, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_DISABLED"))));
+    } else {
+        ACToolbar->SetToolBitmap(ID_AUITOOLBARITEM_ACDISABLED, GetToolbarBitmapBundle("xlAC_DISABLED"));
     }
     UpdateACToolbar();
     //MainAuiManager->Update();
