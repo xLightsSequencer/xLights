@@ -121,6 +121,7 @@ void ScriptsDialog::OnListRClick(wxContextMenuEvent& event)
 
 void ScriptsDialog::OnPopup(wxCommandEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (event.GetId() == ID_MCU_VIEWSCRIPT) {
         int sel = ListBoxScripts->GetSelection();
         if (sel == wxNOT_FOUND) {
@@ -131,10 +132,18 @@ void ScriptsDialog::OnPopup(wxCommandEvent& event)
         wxFileName fn(filePath);
 
         wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension(fn.GetExt());
+
+        // if there is no LUA file handler treat them as text files
+        if (ft == nullptr) {
+            ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+        }
+
         if (ft) {
             wxString command = ft->GetOpenCommand(fn.GetFullPath());
             wxUnsetEnv("LD_PRELOAD");
             wxExecute(command);
+        } else {
+            logger_base.warn("Unable to open script as no program can open the file %s.", (const char*)filePath.c_str());
         }
     }
 }
