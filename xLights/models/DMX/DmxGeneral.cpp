@@ -109,6 +109,7 @@ void DmxGeneral::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</dmxgeneral>");
     f.Close();
 }
@@ -144,7 +145,7 @@ void DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
         GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxGeneral::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxGeneral::ImportXlightsModel");

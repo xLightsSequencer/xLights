@@ -861,6 +861,7 @@ void DmxServo3d::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</dmxservo3d>");
     f.Close();
 }
@@ -984,7 +985,7 @@ void DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
             (*it)->Serialise(root, ModelXml, show_dir);
         }
 
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3d::ImportXlightsModel");

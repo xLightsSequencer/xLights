@@ -488,7 +488,7 @@ void MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights,
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         ModelXml->DeleteAttribute("NumPoints");
         ModelXml->AddAttribute("NumPoints", pts);
@@ -563,6 +563,7 @@ void MultiPointModel::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</multipointmodel>");
     f.Close();
 }

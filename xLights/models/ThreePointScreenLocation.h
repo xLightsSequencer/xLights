@@ -65,6 +65,8 @@ public:
     int GetAngle() const {
         return angle;
     }
+    virtual float GetRealWidth() const override;
+    virtual float GetRealHeight() const override;
 
     virtual int GetDefaultHandle() const override { return END_HANDLE; }
     virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_TRANSLATE; }

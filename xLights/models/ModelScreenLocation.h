@@ -178,6 +178,18 @@ protected:
     virtual bool GetEdit() const { return false; }
     virtual void SetToolSize(int sz) { tool_size = sz; };
     virtual void* GetRawData() { return nullptr; }
+    virtual float GetRealWidth() const
+    {
+        return 0;
+    }
+    virtual float GetRealHeight() const
+    {
+        return 0;
+    }
+    virtual float GetRealDepth() const
+    {
+        return 0;
+    }
 
     void SetRenderSize(float NewWi, float NewHt, float NewDp = 0.0f);
     void AdjustRenderSize(float NewWi, float NewHt, float NewDp, wxXmlNode* node);

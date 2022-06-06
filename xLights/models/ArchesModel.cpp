@@ -567,6 +567,7 @@ void ArchesModel::ExportXlightsModel()
     if (submodel != "") {
         f.Write(submodel);
     }
+    ExportDimensions(f);
     f.Write("</archesmodel>");
     f.Close();
 }
@@ -623,7 +624,7 @@ void ArchesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::ImportXlightsModel");

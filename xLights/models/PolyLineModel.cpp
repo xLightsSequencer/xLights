@@ -1418,7 +1418,7 @@ void PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         int num_points = wxAtoi(pts);
         ModelXml->DeleteAttribute("NumPoints");
@@ -1520,6 +1520,7 @@ void PolyLineModel::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</polylinemodel>");
     f.Close();
 }
