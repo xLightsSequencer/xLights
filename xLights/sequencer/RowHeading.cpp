@@ -720,6 +720,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             DisplayError("Timing name already exists in sequence as a model or another timing.");
         }
         else if (name.size() > 0) {
+            mSequenceElements->GetXLightsFrame()->AbortRender(); // stop rendering in case there is an effect referring to the timing track we are about to rename
             std::string oldname = element->GetName();
             mSequenceElements->GetXLightsFrame()->RenameTimingElement(oldname, name);
         }
@@ -730,6 +731,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
         int answer = wxMessageBox(prompt, caption, wxYES_NO);
         if (answer == wxYES) {
+            mSequenceElements->GetXLightsFrame()->AbortRender(); // stop rendering in case there is an effect referring to the timing track we are about to delete
             mSequenceElements->DeleteElement(element->GetModelName());
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
