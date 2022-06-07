@@ -599,6 +599,7 @@ public:
     void OnMenuItem_ColorReplaceSelected(wxCommandEvent& event);
     void OnMenuItemFindDataSelected(wxCommandEvent& event);
     void OnMenuItemSearchEffectsSelected(wxCommandEvent& event);
+    void OnMenuItem_SilentVolSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -782,6 +783,7 @@ public:
     static const long ID_MNU_MEDVOLUME;
     static const long ID_MNU_QUIET;
     static const long ID_MNU_SUPERQUIET;
+    static const long ID_MNU_SILENT;
     static const long ID_IMPORT_EFFECTS;
     static const long ID_MNU_MANUAL;
     static const long ID_MNU_ZOOM;
@@ -929,6 +931,7 @@ public:
     wxMenuItem* MenuItem_QuietVol;
     wxMenuItem* MenuItem_ShowACRamps;
     wxMenuItem* MenuItem_ShowKeyBindings;
+    wxMenuItem* MenuItem_SilentVol;
     wxMenuItem* MenuItem_Update;
     wxMenuItem* MenuItem_UserManual;
     wxMenuItem* MenuItem_VQuietVol;

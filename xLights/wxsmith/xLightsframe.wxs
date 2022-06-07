@@ -1413,6 +1413,11 @@
 					<handler function="OnMenuItem_VQuietVolSelected" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_SILENT" variable="MenuItem_SilentVol" member="yes">
+					<label>Silent</label>
+					<handler function="OnMenuItem_SilentVolSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu2" member="no">
 				<label>&amp;Import</label>
