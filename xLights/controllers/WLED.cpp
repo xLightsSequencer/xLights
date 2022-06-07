@@ -419,7 +419,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
 
     if (_vid < 2203190 && _vid > 2112080) {
         logger_base.error("WLED Build 2112080 to 2203190 are broken, '%d' is Installed .", _vid);
-        DisplayError("WLED Upload Error:\nUpload with WLED 0.13 and 0.13.1 is broken.\nSwitch to 0.13.2 or 0.13 beta5", parent);
+        DisplayError("WLED Upload Error:\nUpload with WLED 0.13 and 0.13.1 is broken.\n(There is a bug in the WLED 0.13/0.13.1 firmware, not xLights)\nSwitch to WLED 0.13 beta6 or beta5 or a github nightly build after March 19,2022 for the upload to work correctly", parent);
         progress.Update(100, "Aborting.");
         return false;
     }
