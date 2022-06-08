@@ -682,9 +682,9 @@ public:
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
     static const long ID_BUTTON4;
+    static const long ID_BUTTON8;
     static const long ID_BUTTON7;
     static const long ID_BUTTON12;
-    static const long ID_BUTTON8;
     static const long ID_STATICTEXT1;
     static const long ID_PANEL6;
     static const long ID_SPLITTERWINDOW1;

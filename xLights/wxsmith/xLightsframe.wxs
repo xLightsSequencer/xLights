@@ -734,9 +734,8 @@
 													<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindowControllers" member="yes">
 														<sashpos>1000</sashpos>
 														<sashgravity>0.800000</sashgravity>
-														<minpanesize>50</minpanesize>
+														<minpanesize>20</minpanesize>
 														<orientation>vertical</orientation>
-														<style>wxSP_3D|wxALWAYS_SHOW_SB</style>
 														<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
 															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllers" member="yes">
 																<cols>1</cols>
@@ -745,7 +744,7 @@
 															</object>
 														</object>
 														<object class="wxPanel" name="ID_PANEL6" variable="Panel5" member="yes">
-															<minsize>50,-1</minsize>
+															<minsize>20,-1</minsize>
 															<style>wxTAB_TRAVERSAL|wxALWAYS_SHOW_SB</style>
 															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupRight" member="yes">
 																<cols>1</cols>
@@ -769,7 +768,7 @@
 																				<label>Visualise ...</label>
 																				<handler function="OnButtonVisualiseClick" entry="EVT_BUTTON" />
 																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 																			<border>5</border>
 																			<option>1</option>
 																		</object>
@@ -778,7 +777,7 @@
 																				<label>Upload Input</label>
 																				<handler function="OnButtonUploadInputClick" entry="EVT_BUTTON" />
 																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 																			<border>5</border>
 																			<option>1</option>
 																		</object>
@@ -787,7 +786,7 @@
 																				<label>Upload Output</label>
 																				<handler function="OnButtonUploadOutputClick" entry="EVT_BUTTON" />
 																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 																			<border>5</border>
 																			<option>1</option>
 																		</object>
@@ -797,11 +796,20 @@
 																			<option>1</option>
 																		</object>
 																		<object class="sizeritem">
+																			<object class="wxButton" name="ID_BUTTON8" variable="ButtonControllerDelete" member="yes">
+																				<label>Delete</label>
+																				<handler function="OnButtonControllerDeleteClick" entry="EVT_BUTTON" />
+																			</object>
+																			<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+																			<border>5</border>
+																			<option>1</option>
+																		</object>
+																		<object class="sizeritem">
 																			<object class="wxButton" name="ID_BUTTON7" variable="ButtonOpen" member="yes">
 																				<label>Open</label>
 																				<handler function="OnButtonOpenClick" entry="EVT_BUTTON" />
 																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 																			<border>5</border>
 																			<option>1</option>
 																		</object>
@@ -810,16 +818,7 @@
 																				<label>Open Proxy</label>
 																				<handler function="OnButton_OpenProxyClick" entry="EVT_BUTTON" />
 																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																			<border>5</border>
-																			<option>1</option>
-																		</object>
-																		<object class="sizeritem">
-																			<object class="wxButton" name="ID_BUTTON8" variable="ButtonControllerDelete" member="yes">
-																				<label>Delete</label>
-																				<handler function="OnButtonControllerDeleteClick" entry="EVT_BUTTON" />
-																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 																			<border>5</border>
 																			<option>1</option>
 																		</object>

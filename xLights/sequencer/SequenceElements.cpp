@@ -801,7 +801,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
 
                     if (number != -1 && GetTimeLine() != nullptr)
                     {
-                        GetTimeLine()->SetTagPosition(number, position);
+                        GetTimeLine()->SetTagPosition(number, position, false);
                     }
                 }
             }
