@@ -1051,7 +1051,6 @@ public:
     wxPoint FindPixelA()
     {
         wxPoint res = wxPoint(-1, -1);
-        uint32_t maxSize = 0;
         uint32_t width = GetWidth();
         uint8_t incr = HasAlpha() ? 4 : 3;
 
@@ -1562,8 +1561,6 @@ protected:
     // turns on the nominated bulbs using a base ... so when the bulb number has that bit set then the bulb turns on
     void SetBulbsUsingBase3(OutputManager* outputManager, bool nodes, int count, int startch, uint32_t digit, uint32_t bits, int ms, uint8_t intensity)
     {
-        static log4cpp::Category& logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
-
         wxASSERT(digit < bits);
 
         wxTimeSpan ts = wxDateTime::UNow() - _startOutputTime;
@@ -1611,8 +1608,6 @@ protected:
 
     void RunSequence(xLightsFrame* frame, OutputManager* outputManager, bool nodes, uint32_t startChannel, uint32_t numPixels, uint8_t intensity, std::function<void(float)> progressCallback = nullptr)
     {
-        static log4cpp::Category& logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
-
         StartBulbOutput(outputManager, frame);
 
         auto totalTime = GetSequenceRunTime(numPixels);
@@ -1662,9 +1657,11 @@ protected:
         case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START2:
             _startFrame2 = new VideoFrame(new ProcessedImage(img, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), timestamp, true, type);
             break;
-
         case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_PIXEL:
             _frames.push_back(new VideoFrame(new ProcessedImage(img, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), timestamp, true, type));
+            break;
+        case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_MULTI:
+        case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_TEMP:
             break;
         }
     }

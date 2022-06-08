@@ -483,7 +483,6 @@ void TwinklyOutput::PrepareDiscovery(Discovery& discovery)
 
                 dd = discovery.AddController(controller);
             }
-            ControllerEthernet* controller = dd->controller;
         }
     });
 

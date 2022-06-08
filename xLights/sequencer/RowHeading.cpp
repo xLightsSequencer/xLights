@@ -110,11 +110,7 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
 
     DOUBLE_BUFFER(this);
     wxString tooltip;
-#if defined(__WXOSX__) || defined(__WXMSW__)
-    bool exact = false;
-#else
-    bool exact = true;
-#endif
+
     papagayo_icon = BitmapCache::GetPapgayoIcon();
     papagayox_icon = BitmapCache::GetPapgayoXIcon();
     model_group_icon = BitmapCache::GetModelGroupIcon();

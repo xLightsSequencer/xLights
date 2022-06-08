@@ -130,7 +130,6 @@ void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
     // determine if shutter is open for floods that support it
     bool shutter_open = allowSelected || IsShutterOpen(Nodes);
 
-    size_t NodeCount = Nodes.size();
     if (!color_ability->IsValidModelSettings(this) || !preset_ability->IsValidModelSettings(this)) {
         DmxModel::DrawInvalid(solidProgram, &(GetModelScreenLocation()), is_3d, true);
     } else {
