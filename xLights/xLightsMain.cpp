@@ -686,8 +686,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     BitmapButtonMoveNetworkDown->SetToolTip(_("Move selected item down"));
     FlexGridSizer9->Add(BitmapButtonMoveNetworkDown, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerNetworks->Add(FlexGridSizer9, 1, wxBOTTOM|wxLEFT|wxALIGN_LEFT|wxALIGN_TOP, 10);
-    SplitterWindowControllers = new wxSplitterWindow(PanelSetup, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-    SplitterWindowControllers->SetSashGravity(0.5);
+    SplitterWindowControllers = new wxSplitterWindow(PanelSetup, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxALWAYS_SHOW_SB, _T("ID_SPLITTERWINDOW1"));
+    SplitterWindowControllers->SetMinimumPaneSize(50);
+    SplitterWindowControllers->SetSashGravity(0.8);
     Panel2 = new wxPanel(SplitterWindowControllers, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     FlexGridSizerSetupControllers = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetupControllers->AddGrowableCol(0);
@@ -695,7 +696,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Panel2->SetSizer(FlexGridSizerSetupControllers);
     FlexGridSizerSetupControllers->Fit(Panel2);
     FlexGridSizerSetupControllers->SetSizeHints(Panel2);
-    Panel5 = new wxPanel(SplitterWindowControllers, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
+    Panel5 = new wxPanel(SplitterWindowControllers, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxALWAYS_SHOW_SB, _T("ID_PANEL6"));
+    Panel5->SetMinSize(wxSize(50,-1));
     FlexGridSizerSetupRight = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetupRight->AddGrowableCol(0);
     FlexGridSizerSetupRight->AddGrowableRow(0);
@@ -703,13 +705,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     FlexGridSizerSetupProperties->AddGrowableCol(0);
     FlexGridSizerSetupProperties->AddGrowableRow(0);
     FlexGridSizerSetupRight->Add(FlexGridSizerSetupProperties, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizerSetupControllerButtons = new wxFlexGridSizer(1, 0, 0, 0);
+    FlexGridSizerSetupControllerButtons = new wxFlexGridSizer(2, 0, 0, 0);
     ButtonVisualise = new wxButton(Panel5, ID_BUTTON1, _("Visualise ..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizerSetupControllerButtons->Add(ButtonVisualise, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonUploadInput = new wxButton(Panel5, ID_BUTTON2, _("Upload Input"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     FlexGridSizerSetupControllerButtons->Add(ButtonUploadInput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonUploadOutput = new wxButton(Panel5, ID_BUTTON4, _("Upload Output"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
     FlexGridSizerSetupControllerButtons->Add(ButtonUploadOutput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerSetupControllerButtons->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonOpen = new wxButton(Panel5, ID_BUTTON7, _("Open"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
     FlexGridSizerSetupControllerButtons->Add(ButtonOpen, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_OpenProxy = new wxButton(Panel5, ID_BUTTON12, _("Open Proxy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON12"));
@@ -718,7 +721,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     FlexGridSizerSetupControllerButtons->Add(ButtonControllerDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticTextDummy = new wxStaticText(Panel5, ID_STATICTEXT1, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizerSetupControllerButtons->Add(StaticTextDummy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerSetupRight->Add(FlexGridSizerSetupControllerButtons, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizerSetupRight->Add(FlexGridSizerSetupControllerButtons, 1, wxALL, 5);
     Panel5->SetSizer(FlexGridSizerSetupRight);
     FlexGridSizerSetupRight->Fit(Panel5);
     FlexGridSizerSetupRight->SetSizeHints(Panel5);
@@ -1652,6 +1655,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     InitEffectsPanel(EffectsPanel1);
     logger_base.debug("Effects panel initialised.");
 
+    auto consash = config->ReadLong("xLightsControllerSash", SplitterWindowControllers->GetSashPosition());
+    SplitterWindowControllers->SetSashPosition(consash);
+    logger_base.debug("Controller Sash Position: %d.", consash);
+
     EffectTreeDlg = nullptr;  // must be before any call to SetDir
 
     starttime = wxDateTime::UNow();
@@ -1919,6 +1926,8 @@ xLightsFrame::~xLightsFrame()
     config->Write("xFadePort", _xFadePort);
     config->Write("xLightsModelHandleSize", _modelHandleSize);
     config->Write("xLightsPlayVolume", playVolume);
+
+    config->Write("xLightsControllerSash", SplitterWindowControllers->GetSashPosition());
 
     //definitely not outputting data anymore
     config->Write("OutputActive", false);

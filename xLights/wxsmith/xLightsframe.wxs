@@ -733,7 +733,10 @@
 												<object class="sizeritem">
 													<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindowControllers" member="yes">
 														<sashpos>1000</sashpos>
+														<sashgravity>0.800000</sashgravity>
+														<minpanesize>50</minpanesize>
 														<orientation>vertical</orientation>
+														<style>wxSP_3D|wxALWAYS_SHOW_SB</style>
 														<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
 															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllers" member="yes">
 																<cols>1</cols>
@@ -742,6 +745,8 @@
 															</object>
 														</object>
 														<object class="wxPanel" name="ID_PANEL6" variable="Panel5" member="yes">
+															<minsize>50,-1</minsize>
+															<style>wxTAB_TRAVERSAL|wxALWAYS_SHOW_SB</style>
 															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupRight" member="yes">
 																<cols>1</cols>
 																<growablecols>0</growablecols>
@@ -758,7 +763,7 @@
 																</object>
 																<object class="sizeritem">
 																	<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllerButtons" member="yes">
-																		<rows>1</rows>
+																		<rows>2</rows>
 																		<object class="sizeritem">
 																			<object class="wxButton" name="ID_BUTTON1" variable="ButtonVisualise" member="yes">
 																				<label>Visualise ...</label>
@@ -782,6 +787,11 @@
 																				<label>Upload Output</label>
 																				<handler function="OnButtonUploadOutputClick" entry="EVT_BUTTON" />
 																			</object>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<border>5</border>
+																			<option>1</option>
+																		</object>
+																		<object class="spacer">
 																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																			<border>5</border>
 																			<option>1</option>
@@ -822,7 +832,7 @@
 																			<option>1</option>
 																		</object>
 																	</object>
-																	<flag>wxALL|wxEXPAND</flag>
+																	<flag>wxALL</flag>
 																	<border>5</border>
 																	<option>1</option>
 																</object>
