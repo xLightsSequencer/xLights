@@ -1914,12 +1914,17 @@ void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)
     } else {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (controller != nullptr) {
-            UDController cud(controller, &_outputManager, &AllModels, true);
-            ControllerModelDialog dlg(this, &cud, &AllModels, controller);
-            dlg.ShowModal();
+            int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
+            if (usingip == 1 && controller->CanVisualise()) {
+                UDController cud(controller, &_outputManager, &AllModels, true);
+                ControllerModelDialog dlg(this, &cud, &AllModels, controller);
+                dlg.ShowModal();
+            } else {
+                DisplayError(name + " cannot be Visualise", this);
+            }
         }
         else {
-            logger_base.debug("OnListItemActivatedControllers unable to get controller.");
+            DisplayError(name + " cannot find the controller", this);
         }
     }
 }
