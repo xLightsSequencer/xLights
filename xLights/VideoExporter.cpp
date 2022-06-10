@@ -223,7 +223,11 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
     _videoCodecContext->pix_fmt = static_cast<AVPixelFormat>(_outParams.pfmt);
     _videoCodecContext->thread_count = 8;
     if (codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
+#if defined(XL_DRAWING_WITH_METAL)
+        // if Drawing with GL, we don't have the raw CVImage anyway
+        // so use the normal ffmpeg routines
         _videoCodecContext->pix_fmt = AV_PIX_FMT_VIDEOTOOLBOX;
+#endif
         // sw encoder seems to have issues if frames aren't sent in real time, stick with hw encoder
         ::av_opt_set_int(_videoCodecContext->priv_data, "allow_sw", 0, AV_OPT_SEARCH_CHILDREN);
     } else {
@@ -316,7 +320,7 @@ void GenericVideoExporter::initializeFrames()
         _videoFrames[x]->height = _outParams.height;
         _videoFrames[x]->format = _outParams.pfmt;
         status = ::av_frame_get_buffer(_videoFrames[x], 0);
-#ifdef __WXOSX__
+#if defined(XL_DRAWING_WITH_METAL)
         if (_videoCodecContext->codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
             // this is using videotoolbox, we can pass image in directly, no conversion needed
             _videoFrames[x]->format = AV_PIX_FMT_VIDEOTOOLBOX;
