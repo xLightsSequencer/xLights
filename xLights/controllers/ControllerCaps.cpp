@@ -377,6 +377,11 @@ bool ControllerCaps::AllInputUniversesMustBeSameSize() const {
     return DoesXmlNodeExist(_config, "AllInputUniversesMustBeSameSize");
 }
 
+bool ControllerCaps::AllInputUniversesMustBe510() const
+{
+    return DoesXmlNodeExist(_config, "AllInputUniversesMustBe510");
+}
+
 bool ControllerCaps::UniversesMustBeInNumericalOrder() const {
 
     return DoesXmlNodeExist(_config, "UniversesMustBeInNumericalOrder");

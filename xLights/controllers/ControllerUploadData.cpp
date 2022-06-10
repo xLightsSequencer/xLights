@@ -1695,6 +1695,15 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         }
     }
 
+    if (rules->AllInputUniversesMustBe510()) {
+        for (const auto& it : outputs) {
+            if (it->GetChannels() != 510) {
+                res += wxString::Format("ERR: All universes must be 510 channels. %d found.\n", (int)it->GetChannels()).ToStdString();
+                success = false;
+            }
+        }
+    }
+
     if (rules->GetNumberOfBanks() > 1) {
         if (_pixelPorts.size() <= rules->GetMaxPixelPort()) {//dont do bank checking if pixel port count is over the max of the controller, it isnt going to work anyways
             int const banksize = rules->GetBankSize();
