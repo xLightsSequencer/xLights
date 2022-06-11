@@ -25,6 +25,7 @@ extern "C"
 #include <string>
 
 class wxWindow;
+class wxAppProgressIndicator;
 
 #define MAX_EXPORT_BUFFER_FRAMES 20
 
@@ -112,7 +113,7 @@ public:
                    int audioChannelCount, int audioSampleRate,
                    const std::string& outPath );
 
-    bool Export();
+    bool Export(wxAppProgressIndicator * appIndicator);
 
 protected:
     wxWindow * const    _parent;

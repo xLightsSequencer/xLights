@@ -23,6 +23,7 @@ extern "C"
 #include <log4cpp/Category.hh>
 
 #include <wx/progdlg.h>
+#include <wx/appprogress.h>
 
 #include <algorithm>
 #include <cstring>
@@ -145,6 +146,7 @@ void GenericVideoExporter::initialize()
     
     // Initialize video & audio
     AVOutputFormat* fmt = (AVOutputFormat*)::av_guess_format(nullptr, _path.c_str(), nullptr);
+#ifdef __WXOSX__
     enum AVCodecID origGuess = fmt->video_codec;
     enum AVCodecID best = AV_CODEC_ID_H264;
     if (_outParams.height > 1080) {
@@ -162,13 +164,17 @@ void GenericVideoExporter::initialize()
         best = origGuess;
         videoCodec = ::avcodec_find_encoder(best);
     }
+#else
+    const AVCodec* videoCodec = ::avcodec_find_encoder(fmt->video_codec);
+#endif    
 
     const AVCodec* audioCodec = nullptr;
     if (!_videoOnly) {
         audioCodec = ::avcodec_find_encoder(fmt->audio_codec);
     }
-    int status = ::avformat_alloc_output_context2(&_formatContext, nullptr, "mp4", _path.c_str());
     AVDictionary* av_opts = NULL;
+#ifdef __WXOSX__
+    int status = ::avformat_alloc_output_context2(&_formatContext, nullptr, "mp4", _path.c_str());
     av_dict_set(&av_opts, "brand", "mp42", 0);
     av_dict_set(&av_opts, "movflags", "faststart+disable_chpl+write_colr", 0);
     if (_formatContext == nullptr)
@@ -187,6 +193,15 @@ void GenericVideoExporter::initialize()
             throw std::runtime_error("VideoExporter - Error opening video codec context");
         }
     }
+#else
+    int status = ::avformat_alloc_output_context2(&_formatContext, fmt, nullptr, _path.c_str());
+    if (_formatContext == nullptr)
+        throw std::runtime_error("VideoExporter - Error allocating output-context");
+    if (!initializeVideo(videoCodec)) {
+        throw std::runtime_error("VideoExporter - Error opening video codec context");
+    }
+#endif
+
     if (!_videoOnly) {
         initializeAudio(audioCodec);
     }
@@ -639,21 +654,24 @@ VideoExporter::VideoExporter(wxWindow* parent,
         throw std::runtime_error("VideoExporter - assumes mono or stereo for input and creating stereo for output currently");
 }
 
-bool VideoExporter::Export()
+bool VideoExporter::Export(wxAppProgressIndicator* appIndicator)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool status = true;
 
     int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT;
     wxProgressDialog dlg(_("Export progress"), _("Exporting video..."), 100, _parent, style);
+    appIndicator->SetRange(100);
+    appIndicator->SetValue(0);
 
     auto cancelLambda = [&dlg]() {
         return dlg.WasCancelled();
     };
     setQueryForCancelCallback(cancelLambda);
 
-    auto progressLambda = [&dlg](int value) {
+    auto progressLambda = [&dlg, &appIndicator](int value) {
         dlg.Update(value);
+        appIndicator->SetValue(value);
     };
     setProgressReportCallback(progressLambda);
 
@@ -674,7 +692,8 @@ bool VideoExporter::Export()
         logger_base.error("Exception caught in VideoExporter - '%s'", (const char*)re.what());
         status = false;
     }
-
+    appIndicator->SetValue(0);
+    appIndicator->Reset();
     dlg.Hide();
 
     return status;

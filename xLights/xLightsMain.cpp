@@ -3152,7 +3152,7 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
         };
         videoExporter.setGetVideoCallback(videoLambda);
 
-        exportStatus = videoExporter.Export();
+        exportStatus = videoExporter.Export(_appProgress.get());
     }
     catch (const std::runtime_error& re) {
         emsg = (const char*)re.what();
