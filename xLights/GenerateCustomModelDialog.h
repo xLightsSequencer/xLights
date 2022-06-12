@@ -98,16 +98,18 @@ class GenerateCustomModelDialog: public wxDialog
     xLightsFrame *_parent = nullptr;
     ProcessedImage* _detectedImage = nullptr;
     wxProgressDialog* _pd = nullptr;
+    std::list<std::pair<wxPoint, uint32_t>>* _cachedPoints = nullptr;
 
-	void CreateDetectedImage(ProcessedImage* pi = nullptr, bool drawLines = false);
+	void CreateDetectedImage(ProcessedImage* pi = nullptr, bool drawLines = false, std::list<std::pair<wxPoint, uint32_t>>* points = nullptr);
 	void UpdateProgressCallback(float progress);
-	void DisplayImageCallbackCMG(ProcessedImage* image);
+    void DisplayImageCallbackCMG(ProcessedImage* image, std::list<std::pair<wxPoint, uint32_t>>* points = nullptr);
     void ShowImage(const ProcessedImage* image);
     void SwapPage(int oldp, int newp);
     int GetEdge(int x, int y);
     void ResizeClip(int x, int y);
 	void SetGridSizeForFont(const wxFont& font);
     bool ShowPixelLines();
+    void ClearLights();
 
 #pragma region Model Type Tab
     void MTTabEntry();
@@ -136,7 +138,7 @@ class GenerateCustomModelDialog: public wxDialog
     void CMTabEntry();
     wxSize CalcSize(wxPoint* offset = nullptr, float* multiplier = nullptr);
     void DoGenerateCustomModel();
-    std::function<void(ProcessedImage*)> DisplayImage(bool show);
+    std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> DisplayImage(bool show);
     void ShowProgress(bool show);
     std::function<void(float)> Progress();
     void UpdateProgress(float progress);

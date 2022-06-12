@@ -65,6 +65,7 @@
 
 //#define ONLY_SET_RED_CHANNEL_FOR_GREYSCALE_AND_BW_IMAGES
 #define CUSTOM_MODEL_GENERATOR_PARALLEL
+//#define EXTRA_CHECKS
 //#define SHOW_PROCESSED_IMAGE
 #define MODEL_SIZE_MULTIPLER (3 - 1)
 
@@ -135,7 +136,7 @@ public:
     }
 
     ProcessedImage(const wxImage &image, P_IMG_FRAME_TYPE imageType) :
-        wxImage(image), _imageType(imageType)
+        wxImage(image.Copy()), _imageType(imageType) // we have to use copy or it creates a reference to the data
     {
         SetType(wxBitmapType::wxBITMAP_TYPE_BMP);
     }
@@ -168,16 +169,28 @@ public:
 
     inline uint8_t GetPixel(uint32_t x, uint32_t y, uint32_t width, uint8_t channels, uint8_t* data)
     {
+#ifdef EXTRA_CHECKS
+        wxASSERT(x >= 0 && x < GetWidth() && width == GetWidth());
+        wxASSERT(y >= 0 && y < GetHeight());
+#endif
         return *(data + (y * width + x) * channels);
     }
 
     inline uint8_t GetPixelC(uint32_t x, uint32_t y, uint32_t width, uint8_t channels, uint8_t* data, uint8_t ch)
     {
+        #ifdef EXTRA_CHECKS
+        wxASSERT(x >= 0 && x < GetWidth() && width == GetWidth());
+        wxASSERT(y >= 0 && y < GetHeight());
+        #endif
         return *(data + (y * width + x) * channels + ch);
     }
 
     inline void SetPixelC(uint32_t x, uint32_t y, uint32_t width, uint8_t channels, uint8_t* data, uint8_t r, uint8_t g, uint8_t b)
     {
+#ifdef EXTRA_CHECKS
+        wxASSERT(x >= 0 && x < GetWidth() && width == GetWidth());
+        wxASSERT(y >= 0 && y < GetHeight());
+#endif
         *(data + (y * width + x) * channels) = r;
         *(data + (y * width + x) * channels + 1) = g;
         *(data + (y * width + x) * channels + 2) = b;
@@ -185,6 +198,10 @@ public:
 
     inline void SetPixel(uint32_t x, uint32_t y, uint32_t width, uint8_t channels, uint8_t* data, uint8_t c)
     {
+#ifdef EXTRA_CHECKS
+        wxASSERT(x >= 0 && x < GetWidth() && width == GetWidth());
+        wxASSERT(y >= 0 && y < GetHeight());
+#endif
         *(data + (y * width + x) * channels) = c;
 #ifndef ONLY_SET_RED_CHANNEL_FOR_GREYSCALE_AND_BW_IMAGES
         *(data + (y * width + x) * channels + 1) = c;
@@ -196,6 +213,10 @@ public:
     // this is used when i need a copy of the image as the modification changes data i later need to refer to
     uint8_t getData(uint8_t* buffer, uint32_t x, uint32_t y)
     {
+#ifdef EXTRA_CHECKS
+        wxASSERT(x >= 0 && x < GetWidth());
+        wxASSERT(y >= 0 && y < GetHeight());
+#endif
         return *(buffer + y * GetWidth() + x);
     }
 
@@ -284,7 +305,7 @@ public:
 #endif
 
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
-        parallel_for(0, GetPixels(), [this, orig, incr](uint32_t i) {
+        parallel_for(0, GetPixels(), [this, orig](uint32_t i) {
 #else
         for (uint32_t i = 0; i < GetPixels(); ++i) {
 #endif
@@ -329,7 +350,7 @@ public:
         // assumes this is a greyscale image
         uint8_t incr = HasAlpha() ? 4 : 3;
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
-        parallel_for(0, GetPixels(), [this, incr, threshold, thresholdTable](int i) {
+        parallel_for(0, GetPixels(), [this, incr, thresholdTable](int i) {
 #else
         for (uint32_t i = 0; i < GetPixels(); ++i) {
 #endif
@@ -410,6 +431,11 @@ public:
         }
     }
 
+    inline bool IsBlack(uint8_t* data, uint8_t incr, uint32_t i)
+    {
+        return *(data + i * incr) == 0 && *(data + i * incr + 1) == 0 && *(data + i * incr + 2) == 0;
+    }
+
     void FillInRGB()
     {
         // now go through the same data and remove any black pixels largely surrounded by another colour
@@ -423,12 +449,13 @@ public:
 #else
         for (uint32_t i = 0; i < GetPixels(); ++i) {
 #endif
-            int32_t y = i / width;
-            int32_t x = i % width;
-            // we only do this for pixels not on the outside
-            if (x > 0 && x < width - 1 && y > 0 && y < GetHeight() - 1) {
-                // if pixel is black
-                if ((*data + i * incr) == 0 && (*data + i * incr + 1) == 0 && (*data + i * incr + 2) == 0) {
+            // if pixel is black
+            if (IsBlack(data, incr, i)) {
+                int32_t y = i / width;
+                int32_t x = i % width;
+
+                // we only do this for pixels not on the outside
+                if (x > 0 && x < width - 1 && y > 0 && y < GetHeight() - 1) {
                     // look at the surrounding pixels
                     uint8_t r = 0;
                     uint8_t g = 0;
@@ -455,75 +482,174 @@ public:
 #endif
     }
 
-    #define MAXIMUM_LOOK_RGB 50
+    #define MAXIMUM_LOOK_RGB 20
     void FillInRGBA()
     {
         // now go through the same data and remove any black pixels largely surrounded by another colour
+        uint8_t* data = GetData();
+        
         ProcessedImage temp(this);
+        uint8_t* tempData = temp.GetData();
+        
         uint32_t width = GetWidth();
         uint32_t height = GetHeight();
-        uint8_t* data = GetData();
-        uint8_t* tempData = temp.GetData();
+        
         uint8_t incr = HasAlpha() ? 4 : 3;
+
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
         parallel_for(0, GetPixels(), [this, incr, data, tempData, width, height](int i) {
 #else
         for (uint32_t i = 0; i < GetPixels(); ++i) {
 #endif
-            if (*(data + i * incr) == 0 && *(data + i * incr + 1) == 0 && *(data + i * incr + 2) == 0) {
-
-                int32_t y = i / width;
-                int32_t x = i % width;
+            if (IsBlack(data, incr, i)) {
+                uint32_t y = i / width;
+                uint32_t x = i % width;
 
                 uint8_t n = 0x00;
+                uint16_t nv = 0x00;
                 uint8_t s = 0x00;
+                uint16_t sv = 0x00;
                 uint8_t e = 0x00;
+                uint16_t ev = 0x00;
                 uint8_t w = 0x00;
+                uint16_t wv = 0x00;
+                uint8_t all = 0x00;
+                uint8_t allor = 0x00;
 
-                for (uint8_t j = 0; j <= MAXIMUM_LOOK_RGB; ++j) {
+                for (uint8_t j = 0; all == 0 && (allor & 0x08) == 0 && j <= MAXIMUM_LOOK_RGB; ++j) {
                     // west x-
-                    if (w == 0x00 && x >= j) {
-                        w |= (GetPixelC(x - j, y, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
-                        w |= (GetPixelC(x - j, y, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
-                        w |= (GetPixelC(x - j, y, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                    if (w == 0x00) {
+                        if (x >= j) {
+                            w |= (GetPixelC(x - j, y, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
+                            w |= (GetPixelC(x - j, y, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
+                            w |= (GetPixelC(x - j, y, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                            if (w == 0x01)
+                                wv = GetPixelC(x - j, y, width, incr, tempData, 0);
+                            else if (w == 0x02)
+                                wv = GetPixelC(x - j, y, width, incr, tempData, 1);
+                            else if (w == 0x02)
+                                wv = GetPixelC(x - j, y, width, incr, tempData, 2);
+                        } else {
+                            w |= 0x08;
+                        }
                     }
 
                     // east x+
-                    if (e == 0x00 && x < width - j - 1) {
-                        e |= (GetPixelC(x + j, y, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
-                        e |= (GetPixelC(x + j, y, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
-                        e |= (GetPixelC(x + j, y, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                    if (e == 0x00) {
+                        if (x < width - j - 1) {
+                            e |= (GetPixelC(x + j, y, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
+                            e |= (GetPixelC(x + j, y, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
+                            e |= (GetPixelC(x + j, y, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                            if (e == 0x01)
+                                ev = GetPixelC(x + j, y, width, incr, tempData, 0);
+                            else if (e == 0x02)
+                                ev = GetPixelC(x + j, y, width, incr, tempData, 1);
+                            else if (e == 0x02)
+                                ev = GetPixelC(x + j, y, width, incr, tempData, 2);
+                        } else {
+                            e |= 0x08;
+                        }
                     }
 
                     // south y-
-                    if (s == 0x00 && y >= j) {
-                        s |= (GetPixelC(x, y - j, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
-                        s |= (GetPixelC(x, y - j, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
-                        s |= (GetPixelC(x, y - j, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                    if (s == 0x00) {
+                        if (y >= j) {
+                            s |= (GetPixelC(x, y - j, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
+                            s |= (GetPixelC(x, y - j, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
+                            s |= (GetPixelC(x, y - j, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                            if (s == 0x01)
+                                sv = GetPixelC(x, y - j, width, incr, tempData, 0);
+                            else if (s == 0x02)
+                                sv = GetPixelC(x, y - j, width, incr, tempData, 1);
+                            else if (s == 0x02)
+                                sv = GetPixelC(x, y - j, width, incr, tempData, 2);
+                        } else {
+                            s |= 0x08;
+                        }
                     }
 
                     // north y+
-                    if (n == 0x00 && y < height - j - 1) {
-                        n |= (GetPixelC(x, y + j, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
-                        n |= (GetPixelC(x, y + j, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
-                        n |= (GetPixelC(x, y + j, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                    if (n == 0x00) {
+                        if (y < height - j - 1) {
+                            n |= (GetPixelC(x, y + j, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
+                            n |= (GetPixelC(x, y + j, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
+                            n |= (GetPixelC(x, y + j, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                            if (n == 0x01)
+                                nv = GetPixelC(x, y + j, width, incr, tempData, 0);
+                            else if (n == 0x02)
+                                nv = GetPixelC(x, y + j, width, incr, tempData, 1);
+                            else if (n == 0x02)
+                                nv = GetPixelC(x, y + j, width, incr, tempData, 2);
+                        } else {
+                            n |= 0x08;
+                        }
                     }
 
-                    uint8_t all = (n & s & e & w);
+                    allor = (n | s | e | w);
+                    all = (n & s & e & w);
+                }
 
-                    if (all != 0 && all != 0x01 && all != 0x02 && all != 0x04)
-                        break; // different colours so dont set
+                // done and pixel colour should be set
+                uint8_t val = (ev + wv + sv + nv) / 4;
+                if (all == 0x01) {
+                    SetPixelC(x, y, width, incr, data, val, 0, 0);
+                } else if (all == 0x02) {
+                    SetPixelC(x, y, width, incr, data, 0, val, 0);
+                } else if (all == 0x04) {
+                    SetPixelC(x, y, width, incr, data, 0, 0, val);
+                }
+            }
+        }
+#ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
+        );
+#endif
 
-                    // done and pixel colour should be set
-                    if (all == 0x01) {
+        // need to copy the current image again
+        ProcessedImage temp2(this);
+        tempData = temp2.GetData();
+
+        // go back through everything and dilate a pixel if only touches one colour n,s,e,w
+#ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
+        parallel_for(0, GetPixels(), [this, incr, data, tempData, width, height](int i) {
+#else
+        for (uint32_t i = 0; i < GetPixels(); ++i) {
+#endif
+            if (IsBlack(data, incr, i)) {
+                uint32_t y = i / width;
+                uint32_t x = i % width;
+
+                if (x > 1 && y > 1 && x < width - 1 && y < height - 1) {
+                    uint8_t c = (GetPixelC(x - 1, y, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x + 1, y, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x, y - 1, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x, y + 1, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x - 1, y - 1, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x - 1, y + 1, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x + 1, y - 1, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x + 1, y + 1, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x - 1, y, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x + 1, y, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x, y - 1, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x, y + 1, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x - 1, y - 1, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x - 1, y + 1, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x + 1, y - 1, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x + 1, y + 1, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x - 1, y, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x + 1, y, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x, y - 1, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x, y + 1, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x - 1, y - 1, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x - 1, y + 1, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x + 1, y - 1, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x + 1, y + 1, width, incr, tempData, 2) != 0 ? 0x04 : 0x00);
+
+                    if (c == 0x01) {
                         SetPixelC(x, y, width, incr, data, 255, 0, 0);
-                        break;
-                    } else if (all == 0x02) {
+                    } else if (c == 0x02) {
                         SetPixelC(x, y, width, incr, data, 0, 255, 0);
-                        break;
-                    } else if (all == 0x04) {
+                    } else if (c == 0x04) {
                         SetPixelC(x, y, width, incr, data, 0, 0, 255);
-                        break;
                     }
                 }
             }
@@ -747,7 +873,7 @@ public:
         uint8_t incr = HasAlpha() ? 4 : 3;
 
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
-        parallel_for(0, GetPixels(), [this, factor, incr, contrastTable](int i) {
+        parallel_for(0, GetPixels(), [this, incr, contrastTable](int i) {
 #else
         for (uint32_t i = 0; i < GetPixels(); ++i) {
 #endif
@@ -814,7 +940,7 @@ public:
         uint8_t incr = HasAlpha() ? 4 : 3;
 
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
-        parallel_for(0, width * height, [this, incr, clipped, left, adjY, width](int i) {
+        parallel_for(0, width * height, [this, clipped, left, adjY, width](int i) {
             #else
         for (uint32_t i = 0; i < (uint32_t)(width * height); ++i) {
 #endif
@@ -850,7 +976,7 @@ public:
         return res;
     }
 
-    void ProcessB(uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessB(uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
 //#ifdef SHOW_PROCESSED_IMAGE
 //        if (displayCallback != nullptr) {
@@ -881,7 +1007,7 @@ public:
         }
     }
 
-    void ProcessA(int contrast, uint8_t blur, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessA(int contrast, uint8_t blur, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         if (blur > 1) {
             UpdateFrom(Blur(blur));
@@ -1098,7 +1224,7 @@ public:
         VFT_IMAGE_TEMP
     };
 
-    void PrepareImages(bool processRGB, float gamma, uint8_t saturate, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void PrepareImages(bool processRGB, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         if (gamma != 1.0) {
             _rawFrame->Gamma(gamma);
@@ -1130,7 +1256,7 @@ public:
     }
 
     VideoFrame(ProcessedImage* image, uint32_t timestamp, bool isRGB, VIDEO_FRAME_TYPE frameType = VIDEO_FRAME_TYPE::VFT_IMAGE_TEMP) :
-        _frameType(frameType), _timestamp(timestamp), _isRGB(isRGB)
+        _frameType(frameType), _isRGB(isRGB), _timestamp(timestamp)
     {
         _rawFrame = new ProcessedImage(image);
     }
@@ -1183,7 +1309,7 @@ public:
         return _blueFrame;
     }
 
-    void RemoveBackground(VideoFrame* offFrame, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void RemoveBackground(VideoFrame* offFrame, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
 //#ifdef SHOW_PROCESSED_IMAGE
 //        if (displayCallback != nullptr)
@@ -1236,24 +1362,24 @@ public:
         return _frameDelta;
     }
 
-    void ProcessImage(ProcessedImage* img, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessImage(ProcessedImage* img, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         img->ProcessA(contrast, blur, displayCallback);
         img->ProcessB(erode_dilate, threshold, displayCallback);
     }
 
-    void ProcessImageA(ProcessedImage* img, int contrast, uint8_t blur, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessImageA(ProcessedImage* img, int contrast, uint8_t blur, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         img->ProcessA(contrast, blur, displayCallback);
     }
 
-    void ProcessImageB(ProcessedImage* img, uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessImageB(ProcessedImage* img, uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         img->ProcessB(erode_dilate, threshold, displayCallback);
     }
 
     // returns a new frame with the processing done
-    VideoFrame* Process(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    VideoFrame* Process(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         auto frame = new VideoFrame(_rawFrame->Clip(cropLeft, cropRight, cropTop, cropBottom), _timestamp, _isRGB, _frameType);
         frame->PrepareImages(_isRGB, gamma, saturate, displayCallback);
@@ -1270,7 +1396,7 @@ public:
         return frame;
     }
 
-    VideoFrame* ProcessA(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, float gamma, uint8_t saturate, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    VideoFrame* ProcessA(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         auto frame = new VideoFrame(_rawFrame->Clip(cropLeft, cropRight, cropTop, cropBottom), _timestamp, _isRGB, _frameType);
         frame->PrepareImages(_isRGB, gamma, saturate, displayCallback);
@@ -1285,7 +1411,7 @@ public:
         return frame;
     }
 
-    void ProcessB(uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessB(uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         if (_isRGB) {
             ProcessImageB(_redFrame, erode_dilate, threshold, displayCallback);
@@ -1328,15 +1454,15 @@ protected:
 
     std::string _filename;
     VideoReader* _vr = nullptr;
-    uint32_t _startMS;                   // this is the timestamp of the _start1 image
-    VideoFrame* _offFrame = nullptr; // used to hold an image of all lights off ... this can be subtracted by future images
-    VideoFrame* _startFrame1 = nullptr;   // these are the two start images
+    uint32_t _startMS = 0;              // this is the timestamp of the _start1 image
+    VideoFrame* _offFrame = nullptr;    // used to hold an image of all lights off ... this can be subtracted by future images
+    VideoFrame* _startFrame1 = nullptr; // these are the two start images
     VideoFrame* _startFrame2 = nullptr;
     VideoFrame* _firstFrame = nullptr;
-    std::list<VideoFrame*> _frames; // this is a collection of raw video stills containing the snapshots of the pixels
-                                                         // while this uses some memory to hold it is faster than continually re-reading the
-                                                         // video as the video is often processed many times. The uint32_t is the video
-                                                         // timestamp of the frame
+    std::list<VideoFrame*> _frames;     // this is a collection of raw video stills containing the snapshots of the pixels
+                                        // while this uses some memory to hold it is faster than continually re-reading the
+                                        // video as the video is often processed many times. The uint32_t is the video
+                                        // timestamp of the frame
     std::vector<VideoFrame*> _processedFrames;
 
     // used during video creation
@@ -1345,7 +1471,7 @@ protected:
 
     public:
 
-    // this is used when yoy just need the generator to run the sequence
+    // this is used when you just need the generator to run the sequence
     CustomModelGenerator()
     {
     }
@@ -1666,7 +1792,7 @@ protected:
         }
     }
 
-    void RemoveBackgroundFromFrames(std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void RemoveBackgroundFromFrames(std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         for (auto& it : _frames) {
             it->RemoveBackground(_offFrame, displayCallback);
@@ -1697,7 +1823,7 @@ protected:
     }
 
     // call back used whenever we have an image the UI might want to display
-    bool FindStartFrames(std::function<void(ProcessedImage*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
+    bool FindStartFrames(std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
         bool res = false;
@@ -1710,7 +1836,7 @@ protected:
             img->PrepareImages(false, 1.0, 0); // prepare as greyscale
             startScan.push_back(img);
             if (displayCallback != nullptr)
-                displayCallback(img->GetColourImage());
+                displayCallback(img->GetColourImage(), nullptr);
             if (progressCallback != nullptr)
                 progressCallback(((float)ms * 0.7f) / ((float)STARTSCANSECS * 1000.0f));
             abort |= wxGetKeyState(WXK_ESCAPE);
@@ -1834,7 +1960,7 @@ protected:
     }
 
     // watch the video from the start recording all the frames that should have pixels ... dont apply any fancy processing
-    bool ReadVideo(uint32_t maxPixels, bool steady, std::function<void(ProcessedImage*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
+    bool ReadVideo(uint32_t maxPixels, bool steady, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
 
@@ -1851,7 +1977,7 @@ protected:
             logger_gcm.debug("Reading frame %u at %ums", (uint32_t)_frames.size() + 1, currentTime);
             auto img = ReadFrame(_vr->GetNextFrame(currentTime), currentTime, true);
             _frames.push_back(img);
-            if (displayCallback != nullptr) displayCallback(img->GetColourImage());
+            if (displayCallback != nullptr) displayCallback(img->GetColourImage(), nullptr);
             currentTime += NODEON;
             abort |= wxGetKeyState(WXK_ESCAPE);
         }
@@ -1864,7 +1990,7 @@ protected:
         return framesToRead == _frames.size();
     }
 
-    void ProcessFrames(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessFrames(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         wxASSERT(_frames.size() > 0);
 
@@ -1881,7 +2007,7 @@ protected:
         }
     }
 
-    void ProcessFramesA(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, float gamma, uint8_t saturate, std::function<void(ProcessedImage*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
+    void ProcessFramesA(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
     {
         wxASSERT(_frames.size() > 0);
 
@@ -1902,7 +2028,7 @@ protected:
         }
     }
 
-    void ProcessFramesB(uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessFramesB(uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         wxASSERT(_processedFrames.size() > 0);
 
@@ -1914,7 +2040,7 @@ protected:
     }
 
     // lights are 1 based
-    wxPoint FindLight(uint32_t pixel, uint32_t numPixels, std::map<std::string, ProcessedImage*>& cache, ProcessedImage** ppi, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    wxPoint FindLight(uint32_t pixel, uint32_t numPixels, std::map<std::string, ProcessedImage*>& cache, ProcessedImage** ppi, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
         wxASSERT(_processedFrames.size() > 0);
@@ -1969,7 +2095,7 @@ protected:
             }
 
             if (displayCallback != nullptr) {
-                displayCallback(img);
+                displayCallback(img, nullptr);
             }
 
             std::string key = value.substr(0, i);
@@ -1994,7 +2120,7 @@ protected:
     }
 
     // lights are 1 based
-    wxPoint FindLightA(uint32_t pixel, uint32_t numPixels, uint8_t erode_dilate, uint8_t threshold, std::map<std::string, ProcessedImage*>& cache, ProcessedImage** ppi, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    wxPoint FindLightA(uint32_t pixel, uint32_t numPixels, uint8_t erode_dilate, uint8_t threshold, std::map<std::string, ProcessedImage*>& cache, ProcessedImage** ppi, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
         wxASSERT(_processedFrames.size() > 0);
@@ -2048,7 +2174,7 @@ protected:
             }
 
             if (displayCallback != nullptr) {
-                displayCallback(img);
+                displayCallback(img, nullptr);
             }
 
             std::string key = value.substr(0, i + 1);
@@ -2063,7 +2189,7 @@ protected:
             img->ProcessB(erode_dilate, threshold, displayCallback);
 
             if (displayCallback != nullptr) {
-                displayCallback(img);
+                displayCallback(img, nullptr);
             }
 
             // auto res = img->FindPixel(); // find the largest white area
@@ -2079,7 +2205,7 @@ protected:
     }
 
     // turns rgb into b&w images then tries to find them
-    std::list<std::pair<wxPoint, uint32_t>> FindLights(uint32_t maxPixels, uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, ProcessedImage** ppi, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    std::list<std::pair<wxPoint, uint32_t>> FindLights(uint32_t maxPixels, uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, ProcessedImage** ppi, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
         std::list<std::pair<wxPoint, uint32_t>> res;
@@ -2112,7 +2238,7 @@ protected:
         return res;
     }
 
-    std::list<std::pair<wxPoint, uint32_t>> FindLightsA(uint32_t maxPixels, uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, ProcessedImage** ppi, std::function<void(ProcessedImage*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
+    std::list<std::pair<wxPoint, uint32_t>> FindLightsA(uint32_t maxPixels, uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, ProcessedImage** ppi, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
         std::list<std::pair<wxPoint, uint32_t>> res;
@@ -2125,7 +2251,7 @@ protected:
 
         if (displayCallback != nullptr) {
             for (const auto& it : _processedFrames) {
-                displayCallback(it->GetColourImage());
+                displayCallback(it->GetColourImage(), nullptr);
             }
         }
 
@@ -2142,6 +2268,7 @@ protected:
             if (progressCallback != nullptr) {
                 progressCallback(0.5 + ((float)(p + 1) * 0.5) / (float)maxPixels);
             }
+            if (displayCallback != nullptr) displayCallback(GetStartFrame()->GetColourImage(), &res);
             abort |= wxGetKeyState(WXK_ESCAPE);
         }
 
@@ -2617,6 +2744,8 @@ GenerateCustomModelDialog::~GenerateCustomModelDialog()
 	FileDialog1->Destroy();
 	//*)
 
+    ClearLights();
+
     if (_generator != nullptr)
     {
         delete _generator;
@@ -2683,7 +2812,7 @@ void GenerateCustomModelDialog::ShowImage(const ProcessedImage* image)
     wxYield();
 }
 
-void GenerateCustomModelDialog::CreateDetectedImage(ProcessedImage* pi, bool drawLines)
+void GenerateCustomModelDialog::CreateDetectedImage(ProcessedImage* pi, bool drawLines, std::list<std::pair<wxPoint, uint32_t>>* points)
 {
     if (_generator == nullptr)
         return;
@@ -2734,32 +2863,37 @@ void GenerateCustomModelDialog::CreateDetectedImage(ProcessedImage* pi, bool dra
 
     TextCtrl_BI_Status->SetValue(GenerateStats());
 
-    if (_lights.size() > 0) {
+    std::list<std::pair<wxPoint, uint32_t>>* lights = &_lights;
+    if (points != nullptr)
+        lights = points;
 
-        if (drawLines) {
-            wxPen p(*LINECOL, 1);
-            dc.SetPen(p);
-            auto it1 = _lights.begin();
-            auto it2 = it1;
-            ++it2;
-            while (it2 != _lights.end()) {
-                wxPoint pt1 = wxPoint(_clip.GetLeft() + it1->first.x, it1->first.y + (_clip.GetTop()));
-                wxPoint pt2 = wxPoint(_clip.GetLeft() + it2->first.x, it2->first.y + (_clip.GetTop()));
-                dc.DrawLine(pt1, pt2);
-                ++it1;
+    if (lights != nullptr) {
+        if (lights->size() > 0) {
+            if (drawLines) {
+                wxPen p(*LINECOL, 1);
+                dc.SetPen(p);
+                auto it1 = lights->begin();
+                auto it2 = it1;
                 ++it2;
+                while (it2 != lights->end()) {
+                    wxPoint pt1 = wxPoint(_clip.GetLeft() + it1->first.x, it1->first.y + (_clip.GetTop()));
+                    wxPoint pt2 = wxPoint(_clip.GetLeft() + it2->first.x, it2->first.y + (_clip.GetTop()));
+                    dc.DrawLine(pt1, pt2);
+                    ++it1;
+                    ++it2;
+                }
             }
-        }
 
-        {
-            int diameter = 2 * factor;
-            wxBrush b(*PIXCOL, wxBrushStyle::wxBRUSHSTYLE_SOLID);
-            dc.SetBrush(b);
-            wxPen p = wxPen(*PIXCOL, 1);
-            dc.SetPen(p);
-            for (const auto& c : _lights) {
-                wxPoint pt = wxPoint(_clip.GetLeft() + c.first.x, c.first.y + (_clip.GetTop()));
-                dc.DrawCircle(pt, diameter);
+            {
+                int diameter = 2 * factor;
+                wxBrush b(*PIXCOL, wxBrushStyle::wxBRUSHSTYLE_SOLID);
+                dc.SetBrush(b);
+                wxPen p = wxPen(*PIXCOL, 1);
+                dc.SetPen(p);
+                for (const auto& c : *lights) {
+                    wxPoint pt = wxPoint(_clip.GetLeft() + c.first.x, c.first.y + (_clip.GetTop()));
+                    dc.DrawCircle(pt, diameter);
+                }
             }
         }
     }
@@ -2914,7 +3048,7 @@ void GenerateCustomModelDialog::OnButton_MT_NextClick(wxCommandEvent& event)
 
 void GenerateCustomModelDialog::CVTabEntry()
 {
-    _lights.clear();
+    ClearLights();
     Button_CV_Next->Enable();
     Button_CV_Back->Enable();
     Button_GCM_SelectFile->Enable();
@@ -2981,16 +3115,25 @@ void GenerateCustomModelDialog::OnTextCtrl_GCM_FilenameText(wxCommandEvent& even
     ValidateWindow();
 }
 
-void GenerateCustomModelDialog::DisplayImageCallbackCMG(ProcessedImage* image)
+void GenerateCustomModelDialog::DisplayImageCallbackCMG(ProcessedImage* image, std::list<std::pair<wxPoint, uint32_t>>* points)
 {
-    ShowImage(image);
+    if (points != nullptr) {
+        if (_cachedPoints != nullptr) {
+            delete _cachedPoints;
+            _cachedPoints = nullptr;
+        }
+        _cachedPoints = new std::list<std::pair<wxPoint, uint32_t>>(*points);
+    }
+
+    // add the current points
+    CreateDetectedImage(image, true, _cachedPoints);
+
+    //ShowImage(image);
 }
 
-std::function<void(ProcessedImage*)> GenerateCustomModelDialog::DisplayImage(bool show)
+std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> GenerateCustomModelDialog::DisplayImage(bool show)
 {
-    return show ?
-        std::bind(&GenerateCustomModelDialog::DisplayImageCallbackCMG, this, std::placeholders::_1) :
-        (std::function<void(ProcessedImage*)>) nullptr;
+    return show ? std::bind(&GenerateCustomModelDialog::DisplayImageCallbackCMG, this, std::placeholders::_1, std::placeholders::_2) : (std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)>)nullptr;
 }
 
 std::function<void(float)> GenerateCustomModelDialog::Progress()
@@ -3007,6 +3150,7 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
     SpinCtrl_ProcessNodeCount->Disable();
     CheckBox_BI_IsSteady->Disable();
     CheckBox_AdvancedStartScan->Disable();
+    ClearLights();
 
     static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     logger_gcm.info("File: %s.", (const char *)TextCtrl_GCM_Filename->GetValue().c_str());
@@ -3074,7 +3218,7 @@ void GenerateCustomModelDialog::OnButton_CV_BackClick(wxCommandEvent& event)
 void GenerateCustomModelDialog::SFTabEntry()
 {
     _state = VideoProcessingStates::FINDING_START_FRAME;
-    _lights.clear();
+    ClearLights();
     ShowImage(_generator->GetStartFrame()->GetColourImage());
     Button_SF_Next->Enable();
     Button_SF_Back->Enable();
@@ -3134,6 +3278,15 @@ void GenerateCustomModelDialog::ShowProgress(bool show)
     Panel_ChooseVideo->Layout();
 }
 
+void GenerateCustomModelDialog::ClearLights()
+{
+    _lights.clear();
+    if (_cachedPoints != nullptr) {
+        delete _cachedPoints;
+        _cachedPoints = nullptr;
+    }
+}
+
 void GenerateCustomModelDialog::DoBulbIdentify()
 {
     static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
@@ -3141,6 +3294,8 @@ void GenerateCustomModelDialog::DoBulbIdentify()
     if (!_busy) {
         _busy = true;
 
+        CheckBox_GuessSingle->Disable();
+        CheckBox_Advanced->Disable();
         Slider_AdjustBlur->Disable();
         Slider_BI_Sensitivity->Disable();
         Slider_BI_MinSeparation->Disable();
@@ -3158,6 +3313,9 @@ void GenerateCustomModelDialog::DoBulbIdentify()
 
         ShowProgress(true);
 
+        ClearLights();
+        CreateDetectedImage(nullptr, false, &_lights);
+
         wxYield(); // let them update
 
         logger_gcm.info("Executing bulb identify.");
@@ -3172,7 +3330,6 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         logger_gcm.info("   Minimum Scale: %d.", Slider_BI_MinScale->GetValue());
         logger_gcm.info("   Clip Rectangle: (%d,%d)-(%d,%d).", _clip.GetLeft(), _clip.GetTop(), _clip.GetRight(), _clip.GetBottom());
 
-        _lights.clear();
         if (SLRadioButton->GetValue()) {
             VideoFrame* vf = new VideoFrame(_generator->GetFirstFrame()->GetColourImage(), 0, false, VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_MULTI);
             auto nvf = vf->Process(_clip.GetLeft(), _clip.GetRight(), vf->GetHeight() - _clip.GetTop(), vf->GetHeight() - _clip.GetBottom(), Slider_BI_Contrast->GetValue(), Slider_AdjustBlur->GetValue(), Slider_Despeckle->GetValue(), Slider_BI_Sensitivity->GetValue(), SliderToGamma(Slider_Gamma->GetValue()), Slider_Saturation->GetValue());
@@ -3208,6 +3365,8 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                 delete pi;
         }
         StaticBitmap_Preview->SetEraseBackground(true);
+        CheckBox_Advanced->Enable();
+        CheckBox_GuessSingle->Enable();
         Slider_AdjustBlur->Enable();
         Slider_BI_Sensitivity->Enable();
         Slider_BI_MinSeparation->Enable();
@@ -3248,12 +3407,14 @@ void GenerateCustomModelDialog::BITabEntry(bool setdefault)
     _state = VideoProcessingStates::IDENTIFYING_BULBS;
     if (setdefault)
     {
-        _lights.clear();
+        ClearLights();
         TextCtrl_BI_Status->SetValue("");
         SetBIDefault();
     }
     CreateDetectedImage(nullptr, ShowPixelLines());
     StaticText_BI->SetLabel("The red circles on the image show the bulbs we have identified. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.\n\nClick next when you are happy that all bulbs have been detected.");
+    CheckBox_Advanced->Enable();
+    CheckBox_GuessSingle->Enable();
     Slider_BI_Sensitivity->Enable();
     Slider_BI_MinSeparation->Enable();
     Slider_BI_MinScale->Enable();
