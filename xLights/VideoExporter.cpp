@@ -166,7 +166,7 @@ void GenericVideoExporter::initialize()
         av_dict_set(&av_opts, "brand", "mp42", 0);
         av_dict_set(&av_opts, "movflags", "faststart+disable_chpl+write_colr", 0);
         status = ::avformat_alloc_output_context2(&_formatContext, nullptr, "mp4", _path.c_str());
-    } else if (_outParams.videoCodec.find("H.264") != std::string::npos){//good old MPEG4
+    } else if (_outParams.videoCodec.find("MPEG-4") != std::string::npos){//good old MPEG4
         enum AVCodecID mp4codec = AV_CODEC_ID_MPEG4;
         videoCodec = ::avcodec_find_encoder(mp4codec);
         status = ::avformat_alloc_output_context2(&_formatContext, fmt, nullptr, _path.c_str());
@@ -220,6 +220,7 @@ void GenericVideoExporter::initialize()
     // the stream(s) won't be packaged in an MP4 container. Also, the stream's
     // time_base appears to be updated within this call.
     status = ::avformat_write_header(_formatContext, &av_opts);
+    av_dict_free(&av_opts);
     if (status < 0)
         throw std::runtime_error("VideoExporter - Error writing file header");
 
@@ -229,26 +230,32 @@ void GenericVideoExporter::initialize()
 bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
 {
     _videoCodecContext = ::avcodec_alloc_context3(codec);
-    _videoCodecContext->time_base.num = 1;
-    _videoCodecContext->time_base.den = _outParams.fps;
+    _videoCodecContext->time_base.num = 1000;
+    _videoCodecContext->time_base.den = _outParams.fps * 1000;
     _videoCodecContext->gop_size = 40 /*12*/; // aka keyframe interval
     _videoCodecContext->max_b_frames = 0;
     _videoCodecContext->width = _outParams.width;
     _videoCodecContext->height = _outParams.height;
     _videoCodecContext->pix_fmt = static_cast<AVPixelFormat>(_outParams.pfmt);
     _videoCodecContext->thread_count = 8;
-    if (_outParams.videoBitrate != 0) {
-        _videoCodecContext->bit_rate = _outParams.videoBitrate * 1000;
-        _videoCodecContext->rc_max_rate = _outParams.videoBitrate * 1000;
-    }
+    
+    // _outParams.videoBitrate may be 0 which would allow the encoder to
+    // "choose" or flip to constant quality using the crf parameter
+    _videoCodecContext->bit_rate = _outParams.videoBitrate * 1000;
+    _videoCodecContext->rc_max_rate = _outParams.videoBitrate * 1000;
     if (codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
 #if defined(XL_DRAWING_WITH_METAL)
         // if Drawing with GL, we don't have the raw CVImage anyway
         // so use the normal ffmpeg routines
         _videoCodecContext->pix_fmt = AV_PIX_FMT_VIDEOTOOLBOX;
 #endif
-        // sw encoder seems to have issues if frames aren't sent in real time, stick with hw encoder
-        ::av_opt_set_int(_videoCodecContext->priv_data, "allow_sw", 0, AV_OPT_SEARCH_CHILDREN);
+        if (AV_CODEC_ID_H265 == codec->id) {
+            // HEVC sw encoder seems to have issues if frames aren't sent in real time, require hw encoder
+            // or drop to h264 or even to mpeg4
+            ::av_opt_set_int(_videoCodecContext->priv_data, "allow_sw", 0, AV_OPT_SEARCH_CHILDREN);
+        } else {
+            ::av_opt_set_int(_videoCodecContext->priv_data, "allow_sw", 1, AV_OPT_SEARCH_CHILDREN);
+        }
     } else {
         ::av_opt_set(_videoCodecContext->priv_data, "preset", "fast", 0);
         ::av_opt_set(_videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN);
@@ -287,8 +294,8 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
 
     AVStream* video_st = ::avformat_new_stream(_formatContext, nullptr);
     video_st->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
-    video_st->time_base.num = 1;
-    video_st->time_base.den = _outParams.fps;
+    video_st->time_base.num = 1000;
+    video_st->time_base.den = _outParams.fps * 1000;
     video_st->id = _formatContext->nb_streams - 1;
     status = ::avcodec_parameters_from_context(video_st->codecpar, _videoCodecContext);
     if (status != 0)
