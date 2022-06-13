@@ -16,6 +16,7 @@
 #include <wx/gbsizer.h>
 #include <wx/intl.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
 #include <wx/textctrl.h>
@@ -34,16 +35,20 @@ extern bool isMetalComputeSupported();
 //(*IdInit(OtherSettingsPanel)
 const long OtherSettingsPanel::ID_STATICTEXT1 = wxNewId();
 const long OtherSettingsPanel::ID_CHOICE1 = wxNewId();
-const long OtherSettingsPanel::ID_CHOICE2 = wxNewId();
 const long OtherSettingsPanel::ID_STATICTEXT2 = wxNewId();
 const long OtherSettingsPanel::ID_TEXTCTRL1 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX1 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX7 = wxNewId();
+const long OtherSettingsPanel::ID_STATICTEXT3 = wxNewId();
+const long OtherSettingsPanel::ID_CHOICE_CODEC = wxNewId();
+const long OtherSettingsPanel::ID_STATICTEXT5 = wxNewId();
+const long OtherSettingsPanel::ID_SPINCTRLDOUBLE_BITRATE = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX2 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX3 = wxNewId();
+const long OtherSettingsPanel::ID_CHOICE2 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX4 = wxNewId();
-const long OtherSettingsPanel::ID_CHECKBOX5 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX6 = wxNewId();
+const long OtherSettingsPanel::ID_CHECKBOX5 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
@@ -55,69 +60,91 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     frame(f)
 {
     //(*Initialize(OtherSettingsPanel)
+    wxFlexGridSizer* FlexGridSizer1;
     wxGridBagSizer* GridBagSizer1;
     wxGridBagSizer* GridBagSizer2;
     wxStaticBoxSizer* StaticBoxSizer1;
+    wxStaticBoxSizer* StaticBoxSizer2;
     wxStaticText* StaticText1;
 
-    Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
+    Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
     GridBagSizer1 = new wxGridBagSizer(0, 0);
     StaticText2 = new wxStaticText(this, ID_STATICTEXT1, _("Link save:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    GridBagSizer1->Add(StaticText2, wxGBPosition(3, 0), wxDefaultSpan, wxALL | wxEXPAND, 5);
+    GridBagSizer1->Add(StaticText2, wxGBPosition(3, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
     Choice_LinkSave = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-    Choice_LinkSave->SetSelection(Choice_LinkSave->Append(_("None")));
+    Choice_LinkSave->SetSelection( Choice_LinkSave->Append(_("None")) );
     Choice_LinkSave->Append(_("Controllers and Layout Tab"));
-    GridBagSizer1->Add(Choice_LinkSave, wxGBPosition(3, 1), wxDefaultSpan, wxALL | wxEXPAND, 5);
+    GridBagSizer1->Add(Choice_LinkSave, wxGBPosition(3, 1), wxDefaultSpan, wxALL|wxEXPAND, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT2, _("Link controller upload:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    GridBagSizer1->Add(StaticText3, wxGBPosition(4, 0), wxDefaultSpan, wxALL | wxEXPAND, 5);
+    GridBagSizer1->Add(StaticText3, wxGBPosition(4, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
     StaticText1 = new wxStaticText(this, wxID_ANY, _("eMail Address:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    GridBagSizer1->Add(StaticText1, wxGBPosition(0, 0), wxDefaultSpan, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-    eMailTextControl = new wxTextCtrl(this, ID_TEXTCTRL1, _("noone@nowhere.xlights.org"), wxDefaultPosition, wxDLG_UNIT(this, wxSize(150, -1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-    GridBagSizer1->Add(eMailTextControl, wxGBPosition(0, 1), wxDefaultSpan, wxALL | wxEXPAND, 5);
+    GridBagSizer1->Add(StaticText1, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    eMailTextControl = new wxTextCtrl(this, ID_TEXTCTRL1, _("noone@nowhere.xlights.org"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(150,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+    GridBagSizer1->Add(eMailTextControl, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxEXPAND, 5);
     HardwareVideoDecodingCheckBox = new wxCheckBox(this, ID_CHECKBOX1, _("Hardware Video Decoding"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     HardwareVideoDecodingCheckBox->SetValue(false);
-    GridBagSizer1->Add(HardwareVideoDecodingCheckBox, wxGBPosition(1, 0), wxDefaultSpan, wxALL | wxEXPAND, 5);
+    GridBagSizer1->Add(HardwareVideoDecodingCheckBox, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
     ShaderCheckbox = new wxCheckBox(this, ID_CHECKBOX7, _("Shaders on Background Threads"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
     ShaderCheckbox->SetValue(false);
-    GridBagSizer1->Add(ShaderCheckbox, wxGBPosition(1, 1), wxDefaultSpan, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(ShaderCheckbox, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Video Export Settings"));
+    FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer1->AddGrowableCol(1);
+    StaticText4 = new wxStaticText(this, ID_STATICTEXT3, _("Video Codec:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+    FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    ChoiceCodec = new wxChoice(this, ID_CHOICE_CODEC, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_CODEC"));
+    ChoiceCodec->Append(_("Auto"));
+    ChoiceCodec->SetSelection( ChoiceCodec->Append(_("H.264")) );
+    ChoiceCodec->Append(_("H.265"));
+    ChoiceCodec->Append(_("MPEG-4"));
+    FlexGridSizer1->Add(ChoiceCodec, 1, wxALL|wxEXPAND, 5);
+    StaticText6 = new wxStaticText(this, ID_STATICTEXT5, _("Bitrate(KB/s,0=Auto):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+    FlexGridSizer1->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    SpinCtrlDoubleBitrate = new wxSpinCtrlDouble(this, ID_SPINCTRLDOUBLE_BITRATE, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 90000, 0, 1000, _T("ID_SPINCTRLDOUBLE_BITRATE"));
+    SpinCtrlDoubleBitrate->SetValue(_T("0"));
+    FlexGridSizer1->Add(SpinCtrlDoubleBitrate, 1, wxALL|wxEXPAND, 5);
+    StaticBoxSizer2->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
+    GridBagSizer1->Add(StaticBoxSizer2, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxEXPAND, 5);
     StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Packaging Sequences"));
     GridBagSizer2 = new wxGridBagSizer(0, 0);
     ExcludePresetsCheckBox = new wxCheckBox(this, ID_CHECKBOX2, _("Exclude Presets"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
     ExcludePresetsCheckBox->SetValue(false);
-    GridBagSizer2->Add(ExcludePresetsCheckBox, wxGBPosition(0, 0), wxDefaultSpan, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer2->Add(ExcludePresetsCheckBox, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ExcludeAudioCheckBox = new wxCheckBox(this, ID_CHECKBOX3, _("Exclude Audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
     ExcludeAudioCheckBox->SetValue(false);
-    GridBagSizer2->Add(ExcludeAudioCheckBox, wxGBPosition(1, 0), wxDefaultSpan, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-    StaticBoxSizer1->Add(GridBagSizer2, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
-    GridBagSizer1->Add(StaticBoxSizer1, wxGBPosition(2, 0), wxDefaultSpan, wxALL | wxALIGN_LEFT, 0);
+    GridBagSizer2->Add(ExcludeAudioCheckBox, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticBoxSizer1->Add(GridBagSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    GridBagSizer1->Add(StaticBoxSizer1, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT, 0);
     Choice_LinkControllerUpload = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
-    Choice_LinkControllerUpload->SetSelection(Choice_LinkControllerUpload->Append(_("None")));
+    Choice_LinkControllerUpload->SetSelection( Choice_LinkControllerUpload->Append(_("None")) );
     Choice_LinkControllerUpload->Append(_("Inputs and Outputs"));
-    GridBagSizer1->Add(Choice_LinkControllerUpload, wxGBPosition(4, 1), wxDefaultSpan, wxALL | wxEXPAND, 5);
+    GridBagSizer1->Add(Choice_LinkControllerUpload, wxGBPosition(4, 1), wxDefaultSpan, wxALL|wxEXPAND, 5);
     CheckBox_BatchRenderPromptIssues = new wxCheckBox(this, ID_CHECKBOX4, _("Prompt issues during batch render"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
     CheckBox_BatchRenderPromptIssues->SetValue(true);
-    GridBagSizer1->Add(CheckBox_BatchRenderPromptIssues, wxGBPosition(5, 0), wxDefaultSpan, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_IgnoreVendorModelRecommendations = new wxCheckBox(this, ID_CHECKBOX5, _("Ignore vendor model recommendations"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
-    CheckBox_IgnoreVendorModelRecommendations->SetValue(false);
-    GridBagSizer1->Add(CheckBox_IgnoreVendorModelRecommendations, wxGBPosition(7, 0), wxDefaultSpan, wxALL | wxEXPAND, 5);
+    GridBagSizer1->Add(CheckBox_BatchRenderPromptIssues, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_PurgeDownloadCache = new wxCheckBox(this, ID_CHECKBOX6, _("Purge download cache at startup"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
     CheckBox_PurgeDownloadCache->SetValue(false);
-    GridBagSizer1->Add(CheckBox_PurgeDownloadCache, wxGBPosition(6, 0), wxDefaultSpan, wxALL | wxEXPAND, 5);
+    GridBagSizer1->Add(CheckBox_PurgeDownloadCache, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
+    CheckBox_IgnoreVendorModelRecommendations = new wxCheckBox(this, ID_CHECKBOX5, _("Ignore vendor model recommendations"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
+    CheckBox_IgnoreVendorModelRecommendations->SetValue(false);
+    GridBagSizer1->Add(CheckBox_IgnoreVendorModelRecommendations, wxGBPosition(7, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
     SetSizer(GridBagSizer1);
     GridBagSizer1->Fit(this);
     GridBagSizer1->SetSizeHints(this);
 
-    Connect(ID_CHOICE1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHOICE2, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX7, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX5, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX6, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX7,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE_CODEC,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_SPINCTRLDOUBLE_BITRATE,wxEVT_SPINCTRLDOUBLE,(wxObjectEventFunction)&OtherSettingsPanel::OnSpinCtrlDoubleBitrateChange);
+    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     //*)
 
 #ifdef __LINUX__
@@ -156,6 +183,8 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
 	frame->SetPromptBatchRenderIssues(CheckBox_BatchRenderPromptIssues->GetValue());
 	frame->SetIgnoreVendorModelRecommendations(CheckBox_IgnoreVendorModelRecommendations->GetValue());
 	frame->SetPurgeDownloadCacheOnStart(CheckBox_PurgeDownloadCache->GetValue());
+    frame->SetVideoExportCodec(ChoiceCodec->GetStringSelection());
+    frame->SetVideoExportBitrate(SpinCtrlDoubleBitrate->GetValue());
     return true;
 }
 
@@ -174,6 +203,8 @@ bool OtherSettingsPanel::TransferDataToWindow() {
 	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
 	CheckBox_IgnoreVendorModelRecommendations->SetValue(frame->GetIgnoreVendorModelRecommendations());
 	CheckBox_PurgeDownloadCache->SetValue(frame->GetPurgeDownloadCacheOnStart());
+    ChoiceCodec->SetStringSelection(frame->GetVideoExportCodec());
+    SpinCtrlDoubleBitrate->SetValue(frame->GetVideoExportBitrate());
 
 // Remove attempt to sneak functionality into the windows build
 #ifndef __WXMSW__
@@ -186,6 +217,13 @@ bool OtherSettingsPanel::TransferDataToWindow() {
 }
 
 void OtherSettingsPanel::OnControlChanged(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void OtherSettingsPanel::OnSpinCtrlDoubleBitrateChange(wxSpinDoubleEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

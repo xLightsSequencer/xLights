@@ -1041,6 +1041,8 @@ public:
     SequenceElements _presetSequenceElements;
     bool _presetRendering = false;
     wxString _defaultSeqView;
+    wxString _videoExportCodec;
+    int _videoExportBitrate;
 
     std::unique_ptr< wxAppProgressIndicator> _appProgress;
 
@@ -1207,6 +1209,12 @@ public:
     const wxString& GetDefaultSeqView() const { return _defaultSeqView; }
     void SetDefaultSeqView(const wxString& view);
     wxArrayString GetSequenceViews();
+
+    const wxString& GetVideoExportCodec() const { return _videoExportCodec; }
+    void SetVideoExportCodec(const wxString& codec);
+
+    const int& GetVideoExportBitrate() const { return _videoExportBitrate; }
+    void SetVideoExportBitrate(int bitrate);
 
     bool EnableOutputs(bool ignoreCheck = false);
     bool ToggleOutputs(bool ignoreCheck = false);

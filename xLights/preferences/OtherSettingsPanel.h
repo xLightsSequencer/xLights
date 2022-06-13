@@ -14,11 +14,15 @@
 #include <wx/panel.h>
 class wxCheckBox;
 class wxChoice;
+class wxFlexGridSizer;
 class wxGridBagSizer;
+class wxSpinCtrlDouble;
+class wxSpinEvent;
 class wxStaticBoxSizer;
 class wxStaticText;
 class wxTextCtrl;
 //*)
+class wxSpinDoubleEvent;
 
 class xLightsFrame;
 class OtherSettingsPanel: public wxPanel
@@ -36,10 +40,14 @@ class OtherSettingsPanel: public wxPanel
 		wxCheckBox* ExcludePresetsCheckBox;
 		wxCheckBox* HardwareVideoDecodingCheckBox;
 		wxCheckBox* ShaderCheckbox;
+		wxChoice* ChoiceCodec;
 		wxChoice* Choice_LinkControllerUpload;
 		wxChoice* Choice_LinkSave;
+		wxSpinCtrlDouble* SpinCtrlDoubleBitrate;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText6;
 		wxTextCtrl* eMailTextControl;
 		//*)
 
@@ -55,12 +63,16 @@ class OtherSettingsPanel: public wxPanel
 		static const long ID_TEXTCTRL1;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX7;
+		static const long ID_STATICTEXT3;
+		static const long ID_CHOICE_CODEC;
+		static const long ID_STATICTEXT5;
+		static const long ID_SPINCTRLDOUBLE_BITRATE;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX3;
 		static const long ID_CHOICE2;
 		static const long ID_CHECKBOX4;
-		static const long ID_CHECKBOX5;
 		static const long ID_CHECKBOX6;
+		static const long ID_CHECKBOX5;
 		//*)
 
 	private:
@@ -68,6 +80,7 @@ class OtherSettingsPanel: public wxPanel
 
 		//(*Handlers(OtherSettingsPanel)
 		void OnControlChanged(wxCommandEvent& event);
+		void OnSpinCtrlDoubleBitrateChange(wxSpinDoubleEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

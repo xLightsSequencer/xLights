@@ -44,6 +44,8 @@ public:
       int   height;
       int   fps;              // limited to constant-FPS input and output currently
       int   audioSampleRate;  // assumes stereo input/output
+      std::string videoCodec; 
+      int videoBitrate; 
    };
 
    // Callbacks provide the video and audio for each frame
@@ -111,7 +113,8 @@ public:
                    int width, int height, float scaleFactor,
                    unsigned int frameDuration, unsigned int frameCount,
                    int audioChannelCount, int audioSampleRate,
-                   const std::string& outPath );
+                  const std::string& outPath, const std::string& codec,
+                  int videoBitrate);
 
     bool Export(wxAppProgressIndicator * appIndicator);
 

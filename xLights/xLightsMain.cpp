@@ -1508,6 +1508,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     config->Read("xLightsPurgeDownloadCacheOnStart", &_purgeDownloadCacheOnStart, false);
     logger_base.debug("Purge download cache on start: %s.", toStr(_purgeDownloadCacheOnStart));
 
+    config->Read("xLightsVideoExportCodec", &_videoExportCodec, "H.264");
+    logger_base.debug("Video Export Codec: %s.", (const char*)_videoExportCodec.c_str());
+
+    config->Read("xLightsVideoExportBitrate", &_videoExportBitrate,0);
+    logger_base.debug("Video Export Bitrate: %d.", _videoExportBitrate);
+
     config->Read("xLightsExcludeAudioPkgSeq", &_excludeAudioFromPackagedSequences, false);
     logger_base.debug("Exclude Audio From Packaged Sequences: %s.", toStr( _excludeAudioFromPackagedSequences ));
 
@@ -1926,6 +1932,8 @@ xLightsFrame::~xLightsFrame()
     config->Write("xFadePort", _xFadePort);
     config->Write("xLightsModelHandleSize", _modelHandleSize);
     config->Write("xLightsPlayVolume", playVolume);
+    config->Write("xLightsVideoExportCodec", _videoExportCodec);
+    config->Write("xLightsVideoExportBitrate", _videoExportBitrate);
 
     config->Write("xLightsControllerSash", SplitterWindowControllers->GetSashPosition());
 
@@ -3122,7 +3130,8 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
     bool exportStatus = false;
     std::string emsg;
     try {
-        VideoExporter videoExporter(this, width, height, contentScaleFactor, _seqData.FrameTime(), _seqData.NumFrames(), audioChannelCount, audioSampleRate, path);
+        VideoExporter videoExporter(this, width, height, contentScaleFactor, _seqData.FrameTime(), _seqData.NumFrames(),
+            audioChannelCount, audioSampleRate, path, _videoExportCodec, _videoExportBitrate );
 
         auto audioLambda = [audioMgr, &audioFrameIndex](float* leftCh, float* rightCh, int frameSize) {
             int trackSize = audioMgr->GetTrackSize();
@@ -9878,6 +9887,26 @@ void xLightsFrame::SetDefaultSeqView(const wxString& view)
 wxArrayString xLightsFrame::GetSequenceViews()
 {
     return _sequenceViewManager.GetViewList();
+}
+
+void xLightsFrame::SetVideoExportCodec(const wxString& codec)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _videoExportCodec = codec;
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsVideoExportCodec", _videoExportCodec);
+    config->Flush();
+    logger_base.info("Video Export Codec set to %s", (const char*)_videoExportCodec.c_str());
+}
+
+void xLightsFrame::SetVideoExportBitrate(int bitrate)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _videoExportBitrate = bitrate;
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsVideoExportBitrate", _videoExportBitrate);
+    config->Flush();
+    logger_base.info("Video Export Bitrate set to %d", _videoExportBitrate);
 }
 
 void xLightsFrame::OnMenuItem_ValueCurvesSelected(wxCommandEvent& event)
