@@ -762,13 +762,13 @@
 																</object>
 																<object class="sizeritem">
 																	<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllerButtons" member="yes">
-																		<rows>2</rows>
+																		<rows>1</rows>
 																		<object class="sizeritem">
 																			<object class="wxButton" name="ID_BUTTON1" variable="ButtonVisualise" member="yes">
 																				<label>Visualise ...</label>
 																				<handler function="OnButtonVisualiseClick" entry="EVT_BUTTON" />
 																			</object>
-																			<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																			<border>5</border>
 																			<option>1</option>
 																		</object>
@@ -777,7 +777,7 @@
 																				<label>Upload Input</label>
 																				<handler function="OnButtonUploadInputClick" entry="EVT_BUTTON" />
 																			</object>
-																			<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																			<border>5</border>
 																			<option>1</option>
 																		</object>
@@ -786,11 +786,24 @@
 																				<label>Upload Output</label>
 																				<handler function="OnButtonUploadOutputClick" entry="EVT_BUTTON" />
 																			</object>
-																			<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																			<border>5</border>
 																			<option>1</option>
 																		</object>
-																		<object class="spacer">
+																		<object class="sizeritem">
+																			<object class="wxButton" name="ID_BUTTON7" variable="ButtonOpen" member="yes">
+																				<label>Open</label>
+																				<handler function="OnButtonOpenClick" entry="EVT_BUTTON" />
+																			</object>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<border>5</border>
+																			<option>1</option>
+																		</object>
+																		<object class="sizeritem">
+																			<object class="wxButton" name="ID_BUTTON12" variable="Button_OpenProxy" member="yes">
+																				<label>Open Proxy</label>
+																				<handler function="OnButton_OpenProxyClick" entry="EVT_BUTTON" />
+																			</object>
 																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																			<border>5</border>
 																			<option>1</option>
@@ -800,25 +813,7 @@
 																				<label>Delete</label>
 																				<handler function="OnButtonControllerDeleteClick" entry="EVT_BUTTON" />
 																			</object>
-																			<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
-																			<border>5</border>
-																			<option>1</option>
-																		</object>
-																		<object class="sizeritem">
-																			<object class="wxButton" name="ID_BUTTON7" variable="ButtonOpen" member="yes">
-																				<label>Open</label>
-																				<handler function="OnButtonOpenClick" entry="EVT_BUTTON" />
-																			</object>
-																			<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
-																			<border>5</border>
-																			<option>1</option>
-																		</object>
-																		<object class="sizeritem">
-																			<object class="wxButton" name="ID_BUTTON12" variable="Button_OpenProxy" member="yes">
-																				<label>Open Proxy</label>
-																				<handler function="OnButton_OpenProxyClick" entry="EVT_BUTTON" />
-																			</object>
-																			<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																			<border>5</border>
 																			<option>1</option>
 																		</object>
@@ -831,7 +826,7 @@
 																			<option>1</option>
 																		</object>
 																	</object>
-																	<flag>wxALL</flag>
+																	<flag>wxALL|wxEXPAND</flag>
 																	<border>5</border>
 																	<option>1</option>
 																</object>
