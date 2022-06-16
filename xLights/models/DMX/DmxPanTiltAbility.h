@@ -10,6 +10,9 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <map>
+#include <string>
+
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
 class BaseObject;
