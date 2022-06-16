@@ -99,6 +99,7 @@ class GenerateCustomModelDialog: public wxDialog
     ProcessedImage* _detectedImage = nullptr;
     wxProgressDialog* _pd = nullptr;
     std::list<std::pair<wxPoint, uint32_t>>* _cachedPoints = nullptr;
+    uint32_t _MIVideoTime = 0;
 
 	void CreateDetectedImage(ProcessedImage* pi = nullptr, bool drawLines = false, std::list<std::pair<wxPoint, uint32_t>>* points = nullptr);
 	void UpdateProgressCallback(float progress);
@@ -110,6 +111,7 @@ class GenerateCustomModelDialog: public wxDialog
 	void SetGridSizeForFont(const wxFont& font);
     bool ShowPixelLines();
     void ClearLights();
+    wxPoint NormalisePoint(const wxPoint& pt) const;
 
 #pragma region Model Type Tab
     void MTTabEntry();
@@ -122,6 +124,10 @@ class GenerateCustomModelDialog: public wxDialog
 #pragma region Start Frame Tab
     void SFTabEntry();
 #pragma endregion Start Frame Tab
+
+#pragma region Manual Identify Bulbs Tab
+    void MITabEntry(bool setdefault);
+#pragma endregion
 
 #pragma region Identify Bulbs Tab
     void DoBulbIdentify();
@@ -153,8 +159,10 @@ class GenerateCustomModelDialog: public wxDialog
 		//(*Declarations(GenerateCustomModelDialog)
 		wxAuiNotebook* AuiNotebook1;
 		wxAuiNotebook* AuiNotebook_ProcessSettings;
+		wxButton* ButtonBumpFwd;
 		wxButton* Button_BI_Back;
 		wxButton* Button_BI_Next;
+		wxButton* Button_BumpBack;
 		wxButton* Button_CB_RestoreDefault;
 		wxButton* Button_CM_Back;
 		wxButton* Button_CM_Save;
@@ -162,6 +170,9 @@ class GenerateCustomModelDialog: public wxDialog
 		wxButton* Button_CV_Next;
 		wxButton* Button_GCM_SelectFile;
 		wxButton* Button_Grow;
+		wxButton* Button_MI_Back1Bulb;
+		wxButton* Button_MI_Back;
+		wxButton* Button_MI_Next;
 		wxButton* Button_MT_Next;
 		wxButton* Button_PCM_Run;
 		wxButton* Button_SF_Back;
@@ -183,8 +194,11 @@ class GenerateCustomModelDialog: public wxDialog
 		wxPanel* Panel_ChooseVideo;
 		wxPanel* Panel_CustomModel;
 		wxPanel* Panel_Generate;
+		wxPanel* Panel_ManualIdentify;
 		wxPanel* Panel_Prepare;
 		wxPanel* Panel_StartFrame;
+		wxRadioButton* ManualNodesRadioButton;
+		wxRadioButton* NodesManualRadioButtonPg2;
 		wxRadioButton* NodesRadioButton;
 		wxRadioButton* NodesRadioButtonPg2;
 		wxRadioButton* SLRadioButton;
@@ -197,13 +211,17 @@ class GenerateCustomModelDialog: public wxDialog
 		wxSlider* Slider_Despeckle;
 		wxSlider* Slider_Gamma;
 		wxSlider* Slider_Intensity;
+		wxSlider* Slider_MI_ModelScale;
 		wxSlider* Slider_Saturation;
 		wxSpinCtrl* SpinCtrl_NC_Count;
 		wxSpinCtrl* SpinCtrl_ProcessNodeCount;
 		wxSpinCtrl* SpinCtrl_StartChannel;
+		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
+		wxStaticText* StaticText12;
 		wxStaticText* StaticText17;
 		wxStaticText* StaticText19;
+		wxStaticText* StaticText9;
 		wxStaticText* StaticTextDespeckle;
 		wxStaticText* StaticText_BI;
 		wxStaticText* StaticText_Blur;
@@ -222,9 +240,11 @@ class GenerateCustomModelDialog: public wxDialog
 		wxTextCtrl* TextCtrl_BI_MinSeparation;
 		wxTextCtrl* TextCtrl_BI_Sensitivity;
 		wxTextCtrl* TextCtrl_BI_Status;
+		wxTextCtrl* TextCtrl_CurrentBulb;
 		wxTextCtrl* TextCtrl_Despeckle;
 		wxTextCtrl* TextCtrl_GCM_Filename;
 		wxTextCtrl* TextCtrl_Gamma;
+		wxTextCtrl* TextCtrl_MI_ModelScale;
 		wxTextCtrl* TextCtrl_Saturation;
 		//*)
 
@@ -234,6 +254,7 @@ class GenerateCustomModelDialog: public wxDialog
 
 		//(*Identifiers(GenerateCustomModelDialog)
 		static const long ID_RADIOBUTTON1;
+		static const long ID_RADIOBUTTON4;
 		static const long ID_RADIOBUTTON2;
 		static const long ID_SPINCTRL_NC_Count;
 		static const long ID_SPINCTRL_StartChannel;
@@ -241,6 +262,7 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_BUTTON_PCM_Run;
 		static const long ID_PANEL_Prepare;
 		static const long ID_RADIOBUTTON3;
+		static const long ID_RADIOBUTTON6;
 		static const long ID_RADIOBUTTON5;
 		static const long ID_BUTTON_MT_Next;
 		static const long ID_PANEL1;
@@ -261,6 +283,18 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_BUTTON_SF_Back;
 		static const long ID_BUTTON_SF_Next;
 		static const long ID_PANEL_StartFrame;
+		static const long ID_STATICTEXT14;
+		static const long ID_STATICTEXT15;
+		static const long ID_TEXTCTRL4;
+		static const long ID_STATICTEXT16;
+		static const long ID_SLIDER4;
+		static const long ID_TEXTCTRL5;
+		static const long ID_BUTTON5;
+		static const long ID_BUTTON1;
+		static const long ID_BUTTON2;
+		static const long ID_BUTTON3;
+		static const long ID_BUTTON4;
+		static const long ID_PANEL2;
 		static const long ID_STATICTEXT5;
 		static const long ID_CHECKBOX2;
 		static const long ID_STATICTEXT1;
@@ -345,6 +379,13 @@ class GenerateCustomModelDialog: public wxDialog
 		void OnSlider_SaturationCmdScrollChanged(wxScrollEvent& event);
 		void OnSlider_SaturationCmdSliderUpdated(wxScrollEvent& event);
 		void OnCheckBox_AdvancedClick(wxCommandEvent& event);
+		void OnButton_MI_NextClick(wxCommandEvent& event);
+		void OnButton_MI_BackClick(wxCommandEvent& event);
+		void OnButtonBumpFwdClick(wxCommandEvent& event);
+		void OnButton_BumpBackClick(wxCommandEvent& event);
+		void OnButton_MI_Back1BulbClick(wxCommandEvent& event);
+		void OnSlider_MI_ModelScaleCmdScrollThumbRelease(wxScrollEvent& event);
+		void OnSlider_MI_ModelScaleCmdSliderUpdated(wxScrollEvent& event);
 		//*)
 
         void OnStaticBitmapLeftUp(wxMouseEvent& event);

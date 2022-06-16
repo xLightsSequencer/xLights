@@ -2,8 +2,7 @@
 <wxsmith>
 	<object class="wxDialog" name="GenerateCustomModelDialog">
 		<title>Generate Custom Models</title>
-		<pos_arg>1</pos_arg>
-		<size_arg>1</size_arg>
+		<id_arg>0</id_arg>
 		<style>wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -12,7 +11,7 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxAuiNotebook" name="ID_AUINOTEBOOK1" variable="AuiNotebook1" member="yes">
-					<size>1200,700</size>
+					<size>1400,700</size>
 					<style>wxTAB_TRAVERSAL</style>
 					<object class="AuiNotebookPage">
 						<object class="wxPanel" name="ID_PANEL_Prepare" variable="Panel_Prepare" member="yes">
@@ -88,8 +87,21 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxRadioButton" name="ID_RADIOBUTTON1" variable="NodesRadioButton" member="yes">
-												<label>Nodes</label>
+												<label>Nodes - Automatic</label>
 												<selected>1</selected>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxRadioButton" name="ID_RADIOBUTTON4" variable="ManualNodesRadioButton" member="yes">
+												<label>Nodes - Manual</label>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -232,8 +244,16 @@
 																			<cols>1</cols>
 																			<object class="sizeritem">
 																				<object class="wxRadioButton" name="ID_RADIOBUTTON3" variable="NodesRadioButtonPg2" member="yes">
-																					<label>Nodes</label>
+																					<label>Nodes - Automatic</label>
 																					<selected>1</selected>
+																				</object>
+																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxRadioButton" name="ID_RADIOBUTTON6" variable="NodesManualRadioButtonPg2" member="yes">
+																					<label>Nodes - Manual</label>
 																				</object>
 																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
@@ -503,6 +523,163 @@
 																</object>
 															</object>
 															<label>Start Frame</label>
+														</object>
+														<object class="AuiNotebookPage">
+															<object class="wxPanel" name="ID_PANEL2" variable="Panel_ManualIdentify" member="yes">
+																<pos>281,15</pos>
+																<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+																	<cols>1</cols>
+																	<growablecols>0</growablecols>
+																	<growablerows>1</growablerows>
+																	<object class="sizeritem">
+																		<object class="wxStaticText" name="ID_STATICTEXT14" variable="StaticText9" member="yes">
+																			<label>Click on the image to identify the location of the current bulb.&#x0A;&#x0A;Once happy click next bulb to move to the next lit bulb.&#x0A;Use bump &gt; and bump &lt; to jump forward back video frames if you think the video has lost its place. This can happen in long videos.&#x0A;&#x0A;Press next when you are done identifying bulbs.</label>
+																		</object>
+																		<flag>wxALL|wxEXPAND</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
+																			<cols>2</cols>
+																			<growablecols>1</growablecols>
+																			<growablerows>4</growablerows>
+																			<object class="sizeritem">
+																				<object class="wxStaticText" name="ID_STATICTEXT15" variable="StaticText10" member="yes">
+																					<label>Current Bulb:</label>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxTextCtrl" name="ID_TEXTCTRL4" variable="TextCtrl_CurrentBulb" member="yes">
+																					<value>1</value>
+																					<style>wxTE_READONLY</style>
+																				</object>
+																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxStaticText" name="ID_STATICTEXT16" variable="StaticText12" member="yes">
+																					<label>Model Scale</label>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
+																					<cols>2</cols>
+																					<growablecols>0</growablecols>
+																					<object class="sizeritem">
+																						<object class="wxSlider" name="ID_SLIDER4" variable="Slider_MI_ModelScale" member="yes">
+																							<value>1</value>
+																							<min>1</min>
+																							<handler function="OnSlider_MI_ModelScaleCmdScrollThumbRelease" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
+																							<handler function="OnSlider_MI_ModelScaleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																						</object>
+																						<flag>wxALL|wxEXPAND</flag>
+																						<border>5</border>
+																						<option>1</option>
+																					</object>
+																					<object class="sizeritem">
+																						<object class="wxTextCtrl" name="ID_TEXTCTRL5" variable="TextCtrl_MI_ModelScale" member="yes">
+																							<value>1</value>
+																							<size>40,24</size>
+																							<style>wxTE_READONLY</style>
+																						</object>
+																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																						<border>5</border>
+																						<option>1</option>
+																					</object>
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxButton" name="ID_BUTTON5" variable="Button_MI_Back1Bulb" member="yes">
+																					<label>Back 1 Bulb</label>
+																					<handler function="OnButton_MI_Back1BulbClick" entry="EVT_BUTTON" />
+																				</object>
+																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxButton" name="ID_BUTTON1" variable="Button_BumpBack" member="yes">
+																					<label>Bump &lt;</label>
+																					<handler function="OnButton_BumpBackClick" entry="EVT_BUTTON" />
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxButton" name="ID_BUTTON2" variable="ButtonBumpFwd" member="yes">
+																					<label>Bump &gt;</label>
+																					<handler function="OnButtonBumpFwdClick" entry="EVT_BUTTON" />
+																				</object>
+																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
+																					<cols>2</cols>
+																					<object class="sizeritem">
+																						<object class="wxButton" name="ID_BUTTON3" variable="Button_MI_Back" member="yes">
+																							<label>Back</label>
+																							<handler function="OnButton_MI_BackClick" entry="EVT_BUTTON" />
+																						</object>
+																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																						<border>5</border>
+																						<option>1</option>
+																					</object>
+																					<object class="sizeritem">
+																						<object class="wxButton" name="ID_BUTTON4" variable="Button_MI_Next" member="yes">
+																							<label>Next</label>
+																							<handler function="OnButton_MI_NextClick" entry="EVT_BUTTON" />
+																						</object>
+																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																						<border>5</border>
+																						<option>1</option>
+																					</object>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																		</object>
+																		<flag>wxALL|wxEXPAND</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																</object>
+															</object>
+															<label>Manual Identify</label>
 														</object>
 														<object class="AuiNotebookPage">
 															<object class="wxPanel" name="ID_PANEL_BulbIdentify" variable="Panel_BulbIdentify" member="yes">
