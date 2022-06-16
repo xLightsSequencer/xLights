@@ -1434,7 +1434,6 @@ protected:
     std::string OpenAndCheckSequence(const std::string& origFilenames);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
-    void PreviewOutput(int period);
     void TimerOutput(int period);
     void UpdateChannelNames();
     void StopNow();

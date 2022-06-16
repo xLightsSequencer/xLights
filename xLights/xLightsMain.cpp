@@ -3155,7 +3155,7 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
             const SequenceData::FrameData& frameData(this->_seqData[frameIndex]);
             const uint8_t* data = frameData[0];
             housePreview->captureNextFrame(width*contentScaleFactor, height*contentScaleFactor);
-            housePreview->Render(data, false);
+            housePreview->Render(frameIndex * this->_seqData.FrameTime(), data, false);
             return housePreview->getFrameForExport(width*contentScaleFactor, height*contentScaleFactor, f, buf, bufSize);
         };
         videoExporter.setGetVideoCallback(videoLambda);

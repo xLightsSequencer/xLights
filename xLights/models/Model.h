@@ -288,8 +288,6 @@ protected:
     void ColourClashingChains(wxPGProperty* p);
     uint32_t ApplyLowDefinition(uint32_t val) const;
 
-    std::vector<std::string> modelState;
-
 public:
     bool IsControllerConnectionValid() const;
     wxXmlNode* GetControllerConnection() const;
@@ -424,8 +422,6 @@ public:
     virtual void DeleteHandle(int handle);
 
     bool HasState(std::string const& state) const;
-    std::vector<std::string> GetModelState() const;
-    void SaveModelState(std::vector<std::string>& state);
 
     bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     const std::string& GetStringType(void) const { return StringType; }

@@ -6960,16 +6960,6 @@ bool Model::HasState(std::string const& state) const {
     return false;
 }
 
-std::vector<std::string> Model::GetModelState() const
-{
-    return modelState;
-}
-
-void Model::SaveModelState( std::vector<std::string>& state )
-{
-    modelState = state;
-}
-
 std::string Model::GetControllerProtocol() const
 {
     wxString s = GetControllerConnection()->GetAttribute("Protocol");

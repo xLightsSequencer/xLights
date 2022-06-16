@@ -36,6 +36,15 @@ class DmxPanTiltAbility
         int tilt_orient;
         int tilt_deg_of_rot;
         float tilt_slew_limit;
+    
+    
+        class PanTiltState {
+        public:
+            uint32_t ms = 0;
+            float pan_angle = 0.0f;
+            float tilt_angle = 0.0f;
+        };
+        std::map<std::string, PanTiltState> panTiltStates;
 
     private:
 };

@@ -26,12 +26,6 @@ void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
 {
 }
 
-void xLightsFrame::PreviewOutput(int period)
-{
-    TimerOutput(period);
-    modelPreview->Render(&_seqData[period][0]);
-}
-
 void xLightsFrame::SetStoredLayoutGroup(const std::string &group)
 {
     if (mStoredLayoutGroup != group) {
