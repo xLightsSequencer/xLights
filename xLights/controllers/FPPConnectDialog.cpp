@@ -178,7 +178,6 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
-
     wxProgressDialog prgs("Discovering FPP Instances",
                           "Discovering FPP Instances", 100, parent);
     prgs.Pulse("Discovering FPP Instances");
@@ -1158,6 +1157,7 @@ std::string FPPConnectDialog::GetChoiceValue(const std::string &col) {
     }
     return "";
 }
+
 void FPPConnectDialog::SetChoiceValueIndex(const std::string &col, int i) {
     wxWindow *w = FPPInstanceList->FindWindow(col);
     if (w) {
