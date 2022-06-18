@@ -69,7 +69,7 @@
         <MaxPixelPortChannels>4200</MaxPixelPortChannels>
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
-		<SupportsRemotes/>
+        <SupportsRemotes/>
         <SupportsSmartRemotes>6</SupportsSmartRemotes>
         <AllSmartRemoteTypesPerPortMustBeSame/>
         <SupportsPixelPortEndNullPixels/>
@@ -91,20 +91,69 @@
         </SmartRemoteTypes>
         <fppStringFileName>co-bbbStrings</fppStringFileName>
     </AbstractVariant>
-	<Controller Name="LED Panels">
-		<Variant Name="" ID="LED Panels" Base="FPP:BaseFPPSettings">
-			<MaxPixelPort>0</MaxPixelPort>
-			<MaxSerialPort>0</MaxSerialPort>
-			<MaxSerialPortChannels>0</MaxSerialPortChannels>
-			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+    <AbstractVariant Name="FPPStringRPIWS281XPiHat" Base="FPP:BaseFPPSettings">
+        <MaxSerialPortChannels>512</MaxSerialPortChannels>
+        <MaxPixelPortChannels>4200</MaxPixelPortChannels>
+        <SupportsVirtualStrings/>
+        <SupportsAutoLayout/>
+        <SupportsPixelPortEndNullPixels/>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+        </PixelProtocols>
+        <SerialProtocols>
+            <Protocol>DMX-Pro</Protocol>
+            <Protocol>DMX-Open</Protocol>
+            <Protocol>GenericSerial</Protocol>
+            <Protocol>LOR</Protocol>
+            <Protocol>Pixelnet-Lynx</Protocol>
+            <Protocol>Pixelnet-Open</Protocol>
+            <Protocol>Renard</Protocol>
+        </SerialProtocols>
+        <fppStringFileName>co-pixelStrings</fppStringFileName>
+        <fppStringDriverType>RPIWS281x</fppStringDriverType>
+    </AbstractVariant>
+    <AbstractVariant Name="FPPStringDPIPiHat" Base="FPP:BaseFPPSettings">
+        <MaxSerialPortChannels>512</MaxSerialPortChannels>
+        <MaxPixelPortChannels>4200</MaxPixelPortChannels>
+        <SupportsVirtualStrings/>
+        <SupportsAutoLayout/>
+        <SupportsRemotes/>
+        <SupportsSmartRemotes>6</SupportsSmartRemotes>
+        <AllSmartRemoteTypesPerPortMustBeSame/>
+        <SupportsPixelPortEndNullPixels/>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+        </PixelProtocols>
+        <SerialProtocols>
+            <Protocol>DMX-Pro</Protocol>
+            <Protocol>DMX-Open</Protocol>
+            <Protocol>GenericSerial</Protocol>
+            <Protocol>LOR</Protocol>
+            <Protocol>Pixelnet-Lynx</Protocol>
+            <Protocol>Pixelnet-Open</Protocol>
+            <Protocol>Renard</Protocol>
+        </SerialProtocols>
+        <SmartRemoteTypes>
+            <Type>falcon_v1</Type>
+            <Type>fpp_v2</Type>
+        </SmartRemoteTypes>
+        <fppStringFileName>co-pixelStrings</fppStringFileName>
+        <fppStringDriverType>DPIPixels</fppStringDriverType>
+    </AbstractVariant>
+    <Controller Name="LED Panels">
+        <Variant Name="" ID="LED Panels" Base="FPP:BaseFPPSettings">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxPixelPortChannels>0</MaxPixelPortChannels>
             <SupportsLEDPanelMatrix/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-			</PixelProtocols>
-			<SerialProtocols>
-			</SerialProtocols>
-		</Variant>
-	</Controller>
+            <SupportsAutoLayout/>
+            <PixelProtocols>
+            </PixelProtocols>
+            <SerialProtocols>
+            </SerialProtocols>
+        </Variant>
+    </Controller>
     <Controller Name="Virtual Matrix">
         <Variant Name="" ID="Virtual Matrix" Base="FPP:BaseFPPSettings">
             <MaxPixelPort>0</MaxPixelPort>
@@ -113,7 +162,7 @@
             <MaxPixelPortChannels>0</MaxPixelPortChannels>
             <SupportsVirtualMatrix/>
             <SupportsLEDPanelMatrix/>
-			<SupportsAutoLayout/>
+            <SupportsAutoLayout/>
             <PixelProtocols>
             </PixelProtocols>
             <SerialProtocols>
@@ -136,33 +185,45 @@
             </SerialProtocols>
         </Variant>
     </Controller>
-	<Controller Name="Pi Hat">
-		<Variant Name="" ID="PiHat" Base="FPP:BaseFPPSettings">
-			<MaxPixelPort>2</MaxPixelPort>
-			<MaxSerialPort>1</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
-			<SupportsVirtualMatrix/>
+    <Controller Name="Pi Hat">
+        <Variant Name="2 Output RPIWS281X" ID="PiHat" Base="FPP:FPPStringRPIWS281XPiHat">
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <SupportsVirtualMatrix/>
             <SupportsLEDPanelMatrix/>
-			<SupportsVirtualStrings/>
-			<SupportsAutoLayout/>
-            <SupportsPixelPortEndNullPixels/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-                <Protocol>DMX-Pro</Protocol>
-                <Protocol>DMX-Open</Protocol>
-                <Protocol>GenericSerial</Protocol>
-                <Protocol>LOR</Protocol>
-                <Protocol>Pixelnet-Lynx</Protocol>
-                <Protocol>Pixelnet-Open</Protocol>
-                <Protocol>Renard</Protocol>
-			</SerialProtocols>
             <fppSerialPort1>ttyAMA0</fppSerialPort1>
-            <fppStringFileName>co-pixelStrings</fppStringFileName>
-		</Variant>
-	</Controller>
+        </Variant>
+        <Variant Name="2 Output DPI" ID="PiHat" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <SupportsLEDPanelMatrix/>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+        </Variant>
+        <Variant Name="4 Output DPI" ID="PiHat" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>4</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <SupportsLEDPanelMatrix/>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+        </Variant>
+        <Variant Name="8 Output DPI" ID="PiHat" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <SupportsLEDPanelMatrix/>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+        </Variant>
+        <Variant Name="16 Output DPI" ID="PiHat" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>16</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <SupportsLEDPanelMatrix/>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+        </Variant>
+        <Variant Name="24 Output DPI" ID="PiHat" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>24</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <SupportsLEDPanelMatrix/>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+        </Variant>
+    </Controller>
     <Controller Name="Octoscroller">
         <Variant Name="" ID="Octoscroller" Base="FPP:BaseFPPSettings">
             <MaxPixelPort>0</MaxPixelPort>
@@ -177,43 +238,43 @@
             </SerialProtocols>
         </Variant>
     </Controller>
-	<Controller Name="RGBCape24">
-		<Variant Name="" ID="RGBCape24" Base="FPP:FPPStringCape">
-			<MaxPixelPort>24</MaxPixelPort>
-			<MaxSerialPort>0</MaxSerialPort>
-			<MaxSerialPortChannels>0</MaxSerialPortChannels>
-			<fpp>3</fpp>
-			<fpp1>1,8</fpp1>
-			<fpp2>9,8</fpp2>
-			<fpp3>17,8</fpp3>
-		</Variant>
-	</Controller>
-	<Controller Name="RGBCape48">
-		<Variant Name="Revision C" ID="RGBCape48C" Base="FPP:FPPStringCape">
-			<MaxPixelPort>48</MaxPixelPort>
-			<MaxSerialPort>0</MaxSerialPort>
-			<MaxSerialPortChannels>0</MaxSerialPortChannels>
-			<fpp>6</fpp>
-			<fpp1>1,8</fpp1>
-			<fpp2>9,8</fpp2>
-			<fpp3>17,8</fpp3>
-			<fpp4>25,8</fpp4>
-			<fpp5>33,8</fpp5>
-			<fpp6>41,8</fpp6>
-		</Variant>
+    <Controller Name="RGBCape24">
+        <Variant Name="" ID="RGBCape24" Base="FPP:FPPStringCape">
+            <MaxPixelPort>24</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <fpp>3</fpp>
+            <fpp1>1,8</fpp1>
+            <fpp2>9,8</fpp2>
+            <fpp3>17,8</fpp3>
+        </Variant>
+    </Controller>
+    <Controller Name="RGBCape48">
+        <Variant Name="Revision C" ID="RGBCape48C" Base="FPP:FPPStringCape">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <fpp>6</fpp>
+            <fpp1>1,8</fpp1>
+            <fpp2>9,8</fpp2>
+            <fpp3>17,8</fpp3>
+            <fpp4>25,8</fpp4>
+            <fpp5>33,8</fpp5>
+            <fpp6>41,8</fpp6>
+        </Variant>
         <Variant Name="Revision F" ID="RGBCape48F" Base="FPP:FPPStringCape">
-			<MaxPixelPort>48</MaxPixelPort>
-			<MaxSerialPort>0</MaxSerialPort>
-			<MaxSerialPortChannels>0</MaxSerialPortChannels>
-			<fpp>6</fpp>
-			<fpp1>1,8</fpp1>
-			<fpp2>9,8</fpp2>
-			<fpp3>17,8</fpp3>
-			<fpp4>25,8</fpp4>
-			<fpp5>33,8</fpp5>
-			<fpp6>41,8</fpp6>
-		</Variant>
-	</Controller>
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <fpp>6</fpp>
+            <fpp1>1,8</fpp1>
+            <fpp2>9,8</fpp2>
+            <fpp3>17,8</fpp3>
+            <fpp4>25,8</fpp4>
+            <fpp5>33,8</fpp5>
+            <fpp6>41,8</fpp6>
+        </Variant>
+    </Controller>
     <Controller Name="F4-B">
         <Variant Name="" ID="F4-B" Base="FPP:FPPStringCape">
             <MaxPixelPort>4</MaxPixelPort>
@@ -221,33 +282,33 @@
         </Variant>
     </Controller>
     <Controller Name="F16-B">
-		<Variant Name="No Expansion (8 Serial)" ID="F16-B" Base="FPP:FPPStringCape">
-			<MaxPixelPort>16</MaxPixelPort>
-			<MaxSerialPort>8</MaxSerialPort>
-		</Variant>
-		<Variant Name="32 Outputs (8 Serial)" ID="F16-B-32" Base="FPP:FPPStringCape">
-			<MaxPixelPort>32</MaxPixelPort>
-			<MaxSerialPort>8</MaxSerialPort>
-			<fpp>1</fpp>
-			<fpp1>17,16</fpp1>
-		</Variant>
-		<Variant Name="48 outputs (No Serial)" ID="F16-B-48" Base="FPP:FPPStringCape">
-			<MaxPixelPort>48</MaxPixelPort>
-			<MaxSerialPort>0</MaxSerialPort>
-			<MaxSerialPortChannels>0</MaxSerialPortChannels>
-			<fpp>2</fpp>
-			<fpp1>17,16</fpp1>
-			<fpp2>33,16</fpp2>
-		</Variant>
-	</Controller>
+        <Variant Name="No Expansion (8 Serial)" ID="F16-B" Base="FPP:FPPStringCape">
+            <MaxPixelPort>16</MaxPixelPort>
+            <MaxSerialPort>8</MaxSerialPort>
+        </Variant>
+        <Variant Name="32 Outputs (8 Serial)" ID="F16-B-32" Base="FPP:FPPStringCape">
+            <MaxPixelPort>32</MaxPixelPort>
+            <MaxSerialPort>8</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>17,16</fpp1>
+        </Variant>
+        <Variant Name="48 outputs (No Serial)" ID="F16-B-48" Base="FPP:FPPStringCape">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <fpp>2</fpp>
+            <fpp1>17,16</fpp1>
+            <fpp2>33,16</fpp2>
+        </Variant>
+    </Controller>
     <Controller Name="Mirage">
         <Variant Name="No Receivers" ID="Mirage" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>24</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>3</fpp>
-			<fpp1>1,8</fpp1>
-			<fpp2>9,8</fpp2>
-			<fpp3>17,8</fpp3>
+            <fpp1>1,8</fpp1>
+            <fpp2>9,8</fpp2>
+            <fpp3>17,8</fpp3>
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
@@ -255,9 +316,9 @@
             <MaxPixelPort>28</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>4</fpp>
-			<fpp1>1,8</fpp1>
-			<fpp2>9,8</fpp2>
-			<fpp3>17,8</fpp3>
+            <fpp1>1,8</fpp1>
+            <fpp2>9,8</fpp2>
+            <fpp3>17,8</fpp3>
             <fpp4>25,4</fpp4>
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
@@ -266,9 +327,9 @@
             <MaxPixelPort>32</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>5</fpp>
-			<fpp1>1,8</fpp1>
-			<fpp2>9,8</fpp2>
-			<fpp3>17,8</fpp3>
+            <fpp1>1,8</fpp1>
+            <fpp2>9,8</fpp2>
+            <fpp3>17,8</fpp3>
             <fpp4>25,4</fpp4>
             <fpp5>29,4</fpp5>
             <fppSerialPort1>ttyS1</fppSerialPort1>
@@ -278,9 +339,9 @@
             <MaxPixelPort>36</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>6</fpp>
-			<fpp1>1,8</fpp1>
-			<fpp2>9,8</fpp2>
-			<fpp3>17,8</fpp3>
+            <fpp1>1,8</fpp1>
+            <fpp2>9,8</fpp2>
+            <fpp3>17,8</fpp3>
             <fpp4>25,4</fpp4>
             <fpp5>29,4</fpp5>
             <fpp6>33,4</fpp6>
@@ -291,9 +352,9 @@
             <MaxPixelPort>40</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>7</fpp>
-			<fpp1>1,8</fpp1>
-			<fpp2>9,8</fpp2>
-			<fpp3>17,8</fpp3>
+            <fpp1>1,8</fpp1>
+            <fpp2>9,8</fpp2>
+            <fpp3>17,8</fpp3>
             <fpp4>25,4</fpp4>
             <fpp5>29,4</fpp5>
             <fpp6>33,4</fpp6>
@@ -305,9 +366,9 @@
             <MaxPixelPort>44</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>8</fpp>
-			<fpp1>1,8</fpp1>
-			<fpp2>9,8</fpp2>
-			<fpp3>17,8</fpp3>
+            <fpp1>1,8</fpp1>
+            <fpp2>9,8</fpp2>
+            <fpp3>17,8</fpp3>
             <fpp4>25,4</fpp4>
             <fpp5>29,4</fpp5>
             <fpp6>33,4</fpp6>
