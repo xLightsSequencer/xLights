@@ -71,6 +71,7 @@ const long ControllerModelDialog::CONTROLLER_BRIGHTNESS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR = wxNewId();
 const long ControllerModelDialog::CONTROLLER_REMOVEALLMODELS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE = wxNewId();
+const long ControllerModelDialog::CONTROLLER_MODEL_STRINGS = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerModelDialog,wxDialog)
 	//(*EventTable(ControllerModelDialog)
@@ -792,6 +793,12 @@ public:
     virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override {
         if (_caps != nullptr && GetModel() != nullptr && GetModel()->IsPixelProtocol())
         {
+            if (!GetModel()->HasSingleNode(GetModel()->GetStringType()) && GetModel()->SupportsChangingStringCount()) {
+                mnu.AppendSeparator();
+                mnu.Append(ControllerModelDialog::CONTROLLER_MODEL_STRINGS, "Change String Count");
+                mnu.AppendSeparator();
+            }
+
             if (_caps->SupportsSmartRemotes()) {
 
                 wxMenu* srMenu = new wxMenu();
@@ -891,6 +898,16 @@ public:
         }
         else if (id == ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR) {
             GetModel()->ClearControllerBrightness();
+            return true;
+        } 
+        else if (id == ControllerModelDialog::CONTROLLER_MODEL_STRINGS) {
+            wxNumberEntryDialog dlg(parent, "Set String Count", "String Count", "Model String Count", GetModel()->GetNumPhysicalStrings(), 1, 48);
+            if (dlg.ShowModal() == wxID_OK) {
+                std::string mess;
+                if (!GetModel()->ChangeStringCount(dlg.GetValue(), mess)) {
+                    DisplayError(mess, parent);
+                }
+            }
             return true;
         }
         else{
@@ -2646,7 +2663,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     bool isSubsequentString = false;
 
     auto m = mob->GetModel();
-    if (m == nullptr && mob->GetString() > 0)         {
+    if (m == nullptr && mob->GetString() > 0) {
         // this is a 2nd+ string on a model
         isSubsequentString = true;
         m = _mm->GetModel(mob->GetName());
@@ -3157,7 +3174,7 @@ void ControllerModelDialog::EnsureSelectedModelIsVisible(ModelCMObject* cm)
         x = left - 10;
         scrolled = true;
     }
-    else if (right > pos.x + PanelController->GetSize().GetWidth())         {
+    else if (right > pos.x + PanelController->GetSize().GetWidth()) {
         x = right - PanelController->GetSize().GetWidth() + 10;
         scrolled = true;
     }

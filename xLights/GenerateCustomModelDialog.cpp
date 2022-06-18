@@ -4056,7 +4056,7 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     }
     wxString ps = "2";
     wxString t = "0";
-    wxString mb = "";
+    wxString mb = "0";
     wxString a = "1";
     wxString sn = "";
     wxString nn = "";

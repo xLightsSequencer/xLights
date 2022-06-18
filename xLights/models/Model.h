@@ -130,6 +130,9 @@ public:
     ControllerCaps* GetControllerCaps() const;
     Controller* GetController() const;
 
+    virtual bool SupportsChangingStringCount() const { return false; };
+    virtual bool ChangeStringCount(long count,  std::string& message) { return false; };
+
     std::string description;
     xlColor customColor;
     DimmingCurve* modelDimmingCurve = nullptr;

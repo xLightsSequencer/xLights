@@ -21,6 +21,8 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual bool StrandsZigZagOnString() const override { return true;};
 
+        bool SupportsChangingStringCount() const override{ return true; };
+        bool ChangeStringCount(long count, std::string& message) override;
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }

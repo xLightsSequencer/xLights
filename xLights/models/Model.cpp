@@ -257,6 +257,9 @@ public:
         auto dimmingInfo = m_model->GetDimmingInfo();
         if(dimmingInfo.empty()) {
             wxString b = m_model->GetModelXml()->GetAttribute("ModelBrightness","0");
+            if (b.empty()) {
+                b = "0";
+            }
             dimmingInfo["all"]["gamma"] = "1.0";
             dimmingInfo["all"]["brightness"] = b;
         }
@@ -2881,7 +2884,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     }
 
     if (ModelNode->HasAttribute("ModelBrightness") && modelDimmingCurve == nullptr) {
-        int b = wxAtoi(ModelNode->GetAttribute("ModelBrightness"));
+        int b = wxAtoi(ModelNode->GetAttribute("ModelBrightness", "0"));
         if (b != 0) {
             modelDimmingCurve = DimmingCurve::createBrightnessGamma(b, 1.0);
         }
@@ -4572,8 +4575,8 @@ void Model::ExportAsCustomXModel() const {
     wxString p2 = wxString::Format("%i", sizey);
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
