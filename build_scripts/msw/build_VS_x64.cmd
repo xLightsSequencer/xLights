@@ -14,6 +14,8 @@ set PATH=C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current
 Echo VS Community Detected
 :Start
 
+..\..\TipOfDay\Tool\x64\Release\PrepTOD.exe ..\..\TipOfDay
+
 cd ..
 cd ..
 

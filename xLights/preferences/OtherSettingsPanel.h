@@ -36,6 +36,7 @@ class OtherSettingsPanel: public wxPanel
 		wxCheckBox* CheckBox_BatchRenderPromptIssues;
 		wxCheckBox* CheckBox_IgnoreVendorModelRecommendations;
 		wxCheckBox* CheckBox_PurgeDownloadCache;
+		wxCheckBox* CheckBox_RecycleTips;
 		wxCheckBox* ExcludeAudioCheckBox;
 		wxCheckBox* ExcludePresetsCheckBox;
 		wxCheckBox* HardwareVideoDecodingCheckBox;
@@ -43,10 +44,12 @@ class OtherSettingsPanel: public wxPanel
 		wxChoice* ChoiceCodec;
 		wxChoice* Choice_LinkControllerUpload;
 		wxChoice* Choice_LinkSave;
+		wxChoice* Choice_MinTipLevel;
 		wxSpinCtrlDouble* SpinCtrlDoubleBitrate;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
 		wxTextCtrl* eMailTextControl;
 		//*)
@@ -73,6 +76,9 @@ class OtherSettingsPanel: public wxPanel
 		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX6;
 		static const long ID_CHECKBOX5;
+		static const long ID_STATICTEXT4;
+		static const long ID_CHOICE3;
+		static const long ID_CHECKBOX8;
 		//*)
 
 	private:

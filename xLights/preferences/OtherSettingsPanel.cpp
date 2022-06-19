@@ -49,6 +49,9 @@ const long OtherSettingsPanel::ID_CHOICE2 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX4 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX6 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX5 = wxNewId();
+const long OtherSettingsPanel::ID_STATICTEXT4 = wxNewId();
+const long OtherSettingsPanel::ID_CHOICE3 = wxNewId();
+const long OtherSettingsPanel::ID_CHECKBOX8 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
@@ -61,10 +64,12 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
 {
     //(*Initialize(OtherSettingsPanel)
     wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
     wxGridBagSizer* GridBagSizer1;
     wxGridBagSizer* GridBagSizer2;
     wxStaticBoxSizer* StaticBoxSizer1;
     wxStaticBoxSizer* StaticBoxSizer2;
+    wxStaticBoxSizer* StaticBoxSizer3;
     wxStaticText* StaticText1;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -128,6 +133,23 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     CheckBox_IgnoreVendorModelRecommendations = new wxCheckBox(this, ID_CHECKBOX5, _("Ignore vendor model recommendations"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
     CheckBox_IgnoreVendorModelRecommendations->SetValue(false);
     GridBagSizer1->Add(CheckBox_IgnoreVendorModelRecommendations, wxGBPosition(7, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
+    StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Tip Of The Day"));
+    FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+    StaticText5 = new wxStaticText(this, ID_STATICTEXT4, _("Minimum Tip Level"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+    FlexGridSizer2->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_MinTipLevel = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
+    Choice_MinTipLevel->Append(_("Off"));
+    Choice_MinTipLevel->SetSelection( Choice_MinTipLevel->Append(_("Beginner")) );
+    Choice_MinTipLevel->Append(_("Intermediate"));
+    Choice_MinTipLevel->Append(_("Advanced"));
+    Choice_MinTipLevel->Append(_("Expert"));
+    FlexGridSizer2->Add(Choice_MinTipLevel, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_RecycleTips = new wxCheckBox(this, ID_CHECKBOX8, _("Recycle tips once all seen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
+    CheckBox_RecycleTips->SetValue(false);
+    FlexGridSizer2->Add(CheckBox_RecycleTips, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticBoxSizer3->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(StaticBoxSizer3, wxGBPosition(5, 1), wxGBSpan(3, 1), wxALL|wxEXPAND, 5);
     SetSizer(GridBagSizer1);
     GridBagSizer1->Fit(this);
     GridBagSizer1->SetSizeHints(this);
@@ -145,6 +167,8 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX8,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     //*)
 
 #ifdef __LINUX__
@@ -185,6 +209,8 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
 	frame->SetPurgeDownloadCacheOnStart(CheckBox_PurgeDownloadCache->GetValue());
     frame->SetVideoExportCodec(ChoiceCodec->GetStringSelection());
     frame->SetVideoExportBitrate(SpinCtrlDoubleBitrate->GetValue());
+    frame->SetMinTipLevel(Choice_MinTipLevel->GetStringSelection());
+    frame->SetRecycleTips(!CheckBox_RecycleTips->GetValue());
     return true;
 }
 
@@ -205,6 +231,8 @@ bool OtherSettingsPanel::TransferDataToWindow() {
 	CheckBox_PurgeDownloadCache->SetValue(frame->GetPurgeDownloadCacheOnStart());
     ChoiceCodec->SetStringSelection(frame->GetVideoExportCodec());
     SpinCtrlDoubleBitrate->SetValue(frame->GetVideoExportBitrate());
+    Choice_MinTipLevel->SetStringSelection(frame->GetMinTipLevel());
+    CheckBox_RecycleTips->SetValue(!frame->GetRecycleTips());
 
 // Remove attempt to sneak functionality into the windows build
 #ifndef __WXMSW__

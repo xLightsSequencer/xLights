@@ -1,0 +1,34 @@
+The tip of the day feature has been designed to work either using locally installed files or with server hosted files. 
+
+Ideally the server hosting will be on github allowing normal dev practices to drive the content but this is untested.
+
+The format used is very simple html hopefully allowing a diverse array of contributors to this aspect of the project.
+
+Each tip should be created as a html file in the TipOfDay folder.
+
+If installing locally all the The files in the TipOfDay folder should be placed into the TipOfDay folder which should be where the xlights executable is installed.
+
+The tod.xml file should not be edited. Instead it is generated using the prepTOD.exe tool. This accepts one parameter. The location of the TipOfDay folder.
+
+This tool is looking for a html comment in the html file of the form:
+
+        <!--xlights>
+            <tip url="00001.html" title="Useful definitions: String, Strand and Node" category="Layout" level="Beginner"/>
+        </xlights-->
+        
+    Where url is the name of the html file.
+          title is a useful human readable description of what the tip is about
+          category is one of:
+                Layout
+                Effect
+                Sequencer
+                ...
+          level is one of
+                Beginner
+                Intermediate
+                Advanced
+                Expert
+
+As the browser this html is going to be displayed in does not seem to understand CSS styling etc options are really limited and are much more like 1999 html.
+
+The source folder can be used to store any item content which is in its source form before being converted to say png files for actual display. Keeping these elements here allow edits later.

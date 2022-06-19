@@ -293,6 +293,7 @@ const long xLightsFrame::ID_MNU_QUIET = wxNewId();
 const long xLightsFrame::ID_MNU_SUPERQUIET = wxNewId();
 const long xLightsFrame::ID_MNU_SILENT = wxNewId();
 const long xLightsFrame::ID_IMPORT_EFFECTS = wxNewId();
+const long xLightsFrame::ID_MNU_TOD = wxNewId();
 const long xLightsFrame::ID_MNU_MANUAL = wxNewId();
 const long xLightsFrame::ID_MNU_ZOOM = wxNewId();
 const long xLightsFrame::ID_MENUITEM1 = wxNewId();
@@ -382,6 +383,7 @@ wxDEFINE_EVENT(EVT_TURNONOUTPUTTOLIGHTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAYJUKEBOXITEM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SETEFFECTCHOICE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_TIPOFDAY_READY, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
@@ -437,7 +439,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_VC_CHANGED, xLightsFrame::VCChanged)
     EVT_COMMAND(wxID_ANY, EVT_COLOUR_CHANGED, xLightsFrame::ColourChanged)
     EVT_COMMAND(wxID_ANY, EVT_SETEFFECTCHOICE, xLightsFrame::SetEffectChoice)
-
+    EVT_COMMAND(wxID_ANY, EVT_TIPOFDAY_READY, xLightsFrame::TipOfDayReady)
     EVT_SYS_COLOUR_CHANGED(xLightsFrame::OnSysColourChanged)
 END_EVENT_TABLE()
 
@@ -1003,6 +1005,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Menu2->Append(MenuItem_ImportEffects);
     MenuBar->Append(Menu2, _("&Import"));
     MenuHelp = new wxMenu();
+    MenuItem_TOD = new wxMenuItem(MenuHelp, ID_MNU_TOD, _("Tip of the Day"), wxEmptyString, wxITEM_NORMAL);
+    MenuHelp->Append(MenuItem_TOD);
     MenuItem_UserManual = new wxMenuItem(MenuHelp, ID_MNU_MANUAL, _("User Manual"), wxEmptyString, wxITEM_NORMAL);
     MenuHelp->Append(MenuItem_UserManual);
     MenuItem_Zoom = new wxMenuItem(MenuHelp, ID_MNU_ZOOM, _("Zoom"), wxEmptyString, wxITEM_NORMAL);
@@ -1188,6 +1192,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(ID_MNU_SUPERQUIET,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_VQuietVolSelected);
     Connect(ID_MNU_SILENT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SilentVolSelected);
     Connect(ID_IMPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemImportEffects);
+    Connect(ID_MNU_TOD,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_TODSelected);
     Connect(ID_MNU_MANUAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_UserManualSelected);
     Connect(ID_MNU_ZOOM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ZoomSelected);
     Connect(ID_MENUITEM1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ShowKeyBindingsSelected);
@@ -1209,6 +1214,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(wxEVT_CHAR,(wxObjectEventFunction)&xLightsFrame::OnChar);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
+
+    _tod.PrepTipOfDay(this);
 
     Connect(wxEVT_HELP, (wxObjectEventFunction)&xLightsFrame::OnHelp);
     Notebook1->Connect(wxEVT_HELP, (wxObjectEventFunction) & xLightsFrame::OnHelp, 0, this);
@@ -1855,6 +1862,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
     UpdateLayoutSave();
     UpdateControllerSave();
+
+    // remove the forum for now until/if Sean restores the forum
+    MenuItem_Help_Forum->GetMenu()->Remove(MenuItem_Help_Forum);
+    MenuItem_Help_Forum = nullptr;
 
     logger_base.debug("xLightsFrame construction complete.");
 }
@@ -8895,6 +8906,18 @@ void xLightsFrame::PurgeDownloadCache()
     ShaderDownloadDialog::GetCache().Save();
 }
 
+bool xLightsFrame::GetRecycleTips() const
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    return config->Read("OnlyShowUnseenTips", true);
+}
+
+void xLightsFrame::SetRecycleTips(bool b)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("OnlyShowUnseenTips", b);
+}
+
 void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
 {
     PurgeDownloadCache();
@@ -9888,6 +9911,21 @@ wxArrayString xLightsFrame::GetSequenceViews()
     return _sequenceViewManager.GetViewList();
 }
 
+void xLightsFrame::SetMinTipLevel(const wxString& level)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("MinTipLevel", level);
+    config->Flush();
+    logger_base.info("Minimum tip level set to %s", (const char*)level.c_str());
+}
+
+std::string xLightsFrame::GetMinTipLevel() const
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    return config->Read("MinTipLevel", "Beginner");
+}
+
 void xLightsFrame::SetVideoExportCodec(const wxString& codec)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -10175,4 +10213,12 @@ void xLightsFrame::OnMenuItem_SilentVolSelected(wxCommandEvent& event)
 {
     playVolume = 0;
     SDL::SetGlobalVolume(playVolume);
+}
+
+void xLightsFrame::OnMenuItem_TODSelected(wxCommandEvent& event)
+{
+    if (!_tod.DoTipOfDay())
+    {
+        wxBell();
+    }
 }

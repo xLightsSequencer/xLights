@@ -614,6 +614,7 @@
     <ClCompile Include="TabSequence.cpp" />
     <ClCompile Include="TabSetup.cpp" />
     <ClCompile Include="TimingPanel.cpp" />
+    <ClCompile Include="TipOfTheDayDialog.cpp" />
     <ClCompile Include="tmGridCell.cpp" />
     <ClCompile Include="TopEffectsPanel.cpp" />
     <ClCompile Include="TraceLog.cpp" />
@@ -1079,6 +1080,7 @@
     <ClInclude Include="support\GridCellChoiceRenderer.h" />
     <ClInclude Include="support\VectorMath.h" />
     <ClInclude Include="TimingPanel.h" />
+    <ClInclude Include="TipOfTheDayDialog.h" />
     <ClInclude Include="tmGridCell.h" />
     <ClInclude Include="TopEffectsPanel.h" />
     <ClInclude Include="TraceLog.h" />

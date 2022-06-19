@@ -233,6 +233,7 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     config->DeleteEntry("ToolbarLocations");
     config->DeleteEntry("xLightsMachinePerspective");
     SaveWindowPosition("xLightsSubModelDialogPosition", nullptr);
+    SaveWindowPosition("xLightsTipOfTheDay", nullptr);
     SaveWindowPosition("xLightsImportDialogPosition", nullptr);
     SaveWindowPosition("xLightsNodeSelectDialogPosition", nullptr);
     SaveWindowPosition("ControllerModelDialogPosition", nullptr);
@@ -2683,6 +2684,12 @@ void xLightsFrame::SetEffectChoice(wxCommandEvent& event)
     else {
         wxASSERT(false);
     }
+}
+
+void xLightsFrame::TipOfDayReady(wxCommandEvent& event)
+{
+    // at this point if we are downloading tip of day content then the tip of day content is downloaded and ready to go
+    _tod.DoTipOfDay();
 }
 
 void xLightsFrame::ApplyLast(wxCommandEvent& event)
