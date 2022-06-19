@@ -125,6 +125,17 @@ std::string ThreePointScreenLocation::GetDimension(float factor) const
         RulerObject::PrescaledMeasureDescription((width * height) / 2.0 * factor)).ToStdString();
 }
 
+float ThreePointScreenLocation::GetRealWidth() const
+{
+    return RulerObject::Measure(origin, point2);
+}
+
+float ThreePointScreenLocation::GetRealHeight() const
+{
+    float width = RulerObject::Measure(origin, point2);
+    return RulerObject::Measure((width * height) / 2.0 * 1.0 * 100.0);
+}
+
 void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
     TwoPointScreenLocation::AddSizeLocationProperties(propertyEditor);
     wxPGProperty *prop = propertyEditor->Append(new wxFloatProperty("Height", "ModelHeight", height));

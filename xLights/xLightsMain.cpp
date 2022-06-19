@@ -291,7 +291,9 @@ const long xLightsFrame::ID_MNU_LOUDVOLUME = wxNewId();
 const long xLightsFrame::ID_MNU_MEDVOLUME = wxNewId();
 const long xLightsFrame::ID_MNU_QUIET = wxNewId();
 const long xLightsFrame::ID_MNU_SUPERQUIET = wxNewId();
+const long xLightsFrame::ID_MNU_SILENT = wxNewId();
 const long xLightsFrame::ID_IMPORT_EFFECTS = wxNewId();
+const long xLightsFrame::ID_MNU_TOD = wxNewId();
 const long xLightsFrame::ID_MNU_MANUAL = wxNewId();
 const long xLightsFrame::ID_MNU_ZOOM = wxNewId();
 const long xLightsFrame::ID_MENUITEM1 = wxNewId();
@@ -381,6 +383,7 @@ wxDEFINE_EVENT(EVT_TURNONOUTPUTTOLIGHTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAYJUKEBOXITEM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SETEFFECTCHOICE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_TIPOFDAY_READY, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
@@ -436,7 +439,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_VC_CHANGED, xLightsFrame::VCChanged)
     EVT_COMMAND(wxID_ANY, EVT_COLOUR_CHANGED, xLightsFrame::ColourChanged)
     EVT_COMMAND(wxID_ANY, EVT_SETEFFECTCHOICE, xLightsFrame::SetEffectChoice)
-
+    EVT_COMMAND(wxID_ANY, EVT_TIPOFDAY_READY, xLightsFrame::TipOfDayReady)
     EVT_SYS_COLOUR_CHANGED(xLightsFrame::OnSysColourChanged)
 END_EVENT_TABLE()
 
@@ -686,13 +689,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     FlexGridSizer9->Add(BitmapButtonMoveNetworkDown, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerNetworks->Add(FlexGridSizer9, 1, wxBOTTOM|wxLEFT|wxALIGN_LEFT|wxALIGN_TOP, 10);
     SplitterWindowControllers = new wxSplitterWindow(PanelSetup, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-    SplitterWindowControllers->SetSashGravity(0.5);
+    SplitterWindowControllers->SetMinimumPaneSize(20);
+    SplitterWindowControllers->SetSashGravity(0.8);
     Panel2 = new wxPanel(SplitterWindowControllers, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     FlexGridSizerSetupControllers = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetupControllers->AddGrowableCol(0);
     FlexGridSizerSetupControllers->AddGrowableRow(0);
     Panel2->SetSizer(FlexGridSizerSetupControllers);
-    Panel5 = new wxPanel(SplitterWindowControllers, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
+    FlexGridSizerSetupControllers->Fit(Panel2);
+    FlexGridSizerSetupControllers->SetSizeHints(Panel2);
+    Panel5 = new wxPanel(SplitterWindowControllers, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxALWAYS_SHOW_SB, _T("ID_PANEL6"));
+    Panel5->SetMinSize(wxSize(20,-1));
     FlexGridSizerSetupRight = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetupRight->AddGrowableCol(0);
     FlexGridSizerSetupRight->AddGrowableRow(0);
@@ -717,17 +724,23 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     FlexGridSizerSetupControllerButtons->Add(StaticTextDummy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerSetupRight->Add(FlexGridSizerSetupControllerButtons, 1, wxALL|wxEXPAND, 5);
     Panel5->SetSizer(FlexGridSizerSetupRight);
+    FlexGridSizerSetupRight->Fit(Panel5);
+    FlexGridSizerSetupRight->SetSizeHints(Panel5);
     SplitterWindowControllers->SplitVertically(Panel2, Panel5);
     SplitterWindowControllers->SetSashPosition(1000);
     FlexGridSizerNetworks->Add(SplitterWindowControllers, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2->Add(FlexGridSizerNetworks, 1, wxALL|wxEXPAND, 5);
     FlexGridSizerSetup->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
     PanelSetup->SetSizer(FlexGridSizerSetup);
+    FlexGridSizerSetup->Fit(PanelSetup);
+    FlexGridSizerSetup->SetSizeHints(PanelSetup);
     PanelPreview = new wxPanel(Notebook1, ID_PANEL_PREVIEW, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_PREVIEW"));
     FlexGridSizerPreview = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerPreview->AddGrowableCol(0);
     FlexGridSizerPreview->AddGrowableRow(0);
     PanelPreview->SetSizer(FlexGridSizerPreview);
+    FlexGridSizerPreview->Fit(PanelPreview);
+    FlexGridSizerPreview->SetSizeHints(PanelPreview);
     PanelSequencer = new wxPanel(Notebook1, XLIGHTS_SEQUENCER_TAB, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("XLIGHTS_SEQUENCER_TAB"));
     m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_DEFAULT);
     Notebook1->AddPage(PanelSetup, _("Controllers"), true);
@@ -745,11 +758,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     ProgressBar = new wxGauge(Panel1, ID_GAUGE1, 100, wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(100,-1)), 0, wxDefaultValidator, _T("ID_GAUGE1"));
     GaugeSizer->Add(ProgressBar, 0, wxEXPAND, 0);
     Panel1->SetSizer(GaugeSizer);
+    GaugeSizer->Fit(Panel1);
+    GaugeSizer->SetSizeHints(Panel1);
     StatusBarSizer->Add(Panel1, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     FileNameText = new wxStaticText(AUIStatusBar, ID_STATICTEXT7, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     StatusBarSizer->Add(FileNameText, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxEXPAND, 2);
     StatusBarSizer->AddGrowableRow(0);
     AUIStatusBar->SetSizer(StatusBarSizer);
+    StatusBarSizer->Fit(AUIStatusBar);
+    StatusBarSizer->SetSizeHints(AUIStatusBar);
     MainAuiManager->AddPane(AUIStatusBar, wxAuiPaneInfo().Name(_T("Status Bar")).DefaultPane().Caption(_("Status bar")).CaptionVisible(false).CloseButton(false).Bottom().DockFixed().Dockable(false).Floatable(false).FloatingPosition(wxPoint(0,0)).FloatingSize(wxSize(0,0)).Movable(false).PaneBorder(false));
     MainAuiManager->Update();
     MenuBar = new wxMenuBar();
@@ -980,12 +997,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     AudioMenu->Append(MenuItem_QuietVol);
     MenuItem_VQuietVol = new wxMenuItem(AudioMenu, ID_MNU_SUPERQUIET, _("Very Quiet"), wxEmptyString, wxITEM_RADIO);
     AudioMenu->Append(MenuItem_VQuietVol);
+    MenuItem_SilentVol = new wxMenuItem(AudioMenu, ID_MNU_SILENT, _("Silent"), wxEmptyString, wxITEM_RADIO);
+    AudioMenu->Append(MenuItem_SilentVol);
     MenuBar->Append(AudioMenu, _("&Audio"));
     Menu2 = new wxMenu();
     MenuItem_ImportEffects = new wxMenuItem(Menu2, ID_IMPORT_EFFECTS, _("Import Effects"), wxEmptyString, wxITEM_NORMAL);
     Menu2->Append(MenuItem_ImportEffects);
     MenuBar->Append(Menu2, _("&Import"));
     MenuHelp = new wxMenu();
+    MenuItem_TOD = new wxMenuItem(MenuHelp, ID_MNU_TOD, _("Tip of the Day"), wxEmptyString, wxITEM_NORMAL);
+    MenuHelp->Append(MenuItem_TOD);
     MenuItem_UserManual = new wxMenuItem(MenuHelp, ID_MNU_MANUAL, _("User Manual"), wxEmptyString, wxITEM_NORMAL);
     MenuHelp->Append(MenuItem_UserManual);
     MenuItem_Zoom = new wxMenuItem(MenuHelp, ID_MNU_ZOOM, _("Zoom"), wxEmptyString, wxITEM_NORMAL);
@@ -1169,7 +1190,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(ID_MNU_MEDVOLUME,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_MedVolSelected);
     Connect(ID_MNU_QUIET,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_QuietVolSelected);
     Connect(ID_MNU_SUPERQUIET,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_VQuietVolSelected);
+    Connect(ID_MNU_SILENT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SilentVolSelected);
     Connect(ID_IMPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemImportEffects);
+    Connect(ID_MNU_TOD,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_TODSelected);
     Connect(ID_MNU_MANUAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_UserManualSelected);
     Connect(ID_MNU_ZOOM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ZoomSelected);
     Connect(ID_MENUITEM1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ShowKeyBindingsSelected);
@@ -1191,6 +1214,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(wxEVT_CHAR,(wxObjectEventFunction)&xLightsFrame::OnChar);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
+
+    _tod.PrepTipOfDay(this);
 
     Connect(wxEVT_HELP, (wxObjectEventFunction)&xLightsFrame::OnHelp);
     Notebook1->Connect(wxEVT_HELP, (wxObjectEventFunction) & xLightsFrame::OnHelp, 0, this);
@@ -1353,6 +1378,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     MenuItem_MedVol->Check(playVolume == 66);
     MenuItem_QuietVol->Check(playVolume == 33);
     MenuItem_VQuietVol->Check(playVolume == 10);
+    MenuItem_SilentVol->Check(playVolume == 0);
     SDL::SetGlobalVolume(playVolume);
 
     wxString randomEffects = "";
@@ -1487,6 +1513,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
     config->Read("xLightsPurgeDownloadCacheOnStart", &_purgeDownloadCacheOnStart, false);
     logger_base.debug("Purge download cache on start: %s.", toStr(_purgeDownloadCacheOnStart));
+
+    config->Read("xLightsVideoExportCodec", &_videoExportCodec, "H.264");
+    logger_base.debug("Video Export Codec: %s.", (const char*)_videoExportCodec.c_str());
+
+    config->Read("xLightsVideoExportBitrate", &_videoExportBitrate,0);
+    logger_base.debug("Video Export Bitrate: %d.", _videoExportBitrate);
 
     config->Read("xLightsExcludeAudioPkgSeq", &_excludeAudioFromPackagedSequences, false);
     logger_base.debug("Exclude Audio From Packaged Sequences: %s.", toStr( _excludeAudioFromPackagedSequences ));
@@ -1634,6 +1666,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
     InitEffectsPanel(EffectsPanel1);
     logger_base.debug("Effects panel initialised.");
+
+    auto consash = config->ReadLong("xLightsControllerSash", SplitterWindowControllers->GetSashPosition());
+    SplitterWindowControllers->SetSashPosition(consash);
+    logger_base.debug("Controller Sash Position: %d.", consash);
 
     EffectTreeDlg = nullptr;  // must be before any call to SetDir
 
@@ -1827,6 +1863,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     UpdateLayoutSave();
     UpdateControllerSave();
 
+    // remove the forum for now until/if Sean restores the forum
+    MenuItem_Help_Forum->GetMenu()->Remove(MenuItem_Help_Forum);
+    MenuItem_Help_Forum = nullptr;
+
     logger_base.debug("xLightsFrame construction complete.");
 }
 
@@ -1902,6 +1942,10 @@ xLightsFrame::~xLightsFrame()
     config->Write("xFadePort", _xFadePort);
     config->Write("xLightsModelHandleSize", _modelHandleSize);
     config->Write("xLightsPlayVolume", playVolume);
+    config->Write("xLightsVideoExportCodec", _videoExportCodec);
+    config->Write("xLightsVideoExportBitrate", _videoExportBitrate);
+
+    config->Write("xLightsControllerSash", SplitterWindowControllers->GetSashPosition());
 
     //definitely not outputting data anymore
     config->Write("OutputActive", false);
@@ -3096,7 +3140,8 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
     bool exportStatus = false;
     std::string emsg;
     try {
-        VideoExporter videoExporter(this, width, height, contentScaleFactor, _seqData.FrameTime(), _seqData.NumFrames(), audioChannelCount, audioSampleRate, path);
+        VideoExporter videoExporter(this, width, height, contentScaleFactor, _seqData.FrameTime(), _seqData.NumFrames(),
+            audioChannelCount, audioSampleRate, path, _videoExportCodec, _videoExportBitrate );
 
         auto audioLambda = [audioMgr, &audioFrameIndex](float* leftCh, float* rightCh, int frameSize) {
             int trackSize = audioMgr->GetTrackSize();
@@ -3121,12 +3166,12 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
             const SequenceData::FrameData& frameData(this->_seqData[frameIndex]);
             const uint8_t* data = frameData[0];
             housePreview->captureNextFrame(width*contentScaleFactor, height*contentScaleFactor);
-            housePreview->Render(data, false);
+            housePreview->Render(frameIndex * this->_seqData.FrameTime(), data, false);
             return housePreview->getFrameForExport(width*contentScaleFactor, height*contentScaleFactor, f, buf, bufSize);
         };
         videoExporter.setGetVideoCallback(videoLambda);
 
-        exportStatus = videoExporter.Export();
+        exportStatus = videoExporter.Export(_appProgress.get());
     }
     catch (const std::runtime_error& re) {
         emsg = (const char*)re.what();
@@ -8861,6 +8906,18 @@ void xLightsFrame::PurgeDownloadCache()
     ShaderDownloadDialog::GetCache().Save();
 }
 
+bool xLightsFrame::GetRecycleTips() const
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    return config->Read("OnlyShowUnseenTips", true);
+}
+
+void xLightsFrame::SetRecycleTips(bool b)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("OnlyShowUnseenTips", b);
+}
+
 void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
 {
     PurgeDownloadCache();
@@ -9854,6 +9911,41 @@ wxArrayString xLightsFrame::GetSequenceViews()
     return _sequenceViewManager.GetViewList();
 }
 
+void xLightsFrame::SetMinTipLevel(const wxString& level)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("MinTipLevel", level);
+    config->Flush();
+    logger_base.info("Minimum tip level set to %s", (const char*)level.c_str());
+}
+
+std::string xLightsFrame::GetMinTipLevel() const
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    return config->Read("MinTipLevel", "Beginner");
+}
+
+void xLightsFrame::SetVideoExportCodec(const wxString& codec)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _videoExportCodec = codec;
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsVideoExportCodec", _videoExportCodec);
+    config->Flush();
+    logger_base.info("Video Export Codec set to %s", (const char*)_videoExportCodec.c_str());
+}
+
+void xLightsFrame::SetVideoExportBitrate(int bitrate)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _videoExportBitrate = bitrate;
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsVideoExportBitrate", _videoExportBitrate);
+    config->Flush();
+    logger_base.info("Video Export Bitrate set to %d", _videoExportBitrate);
+}
+
 void xLightsFrame::OnMenuItem_ValueCurvesSelected(wxCommandEvent& event)
 {
     InitSequencer();
@@ -10115,4 +10207,18 @@ void xLightsFrame::OnMenuItemSearchEffectsSelected(wxCommandEvent& event)
     }
     m_mgr->Update();
     UpdateViewMenu();
+}
+
+void xLightsFrame::OnMenuItem_SilentVolSelected(wxCommandEvent& event)
+{
+    playVolume = 0;
+    SDL::SetGlobalVolume(playVolume);
+}
+
+void xLightsFrame::OnMenuItem_TODSelected(wxCommandEvent& event)
+{
+    if (!_tod.DoTipOfDay())
+    {
+        wxBell();
+    }
 }

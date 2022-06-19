@@ -233,6 +233,7 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     config->DeleteEntry("ToolbarLocations");
     config->DeleteEntry("xLightsMachinePerspective");
     SaveWindowPosition("xLightsSubModelDialogPosition", nullptr);
+    SaveWindowPosition("xLightsTipOfTheDay", nullptr);
     SaveWindowPosition("xLightsImportDialogPosition", nullptr);
     SaveWindowPosition("xLightsNodeSelectDialogPosition", nullptr);
     SaveWindowPosition("ControllerModelDialogPosition", nullptr);
@@ -890,22 +891,21 @@ void xLightsFrame::Scrub(wxCommandEvent& event)
     sequenceVideoPanel->UpdateVideo(ms);
 
     //have the frame, copy from SeqData
+    TimerOutput(frame);
     if (playModel != nullptr) {
         int nn = playModel->GetNodeCount();
         for (int node = 0; node < nn; node++) {
             int start = playModel->NodeStartChannel(node);
             playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
         }
-    }
-    TimerOutput(frame);
-    if (playModel != nullptr) {
+        _modelPreviewPanel->setCurrentFrameTime(ms);
         playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
     }
-    _housePreviewPanel->GetModelPreview()->Render(&_seqData[frame][0]);
+    _housePreviewPanel->GetModelPreview()->Render(ms, &_seqData[frame][0]);
     for (const auto& it : PreviewWindows) {
         ModelPreview* preview = it;
         if (preview->GetActive()) {
-            preview->Render(&_seqData[frame][0]);
+            preview->Render(ms, &_seqData[frame][0]);
         }
     }
 }
@@ -2349,6 +2349,7 @@ bool xLightsFrame::TimerRgbSeq(long msec)
     int frame = curt / _seqData.FrameTime();
     if (frame < _seqData.NumFrames()) {
         //have the frame, copy from SeqData
+        TimerOutput(frame);
         if (playModel != nullptr) {
             int nn = playModel->GetNodeCount();
             for (int node = 0; node < nn; node++) {
@@ -2356,18 +2357,16 @@ bool xLightsFrame::TimerRgbSeq(long msec)
                 wxASSERT(start < _seqData.NumChannels());
                 playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
             }
-        }
-        TimerOutput(frame);
-        if (playModel != nullptr) {
+            _modelPreviewPanel->setCurrentFrameTime(curt);
             playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
         }
         RecordTimingCheckpoint();
-        _housePreviewPanel->GetModelPreview()->Render(&_seqData[frame][0]);
+        _housePreviewPanel->GetModelPreview()->Render(curt, &_seqData[frame][0]);
         RecordTimingCheckpoint();
 
         for (const auto& it : PreviewWindows) {
             if (it->GetActive()) {
-                it->Render(&_seqData[frame][0]);
+                it->Render(curt, &_seqData[frame][0]);
             }
         }
         RecordTimingCheckpoint();
@@ -2685,6 +2684,12 @@ void xLightsFrame::SetEffectChoice(wxCommandEvent& event)
     else {
         wxASSERT(false);
     }
+}
+
+void xLightsFrame::TipOfDayReady(wxCommandEvent& event)
+{
+    // at this point if we are downloading tip of day content then the tip of day content is downloaded and ready to go
+    _tod.DoTipOfDay();
 }
 
 void xLightsFrame::ApplyLast(wxCommandEvent& event)

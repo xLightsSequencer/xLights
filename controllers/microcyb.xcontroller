@@ -1,0 +1,14 @@
+<Vendor Name="MICROCYB">
+    <Controller Name="M4-PI">
+        <Variant Name="" ID="M4-PI" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>4</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+        </Variant>
+    </Controller>
+    <Controller Name="M8-PI">
+        <Variant Name="" ID="M8-PI" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+        </Variant>
+    </Controller>
+</Vendor>

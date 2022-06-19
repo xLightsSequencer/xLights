@@ -195,6 +195,109 @@ std::string RulerObject::MeasureDepthDescription(glm::vec3 p1, glm::vec3 p2)
     return wxString::Format("%0.02f%s", MeasureDepth(p1,p2), GetUnitDescription()).ToStdString();
 }
 
+float RulerObject::ConvertDimension(const std::string& units, float measure)
+{
+    if (units == "m") // metres
+    {
+        switch (_units) {
+        case RULER_UNITS_INCHES:
+            return measure / 0.0254f;
+        case RULER_UNITS_FEET:
+            return measure / (12 * 0.0254f);
+        case RULER_UNITS_YARDS:
+            return measure / (36 * 0.0254f);
+        case RULER_UNITS_MM:
+            return measure * 1000;
+        case RULER_UNITS_CM:
+            return measure * 100;
+        case RULER_UNITS_M:
+            break;
+        }
+    } else if (units == "cm") // centimeters
+    {
+        switch (_units) {
+        case RULER_UNITS_INCHES:
+            return measure / 2.54f;
+        case RULER_UNITS_FEET:
+            return measure / (12 * 2.54f);
+        case RULER_UNITS_YARDS:
+            return measure / (36 * 2.54f);
+        case RULER_UNITS_MM:
+            return measure * 10;
+        case RULER_UNITS_CM:
+            break;
+        case RULER_UNITS_M:
+            return measure / 100;
+        }
+    } else if (units == "mm") // millimeters
+    {
+        switch (_units) {
+        case RULER_UNITS_INCHES:
+            return measure / 25.4f;
+        case RULER_UNITS_FEET:
+            return measure / (12 * 25.4f);
+        case RULER_UNITS_YARDS:
+            return measure / (36 * 25.4f);
+        case RULER_UNITS_MM:
+            break;
+        case RULER_UNITS_CM:
+            return measure / 10;
+        case RULER_UNITS_M:
+            return measure / 1000;
+        }
+    } else if (units == "i") // inches
+    {
+        switch (_units) {
+        case RULER_UNITS_INCHES:
+            break;
+        case RULER_UNITS_FEET:
+            return measure / 12;
+        case RULER_UNITS_YARDS:
+            return measure / 36;
+        case RULER_UNITS_MM:
+            return measure * 25.4f;
+        case RULER_UNITS_CM:
+            return measure * 2.54f;
+        case RULER_UNITS_M:
+            return measure * 0.0254f;
+        }
+    } else if (units == "f") // feet
+    {
+        switch (_units) {
+        case RULER_UNITS_INCHES:
+            return measure * 12;
+        case RULER_UNITS_FEET:
+            break;
+        case RULER_UNITS_YARDS:
+            return measure / 3;
+        case RULER_UNITS_MM:
+            return measure * 12 * 25.4f;
+        case RULER_UNITS_CM:
+            return measure * 12 * 2.54f;
+        case RULER_UNITS_M:
+            return measure * 12 * 0.0254f;
+        }
+    } else if (units == "y") // yards
+    {
+        switch (_units) {
+        case RULER_UNITS_INCHES:
+            return measure * 36;
+        case RULER_UNITS_FEET:
+            return measure * 3;
+        case RULER_UNITS_YARDS:
+            break;
+        case RULER_UNITS_MM:
+            return measure * 36 * 25.4f;
+        case RULER_UNITS_CM:
+            return measure * 36 * 2.54f;
+        case RULER_UNITS_M:
+            return measure * 36 * 0.0254f;
+        }
+    }
+
+    return measure;
+}
+
 float RulerObject::GetPerUnit() const
 {
     auto p1 = static_cast<TwoPointScreenLocation>(screenLocation).GetPoint1();

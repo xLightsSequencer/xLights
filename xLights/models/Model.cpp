@@ -48,6 +48,7 @@
 #include "../Pixels.h"
 #include "../ExternalHooks.h"
 #include "CustomModel.h"
+#include "RulerObject.h"
 
 #include <log4cpp/Category.hh>
 
@@ -256,6 +257,9 @@ public:
         auto dimmingInfo = m_model->GetDimmingInfo();
         if(dimmingInfo.empty()) {
             wxString b = m_model->GetModelXml()->GetAttribute("ModelBrightness","0");
+            if (b.empty()) {
+                b = "0";
+            }
             dimmingInfo["all"]["gamma"] = "1.0";
             dimmingInfo["all"]["brightness"] = b;
         }
@@ -2531,7 +2535,6 @@ int Model::GetNumberFromChannelString(const std::string &sc) const {
 
 int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::string& dependsonmodel) const {
     std::string sc(Trim(str));
-    int output = 1;
     valid = true;
     if (sc.find(":") != std::string::npos) {
         std::string start = sc.substr(0, sc.find(":"));
@@ -2544,7 +2547,6 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
             if (start == GetName() && !CouldComputeStartChannel)
             {
                 valid = false;
-                output = 1;
             } else {
                 if (start != GetName()) {
                     dependsonmodel = start;
@@ -2576,7 +2578,6 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
                 }
                 else {
                     valid = false;
-                    output = 1;
                 }
             }
         }
@@ -2883,7 +2884,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     }
 
     if (ModelNode->HasAttribute("ModelBrightness") && modelDimmingCurve == nullptr) {
-        int b = wxAtoi(ModelNode->GetAttribute("ModelBrightness"));
+        int b = wxAtoi(ModelNode->GetAttribute("ModelBrightness", "0"));
         if (b != 0) {
             modelDimmingCurve = DimmingCurve::createBrightnessGamma(b, 1.0);
         }
@@ -4574,8 +4575,8 @@ void Model::ExportAsCustomXModel() const {
     wxString p2 = wxString::Format("%i", sizey);
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
@@ -4621,6 +4622,11 @@ void Model::ExportAsCustomXModel() const {
     if (submodel != "")
     {
         f.Write(submodel);
+    }
+    // we only save the dimensions if it is a boxed location
+    auto msl = dynamic_cast<const BoxedScreenLocation*>(&GetModelScreenLocation());
+    if (msl != nullptr) {
+        ExportDimensions(f);
     }
     f.Write("</custommodel>");
     f.Close();
@@ -5554,7 +5560,7 @@ std::string Model::GetDimension() const
     return GetModelScreenLocation().GetDimension();
 }
 
-void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname)
+void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     bool merge = false;
     bool showPopup = true;
@@ -5574,6 +5580,15 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
                 xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname, merge, showPopup);
         } else if (n->GetName() == "shadowmodels") {
             ImportShadowModels(n, xlights);
+        } else if (n->GetName() == "dimensions") {
+
+            if (RulerObject::GetRuler() != nullptr) {
+                std::string units = n->GetAttribute("units", "mm");
+                float width = wxAtof(n->GetAttribute("width", "1000"));
+                float height = wxAtof(n->GetAttribute("height", "1000"));
+                float depth = wxAtof(n->GetAttribute("depth", "0"));
+                ApplyDimensions(units, width, height, depth, min_x, max_x, min_y, max_y);
+            }
         }
     }
 }
@@ -6948,16 +6963,6 @@ bool Model::HasState(std::string const& state) const {
     return false;
 }
 
-std::vector<std::string> Model::GetModelState() const
-{
-    return modelState;
-}
-
-void Model::SaveModelState( std::vector<std::string>& state )
-{
-    modelState = state;
-}
-
 std::string Model::GetControllerProtocol() const
 {
     wxString s = GetControllerConnection()->GetAttribute("Protocol");
@@ -7049,11 +7054,58 @@ void Model::GetMinScreenXY(float& minx, float& miny) const
     miny = 99999999.0f;
     for (const auto& it : Nodes)
     {
-        for (auto it2 : it->Coords)
+        for (const auto& it2 : it->Coords)
         {
             minx = std::min(minx, it2.screenX);
             miny = std::min(miny, it2.screenY);
         }
+    }
+}
+
+void Model::ApplyDimensions(const std::string& units, float width, float height, float depth, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    auto ruler = RulerObject::GetRuler();
+
+    if (ruler != nullptr && width != 0 && height != 0) {
+        float w = ruler->ConvertDimension(units, width);
+        float h = ruler->ConvertDimension(units, height);
+        float d = ruler->ConvertDimension(units, depth);
+
+        GetModelScreenLocation().SetMWidth(ruler->UnMeasure(w));
+        GetModelScreenLocation().SetMHeight(ruler->UnMeasure(h));
+        if (depth != 0) {
+            GetModelScreenLocation().SetMDepth(ruler->UnMeasure(d));
+        }
+    }
+}
+
+void Model::ExportDimensions(wxFile& f) const
+{
+    auto ruler = RulerObject::GetRuler();
+
+    if (ruler != nullptr) {
+        std::string u = "mm";
+        switch (ruler->GetUnits()) {
+        case RULER_UNITS_INCHES:
+            u = "i";
+            break;
+        case RULER_UNITS_FEET:
+            u = "f";
+            break;
+        case RULER_UNITS_YARDS:
+            u = "y";
+            break;
+        case RULER_UNITS_MM:
+            u = "mm";
+            break;
+        case RULER_UNITS_CM:
+            u = "cm";
+            break;
+        case RULER_UNITS_M:
+            u = "m";
+            break;
+        }
+        f.Write(wxString::Format("<dimensions units=\"%s\" width=\"%f\" height=\"%f\" depth=\"%f\"/>", u, GetModelScreenLocation().GetRealWidth(), GetModelScreenLocation().GetRealHeight(), GetModelScreenLocation().GetRealDepth()));
     }
 }
 

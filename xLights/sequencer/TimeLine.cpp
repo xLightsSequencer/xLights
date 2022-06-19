@@ -104,18 +104,18 @@ void TimeLine::OnPopup(wxCommandEvent& event)
     }
 }
 
-void TimeLine::SetTagPosition(int tag, int position)
+void TimeLine::SetTagPosition(int tag, int position , bool flag)
 {
-    if (GetTimeLength() != -1 && position > GetTimeLength())
-    {
+    if (GetTimeLength() != -1 && position > GetTimeLength()) {
         position = GetTimeLength();
     }
 
-    if (_tagPositions[tag] != position)
-    {
+    if (_tagPositions[tag] != position) {
         _tagPositions[tag] = position;
-        Refresh(false);
-        RaiseSequenceChange();
+        if (flag) {
+            Refresh(false);
+            RaiseSequenceChange();
+        }
     }
 }
 

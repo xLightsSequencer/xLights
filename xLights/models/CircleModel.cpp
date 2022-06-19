@@ -320,8 +320,8 @@ void CircleModel::ExportXlightsModel()
     wxString p3 = ModelXml->GetAttribute("parm3");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ss = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
@@ -362,6 +362,7 @@ void CircleModel::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    ExportDimensions(f);
     f.Write("</circlemodel>");
     f.Close();
 }
@@ -375,8 +376,8 @@ void CircleModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         wxString p3 = root->GetAttribute("parm3");
         wxString st = root->GetAttribute("StringType");
         wxString ps = root->GetAttribute("PixelSize");
-        wxString t = root->GetAttribute("Transparency");
-        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString t = root->GetAttribute("Transparency", "0");
+        wxString mb = root->GetAttribute("ModelBrightness", "0");
         wxString a = root->GetAttribute("Antialias");
         wxString ss = root->GetAttribute("StartSide");
         wxString dir = root->GetAttribute("Dir");
@@ -418,7 +419,7 @@ void CircleModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::ImportXlightsModel");

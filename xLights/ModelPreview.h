@@ -89,7 +89,7 @@ public:
 
     void DrawGroupCentre(float x, float y);
     void Render();
-    void Render(const unsigned char *data, bool swapBuffers=true);
+    void Render(uint32_t frameTime, const unsigned char *data, bool swapBuffers=true);
     void RenderModels(const std::vector<Model*>& models, bool selected, bool showFirstPixel);
     void RenderModel(Model* m, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
 
@@ -146,6 +146,8 @@ public:
     bool drawingUsingLogicalSize() const override { return true; }
     virtual bool RequiresDepthBuffer() const override { return true; }
 
+    void setCurrentFrameTime(uint32_t ft) { currentFrameTime = ft; }
+    uint32_t getCurrentFrameTime() const { return currentFrameTime; }
     xlGraphicsContext *getCurrentGraphicsContext() { return currentContext; }
     xlGraphicsProgram *getCurrentSolidProgram() { return solidProgram; }
     xlGraphicsProgram *getCurrentTransparentProgram() { return transparentProgram; }
@@ -199,6 +201,7 @@ private:
     std::string currentLayoutGroup;
     std::vector<Model*> tmpModelList;
     Model *additionalModel = nullptr;
+    uint32_t currentFrameTime = 0;
 
     xlGraphicsProgram *solidProgram = nullptr;
     xlGraphicsProgram *transparentProgram = nullptr;

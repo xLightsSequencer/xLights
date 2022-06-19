@@ -733,6 +733,8 @@
 												<object class="sizeritem">
 													<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindowControllers" member="yes">
 														<sashpos>1000</sashpos>
+														<sashgravity>0.800000</sashgravity>
+														<minpanesize>20</minpanesize>
 														<orientation>vertical</orientation>
 														<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
 															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllers" member="yes">
@@ -742,6 +744,8 @@
 															</object>
 														</object>
 														<object class="wxPanel" name="ID_PANEL6" variable="Panel5" member="yes">
+															<minsize>20,-1</minsize>
+															<style>wxTAB_TRAVERSAL|wxALWAYS_SHOW_SB</style>
 															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupRight" member="yes">
 																<cols>1</cols>
 																<growablecols>0</growablecols>
@@ -1413,6 +1417,11 @@
 					<handler function="OnMenuItem_VQuietVolSelected" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_SILENT" variable="MenuItem_SilentVol" member="yes">
+					<label>Silent</label>
+					<handler function="OnMenuItem_SilentVolSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu2" member="no">
 				<label>&amp;Import</label>
@@ -1423,6 +1432,10 @@
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
 				<label>&amp;Help</label>
+				<object class="wxMenuItem" name="ID_MNU_TOD" variable="MenuItem_TOD" member="yes">
+					<label>Tip of the Day</label>
+					<handler function="OnMenuItem_TODSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_MANUAL" variable="MenuItem_UserManual" member="yes">
 					<label>User Manual</label>
 					<handler function="OnMenuItem_UserManualSelected" entry="EVT_MENU" />

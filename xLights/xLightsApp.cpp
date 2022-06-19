@@ -362,7 +362,7 @@ wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 #endif
 
 xLightsApp::xLightsApp() :
-    xlGLBaseApp("xLights")
+    xLightsAppBaseClass("xLights")
 {
 }
 

@@ -21,7 +21,7 @@ class DmxMovingHead3D : public DmxMovingHead
         DmxMovingHead3D(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~DmxMovingHead3D();
 
-    
+
         virtual void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c) override;
 
     protected:

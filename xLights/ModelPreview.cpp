@@ -134,7 +134,7 @@ void ModelPreview::OnZoomGesture(wxZoomGestureEvent& event) {
                 Refresh();
                 Update();
                 if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
-                    Render(&xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
+                    Render(xlights->GetCurrentPlayTime(), &xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
                 }
             }
         }
@@ -224,7 +224,7 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
                 Refresh();
                 Update();
                 if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
-                    Render(&xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
+                    Render(xlights->GetCurrentPlayTime(), &xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
                 }
             }
         }
@@ -274,7 +274,7 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
                 Refresh();
                 Update();
                 if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
-                    Render(&xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
+                    Render(xlights->GetCurrentPlayTime(), &xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
                 }
             }
         }
@@ -494,7 +494,7 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
             Refresh();
             Update();
             if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
-                Render(&xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
+                Render(xlights->GetCurrentPlayTime(), &xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
             }
         }
     }
@@ -695,7 +695,8 @@ void ModelPreview::Render()
     }
 }
 
-void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) {
+void ModelPreview::Render(uint32_t frameTime, const unsigned char *data, bool swapBuffers/*=true*/) {
+    currentFrameTime = frameTime;
     if (StartDrawing(mPointSize)) {
         const std::vector<Model*> &models = GetModels();
         for (auto m : models) {

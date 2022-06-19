@@ -23,6 +23,7 @@ extern "C"
 #include <log4cpp/Category.hh>
 
 #include <wx/progdlg.h>
+#include <wx/appprogress.h>
 
 #include <algorithm>
 #include <cstring>
@@ -145,32 +146,45 @@ void GenericVideoExporter::initialize()
     
     // Initialize video & audio
     AVOutputFormat* fmt = (AVOutputFormat*)::av_guess_format(nullptr, _path.c_str(), nullptr);
-    enum AVCodecID origGuess = fmt->video_codec;
-    enum AVCodecID best = AV_CODEC_ID_H264;
-    if (_outParams.height > 1080) {
-        // h264 technically only allows up to 1080p
-        best = AV_CODEC_ID_H265;
-    }
-    const AVCodec* videoCodec = ::avcodec_find_encoder(best);
-    if (videoCodec == nullptr) {
-        // try flipping back/forth to h264/h265 to see if that can be loaded
-        best = (best == AV_CODEC_ID_H265 ? AV_CODEC_ID_H264 : AV_CODEC_ID_H265);
+    const AVCodec* videoCodec = ::avcodec_find_encoder(fmt->video_codec);
+    int status{-1};
+    AVDictionary* av_opts = NULL;
+    if (_outParams.videoCodec.find("H.264") != std::string::npos || 
+        _outParams.videoCodec.find("H.265") != std::string::npos) {
+
+        enum AVCodecID best = _outParams.videoCodec.find("H.264") != std::string::npos ? AV_CODEC_ID_H264 : AV_CODEC_ID_H265;
+        if (_outParams.height > 1080) {
+            // h264 technically only allows up to 1080p
+            best = AV_CODEC_ID_H265;
+        }
         videoCodec = ::avcodec_find_encoder(best);
+        if (videoCodec == nullptr) {
+            // try flipping back/forth to h264/h265 to see if that can be loaded
+            best = (best == AV_CODEC_ID_H265 ? AV_CODEC_ID_H264 : AV_CODEC_ID_H265);
+            videoCodec = ::avcodec_find_encoder(best);
+        }
+        av_dict_set(&av_opts, "brand", "mp42", 0);
+        av_dict_set(&av_opts, "movflags", "faststart+disable_chpl+write_colr", 0);
+        status = ::avformat_alloc_output_context2(&_formatContext, nullptr, "mp4", _path.c_str());
+    } else if (_outParams.videoCodec.find("MPEG-4") != std::string::npos){//good old MPEG4
+        enum AVCodecID mp4codec = AV_CODEC_ID_MPEG4;
+        videoCodec = ::avcodec_find_encoder(mp4codec);
+        status = ::avformat_alloc_output_context2(&_formatContext, fmt, nullptr, _path.c_str());
+    } else  { //auto
+        status = ::avformat_alloc_output_context2(&_formatContext, fmt, nullptr, _path.c_str());
     }
+
     if (videoCodec == nullptr) {
-        // h264/h265 not working, stick with original guess (likely mpeg4)
-        best = origGuess;
-        videoCodec = ::avcodec_find_encoder(best);
+        //not working, stick with original guess (likely mpeg4)
+        videoCodec = ::avcodec_find_encoder(fmt->video_codec);
+        status = ::avformat_alloc_output_context2(&_formatContext, fmt, nullptr, _path.c_str());
     }
 
     const AVCodec* audioCodec = nullptr;
     if (!_videoOnly) {
         audioCodec = ::avcodec_find_encoder(fmt->audio_codec);
     }
-    int status = ::avformat_alloc_output_context2(&_formatContext, nullptr, "mp4", _path.c_str());
-    AVDictionary* av_opts = NULL;
-    av_dict_set(&av_opts, "brand", "mp42", 0);
-    av_dict_set(&av_opts, "movflags", "faststart+disable_chpl+write_colr", 0);
+
     if (_formatContext == nullptr)
         throw std::runtime_error("VideoExporter - Error allocating output-context");
 
@@ -187,6 +201,7 @@ void GenericVideoExporter::initialize()
             throw std::runtime_error("VideoExporter - Error opening video codec context");
         }
     }
+
     if (!_videoOnly) {
         initializeAudio(audioCodec);
     }
@@ -205,6 +220,7 @@ void GenericVideoExporter::initialize()
     // the stream(s) won't be packaged in an MP4 container. Also, the stream's
     // time_base appears to be updated within this call.
     status = ::avformat_write_header(_formatContext, &av_opts);
+    av_dict_free(&av_opts);
     if (status < 0)
         throw std::runtime_error("VideoExporter - Error writing file header");
 
@@ -214,18 +230,32 @@ void GenericVideoExporter::initialize()
 bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
 {
     _videoCodecContext = ::avcodec_alloc_context3(codec);
-    _videoCodecContext->time_base.num = 1;
-    _videoCodecContext->time_base.den = _outParams.fps;
+    _videoCodecContext->time_base.num = 1000;
+    _videoCodecContext->time_base.den = _outParams.fps * 1000;
     _videoCodecContext->gop_size = 40 /*12*/; // aka keyframe interval
     _videoCodecContext->max_b_frames = 0;
     _videoCodecContext->width = _outParams.width;
     _videoCodecContext->height = _outParams.height;
     _videoCodecContext->pix_fmt = static_cast<AVPixelFormat>(_outParams.pfmt);
     _videoCodecContext->thread_count = 8;
+    
+    // _outParams.videoBitrate may be 0 which would allow the encoder to
+    // "choose" or flip to constant quality using the crf parameter
+    _videoCodecContext->bit_rate = _outParams.videoBitrate * 1000;
+    _videoCodecContext->rc_max_rate = _outParams.videoBitrate * 1000;
     if (codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
+#if defined(XL_DRAWING_WITH_METAL)
+        // if Drawing with GL, we don't have the raw CVImage anyway
+        // so use the normal ffmpeg routines
         _videoCodecContext->pix_fmt = AV_PIX_FMT_VIDEOTOOLBOX;
-        // sw encoder seems to have issues if frames aren't sent in real time, stick with hw encoder
-        ::av_opt_set_int(_videoCodecContext->priv_data, "allow_sw", 0, AV_OPT_SEARCH_CHILDREN);
+#endif
+        if (AV_CODEC_ID_H265 == codec->id) {
+            // HEVC sw encoder seems to have issues if frames aren't sent in real time, require hw encoder
+            // or drop to h264 or even to mpeg4
+            ::av_opt_set_int(_videoCodecContext->priv_data, "allow_sw", 0, AV_OPT_SEARCH_CHILDREN);
+        } else {
+            ::av_opt_set_int(_videoCodecContext->priv_data, "allow_sw", 1, AV_OPT_SEARCH_CHILDREN);
+        }
     } else {
         ::av_opt_set(_videoCodecContext->priv_data, "preset", "fast", 0);
         ::av_opt_set(_videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN);
@@ -264,8 +294,8 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
 
     AVStream* video_st = ::avformat_new_stream(_formatContext, nullptr);
     video_st->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
-    video_st->time_base.num = 1;
-    video_st->time_base.den = _outParams.fps;
+    video_st->time_base.num = 1000;
+    video_st->time_base.den = _outParams.fps * 1000;
     video_st->id = _formatContext->nb_streams - 1;
     status = ::avcodec_parameters_from_context(video_st->codecpar, _videoCodecContext);
     if (status != 0)
@@ -316,7 +346,7 @@ void GenericVideoExporter::initializeFrames()
         _videoFrames[x]->height = _outParams.height;
         _videoFrames[x]->format = _outParams.pfmt;
         status = ::av_frame_get_buffer(_videoFrames[x], 0);
-#ifdef __WXOSX__
+#if defined(XL_DRAWING_WITH_METAL)
         if (_videoCodecContext->codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
             // this is using videotoolbox, we can pass image in directly, no conversion needed
             _videoFrames[x]->format = AV_PIX_FMT_VIDEOTOOLBOX;
@@ -610,14 +640,17 @@ void GenericVideoExporter::pushAudioUntilPacketFilled()
 
 namespace
 {
-    GenericVideoExporter::Params makeParams(int width, int height, int fps, int audioSampleRate)
+    GenericVideoExporter::Params makeParams(int width, int height, int fps, int audioSampleRate, const std::string& codec,
+                                            int videoBitrate)
     {
         GenericVideoExporter::Params p = {
             AV_PIX_FMT_RGB24,
             width,
             height,
             fps,
-            audioSampleRate
+            audioSampleRate,
+            codec,
+            videoBitrate
         };
 
         return p;
@@ -628,28 +661,32 @@ VideoExporter::VideoExporter(wxWindow* parent,
                              int width, int height, float scaleFactor,
                              unsigned int frameDuration, unsigned int frameCount,
                              int audioChannelCount, int audioSampleRate,
-                             const std::string& outPath) :
-    GenericVideoExporter(outPath, makeParams(width * scaleFactor, height * scaleFactor, 1000u / frameDuration, audioSampleRate), audioSampleRate == 0), _parent(parent), _frameCount(frameCount)
+                             const std::string& outPath, const std::string& codec,
+                             int videoBitrate) :
+    GenericVideoExporter(outPath, makeParams(width * scaleFactor, height * scaleFactor, 1000u / frameDuration, audioSampleRate, codec, videoBitrate), audioSampleRate == 0), _parent(parent), _frameCount(frameCount)
 {
     if (audioChannelCount != 2 && audioChannelCount != 0 && audioChannelCount != 1)
         throw std::runtime_error("VideoExporter - assumes mono or stereo for input and creating stereo for output currently");
 }
 
-bool VideoExporter::Export()
+bool VideoExporter::Export(wxAppProgressIndicator* appIndicator)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool status = true;
 
     int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT;
     wxProgressDialog dlg(_("Export progress"), _("Exporting video..."), 100, _parent, style);
+    appIndicator->SetRange(100);
+    appIndicator->SetValue(0);
 
     auto cancelLambda = [&dlg]() {
         return dlg.WasCancelled();
     };
     setQueryForCancelCallback(cancelLambda);
 
-    auto progressLambda = [&dlg](int value) {
+    auto progressLambda = [&dlg, &appIndicator](int value) {
         dlg.Update(value);
+        appIndicator->SetValue(value);
     };
     setProgressReportCallback(progressLambda);
 
@@ -670,7 +707,8 @@ bool VideoExporter::Export()
         logger_base.error("Exception caught in VideoExporter - '%s'", (const char*)re.what());
         status = false;
     }
-
+    appIndicator->SetValue(0);
+    appIndicator->Reset();
     dlg.Hide();
 
     return status;

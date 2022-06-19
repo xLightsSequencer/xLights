@@ -956,6 +956,7 @@ void DmxSkull::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</dmxmodel>");
     f.Close();
 }
@@ -1026,7 +1027,7 @@ void DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
         if (heu == "1")
             eye_ud_servo->Serialise(root, ModelXml, show_dir);
 
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkull::ImportXlightsModel");

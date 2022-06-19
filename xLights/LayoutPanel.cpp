@@ -271,8 +271,8 @@ class NewModelBitmapButton : public wxBitmapButton
 {
 public:
 
-    NewModelBitmapButton(wxWindow *parent, const wxBitmap &bmp, const std::string &type)
-        : wxBitmapButton(parent, wxID_ANY, bmp), state(0), bitmap(bmp), modelType(type) {
+    NewModelBitmapButton(wxWindow *parent, const wxBitmapBundle &bmp, const wxBitmapBundle& bmpDis, const wxBitmapBundle& pBmp, const std::string &type)
+        : wxBitmapButton(parent, wxID_ANY, bmp), state(0), bitmap(bmp), bitmapDisabled(bmpDis), pressedBitmap(pBmp), modelType(type) {
         SetToolTip("Create new " + type);
     }
     virtual ~NewModelBitmapButton() {}
@@ -283,10 +283,9 @@ public:
         }
         state = s;
         if (state == 2) {
-            SetBitmap(bitmap.ConvertToDisabled());
+            SetBitmap(bitmapDisabled);
         } else if (state == 1) {
-            const wxImage imgDisabled = bitmap.ConvertToImage().ConvertToDisabled(128);
-            SetBitmap(wxBitmap(imgDisabled, -1, bitmap.GetScaleFactor()));
+            SetBitmap(pressedBitmap);
         } else {
             SetBitmap(bitmap);
         }
@@ -303,7 +302,9 @@ protected:
 private:
     const std::string modelType;
     unsigned int state;
-    wxBitmap bitmap;
+    wxBitmapBundle bitmap;
+    wxBitmapBundle bitmapDisabled;
+    wxBitmapBundle pressedBitmap;
 };
 
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) : xlights(xl), main_sequencer(sequencer)
@@ -737,16 +738,18 @@ std::string LayoutPanel::GetCurrentPreview() const
 
 NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
     wxImage image(data);
-#if defined(__WXOSX__)
-    wxBitmap bitmap(image, -1, 2.0);
-#else
-    image.Rescale(ScaleWithSystemDPI(24),
-                  ScaleWithSystemDPI(24),
-                  wxIMAGE_QUALITY_HIGH);
-    wxBitmap bitmap(image);
-#endif
+    wxImage disImg = image.ConvertToDisabled();
+    wxImage presImg = image.ConvertToDisabled(128);
 
-    NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, bitmap, type);
+    wxImage img24 = image.Scale(24, 24, wxIMAGE_QUALITY_HIGH);
+    wxImage disImg24 = disImg.Scale(24, 24, wxIMAGE_QUALITY_HIGH);
+    wxImage presImg24 = presImg.Scale(24, 24, wxIMAGE_QUALITY_HIGH);
+
+    wxBitmapBundle bmp = wxBitmapBundle::FromBitmaps(img24, image);
+    wxBitmapBundle bmpDisabled = wxBitmapBundle::FromBitmaps(disImg24, disImg);
+    wxBitmapBundle presBmp = wxBitmapBundle::FromBitmaps(presImg24, presImg);
+
+    NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, bmp, bmpDisabled, presBmp, type);
     ToolSizer->Add(button, 1, wxALL, 0);
     buttons.push_back(button);
     Connect(button->GetId(), wxEVT_BUTTON, (wxObjectEventFunction)&LayoutPanel::OnNewModelTypeButtonClicked);
@@ -1187,13 +1190,6 @@ void LayoutPanel::FreezeTreeListView() {
     TreeListViewModels->SetColumnWidth(3, TreeListViewModels->GetColumnWidth(3));
 }
 
-#ifdef __WXOSX__
-// need to add a bit for the arrow which isn't accounted for in column with on OSX
-#define ADDTIONAL_COLUMN_WIDTH 8
-#else
-#define ADDTIONAL_COLUMN_WIDTH 0
-#endif
-
 void LayoutPanel::ThawTreeListView() {
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
@@ -1204,7 +1200,7 @@ void LayoutPanel::ThawTreeListView() {
     if (i <= 20) {
         i = 100;
     }
-    TreeListViewModels->SetColumnWidth(0, i + ADDTIONAL_COLUMN_WIDTH); // add a smidgen to account for borders
+    TreeListViewModels->SetColumnWidth(0, i);
     TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
     TreeListViewModels->Thaw();
     TreeListViewModels->Refresh();
@@ -5947,20 +5943,17 @@ void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
         if (event.GetId() == it->GetId()) {
             if (it->GetModelType() == "Add Object") {
                 DisplayAddObjectPopup();
-            }
-            else if (it->GetModelType() == "DMX") {
+            } else if (it->GetModelType() == "DMX") {
                 selectedButton = it;
                 DisplayAddDmxPopup();
-            }
-            else {
+            } else {
                 int state = it->GetState();
                 it->SetState(state + 1);
                 if (it->GetState()) {
                     selectedButton = it;
                     UnSelectAllModels();
                     modelPreview->SetFocus();
-                }
-                else {
+                } else {
                     selectedButton = nullptr;
                     _lastXlightsModel = "";
                 }
@@ -5977,15 +5970,8 @@ void LayoutPanel::AddObjectButton(wxMenu& mnu, const long id, const std::string 
     wxMenuItem* menu_item = mnu.Append(id, name);
     if (icon != nullptr) {
         wxImage image(icon);
-#if defined(__WXOSX__)
-        wxBitmap bitmap(image, -1, 2.0);
-#else
-        image.Rescale(ScaleWithSystemDPI(GetContentScaleFactor(), 24),
-            ScaleWithSystemDPI(GetContentScaleFactor(), 24),
-            wxIMAGE_QUALITY_HIGH);
-        wxBitmap bitmap(image);
-#endif
-        menu_item->SetBitmap(image);
+        wxImage halfImg = image.Scale(24, 24, wxIMAGE_QUALITY_HIGH);
+        menu_item->SetBitmap(wxBitmapBundle::FromBitmaps(halfImg, image));
     }
 }
 

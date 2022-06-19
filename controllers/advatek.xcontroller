@@ -1,178 +1,197 @@
 <Vendor Name="Advatek">
+    <AbstractVariant Name="PLMK3">
+        <SupportsPixelPortCommonSettings/>
+        <SupportsUpload/>
+        <MaxSerialPortChannels>512</MaxSerialPortChannels>
+        <MaxPixelPortChannels>3060</MaxPixelPortChannels>
+        <MaxStartNulls>50</MaxStartNulls>
+        <MaxGroup>50</MaxGroup>
+        <MinGroup>1</MinGroup>
+        <SupportsAutoLayout/>
+        <NeedsFullUniverseForSerial/>
+        <SupportsFullxLightsControl/>
+        <AllInputUniversesMustBeSameSize/>
+        <AllInputUniversesMustBe510/>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+            <Protocol>tm1803</Protocol>
+            <Protocol>tm1804</Protocol>
+            <Protocol>tm1809</Protocol>
+            <Protocol>tm1814</Protocol>
+            <Protocol>tm1914</Protocol>
+            <Protocol>ws2801</Protocol>
+            <Protocol>tls3001</Protocol>
+            <Protocol>lpd6803</Protocol>
+            <Protocol>lpd8806</Protocol>
+            <Protocol>apa102</Protocol>
+            <Protocol>apa104</Protocol>
+            <Protocol>apa109</Protocol>
+            <Protocol>dmx512</Protocol>
+            <Protocol>sm16703</Protocol>
+            <Protocol>sm16704</Protocol>
+            <Protocol>sm16714</Protocol>
+            <Protocol>sm16716</Protocol>
+            <Protocol>mbi6020</Protocol>
+            <Protocol>my9231</Protocol>
+            <Protocol>my9221</Protocol>
+            <Protocol>my9291</Protocol>
+            <Protocol>sk6812</Protocol>
+            <Protocol>sk6813</Protocol>
+            <Protocol>sk6822</Protocol>
+            <Protocol>sk9822</Protocol>
+            <Protocol>ucs1903</Protocol>
+            <Protocol>ucs2903</Protocol>
+            <Protocol>ucs2904</Protocol>
+            <Protocol>ucs9812</Protocol>
+            <Protocol>gs8208</Protocol>
+            <Protocol>p9813</Protocol>
+        </PixelProtocols>
+        <SerialProtocols>
+            <Protocol>dmx</Protocol>
+        </SerialProtocols>
+        <InputProtocols>
+            <Protocol>e131</Protocol>
+            <Protocol>artnet</Protocol>
+        </InputProtocols>
+    </AbstractVariant>
+    <Controller Name="PixLite E4-S Mk3">
+		<Variant Name="" Base="Advatek:PLMK3">
+			<MaxInputUniverses>24</MaxInputUniverses>
+			<MaxPixelPort>8</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+		</Variant>
+    </Controller>
+    <Controller Name="PixLite E16-S Mk3">
+		<Variant Name="" Base="Advatek:PLMK3">
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>32</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+		</Variant>
+    </Controller>
+    <AbstractVariant Name="PLMK1">
+        <SupportsPixelPortCommonSettings/>
+        <SupportsUpload/>
+        <MaxSerialPortChannels>512</MaxSerialPortChannels>
+        <MaxPixelPortChannels>2040</MaxPixelPortChannels>
+        <SupportsAutoLayout/>
+        <MaxStartNulls>10</MaxStartNulls>
+        <MaxGroup>340</MaxGroup>
+        <MinGroup>1</MinGroup>
+        <NeedsFullUniverseForSerial/>
+        <NoWebUI/>
+        <SupportsFullxLightsControl/>
+        <AllInputUniversesMustBeSameSize/>
+        <AllInputUniversesMustBe510/>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+            <Protocol>tm18xx</Protocol>
+            <Protocol>tm1803</Protocol>
+            <Protocol>tm1804</Protocol>
+            <Protocol>tm1809</Protocol>
+            <Protocol>ws2801</Protocol>
+            <Protocol>tls3001</Protocol>
+            <Protocol>lpd6803</Protocol>
+            <Protocol>lpd8806</Protocol>
+            <Protocol>apa102</Protocol>
+            <Protocol>apa109</Protocol>
+            <Protocol>sm16716</Protocol>
+            <Protocol>mb16020</Protocol>
+            <Protocol>my9231</Protocol>
+            <Protocol>my9221</Protocol>
+            <Protocol>sk6812</Protocol>
+            <Protocol>ucs1903</Protocol>
+            <Protocol>ucs2903</Protocol>
+        </PixelProtocols>
+        <SerialProtocols>
+            <Protocol>dmx</Protocol>
+        </SerialProtocols>
+        <InputProtocols>
+            <Protocol>e131</Protocol>
+            <Protocol>artnet</Protocol>
+        </InputProtocols>
+    </AbstractVariant>
 	<Controller Name="PixLite 4">
-		<Variant Name="">
-			<SupportsPixelPortCommonSettings/>
-			<SupportsUpload/>
+		<Variant Name="" Base="Advatek:PLMK1">
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
-			<SupportsAutoLayout/>
-            <MaxStartNulls>10</MaxStartNulls>
-            <MaxGroup>340</MaxGroup>
-            <MinGroup>1</MinGroup>
-            <NeedsFullUniverseForSerial/>
-			<NoWebUI/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>tm1803</Protocol>
-				<Protocol>tm1804</Protocol>
-				<Protocol>tm1809</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-				<Protocol>apa109</Protocol>
-				<Protocol>sm16716</Protocol>
-				<Protocol>mb16020</Protocol>
-				<Protocol>my9231</Protocol>
-				<Protocol>my9221</Protocol>
-				<Protocol>sk6812</Protocol>
-				<Protocol>ucs1903</Protocol>
-				<Protocol>ucs2903</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-			</InputProtocols>
 		</Variant>
 	</Controller>
+    <AbstractVariant Name="PLMK2">
+        <SupportsPixelPortCommonSettings/>
+        <SupportsUpload/>
+        <MaxSerialPortChannels>512</MaxSerialPortChannels>
+        <MaxPixelPortChannels>3060</MaxPixelPortChannels>
+        <MaxStartNulls>10</MaxStartNulls>
+        <MaxGroup>340</MaxGroup>
+        <MinGroup>1</MinGroup>
+        <NoWebUI/>
+        <SupportsAutoLayout/>
+        <NeedsFullUniverseForSerial/>
+        <SupportsFullxLightsControl/>
+        <AllInputUniversesMustBeSameSize/>
+        <AllInputUniversesMustBe510/>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+            <Protocol>tm18xx</Protocol>
+            <Protocol>tm1803</Protocol>
+            <Protocol>tm1804</Protocol>
+            <Protocol>tm1809</Protocol>
+            <Protocol>ws2801</Protocol>
+            <Protocol>tls3001</Protocol>
+            <Protocol>lpd6803</Protocol>
+            <Protocol>lpd8806</Protocol>
+            <Protocol>apa102</Protocol>
+            <Protocol>apa109</Protocol>
+            <Protocol>sm16716</Protocol>
+            <Protocol>mb16020</Protocol>
+            <Protocol>my9231</Protocol>
+            <Protocol>my9221</Protocol>
+            <Protocol>sk6812</Protocol>
+            <Protocol>ucs1903</Protocol>
+            <Protocol>ucs2903</Protocol>
+        </PixelProtocols>
+        <SerialProtocols>
+            <Protocol>dmx</Protocol>
+        </SerialProtocols>
+        <InputProtocols>
+            <Protocol>e131</Protocol>
+            <Protocol>artnet</Protocol>
+        </InputProtocols>
+    </AbstractVariant>
 	<Controller Name="PixLite 4 MkII">
-		<Variant Name="">
-			<SupportsPixelPortCommonSettings/>
-			<SupportsUpload/>
+		<Variant Name="" Base="Advatek:PLMK2">
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>8</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>3060</MaxPixelPortChannels>
-            <MaxStartNulls>10</MaxStartNulls>
-            <MaxGroup>340</MaxGroup>
-            <MinGroup>1</MinGroup>
-			<NoWebUI/>
-			<SupportsAutoLayout/>
-            <NeedsFullUniverseForSerial/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>tm1803</Protocol>
-				<Protocol>tm1804</Protocol>
-				<Protocol>tm1809</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-				<Protocol>apa109</Protocol>
-				<Protocol>sm16716</Protocol>
-				<Protocol>mb16020</Protocol>
-				<Protocol>my9231</Protocol>
-				<Protocol>my9221</Protocol>
-				<Protocol>sk6812</Protocol>
-				<Protocol>ucs1903</Protocol>
-				<Protocol>ucs2903</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-			</InputProtocols>
 		</Variant>
 	</Controller>
 	<Controller Name="PixLite 16">
-		<Variant Name="">
-			<SupportsPixelPortCommonSettings/>
-			<SupportsUpload/>
+		<Variant Name="" Base="Advatek:PLMK1">
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
-            <MaxStartNulls>10</MaxStartNulls>
-            <MaxGroup>340</MaxGroup>
-            <MinGroup>1</MinGroup>
-			<NoWebUI/>
-			<SupportsAutoLayout/>
-            <NeedsFullUniverseForSerial/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>tm1803</Protocol>
-				<Protocol>tm1804</Protocol>
-				<Protocol>tm1809</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-				<Protocol>apa109</Protocol>
-				<Protocol>sm16716</Protocol>
-				<Protocol>mb16020</Protocol>
-				<Protocol>my9231</Protocol>
-				<Protocol>my9221</Protocol>
-				<Protocol>sk6812</Protocol>
-				<Protocol>ucs1903</Protocol>
-				<Protocol>ucs2903</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-			</InputProtocols>
+		</Variant>
+	</Controller>
+	<Controller Name="PixLite 16 Long Range">
+		<Variant Name="" Base="Advatek:PLMK1">
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
 		</Variant>
 	</Controller>
 	<Controller Name="PixLite 16 MkII">
-		<Variant Name="">
-			<SupportsPixelPortCommonSettings/>
-			<SupportsUpload/>
+		<Variant Name="" Base="Advatek:PLMK2">
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>3060</MaxPixelPortChannels>
-            <MaxStartNulls>10</MaxStartNulls>
-            <MaxGroup>340</MaxGroup>
-            <MinGroup>1</MinGroup>
-			<NoWebUI/>
-			<SupportsAutoLayout/>
-            <NeedsFullUniverseForSerial/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>tm1803</Protocol>
-				<Protocol>tm1804</Protocol>
-				<Protocol>tm1809</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-				<Protocol>apa109</Protocol>
-				<Protocol>sm16716</Protocol>
-				<Protocol>mb16020</Protocol>
-				<Protocol>my9231</Protocol>
-				<Protocol>my9221</Protocol>
-				<Protocol>sk6812</Protocol>
-				<Protocol>ucs1903</Protocol>
-				<Protocol>ucs2903</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-			</InputProtocols>
+		</Variant>
+	</Controller>
+	<Controller Name="PixLite 16 MkII Long Range">
+		<Variant Name="" Base="Advatek:PLMK2">
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>32</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
 		</Variant>
 	</Controller>
 </Vendor>

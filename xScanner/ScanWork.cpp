@@ -314,6 +314,8 @@ std::string HTTPWork::GetControllerTypeBasedOnPageContent(const std::string& pag
 	if (Contains(page, "ECG-PIXAD8")) return "J1Sys PIXAD8";
 	if (Contains(page, "E6804")) return "SanDevices E6804";
 	if (Contains(page, "E682")) return "SanDevices E682";
+    if (Contains(page, "pixlite/mk3"))
+        return "Pixlite MK3";
     if (Contains(page, "E681"))
         return "SanDevices E681";
     if (Contains(page, "This URI does not exist"))

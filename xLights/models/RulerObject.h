@@ -52,6 +52,7 @@ public:
 	static std::string MeasureWidthDescription(glm::vec3 p1, glm::vec3 p2);
 	static std::string MeasureHeightDescription(glm::vec3 p1, glm::vec3 p2);
 	static std::string MeasureDepthDescription(glm::vec3 p1, glm::vec3 p2);
+    float ConvertDimension(const std::string& units, float measure);
 
 protected:
 

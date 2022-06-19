@@ -384,9 +384,9 @@ void SketchAssistPanel::OnButton_ImportSVG(wxCommandEvent& event)
                     wxPoint2DDouble cp1(p[2] / w, 1 - (p[3] / h));
                     wxPoint2DDouble cp2(p[4] / w, 1 - (p[5] / h));
                     wxPoint2DDouble end(p[6] / w, 1 - (p[7] / h));
-                    if (areCollinear(start,cp1,end, 0.001) && areCollinear(start,cp2,end, 0.001)) {//check if its a straight line
+                    if (areCollinear(start,cp1,end, 0.001f) && areCollinear(start,cp2,end, 0.001f)) {//check if its a straight line
                         skpath->appendSegment(std::make_shared<SketchLine>(start, end));
-                    } else if (areSame(end.m_x, cp2.m_x, 0.001) && areSame(end.m_y, cp2.m_y, 0.001)) { // check if control points2 is the end
+                    } else if (areSame(end.m_x, cp2.m_x, 0.001f) && areSame(end.m_y, cp2.m_y, 0.001f)) { // check if control points2 is the end
                         skpath->appendSegment(std::make_shared<SketchQuadraticBezier>(start, cp1, end));
                     } else {
                         skpath->appendSegment(std::make_shared<SketchCubicBezier>(start, cp1, cp2, end));

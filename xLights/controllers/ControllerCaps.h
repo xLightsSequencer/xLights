@@ -72,6 +72,7 @@ public:
     bool SupportsMultipleSimultaneousInputProtocols() const;
     bool MergeConsecutiveVirtualStrings() const;
     bool AllInputUniversesMustBeSameSize() const;
+    bool AllInputUniversesMustBe510() const;
     bool UniversesMustBeInNumericalOrder() const;
     bool UniversesMustBeSequential() const;
     bool NoWebUI() const;

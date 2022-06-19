@@ -318,6 +318,7 @@
     <ClCompile Include="models\DMX\DmxMovingHead.cpp" />
     <ClCompile Include="models\DMX\DmxMovingHead3D.cpp" />
     <ClCompile Include="models\DMX\DmxPanTiltAbility.cpp" />
+    <ClCompile Include="models\DMX\DmxPresetAbility.cpp" />
     <ClCompile Include="models\DMX\DmxServo.cpp" />
     <ClCompile Include="models\DMX\DmxServo3D.cpp" />
     <ClCompile Include="models\DMX\DmxShutterAbility.cpp" />
@@ -613,6 +614,7 @@
     <ClCompile Include="TabSequence.cpp" />
     <ClCompile Include="TabSetup.cpp" />
     <ClCompile Include="TimingPanel.cpp" />
+    <ClCompile Include="TipOfTheDayDialog.cpp" />
     <ClCompile Include="tmGridCell.cpp" />
     <ClCompile Include="TopEffectsPanel.cpp" />
     <ClCompile Include="TraceLog.cpp" />
@@ -784,6 +786,7 @@
     <ClInclude Include="models\DMX\DmxMovingHead.h" />
     <ClInclude Include="models\DMX\DmxMovingHead3D.h" />
     <ClInclude Include="models\DMX\DmxPanTiltAbility.h" />
+    <ClInclude Include="models\DMX\DmxPresetAbility.h" />
     <ClInclude Include="models\DMX\DmxServo.h" />
     <ClInclude Include="models\DMX\DmxServo3D.h" />
     <ClInclude Include="models\DMX\DmxShutterAbility.h" />
@@ -1077,6 +1080,7 @@
     <ClInclude Include="support\GridCellChoiceRenderer.h" />
     <ClInclude Include="support\VectorMath.h" />
     <ClInclude Include="TimingPanel.h" />
+    <ClInclude Include="TipOfTheDayDialog.h" />
     <ClInclude Include="tmGridCell.h" />
     <ClInclude Include="TopEffectsPanel.h" />
     <ClInclude Include="TraceLog.h" />

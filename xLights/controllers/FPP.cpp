@@ -499,7 +499,8 @@ void FPP::parseControllerType(wxJSONValue& val) {
         if (val["channelOutputs"][x]["enabled"].AsInt()) {
             if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X") {
                 pixelControllerType = PIHAT;
-            } else if (val["channelOutputs"][x]["type"].AsString() == "BBB48String") {
+            } else if (val["channelOutputs"][x]["type"].AsString() == "BBB48String" || 
+                val["channelOutputs"][x]["type"].AsString() == "DPIPixels") {
                 pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
             } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
                 pixelControllerType = LEDPANELS;
@@ -2312,7 +2313,11 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         stringData["subType"] = rules->GetID();
         stringData["pinoutVersion"] = pinout;
     } else {
-        stringData["type"] = wxString("RPIWS281X");
+        wxString fppDriver = rules->GetCustomPropertyByPath("fppStringDriverType");
+        if (fppDriver.empty()) {
+            fppDriver = "RPIWS281X";
+        }
+        stringData["type"] = fppDriver;
         stringData["subType"] = rules->GetID();
         stringData["pinoutVersion"] = pinout;
     }
@@ -2933,7 +2938,8 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
         if (val["channelOutputs"][x]["enabled"].AsInt()) {
             if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X") {
                 inst->pixelControllerType = PIHAT;
-            } else if (val["channelOutputs"][x]["type"].AsString() == "BBB48String") {
+            } else if (val["channelOutputs"][x]["type"].AsString() == "BBB48String" ||
+                       val["channelOutputs"][x]["type"].AsString() == "DPIPixels") {
                 inst->pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
             } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
                 inst->pixelControllerType = LEDPANELS;

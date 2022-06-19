@@ -30,6 +30,7 @@ public:
         uint8_t _mac[6] = {0,0,0,0,0,0};
         int _modelNameLen = 0;
         std::string _modelName = "";
+        std::string _protocolName;
         uint8_t _hwRevision = 0;
         uint8_t _minAssistantVer[3] = {0,0,0};
         int _firmwareVersionLen = 0;
@@ -79,6 +80,8 @@ public:
         uint8_t _testMode = 0;
         std::vector<uint8_t> _testParameters;
         uint8_t _protocolVersion = 0;
+        bool _pixelsCanBeSplit = false;
+        uint8_t _maxUsedPixelPort = 0;
     };
 
 protected:
@@ -86,11 +89,18 @@ protected:
     #pragma region Member Variables
     Config _config;
     int _protocolVersion = 0;
-    #pragma endregion
+    std::string _mk3APIVersion;
+    std::string _mk3Ver;
+    std::string _mk3Config;
+    std::string _mk3Constants;
+#pragma endregion
 
     #pragma region Encode and Decode
-    static int DecodeStringPortProtocol(std::string protocol);
-    static int DecodeSerialOutputProtocol(std::string protocol);
+    static int DecodeStringPortProtocol(const std::string& protocol);
+    static int DecodeSerialOutputProtocol(const std::string& protocol);
+    static int EncodeColourOrder(const std::string& colourOrder);
+    static std::string DecodeColourOrder(const int colourOrder);
+    static int Mk3FrequencyForProtocol(const std::string& protocol);
     #pragma endregion
 
     #pragma region Private Functions
@@ -108,6 +118,7 @@ protected:
     bool GetConfig();
 
     bool SendConfig(bool logresult = false) const;
+    bool SendMk3Config(bool logresult = false) const;
 
     static void DumpConfiguration(Pixlite16::Config& config);
     #pragma endregion
@@ -117,6 +128,7 @@ public:
     #pragma region Constructors and Destructors
     Pixlite16(const std::string& ip);
     ~Pixlite16() {}
+    bool GetMK3Config();     
     #pragma endregion
 
     #pragma region Getters and Setters

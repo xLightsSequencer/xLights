@@ -83,6 +83,7 @@
 #include "models/Model.h"
 #include "SequencePackage.h"
 #include "ScriptsDialog.h"
+#include "TipOfTheDayDialog.h"
 
 class wxDebugReport;
 
@@ -187,6 +188,7 @@ wxDECLARE_EVENT(EVT_PLAYJUKEBOXITEM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SETEFFECTCHOICE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_TIPOFDAY_READY, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights/FPP Sequences(*.fseq)|*.fseq|xLights Imports(*.iseq)|*.iseq";
@@ -316,6 +318,7 @@ public:
     std::mutex saveLock;
     RenderCache _renderCache;
     std::atomic_bool _exiting;
+    TipOfTheDayDialog _tod;
 
     PhonemeDictionary dictionary;
 
@@ -599,6 +602,8 @@ public:
     void OnMenuItem_ColorReplaceSelected(wxCommandEvent& event);
     void OnMenuItemFindDataSelected(wxCommandEvent& event);
     void OnMenuItemSearchEffectsSelected(wxCommandEvent& event);
+    void OnMenuItem_SilentVolSelected(wxCommandEvent& event);
+    void OnMenuItem_TODSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -782,7 +787,9 @@ public:
     static const long ID_MNU_MEDVOLUME;
     static const long ID_MNU_QUIET;
     static const long ID_MNU_SUPERQUIET;
+    static const long ID_MNU_SILENT;
     static const long ID_IMPORT_EFFECTS;
+    static const long ID_MNU_TOD;
     static const long ID_MNU_MANUAL;
     static const long ID_MNU_ZOOM;
     static const long ID_MENUITEM1;
@@ -929,6 +936,8 @@ public:
     wxMenuItem* MenuItem_QuietVol;
     wxMenuItem* MenuItem_ShowACRamps;
     wxMenuItem* MenuItem_ShowKeyBindings;
+    wxMenuItem* MenuItem_SilentVol;
+    wxMenuItem* MenuItem_TOD;
     wxMenuItem* MenuItem_Update;
     wxMenuItem* MenuItem_UserManual;
     wxMenuItem* MenuItem_VQuietVol;
@@ -1038,6 +1047,8 @@ public:
     SequenceElements _presetSequenceElements;
     bool _presetRendering = false;
     wxString _defaultSeqView;
+    wxString _videoExportCodec;
+    int _videoExportBitrate;
 
     std::unique_ptr< wxAppProgressIndicator> _appProgress;
 
@@ -1153,6 +1164,9 @@ public:
     bool GetPurgeDownloadCacheOnStart() const { return _purgeDownloadCacheOnStart; }
     void SetPurgeDownloadCacheOnStart(bool b) { _purgeDownloadCacheOnStart = b; }
 
+    bool GetRecycleTips() const;
+    void SetRecycleTips(bool b);
+
     bool ModelBlendDefaultOff() const { return _modelBlendDefaultOff;}
     void SetModelBlendDefaultOff(bool b) { _modelBlendDefaultOff = b;}
     void SetLowDefinitionRender(bool b)
@@ -1204,6 +1218,15 @@ public:
     const wxString& GetDefaultSeqView() const { return _defaultSeqView; }
     void SetDefaultSeqView(const wxString& view);
     wxArrayString GetSequenceViews();
+
+    const wxString& GetVideoExportCodec() const { return _videoExportCodec; }
+    void SetVideoExportCodec(const wxString& codec);
+
+    std::string GetMinTipLevel() const;
+    void SetMinTipLevel(const wxString& level);
+
+    const int& GetVideoExportBitrate() const { return _videoExportBitrate; }
+    void SetVideoExportBitrate(int bitrate);
 
     bool EnableOutputs(bool ignoreCheck = false);
     bool ToggleOutputs(bool ignoreCheck = false);
@@ -1423,7 +1446,6 @@ protected:
     std::string OpenAndCheckSequence(const std::string& origFilenames);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
-    void PreviewOutput(int period);
     void TimerOutput(int period);
     void UpdateChannelNames();
     void StopNow();
@@ -1667,6 +1689,7 @@ private:
     void ShowHidePreviewWindow(wxCommandEvent& event);
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
     void SetEffectChoice(wxCommandEvent& event);
+    void TipOfDayReady(wxCommandEvent& event);
 
     bool isRandom_(wxControl* ctl, const char*debug);
     void SetSyncUniverse(int syncUniverse);

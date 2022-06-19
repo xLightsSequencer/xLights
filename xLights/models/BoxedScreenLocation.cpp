@@ -723,20 +723,37 @@ bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, in
     return true;
 }
 
-
 void BoxedScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
 {
-    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Width (%s)", RulerObject::GetUnitDescription()), "RealWidth", RulerObject::Measure(GetRestorableMWidth())));
+    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Width (%s)", RulerObject::GetUnitDescription()), "RealWidth", GetRealWidth()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Min", 0.01);
-    prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight", RulerObject::Measure(GetRestorableMHeight())));
+    prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight", GetRealHeight()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Min", 0.01);
     if (supportsZScaling) {
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Depth (%s)", RulerObject::GetUnitDescription()), "RealDepth", RulerObject::Measure(GetRestorableMDepth())));
+        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Depth (%s)", RulerObject::GetUnitDescription()), "RealDepth", GetRealDepth()));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Min", 0.01);
     }
+}
+
+float BoxedScreenLocation::GetRealWidth() const
+{
+    return RulerObject::Measure(GetRestorableMWidth());
+}
+
+float BoxedScreenLocation::GetRealHeight() const 
+{
+    return RulerObject::Measure(GetRestorableMHeight());
+}
+
+float BoxedScreenLocation::GetRealDepth() const
+{
+    if (supportsZScaling) {
+        return RulerObject::Measure(GetRestorableMDepth());
+    }
+    return 0;
 }
 
 std::string BoxedScreenLocation::GetDimension(float factor) const
