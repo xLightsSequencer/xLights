@@ -8,12 +8,16 @@
 #include <wx/sizer.h>
 //*)
 
+#include <wx/xml/xml.h>
+
 class TipOfDayThread;
+class TODTracker;
 
 class TipOfTheDayDialog: public wxDialog
 {
     TipOfDayThread* _thread = nullptr;
     std::string GetTODXMLFile() const;
+    bool GetTODAtLevel(wxXmlDocument& doc, TODTracker& tracker, const std::string& level);
 
 	public:
 

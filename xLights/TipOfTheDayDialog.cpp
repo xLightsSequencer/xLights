@@ -5,7 +5,6 @@
 #include <wx/string.h>
 //*)
 
-#include <wx/xml/xml.h>
 #include <wx/stdpaths.h>
 
 #include "UtilFunctions.h"
@@ -15,6 +14,7 @@
 
 #include <log4cpp/Category.hh>
 
+// Github hosted content does not work ... we may need to move it to a web server such as xLights.org
 //#define USE_GITHUB_HOSTED_TOD
 
 //(*IdInit(TipOfTheDayDialog)
@@ -224,6 +224,62 @@ bool TipOfTheDayDialog::IsLevelGreaterOrEqualTo(const std::string& act, const st
     return false;
 }
 
+bool TipOfTheDayDialog::GetTODAtLevel(wxXmlDocument& doc, TODTracker& tracker, const std::string& level)
+{
+    uint32_t unvisited = 0;
+    uint32_t of = 0;
+
+    for (auto n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
+        if (n->GetName() == "tip") {
+            auto url = n->GetAttribute("url", "");
+            if (url != "") {
+                auto tiplevel = n->GetAttribute("level", "Beginner");
+
+                if (level == tiplevel) {
+                    ++of;
+                    if (tracker.GetVisited(url) == 0) {
+                        unvisited++;
+                    }
+                }
+            }
+        }
+    }
+
+    if (of == 0) {
+        return false;
+    }
+
+    if (unvisited == 0) {
+        return false;
+    }
+
+    uint32_t choice = rand01() * (unvisited - 1);
+
+    auto n = doc.GetRoot()->GetChildren();
+    do {
+        auto url = n->GetAttribute("url", "");
+        if (url != "") {
+            auto tiplevel = n->GetAttribute("level", "Beginner");
+            if (tracker.GetVisited(url) == 0 && level == tiplevel) {
+                if (choice == 0) {
+                    tracker.AddVisited(url);
+                    LoadURL(BuildURL(url));
+
+                    if (!IsShown())
+                        Show();
+
+                    tracker.Save();
+                    return true;
+                }
+                --choice;
+            }
+        }
+        n = n->GetNext();
+    } while (n != nullptr);
+
+    return false;
+}
+
 bool TipOfTheDayDialog::DoTipOfDay()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -259,68 +315,39 @@ bool TipOfTheDayDialog::DoTipOfDay()
         }
 
         TODTracker tracker;
-        uint32_t unvisited = 0;
-        uint32_t of = 0;
+        if (mintiplevel == "Beginner") {
+            if (GetTODAtLevel(doc, tracker, "Beginner")) {
+                return true;
+            }
+            mintiplevel = "Intermediate";
+        }
 
-        for (auto n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
-            if (n->GetName() == "tip") {
-                auto url = n->GetAttribute("url", "");
-                if (url != "") {
-                    auto level = n->GetAttribute("level", "Beginner");
+        if (mintiplevel == "Intermediate") {
+            if (GetTODAtLevel(doc, tracker, "Intermediate")) {
+                return true;
+            }
+            mintiplevel = "Advanced";
+        }
 
-                    if (IsLevelGreaterOrEqualTo(level, mintiplevel)) {
-                        ++of;
-                        if (tracker.GetVisited(url) == 0) {
-                            unvisited++;
-                        }
-                    }
-                }
+        if (mintiplevel == "Advanced") {
+            if (GetTODAtLevel(doc, tracker, "Advanced")) {
+                return true;
+            }
+            mintiplevel = "Expert";
+        }
+
+        if (mintiplevel == "Expert") {
+            if (GetTODAtLevel(doc, tracker, "Expert")) {
+                return true;
             }
         }
 
-        if (of == 0) {
-            logger_base.debug("No tips of sufficient level found to display.");
-            return false;
+        // if everything has been seen then clear visited and start again
+        if (!onlyshowunseen) {
+            logger_base.debug("Clearing viewed tips.");
+            ClearVisited();
+            return DoTipOfDay();
         }
-
-        if (unvisited == 0) {
-
-            logger_base.debug("All tips have been displayed.");
-
-            // if everything has been seen then clear visited and start again
-            if (!onlyshowunseen) {
-                logger_base.debug("Clearing viewed tips.");
-                ClearVisited();
-                return DoTipOfDay();
-            }
-
-            return false;
-        }
-
-        uint32_t choice = rand01() * (unvisited - 1);
-
-        auto n = doc.GetRoot()->GetChildren();
-        do {
-            auto url = n->GetAttribute("url", "");
-            if (url != "") {
-                auto level = n->GetAttribute("level", "Beginner");
-                if (tracker.GetVisited(url) == 0 && IsLevelGreaterOrEqualTo(level, mintiplevel)) {
-                    if (choice == 0) {
-                        tracker.AddVisited(url);
-                        LoadURL(BuildURL(url));
-
-                        if (!IsShown())
-                            Show();
-
-                        tracker.Save();
-                        return true;
-                    }
-                    --choice;
-                }
-            }
-        } while (choice != 0);
-
-        logger_base.warn("Thats odd ... i did not find my selected tip.");
     }
 
     return false;
