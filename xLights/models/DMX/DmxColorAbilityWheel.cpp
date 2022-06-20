@@ -77,8 +77,8 @@ bool DmxColorAbilityWheel::IsValidModelSettings(Model* m) const
 {
     auto nodeCount = m->GetNodeCount();
 
-    return (wheel_channel < nodeCount &&
-            dimmer_channel < nodeCount);
+    return (wheel_channel < nodeCount + 1 &&
+            dimmer_channel < nodeCount+ 1);
 }
 
 void DmxColorAbilityWheel::AddColorTypeProperties(wxPropertyGridInterface *grid) const {

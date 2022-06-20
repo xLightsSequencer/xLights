@@ -90,10 +90,10 @@ bool DmxColorAbilityRGB::IsValidModelSettings(Model* m) const
 {
     auto nodeCount = m->GetNodeCount();
 
-    return (red_channel < nodeCount &&
-        green_channel < nodeCount &&
-        blue_channel < nodeCount &&
-        white_channel < nodeCount);
+    return (red_channel < nodeCount + 1 &&
+        green_channel < nodeCount + 1 &&
+        blue_channel < nodeCount + 1 &&
+        white_channel < nodeCount + 1);
 }
 
 void DmxColorAbilityRGB::AddColorTypeProperties(wxPropertyGridInterface *grid) const {
