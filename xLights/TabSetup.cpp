@@ -1912,7 +1912,6 @@ void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)
             }
         }
     } else {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (controller != nullptr) {
             int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
             if (usingip == 1 && controller->CanVisualise()) {
