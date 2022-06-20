@@ -35,33 +35,30 @@ bool DmxColorAbilityRGB::IsColorChannel(uint32_t channel) const
 void DmxColorAbilityRGB::SetColorPixels(const xlColor& color, xlColorVector& pixelVector) const
 {
     xlColor c;
-    if (white_channel > 0 && color.red == color.green && color.red == color.blue) {
+    if (CheckChannel(white_channel, pixelVector.size())
+        && color.red == color.green && color.red == color.blue) {
         c.red = color.red;
         c.green = color.red;
         c.blue = color.red;
-        if (pixelVector.size() > white_channel - 1)
-            pixelVector[white_channel - 1] = c;
+        pixelVector[white_channel - 1] = c;
     } else {
-        if (red_channel != 0) {
+        if (CheckChannel( red_channel , pixelVector.size())) {
             c.red = color.red;
             c.green = color.red;
             c.blue = color.red;
-            if (pixelVector.size() > red_channel - 1)
-                pixelVector[red_channel - 1] = c;
+            pixelVector[red_channel - 1] = c;
         }
-        if (green_channel != 0) {
+        if (CheckChannel( green_channel , pixelVector.size())) {
             c.red = color.green;
             c.green = color.green;
             c.blue = color.green;
-            if (pixelVector.size() > green_channel - 1)
-                pixelVector[green_channel - 1] = c;
+            pixelVector[green_channel - 1] = c;
         }
-        if (blue_channel != 0) {
+        if (CheckChannel( blue_channel, pixelVector.size() )) {
             c.red = color.blue;
             c.green = color.blue;
             c.blue = color.blue;
-            if (pixelVector.size() > blue_channel - 1)
-                pixelVector[blue_channel - 1] = c;
+            pixelVector[blue_channel - 1] = c;
         }
     }
 }
@@ -163,26 +160,26 @@ xlColor DmxColorAbilityRGB::GetBeamColor( const std::vector<NodeBaseClassPtr>& N
     xlColor beam_color(xlWHITE);
     if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
         xlColor proxy = xlBLACK;
-        if (white_channel > 0 && white_channel <= NodeCount) {
+        if (CheckChannel(white_channel, NodeCount)) {
             Nodes[white_channel - 1]->GetColor(proxy);
             beam_color = proxy;
         }
 
         if (proxy == xlBLACK) {
-            if (red_channel <= NodeCount) {
+            if (CheckChannel(red_channel, NodeCount)) {
                 Nodes[red_channel - 1]->GetColor(proxy);
                 beam_color.red = proxy.red;
             }
-            if (green_channel <= NodeCount) {
+            if (CheckChannel(green_channel, NodeCount)) {
                 Nodes[green_channel - 1]->GetColor(proxy);
                 beam_color.green = proxy.red;
             }
-            if (blue_channel <= NodeCount) {
+            if (CheckChannel(blue_channel, NodeCount)) {
                 Nodes[blue_channel - 1]->GetColor(proxy);
                 beam_color.blue = proxy.red;
             }
         }
-    } else if (white_channel > 0 && white_channel <= NodeCount) {
+    } else if (CheckChannel(white_channel, NodeCount)) {
         xlColor proxy;
         Nodes[white_channel - 1]->GetColor(proxy);
         beam_color.red = proxy.red;
@@ -217,12 +214,15 @@ bool DmxColorAbilityRGB::ApplyChannelTransparency(xlColor& color,int transparenc
 void DmxColorAbilityRGB::GetColor(xlColor &color, int transparency, int blackTransparency, bool allowSelected,
                                const xlColor *c, const std::vector<NodeBaseClassPtr> &Nodes) const {
     xlColor beam_color(xlWHITE);
+    auto NodeCount = Nodes.size();
     if (c != nullptr) {
         beam_color = *c;
     } else if (!allowSelected) {
-        if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
+        if (CheckChannel(red_channel, NodeCount) &&
+            CheckChannel(blue_channel, NodeCount) &&
+            CheckChannel(green_channel, NodeCount)) {
             xlColor proxy = xlBLACK;
-            if (white_channel > 0) {
+            if (CheckChannel(white_channel , NodeCount)) {
                 Nodes[white_channel - 1]->GetColor(proxy);
                 beam_color = proxy;
             }
@@ -236,7 +236,7 @@ void DmxColorAbilityRGB::GetColor(xlColor &color, int transparency, int blackTra
                 beam_color.blue = proxy.red;
             }
         }
-        else if (white_channel > 0) {
+        else if (CheckChannel(white_channel,NodeCount)) {
             xlColor proxy;
             Nodes[white_channel - 1]->GetColor(proxy);
             beam_color.red = proxy.red;
@@ -251,9 +251,12 @@ void DmxColorAbilityRGB::GetColor(xlColor &color, int transparency, int blackTra
 
 [[nodiscard]] xlColor DmxColorAbilityRGB::GetColorPixels(xlColorVector const& pixelVector ) const
 {
+    auto NodeCount = pixelVector.size();
     xlColor beam_color( xlBLACK );
-    if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
-        if (white_channel > 0) {
+    if (CheckChannel(red_channel, NodeCount) &&
+        CheckChannel(blue_channel, NodeCount) &&
+        CheckChannel(green_channel, NodeCount)) {
+        if (CheckChannel(white_channel , NodeCount)) {
             beam_color = pixelVector[white_channel - 1];
         }
 
@@ -262,7 +265,7 @@ void DmxColorAbilityRGB::GetColor(xlColor &color, int transparency, int blackTra
             beam_color.green = pixelVector[green_channel - 1].red;
             beam_color.blue = pixelVector[blue_channel - 1].red;
         }
-    } else if (white_channel > 0) {
+    } else if (CheckChannel(white_channel , NodeCount)) {
         beam_color.red = pixelVector[white_channel - 1].red;
         beam_color.green = pixelVector[white_channel - 1].red;
         beam_color.blue = pixelVector[white_channel - 1].red;
@@ -297,16 +300,16 @@ void DmxColorAbilityRGB::ImportParameters(wxXmlNode* ImportXml, Model* m) const
 
 void DmxColorAbilityRGB::SetNodeNames(std::vector<std::string>& names) const
 {
-    if (0 != red_channel && red_channel < names.size()) {
+    if (CheckChannel(red_channel , names.size())) {
         names[red_channel - 1] = "Red";
     }
-    if (0 != blue_channel && blue_channel < names.size()) {
+    if (CheckChannel( blue_channel , names.size())) {
         names[blue_channel - 1] = "Blue";
     }
-    if (0 != green_channel && green_channel < names.size()) {
+    if (CheckChannel( green_channel , names.size())) {
         names[green_channel - 1] = "Green";
     }
-    if (0 != white_channel && white_channel < names.size()) {
+    if (CheckChannel( white_channel , names.size())) {
         names[white_channel - 1] = "White";
     }
 }
