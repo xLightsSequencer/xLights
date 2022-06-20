@@ -15,9 +15,9 @@
 
 #include <log4cpp/Category.hh>
 
-#if !defined(__WXMSW__)
+//#if !defined(__WXMSW__)
 #define USE_GITHUB_HOSTED_TOD
-#endif
+//#endif
 
 //(*IdInit(TipOfTheDayDialog)
 const long TipOfTheDayDialog::ID_HTMLWINDOW1 = wxNewId();
@@ -88,7 +88,7 @@ public:
     }
     virtual ~xlCachedHtmlWindow() {
     }
-    
+
     void Reset() {
         baseURL = "";
         baseFileLocation = "";
@@ -99,7 +99,7 @@ public:
     }
     virtual wxHtmlOpeningStatus OnHTMLOpeningURL(wxHtmlURLType type, const wxString &u, wxString *redirect) const override {
         wxString url = u;
-        
+
         if (baseURL == "") {
             baseURL = url.substr(0, url.find_last_of("/"));
         } else if (baseFileLocation != "") {
@@ -110,7 +110,7 @@ public:
         if (file != "") {
             *redirect = file;
             if (baseFileLocation == "") {
-                baseFileLocation = file.substr(0, file.find_last_of("/"));
+                baseFileLocation = file.substr(0, file.find_last_of(wxFileName::GetPathSeparator()));
             }
             return wxHTML_REDIRECT;
         }
@@ -159,7 +159,7 @@ TipOfTheDayDialog::TipOfTheDayDialog(const std::string& url, wxWindow* parent, w
         Layout();
     }
     EnsureWindowHeaderIsOnScreen(this);
-    
+
     LoadURL(url);
 }
 
@@ -360,7 +360,7 @@ void TipOfTheDayDialog::PrepTipOfDay(wxWindow* notify)
     // exe location/TipOfDay/tod.xml
     wxFileName f(wxStandardPaths::Get().GetExecutablePath());
     std::string fname = f.GetPath() + "/TipOfDay/tod.xml";
-    
+
     wxCommandEvent e(EVT_TIPOFDAY_READY);
     e.SetString(fname);
     wxPostEvent(notify, e);
