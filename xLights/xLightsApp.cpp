@@ -401,20 +401,24 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
         showDir = wxPathOnly(showDir);
         if (showDir == old) showDir = "";
     }
-    if (showDir != "" && showDir != __frame->showDirectory) {
-        if (!ObtainAccessToURL(showDir)) {
-            wxDirDialog dlg(__frame, "Select Show Directory", showDir,  wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
-            if (dlg.ShowModal() == wxID_OK) {
-                showDir = dlg.GetPath();
-            }
-            if (!ObtainAccessToURL(showDir)) {
-                return;
-            }
-        }
-        __frame->SetDir(showDir, false);
-    }
+    
     if (__frame) {
-        __frame->OpenSequence(fileName, nullptr);
+        __frame->CallAfter([showDir, fileName] {
+            if (showDir != "" && showDir != __frame->showDirectory) {
+                wxString nsd = showDir;
+                if (!ObtainAccessToURL(nsd)) {
+                    wxDirDialog dlg(__frame, "Select Show Directory", nsd,  wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+                    if (dlg.ShowModal() == wxID_OK) {
+                        nsd = dlg.GetPath();
+                    }
+                    if (!ObtainAccessToURL(nsd)) {
+                        return;
+                    }
+                }
+                __frame->SetDir(nsd, false);
+            }
+            __frame->OpenSequence(fileName, nullptr);
+        });
     } else {
         logger_base.info("       No xLightsFrame");
     }
