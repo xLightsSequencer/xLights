@@ -186,13 +186,11 @@ VendorMusicDialog::VendorMusicDialog(wxWindow* parent, wxWindowID id, const wxPo
 
     Button_Search->SetDefault();
 
-    if (wxSystemSettings::GetAppearance().IsDark()) {
-        HyperlinkCtrl_Facebook->SetNormalColour(*wxCYAN);
-        HyperlinkCtrl_Website->SetNormalColour(*wxCYAN);
-        HyperlinkCtrl_VideoLink->SetNormalColour(*wxCYAN);
-        HyperlinkCtrl_WebLink->SetNormalColour(*wxCYAN);
-        HyperlinkCtrl_MusicLink->SetNormalColour(*wxCYAN);
-    }
+    HyperlinkCtrl_Facebook->SetNormalColour(CyanOrBlue());
+    HyperlinkCtrl_Website->SetNormalColour(CyanOrBlue());
+    HyperlinkCtrl_VideoLink->SetNormalColour(CyanOrBlue());
+    HyperlinkCtrl_WebLink->SetNormalColour(CyanOrBlue());
+    HyperlinkCtrl_MusicLink->SetNormalColour(CyanOrBlue());
 
     ValidateWindow();
 }

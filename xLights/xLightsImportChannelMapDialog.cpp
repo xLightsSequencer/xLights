@@ -154,11 +154,7 @@ bool xLightsImportTreeModel::GetAttr(const wxDataViewItem &item, unsigned int co
     }
 
     if (node->IsGroup()) {
-        if (wxSystemSettings::GetAppearance().IsDark()) {
-            attr.SetColour(*wxCYAN);
-        } else {
-            attr.SetColour(*wxBLUE);
-        }
+            attr.SetColour(CyanOrBlue());
         set = true;
     }
 
@@ -776,12 +772,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
             
             // If importing from xsqPkg flag known groups by color like is currently done in mapped list
             if (std::find(_availableGroups.begin(), _availableGroups.end(), name) != _availableGroups.end()) {
-                if (wxSystemSettings::GetAppearance().IsDark()) {
-                    // In Dark Mode blue is hard to read
-                    ListCtrl_Available->SetItemTextColour(j, *wxCYAN);
-                } else {
-                    ListCtrl_Available->SetItemTextColour(j, *wxBLUE);
-                }
+                ListCtrl_Available->SetItemTextColour(j, CyanOrBlue());
             }
             j++;
         }
@@ -1787,11 +1778,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
         if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i).ToStdString())) {
             // not used
             if (std::find(_availableGroups.begin(), _availableGroups.end(), ListCtrl_Available->GetItemText(i)) != _availableGroups.end()) {
-                if (wxSystemSettings::GetAppearance().IsDark()) {
-                    ListCtrl_Available->SetItemTextColour(i, *wxCYAN);
-                } else {
-                    ListCtrl_Available->SetItemTextColour(i, *wxBLUE);
-                }
+                ListCtrl_Available->SetItemTextColour(i, CyanOrBlue());
             } else {
                 ListCtrl_Available->SetItemTextColour(i, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT));
             }

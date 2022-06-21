@@ -1495,6 +1495,20 @@ void DumpBinary(uint8_t* buffer, size_t sz)
     }
 }
 
+wxColor CyanOrBlue()
+{
+#ifndef __WXMSW__
+    if (wxSystemSettings::GetAppearance().IsDark()) {
+        // In Dark Mode blue is hard to read
+        return *wxCYAN;
+    } else {
+#endif
+        return *wxBLUE;
+#ifndef __WXMSW__
+    }
+#endif
+}
+
 void CleanupIpAddress(wxString& IpAddr)
 {
     static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
