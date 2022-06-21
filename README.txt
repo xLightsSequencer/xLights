@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott) Added Controller Hyperlinks to FPP Connect
+   -- enh (scott) Add FPP 6 DPIPixels support
+   -- enh (scott) Added setting to Select Video Export Video Codec
+   -- enh (scott) Added right click option to change tree/matrix/custom model string count from the visualizer
+   -- enh (scott) Add Bulb Type to LOR S5 Preview Import
+   -- enh (scott) Remember Controllers Splitter Location
+   -- bug (scott) Fix Empty Brightness Field in Dimming Curve Dialog
+   -- bug (scott) Fix Loading Timing Labels flagging the Sequence as changed
+   -- bug (scott) Fix DMX Validate Settings off by 1 error
 2022.12 June 7, 2022
    -- enh (scott) Move ScottNation controllers under their own vendor
    -- enh (keith) Rewrite custom model generation to use a faster algorithm
@@ -366,7 +375,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith) Double click on model removes it from the port.
    -- enh (keith) When double clicking to add model to port scroll the controller so it is visible
    -- enh (scott) Add detailed messages to multi controller upload
-   -- enh (scott) Enhance visualiser exporr with start channel and pixel count properties
+   -- enh (scott) Enhance visualiser export with start channel and pixel count properties
    -- bug (keith) Put in some protections for stupid long sequences in sequence settings. Also defer actually setting the sequence length until it is actually required.
    -- bug (keith) Fix batch render shows sequences in backup folders even when told not to
    -- bug (keith) Fix some artificial WS2811 protocol chips not showing in protocol list
@@ -1301,7 +1310,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                    in xSchedule or when uploaded to a FPP master the output will be disabled.
    -- enh (keith)  Add option to fade to black or fade to zero in the set colour and set all playlist items in xSchedule
    -- enh (keith)  Add an offset to the schedule start end time when sunrise or sunset is used.
-   -- enh (scott)  Updated HinksPix Export Dialog with Remote support and Master/Remote mode.
    -- bug (priemd) Fix submodel names dont update in model list when changed
 2020.17 May 1 2020
    -- enh (keith)  Add native media player option for video in xSchedule. This slightly reduces control but improves performance
@@ -1372,7 +1380,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add SMPTE linear time code remote support to xSchedule
    -- enh (keith)  In visualiser pressing a key will scroll right hand list of models to 
                    the first model starting with that letter
-   -- bug (scott)  Escape CSV File Fields
    -- bug (keith)  Fix channel block model does not update correctly in model list
    -- bug (keith)  Give effects a bit more time to render a frame
    -- bug (keith)  Fix cancelling custom model editing screws up model location and size

@@ -193,31 +193,13 @@
             <SupportsLEDPanelMatrix/>
             <fppSerialPort1>ttyAMA0</fppSerialPort1>
         </Variant>
-        <Variant Name="2 Output DPI" ID="PiHat" Base="FPP:FPPStringDPIPiHat">
+        <Variant Name="2 Output DPI" ID="PiHat-DPIPixels" Base="FPP:FPPStringDPIPiHat">
             <MaxPixelPort>2</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
             <SupportsLEDPanelMatrix/>
             <fppSerialPort1>ttyAMA0</fppSerialPort1>
         </Variant>
-        <Variant Name="4 Output DPI" ID="PiHat" Base="FPP:FPPStringDPIPiHat">
-            <MaxPixelPort>4</MaxPixelPort>
-            <MaxSerialPort>1</MaxSerialPort>
-            <SupportsLEDPanelMatrix/>
-            <fppSerialPort1>ttyAMA0</fppSerialPort1>
-        </Variant>
-        <Variant Name="8 Output DPI" ID="PiHat" Base="FPP:FPPStringDPIPiHat">
-            <MaxPixelPort>8</MaxPixelPort>
-            <MaxSerialPort>1</MaxSerialPort>
-            <SupportsLEDPanelMatrix/>
-            <fppSerialPort1>ttyAMA0</fppSerialPort1>
-        </Variant>
-        <Variant Name="16 Output DPI" ID="PiHat" Base="FPP:FPPStringDPIPiHat">
-            <MaxPixelPort>16</MaxPixelPort>
-            <MaxSerialPort>1</MaxSerialPort>
-            <SupportsLEDPanelMatrix/>
-            <fppSerialPort1>ttyAMA0</fppSerialPort1>
-        </Variant>
-        <Variant Name="24 Output DPI" ID="PiHat" Base="FPP:FPPStringDPIPiHat">
+        <Variant Name="24 Output DPI" ID="DPIPixels-24" Base="FPP:FPPStringDPIPiHat">
             <MaxPixelPort>24</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
             <SupportsLEDPanelMatrix/>

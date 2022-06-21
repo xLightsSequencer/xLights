@@ -46,13 +46,13 @@ class DmxColorAbilityRGB : public DmxColorAbility
         void ImportParameters(wxXmlNode* ImportXml, Model* m) const override;
         void SetNodeNames(std::vector<std::string> & names) const override;
 
-        [[nodiscard]] int GetRedChannel() const { return red_channel; }
-        [[nodiscard]] int GetGreenChannel() const { return green_channel; }
-        [[nodiscard]] int GetBlueChannel() const { return blue_channel; }
-        [[nodiscard]] int GetWhiteChannel() const { return white_channel; }
+        [[nodiscard]] uint32_t GetRedChannel() const { return red_channel; }
+        [[nodiscard]] uint32_t GetGreenChannel() const { return green_channel; }
+        [[nodiscard]] uint32_t GetBlueChannel() const { return blue_channel; }
+        [[nodiscard]] uint32_t GetWhiteChannel() const { return white_channel; }
     private:
-        int red_channel;
-        int green_channel;
-        int blue_channel;
-        int white_channel;
+        uint32_t red_channel;
+        uint32_t green_channel;
+        uint32_t blue_channel;
+        uint32_t white_channel;
 };

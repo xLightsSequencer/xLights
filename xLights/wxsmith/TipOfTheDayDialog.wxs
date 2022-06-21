@@ -2,17 +2,19 @@
 <wxsmith>
 	<object class="wxDialog" name="TipOfTheDayDialog">
 		<title>Tip of the day</title>
+		<size>1000,800</size>
+		<minsize>1000,800</minsize>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
 		<style>wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
 			<cols>1</cols>
+			<rows>2</rows>
 			<growablecols>0</growablecols>
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
-				<object class="wxHtmlWindow" name="ID_HTMLWINDOW1" variable="HtmlWindow1" member="yes">
+				<object class="wxHtmlWindow" name="ID_HTMLWINDOW1" subclass="xlCachedHtmlWindow" variable="HtmlWindow1" member="yes">
 					<htmlcode>&lt;html&gt;&lt;body&gt;&lt;p&gt;Loading...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</htmlcode>
-					<size>1200,1200</size>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

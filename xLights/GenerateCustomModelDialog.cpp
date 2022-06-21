@@ -1097,7 +1097,7 @@ public:
         return res;
     }
 
-    static [[nodiscard]] uint32_t PixelDistance(const wxPoint& pt1, const wxPoint& pt2)
+    [[nodiscard]] static uint32_t PixelDistance(const wxPoint& pt1, const wxPoint& pt2)
     {
        return sqrt((pt1.x - pt2.x) * (pt1.x - pt2.x) + (pt1.y - pt2.y) * (pt1.y - pt2.y));
     }

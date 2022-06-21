@@ -8,17 +8,25 @@
 #include <wx/sizer.h>
 //*)
 
+#include <wx/xml/xml.h>
+
 class TipOfDayThread;
+class TODTracker;
+class xlCachedHtmlWindow;
 
 class TipOfTheDayDialog: public wxDialog
 {
     TipOfDayThread* _thread = nullptr;
-    std::string GetTODXMLFile() const;
-
+    
+    const std::string &GetTODXMLFile() const { return todFileLocation; }
+    bool GetTODAtLevel(wxXmlDocument& doc, TODTracker& tracker, const std::string& level);
+    std::string todFileLocation;
+    
 	public:
 
 		TipOfTheDayDialog(const std::string& url = "", wxWindow* parent = nullptr, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~TipOfTheDayDialog();
+        void SetTODXMLFile(const std::string &f) { todFileLocation = f; }
         bool DoTipOfDay();
         void PrepTipOfDay(wxWindow* notify);
         void ClearVisited();
@@ -26,7 +34,7 @@ class TipOfTheDayDialog: public wxDialog
 		//(*Declarations(TipOfTheDayDialog)
 		wxButton* Button_Next;
 		wxFlexGridSizer* FlexGridSizer1;
-		wxHtmlWindow* HtmlWindow1;
+		xlCachedHtmlWindow* HtmlWindow1;
 		//*)
 
 	protected:

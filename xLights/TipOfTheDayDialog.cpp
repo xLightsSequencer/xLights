@@ -5,8 +5,8 @@
 #include <wx/string.h>
 //*)
 
-#include <wx/xml/xml.h>
 #include <wx/stdpaths.h>
+#include <wx/config.h>
 
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
@@ -29,69 +29,28 @@ END_EVENT_TABLE()
 
 class TODTracker
 {
-    std::string _file;
-    std::map<std::string, uint32_t> _visited;
-
+    wxConfig *config = new wxConfig("xLights-TOD");
 public:
     TODTracker()
     {
-        _file = GetTrackerFile();
-
-        if (wxFile::Exists(_file)) {
-            wxTextFile f(_file);
-            uint32_t line = 0;
-            if (f.Open()) {
-                while (!f.Eof()) {
-                    auto l = f.GetLine(line);
-                    if (l == "END")
-                        break;
-                    if (l != "" && l.Contains(",")) {
-                        auto ll = wxSplit(l, ',');
-                        _visited[ll[0]] = wxAtoi(ll[1]);
-                    }
-                    ++line;
-                }
-            }
-        }
     }
 
-    static std::string GetTrackerFile()
+    void ClearVisited()
     {
-        return xLightsFrame::CurrentDir + "/tod.dat";
-    }
-
-    static void ClearVisited()
-    {
-        if (wxFile::Exists(GetTrackerFile()))
-            wxRemoveFile(GetTrackerFile());
+        config->DeleteAll();
+        config->Flush();
     }
 
     int GetVisited(const std::string& tod)
     {
-        if (_visited.find(tod) == _visited.end())
-            return 0;
-        return _visited[tod];
+        return config->ReadLong(tod, 0);
     }
 
     void AddVisited(const std::string& tod)
     {
-        if (_visited.find(tod) == _visited.end()) {
-            _visited[tod] = 1;
-        } else {
-            ++_visited[tod];
-        }
-    }
-
-    void Save()
-    {
-        wxFile f(_file, wxFile::OpenMode::write);
-        if (f.IsOpened()) {
-            for (const auto& it : _visited) {
-                f.Write(it.first + "," + std::to_string(it.second) + "\n");
-            }
-            f.Write("END\n");
-            f.Close();
-        }
+        int i = config->ReadLong(tod, 0);
+        config->Write(tod, ++i);
+        config->Flush();
     }
 };
 
@@ -101,8 +60,8 @@ class TipOfDayThread : public wxThread
     std::string _downloadTo;
 
 public:
-    TipOfDayThread(wxWindow* notify, const std::string& downloadTo) :
-        _notify(notify), _downloadTo(downloadTo)
+    TipOfDayThread(wxWindow* notify) :
+        _notify(notify)
     {}
 
     virtual void* Entry() override
@@ -112,38 +71,79 @@ public:
         CachedFileDownloader cache;
 
         auto file = cache.GetFile(wxURI("https://raw.githubusercontent.com/smeighan/xLights/master/TipOfDay/tod.xml"), CACHEFOR::CACHETIME_DAY);
-        if (_downloadTo != "")
-            wxCopyFile(file, _downloadTo, true);
 
         wxCommandEvent e(EVT_TIPOFDAY_READY);
+        e.SetString(file);
         wxPostEvent(_notify, e);
 
         return nullptr;
     }
 };
 
+class xlCachedHtmlWindow : public wxHtmlWindow {
+public:
+    xlCachedHtmlWindow(wxWindow *parent, wxWindowID id=wxID_ANY, const wxPoint &pos=wxDefaultPosition, const wxSize &size=wxDefaultSize, long style=wxHW_DEFAULT_STYLE, const wxString &name="htmlWindow") : wxHtmlWindow(parent, id, pos, size, style, name) {
+    }
+    virtual ~xlCachedHtmlWindow() {
+    }
+
+    void Reset() {
+        baseURL = "";
+        baseFileLocation = "";
+    }
+    virtual bool LoadPage(const wxString& location) override {
+        Reset();
+        return wxHtmlWindow::LoadPage(location);
+    }
+    virtual wxHtmlOpeningStatus OnHTMLOpeningURL(wxHtmlURLType type, const wxString &u, wxString *redirect) const override {
+        wxString url = u;
+
+        if (baseURL == "") {
+            baseURL = url.substr(0, url.find_last_of("/"));
+        } else if (baseFileLocation != "") {
+            url = baseURL + url.substr(baseFileLocation.size());
+        }
+        wxURI uri(url);
+        auto file = cache.GetFile(uri, CACHEFOR::CACHETIME_LONG);
+        if (file != "") {
+            *redirect = file;
+            if (baseFileLocation == "") {
+                baseFileLocation = file.substr(0, file.find_last_of(wxFileName::GetPathSeparator()));
+            }
+            return wxHTML_REDIRECT;
+        }
+        return wxHtmlWindow::OnHTMLOpeningURL(type, url, redirect);
+    }
+    mutable CachedFileDownloader cache;
+    mutable std::string baseURL;
+    mutable std::string baseFileLocation;
+};
+
+
 TipOfTheDayDialog::TipOfTheDayDialog(const std::string& url, wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     //(*Initialize(TipOfTheDayDialog)
     Create(parent, id, _("Tip of the day"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX, _T("id"));
-    SetClientSize(wxDefaultSize);
+    SetClientSize(wxSize(1000,800));
     Move(wxDefaultPosition);
-    FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+    SetMinSize(wxSize(1000,800));
+    FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
-    HtmlWindow1 = new wxHtmlWindow(this, ID_HTMLWINDOW1, wxDefaultPosition, wxSize(1200,1200), wxHW_SCROLLBAR_AUTO, _T("ID_HTMLWINDOW1"));
+    HtmlWindow1 = new xlCachedHtmlWindow(this, ID_HTMLWINDOW1, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO, _T("ID_HTMLWINDOW1"));
     HtmlWindow1->SetPage(_("<html><body><p>Loading...</p></body></html>"));
     FlexGridSizer1->Add(HtmlWindow1, 1, wxALL|wxEXPAND, 5);
     Button_Next = new wxButton(this, ID_BUTTON1, _("Give me another one"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer1->Add(Button_Next, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
-    FlexGridSizer1->Fit(this);
-    FlexGridSizer1->SetSizeHints(this);
+    Layout();
 
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TipOfTheDayDialog::OnButton_NextClick);
     //*)
 
     SetSize(1200, 800);
+    Layout();
+
     wxPoint loc;
     wxSize sz;
     LoadWindowPosition("xLightsTipOfTheDay", sz, loc);
@@ -171,6 +171,7 @@ void TipOfTheDayDialog::LoadURL(const std::string& url)
                 logger_base.warn("Tip Of Day unable to load file: %s", (const char*)file.c_str());
                 logger_base.info("Current directory: %s", (const char*)wxGetCwd().c_str());
             } else {
+                HtmlWindow1->Reset();
                 HtmlWindow1->LoadFile(wxFileName(file));
             }
         } else {
@@ -178,19 +179,6 @@ void TipOfTheDayDialog::LoadURL(const std::string& url)
         }
     }
     Layout();
-}
-
-std::string TipOfTheDayDialog::GetTODXMLFile() const
-{
-#ifdef USE_GITHUB_HOSTED_TOD
-    // tempdir/tod.xml
-    wxFileName f(wxStandardPaths::Get().GetTempDir());
-    return f.GetPath() + "/tod.xml";
-#else
-    // exe location/TipOfDay/tod.xml
-    wxFileName f(wxStandardPaths::Get().GetExecutablePath());
-    return f.GetPath() + "/TipOfDay/tod.xml";
-#endif
 }
 
 std::string TipOfTheDayDialog::BuildURL(const std::string& url) const
@@ -220,6 +208,63 @@ bool TipOfTheDayDialog::IsLevelGreaterOrEqualTo(const std::string& act, const st
     if (min == "Advanced") {
         return act == "Expert";
     }
+
+    return false;
+}
+
+bool TipOfTheDayDialog::GetTODAtLevel(wxXmlDocument& doc, TODTracker& tracker, const std::string& level)
+{
+    uint32_t unvisited = 0;
+    uint32_t of = 0;
+
+    for (auto n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
+        if (n->GetName() == "tip") {
+            auto url = n->GetAttribute("url", "");
+            if (url != "") {
+                auto tiplevel = n->GetAttribute("level", "Beginner");
+
+                if (level == tiplevel) {
+                    ++of;
+                    if (tracker.GetVisited(url) == 0) {
+                        unvisited++;
+                    }
+                }
+            }
+        }
+    }
+
+    if (of == 0) {
+        return false;
+    }
+
+    if (unvisited == 0) {
+        return false;
+    }
+
+    uint32_t choice = rand01() * (unvisited - 1);
+
+    auto n = doc.GetRoot()->GetChildren();
+    do {
+        auto url = n->GetAttribute("url", "");
+        if (url != "") {
+            auto tiplevel = n->GetAttribute("level", "Beginner");
+            if (tracker.GetVisited(url) == 0 && level == tiplevel) {
+                if (choice == 0) {
+                    tracker.AddVisited(url);
+                    LoadURL(BuildURL(url));
+
+                    if (!IsShown()) {
+                        Show();
+                        Raise();
+                    }
+
+                    return true;
+                }
+                --choice;
+            }
+        }
+        n = n->GetNext();
+    } while (n != nullptr);
 
     return false;
 }
@@ -259,68 +304,39 @@ bool TipOfTheDayDialog::DoTipOfDay()
         }
 
         TODTracker tracker;
-        uint32_t unvisited = 0;
-        uint32_t of = 0;
+        if (mintiplevel == "Beginner") {
+            if (GetTODAtLevel(doc, tracker, "Beginner")) {
+                return true;
+            }
+            mintiplevel = "Intermediate";
+        }
 
-        for (auto n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
-            if (n->GetName() == "tip") {
-                auto url = n->GetAttribute("url", "");
-                if (url != "") {
-                    auto level = n->GetAttribute("level", "Beginner");
+        if (mintiplevel == "Intermediate") {
+            if (GetTODAtLevel(doc, tracker, "Intermediate")) {
+                return true;
+            }
+            mintiplevel = "Advanced";
+        }
 
-                    if (IsLevelGreaterOrEqualTo(level, mintiplevel)) {
-                        ++of;
-                        if (tracker.GetVisited(url) == 0) {
-                            unvisited++;
-                        }
-                    }
-                }
+        if (mintiplevel == "Advanced") {
+            if (GetTODAtLevel(doc, tracker, "Advanced")) {
+                return true;
+            }
+            mintiplevel = "Expert";
+        }
+
+        if (mintiplevel == "Expert") {
+            if (GetTODAtLevel(doc, tracker, "Expert")) {
+                return true;
             }
         }
 
-        if (of == 0) {
-            logger_base.debug("No tips of sufficient level found to display.");
-            return false;
+        // if everything has been seen then clear visited and start again
+        if (!onlyshowunseen) {
+            logger_base.debug("Clearing viewed tips.");
+            ClearVisited();
+            return DoTipOfDay();
         }
-
-        if (unvisited == 0) {
-
-            logger_base.debug("All tips have been displayed.");
-
-            // if everything has been seen then clear visited and start again
-            if (!onlyshowunseen) {
-                logger_base.debug("Clearing viewed tips.");
-                ClearVisited();
-                return DoTipOfDay();
-            }
-
-            return false;
-        }
-
-        uint32_t choice = rand01() * (unvisited - 1);
-
-        auto n = doc.GetRoot()->GetChildren();
-        do {
-            auto url = n->GetAttribute("url", "");
-            if (url != "") {
-                auto level = n->GetAttribute("level", "Beginner");
-                if (tracker.GetVisited(url) == 0 && IsLevelGreaterOrEqualTo(level, mintiplevel)) {
-                    if (choice == 0) {
-                        tracker.AddVisited(url);
-                        LoadURL(BuildURL(url));
-
-                        if (!IsShown())
-                            Show();
-
-                        tracker.Save();
-                        return true;
-                    }
-                    --choice;
-                }
-            }
-        } while (choice != 0);
-
-        logger_base.warn("Thats odd ... i did not find my selected tip.");
     }
 
     return false;
@@ -328,17 +344,23 @@ bool TipOfTheDayDialog::DoTipOfDay()
 
 void TipOfTheDayDialog::ClearVisited()
 {
-    TODTracker::ClearVisited();
+    TODTracker tracker;
+    tracker.ClearVisited();
 }
 
 void TipOfTheDayDialog::PrepTipOfDay(wxWindow* notify)
 {
     // if we want to now we can spin up a thread and download any tip of day content. When done we should send to the notify within a EVT_TIPOFDAY_READY message
 #ifdef USE_GITHUB_HOSTED_TOD
-    _thread = new TipOfDayThread(notify, GetTODXMLFile());
+    _thread = new TipOfDayThread(notify);
     _thread->Run();
 #else
+    // exe location/TipOfDay/tod.xml
+    wxFileName f(wxStandardPaths::Get().GetExecutablePath());
+    std::string fname = f.GetPath() + "/TipOfDay/tod.xml";
+
     wxCommandEvent e(EVT_TIPOFDAY_READY);
+    e.SetString(fname);
     wxPostEvent(notify, e);
 #endif
 }

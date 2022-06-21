@@ -42,19 +42,15 @@ bool DmxColorAbilityWheel::IsColorChannel(uint32_t channel) const
 
 void DmxColorAbilityWheel::SetColorPixels(const xlColor& color, xlColorVector& pixelVector) const
 {
-    if (wheel_channel != 0 && dimmer_channel != 0) {
-        if (auto const& colordata = GetDMXWheelValue(color); colordata) {
-            if (pixelVector.size() > wheel_channel - 1) {
-                pixelVector[wheel_channel - 1] = *colordata;
-            }
-            if (pixelVector.size() > dimmer_channel - 1) {
-
-                HSVValue hsv = color.asHSV();
-                int intensity = (hsv.value * 255.0);
-                //xlColor c(color.red, color.red, color.red);
-                xlColor c(intensity, intensity, intensity);
-                pixelVector[dimmer_channel - 1] = c;
-            }
+    if (auto const& colordata = GetDMXWheelValue(color); colordata) {
+        if (CheckChannel(wheel_channel, pixelVector.size())) {
+            pixelVector[wheel_channel - 1] = *colordata;
+        }
+        if (CheckChannel(dimmer_channel, pixelVector.size())) {
+            HSVValue hsv = color.asHSV();
+            int intensity = (hsv.value * 255.0);
+            xlColor c(intensity, intensity, intensity);
+            pixelVector[dimmer_channel - 1] = c;
         }
     }
 }
@@ -77,8 +73,8 @@ bool DmxColorAbilityWheel::IsValidModelSettings(Model* m) const
 {
     auto nodeCount = m->GetNodeCount();
 
-    return (wheel_channel < nodeCount &&
-            dimmer_channel < nodeCount);
+    return (wheel_channel < nodeCount + 1 &&
+            dimmer_channel < nodeCount + 1);
 }
 
 void DmxColorAbilityWheel::AddColorTypeProperties(wxPropertyGridInterface *grid) const {
@@ -191,22 +187,21 @@ xlColor DmxColorAbilityWheel::GetBeamColor( const std::vector<NodeBaseClassPtr>&
 {
     auto NodeCount = Nodes.size();
     xlColor beam_color(xlWHITE);
-    if (wheel_channel > 0 && dimmer_channel > 0 && !colors.empty()) {
+    if (CheckChannel(wheel_channel, NodeCount) && !colors.empty()) {
         xlColor proxy = xlBLACK;
-        if (wheel_channel > 0 && dimmer_channel <= NodeCount) {
-            Nodes[wheel_channel - 1]->GetColor(proxy);
+        Nodes[wheel_channel - 1]->GetColor(proxy);
 
-            if (auto const& colordata = GetWheelColorFromDMXValue(proxy); colordata) {
-                beam_color = *colordata;
-                if (Nodes.size() > dimmer_channel - 1) {
-                    xlColor proxy;
-                    Nodes[dimmer_channel - 1]->GetColor(proxy);
+        if (auto const& colordata = GetWheelColorFromDMXValue(proxy); colordata) {
+            beam_color = *colordata;
 
-                    HSVValue hsv = proxy.asHSV();
-                    beam_color.red = (beam_color.red * hsv.value);
-                    beam_color.blue = (beam_color.blue * hsv.value);
-                    beam_color.green = (beam_color.green * hsv.value);
-                }
+            if (CheckChannel(dimmer_channel, NodeCount)) {
+                xlColor proxy;
+                Nodes[dimmer_channel - 1]->GetColor(proxy);
+
+                HSVValue hsv = proxy.asHSV();
+                beam_color.red = (beam_color.red * hsv.value);
+                beam_color.blue = (beam_color.blue * hsv.value);
+                beam_color.green = (beam_color.green * hsv.value);
             }
         }
     }
@@ -233,19 +228,19 @@ void DmxColorAbilityWheel::GetColor(xlColor &color, int transparency, int blackT
     if (c != nullptr) {
         beam_color = *c;
     } else if (!allowSelected) {
-        if (Nodes.size() > wheel_channel - 1) {
+        if (CheckChannel(wheel_channel, Nodes.size())) {
             xlColor proxy;
             Nodes[wheel_channel - 1]->GetColor(proxy);
             if (auto const& colordata = GetWheelColorFromDMXValue(proxy); colordata) {
                 beam_color = *colordata;
-                if (Nodes.size() > dimmer_channel - 1) {
+                if (CheckChannel(dimmer_channel, Nodes.size())) {
                     xlColor proxy;
                     Nodes[dimmer_channel - 1]->GetColor(proxy);
 
                     HSVValue hsv = proxy.asHSV();
-                    beam_color.red = (beam_color.red * hsv.value );
-                    beam_color.blue = (beam_color.blue * hsv.value );
-                    beam_color.green = (beam_color.green * hsv.value );
+                    beam_color.red = (beam_color.red * hsv.value);
+                    beam_color.blue = (beam_color.blue * hsv.value);
+                    beam_color.green = (beam_color.green * hsv.value);
                 }
             }
         }
@@ -258,13 +253,12 @@ void DmxColorAbilityWheel::GetColor(xlColor &color, int transparency, int blackT
 [[nodiscard]] xlColor DmxColorAbilityWheel::GetColorPixels(xlColorVector const& pixelVector) const
 {
     xlColor beam_color(xlBLACK);
-    if (pixelVector.size() > wheel_channel - 1) {
+    if (CheckChannel(wheel_channel, pixelVector.size())) {
         xlColor const& proxy = pixelVector[wheel_channel - 1];
         if (auto const& colordata = GetWheelColorFromDMXValue(proxy); colordata) {
             beam_color = *colordata;
-            if (pixelVector.size() > dimmer_channel - 1) {
+            if (CheckChannel(dimmer_channel, pixelVector.size())) {
                 xlColor const& proxy = pixelVector[dimmer_channel - 1];
-
                 HSVValue hsv = proxy.asHSV();
                 beam_color.red = (beam_color.red * hsv.value);
                 beam_color.blue = (beam_color.blue * hsv.value);
@@ -323,10 +317,10 @@ void DmxColorAbilityWheel::ImportParameters(wxXmlNode* ImportXml, Model* m) cons
 
 void DmxColorAbilityWheel::SetNodeNames(std::vector<std::string>& names) const
 {
-    if (0 != wheel_channel && wheel_channel < names.size()) {
+    if (CheckChannel(wheel_channel, names.size())) {
         names[wheel_channel - 1] = "Color Wheel";
     }
-    if (0 != dimmer_channel && dimmer_channel < names.size()) {
+    if (CheckChannel(dimmer_channel, names.size())) {
         names[dimmer_channel - 1] = "Dimmer";
     }
 }
@@ -375,7 +369,7 @@ std::optional<xlColor> DmxColorAbilityWheel::GetDMXWheelValue(xlColor const& col
                                        [&color](auto const& col)
         {
             //return color == col.color;
-            return (std::abs(color.asHSL().hue - col.color.asHSL().hue)<0.01);
+            return (std::abs(color.asHSL().hue - col.color.asHSL().hue) < 0.01);
         }) };
         found != colors.end()) {
         uint8_t dmxV{ (*found).dmxValue };
