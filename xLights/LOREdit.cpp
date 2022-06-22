@@ -970,6 +970,29 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     else if (et == "blendedbars") {
     }
     else if (et == "singleblock") {
+    } else if (et == "ripple") {
+        // I actually think some of these should be shockwaves
+        // Mix_Average|0|0|full|20|lightorama_ripple:FFFF8000,1;FF800080,1;FF0000FF,0;FFFF0000,1;FFFFFFFF,0;FF00FF00,1:circle,21,47,46,50,0,0,37,False,50|lightorama_none::
+        auto type = SafeGetStringParm(parms, 0);
+        auto repeatcount = SafeGetIntParm(parms, 1);    // 1-20
+        auto ringwidth = SafeGetIntParm(parms, 2);      // narrow is less
+        auto spacing = SafeGetIntParm(parms, 3);        // narrow is less
+        auto speed = SafeGetIntParm(parms, 4);          // slow is less
+        auto leftright = SafeGetIntParm(parms, 5);      // left is negative ... zero centre
+        auto topbottom = SafeGetIntParm(parms, 6);      // top is negative ... zero centre
+        auto highlightangle = SafeGetIntParm(parms, 7); // 0 = none
+        auto inward = SafeGetBoolParm(parms, 8);
+        auto outerlimit = SafeGetIntParm(parms, 9); // 0 = small
+        settings += ",E_CHOICE_Ripple_Object_To_Draw=" + ProperCase(type);
+        if (inward) {
+            settings += ",E_CHOICE_Ripple_Movement=Implode";
+        } else {
+            settings += ",E_CHOICE_Ripple_Movement=Explode";
+        }
+        settings += ",E_SLIDER_Ripple_XC=" + std::to_string(leftright);
+        settings += ",E_SLIDER_Ripple_YC=" + std::to_string(topbottom);
+        settings += ",E_TEXTCTRL_Ripple_Cycles=" + std::to_string((float)repeatcount);
+        settings += ",E_SLIDER_Ripple_Thickness=" + std::to_string(ringwidth);
     }
     else if (et == "wave") {
         // left,along_wave_scrolling,rainbow,triple,50,23,88,A3A50A1.00,A-14A50A1.00
