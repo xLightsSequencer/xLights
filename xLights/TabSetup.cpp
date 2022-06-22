@@ -2506,14 +2506,14 @@ int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>&
     p->nullPixels = np;
     logger_zcpp.debug("       Start Null Pixels %d", (int)np);
 
-    wxByte b = 100;
+    wxByte b = controller->GetDefaultBrightnessUnderFullControl();
     if (vs != nullptr) {
         if (vs->_brightnessSet) {
             b = vs->_brightness;
         }
     }
     else if (m != nullptr) {
-        b = m->GetBrightness(100);
+        b = m->GetBrightness(controller->GetDefaultBrightnessUnderFullControl());
     }
     p->brightness = b;
     logger_zcpp.debug("       Brightness %d", (int)b);
