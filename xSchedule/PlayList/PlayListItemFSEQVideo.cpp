@@ -47,6 +47,7 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager, wxXml
     _window = nullptr;
     _frame = nullptr;
     _videoFile = "";
+    _audioDevice = "";
     _videoLength = 0;
     _sc = 0;
     _channels = 0;
@@ -81,6 +82,7 @@ void PlayListItemFSEQVideo::Load(wxXmlNode* node)
     _useMediaPlayer = (node->GetAttribute("UseMediaPlayer", "FALSE") == "TRUE");
     _videoFile = node->GetAttribute("VideoFile", "");
     _videoFile = FixFile("", _videoFile);
+    _audioDevice = node->GetAttribute("AudioDevice", "");
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
     _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
@@ -149,7 +151,7 @@ void PlayListItemFSEQVideo::LoadAudio()
     }
     else if (wxFile::Exists(af)) {
         logger_base.debug("FSEQ Video: Loading audio file '%s'.", (const char*)af.c_str());
-        _audioManager = new AudioManager(af);
+        _audioManager = new AudioManager(af, -1, _audioDevice);
 
         if (!_audioManager->IsOk()) {
             logger_base.error("FSEQ Video: Audio file '%s' has a problem opening.", (const char*)af.c_str());
@@ -251,6 +253,7 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager, Sched
     _window = nullptr;
     _frame = nullptr;
     _videoFile = "";
+    _audioDevice = "";
     if (options != nullptr) {
         _origin = options->GetDefaultVideoPos();
         _size = options->GetDefaultVideoSize();
@@ -280,6 +283,7 @@ PlayListItem* PlayListItemFSEQVideo::Copy(const bool isClone) const
     res->_origin = _origin;
     res->_size = _size;
     res->_videoFile = _videoFile;
+    res->_audioDevice = _audioDevice;
     res->SetAudioFile(_audioFile); // this will trigger file loading
     res->_useMediaPlayer = _useMediaPlayer;
     res->_videoLength = _videoLength;
@@ -299,6 +303,7 @@ wxXmlNode* PlayListItemFSEQVideo::Save()
     _fseqFileName = FixFile("", _fseqFileName);
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
     node->AddAttribute("VideoFile", _videoFile);
+    node->AddAttribute("AudioDevice", _audioDevice);
     _videoFile = FixFile("", _videoFile);
     node->AddAttribute("X", wxString::Format(wxT("%i"), _origin.x));
     node->AddAttribute("Y", wxString::Format(wxT("%i"), _origin.y));
@@ -405,6 +410,14 @@ void PlayListItemFSEQVideo::SetAudioFile(const std::string& audioFile)
         else {
             FastSetDuration();
         }
+    }
+}
+
+void PlayListItemFSEQVideo::SetAudioDevice(const std::string& audioDevice)
+{
+    if (_audioDevice != audioDevice) {
+        _audioDevice = audioDevice;
+        _changeCount++;
     }
 }
 

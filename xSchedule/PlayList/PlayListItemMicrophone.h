@@ -30,6 +30,7 @@ protected:
     size_t _pixels;
     size_t _duration;
     APPLYMETHOD _blendMode;
+    std::string _device = "";
     #pragma endregion Member Variables
 
     void SetPixel(uint8_t* p, uint8_t r, uint8_t g, uint8_t b, APPLYMETHOD blendMode);
@@ -52,12 +53,32 @@ public:
     void SetStartChannel(const std::string startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _sc = 0; _changeCount++; } };
     void SetPixels(const size_t pixels) { if (_pixels != pixels) { _pixels = pixels; _changeCount++; } };
     void SetBlendMode(const std::string& blendMode) { if (_blendMode != EncodeBlendMode(blendMode)) { _blendMode = EncodeBlendMode(blendMode); _changeCount++; } }
-    int GetBlendMode() const { return _blendMode; }
+    void SetInputDevice(const std::string& device)
+    {
+        auto d = device;
+        if (d == "(Default)")
+            d = "";
+        if (_device != d) {
+            _device = d;
+            _changeCount++;
+        }
+    }
+    int GetBlendMode() const
+    {
+        return _blendMode;
+    }
     wxColour GetColour() const { return _colour; }
     std::string GetStartChannel() const { return _startChannel; }
     size_t GetStartChannelAsNumber();
     size_t GetPixels() const { return _pixels; }
-    std::string GetMode() const { return _mode; }
+    std::string GetMode() const
+    {
+        return _mode;
+    }
+    std::string GetInputDevice() const
+    {
+        return _device;
+    }
     virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 

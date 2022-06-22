@@ -15,6 +15,7 @@
 #include "../ScheduleManager.h"
 #include "../../xLights/outputs/OutputManager.h"
 #include "../../xLights/FSEQFile.h"
+#include "../../xLights/AudioManager.h"
 
 //(*InternalHeaders(PlayListItemFSEQPanel)
 #include <wx/intl.h>
@@ -38,6 +39,8 @@ const long PlayListItemFSEQPanel::ID_FILEPICKERCTRL2 = wxNewId();
 const long PlayListItemFSEQPanel::ID_CHECKBOX4 = wxNewId();
 const long PlayListItemFSEQPanel::ID_CHECKBOX2 = wxNewId();
 const long PlayListItemFSEQPanel::ID_SLIDER1 = wxNewId();
+const long PlayListItemFSEQPanel::ID_STATICTEXT9 = wxNewId();
+const long PlayListItemFSEQPanel::ID_CHOICE2 = wxNewId();
 const long PlayListItemFSEQPanel::ID_STATICTEXT4 = wxNewId();
 const long PlayListItemFSEQPanel::ID_SPINCTRL1 = wxNewId();
 const long PlayListItemFSEQPanel::ID_STATICTEXT3 = wxNewId();
@@ -145,6 +148,10 @@ PlayListItemFSEQPanel::PlayListItemFSEQPanel(wxWindow* parent, OutputManager* ou
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider1 = new wxSlider(this, ID_SLIDER1, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER1"));
 	FlexGridSizer1->Add(Slider1, 1, wxALL|wxEXPAND, 5);
+	StaticText8 = new wxStaticText(this, ID_STATICTEXT9, _("Audio Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+	FlexGridSizer1->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_AudioDevice = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	FlexGridSizer1->Add(Choice_AudioDevice, 1, wxALL|wxEXPAND, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Priority:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Priority = new wxSpinCtrl(this, ID_SPINCTRL1, _T("5"), wxDefaultPosition, wxDefaultSize, 0, 1, 10, 5, _T("ID_SPINCTRL1"));
@@ -209,6 +216,16 @@ PlayListItemFSEQPanel::PlayListItemFSEQPanel(wxWindow* parent, OutputManager* ou
         FilePickerCtrl_AudioFile->SetToolTip(f);
     }
 
+    Choice_AudioDevice->SetSelection(Choice_AudioDevice->Append(_("(Default)")));
+    auto audioDevices = AudioManager::GetAudioDevices();
+    for (const auto& it : audioDevices) {
+        Choice_AudioDevice->Append(it);
+    }
+    Choice_AudioDevice->SetStringSelection(fseq->GetAudioDevice());
+    if (Choice_AudioDevice->GetSelection() == -1) {
+        Choice_AudioDevice->SetStringSelection("(Default)");
+    }
+
     ValidateWindow();
 }
 
@@ -222,6 +239,12 @@ PlayListItemFSEQPanel::~PlayListItemFSEQPanel()
     _fseq->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
     _fseq->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
     _fseq->SetPriority(SpinCtrl_Priority->GetValue());
+
+    if (Choice_AudioDevice->GetStringSelection() == "(Default)") {
+        _fseq->SetAudioDevice("");
+    } else {
+        _fseq->SetAudioDevice(Choice_AudioDevice->GetStringSelection().ToStdString());
+    }
 
     if (CheckBox_OverrideVolume->GetValue())
     {

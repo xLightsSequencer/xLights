@@ -36,6 +36,7 @@ protected:
     float _lastValue = 0;
     float _fadePerFrame = 1.0;
     int _threshold = 80;
+    std::string _device = "";
     #pragma endregion Member Variables
 
     void SetPixel(uint8_t* p, uint8_t r, uint8_t g, uint8_t b, APPLYMETHOD blendMode);
@@ -58,13 +59,33 @@ public:
     void SetStartChannel(const std::string startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _sc = 0; _changeCount++; } };
     void SetPixels(const size_t pixels) { if (_pixels != pixels) { _pixels = pixels; _changeCount++; } };
     void SetBlendMode(const std::string& blendMode) { if (_blendMode != EncodeBlendMode(blendMode)) { _blendMode = EncodeBlendMode(blendMode); _changeCount++; } }
-    int GetBlendMode() const { return _blendMode; }
+    void SetInputDevice(const std::string& device)
+    {
+        auto d = device;
+        if (d == "(Default)")
+            d = "";
+        if (_device != d) {
+            _device = d;
+            _changeCount++;
+        }
+    }
+    int GetBlendMode() const
+    {
+        return _blendMode;
+    }
     wxColour GetColour() const { return _colour; }
     std::string GetStartChannel() const { return _startChannel; }
     size_t GetStartChannelAsNumber();
     size_t GetPixels() const { return _pixels; }
     std::string GetMode() const { return _mode; }
-    int GetStartNote() const { return _startNote; }
+    std::string GetInputDevice() const
+    {
+        return _device;
+    }
+    int GetStartNote() const
+    {
+        return _startNote;
+    }
     void SetStartNote(int startNote) { if (_startNote != startNote) { _startNote = startNote; _changeCount++; } };
     int GetEndNote() const { return _endNote; }
     void SetEndNote(int endNote) { if (_endNote != endNote) { _endNote = endNote; _changeCount++; } };

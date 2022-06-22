@@ -374,7 +374,7 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 
 
 xlColor Waveform::ClearBackgroundColor() const {
-    if (AudioManager::GetSDL()->IsNoAudio()) {
+    if (AudioManager::GetSDLManager()->IsNoAudio()) {
         return xlRED;
     }
     return ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_BACKGROUND);

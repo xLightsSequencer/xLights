@@ -1379,7 +1379,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     MenuItem_QuietVol->Check(playVolume == 33);
     MenuItem_VQuietVol->Check(playVolume == 10);
     MenuItem_SilentVol->Check(playVolume == 0);
-    SDL::SetGlobalVolume(playVolume);
+    AudioManager::GetSDLManager()->SetGlobalVolume(playVolume);
 
     wxString randomEffects = "";
     config->Read("xLightsRandomEffects", &randomEffects);
@@ -8926,25 +8926,25 @@ void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_LoudVolSelected(wxCommandEvent& event)
 {
     playVolume = 100;
-    SDL::SetGlobalVolume(playVolume);
+    AudioManager::GetSDLManager()->SetGlobalVolume(playVolume);
 }
 
 void xLightsFrame::OnMenuItem_MedVolSelected(wxCommandEvent& event)
 {
     playVolume = 66;
-    SDL::SetGlobalVolume(playVolume);
+    AudioManager::GetSDLManager()->SetGlobalVolume(playVolume);
 }
 
 void xLightsFrame::OnMenuItem_QuietVolSelected(wxCommandEvent& event)
 {
     playVolume = 33;
-    SDL::SetGlobalVolume(playVolume);
+    AudioManager::GetSDLManager()->SetGlobalVolume(playVolume);
 }
 
 void xLightsFrame::OnMenuItem_VQuietVolSelected(wxCommandEvent& event)
 {
     playVolume = 10;
-    SDL::SetGlobalVolume(playVolume);
+    AudioManager::GetSDLManager()->SetGlobalVolume(playVolume);
 }
 
 void xLightsFrame::ShowPresetsPanel()
@@ -10212,7 +10212,7 @@ void xLightsFrame::OnMenuItemSearchEffectsSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_SilentVolSelected(wxCommandEvent& event)
 {
     playVolume = 0;
-    SDL::SetGlobalVolume(playVolume);
+    AudioManager::GetSDLManager()->SetGlobalVolume(playVolume);
 }
 
 void xLightsFrame::OnMenuItem_TODSelected(wxCommandEvent& event)

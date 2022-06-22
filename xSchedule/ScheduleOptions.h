@@ -206,7 +206,8 @@ class ScheduleOptions
     bool _hardwareAcceleratedVideo = false;
     bool _lateStartingScheduleUsesTime = false;
     bool _disableOutputOnPingFailure = false;
-    int _SMPTEMode;
+    int _SMPTEMode = 3;
+    std::string _SMPTEDevice = "";
     bool _minimiseUIUpdates = false;
     bool _useStepMMSSTimecodeFormat = false;
     bool _remoteTimecodeStepAdvance = false;
@@ -250,7 +251,23 @@ public:
     void SetKeepScreenOn(bool keepScreenOn) { if (_keepScreenOn != keepScreenOn) { _keepScreenOn = keepScreenOn; _changeCount++; } }
     void SetRetryOutputOpen(bool retryOpen) { if (_retryOutputOpen != retryOpen) { _retryOutputOpen = retryOpen; _changeCount++; } }
     void SetSMPTEMode(int mode) { if (_SMPTEMode != mode) { _SMPTEMode = mode; _changeCount++; } }
-    void SetStepMMSSTimecodeFormat(bool useStepMMSS) { if (_useStepMMSSTimecodeFormat != useStepMMSS) { _useStepMMSSTimecodeFormat = useStepMMSS; _changeCount++; } }
+    void SetSMPTEDevice(const std::string& device)
+    {
+        auto d = device;
+        if (device == "(Default)")
+            d = "";
+        if (_SMPTEDevice != d) {
+            _SMPTEDevice = d;
+            _changeCount++;
+        }
+    }
+    void SetStepMMSSTimecodeFormat(bool useStepMMSS)
+    {
+        if (_useStepMMSSTimecodeFormat != useStepMMSS) {
+            _useStepMMSSTimecodeFormat = useStepMMSS;
+            _changeCount++;
+        }
+    }
     void SetRemoteTimecodeStepAdvance(bool remoteTimecodeStepAdvance) { if (_remoteTimecodeStepAdvance != remoteTimecodeStepAdvance) { _remoteTimecodeStepAdvance = remoteTimecodeStepAdvance; _changeCount++; } }
     void SetSuppressAudioOnRemotes(bool suppressAudio) { if (_suppressAudioOnRemotes != suppressAudio) { _suppressAudioOnRemotes = suppressAudio; _changeCount++; } }
     void SetSync(bool sync) { if (_sync != sync) { _sync = sync; _changeCount++; } }
@@ -263,8 +280,18 @@ public:
     bool IsRetryOpen() const { return _retryOutputOpen; }
     bool IsUseStepMMSSTimecodeFormat() const { return _useStepMMSSTimecodeFormat; }
     bool IsRemoteTimecodeStepAdvance() const { return _remoteTimecodeStepAdvance; }
-    int GetSMPTEMode() const { return _SMPTEMode; }
-    bool IsSuppressAudioOnRemotes() const { return _suppressAudioOnRemotes; }
+    int GetSMPTEMode() const
+    {
+        return _SMPTEMode;
+    }
+    std::string GetSMPTEDevice() const
+    {
+        return _SMPTEDevice;
+    }
+    bool IsSuppressAudioOnRemotes() const
+    {
+        return _suppressAudioOnRemotes;
+    }
     void SetSendBackgroundWhenNotRunning(bool send) { if (_sendBackgroundWhenNotRunning != send) { _sendBackgroundWhenNotRunning = send; _changeCount++; } }
     bool IsSendBackgroundWhenNotRunning() const { return _sendBackgroundWhenNotRunning; }
     void SetHardwareAcceleratedVideo(bool hardwareAcceleratedVideo) { if (_hardwareAcceleratedVideo != hardwareAcceleratedVideo) { _hardwareAcceleratedVideo = hardwareAcceleratedVideo; _changeCount++; } }

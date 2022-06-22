@@ -2158,7 +2158,7 @@ void xScheduleFrame::UpdateStatus(bool force)
                 if (!currenthighlighted && ListView_Running->GetItemData(i) == step->GetId()) {
                     currenthighlighted = true;
                     ListView_Running->SetItem(i, 3, step->GetStatus());
-                    if (step->GetAudioManager() != nullptr && AudioManager::GetSDL()->IsNoAudio()) {
+                    if (step->GetAudioManager() != nullptr && AudioManager::GetSDLManager()->IsNoAudio()) {
                         ListView_Running->SetItemBackgroundColour(i, wxColor(244, 146, 155));
                         const std::string noaudio = "Audio not playing due to no audio device found.";
                         if (ListView_Running->GetToolTipText() != noaudio) ListView_Running->SetToolTip(noaudio);
