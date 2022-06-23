@@ -41,7 +41,8 @@ void ArtNetOutput::OpenDatagram() {
     else {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
-
+    localaddr.Service(ARTNET_PORT); //force the source port to 0x1936.  Required as per ArtNet specs and required by some devices.
+    
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
     if (_datagram == nullptr) {
         logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. %s", (const char*)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char*)localaddr.IPAddress().c_str());
