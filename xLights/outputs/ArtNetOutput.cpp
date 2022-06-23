@@ -120,7 +120,8 @@ void ArtNetOutput::SendSync(const std::string& localIP) {
         if (syncdatagram != nullptr) {
             delete syncdatagram;
         }
-
+        localaddr.Service(ARTNET_PORT); //force the source port to 0x1936.  Required as per ArtNet specs and required by some devices.
+        
         syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
         if (syncdatagram == nullptr) {
             logger_base.error("Error initialising Artnet sync datagram. %s", (const char*)localaddr.IPAddress().c_str());
