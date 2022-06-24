@@ -617,6 +617,7 @@ public:
                             }
                         }
                         });
+                    buffer->UnMergeBuffersForLayer(layer);
                 }
 
                 info.validLayers[layer] = xLights->RenderEffectFromMap(suppress, ef, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);

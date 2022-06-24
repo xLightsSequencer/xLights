@@ -296,6 +296,7 @@ public:
 
     RenderBuffer &BufferForLayer(int i, int idx);
     uint32_t BufferCountForLayer(int i);
+    void UnMergeBuffersForLayer(int i);
     void MergeBuffersForLayer(int i);
 
     int GetLayerCount() const;

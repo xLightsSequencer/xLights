@@ -2520,6 +2520,44 @@ uint32_t PixelBufferClass::BufferCountForLayer(int layer)
     return 1;
 }
 
+void PixelBufferClass::UnMergeBuffersForLayer(int layer) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (layers[layer]->modelBuffers) {
+        //get all the data
+        xlColor color;
+        int nc = 0;
+        
+        GPURenderUtils::waitForRenderCompletion(&layers[layer]->buffer);
+
+        for (const auto& modelBuffer : *(layers[layer]->modelBuffers)) {
+            for (const auto& mbnode : modelBuffer->Nodes) {
+                if (nc < layers[layer]->buffer.Nodes.size()) {
+                    auto &node = layers[layer]->buffer.Nodes[nc];
+                    layers[layer]->buffer.GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
+                    for (const auto& coord : mbnode->Coords) {
+                        modelBuffer->SetPixel(coord.bufX, coord.bufY, color);
+                    }
+                    nc++;
+                } else {
+                    // Where this happens it is usually a sign that there is a bug in one of our models where it creates a different number of nodes depending on the render buffer size
+                    // To find the cause uncomment the model group function TestNodeInit and the call in PixelBuffer::SetLayerSettings
+
+                    if (layers[layer]->buffer.curPeriod == layers[layer]->buffer.curEffStartPer) {
+                        logger_base.warn("PixelBufferClass::UnMergeBuffersForLayer(%d) Model '%s' Mismatch in number of nodes across layers.", layer, (const char*)modelName.c_str());
+                        for (int i = 0; i < GetLayerCount(); i++) {
+                            logger_base.warn("    Layer %d node count %d buffer '%s'", i, (int)layers[i]->buffer.Nodes.size(), (const char*)layers[i]->bufferType.c_str());
+                        }
+                        int mbnodes = 0;
+                        for (const auto& mb : *(layers[layer]->modelBuffers)) {
+                            mbnodes += mb->Nodes.size();
+                        }
+                        wxASSERT(false);
+                    }
+                }
+            }
+        }
+    }
+}
 void PixelBufferClass::MergeBuffersForLayer(int layer) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (layers[layer]->modelBuffers) {
