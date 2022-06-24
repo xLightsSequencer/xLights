@@ -43,7 +43,7 @@ void ArtNetOutput::OpenDatagram() {
     }
     localaddr.Service(ARTNET_PORT); //force the source port to 0x1936.  Required as per ArtNet specs and required by some devices.
     
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_REUSEADDR); //set RESUSEADDR flag to be able to use port 0x1936 for multiple devices
     if (_datagram == nullptr) {
         logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. %s", (const char*)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char*)localaddr.IPAddress().c_str());
         _ok = false;
@@ -122,7 +122,7 @@ void ArtNetOutput::SendSync(const std::string& localIP) {
         }
         localaddr.Service(ARTNET_PORT); //force the source port to 0x1936.  Required as per ArtNet specs and required by some devices.
         
-        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_REUSEADDR); //set RESUSEADDR flag to be able to use port 0x1936 for multiple devices);
         if (syncdatagram == nullptr) {
             logger_base.error("Error initialising Artnet sync datagram. %s", (const char*)localaddr.IPAddress().c_str());
             return;
