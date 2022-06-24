@@ -955,6 +955,8 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
         layers[x]->pivotpointyValueCurve = "";
         layers[x]->xpivotValueCurve = "";
         layers[x]->ypivotValueCurve = "";
+        layers[x]->BufferOffsetX = 0;
+        layers[x]->BufferOffsetY = 0;
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->bufferTransform, isNode);
         GPURenderUtils::setupRenderBuffer(this, &layers[x]->buffer);
     }
@@ -1522,7 +1524,7 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool> & validLa
     layers[saveLayer]->buffer.Nodes[node]->SetColor(c);
 }
 
-void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod)
+void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1530,24 +1532,21 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
     c = xlBLACK;
     xlColor color;
 
-    for (int layer = numLayers - 1; layer >= 0; layer--)
-    {
-        if (validLayers[layer])
-        {
+    for (int layer = numLayers - 1; layer >= 0; layer--) {
+        if (validLayers[layer]) {
             auto thelayer = layers[layer];
+            
+            int x = lx - thelayer->BufferOffsetX;
+            int y = ly - thelayer->BufferOffsetY;
 
             // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
-            if (thelayer == nullptr)
-            {
+            if (thelayer == nullptr) {
                 logger_base.crit("PixelBufferClass::GetMixedColor thelayer is nullptr ... this is going to crash.");
             }
 
-            if (x >= thelayer->BufferWi || y >= thelayer->BufferHt)
-            {
+            if (x >= thelayer->BufferWi || y >= thelayer->BufferHt || x < 0 || y < 0) {
                 // out of bounds
-            }
-            else
-            {
+            } else {
                 int effStartPer, effEndPer;
                 thelayer->buffer.GetEffectPeriods(effStartPer, effEndPer);
                 float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
@@ -1565,31 +1564,22 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                 }
 
                 float ha;
-                if (thelayer->HueAdjustValueCurve.IsActive())
-                {
+                if (thelayer->HueAdjustValueCurve.IsActive()) {
                     ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
-                }
-                else
-                {
+                } else {
                     ha = (float)thelayer->hueadjust / 100.0;
                 }
                 float sa;
-                if (thelayer->SaturationAdjustValueCurve.IsActive())
-                {
+                if (thelayer->SaturationAdjustValueCurve.IsActive()) {
                     sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
-                }
-                else
-                {
+                } else {
                     sa = (float)thelayer->saturationadjust / 100.0;
                 }
 
                 float va;
-                if (thelayer->ValueAdjustValueCurve.IsActive())
-                {
+                if (thelayer->ValueAdjustValueCurve.IsActive()) {
                     va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
-                }
-                else
-                {
+                } else {
                     va = (float)thelayer->valueadjust / 100.0;
                 }
 
@@ -1597,41 +1587,29 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                 if (ha != 0 || sa != 0 || va != 0) {
                     HSVValue hsv = color.asHSV();
 
-                    if (ha != 0)
-                    {
+                    if (ha != 0) {
                         hsv.hue += ha;
-                        if (hsv.hue < 0)
-                        {
+                        if (hsv.hue < 0) {
                             hsv.hue += 1.0;
-                        }
-                        else if (hsv.hue > 1)
-                        {
+                        } else if (hsv.hue > 1) {
                             hsv.hue -= 1.0;
                         }
                     }
 
-                    if (sa != 0)
-                    {
+                    if (sa != 0) {
                         hsv.saturation += sa;
-                        if (hsv.saturation < 0)
-                        {
+                        if (hsv.saturation < 0) {
                             hsv.saturation = 0.0;
-                        }
-                        else if (hsv.saturation > 1)
-                        {
+                        } else if (hsv.saturation > 1) {
                             hsv.saturation = 1.0;
                         }
                     }
 
-                    if (va != 0)
-                    {
+                    if (va != 0) {
                         hsv.value += va;
-                        if (hsv.value < 0)
-                        {
+                        if (hsv.value < 0) {
                             hsv.value = 0.0;
-                        }
-                        else if (hsv.value > 1)
-                        {
+                        } else if (hsv.value > 1) {
                             hsv.value = 1.0;
                         }
                     }
@@ -1642,12 +1620,9 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                 }
 
                 int b;
-                if (thelayer->BrightnessValueCurve.IsActive())
-                {
+                if (thelayer->BrightnessValueCurve.IsActive()) {
                     b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS());
-                }
-                else
-                {
+                } else {
                     b = thelayer->brightness;
                 }
                 if (thelayer->contrast != 0) {
@@ -1656,13 +1631,10 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                     hsv.value = hsv.value * ((double)b / 100.0);
 
                     // Apply Contrast
-                    if (hsv.value < 0.5)
-                    {
+                    if (hsv.value < 0.5) {
                         // reduce brightness when below 0.5 in the V value or increase if > 0.5
                         hsv.value = hsv.value - (hsv.value* ((double)thelayer->contrast / 100.0));
-                    }
-                    else
-                    {
+                    } else {
                         hsv.value = hsv.value + (hsv.value* ((double)thelayer->contrast / 100.0));
                     }
 
@@ -2125,12 +2097,13 @@ void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve,
     theValueCurve.Deserialise(valueCurve);
 }
 
-void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi, float progress, long startMS, long endMS) {
-
+void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes,
+                      int &bufferWi, int &bufferHi,
+                      int &buffOffsetX, int &buffOffsetY,
+                      float progress, long startMS, long endMS) {
     if (subBuffer == STR_EMPTY) {
         return;
     }
-
     wxString sb = subBuffer;
     sb.Replace("Max", "yyz");
 
@@ -2149,8 +2122,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
         ValueCurve vc(v[4].ToStdString());
         vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
         x = vc.GetOutputValueAt(progress, startMS, endMS);
-    }
-    else if (v.size() > 4) {
+    } else if (v.size() > 4) {
         x = wxAtof(v[4]);
     }
 
@@ -2160,63 +2132,50 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
         ValueCurve vc(v[5].ToStdString());
         vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
         y = vc.GetOutputValueAt(progress, startMS, endMS);
-    }
-    else if (v.size() > 5) {
+    } else if (v.size() > 5) {
         y = wxAtof(v[5]);
     }
 
     float x1 = 0.0;
-    if (fx1vc)
-    {
+    if (fx1vc) {
         v[0].Replace("yyz", "Max");
         ValueCurve vc(v[0].ToStdString());
         vc.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
         x1 = vc.GetOutputValueAt(progress, startMS, endMS);
-    }
-    else if (v.size() > 0)
-    {
+    } else if (v.size() > 0) {
         x1 = wxAtof(v[0]);
     }
     x1 += x;
 
     float y1 = 0.0;
-    if (fy1vc)
-    {
+    if (fy1vc) {
         v[1].Replace("yyz", "Max");
         ValueCurve vc(v[1].ToStdString());
         vc.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
         y1 = vc.GetOutputValueAt(progress, startMS, endMS);
-    }
-    else if (v.size() > 1)
-    {
+    } else if (v.size() > 1) {
         y1 = wxAtof(v[1]);
     }
     y1 += y;
 
     float x2 = 100.0;
-    if (fx2vc)
-    {
+    if (fx2vc) {
         v[2].Replace("yyz", "Max");
         ValueCurve vc(v[2].ToStdString());
         vc.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
         x2 = vc.GetOutputValueAt(progress, startMS, endMS);
-    }
-    else if (v.size() > 2)
-    {
+    } else if (v.size() > 2) {
         x2 = wxAtof(v[2]);
     }
     x2 += x;
 
     float y2 = 100.0;
-    if (fy2vc)
-    {
+    if (fy2vc) {
         v[3].Replace("yyz", "Max");
         ValueCurve vc(v[3].ToStdString());
         vc.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
         y2 = vc.GetOutputValueAt(progress, startMS, endMS);
-    }
-    else if (v.size() > 3)
-    {
+    } else if (v.size() > 3) {
         y2 = wxAtof(v[3]);
     }
     y2 += y;
@@ -2248,6 +2207,8 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
             it2.bufY -= y1Int;
         }
     }
+    buffOffsetX = x1Int;
+    buffOffsetY = y1Int;
 }
 
 namespace
@@ -2394,13 +2355,18 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
             }
         }
 
+        inf->BufferOffsetX = 0;
+        inf->BufferOffsetY = 0;
         model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, go_deep);
         if (origNodeCount != 0 && origNodeCount != inf->buffer.Nodes.size()) {
             inf->buffer.Nodes.clear();
             model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, go_deep);
         }
 
-        ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, 0, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS());
+        ComputeSubBuffer(subBuffer, inf->buffer.Nodes,
+                         inf->BufferWi, inf->BufferHt,
+                         inf->BufferOffsetX, inf->BufferOffsetY,
+                         0, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS());
 
         ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
         ComputeValueCurve(hueAdjustValueCurve, inf->HueAdjustValueCurve);
@@ -2945,8 +2911,12 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
     const std::string &camera = layers[layer]->camera;
     const std::string &transform = layers[layer]->transform;
     layers[layer]->buffer.Nodes.clear();
+    layers[layer]->BufferOffsetX = 0;
+    layers[layer]->BufferOffsetY = 0;
     model->InitRenderBufferNodes(type, camera, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
-    ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, offset, layers[layer]->buffer.GetStartTimeMS(), layers[layer]->buffer.GetEndTimeMS());
+    ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt,
+                     layers[layer]->BufferOffsetX, layers[layer]->BufferOffsetY,
+                     offset, layers[layer]->buffer.GetStartTimeMS(), layers[layer]->buffer.GetEndTimeMS());
     layers[layer]->buffer.BufferWi = layers[layer]->BufferWi;
     layers[layer]->buffer.BufferHt = layers[layer]->BufferHt;
 

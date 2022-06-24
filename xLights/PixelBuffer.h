@@ -118,7 +118,7 @@ private:
             effectMixThreshold = 0.0;
             effectMixVaries = false;
             canvas = false;
-            BufferHt = BufferWi = 0;
+            BufferHt = BufferWi = BufferOffsetX = BufferOffsetY = 0;
             persistent = false;
             modelBuffers = nullptr;
             freezeAfterFrame = 10000;
@@ -150,6 +150,8 @@ private:
         std::string rotoZoom;
         int BufferHt;
         int BufferWi;
+        int BufferOffsetX;
+        int BufferOffsetY;
         ValueCurve BlurValueCurve;
         ValueCurve SparklesValueCurve;
         ValueCurve BrightnessValueCurve;

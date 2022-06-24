@@ -609,9 +609,9 @@ public:
                     rb.CopyNodeColorsToPixels(done);
                     // now fill in any spaces in the buffer that don't have nodes mapped to them
                     parallel_for(0, rb.BufferHt, [&rb, &buffer, &done, &vl, frame](int y) {
+                        xlColor c;
                         for (int x = 0; x < rb.BufferWi; x++) {
                             if (!done[y * rb.BufferWi + x]) {
-                                xlColor c = xlBLACK;
                                 buffer->GetMixedColor(x, y, c, vl, frame);
                                 rb.SetPixel(x, y, c);
                             }
