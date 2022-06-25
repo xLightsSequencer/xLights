@@ -929,9 +929,7 @@ void AudioData::RestorePos()
             }
 
 #ifndef __WXMSW__
-            // TODO we need to replace this on OSX/Linux
             // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesn't
-            _device = "";
 #else
             // override the default driver on windows so we can access the microphone
             if (SDL_AudioInit("directsound") != 0) {
