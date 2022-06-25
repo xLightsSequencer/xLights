@@ -980,22 +980,22 @@ bool ZCPPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
 
     if (name == "SupportsVirtualStrings") {
         SetSupportsVirtualStrings(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::SupportsVirtualStrings");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::SupportsVirtualStrings");
         return true;
     }
     else if (name == "SupportsSmartRemotes") {
         SetSupportsSmartRemotes(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::SupportsSmartRemotes");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::SupportsSmartRemotes");
         return true;
     }
     else if (name == "SendDataMulticast") {
         SetMulticast(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::SendDataMulticast");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::SendDataMulticast");
         return true;
     }
     else if (name == "DontSendConfig") {
         SetDontConfigure(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::DontSendConfig");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::DontSendConfig");
         return true;
     }
 

@@ -842,6 +842,9 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     if (_outputs.size() == 1) {
         _outputs.front()->AddProperties(propertyGrid, allSameSize, expandProperties);
     }
+    else {
+        _outputs.front()->AddMultiProperties(propertyGrid, allSameSize, expandProperties);
+    }
 
     if (_type == OUTPUT_KINET) {
         p = propertyGrid->Append(new wxUIntProperty("Version", "Version", dynamic_cast<KinetOutput*>(_outputs.front())->GetVersion()));
@@ -1197,6 +1200,17 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
 
     if (_outputs.size() == 1) {
         if (_outputs.front()->HandlePropertyEvent(event, outputModelManager)) return true;
+    }
+    else {
+        if (_outputs.front()->HandleMultiPropertyEvent(event, outputModelManager)) {
+            auto it = _outputs.begin();
+            ++it;
+            while (it != _outputs.end()) {
+                (*it)->HandleMultiPropertyEvent(event, outputModelManager);
+                ++it;
+            }
+            return true;
+        }
     }
 
     return false;
