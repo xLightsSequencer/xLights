@@ -248,6 +248,7 @@ void AudioData::RestorePos()
         }
         _wanted_spec.freq = rate;
         _wanted_spec.silence = 0;
+        _wanted_spec.size = _wanted_spec.samples * _wanted_spec.channels * 2;
 
         SDL_AudioSpec actual_spec;
         //#ifndef __WXMSW__
