@@ -207,7 +207,7 @@ void SearchPanel::FindSettings()
             auto effs = elay->GetEffects();
             for (auto* eff : effs) {
                 if (ContainsSetting(eff, search, regex, value)) {
-                    ListBoxResults->Append(wxString::Format("%s [%05.1fs (%s),%05.1fs (%s)] %s %s", value, eff->GetStartTimeMS() / 1000.0, FORMATTIME(eff->GetStartTimeMS()), eff->GetEndTimeMS() / 1000.0, FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname), (void*)eff);
+                    ListBoxResults->Append(wxString::Format("%s [%s,%s] %s %s", value, FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname), (void*)eff);
                 }
             }
         }
@@ -223,7 +223,7 @@ void SearchPanel::FindSettings()
                             auto effs = elay->GetEffects();
                             for (auto* eff : effs) {
                                 if (ContainsSetting(eff, search, regex, value)) {
-                                    ListBoxResults->Append(wxString::Format("%s [%05.1fs (%s),%05.1fs (%s)] %s %s", value, eff->GetStartTimeMS() / 1000.0, FORMATTIME(eff->GetStartTimeMS()), eff->GetEndTimeMS() / 1000.0, FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname), (void*)eff);
+                                    ListBoxResults->Append(wxString::Format("%s [%s,%s] %s %s", value,  FORMATTIME(eff->GetStartTimeMS()),  FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname), (void*)eff);
                                 }
                             }
                         }
