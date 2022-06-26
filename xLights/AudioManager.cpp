@@ -251,32 +251,16 @@ void AudioData::RestorePos()
         _wanted_spec.size = _wanted_spec.samples * _wanted_spec.channels * 2;
 
         SDL_AudioSpec actual_spec;
-        //#ifndef __WXMSW__
-        //    // TODO we need to replace this on OSX/Linux
-        //    logger_base.debug("Opening default audio input device.");
-        //    SDL_ClearError();
-        //    SDL_AudioDeviceID rc = SDL_OpenAudioDevice(nullptr, 1, &_wanted_inputspec, &actual_spec, 0);
-        //    logger_base.debug("    Result '%s'", SDL_GetError());
-        //    if (rc > 1000) // -1 would be a large number
-        //    {
-        //        return false;
-        //    }
-        //    _inputdev = rc;
-        //#else
         const char* d = nullptr;
         if (_device != "") {
             logger_base.debug("Opening audio device. %s", (const char*)_device.c_str());
             d = _device.c_str();
-        } else {
-            SDL_ClearError();
-            d = SDL_GetAudioDeviceName(0, input ? 1 : 0);
-            wxASSERT(strlen(SDL_GetError()) == 0);
-            if (d == nullptr) {
-                logger_base.debug("Unable to get audio device name. %s", SDL_GetError());
-            }
         }
         SDL_ClearError();
         SDL_AudioDeviceID rc = SDL_OpenAudioDevice(d, input ? 1 : 0, &_wanted_spec, &actual_spec, 0);
+        if (_device == "") {
+            d = "<Default>";
+        }
         wxASSERT(strlen(SDL_GetError()) == 0);
         if (strlen(SDL_GetError()) != 0) {
             logger_base.debug("    Result '%s'", SDL_GetError());
@@ -287,8 +271,6 @@ void AudioData::RestorePos()
         _dev = rc;
 
         _state = SDLSTATE::SDLNOTPLAYING;
-
-        //#endif
 
         logger_base.debug("Audio device opened %s -> Device: %d.", d, _dev);
         DumpState("", rc, &_wanted_spec, &actual_spec);
