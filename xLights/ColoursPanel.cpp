@@ -38,7 +38,7 @@ BEGIN_EVENT_TABLE(ColoursPanel,wxPanel)
 END_EVENT_TABLE()
 
 #define ITEMSIZE 33
-#define MAX_COLOURS 200
+#define MAX_COLOURS 1024
 
 int ColoursPanel::UpdateButtons()
 {
