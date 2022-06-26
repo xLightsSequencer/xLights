@@ -11,15 +11,34 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.13 June 26, 2022
    -- enh (scott) Added Controller Hyperlinks to FPP Connect
    -- enh (scott) Add FPP 6 DPIPixels support
    -- enh (scott) Added setting to Select Video Export Video Codec
    -- enh (scott) Added right click option to change tree/matrix/custom model string count from the visualizer
    -- enh (scott) Add Bulb Type to LOR S5 Preview Import
    -- enh (scott) Remember Controllers Splitter Location
+   -- enh (keith) Add infrastructure for tip of the day functionality. Currently not enabled.
+   -- enh (keith) Allow xSchedule to direct and source audio from specific sound cards
+   -- enh (keith) Add support for the Advatek MK3 controllers
+   -- enh (moc)   Add horizontal tree option to the tree model
+   -- enh (dkulp) Move to latest wxWidgets on OSX and Windows
    -- bug (scott) Fix Empty Brightness Field in Dimming Curve Dialog
    -- bug (scott) Fix Loading Timing Labels flagging the Sequence as changed
    -- bug (scott) Fix DMX Validate Settings off by 1 error
+   -- bug (keith) Increase colour dropper limit from 200 to 1024
+   -- bug (keith) Add a way to optionally force strict source port compliance for artnet
+   -- bug (keith) Add more import of Ripple properties from S5
+   -- bug (keith) Ensure ZCPP respects default controller brightness
+   -- bug (keith) Show search and select effect times formatted.
+   -- bug (keith) Fix link colour on windows when in dark mode
+   -- bug (keith) Add back manual custom model generation for tricky models to video
+   -- bug (nash)  Fix numerous issues with perpare audio feature
+   -- bug (dkulp) Fix some corruption of canvas effect buffers when layers below use subbuffers
+   -- bug (dkulp) Fix canvas mode effects that use Per Model render styles.
+   -- bug (dkulp) Fix issue when loading a xsq by double clicking on it
+   -- bug (dkulp) DMX moving heads use sequence frame timestamp to calculate pan/tilt rates instead of real time
+   -- bug (moc)   Fix drag select on submodels dialog loses mouse if you leave the window area.
 2022.12 June 7, 2022
    -- enh (scott) Move ScottNation controllers under their own vendor
    -- enh (keith) Rewrite custom model generation to use a faster algorithm
