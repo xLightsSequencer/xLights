@@ -177,8 +177,6 @@ class OutputSDL : public BaseSDL
     std::mutex _audio_Lock;
     int _initialisedRate = 44100;
 
-    void Reopen();
-
 public:
     OutputSDL(const std::string& device);
     virtual ~OutputSDL();
@@ -204,6 +202,7 @@ public:
     void Pause();
     void Unpause();
     void TogglePause();
+    void Reopen();
 };
 
 class SDLManager
@@ -376,7 +375,7 @@ public:
     static bool CreateAudioFile( const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate );
     bool WriteCurrentAudio( const std::string& path, long bitrate);
 
-    bool AudioDeviceChanged();
+    void  AudioDeviceChanged();
 
     static SDLManager* GetSDLManager();
 };

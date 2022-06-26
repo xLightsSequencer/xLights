@@ -1113,7 +1113,24 @@ void AudioManager::AbsoluteStop()
         _media_state = MEDIAPLAYINGSTATE::STOPPED;
     }
 }
-
+void AudioManager::AudioDeviceChanged() {
+    MEDIAPLAYINGSTATE oldMediaState = _media_state;
+    long ts = 0;
+    if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING || oldMediaState == MEDIAPLAYINGSTATE::PAUSED) {
+        ts = Tell();
+    }
+    Stop();
+    auto sdl = __sdlManager.GetOutputSDL(_device);
+    if (sdl != nullptr) {
+        sdl->Reopen();
+    }
+    if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING || oldMediaState == MEDIAPLAYINGSTATE::PAUSED) {
+        Seek(ts);
+        if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING) {
+            Play();
+        }
+    }
+ }
 void AudioManager::SetPlaybackRate(float rate)
 {
     __sdlManager.SetRate(rate);
