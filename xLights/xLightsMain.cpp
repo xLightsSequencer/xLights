@@ -9682,6 +9682,11 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             for (const auto& it : edits) {
                 auto audio = sourceSongs[it.file];
                 if (audio != nullptr) {
+                    // ensure that the audio has been processed by setting a frame interval if its unset
+                    if (audio->GetFrameInterval() < 0){
+                        logger_base.debug("Setting default frame interval for %s.", (const char*)it.file.c_str());
+                        audio->SetFrameInterval(20);
+                    }
                     // check the data is actually loaded
                     audio->GetRawLeftData(audio->GetTrackSize() - 1);
 

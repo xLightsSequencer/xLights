@@ -3346,7 +3346,8 @@ bool AudioManager::WriteAudioFrame(AVFormatContext *oc, AVCodecContext* codecCon
     AVSampleFormat sampleFmt = AVSampleFormat( cp->format );
 
     AVFrame *frame = av_frame_alloc();
-    frame->format = AV_SAMPLE_FMT_FLTP;
+    frame->format = AV_SAMPLE_FMT_FLT;
+    frame->channels = 2;
     frame->channel_layout = cp->channel_layout;
     frame->nb_samples = sampleCount;
 
@@ -3359,15 +3360,16 @@ bool AudioManager::WriteAudioFrame(AVFormatContext *oc, AVCodecContext* codecCon
     }
 
     AVPacket* pkt = av_packet_alloc();
+    int avretcode = 0;
     //AVPacket pkt;
     //av_init_packet(&pkt);
     pkt->data = nullptr;    // packet data will be allocated by the encoder
     pkt->size = 0;
     pkt->stream_index = st->index;
 
-    if ( avcodec_send_frame( codecContext, frame ) == 0 )
+    if ( (avretcode = avcodec_send_frame( codecContext, frame )) == 0 )
     {
-        if ( avcodec_receive_packet( codecContext, pkt) == 0 )
+        if ( (avretcode = avcodec_receive_packet( codecContext, pkt)) == 0 )
         {
             pkt->stream_index = st->index;
             if ( av_interleaved_write_frame(oc, pkt) != 0 )
@@ -3382,7 +3384,7 @@ bool AudioManager::WriteAudioFrame(AVFormatContext *oc, AVCodecContext* codecCon
 
 	av_packet_free(&pkt);
     av_frame_free(&frame);
-    return true;
+    return avretcode == 0;
 }
 
 bool AudioManager::CreateAudioFile(const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate)
@@ -3403,9 +3405,10 @@ bool AudioManager::CreateAudioFile(const std::vector<float>& left, const std::ve
 
             if (leftptr != nullptr)
             {
-                memcpy(samples, leftptr, clampedSize * sizeof(float));
-                samples += clampedSize;
-                memcpy(samples, rightptr, clampedSize * sizeof(float));
+                for(int i=0; i<clampedSize; i++){
+                    *(samples++) = leftptr[i];
+                    *(samples++) = rightptr[i];
+                }
                 frameIndex += frameSize;
             }
         }
@@ -3424,9 +3427,9 @@ bool AudioManager::CreateAudioFile(const std::vector<float>& left, const std::ve
     }
 
     AVCodecContext* codecContext = avcodec_alloc_context3( audioCodec );
-    codecContext->bit_rate = 128000;
+    //codecContext->bit_rate = 128000;
     codecContext->sample_fmt = AV_SAMPLE_FMT_FLT;
-    codecContext->sample_rate = 44100;
+    codecContext->sample_rate = RESAMPLE_RATE;
     codecContext->channels = 2;
     codecContext->channel_layout = AV_CH_LAYOUT_STEREO;
 
