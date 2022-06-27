@@ -1158,9 +1158,15 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     // aux port
     request += "\"auxPort\":{";
-    
-    // The spec says I should send this but doing so throws an error
-    //request += wxString::Format("\"dataSrc\":\"%s\",", _config._protocol == 0 ? "sACN" : "Art-Net");
+
+    request += "\"dataSrc\": [";
+    for (uint8_t i = 0; i < _config._dmxOn.size(); ++i) {
+        request += _config._protocol == 0 ? "\"sACN\"" : "\"Art-Net\"";
+        if (i != _config._dmxOn.size() - 1) {
+            request += ",";
+        }
+    }
+    request += "],";
 
     request += "\"mode\": [";
     for (uint8_t i = 0; i < _config._dmxOn.size(); ++i) {
