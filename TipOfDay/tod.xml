@@ -11,4 +11,10 @@
    <tip url="00009.html" title="What is a Universe" category="Controller" level="Beginner" exclude=""/>
    <tip url="00010.html" title="xScanner" category="Tools" level="Intermediate" exclude="OSX"/>
    <tip url="00011.html" title="Backups" category="Tools" level="Intermediate" exclude=""/>
+   <tip url="00012.html" title="Single Screen Sequencing" category="General" level="Intermediate" exclude=""/>
+   <tip url="00013.html" title="Show Directory Structure" category="General" level="Beginner" exclude=""/>
+   <tip url="00014.html" title="Effects that care about colour order" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00015.html" title="Random effects" category="Sequencing" level="Beginner" exclude=""/>
+   <tip url="00016.html" title="Working on large sequences" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00017.html" title="Rendering text across matrix groups" category="Sequencing" level="Intermediate" exclude=""/>
 </tipofday>
