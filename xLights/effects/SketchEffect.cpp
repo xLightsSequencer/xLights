@@ -92,7 +92,7 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffe
         {
             rgb[rgbIndex++] = px[pxIndex].Red();
             rgb[rgbIndex++] = px[pxIndex].Green();
-            rgb[rgbIndex++] = px[pxIndex].Green();
+            rgb[rgbIndex++] = px[pxIndex].Blue();
             alpha[alphaIndex++] = px[pxIndex].Alpha();
         }
     }
@@ -101,7 +101,7 @@ void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffe
     //
     // rendering sketch via wxGraphicsContext
     //
-    renderSketch(sketch, img, progress, 0.01*drawPercentage, thickness, motionEnabled, 0.01*motionPercentage, colors);
+    renderSketch(sketch, img, progress, 0.01 * drawPercentage, thickness, motionEnabled, 0.01 * motionPercentage, colors);
 
     //
     // wxImage --> RenderBuffer
