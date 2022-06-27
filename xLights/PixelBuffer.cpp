@@ -2253,7 +2253,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->rotations = (float)settingsMap.GetInt(SLIDER_Rotations, 0) / 10.0f;
     inf->zoom = (float)settingsMap.GetInt(SLIDER_Zoom, 10) / 10.0f;
     inf->zoomquality = settingsMap.GetInt(SLIDER_ZoomQuality, 1);
-    inf->rotationorder = settingsMap.Get(CHOICE_RZ_RotationOrder, "X, Y, Z");
+    inf->rotationorder = settingsMap.Get(CHOICE_RZ_RotationOrder, "X-Y-Z");
     inf->pivotpointx = settingsMap.GetInt(SLIDER_PivotPointX, 50);
     inf->pivotpointy = settingsMap.GetInt(SLIDER_PivotPointY, 50);
     inf->xpivot = settingsMap.GetInt(SLIDER_XPivot, 50);

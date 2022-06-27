@@ -17,4 +17,7 @@
    <tip url="00015.html" title="Random effects" category="Sequencing" level="Beginner" exclude=""/>
    <tip url="00016.html" title="Working on large sequences" category="Sequencing" level="Advanced" exclude=""/>
    <tip url="00017.html" title="Rendering text across matrix groups" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00018.html" title="Shift effects" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00019.html" title="Sequence statistics" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00020.html" title="Sequencer navigation shortcuts" category="Sequencing" level="Advanced" exclude=""/>
 </tipofday>

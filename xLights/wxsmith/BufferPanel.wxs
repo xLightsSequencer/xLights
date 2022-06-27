@@ -813,12 +813,12 @@
 											<object class="sizeritem">
 												<object class="wxChoice" name="ID_CHOICE_RZ_RotationOrder" subclass="BulkEditChoice" variable="ChoiceRotateOrder" member="yes">
 													<content>
-														<item>X, Y, Z</item>
-														<item>X, Z, Y</item>
-														<item>Y, X, Z</item>
-														<item>Y, Z, X</item>
-														<item>Z, X, Y</item>
-														<item>Z, Y, X</item>
+														<item>X-Y-Z</item>
+														<item>X-Z-Y</item>
+														<item>Y-X-Z</item>
+														<item>Y-Z-X</item>
+														<item>Z-X-Y</item>
+														<item>Z-Y-X</item>
 													</content>
 													<selection>0</selection>
 												</object>
