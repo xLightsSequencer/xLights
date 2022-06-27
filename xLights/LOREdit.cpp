@@ -28,6 +28,7 @@
 #include "effects/MeteorsEffect.h"
 #include "effects/PinwheelEffect.h"
 #include "effects/SnowflakesEffect.h"
+#include "effects/RippleEffect.h"
 
 #include <log4cpp/Category.hh>
 
@@ -973,13 +974,17 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     } else if (et == "ripple") {
         // I actually think some of these should be shockwaves
         // Mix_Average|0|0|full|20|lightorama_ripple:FFFF8000,1;FF800080,1;FF0000FF,0;FFFF0000,1;FFFFFFFF,0;FF00FF00,1:circle,21,47,46,50,0,0,37,False,50|lightorama_none::
+        wxString vcCrap;
         auto type = SafeGetStringParm(parms, 0);
-        auto repeatcount = SafeGetIntParm(parms, 1);    // 1-20
+        auto repeatcount = SafeGetStringParm(parms, 1);    // 1-20 -> 1-30
+        repeatcount = RescaleWithRangeI(repeatcount, "IGNORE", 1, 20, 1 /*RIPPLE_CYCLES_MIN*/, RIPPLE_CYCLES_MAX, vcCrap, -1, -1); // not using min because i dont want it to scale to 0
         auto ringwidth = SafeGetIntParm(parms, 2);      // narrow is less
         auto spacing = SafeGetIntParm(parms, 3);        // narrow is less
         auto speed = SafeGetIntParm(parms, 4);          // slow is less
-        auto leftright = SafeGetIntParm(parms, 5);      // left is negative ... zero centre
-        auto topbottom = SafeGetIntParm(parms, 6);      // top is negative ... zero centre
+        auto leftright = SafeGetStringParm(parms, 5);      // left is negative ... zero centre
+        leftright = RescaleWithRangeI(leftright, "IGNORE", -50, 50, RIPPLE_XC_MIN, RIPPLE_XC_MAX, vcCrap, -1, -1);
+        auto topbottom = SafeGetStringParm(parms, 6);      // top is negative ... zero centre
+        topbottom = RescaleWithRangeI(topbottom, "IGNORE", -50, 50, RIPPLE_YC_MIN, RIPPLE_YC_MAX, vcCrap, -1, -1);
         auto highlightangle = SafeGetIntParm(parms, 7); // 0 = none
         auto inward = SafeGetBoolParm(parms, 8);
         auto outerlimit = SafeGetIntParm(parms, 9); // 0 = small
@@ -989,9 +994,9 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         } else {
             settings += ",E_CHOICE_Ripple_Movement=Explode";
         }
-        settings += ",E_SLIDER_Ripple_XC=" + std::to_string(leftright);
-        settings += ",E_SLIDER_Ripple_YC=" + std::to_string(topbottom);
-        settings += ",E_TEXTCTRL_Ripple_Cycles=" + std::to_string((float)repeatcount);
+        settings += ",E_SLIDER_Ripple_XC=" + leftright;
+        settings += ",E_SLIDER_Ripple_YC=" + topbottom;
+        settings += ",E_TEXTCTRL_Ripple_Cycles=" + repeatcount;
         settings += ",E_SLIDER_Ripple_Thickness=" + std::to_string(ringwidth);
     }
     else if (et == "wave") {
