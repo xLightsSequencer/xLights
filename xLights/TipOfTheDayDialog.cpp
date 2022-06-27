@@ -218,17 +218,30 @@ bool TipOfTheDayDialog::GetTODAtLevel(wxXmlDocument& doc, TODTracker& tracker, c
 {
     uint32_t unvisited = 0;
     uint32_t of = 0;
+    #ifdef __WXMSW__
+        #define PLAT "Windows"
+    #elif defined __WXOSX__
+        #define PLAT "OSX"
+    #elif defined LINUX
+        #define PLAT "Linux"
+    #else
+        #define PLAT "UNKNOWN"
+    #endif
 
     for (auto n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
         if (n->GetName() == "tip") {
             auto url = n->GetAttribute("url", "");
             if (url != "") {
-                auto tiplevel = n->GetAttribute("level", "Beginner");
+                auto exclude = n->GetAttribute("exclude", "");
 
-                if (level == tiplevel) {
-                    ++of;
-                    if (tracker.GetVisited(url) == 0) {
-                        unvisited++;
+                if (!Contains(exclude, PLAT)) {
+                    auto tiplevel = n->GetAttribute("level", "Beginner");
+
+                    if (level == tiplevel) {
+                        ++of;
+                        if (tracker.GetVisited(url) == 0) {
+                            unvisited++;
+                        }
                     }
                 }
             }
@@ -249,20 +262,23 @@ bool TipOfTheDayDialog::GetTODAtLevel(wxXmlDocument& doc, TODTracker& tracker, c
     do {
         auto url = n->GetAttribute("url", "");
         if (url != "") {
-            auto tiplevel = n->GetAttribute("level", "Beginner");
-            if (tracker.GetVisited(url) == 0 && level == tiplevel) {
-                if (choice == 0) {
-                    tracker.AddVisited(url);
-                    LoadURL(BuildURL(url));
+            auto exclude = n->GetAttribute("exclude", "");
+            if (!Contains(exclude, PLAT)) {
+                auto tiplevel = n->GetAttribute("level", "Beginner");
+                if (tracker.GetVisited(url) == 0 && level == tiplevel) {
+                    if (choice == 0) {
+                        tracker.AddVisited(url);
+                        LoadURL(BuildURL(url));
 
-                    if (!IsShown()) {
-                        Show();
-                        Raise();
+                        if (!IsShown()) {
+                            Show();
+                            Raise();
+                        }
+
+                        return true;
                     }
-
-                    return true;
+                    --choice;
                 }
-                --choice;
             }
         }
         n = n->GetNext();
