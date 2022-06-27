@@ -1,12 +1,14 @@
 <!-- Caution this file is generated ... do not edit-->
 <tipofday>
-   <tip url="00001.html" title="Useful definitions: String, Strand and Node" category="Layout" level="Beginner"/>
-   <tip url="00002.html" title="Freeze frame your sequence playback" category="Sequencer" level="Advanced"/>
-   <tip url="00003.html" title="Troubleshooting why the visualiser won't work" category="Controller" level="Beginner"/>
-   <tip url="00004.html" title="Force Local IP" category="Controller" level="Expert"/>
-   <tip url="00005.html" title="Export Preview Video" category="General" level="Intermediate"/>
-   <tip url="00006.html" title="Spiral Trees" category="Layout" level="Intermediate"/>
-   <tip url="00007.html" title="Invalid Start Channels" category="Layout" level="Advanced"/>
-   <tip url="00008.html" title="Controller Active Property" category="Controller" level="Advanced"/>
-   <tip url="00009.html" title="What is a Universe" category="Controller" level="Beginner"/>
+   <tip url="00001.html" title="Useful definitions: String, Strand and Node" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00002.html" title="Freeze frame your sequence playback" category="Sequencer" level="Advanced" exclude=""/>
+   <tip url="00003.html" title="Troubleshooting why the visualiser won't work" category="Controller" level="Beginner" exclude=""/>
+   <tip url="00004.html" title="Force Local IP" category="Controller" level="Expert" exclude=""/>
+   <tip url="00005.html" title="Export Preview Video" category="General" level="Intermediate" exclude=""/>
+   <tip url="00006.html" title="Spiral Trees" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00007.html" title="Invalid Start Channels" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00008.html" title="Controller Active Property" category="Controller" level="Advanced" exclude=""/>
+   <tip url="00009.html" title="What is a Universe" category="Controller" level="Beginner" exclude=""/>
+   <tip url="00010.html" title="xScanner" category="Tools" level="Intermediate" exclude="OSX"/>
+   <tip url="00011.html" title="Backups" category="Tools" level="Intermediate" exclude=""/>
 </tipofday>
