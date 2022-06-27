@@ -44,6 +44,8 @@ public:
             if (!buffer->gpuRenderData) {
                 buffer->gpuRenderData = new MetalRenderBufferComputeData(buffer, pbc);
             }
+            MetalRenderBufferComputeData *mrbcd = static_cast<MetalRenderBufferComputeData*>(buffer->gpuRenderData);
+            mrbcd->bufferResized();
         }
     }
     virtual void doWaitForRenderCompletion(RenderBuffer *c) override {

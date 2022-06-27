@@ -2922,6 +2922,9 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
 
     if (layers[layer]->buffer.BufferWi == 0) layers[layer]->buffer.BufferWi = 1;
     if (layers[layer]->buffer.BufferHt == 0) layers[layer]->buffer.BufferHt = 1;
+    
+    layers[layer]->buffer.InitBuffer(layers[layer]->BufferHt, layers[layer]->BufferWi, transform);
+    GPURenderUtils::setupRenderBuffer(this, &layers[layer]->buffer);
 }
 
 void PixelBufferClass::HandleLayerBlurZoom(int EffectPeriod, int layer) {

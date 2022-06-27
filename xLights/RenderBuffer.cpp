@@ -676,10 +676,18 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     // This is an absurdly high number but there are circumstances right now when creating a buffer based on a zoomed in camera when these can be hit.
     //wxASSERT(NumPixels < 500000);
 
-    pixelVector.resize(NumPixels);
-    pixels = &pixelVector[0];
-    tempbufVector.resize(NumPixels);
-    tempbuf = &tempbufVector[0];
+    if (NumPixels != pixelVector.size()) {
+        if (pixels == &pixelVector[0]) {
+            pixelVector.resize(NumPixels);
+            pixels = &pixelVector[0];
+            tempbufVector.resize(NumPixels);
+            tempbuf = &tempbufVector[0];
+        } else {
+            // just resize, pixels/tmpbuf point to GPU memory and the GPU will need to re-adjust
+            pixelVector.resize(NumPixels);
+            tempbufVector.resize(NumPixels);
+        }
+    }
     isTransformed = (bufferTransform != "None");
 }
 
