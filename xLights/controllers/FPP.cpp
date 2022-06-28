@@ -66,7 +66,6 @@
 #include "../TraceLog.h"
 using namespace TraceLog;
 
-static const std::string PIHAT("Pi Hat");
 static const std::string LEDPANELS("LED Panels");
 
 FPP::FPP(const std::string& ad) :
@@ -497,9 +496,8 @@ void FPP::parseProxies(wxJSONValue& val) {
 void FPP::parseControllerType(wxJSONValue& val) {
     for (int x = 0; x < val["channelOutputs"].Size(); x++) {
         if (val["channelOutputs"][x]["enabled"].AsInt()) {
-            if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X") {
-                pixelControllerType = PIHAT;
-            } else if (val["channelOutputs"][x]["type"].AsString() == "BBB48String" || 
+            if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X"||
+                val["channelOutputs"][x]["type"].AsString() == "BBB48String" ||
                 val["channelOutputs"][x]["type"].AsString() == "DPIPixels") {
                 pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
             } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
@@ -1201,7 +1199,7 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
         if (ch < startChan || ch > endChannel) {
             continue;
         }
-        
+
         wxString name(model->name);
         name.Replace(" ", "_");
 
@@ -1571,7 +1569,7 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
 }
 
 bool FPP::ResetAfterOutput(OutputManager* outputManager, Controller* controller, wxWindow* parent) {
-    
+
     if (majorVersion >= 4) {
         std::string md = controller->GetRuntimeProperty("FPPMode");
         if (md != "bridge" && md != "") {
@@ -2230,7 +2228,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("FPP Pixel Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
-        
+
     UDController cud(controller, outputManager, allmodels, false);
 
     if (cud.GetMaxPixelPort() == 0 && cud.GetMaxSerialPort() == 0) {
@@ -2468,7 +2466,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     } else if (stringData["outputs"][x+z].HasMember("differentialType")) {
                         remoteType = std::max(remoteType, 1);
                     }
-                    if (stringData["outputs"][x + z].HasMember("differentialType") && 
+                    if (stringData["outputs"][x + z].HasMember("differentialType") &&
                         stringData["outputs"][x + z]["differentialType"].AsLong() > 3) {
                         remoteTypeV2 = true;
                     }
@@ -2936,10 +2934,9 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
     inst->extraData["httpConnected"] = true;
     for (int x = 0; x < val["channelOutputs"].Size(); x++) {
         if (val["channelOutputs"][x]["enabled"].AsInt()) {
-            if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X") {
-                inst->pixelControllerType = PIHAT;
-            } else if (val["channelOutputs"][x]["type"].AsString() == "BBB48String" ||
-                       val["channelOutputs"][x]["type"].AsString() == "DPIPixels") {
+            if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X"||
+                val["channelOutputs"][x]["type"].AsString() == "BBB48String" ||
+                val["channelOutputs"][x]["type"].AsString() == "DPIPixels") {
                 inst->pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
             } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
                 inst->pixelControllerType = LEDPANELS;
@@ -3241,7 +3238,7 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
             return false;
         }
     }
-    
+
     if ((res->typeId >= 0xC2) && (res->typeId <= 0xC3)) {
         if (res->ranges == "") {
             auto c = outputManager->GetControllers(res->ip);
@@ -3259,7 +3256,7 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
         }
         return res->majorVersion >= 4 && res->mode == "remote";
     }
-    
+
     if (res->typeId == 0x88 || res->typeId == 0x89) {
         // F16V4 / F48V4
         return true;
