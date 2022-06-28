@@ -110,7 +110,7 @@
             <Protocol>Renard</Protocol>
         </SerialProtocols>
         <fppStringFileName>co-pixelStrings</fppStringFileName>
-        <fppStringDriverType>RPIWS281x</fppStringDriverType>
+        <fppStringDriverType>RPIWS281X</fppStringDriverType>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringDPIPiHat" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
