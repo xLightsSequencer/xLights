@@ -20,4 +20,10 @@
    <tip url="00018.html" title="Shift effects" category="Sequencing" level="Intermediate" exclude=""/>
    <tip url="00019.html" title="Sequence statistics" category="Sequencing" level="Advanced" exclude=""/>
    <tip url="00020.html" title="Sequencer navigation shortcuts" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00021.html" title="Custom model remapping" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00022.html" title="Colours" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00023.html" title="Effects with problems" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00024.html" title="VUMeter cryptic names" category="Sequencer" level="Advanced" exclude=""/>
+   <tip url="00025.html" title="Exporting presets" category="Sequencer" level="Expert" exclude=""/>
+   <tip url="00026.html" title="Submodel generation" category="Layout" level="Advanced" exclude=""/>
 </tipofday>
