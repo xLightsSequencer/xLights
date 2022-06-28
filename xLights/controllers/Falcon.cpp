@@ -2217,17 +2217,18 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
 
     if (media != "") {
         wxFileName fn(media);
-        std::string origfile = fn.GetFullName().Lower().ToStdString();
+        std::string origfile = fn.GetFullName()/*.Lower()*/.ToStdString();
         bool ismp3 = fn.GetExt().Lower() == "mp3";
         fn.SetExt("wav");
-        std::string wavfile = fn.GetFullName().Lower().ToStdString();
+        std::string wavfile = fn.GetFullName() /*.Lower()*/.ToStdString();
+        auto lwavfile = Lower(wavfile);
 
         // check to see if controller has the media file
         auto wavs = V4_GetMediaFiles();
         bool found = false;
 
         for (const auto& it : wavs) {
-            if (Lower(it) == wavfile) {
+            if (Lower(it) == lwavfile) {
                 found = true;
                 break;
             }
@@ -2272,7 +2273,7 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
     // upload the fseq
     {
         wxFileName fn(file);
-        res = res && Curl::HTTPUploadFile(url, seq, fn.GetFullName().Lower().ToStdString(), progress);
+        res = res && Curl::HTTPUploadFile(url, seq, fn.GetFullName()/*.Lower()*/.ToStdString(), progress);
 
         if (res) {
             while (V4_IsFileUploading()) {
