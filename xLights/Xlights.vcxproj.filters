@@ -993,6 +993,7 @@
       <Filter>Models\DMX</Filter>
     </ClCompile>
     <ClCompile Include="TipOfTheDayDialog.cpp" />
+    <ClCompile Include="ModelRemap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1994,6 +1995,7 @@
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="TipOfTheDayDialog.h" />
+    <ClInclude Include="ModelRemap.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

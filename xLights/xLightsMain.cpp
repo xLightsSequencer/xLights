@@ -103,6 +103,7 @@
 #include "ViewsModelsPanel.h"
 #include "graphics/opengl/xlGLCanvas.h"
 #include "ColourReplaceDialog.h"
+#include "ModelRemap.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -244,6 +245,7 @@ const long xLightsFrame::ID_MNU_CRASH = wxNewId();
 const long xLightsFrame::ID_MNU_DUMPRENDERSTATE = wxNewId();
 const long xLightsFrame::ID_MENU_GENERATE2DPATH = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
+const long xLightsFrame::ID_MNU_REMAPCUSTOM = wxNewId();
 const long xLightsFrame::ID_MNU_GENERATELYRICS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const long xLightsFrame::ID_MNU_PREPAREAUDIO = wxNewId();
@@ -889,6 +891,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Menu1->Append(MenuItem_Generate2DPath);
     Menu_GenerateCustomModel = new wxMenuItem(Menu1, ID_MENUITEM_GenerateCustomModel, _("&Generate Custom Model"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(Menu_GenerateCustomModel);
+    MenuItem_RemapCustom = new wxMenuItem(Menu1, ID_MNU_REMAPCUSTOM, _("Remap Custom Model"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_RemapCustom);
     MenuItem_GenerateLyrics = new wxMenuItem(Menu1, ID_MNU_GENERATELYRICS, _("Generate &Lyrics From Data"), _("Generate lyric phenomes from data"), wxITEM_NORMAL);
     Menu1->Append(MenuItem_GenerateLyrics);
     MenuItemConvert = new wxMenuItem(Menu1, ID_MENUITEM_CONVERT, _("&Convert"), wxEmptyString, wxITEM_NORMAL);
@@ -1143,6 +1147,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(ID_MNU_DUMPRENDERSTATE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_LogRenderStateSelected);
     Connect(ID_MENU_GENERATE2DPATH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Generate2DPathSelected);
     Connect(ID_MENUITEM_GenerateCustomModel,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
+    Connect(ID_MNU_REMAPCUSTOM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_RemapCustomSelected);
     Connect(ID_MNU_GENERATELYRICS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateLyricsSelected);
     Connect(ID_MENUITEM_CONVERT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MNU_PREPAREAUDIO,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PrepareAudioSelected);
@@ -10226,4 +10231,10 @@ void xLightsFrame::OnMenuItem_TODSelected(wxCommandEvent& event)
     {
         wxBell();
     }
+}
+
+void xLightsFrame::OnMenuItem_RemapCustomSelected(wxCommandEvent& event)
+{
+    ModelRemap modelRemap(this);
+    modelRemap.ShowModal();
 }

@@ -303,6 +303,7 @@
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="MediaImportOptionsDialog.cpp" />
     <ClCompile Include="ModelChainDialog.cpp" />
+    <ClCompile Include="ModelRemap.cpp" />
     <ClCompile Include="models\BaseObject.cpp" />
     <ClCompile Include="models\BoxedScreenLocation.cpp" />
     <ClCompile Include="models\ChannelBlockModel.cpp" />
@@ -771,6 +772,7 @@
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
     <ClInclude Include="MediaImportOptionsDialog.h" />
     <ClInclude Include="ModelChainDialog.h" />
+    <ClInclude Include="ModelRemap.h" />
     <ClInclude Include="models\BaseObject.h" />
     <ClInclude Include="models\BoxedScreenLocation.h" />
     <ClInclude Include="models\ChannelBlockModel.h" />

@@ -616,6 +616,8 @@
 		<Unit filename="ModelGroupPanel.h" />
 		<Unit filename="ModelPreview.cpp" />
 		<Unit filename="ModelPreview.h" />
+		<Unit filename="ModelRemap.cpp" />
+		<Unit filename="ModelRemap.h" />
 		<Unit filename="ModelStateDialog.cpp" />
 		<Unit filename="ModelStateDialog.h" />
 		<Unit filename="Mouse3DManager.cpp" />
@@ -1444,6 +1446,7 @@
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="wxsmith/ModelGroupPanel.wxs" />
 		<Unit filename="wxsmith/ModelPreview3DDialog.wxs" />
+		<Unit filename="wxsmith/ModelRemap.wxs" />
 		<Unit filename="wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
 		<Unit filename="wxsmith/MultiControllerUploadDialog.wxs" />
@@ -1738,6 +1741,7 @@
 					<wxDialog wxs="wxsmith/ScriptsDialog.wxs" src="ScriptsDialog.cpp" hdr="ScriptsDialog.h" fwddecl="0" i18n="1" name="ScriptsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ColourReplaceDialog.wxs" src="ColourReplaceDialog.cpp" hdr="ColourReplaceDialog.h" fwddecl="0" i18n="1" name="ColourReplaceDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/TipOfTheDayDialog.wxs" src="TipOfTheDayDialog.cpp" hdr="TipOfTheDayDialog.h" fwddecl="0" i18n="1" name="TipOfTheDayDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelRemap.wxs" src="ModelRemap.cpp" hdr="ModelRemap.h" fwddecl="0" i18n="1" name="ModelRemap" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

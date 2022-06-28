@@ -604,6 +604,7 @@ public:
     void OnMenuItemSearchEffectsSelected(wxCommandEvent& event);
     void OnMenuItem_SilentVolSelected(wxCommandEvent& event);
     void OnMenuItem_TODSelected(wxCommandEvent& event);
+    void OnMenuItem_RemapCustomSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -740,6 +741,7 @@ public:
     static const long ID_MNU_DUMPRENDERSTATE;
     static const long ID_MENU_GENERATE2DPATH;
     static const long ID_MENUITEM_GenerateCustomModel;
+    static const long ID_MNU_REMAPCUSTOM;
     static const long ID_MNU_GENERATELYRICS;
     static const long ID_MENUITEM_CONVERT;
     static const long ID_MNU_PREPAREAUDIO;
@@ -934,6 +936,7 @@ public:
     wxMenuItem* MenuItem_PurgeRenderCache;
     wxMenuItem* MenuItem_PurgeVendorCache;
     wxMenuItem* MenuItem_QuietVol;
+    wxMenuItem* MenuItem_RemapCustom;
     wxMenuItem* MenuItem_ShowACRamps;
     wxMenuItem* MenuItem_ShowKeyBindings;
     wxMenuItem* MenuItem_SilentVol;
