@@ -677,16 +677,17 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     //wxASSERT(NumPixels < 500000);
 
     if (NumPixels != pixelVector.size()) {
-        if (pixelVector.size() > 0 && pixels == &pixelVector[0]) {
-            pixelVector.resize(NumPixels);
-            tempbufVector.resize(NumPixels);
-        } else {
-            // just resize, pixels/tmpbuf point to GPU memory and the GPU will need to re-adjust
-            pixelVector.resize(NumPixels);
-            tempbufVector.resize(NumPixels);
+        bool resetPtr = pixelVector.size() == 0 || pixels == &pixelVector[0];
+        pixelVector.resize(NumPixels);
+        tempbufVector.resize(NumPixels);
+        if (resetPtr) {
+            // If the pixels or tempbuf ptr did not point to the first element
+            // originally, then it is pointing into GPU memory and we need
+            // to keep that pointer pointing there so the data can be retreived
+            // from the GPU.
+            pixels = &pixelVector[0];
+            tempbuf = &tempbufVector[0];
         }
-        pixels = &pixelVector[0];
-        tempbuf = &tempbufVector[0];
     }
     isTransformed = (bufferTransform != "None");
 }
