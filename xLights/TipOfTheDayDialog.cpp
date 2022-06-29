@@ -21,7 +21,9 @@
 
 //(*IdInit(TipOfTheDayDialog)
 const long TipOfTheDayDialog::ID_HTMLWINDOW1 = wxNewId();
+const long TipOfTheDayDialog::ID_ShowTips_CHECKBOX = wxNewId();
 const long TipOfTheDayDialog::ID_BUTTON1 = wxNewId();
+const long TipOfTheDayDialog::ID_BUTTON2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(TipOfTheDayDialog,wxDialog)
@@ -125,6 +127,8 @@ public:
 TipOfTheDayDialog::TipOfTheDayDialog(const std::string& url, wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     //(*Initialize(TipOfTheDayDialog)
+    wxFlexGridSizer* FlexGridSizer2;
+
     Create(parent, id, _("Tip of the day"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX, _T("id"));
     SetClientSize(wxSize(1000,800));
     Move(wxDefaultPosition);
@@ -135,17 +139,28 @@ TipOfTheDayDialog::TipOfTheDayDialog(const std::string& url, wxWindow* parent, w
     HtmlWindow1 = new xlCachedHtmlWindow(this, ID_HTMLWINDOW1, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO, _T("ID_HTMLWINDOW1"));
     HtmlWindow1->SetPage(_("<html><body><p>Loading...</p></body></html>"));
     FlexGridSizer1->Add(HtmlWindow1, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer2 = new wxFlexGridSizer(1, 3, 0, 0);
+    FlexGridSizer2->AddGrowableCol(0);
+    ShowTipsCheckbox = new wxCheckBox(this, ID_ShowTips_CHECKBOX, _("Show Tips on Startup"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_ShowTips_CHECKBOX"));
+    ShowTipsCheckbox->SetValue(true);
+    FlexGridSizer2->Add(ShowTipsCheckbox, 1, wxALL|wxEXPAND, 5);
     Button_Next = new wxButton(this, ID_BUTTON1, _("Give me another one"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer1->Add(Button_Next, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(Button_Next, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    CloseButton = new wxButton(this, ID_BUTTON2, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    CloseButton->SetDefault();
+    FlexGridSizer2->Add(CloseButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
     SetSizer(FlexGridSizer1);
     Layout();
 
+    Connect(ID_ShowTips_CHECKBOX,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TipOfTheDayDialog::OnShowTipsCheckboxClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TipOfTheDayDialog::OnButton_NextClick);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TipOfTheDayDialog::OnCloseButtonClick);
     //*)
 
     SetSize(1200, 800);
     Layout();
-
+    
     wxPoint loc;
     wxSize sz;
     LoadWindowPosition("xLightsTipOfTheDay", sz, loc);
@@ -287,7 +302,7 @@ bool TipOfTheDayDialog::GetTODAtLevel(wxXmlDocument& doc, TODTracker& tracker, c
     return false;
 }
 
-bool TipOfTheDayDialog::DoTipOfDay()
+bool TipOfTheDayDialog::DoTipOfDay(bool force)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -305,10 +320,19 @@ bool TipOfTheDayDialog::DoTipOfDay()
 
     // if tips are disabled then just exit
     if (mintiplevel == "Off") {
-        logger_base.debug("Tip of the day disabled.");
-        return false;
+        if (force) {
+            mintiplevel = "Beginner";
+        } else {
+            logger_base.debug("Tip of the day disabled.");
+            return false;
+        }
+        ShowTipsCheckbox->SetValue(0);
+    } else {
+        ShowTipsCheckbox->SetValue(1);
     }
 
+    
+    
     std::string file = GetTODXMLFile();
     if (!wxFile::Exists(file)) {
         logger_base.warn("Tip Of Day unable to load file: %s", (const char*)file.c_str());
@@ -353,7 +377,7 @@ bool TipOfTheDayDialog::DoTipOfDay()
         if (!onlyshowunseen) {
             logger_base.debug("Clearing viewed tips.");
             ClearVisited();
-            return DoTipOfDay();
+            return DoTipOfDay(force);
         }
     }
 
@@ -392,8 +416,20 @@ TipOfTheDayDialog::~TipOfTheDayDialog()
 
 void TipOfTheDayDialog::OnButton_NextClick(wxCommandEvent& event)
 {
-    if (!DoTipOfDay()) {
+    if (!DoTipOfDay(true)) {
         wxBell();
         Button_Next->Disable();
     }
+}
+
+void TipOfTheDayDialog::OnCloseButtonClick(wxCommandEvent& event)
+{
+    Close();
+}
+
+void TipOfTheDayDialog::OnShowTipsCheckboxClick(wxCommandEvent& event)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("MinTipLevel", ShowTipsCheckbox->GetValue() ? "Beginner" : "Off");
+    config->Flush();
 }

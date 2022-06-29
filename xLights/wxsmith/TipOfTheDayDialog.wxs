@@ -21,11 +21,41 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxButton" name="ID_BUTTON1" variable="Button_Next" member="yes">
-					<label>Give me another one</label>
-					<handler function="OnButton_NextClick" entry="EVT_BUTTON" />
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>3</cols>
+					<rows>1</rows>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_ShowTips_CHECKBOX" variable="ShowTipsCheckbox" member="yes">
+							<label>Show Tips on Startup</label>
+							<checked>1</checked>
+							<handler function="OnShowTipsCheckboxClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON1" variable="Button_Next" member="yes">
+							<label>Give me another one</label>
+							<handler function="OnButton_NextClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON2" variable="CloseButton" member="yes">
+							<label>Close</label>
+							<default>1</default>
+							<handler function="OnCloseButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
-				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

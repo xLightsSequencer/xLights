@@ -487,7 +487,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     jobPool("RenderPool"),
     AllModels(&_outputManager, this),
     AllObjects(this),
-    _presetSequenceElements(this), color_mgr(this)
+    _presetSequenceElements(this), color_mgr(this),
+    _tod("", this)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
@@ -10227,7 +10228,7 @@ void xLightsFrame::OnMenuItem_SilentVolSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_TODSelected(wxCommandEvent& event)
 {
-    if (!_tod.DoTipOfDay())
+    if (!_tod.DoTipOfDay(true))
     {
         wxBell();
     }
