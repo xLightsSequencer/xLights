@@ -8038,7 +8038,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                 mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Model");
                 auto par = TreeListViewModels->GetItemParent(selectedTreeModels[0]);
                 if (par != TreeListViewModels->GetRootItem()) {
-                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Groop");
+                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Group");
                 }
                 mnuContext.AppendSeparator();
             }
@@ -8056,7 +8056,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                 mnuContext.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock Models");
                 
                 if (allSameParent && parent != TreeListViewModels->GetRootItem()) {
-                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Groop");
+                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Group");
                 }
                 mnuContext.AppendSeparator();
             }
@@ -8064,9 +8064,9 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
             auto par = TreeListViewModels->GetItemParent(selectedTreeSubModels[0]);
             if (par != TreeListViewModels->GetRootItem()) {
                 if ((selectedTreeSubModels.size() + selectedTreeModels.size()) == 1) {
-                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Groop");
+                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Group");
                 } else {
-                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Groop");
+                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Group");
                 }
                 mnuContext.AppendSeparator();
             }

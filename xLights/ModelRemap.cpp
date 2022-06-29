@@ -59,6 +59,14 @@ ModelRemap::ModelRemap(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelRemap::OnButton_GenerateClick);
 	//*)
 
+    StaticText1->SetLabelText("This tool is used to take a model with valid/useful face definitions, state definitions and submodels and remap them onto a model with a reordered wiring layout.\n\n"
+                              "To use the tool you must have 2 xmodel files.\n\n"
+                              "The first xmodel is the custom model with the original wiring layout but the faces/states/submodels you want.\n"
+                              "The second is an identically dimensioned custom model with pixels in all the same positions but renumbered that you want to load the submodels into.\n\n"
+                              "As part of this process all existing faces/states/submodels on the second xmodel file will be removed.\n\n"
+                              "When you click generate a new xmodel file will be created combining the second models wiring layout with the faces/states/submodels of the first model.");
+
+    Fit();
 	ValidateWindow();
 }
 
@@ -96,15 +104,15 @@ void ModelRemap::ValidateWindow()
         message = "Select valid xmodel files.";
     } else if (!originalProperties.IsOk()) {
         message = newWiringProperties.Message();
-        message += "\nSelect valid original xmodel.";
+        message += "\n\nSelect valid original xmodel.";
     } else if (!newWiringProperties.IsOk()) {
         message = originalProperties.Message();
-        message += "\nSelect valid new wiring xmodel.";
+        message += "\n\nSelect valid new wiring xmodel.";
     } else {
         newWiringProperties.Compare(originalProperties);
         message = originalProperties.Message() + "\n\n" + newWiringProperties.Message();
         if (!originalProperties.ContainsFSSM()) {
-            message += "\nOriginal model contains no faces/states/submodels to import.";
+            message += "\n\nOriginal model contains no faces/states/submodels to import.";
         }
     }
 
@@ -352,20 +360,32 @@ void RemapModelProperties::Compare(RemapModelProperties& original)
     // compare dimensions
     if (_w != original.GetWidth() || _h != original.GetHeight() || _d != original.GetDepth()) {
         _ok = false;
-        _message += "\nModel dimensions do not match.";
+        _message += "\n\nModel dimensions do not match.";
     } else {
+        uint32_t remapped = 0;
+
         // compare pixels are all in the same place
         auto it1 = _data.begin();
         auto it2 = original.GetData().begin();
 
         while (it1 != _data.end() && it2 != original.GetData().end()) {
             if ((*it1 == 0 && *it2 != 0) || (*it1 != 0 && *it2 == 0)) {
-                _message += "\nAt least one pixel is located in a different cell in the model grid Original: "+std::to_string(*it2)+" New: "+std::to_string(*it1)+".";
+                _message += "\n\nAt least one pixel is located in a different cell in the model grid Original: "+std::to_string(*it2)+" New: "+std::to_string(*it1)+".";
                 _ok = false;
                 break;
             }
+
+            if (*it1 != *it2)
+                ++remapped;
+
             ++it1;
             ++it2;
+        }
+        if (remapped == 0) {
+            _message += "\n\nNo pixels are different between the models. Did you choose the correct model files?";
+            _ok = false;
+        } else {
+            _message += "\n\nProcess will remap " + std::to_string(remapped) + " pixels.";
         }
     }
 }
