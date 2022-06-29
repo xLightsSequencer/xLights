@@ -889,6 +889,72 @@ bool FPP::uploadOrCopyFile(const std::string &filename,
 // 5 - V2 zlib
 // 6 - V2 sparse zlib
 
+
+static std::set<std::string> FPP_MEDIA_EXT = {
+    "mp3", "ogg", "m4a", "m4p", "wav", "au", "wma", "flac", "aac",
+    "MP3", "OGG", "M4A", "M4P", "WAV", "AU", "WMA", "FLAC", "AAC",
+    "mp4", "MP4", "avi", "AVI", "mov", "MOV", "mkv", "MKV",
+    "mpg", "MPG", "mpeg", "MPEG"
+};
+
+static void FindHostSpecificMedia(const std::string &hostName, std::string &mediaBaseName, std::string &mediaFile, wxFileName &mfn) {
+    wxFileName mfn2(mediaFile);
+    mfn2.SetName(mfn2.GetName() + "-" + hostName);
+    //first, check filename-hostname with same extension
+    if (mfn2.Exists()) {
+        mediaFile = mfn2.GetFullPath();
+        mediaBaseName =  mfn2.GetFullName();
+        mfn = mfn2;
+        return;
+    }
+    //next, check "filename-hostname" with all the extensions
+    for (auto &a : FPP_MEDIA_EXT) {
+        mfn2.SetExt(a);
+        if (mfn2.Exists()) {
+            mediaFile = mfn2.GetFullPath();
+            mediaBaseName =  mfn2.GetFullName();
+            mfn = mfn2;
+            return;
+        }
+    }
+    //did not find, check for a directory with the hostname
+    wxFileName mfn3(mediaFile);
+    mfn3.AppendDir(hostName);
+    mfn2 = mfn3;
+    mfn2.SetName(mfn2.GetName() + "-" + hostName);
+    if (wxFileName::DirExists(mfn3.GetPath())) {
+        //file of same name, but in new directory
+        if (mfn3.Exists()) {
+            mediaFile = mfn3.GetFullPath();
+            mediaBaseName =  mfn3.GetFullName();
+            mfn = mfn3;
+            return;
+        }
+        if (mfn2.Exists()) {
+            mediaFile = mfn2.GetFullPath();
+            mediaBaseName =  mfn2.GetFullName();
+            mfn = mfn2;
+            return;
+        }
+        for (auto &a : FPP_MEDIA_EXT) {
+            mfn2.SetExt(a);
+            if (mfn2.Exists()) {
+                mediaFile = mfn2.GetFullPath();
+                mediaBaseName =  mfn2.GetFullName();
+                mfn = mfn2;
+                return;
+            }
+            mfn3.SetExt(a);
+            if (mfn3.Exists()) {
+                mediaFile = mfn3.GetFullPath();
+                mediaBaseName =  mfn3.GetFullName();
+                mfn = mfn3;
+                return;
+            }
+        }
+    }
+}
+
 bool FPP::PrepareUploadSequence(const FSEQFile &file,
                                 const std::string &seq,
                                 const std::string &media,
@@ -912,13 +978,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         mediaBaseName = mfn.GetFullName();
 
         if (majorVersion >= 6) {
-            wxFileName mfn2(media);
-            mfn2.SetName(mfn2.GetName() + "-" + hostName);
-            if (mfn2.Exists()) {
-                mediaFile = mfn2.GetFullPath();
-                mediaBaseName =  mfn2.GetFullName();
-                mfn = mfn2;
-            }
+            FindHostSpecificMedia(hostName, mediaBaseName, mediaFile, mfn);
         }
 
         bool doMediaUpload = true;
