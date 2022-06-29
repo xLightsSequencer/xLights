@@ -85,16 +85,18 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer4;
+	wxStaticText* StaticText3;
 
 	Create(parent, wxID_ANY, _("FPP Upload"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("wxID_ANY"));
+	SetMinSize(wxSize(800,-1));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_3DSASH, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinimumPaneSize(550);
+	SplitterWindow1->SetMinimumPaneSize(100);
 	SplitterWindow1->SetSashGravity(0.5);
 	FPPInstanceList = new wxScrolledWindow(SplitterWindow1, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
-	FPPInstanceList->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(-1,150)));
+	FPPInstanceList->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(800,100)));
 	FPPInstanceSizer = new wxFlexGridSizer(0, 11, 0, 0);
 	FPPInstanceList->SetSizer(FPPInstanceSizer);
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
@@ -122,19 +124,20 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	Panel1->SetSizer(FlexGridSizer2);
 	SplitterWindow1->SplitHorizontally(FPPInstanceList, Panel1);
 	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer4 = new wxFlexGridSizer(0, 5, 0, 0);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer4->AddGrowableCol(1);
+	FlexGridSizer4->AddGrowableRow(0);
 	AddFPPButton = new wxButton(this, ID_BUTTON1, _("Add FPP"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer4->Add(AddFPPButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	wxSize __SpacerSize_1 = wxDLG_UNIT(this,wxSize(50,-1));
-	FlexGridSizer4->Add(__SpacerSize_1.GetWidth(),__SpacerSize_1.GetHeight(),1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText3 = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer4->Add(StaticText3, 1, wxALL|wxEXPAND, 5);
 	Button_Upload = new wxButton(this, ID_BUTTON_Upload, _("Upload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Upload"));
 	FlexGridSizer4->Add(Button_Upload, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	cancelButton = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("wxID_CANCEL"));
 	FlexGridSizer4->Add(cancelButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->SetSizeHints(this);
+	Fit();
 
 	Connect(ID_CHOICE_FILTER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&FPPConnectDialog::OnChoiceFilterSelect);
 	Connect(ID_CHOICE_FOLDER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&FPPConnectDialog::OnChoiceFolderSelect);
@@ -221,14 +224,31 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
     LoadSequences();
 
-    int h = SplitterWindow1->GetSize().GetHeight();
-    h *= 33;
-    h /= 100;
-    SplitterWindow1->SetSashPosition(h);
-
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
+    
+    
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsFPPConnectPos", sz, loc);
+    if (loc.x != -1) {
+        if (sz.GetWidth() < 400)
+            sz.SetWidth(400);
+        if (sz.GetHeight() < 300)
+            sz.SetHeight(300);
+        SetPosition(loc);
+        SetSize(sz);
+    }
+    int h = config->ReadLong("FPPConnectSashPosition", 0);
+    if (h == 0) {
+        SplitterWindow1->GetSize().GetHeight();
+        h *= 33;
+        h /= 100;
+    }
+    SplitterWindow1->SetSashPosition(h);
+    EnsureWindowHeaderIsOnScreen(this);
+    Layout();
 
     UpdateSeqCount();
 }
@@ -491,7 +511,12 @@ FPPConnectDialog::~FPPConnectDialog()
     CheckListBox_Sequences->GetSortColumn(&sortCol, &ascendingOrder);
     config->Write("xLightsFPPConnectSequenceSortCol", sortCol);
     config->Write("xLightsFPPConnectSequenceSortOrder", ascendingOrder);
+    
+    int i = SplitterWindow1->GetSashPosition();
+    config->Write("FPPConnectSashPosition", i);
 
+    SaveWindowPosition("xLightsFPPConnectPos", this);
+    
 	//(*Destroy(FPPConnectDialog)
 	//*)
 
@@ -1208,7 +1233,6 @@ void FPPConnectDialog::SaveSettings(bool onlyInsts)
         config->Write("FPPConnectUploadPixelOut_" + keyPostfx, GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr));
         row++;
     }
-
     config->Flush();
 }
 

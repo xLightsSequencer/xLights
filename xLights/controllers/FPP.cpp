@@ -1111,6 +1111,24 @@ bool FPP::FinalizeUploadSequence() {
     return cancelled;
 }
 
+static bool PlaylistContainsEntry(wxJSONValue &pl, const std::string &media, const std::string &seq) {
+    for (int x = 0; x < pl.Size(); x++) {
+        wxJSONValue entry = pl[x];
+        if (seq == entry["sequenceName"].AsString().ToStdString()) {
+            if (media == "") {
+                if (entry["type"].AsString() == wxString("sequence")) {
+                    return true;
+                }
+            } else if (entry["type"].AsString() == "both") {
+                if (media == entry["mediaName"].AsString().ToStdString()) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 bool FPP::UploadPlaylist(const std::string &name) {
     wxJSONValue origJson;
     std::string fn;
@@ -1122,23 +1140,25 @@ bool FPP::UploadPlaylist(const std::string &name) {
     }
 
     for (const auto& info : sequences) {
-        wxJSONValue entry;
-        if (info.second.media != "") {
-            entry["type"] = wxString("both");
-            entry["enabled"] = 1;
-            entry["playOnce"] = 0;
-            entry["sequenceName"] = info.first;
-            entry["mediaName"] = info.second.media;
-            entry["videoOut"] = wxString("--Default--");
-            entry["duration"] = info.second.duration;
-        } else {
-            entry["type"] = wxString("sequence");
-            entry["enabled"] = 1;
-            entry["playOnce"] = 0;
-            entry["sequenceName"] = info.first;
-            entry["duration"] = info.second.duration;
+        if (!PlaylistContainsEntry(origJson["mainPlaylist"], info.second.media, info.first)) {
+            wxJSONValue entry;
+            if (info.second.media != "") {
+                entry["type"] = wxString("both");
+                entry["enabled"] = 1;
+                entry["playOnce"] = 0;
+                entry["sequenceName"] = info.first;
+                entry["mediaName"] = info.second.media;
+                entry["videoOut"] = wxString("--Default--");
+                entry["duration"] = info.second.duration;
+            } else {
+                entry["type"] = wxString("sequence");
+                entry["enabled"] = 1;
+                entry["playOnce"] = 0;
+                entry["sequenceName"] = info.first;
+                entry["duration"] = info.second.duration;
+            }
+            origJson["mainPlaylist"].Append(entry);
         }
-        origJson["mainPlaylist"].Append(entry);
     }
     origJson.Remove(wxString("playlistInfo"));
     origJson["name"] = name;
