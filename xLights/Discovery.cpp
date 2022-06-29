@@ -357,6 +357,18 @@ DiscoveredData *Discovery::FindByIp(const std::string &ip, const std::string &hn
     return nullptr;
 }
 
+DiscoveredData *Discovery::FindByUUID(const std::string &uuid) {
+    if (uuid != "") {
+        for (auto a : results) {
+            if (a->uuid == uuid) {
+                return a;
+            }
+        }
+    }
+    return nullptr;
+}
+
+
 DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std::string &proxy, const std::string &htmlBuffer) {
 #ifndef EXCLUDENETWORKUI
     if (htmlBuffer.find("SanDevices SACN") != std::string::npos && htmlBuffer.find("Pixel Controller") != std::string::npos) {
@@ -486,10 +498,12 @@ void Discovery::Discover() {
     if (curlMulti == nullptr) return;
 
     auto endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1200l;
+    auto maxTime = wxGetLocalTimeMillis().GetValue() + 10000L; // 10 seconds max
     int running = numCurls;
     uint8_t buffer[1500];
     
-    while (running || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime)) {
+    while ((running || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime))
+           && (wxGetLocalTimeMillis().GetValue() < maxTime)){
         memset(buffer, 0x00, sizeof(buffer));
         int readSize = 0;
         //first check to see if any of the socket have received data

@@ -46,6 +46,7 @@ class FPP : public BaseController
     std::string mode;
     std::string pixelControllerType;
     std::string panelSize;
+    std::string uuid = "";
 
     std::string proxy;
     std::set<std::string> proxies;

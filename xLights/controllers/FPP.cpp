@@ -908,7 +908,18 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     bool cancelled = false;
     if (media != "" && fppType == FPP_TYPE::FPP) {
         wxFileName mfn(media);
+        std::string mediaFile = media;
         mediaBaseName = mfn.GetFullName();
+
+        if (majorVersion >= 6) {
+            wxFileName mfn2(media);
+            mfn2.SetName(mfn2.GetName() + "-" + hostName);
+            if (mfn2.Exists()) {
+                mediaFile = mfn2.GetFullPath();
+                mediaBaseName =  mfn2.GetFullName();
+                mfn = mfn2;
+            }
+        }
 
         bool doMediaUpload = true;
         wxJSONValue currentMeta;
@@ -919,7 +930,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
             }
         }
         if (doMediaUpload) {
-            cancelled |= uploadOrCopyFile(mediaBaseName, media, "music");
+            cancelled |= uploadOrCopyFile(mediaBaseName, mediaFile, "music");
         }
         if (cancelled) {
             return cancelled;
@@ -2766,6 +2777,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         wxJSONValue &system = systems[x];
         std::string address = system[IPKey].AsString();
         std::string hostName = system[HostNameKey].IsNull() ? "" : system[HostNameKey].AsString();
+        std::string uuid = system.HasMember("uuid") ? system["uuid"].AsString() : (system.HasMember("UUID") ? system["UUID"].AsString() : "");
         if (address == "null" || hostName == "null") {
             continue;
         }
@@ -2773,9 +2785,13 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
             //ignore for some reason, FPP is occasionally returning an IPV6 address
             continue;
         }
-        DiscoveredData *found = discovery.FindByIp(address, hostName);
+        DiscoveredData *found = discovery.FindByUUID(uuid);
+        if (found == nullptr) {
+            found = discovery.FindByIp(address, hostName);
+        }
         DiscoveredData inst;
         inst.hostname = hostName;
+        inst.uuid = uuid;
         if (!system[PlatformKey].IsNull()) {
             inst.platform = system[PlatformKey].AsString();
         }
@@ -2821,6 +2837,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 found->ranges = inst.ranges;
                 found->mode = inst.mode;
                 found->typeId = inst.typeId;
+                found->uuid = inst.uuid;
             } else {
                 if (found->platform == "") {
                     found->platform = inst.platform;
@@ -2855,6 +2872,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
             found->ranges = inst.ranges;
             found->mode = inst.mode;
             found->typeId = inst.typeId;
+            found->uuid = inst.uuid;
 
             std::string ipAddr = inst.ip;
             CreateController(discovery, found);
@@ -2969,21 +2987,35 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
     SetControllerType(inst);
 }
 static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const std::string &proxy, const std::string &sysInfo) {
-    DiscoveredData *inst = discovery.FindByIp(ip, "", true);
-    inst->extraData["httpConnected"] = true;
-    if (proxy != "") {
-        inst->SetProxy(proxy);
-    }
     wxJSONValue val;
     wxJSONReader reader;
     bool parsed = reader.Parse(sysInfo, &val) == 0;
+    if (!parsed) {
+        DiscoveredData *inst = discovery.FindByIp(ip, "", true);
+        inst->extraData["httpConnected"] = true;
+        if (proxy != "") {
+            inst->SetProxy(proxy);
+        }
+    }
     if (parsed) {
+        std::string uuid = val.HasMember("uuid") ? val["uuid"].AsString() : (val.HasMember("UUID") ? val["UUID"].AsString() : "");
+
+        DiscoveredData *inst = discovery.FindByUUID(uuid);
+        if (inst == nullptr) {
+            inst = discovery.FindByIp(ip, "", true);
+        }
+        inst->extraData["httpConnected"] = true;
+        if (proxy != "") {
+            inst->SetProxy(proxy);
+        }
+        
         inst->platform = val["Platform"].AsString();
         inst->platformModel = val["Variant"].AsString();
         inst->version = val["Version"].AsString();
         inst->hostname = val["HostName"].AsString();
         inst->description = val["HostDescription"].AsString();
         inst->mode = val["Mode"].AsString();
+        inst->uuid = uuid;
         if (inst->typeId == 0 && val["typeId"].IsInt()) {
             inst->typeId = val["typeId"].AsInt();
         }
@@ -3405,7 +3437,7 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     // show network to be easier to do
     for (auto& it : outputManager->GetControllers()) {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr && eth->GetIP() != "") {
+        if (eth != nullptr && eth->GetIP() != "" && eth->GetIP() != "MULTICAST") {
             startAddresses.push_back(eth->GetIP());
             if (eth->GetFPPProxy() != "") {
                 startAddresses.push_back(eth->GetFPPProxy());
