@@ -33,7 +33,7 @@ ModelRemap::ModelRemap(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("This tool is used to take a model with valid/useful face definitions, state definitions and submodels and remap them onto a model with a reordered wiring layout.\n\nTo use the tool you must have 2 xmodel files.\n\nThe first xmodel is the custom model with the wrong wiring layout but the faces/states/submodels you want.\nThe second is an identically sized custom model with pixels in all the same positions but in a different order that you want to load the submodels into.\n\nAs part of this process all existing faces/states/submodels on the second xmodel file will be removed."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Set in code"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 2);
 	FlexGridSizer2->AddGrowableCol(1);

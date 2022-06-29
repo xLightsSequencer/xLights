@@ -807,13 +807,17 @@ void BulkEditComboBox::OnComboBoxPopup(wxCommandEvent& event)
 
         PopulateComboBox();
 
+        int sel = -1;
+        auto value = wxString::Format("%0.02f", wxAtof(GetValue()));
+
         wxArrayString choices;
         for (size_t i = 0; i < GetCount(); i++) {
             choices.push_back(GetString(i));
+            if (GetString(i) == value)
+                sel = i;
         }
 
         wxSingleChoiceDialog dlg(GetParent(), "", label, choices);
-        auto sel = GetSelection();
         if (sel >= 0 && sel < choices.size()) {
             dlg.SetSelection(sel);
         }
@@ -852,8 +856,9 @@ void BulkEditComboBox::PopulateComboBox()
 
     auto values = xLightsApp::GetFrame()->GetMainSequencer()->GetUniqueEffectPropertyValues(id);
     for (const auto& it: values) {
-        if (std::find(begin(_defaultOptions), end(_defaultOptions), it) == end(_defaultOptions)) {
-            AppendString(it);
+        auto v = wxString::Format("%0.02f", wxAtof(it));
+        if (std::find(begin(_defaultOptions), end(_defaultOptions), v) == end(_defaultOptions)) {
+            AppendString(v);
         }
     }
 }

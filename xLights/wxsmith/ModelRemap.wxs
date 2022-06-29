@@ -9,7 +9,7 @@
 			<growablecols>0</growablecols>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-					<label>This tool is used to take a model with valid/useful face definitions, state definitions and submodels and remap them onto a model with a reordered wiring layout.&#x0A;&#x0A;To use the tool you must have 2 xmodel files.&#x0A;&#x0A;The first xmodel is the custom model with the wrong wiring layout but the faces/states/submodels you want.&#x0A;The second is an identically sized custom model with pixels in all the same positions but in a different order that you want to load the submodels into.&#x0A;&#x0A;As part of this process all existing faces/states/submodels on the second xmodel file will be removed.</label>
+					<label>Set in code</label>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
