@@ -15,9 +15,9 @@
 
 #include <log4cpp/Category.hh>
 
-#if !defined(__WXMSW__)
+//#if !defined(__WXMSW__)
 #define USE_GITHUB_HOSTED_TOD
-#endif
+//#endif
 
 //(*IdInit(TipOfTheDayDialog)
 const long TipOfTheDayDialog::ID_HTMLWINDOW1 = wxNewId();
