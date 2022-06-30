@@ -239,10 +239,13 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
     _videoCodecContext->pix_fmt = static_cast<AVPixelFormat>(_outParams.pfmt);
     _videoCodecContext->thread_count = 8;
     
-    // _outParams.videoBitrate may be 0 which would allow the encoder to
-    // "choose" or flip to constant quality using the crf parameter
-    _videoCodecContext->bit_rate = _outParams.videoBitrate * 1000;
-    _videoCodecContext->rc_max_rate = _outParams.videoBitrate * 1000;
+     if (AV_CODEC_ID_MPEG4 != codec->id || _outParams.videoBitrate != 0) {
+        // _outParams.videoBitrate may be 0 which would allow the encoder to
+        // "choose" or flip to constant quality using the crf parameter
+        _videoCodecContext->bit_rate = _outParams.videoBitrate * 1000;
+        _videoCodecContext->rc_max_rate = _outParams.videoBitrate * 1000;
+    }
+
     if (codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
 #if defined(XL_DRAWING_WITH_METAL)
         // if Drawing with GL, we don't have the raw CVImage anyway
