@@ -257,6 +257,7 @@ class PixelTestDialog: public wxDialog
 		wxButton* Button_Save;
 		wxCheckBox* CheckBox_OutputToLights;
 		wxCheckBox* CheckBox_SuppressUnusedOutputs;
+		wxCheckBox* CheckBox_Tag50th;
 		wxFlexGridSizer* FlexGridSizer_Controllers;
 		wxFlexGridSizer* FlexGridSizer_ModelGroups;
 		wxFlexGridSizer* FlexGridSizer_Models;
@@ -390,6 +391,7 @@ class PixelTestDialog: public wxDialog
 		static const long ID_RADIOBUTTON_RGBCycle_ABCAllNone;
 		static const long ID_RADIOBUTTON_RGBCycle_MixedColors;
 		static const long ID_RADIOBUTTON_RGBCycle_RGBW;
+		static const long ID_CHECKBOX2;
 		static const long ID_PANEL10;
 		static const long ID_NOTEBOOK2;
 		static const long ID_STATICTEXT1;
@@ -410,6 +412,7 @@ class PixelTestDialog: public wxDialog
 		void OnClose(wxCloseEvent& event);
 		void OnCheckBox_SuppressUnusedOutputsClick(wxCommandEvent& event);
 		void OnNotebook1PageChanged(wxNotebookEvent& event);
+		void OnCheckBox_Tag50thClick(wxCommandEvent& event);
 		//*)
 
 		void OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event);

@@ -487,8 +487,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     jobPool("RenderPool"),
     AllModels(&_outputManager, this),
     AllObjects(this),
-    _presetSequenceElements(this), color_mgr(this),
-    _tod("", this)
+    _presetSequenceElements(this), color_mgr(this)
+#ifndef __WXMSW__ 
+    // windows does not like this as this is not pointing to a valid window
+    ,_tod("", this)
+#endif
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");

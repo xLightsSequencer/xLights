@@ -1183,6 +1183,7 @@ const long PixelTestDialog::ID_RADIOBUTTON_RGBCycle_ABCAll = wxNewId();
 const long PixelTestDialog::ID_RADIOBUTTON_RGBCycle_ABCAllNone = wxNewId();
 const long PixelTestDialog::ID_RADIOBUTTON_RGBCycle_MixedColors = wxNewId();
 const long PixelTestDialog::ID_RADIOBUTTON_RGBCycle_RGBW = wxNewId();
+const long PixelTestDialog::ID_CHECKBOX2 = wxNewId();
 const long PixelTestDialog::ID_PANEL10 = wxNewId();
 const long PixelTestDialog::ID_NOTEBOOK2 = wxNewId();
 const long PixelTestDialog::ID_STATICTEXT1 = wxNewId();
@@ -1431,6 +1432,10 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     FlexGridSizer13->Add(RadioButton_RGBCycle_MixedColors, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGBCycle_RGBW = new wxRadioButton(PanelRGBCycle, ID_RADIOBUTTON_RGBCycle_RGBW, _("R-G-B-W"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGBCycle_RGBW"));
     FlexGridSizer13->Add(RadioButton_RGBCycle_RGBW, 1, wxALL|wxEXPAND, 5);
+    CheckBox_Tag50th = new wxCheckBox(PanelRGBCycle, ID_CHECKBOX2, _("Tag every 50th node white @ 50%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+    CheckBox_Tag50th->SetValue(false);
+    CheckBox_Tag50th->SetToolTip(_("This is really only useful if you are testing a single model"));
+    FlexGridSizer13->Add(CheckBox_Tag50th, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer12->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 5);
     PanelRGBCycle->SetSizer(FlexGridSizer12);
     FlexGridSizer12->Fit(PanelRGBCycle);
@@ -1463,6 +1468,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&PixelTestDialog::OnNotebook1PageChanged);
     Connect(ID_CHECKBOX_OutputToLights,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnCheckBox_OutputToLightsClick);
     Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnCheckBox_SuppressUnusedOutputsClick);
+    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnCheckBox_Tag50thClick);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&PixelTestDialog::OnTimer1Trigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&PixelTestDialog::OnClose);
     //*)
@@ -2577,6 +2583,7 @@ void PixelTestDialog::OnTimer(long curtime)
     int v, BgColor[3], FgColor[3];
     unsigned int i;
     bool ColorChange;
+    bool fiftieth = CheckBox_Tag50th->GetValue();
 
     int NotebookSelection = Notebook2->GetSelection();
     if (NotebookSelection != LastNotebookSelection) {
@@ -2817,7 +2824,7 @@ void PixelTestDialog::OnTimer(long curtime)
                 BgColor[1] = sin(frequency * TestSeqIdx + 2.0) * 127 + 128;
                 BgColor[2] = sin(frequency * TestSeqIdx + 4.0) * 127 + 128;
                 TestSeqIdx++;
-                for (i = 0; i < chArray.Count(); i++) {
+                for (i = 0; i < chArray.Count(); ++i) {
                     _outputManager->SetOneChannel(chArray[i] - 1, BgColor[i % 3]);
                 }
             } else if (testFunc == PixelTestDialog::TestFunctions::RGBW) {
@@ -2877,6 +2884,15 @@ void PixelTestDialog::OnTimer(long curtime)
                     }
                     rgbCycle = (rgbCycle + 1) % _chaseGrouping;
                     NextSequenceStart += interval;
+                }
+            }
+
+            // we set the 50th pixel to white at 50%
+            if (fiftieth) {
+                for (i = 3 * (50 - 1); i < chArray.Count(); i += 150) {
+                    for (uint8_t j = 0; j < 3; j++) {
+                        _outputManager->SetOneChannel(chArray[i + j] - 1, 128);
+                    }
                 }
             }
             break;
@@ -3203,4 +3219,8 @@ void PixelTestDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
     // need to go through all items in the tree on the selected page and update them based on channels
     wxTreeListCtrl* tree = event.GetSelection() == 0 ? TreeListCtrl_Outputs : event.GetSelection() == 1 ? TreeListCtrl_ModelGroups : TreeListCtrl_Models;
     SetCheckBoxItemFromTracker(tree, tree->GetRootItem(), wxCheckBoxState::wxCHK_UNCHECKED);
+}
+
+void PixelTestDialog::OnCheckBox_Tag50thClick(wxCommandEvent& event)
+{
 }
