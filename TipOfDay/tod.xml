@@ -32,4 +32,8 @@
    <tip url="00030.html" title="xSchedule Show Folder" category="xSchedule" level="Beginner" exclude="OSX"/>
    <tip url="00031.html" title="Troubleshooting light control" category="General" level="Beginner" exclude=""/>
    <tip url="00032.html" title="FPP Priority Scheduling" category="FPP" level="Intermediate" exclude=""/>
+   <tip url="00033.html" title="Render Order" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00034.html" title="Sorting models in views" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00035.html" title="Channels, Controllers and Models" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00036.html" title="Wiring View" category="Layout" level="Beginner" exclude=""/>
 </tipofday>
