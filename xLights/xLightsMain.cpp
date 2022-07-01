@@ -488,10 +488,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     AllModels(&_outputManager, this),
     AllObjects(this),
     _presetSequenceElements(this), color_mgr(this)
-#ifndef __WXMSW__ 
-    // windows does not like this as this is not pointing to a valid window
-    ,_tod("", this)
-#endif
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
@@ -1224,7 +1220,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
 
-    _tod.PrepTipOfDay(this);
+    _tod = new TipOfTheDayDialog("", this);
+    _tod->PrepTipOfDay(this);
 
     Connect(wxEVT_HELP, (wxObjectEventFunction)&xLightsFrame::OnHelp);
     Notebook1->Connect(wxEVT_HELP, (wxObjectEventFunction) & xLightsFrame::OnHelp, 0, this);
@@ -2013,6 +2010,8 @@ xLightsFrame::~xLightsFrame()
     delete Button_ACCascade;
     delete Button_ACForeground;
     delete Button_ACBackground;
+    
+    delete _tod;
 
     //(*Destroy(xLightsFrame)
     //*)
@@ -10231,7 +10230,7 @@ void xLightsFrame::OnMenuItem_SilentVolSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_TODSelected(wxCommandEvent& event)
 {
-    if (!_tod.DoTipOfDay(true))
+    if (!_tod->DoTipOfDay(true))
     {
         wxBell();
     }

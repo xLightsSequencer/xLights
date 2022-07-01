@@ -15,6 +15,15 @@
 
 #include <log4cpp/Category.hh>
 
+//#define USE_WEBVIEW_FOR_TOD
+#ifdef USE_WEBVIEW_FOR_TOD
+#include <wx/webview.h>
+static const std::string BASE_URL = "https://raw.githack.com/smeighan/xLights/master/TipOfDay/";
+#else
+static const std::string BASE_URL = "https://raw.githubusercontent.com/smeighan/xLights/master/TipOfDay/";
+#endif
+
+
 #define USE_GITHUB_HOSTED_TOD
 
 //(*IdInit(TipOfTheDayDialog)
@@ -156,6 +165,11 @@ TipOfTheDayDialog::TipOfTheDayDialog(const std::string& url, wxWindow* parent, w
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TipOfTheDayDialog::OnCloseButtonClick);
     //*)
 
+#ifdef USE_WEBVIEW_FOR_TOD
+    webView = wxWebView::New(this, wxID_ANY);
+    FlexGridSizer1->Replace(HtmlWindow1, webView);
+#endif
+    
     SetSize(1200, 800);
     Layout();
     
@@ -186,11 +200,19 @@ void TipOfTheDayDialog::LoadURL(const std::string& url)
                 logger_base.warn("Tip Of Day unable to load file: %s", (const char*)file.c_str());
                 logger_base.info("Current directory: %s", (const char*)wxGetCwd().c_str());
             } else {
+#ifdef USE_WEBVIEW_FOR_TOD
+                webView->LoadURL(url);
+#else
                 HtmlWindow1->Reset();
                 HtmlWindow1->LoadFile(wxFileName(file));
+#endif
             }
         } else {
+#ifdef USE_WEBVIEW_FOR_TOD
+            webView->LoadURL(url);
+#else
             HtmlWindow1->LoadPage(url);
+#endif
         }
     }
     Layout();
@@ -199,7 +221,7 @@ void TipOfTheDayDialog::LoadURL(const std::string& url)
 std::string TipOfTheDayDialog::BuildURL(const std::string& url) const
 {
 #ifdef USE_GITHUB_HOSTED_TOD
-    return "https://raw.githubusercontent.com/smeighan/xLights/master/TipOfDay/" + url;
+    return BASE_URL + url;
 #else
     // exe location/TipOfDay/tod.xml
     wxFileName f(wxStandardPaths::Get().GetExecutablePath());

@@ -318,7 +318,7 @@ public:
     std::mutex saveLock;
     RenderCache _renderCache;
     std::atomic_bool _exiting;
-    TipOfTheDayDialog _tod;
+    TipOfTheDayDialog *_tod = nullptr;
 
     PhonemeDictionary dictionary;
 

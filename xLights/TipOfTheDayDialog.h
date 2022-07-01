@@ -14,6 +14,7 @@
 class TipOfDayThread;
 class TODTracker;
 class xlCachedHtmlWindow;
+class wxWebView;
 
 class TipOfTheDayDialog: public wxDialog
 {
@@ -40,6 +41,8 @@ class TipOfTheDayDialog: public wxDialog
 		xlCachedHtmlWindow* HtmlWindow1;
 		//*)
 
+    
+        wxWebView *webView;
 	protected:
 
 		//(*Identifiers(TipOfTheDayDialog)
