@@ -165,12 +165,12 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     // remove any 3d viewpoints
     viewpoint_mgr.Clear();
 
-    if (nd != CurrentDir && "" != CurrentDir) {
-        wxFileName kbf;
-        kbf.AssignDir(CurrentDir);
-        kbf.SetFullName("xlights_keybindings.xml");
-        mainSequencer->keyBindings.Save(kbf);
-    }
+    //if (nd != CurrentDir && "" != CurrentDir) {
+    //    wxFileName kbf;
+    //    kbf.AssignDir(CurrentDir);
+    //    kbf.SetFullName("xlights_keybindings.xml");
+     //   mainSequencer->keyBindings.Save(kbf);
+    //}
 
     // Check to see if any show directory files need to be saved
     CheckUnsavedChanges();

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="RestoreBackupDialog">
+		<title>Restore Dialog</title>
+		<size>800,400</size>
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>2</cols>
+			<growablecols>1</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxListBox" name="ID_LISTBOX_BACKUPS" variable="ListBoxBackups" member="yes">
+					<default>-1</default>
+					<handler function="OnListBoxBackupsSelect" entry="EVT_LISTBOX" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTreeCtrl" name="ID_TREECTRL_BACKUP_DATA" variable="TreeCtrlBackupData" member="yes">
+					<image_list>&lt;none&gt;</image_list>
+					<tree_items>
+						<item>TreeCtrlBackupData</item>
+						<item>&lt;none&gt;</item>
+					</tree_items>
+					<items_text>
+						<item2>TreeCtrlBackupData</item2>
+						<item2>&lt;none&gt;</item2>
+					</items_text>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxButton" name="ID_BUTTON_RUN" variable="ButtonRun" member="yes">
+					<label>Restore Backup</label>
+					<handler function="OnButtonRunClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT_BACKUPFOLDER" variable="StaticTextBackUpFolder" member="yes">
+					<label>BackUpFolder</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT_SHOWFOLDER" variable="StaticTextShowFolder" member="yes">
+					<label>ShowFolder</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

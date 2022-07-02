@@ -994,6 +994,7 @@
     </ClCompile>
     <ClCompile Include="TipOfTheDayDialog.cpp" />
     <ClCompile Include="ModelRemap.cpp" />
+    <ClCompile Include="RestoreBackupDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1996,6 +1997,7 @@
     </ClInclude>
     <ClInclude Include="TipOfTheDayDialog.h" />
     <ClInclude Include="ModelRemap.h" />
+    <ClInclude Include="RestoreBackupDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

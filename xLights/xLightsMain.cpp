@@ -104,6 +104,7 @@
 #include "graphics/opengl/xlGLCanvas.h"
 #include "ColourReplaceDialog.h"
 #include "ModelRemap.h"
+#include "RestoreBackupDialog.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -220,6 +221,7 @@ const long xLightsFrame::ID_MENUITEM2 = wxNewId();
 const long xLightsFrame::ID_MENUITEM8 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_RECENTFOLDERS = wxNewId();
 const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
+const long xLightsFrame::ID_FILE_RESTOREBACKUP = wxNewId();
 const long xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
 const long xLightsFrame::ID_SHIFT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MNU_SHIFT_SELECTED_EFFECTS = wxNewId();
@@ -814,6 +816,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     MenuItemBackup = new wxMenuItem(MenuFile, ID_FILE_BACKUP, _("Backup\tF10"), wxEmptyString, wxITEM_NORMAL);
     MenuItemBackup->SetBitmap(GetMenuItemBitmapBundle("wxART_HARDDISK"));
     MenuFile->Append(MenuItemBackup);
+    MenuItemRestoreBackup = new wxMenuItem(MenuFile, ID_FILE_RESTOREBACKUP, _("Restore Backup"), wxEmptyString, wxITEM_NORMAL);
+    MenuFile->Append(MenuItemRestoreBackup);
     mAltBackupMenuItem = new wxMenuItem(MenuFile, ID_FILE_ALTBACKUP, _("Alternate Backup\tF11"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(mAltBackupMenuItem);
     QuitMenuItem = new wxMenuItem(MenuFile, wxID_EXIT, _("Quit\tAlt-F4"), _("Quit the application"), wxITEM_NORMAL);
@@ -1121,6 +1125,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(ID_EXPORT_VIDEO,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Export_VideoSelected);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_FILE_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
+    Connect(ID_FILE_RESTOREBACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRestoreBackupSelected);
     Connect(ID_FILE_ALTBACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmAltBackupMenuItemSelected);
     Connect(wxID_EXIT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnQuit);
     Connect(ID_SHIFT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftEffectsSelected);
@@ -1958,10 +1963,11 @@ xLightsFrame::~xLightsFrame()
 
     config->Flush();
 
-    wxFileName kbf;
-    kbf.AssignDir(CurrentDir);
-    kbf.SetFullName("xlights_keybindings.xml");
-    mainSequencer->keyBindings.Save(kbf);
+    //added save to Keybindings dialog
+    //wxFileName kbf;
+    //kbf.AssignDir(CurrentDir);
+    //kbf.SetFullName("xlights_keybindings.xml");
+    //mainSequencer->keyBindings.Save(kbf);
 
     //must call these or the app will crash on exit
     m_mgr->UnInit();
@@ -2010,7 +2016,7 @@ xLightsFrame::~xLightsFrame()
     delete Button_ACCascade;
     delete Button_ACForeground;
     delete Button_ACBackground;
-    
+
     delete _tod;
 
     //(*Destroy(xLightsFrame)
@@ -2647,7 +2653,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
     }
 
     std::string errors = "";
-    BackupDirectory(CurrentDir, newDir, newDir, forceallfiles, errors);
+    BackupDirectory(CurrentDir, newDir, newDir, forceallfiles, _backupSubfolders, errors);
 
     if (errors != "") {
         DisplayError(errors, this);
@@ -2739,7 +2745,7 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
     return res;
 }
 
-void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors)
+void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, bool backupSubfolders, std::string& errors)
 {
     wxDir srcDir(sourceDir);
 
@@ -2756,14 +2762,14 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
     }
 
     // recurse through all directories but folders named Backup
-    if (_backupSubfolders) {
+    if (backupSubfolders) {
         wxString dir;
         // I dont think backup should follow symbolic links
         bool cont = srcDir.GetFirst(&dir, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
         while (cont) {
             if (dir.Lower() != "backup") {
                 wxDir subdir(srcDir.GetNameWithSep() + dir);
-                BackupDirectory(subdir.GetNameWithSep(), targetDirName + wxFileName::GetPathSeparator() + dir, lastCreatedDirectory, forceallfiles, errors);
+                BackupDirectory(subdir.GetNameWithSep(), targetDirName + wxFileName::GetPathSeparator() + dir, lastCreatedDirectory, forceallfiles, backupSubfolders, errors);
             }
             cont = srcDir.GetNext(&dir);
         }
@@ -4187,7 +4193,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
     }
 
     std::string errors;
-    BackupDirectory(CurrentDir, newDir, newDir, false, errors);
+    BackupDirectory(CurrentDir, newDir, newDir, false, _backupSubfolders, errors);
 
     if (errors != "") {
         DisplayError(errors, this);
@@ -10240,4 +10246,37 @@ void xLightsFrame::OnMenuItem_RemapCustomSelected(wxCommandEvent& event)
 {
     ModelRemap modelRemap(this);
     modelRemap.ShowModal();
+}
+
+void xLightsFrame::OnMenuItemRestoreBackupSelected(wxCommandEvent& event)
+{
+    if (CurrentSeqXmlFile != nullptr) {
+        wxMessageBox("Please Close the Open Sequence Before Using the Restore Backup Dialog");
+        return;
+    }
+    RestoreBackupDialog restore(showDirectory, _backupDirectory, this);
+    if (restore.ShowModal() ==  wxID_OK) {
+        auto restoreFolder = restore.GetRestoreDir();
+        wxProgressDialog prgs("Restoring Backup",
+                              "Restoring Backup", 100, this);
+
+        prgs.Pulse("Restoring Backup... " + restoreFolder);
+        prgs.Show();
+
+        if (!wxDirExists(restoreFolder)) {
+            DisplayError(wxString::Format("Unable to Restore backup directory '%s'!", restoreFolder).ToStdString());
+            return;
+        }
+        UnsavedNetworkChanges = false;
+        UnsavedRgbEffectsChanges = false;
+        modelsChangeCount = 0;
+        std::string errors;
+        BackupDirectory(restoreFolder, showDirectory, showDirectory,true,true, errors);
+
+        if (!errors.empty()) {
+            DisplayError(errors, this);
+        } else {
+            SetDir(showDirectory, true);
+        }
+    }
 }

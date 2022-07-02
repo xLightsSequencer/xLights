@@ -570,6 +570,7 @@
     <ClCompile Include="RenderCache.cpp" />
     <ClCompile Include="RenderProgressDialog.cpp" />
     <ClCompile Include="ResizeImageDialog.cpp" />
+    <ClCompile Include="RestoreBackupDialog.cpp" />
     <ClCompile Include="SaveChangesDialog.cpp" />
     <ClCompile Include="ScriptsDialog.cpp" />
     <ClCompile Include="SearchPanel.cpp" />
@@ -1041,6 +1042,7 @@
     <ClInclude Include="RenderProgressDialog.h" />
     <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="ResizeImageDialog.h" />
+    <ClInclude Include="RestoreBackupDialog.h" />
     <ClInclude Include="SaveChangesDialog.h" />
     <ClInclude Include="ScriptsDialog.h" />
     <ClInclude Include="SearchPanel.h" />

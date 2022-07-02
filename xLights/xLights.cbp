@@ -673,6 +673,8 @@
 		<Unit filename="RenderProgressDialog.h" />
 		<Unit filename="ResizeImageDialog.cpp" />
 		<Unit filename="ResizeImageDialog.h" />
+		<Unit filename="RestoreBackupDialog.cpp" />
+		<Unit filename="RestoreBackupDialog.h" />
 		<Unit filename="SOIL.h" />
 		<Unit filename="SaveChangesDialog.cpp" />
 		<Unit filename="SaveChangesDialog.h" />
@@ -1742,6 +1744,7 @@
 					<wxDialog wxs="wxsmith/ColourReplaceDialog.wxs" src="ColourReplaceDialog.cpp" hdr="ColourReplaceDialog.h" fwddecl="0" i18n="1" name="ColourReplaceDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/TipOfTheDayDialog.wxs" src="TipOfTheDayDialog.cpp" hdr="TipOfTheDayDialog.h" fwddecl="0" i18n="1" name="TipOfTheDayDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelRemap.wxs" src="ModelRemap.cpp" hdr="ModelRemap.h" fwddecl="0" i18n="1" name="ModelRemap" language="CPP" />
+					<wxDialog wxs="wxsmith/RestoreBackupDialog.wxs" src="RestoreBackupDialog.cpp" hdr="RestoreBackupDialog.h" fwddecl="0" i18n="1" name="RestoreBackupDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>
