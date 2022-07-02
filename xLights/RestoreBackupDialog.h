@@ -60,19 +60,15 @@ class RestoreBackupDialog: public wxDialog
 
 		wxString _showDir;
         wxString _backupDir;
-
 		wxString _restoreDir;
 
         void ListBackupDir();
-
-
         void PopulateDataBox(wxString const& folder);
         [[nodiscard]] wxArrayString GetSeqList(wxString const& folder) const;
         [[nodiscard]] std::vector<BController> LoadNetworkFile(wxString const& folder) const;
         [[nodiscard]] std::vector<BModel> LoadRGBEffectsFile(wxString const& folder) const;
 
 		void AddFolder(wxString path, wxTreeItemId parent);
-        wxTreeItemId FindTreeItem(wxTreeItemId parent, wxString name);
-
+        wxTreeItemId FindTreeItem(wxTreeItemId parent, wxString name) const;
 };
 

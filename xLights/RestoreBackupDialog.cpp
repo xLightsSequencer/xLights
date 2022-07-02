@@ -369,7 +369,7 @@ void RestoreBackupDialog::AddFolder( wxString path,  wxTreeItemId parent)
     }
 }
 
-wxTreeItemId RestoreBackupDialog::FindTreeItem(wxTreeItemId parent, wxString name)
+wxTreeItemId RestoreBackupDialog::FindTreeItem(wxTreeItemId parent, wxString name) const
 {
     wxTreeItemIdValue cookie;
     for (wxTreeItemId item = TreeCtrlBackupData->GetFirstChild(parent, cookie); item.IsOk(); item = TreeCtrlBackupData->GetNextChild(parent, cookie)) {

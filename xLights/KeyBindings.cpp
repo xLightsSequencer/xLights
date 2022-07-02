@@ -1019,6 +1019,9 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
             }
         }
         logger_base.debug("Keybindings loaded.");
+    } else {
+        logger_base.debug("Keybinding file not found, Creating Default File.");
+        Save();
     }
 
     std::string invalid = "";
