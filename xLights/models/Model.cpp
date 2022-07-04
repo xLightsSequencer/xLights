@@ -5670,7 +5670,9 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                             int errors = reader.Parse(f, &origJson);
                             if (!errors) {
                                 VendorModelDialog* dlg = nullptr;
-                                //bool block = false;
+#ifndef __WXMSW__
+                                bool block = false;
+#endif
                                 wxString vendorBlock;
                                 for (auto& name : origJson["mappings"].GetMemberNames()) {
                                     wxJSONValue v = origJson["mappings"][name];
@@ -5705,7 +5707,9 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                         }
                                         if (localBlock) {
                                             vendorBlock = vendor;
-                                            //block = true;
+#ifndef __WXMSW__
+                                            block = true;
+#endif
                                         }
                                         if (dlg->FindModelFile(vendor, newModelName)) {
                                             if (localBlock) {
