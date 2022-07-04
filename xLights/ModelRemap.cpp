@@ -136,8 +136,8 @@ void RemapModelProperties::RemapNodes(wxXmlNode* n, const std::string& attr, con
         if (r.Contains("-")) {
             auto hl = wxSplit(r, '-');
             if (hl.size() == 2) {
-                auto a1 = wxAtoi(hl[0]);
-                auto a2 = wxAtoi(hl[1]);
+                uint32_t a1 = wxAtoi(hl[0]);
+                uint32_t a2 = wxAtoi(hl[1]);
                 if (a1 <= a2) {
                     for (uint32_t i = a1; i <= a2; ++i) {
                         nl.push_back(i);
@@ -315,7 +315,7 @@ void RemapModelProperties::Load(const std::string& filename)
                 // dimensions
                 _w = wxAtoi(_xmodel.GetRoot()->GetAttribute("parm1", "0"));
                 _h = wxAtoi(_xmodel.GetRoot()->GetAttribute("parm2", "0"));
-                _d = wxAtoi(_xmodel.GetRoot()->GetAttribute("Depth", "0"));
+                _d = wxAtoi(_xmodel.GetRoot()->GetAttribute("Depth", "1"));
 
 				_message += "\nW: " + std::to_string(_w) + " H: " + std::to_string(_h) + " D: " + std::to_string(_d);
 

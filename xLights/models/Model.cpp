@@ -55,6 +55,8 @@
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "CachedFileDownloader.h"
 
+#define MOST_STRINGS_WE_EXPECT 100
+
 const long Model::ID_LAYERSIZE_INSERT = wxNewId();
 const long Model::ID_LAYERSIZE_DELETE = wxNewId();
 
@@ -407,26 +409,32 @@ protected:
 class StartChannelProperty : public wxStringProperty
 {
 public:
-    StartChannelProperty(Model *m,
+    StartChannelProperty(Model* m,
                          int strand,
-                        const wxString& label,
-                        const wxString& name,
-                        const wxString& value,
-                        std::string preview)
-        : wxStringProperty(label, name, value), m_model(m), m_strand(strand), _preview(preview) {
+                         const wxString& label,
+                         const wxString& name,
+                         const wxString& value,
+                         std::string preview) :
+        wxStringProperty(label, name, value), m_model(m), _preview(preview), m_strand(strand)
+    {
     }
+
     // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const override {
+    virtual const wxPGEditor* DoGetEditorClass() const override
+    {
         return wxPGEditor_TextCtrlAndButton;
     }
+
     // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override {
+    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
+    {
         return new StartChannelDialogAdapter(m_model, _preview);
     }
+
 protected:
-    Model *m_model;
+    Model* m_model = nullptr;
     std::string _preview;
-    int m_strand;
+    int m_strand = 0;
 };
 
 class ModelChainProperty : public wxStringProperty
@@ -447,7 +455,7 @@ public:
         return new ModelChainDialogAdapter(m_model);
     }
 protected:
-    Model *m_model;
+    Model *m_model = nullptr;
 };
 
 wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
@@ -701,7 +709,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         sp->Enable(GetControllerName() == "" || _controller == 0);
         if (hasIndiv) {
             int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
-            for (int x = 0; x < c; x++) {
+            for (int x = 0; x < c; ++x) {
                 wxString nm = StartChanAttrName(x);
                 std::string val = ModelXml->GetAttribute(nm).ToStdString();
                 if (val == "") {
@@ -720,10 +728,11 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         }
         else {
             // remove per strand start channels if individual isnt selected
-            for (int x = 0; x < 100; x++) {
+            for (uint32_t x = 0; x < MOST_STRINGS_WE_EXPECT; ++x) {
                 wxString nm = StartChanAttrName(x);
                 ModelXml->DeleteAttribute(nm);
             }
+            wxASSERT(!ModelXml->HasAttribute(StartChanAttrName(MOST_STRINGS_WE_EXPECT))); // if this fires in debug then our magic 100 just isnt big enough
         }
     }
 
@@ -831,7 +840,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         sp->SetAttribute("Min", 1);
         sp->SetAttribute("Max", 32);
         sp->SetEditor("SpinCtrl");
-        for (int i = 0; i < superStringColours.size(); i++) {
+        for (int i = 0; i < superStringColours.size(); ++i) {
             grid->AppendIn(p, new wxColourProperty(wxString::Format("Colour %d", i + 1), wxString::Format("SuperStringColour%d", i), superStringColours[i].asWxColor()));
         }
     }
@@ -873,9 +882,10 @@ void Model::ClearIndividualStartChannels()
 
     ModelXml->DeleteAttribute("Advanced");
     // remove per strand start channels if individual isnt selected
-    for (int x = 0; x < 100; x++) {
+    for (int x = 0; x < MOST_STRINGS_WE_EXPECT; ++x) {
         ModelXml->DeleteAttribute(StartChanAttrName(x));
     }
+    wxASSERT(!ModelXml->HasAttribute(StartChanAttrName(MOST_STRINGS_WE_EXPECT))); // if this fires then 100 is not the right magic number
 }
 
 void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
@@ -1981,9 +1991,10 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         } else {
             // overkill but just delete any that are there
-            for (int x = 0; x < 100; x++) {
+            for (int x = 0; x < MOST_STRINGS_WE_EXPECT; x++) {
                 ModelXml->DeleteAttribute(StartChanAttrName(x));
             }
+            wxASSERT(!ModelXml->HasAttribute(StartChanAttrName(MOST_STRINGS_WE_EXPECT)));
         }
         // Not sure if i can just remove these
         //RecalcStartChannels();
@@ -4491,17 +4502,19 @@ bool Model::ParseStateElement(const std::string& multi_str, std::vector<wxPoint>
     return !first_xy.empty(); //true;
 }
 
-void Model::ExportAsCustomXModel() const {
-
+void Model::ExportAsCustomXModel() const
+{
     wxString name = ModelXml->GetAttribute("name").Trim(true).Trim(false);
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
 
     wxFile f(filename);
     //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    if (!f.Create(filename, true) || !f.IsOpened())
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
     wxString cm = "";
 
@@ -4514,17 +4527,21 @@ void Model::ExportAsCustomXModel() const {
     for (size_t i = 0; i < nodeCount; i++) {
         float Sbufx = Nodes[i]->Coords[0].screenX;
         float Sbufy = Nodes[i]->Coords[0].screenY;
-        if (Sbufx < minsx) minsx = Sbufx;
-        if (Sbufx > maxsx) maxsx = Sbufx;
-        if (Sbufy < minsy) minsy = Sbufy;
-        if (Sbufy > maxsy) maxsy = Sbufy;
+        if (Sbufx < minsx)
+            minsx = Sbufx;
+        if (Sbufx > maxsx)
+            maxsx = Sbufx;
+        if (Sbufy < minsy)
+            minsy = Sbufy;
+        if (Sbufy > maxsy)
+            maxsy = Sbufy;
     }
 
     int scale = 1;
 
     while (!FindCustomModelScale(scale)) {
         ++scale;
-        if (scale > 100) { //I(Scott) am afraid of infinite while loops
+        if (scale > 100) { // I(Scott) am afraid of infinite while loops
             scale = 1;
             break;
         }
@@ -4543,28 +4560,21 @@ void Model::ExportAsCustomXModel() const {
     int* nodeLayout = (int*)malloc(sizey * sizex * sizeof(int));
     memset(nodeLayout, 0x00, sizey * sizex * sizeof(int));
 
-    for (int i = 0; i < nodeCount; i++)
-    {
+    for (int i = 0; i < nodeCount; ++i) {
         int x = (Nodes[i]->Coords[0].screenX - minx) * scale;
         int y = (sizey - ((Nodes[i]->Coords[0].screenY - miny) * scale) - 1);
         nodeLayout[y * sizex + x] = i + 1;
     }
 
-    for (int i = 0; i < sizey * sizex; i++)
-    {
-        if (i != 0)
-        {
-            if (i % sizex == 0)
-            {
+    for (int i = 0; i < sizey * sizex; ++i) {
+        if (i != 0) {
+            if (i % sizex == 0) {
                 cm += ";";
-            }
-            else
-            {
+            } else {
                 cm += ",";
             }
         }
-        if (nodeLayout[i] != 0)
-        {
+        if (nodeLayout[i] != 0) {
             cm += wxString::Format("%i", nodeLayout[i]);
         }
     }
@@ -4589,6 +4599,7 @@ void Model::ExportAsCustomXModel() const {
     f.Write(wxString::Format("name=\"%s\" ", name));
     f.Write(wxString::Format("parm1=\"%s\" ", p1));
     f.Write(wxString::Format("parm2=\"%s\" ", p2));
+    f.Write("Depth=\"1\" ");
     f.Write(wxString::Format("StringType=\"%s\" ", st));
     f.Write(wxString::Format("Transparency=\"%s\" ", t));
     f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
@@ -4609,18 +4620,15 @@ void Model::ExportAsCustomXModel() const {
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString face = SerialiseFace();
-    if (face != "")
-    {
+    if (face != "") {
         f.Write(face);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     // we only save the dimensions if it is a boxed location
@@ -4638,7 +4646,7 @@ wxString Model::ExportSuperStringColors() const
         return "";
     }
     wxString colors;
-    for (int i = 0; i < superStringColours.size(); i++) {
+    for (int i = 0; i < superStringColours.size(); ++i) {
         wxString c = superStringColours[i];
         colors += wxString::Format("SuperStringColour%d=\"%s\" ", i, c);
     }
@@ -4925,7 +4933,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
         int buffFirst = -1;
         int buffLast = -1;
         bool left = true;
-        int lastChan = -999;
+        //int lastChan = -999;
         while (first < last) {
             int n;
             if (left) {
@@ -4951,7 +4959,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
             }
 
             size_t CoordCount=GetCoordCount(n);
-            for(size_t c2=0; c2 < CoordCount; c2++) {
+            for(size_t c2=0; c2 < CoordCount; ++c2) {
                 // draw node on screen
                 float sx = Nodes[n]->Coords[c2].screenX;
                 float sy = Nodes[n]->Coords[c2].screenY;
@@ -4983,7 +4991,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
                 }
             }
 
-            lastChan = Nodes[n]->ActChan;
+            //lastChan = Nodes[n]->ActChan;
         }
         cache->program->addStep([=](xlGraphicsContext *ctx) {
             if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
@@ -4995,7 +5003,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
             }
         });
     }
-    for (int n = 0; n < NodeCount; n++) {
+    for (int n = 0; n < NodeCount; ++n) {
         if (n+1 == highlightpixel) {
             color = xlMAGENTA;
         } else if (highlightFirst && Nodes.size() > 1) {
@@ -5207,11 +5215,14 @@ bool Model::IsMultiCoordsPerNode() const
     return false;
 }
 
-void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
-    if (!IsActive() && preview->IsNoCurrentModel()) { return; }
+void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+{
+    if (!IsActive() && preview->IsNoCurrentModel()) {
+        return;
+    }
 
     bool mustEnd = false;
-    xlGraphicsContext *ctx = preview->getCurrentGraphicsContext();
+    xlGraphicsContext* ctx = preview->getCurrentGraphicsContext();
     if (ctx == nullptr) {
         bool success = preview->StartDrawing(pointSize);
         if (success) {
@@ -5247,10 +5258,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         // size indepentent and thus can be re-used unless the models rendeWi/Hi
         // changes (which should trigger the uiObjectsInvalid and clear
         // the cache anyway)
-        if (cache == nullptr
-            || cache->renderWi != renderWi
-            || cache->renderHi != renderHi) {
-
+        if (cache == nullptr || cache->renderWi != renderWi || cache->renderHi != renderHi) {
             if (cache != nullptr) {
                 delete cache;
             }
@@ -5291,19 +5299,21 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             cache->vica->SetName(GetName() + " - Preview");
             cache->program = ctx->createGraphicsProgram();
 
-            cache->vica->SetColorCount(NodeCount * 2); //upper one is for the clear edges of blended circles
+            cache->vica->SetColorCount(NodeCount * 2); // upper one is for the clear edges of blended circles
             cache->vica->PreAlloc(maxVertexCount);
 
             int startVertex = 0;
 
-            int first = 0; int last = NodeCount;
-            int buffFirst = -1; int buffLast = -1;
+            int first = 0;
+            int last = NodeCount;
+            int buffFirst = -1;
+            int buffLast = -1;
             bool left = true;
             while (first < last) {
                 int n;
                 if (left) {
                     n = first;
-                    first++;
+                    ++first;
                     if (NodeRenderOrder() == 1) {
                         if (buffFirst == -1) {
                             buffFirst = Nodes[n]->Coords[0].bufX;
@@ -5313,7 +5323,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                         }
                     }
                 } else {
-                    last--;
+                    --last;
                     n = last;
                     if (buffLast == -1) {
                         buffLast = Nodes[n]->Coords[0].bufX;
@@ -5323,25 +5333,23 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                     }
                 }
 
-                size_t CoordCount=GetCoordCount(n);
-                for(size_t c=0; c < CoordCount; c++) {
+                size_t CoordCount = GetCoordCount(n);
+                for (size_t c = 0; c < CoordCount; ++c) {
                     // draw node on screen
                     float newsx = Nodes[n]->Coords[c].screenX;
                     float newsy = Nodes[n]->Coords[c].screenY;
 
-                    if (lastPixelStyle != Nodes[n]->model->_pixelStyle
-                        || lastPixelSize != Nodes[n]->model->pixelSize) {
-
+                    if (lastPixelStyle != Nodes[n]->model->_pixelStyle || lastPixelSize != Nodes[n]->model->pixelSize) {
                         if (cache->vica->getCount() && (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE ||
                                                         lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH ||
                                                         Nodes[n]->model->_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE ||
                                                         Nodes[n]->model->_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH)) {
                             int count = cache->vica->getCount();
-                            cache->program->addStep([=](xlGraphicsContext *ctx) {
+                            cache->program->addStep([=](xlGraphicsContext* ctx) {
                                 if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                                     ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                                 } else {
-                                    ModelPreview *preview = (ModelPreview *)ctx->getWindow();
+                                    ModelPreview* preview = (ModelPreview*)ctx->getWindow();
                                     float pointSize = preview->calcPixelSize(lastPixelSize * pointScale);
                                     ctx->drawPoints(cache->vica, pointSize, lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH, startVertex, count - startVertex);
                                 }
@@ -5360,17 +5368,17 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                         if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                             ecolor += NodeCount;
                         }
-                        cache->vica->AddCircleAsTriangles(newsx, newsy, 0, lastPixelSize*pointScale, n, ecolor);
+                        cache->vica->AddCircleAsTriangles(newsx, newsy, 0, lastPixelSize * pointScale, n, ecolor);
                     }
                 }
             }
             if (cache->vica->getCount() > startVertex) {
                 int count = cache->vica->getCount();
-                cache->program->addStep([=](xlGraphicsContext *ctx) {
+                cache->program->addStep([=](xlGraphicsContext* ctx) {
                     if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                         ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                     } else {
-                        ModelPreview *preview = (ModelPreview *)ctx->getWindow();
+                        ModelPreview* preview = (ModelPreview*)ctx->getWindow();
                         float pointSize = preview->calcPixelSize(lastPixelSize * pointScale);
                         ctx->drawPoints(cache->vica, pointSize, lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH, startVertex, count - startVertex);
                     }
@@ -5378,7 +5386,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             }
         }
         int maxFlush = NodeCount;
-        for (int n = 0; n < NodeCount; n++) {
+        for (int n = 0; n < NodeCount; ++n) {
             xlColor color;
             Nodes[n]->GetColor(color);
             if (Nodes[n]->model->modelDimmingCurve != nullptr) {
@@ -5405,18 +5413,16 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             cache->vica->FlushColors(0, maxFlush);
         }
 
-        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
             // cache has the model in model coordinates
             // we need to scale/translate/etc.... to world
             ctx->PushMatrix();
-            ctx->Translate(w/2.0f - (ml < 0.0f ? ml : 0.0f),
-                           h/2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Translate(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
             ctx->Scale(scale, scale, 1.0);
             if (!GetModelScreenLocation().IsCenterBased()) {
                 ctx->Translate(-GetModelScreenLocation().RenderWi / 2.0,
-                               GetModelScreenLocation().GetVScaleFactor() < 0 ?
-                                    GetModelScreenLocation().RenderHt / 2.0 :
-                                    -GetModelScreenLocation().RenderHt / 2.0,
+                               GetModelScreenLocation().GetVScaleFactor() < 0 ? GetModelScreenLocation().RenderHt / 2.0 : -GetModelScreenLocation().RenderHt / 2.0,
                                0.0f);
                 ctx->Scale(1.0, GetModelScreenLocation().GetVScaleFactor(), 1.0);
             }
@@ -5664,7 +5670,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                             int errors = reader.Parse(f, &origJson);
                             if (!errors) {
                                 VendorModelDialog* dlg = nullptr;
-                                bool block = false;
+                                //bool block = false;
                                 wxString vendorBlock;
                                 for (auto& name : origJson["mappings"].GetMemberNames()) {
                                     wxJSONValue v = origJson["mappings"][name];
@@ -5699,7 +5705,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                         }
                                         if (localBlock) {
                                             vendorBlock = vendor;
-                                            block = true;
+                                            //block = true;
                                         }
                                         if (dlg->FindModelFile(vendor, newModelName)) {
                                             if (localBlock) {
