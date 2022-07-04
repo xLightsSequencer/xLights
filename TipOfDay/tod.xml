@@ -50,4 +50,8 @@
    <tip url="00048.html" title="Overlapping channels" category="Layout" level="Intermediate" exclude=""/>
    <tip url="00049.html" title="Triac failures" category="xSchedule" level="Advanced" exclude="OSX"/>
    <tip url="00050.html" title="Sub-buffers" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00051.html" title="Render progress" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00052.html" title="Logs" category="General" level="Expert" exclude=""/>
+   <tip url="00053.html" title="Free Videos for effects" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00054.html" title="Check Sequence: Model in multiple views" category="Layout" level="Advanced" exclude=""/>
 </tipofday>
