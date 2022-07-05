@@ -360,7 +360,7 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
             wxString newSetting = copiedAsset.GetFullPath().ToStdString();
             settings[settingEffectFile] = newSetting;
         } else {
-            _missingMedia.push_back(picFilePath.GetFullName().ToStdString());
+            if (picFilePath != "") _missingMedia.push_back(picFilePath.GetFullName().ToStdString());
         }
     }
 
