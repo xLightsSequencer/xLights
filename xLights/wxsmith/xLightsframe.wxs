@@ -1032,6 +1032,10 @@
 					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_HARDDISK&quot;)' />
 					<handler function="OnMenuItemBackupSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_FILE_RESTOREBACKUP" variable="MenuItemRestoreBackup" member="yes">
+					<label>Restore Backup</label>
+					<handler function="OnMenuItemRestoreBackupSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_FILE_ALTBACKUP" variable="mAltBackupMenuItem" member="yes">
 					<label>Alternate Backup</label>
 					<accel>F11</accel>

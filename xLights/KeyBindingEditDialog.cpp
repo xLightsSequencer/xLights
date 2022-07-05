@@ -31,6 +31,7 @@ const long KeyBindingEditDialog::ID_PANEL1 = wxNewId();
 const long KeyBindingEditDialog::ID_BUTTON1 = wxNewId();
 const long KeyBindingEditDialog::ID_BUTTON3 = wxNewId();
 const long KeyBindingEditDialog::ID_BUTTON2 = wxNewId();
+const long KeyBindingEditDialog::ID_BUTTON_SAVE = wxNewId();
 const long KeyBindingEditDialog::ID_BUTTON_CANCEL = wxNewId();
 //*)
 
@@ -74,13 +75,15 @@ KeyBindingEditDialog::KeyBindingEditDialog(xLightsFrame* parent, KeyBindingMap* 
 	FlexGridSizer3->Fit(Panel_Properties);
 	FlexGridSizer3->SetSizeHints(Panel_Properties);
 	FlexGridSizer1->Add(Panel_Properties, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer5 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 5, 0, 0);
 	Button_AddEffect = new wxButton(this, ID_BUTTON1, _("Add Effect"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer5->Add(Button_AddEffect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonAddPreset = new wxButton(this, ID_BUTTON3, _("Add Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	FlexGridSizer5->Add(ButtonAddPreset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonAddApplySetting = new wxButton(this, ID_BUTTON2, _("Add Apply Setting"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer5->Add(ButtonAddApplySetting, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonSave = new wxButton(this, ID_BUTTON_SAVE, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE"));
+	FlexGridSizer5->Add(ButtonSave, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Close = new wxButton(this, ID_BUTTON_CANCEL, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CANCEL"));
 	FlexGridSizer5->Add(Button_Close, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -96,6 +99,7 @@ KeyBindingEditDialog::KeyBindingEditDialog(xLightsFrame* parent, KeyBindingMap* 
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&KeyBindingEditDialog::OnButton_AddEffectClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&KeyBindingEditDialog::OnButtonAddPresetClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&KeyBindingEditDialog::OnButtonAddApplySettingClick);
+	Connect(ID_BUTTON_SAVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&KeyBindingEditDialog::OnButtonSaveClick);
 	Connect(ID_BUTTON_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&KeyBindingEditDialog::OnButton_CancelClick);
 	//*)
 
@@ -485,4 +489,9 @@ void KeyBindingEditDialog::OnButtonAddPresetClick(wxCommandEvent& event)
 	LoadList();
 	SelectKey(id);
 	SetKeyBindingProperties();
+}
+
+void KeyBindingEditDialog::OnButtonSaveClick(wxCommandEvent& event)
+{
+    _keyBindings->Save();
 }

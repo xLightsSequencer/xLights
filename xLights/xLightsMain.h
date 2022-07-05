@@ -605,6 +605,7 @@ public:
     void OnMenuItem_SilentVolSelected(wxCommandEvent& event);
     void OnMenuItem_TODSelected(wxCommandEvent& event);
     void OnMenuItem_RemapCustomSelected(wxCommandEvent& event);
+    void OnMenuItemRestoreBackupSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -716,6 +717,7 @@ public:
     static const long ID_MENUITEM8;
     static const long ID_MENUITEM_RECENTFOLDERS;
     static const long ID_FILE_BACKUP;
+    static const long ID_FILE_RESTOREBACKUP;
     static const long ID_FILE_ALTBACKUP;
     static const long ID_SHIFT_EFFECTS;
     static const long ID_MNU_SHIFT_SELECTED_EFFECTS;
@@ -894,6 +896,7 @@ public:
     wxMenuItem* MenuItemLayerSettings;
     wxMenuItem* MenuItemLoadEditPerspective;
     wxMenuItem* MenuItemModelPreview;
+    wxMenuItem* MenuItemRestoreBackup;
     wxMenuItem* MenuItemRunScript;
     wxMenuItem* MenuItemSearchEffects;
     wxMenuItem* MenuItemSelectEffect;
@@ -1442,7 +1445,7 @@ protected:
     void ResetEffectsXml();
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
     bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
-    void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
+    void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, bool backupSubfolders, std::string& errors);
     void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors);
     void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
     void OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone);
