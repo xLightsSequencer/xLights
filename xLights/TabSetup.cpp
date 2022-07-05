@@ -355,7 +355,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
 
     wxFileName kbf;
     kbf.AssignDir(CurrentDir);
-    kbf.SetFullName("xlights_keybindings.xml");
+    kbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
     mainSequencer->keyBindings.Load(kbf);
 
 

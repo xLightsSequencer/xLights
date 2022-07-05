@@ -10250,7 +10250,8 @@ void xLightsFrame::OnMenuItemRestoreBackupSelected(wxCommandEvent& event)
     }
     RestoreBackupDialog restore(showDirectory, _backupDirectory, this);
     if (restore.ShowModal() ==  wxID_OK) {
-        auto restoreFolder = restore.GetRestoreDir();
+        auto restoreFolder = restore.GetRestoreFolder();
+        auto restoreFiles = restore.GetRestoreFiles();
         wxProgressDialog prgs("Restoring Backup",
                               "Restoring Backup", 100, this);
 
@@ -10265,8 +10266,15 @@ void xLightsFrame::OnMenuItemRestoreBackupSelected(wxCommandEvent& event)
         UnsavedRgbEffectsChanges = false;
         modelsChangeCount = 0;
         std::string errors;
-        BackupDirectory(restoreFolder, showDirectory, showDirectory,true,true, errors);
-
+        for (auto const file : restoreFiles) {
+            prgs.Pulse("Restoring '" + file + "'...");
+            bool success = wxCopyFile(restoreFolder + wxFileName::GetPathSeparator() + file,
+                                      showDirectory + wxFileName::GetPathSeparator() + file);
+            if (!success) {
+                errors += "Unable to copy file \"" + file + "\"\n";
+            }
+        }
+ 
         if (!errors.empty()) {
             DisplayError(errors, this);
         } else {

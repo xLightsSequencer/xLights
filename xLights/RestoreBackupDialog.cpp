@@ -27,6 +27,8 @@
 
 #include "../include/globals.h"
 
+#include "ExternalHooks.h"
+
 struct BController {
     wxString Name;
     wxString Type;
@@ -87,11 +89,17 @@ struct BModel {
 };
 
 //(*IdInit(RestoreBackupDialog)
+const long RestoreBackupDialog::ID_STATICTEXT1 = wxNewId();
 const long RestoreBackupDialog::ID_LISTBOX_BACKUPS = wxNewId();
-const long RestoreBackupDialog::ID_TREECTRL_BACKUP_DATA = wxNewId();
-const long RestoreBackupDialog::ID_BUTTON_RUN = wxNewId();
+const long RestoreBackupDialog::ID_PANEL1 = wxNewId();
+const long RestoreBackupDialog::ID_CHECKLISTBOX_LAYOUT = wxNewId();
+const long RestoreBackupDialog::ID_TREECTRL_LAYOUT = wxNewId();
+const long RestoreBackupDialog::ID_SPLITTERWINDOW2 = wxNewId();
+const long RestoreBackupDialog::ID_CHECKLISTBOX_SEQUENCES = wxNewId();
+const long RestoreBackupDialog::ID_NOTEBOOK1 = wxNewId();
+const long RestoreBackupDialog::ID_SPLITTERWINDOW1 = wxNewId();
 const long RestoreBackupDialog::ID_STATICTEXT_BACKUPFOLDER = wxNewId();
-const long RestoreBackupDialog::ID_STATICTEXT_SHOWFOLDER = wxNewId();
+const long RestoreBackupDialog::ID_BUTTON_RUN = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(RestoreBackupDialog,wxDialog)
@@ -103,37 +111,68 @@ RestoreBackupDialog::RestoreBackupDialog(wxString const& showDir, wxString const
     _showDir(showDir), _backupDir(backupDir + wxFileName::GetPathSeparator() + "Backup")
 {
 	//(*Initialize(RestoreBackupDialog)
+	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 
-	Create(parent, id, _("Restore Dialog"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX, _T("id"));
-	SetClientSize(wxSize(800,400));
-	Move(wxDefaultPosition);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer1->AddGrowableCol(1);
+	Create(parent, wxID_ANY, _("Restore Dialog"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX, _T("wxID_ANY"));
+	SetClientSize(wxSize(900,500));
+	SetMinSize(wxSize(800,400));
+	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	ListBoxBackups = new wxListBox(this, ID_LISTBOX_BACKUPS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_BACKUPS"));
-	FlexGridSizer1->Add(ListBoxBackups, 1, wxALL|wxEXPAND, 5);
-	TreeCtrlBackupData = new wxTreeCtrl(this, ID_TREECTRL_BACKUP_DATA, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL_BACKUP_DATA"));
-	FlexGridSizer1->Add(TreeCtrlBackupData, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonRun = new wxButton(this, ID_BUTTON_RUN, _("Restore Backup"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RUN"));
-	FlexGridSizer1->Add(ButtonRun, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticTextBackUpFolder = new wxStaticText(this, ID_STATICTEXT_BACKUPFOLDER, _("BackUpFolder"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_BACKUPFOLDER"));
-	FlexGridSizer1->Add(StaticTextBackUpFolder, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticTextShowFolder = new wxStaticText(this, ID_STATICTEXT_SHOWFOLDER, _("ShowFolder"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_SHOWFOLDER"));
-	FlexGridSizer1->Add(StaticTextShowFolder, 1, wxALL|wxEXPAND, 5);
+	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxSize(602,134), wxSP_3D, _T("ID_SPLITTERWINDOW1"));
+	SplitterWindow1->SetMinSize(wxSize(900,400));
+	SplitterWindow1->SetMinimumPaneSize(100);
+	SplitterWindow1->SetSashGravity(0.5);
+	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	FlexGridSizer2 = new wxFlexGridSizer(2, 1, 0, 0);
+	FlexGridSizer2->AddGrowableCol(0);
+	FlexGridSizer2->AddGrowableRow(1);
+	StaticText1 = new wxStaticText(Panel1, ID_STATICTEXT1, _("Backups:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
+	ListBoxBackups = new wxListBox(Panel1, ID_LISTBOX_BACKUPS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_BACKUPS"));
+	ListBoxBackups->SetMinSize(wxSize(250,400));
+	FlexGridSizer2->Add(ListBoxBackups, 0, wxEXPAND, 0);
+	Panel1->SetSizer(FlexGridSizer2);
+	FlexGridSizer2->Fit(Panel1);
+	FlexGridSizer2->SetSizeHints(Panel1);
+	Notebook1 = new wxNotebook(SplitterWindow1, ID_NOTEBOOK1, wxPoint(545,100), wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
+	Notebook1->SetMinSize(wxSize(600,400));
+	SplitterWindow2 = new wxSplitterWindow(Notebook1, ID_SPLITTERWINDOW2, wxPoint(57,24), wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW2"));
+	SplitterWindow2->SetMinimumPaneSize(10);
+	SplitterWindow2->SetSashGravity(0.6);
+	CheckListBoxLayout = new wxCheckListBox(SplitterWindow2, ID_CHECKLISTBOX_LAYOUT, wxPoint(42,42), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_LAYOUT"));
+	CheckListBoxLayout->SetMinSize(wxSize(0,300));
+	TreeCtrlBackupLayout = new wxTreeCtrl(SplitterWindow2, ID_TREECTRL_LAYOUT, wxPoint(412,61), wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL_LAYOUT"));
+	TreeCtrlBackupLayout->SetMinSize(wxSize(0,300));
+	SplitterWindow2->SplitVertically(CheckListBoxLayout, TreeCtrlBackupLayout);
+	CheckListBoxSequences = new wxCheckListBox(Notebook1, ID_CHECKLISTBOX_SEQUENCES, wxPoint(150,7), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_SEQUENCES"));
+	Notebook1->AddPage(SplitterWindow2, _("Controllers/Layout"), true);
+	Notebook1->AddPage(CheckListBoxSequences, _("Sequences"), false);
+	SplitterWindow1->SplitVertically(Panel1, Notebook1);
+	SplitterWindow1->SetSashPosition(10);
+	FlexGridSizer1->Add(SplitterWindow1, 2, wxALL|wxEXPAND, 5);
+	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
+	StaticTextBackUpFolder = new wxStaticText(this, ID_STATICTEXT_BACKUPFOLDER, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_BACKUPFOLDER"));
+	BoxSizer1->Add(StaticTextBackUpFolder, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonRun = new wxButton(this, ID_BUTTON_RUN, _("Backup Files"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RUN"));
+	BoxSizer1->Add(ButtonRun, 0, wxALL, 5);
+	BoxSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	SetSizer(FlexGridSizer1);
 	Layout();
 
 	Connect(ID_LISTBOX_BACKUPS,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&RestoreBackupDialog::OnListBoxBackupsSelect);
+	Connect(ID_CHECKLISTBOX_LAYOUT,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&RestoreBackupDialog::OnCheckListBoxLayoutToggled);
+	Connect(ID_CHECKLISTBOX_SEQUENCES,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&RestoreBackupDialog::OnCheckListBoxSequencesToggled);
 	Connect(ID_BUTTON_RUN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RestoreBackupDialog::OnButtonRunClick);
 	//*)
     SetEscapeId(wxID_CANCEL);
 
     ListBackupDir();
+    ValidateWindow();
 }
 
 RestoreBackupDialog::~RestoreBackupDialog()
@@ -142,9 +181,37 @@ RestoreBackupDialog::~RestoreBackupDialog()
 	//*)
 }
 
+void RestoreBackupDialog::ValidateWindow()
+{
+    wxArrayInt laysel;
+    CheckListBoxLayout->GetCheckedItems(laysel);
+    wxArrayInt seqsel;
+    CheckListBoxSequences->GetCheckedItems(seqsel);
+    if (laysel.size() + seqsel.size() == 0) {
+        ButtonRun->Enable(false);
+    } else {
+        ButtonRun->Enable(true);
+    }
+}
+
 void RestoreBackupDialog::OnButtonRunClick(wxCommandEvent& event)
 {
+    _restoreFiles.clear();
     if (_restoreDir.empty()) {
+        return;
+    }
+
+    for (size_t x = 0; x < CheckListBoxLayout->GetCount(); x++) {
+        if (CheckListBoxLayout->IsChecked(x)) {
+            _restoreFiles.push_back(CheckListBoxLayout->GetString(x));
+        }
+    }
+    for (size_t x = 0; x < CheckListBoxSequences->GetCount(); x++) {
+        if (CheckListBoxSequences->IsChecked(x)) {
+            _restoreFiles.push_back(CheckListBoxSequences->GetString(x));
+        }
+    }
+    if (_restoreFiles.empty()) {
         return;
     }
     if (wxMessageBox("This will override any open file.\nAre you sure you want do this?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
@@ -164,8 +231,11 @@ void RestoreBackupDialog::OnListBoxBackupsSelect(wxCommandEvent& event)
 
     if (wxDir::Exists(folder)) {
         _restoreDir = folder;
-        PopulateDataBox(folder);
+        PopulateLayoutDataBox(folder);
+        PopulateLayoutList(folder);
+        PopulateSequenceList(folder);
     }
+    ValidateWindow();
 }
 
 void RestoreBackupDialog::ListBackupDir()
@@ -174,11 +244,10 @@ void RestoreBackupDialog::ListBackupDir()
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     StaticTextBackUpFolder->SetLabel("Backup Folder: " + _backupDir);
-    StaticTextShowFolder->SetLabel("Show Folder: " + _showDir);
 
     if (!wxDir::Exists(_backupDir)) {
         logger_base.info("Backup folder doesnt exist: %s", (const char*)_backupDir.c_str());
-        StaticTextBackUpFolder->SetLabel(StaticTextShowFolder->GetLabel() + " Not Found");
+        StaticTextBackUpFolder->SetLabel(_backupDir + " Not Found");
         StaticTextBackUpFolder->SetForegroundColour(wxColor(*wxRED));
     }
 
@@ -200,60 +269,71 @@ void RestoreBackupDialog::ListBackupDir()
     }
 }
 
-void RestoreBackupDialog::PopulateDataBox(wxString const& folder)
+void RestoreBackupDialog::PopulateLayoutDataBox(wxString const& folder)
 {
-    TreeCtrlBackupData->DeleteAllItems();
-    auto treeRootID = TreeCtrlBackupData->AddRoot(folder);
+    TreeCtrlBackupLayout->DeleteAllItems();
+    auto treeRootID = TreeCtrlBackupLayout->AddRoot(folder);
 
     auto const controllers = LoadNetworkFile(folder);
     auto const models = LoadRGBEffectsFile(folder);
-    auto const sequences = GetSeqList(folder);
 
-    auto curGroupID = TreeCtrlBackupData->AppendItem(treeRootID,
+    auto curGroupID = TreeCtrlBackupLayout->AppendItem(treeRootID,
         wxString::Format("Controllers [%zu Found]", controllers.size()));
-    TreeCtrlBackupData->SetItemHasChildren(curGroupID);
+    TreeCtrlBackupLayout->SetItemHasChildren(curGroupID);
     for (auto const& c : controllers) {
-
-        wxTreeItemId item = FindTreeItem(curGroupID, c.Type);
-        if (item.IsOk()) {
-            item = TreeCtrlBackupData->AppendItem(item, c.Name);
-        } else {
-            auto nextID = TreeCtrlBackupData->AppendItem(curGroupID, c.Type);
-            TreeCtrlBackupData->SetItemHasChildren(nextID);
-            item = TreeCtrlBackupData->AppendItem(nextID, c.Name);
-        }
-        TreeCtrlBackupData->SetItemHasChildren(item);
-        TreeCtrlBackupData->AppendItem(item, "IP/Com:" + c.IPCom);
-        TreeCtrlBackupData->AppendItem(item, "Protocol:" + c.Protocol);
+        auto item = TreeCtrlBackupLayout->AppendItem(curGroupID, c.Name);
+        TreeCtrlBackupLayout->SetItemHasChildren(item);
+        TreeCtrlBackupLayout->AppendItem(item, "IP/Com:" + c.IPCom);
+        TreeCtrlBackupLayout->AppendItem(item, "Type:" + c.Type);
+        TreeCtrlBackupLayout->AppendItem(item, "Protocol:" + c.Protocol);
     }
 
-    curGroupID = TreeCtrlBackupData->AppendItem(treeRootID,
+    curGroupID = TreeCtrlBackupLayout->AppendItem(treeRootID,
         wxString::Format("Models [%zu Found]", models.size()));
-    TreeCtrlBackupData->SetItemHasChildren(curGroupID);
+    TreeCtrlBackupLayout->SetItemHasChildren(curGroupID);
 
     for (auto const& m : models) {
-
-        wxTreeItemId item = FindTreeItem(curGroupID, m.Layout);
-        if (item.IsOk()) {
-            item = TreeCtrlBackupData->AppendItem(item, m.Name);
-        } else {
-            auto nextID = TreeCtrlBackupData->AppendItem(curGroupID, m.Layout);
-            TreeCtrlBackupData->SetItemHasChildren(nextID);
-            item = TreeCtrlBackupData->AppendItem(nextID, m.Name);
-        }
-        TreeCtrlBackupData->SetItemHasChildren(item);
-        TreeCtrlBackupData->AppendItem(item, "Type:" + m.Type);
-        TreeCtrlBackupData->AppendItem(item, "StartChanel:" + m.StartChanel);
+        wxTreeItemId item = TreeCtrlBackupLayout->AppendItem(curGroupID, m.Name);
+        TreeCtrlBackupLayout->SetItemHasChildren(item);
+        TreeCtrlBackupLayout->AppendItem(item, "Type:" + m.Type);
+        TreeCtrlBackupLayout->AppendItem(item, "StartChanel:" + m.StartChanel);
+        TreeCtrlBackupLayout->AppendItem(item, "Preview:" + m.Layout);
     }
 
-    curGroupID = TreeCtrlBackupData->AppendItem(treeRootID,
-                                                wxString::Format("Sequences [%zu Found]", sequences.size()));
+    TreeCtrlBackupLayout->Expand(treeRootID);
+    wxTreeItemIdValue cookie;
+    for (wxTreeItemId item = TreeCtrlBackupLayout->GetFirstChild(treeRootID, cookie); item.IsOk(); item = TreeCtrlBackupLayout->GetNextChild(item, cookie)) {
+        TreeCtrlBackupLayout->Expand(item);
+    }
+    //TreeCtrlBackupLayout->ExpandAll();
+}
 
+void RestoreBackupDialog::PopulateLayoutList(wxString const& folder)
+{
+    CheckListBoxLayout->Clear();
+
+    if (FileExists(wxFileName(folder, XLIGHTS_NETWORK_FILE))) {
+        auto idx = CheckListBoxLayout->Append(XLIGHTS_NETWORK_FILE);
+        CheckListBoxLayout->Check(idx);
+    }
+    if (FileExists(wxFileName(folder, XLIGHTS_RGBEFFECTS_FILE))) {
+        auto idx = CheckListBoxLayout->Append(XLIGHTS_RGBEFFECTS_FILE);
+        CheckListBoxLayout->Check(idx);
+    }
+    if (FileExists(wxFileName(folder, XLIGHTS_KEYBINDING_FILE))) {
+        auto idx = CheckListBoxLayout->Append(XLIGHTS_KEYBINDING_FILE);
+        CheckListBoxLayout->Check(idx);
+    }
+
+}
+
+void RestoreBackupDialog::PopulateSequenceList(wxString const& folder)
+{
+    CheckListBoxSequences->Clear();
+    auto const sequences = GetSeqList(folder);
     for (auto const& s : sequences) {
-        AddFolder(s, curGroupID);
+        CheckListBoxSequences->Append(s);
     }
-
-    TreeCtrlBackupData->Expand(treeRootID);
 }
 
 std::vector<BController> RestoreBackupDialog::LoadNetworkFile(wxString const& folder) const
@@ -349,35 +429,14 @@ wxArrayString RestoreBackupDialog::GetSeqList(wxString const& folder) const
     return returnList;
 }
 
-void RestoreBackupDialog::AddFolder( wxString path,  wxTreeItemId parent)
-{
-    if(path.Contains(wxFileName::GetPathSeparator()))
-    {
-        wxString folder = path.Left(path.First(wxFileName::GetPathSeparator()));
-        wxString newPath = path.Right(path.Length() - (path.First(wxFileName::GetPathSeparator()) + 1));
-        wxTreeItemId item = FindTreeItem(parent, folder);
-        if (item.IsOk()) {
-            return AddFolder(newPath, item);
-        } else {
-            auto nextID = TreeCtrlBackupData->AppendItem(parent, folder);
-            TreeCtrlBackupData->SetItemHasChildren(nextID);
-            return AddFolder(newPath, nextID);
-        }
 
-    } else {
-        TreeCtrlBackupData->AppendItem(parent, path);
-    }
+
+void RestoreBackupDialog::OnCheckListBoxLayoutToggled(wxCommandEvent& event)
+{
+    ValidateWindow();
 }
 
-wxTreeItemId RestoreBackupDialog::FindTreeItem(wxTreeItemId parent, wxString name) const
+void RestoreBackupDialog::OnCheckListBoxSequencesToggled(wxCommandEvent& event)
 {
-    wxTreeItemIdValue cookie;
-    for (wxTreeItemId item = TreeCtrlBackupData->GetFirstChild(parent, cookie); item.IsOk(); item = TreeCtrlBackupData->GetNextChild(parent, cookie)) {
-        auto treeItm = TreeCtrlBackupData->GetItemText(item);
-        if (treeItm == name) {
-            return item;
-        }
-    }
-
-    return wxTreeItemId();
+    ValidateWindow();
 }

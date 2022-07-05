@@ -544,9 +544,9 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
     for (auto &filename : files) {
         wxFileName fn(filename);
         wxString file = fn.GetFullName();
-        if (file != "xlights_rgbeffects.xml"
+        if (file != XLIGHTS_RGBEFFECTS_FILE
             && file != OutputManager::GetNetworksFileName()
-            && file != "xlights_keybindings.xml"
+            && file != XLIGHTS_KEYBINDING_FILE
             && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))
             && FileExists(filename)) {
             wxFile doc(filename);
