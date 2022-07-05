@@ -77,11 +77,9 @@ public:
 
     virtual void* Entry() override
     {
-        // TODO download Tip of day content here
-
+        // download Tip of day content here
         CachedFileDownloader cache;
-
-        auto file = cache.GetFile(wxURI("https://raw.githubusercontent.com/smeighan/xLights/master/TipOfDay/tod.xml"), CACHEFOR::CACHETIME_DAY);
+        auto file = cache.GetFile(wxURI(BASE_URL + "tod.xml"), CACHEFOR::CACHETIME_DAY);
 
         wxCommandEvent e(EVT_TIPOFDAY_READY);
         e.SetString(file);
@@ -194,6 +192,7 @@ void TipOfTheDayDialog::LoadURL(const std::string& url)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (url != "") {
+        logger_base.warn("Tip Of Day: %s", (const char*)url.c_str());
         if (StartsWith(url, "file://")) {
             auto file = url.substr(7);
             if (!wxFile::Exists(file)) {
