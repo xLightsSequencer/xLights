@@ -10266,7 +10266,7 @@ void xLightsFrame::OnMenuItemRestoreBackupSelected(wxCommandEvent& event)
         UnsavedRgbEffectsChanges = false;
         modelsChangeCount = 0;
         std::string errors;
-        for (auto const file : restoreFiles) {
+        for (auto const& file : restoreFiles) {
             prgs.Pulse("Restoring '" + file + "'...");
             bool success = wxCopyFile(restoreFolder + wxFileName::GetPathSeparator() + file,
                                       showDirectory + wxFileName::GetPathSeparator() + file);
