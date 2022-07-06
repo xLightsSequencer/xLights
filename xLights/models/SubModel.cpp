@@ -76,7 +76,8 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
             int idx = a.Index('-');
             return std::make_pair(wxAtoi(a.Left(idx)), wxAtoi(a.Right(a.size() - idx - 1)));
         }
-        return std::make_pair(wxAtoi(a), wxAtoi(a));
+        int i = wxAtoi(a);
+        return std::make_pair(i, i);
     };
 
     unsigned int startChannel = UINT32_MAX;

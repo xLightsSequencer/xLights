@@ -288,7 +288,7 @@ inline std::string Lower(const std::string& input) noexcept
 
 inline std::string Trim(const std::string& input)
 {
-    if (input == "") return "";
+    if (input.empty()) return "";
 
     size_t firstnonblank = 0;
     int lastnonblank = input.size()-1;
@@ -298,7 +298,31 @@ inline std::string Trim(const std::string& input)
     if (lastnonblank < firstnonblank) return "";
     return input.substr(firstnonblank, lastnonblank - firstnonblank + 1);
 }
-
+inline void Split(const std::string &frag, char splitBy, std::vector<std::string>& tokens, bool trim = false)
+{
+    // Loop infinitely - break is internal.
+    size_t lastIdx = 0;
+    while (true) {
+        size_t splitAt = frag.find_first_of(splitBy, lastIdx);
+        // If we didn't find a new split point...
+        if (splitAt == std::string::npos) {
+            std::string f = frag.substr(lastIdx);
+            tokens.push_back(trim ? Trim(f) : f);
+            break;
+        }
+        std::string newf = frag.substr(lastIdx, splitAt - lastIdx);
+        if (trim) {
+            newf = Trim(newf);
+        }
+        tokens.push_back(newf);
+        lastIdx = splitAt + 1;
+    }
+}
+inline std::vector<std::string> Split(const std::string &frag, char splitBy, bool trim = false) {
+    std::vector<std::string> r;
+    Split(frag, splitBy, r, trim);
+    return r;
+}
 static inline double toRadians(float degrees)
 {
     return 2.0 * M_PI * double(degrees) / 360.0;

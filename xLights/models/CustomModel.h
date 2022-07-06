@@ -88,4 +88,5 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         std::string custom_background;
         int _strings;
         std::vector<int> stringStartNodes;
+        std::vector<std::vector<std::vector<int>>> locations;
 };

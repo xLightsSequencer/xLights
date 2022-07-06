@@ -2591,15 +2591,12 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
                     valid = false;
                 }
             }
-        }
-        else if (start[0] == '!')
-        {
-            wxString ss = wxString(str);
-            wxArrayString cs = wxSplit(ss.SubString(1, ss.Length()), ':');
-            if (cs.Count() == 2) {
-                Controller* c = modelManager.GetOutputManager()->GetController(cs[0].Trim(false).Trim(true).ToStdString());
+        }  else if (start[0] == '!') {
+            if (sc.find_first_of(':') == std::string::npos) {
+                std::string cs = Trim(start.substr(1));
+                Controller* c = modelManager.GetOutputManager()->GetController(cs);
                 if (c != nullptr) {
-                    return c->GetStartChannel() - 1 + wxAtoi(cs[1]);
+                    return c->GetStartChannel() - 1 + wxAtoi(sc);
                 }
             }
             valid = false;
@@ -3200,7 +3197,7 @@ char Model::GetAbsoluteChannelColorLetter(int32_t absoluteChannel)
 std::string Model::GetControllerPortSortString() const
 {
     auto controller = GetControllerName();
-    if (controller == "") {
+    if (controller.empty()) {
         controller = PadLeft("Z", 'Z', 140);
     }
     auto port = GetControllerPort();
@@ -3268,7 +3265,7 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
         visitedModels.push_back(referencedModel);
     }
 
-    if (modelFormat != "")
+    if (!modelFormat.empty())
     {
         if (modelFormat[0] == '#')
         {
@@ -3335,12 +3332,12 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
     else if (firstChar == '@' || firstChar == '>' || CountChar(modelFormat, ':') == 0)
     {
         // absolute
-        return wxString::Format("%u", channel).ToStdString();
+        return std::to_string(channel);
     }
     else
     {
         // This used to be output:sc ... but that is no longer valid
-        return wxString::Format("%u", channel).ToStdString();
+        return std::to_string(channel);
     }
 }
 
@@ -3736,23 +3733,17 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             GetModelScreenLocation().PrepareToDraw(false, false);
         }
 
-        // We save the transformed coordinates here so we dont have to calculate them all twice
-        std::list<float> outx;
-        std::list<float> outy;
-
         // For 3D render view buffers recursively process each individual model...should be able to handle nested model groups
         if (GetDisplayAs() == "ModelGroup" && camera != "2D") {
             std::vector<Model *> models;
-            wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
+            auto mn = Split(ModelXml->GetAttribute("models").ToStdString(), ',', true);
             int nc = 0;
             for (int x = 0; x < mn.size(); x++) {
-                Model *c = modelManager.GetModel(mn[x].Trim(true).Trim(false).ToStdString());
+                Model *c = modelManager.GetModel(mn[x]);
                 if (c != nullptr) {
                     models.push_back(c);
                     nc += c->GetNodeCount();
-                }
-                else if (mn[x] == "")
-                {
+                } else if (mn[x].empty()) {
                     // silently ignore blank models
                 }
             }
@@ -3766,6 +3757,11 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             }
         }
 
+        // We save the transformed coordinates here so we dont have to calculate them all twice
+        std::vector<float> outx;
+        std::vector<float> outy;
+        outx.reserve(newNodes.size() - firstNode); //common case is one coord per node so size for that
+        outy.reserve(newNodes.size() - firstNode);
         for (int x = firstNode; x < newNodes.size(); x++) {
             if (newNodes[x] == nullptr) {
                 logger_base.crit("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
@@ -4114,8 +4110,8 @@ void Model::AddLayerSizeProperty(wxPropertyGridInterface* grid)
     if (GetLayerSizeCount() > 1) {
         for (int i = 0; i < GetLayerSizeCount(); i++)
         {
-            std::string id = wxString::Format("Layer%d", i);
-            std::string nm = wxString::Format("Layer %d", i + 1);
+            wxString id = wxString::Format("Layer%d", i);
+            wxString nm = wxString::Format("Layer %d", i + 1);
             if (i == 0) nm = "Inside";
             else if (i == GetLayerSizeCount() - 1) nm = "Outside";
 
@@ -5604,7 +5600,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxXmlDocument doc;
     bool docLoaded = false;
-    if (last_model == "") {
+    if (last_model.empty()) {
         if (download) {
             xlights->SuspendAutoSave(true);
             VendorModelDialog dlg(xlights, xlights->CurrentDir);
@@ -5618,7 +5614,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     xlights->SuspendAutoSave(false);
                     last_model = dlg.GetModelFile();
 
-                    if (last_model == "") {
+                    if (last_model.empty()) {
                         DisplayError("Failed to download model file.");
 
                         cancelled = true;
@@ -5881,7 +5877,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                     for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
                                         if (nnn->GetName() == "ChannelFunction") {
                                             for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
-                                                if (nnnn->GetName() == "ChannelSet" && nnnn->GetAttribute("Name") != "") {
+                                                if (nnnn->GetName() == "ChannelSet" && !nnnn->GetAttribute("Name").empty()) {
                                                     _values.push_back(new DMXValue(nnnn, nnnn->GetNext(), _channels));
                                                 }
                                             }
@@ -6004,7 +6000,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
 
                     std::string nodenames = "";
                     for (const auto& s : nodeNames) {
-                        if (nodenames != "") nodenames += ",";
+                        if (!nodenames.empty()) nodenames += ",";
                         nodenames += s;
                     }
                     model->GetModelXml()->DeleteAttribute("NodeNames");
@@ -6566,7 +6562,7 @@ void Model::SetSmartRemote(int sr)
     if (GetSmartRemote() != sr)
     {
         // Find the last model on this smart remote
-        if (GetControllerName() != "") {
+        if (!GetControllerName().empty()) {
             SetModelChain(modelManager.GetLastModelOnPort(GetControllerName(), GetControllerPort(), GetName(), GetControllerProtocol(), sr));
         }
         GetControllerConnection()->DeleteAttribute("SmartRemote");
@@ -6609,15 +6605,13 @@ void Model::SetModelChain(const std::string& modelChain)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string mc = modelChain;
-    if (mc != "" && mc != "Beginning" && !StartsWith(mc, ">"))
-    {
+    if (!mc.empty() && mc != "Beginning" && !StartsWith(mc, ">")) {
         mc = ">" + mc;
     }
 
     logger_base.debug("Model '%s' chained to '%s'.", (const char*)GetName().c_str(), (const char*)mc.c_str());
     ModelXml->DeleteAttribute("ModelChain");
-    if (mc != "" && mc != "Beginning" && mc != ">")
-    {
+    if (!mc.empty() && mc != "Beginning" && mc != ">") {
         ModelXml->AddAttribute("ModelChain", mc);
     }
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetModelChain");
@@ -6632,8 +6626,7 @@ void Model::SetModelChain(const std::string& modelChain)
 std::string Model::GetModelChain() const
 {
     const std::string chain = ModelXml->GetAttribute("ModelChain", "").ToStdString();
-    if (chain == "Beginning")
-    {
+    if (chain == "Beginning") {
         return "";
     }
     return chain;
@@ -6746,7 +6739,7 @@ void Model::SetControllerName(const std::string& controller) {
         return;
 
     ModelXml->DeleteAttribute("Controller");
-    if (n != "" && n != USE_START_CHANNEL) {
+    if (!n.empty() && n != USE_START_CHANNEL) {
         ModelXml->AddAttribute("Controller", n);
     }
 

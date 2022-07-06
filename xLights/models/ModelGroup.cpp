@@ -90,8 +90,8 @@ std::list<Model*> ModelGroup::GetFlatModels(bool removeDuplicates) const
 
 bool ModelGroup::ContainsModelGroup(ModelGroup* mg)
 {
-    std::list<Model*> visited;
-    visited.push_back(this);
+    std::set<Model*> visited;
+    visited.insert(this);
 
     bool found = false;
     for (auto it = models.begin(); !found && it != models.end(); ++it)
@@ -119,9 +119,9 @@ bool ModelGroup::ContainsModelGroup(ModelGroup* mg)
     return found;
 }
 
-bool ModelGroup::ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited)
+bool ModelGroup::ContainsModelGroup(ModelGroup* mg, std::set<Model*>& visited)
 {
-    visited.push_back(this);
+    visited.insert(this);
 
     bool found = false;
     for (auto it = models.begin(); !found && it != models.end(); ++it)
@@ -134,7 +134,7 @@ bool ModelGroup::ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited)
             }
             else
             {
-                if (std::find(visited.begin(), visited.end(), *it) == visited.end())
+                if (visited.find(*it) == visited.end())
                 {
                     found |= dynamic_cast<ModelGroup*>(*it)->ContainsModelGroup(mg, visited);
                 }
@@ -250,7 +250,7 @@ std::string ModelGroup::SerialiseModelGroup(const std::string& forModel) const
     auto mns = wxSplit(new_doc.GetRoot()->GetAttribute("models"), ',');
     for (auto& it : mns) {
         if(!it.StartsWith(forModel)) continue;
-        if (nmns != "") nmns += ",";
+        if (!nmns.empty()) nmns += ",";
         it.Replace(forModel + "/", "EXPORTEDMODEL/");
         nmns += it;
     }
@@ -295,59 +295,52 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
 
 bool ModelGroup::AllModelsExist(wxXmlNode* node, const ModelManager& models)
 {
-    wxArrayString mn = wxSplit(node->GetAttribute("models"), ',');
+    std::string nms = node->GetAttribute("models").ToStdString();
+    std::vector<std::string> mn;
+    Split(nms, ',', mn, true);
     for (auto& it : mn) {
-        if (it != "")
-        {
-            Model* c = models.GetModel(it.Trim(true).Trim(false).ToStdString());
+        if (!it.empty()) {
+            Model* c = models.GetModel(it);
             if (c == nullptr) return false;
         }
     }
     return true;
 }
 
-bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels)
+bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::set<std::string>& allmodels)
 {
     bool changed = false;
 
     std::string models;
     std::string modelsRemoved;
 
-    wxString name = node->GetAttribute("name", "").Trim(false).Trim(true);
-    wxArrayString mn = wxSplit(node->GetAttribute("models", ""), ',');
-
-    for (auto& it : mn) {
-        auto mm = it.Trim(true).Trim(false);
-        if (mm.Contains("/"))
-        {
-            auto smm = wxSplit(mm, '/');
+    std::string nms = node->GetAttribute("models", "").ToStdString();
+    std::vector<std::string> mn;
+    Split(nms, ',', mn, true);
+    for (auto& mm : mn) {
+        if (mm.find_first_of('/') != std::string::npos) {
+            std::vector<std::string> smm;
+            Split(mm, '/', smm, true);
             mm = "";
-            for (auto& it2 : smm)
-            {
-                if (mm != "") mm += "/";
-                mm += it2.Trim(true).Trim(false);
+            for (auto& it2 : smm) {
+                if (!mm.empty()) mm += "/";
+                mm += it2;
             }
         }
-        if (std::find(allmodels.begin(), allmodels.end(), mm) == allmodels.end())
-        {
-            if (modelsRemoved != "") modelsRemoved += ", ";
+        if (allmodels.find(mm) == allmodels.end()) {
+            if (!modelsRemoved.empty()) modelsRemoved += ", ";
             modelsRemoved += mm;
             changed = true;
-        }
-        else
-        {
-            if (models != "") models += ",";
+        } else {
+            if (!models.empty()) models += ",";
             models += mm;
         }
     }
 
-    if (changed && modelsRemoved != "") {
+    if (changed && !modelsRemoved.empty()) {
         node->DeleteAttribute("models");
         node->AddAttribute("models", models);
-
-        // I have removed the warn code ... mainly because there is really not anything a user can or should do so why tell them
     }
-
     return changed;
 }
 
@@ -368,11 +361,11 @@ ModelGroup::ModelGroup(wxXmlNode* node, const ModelManager& m, int w, int h, con
     screenLocation.previewH = h;
 
     // We have to fix the model name before we reset otherwise it will fail
-    auto mn = wxSplit(ModelXml->GetAttribute("models"), ',');
+    auto mn = Split(ModelXml->GetAttribute("models").ToStdString(), ',');
     std::string nmns;
     for (auto& it : mn) {
-        if (nmns != "") nmns += ",";
-        it.Replace("EXPORTEDMODEL", mname);
+        if (!nmns.empty()) nmns += ",";
+        Replace(it, "EXPORTEDMODEL", mname);
         nmns += it;
     }
     ModelXml->DeleteAttribute("models");
@@ -453,17 +446,17 @@ bool ModelGroup::Reset(bool zeroBased) {
     models.clear();
     modelNames.clear();
     changeCount = 0;
-    wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
+    auto mn = Split(ModelXml->GetAttribute("models").ToStdString(), ',', true);
     int nc = 0;
     for (int x = 0; x < mn.size(); x++) {
-        Model *c = modelManager.GetModel(mn[x].Trim(true).Trim(false).ToStdString());
+        Model *c = modelManager.GetModel(mn[x]);
         if (c != nullptr) {
             modelNames.push_back(c->GetFullName());
             models.push_back(c);
             changeCount += c->GetChangeCount();
             nc += c->GetNodeCount();
         }
-        else if (mn[x] == "")
+        else if (mn[x].empty())
         {
             // silently ignore blank models
         }
@@ -620,9 +613,11 @@ bool ModelGroup::Reset(bool zeroBased) {
 void ModelGroup::ResetModels()
 {
     models.clear();
-    wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
-    for (int x = 0; x < mn.size(); x++) {
-        Model *c = modelManager.GetModel(mn[x].Trim(true).Trim(false).ToStdString());
+    std::string modelString = ModelXml->GetAttribute("models");
+    std::vector<std::string> mn;
+    Split(modelString, ',', mn, true);
+    for (auto &m : mn) {
+        Model *c = modelManager.GetModel(m);
         if (c != nullptr && c != this) {
             if (c->GetDisplayAs() == "ModelGroup") {
                 static_cast<ModelGroup*>(c)->ResetModels();

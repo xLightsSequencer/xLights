@@ -1169,7 +1169,7 @@ std::string Ordinal(int i)
 {
     wxString ii = wxString::Format("%d", i);
 
-    if (ii.EndsWith("11") || ii.EndsWith("12") || ii.EndsWith("12")) {
+    if (ii.EndsWith("11") || ii.EndsWith("12") || ii.EndsWith("13")) {
         return (ii + "th").ToStdString();
     }
     else if (ii.EndsWith("1")) {
