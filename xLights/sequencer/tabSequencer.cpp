@@ -2689,8 +2689,13 @@ void xLightsFrame::SetEffectChoice(wxCommandEvent& event)
 void xLightsFrame::TipOfDayReady(wxCommandEvent& event)
 {
     // at this point if we are downloading tip of day content then the tip of day content is downloaded and ready to go
+#ifdef __WXMSW__
+    _tod.SetTODXMLFile(event.GetString());
+    _tod.DoTipOfDay(false);
+#else
     _tod->SetTODXMLFile(event.GetString());
     _tod->DoTipOfDay(false);
+#endif
 }
 
 void xLightsFrame::ApplyLast(wxCommandEvent& event)

@@ -318,7 +318,12 @@ public:
     std::mutex saveLock;
     RenderCache _renderCache;
     std::atomic_bool _exiting;
-    TipOfTheDayDialog *_tod = nullptr;
+    #ifdef __WXMSW__
+    // windows has issues if we create it later
+    TipOfTheDayDialog _tod;
+    #else
+    TipOfTheDayDialog* _tod = nullptr;
+    #endif
 
     PhonemeDictionary dictionary;
 

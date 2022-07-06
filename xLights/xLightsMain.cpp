@@ -1225,13 +1225,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
 
+    #ifdef __WXMSW__
+    _tod.PrepTipOfDay(this);
+    #else
     _tod = new TipOfTheDayDialog("", this);
     _tod->PrepTipOfDay(this);
+    #endif
 
     Connect(wxEVT_HELP, (wxObjectEventFunction)&xLightsFrame::OnHelp);
     Notebook1->Connect(wxEVT_HELP, (wxObjectEventFunction) & xLightsFrame::OnHelp, 0, this);
-
-    logger_base.debug("BB");
 
     logger_base.debug("xLightsFrame constructor UI code done.");
 
@@ -2011,7 +2013,9 @@ xLightsFrame::~xLightsFrame()
     delete Button_ACForeground;
     delete Button_ACBackground;
 
-    delete _tod;
+    #ifndef __WXMSW__
+    if (_tod != nullptr) delete _tod;
+    #endif
 
     //(*Destroy(xLightsFrame)
     //*)
@@ -10230,8 +10234,11 @@ void xLightsFrame::OnMenuItem_SilentVolSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_TODSelected(wxCommandEvent& event)
 {
-    if (!_tod->DoTipOfDay(true))
-    {
+    #ifdef __WXMSW__
+    if (!_tod.DoTipOfDay(true)) {
+    #else
+    if (!_tod->DoTipOfDay(true)) {
+    #endif
         wxBell();
     }
 }

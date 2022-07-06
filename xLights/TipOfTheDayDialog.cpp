@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "TipOfTheDayDialog.h"
 
 //(*InternalHeaders(TipOfTheDayDialog)
@@ -15,14 +25,12 @@
 
 #include <log4cpp/Category.hh>
 
-//#define USE_WEBVIEW_FOR_TOD
 #ifdef USE_WEBVIEW_FOR_TOD
 #include <wx/webview.h>
-static const std::string BASE_URL = "https://raw.githack.com/smeighan/xLights/master/TipOfDay/";
+static const std::string TOD_BASE_URL = "https://raw.githack.com/smeighan/xLights/master/TipOfDay/";
 #else
-static const std::string BASE_URL = "https://raw.githubusercontent.com/smeighan/xLights/master/TipOfDay/";
+static const std::string TOD_BASE_URL = "https://raw.githubusercontent.com/smeighan/xLights/master/TipOfDay/";
 #endif
-
 
 #define USE_GITHUB_HOSTED_TOD
 
@@ -79,7 +87,7 @@ public:
     {
         // download Tip of day content here
         CachedFileDownloader cache;
-        auto file = cache.GetFile(wxURI(BASE_URL + "tod.xml"), CACHEFOR::CACHETIME_DAY);
+        auto file = cache.GetFile(wxURI(TOD_BASE_URL + "tod.xml"), CACHEFOR::CACHETIME_DAY);
 
         wxCommandEvent e(EVT_TIPOFDAY_READY);
         e.SetString(file);
@@ -127,7 +135,6 @@ public:
     mutable std::string baseURL;
     mutable std::string baseFileLocation;
 };
-
 
 TipOfTheDayDialog::TipOfTheDayDialog(const std::string& url, wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
@@ -220,7 +227,7 @@ void TipOfTheDayDialog::LoadURL(const std::string& url)
 std::string TipOfTheDayDialog::BuildURL(const std::string& url) const
 {
 #ifdef USE_GITHUB_HOSTED_TOD
-    return BASE_URL + url;
+    return TOD_BASE_URL + url;
 #else
     // exe location/TipOfDay/tod.xml
     wxFileName f(wxStandardPaths::Get().GetExecutablePath());

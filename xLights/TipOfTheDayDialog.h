@@ -1,5 +1,14 @@
-#ifndef TIPOFTHEDAYDIALOG_H
-#define TIPOFTHEDAYDIALOG_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(TipOfTheDayDialog)
 #include <wx/button.h>
@@ -11,10 +20,15 @@
 
 #include <wx/xml/xml.h>
 
+//#define USE_WEBVIEW_FOR_TOD
+
 class TipOfDayThread;
 class TODTracker;
 class xlCachedHtmlWindow;
+
+#ifdef USE_WEBVIEW_FOR_TOD
 class wxWebView;
+#endif
 
 class TipOfTheDayDialog: public wxDialog
 {
@@ -42,7 +56,10 @@ class TipOfTheDayDialog: public wxDialog
 		//*)
 
     
-        wxWebView *webView;
+#ifdef USE_WEBVIEW_FOR_TOD
+        wxWebView* webView = nullptr;
+#endif
+
 	protected:
 
 		//(*Identifiers(TipOfTheDayDialog)
@@ -66,5 +83,3 @@ class TipOfTheDayDialog: public wxDialog
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif
