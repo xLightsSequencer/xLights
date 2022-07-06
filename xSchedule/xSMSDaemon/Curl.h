@@ -77,14 +77,14 @@ public:
     typedef struct Var Var;
 
 //#ifdef _DEBUG
-//    static size_t headerFunction(char* buffer, size_t size, size_t nitems, void* userdata)
-//    {
-//        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-//        if (buffer != nullptr) {
-//            logger_base.debug(buffer);
-//        }
-//        return size * nitems;
-//    }
+    static size_t headerFunction(char* buffer, size_t size, size_t nitems, void* userdata)
+    {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        if (buffer != nullptr) {
+            logger_base.debug(buffer);
+        }
+        return size * nitems;
+    }
 //#endif
 
     static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int *responseCode = nullptr)
@@ -303,10 +303,10 @@ public:
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
             curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip");
 
-#ifdef __WXMSW__
+#if defined(__WXMSW__) && defined(XSCANNER)
             // Temporarily adding this in order to try to catch ongoing curl crashes
-            //curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, CurlDebug);
-            //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); 
+            curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, CurlDebug);
+            curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); 
 #endif
 
             struct curl_slist* headerlist = nullptr;
@@ -324,11 +324,14 @@ public:
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
 
 //#ifdef _DEBUG
-//            curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
-//#endif 
+#if defined(__WXMSW__) && defined(XSCANNER)
+            curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
+#endif 
 
             /* Perform the request, res will get the return code */
+            logger_curl.debug("Curl: %s", (const char*)s.c_str());
             CURLcode r = curl_easy_perform(curl);
+            logger_curl.debug(" Curl => %d", r);
 
             if (headerlist != nullptr) {
                 curl_slist_free_all(headerlist);
@@ -344,6 +347,7 @@ public:
             } else {
                 if (responseCode) {
                     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, responseCode);
+                    logger_curl.debug("  Response code %d", *responseCode);
                 }
 
                 res = response_string;
