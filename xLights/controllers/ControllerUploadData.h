@@ -19,6 +19,8 @@
 #include <vector>
 
 #include "../ExportSettings.h"
+#include "../UtilFunctions.h"
+#include "../Pixels.h"
 
 class UDControllerPort;
 class UDController;
@@ -198,7 +200,10 @@ class UDControllerPort
     int GetUniverseStartChannel() const;
     std::string GetType() const { return _type; }
 
-    int Pixels() const { return Channels() / 3; }
+    int Pixels() const
+    { 
+        return INTROUNDUPDIV(Channels(), GetChannelsPerPixel(GetProtocol())); 
+    }
 
     std::string GetProtocol() const { return _protocol; }
     bool IsPixelProtocol() const;

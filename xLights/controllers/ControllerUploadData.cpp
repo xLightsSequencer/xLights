@@ -134,7 +134,7 @@ char UDControllerPortModel::GetSmartRemoteLetter() const
 
 float UDControllerPortModel::GetAmps(int defaultBrightness) const
 {
-    return ((float)AMPS_PER_PIXEL * (Channels() / 3.0F) * GetBrightness(defaultBrightness)) / 100.0F;
+    return ((float)AMPS_PER_PIXEL * (float)INTROUNDUPDIV(Channels() , GetChannelsPerPixel()) * GetBrightness(defaultBrightness)) / 100.0F;
 }
 
 int UDControllerPortModel::GetSmartTs(int currentSmartTs) const
@@ -191,7 +191,7 @@ void UDControllerPortModel::Dump() const {
     if (_string == -1) {
         logger_base.debug("                Model %s. Controller Connection %s. Start Channel %d. End Channel %d. Channels %d. Pixels %d. Start Channel #%d:%d",
             (const char*)_model->GetName().c_str(), (const char*)_model->GetControllerConnectionRangeString().c_str(),
-            _startChannel, _endChannel, Channels(), (int)(Channels() / 3), GetUniverse(), GetUniverseStartChannel());
+            _startChannel, _endChannel, Channels(),  INTROUNDUPDIV(Channels() , GetChannelsPerPixel()), GetUniverse(), GetUniverseStartChannel());
     }
     else {
         logger_base.debug("                Model %s. String %d. Controller Connection %s. Start Channel %d. End Channel %d.",
@@ -541,7 +541,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                     current->_protocol = it->GetProtocol();
                     current->_universe = it->GetUniverse();
                     current->_universeStartChannel = it->GetUniverseStartChannel();
-                    current->_channelsPerPixel = 3;
+                    current->_channelsPerPixel = GetChannelsPerPixel(it->GetProtocol());
                     current->_smartRemote = sr;
                     current->_smartRemoteType = it->GetSmartRemoteType();
                     current->_gammaSet = false;
@@ -594,7 +594,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                         current->_protocol = it->GetProtocol();
                         current->_universe = it->GetUniverse();
                         current->_universeStartChannel = it->GetUniverseStartChannel();
-                        current->_channelsPerPixel = 3;
+                        current->_channelsPerPixel = GetChannelsPerPixel(it->GetProtocol());
                         current->_smartRemote = sr;
                         current->_smartRemoteType = it->GetSmartRemoteType();
                         current->_gammaSet = false;
@@ -634,7 +634,8 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
             current->_universe = it->GetUniverse();
             current->_universeStartChannel = it->GetUniverseStartChannel();
             current->_channelsPerPixel = it->GetChannelsPerPixel();
-            if (current->_channelsPerPixel == 1) current->_channelsPerPixel = 3; // this happens if a channel block is dropped first on a port and we dont want that
+            if (current->_channelsPerPixel == 1)
+                current->_channelsPerPixel = GetChannelsPerPixel(it->GetProtocol()); // this happens if a channel block is dropped first on a port and we dont want that
             current->_smartRemote = it->GetSmartRemote();
             current->_smartRemoteType = it->GetSmartRemoteType();
 
@@ -912,7 +913,7 @@ void UDControllerPort::Dump() const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.debug("            Port %d. Protocol %s. Valid %s. Invalid Reason '%s'. Channels %d. Pixels %d. Start #%d:%d.", _port, (const char*)_protocol.c_str(), toStr( _valid ), (const char*)_invalidReason.c_str(), Channels(), (int)(Channels() / 3), GetUniverse(), GetUniverseStartChannel());
+    logger_base.debug("            Port %d. Protocol %s. Valid %s. Invalid Reason '%s'. Channels %d. Pixels %d. Start #%d:%d.", _port, (const char*)_protocol.c_str(), toStr( _valid ), (const char*)_invalidReason.c_str(), Channels(),  INTROUNDUPDIV(Channels(), GetChannelsPerPixel(_protocol)), GetUniverse(), GetUniverseStartChannel());
     for (const auto& it : _models) {
         it->Dump();
     }
@@ -938,6 +939,7 @@ bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* ru
         }
 
         // port must not have too many pixels on it
+        // max channels is always expressed in terms of 3 channel pixels
         if (Channels() > rules->GetMaxPixelPortChannels()) {
             res += wxString::Format("ERR: Pixel port %d has %d nodes allocated but maximum is %d.\n", _port, (int)Channels() / 3, rules->GetMaxPixelPortChannels() / 3).ToStdString();
             success = false;
@@ -1012,7 +1014,7 @@ std::vector<std::string> UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS 
         port += "(CHANS:" + std::to_string(Channels()) + ")";
     }
     if ((settings & ExportSettings::SETTINGS_PORT_PIXELS) && Channels() != 0 && _type != "Serial") {
-        port += "(PIX:" + std::to_string(Channels() / 3) + ")";
+        port += "(PIX:" + std::to_string( INTROUNDUPDIV(Channels(), GetChannelsPerPixel(GetProtocol()))) + ")";
     }
     if (settings & ExportSettings::SETTINGS_PORT_CURRENT && _type != "Serial" ) {
         port += wxString::Format("(CUR:%0.2fA)", GetAmps(brightness));
@@ -1720,6 +1722,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
 
             int const sum = accumulate(bankSizes.begin(), bankSizes.end(), 0);
             if (sum > rules->GetMaxPixelPortChannels()) {
+                // always expressed in terms of 3 channel pixels
                 res += wxString::Format("ERR: Controllers 'Bank' channel count [%d (%d)] is over the maximum [%d (%d)].\n", sum, sum / 3, rules->GetMaxPixelPortChannels(), rules->GetMaxPixelPortChannels() / 3).ToStdString();
                 res += "     Largest ports on banks: ";
                 for (int i = 0; i < rules->GetNumberOfBanks(); i++) {

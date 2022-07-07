@@ -400,7 +400,7 @@ virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse
         if (p->Channels() > GetMaxPortChannels()) {
             dc.SetTextForeground(*wxRED);
         }
-        DrawTextLimited(dc, wxString::Format("%d", (int)std::ceil((float)p->Channels() / 3.0)), pt, sz - wxSize(pt.x + 2, 4));
+        DrawTextLimited(dc, wxString::Format("%d", INTROUNDUPDIV(p->Channels() , GetChannelsPerPixel(p->GetProtocol()))), pt, sz - wxSize(pt.x + 2, 4));
         dc.SetTextForeground(__textForeground);
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
     }
@@ -2610,7 +2610,7 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
                 port->GetUniverse(),
                 port->GetUniverseStartChannel(),
                 port->Channels(),
-                (int)std::ceil((float)port->Channels() / 3.0)
+                INTROUNDUPDIV(port->Channels(), GetChannelsPerPixel(port->GetProtocol()))
             );
         }
     } else {
@@ -2637,7 +2637,7 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
                     pvs->_universe,
                     pvs->_universeStartChannel,
                     pvs->Channels(),
-                    (int)std::ceil((float)pvs->Channels()/3.0)
+                    INTROUNDUPDIV(pvs->Channels(), pvs->_channelsPerPixel)
                 );
             }
         }

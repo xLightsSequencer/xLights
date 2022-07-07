@@ -342,3 +342,13 @@ bool IsVirtualMatrixProtocol(const std::string& p1)
 {
     return p1 == "Virtual Matrix";
 }
+
+int GetChannelsPerPixel(const std::string& p)
+{
+    const static std::vector<std::string> fourChanPixels = { "apa109", "sk6812rgbw", "sk6818", "sm16704", "ucs2904", "ws2814", "dmx512p", "dmx512", "my9291", "tm1814", "tm1814a", "ucs8904", "ucs8904 (16)" };
+
+    if (std::find(begin(fourChanPixels), end(fourChanPixels), p) != end(fourChanPixels)) {
+        return 4;
+    }
+    return 3;
+}
