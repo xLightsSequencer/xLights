@@ -284,8 +284,9 @@ void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<s
     model = cls;
     modelPreview->SetModel(cls);
 
-    for (std::map<std::string, std::map<std::string, std::string>>::iterator it = finfo.begin();
-         it != finfo.end(); ++it) {
+    SetTitle(GetTitle() + " - " + cls->GetName());
+
+    for (auto it = finfo.begin(); it != finfo.end(); ++it) {
         std::string name = it->first;
         std::map<std::string, std::string>& info = it->second;
 
@@ -436,9 +437,7 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
         if (NameChoice->FindString(n) == wxNOT_FOUND) {
             NameChoice->Append(n);
             NameChoice->SetStringSelection(n);
-            SelectStateModel(n);
             NameChoice->Enable();
-            StateTypeChoice->Enable();
             DeleteButton->Enable();
  
             // set the default type of state based on model type
@@ -456,6 +455,7 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             } else {
                 StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
             }
+            UpdateStateType();
         }
     }
     ValidateWindow();
@@ -674,6 +674,11 @@ void ModelStateDialog::OnSingleNodeGridCellChange(wxGridEvent& event)
 }
 
 void ModelStateDialog::OnStateTypeChoicePageChanged(wxChoicebookEvent& event)
+{
+    UpdateStateType();
+}
+
+void ModelStateDialog::UpdateStateType()
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     stateData[name].clear();
@@ -1199,12 +1204,13 @@ void ModelStateDialog::OnPreviewLeftUp(wxMouseEvent& event)
 
         SelectAllInBoundingRect(event.ShiftDown());
         m_creating_bound_rect = false;
+
+        modelPreview->ReleaseMouse();
     }
 }
 
 void ModelStateDialog::OnPreviewMouseLeave(wxMouseEvent& event)
 {
-    m_creating_bound_rect = false;
     RenderModel();
 }
 
@@ -1218,6 +1224,10 @@ void ModelStateDialog::OnPreviewLeftDown(wxMouseEvent& event)
     m_bound_start_y = ray_origin.y;
     m_bound_end_x = m_bound_start_x;
     m_bound_end_y = m_bound_start_y;
+
+    // Capture the mouse; this will keep it selecting even if the
+    //  user temporarily leaves the preview area...
+    modelPreview->CaptureMouse();
 }
 
 void ModelStateDialog::OnPreviewLeftDClick(wxMouseEvent& event)
@@ -1303,6 +1313,14 @@ void ModelStateDialog::RenderModel()
 
 void ModelStateDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
 {
+    // Trim the mouse location to the preview area
+    //   (It can go outside this area if the button is down and the mouse
+    //    has been captured.)
+    x = std::max(x, 0);
+    y = std::max(y, 0);
+    x = std::min(x, modelPreview->getWidth());
+    y = std::min(y, modelPreview->getHeight());
+
     VectorMath::ScreenPosToWorldRay(
         x, modelPreview->getHeight() - y,
         modelPreview->getWidth(), modelPreview->getHeight(),

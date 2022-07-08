@@ -139,7 +139,7 @@ private:
 
     std::map<std::string, std::map<std::string, std::string>> stateData;
     void SelectStateModel(const std::string& s);
-
+    void UpdateStateType();
     void SelectRow(wxGrid* grid, int const row);
     void SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c);
     bool SetNodeColor(wxGrid* grid, int const row, xlColor const& c);
