@@ -309,9 +309,16 @@ void LyricUserDictDialog::InsertRow(const wxString & text, std::vector<wxArraySt
     wxArrayString all_phonemes;
 
     for (auto & phonem : phonemeList) {
-        if (phonem.size() > 2) {
-            phonem.RemoveAt(0, 2);//phonemeList has a name and a space at the beginning
-            all_phonemes.insert(all_phonemes.end(), phonem.begin(), phonem.end());
+        if (phonem.size() >= 2) {
+            if (phonem[1].Trim() == "") {
+                phonem.RemoveAt(0, 2); // phonemeList has a name and a space at the beginning
+            }
+            else {
+                phonem.RemoveAt(0, 1); // phonemeList has a name only at the beginning
+            }
+            if (phonem.size() > 0) {
+                all_phonemes.insert(all_phonemes.end(), phonem.begin(), phonem.end());
+            }
         }
     }
     GridUserLyricDict->SetCellValue(row, 1, wxJoin(all_phonemes, ' '));
