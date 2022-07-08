@@ -2617,6 +2617,9 @@ void xScheduleFrame::CorrectTimer(int rate)
         rate = 50;
         _useHalfFrames = true;
     }
+    else {
+        _useHalfFrames = rate > 1000 / 30; // slower than 30 fps
+    }
     if ((rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1) != _timer.GetInterval())
     {
         logger_frame.debug("Timer corrected %d", (rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1));
