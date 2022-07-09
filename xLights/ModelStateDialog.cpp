@@ -266,6 +266,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
     Center();
 
     SetEscapeId(wxID_CANCEL);
+    EnableCloseButton(false);
 
     ValidateWindow();
 }
@@ -408,19 +409,23 @@ static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
 void ModelStateDialog::SelectStateModel(const std::string &name) {
     StateTypeChoice->Enable();
     wxString type = stateData[name]["Type"];
+    auto grid = NodeRangeGrid;
     if (type == "") {
         type = "SingleNode";
         stateData[name]["Type"] = type;
+        grid = SingleNodeGrid;
     }
     if (type == "SingleNode") {
         StateTypeChoice->ChangeSelection(SINGLE_NODE_STATE);
         std::map<std::string, std::string> &info = stateData[name];
         CustomColorSingleNode->SetValue(SetGrid(SingleNodeGrid, info));
+        grid = SingleNodeGrid;
     } else if (type == "NodeRange") {
         StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
         std::map<std::string, std::string> &info = stateData[name];
         CustomColorNodeRanges->SetValue(SetGrid(NodeRangeGrid, info));
     }
+    SelectRow(grid, -1);
 }
 
 void ModelStateDialog::OnMatrixNameChoiceSelect(wxCommandEvent& event)
