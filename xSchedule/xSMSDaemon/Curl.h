@@ -166,7 +166,7 @@ public:
             curl_easy_setopt(curl, CURLOPT_POST, 1);
 
             logger_curl.info("BODY START ----------");
-            logger_curl.info(body.c_str());
+            logger_curl.info("%s", (const char*)body.c_str());
             logger_curl.info("BODY END ----------");
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
@@ -185,7 +185,7 @@ public:
             if (res == CURLE_OK)
             {
                 logger_curl.debug("RESPONSE START ------");
-                logger_curl.debug(buffer.c_str());
+                logger_curl.debug("%s", (const char*)buffer.c_str());
                 logger_curl.debug("RESPONSE END ------");
                 
                 if (responseCode) {
@@ -266,7 +266,7 @@ public:
             if (res == CURLE_OK)
             {
                 logger_curl.debug("RESPONSE START ----------");
-                logger_curl.debug(buffer.c_str());
+                logger_curl.debug("%s", (const char*)buffer.c_str());
                 logger_curl.debug("RESPONSE END ----------");
                 return buffer;
             } else {
@@ -304,10 +304,10 @@ public:
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
             curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip");
 
-#if defined(__WXMSW__) && defined(XSCANNER)
+#ifdef __WXMSW__
             // Temporarily adding this in order to try to catch ongoing curl crashes
-            curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, CurlDebug);
-            curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); 
+            //curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, CurlDebug);
+            //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); 
 #endif
 
             struct curl_slist* headerlist = nullptr;
@@ -324,9 +324,8 @@ public:
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
 
-//#ifdef _DEBUG
-#if defined(__WXMSW__) && defined(XSCANNER)
-            curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
+#ifdef __WXMSW__
+            //curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
 #endif 
 
             /* Perform the request, res will get the return code */
@@ -353,7 +352,7 @@ public:
 
                 res = response_string;
                 logger_curl.debug("RESPONSE START ----------");
-                logger_curl.debug(res.substr(0, (std::min)((int)4096, (int)res.size())).c_str());
+                logger_curl.debug("%s", (const char *)res.substr(0, 4096).c_str());
                 logger_curl.debug("RESPONSE END ----------");
             }
 
@@ -432,8 +431,8 @@ public:
 
 #ifdef __WXMSW__
                 // Temporarily adding this in order to try to catch ongoing curl crashes
-                curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, CurlDebug);
-                curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+                //curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, CurlDebug);
+                //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
 
                 struct curl_slist* chunk = nullptr;
