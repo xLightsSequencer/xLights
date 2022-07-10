@@ -352,7 +352,7 @@ public:
 
                 res = response_string;
                 logger_curl.debug("RESPONSE START ----------");
-                logger_curl.debug(res.substr(0, 4096).c_str());
+                logger_curl.debug(res.substr(0, std::min((size_t)4096, res.size())).c_str());
                 logger_curl.debug("RESPONSE END ----------");
             }
 
