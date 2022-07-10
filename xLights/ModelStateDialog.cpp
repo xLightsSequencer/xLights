@@ -118,6 +118,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
+	SplitterWindow1->SetMinimumPaneSize(100);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel3 = new wxPanel(SplitterWindow1, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -166,6 +167,8 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	SingleNodeGrid->SetDefaultCellTextColour( SingleNodeGrid->GetForegroundColour() );
 	FlexGridSizer2->Add(SingleNodeGrid, 1, wxALL|wxEXPAND, 5);
 	CoroPanel->SetSizer(FlexGridSizer2);
+	FlexGridSizer2->Fit(CoroPanel);
+	FlexGridSizer2->SetSizeHints(CoroPanel);
 	NodeRangePanel = new wxPanel(StateTypeChoice, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer5->AddGrowableCol(0);
@@ -193,6 +196,8 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	NodeRangeGrid->SetDefaultCellTextColour( NodeRangeGrid->GetForegroundColour() );
 	FlexGridSizer5->Add(NodeRangeGrid, 1, wxALL|wxEXPAND, 5);
 	NodeRangePanel->SetSizer(FlexGridSizer5);
+	FlexGridSizer5->Fit(NodeRangePanel);
+	FlexGridSizer5->SetSizeHints(NodeRangePanel);
 	StateTypeChoice->AddPage(CoroPanel, _("Single Nodes"), false);
 	StateTypeChoice->AddPage(NodeRangePanel, _("Node Ranges"), false);
 	FlexGridSizer4->Add(StateTypeChoice, 1, wxALL|wxEXPAND, 5);
@@ -202,14 +207,19 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	StdDialogButtonSizer1->Realize();
 	FlexGridSizer4->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel3->SetSizer(FlexGridSizer4);
+	FlexGridSizer4->Fit(Panel3);
+	FlexGridSizer4->SetSizeHints(Panel3);
 	ModelPreviewPanelLocation = new wxPanel(SplitterWindow1, ID_PANEL_PREVIEW, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_PREVIEW"));
 	PreviewSizer = new wxFlexGridSizer(0, 1, 0, 0);
 	PreviewSizer->AddGrowableCol(0);
 	PreviewSizer->AddGrowableRow(0);
 	ModelPreviewPanelLocation->SetSizer(PreviewSizer);
+	PreviewSizer->Fit(ModelPreviewPanelLocation);
+	PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
 	SplitterWindow1->SplitVertically(Panel3, ModelPreviewPanelLocation);
 	FlexGridSizer1->Add(SplitterWindow1, 0, wxEXPAND, 0);
 	SetSizer(FlexGridSizer1);
+	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelStateDialog::OnMatrixNameChoiceSelect);
@@ -256,6 +266,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
     Center();
 
     SetEscapeId(wxID_CANCEL);
+    EnableCloseButton(false);
 
     ValidateWindow();
 }
@@ -274,8 +285,9 @@ void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<s
     model = cls;
     modelPreview->SetModel(cls);
 
-    for (std::map<std::string, std::map<std::string, std::string>>::iterator it = finfo.begin();
-         it != finfo.end(); ++it) {
+    SetTitle(GetTitle() + " - " + cls->GetName());
+
+    for (auto it = finfo.begin(); it != finfo.end(); ++it) {
         std::string name = it->first;
         std::map<std::string, std::string>& info = it->second;
 
@@ -397,19 +409,23 @@ static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
 void ModelStateDialog::SelectStateModel(const std::string &name) {
     StateTypeChoice->Enable();
     wxString type = stateData[name]["Type"];
+    auto grid = NodeRangeGrid;
     if (type == "") {
         type = "SingleNode";
         stateData[name]["Type"] = type;
+        grid = SingleNodeGrid;
     }
     if (type == "SingleNode") {
         StateTypeChoice->ChangeSelection(SINGLE_NODE_STATE);
         std::map<std::string, std::string> &info = stateData[name];
         CustomColorSingleNode->SetValue(SetGrid(SingleNodeGrid, info));
+        grid = SingleNodeGrid;
     } else if (type == "NodeRange") {
         StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
         std::map<std::string, std::string> &info = stateData[name];
         CustomColorNodeRanges->SetValue(SetGrid(NodeRangeGrid, info));
     }
+    SelectRow(grid, -1);
 }
 
 void ModelStateDialog::OnMatrixNameChoiceSelect(wxCommandEvent& event)
@@ -426,9 +442,7 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
         if (NameChoice->FindString(n) == wxNOT_FOUND) {
             NameChoice->Append(n);
             NameChoice->SetStringSelection(n);
-            SelectStateModel(n);
             NameChoice->Enable();
-            StateTypeChoice->Enable();
             DeleteButton->Enable();
  
             // set the default type of state based on model type
@@ -446,6 +460,7 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             } else {
                 StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
             }
+            UpdateStateType();
         }
     }
     ValidateWindow();
@@ -664,6 +679,11 @@ void ModelStateDialog::OnSingleNodeGridCellChange(wxGridEvent& event)
 }
 
 void ModelStateDialog::OnStateTypeChoicePageChanged(wxChoicebookEvent& event)
+{
+    UpdateStateType();
+}
+
+void ModelStateDialog::UpdateStateType()
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     stateData[name].clear();
@@ -1189,12 +1209,13 @@ void ModelStateDialog::OnPreviewLeftUp(wxMouseEvent& event)
 
         SelectAllInBoundingRect(event.ShiftDown());
         m_creating_bound_rect = false;
+
+        modelPreview->ReleaseMouse();
     }
 }
 
 void ModelStateDialog::OnPreviewMouseLeave(wxMouseEvent& event)
 {
-    m_creating_bound_rect = false;
     RenderModel();
 }
 
@@ -1208,6 +1229,10 @@ void ModelStateDialog::OnPreviewLeftDown(wxMouseEvent& event)
     m_bound_start_y = ray_origin.y;
     m_bound_end_x = m_bound_start_x;
     m_bound_end_y = m_bound_start_y;
+
+    // Capture the mouse; this will keep it selecting even if the
+    //  user temporarily leaves the preview area...
+    modelPreview->CaptureMouse();
 }
 
 void ModelStateDialog::OnPreviewLeftDClick(wxMouseEvent& event)
@@ -1293,6 +1318,14 @@ void ModelStateDialog::RenderModel()
 
 void ModelStateDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
 {
+    // Trim the mouse location to the preview area
+    //   (It can go outside this area if the button is down and the mouse
+    //    has been captured.)
+    x = std::max(x, 0);
+    y = std::max(y, 0);
+    x = std::min(x, modelPreview->getWidth());
+    y = std::min(y, modelPreview->getHeight());
+
     VectorMath::ScreenPosToWorldRay(
         x, modelPreview->getHeight() - y,
         modelPreview->getWidth(), modelPreview->getHeight(),
