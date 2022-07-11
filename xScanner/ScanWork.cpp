@@ -599,7 +599,7 @@ void FalconWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 	logger_base.debug("FalconWork %s %s", (const char*)_proxy.c_str(), (const char*)_ip.c_str());
 	auto status = Curl::HTTPSGet(proxy + _ip + "/status.xml", "", "", SLOW_TIMEOUT);
 
-	if (status != "" && Contains(status, "<response>") && Contains(status, "<t1>") && Contains(status, "<p>")) {
+	if (status != "" && Contains(status, "<response>") && Contains(status, "<np>") && Contains(status, "<p>")) {
 
 		logger_base.debug("    Falcon found");
 		results.push_back({ "IP", _ip});
