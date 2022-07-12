@@ -364,6 +364,7 @@ CommandManager::CommandManager()
 
     _commands.push_back(new Command("Set pixels", 2, ss, false, false, false, false, false, true, true, false, true)); // <set channels name>,<base64 encoded data>, <properties>
     _commands.push_back(new Command("Set pixel range", 4, iiss, false, false, false, false, false, true, true, false, true)); // <startchannel>,<channels>,<color>,<blendmode>
+    _commands.push_back(new Command("Clear all overlays", 0, {}, false, false, false, false, false, true, true, false, false)); //remove all the overlay channels set with either 'Set pixels' or 'Set pixel range'
 
     _commands.push_back(new Command("Run process", 3, plstit, false, false, false, false, false, true, true, true, false));
 
