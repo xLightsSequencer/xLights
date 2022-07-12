@@ -500,9 +500,6 @@ bool ControllerEthernet::SupportsFullxLightsControl() const
 
 bool ControllerEthernet::SupportsDefaultBrightness() const
 {
-    if (_type == OUTPUT_ZCPP)
-        return false;
-
     auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
     if (c != nullptr) {
         return c->SupportsDefaultBrightness();
