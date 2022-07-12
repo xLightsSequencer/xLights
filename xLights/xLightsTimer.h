@@ -13,6 +13,7 @@
 #include <wx/timer.h>
 
 #include <atomic>
+#include <chrono>
 
 class xlTimerThread;
 
@@ -34,6 +35,8 @@ class xLightsTimer :
     std::atomic<bool> _suspend;
     std::atomic<bool> _log;
     std::string _name;
+    size_t _fired = 0;
+    std::chrono::time_point<std::chrono::system_clock> _startTime;
 
 public:
     xLightsTimer();
@@ -46,10 +49,11 @@ public:
     virtual void DoSendTimer();
     int GetInterval() const;
     void SetLog(bool log) { _log = true; }
+    std::chrono::time_point<std::chrono::system_clock> GetNextEventTime();
 
     // If you use this method to receive the timer notification then be sure that you dont do any UI
     // updates in the callback function as it will be called on another thread. Also if you are going
     // to delete objects used in the callback be sure to suspend the time first
     void SetTimerCallback(xLightsTimerCallback* callback) { _timerCallback = callback; }
-    void Suspend(bool suspend = true) { _suspend = suspend; }
+    void Suspend(bool suspend = true);
 };
