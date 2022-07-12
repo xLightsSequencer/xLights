@@ -3302,8 +3302,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                 } 
                 else if (command == "Clear all overlays") 
                 {
-                    for (const auto& it : _overlayData)
-                    {
+                    for (const auto& it : _overlayData) {
                         _overlayData.remove(it);
                         delete it;
                     }
@@ -5412,6 +5411,7 @@ PixelData::~PixelData()
         free(_data);
     }
 }
+
 void PixelData::Set(uint8_t* buffer, size_t size)
 {
     if (_data != nullptr)
