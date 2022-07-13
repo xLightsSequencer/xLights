@@ -97,7 +97,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_RUN" variable="ButtonRun" member="yes">
-							<label>Backup Files</label>
+							<label>Restore Files</label>
 							<handler function="OnButtonRunClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL</flag>
