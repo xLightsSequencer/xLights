@@ -3300,6 +3300,15 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                             _overlayData.push_back(p);
                         }
                     }
+                } 
+                else if (command == "Clear all overlays")
+                {
+                    std::list<PixelData*>::iterator i = _overlayData.begin();
+                    while (i != _overlayData.end())
+                    {
+                        logger_base.debug("Pixel overlay data removed.");
+                        i = _overlayData.erase(i);
+                    }
                 }
                 else if (command == "Play specified playlist step n times")
                 {
