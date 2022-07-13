@@ -3282,14 +3282,15 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                                     p = it;
                                     logger_base.debug("Pixel overlay data removed.");
                                     _overlayData.remove(p);
+                                    break;
                                 }
                                 else if (it->GetSize() == ch)
                                 {
                                     p = it;
                                     logger_base.debug("Pixel overlay data changed.");
                                     p->SetColor(c, blendMode);
+                                    break;
                                 }
-                                break;
                             }
                         }
 
