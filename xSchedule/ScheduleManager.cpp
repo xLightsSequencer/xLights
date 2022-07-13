@@ -3275,16 +3275,17 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         PixelData * p = nullptr;
                         for (const auto& it : _overlayData)
                         {
-                            if (it->GetStartChannel() == sc && it->GetSize() == ch)
+                            if (it->GetStartChannel() == sc)
                             {
-                                p = it;
                                 if (ch == 0)
                                 {
+                                    p = it;
                                     logger_base.debug("Pixel overlay data removed.");
                                     _overlayData.remove(p);
                                 }
-                                else
+                                else if (it->GetSize() == ch)
                                 {
+                                    p = it;
                                     logger_base.debug("Pixel overlay data changed.");
                                     p->SetColor(c, blendMode);
                                 }
