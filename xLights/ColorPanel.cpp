@@ -1327,24 +1327,24 @@ void ColorPanel::OnColourChoiceSelect(wxCommandEvent& event)
 
 wxString ColorPanel::FindPaletteFile(const wxString& filename, const wxString& palette) const
 {
-    if (FileExists(xLightsFrame::CurrentDir + "/" + filename)) {
-        wxFileInputStream input(xLightsFrame::CurrentDir + "/" + filename);
+    if (FileExists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + filename)) {
+        wxFileInputStream input(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + filename);
         if (input.IsOk()) {
             wxTextInputStream text(input);
             wxString s = text.ReadLine();
             if (s == palette) {
-                return xLightsFrame::CurrentDir + "/" + filename;
+                return xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + filename;
             }
         }
     }
 
-    if (FileExists(xLightsFrame::CurrentDir + "/Palettes/" + filename)) {
-        wxFileInputStream input(xLightsFrame::CurrentDir + "/Palettes/" + filename);
+    if (FileExists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "Palettes"  + wxFileName::GetPathSeparator() + filename)) {
+        wxFileInputStream input(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "Palettes" + wxFileName::GetPathSeparator() + filename);
         if (input.IsOk()) {
             wxTextInputStream text(input);
             wxString s = text.ReadLine();
             if (s == palette) {
-                return xLightsFrame::CurrentDir + "/Palettes/" + filename;
+                return xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "Palettes" + wxFileName::GetPathSeparator() + filename;
             }
         }
     }
