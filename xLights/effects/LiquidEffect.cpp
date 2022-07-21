@@ -195,7 +195,9 @@ void LiquidEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer
            SettingsMap.GetBool("CHECKBOX_FlowMusic4", false),
            SettingsMap.Get("CHOICE_ParticleType", "Elastic"),
            SettingsMap.GetInt("TEXTCTRL_Despeckle", 0),
-           GetValueCurveDouble("Liquid_Gravity", 10.0, SettingsMap, oset, LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), LIQUID_GRAVITY_DIVISOR));
+           GetValueCurveDouble("Liquid_Gravity", 10.0, SettingsMap, oset, LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), LIQUID_GRAVITY_DIVISOR),
+           GetValueCurveInt("Liquid_GravityAngle", 0, SettingsMap, oset, LIQUID_GRAVITYANGLE_MIN, LIQUID_GRAVITYANGLE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS())
+        );
 }
 
 class LiquidRenderCache : public EffectRenderCache {
@@ -570,7 +572,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     bool enabled2, int direction2, int x2, int y2, int velocity2, int flow2, int sourceSize2, bool flowMusic2,
     bool enabled3, int direction3, int x3, int y3, int velocity3, int flow3, int sourceSize3, bool flowMusic3,
     bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4, int sourceSize4, bool flowMusic4,
-    const std::string& particleType, int despeckle, float gravity)
+    const std::string& particleType, int despeckle, float gravity, int gravityAngle)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -587,7 +589,10 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     }
     b2World*& _world = cache->_world;
 
-    b2Vec2 grav(0.0f, -gravity);
+    float gravityX = gravity * std::cos(toRadians(360 - (gravityAngle + 90)));
+    float gravityY = gravity * std::sin(toRadians(360 - (gravityAngle + 90)));
+
+    b2Vec2 grav(gravityX, gravityY);
 
     if (buffer.needToInit)
     {
