@@ -59,7 +59,8 @@ private:
 };
 
 #pragma region xlTimerTimer
-xLightsTimer::xLightsTimer()
+xLightsTimer::xLightsTimer() :
+    wxTimer()
 {
     _log = false;
     _suspend = false;
@@ -141,7 +142,8 @@ void xLightsTimer::DoSendTimer() {
 }
 
 void xLightsTimer::Notify() {
-    if (_suspend)
+    // don't notify if there is still an event processing or we are suspended
+    if (_suspend || _pending)
     {
         return;
     }
@@ -156,7 +158,7 @@ void xLightsTimer::Notify() {
     else
     {
         _pending = true;
-        CallAfter(&xLightsTimer::DoSendTimer);
+        wxTimer::CallAfter(&xLightsTimer::DoSendTimer);
     }
 }
 
@@ -180,7 +182,7 @@ std::chrono::time_point<std::chrono::system_clock> xLightsTimer::GetNextEventTim
         next = _startTime + std::chrono::milliseconds((_fired + 1) * GetInterval());
         logger_timer.debug("Timer missed some frames.");
     }
-    wxASSERT(next >= now);
+    //wxASSERT(next >= now);
     return next;
 }
 
