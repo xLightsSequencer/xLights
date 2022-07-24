@@ -621,6 +621,8 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_VALUECURVE_Liquid_SourceSize4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
 	//*)
 
+	Connect(ID_VALUECURVE_Liquid_GravityAngle, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
+
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&LiquidPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&LiquidPanel::OnValidateWindow, 0, this);
 
