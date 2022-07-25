@@ -621,7 +621,6 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     if (_xsqPkg != nullptr && _xsqPkg->IsPkg()) {
         SetImportMediaTooltip();
-        
     } else {
         Sizer1->Hide(FlexGridSizerImportMedia, true);
     }
@@ -661,7 +660,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     if (!_allowImportBlend) {
         Sizer1->Hide(FlexGridSizer_Blend_Mode, true);
     }
- 
+
     PopulateAvailable(false);
 
     _dataModel = new xLightsImportTreeModel();
@@ -694,7 +693,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     // This does not work ... I suspect the control is not letting it through
     //Connect(ID_TREELISTCTRL1, wxEVT_KEY_DOWN, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnKeyDown);
 
-    
+
 #ifdef __WXOSX__
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnDragPossible);
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_DROP, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnDragDrop);
@@ -705,7 +704,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
 #endif
     TreeListCtrl_Mapping->SetIndent(8);
     TreeListCtrl_Mapping->Freeze();
-    
+
     int ms = 0;
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
         if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
@@ -716,7 +715,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
                 AddModel(m, ms);
             }
         }
-        
+
     }
 
     // Notify Tree Ctrl to update after all models have been added. This is a big
@@ -791,7 +790,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
 
     _sortOrder = 1;
     ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available);
-    
+
     // Set Autosize Width after it is populated or it doesn't work
     ListCtrl_Available->SetColumnWidth(0, wxLIST_AUTOSIZE);
     if (ListCtrl_Available->GetColumnWidth(0) < 150) {
@@ -882,7 +881,7 @@ void xLightsImportChannelMapDialog::OnKeyDown(wxKeyEvent& event)
         if (TreeListCtrl_Mapping->GetSelectedItemsCount() > 0) {
             wxDataViewItemArray selectedItems;
             TreeListCtrl_Mapping->GetSelections(selectedItems);
-            
+
             for (const auto& item : selectedItems) {
                 Unmap(item);
             }
@@ -1036,7 +1035,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
     wxFileDialog dlg(this, "Load mapping", wxEmptyString, wxEmptyString, "Mapping Files (*.xmap;*.xmaphint)|*.xmap;*.xmaphint|All Files (*.)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dlg.ShowModal() == wxID_OK) {
 
-        if (dlg.GetPath().Lower().EndsWith(".xmaphint")) 
+        if (dlg.GetPath().Lower().EndsWith(".xmaphint"))
         {
             loadMapHintsFile(dlg.GetPath());
             TreeListCtrl_Mapping->Refresh();
@@ -1664,7 +1663,7 @@ void xLightsImportChannelMapDialog::BulkMapSubmodelsStrands(const std::string& f
 }
 
 void xLightsImportChannelMapDialog::HandleDropAvailable(wxDataViewItem dropTarget, std::string availableModelName) {
-    
+
     if (dropTarget.IsOk()) {
         wxDataViewItemArray selectedItems;
         TreeListCtrl_Mapping->GetSelections(selectedItems);
@@ -1679,7 +1678,6 @@ void xLightsImportChannelMapDialog::HandleDropAvailable(wxDataViewItem dropTarge
         }
 
         wxDataViewItem lastSelected;
-        
         if (dropTargetIsSelected) {
             for (const auto& selItem : selectedItems) {
                 Map(selItem, availableModelName);
@@ -1689,10 +1687,9 @@ void xLightsImportChannelMapDialog::HandleDropAvailable(wxDataViewItem dropTarge
             Map(dropTarget, availableModelName);
             lastSelected = dropTarget;
         }
-        
+
         // if we are mapping a submodel and the shift key is down
         if (CountChar(availableModelName, '/') == 1 && wxGetKeyState(WXK_SHIFT)) {
-            
             auto mm = ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel());
             auto ss = mm->GetStrand(lastSelected);
             auto ms = wxSplit(availableModelName, '/');
@@ -1716,7 +1713,7 @@ void xLightsImportChannelMapDialog::HandleDropAvailable(wxDataViewItem dropTarge
         }
 
         TreeListCtrl_Mapping->UnselectAll();
-        
+
         if (lastSelected.IsOk()) {
             wxDataViewItem nextItem = GetNextTreeItem(lastSelected);
             if (nextItem.IsOk()) {
@@ -1863,40 +1860,36 @@ void xLightsImportChannelMapDialog::DoAutoMap(
     for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
         auto model = _dataModel->GetNthChild(i);
         if (model != nullptr) {
-            if (model->_mapping == "") {
+            if ((model->IsGroup() && (mg == "B" || mg == "G")) || (!model->IsGroup() && (mg == "B" || mg == "M"))) {
                 for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
-                    wxString availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
+                    wxString const availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
                     if (availName.Contains("/")) {
-                        wxArrayString parts = wxSplit(availName, '/');
-                        if ((model->IsGroup() && (mg == "B" || mg == "G")) || (!model->IsGroup() && (mg == "B" || mg == "M"))) {
-                            if (lambda_model(model->_model, parts[0], extra1, extra2)) {
-                                // matched the model name ... need to look at strands and submodels
-                                for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                                    auto strand = model->GetNthChild(k);
-                                    if (strand != nullptr) {
-                                        if (strand->_mapping == "") {
-                                            if (lambda_strand(strand->_strand, parts[1], extra1, extra2)) {
-                                                // matched to the strand level
-                                                if (parts.size() == 2) {
-                                                    strand->_mapping = ListCtrl_Available->GetItemText(j);
-                                                    strand->_mappingExists = true;
-                                                }
-                                                else {
-                                                    // need to map the node level
-                                                    for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
-                                                        auto node = strand->GetNthChild(m);
-                                                        if (node != nullptr) {
-                                                            if (node->_mapping == "") {
-                                                                if (lambda_node(node->_node, parts[2], extra1, extra2)) {
-                                                                    // matched to the strand level
-                                                                    if (parts.size() == 3) {
-                                                                        node->_mapping = ListCtrl_Available->GetItemText(j);
-                                                                        node->_mappingExists = true;
-                                                                    }
-                                                                    else {
-                                                                        wxASSERT(false);
-                                                                    }
-                                                                }
+                        wxArrayString const parts = wxSplit(availName, '/');
+                        if (lambda_model(model->_model, parts[0], extra1, extra2)) {
+                            // matched the model name ... need to look at strands and submodels
+                            for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                                auto strand = model->GetNthChild(k);
+                                if (strand != nullptr) {
+                                    if (lambda_strand(strand->_strand, parts[1], extra1, extra2)) {
+                                        // matched to the strand level
+                                        if (parts.size() == 2) {
+                                            if (strand->_mapping.empty()) {
+                                                strand->_mapping = ListCtrl_Available->GetItemText(j);
+                                                strand->_mappingExists = true;
+                                            }
+                                        } else {
+                                            // need to map the node level
+                                            for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
+                                                auto node = strand->GetNthChild(m);
+                                                if (node != nullptr) {
+                                                    if (node->_mapping.empty()) {
+                                                        if (lambda_node(node->_node, parts[2], extra1, extra2)) {
+                                                            // matched to the strand level
+                                                            if (parts.size() == 3) {
+                                                                node->_mapping = ListCtrl_Available->GetItemText(j);
+                                                                node->_mappingExists = true;
+                                                            } else {
+                                                                wxASSERT(false);
                                                             }
                                                         }
                                                     }
@@ -1907,19 +1900,15 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                                 }
                             }
                         }
-                    }
-                    else {
-                        if ((model->IsGroup() && (mg == "B" || mg == "G")) || (!model->IsGroup() && (mg == "B" || mg == "M"))) {
-                            if (lambda_model(model->_model, availName, extra1, extra2)) {
-                                model->_mapping = ListCtrl_Available->GetItemText(j);
-                                model->_mappingExists = true;
-                            }
+                    } else {
+                        if (model->_mapping.empty() && lambda_model(model->_model, availName, extra1, extra2)) {
+                            model->_mapping = ListCtrl_Available->GetItemText(j);
+                            model->_mappingExists = true;
                         }
                     }
                 }
             }
-        }
-        else {
+        } else {
             static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
         }
@@ -1978,11 +1967,11 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated(wxListEven
 }
 
 void xLightsImportChannelMapDialog::SetImportMediaTooltip() {
-    
+
     if (_xsqPkg == nullptr) {
         return;
     }
-    
+
     wxString toolTip = "Available media will be imported into:\n";
 
     // add configured paths
@@ -2018,7 +2007,7 @@ void xLightsImportChannelMapDialog::OnCheckBoxImportMediaClick(wxCommandEvent& e
 }
 
 void xLightsImportChannelMapDialog::LoadRgbEffectsFile() {
-    
+
     if (_xsqPkg->GetRgbEffectsFile().IsOk()) {
         wxXmlNode* grpNode = nullptr;
         wxXmlNode* modelNode = nullptr;
@@ -2052,15 +2041,15 @@ void xLightsImportChannelMapDialog::LoadRgbEffectsFile() {
                         }
                     }
                 }
-                
+
             }
         }
     }
 }
 
 std::vector<std::string> const xLightsImportChannelMapDialog::GetChannelNames() const
-{    
-    std::vector<std::string> itemList; 
+{
+    std::vector<std::string> itemList;
 
     std::transform(importChannels.begin(), importChannels.end(), std::back_inserter(itemList),
                    [](auto const& str) { return str->name; });

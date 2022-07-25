@@ -171,15 +171,15 @@ public:
     {
         return m_children.Item(n);
     }
-    void Insert(xLightsImportModelNode* child, unsigned int n)  
+    void Insert(xLightsImportModelNode* child, unsigned int n)
     {
         m_children.Insert(child, n);
     }
-    void Append(xLightsImportModelNode* child) 
+    void Append(xLightsImportModelNode* child)
     {
         m_children.Add(child);
     }
-    unsigned int GetChildCount() const 
+    unsigned int GetChildCount() const
     {
         return m_children.GetCount();
     }
@@ -232,18 +232,18 @@ public:
         m_children.Insert(child, n);
         ItemAdded(wxDataViewItem(0), wxDataViewItem(child));
     }
-    
+
     void BulkInsert(xLightsImportModelNode* child, unsigned int n)
     {
         m_children.Insert(child, n);
         _pendingAdditions.Add(wxDataViewItem(child));
     }
-    
+
     void NotifyItemsAdded(const wxDataViewItem& parent = wxDataViewItem(0)) {
         ItemsAdded(parent, _pendingAdditions);
         _pendingAdditions.Clear();
     }
-    
+
     void Append(xLightsImportModelNode* child)
     {
         m_children.Add(child);
@@ -350,7 +350,7 @@ class xLightsImportChannelMapDialog: public wxDialog
     void OnSelectionChanged(wxDataViewEvent& event);
     void OnValueChanged(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);
-    
+
     void OnDragPossible(wxDataViewEvent& event);
     void OnDragDrop(wxDataViewEvent& event);
 
@@ -378,7 +378,7 @@ class xLightsImportChannelMapDialog: public wxDialog
     bool _allowImportBlend;
 
 	public:
-   
+
 		xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, bool allowImportBlend, wxWindowID id=wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size=wxDefaultSize);
 		virtual ~xLightsImportChannelMapDialog();
         wxDataViewItem GetNextTreeItem(const wxDataViewItem item) const;
@@ -518,12 +518,12 @@ protected:
             return false;
         };
 
-        SequencePackage* _xsqPkg = nullptr;
+        SequencePackage* _xsqPkg {nullptr};
 
         std::vector<std::unique_ptr<ImportChannel>> importChannels;
         std::unique_ptr<wxImageList> m_imageList;
 
 		DECLARE_EVENT_TABLE()
 
-        
+
 };

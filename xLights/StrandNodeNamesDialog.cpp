@@ -208,8 +208,15 @@ void StrandNodeNamesDialog::ValidateWindow()
     std::vector<std::string> st;
 
     for (int i = 0; i < StrandsGrid->GetNumberRows(); i++) {
-        if ("" != StrandsGrid->GetCellValue(i, 0)) {
-            st.push_back(StrandsGrid->GetCellValue(i, 0));
+        auto const& strandname {StrandsGrid->GetCellValue(i, 0)};
+        if (strandname != Model::SafeModelName(strandname)) {
+            StrandsGrid->SetCellBackgroundColour(i, 0, *wxRED);
+            valid = false;
+            continue;
+        }
+        StrandsGrid->SetCellBackgroundColour(i, 0, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        if (!strandname.empty()) {
+            st.push_back(strandname);
         }
     }
     std::sort(begin(st), end(st));
@@ -222,8 +229,15 @@ void StrandNodeNamesDialog::ValidateWindow()
     {
         std::vector<std::string> no;
         for (int i = 0; i < NodesGrid->GetNumberRows(); i++) {
-            if ("" != NodesGrid->GetCellValue(i, 0)) {
-                no.push_back(NodesGrid->GetCellValue(i, 0));
+            auto const& nodename{ NodesGrid->GetCellValue(i, 0) };
+            if (nodename != Model::SafeModelName(nodename)) {
+                NodesGrid->SetCellBackgroundColour(i, 0, *wxRED);
+                valid = false;
+                continue;
+            }
+            NodesGrid->SetCellBackgroundColour(i, 0, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+            if (!nodename.empty()) {
+                no.push_back(nodename);
             }
         }
 
