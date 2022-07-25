@@ -842,23 +842,26 @@ void BulkEditComboBox::OnComboBoxPopup(wxCommandEvent& event)
 
 void BulkEditComboBox::PopulateComboBox()
 {
-    auto value = GetValue();
-
     // scan all the effects looking for unique values and add them to the list
+
+    auto value = GetValue();
+    std::vector<std::string> comboBoxItems;
     Clear();
+
     for (const auto& it : _defaultOptions) {
         AppendString(it);
+        comboBoxItems.push_back(it);
     }
 
     SetValue(value);
-
     auto id = FixIdForPanel(GetPanelName(GetParent()), GetName());
 
     auto values = xLightsApp::GetFrame()->GetMainSequencer()->GetUniqueEffectPropertyValues(id);
-    for (const auto& it: values) {
+    for (const auto& it : values) {
         auto v = wxString::Format("%0.02f", wxAtof(it));
-        if (std::find(begin(_defaultOptions), end(_defaultOptions), v) == end(_defaultOptions)) {
+        if (std::find(begin(comboBoxItems), end(comboBoxItems), v) == end(comboBoxItems)) {
             AppendString(v);
+            comboBoxItems.push_back(v);
         }
     }
 }
