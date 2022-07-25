@@ -589,6 +589,8 @@
 		<Unit filename="LayoutGroup.h" />
 		<Unit filename="LayoutPanel.cpp" />
 		<Unit filename="LayoutPanel.h" />
+		<Unit filename="LayoutUtils.cpp" />
+		<Unit filename="LayoutUtils.h" />
 		<Unit filename="LinkJukeboxButtonDialog.cpp" />
 		<Unit filename="LinkJukeboxButtonDialog.h" />
 		<Unit filename="LorConvertDialog.cpp" />

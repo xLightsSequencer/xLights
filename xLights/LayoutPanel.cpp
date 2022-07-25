@@ -70,6 +70,8 @@
 #include "CustomModelDialog.h"
 #include "SubModelsDialog.h"
 
+#include "LayoutUtils.h"
+
 #include <log4cpp/Category.hh>
 
 #include <set>
@@ -444,7 +446,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
                                         // Default style
                                         wxPG_DEFAULT_STYLE);
     propertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
-    InitImageList();
+    LayoutUtils::CreateImageList(m_imageList);
 
     wxFlexGridSizer* FlexGridSizerModels = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizerModels->AddGrowableCol(0);
@@ -584,32 +586,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     {
         ModelSplitter->SetSashPosition(200, true);
     }
-}
-
-void LayoutPanel::InitImageList()
-{
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("wxART_NORMAL_FILE", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_GROUP_CLOSED", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_GROUP_OPEN", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_ARCH_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CANE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CIRCLE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CHANNELBLOCK_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CUBE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CUSTOM_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_DMX_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_ICICLE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_IMAGE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_LINE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_MATRIX_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_POLY_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SPHERE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SPINNER_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_STAR_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SUBMODEL_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_TREE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_WINDOW_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_WREATH_ICON", wxART_LIST));
 }
 
 wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
@@ -1279,56 +1255,6 @@ void LayoutPanel::RenameModelInTree(Model *model, const std::string& new_name)
     }
 }
 
-int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
-    if( model->GetDisplayAs() == "ModelGroup" ) {
-        return open ? Icon_FolderOpened : Icon_FolderClosed;
-    }
-    const std::string type = model->GetDisplayAs();
-    if( type == "Arches" ) {
-        return Icon_Arches;
-    } else if( type == "Candy Canes" ) {
-        return Icon_CandyCane;
-    } else if( type == "Circle" ) {
-        return Icon_Circle;
-    } else if (type == "Channel Block") {
-        return Icon_ChannelBlock;
-    } else if( type == "Cube" ) {
-        return Icon_Cube;
-    } else if( type == "Custom" ) {
-        return Icon_Custom;
-    } else if (type == "DMXFloodlight" ||
-               type == "DMXMovingHead" ||
-               type == "DMXMovingHead3D" ||
-               type == "DMXSkull" ||
-               type == "DMXGeneral") {
-        return Icon_Dmx;
-    } else if( type == "Image" ) {
-        return Icon_Image;
-    } else if( type == "Icicles" ) {
-        return Icon_Icicle;
-    } else if( type == "Single Line" ) {
-        return Icon_Line;
-    } else if( type == "Matrix" ) {
-        return Icon_Matrix;
-    } else if( type == "Poly Line" ) {
-        return Icon_Poly;
-    } else if( type == "Sphere" ) {
-        return Icon_Sphere;
-    } else if( type == "Spinner" ) {
-        return Icon_Spinner;
-    } else if( type == "Star" ) {
-        return Icon_Star;
-    } else if( type == "SubModel" ) {
-        return Icon_SubModel;
-    } else if( type == "Tree" ) {
-        return Icon_Tree;
-    } else if( type == "Wreath" ) {
-        return Icon_Wreath;
-    } else if( type == "Window Frame" ) {
-        return Icon_Window;
-    }
-    return Icon_File;
-}
 
 int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1341,8 +1267,8 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
     //logger_base.debug("Adding model %s", (const char *)model->GetFullName().c_str());
 
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, TreeModelName(model, fullName),
-                                                         GetModelTreeIcon(model, false),
-                                                         GetModelTreeIcon(model, true),
+                                                         LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Closed),
+                                                         LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Opened),
                                                          new ModelTreeData(model, nativeOrder, fullName));
     if( model->GetDisplayAs() != "ModelGroup" ) {
         wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());

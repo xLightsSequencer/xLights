@@ -296,6 +296,7 @@
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="KeyBindingEditDialog.cpp" />
     <ClCompile Include="LayerSelectDialog.cpp" />
+    <ClCompile Include="LayoutUtils.cpp" />
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
     <ClCompile Include="LOREdit.cpp" />
     <ClCompile Include="LORPreview.cpp" />
@@ -763,6 +764,7 @@
     <ClInclude Include="graphics\xlMesh.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
+    <ClInclude Include="LayoutUtils.h" />
     <ClInclude Include="LORPreview.h" />
     <ClInclude Include="JukeboxPanel.h" />
     <ClInclude Include="KeyBindingEditDialog.h" />

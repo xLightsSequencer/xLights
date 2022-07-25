@@ -27,6 +27,7 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 #include "MediaImportOptionsDialog.h"
+#include "LayoutUtils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -625,10 +626,10 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         Sizer1->Hide(FlexGridSizerImportMedia, true);
     }
     if (_xsqPkg != nullptr && _xsqPkg->HasRGBEffects()) {
-        LoadAvailableGroups();
+        LoadRgbEffectsFile();
     }
 
-    if (channelNames.size() == 0 && timingTracks.size() == 0)
+    if (importChannels.size() == 0 && timingTracks.size() == 0)
     {
         DisplayError("No models/timing tracks to import from. Source sequence had no data.");
         return false;
@@ -673,6 +674,11 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     if (_allowColorChoice) {
         TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Color", new ColorRenderer(), 2, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
     }
+
+    m_imageList = std::make_unique<wxImageList>(16, 16, true);
+    LayoutUtils::CreateImageList(m_imageList.get());
+
+    ListCtrl_Available->SetImageList(m_imageList.get(), wxIMAGE_LIST_SMALL);
 
     TreeListCtrl_Mapping->SetMinSize(wxSize(0, 300));
     SizerMap->Add(TreeListCtrl_Mapping, 1, wxALL | wxEXPAND, 5);
@@ -761,17 +767,22 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
         int j = 0;
         for (auto const& name : ccrNames) {
             ListCtrl_Available->InsertItem(j, name);
-            ListCtrl_Available->SetItemData(j, j);
+            ListCtrl_Available->SetItemPtrData(j, (wxUIntPtr) nullptr);
+            ListCtrl_Available->SetItemColumnImage(j, 0, -1);
             j++;
         }
     } else {
         int j = 0;
-        for (auto const& name: channelNames) {
-            ListCtrl_Available->InsertItem(j, name);
-            ListCtrl_Available->SetItemData(j, j);
-            
+        for (auto const& m : importChannels) {
+            ListCtrl_Available->InsertItem(j, m->name);
+            ListCtrl_Available->SetItemPtrData(j, (wxUIntPtr)m.get());
+            if (!m->type.empty()) {
+                ListCtrl_Available->SetItemColumnImage(j, 0, LayoutUtils::GetModelTreeIcon(m->type, LayoutUtils::GroupMode::Regular));
+            } else {
+                ListCtrl_Available->SetItemColumnImage(j, 0, -1);
+            }
             // If importing from xsqPkg flag known groups by color like is currently done in mapped list
-            if (std::find(_availableGroups.begin(), _availableGroups.end(), name) != _availableGroups.end()) {
+            if (m->type == "ModelGroup") {
                 ListCtrl_Available->SetItemTextColour(j, CyanOrBlue());
             }
             j++;
@@ -1777,7 +1788,8 @@ void xLightsImportChannelMapDialog::MarkUsed()
     for (int i = 0; i < items; ++i) {
         if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i).ToStdString())) {
             // not used
-            if (std::find(_availableGroups.begin(), _availableGroups.end(), ListCtrl_Available->GetItemText(i)) != _availableGroups.end()) {
+            ImportChannel* im = (ImportChannel*)ListCtrl_Available->GetItemData(i);
+            if (im != nullptr && im->name == "ModelGroup") {
                 ListCtrl_Available->SetItemTextColour(i, CyanOrBlue());
             } else {
                 ListCtrl_Available->SetItemTextColour(i, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT));
@@ -2005,25 +2017,77 @@ void xLightsImportChannelMapDialog::OnCheckBoxImportMediaClick(wxCommandEvent& e
     }
 }
 
-void xLightsImportChannelMapDialog::LoadAvailableGroups() {
+void xLightsImportChannelMapDialog::LoadRgbEffectsFile() {
     
     if (_xsqPkg->GetRgbEffectsFile().IsOk()) {
         wxXmlNode* grpNode = nullptr;
+        wxXmlNode* modelNode = nullptr;
+
         for (wxXmlNode* node = _xsqPkg->GetRgbEffectsFile().GetRoot()->GetChildren(); node != nullptr; node = node->GetNext()) {
             if (node->GetName() == "modelGroups") {
                 grpNode = node;
                 break;
             }
+            if (node->GetName() == "models") {
+                modelNode = node;
+            }
         }
 
         if (grpNode) {
             for (wxXmlNode* node = grpNode->GetChildren(); node != nullptr; node = node->GetNext()) {
-                _availableGroups.push_back(node->GetAttribute("name"));
+                if (auto mm = GetImportChannel(node->GetAttribute("name")); mm) {
+                    mm->type = "ModelGroup";
+                }
+            }
+        }
+        if (modelNode) {
+            for (wxXmlNode* node = modelNode->GetChildren(); node != nullptr; node = node->GetNext()) {
+                if (auto mm = GetImportChannel(node->GetAttribute("name")); mm) {
+                    mm->type = node->GetAttribute("DisplayAs");
+                }
+                for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
+                    if (n->GetName() == "subModel") {
+                        if (auto mm = GetImportChannel(node->GetAttribute("name") + "/" + n->GetAttribute("name")); mm) {
+                            mm->type = "SubModel";
+                        }
+                    }
+                }
+                
             }
         }
     }
 }
 
+std::vector<std::string> const xLightsImportChannelMapDialog::GetChannelNames() const
+{    
+    std::vector<std::string> itemList; 
+
+    std::transform(importChannels.begin(), importChannels.end(), std::back_inserter(itemList),
+                   [](auto const& str) { return str->name; });
+    return itemList;
+}
+
+ImportChannel* xLightsImportChannelMapDialog::GetImportChannel(std::string const& name) const
+{
+    if (auto const found{ std::find_if(importChannels.begin(), importChannels.end(),
+                                       [&name](auto const& c) { return c->name == name; }) };
+        found != importChannels.end()) {
+        return found->get();
+    }
+    return nullptr;
+}
+
+void xLightsImportChannelMapDialog::SortChannels()
+{
+    std::sort(importChannels.begin(), importChannels.end(), [](const auto& lhs, const auto& rhs) {
+        return stdlistNumberAwareStringCompare(lhs->name, rhs->name);
+    });
+}
+
+void xLightsImportChannelMapDialog::AddChannel(std::string const& name)
+{
+    importChannels.emplace_back(new ImportChannel(name));
+}
 
 void xLightsImportChannelMapDialog::loadMapHintsFile(wxString const& filename) {
     // <MapHints>

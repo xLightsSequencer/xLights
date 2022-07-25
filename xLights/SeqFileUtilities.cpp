@@ -1277,7 +1277,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
             }
             if (hasEffects) {
-                dlg.channelNames.push_back(el->GetName());
+                dlg.AddChannel(el->GetName());
             }
             elementMap[el->GetName()] = el;
             int s = 0;
@@ -1294,7 +1294,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 }
                 if (sme->HasEffects()) {
                     elementMap[el->GetName() + "/" + smName] = sme;
-                    dlg.channelNames.push_back(el->GetName() + "/" + smName);
+                    dlg.AddChannel(el->GetName() + "/" + smName);
                 }
                 if (ste != nullptr) {
                     for (size_t n = 0; n < ste->GetNodeLayerCount(); ++n) {
@@ -1304,7 +1304,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                             if (nodeName == "") {
                                 nodeName = wxString::Format("Node %d", (int)(n + 1));
                             }
-                            dlg.channelNames.push_back(el->GetName() + "/" + smName + "/" + nodeName);
+                            dlg.AddChannel(el->GetName() + "/" + smName + "/" + nodeName);
                             layerMap[el->GetName() + "/" + smName + "/" + nodeName] = nl;
                         }
                     }
@@ -1330,7 +1330,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
         }
     }
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    dlg.SortChannels();
     dlg.timingTracks = timingTrackNames;
     dlg.timingTrackAlreadyExists = timingTrackAlreadyExists;
     bool ok = dlg.InitImport();
@@ -1705,7 +1705,9 @@ void MapVixChannelInformation(xLightsFrame *xlights, EffectLayer *layer,
 #endif
 
 
-static void CheckForVixenRGB(const std::string &name, std::vector<std::string> &channelNames, xlColor &c, std::map<std::string, xlColor> &channelColors) {
+static void CheckForVixenRGB(const std::string& name, xlColor& c, xLightsImportChannelMapDialog &dlg)
+{
+    auto const channelNames{ dlg.GetChannelNames() };
     bool addRGB = false;
     std::string base;
     if (EndsWith(name, "Red") || EndsWith(name, "-R")) {
@@ -1749,10 +1751,10 @@ static void CheckForVixenRGB(const std::string &name, std::vector<std::string> &
                 addRGB = true;
             }
     }
-    channelColors[name] = c;
+    dlg.channelColors[name] = c;
     if (addRGB) {
-        channelColors[base] = xlBLACK;
-        channelNames.push_back(base);
+        dlg.channelColors[base] = xlBLACK;
+        dlg.AddChannel(base);
     }
 }
 
@@ -1829,11 +1831,11 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                     chanColor = wxAtoi(stagEvent->getAttrValue("color")) & 0xFFFFFF;
                     NodeName = SafeGetAttrValue(stagEvent, "name");
                     if (NodeName != "") {
-                        dlg.channelNames.push_back(NodeName);
+                        dlg.AddChannel(NodeName);
                         unsortedChannels.push_back(NodeName);
 
                         xlColor c(chanColor, false);
-                        CheckForVixenRGB(NodeName, dlg.channelNames, c, dlg.channelColors);
+                        CheckForVixenRGB(NodeName, c, dlg);
 
                         context.pop_back();
                         context.push_back("IgnoreChannelElement");
@@ -1872,10 +1874,10 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                         for (int x = 0; x < VixChannelNames.size(); x++) {
                             std::string name = VixChannelNames[x].ToStdString();
                             xlColor c = colors[x];
-                            dlg.channelNames.push_back(name);
+                            dlg.AddChannel(name);
                             unsortedChannels.push_back(name);
 
-                            CheckForVixenRGB(name, dlg.channelNames, c, dlg.channelColors);
+                            CheckForVixenRGB(name, c, dlg);
                         }
 
                     }
@@ -1894,11 +1896,11 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                         }
                     }
                     else if (context[1] == "Channels" && context[2] == "Channel") {
-                        dlg.channelNames.push_back(NodeValue);
+                        dlg.AddChannel(NodeValue);
                         unsortedChannels.push_back(NodeValue);
 
                         xlColor c(chanColor, false);
-                        CheckForVixenRGB(NodeValue, dlg.channelNames, c, dlg.channelColors);
+                        CheckForVixenRGB(NodeValue, c, dlg);
                     }
                 }
                 break;
@@ -1924,7 +1926,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     // the previous calculation because it had a partial last frame
     int numFrames = (int)std::ceil((float)time / (float)frameTime);
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    dlg.SortChannels();
 
     logger_base.debug("Showing mapping dialog.");
     dlg.InitImport();
@@ -2805,7 +2807,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                         std::string color = chan->GetAttribute("color").ToStdString();
                         std::string unit = chan->GetAttribute("unit").ToStdString();
                         std::string circuit = chan->GetAttribute("circuit").ToStdString();
-                        if (std::find(begin(dlg.channelNames), end(dlg.channelNames), name) != end(dlg.channelNames)) {
+                        if (dlg.GetImportChannel(name)) {
                             name += "_Unit_" + unit + "_Circuit_" + circuit;
                         }
                         dlg.channelColors[name] = GetColor(color);
@@ -2827,7 +2829,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                             if (i > 0 && name != "")
                             {
                                 ccr = true;
-                                dlg.channelNames.push_back(name);
+                                dlg.AddChannel(name);
                                 //if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), name.substr(0, idxSP - 1)) == dlg.ccrNames.end())
                                 if (name.substr(0, idxSP) != "" && std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), name.substr(0, idxSP)) == dlg.ccrNames.end())
                                 {
@@ -2840,7 +2842,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
 
                     if (!ccr && name != "")
                     {
-                        dlg.channelNames.push_back(name);
+                        dlg.AddChannel(name);
                     }
                 }
             }
@@ -2864,7 +2866,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         }
     }
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    dlg.SortChannels();
     std::sort(dlg.ccrNames.begin(), dlg.ccrNames.end(), stdlistNumberAwareStringCompare);
     dlg.timingTracks = timingTrackNames;
 
@@ -2937,7 +2939,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
             {
                 if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
                 {
-                    MapCCR(dlg.channelNames, model, m, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
+                    MapCCR(dlg.GetChannelNames(), model, m, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                 }
                 else
                 {
@@ -2968,7 +2970,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                     {
                         StrandElement *se = model->GetStrand(str);
                         if (se != nullptr) {
-                            MapCCRStrand(dlg.channelNames, se, s, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
+                            MapCCRStrand(dlg.GetChannelNames(), se, s, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
                         else {
                             logger_base.debug("LMS Import: Strand %d not found.", str);
@@ -4492,10 +4494,12 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
     dlg.xlights = this;
 
     dlg.timingTracks = lorEdit.GetTimingTracks();
-    dlg.channelNames = lorEdit.GetModelsWithEffects();
+    for (auto const& m : lorEdit.GetModelsWithEffects()) {
+        dlg.AddChannel(m);
+    }
     dlg.ccrNames = lorEdit.GetNodesWithEffects();
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    dlg.SortChannels();
 
     dlg.InitImport("Stands and Channels");
 
@@ -4664,14 +4668,14 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
                             }
                         }
                     }
-                    dlg.channelNames.push_back(name);
+                    dlg.AddChannel(name);
                     dlg.channelColors[name] = xlBLACK;
                 }
             }
         }
     }
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    dlg.SortChannels();
     dlg.timingTracks = timingTrackNames;
 
     dlg.InitImport();
@@ -4847,10 +4851,10 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
         }
         else
         {
-            dlg.channelNames.push_back(it);
+            dlg.AddChannel(it);
         }
     }
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    dlg.SortChannels();
     auto timings = vixen.GetTimings();
     for (const auto& it : timings)
     {

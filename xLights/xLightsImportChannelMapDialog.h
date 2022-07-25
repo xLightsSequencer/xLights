@@ -34,6 +34,8 @@
 #include <wx/arrstr.h>
 #include <wx/filename.h>
 #include <list>
+#include <memory>
+#include <optional>
 #include "SequencePackage.h"
 
 class SequenceElements;
@@ -324,6 +326,23 @@ public:
     }
 };
 
+struct ImportChannel
+{
+    std::string name;
+    std::string type;
+    ImportChannel(std::string name_, std::string type_) :
+        name(std::move(name_)), type(std::move(type_))
+    { }
+    ImportChannel(std::string name_) :
+        name(std::move(name_))
+    { }
+
+    inline bool operator==(const ImportChannel& rhs)
+    {
+        return name == rhs.name;
+    }
+};
+
 class xLightsImportChannelMapDialog: public wxDialog
 {
     xLightsImportModelNode* TreeContainsModel(std::string model, std::string strand = "", std::string node = "");
@@ -368,6 +387,11 @@ class xLightsImportChannelMapDialog: public wxDialog
         void SetModelBlending(bool enabled);
         bool GetImportModelBlending();
         void SetXsqPkg(SequencePackage* xsqPkg);
+        [[nodiscard]] std::vector<std::string> const GetChannelNames() const;
+        [[nodiscard]] ImportChannel* GetImportChannel(std::string const& name) const;
+        void SortChannels();
+        void AddChannel(std::string const& name);
+
         xLightsImportTreeModel *_dataModel;
 
 		//(*Declarations(xLightsImportChannelMapDialog)
@@ -403,7 +427,6 @@ class xLightsImportChannelMapDialog: public wxDialog
         xLightsFrame * xlights;
         wxDataViewCtrl* TreeListCtrl_Mapping;
 
-        std::vector<std::string> channelNames;
         std::vector<std::string> ccrNames;
         std::map<std::string, xlColor> channelColors;
         std::vector<std::string> timingTracks;
@@ -460,7 +483,7 @@ protected:
         void OnDrop(wxCommandEvent& event);
         void HandleDropAvailable(wxDataViewItem dropTarget, std::string availableModelName);
         void SetImportMediaTooltip();
-        void LoadAvailableGroups();
+        void LoadRgbEffectsFile();
         void BulkMapSubmodelsStrands(const std::string& fromModel, wxDataViewItem& toModel);
         void BulkMapNodes(const std::string& fromModel, wxDataViewItem& toModel);
         void DoAutoMap(
@@ -496,7 +519,9 @@ protected:
         };
 
         SequencePackage* _xsqPkg = nullptr;
-        std::vector<std::string> _availableGroups;
+
+        std::vector<std::unique_ptr<ImportChannel>> importChannels;
+        std::unique_ptr<wxImageList> m_imageList;
 
 		DECLARE_EVENT_TABLE()
 
