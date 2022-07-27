@@ -185,7 +185,7 @@ int StarModel::GetStrandLength(int strand) const
         return 1;
     }
     else {
-        if (Contains(_starStartLocation, "Inside")) {
+        if (!Contains(_starStartLocation, "Inside")) {
             return GetStarSize(GetLayerSizeCount() - 1 - strand);
         }
         else {
