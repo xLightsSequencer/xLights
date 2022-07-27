@@ -35,12 +35,26 @@ wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
 
 int wxCALLBACK MyCompareFunctionAsc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
-    return item1 == item2 ? 0 : ((item1 < item2) ? -1 : 1);
+    ImportChannel* im1 = (ImportChannel*)item1;
+    ImportChannel* im2 = (ImportChannel*)item2;
+
+    if (im1 != nullptr && im2 != nullptr) {
+        return stdlistNumberAwareStringCompare(im2->name, im1->name);
+    }
+    wxASSERT(false);
+    return true;
 }
 
 int wxCALLBACK MyCompareFunctionDesc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
-    return item1 == item2 ? 0 : ((item1 < item2) ? 1 : -1);
+    ImportChannel* im1 = (ImportChannel*)item1;
+    ImportChannel* im2 = (ImportChannel*)item2;
+
+    if (im1 != nullptr && im2 != nullptr) {
+        return stdlistNumberAwareStringCompare(im1->name, im2->name);
+    }
+    wxASSERT(false);
+    return true;
 }
 
 class MDDropSource : public wxDropSource
