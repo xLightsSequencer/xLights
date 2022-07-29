@@ -35,26 +35,12 @@ wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
 
 int wxCALLBACK MyCompareFunctionAsc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
-    ImportChannel* im1 = (ImportChannel*)item1;
-    ImportChannel* im2 = (ImportChannel*)item2;
-
-    if (im1 != nullptr && im2 != nullptr) {
-        return stdlistNumberAwareStringCompare(im2->name, im1->name);
-    }
-    wxASSERT(false);
-    return true;
+    return item1 == item2 ? 0 : ((item1 < item2) ? -1 : 1);
 }
 
 int wxCALLBACK MyCompareFunctionDesc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
-    ImportChannel* im1 = (ImportChannel*)item1;
-    ImportChannel* im2 = (ImportChannel*)item2;
-
-    if (im1 != nullptr && im2 != nullptr) {
-        return stdlistNumberAwareStringCompare(im1->name, im2->name);
-    }
-    wxASSERT(false);
-    return true;
+    return item1 == item2 ? 0 : ((item1 < item2) ? 1 : -1);
 }
 
 class MDDropSource : public wxDropSource
@@ -780,7 +766,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
         int j = 0;
         for (auto const& name : ccrNames) {
             ListCtrl_Available->InsertItem(j, name);
-            ListCtrl_Available->SetItemPtrData(j, (wxUIntPtr) nullptr);
+            ListCtrl_Available->SetItemData(j, j);
             ListCtrl_Available->SetItemColumnImage(j, 0, -1);
             j++;
         }
@@ -788,7 +774,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
         int j = 0;
         for (auto const& m : importChannels) {
             ListCtrl_Available->InsertItem(j, m->name);
-            ListCtrl_Available->SetItemPtrData(j, (wxUIntPtr)m.get());
+            ListCtrl_Available->SetItemData(j, j);
             if (!m->type.empty()) {
                 ListCtrl_Available->SetItemColumnImage(j, 0, LayoutUtils::GetModelTreeIcon(m->type, LayoutUtils::GroupMode::Regular));
             } else {
@@ -1799,7 +1785,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
     for (int i = 0; i < items; ++i) {
         if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i).ToStdString())) {
             // not used
-            ImportChannel* im = (ImportChannel*)ListCtrl_Available->GetItemData(i);
+            ImportChannel* im = GetImportChannel(ListCtrl_Available->GetItemText(i).ToStdString());
             if (im != nullptr && im->name == "ModelGroup") {
                 ListCtrl_Available->SetItemTextColour(i, CyanOrBlue());
             } else {
