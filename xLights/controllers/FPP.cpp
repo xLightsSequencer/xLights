@@ -1247,7 +1247,7 @@ bool FPP::UploadDisplayMap(const std::string &displayMap) {
         wxFile tf(fn.GetFullPath());
         tf.Write(displayMap);
         tf.Close();
-    } else if (IsVersionAtLeast(3, 6) && !IsVersionAtLeast(6, 0)) {
+    } else if (IsVersionAtLeast(3, 6)) {
         PostToURL("/api/configfile/virtualdisplaymap", displayMap);
     }
     return false;
