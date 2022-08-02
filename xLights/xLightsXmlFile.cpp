@@ -662,6 +662,11 @@ void xLightsXmlFile::SetNodeContent(wxXmlNode* node, const wxString& content)
     }
 }
 
+wxString xLightsXmlFile::GetHeaderInfo(HEADER_INFO_TYPES node_type) const
+{
+    return UnXmlSafe(header_info[static_cast<int>(node_type)]);
+}
+
 void xLightsXmlFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const wxString& node_value)
 {
     wxString clean_node_value(XmlSafe(node_value));
