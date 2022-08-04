@@ -340,11 +340,9 @@ void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std:
 
 std::string ModelManager::SerialiseModelGroupsForModel(const std::string& name) const
 {
-    wxArrayString allGroups;
     wxArrayString onlyGroups;
     for (const auto& it : models) {
         if (it.second->GetDisplayAs() == "ModelGroup"){
-            allGroups.Add(it.first);
             if (dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(name)) {
                 onlyGroups.Add(it.first);
             }
@@ -352,11 +350,11 @@ std::string ModelManager::SerialiseModelGroupsForModel(const std::string& name) 
     }
 
     std::string res;
-    if (allGroups.size() == 0) {
+    if (onlyGroups.size() == 0) {
         return res;
     }
 
-    CheckboxSelectDialog dlg(GetXLightsFrame(), "Select Groups to Export - cancel to include no groups", allGroups, onlyGroups);
+    CheckboxSelectDialog dlg(GetXLightsFrame(), "Select Groups to Export - cancel to include no groups", onlyGroups, onlyGroups);
     if (dlg.ShowModal() == wxID_OK) {
         onlyGroups = dlg.GetSelectedItems();
     } else {
