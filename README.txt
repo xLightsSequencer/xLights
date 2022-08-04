@@ -11,9 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-
-   -- enh (scott) Added Model Icons to Import Dialog if a rgbeffects file is found.
-   -- bug (scott) Fix Face Dialog Image Download with network drives.
+   -- enh (keith)  Add a Liquid effect gravity direction.(fixes #3343)
+   -- enh (keith)  Add ZCPP support for default port brightness.
+   -- enh (scott)  Added Model Icons to Import Dialog if a rgbeffects file is found.
+   -- enh (scott)  Added Wally Light's WB1616 Controller.
+   -- bug (keith)  Fix possible xScanner crash.
+   -- bug (scott)  Fix virtual display map upload on FPP 6.
+   -- bug (scott)  Fix strand order for rendering on stars.
+   -- bug (scott)  Fix loading matrix face images from Network Shared Folder.(fixes #3342)
+   -- bug (scott)  Fix Text Effect Replace with encoded characters.(fixes #3359)
+   -- bug (scott)  Fix Import Effects Automap not matching strand/node name.(fixes #3328)
+   -- bug (pierre) Prevent duplicate values when bulk editing comboboxes.
+   -- bug (keith)  xSchedule: Fix Non-Musical Sequences Playback Slower Than Expected.(fixes #3322)
 2022.14 July 10, 2022
    -- enh (keith) Add a tool for remapping custom models to alternate pixel layouts
    -- enh (keith) Make random effect generation cancellable
