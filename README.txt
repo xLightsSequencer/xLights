@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.15 August 4, 2022
    -- enh (keith)  Add a Liquid effect gravity direction.(fixes #3343)
    -- enh (keith)  Add ZCPP support for default port brightness.
    -- enh (scott)  Added Model Icons to Import Dialog if a rgbeffects file is found.
