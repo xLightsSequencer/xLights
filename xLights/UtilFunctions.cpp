@@ -1096,6 +1096,11 @@ bool IsValidLocalIP(const std::string& ip)
     return false;
 }
 
+bool IsValidLocalIP(const wxIPV4address& ip)
+{
+    return IsValidLocalIP(ip.IPAddress().ToStdString());
+}
+
 bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::string& mask)
 {
     wxIPV4address i1;

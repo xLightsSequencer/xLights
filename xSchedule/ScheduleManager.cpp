@@ -257,7 +257,9 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
     PlayListStep* pls = nullptr;
 
     // adjust the time we received by the desired latency
-    ms += GetOptions()->GetRemoteLatency();
+    if (ms >= 0) {
+        ms += GetOptions()->GetRemoteLatency();
+    }
 
     if (filename != "" && pl != nullptr && pl->GetRunningStep() != nullptr && pl->GetRunningStep()->GetNameNoTime() == filename)
     {
@@ -286,11 +288,11 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
         }
         else
         {
-            if (ms == 0xFFFFFFFE)
+            if (ms == 0xFFFFFFFE || ms == -2)
             {
                 pl->Suspend(true);
             }
-            else if (ms == 0xFFFFFFFD)
+            else if (ms == 0xFFFFFFFD || ms == -3)
             {
                 pl->Suspend(false);
             }
@@ -356,7 +358,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
 
     if (pls != nullptr)
     {
-        if (ms == 0xFFFFFFFF)
+        if (ms == 0xFFFFFFFF || ms == -1)
         {
             if (pls->GetNameNoTime() == filename)
             {
@@ -369,7 +371,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
                 wxPostEvent(wxGetApp().GetTopWindow(), event);
             }
         }
-        else if (ms == 0xFFFFFFFE)
+        else if (ms == 0xFFFFFFFE || ms == -2)
         {
             // pause
             if (pls->GetNameNoTime() == filename)
@@ -377,7 +379,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
                 pl->Suspend(true);
             }
         }
-        else if (ms == 0xFFFFFFFD)
+        else if (ms == 0xFFFFFFFD || ms == -3)
         {
             // unpause
             if (pls->GetNameNoTime() == filename)
