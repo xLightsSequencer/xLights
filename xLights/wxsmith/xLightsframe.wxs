@@ -1348,6 +1348,19 @@
 						<checkable>1</checkable>
 					</object>
 					<object class="separator" />
+					<object class="wxMenu" name="ID_MENUITEM3" variable="MenuItem1" member="yes">
+						<label>Suppress Dock</label>
+						<object class="wxMenuItem" name="ID_MNU_SUPPRESSDOCK_HP" variable="MenuItem_SD_HP" member="yes">
+							<label>House Preview</label>
+							<handler function="OnMenuItem_SuppressDock" entry="EVT_MENU" />
+							<checkable>1</checkable>
+						</object>
+						<object class="wxMenuItem" name="ID_MNU_SUPPRESSDOCK_MP" variable="MenuItem_SD_MP" member="yes">
+							<label>Model Preview</label>
+							<handler function="OnMenuItem_SuppressDock" entry="EVT_MENU" />
+							<checkable>1</checkable>
+						</object>
+					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_WINDOWS_PERSPECTIVE" variable="MenuItem26" member="no">
 						<label>Perspectives</label>
 						<handler function="ShowHidePerspectivesWindow" entry="EVT_MENU" />

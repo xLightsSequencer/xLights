@@ -611,6 +611,7 @@ public:
     void OnMenuItem_TODSelected(wxCommandEvent& event);
     void OnMenuItem_RemapCustomSelected(wxCommandEvent& event);
     void OnMenuItemRestoreBackupSelected(wxCommandEvent& event);
+    void OnMenuItem_SuppressDock(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -780,6 +781,9 @@ public:
     static const long ID_MENUITEM_VIDEOPREVIEW;
     static const long ID_MNU_JUKEBOX;
     static const long ID_MNU_FINDDATA;
+    static const long ID_MNU_SUPPRESSDOCK_HP;
+    static const long ID_MNU_SUPPRESSDOCK_MP;
+    static const long ID_MENUITEM3;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM_WINDOWS_DOCKALL;
     static const long ID_MENUITEM11;
@@ -866,6 +870,7 @@ public:
     wxMenu* Menu3;
     wxMenu* MenuFile;
     wxMenu* MenuItem18;
+    wxMenu* MenuItem1;
     wxMenu* MenuItemPerspectives;
     wxMenu* MenuView;
     wxMenu* RecentSequencesMenu;
@@ -945,6 +950,8 @@ public:
     wxMenuItem* MenuItem_PurgeVendorCache;
     wxMenuItem* MenuItem_QuietVol;
     wxMenuItem* MenuItem_RemapCustom;
+    wxMenuItem* MenuItem_SD_HP;
+    wxMenuItem* MenuItem_SD_MP;
     wxMenuItem* MenuItem_ShowACRamps;
     wxMenuItem* MenuItem_ShowKeyBindings;
     wxMenuItem* MenuItem_SilentVol;
@@ -1704,6 +1711,10 @@ private:
 
     bool isRandom_(wxControl* ctl, const char*debug);
     void SetSyncUniverse(int syncUniverse);
+
+    bool IsDockable(const std::string& panel);
+    void LoadDockable();
+    void SaveDockable();
 
     Effect* GetPersistentEffectOnModelStartingAtTime(const std::string& model, uint32_t startms) const;
     void EnableToolbarButton(wxAuiToolBar* toolbar, int id, bool enable);

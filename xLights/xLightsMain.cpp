@@ -279,6 +279,9 @@ const long xLightsFrame::ID_MENUITEM_SEARCH_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
 const long xLightsFrame::ID_MNU_JUKEBOX = wxNewId();
 const long xLightsFrame::ID_MNU_FINDDATA = wxNewId();
+const long xLightsFrame::ID_MNU_SUPPRESSDOCK_HP = wxNewId();
+const long xLightsFrame::ID_MNU_SUPPRESSDOCK_MP = wxNewId();
+const long xLightsFrame::ID_MENUITEM3 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_DOCKALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM11 = wxNewId();
@@ -971,6 +974,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     MenuItemFindData = new wxMenuItem(MenuItem18, ID_MNU_FINDDATA, _("Find Effect Data"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemFindData);
     MenuItem18->AppendSeparator();
+    MenuItem1 = new wxMenu();
+    MenuItem_SD_HP = new wxMenuItem(MenuItem1, ID_MNU_SUPPRESSDOCK_HP, _("House Preview"), wxEmptyString, wxITEM_CHECK);
+    MenuItem1->Append(MenuItem_SD_HP);
+    MenuItem_SD_MP = new wxMenuItem(MenuItem1, ID_MNU_SUPPRESSDOCK_MP, _("Model Preview"), wxEmptyString, wxITEM_CHECK);
+    MenuItem1->Append(MenuItem_SD_MP);
+    MenuItem18->Append(ID_MENUITEM3, _("Suppress Dock"), MenuItem1, wxEmptyString);
     MenuItem26 = new wxMenuItem(MenuItem18, ID_MENUITEM_WINDOWS_PERSPECTIVE, _("Perspectives"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem26);
     MenuItem21 = new wxMenuItem(MenuItem18, ID_MENUITEM_WINDOWS_DOCKALL, _("Dock All"), wxEmptyString, wxITEM_NORMAL);
@@ -1185,6 +1194,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(ID_MENUITEM_VIDEOPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShowHideVideoPreview);
     Connect(ID_MNU_JUKEBOX,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_JukeboxSelected);
     Connect(ID_MNU_FINDDATA,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFindDataSelected);
+    Connect(ID_MNU_SUPPRESSDOCK_HP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SuppressDock);
+    Connect(ID_MNU_SUPPRESSDOCK_MP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SuppressDock);
     Connect(ID_MENUITEM_WINDOWS_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePerspectivesWindow);
     Connect(ID_MENUITEM_WINDOWS_DOCKALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuDockAllSelected);
     Connect(ID_MENUITEM11,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetWindowsToDefaultPositions);
@@ -1241,6 +1252,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     GaugeSizer->SetSizeHints(Panel1);
     StatusBarSizer->Fit(AUIStatusBar);
     StatusBarSizer->SetSizeHints(AUIStatusBar);
+
+    LoadDockable();
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(xLightsFrame::OnCharHook), nullptr, this);
 
@@ -1423,9 +1436,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
     modelPreview = layoutPanel->GetMainPreview();
     logger_base.debug("LayoutPanel setup done.");
-
-
-
 
     playIcon = wxBitmap(control_play_blue_icon);
     pauseIcon = wxBitmap(control_pause_blue_icon);
@@ -1959,6 +1969,8 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsVideoExportBitrate", _videoExportBitrate);
 
     config->Write("xLightsControllerSash", SplitterWindowControllers->GetSashPosition());
+
+    SaveDockable();
 
     //definitely not outputting data anymore
     config->Write("OutputActive", false);
@@ -10281,11 +10293,61 @@ void xLightsFrame::OnMenuItemRestoreBackupSelected(wxCommandEvent& event)
                 errors += "Unable to copy file \"" + file + "\"\n";
             }
         }
- 
+
         if (!errors.empty()) {
             DisplayError(errors, this);
         } else {
             SetDir(showDirectory, true);
         }
     }
+}
+
+void xLightsFrame::OnMenuItem_SuppressDock(wxCommandEvent& event)
+{
+    m_mgr->GetPane("HousePreview").Dockable(IsDockable("HP"));
+    m_mgr->GetPane("ModelPreview").Dockable(IsDockable("MP"));
+    SaveDockable();
+}
+
+void xLightsFrame::LoadDockable()
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config == nullptr) {
+        logger_base.error("Null config ... this wont end well.");
+        return;
+    }
+    bool bv;
+
+    config->Read("xLights_SD_HP", &bv, false);
+    logger_base.debug("Suppress Dock HousePreview: %s.", toStr(bv));
+    MenuItem_SD_HP->Check(!bv);
+
+    config->Read("xLights_SD_MP", &bv, false);
+    logger_base.debug("Suppress Dock ModelPreview: %s.", toStr(bv));
+    MenuItem_SD_MP->Check(!bv);
+}
+
+void xLightsFrame::SaveDockable()
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config == nullptr) {
+        logger_base.error("Null config ... this wont end well.");
+        return;
+    }
+    config->Write("xLights_SD_HP", IsDockable("HP"));
+    config->Write("xLights_SD_MP", IsDockable("MP"));
+}
+
+bool xLightsFrame::IsDockable(const std::string& panel)
+{
+    if (panel == "HP") {
+        return !MenuItem_SD_HP->IsChecked();
+    }
+    else if (panel == "MP") {
+        return !MenuItem_SD_MP->IsChecked();
+    }
+
+    return true;
 }
