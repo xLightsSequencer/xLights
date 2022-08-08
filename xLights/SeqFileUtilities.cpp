@@ -212,7 +212,7 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
 
 void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog* plog)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     ClearNonExistentFiles();
 
@@ -240,8 +240,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         }
 
         // check if there is a autosave backup file which is newer than the file we have been asked to open
-        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq")
-        {
+        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq") {
             wxFileName fn(filename);
             wxFileName xx = fn;
             xx.SetExt("xbkp");
@@ -266,8 +265,8 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                         wxRenameFile(asfile, filename);
                     } else {
                         if (FileExists(fn)) {
-                            //set the backup to be older than the XML files to avoid re-promting
-                            xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resulution is 2 seconds
+                            // set the backup to be older than the XML files to avoid re-promting
+                            xmltime -= wxTimeSpan(0, 0, 3, 0); // subtract 2 seconds as FAT time resulution is 2 seconds
                             asfn.SetTimes(&xmltime, &xmltime, &xmltime);
                         }
                     }
@@ -295,58 +294,57 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         fseq_file.SetExt("fseq");
 
         wxFileName fseq_file_SEQ_fold = selected_file;
-		fseq_file_SEQ_fold.SetExt("fseq");
+        fseq_file_SEQ_fold.SetExt("fseq");
 
-		// Only Look for FSEQ file in FSEQ FOLDER, if folder are unlinked
-		if (wxFileName(fseqDirectory) != wxFileName(showDirectory)) {
+        // Only Look for FSEQ file in FSEQ FOLDER, if folder are unlinked
+        if (wxFileName(fseqDirectory) != wxFileName(showDirectory)) {
             ObtainAccessToURL(fseqDirectory);
-			fseq_file.SetPath(fseqDirectory);
-			if (!FileExists(fseq_file)) {
-				//no FSEQ file found in FSEQ Folder, look for it next to the SEQ File
-				if (FileExists(fseq_file_SEQ_fold)) {
-					//if found, move file to fseq folder
-					logger_base.debug("Moving FSEQ File: '%s' to '%s'", (const char *)fseq_file_SEQ_fold.GetPath().c_str(), (const char *)fseq_file.GetPath().c_str());
-					wxRenameFile(fseq_file_SEQ_fold.GetFullPath(), fseq_file.GetFullPath());
-				}
-			} else {
-				//if FSEQ File is Found in FSEQ Folder, remove old file next to the Seq File
-				/***************************/
-				//TODO: Maybe remove this if Keith/Gil/Dan think it's bad - Scott
-				if (FileExists(fseq_file_SEQ_fold)) {
-					//remove FSEQ file next to seg file
-					logger_base.debug("Deleting old FSEQ File: '%s'", (const char *)fseq_file_SEQ_fold.GetPath().c_str());
-					wxRemoveFile(fseq_file_SEQ_fold.GetFullPath());//
-				}
-			}
-		}
+            fseq_file.SetPath(fseqDirectory);
+            if (!FileExists(fseq_file)) {
+                // no FSEQ file found in FSEQ Folder, look for it next to the SEQ File
+                if (FileExists(fseq_file_SEQ_fold)) {
+                    // if found, move file to fseq folder
+                    logger_base.debug("Moving FSEQ File: '%s' to '%s'", (const char*)fseq_file_SEQ_fold.GetPath().c_str(), (const char*)fseq_file.GetPath().c_str());
+                    wxRenameFile(fseq_file_SEQ_fold.GetFullPath(), fseq_file.GetFullPath());
+                }
+            } else {
+                // if FSEQ File is Found in FSEQ Folder, remove old file next to the Seq File
+                /***************************/
+                // TODO: Maybe remove this if Keith/Gil/Dan think it's bad - Scott
+                if (FileExists(fseq_file_SEQ_fold)) {
+                    // remove FSEQ file next to seg file
+                    logger_base.debug("Deleting old FSEQ File: '%s'", (const char*)fseq_file_SEQ_fold.GetPath().c_str());
+                    wxRemoveFile(fseq_file_SEQ_fold.GetFullPath()); //
+                }
+            }
+        }
 
-        xlightsFilename = fseq_file.GetFullPath(); //this need to be set , as it is checked when saving is triggered
+        xlightsFilename = fseq_file.GetFullPath(); // this need to be set , as it is checked when saving is triggered
 
         // load the fseq data file if it exists
-        if(FileExists(fseq_file)) {
-            logger_base.debug("Opening FSEQ File at: '%s'", (const char *)fseq_file.GetFullPath().c_str());
+        if (FileExists(fseq_file)) {
+            logger_base.debug("Opening FSEQ File at: '%s'", (const char*)fseq_file.GetFullPath().c_str());
             if (plog != nullptr) {
                 plog->Show(true);
             }
             std::string mf;
-            ConvertParameters read_params(xlightsFilename,                              // input filename
-                                          _seqData,                                      // sequence data object
-                                          &_outputManager,                              // global network info
-                                          ConvertParameters::READ_MODE_LOAD_MAIN,       // file read mode
-                                          this,                                         // xLights main frame
+            ConvertParameters read_params(xlightsFilename,                        // input filename
+                                          _seqData,                               // sequence data object
+                                          &_outputManager,                        // global network info
+                                          ConvertParameters::READ_MODE_LOAD_MAIN, // file read mode
+                                          this,                                   // xLights main frame
                                           nullptr,
                                           plog,
-                                          &mf );                                        // media filename
+                                          &mf); // media filename
 
             FileConverter::ReadFalconFile(read_params);
-            if( mf != "" )
-            {
+            if (mf != "") {
                 media_file = mapFileName(wxFileName::FileName(mf));
             }
             DisplayXlightsFilename(xlightsFilename);
-            SeqBaseChannel=1;
-            SeqChanCtrlBasic=false;
-            SeqChanCtrlColor=false;
+            SeqBaseChannel = 1;
+            SeqChanCtrlBasic = false;
+            SeqChanCtrlColor = false;
             loaded_fseq = true;
 
             logger_base.debug("    Fseq file loaded.");
@@ -354,10 +352,8 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             logger_base.debug("        Frame Time %u", _seqData.FrameTime());
             logger_base.debug("        Frames %u", _seqData.NumFrames());
             logger_base.debug("        Length %u", _seqData.TotalTime());
-        }
-        else
-        {
-            logger_base.debug("Could not Find FSEQ File at: '%s'", (const char *)fseq_file.GetFullPath().c_str());
+        } else {
+            logger_base.debug("Could not Find FSEQ File at: '%s'", (const char*)fseq_file.GetFullPath().c_str());
         }
 
         // assign global xml file object
@@ -369,8 +365,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName().ToStdString());
 
         // if fseq didn't have media check xml
-        if (CurrentSeqXmlFile->GetMediaFile() != "")
-        {
+        if (CurrentSeqXmlFile->GetMediaFile() != "") {
             media_file = mapFileName(CurrentSeqXmlFile->GetMediaFile());
             ObtainAccessToURL(media_file.GetFullPath().ToStdString());
         }
@@ -411,8 +406,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                         media_file = detect_media;
                         ObtainAccessToURL(media_file.GetFullPath().ToStdString());
                         break;
-                    }
-                    else {
+                    } else {
                         // search selected file directory
                         detect_media.SetPath(selected_file.GetPath());
                         if (FileExists(detect_media)) {
@@ -447,9 +441,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         }
 
         // if fseq had media update xml
-        if( !CurrentSeqXmlFile->HasAudioMedia()
-           && FileExists(media_file)
-           && wxFileName(media_file).IsFileReadable()) {
+        if (!CurrentSeqXmlFile->HasAudioMedia() && FileExists(media_file) && wxFileName(media_file).IsFileReadable()) {
             CurrentSeqXmlFile->SetMediaFile(GetShowDirectory(), media_file.GetFullPath(), true);
             int length_ms = CurrentSeqXmlFile->GetMedia()->LengthMS();
             CurrentSeqXmlFile->SetSequenceDurationMS(length_ms);
@@ -484,7 +476,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         bool loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
 
         unsigned int numChan = GetMaxNumChannels();
-        size_t memRequired = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(),  mMediaLengthMS) / ms;
+        size_t memRequired = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(), mMediaLengthMS) / ms;
         memRequired *= numChan;
         memRequired /= 1024; // ->kb
         memRequired /= 1024; // ->mb
@@ -493,18 +485,12 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         }
 
         if ((numChan > _seqData.NumChannels()) ||
-            (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames() )
-        {
-            if (_seqData.NumChannels() > 0)
-            {
-                if (numChan > _seqData.NumChannels())
-                {
+            (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames()) {
+            if (_seqData.NumChannels() > 0) {
+                if (numChan > _seqData.NumChannels()) {
                     logger_base.warn("Fseq file had %u channels but sequence has %u channels so dumping the fseq data.", numChan, _seqData.NumChannels());
-                }
-                else
-                {
-                    if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames())
-                    {
+                } else {
+                    if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames()) {
                         logger_base.warn("Fseq file had %u frames but sequence has %u frames so dumping the fseq data.",
                                          CurrentSeqXmlFile->GetSequenceDurationMS() / ms,
                                          _seqData.NumFrames());
@@ -512,7 +498,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                 }
             }
             _seqData.init(numChan, mMediaLengthMS / ms, ms);
-        } else if( !loaded_fseq ) {
+        } else if (!loaded_fseq) {
             _seqData.init(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
 
@@ -535,7 +521,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             return;
         }
 
-        float elapsedTime = sw.Time()/1000.0; //msec => sec
+        float elapsedTime = sw.Time() / 1000.0; // msec => sec
         SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
         SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);
 

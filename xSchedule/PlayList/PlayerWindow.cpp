@@ -49,6 +49,7 @@ PlayerWindow::PlayerWindow(wxWindow* parent, bool topMost, wxImageResizeQuality 
         Create(parent, id, "Player Window", pos, size, wxBORDER_NONE, _T("id"));
     }
 
+    SetBackgroundColour(*wxBLACK);
     SetClientSize(size);
     Move(pos);
     Show();
