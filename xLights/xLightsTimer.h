@@ -50,6 +50,10 @@ public:
     int GetInterval() const;
     void SetLog(bool log) { _log = true; }
     std::chrono::time_point<std::chrono::system_clock> GetNextEventTime();
+    size_t GetFired() const
+    {
+        return _fired;
+    }
 
     // If you use this method to receive the timer notification then be sure that you dont do any UI
     // updates in the callback function as it will be called on another thread. Also if you are going
