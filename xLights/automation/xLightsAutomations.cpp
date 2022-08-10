@@ -344,7 +344,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         if (map == "true") {
-            std::string displayMap = FPP::CreateVirtualDisplayMap(&AllModels, GetDisplay2DCenter0());
+            std::string displayMap = FPP::CreateVirtualDisplayMap(&AllModels);
             fpp->UploadDisplayMap(displayMap);
             fpp->SetRestartFlag();
         }

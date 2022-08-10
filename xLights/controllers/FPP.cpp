@@ -1378,78 +1378,97 @@ static bool Compare3dPointTuple(const std::tuple<float, float, float, int> &l,
     return std::get<2>(l) < std::get<2>(r);
 }
 
-std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) {
+std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels) {
     std::string ret;
 
-    std::vector<std::tuple<float, float, float>> pts;
+    constexpr float PADDING{ 10.0F };
+    bool first { true };
+    float minX{ 0.0F };
+    float maxX{ 0.0F };
+    float minY{ 0.0F };
+    float maxY{ 0.0F };
 
-    std::multiset<std::tuple<float, float, float, int>,
-        bool(*)(const std::tuple<float, float, float, int> &l,
-                const std::tuple<float, float, float, int> &r)> modelPts(Compare3dPointTuple);
-    int first = 1;
-    std::string stringType;
+    if (allmodels->size() == 0) {
+        return ret;
+    }
 
-    float xoffset = 0;
     for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
         Model* model = m->second;
 
-        if (model->GetLayoutGroup() != "Default")
+        if (model->GetLayoutGroup() != "Default") {
             continue;
-
-        if (model->GetDisplayAs() == "ModelGroup")
-            continue;
-
-        if (first) {
-            first = 0;
-            ret += "# Preview Size\n";
-            ret += wxString::Format("%d,%d\n", model->GetModelScreenLocation().previewW, model->GetModelScreenLocation().previewH);
-
-            if (center0) {
-                xoffset = model->GetModelScreenLocation().previewW / 2;
-            }
         }
 
-        stringType = model->GetStringType();
+        if (model->GetDisplayAs() == "ModelGroup") {
+            continue;
+        }
 
-        if (stringType == "RGB Nodes")
+        if (first) {
+            first = false;
+            maxY = model->GetModelScreenLocation().previewH;
+            maxX = model->GetModelScreenLocation().previewW;
+        }
+
+        minY = std::min(model->GetModelScreenLocation().GetBottom() - PADDING, minY);
+        maxY = std::max(model->GetModelScreenLocation().GetTop() + PADDING, maxY);
+        minX = std::min(model->GetModelScreenLocation().GetLeft() - PADDING, minX);
+        maxX = std::max(model->GetModelScreenLocation().GetRight() + PADDING, maxX);
+    }
+
+    ret += "# Preview Size\n";
+    ret += wxString::Format("%d,%d\n", int(maxX - minX), int(maxY - minY));
+
+    for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
+        Model* model = m->second;
+
+        if (model->GetLayoutGroup() != "Default") {
+            continue;
+        }
+
+        if (model->GetDisplayAs() == "ModelGroup") {
+            continue;
+        }
+
+        std::string stringType = model->GetStringType();
+
+        if (Contains(stringType, "Nodes")) {
+            stringType = BeforeFirst(stringType, ' ');
+        } else if (stringType == "3 Channel RGB") {
             stringType = "RGB";
-        else if (stringType == "RBG Nodes")
-            stringType = "RBG";
-        else if (stringType == "GBR Nodes")
-            stringType = "GBR";
-        else if (stringType == "BGR Nodes")
-            stringType = "BGR";
-        else if (stringType == "3 Channel RGB")
-            stringType = "RGB";
-        else if (stringType == "4 Channel RGBW")
+        } else if (stringType == "4 Channel RGBW") {
             stringType = "RGBW";
-        else if (stringType == "Strobes")
+        } else if (stringType == "Strobes") {
             stringType = "White";
-        else if (stringType == "Single Color Red")
+        } else if (stringType == "Single Color Red") {
             stringType = "Red";
-        else if ((stringType == "Single Color Green") || (stringType == "G"))
+        } else if ((stringType == "Single Color Green") || (stringType == "G")) {
             stringType = "Green";
-        else if ((stringType == "Single Color Blue") || (stringType == "B"))
+        } else if ((stringType == "Single Color Blue") || (stringType == "B")) {
             stringType = "Blue";
-        else if ((stringType == "Single Color White") || (stringType == "W"))
+        } else if ((stringType == "Single Color White") || (stringType == "W")) {
             stringType = "White";
-        else if (stringType == "Single Color Custom")
+        } else if (stringType == "Single Color Custom") {
             stringType = "White";
-        else if (stringType == "Node Single Color") {
+        } else if (stringType == "Node Single Color") {
             stringType = "White";
         }
 
         ret += wxString::Format("# Model: '%s', %d nodes\n", model->GetName().c_str(), model->GetNodeCount());
 
-        modelPts.clear();
+        std::multiset<std::tuple<float, float, float, int>,
+                bool (*)(const std::tuple<float, float, float, int>& l,
+                        const std::tuple<float, float, float, int>& r)>
+                                modelPts(Compare3dPointTuple);
+
         for (size_t i = 0; i < model->GetNodeCount(); i++) {
-            pts.clear();
+            std::vector<std::tuple<float, float, float>> pts;
             model->GetNode3DScreenCoords(i, pts);
             int ch = model->NodeStartChannel(i);
 
             for (auto [x,y,z] : pts) {
                 model->GetModelScreenLocation().TranslatePoint(x, y, z);
-                x += xoffset;
+                x -= minX;
+                y -= minY;
                 modelPts.insert(std::make_tuple(x, y, z, ch));
             }
         }

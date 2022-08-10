@@ -780,7 +780,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
     wxProgressDialog prgs("", "", 1001, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
 
-    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, frame->GetDisplay2DCenter0());
+    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels);
     for (const auto& inst : instances) {
         inst->progressDialog = &prgs;
         inst->parent = this;
