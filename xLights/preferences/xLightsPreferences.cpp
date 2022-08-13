@@ -84,6 +84,8 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
 
     mPreferencesEditor->Show(this);
 
+    ResizeMainSequencer(); // just in case row height has changed
+
     if (ld != _lowDefinitionRender) {
         // just in case the user changes the low resolution renderer
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Preferences Change");
