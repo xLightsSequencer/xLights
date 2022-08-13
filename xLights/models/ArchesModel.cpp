@@ -379,6 +379,14 @@ void ArchesModel::InitModel()
 }
 
 int ArchesModel::MapToNodeIndex(int strand, int node) const {
+    if (GetLayerSizeCount() != 0) {
+        int idx = 0;
+        for (int x = GetLayerSizeCount() - 1; x > strand; x--) {
+            idx += GetStrandLength(x);
+        }
+        idx += node;
+        return idx;
+    }
     return strand * parm2 + node;
 }
 int ArchesModel::GetNumStrands() const {

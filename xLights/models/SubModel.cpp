@@ -270,8 +270,8 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
         x2 /= 100.0;
         y1 /= 100.0;
         y2 /= 100.0;
-        x1 = std::ceil(x1);
-        y1 = std::ceil(y1);
+        x1 = std::round(x1);
+        y1 = std::round(y1);
 
         float minx = 10000;
         float maxx = -1;
