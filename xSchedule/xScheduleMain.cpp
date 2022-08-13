@@ -1494,26 +1494,43 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     static int last = -1;
+    static uint32_t shortFramesSkipped = 0;
+    static uint32_t longFrames = 0;
 
     if (__schedule == nullptr) return;
 
     static long long lastms = wxGetLocalTimeMillis().GetValue() - 25;
     long long now = wxGetLocalTimeMillis().GetValue();
-    int elapsed = (int)(now - lastms);
+    long long elapsed = (now - lastms);
+
+    logger_frame.info("Timer: Start frame elapsed %lld now %lld last %lld", elapsed, now, lastms);
 
     if (elapsed < _timer.GetInterval() / 2)
     {
         // this is premature ... maybe it is a backed up timer event ... lets skip it
-        logger_frame.warn("Timer: Frame event fire interval %dms less than 1/2 frame time %dms", elapsed, _timer.GetInterval() / 2);
+        ++shortFramesSkipped;
+        // log slow and fast frames infrequently
+        if (shortFramesSkipped % 200 == 1) {
+            logger_frame.warn("Timer: Frame event fire interval %dms less than 1/2 frame time %dms. %u events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
+        }
+        else {
+            logger_frame.debug("Timer: Frame event fire interval %dms less than 1/2 frame time %dms. %u events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
+        }
         return;
     }
 
-    logger_frame.info("Timer: Start frame %d", elapsed);
     if (elapsed > _timer.GetInterval() * 4)
     {
         if (lastms != 0 && __schedule->IsOutputToLights())
         {
-            logger_base.warn("Frame interval greater than 200%% of what it should have been [%d] %d", _timer.GetInterval() * 2, (int)(now - lastms));
+            ++longFrames;
+            // log slow and fast frames infrequently
+            if (longFrames % 200 == 1) {
+                logger_frame.warn("Timer: Frame interval greater than 200%% of what it should have been [%d] %d : So far %u", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
+            }
+            else {
+                logger_frame.debug("Timer: Frame interval greater than 200%% of what it should have been [%d] %d : So far %u", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
+            }
             _lastSlow = wxGetUTCTimeMillis();
         }
     }
@@ -1556,7 +1573,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         _timerOutputFrame = !_timerOutputFrame;
     }
 
-    logger_frame.info("Timer: Frame time %ld", ms);
+    logger_frame.info("Timer: End Frame: Time %ld", ms);
 }
 
 void xScheduleFrame::UpdateSchedule()
