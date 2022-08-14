@@ -678,8 +678,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             }
         }
 
-        wxCloseEvent evt;
+        // Click on the File quit menu item
+        wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_EXIT);
         wxPostEvent(this, evt);
+
         return sendResponse("xLights closed.", "msg", 200, false);
     } else if (cmd == "lightsOn") {
         EnableOutputs(true);
