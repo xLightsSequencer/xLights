@@ -2569,7 +2569,7 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 				b->SetValue(true);
 				wxCommandEvent evt(wxEVT_RADIOBUTTON, b->GetId());
 				evt.SetEventObject(b);
-				wxPostEvent(b->GetEventHandler(), evt);
+                b->ProcessWindowEvent(evt); // dont post ... if we post it gets processed in the wrong order
 			}
 
 			wxChoice* ctrl = (wxChoice*)CtrlWin;
