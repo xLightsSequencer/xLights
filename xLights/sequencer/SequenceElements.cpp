@@ -706,8 +706,13 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
             if (palette != -1) {
                 pal = colorPalettes[palette];
             }
-            effectLayer->AddEffect(id, effectName, settings, pal,
-                startTime, endTime, EFFECT_NOT_SELECTED, bProtected);
+            if (effectName != "Random") { // we dont load random effects ... they should not be there
+                effectLayer->AddEffect(id, effectName, settings, pal,
+                                       startTime, endTime, EFFECT_NOT_SELECTED, bProtected);
+            }
+            else {
+                logger_base.warn("Random effect not loaded on element %s layer %d (%0.02f-%0.02f)", (const char*)effectLayer->GetParentElement()->GetName().c_str(), effectLayer->GetLayerNumber(), startTime / 1000, endTime / 1000);
+            }
         }
         else if (effect->GetName() == STR_NODE && effectLayerNode->GetName() == STR_STRAND) {
             StrandElement* se = (StrandElement*)effectLayer->GetParentElement();

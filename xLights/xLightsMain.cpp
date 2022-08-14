@@ -6541,9 +6541,9 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& 
 }
 
 void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName,
-    bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces,
-    std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader,
-    std::list<std::string>& allfiles)
+                                bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces,
+                                std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader,
+                                std::list<std::string>& allfiles)
 {
     Model* m = AllModels[modelName];
 
@@ -6551,47 +6551,53 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t&
     for (const auto& el : e->GetEffectLayers()) {
         layer++;
         for (const auto& ef : el->GetEffects()) {
-            RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
-            allfiles.splice(end(allfiles), eff->GetFileReferences(m, ef->GetSettings()));
+            if (ef->GetEffectName() == "Random") {
+                wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d is a random effect. This should never happen and may cause other issues.",
+                                                ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
+                                                name, layer);
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
+            } else {
+                RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
+                allfiles.splice(end(allfiles), eff->GetFileReferences(m, ef->GetSettings()));
 
-            // Check there are nodes to actually render on
-            if (m != nullptr) {
-                if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-                    if (m->GetNodeCount() == 0) {
-                        wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
-                            ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
-                            name, layer);
-                        LogAndWrite(f, msg.ToStdString());
-                        errcount++;
-                    }
-                }
-                else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
-                    StrandElement* se = (StrandElement*)e;
-                    if (m->GetStrandLength(se->GetStrand()) == 0) {
-                        wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
-                            ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
-                            name, layer);
-                        LogAndWrite(f, msg.ToStdString());
-                        errcount++;
-                    }
-                }
-                else if (e->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
-                    Model* se = AllModels[name];
-                    if (se != nullptr) {
-                        if (se->GetNodeCount() == 0) {
+                // Check there are nodes to actually render on
+                if (m != nullptr) {
+                    if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                        if (m->GetNodeCount() == 0) {
                             wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
-                                ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
-                                name, layer);
+                                                            ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
+                                                            name, layer);
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
+                    } else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                        StrandElement* se = (StrandElement*)e;
+                        if (m->GetStrandLength(se->GetStrand()) == 0) {
+                            wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
+                                                            ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
+                                                            name, layer);
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                        }
+                    } else if (e->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
+                        Model* se = AllModels[name];
+                        if (se != nullptr) {
+                            if (se->GetNodeCount() == 0) {
+                                wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
+                                                                ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
+                                                                name, layer);
+                                LogAndWrite(f, msg.ToStdString());
+                                errcount++;
+                            }
+                        }
                     }
                 }
-            }
 
-            CheckEffect(ef, f, errcount, warncount, name, modelName, false, videoCacheWarning, disabledEffects, faces, states, viewPoints);
-            if (ef->GetEffectName() == "Shader") {
-                usesShader = true;
+                CheckEffect(ef, f, errcount, warncount, name, modelName, false, videoCacheWarning, disabledEffects, faces, states, viewPoints);
+                if (ef->GetEffectName() == "Shader") {
+                    usesShader = true;
+                }
             }
         }
 
@@ -6602,7 +6608,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t&
                 // the start time of an effect should not be before the end of the prior effect
                 if (ef->GetStartTimeMS() < lastEffect->GetEndTimeMS()) {
                     wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) overlaps with Effect %s (%s-%s) on Model '%s' layer %d. This shouldn't be possible.",
-                        ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()), lastEffect->GetEffectName(), FORMATTIME(lastEffect->GetStartTimeMS()), FORMATTIME(lastEffect->GetEndTimeMS()), name, layer);
+                                                    ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()), lastEffect->GetEffectName(), FORMATTIME(lastEffect->GetStartTimeMS()), FORMATTIME(lastEffect->GetEndTimeMS()), name, layer);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
