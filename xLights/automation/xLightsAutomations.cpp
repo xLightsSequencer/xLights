@@ -111,10 +111,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         bool prompt = false;
         
         if (params["_METHOD"] == "POST" && !params["_DATA"].empty()) {
-            wxString fname = params["_DATA"];
+            wxString data = params["_DATA"];
             wxJSONValue val;
             wxJSONReader reader;
-            if (reader.Parse(fname, &val) == 0) {
+            if (reader.Parse(data, &val) == 0) {
                 fname = val["seq"].AsString();
                 if (val.HasMember("promptIssues")) {
                     prompt = ReadBool(params["promptIssues"]);
