@@ -208,6 +208,13 @@ int StarModel::GetNumStrands() const {
     return GetLayerSizeCount();
 }
 
+int StarModel::GetMappedStrand(int strand) const {
+    if (GetLayerSizeCount() != 0) {
+        return GetLayerSizeCount() - strand - 1;
+    }
+    return strand;
+}
+
 bool StarModel::AllNodesAllocated() const
 {
     int allocated = 0;

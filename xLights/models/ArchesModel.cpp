@@ -395,6 +395,24 @@ int ArchesModel::GetNumStrands() const {
     }
     return parm1;
 }
+
+int ArchesModel::GetStrandLength(int strand) const
+{
+    if (GetLayerSizeCount() == 0) {
+        return Model::GetStrandLength(strand);
+    } else {
+        return GetLayerSize(strand);
+    }
+}
+
+int ArchesModel::GetMappedStrand(int strand) const
+{
+    if (GetLayerSizeCount() != 0) {
+        return GetLayerSizeCount() - strand - 1;
+    }
+    return strand;
+}
+
 int ArchesModel::CalcCannelsPerString()
 {
     SingleChannel = false;

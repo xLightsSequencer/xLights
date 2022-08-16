@@ -27,6 +27,7 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual int GetStrandLength(int strand) const override;
         virtual int MapToNodeIndex(int strand, int node) const override;
+        virtual int GetMappedStrand(int strand) const override;
 
         int GetStarSize(int starLayer) const {
             return GetLayerSize(starLayer);

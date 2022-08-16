@@ -493,6 +493,12 @@ public:
         }
         return "";
     }
+
+    virtual int GetMappedStrand(int strand) const
+    {
+        return strand;
+    }
+
     virtual std::string GetNodeName(size_t x, bool def = false) const
     {
         if (x < nodeNames.size()) {

@@ -3649,16 +3649,16 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         }
         int cnt = 0;
         int strand = 0;
-        int strandLen = GetStrandLength(0);
+        int strandLen = GetStrandLength(GetMappedStrand(0));
         for (int x = firstNode; x < newNodes.size();) {
             if (cnt >= strandLen) {
                 strand++;
                 if (strand < GetNumStrands()) {
-                    strandLen = GetStrandLength(strand);
+                    strandLen = GetStrandLength(GetMappedStrand(strand));
                 }
                 else {
                     // not sure what to do here ... we have more nodes than strands ... so lets just start again
-                    strandLen = GetStrandLength(0);
+                    strandLen = GetStrandLength(GetMappedStrand(0));
                     strand = 0;
                 }
                 cnt = 0;
@@ -3685,16 +3685,16 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         }
         int cnt = 0;
         int strand = 0;
-        int strandLen = GetStrandLength(0);
+        int strandLen = GetStrandLength(GetMappedStrand(0));
         for (int x = firstNode; x < newNodes.size();) {
             if (cnt >= strandLen) {
                 strand++;
                 if (strand < GetNumStrands()) {
-                    strandLen = GetStrandLength(strand);
+                    strandLen = GetStrandLength(GetMappedStrand(strand));
                 }
                 else {
                     // not sure what to do here ... we have more nodes than strands ... so lets just start again
-                    strandLen = GetStrandLength(0);
+                    strandLen = GetStrandLength(GetMappedStrand(0));
                     strand = 0;
                 }
                 cnt = 0;
