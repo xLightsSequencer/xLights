@@ -141,7 +141,7 @@ public:
 
     bool HasMapping()
     {
-        if (_mapping != "") {
+        if (!_mapping.empty()) {
             return true;
         } else {
             for (size_t i = 0; i < m_children.size(); i++) {
@@ -496,9 +496,21 @@ protected:
         void generateMapHintsFile(wxString const& filename);
 
         static wxString AggressiveAutomap(const wxString& name);
-        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> aggressive = [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) { return AggressiveAutomap(wxString(s).Trim(true).Trim(false).Lower()) == c; };
-        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> norm = [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) { return wxString(s).Trim(true).Trim(false).Lower() == c; };
-        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> regex = [](const std::string& s, const std::string& c, const std::string& pattern, const std::string& replacement) {
+        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> aggressive = 
+            [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) 
+        {
+            return AggressiveAutomap(wxString(s).Trim(true).Trim(false).Lower()) == c;
+        };
+
+        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> norm =
+            [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) 
+        { 
+            return wxString(s).Trim(true).Trim(false).Lower() == c; 
+        };
+
+        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> regex =
+            [](const std::string& s, const std::string& c, const std::string& pattern, const std::string& replacement) 
+        {
             static wxRegEx r;
             static std::string lastRegex;
 

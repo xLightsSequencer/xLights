@@ -1884,7 +1884,7 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                                                 if (node != nullptr) {
                                                     if (node->_mapping.empty()) {
                                                         if (lambda_node(node->_node, parts[2], extra1, extra2)) {
-                                                            // matched to the strand level
+                                                            // matched to the node level
                                                             if (parts.size() == 3) {
                                                                 node->_mapping = ListCtrl_Available->GetItemText(j);
                                                                 node->_mappingExists = true;
@@ -1904,6 +1904,27 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                         if (model->_mapping.empty() && lambda_model(model->_model, availName, extra1, extra2)) {
                             model->_mapping = ListCtrl_Available->GetItemText(j);
                             model->_mappingExists = true;
+                        }
+                        for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                            auto strand = model->GetNthChild(k);
+                            if (strand != nullptr) {
+                                if (strand->_mapping.empty() &&lambda_strand(model->_model + "/" + strand->_strand, availName, extra1, extra2)) {
+                                    strand->_mapping = ListCtrl_Available->GetItemText(j);
+                                    strand->_mappingExists = true;
+                                }
+                                //for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
+                                //    auto node = strand->GetNthChild(m);
+                                //    if (node != nullptr) {
+                                //        if (node->_mapping.empty()) {
+                                //            if (lambda_node(model->_model + "/" + strand->_strand + "/" + node->_node, availName, extra1, extra2)) {
+                                //                // matched to the node level
+                                //                node->_mapping = ListCtrl_Available->GetItemText(j);
+                                //                node->_mappingExists = true;
+                                //            }
+                                //        }
+                                //    }
+                                //}
+                            }
                         }
                     }
                 }
@@ -2092,7 +2113,7 @@ void xLightsImportChannelMapDialog::loadMapHintsFile(wxString const& filename) {
                 auto fromModel = n->GetAttribute("FromModel");
                 auto applyTo = n->GetAttribute("ApplyTo", "B");
                 if (toRegex != "" && fromModel != "") {
-                    DoAutoMap(regex, norm, norm, toRegex, fromModel, applyTo);
+                    DoAutoMap(regex, regex, regex, toRegex, fromModel, applyTo);
                 }
             }
         }
@@ -2112,7 +2133,24 @@ void xLightsImportChannelMapDialog::generateMapHintsFile(wxString const& filenam
     for (size_t i = 0; i < _dataModel->GetChildCount(); i++) {
         xLightsImportModelNode* m = _dataModel->GetNthChild(i);
         if (m->HasMapping()) {
-            f.Write(wxString::Format("    <Map ToRegex=\"^%s$\" FromModel=\"%s\" ApplyTo=\"B\" />\n", m->_model, m->_mapping));
+            if (!m->_mapping.empty()) {
+                f.Write(wxString::Format("    <Map ToRegex=\"^%s$\" FromModel=\"%s\" ApplyTo=\"B\" />\n", m->_model, m->_mapping));
+            } 
+            for (size_t j = 0; j < m->GetChildCount(); j++) {
+                xLightsImportModelNode* s = m->GetNthChild(j);
+                if (s->HasMapping()) {
+                    if (!s->_mapping.empty()) {
+                        f.Write(wxString::Format("    <Map ToRegex=\"^%s\\/%s$\" FromModel=\"%s\" ApplyTo=\"B\" />\n", m->_model, s->_strand, s->_mapping));
+                    } 
+                    for (size_t k = 0; k < s->GetChildCount(); k++) {
+                        xLightsImportModelNode* n = s->GetNthChild(k);
+                        if (n->HasMapping()) {
+                            f.Write(wxString::Format("    <Map ToRegex=\"^%s\\/%s\\/%s$\" FromModel=\"%s\" ApplyTo=\"B\" />\n", m->_model, s->_strand, n->_node, n->_mapping));
+                        }
+                    }
+                }
+            }
+
         }
     }
     f.Write("<!-- Samples\n");
