@@ -323,18 +323,21 @@ bool WLED::SetupInput(Controller* c, wxJSONValue& jsonVal) {
     }
 
     jsonVal["if"]["live"]["en"] = true;
-    jsonVal["if"]["live"]["port"] = port;
 
-    if (o->GetIP() == "MULTICAST") {
-        jsonVal["if"]["live"]["mc"] = true;
-    }
+    if (_vid <= 2112080 || o->GetType() != OUTPUT_DDP) {//DDP is auto enabled after 0.13 beta 4
 
-    if (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET) {
-        jsonVal["if"]["live"]["dmx"]["uni"] = o->GetUniverse();
-        jsonVal["if"]["live"]["dmx"]["addr"] = 1;
-    }
-    else if (o->GetType() == OUTPUT_DDP) {
-        jsonVal["if"]["live"]["dmx"]["addr"] = 1;// o->GetStartChannel();
+        jsonVal["if"]["live"]["port"] = port;
+
+        if (o->GetIP() == "MULTICAST") {
+            jsonVal["if"]["live"]["mc"] = true;
+        }
+
+        if (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET) {
+            jsonVal["if"]["live"]["dmx"]["uni"] = o->GetUniverse();
+            jsonVal["if"]["live"]["dmx"]["addr"] = 1;
+        } else if (o->GetType() == OUTPUT_DDP) {
+            jsonVal["if"]["live"]["dmx"]["addr"] = 1; // o->GetStartChannel();
+        }
     }
 
     //Turn On E131/DDP Multiple RGB Mode "DM=4", TODO: Support RGBW mode "DM=6"
@@ -419,7 +422,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
 
     if (_vid < 2203190 && _vid > 2112080) {
         logger_base.error("WLED Build 2112080 to 2203190 are broken, '%d' is Installed .", _vid);
-        DisplayError("WLED Upload Error:\nUpload with WLED 0.13 and 0.13.1 is broken.\n(There is a bug in the WLED 0.13/0.13.1 firmware, not xLights)\nSwitch to WLED 0.13 beta6 or beta5 or a github nightly build after March 19,2022 for the upload to work correctly", parent);
+        DisplayError("WLED Upload Error:\nUpload with WLED 0.13 and 0.13.1 is broken.\n(There is a bug in the WLED 0.13/0.13.1 firmware, not xLights)\nSwitch to WLED 0.13.2, WLED 0.13 beta6 or beta5 for the upload to work correctly", parent);
         progress.Update(100, "Aborting.");
         return false;
     }
