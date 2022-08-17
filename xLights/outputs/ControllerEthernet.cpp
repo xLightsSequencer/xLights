@@ -28,7 +28,10 @@
 #include "OPCOutput.h"
 #include "../controllers/ControllerCaps.h"
 #include "../models/ModelManager.h"
+
+#ifndef EXCLUDENETWORKUI
 #include "../xLightsMain.h"
+#endif
 
 #pragma region Property Choices
 wxPGChoices ControllerEthernet::__types;

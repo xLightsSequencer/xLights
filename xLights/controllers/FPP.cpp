@@ -14,6 +14,7 @@
 #include <string.h>
 #include <cctype>
 #include <thread>
+#include <cinttypes>
 
 #include <curl/curl.h>
 
@@ -29,13 +30,13 @@
 #include <wx/protocol/http.h>
 #include <wx/config.h>
 #include <wx/secretstore.h>
+#include <wx/progdlg.h>
 #include <zstd.h>
 
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonwriter.h"
 
 #include "FPP.h"
-#include "../xLightsXmlFile.h"
 #include "../models/CustomModel.h"
 #include "../models/Model.h"
 #include "../models/MatrixModel.h"
