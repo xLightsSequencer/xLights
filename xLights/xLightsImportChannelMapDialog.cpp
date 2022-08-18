@@ -2113,7 +2113,7 @@ void xLightsImportChannelMapDialog::loadMapHintsFile(wxString const& filename) {
                 auto fromModel = n->GetAttribute("FromModel");
                 auto applyTo = n->GetAttribute("ApplyTo", "B");
                 if (toRegex != "" && fromModel != "") {
-                    DoAutoMap(regex, regex, regex, toRegex, fromModel, applyTo);
+                    DoAutoMap(regex, regex, norm, toRegex, fromModel, applyTo);
                 }
             }
         }
