@@ -83,6 +83,7 @@ public:
     bool SupportsPixelPortNullPixels() const;
     bool SupportsPixelPortEndNullPixels() const;
     bool SupportsPixelPortGrouping() const;
+    bool SupportsPixelZigZag() const;
     bool SupportsTs() const;
     bool SupportsPixelPortDirection() const;
     bool SupportsPixelPortColourOrder() const;
@@ -108,6 +109,7 @@ public:
     int GetMaxEndNullPixels() const;
     int GetMaxGroupPixels() const;
     int GetMinGroupPixels() const;
+    int GetMaxZigZagPixels() const;
 
     bool IsValidPixelProtocol(const std::string& protocol) const;
     bool IsValidSerialProtocol(const std::string& protocol) const;

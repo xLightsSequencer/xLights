@@ -466,6 +466,11 @@ bool ControllerCaps::SupportsPixelPortGrouping() const {
     return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortGrouping");
 }
 
+bool ControllerCaps::SupportsPixelZigZag() const
+{
+    return DoesXmlNodeExist(_config, "SupportsPixelZigZag");
+}
+
 bool ControllerCaps::SupportsTs() const
 {
     return DoesXmlNodeExist(_config, "SupportsTs");
@@ -551,6 +556,11 @@ int ControllerCaps::GetMaxEndNullPixels() const
 int ControllerCaps::GetMaxGroupPixels() const
 {
     return wxAtoi(GetXmlNodeContent(_config, "MaxGroup", "-1"));
+}
+
+int ControllerCaps::GetMaxZigZagPixels() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "MaxZigZag", "-1"));
 }
 
 int ControllerCaps::GetMinGroupPixels() const

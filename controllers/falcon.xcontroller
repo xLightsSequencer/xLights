@@ -5,6 +5,8 @@
         <!--SupportsAutoUpload/-->
         
 		<SupportsPixelPortCommonSettings/>
+        <SupportsPixelZigZag/>
+        <MaxZigZag>512</MaxZigZag>
         
 		<SupportsFullxLightsControl/>
 
@@ -157,6 +159,8 @@
         <SupportsUpload/>
         <SupportsInputOnlyUpload/>
 		<SupportsPixelPortCommonSettings/>
+        <SupportsPixelZigZag/>
+        <MaxZigZag>512</MaxZigZag>
 		<SupportsFullxLightsControl/>
         <SupportsMultipleSimultaneousOutputProtocols/>
         <SupportsMultipleSimultaneousInputProtocols/>

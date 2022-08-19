@@ -22,6 +22,9 @@
 #include "../UtilFunctions.h"
 #include "../Pixels.h"
 
+#define NO_VALUE_INT -9999
+#define NO_VALUE_STRING "unknown"
+
 #include <log4cpp/Category.hh>
 
 #pragma region UDControllerPortModel
@@ -175,6 +178,15 @@ int UDControllerPortModel::GetGroupCount(int currentGroupCount) const
     return currentGroupCount;
 }
 
+int UDControllerPortModel::GetZigZag(int currentZigZag) const
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("zigZag")) {
+        return wxAtoi(node->GetAttribute("zigZag"));
+    }
+    return currentZigZag;
+}
+
 std::string UDControllerPortModel::GetName() const {
     if (_string == -1) {
         return _model->GetName();
@@ -225,6 +237,10 @@ bool UDControllerPortModel::Check(Controller* controller, const ControllerCaps* 
     }
     if (rules->GetMinGroupPixels() >= 0 && GetGroupCount(999) < rules->GetMinGroupPixels()) {
         res += wxString::Format("ERR: Model %s has too few grouped pixels : %d. Minimum %d.\n", GetName(), GetGroupCount(999), rules->GetMinGroupPixels());
+        success = false;
+    }
+    if (rules->GetMaxZigZagPixels() >= 0 && GetZigZag(-1) > rules->GetMaxZigZagPixels()) {
+        res += wxString::Format("ERR: Model %s has too many zig zagged pixels : %d. Maximum %d.\n", GetName(), GetZigZag(-1), rules->GetMaxZigZagPixels());
         success = false;
     }
     return success;
@@ -517,15 +533,16 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
     UDVirtualString* current = nullptr;
     for (const auto& it : _models) {
         bool first = false;
-        int brightness = it->GetBrightness(-9999);
-        int startNullPixels = it->GetStartNullPixels(-9999);
-        int endNullPixels = it->GetEndNullPixels(-9999);
+        int brightness = it->GetBrightness(NO_VALUE_INT);
+        int startNullPixels = it->GetStartNullPixels(NO_VALUE_INT);
+        int endNullPixels = it->GetEndNullPixels(NO_VALUE_INT);
         int smartRemote = it->GetSmartRemote();
-        std::string reverse = it->GetDirection("unknown");
-        std::string colourOrder = it->GetColourOrder("unknown");
-        float gamma = it->GetGamma(-9999);
-        int groupCount = it->GetGroupCount(-9999);
-        int ts = it->GetSmartTs(-9999);
+        std::string reverse = it->GetDirection(NO_VALUE_STRING);
+        std::string colourOrder = it->GetColourOrder(NO_VALUE_STRING);
+        float gamma = it->GetGamma(NO_VALUE_INT);
+        int groupCount = it->GetGroupCount(NO_VALUE_INT);
+        int zigZag = it->GetZigZag(NO_VALUE_INT);
+        int ts = it->GetSmartTs(NO_VALUE_INT);
 
         if (current == nullptr || !mergeSequential) {
             if (smartRemote != 0) {
@@ -554,6 +571,8 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                     current->_brightness = 0;
                     current->_groupCountSet = false;
                     current->_groupCount = 0;
+                    current->_zigZagSet = false;
+                    current->_zigZag = 0;
                     current->_reverseSet = false;
                     current->_reverse = "";
                     current->_colourOrderSet = false;
@@ -571,15 +590,16 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
         }
         else {
             wxASSERT(current != nullptr);
-            if ((brightness != -9999 && current->_brightness != brightness) ||
-                (startNullPixels != -9999) ||
-                (endNullPixels != -9999 || (endNullPixels == -9999 && current->_endNullPixels != 0)) ||
+            if ((brightness != NO_VALUE_INT && current->_brightness != brightness) ||
+                (startNullPixels != NO_VALUE_INT) ||                                                    // we always create a new virtual string for models with start nulls
+                (endNullPixels != NO_VALUE_INT || (endNullPixels == NO_VALUE_INT && current->_endNullPixels != 0)) || // we dont assume end nulls carries across automatically between props and we always create a new virtual string for models with end nulls
                 (current->_smartRemote != smartRemote) ||
-                (reverse == "unknown" && current->_reverse == "Reverse") ||
-                (reverse != "unknown" && (current->_reverse != reverse || current->_reverse == "Reverse")) ||
-                (colourOrder != "unknown" && current->_colourOrder != colourOrder) ||
-                (gamma != -9999 && current->_gamma != gamma) ||
-                (groupCount != -9999 && current->_groupCount != groupCount) ||
+                (reverse == NO_VALUE_STRING && current->_reverse == "Reverse") ||
+                (reverse != NO_VALUE_STRING && (current->_reverse != reverse || current->_reverse == "Reverse")) ||
+                (colourOrder != NO_VALUE_STRING && current->_colourOrder != colourOrder) ||
+                (gamma != NO_VALUE_INT && current->_gamma != gamma) ||
+                (groupCount != NO_VALUE_INT && current->_groupCount != groupCount) ||
+                (zigZag != NO_VALUE_INT || (zigZag == NO_VALUE_INT && current->_zigZag != 0)) || // we dont assume zigzag carries across automatically between props and we always create a new virtual string for models with zig zag set
                 lastEndChannel + 1 != it->GetStartChannel()) {
 
                 // smart remote has changed ... but did we miss one
@@ -607,6 +627,8 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                         current->_brightness = 0;
                         current->_groupCountSet = false;
                         current->_groupCount = 0;
+                        current->_zigZagSet = false;
+                        current->_zigZag = 0;
                         current->_reverseSet = false;
                         current->_reverse = "";
                         current->_colourOrderSet = false;
@@ -639,7 +661,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
             current->_smartRemote = it->GetSmartRemote();
             current->_smartRemoteType = it->GetSmartRemoteType();
 
-            if (gamma == -9999) {
+            if (gamma == NO_VALUE_INT) {
                 current->_gammaSet = false;
                 current->_gamma = 0;
             }
@@ -647,7 +669,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_gammaSet = true;
                 current->_gamma = gamma;
             }
-            if (startNullPixels == -9999) {
+            if (startNullPixels == NO_VALUE_INT) {
                 current->_startNullPixelsSet = false;
                 current->_startNullPixels = 0;
             }
@@ -655,7 +677,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_startNullPixelsSet = true;
                 current->_startNullPixels = startNullPixels;
             }
-            if (endNullPixels == -9999) {
+            if (endNullPixels == NO_VALUE_INT) {
                 current->_endNullPixelsSet = false;
                 current->_endNullPixels = 0;
             }
@@ -663,7 +685,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_endNullPixelsSet = true;
                 current->_endNullPixels = endNullPixels;
             }
-            if (brightness == -9999) {
+            if (brightness == NO_VALUE_INT) {
                 current->_brightnessSet = false;
                 current->_brightness = 0;
             }
@@ -671,7 +693,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_brightnessSet = true;
                 current->_brightness = brightness;
             }
-            if (groupCount == -9999) {
+            if (groupCount == NO_VALUE_INT) {
                 current->_groupCountSet = false;
                 current->_groupCount = 0;
             }
@@ -679,7 +701,14 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_groupCountSet = true;
                 current->_groupCount = groupCount;
             }
-            if (ts == -9999) {
+            if (zigZag == NO_VALUE_INT) {
+                current->_zigZagSet = false;
+                current->_zigZag = 0;
+            } else {
+                current->_zigZagSet = true;
+                current->_zigZag = zigZag;
+            }
+            if (ts == NO_VALUE_INT) {
                 current->_tsSet = false;
                 current->_ts = 0;
             }
@@ -687,7 +716,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_tsSet = true;
                 current->_ts = ts;
             }
-            if (reverse == "unknown") {
+            if (reverse == NO_VALUE_STRING) {
                 current->_reverseSet = false;
                 current->_reverse = "";
             }
@@ -695,7 +724,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_reverseSet = true;
                 current->_reverse = reverse;
             }
-            if (colourOrder == "unknown") {
+            if (colourOrder == NO_VALUE_STRING) {
                 current->_colourOrderSet = false;
                 current->_colourOrder = "";
             }

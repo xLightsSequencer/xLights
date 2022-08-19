@@ -2515,6 +2515,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     //if the group count is >1, we need to adjust the number of pixels
                     vs["pixelCount"] = vs["pixelCount"].AsLong() * vs["groupCount"].AsLong();
                 }
+                if (pvs->_zigZagSet) {
+                    vs["zigZag"] = pvs->_zigZag;
+                }
                 std::string vsname = "virtualStrings";
                 if (pvs->_smartRemote == 2) {
                     vsname += "B";

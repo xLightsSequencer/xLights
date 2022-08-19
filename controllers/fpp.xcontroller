@@ -27,6 +27,8 @@
     </Controller>
     <AbstractVariant Name="BaseFPPSettings">
         <SupportsPixelPortCommonSettings/>
+        <SupportsPixelZigZag/>
+        <MaxZigZag>600</MaxZigZag>
         <SupportsUpload/>
         <SupportsInputOnlyUpload/>
         <MaxInputUniverses>1000</MaxInputUniverses>
