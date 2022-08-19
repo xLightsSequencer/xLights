@@ -613,6 +613,10 @@ void MatrixModel::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    wxString connection = SerialiseConnection();
+    if (connection != "") {
+        f.Write(connection);
+    }
     ExportDimensions(f);
     f.Write("</matrixmodel>");
     f.Close();

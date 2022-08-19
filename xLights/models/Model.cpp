@@ -2366,6 +2366,19 @@ wxString Model::SerialiseState() const
     return res;
 }
 
+wxString Model::SerialiseConnection() const
+{
+    // Generally you dont want controller connection data in exported models
+    wxString res = "";
+
+    wxXmlNode* node = GetControllerConnection();
+    if (node->HasAttribute("zigZag")) {
+        res = "<ControllerConnection zigZag=\"" + node->GetAttribute("zigZag") + "\"/>";
+    }
+
+    return res;
+}
+
 wxString Model::SerialiseGroups() const
 {
     return modelManager.SerialiseModelGroupsForModel(GetName());
@@ -5626,8 +5639,15 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
         }
         else if (n->GetName() == "faceInfo") {
             AddFace(n);
-        }
-        else if (n->GetName() == "modelGroup") {
+        } else if (n->GetName() == "ControllerConnection") {
+            if (n->HasAttribute("zigZag")) {
+                wxXmlNode* nn = GetControllerConnection();
+                if (nn->HasAttribute("zigZag")) {
+                    nn->DeleteAttribute("zigZag");
+                }
+                nn->AddAttribute("zigZag", n->GetAttribute("zigZag"));
+            }
+        } else if (n->GetName() == "modelGroup") {
             AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
                 xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname, merge, showPopup);
         } else if (n->GetName() == "shadowmodels") {

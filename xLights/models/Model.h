@@ -151,6 +151,7 @@ public:
     wxString SerialiseFace() const;
     wxString SerialiseState() const;
     wxString SerialiseGroups() const;
+    wxString SerialiseConnection() const;
     void AddModelGroups(wxXmlNode* n, int w, int h, const wxString& name, bool& merge, bool& ask);
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
 
