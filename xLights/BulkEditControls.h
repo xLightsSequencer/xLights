@@ -152,6 +152,7 @@ protected:
     long ID_FILEPICKERCTRL_BULKEDIT_SF;
     bool _supportsBulkEdit;
     wxString _wildcard;
+    wxDateTime _lastMessageTime = wxDateTime::Now();
 
     public:
 

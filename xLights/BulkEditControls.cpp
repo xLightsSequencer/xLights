@@ -91,20 +91,38 @@ BulkEditFilePickerCtrl::BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, 
 
 void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     auto file = GetFileName().GetFullPath();
     if (file.Contains(',')) {
-        wxMessageBox("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.", "File name problem", 5L, GetParent());
+        logger_base.warn("FileChangedEvent: File %s contains characters in the path or filename that will cause issues in xLights. Please rename it.", (const char*)file.c_str());
+        GetTextCtrl()->SetBackgroundColour(*wxYELLOW); // this does not work which is unfortunate
+        SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
+    } else {
+        if (GetToolTipText() != "") { // we do this because setting tooltips seems slow
+            SetToolTip("");
+            GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
     }
     event.Skip();
 }
 
 void BulkEditFilePickerCtrl::OnFilePickerCtrl_TextLoseFocus(wxFocusEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     auto file = GetFileName().GetFullPath();
     if (file.Contains(',')) {
-        wxMessageBox("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.", "File name problem", 5L, GetParent());
+        logger_base.warn("FileLoseFocus: File %s contains characters in the path or filename that will cause issues in xLights. Please rename it.", (const char*)file.c_str());
+        GetTextCtrl()->SetBackgroundColour(*wxYELLOW);
+        SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
     } else if (file != "" && !wxFile::Exists(file)) {
-        wxMessageBox("File " + file + " does not exist.", "File name problem", 5L, GetParent());
+        logger_base.warn("FileLoseFocus: File %s does not exist.", (const char*)file.c_str());
+        GetTextCtrl()->SetBackgroundColour(*wxRED);
+        SetToolTip("File " + file + " does not exist.");
+    } else {
+        if (GetToolTipText() != "") { // we do this because setting tooltips seems slow
+            SetToolTip("");
+            GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
     }
     event.Skip();
 }
