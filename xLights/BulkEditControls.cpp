@@ -87,35 +87,16 @@ BulkEditFilePickerCtrl::BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, 
     Connect(wxEVT_COMMAND_FILEPICKER_CHANGED, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged);
     this->GetTextCtrl()->Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnFilePickerCtrl_TextLoseFocus, nullptr, this);
     this->GetTextCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnRightDown, nullptr, this);
+    ValidateControl();
 }
 
-void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event)
+void BulkEditFilePickerCtrl::ValidateControl()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     auto file = GetFileName().GetFullPath();
     if (file.Contains(',')) {
-        logger_base.warn("FileChangedEvent: File %s contains characters in the path or filename that will cause issues in xLights. Please rename it.", (const char*)file.c_str());
-        GetTextCtrl()->SetBackgroundColour(*wxYELLOW); // this does not work which is unfortunate
-        SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
-    } else {
-        if (GetToolTipText() != "") { // we do this because setting tooltips seems slow
-            SetToolTip("");
-            GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-        }
-    }
-    event.Skip();
-}
-
-void BulkEditFilePickerCtrl::OnFilePickerCtrl_TextLoseFocus(wxFocusEvent& event)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    auto file = GetFileName().GetFullPath();
-    if (file.Contains(',')) {
-        logger_base.warn("FileLoseFocus: File %s contains characters in the path or filename that will cause issues in xLights. Please rename it.", (const char*)file.c_str());
         GetTextCtrl()->SetBackgroundColour(*wxYELLOW);
         SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
-    } else if (file != "" && !wxFile::Exists(file)) {
-        logger_base.warn("FileLoseFocus: File %s does not exist.", (const char*)file.c_str());
+    } else if (!wxFile::Exists(file)) {
         GetTextCtrl()->SetBackgroundColour(*wxRED);
         SetToolTip("File " + file + " does not exist.");
     } else {
@@ -124,6 +105,17 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrl_TextLoseFocus(wxFocusEvent& event)
             GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
+}
+
+void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event)
+{
+    ValidateControl();
+    event.Skip();
+}
+
+void BulkEditFilePickerCtrl::OnFilePickerCtrl_TextLoseFocus(wxFocusEvent& event)
+{
+    ValidateControl();
     event.Skip();
 }
 
