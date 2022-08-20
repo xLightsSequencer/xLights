@@ -448,6 +448,7 @@ bool ModelGroup::Reset(bool zeroBased) {
     changeCount = 0;
     auto mn = Split(ModelXml->GetAttribute("models").ToStdString(), ',', true);
     int nc = 0;
+    bool didnotexist = false;
     for (int x = 0; x < mn.size(); x++) {
         Model *c = modelManager.GetModel(mn[x]);
         if (c != nullptr) {
@@ -462,10 +463,14 @@ bool ModelGroup::Reset(bool zeroBased) {
         }
         else
         {
-            // model does not exist yet ... but it may soon
-            return false;
+            // model does not exist yet ... but it may soon ... so dont forget the model
+            modelNames.push_back(mn[x]);
+            didnotexist = true;
         }
     }
+
+    if (didnotexist)
+        return false;
 
     if (nc) {
         Nodes.reserve(nc);
