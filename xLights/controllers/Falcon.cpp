@@ -2211,10 +2211,12 @@ bool Falcon::V4_ValidateWAV(const std::string& media)
 
 bool Falcon::UploadSequence(const std::string& seq, const std::string& file, const std::string& media, wxProgressDialog* progress)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool res = true;
 
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
     std::string url = "http://" + baseIP + _baseUrl + "/upload.cgi";
+    logger_base.debug("Uploading to URL: %s", (const char*)url.c_str());
 
     if (media != "") {
         wxFileName fn(media);
