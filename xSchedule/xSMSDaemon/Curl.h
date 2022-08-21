@@ -285,7 +285,7 @@ public:
             std::string buffer = "";
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
 
-            curl_easy_setopt(curl, CURLOPT_POST, 1);
+            curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
             logger_curl.info("BODY START ----------");
             logger_curl.info("%s", (const char*)body.c_str());
@@ -774,9 +774,9 @@ public:
             HTTPFileUploadData data;
             wxFile fileobj;
             fileobj.Open(fn);
-            std::string cl = "Content-Length: " + std::to_string(fileobj.Length() + memBuffPre.GetDataLen() + memBuffPost.GetDataLen());
-            logger_base.debug("File Size: %s. %s.", (const char*)std::to_string(fileobj.Length()).c_str(), (const char*)cl.c_str());
-            chunk = curl_slist_append(chunk, cl.c_str());
+            logger_base.debug("File Size: %s. Content Length %s.", (const char*)std::to_string(fileobj.Length()).c_str(), (const char*)std::to_string(fileobj.Length() + memBuffPre.GetDataLen() + memBuffPost.GetDataLen()).c_str());
+            // While this looks odd only by setting this can we avoid the chunked transfer. Setting CURLOPT_INFILESIZE would seem more logical but it does not work
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, fileobj.Length() + memBuffPre.GetDataLen() + memBuffPost.GetDataLen());
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
             fileobj.Seek(0);
