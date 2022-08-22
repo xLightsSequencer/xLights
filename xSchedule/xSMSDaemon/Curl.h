@@ -731,8 +731,8 @@ public:
 
             std::string fullFileName = file;
 
-            // if we cannot upload it in 5 minutes, we have serious issues
-            curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000 * 5 * 60);
+            // if we cannot upload it in 15 minutes, we have serious issues or a really large file
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000 * 15 * 60);
 
             curlInputBuffer.clear();
             char error[1024];
