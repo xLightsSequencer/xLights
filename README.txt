@@ -11,6 +11,28 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.16 August 22, 2022
+   -- enh (keith)  Allow optional turn off of house and model window docking
+   -- enh (keith)  On Falcon and FPP allow definition of zigzag in xlights for upload
+   -- enh (keith)  Include controller connection zigzag in xmodel export and import
+   -- enh (ruskin) added an xSchedule command to clear all pixel overlays
+   -- enh (scott)  WLED 0.13.2 updates
+   -- enh (scott)  Add xmaphint mapping for strands and submodels
+   -- bug (keith)  Fix hang if xSchedule is both FPP master and remote
+   -- bug (keith)  Fix flash when xSchedule starts video
+   -- bug (keith)  Address xLights lagging due to timer issues
+   -- bug (keith)  Resize of effect row does not immediately adjust number of rows drawn
+   -- bug (keith)  Fix multiselect of state effect corrupts state radio button
+   -- bug (keith)  Fix xlDo closexLights does not work
+   -- bug (keith)  Fix ugly outline on effect buttons
+   -- bug (keith)  Fix xlDo openSequence does not accept sequence name in json
+   -- bug (keith)  Fix picture effect warns multiple times that file not valid
+   -- bug (keith)  Fix replace model loses group membership
+   -- bug (keith)  Fix Falcon FPP upload over wifi not working
+   -- bug (ruskin) Fix  "Set pixel range" doesn't clear pixels when channel count of zero is used
+   -- bug (scott)  Adjust x/y locations of FPP virtual display map to the whole preview, not the arbitrary bounding box
+   -- bug (scott)  Fix stand rendering with layered arches and stars
+   -- bug (scott)  On Hink Pro move DMX after pixels
 2022.15 August 4, 2022
    -- enh (keith)  Add a Liquid effect gravity direction.(fixes #3343)
    -- enh (keith)  Add ZCPP support for default port brightness.
