@@ -102,8 +102,8 @@ void BulkEditFilePickerCtrl::ValidateControl()
     } else {
         if (GetToolTipText() != "") { // we do this because setting tooltips seems slow
             SetToolTip("");
-            GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
+        GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
     }
 }
 
