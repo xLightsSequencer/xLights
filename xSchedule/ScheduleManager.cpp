@@ -1536,6 +1536,7 @@ bool ScheduleManager::IsQuery(const wxString& command)
     if (c == "getplaylists" ||
         c == "getplayliststeps" ||
         c == "getmatrices" ||
+        c == "getplayingeffects" ||
         c == "getqueuedsteps" ||
         c == "listwebfolders" ||
         c == "getnextscheduledplaylist" ||
@@ -3506,7 +3507,22 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
         }
         data += "],\"reference\":\""+reference+"\"}";
     }
-    else if (c == "getplayliststeps")
+    else if (c == "getplayingeffects") {
+        bool first = true;
+        data = "{\"playingeffects\":[";
+        for (const auto& it : _eventPlayLists) {
+            if (first) {
+                first = false;
+            } else {
+                data += ",";
+            }
+            auto running = it->GetRunningStep();
+            if (running != nullptr) {
+                data += "{\"name\":\"" + running->GetNameNoTime() + "\"}";
+            }
+        }
+        data += "],\"reference\":\"" + reference + "\"}";
+    } else if (c == "getplayliststeps")
     {
         PlayList* p = GetPlayList(DecodePlayList(parameters));
 

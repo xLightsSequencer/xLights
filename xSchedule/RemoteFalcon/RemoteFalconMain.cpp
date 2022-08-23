@@ -661,8 +661,14 @@ void RemoteFalconFrame::DoNotifyStatus(const std::string& status)
     if (!val.IsNull()) {
 
         std::string playing = "";
-        if (!val["step"].IsNull()) {
-            playing = val["step"].AsString();
+        if (_options.IsSendPlayingEffect()) {
+            auto effects = xSchedule::GetPlayingEffects();
+            if (effects.size() > 0)
+                playing = effects.front();
+        } else {
+            if (!val["step"].IsNull()) {
+                playing = val["step"].AsString();
+            }
         }
 
         if (_lastPlaying != playing) {

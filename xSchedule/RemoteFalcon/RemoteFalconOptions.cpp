@@ -35,6 +35,7 @@ void RemoteFalconOptions::Load()
     _leadTime = config->ReadLong(_("RemoteFalconLeadTime"), 5);
     _effectPlaylist = config->ReadBool(_("RemoteFalconEffectPlaylist"), false);
     _effectMode = (EFFECT_MODE)config->ReadLong(_("RemoteFalconEffectMode"), (int)EFFECT_MODE::EM_PLAY_IMMEDIATELY);
+    _sendPlayingEffect = config->ReadBool(_("RemoteFalconSendPlayingEffect"), false);
     ClearDirty();
 }
 
@@ -49,6 +50,7 @@ void RemoteFalconOptions::Save()
     config->Write(_("RemoteFalconSendEnableDisable"), _sendEnableDisable);
     config->Write(_("RemoteFalconEffectPlaylist"), _effectPlaylist);
     config->Write(_("RemoteFalconEffectMode"), (int)_effectMode);
+    config->Write(_("RemoteFalconSendPlayingEffect"), _sendPlayingEffect);
     ClearDirty();
 }
 

@@ -21,6 +21,9 @@ http://<host:port>/xScheduleQuery?Query=<query>&Parameters=<parameters>
 				- A unique id (valid for this session only)
 				- length of the playlist.
 		
+        GetPlayingEffects
+            - gets a list of currently playing effects (just the step names)
+        
 		GetPlayListSteps <playlist name>
 			- gets a list of steps in the specified playlist. If the playlist name is not unique then it will return the first playlist found only. Data includes:
 				- Name
