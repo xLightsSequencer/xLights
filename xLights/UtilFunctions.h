@@ -101,6 +101,7 @@ inline double rand01()
 void SaveWindowPosition(const std::string& tag, wxWindow* window);
 void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position);
 int intRand(const int& min, const int& max);
+int ExtractInt(std::string& s);
 void SaveInt(const std::string& tag, int value);
 int LoadInt(const std::string& tag, int defaultValue);
 int NumberAwareStringCompare(const std::string &a, const std::string &b);
@@ -210,6 +211,13 @@ inline std::string AfterLast(const std::string& in, char c)
     auto pos = in.find_last_of(c);
     if (pos == std::string::npos) return "";
     return in.substr(pos+1);
+}
+
+inline std::string BeforeLast(const std::string& in, char c)
+{
+    auto pos = in.find_last_of(c);
+    if (pos == std::string::npos) return "";
+    return in.substr(0, pos);
 }
 
 inline void Replace(std::string& in, const std::string& what, const std::string& with)
