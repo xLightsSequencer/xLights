@@ -1060,7 +1060,7 @@ std::vector<std::string> UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS 
         }
         model += it->GetName();
         if ((settings & ExportSettings::SETTINGS_MODEL_DESCRIPTIONS) && it->GetModel()->description != "") {
-            model += "(DESP:" + it->GetModel()->description + ")";
+            model += "(DESC:" + it->GetModel()->description + ")";
         }
         if (settings & ExportSettings::SETTINGS_MODEL_ABSADDRESS) {
             model += "(SC:" + std::to_string(it->GetStartChannel()) + ")";
