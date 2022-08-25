@@ -458,9 +458,6 @@ void AddEffectToolbarButtons(EffectManager& manager, xlAuiToolBar* EffectsToolBa
                                                                             wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, wxString::Format("DragTBButton%02llu", x));
         bitmapButton->SetMinSize(wxSize(size, size));
         bitmapButton->SetMaxSize(wxSize(size, size));
-#ifdef __WXOSX__
-        bitmapButton->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-#endif
         bitmapButton->SetEffect(manager[x], 16);
         bitmapButton->SetBitmapMargins(0, 0);
         EffectsToolBar->AddControl(bitmapButton, bitmapButton->GetToolTipText());

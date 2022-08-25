@@ -2231,15 +2231,15 @@ public:
     }
     
     void setImage(const wxImage &img) {
-#if wxRELEASE_NUMBER < 7
+#if (wxRELEASE_NUMBER > 6) || (wxMINOR_VERSION >= 2)
+        m_image = img;
+#else
         if (img.IsOk()) {
             m_pImage = new wxImage(img);
         } else {
             delete m_pImage;
             m_pImage = nullptr;
         }
-#else
-        m_image = img;
 #endif
     }
 

@@ -35,9 +35,6 @@ void AddEffectPanelButtons(const EffectManager& manager, EffectIconPanel* panel,
                                                                           wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
         BitmapButton->SetMinSize(wxSize(size, size));
         BitmapButton->SetMaxSize(wxSize(size, size));
-#ifdef __WXOSX__
-        BitmapButton->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-#endif
         BitmapButton->SetEffect(manager[x], 16);
         sizer->Add(BitmapButton, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, x);
     }
