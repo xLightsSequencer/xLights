@@ -399,7 +399,8 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                 ModelGroup* mmg = dynamic_cast<ModelGroup*>(mg);
                 bool found = false;
                 std::vector<wxString> prevousNames;
-                for (const auto& it : mmg->ModelNames()) {
+                auto oldModelNames = mmg->ModelNames(); // we copy the name list as we are going to be modifying the group while we iterate over these
+                for (const auto& it : oldModelNames) {
                     auto mmnmn = mmg->ModelNames();
                     if (Contains(it, "/"))
                     {//only add new SubModel if the name matches an old SubModel name, I don't understand why?
