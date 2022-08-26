@@ -117,7 +117,16 @@ static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
     c->ProcessWindowEvent(evt);
 }
 
-void TextEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
+bool TextEffect::SupportsRenderCache(const SettingsMap& settings) const
+{
+    // we dont want to use render cache if text is coming from a file as the file might have changed
+    if (ToWXString(settings["TEXTCTRL_Text"]) == "" && FileExists(settings["FILEPICKERCTRL_Text_File"]))
+        return false;
+    return true;
+}
+
+void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
     SettingsMap &settings = effect->GetSettings();
     if (IsVersionOlder("2016.46", version) || RenderableEffect::needToAdjustSettings(version))
     {
