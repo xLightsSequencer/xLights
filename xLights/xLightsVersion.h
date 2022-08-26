@@ -26,3 +26,5 @@ static const wxString xlights_build_date      = __DATE__;
 	
 const wxString &GetBitness();
 wxString GetDisplayVersionString();
+
+#define WXWIDGETS_VERSION "33"
