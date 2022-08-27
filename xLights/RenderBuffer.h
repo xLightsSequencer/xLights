@@ -101,9 +101,27 @@ public:
     virtual void Clear() override;
 
     void SetPen(wxPen& pen);
+    void SetBrush(wxBrush& brush);
+    void SetBrush(wxGraphicsBrush& brush);
+    wxGraphicsBrush CreateLinearGradientBrush(wxDouble x1, wxDouble y1, wxDouble x2, wxDouble y2, const wxGraphicsGradientStops& stops) const
+    {
+        if (gc != nullptr)
+            return gc->CreateLinearGradientBrush(x1, y1, x2, y2, stops);
+
+        return wxGraphicsBrush();
+    }
+    wxGraphicsBrush CreateLinearGradientBrush(wxDouble x1, wxDouble y1, wxDouble x2, wxDouble y2, const wxColour& c1, const wxColour& c2) const
+    {
+        if (gc != nullptr)
+            return gc->CreateLinearGradientBrush(x1, y1, x2, y2, c1, c2);
+
+        return wxGraphicsBrush();
+    }
 
     wxGraphicsPath CreatePath();
     void StrokePath(wxGraphicsPath& path);
+    void FillPath(wxGraphicsPath& path, wxPolygonFillMode fillStyle);
+
 private:
 };
 

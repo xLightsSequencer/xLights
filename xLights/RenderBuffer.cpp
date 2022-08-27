@@ -468,7 +468,20 @@ void PathDrawingContext::SetPen(wxPen &pen) {
         gc->SetPen(pen);
 }
 
-void TextDrawingContext::SetPen(wxPen &pen) {
+void PathDrawingContext::SetBrush(wxBrush& brush)
+{
+    if (gc != nullptr)
+        gc->SetBrush(brush);
+}
+
+void PathDrawingContext::SetBrush(wxGraphicsBrush& brush)
+{
+    if (gc != nullptr)
+        gc->SetBrush(brush);
+}
+
+void TextDrawingContext::SetPen(wxPen& pen)
+{
     if (gc != nullptr) {
         gc->SetPen(pen);
     } else {
@@ -486,7 +499,13 @@ void PathDrawingContext::StrokePath(wxGraphicsPath& path)
     gc->StrokePath(path);
 }
 
-void TextDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
+void PathDrawingContext::FillPath(wxGraphicsPath& path, wxPolygonFillMode fillStyle)
+{
+    gc->FillPath(path, fillStyle);
+}
+
+void TextDrawingContext::SetFont(wxFontInfo& font, const xlColor& color)
+{
     if (gc != nullptr) {
         int style = wxFONTFLAG_NOT_ANTIALIASED;
         if (font.GetWeight() == wxFONTWEIGHT_BOLD) {

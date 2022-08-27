@@ -32,6 +32,7 @@
 						<item>Crucifix</item>
 						<item>Present</item>
 						<item>Emoji</item>
+						<item>SVG</item>
 					</content>
 					<selection>0</selection>
 					<handler function="OnChoice_Shape_ObjectToDrawSelect" entry="EVT_CHOICE" />
@@ -60,6 +61,14 @@
 					<growablerows>0</growablerows>
 					<object class="sizeritem">
 						<object class="wxFontPickerCtrl" name="ID_FONTPICKER_Shape_Font" subclass="BulkEditFontPicker" variable="FontPickerCtrl_Font" member="yes">
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+								<family>swiss</family>
+								<face>Segoe UI Emoji</face>
+							</font>
 							<font>
 								<size>10</size>
 								<style>normal</style>
@@ -122,6 +131,27 @@
 					<handler function="OnSkinToneChoiceSelect" entry="EVT_CHOICE" />
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText10" member="yes">
+					<label>SVG File</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_SVG" subclass="BulkEditFilePickerCtrl" variable="FilePickerCtrl_SVG" member="yes">
+					<wildcard>*.svg</wildcard>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>

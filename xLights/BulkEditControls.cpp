@@ -92,18 +92,25 @@ BulkEditFilePickerCtrl::BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, 
 
 void BulkEditFilePickerCtrl::ValidateControl()
 {
-    auto file = GetFileName().GetFullPath();
-    if (file.Contains(',')) {
-        GetTextCtrl()->SetBackgroundColour(*wxYELLOW);
-        SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
-    } else if (!FileExists(file)) {
-        GetTextCtrl()->SetBackgroundColour(*wxRED);
-        SetToolTip("File " + file + " does not exist.");
-    } else {
+    if (!IsEnabled()) {
         if (GetToolTipText() != "") { // we do this because setting tooltips seems slow
             SetToolTip("");
         }
         GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+    } else {
+        auto file = GetFileName().GetFullPath();
+        if (file.Contains(',')) {
+            GetTextCtrl()->SetBackgroundColour(*wxYELLOW);
+            SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
+        } else if (!FileExists(file)) {
+            GetTextCtrl()->SetBackgroundColour(*wxRED);
+            SetToolTip("File " + file + " does not exist.");
+        } else {
+            if (GetToolTipText() != "") { // we do this because setting tooltips seems slow
+                SetToolTip("");
+            }
+            GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
     }
 }
 
@@ -111,6 +118,13 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& 
 {
     ValidateControl();
     event.Skip();
+}
+
+bool BulkEditFilePickerCtrl::Enable(bool enable)
+{
+    bool rc = wxFilePickerCtrl::Enable(enable);
+    ValidateControl();
+    return rc;
 }
 
 void BulkEditFilePickerCtrl::OnFilePickerCtrl_TextLoseFocus(wxFocusEvent& event)

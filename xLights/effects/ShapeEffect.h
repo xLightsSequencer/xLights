@@ -58,6 +58,8 @@ constexpr char NATIVE_EMOJI_FONT[] = "Apple Color Emoji";
 constexpr char NATIVE_EMOJI_FONT[] = "Noto Color Emoji";
 #endif
 
+class ShapeRenderCache;
+
 class ShapeEffect : public RenderableEffect
 {
     public:
@@ -70,6 +72,8 @@ class ShapeEffect : public RenderableEffect
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
         virtual bool AppropriateOnNodes() const override { return false; }
         virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
+        virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
+        virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
 #ifdef LINUX
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override { return false; };
 #endif
@@ -90,4 +94,7 @@ protected:
         void Drawpresent(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
         void Drawemoji(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, wxFontInfo& font) const;
 		void Drawellipse(RenderBuffer &buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation = 0) const;
+        void DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
+        bool areSame(double a, double b, float eps) const;
+        bool areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, double eps) const;
 };

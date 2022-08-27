@@ -165,6 +165,7 @@ protected:
     void OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event);
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
+    virtual bool Enable(bool enable = true) override;
 };
 
 class BulkEditTextCtrlF1 : public BulkEditTextCtrl
