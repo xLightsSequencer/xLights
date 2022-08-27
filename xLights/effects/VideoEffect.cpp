@@ -172,6 +172,7 @@ void VideoEffect::SetDefaultParameters()
     vp->BitmapButton_Video_CropRightVC->SetActive(false);
     vp->BitmapButton_Video_CropTopVC->SetActive(false);
     vp->BitmapButton_Video_CropBottomVC->SetActive(false);
+    vp->BitmapButton_Video_Speed->SetActive(false);
     SetCheckBoxValue(vp->CheckBox_Video_AspectRatio, false);
     SetChoiceValue(vp->Choice_Video_DurationTreatment, "Normal");
 }
