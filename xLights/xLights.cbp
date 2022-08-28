@@ -176,7 +176,7 @@
 					<Add option="-std=c++1z" />
 					<Add option="-g" />
 					<Add option="-std=gnu++17" />
-					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags lua53`" />
@@ -206,7 +206,7 @@
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
-					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --libs lua53`" />
 					<Add option="-lexpat" />
@@ -229,7 +229,7 @@
 					<Add option="-O2" />
 					<Add option="-Wall" />
 					<Add option="-std=gnu++17" />
-					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags lua53`" />
@@ -259,7 +259,7 @@
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
-					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --libs lua53`" />
 					<Add option="-lexpat" />

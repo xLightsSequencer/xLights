@@ -132,7 +132,7 @@
 					<Add option="-Wall" />
 					<Add option="-g" />
 					<Add option="-std=gnu++14" />
-					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
@@ -147,7 +147,7 @@
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs log4cpp`" />
-					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
 					<Add option="-lporttime -lportmidi" />
@@ -165,7 +165,7 @@
 					<Add option="-O2" />
 					<Add option="-std=gnu++14" />
 					<Add option="-Wall" />
-					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
@@ -180,7 +180,7 @@
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs log4cpp`" />
-					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
 					<Add option="-lporttime -lportmidi" />
