@@ -1305,7 +1305,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         if (bg == xlBLACK) {
             bg = fg;
         } else if (fg != xlBLACK) {
-            bg.Set( (fg.Red()+bg.Red())/2, (fg.Green()+bg.Green())/2, (fg.Blue()+bg.Blue())/2 );
+            bg.Set((fg.Red() + bg.Red()) / 2, (fg.Green() + bg.Green()) / 2, (fg.Blue() + bg.Blue()) / 2, (fg.alpha + bg.alpha) / 2);
         }
         break;
     case MixTypes::Mix_BottomTop:
@@ -1342,7 +1342,8 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             int r = bg.red - fg.red;
             int g = bg.green - fg.green;
             int b = bg.blue - fg.blue;
-            if (r < 0) r = 0;
+            if (r < 0)
+                r = 0;
             if (g < 0) g = 0;
             if (b < 0) b = 0;
             bg.Set(r, g, b);
@@ -1351,25 +1352,28 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
 
     case MixTypes::Mix_Min:
         {
-            int r = std::min(fg.red, bg.red);
-            int g = std::min(fg.green, bg.green);
-            int b = std::min(fg.blue, bg.blue);
+            float alpha = (float)fg.alpha / 255.0;
+            int r = std::min(fg.red, bg.red) * alpha;
+            int g = std::min(fg.green, bg.green) * alpha;
+            int b = std::min(fg.blue, bg.blue) * alpha;
             bg.Set(r, g, b);
         }
         break;
     case MixTypes::Mix_Max:
         {
-            int r = std::max(fg.red, bg.red);
-            int g = std::max(fg.green, bg.green);
-            int b = std::max(fg.blue, bg.blue);
+            float alpha = (float)fg.alpha / 255.0;
+            int r = std::max(fg.red, bg.red) * alpha;
+            int g = std::max(fg.green, bg.green) * alpha;
+            int b = std::max(fg.blue, bg.blue) * alpha;
             bg.Set(r, g, b);
         }
         break;
     case MixTypes::Mix_AsBrightness:
         {
-        int r = fg.red * bg.red / 255;
-        int g = fg.green *  bg.green / 255;
-        int b = fg.blue * bg.blue / 255;
+        float alpha = (float)fg.alpha / 255.0;
+        int r = fg.red * bg.red / 255 * alpha;
+        int g = fg.green * bg.green / 255 * alpha;
+        int b = fg.blue * bg.blue / 255 * alpha;
         bg.Set(r, g, b);
     }
         break;
