@@ -1275,6 +1275,8 @@
 		<Unit filename="outputs/xxxSerialOutput.h" />
 		<Unit filename="preferences/BackupSettingsPanel.cpp" />
 		<Unit filename="preferences/BackupSettingsPanel.h" />
+		<Unit filename="preferences/CheckSequenceSettingsPanel.cpp" />
+		<Unit filename="preferences/CheckSequenceSettingsPanel.h" />
 		<Unit filename="preferences/ColorManagerSettingsPanel.cpp" />
 		<Unit filename="preferences/ColorManagerSettingsPanel.h" />
 		<Unit filename="preferences/EffectsGridSettingsPanel.cpp" />
@@ -1386,6 +1388,7 @@
 		<Unit filename="wxsmith/CandlePanel.wxs" />
 		<Unit filename="wxsmith/CharMapDialog.wxs" />
 		<Unit filename="wxsmith/CheckboxSelectDialog.wxs" />
+		<Unit filename="wxsmith/CheckSequenceSettingsPanel.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
 		<Unit filename="wxsmith/ColorManagerDialog.wxs" />
@@ -1730,6 +1733,7 @@
 					<wxPanel wxs="wxsmith/ViewObjectPanel.wxs" src="ViewObjectPanel.cpp" hdr="ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ShaderPanel.wxs" src="effects/ShaderPanel.cpp" hdr="effects/ShaderPanel.h" fwddecl="0" i18n="1" name="ShaderPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/BackupSettingsPanel.wxs" src="preferences/BackupSettingsPanel.cpp" hdr="preferences/BackupSettingsPanel.h" fwddecl="1" i18n="1" name="BackupSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/CheckSequenceSettingsPanel.wxs" src="preferences/CheckSequenceSettingsPanel.cpp" hdr="preferences/CheckSequenceSettingsPanel.h" fwddecl="1" i18n="1" name="CheckSequenceSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ViewSettingsPanel.wxs" src="preferences/ViewSettingsPanel.cpp" hdr="preferences/ViewSettingsPanel.h" fwddecl="1" i18n="1" name="ViewSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SequenceFileSettingsPanel.wxs" src="preferences/SequenceFileSettingsPanel.cpp" hdr="preferences/SequenceFileSettingsPanel.h" fwddecl="1" i18n="1" name="SequenceFileSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/OutputSettingsPanel.wxs" src="preferences/OutputSettingsPanel.cpp" hdr="preferences/OutputSettingsPanel.h" fwddecl="1" i18n="1" name="OutputSettingsPanel" language="CPP" />

@@ -996,6 +996,9 @@
     <ClCompile Include="ModelRemap.cpp" />
     <ClCompile Include="RestoreBackupDialog.cpp" />
     <ClCompile Include="LayoutUtils.cpp" />
+    <ClCompile Include="preferences\CheckSequenceSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2000,6 +2003,9 @@
     <ClInclude Include="ModelRemap.h" />
     <ClInclude Include="RestoreBackupDialog.h" />
     <ClInclude Include="LayoutUtils.h" />
+    <ClInclude Include="preferences\CheckSequenceSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

@@ -2042,6 +2042,25 @@ xLightsFrame::~xLightsFrame()
     reenter = false;
 }
 
+bool xLightsFrame::IsCheckSequenceOptionDisabled(const std::string& option)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config == nullptr) {
+        return false;
+    }
+    bool value = false;
+    config->Read("xLightsCS" + option, &value, false);
+    return value;
+}
+
+void xLightsFrame::SetCheckSequenceOptionDisable(const std::string& option, bool value)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr) {
+        config->Write("xLightsCS" + option, value);
+    }
+}
+
 void xLightsFrame::OnHelp(wxHelpEvent& event)
 {
     // deliberately do nothing
@@ -5167,31 +5186,37 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         warncountsave = warncount;
     }
 
-    // multiple outputs to same universe/ID
-    LogAndWrite(f, "");
-    LogAndWrite(f, "Multiple outputs with same universe/id number");
+    if (!IsCheckSequenceOptionDisabled("DupUniv")) {
+        // multiple outputs to same universe/ID
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Multiple outputs with same universe/id number");
 
-    std::map<int, int> useduid;
-    auto outputs = _outputManager.GetAllOutputs();
-    for (auto o : outputs) {
-        if (o->GetType() != OUTPUT_ZCPP) {
-            useduid[o->GetUniverse()]++;
+        std::map<int, int> useduid;
+        auto outputs = _outputManager.GetAllOutputs();
+        for (auto o : outputs) {
+            if (o->GetType() != OUTPUT_ZCPP) {
+                useduid[o->GetUniverse()]++;
+            }
         }
-    }
 
-    for (auto u : useduid) {
-        if (u.second > 1) {
-            wxString msg = wxString::Format("    WARN: Multiple outputs (%d) with same universe/id number %d. If using #universe:start_channel result may be incorrect.", u.second, u.first);
-            LogAndWrite(f, msg.ToStdString());
-            warncount++;
+        for (auto u : useduid) {
+            if (u.second > 1) {
+                wxString msg = wxString::Format("    WARN: Multiple outputs (%d) with same universe/id number %d. If using #universe:start_channel result may be incorrect.", u.second, u.first);
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
         }
-    }
 
-    if (errcount + warncount == errcountsave + warncountsave) {
-        LogAndWrite(f, "    No problems found");
+        if (errcount + warncount == errcountsave + warncountsave) {
+            LogAndWrite(f, "    No problems found");
+        }
+        errcountsave = errcount;
+        warncountsave = warncount;
     }
-    errcountsave = errcount;
-    warncountsave = warncount;
+    else {
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Multiple outputs with same universe/id number - CHECK DISABLED");
+    }
 
     // Controller universes out of order
     LogAndWrite(f, "");
@@ -5520,88 +5545,92 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
-    LogAndWrite(f, "");
-    LogAndWrite(f, "Non contiguous channels on controller ports");
-
-    std::map<std::string, std::list<Model*>*> modelsByPort;
-
     // Check for non contiguous models on the same controller connection
-    for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
-            std::string cc = "";
-            if (it.second->IsControllerConnectionValid()) {
-                cc = wxString::Format("%s:%s:%d:%d", it.second->IsPixelProtocol() ? _("pixel") : _("serial"), it.second->GetControllerProtocol(), it.second->GetControllerPort(), it.second->GetSmartRemote()).ToStdString();
-            }
-            if (cc != "") {
-                int32_t start = it.second->GetFirstChannel() + 1;
-                int32_t sc;
-                Output* o = _outputManager.GetOutput(start, sc);
+    if (!IsCheckSequenceOptionDisabled("NonContigChOnPort")) {
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Non contiguous channels on controller ports");
 
-                if (o != nullptr && o->IsIpOutput() && o->GetIP() != "MULTICAST") {
-                    std::string key = o->GetIP() + cc;
-                    if (modelsByPort.find(key) == modelsByPort.end()) {
-                        modelsByPort[key] = new std::list<Model*>();
-                    }
-                    modelsByPort[key]->push_back(it.second);
+        std::map<std::string, std::list<Model*>*> modelsByPort;
+        for (const auto& it : AllModels) {
+            if (it.second->GetDisplayAs() != "ModelGroup") {
+                std::string cc = "";
+                if (it.second->IsControllerConnectionValid()) {
+                    cc = wxString::Format("%s:%s:%d:%d", it.second->IsPixelProtocol() ? _("pixel") : _("serial"), it.second->GetControllerProtocol(), it.second->GetControllerPort(), it.second->GetSmartRemote()).ToStdString();
                 }
-            }
-        }
-    }
-
-    for (auto& it : modelsByPort) {
-        if (it.second->size() == 1 || Contains(it.first, "serial")) {
-            // we dont need to check this one because one model or a serial protocol
-        }
-        else {
-            it.second->sort(compare_modelstartchannel);
-
-            auto it2 = it.second->begin();
-            auto it3 = it2;
-            ++it3;
-
-            while (it3 != it.second->end()) {
-                int32_t m1start = (*it2)->GetNumberFromChannelString((*it2)->ModelStartChannel);
-                int32_t m1end = m1start + (*it2)->GetChanCount() - 1;
-                int32_t m2start = (*it3)->GetNumberFromChannelString((*it3)->ModelStartChannel);
-
-                if (m1end + 1 != m2start && m2start - m1end - 1 > 0) {
+                if (cc != "") {
+                    int32_t start = it.second->GetFirstChannel() + 1;
                     int32_t sc;
-                    Output* o = _outputManager.GetOutput(m1start, sc);
-                    wxString msg;
-                    if (m2start - m1end - 1 <= 30) {
-                        msg = wxString::Format("    WARN: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a small gap of %d channels between them. Maybe these are NULL Pixels?",
-                            (*it2)->GetName(),
-                            (*it3)->GetName(),
-                            o->GetIP(),
-                            (*it2)->GetControllerConnectionString(),
-                            m2start - m1end - 1);
-                        warncount++;
-                    }
-                    else {
-                        msg = wxString::Format("    WARN: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a gap of %d channels between them.",
-                            (*it2)->GetName(),
-                            (*it3)->GetName(),
-                            o->GetIP(),
-                            (*it2)->GetControllerConnectionString(),
-                            m2start - m1end - 1);
-                        warncount++;
-                    }
-                    LogAndWrite(f, msg.ToStdString());
-                }
+                    Output* o = _outputManager.GetOutput(start, sc);
 
-                ++it2;
-                ++it3;
+                    if (o != nullptr && o->IsIpOutput() && o->GetIP() != "MULTICAST") {
+                        std::string key = o->GetIP() + cc;
+                        if (modelsByPort.find(key) == modelsByPort.end()) {
+                            modelsByPort[key] = new std::list<Model*>();
+                        }
+                        modelsByPort[key]->push_back(it.second);
+                    }
+                }
             }
         }
-        delete it.second;
-        it.second = nullptr;
-    }
 
-    if (errcount + warncount == errcountsave + warncountsave) {
-        LogAndWrite(f, "    No problems found");
+        for (auto& it : modelsByPort) {
+            if (it.second->size() == 1 || Contains(it.first, "serial")) {
+                // we dont need to check this one because one model or a serial protocol
+            }
+            else {
+                it.second->sort(compare_modelstartchannel);
+
+                auto it2 = it.second->begin();
+                auto it3 = it2;
+                ++it3;
+
+                while (it3 != it.second->end()) {
+                    int32_t m1start = (*it2)->GetNumberFromChannelString((*it2)->ModelStartChannel);
+                    int32_t m1end = m1start + (*it2)->GetChanCount() - 1;
+                    int32_t m2start = (*it3)->GetNumberFromChannelString((*it3)->ModelStartChannel);
+
+                    if (m1end + 1 != m2start && m2start - m1end - 1 > 0) {
+                        int32_t sc;
+                        Output* o = _outputManager.GetOutput(m1start, sc);
+                        wxString msg;
+                        if (m2start - m1end - 1 <= 30) {
+                            msg = wxString::Format("    WARN: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a small gap of %d channels between them. Maybe these are NULL Pixels?",
+                                (*it2)->GetName(),
+                                (*it3)->GetName(),
+                                o->GetIP(),
+                                (*it2)->GetControllerConnectionString(),
+                                m2start - m1end - 1);
+                            warncount++;
+                        }
+                        else {
+                            msg = wxString::Format("    WARN: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a gap of %d channels between them.",
+                                (*it2)->GetName(),
+                                (*it3)->GetName(),
+                                o->GetIP(),
+                                (*it2)->GetControllerConnectionString(),
+                                m2start - m1end - 1);
+                            warncount++;
+                        }
+                        LogAndWrite(f, msg.ToStdString());
+                    }
+
+                    ++it2;
+                    ++it3;
+                }
+            }
+            delete it.second;
+            it.second = nullptr;
+        }
+
+        if (errcount + warncount == errcountsave + warncountsave) {
+            LogAndWrite(f, "    No problems found");
+        }
+        errcountsave = errcount;
+        warncountsave = warncount;
+    } else {
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Non contiguous channels on controller ports - CHECK DISABLED");
     }
-    errcountsave = errcount;
-    warncountsave = warncount;
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Model nodes not allocated to layers correctly");
@@ -5663,45 +5692,50 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
-    LogAndWrite(f, "");
-    LogAndWrite(f, "Model Groups containing models from different previews");
+    if (!IsCheckSequenceOptionDisabled("PreviewGroup")) {
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Model Groups containing models from different previews");
 
-    for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
-            std::string mgp = it.second->GetLayoutGroup();
+        for (const auto& it : AllModels) {
+            if (it.second->GetDisplayAs() == "ModelGroup") {
+                std::string mgp = it.second->GetLayoutGroup();
 
-            ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
-            if (mg == nullptr) {
-                // this should never happen
-                logger_base.error("Model %s says it is a model group but it doesn't cast as one.", (const char*)it.second->GetName().c_str());
-            }
-            else {
-                auto models = mg->ModelNames();
+                ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
+                if (mg == nullptr) {
+                    // this should never happen
+                    logger_base.error("Model %s says it is a model group but it doesn't cast as one.", (const char*)it.second->GetName().c_str());
+                }
+                else {
+                    auto models = mg->ModelNames();
 
-                for (auto it2 : models) {
-                    Model* m = AllModels.GetModel(it2);
-                    if (m == nullptr) {
-                        // this should never happen
-                        logger_base.error("Model Group %s contains non existent model %s.", (const char*)mg->GetName().c_str(), (const char*)it2.c_str());
-                    }
-                    else if (m->GetDisplayAs() != "ModelGroup") {
-                        // If model is in all previews dont report it as a problem
-                        if (m->GetLayoutGroup() != "All Previews" && mg->GetLayoutGroup() != "All Previews" && mgp != m->GetLayoutGroup()) {
-                            wxString msg = wxString::Format("    WARN: Model Group '%s' in preview '%s' contains model '%s' which is in preview '%s'. This will cause the '%s' model to also appear in the '%s' preview.", mg->GetName(), mg->GetLayoutGroup(), m->GetName(), m->GetLayoutGroup(), m->GetName(), mg->GetLayoutGroup());
-                            LogAndWrite(f, msg.ToStdString());
-                            warncount++;
+                    for (auto it2 : models) {
+                        Model* m = AllModels.GetModel(it2);
+                        if (m == nullptr) {
+                            // this should never happen
+                            logger_base.error("Model Group %s contains non existent model %s.", (const char*)mg->GetName().c_str(), (const char*)it2.c_str());
+                        }
+                        else if (m->GetDisplayAs() != "ModelGroup") {
+                            // If model is in all previews dont report it as a problem
+                            if (m->GetLayoutGroup() != "All Previews" && mg->GetLayoutGroup() != "All Previews" && mgp != m->GetLayoutGroup()) {
+                                wxString msg = wxString::Format("    WARN: Model Group '%s' in preview '%s' contains model '%s' which is in preview '%s'. This will cause the '%s' model to also appear in the '%s' preview.", mg->GetName(), mg->GetLayoutGroup(), m->GetName(), m->GetLayoutGroup(), m->GetName(), mg->GetLayoutGroup());
+                                LogAndWrite(f, msg.ToStdString());
+                                warncount++;
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    if (errcount + warncount == errcountsave + warncountsave) {
-        LogAndWrite(f, "    No problems found");
+        if (errcount + warncount == errcountsave + warncountsave) {
+            LogAndWrite(f, "    No problems found");
+        }
+        errcountsave = errcount;
+        warncountsave = warncount;
+    } else {
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Model Groups containing models from different previews - CHECK DISABLED");
     }
-    errcountsave = errcount;
-    warncountsave = warncount;
 
     // Check for duplicate model/model group names
     LogAndWrite(f, "");
@@ -5783,45 +5817,50 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
-    LogAndWrite(f, "");
-    LogAndWrite(f, "Model Groups containing duplicate nodes");
+    if (!IsCheckSequenceOptionDisabled("DupNodeMG")) {
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Model Groups containing duplicate nodes");
 
-    for (const auto& it : AllModels) {
-        ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
-        if (mg != nullptr) {
-            std::map<long, Model*> usedch;
-            std::map<std::string, bool> warned;
-            for (const auto& m : mg->Models()) {
-                std::vector<NodeBaseClassPtr> nodes;
-                int bufwi;
-                int bufhi;
-                m->InitRenderBufferNodes("Default", "2D", "None", nodes, bufwi, bufhi);
-                for (const auto& n : nodes) {
-                    auto e = usedch.find(n->ActChan);
-                    if (e != end(usedch)) {
-                        if (m->GetFullName() != e->second->GetFullName()) { // dont warn about duplicate nodes within a model
-                            std::string warn = mg->Name() + m->Name() + e->second->Name();
-                            if (warned.find(warn) == end(warned)) {
-                                warned[warn] = true;
-                                wxString msg = wxString::Format("    WARN: Model group '%s' contains model '%s' and model '%s' which contain at least one overlapping node (ch %u). This may not render as expected.", (const char*)mg->Name().c_str(), (const char*)m->GetFullName().c_str(), (const char*)e->second->GetFullName().c_str(), n->ActChan);
-                                LogAndWrite(f, msg.ToStdString());
-                                warncount++;
+        for (const auto& it : AllModels) {
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
+            if (mg != nullptr) {
+                std::map<long, Model*> usedch;
+                std::map<std::string, bool> warned;
+                for (const auto& m : mg->Models()) {
+                    std::vector<NodeBaseClassPtr> nodes;
+                    int bufwi;
+                    int bufhi;
+                    m->InitRenderBufferNodes("Default", "2D", "None", nodes, bufwi, bufhi);
+                    for (const auto& n : nodes) {
+                        auto e = usedch.find(n->ActChan);
+                        if (e != end(usedch)) {
+                            if (m->GetFullName() != e->second->GetFullName()) { // dont warn about duplicate nodes within a model
+                                std::string warn = mg->Name() + m->Name() + e->second->Name();
+                                if (warned.find(warn) == end(warned)) {
+                                    warned[warn] = true;
+                                    wxString msg = wxString::Format("    WARN: Model group '%s' contains model '%s' and model '%s' which contain at least one overlapping node (ch %u). This may not render as expected.", (const char*)mg->Name().c_str(), (const char*)m->GetFullName().c_str(), (const char*)e->second->GetFullName().c_str(), n->ActChan);
+                                    LogAndWrite(f, msg.ToStdString());
+                                    warncount++;
+                                }
                             }
                         }
-                    }
-                    else {
-                        usedch[n->ActChan] = m;
+                        else {
+                            usedch[n->ActChan] = m;
+                        }
                     }
                 }
             }
         }
-    }
 
-    if (errcount + warncount == errcountsave + warncountsave) {
-        LogAndWrite(f, "    No problems found");
+        if (errcount + warncount == errcountsave + warncountsave) {
+            LogAndWrite(f, "    No problems found");
+        }
+        errcountsave = errcount;
+        warncountsave = warncount;
+    } else {
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Model Groups containing duplicate nodes - CHECK DISABLED");
     }
-    errcountsave = errcount;
-    warncountsave = warncount;
 
     // Check for model groups and DMX models and common problems
     LogAndWrite(f, "");
@@ -5963,6 +6002,11 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    if (IsCheckSequenceOptionDisabled("CustomSizeCheck")) {
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Custom models with excessive blank cells - CHECK DISABLED");
+    }
+
     std::list<std::string> allfiles;
 
     // Check for matrix faces where the file does not exist
@@ -6053,6 +6097,11 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             wxString msg = wxString::Format("    WARN: Save FSEQ on save is turned off. This means every time you open the sequence you will need to render all to play your sequence. This is not recommended.");
             LogAndWrite(f, msg.ToStdString());
             warncount++;
+        }
+
+        if (IsCheckSequenceOptionDisabled("TransTime")) {
+            LogAndWrite(f, "");
+            LogAndWrite(f, "Effect transition times - CHECK DISABLED.");
         }
 
         bool dataLayer = false;
@@ -6448,20 +6497,22 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& 
         }
     }
 
-    if (fadein > efdur) {
-        wxString msg = wxString::Format("    WARN: Transition in time %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadein, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name, efdur);
-        LogAndWrite(f, msg.ToStdString());
-        warncount++;
-    }
-    if (fadeout > efdur) {
-        wxString msg = wxString::Format("    WARN: Transition out time %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadeout, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name, efdur);
-        LogAndWrite(f, msg.ToStdString());
-        warncount++;
-    }
-    if (fadein <= efdur && fadeout <= efdur && fadein + fadeout > efdur) {
-        wxString msg = wxString::Format("    WARN: Transition in time %.2f + transition out time %.2f = %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadein, fadeout, fadein + fadeout, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name, efdur);
-        LogAndWrite(f, msg.ToStdString());
-        warncount++;
+    if (!IsCheckSequenceOptionDisabled("TransTime")) {
+        if (fadein > efdur) {
+            wxString msg = wxString::Format("    WARN: Transition in time %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadein, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name, efdur);
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+        if (fadeout > efdur) {
+            wxString msg = wxString::Format("    WARN: Transition out time %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadeout, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name, efdur);
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+        if (fadein <= efdur && fadeout <= efdur && fadein + fadeout > efdur) {
+            wxString msg = wxString::Format("    WARN: Transition in time %.2f + transition out time %.2f = %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadein, fadeout, fadein + fadeout, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name, efdur);
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
     }
 
     // effect that runs past end of the sequence

@@ -286,6 +286,9 @@ public:
     xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1);
     virtual ~xLightsFrame();
 
+    static bool IsCheckSequenceOptionDisabled(const std::string& option);
+    static void SetCheckSequenceOptionDisable(const std::string& option, bool value);
+
     enum PlayListIds
     {
         CHKBOX_AUDIO,

@@ -555,6 +555,7 @@
     <ClCompile Include="Pixels.cpp" />
     <ClCompile Include="PixelTestDialog.cpp" />
     <ClCompile Include="preferences\BackupSettingsPanel.cpp" />
+    <ClCompile Include="preferences\CheckSequenceSettingsPanel.cpp" />
     <ClCompile Include="preferences\ColorManagerSettingsPanel.cpp" />
     <ClCompile Include="preferences\EffectsGridSettingsPanel.cpp" />
     <ClCompile Include="preferences\OtherSettingsPanel.cpp" />
@@ -1028,6 +1029,7 @@
     <ClInclude Include="Pixels.h" />
     <ClInclude Include="PixelTestDialog.h" />
     <ClInclude Include="preferences\BackupSettingsPanel.h" />
+    <ClInclude Include="preferences\CheckSequenceSettingsPanel.h" />
     <ClInclude Include="preferences\ColorManagerSettingsPanel.h" />
     <ClInclude Include="preferences\EffectsGridSettingsPanel.h" />
     <ClInclude Include="preferences\OtherSettingsPanel.h" />
