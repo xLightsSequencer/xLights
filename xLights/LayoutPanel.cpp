@@ -274,7 +274,7 @@ class NewModelBitmapButton : public wxBitmapButton
 public:
 
     NewModelBitmapButton(wxWindow *parent, const wxBitmapBundle &bmp, const wxBitmapBundle& bmpDis, const wxBitmapBundle& pBmp, const std::string &type)
-        : wxBitmapButton(parent, wxID_ANY, bmp), state(0), bitmap(bmp), bitmapDisabled(bmpDis), pressedBitmap(pBmp), modelType(type) {
+        : wxBitmapButton(parent, wxID_ANY, bmp), bitmap(bmp), bitmapDisabled(bmpDis), pressedBitmap(pBmp), modelType(type) {
         SetToolTip("Create new " + type);
     }
     virtual ~NewModelBitmapButton() {}
@@ -303,7 +303,7 @@ public:
 protected:
 private:
     const std::string modelType;
-    unsigned int state;
+    uint32_t state = 0;
     wxBitmapBundle bitmap;
     wxBitmapBundle bitmapDisabled;
     wxBitmapBundle pressedBitmap;
@@ -712,20 +712,28 @@ std::string LayoutPanel::GetCurrentPreview() const
     return ChoiceLayoutGroups->GetStringSelection().ToStdString();
 }
 
-NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
-    wxImage image(data);
-    wxImage disImg = image.ConvertToDisabled();
-    wxImage presImg = image.ConvertToDisabled(128);
+#ifdef __WXMSW__
+// On windows wxIMAGE_QUALITY_HIGH results in blank rescaled images
+#define RESCALE_MODEL_BUTTON_QUALITY wxIMAGE_QUALITY_BICUBIC 
+#else
+#define RESCALE_MODEL_BUTTON_QUALITY wxIMAGE_QUALITY_HIGH
+#endif
 
-    wxImage img24 = image.Scale(24, 24, wxIMAGE_QUALITY_HIGH);
-    wxImage disImg24 = disImg.Scale(24, 24, wxIMAGE_QUALITY_HIGH);
-    wxImage presImg24 = presImg.Scale(24, 24, wxIMAGE_QUALITY_HIGH);
+NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
+
+    wxImage image(data);
+    wxImage disImage = image.ConvertToDisabled();
+    wxImage presImage = image.ConvertToDisabled(128);
+
+    wxImage img24 = image.Scale(24, 24, RESCALE_MODEL_BUTTON_QUALITY);
+    wxImage disImg24 = disImage.Scale(24, 24, RESCALE_MODEL_BUTTON_QUALITY);
+    wxImage presImg24 = presImage.Scale(24, 24, RESCALE_MODEL_BUTTON_QUALITY);
 
     wxBitmapBundle bmp = wxBitmapBundle::FromBitmaps(img24, image);
-    wxBitmapBundle bmpDisabled = wxBitmapBundle::FromBitmaps(disImg24, disImg);
-    wxBitmapBundle presBmp = wxBitmapBundle::FromBitmaps(presImg24, presImg);
+    wxBitmapBundle disBmp = wxBitmapBundle::FromBitmaps(disImg24, disImage);
+    wxBitmapBundle presBmp = wxBitmapBundle::FromBitmaps(presImg24, presImage);
 
-    NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, bmp, bmpDisabled, presBmp, type);
+    NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, bmp, disBmp, presBmp, type);
     ToolSizer->Add(button, 1, wxALL, 0);
     buttons.push_back(button);
     Connect(button->GetId(), wxEVT_BUTTON, (wxObjectEventFunction)&LayoutPanel::OnNewModelTypeButtonClicked);
