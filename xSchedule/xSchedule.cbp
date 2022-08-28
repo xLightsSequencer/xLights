@@ -42,7 +42,7 @@
 				<Linker>
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../bin/xLights.map" />
+					<Add option="-Wl,-Map=../bin/xSchedule.map" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lz" />
 					<Add library="libwxmsw33ud.a" />
