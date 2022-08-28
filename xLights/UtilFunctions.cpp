@@ -1489,7 +1489,7 @@ void DumpBinary(uint8_t* buffer, size_t sz)
         }
         out += "    ";
         for (size_t j = i * 16; j < std::min(sz, (i + 1) * 16); j++) {
-            if (buffer[j] < 32 || buffer[j] > 127) {
+            if (buffer[j] < 32 || buffer[j] > 126) {
                 out += '.';
             }
             else {
