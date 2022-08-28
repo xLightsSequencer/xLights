@@ -72,28 +72,28 @@ public:
     size_t GetCurrentFrame() const { return _currentFrame; }
     bool IsDirty();
     void ClearDirty();
-    void SetDirty() { _changeCount++; }
+    void SetDirty() { ++_changeCount; }
     std::string GetStatus(bool ms = false);
     bool GetExcludeFromRandom() const { return _excludeFromRandom; }
-    void SetExcludeFromRandom(bool efr) { if (_excludeFromRandom != efr) { _excludeFromRandom = efr; _changeCount++; } }
+    void SetExcludeFromRandom(bool efr) { if (_excludeFromRandom != efr) { _excludeFromRandom = efr; ++_changeCount; } }
     std::string GetStartTime(PlayList* pl);
     std::string GetName(PlayList* pl);
     std::string GetNameNoTime();
     std::string GetRawName() const { return _name; }
-    void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
+    void SetName(const std::string& name) { if (_name != name) { _name = name; ++_changeCount; } }
     void Start(int _loops);
     bool IsSimple();
     int GetLoopsLeft() const { return _loops; }
-    void DoLoop() { _loops--; }
+    void DoLoop() { --_loops; }
     bool IsMoreLoops() const { return _loops > 0; }
     void SetLoops(int loops) { _loops = loops; }
-    void SetEveryStep(bool everyStep) { if (_everyStep != everyStep) { _everyStep = everyStep; _changeCount++; } }
+    void SetEveryStep(bool everyStep) { if (_everyStep != everyStep) { _everyStep = everyStep; ++_changeCount; } }
     bool GetEveryStep(void) const { return _everyStep; }
     void SetEveryStepExcludeFirst(bool excludeFirst)
     {
         if (_everyStepExcludeFirst != excludeFirst) {
             _everyStepExcludeFirst = excludeFirst;
-            _changeCount++;
+            ++_changeCount;
         }
     }
     bool GetEveryStepExcludeFirst(void) const
@@ -104,7 +104,7 @@ public:
     {
         if (_everyStepExcludeLast != excludeLast) {
             _everyStepExcludeLast = excludeLast;
-            _changeCount++;
+            ++_changeCount;
         }
     }
     bool GetEveryStepExcludeLast(void) const
@@ -124,7 +124,7 @@ public:
     std::string GetActiveSyncItemFSEQ() const;
     std::string GetActiveSyncItemMedia() const;
     int GetPlayStepSize() const { return _items.size(); }
-    void AddItem(PlayListItem* item) { _items.push_back(item); _items.sort(); _changeCount++; }
+    void AddItem(PlayListItem* item) { _items.push_back(item); _items.sort(); ++_changeCount; }
     void RemoveItem(PlayListItem* item);
     bool Frame(uint8_t* buffer, size_t size, bool outputframe);
     size_t GetPosition();

@@ -328,7 +328,7 @@ void AudioData::RestorePos()
     void InputSDL::StopListening()
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        _listeners--;
+        --_listeners;
 
         if (_listeners == 0) {
             CloseDevice();

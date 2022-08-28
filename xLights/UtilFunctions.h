@@ -303,7 +303,7 @@ inline std::string Trim(const std::string& input)
     int lastnonblank = input.size()-1;
 
     while (firstnonblank < input.size() && (input[firstnonblank] == ' ' || input[firstnonblank] == '\t')) { firstnonblank++; }
-    while (lastnonblank > 0 && (input[lastnonblank] == ' ' || input[lastnonblank] == '\t')) { lastnonblank--; }
+    while (lastnonblank > 0 && (input[lastnonblank] == ' ' || input[lastnonblank] == '\t')) { --lastnonblank; }
     if (lastnonblank < firstnonblank) return "";
     return input.substr(firstnonblank, lastnonblank - firstnonblank + 1);
 }

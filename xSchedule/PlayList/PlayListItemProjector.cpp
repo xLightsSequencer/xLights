@@ -43,17 +43,17 @@ unsigned char* PlayListItemProjector::PrepareData(const std::string s, int& used
                 if (working[i + 1] == '\\')
                 {
                     buffer[used++] = working[i];
-                    i++; // skip the second '\\'
+                    ++i; // skip the second '\\'
                 }
                 if (working[i + 1] == 'x' || working[i + 1] == 'X')
                 {
                     // up to next 2 characters if 0-F will be treated as a hex code
-                    i++;
-                    i++;
+                    ++i;
+                    ++i;
                     if (i + 1 < working.size() && isHexChar(working[i]) && isHexChar(working[i + 1]))
                     {
                         buffer[used++] = (char)HexToChar(working[i], working[i + 1]);
-                        i++;
+                        ++i;
                     }
                     else if (i < working.size() && isHexChar(working[i]))
                     {
@@ -64,7 +64,7 @@ unsigned char* PlayListItemProjector::PrepareData(const std::string s, int& used
                         // \x was not followed by a hex digit so put in \x
                         buffer[used++] = '\\';
                         buffer[used++] = 'x';
-                        i--;
+                        --i;
                     }
                 }
             }
@@ -150,7 +150,7 @@ void PlayListItemProjector::ExecuteSerialCommand()
                 while (serial->WaitingToWrite() != 0 && (i < 10))
                 {
                     wxMilliSleep(5);
-                    i++;
+                    ++i;
                 }
                 serial->Close();
                 delete serial;
@@ -406,7 +406,7 @@ void PlayListItemProjector::ExecuteTCPCommand()
                 {
                     wxMilliSleep(1);
                     _socket->Peek(buffer.data(), buffer.length());
-                    i++;
+                    ++i;
                 }
 
                 _socket->ReadMsg(buffer.data(), buffer.length());
@@ -473,7 +473,7 @@ bool PlayListItemProjector::PJLinkLogin()
             {
                 wxMilliSleep(1);
                 _socket->Peek(buffer.data(), buffer.length());
-                i++;
+                ++i;
             }
 
             _socket->ReadMsg(buffer.data(), buffer.length());
@@ -542,7 +542,7 @@ bool PlayListItemProjector::SendPJLinkCommand(const std::string& command)
     {
         wxMilliSleep(1);
         _socket->Peek(buffer.data(), buffer.length());
-        i++;
+        ++i;
     }
 
     _socket->ReadMsg(buffer.data(), buffer.length());

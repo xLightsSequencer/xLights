@@ -1216,7 +1216,7 @@ bool ScheduleManager::IsFPPRemoteOrMaster() const
 
 void ScheduleManager::CreateBrightnessArray()
 {
-    for (size_t i = 0; i < 256; i++)
+    for (size_t i = 0; i < 256; ++i)
     {
         int b = (i * _brightness) / 100;
         _brightnessArray[i] = (uint8_t)(b & 0xFF);
@@ -2791,7 +2791,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                             if (models != nullptr)
                             {
                                 auto size = models->size();
-                                for (int i = 0; i < size && start == -1; i++)
+                                for (int i = 0; i < size && start == -1; ++i)
                                 {
                                     auto m = (*models)[i];
                                     if (m["name"].AsString() == pp[1])
@@ -2899,7 +2899,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         if (parms.Count() > 0)
                         {
                             std::string newparms = "";
-                            for (size_t i = 1; i < parms.Count(); i++)
+                            for (size_t i = 1; i < parms.Count(); ++i)
                             {
                                 if (newparms != "") newparms += ",";
                                 newparms += parms[i].ToStdString();
@@ -5062,11 +5062,11 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
         }
     }
 
-    for (int i = 0; i < 20; i++)
+    for (uint32_t i = 0; i < 20; ++i)
     {
         if (priorities[i] > 1)
         {
-            wxString msg = wxString::Format("    WARN: More than one schedule has priority %d. If these trigger at the same time then it is not certain which we will choose.", i);
+            wxString msg = wxString::Format("    WARN: More than one schedule has priority %u. If these trigger at the same time then it is not certain which we will choose.", i);
             LogAndWrite(f, msg.ToStdString());
             warncount++;
         }
@@ -5835,7 +5835,7 @@ void ScheduleManager::TestFrame(uint8_t* buffer, long totalChannels, long msec)
             v1 = level2;
             v2 = level1;
         }
-        for (size_t i = start; i <= end; i++)
+        for (size_t i = start; i <= end; ++i)
         {
             if (i % 2 == 0)
             {

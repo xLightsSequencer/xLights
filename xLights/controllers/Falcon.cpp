@@ -202,7 +202,7 @@ bool Falcon::V4_SendInputs(std::vector<FALCON_V4_INPUTS>& res, bool& reboot)
     // {"R":200,"T":"S","M":"IN","F":1,"B":0,"RB":0,"P":{},"W":"","L":""}
 
     size_t batches = res.size() / FALCON_V4_SEND_INPUT_BATCH_SIZE + 1;
-    if (res.size() % FALCON_V4_SEND_INPUT_BATCH_SIZE == 0 && res.size() != 0) batches--;
+    if (res.size() % FALCON_V4_SEND_INPUT_BATCH_SIZE == 0 && res.size() != 0) --batches;
 
     size_t left = res.size();
 
@@ -212,10 +212,10 @@ bool Falcon::V4_SendInputs(std::vector<FALCON_V4_INPUTS>& res, bool& reboot)
 
         std::string params = "{\"A\":[";
 
-        for (size_t i = batch * FALCON_V4_SEND_INPUT_BATCH_SIZE; i < (batch + 1) * FALCON_V4_SEND_INPUT_BATCH_SIZE && i < res.size(); i++) {
+        for (size_t i = batch * FALCON_V4_SEND_INPUT_BATCH_SIZE; i < (batch + 1) * FALCON_V4_SEND_INPUT_BATCH_SIZE && i < res.size(); ++i) {
             if (batch != 0) params += ",";
             params += wxString::Format("{\"u\":%d,\"c\":%d,\"uc\":%d,\"p\":\"%c\"}", res[i].universe, res[i].channels, res[i].universeCount, (res[i].protocol == 0 ? 'e' : 'a')).ToStdString();
-            left--;
+            --left;
         }
 
         params += "]}";
@@ -228,7 +228,7 @@ bool Falcon::V4_SendInputs(std::vector<FALCON_V4_INPUTS>& res, bool& reboot)
         int outBatch;
         wxJSONValue outParams;
         if (CallFalconV4API("S", "IN", batch, res.size(), batch * FALCON_V4_SEND_INPUT_BATCH_SIZE, p, finalCall, outBatch, reboot, outParams) == 200) {
-            batch++;
+            ++batch;
         }
         else             {
             success = false;
@@ -289,7 +289,7 @@ bool Falcon::V4_GetStatus(wxJSONValue& res)
                 res[n] = wxJSONValue(outParams[n]);
             }
 
-            batch++;
+            ++batch;
             if (finalCall) done = true;
         }
         else {
@@ -397,7 +397,7 @@ bool Falcon::V4_GetStrings(std::vector<FALCON_V4_STRING>& res)
                 res.push_back(str);
             }
 
-            batch++;
+            ++batch;
             if (finalCall) done = true;
         }
         else {
@@ -440,7 +440,7 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
     // strings must be in port order. Within port they must be in smart remote order. Within smart remote they must be in string order.
 
     size_t batches = res.size() / FALCON_V4_SEND_STRING_BATCH_SIZE + 1;
-    if (res.size() % FALCON_V4_SEND_STRING_BATCH_SIZE == 0 && res.size() != 0) batches--;
+    if (res.size() % FALCON_V4_SEND_STRING_BATCH_SIZE == 0 && res.size() != 0) --batches;
 
     size_t left = res.size();
 
@@ -472,7 +472,7 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
                 res[i].name,
                 res[i].blank
                 ).ToStdString();
-            left--;
+            --left;
         }
 
         params += "]}";
@@ -485,7 +485,7 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
         int outBatch;
         wxJSONValue outParams;
         if (CallFalconV4API("S", "SP", batch, res.size(), batch * FALCON_V4_SEND_STRING_BATCH_SIZE, p, finalCall, outBatch, reboot, outParams) == 200) {
-            batch++;
+            ++batch;
             wxMilliSleep(50);
         }
         else {
@@ -879,7 +879,7 @@ int Falcon::V4_GetStringFirstIndex(const std::vector<FALCON_V4_STRING>& falconSt
     int index = 0;
     for (const auto& it : falconStrings) {
         if (it.port == p && (sr == -1 || it.smartRemote == sr)) return index;
-        index++;
+        ++index;
     }
     return -1;
 }
@@ -1121,7 +1121,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                     int i = V4_GetStringFirstIndex(falconStrings, p, sr);
                     while (i < falconStrings.size() && falconStrings[i].port == p && falconStrings[i].smartRemote == sr) {
                         uploadStrings.push_back(falconStrings[i]);
-                        i++;
+                        ++i;
                     }
                 }
                 else                     {

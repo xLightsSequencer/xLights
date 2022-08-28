@@ -1795,7 +1795,7 @@ void xScheduleFrame::CreateButtons()
 
     FlexGridSizer4->SetCols(5);
     int rows = bs.size() / 5;
-    if (bs.size() % 5 != 0) rows++;
+    if (bs.size() % 5 != 0) ++rows;
     FlexGridSizer4->SetRows(rows);
 
     for (auto it : bs) {
@@ -2005,7 +2005,7 @@ void xScheduleFrame::OnResize(wxSizeEvent& event)
             it->GetSize(&w, &h);
 
             if ((x < lastx && y == lasty) || x + w > pw - 10) {
-                n--;
+                --n;
                 changed = true;
                 break;
             }
@@ -2154,7 +2154,7 @@ void xScheduleFrame::UpdateStatus(bool force)
                     ListView_Running->SetItem(i, 2, FormatTime(it->GetLengthMS()));
                     ListView_Running->SetItem(i, 3, it->GetFSEQTimeStamp());
                     ListView_Running->SetItemData(i, it->GetId());
-                    i++;
+                    ++i;
                 }
             }
         }
@@ -2171,7 +2171,7 @@ void xScheduleFrame::UpdateStatus(bool force)
         bool nexthighlighted = false;
 
         if (step != nullptr) {
-            for (int i = 0; i < ListView_Running->GetItemCount(); i++) {
+            for (int i = 0; i < ListView_Running->GetItemCount(); ++i) {
                 if (!currenthighlighted && ListView_Running->GetItemData(i) == step->GetId()) {
                     currenthighlighted = true;
                     ListView_Running->SetItem(i, 3, step->GetStatus());
@@ -3299,7 +3299,7 @@ void xScheduleFrame::UpdateUI(bool force)
         for (auto it : pingresults) {
             // find it in the list
             int item = -1;
-            for (int i = 0; i < ListView_Ping->GetItemCount(); i++) {
+            for (int i = 0; i < ListView_Ping->GetItemCount(); ++i) {
                 if (ListView_Ping->GetItemText(i) == it->GetName()) {
                     item = i;
                     break;
@@ -3375,7 +3375,7 @@ void xScheduleFrame::UpdateUI(bool force)
             if (serial != nullptr) {
                 // find it in the list
                 int item = -1;
-                for (int i = 0; i < ListView_Ping->GetItemCount(); i++) {
+                for (int i = 0; i < ListView_Ping->GetItemCount(); ++i) {
                     if (ListView_Ping->GetItemText(i) == serial->GetName()) {
                         item = i;
                         break;
@@ -3423,7 +3423,7 @@ void xScheduleFrame::UpdateUI(bool force)
         }
 
         // remove anything in the tree which isnt in the results
-        for (int i = 0; i < ListView_Ping->GetItemCount(); i++) {
+        for (int i = 0; i < ListView_Ping->GetItemCount(); ++i) {
             bool found = false;
             for (auto it : pingresults) {
                 if (ListView_Ping->GetItemText(i) == it->GetName()) {
@@ -3443,7 +3443,7 @@ void xScheduleFrame::UpdateUI(bool force)
 
             if (!found) {
                 ListView_Ping->DeleteItem(i);
-                i--;
+                --i;
             }
         }
         ListView_Ping->Thaw();
