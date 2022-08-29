@@ -403,6 +403,7 @@ void PlayList::AddSchedule(Schedule* schedule)
     ++_changeCount;
 }
 
+// a pos of -1 will put it at the end of the list
 void PlayList::AddStep(PlayListStep* item, int pos)
 {
     std::list<PlayListStep*> newsteps;
