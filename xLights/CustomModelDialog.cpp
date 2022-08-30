@@ -3240,6 +3240,8 @@ void CustomModelDialog::OnCheckBox_Show_DuplicatesClick(wxCommandEvent& event)
 
 void CustomModelDialog::DrawDupNodes()
 {
+    int const layer = Notebook1->GetSelection();
+    int const numCols = WidthSpin->GetValue();
     auto grid = GetActiveGrid();
     _dup_pts.clear();
     for (size_t ii = 0; ii < _model->GetNodeCount(); ii++) {
@@ -3248,9 +3250,14 @@ void CustomModelDialog::DrawDupNodes()
         if (pts.size() > 1) {
             for (auto const& pt : pts) 
             {
-                wxPoint npt{ pt.x, _model->GetCustomHeight() - pt.y - 1 };
-                _dup_pts.emplace_back(npt, grid->GetCellBackgroundColour(_model->GetCustomHeight() - pt.y - 1, pt.x));
-                grid->SetCellBackgroundColour(_model->GetCustomHeight() - pt.y - 1, pt.x, *wxYELLOW);
+                auto const x{ pt.x - (numCols * layer) };
+                auto const y{ _model->GetCustomHeight() - (pt.y) - 1 };
+                if(x < 0 || x > numCols) {
+                    continue;
+                }
+                wxPoint npt{ x, y };
+                _dup_pts.emplace_back(npt, grid->GetCellBackgroundColour(y, x));
+                grid->SetCellBackgroundColour(y, x, *wxYELLOW);
             }
         }
     }
