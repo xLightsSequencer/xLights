@@ -71,13 +71,14 @@ CheckSequenceSettingsPanel::CheckSequenceSettingsPanel(wxWindow* parent, xLights
 	CheckBox_CustomSizeCheck->SetHelpText(_("Large custom models with largely empty cells generate significant rendering overhead. You may want to consider shrinking the custom model dimensions if this can done without too significantly adversely affecting appearance."));
 	GridBagSizer1->Add(CheckBox_CustomSizeCheck, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
 	SetSizer(GridBagSizer1);
-	GridBagSizer1->Fit(this);
-	GridBagSizer1->SetSizeHints(this);
-	//*)
 
-#ifdef XL_DRAWING_WITH_METAL
-    StaticBoxSizer1->Show(false);
-#endif
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_DupUnivClick);
+	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_NonContigChOnPortClick);
+	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_PreviewGroupClick);
+	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_DupNodeMGClick);
+	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_TransTimeClick);
+	Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_CustomSizeCheckClick);
+	//*)
 
 	CheckBox_DupUniv->SetToolTip(CheckBox_DupUniv->GetHelpText());
     CheckBox_NonContigChOnPort->SetToolTip(CheckBox_NonContigChOnPort->GetHelpText());

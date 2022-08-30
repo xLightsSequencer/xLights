@@ -3250,9 +3250,9 @@ void CustomModelDialog::DrawDupNodes()
         if (pts.size() > 1) {
             for (auto const& pt : pts) 
             {
-                auto const x{ pt.x - (numCols * layer) };
-                auto const y{ _model->GetCustomHeight() - (pt.y) - 1 };
-                if(x < 0 || x > numCols) {
+                int const x{ pt.x - (numCols * layer) };
+                int const y{ (int)_model->GetCustomHeight() - (pt.y) - 1 };
+                if (x < 0 || x > numCols) {
                     continue;
                 }
                 wxPoint npt{ x, y };
