@@ -489,7 +489,7 @@ static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(12, TOP_BOT_LEFT_RIGHT_VALUE
 
 void StarModel::AddTypeProperties(wxPropertyGridInterface* grid)
 {
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", parm1));
+    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings/Ctrl. Ports", "StarStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");

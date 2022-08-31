@@ -48,11 +48,11 @@ void CADModel::LoadModel(Model* model, bool twoD, bool addNodeNumbers, bool addC
 
 	if (addConnections) {
 		if (!model->GetControllerName().empty()) {
-			m_texts.push_back(CADText(minX, minY - 6.0F, minZ, "Controller: " + model->GetControllerName(), 1.5F));
+			m_texts.push_back(CADText(minX, minY - 6.0F, minZ, "Ctrl:" + model->GetControllerName(), 1.5F));
 		}
 
 		if (model->GetControllerPort() != 0 && !model->GetControllerProtocol().empty()) {
-			std::string const portName = (IsPixelProtocol(model->GetControllerProtocol()) ? "Pixel Port: " : "Serial Port: ") + std::to_string(model->GetControllerPort());
+			std::string const portName = (IsPixelProtocol(model->GetControllerProtocol()) ? "Port:" : "Serial Port: ") + std::to_string(model->GetControllerPort());
 			m_texts.push_back(CADText(minX, minY - 8.0F, minZ, portName, 1.5F));
 		}
 	}

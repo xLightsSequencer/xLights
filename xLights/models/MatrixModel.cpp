@@ -55,7 +55,7 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     AddStyleProperties(grid);
 
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "MatrixStringCount", parm1));
+    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings/Ctrl. Ports", "MatrixStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 10000);
     p->SetEditor("SpinCtrl");

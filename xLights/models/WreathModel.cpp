@@ -67,7 +67,7 @@ static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { "Top Ctr-CCW", "Top Ctr-CW", 
 static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(4, TOP_BOT_LEFT_RIGHT_VALUES));
 
 void WreathModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "WreathStringCount", parm1));
+    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings/Ctrl. Ports", "WreathStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");

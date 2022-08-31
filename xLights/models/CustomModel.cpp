@@ -99,7 +99,7 @@ protected:
 void CustomModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     wxPGProperty *p = grid->Append(new CustomModelProperty(this, "Model Data", "CustomData", CLICK_TO_EDIT));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new wxUIntProperty("Strings", "CustomModelStrings", _strings));
+    p = grid->Append(new wxUIntProperty("# Strings/Ctrl. Ports", "CustomModelStrings", _strings));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 48);
     p->SetEditor("SpinCtrl");

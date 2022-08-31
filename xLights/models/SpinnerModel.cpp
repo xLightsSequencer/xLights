@@ -157,7 +157,7 @@ int SpinnerModel::EncodeStartLocation()
 
 void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "SpinnerStringCount", parm1));
+    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings/Ctrl. Ports", "SpinnerStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");

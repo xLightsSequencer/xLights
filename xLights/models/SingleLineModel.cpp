@@ -169,7 +169,7 @@ static const char* LEFT_RIGHT_VALUES[] = { "Green Square", "Blue Square" };
 static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
 
 void SingleLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "SingleLineCount", parm1));
+    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings/Ctrl. Ports", "SingleLineCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");

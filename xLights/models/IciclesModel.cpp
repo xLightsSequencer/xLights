@@ -120,7 +120,7 @@ static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
 
 void IciclesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "IciclesStrings", parm1));
+    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings/Ctrl. Ports", "IciclesStrings", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
