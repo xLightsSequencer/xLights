@@ -11,8 +11,8 @@
             <MaxSerialPort>0</MaxSerialPort>
         </Variant>
     </Controller>
-    <Controller Name="M16-DIFF">
-        <Variant Name="" ID="M16-DIFF" Base="FPP:FPPStringDPIPiHat">
+    <Controller Name="M16-PI">
+        <Variant Name="" ID="M16-PI" Base="FPP:FPPStringDPIPiHat">
             <MaxPixelPort>16</MaxPixelPort>
             <MaxSerialPort>0</MaxSerialPort>
         </Variant>
