@@ -52,7 +52,11 @@ void CADModel::LoadModel(Model* model, bool twoD, bool addNodeNumbers, bool addC
 		}
 
 		if (model->GetControllerPort() != 0 && !model->GetControllerProtocol().empty()) {
-			std::string const portName = (IsPixelProtocol(model->GetControllerProtocol()) ? "Pixel Port: " : "Serial Port: ") + std::to_string(model->GetControllerPort());
+			std::string portName = (IsPixelProtocol(model->GetControllerProtocol()) ? "Pixel Port: " : "Serial Port: ") + std::to_string(model->GetControllerPort());
+			if (model->GetSmartRemote() != 0) {
+				portName += ":";
+				portName += model->GetSmartRemoteLetter();
+			}
 			m_texts.push_back(CADText(minX, minY - 8.0F, minZ, portName, 1.5F));
 		}
 	}
