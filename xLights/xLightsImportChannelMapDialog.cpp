@@ -2134,18 +2134,18 @@ void xLightsImportChannelMapDialog::generateMapHintsFile(wxString const& filenam
         xLightsImportModelNode* m = _dataModel->GetNthChild(i);
         if (m->HasMapping()) {
             if (!m->_mapping.empty()) {
-                f.Write(wxString::Format("    <Map ToRegex=\"^%s$\" FromModel=\"%s\" ApplyTo=\"B\" />\n", m->_model, m->_mapping));
-            } 
+                f.Write(wxString::Format("    <Map ToRegex=\"^%s$\" FromModel=\"%s\" ApplyTo=\"B\" />\n", EscapeRegex(m->_model), m->_mapping));
+            }
             for (size_t j = 0; j < m->GetChildCount(); j++) {
                 xLightsImportModelNode* s = m->GetNthChild(j);
                 if (s->HasMapping()) {
                     if (!s->_mapping.empty()) {
-                        f.Write(wxString::Format("    <Map ToRegex=\"^%s\\/%s$\" FromModel=\"%s\" ApplyTo=\"B\" />\n", m->_model, s->_strand, s->_mapping));
-                    } 
+                        f.Write(wxString::Format("    <Map ToRegex=\"^%s\\/%s$\" FromModel=\"%s\" ApplyTo=\"B\" />\n",  EscapeRegex(m->_model), EscapeRegex(s->_strand), s->_mapping));
+                    }
                     for (size_t k = 0; k < s->GetChildCount(); k++) {
                         xLightsImportModelNode* n = s->GetNthChild(k);
                         if (n->HasMapping()) {
-                            f.Write(wxString::Format("    <Map ToRegex=\"^%s\\/%s\\/%s$\" FromModel=\"%s\" ApplyTo=\"B\" />\n", m->_model, s->_strand, n->_node, n->_mapping));
+                            f.Write(wxString::Format("    <Map ToRegex=\"^%s\\/%s\\/%s$\" FromModel=\"%s\" ApplyTo=\"B\" />\n",  EscapeRegex(m->_model), EscapeRegex(s->_strand), EscapeRegex(n->_node), n->_mapping));
                         }
                     }
                 }

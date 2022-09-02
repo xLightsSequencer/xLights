@@ -594,6 +594,20 @@ std::string EscapeCSV(const std::string& s)
     return res;
 }
 
+std::string EscapeRegex(const std::string& s)
+{
+    // \,*,+,?,|,{,[, (,),^,$,.,#,
+    constexpr std::string_view BADREX {R"(\*+?|{[()^$,#)"};
+    std::string safe;
+    for (auto& c : s) {
+        if (BADREX.find(c) != std::string::npos) {
+            safe += "\\";
+        }
+        safe += c;
+    }
+    return safe;
+}
+
 wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& def)
 {
     wxXmlNode* curr = parent;

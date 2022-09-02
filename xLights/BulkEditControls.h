@@ -153,7 +153,7 @@ protected:
     bool _supportsBulkEdit;
     wxString _wildcard;
 
-    void ValidateControl();
+    virtual void ValidateControl();
 
     public:
 

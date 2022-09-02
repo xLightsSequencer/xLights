@@ -51,6 +51,7 @@ std::string UnXmlSafe(const wxString &s);
 std::string XmlSafe(const std::string& s);
 std::string RemoveUnsafeXmlChars(const std::string& s);
 std::string EscapeCSV(const std::string& s);
+std::string EscapeRegex(const std::string& s);
 inline bool isOdd(int n) { return n % 2 != 0; }
 wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& def = "");
 wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std::string& def = "");

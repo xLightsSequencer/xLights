@@ -123,7 +123,7 @@ TextPanel::TextPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer119->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(Panel_Text1, ID_STATICTEXT1, _("From File"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer119->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FilePickerCtrl1 = new wxFilePickerCtrl(Panel_Text1, ID_FILEPICKERCTRL_Text_File, wxEmptyString, _("Select a text file"), _T("*.txt"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_Text_File"));
+	FilePickerCtrl1 = new xlTextFilePickerCtrl(Panel_Text1, ID_FILEPICKERCTRL_Text_File, wxEmptyString, _("Select a text file"), _T("*.txt"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_Text_File"));
 	FlexGridSizer119->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer119->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText3 = new wxStaticText(Panel_Text1, ID_STATICTEXT2, _("From Lyrics"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));

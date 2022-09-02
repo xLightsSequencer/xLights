@@ -490,7 +490,7 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     wxString filename = SettingsMap["FILEPICKERCTRL_Text_File"];
     wxString lyricTrack = SettingsMap["CHOICE_Text_LyricTrack"];
 
-    if (text == "")
+    if (text.IsEmpty())
     {
         if (FileExists(filename))
         {
@@ -503,9 +503,9 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 text += f.GetNextLine() + "\n";
                 i++;
             }
-            if (text != "")
+            if (!text.IsEmpty())
             {
-                while (text.Last() == '\n')
+                while (!text.IsEmpty() && text.Last() == '\n' )
                 {
                     text = text.BeforeLast('\n');
                 }
@@ -514,7 +514,7 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         }
         else
         {
-            if (lyricTrack != "")
+            if (!lyricTrack.IsEmpty())
             {
                 Element* t = nullptr;
                 for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
@@ -561,7 +561,7 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         text = FlipWord(SettingsMap, text, buffer);
     }
 
-    if (text != "") {
+    if (!text.IsEmpty()) {
 
         int starty = wxAtoi(SettingsMap.Get("SLIDER_Text_YStart", "0"));
         int startx = wxAtoi(SettingsMap.Get("SLIDER_Text_XStart", "0"));
