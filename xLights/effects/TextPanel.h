@@ -44,31 +44,12 @@ public:
         const wxValidator& validator = wxDefaultValidator,
         const wxString& name = wxFilePickerCtrlNameStr)
         : BulkEditFilePickerCtrl(parent, id, path, message, _T("*.txt"), pos, size, style, validator, name) {
-
     }
     virtual ~xlTextFilePickerCtrl()
     {}
 
 protected:
-    void ValidateControl() override
-    {
-        if (!IsEnabled()) {
-            SetToolTip("");
-            GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-        } else {
-            auto file = GetFileName().GetFullPath();
-            if (file.Contains(',')) {
-                GetTextCtrl()->SetBackgroundColour(*wxYELLOW);
-                SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
-            } else if (!file.IsEmpty() && !FileExists(file)) {
-                GetTextCtrl()->SetBackgroundColour(*wxRED);
-                SetToolTip("File " + file + " does not exist.");
-            } else {
-                SetToolTip("");
-                GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-            }
-        }
-    }
+    void ValidateControl() override;
 };
 
 
