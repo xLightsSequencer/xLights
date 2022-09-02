@@ -33,6 +33,7 @@
 #include "../xSchedule/xSMSDaemon/Curl.h"
 
 #include <mutex>
+#include <string_view>
 
 #ifdef __WXMSW__
 #include <psapi.h>
