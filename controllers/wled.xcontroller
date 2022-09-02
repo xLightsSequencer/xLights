@@ -7,7 +7,7 @@
         <SupportsUpload/>
         <MaxInputUniverses>9</MaxInputUniverses>
         <MaxSerialPortChannels>0</MaxSerialPortChannels>
-        <MaxPixelPortChannels>4500</MaxPixelPortChannels>
+        <MaxPixelPortChannels>2400</MaxPixelPortChannels>
         <AllInputUniversesMustBeSameSize/>
         <UniversesMustBeSequential/>
         <SupportsAutoLayout/>
@@ -25,6 +25,10 @@
             <Protocol>artnet</Protocol>
         </InputProtocols>
     </AbstractVariant>
+    <AbstractVariant Name="ESP32WLEDSettings" Base="WLED:BaseWLEDSettings">
+        <MaxInputUniverses>24</MaxInputUniverses>
+        <MaxPixelPortChannels>3000</MaxPixelPortChannels>
+    </AbstractVariant>
     <Controller Name="WLED">
         <Variant Name="Generic ESP8266" Base="WLED:BaseWLEDSettings">
             <MaxPixelPort>3</MaxPixelPort>
@@ -33,7 +37,7 @@
             <Port2>1</Port2>
             <Port3>3</Port3>
         </Variant>
-        <Variant Name="Generic ESP32" Base="WLED:BaseWLEDSettings">
+        <Variant Name="Generic ESP32" Base="WLED:ESP32WLEDSettings">
             <MaxPixelPort>8</MaxPixelPort>
             <MaxSerialPort>0</MaxSerialPort>
             <Port1>2</Port1>
@@ -47,7 +51,7 @@
         </Variant>
     </Controller>
     <Controller Name="QuinLED-Dig-Quad">
-        <Variant Name="ESP32" Base="WLED:BaseWLEDSettings">
+        <Variant Name="ESP32" Base="WLED:ESP32WLEDSettings">
             <MaxPixelPort>5</MaxPixelPort>
             <MaxSerialPort>0</MaxSerialPort>
             <Port1>16</Port1>
@@ -71,7 +75,7 @@
             <Port1>3</Port1>
             <Port2>1</Port2>
         </Variant>
-        <Variant Name="ESP32" Base="WLED:BaseWLEDSettings">
+        <Variant Name="ESP32" Base="WLED:ESP32WLEDSettings">
             <MaxPixelPort>2</MaxPixelPort>
             <MaxSerialPort>0</MaxSerialPort>
             <Port1>16</Port1>
@@ -86,7 +90,7 @@
         </Variant>
     </Controller>
     <Controller Name="E8-WiFi">
-        <Variant Name="" Base="WLED:BaseWLEDSettings">
+        <Variant Name="" Base="WLED:ESP32WLEDSettings">
             <MaxPixelPort>8</MaxPixelPort>
             <MaxSerialPort>0</MaxSerialPort>
             <Port1>4</Port1>
@@ -100,7 +104,7 @@
         </Variant>
     </Controller>
     <Controller Name="ESP3DEUXQuattro">
-        <Variant Name="" Base="WLED:BaseWLEDSettings">
+        <Variant Name="" Base="WLED:ESP32WLEDSettings">
             <MaxPixelPort>4</MaxPixelPort>
             <MaxSerialPort>0</MaxSerialPort>
             <Port1>32</Port1>

@@ -285,11 +285,6 @@ bool WLED::SetupInput(Controller* c, wxJSONValue& jsonVal) {
     //get previous RGB Mode
     int rgbMode = jsonVal["if"]["live"]["dmx"]["mode"].AsInt();
 
-    if (controller->GetOutputCount() > 9) {
-        DisplayError(wxString::Format("Attempt to upload %d universes to WLED controller but only 9 are supported.", controller->GetOutputCount()).ToStdString());
-        return false;
-    }
-
     if (!controller->AllSameSize()) {
         DisplayError("Attempting to upload universes to the WLED controller that are not the same size.");
         return false;
