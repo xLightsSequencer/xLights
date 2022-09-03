@@ -1258,10 +1258,20 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
         std::string picture = "";
         if (model_info->faceInfo[definition].find(key + e) != model_info->faceInfo[definition].end()) {
             picture = model_info->faceInfo[definition][key + e];
+            if (shimmer) {
+                if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0) {
+                    picture = model_info->faceInfo[definition]["Mouth-rest-Eyes" + e];
+                }
+            }
         }
         if (picture == "" && e == "Closed") {
             if (model_info->faceInfo[definition].find(key + "Open") != model_info->faceInfo[definition].end()) {
                 picture = model_info->faceInfo[definition][key + "Open"];
+                if (shimmer) {
+                    if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0) {
+                        picture = model_info->faceInfo[definition]["Mouth-rest-EyesOpen"];
+                    }
+                }
             }
         }
         std::string dirstr = "none"; /*RENDER_PICTURE_NONE*/
