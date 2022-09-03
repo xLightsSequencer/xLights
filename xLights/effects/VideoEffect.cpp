@@ -350,6 +350,9 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     logger_base.warn("VideoEffect: Video %s was read as 0 length.", (const char *)filename.c_str());
                 }
 
+                // read the first frame ... if i dont it thinks the first frame i read is the first frame
+                _videoreader->GetNextFrame(0);
+
                 VideoPanel *fp = static_cast<VideoPanel*>(panel);
                 if (fp != nullptr)
                 {
