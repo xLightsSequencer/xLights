@@ -2945,7 +2945,8 @@ wxString xLightsFrame::GetSeqXmlFileName()
 
 void xLightsFrame::ShowSequenceSettings()
 {
-    if (xLightsFrame::CurrentSeqXmlFile == nullptr) return;
+    if (xLightsFrame::CurrentSeqXmlFile == nullptr)
+        return;
 
     // abort any in progress render ... it may be using media or we may change the sequence length ... and that would be bad
     bool aborted = AbortRender();
@@ -2955,24 +2956,20 @@ void xLightsFrame::ShowSequenceSettings()
     dialog.Fit();
     int ret_code = dialog.ShowModal();
 
-    if (ret_code == NEEDS_RENDER || aborted)
-    {
+    if (ret_code == NEEDS_RENDER || aborted) {
         RenderAll();
     }
 
-    if (ret_code != wxID_OK) return;  // user pressed cancel
+    if (ret_code != wxID_OK)
+        return; // user pressed cancel
 
-    if (CurrentSeqXmlFile->GetSequenceType() == "Animation")
-    {
+    if (CurrentSeqXmlFile->GetSequenceType() == "Animation") {
         mediaFilename = "";
         CurrentSeqXmlFile->ClearMediaFile();
         wxString error;
         GetMainSequencer()->PanelWaveForm->OpenfileMedia(nullptr, error);
-    }
-    else if (CurrentSeqXmlFile->GetMedia() != nullptr)
-    {
-        if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
-        {
+    } else if (CurrentSeqXmlFile->GetMedia() != nullptr) {
+        if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0) {
             CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
         }
     }
@@ -3000,15 +2997,13 @@ Effect* xLightsFrame::GetPersistentEffectOnModelStartingAtTime(const std::string
 {
     Element* e = _sequenceElements.GetElement(model);
 
-    if (e == nullptr) return nullptr;
+    if (e == nullptr)
+        return nullptr;
 
-    for (size_t i = 0; i < e->GetEffectLayerCount(); ++i)
-    {
+    for (size_t i = 0; i < e->GetEffectLayerCount(); ++i) {
         Effect* ef = e->GetEffectLayer(i)->GetEffectStartingAtTime(startms);
-        if (ef != nullptr)
-        {
-            if (ef->IsPersistent())
-            {
+        if (ef != nullptr) {
+            if (ef->IsPersistent()) {
                 return ef;
             }
         }
@@ -3016,15 +3011,14 @@ Effect* xLightsFrame::GetPersistentEffectOnModelStartingAtTime(const std::string
     return nullptr;
 }
 
-void xLightsFrame::EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable)
+void xLightsFrame::EnableToolbarButton(wxAuiToolBar* toolbar, int id, bool enable)
 {
     wxAuiToolBarItem* button = toolbar->FindTool(id);
-	if (button != nullptr)
-	{
-		int state = enable ? wxAUI_BUTTON_STATE_NORMAL : wxAUI_BUTTON_STATE_DISABLED;
-		button->SetState(state);
-		toolbar->Refresh();
-	}
+    if (button != nullptr) {
+        int state = enable ? wxAUI_BUTTON_STATE_NORMAL : wxAUI_BUTTON_STATE_DISABLED;
+        button->SetState(state);
+        toolbar->Refresh();
+    }
 }
 
 void xLightsFrame::OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event)
@@ -3227,7 +3221,6 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
         m_mgr->GetPane( "HousePreview" ).Hide();
         m_mgr->Update();
     }
-
 
     if (exportStatus) {
         logger_base.debug( "Finished writing house-preview video." );
@@ -4047,14 +4040,17 @@ void xLightsFrame::SaveWorkingLayout()
 void xLightsFrame::SaveWorking()
 {
     // dont save if no file in existence
-    if (CurrentSeqXmlFile == nullptr) return;
+    if (CurrentSeqXmlFile == nullptr)
+        return;
 
     // dont save if batch rendering
-    if (_renderMode || _checkSequenceMode) return;
+    if (_renderMode || _checkSequenceMode)
+        return;
 
     // dont save if currently saving
     std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
-    if (!lock.owns_lock()) return;
+    if (!lock.owns_lock())
+        return;
 
     wxString p = CurrentSeqXmlFile->GetPath();
     wxString fn = CurrentSeqXmlFile->GetFullName();
@@ -4062,8 +4058,7 @@ void xLightsFrame::SaveWorking()
 
     if (fn == "") {
         tmp = p + "/" + "__.xbkp";
-    }
-    else {
+    } else {
         wxFileName fnp(fn);
         tmp = p + "/" + fnp.GetName() + ".xbkp";
     }
@@ -4089,12 +4084,10 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
             if (_sequenceElements.GetChangeCount() != mLastAutosaveCount) {
                 SaveWorking();
                 mLastAutosaveCount = _sequenceElements.GetChangeCount();
-            }
-            else {
+            } else {
                 logger_base.debug("    Autosave skipped ... no changes detected since last autosave.");
             }
-        }
-        else {
+        } else {
             logger_base.debug("    Autosave skipped ... no changes detected since last save.");
             mLastAutosaveCount = _sequenceElements.GetChangeCount();
         }
@@ -4103,13 +4096,15 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
             SaveWorkingLayout();
         }
         logger_base.debug("    AutoSave took %d ms.", sw.Time());
-    }
-    else {
-        logger_base.debug("AutoSave skipped because sequence is playing or batch rendering or suspended.");
-    }
 
-    if (mAutoSaveInterval > 0) {
-        AutoSaveTimer.StartOnce(mAutoSaveInterval * 60000);
+        if (mAutoSaveInterval > 0) {
+            AutoSaveTimer.StartOnce(mAutoSaveInterval * 60000);
+        }
+    } else {
+        logger_base.debug("AutoSave skipped because sequence is playing or batch rendering or suspended.");
+        if (mAutoSaveInterval > 0) {
+            AutoSaveTimer.StartOnce(10000); // try again in a short period of time as we did not actually save this time
+        }
     }
 }
 

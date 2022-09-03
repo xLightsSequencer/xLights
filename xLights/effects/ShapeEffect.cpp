@@ -269,12 +269,13 @@ public:
         DeleteShapes();
         if (_svgImage != nullptr) {
             nsvgDelete(_svgImage);
+            _svgImage = nullptr;
         }
     }
 
     std::list<ShapeData*> _shapes;
-    int _lastColorIdx;
-    int _sinceLastTriggered;
+    int _lastColorIdx = 0;
+    int _sinceLastTriggered = 0;
     wxFontInfo _font;
     NSVGimage* _svgImage = nullptr;
     std::string _svgFilename;

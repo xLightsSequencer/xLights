@@ -8,6 +8,10 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#ifdef _DEBUG
+//#define VISUALSTUDIO_MEMORYLEAKDETECTION
+#endif
+
 //(*AppHeaders
 #include "xLightsMain.h"
 #include <wx/image.h>
@@ -450,7 +454,7 @@ bool xLightsApp::OnInit()
 	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
 #ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 #endif
 
