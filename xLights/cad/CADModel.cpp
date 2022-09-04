@@ -47,12 +47,16 @@ void CADModel::LoadModel(Model* model, bool twoD, bool addNodeNumbers, bool addC
 	m_texts.push_back(CADText(minX, minY - 4.0F, minZ, model->GetName(), 2.0F));
 
 	if (addConnections) {
-		if (!model->GetControllerName().empty()) {
+		if (!model->GetControllerName().empty() && model->GetControllerName() != NO_CONTROLLER && model->GetControllerName() != USE_START_CHANNEL) {
 			m_texts.push_back(CADText(minX, minY - 6.0F, minZ, "Controller: " + model->GetControllerName(), 1.5F));
+			std::string const chain = "Model Chain: " + (model->GetModelChain() == "" ? "Beginning" : model->GetModelChain());
+			m_texts.push_back(CADText(minX, minY - 10.0F, minZ, chain, 1.5F));
+		} else {
+			m_texts.push_back(CADText(minX, minY - 6.0F, minZ, "Start Channel: " + model->ModelStartChannel, 1.5F));
 		}
 
 		if (model->GetControllerPort() != 0 && !model->GetControllerProtocol().empty()) {
-			std::string portName = (IsPixelProtocol(model->GetControllerProtocol()) ? "Pixel Port: " : "Serial Port: ") + std::to_string(model->GetControllerPort());
+			std::string portName = (IsPixelProtocol(model->GetControllerProtocol()) ? "Pixel Port: " : "Serial Port: ") + model->GetControllerConnectionPortRangeString();
 			if (model->GetSmartRemote() != 0) {
 				portName += ":";
 				portName += model->GetSmartRemoteLetter();
