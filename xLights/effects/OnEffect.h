@@ -21,7 +21,7 @@ class OnEffect : public RenderableEffect
         OnEffect(int id);
         virtual ~OnEffect();
         virtual bool CanBeRandom() override {return false;}
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) override;
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return true; }
         virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const override

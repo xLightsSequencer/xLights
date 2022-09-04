@@ -68,7 +68,7 @@ class RenderableEffect
         //Methods for rendering the effect
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) { return true; }
         virtual bool SupportsRenderCache(const SettingsMap& settings) const;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) = 0;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) = 0;
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect *effect) { }
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) { std::list<std::string> res; return res; };
 
@@ -94,8 +94,8 @@ class RenderableEffect
         static void SetTextValue(wxTextCtrl* choice, std::string value);
         static void SetCheckBoxValue(wxCheckBox *w, bool b);
 
-        double GetValueCurveDouble(const std::string & name, double def, SettingsMap &SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor = 1);
-        int GetValueCurveInt(const std::string &name, int def, SettingsMap &SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor = 1);
+        double GetValueCurveDouble(const std::string & name, double def, const SettingsMap &SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor = 1);
+        int GetValueCurveInt(const std::string &name, int def, const SettingsMap &SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor = 1);
         EffectLayer* GetTiming(const std::string& timingtrack) const;
         Effect* GetCurrentTiming(const RenderBuffer& buffer, const std::string& timingtrack) const;
         std::string GetTimingTracks(const int maxLayers = 0, const int absoluteLayers = 0) const;

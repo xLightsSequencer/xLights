@@ -21,7 +21,7 @@ class PlasmaEffect : public RenderableEffect
         PlasmaEffect(int id);
         virtual ~PlasmaEffect();
         virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
         virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
     protected:

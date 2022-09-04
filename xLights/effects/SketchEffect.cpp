@@ -51,7 +51,7 @@ SketchEffect::~SketchEffect()
 
 }
 
-void SketchEffect::Render(Effect* /*effect*/, SettingsMap& settings, RenderBuffer& buffer )
+void SketchEffect::Render(Effect* /*effect*/, const SettingsMap& settings, RenderBuffer& buffer )
 {
     double progress = buffer.GetEffectTimeIntervalPosition(1.f);
 

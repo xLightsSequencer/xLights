@@ -200,7 +200,7 @@ static void place_twinkles(int lights_to_place, int &curIndex, std::vector<Strob
     }
 }
 
-void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Count = GetValueCurveInt("Twinkle_Count", 3, SettingsMap, oset, 2, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

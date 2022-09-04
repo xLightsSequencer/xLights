@@ -26,7 +26,7 @@ class CurtainEffect : public RenderableEffect
         CurtainEffect(int id);
         virtual ~CurtainEffect();
         virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
     protected:
         virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:

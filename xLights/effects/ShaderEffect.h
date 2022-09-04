@@ -195,7 +195,7 @@ public:
     virtual ~ShaderEffect();
     virtual bool CanBeRandom() override { return false; }
     virtual bool AppropriateOnNodes() const override { return false; }
-    virtual void Render(Effect* effect, SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override { return false; }
     virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
     virtual void SetDefaultParameters() override;

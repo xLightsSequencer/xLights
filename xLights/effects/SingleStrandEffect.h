@@ -35,7 +35,7 @@ class SingleStrandEffect : public RenderableEffect
         virtual void SetDefaultParameters() override;
         virtual bool needToAdjustSettings(const std::string& version) override;
         virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return true; }
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 

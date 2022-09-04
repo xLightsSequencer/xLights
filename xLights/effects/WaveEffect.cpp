@@ -131,7 +131,7 @@ void WaveEffect::SetDefaultParameters() {
     wp->BitmapButton_Wave_YOffsetVC->SetActive(false);
 }
 
-void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 

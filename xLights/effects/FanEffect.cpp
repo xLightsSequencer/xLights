@@ -110,7 +110,7 @@ void FanEffect::SetDefaultParameters() {
     SetCheckBoxValue(fp->CheckBox_Fan_Reverse, false);
 }
 
-void FanEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int center_x = GetValueCurveInt("Fan_CenterX", 50, SettingsMap, eff_pos, FAN_CENTREX_MIN , FAN_CENTREX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int center_y = GetValueCurveInt("Fan_CenterY", 50, SettingsMap, eff_pos, FAN_CENTREY_MIN, FAN_CENTREY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

@@ -48,7 +48,7 @@ class MarqueeEffect : public RenderableEffect
         MarqueeEffect(int id);
         virtual ~MarqueeEffect();    
         virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:

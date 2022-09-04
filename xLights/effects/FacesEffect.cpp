@@ -433,7 +433,7 @@ uint8_t FacesEffect::CalculateAlpha(SequenceElements* elements, int leadFrames, 
     return res;
 }
 
-void FacesEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer) {
+void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
     uint8_t alpha = 255;
     if (SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false)) {
         if (SettingsMap["CHOICE_Faces_TimingTrack"] != "") {

@@ -12,7 +12,7 @@ public:
     virtual ~MetalButterflyEffect();
 
 
-    virtual void Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) override;
+    virtual void Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) override;
 
 
 private:
@@ -28,7 +28,7 @@ public:
     virtual ~MetalWarpEffect();
 
 
-    virtual void Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) override;
+    virtual void Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) override;
 
 
 private:

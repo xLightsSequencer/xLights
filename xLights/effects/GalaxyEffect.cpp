@@ -134,7 +134,7 @@ double GetStep(double radius)
     return (0.5 * 360.0 / (2.0 * PI * radius));
 }
 
-void GalaxyEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer)
+void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int center_x = GetValueCurveInt("Galaxy_CenterX", 50, SettingsMap, eff_pos, GALAXY_CENTREX_MIN, GALAXY_CENTREX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

@@ -26,7 +26,7 @@ class VUMeterEffect : public RenderableEffect
 public:
     VUMeterEffect(int id);
     virtual ~VUMeterEffect();
-    virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+    virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
     virtual void SetDefaultParameters() override;
     virtual void SetPanelStatus(Model *cls) override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;

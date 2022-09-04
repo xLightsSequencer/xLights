@@ -19,7 +19,7 @@ public:
     virtual ~ColorWashEffect();
 
     virtual void SetDefaultParameters() override;
-    virtual void Render(Effect* effect, SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual int DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator& bg, xlColor* colorMask, bool ramps) override;
     virtual wxString GetEffectString() override;
     virtual bool needToAdjustSettings(const std::string& version) override;

@@ -35,7 +35,7 @@ class ShockwaveEffect : public RenderableEffect
     public:
         ShockwaveEffect(int id);
         virtual ~ShockwaveEffect();
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
                                          xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) override;
         virtual void SetDefaultParameters() override;

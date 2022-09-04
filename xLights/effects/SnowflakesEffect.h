@@ -24,7 +24,7 @@ class SnowflakesEffect : public RenderableEffect
         SnowflakesEffect(int id);
         virtual ~SnowflakesEffect();
         virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
 protected:
         virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
         virtual bool needToAdjustSettings(const std::string &version) override;

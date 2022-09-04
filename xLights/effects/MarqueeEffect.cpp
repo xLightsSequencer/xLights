@@ -98,7 +98,7 @@ static void UpdateMarqueeColor(int &position, int &band_color, int colorcnt, int
     }
 }
 
-void MarqueeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 

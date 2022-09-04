@@ -28,7 +28,7 @@ class FireEffect : public RenderableEffect
         FireEffect(int id);
         virtual ~FireEffect();
         virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 protected:
     virtual bool needToAdjustSettings(const std::string &version) override;

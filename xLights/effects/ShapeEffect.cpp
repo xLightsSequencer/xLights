@@ -387,8 +387,7 @@ static int mapSkinTone(const std::string &v) {
     return 0;
 }
 
-void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
-
+void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 	float oset = buffer.GetEffectTimeIntervalPosition();
 
 	std::string Object_To_DrawStr = SettingsMap["CHOICE_Shape_ObjectToDraw"];

@@ -144,7 +144,7 @@ void LiquidEffect::SetDefaultParameters()
     tp->BitmapButton_Liquid_SourceSize4->SetActive(false);
 }
 
-void LiquidEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer)
+void LiquidEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,

@@ -909,7 +909,7 @@ void RenderableEffect::SetRadioValue(wxRadioButton *r) {
 
 static const std::string EMPTY_STRING("");
 
-double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, SettingsMap &SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor)
+double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, const SettingsMap &SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor)
 {
     double res = def;
     const std::string vn = "VALUECURVE_" + name;
@@ -917,24 +917,9 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
     if (vc != EMPTY_STRING) {
         ValueCurve valc(vc);
         if (valc.IsActive()) {
-            bool needsUpgrade = (vc.find("RV=TRUE") == std::string::npos);
             valc.SetLimits(min, max);
             valc.SetDivisor(divisor);
-
-            // If we ask for a double we always want it pre-divided
-            //if (slider)
-            //{
-            //    res = valc.GetOutputValueAt(offset);
-            //}
-            //else
-            //{
-                res = valc.GetOutputValueAtDivided(offset, startMS, endMS);
-            //}
-
-            if (needsUpgrade) {
-                SettingsMap[vn] = valc.Serialise();
-            }
-            return res;
+            return valc.GetOutputValueAtDivided(offset, startMS, endMS);
         }
     }
     
@@ -948,7 +933,7 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
     return res;
 }
 
-int RenderableEffect::GetValueCurveInt(const std::string &name, int def, SettingsMap &SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor)
+int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const SettingsMap &SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor)
 {
     int res = def;
     const std::string vn = "VALUECURVE_" + name;
@@ -960,24 +945,7 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, Setting
         valc.SetLimits(min, max);
         valc.Deserialise(vc);
         if (valc.IsActive()) {
-            bool needsUpgrade = (vc.find("RV=TRUE") == std::string::npos);
-            // If we ask for an int then we seem to want it undivided
-            //if (!slider)
-            //{
-                res = valc.GetOutputValueAt(offset, startMS, endMS);
-            //}
-            //else
-            //{
-            //    res = valc.GetOutputValueAtDivided(offset);
-            //}
-
-            if (needsUpgrade) {
-                // this updates the settings map ... but not the actual settings on the effect ... 
-                // this is a problem as the error will keep occuring next time the sequence is loaded.
-                // To fix it the user needs to click on the offending effect and save and it will go away
-                SettingsMap[vn] = valc.Serialise();
-            }
-            return res;
+            return valc.GetOutputValueAt(offset, startMS, endMS);
         }
     }
     const std::string sn = "SLIDER_" + name;

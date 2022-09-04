@@ -34,7 +34,7 @@ public:
     WaveEffect(int id);
     virtual ~WaveEffect();
     virtual void SetDefaultParameters() override;
-    virtual void Render(Effect* effect, SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool AppropriateOnNodes() const override
     {
         return false;

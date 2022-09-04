@@ -233,7 +233,7 @@ void DMXEffect::adjustSettings(const std::string &version, Effect *effect, bool 
     }
 }
 
-bool DMXEffect::SetDMXSinglColorPixel(int chan, int num_channels, SettingsMap &SettingsMap, double eff_pos, xlColor& color, RenderBuffer &buffer)
+bool DMXEffect::SetDMXSinglColorPixel(int chan, int num_channels, const SettingsMap &SettingsMap, double eff_pos, xlColor& color, RenderBuffer &buffer)
 {
     if( num_channels >= chan ) {
         std::string name = wxString::Format("DMX%d", chan).ToStdString();
@@ -260,7 +260,7 @@ void DMXEffect::SetColorBasedOnStringType(int value, int slot, xlColor& color, c
     }
 }
 
-bool DMXEffect::SetDMXRGBNode(int node, int num_channels, SettingsMap &SettingsMap, double eff_pos, xlColor& color, RenderBuffer &buffer, const std::string& string_type)
+bool DMXEffect::SetDMXRGBNode(int node, int num_channels, const SettingsMap &SettingsMap, double eff_pos, xlColor& color, RenderBuffer &buffer, const std::string& string_type)
 {
     bool return_val = false;
     color = xlBLACK;
@@ -290,7 +290,7 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, SettingsMap &SettingsM
     return return_val;
 }
 
-void DMXEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void DMXEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
 
     if (buffer.cur_model == "") {

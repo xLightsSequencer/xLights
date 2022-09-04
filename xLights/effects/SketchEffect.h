@@ -18,7 +18,7 @@ public:
     {
         return false;
     }
-    void Render( Effect* effect, SettingsMap& settings, RenderBuffer& buffer ) override;
+    void Render( Effect* effect, const SettingsMap& settings, RenderBuffer& buffer ) override;
 
     void SetDefaultParameters() override;
     bool needToAdjustSettings( const std::string& version ) override;
