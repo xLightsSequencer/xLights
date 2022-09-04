@@ -40,7 +40,7 @@ class Voip_ms : public SMSService
             //logger_base.debug("HTTPS Post %s", (const char*)url.c_str());
             logger_base.debug("Sending SMS response did:'%s' dst:'%s' message:'%s'", (const char*)GetPhone().c_str(), (const char*)number.c_str(), (const char*)message.c_str());
             std::string res = Curl::HTTPSPost(url, vars);
-            logger_base.debug("%s", (const char*)res.c_str());
+            logger_base.debug("'%s'", (const char*)res.c_str());
             return Contains(res, "status\":\"success");
 		}
 
@@ -63,9 +63,9 @@ class Voip_ms : public SMSService
             vars.push_back(Curl::Var("timezone", "0"));
 
             //logger_base.debug("HTTPS Post %s", (const char*)url.c_str());
-            logger_base.debug("Retrieving messages.");
+            logger_base.debug("Retrieving messages: %s", (const char*)url.c_str());
             std::string res = Curl::HTTPSPost(url, vars);
-            logger_base.debug("Result %s", (const char*)res.c_str());
+            logger_base.debug("Result '%s'", (const char*)res.c_str());
 
             // construct the JSON root object
             wxJSONValue  root;
