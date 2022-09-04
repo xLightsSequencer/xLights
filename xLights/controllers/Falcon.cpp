@@ -1442,11 +1442,16 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max,
         }
         if (!added) {
             FalconString* string = new FalconString(defaultBrightness);
-            string->startChannel = firstchannel;
+            if (_usingAbsolute) {
+                string->universe = 0;
+                string->startChannel = firstchannel;
+            } else {
+                string->universe = minuniverse;
+                string->startChannel = 1;
+            }
             string->virtualStringIndex = 0;
             string->pixels = MINIMUMPIXELS;
             string->protocol = 0;
-            string->universe = minuniverse;
             string->description = "";
             string->port = i;
             string->index = index++;
