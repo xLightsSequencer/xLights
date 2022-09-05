@@ -536,51 +536,46 @@ void xLightsFrame::LoadPerspectivesMenu(wxXmlNode* perspectivesNode)
     int menuCount = MenuItemPerspectives->GetMenuItemCount();
     int first = menuCount - 1;
     wxMenuItem* current_menuitem = MenuItemPerspectives->FindItemByPosition(first);
-    while (current_menuitem != nullptr && !current_menuitem->IsSeparator())
-    {
+    while (current_menuitem != nullptr && !current_menuitem->IsSeparator()) {
         first--;
         current_menuitem = MenuItemPerspectives->FindItemByPosition(first);
     }
     first++;
-    current_menuitem =  first < menuCount ? MenuItemPerspectives->FindItemByPosition(first) : nullptr;
+    current_menuitem = first < menuCount ? MenuItemPerspectives->FindItemByPosition(first) : nullptr;
     while (current_menuitem != nullptr) {
         MenuItemPerspectives->Delete(current_menuitem);
         menuCount--;
         current_menuitem = first < menuCount ? MenuItemPerspectives->FindItemByPosition(first) : nullptr;
     }
 
-
     int pCount = 0;
 
-    for(wxXmlNode* p=perspectivesNode->GetChildren(); p != nullptr; p=p->GetNext() )
-    {
-        if (p->GetName() == "perspective")
-        {
-            wxString name=p->GetAttribute("name");
-            if (!name.IsEmpty())
-            {
+    for (wxXmlNode* p = perspectivesNode->GetChildren(); p != nullptr; p = p->GetNext()) {
+        if (p->GetName() == "perspective") {
+            wxString name = p->GetAttribute("name");
+            if (!name.IsEmpty()) {
                 int id = wxNewId();
-                MenuItemPerspectives->AppendRadioItem(id,name);
+                MenuItemPerspectives->AppendRadioItem(id, name);
                 if (mCurrentPerpective != nullptr && (name == mCurrentPerpective->GetAttribute("name")))
-                  MenuItemPerspectives->Check(id,true);
+                    MenuItemPerspectives->Check(id, true);
                 PerspectiveId pmenu;
-                pmenu.id=id;
-                pmenu.p=p;
+                pmenu.id = id;
+                pmenu.p = p;
                 perspectives[pCount] = pmenu;
-                Connect(id, wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadPerspectiveSelected);
+                Connect(id, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadPerspectiveSelected);
                 pCount++;
-                if (pCount>=10) { return; }
+                if (pCount >= 10) {
+                    return;
+                }
             }
         }
     }
-
-
 }
 
 void xLightsFrame::OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event)
 {
     Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
-    for (int i=0;i<10;i++) {
+    for (size_t i = 0; i < 10; ++i) {
         if (perspectives[i].id == event.GetId()) {
             DoLoadPerspective(perspectives[i].p);
             return;
@@ -590,82 +585,73 @@ void xLightsFrame::OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event)
 
 void xLightsFrame::SaveModelsFile()
 {
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string filename = CurrentDir.ToStdString() + "/xScheduleData/GetModels.dat";
 
-    if (!wxDir::Exists(CurrentDir + "/xScheduleData"))
-    {
+    if (!wxDir::Exists(CurrentDir + "/xScheduleData")) {
         logger_base.debug("Creating xScheduleData folder.");
         wxDir sd(CurrentDir);
         sd.Make(CurrentDir + "/xScheduleData");
     }
 
-    logger_base.debug("Creating models JSON file: %s.", (const char *)filename.c_str());
+    logger_base.debug("Creating models JSON file: %s.", (const char*)filename.c_str());
 
     wxFile modelsJSON;
-    if (!modelsJSON.Create(filename, true) || !modelsJSON.IsOpened())
-    {
-        logger_base.error("Unable to create file: %s.", (const char *)filename.c_str());
+    if (!modelsJSON.Create(filename, true) || !modelsJSON.IsOpened()) {
+        logger_base.error("Unable to create file: %s.", (const char*)filename.c_str());
         return;
     }
 
     modelsJSON.Write("{\"models\":[");
 
     bool first = true;
-    for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
-    {
+    for (auto m = AllModels.begin(); m != AllModels.end(); ++m) {
         Model* model = m->second;
-        if (model->GetDisplayAs() == "ModelGroup")
-        {
+        if (model->GetDisplayAs() == "ModelGroup") {
             // Dont export model groups ... they arent useful
 
-            //if (!first)
+            // if (!first)
             //{
-            //    modelsJSON.Write(",");
-            //}
-            //first = false;
+            //     modelsJSON.Write(",");
+            // }
+            // first = false;
 
-            //ModelGroup* mg = static_cast<ModelGroup*>(model);
-            //modelsJSON.Write("{\"name\":\"" + mg->name +
-            //    "\",\"type\":\"" + mg->GetDisplayAs() +
-            //    "\",\"startchannel\":\"" + wxString::Format("%i", mg->NodeStartChannel(0) + 1) +
-            //    "\",\"channels\":\"" + wxString::Format("%i", mg->GetChanCount()) +
-            //    "\",\"stringtype\":\"\"}");
-        }
-        else if (model->GetDisplayAs() == "SubModel")
-        {
+            // ModelGroup* mg = static_cast<ModelGroup*>(model);
+            // modelsJSON.Write("{\"name\":\"" + mg->name +
+            //     "\",\"type\":\"" + mg->GetDisplayAs() +
+            //     "\",\"startchannel\":\"" + wxString::Format("%i", mg->NodeStartChannel(0) + 1) +
+            //     "\",\"channels\":\"" + wxString::Format("%i", mg->GetChanCount()) +
+            //     "\",\"stringtype\":\"\"}");
+        } else if (model->GetDisplayAs() == "SubModel") {
             // Dont export SubModels ... they arent useful
 
-            //if (!first)
+            // if (!first)
             //{
-            //    modelsJSON.Write(",");
-            //}
-            //first = false;
+            //     modelsJSON.Write(",");
+            // }
+            // first = false;
 
-            //SubModel* sm = static_cast<SubModel*>(model);
-            //int ch = sm->GetNumberFromChannelString(sm->ModelStartChannel);
-            //modelsJSON.Write("{\"name\":\"" + sm->name +
-            //    "\",\"type\":\"" + sm->GetDisplayAs() +
-            //    "\",\"startchannel\":\"" + wxString::Format("%i", ch) +
-            //    "\",\"channels\":\"" + wxString::Format("%i", sm->GetChanCount()) +
-            //    "\",\"stringtype\":\"" + sm->GetStringType() + "\"}");
-        }
-        else
-        {
-            if (!first)
-            {
+            // SubModel* sm = static_cast<SubModel*>(model);
+            // int ch = sm->GetNumberFromChannelString(sm->ModelStartChannel);
+            // modelsJSON.Write("{\"name\":\"" + sm->name +
+            //     "\",\"type\":\"" + sm->GetDisplayAs() +
+            //     "\",\"startchannel\":\"" + wxString::Format("%i", ch) +
+            //     "\",\"channels\":\"" + wxString::Format("%i", sm->GetChanCount()) +
+            //     "\",\"stringtype\":\"" + sm->GetStringType() + "\"}");
+        } else {
+            if (!first) {
                 modelsJSON.Write(",");
             }
             first = false;
 
             long ch = model->GetNumberFromChannelString(model->ModelStartChannel);
-            modelsJSON.Write("{\"name\":\""+model->name+
-                              "\",\"type\":\""+model->GetDisplayAs()+
-                              "\",\"startchannel\":\""+wxString::Format("%ld", (long)ch)+
-                              "\",\"channels\":\""+ wxString::Format("%ld", (long)model->GetChanCount()) +
-                              "\",\"stringtype\":\""+ model->GetStringType() +"\"}");
+            modelsJSON.Write("{\"name\":\"" + model->name +
+                             "\",\"type\":\"" + model->GetDisplayAs() +
+                             "\",\"startchannel\":\"" + wxString::Format("%ld", (long)ch) +
+                             "\",\"channels\":\"" + wxString::Format("%ld", (long)model->GetChanCount()) +
+                             "\",\"stringtype\":\"" + model->GetStringType() + "\"}");
         }
     }
 

@@ -16,6 +16,7 @@
 #include "models/ModelGroup.h"
 #include "UtilClasses.h"
 #include "AudioManager.h"
+#include "BufferPanel.h"
 #include "xLightsMain.h"
 #include <log4cpp/Category.hh>
 

@@ -99,8 +99,6 @@ wxString ColorWashEffect::GetEffectString() {
     return ret.str();
 }
 
-
-
 xlEffectPanel *ColorWashEffect::CreatePanel(wxWindow *parent) {
     return new ColorWashPanel(parent);
 }
@@ -131,6 +129,7 @@ void ColorWashEffect::adjustSettings(const std::string &version, Effect *effect,
     effect->GetSettings().erase("E_SLIDER_ColorWash_Y1");
     effect->GetSettings().erase("E_SLIDER_ColorWash_Y2");
 }
+
 void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect) {
     SettingsMap &settingsMap = effect->GetSettings();
     if (settingsMap.Get("E_CHECKBOX_ColorWash_HFade", "") == "0") {

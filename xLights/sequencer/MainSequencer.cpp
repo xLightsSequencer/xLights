@@ -552,7 +552,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "APPLYSETTING") {
                 SettingsMap newSetting = SettingsMap();
-                newSetting.Parse(binding->GetEffectString());
+                newSetting.Parse(nullptr, binding->GetEffectString(), "");
 
                 // Apply setting on the UI
                 mSequenceElements->GetXLightsFrame()->SetEffectControls(newSetting);

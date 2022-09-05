@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "SketchEffect.h"
 
 #include "BulkEditControls.h"
@@ -185,7 +195,29 @@ AssistPanel* SketchEffect::GetAssistPanel(wxWindow* parent, xLightsFrame* /*xl_f
     return assistPanel;
 }
 
-void SketchEffect::RemoveDefaults( const std::string& version, Effect* effect )
+double SketchEffect::GetSettingVCMin(const std::string& name) const
+{
+    if (name == "E_VALUECURVE_DrawPercentage")
+        return SketchPanel::DrawPercentageMin;
+    if (name == "E_VALUECURVE_Thickness")
+        return SketchPanel::ThicknessMin;
+    if (name == "E_VALUECURVE_MotionPercentage")
+        return SketchPanel::MotionPercentageMin;
+    return RenderableEffect::GetSettingVCMin(name);
+}
+
+double SketchEffect::GetSettingVCMax(const std::string& name) const
+{
+    if (name == "E_VALUECURVE_DrawPercentage")
+        return SketchPanel::DrawPercentageMax;
+    if (name == "E_VALUECURVE_Thickness")
+        return SketchPanel::ThicknessMax;
+    if (name == "E_VALUECURVE_MotionPercentage")
+        return SketchPanel::MotionPercentageMax;
+    return RenderableEffect::GetSettingVCMax(name);
+}
+
+void SketchEffect::RemoveDefaults(const std::string& version, Effect* effect)
 {
 
 }

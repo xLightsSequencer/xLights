@@ -33,7 +33,6 @@ GalaxyEffect::~GalaxyEffect()
     //dtor
 }
 
-
 xlEffectPanel *GalaxyEffect::CreatePanel(wxWindow *parent) {
     return new GalaxyPanel(parent);
 }
@@ -110,18 +109,15 @@ void GalaxyEffect::SetDefaultParameters() {
 
 void CalcEndpointColor(double end_angle, double start_angle,
                        double head_end_of_tail, double color_length, int num_colors,
-                       RenderBuffer &buffer, xlColor &color)
+                       RenderBuffer& buffer, xlColor& color)
 {
-    double cv = (head_end_of_tail-end_angle) / color_length;
+    double cv = (head_end_of_tail - end_angle) / color_length;
     int ci = (int)cv;
     double cp = cv - (double)ci;
-    int c2 = std::min(ci+1, num_colors-1);
-    if( ci < c2 )
-    {
-        buffer.Get2ColorBlend(ci, c2, std::min( cp, 1.0), color);
-    }
-    else
-    {
+    int c2 = std::min(ci + 1, num_colors - 1);
+    if (ci < c2) {
+        buffer.Get2ColorBlend(ci, c2, std::min(cp, 1.0), color);
+    } else {
         buffer.palette.GetColor(c2, color);
     }
 }

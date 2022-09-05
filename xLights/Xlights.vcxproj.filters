@@ -999,6 +999,7 @@
     <ClCompile Include="preferences\CheckSequenceSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
+    <ClCompile Include="UtilClasses.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />

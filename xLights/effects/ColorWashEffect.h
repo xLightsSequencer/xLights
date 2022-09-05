@@ -12,6 +12,9 @@
 
 #include "RenderableEffect.h"
 
+#define COLOURWASH_CYCLES_MIN 0.1f
+#define COLOURWASH_CYCLES_MAX 20.0f
+
 class ColorWashEffect : public RenderableEffect
 {
 public:
@@ -24,10 +27,25 @@ public:
     virtual wxString GetEffectString() override;
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
-    virtual bool CanRenderPartialTimeInterval() const override { return true; }
+    virtual bool CanRenderPartialTimeInterval() const override
+    {
+        return true;
+    }
+
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_ColorWash_Cycles")
+            return COLOURWASH_CYCLES_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_ColorWash_Cycles")
+            return COLOURWASH_CYCLES_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
 
 protected:
     virtual void RemoveDefaults(const std::string& version, Effect* effect) override;
     virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
-private:
 };

@@ -39,12 +39,16 @@
 
 #define COLORPANEL_BRIGHTNESS_MIN 0
 #define COLORPANEL_BRIGHTNESS_MAX 400
+
 #define COLORPANEL_SPARKLE_MIN 0
 #define COLORPANEL_SPARKLE_MAX 200
+
 #define COLORPANEL_VALUE_MIN -100
 #define COLORPANEL_VALUE_MAX 100
+
 #define COLORPANEL_HUE_MIN -100
 #define COLORPANEL_HUE_MAX 100
+
 #define COLORPANEL_SATURATION_MIN -100
 #define COLORPANEL_SATURATION_MAX 100
 
@@ -76,6 +80,43 @@ public:
     
         void SetDefaultPalette();
     
+		static double GetSettingVCMin(const std::string& name)
+        {
+            if (name == "C_VALUECURVE_Brightness")
+                return COLORPANEL_BRIGHTNESS_MIN;
+            if (name == "C_VALUECURVE_SparkleFrequency")
+                return COLORPANEL_SPARKLE_MIN;
+            if (name == "C_VALUECURVE_Color_ValueAdjust")
+                return COLORPANEL_VALUE_MIN;
+            if (name == "C_VALUECURVE_Color_HueAdjust")
+                return COLORPANEL_HUE_MIN;
+            if (name == "C_VALUECURVE_Color_SaturationAdjust")
+                return COLORPANEL_SATURATION_MIN;
+            wxASSERT(false);
+            return 0;
+        }
+
+        static double GetSettingVCMax(const std::string& name)
+        {
+            if (name == "C_VALUECURVE_Brightness")
+                return COLORPANEL_BRIGHTNESS_MAX;
+            if (name == "C_VALUECURVE_SparkleFrequency")
+                return COLORPANEL_SPARKLE_MAX;
+            if (name == "C_VALUECURVE_Color_ValueAdjust")
+                return COLORPANEL_VALUE_MAX;
+            if (name == "C_VALUECURVE_Color_HueAdjust")
+                return COLORPANEL_HUE_MAX;
+            if (name == "C_VALUECURVE_Color_SaturationAdjust")
+                return COLORPANEL_SATURATION_MAX;
+            wxASSERT(false);
+            return 100;
+        }
+
+		static int GetSettingVCDivisor(const std::string& name)
+        {
+            return 1;
+        }
+
 #ifdef __XLIGHTS_HAS_TOUCHBARS__
         ColorPanelTouchBar *SetupTouchBar(xlTouchBarSupport &tbs);
         ColorPanelTouchBar *GetTouchBar() const { return touchBar.get(); }

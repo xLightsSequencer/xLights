@@ -15,7 +15,6 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-
 #include "../../include/spirograph-16.xpm"
 #include "../../include/spirograph-24.xpm"
 #include "../../include/spirograph-32.xpm"

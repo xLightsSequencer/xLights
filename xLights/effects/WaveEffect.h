@@ -44,6 +44,43 @@ public:
         return false;
     }
 
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Number_Waves")
+            return WAVE_NUMBER_MIN;
+        if (name == "E_VALUECURVE_Thickness_Percentage")
+            return WAVE_THICKNESS_MIN;
+        if (name == "E_VALUECURVE_Wave_Height")
+            return WAVE_HEIGHT_MIN;
+        if (name == "E_VALUECURVE_Wave_Speed")
+            return WAVE_SPEED_MIN;
+        if (name == "E_VALUECURVE_Wave_YOffset")
+            return WAVE_YOFFSET_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Number_Waves")
+            return WAVE_NUMBER_MAX;
+        if (name == "E_VALUECURVE_Thickness_Percentage")
+            return WAVE_THICKNESS_MAX;
+        if (name == "E_VALUECURVE_Wave_Height")
+            return WAVE_HEIGHT_MAX;
+        if (name == "E_VALUECURVE_Wave_Speed")
+            return WAVE_SPEED_MAX;
+        if (name == "E_VALUECURVE_Wave_YOffset")
+            return WAVE_YOFFSET_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
+
+    virtual int GetSettingVCDivisor(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Wave_Speed")
+            return WAVE_SPEED_DIVISOR;
+        return RenderableEffect::GetSettingVCDivisor(name);
+    }
+
 protected:
     virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
     virtual bool needToAdjustSettings(const std::string& version) override;

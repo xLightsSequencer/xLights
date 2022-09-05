@@ -222,7 +222,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     // make sure they dont hang over the left side
     if (startTimeMS < 0) startTimeMS = 0;
 
-    Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
+    Effect* e = new Effect(&GetParentElement()->GetSequenceElements()->GetEffectManager(), this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
     wxASSERT(e != nullptr);
     mEffects.push_back(e);
     if (!suppress_sort)
@@ -248,42 +248,30 @@ void EffectLayer::SortEffects()
 
 bool EffectLayer::IsStartTimeLinked(int index) const
 {
-    if (index < mEffects.size() && index > 0)
-    {
+    if (index < mEffects.size() && index > 0) {
         return mEffects[index - 1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS();
-    }
-    else
-    {
+    } else {
         return false;
     }
 }
 
 bool EffectLayer::IsEndTimeLinked(int index) const
 {
-    if (index < mEffects.size() - 1)
-    {
+    if (index < mEffects.size() - 1) {
         return mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS();
-    }
-    else
-    {
+    } else {
         return false;
     }
 }
 
 int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period) const
 {
-    if (index + 1 >= mEffects.size())
-    {
+    if (index + 1 >= mEffects.size()) {
         return NO_MIN_MAX_TIME;
-    }
-    else
-    {
-        if (mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS() && allow_collapse)
-        {
+    } else {
+        if (mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS() && allow_collapse) {
             return mEffects[index + 1]->GetEndTimeMS() - min_period;
-        }
-        else
-        {
+        } else {
             return mEffects[index + 1]->GetStartTimeMS();
         }
     }
@@ -291,18 +279,12 @@ int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse, int min_per
 
 int EffectLayer::GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period) const
 {
-    if (index == 0)
-    {
+    if (index == 0) {
         return NO_MIN_MAX_TIME;
-    }
-    else
-    {
-        if (mEffects[index - 1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS() && allow_collapse)
-        {
+    } else {
+        if (mEffects[index - 1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS() && allow_collapse) {
             return mEffects[index - 1]->GetStartTimeMS() + min_period;
-        }
-        else
-        {
+        } else {
             return mEffects[index - 1]->GetEndTimeMS();
         }
     }
@@ -321,11 +303,9 @@ bool EffectLayer::IsFixedTimingLayer()
 
 bool EffectLayer::HitTestEffectByTime(int timeMS, int& index) const
 {
-    for (int i = 0; i < mEffects.size(); i++)
-    {
+    for (int i = 0; i < mEffects.size(); i++) {
         if (timeMS >= mEffects[i]->GetStartTimeMS() &&
-            timeMS <= mEffects[i]->GetEndTimeMS())
-        {
+            timeMS <= mEffects[i]->GetEndTimeMS()) {
             index = i;
             return true;
         }

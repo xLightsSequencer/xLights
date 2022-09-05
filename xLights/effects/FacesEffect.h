@@ -20,18 +20,26 @@ class FacesEffect : public RenderableEffect
 public:
     FacesEffect(int id);
     virtual ~FacesEffect();
-    virtual bool CanBeRandom() override { return false; }
+    virtual bool CanBeRandom() override
+    {
+        return false;
+    }
     virtual void SetPanelStatus(Model* cls) override;
     virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
-    virtual bool AppropriateOnNodes() const override { return false; }
+    virtual bool AppropriateOnNodes() const override
+    {
+        return false;
+    }
     virtual std::list<std::string> GetFacesUsed(const SettingsMap& SettingsMap) const override;
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
     virtual wxString GetEffectString() override;
+
 protected:
     virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
+
 private:
     void mouth(RenderBuffer& buffer, int Phoneme, int BufferHt, int BufferWt, bool shimmer);
     void drawline1(RenderBuffer& buffer, int Phoneme, int x1, int x2, int y1, int y2, int colorIdx);

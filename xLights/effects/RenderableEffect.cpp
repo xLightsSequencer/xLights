@@ -29,6 +29,9 @@
 #include "SpiralsEffect.h"
 #include "PinwheelEffect.h"
 #include "EffectPanelUtils.h"
+#include "../ColorPanel.h"
+#include "../BufferPanel.h"
+#include "../TimingPanel.h"
 #include "../BitmapCache.h"
 
 #include "../xLightsApp.h"
@@ -1010,3 +1013,59 @@ Effect* RenderableEffect::GetCurrentTiming(const RenderBuffer& buffer, const std
     return nullptr;
 }
 
+// Upgrades any value curve where not stored as real values or the min/max/divisor has changed since the file was saved
+std::string RenderableEffect::UpgradeValueCurve(EffectManager* effectManager, const std::string& name, const std::string& value, const std::string& effectName)
+{
+    // value curve has to be active
+    if (value.find("Active=TRUE") != std::string::npos) {
+        bool notRV = value.find("RV=TRUE") == std::string::npos;
+
+        RenderableEffect* effect = effectManager->GetEffect(effectName);
+
+        if (effect != nullptr) {
+            double min = 0;
+            double max = 100;
+            int div = 1;
+            bool doit = false;
+            if (StartsWith(name, "E_VALUECURVE")) {
+                // if divisor is 0xFFFF then the curve does not allow upgrading as the min/max/divisor dont come from xLights - mostly used in shaders
+                if (effect->GetSettingVCDivisor(name) != 0xFFFF) {
+                    min = effect->GetSettingVCMin(name);
+                    max = effect->GetSettingVCMax(name);
+                    div = effect->GetSettingVCDivisor(name);
+                    doit = true;
+                }
+            } else if (StartsWith(name, "C_VALUECURVE")) {
+                if (ColorPanel::GetSettingVCDivisor(name) != 0xFFFF) {
+                    min = ColorPanel::GetSettingVCMin(name);
+                    max = ColorPanel::GetSettingVCMax(name);
+                    div = ColorPanel::GetSettingVCDivisor(name);
+                    doit = true;
+                }
+            } else if (StartsWith(name, "T_VALUECURVE")) {
+                if (TimingPanel::GetSettingVCDivisor(name) != 0xFFFF) {
+                    min = TimingPanel::GetSettingVCMin(name);
+                    max = TimingPanel::GetSettingVCMax(name);
+                    div = TimingPanel::GetSettingVCDivisor(name);
+                    doit = true;
+                }
+            } else if (StartsWith(name, "B_VALUECURVE")) {
+                if (BufferPanel::GetSettingVCDivisor(name) != 0xFFFF) {
+                    min = BufferPanel::GetSettingVCMin(name);
+                    max = BufferPanel::GetSettingVCMax(name);
+                    div = BufferPanel::GetSettingVCDivisor(name);
+                    doit = true;
+                }
+            }
+            if (doit) {
+                ValueCurve valc;
+                valc.SetLimits(min, max); // now set the limits
+                valc.SetDivisor(div);
+                valc.Deserialise(value, false);
+                return valc.Serialise();
+            }
+        }
+    }
+
+    return value;
+}

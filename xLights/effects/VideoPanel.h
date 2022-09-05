@@ -29,12 +29,6 @@ class wxTextCtrl;
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
-#define VIDEO_SPEED_MIN -1000
-#define VIDEO_SPEED_MAX 1000
-#define VIDEO_SPEED_DIVISOR 100
-#define VIDEO_CROP_MIN 0
-#define VIDEO_CROP_MAX 100
-
 #define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv;*.gif"
 
 wxDECLARE_EVENT(EVT_VIDEODETAILS, wxCommandEvent);

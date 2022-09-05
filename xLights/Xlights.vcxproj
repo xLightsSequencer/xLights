@@ -623,6 +623,7 @@
     <ClCompile Include="TopEffectsPanel.cpp" />
     <ClCompile Include="TraceLog.cpp" />
     <ClCompile Include="UpdaterDialog.cpp" />
+    <ClCompile Include="UtilClasses.cpp" />
     <ClCompile Include="UtilFunctions.cpp" />
     <ClCompile Include="ValueCurve.cpp" />
     <ClCompile Include="ValueCurveButton.cpp" />
