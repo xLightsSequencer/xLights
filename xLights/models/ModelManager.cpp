@@ -1020,16 +1020,34 @@ bool ModelManager::ModelHasNoDependencyOnNoController(Model* m, std::list<std::s
     if (!m->CouldComputeStartChannel) // this should stop this looping forever due to chain loops
         return false;
 
-    wxString sc = m->ModelStartChannel;
-    if (sc != "" && (sc[0] == '>' || sc[0] == '@')) {
-        std::string dependson = sc.substr(1).BeforeFirst(':');
-        Model* mm = GetModel(dependson);
-        if (mm != nullptr) {
-            if (mm->GetControllerName() == NO_CONTROLLER)
-                return false;
-            return ModelHasNoDependencyOnNoController(mm, visited);
+    if (m->HasIndividualStartChannels()) {
+        size_t c = m->GetNumPhysicalStrings();
+        for (size_t i = 0; i < c; ++i) {
+            wxString sc = m->GetIndividualStartChannel(i);
+            if (sc != "" && (sc[0] == '>' || sc[0] == '@')) {
+                std::string dependson = sc.substr(1).BeforeFirst(':');
+                Model* mm = GetModel(dependson);
+                if (mm != nullptr) {
+                    if (mm->GetControllerName() == NO_CONTROLLER)
+                        return false;
+                    if (!ModelHasNoDependencyOnNoController(mm, visited))
+                        return false;
+                }
+            }
+        }
+    } else {
+        wxString sc = m->ModelStartChannel;
+        if (sc != "" && (sc[0] == '>' || sc[0] == '@')) {
+            std::string dependson = sc.substr(1).BeforeFirst(':');
+            Model* mm = GetModel(dependson);
+            if (mm != nullptr) {
+                if (mm->GetControllerName() == NO_CONTROLLER)
+                    return false;
+                return ModelHasNoDependencyOnNoController(mm, visited);
+            }
         }
     }
+
     return true;
 }
 

@@ -1355,6 +1355,16 @@ static wxString GetColorString(wxPGProperty *p, xlColor &xc) {
     return tp;
 }
 
+bool Model::HasIndividualStartChannels() const
+{
+    return ModelXml->GetAttribute("Advanced", "0") == "1";
+}
+
+wxString Model::GetIndividualStartChannel(size_t s) const
+{
+    return ModelXml->GetAttribute(StartChanAttrName(s), "");
+}
+
 int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
