@@ -972,17 +972,18 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
 }
 
 
-bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &request) {
+bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& request)
+{
     wxString uri = request.URI();
     wxString params = "";
-    
+
     if (uri.find('?') != std::string::npos) {
         params = uri.substr(uri.find('?') + 1);
         uri = uri.substr(0, uri.find('?'));
     }
     std::vector<std::string> paths;
     std::map<std::string, std::string> paramMap = ParseParams(params);
-    
+
     if (uri[0] == '/') {
         uri = uri.substr(1);
     }
@@ -998,7 +999,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &r
         paths.clear();
         params.clear();
         accept = MIME_JSON;
-        
+
         wxJSONValue val;
         wxJSONReader reader;
         if (reader.Parse(request.Data(), &val) == 0) {
@@ -1009,7 +1010,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &r
                 connection.SendResponse(resp);
                 return true;
             } else {
-                for (auto &mn : val.GetMemberNames()) {
+                for (auto& mn : val.GetMemberNames()) {
                     wxJSONValue v = val[mn];
                     if (mn == "cmd") {
                         paths.push_back(v.AsString());
@@ -1038,15 +1039,15 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &r
         }
     } else {
         paramMap["_METHOD"] = request.Method();
-        if (request.Method() == "POST" || request.Method() == "PUT")  {
+        if (request.Method() == "POST" || request.Method() == "PUT") {
             paramMap["_DATA"] = request.Data();
         }
     }
 
-    return ProcessAutomation(paths, paramMap, [&] (const std::string &msg,
-                                                   const std::string &jsonKey,
-                                                   int responseCode,
-                                                   bool isJson) {
+    return ProcessAutomation(paths, paramMap, [&](const std::string& msg, const std::string& jsonKey, int responseCode, bool isJson) {
+
+        // The problem here is the connection may no longer be valid ... but i am not sure how to safely detect this
+        // This means if the client suddenly disconnects then xLights crashes on the SendResponse call as connection and request objects have all been destroyed from under us with no way to know it has happened
         HttpResponse resp(connection, request, (HttpStatus::HttpStatusCode)responseCode);
         resp.AddHeader("access-control-allow-origin", "*");
 
@@ -1072,7 +1073,6 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &r
     });
 }
 
-
 void xLightsFrame::StartAutomationListener()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1089,14 +1089,14 @@ void xLightsFrame::StartAutomationListener()
     HttpServer *server = new HttpServer();
     HttpContext ctx;
     ctx.Port = ::GetxFadePort(_xFadePort);
-    
+
     ctx.RequestHandler = HttpRequestFunction;
     ctx.MessageHandler = nullptr;
 
     // default error pages content
     ctx.ErrorPage400 = HTTP_ERROR_PAGE;
     ctx.ErrorPage404 = HTTP_ERROR_PAGE;
-    
+
     if (!server->Start(ctx)) {
         logger_base.debug("xLights Automation could not listen on %d", ::GetxFadePort(_xFadePort));
         delete server;
