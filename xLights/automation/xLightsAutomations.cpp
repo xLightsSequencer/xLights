@@ -1045,9 +1045,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
     }
 
     return ProcessAutomation(paths, paramMap, [&](const std::string& msg, const std::string& jsonKey, int responseCode, bool isJson) {
-
-        // The problem here is the connection may no longer be valid ... but i am not sure how to safely detect this
-        // This means if the client suddenly disconnects then xLights crashes on the SendResponse call as connection and request objects have all been destroyed from under us with no way to know it has happened
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         HttpResponse resp(connection, request, (HttpStatus::HttpStatusCode)responseCode);
         resp.AddHeader("access-control-allow-origin", "*");
 
@@ -1068,8 +1066,16 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
         } else {
             resp.MakeFromText(msg, MIME_TEXT);
         }
-        connection.SendResponse(resp);
-        return true;
+        // The problem here is the connection may no longer be valid ... but i am not sure how to safely detect this
+        // This means if the client suddenly disconnects then xLights crashes on the SendResponse call as connection and request objects have all been destroyed from under us with no way to know it has happened
+        // adding this check helps but it still has a race condition
+        if (_automationServer->IsConnectionValid(&connection)) {
+            connection.SendResponse(resp);
+            return true;
+        } else {
+            logger_base.warn("Automation did not send result because connection lost.");
+        }
+        return false;
     });
 }
 

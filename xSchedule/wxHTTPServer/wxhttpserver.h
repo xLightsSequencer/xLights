@@ -331,6 +331,12 @@ public:
 
 	inline const HttpContext &Context() const { return _context; }
 
+	// Added for xLights
+	// Added to address a situation where if the client disconnects then the connection is deleted from under us
+	// This is not a perfect solution as the race condition still exists between the check and the use but it avoids the 
+	// need to massively refactor this code
+    bool IsConnectionValid(HttpConnection* connection) const;
+
 protected:
 	// event handlers (these functions should _not_ be virtual)
 	void OnServerEvent(wxSocketEvent &event);
