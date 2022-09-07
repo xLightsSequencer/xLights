@@ -299,7 +299,14 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(Nodes);
-
+    if (boundingBox) {
+        boundingBox[0] = -0.5;
+        boundingBox[1] = -0.5;
+        boundingBox[2] = -0.5;
+        boundingBox[3] = 0.5;
+        boundingBox[4] = 0.5;
+        boundingBox[5] = 0.5;
+    }
     sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {

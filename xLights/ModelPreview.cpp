@@ -582,7 +582,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 m->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d,
                                         color, allowSelected, false, highlightFirst, 0, bounds);
 
-                if (color == selColor) {
+                if (color == selColor && bounds[0] != 999999 && bounds[3] != -999999) {
                     m->GetModelScreenLocation().TranslatePoint(bounds[0], bounds[1], bounds[2]);
                     m->GetModelScreenLocation().TranslatePoint(bounds[3], bounds[4], bounds[5]);
                     minx = std::min(minx, bounds[0]);
@@ -612,7 +612,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                             sm->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d,
                                                      color, allowSelected, false, highlightFirst, 0, bounds);
 
-                            if (color == selColor) {
+                            if (color == selColor && bounds[0] != 999999 && bounds[3] != -999999) {
                                 m->GetModelScreenLocation().TranslatePoint(bounds[0], bounds[1], bounds[2]);
                                 m->GetModelScreenLocation().TranslatePoint(bounds[3], bounds[4], bounds[5]);
                                 minx = std::min(minx, bounds[0]);

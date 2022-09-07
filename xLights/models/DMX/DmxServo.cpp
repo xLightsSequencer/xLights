@@ -381,6 +381,14 @@ void DmxServo::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ct
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(Nodes);
+    if (boundingBox) {
+        boundingBox[0] = -0.5;
+        boundingBox[1] = -0.5;
+        boundingBox[2] = -0.5;
+        boundingBox[3] = 0.5;
+        boundingBox[4] = 0.5;
+        boundingBox[5] = 0.5;
+    }
 
     xlGraphicsProgram* program = transparentProgram;
     program->addStep([=](xlGraphicsContext* ctx) {
