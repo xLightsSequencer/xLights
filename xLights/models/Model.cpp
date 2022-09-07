@@ -2794,6 +2794,11 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     _active = ModelNode->GetAttribute("Active", "1") == "1";
     _lowDefFactor = wxAtoi(ModelNode->GetAttribute("LowDefinition", "100"));
 
+    if (GetShadowModelFor() == name) {
+        // this is a problem ... models should not be a shadow model for themselves
+        SetShadowModelFor("");
+    }
+
     //this needs to be done before GetNodeChannelCount call
     bool found = true;
     int index = 0;
