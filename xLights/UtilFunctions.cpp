@@ -1247,6 +1247,7 @@ bool IsIPValidOrHostname(const std::string& ip, bool iponly)
 
     static wxRegEx regxIPAddr("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
 
+    wxString ips = wxString(ip).Trim(false).Trim(true);
     if (regxIPAddr.Matches(ips)) {
         return true;
     }
