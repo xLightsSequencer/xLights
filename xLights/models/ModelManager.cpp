@@ -248,6 +248,17 @@ void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
     logger_base.debug("Models loaded in %ldms", timer.Time());
     _modelsLoading = false;
 
+    // Check all recorded shadow models actually exist
+    for (auto& it : models) {
+        if (it.second->GetShadowModelFor() != "") {
+            auto m = models.find(it.second->GetShadowModelFor());
+            if (m == models.end()) {
+                // showing model does not exist
+                it.second->SetShadowModelFor("");
+            }
+        }
+    }
+
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ModelManager::LoadModels");
     //RecalcStartChannels();
 }
