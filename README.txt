@@ -11,6 +11,35 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.17 September 8, 2022
+   -- enh (keith)  Add xSchedule Remote Falcon option to send the first playing effect as the currently playing sequence
+   -- enh (keith)  Add SVG support to the shapes effect (some SVGs with gradients may have an issue)
+   -- enh (keith)  Allow optional disabling of more pedantic Check Sequence checks
+   -- enh (keith)  Disable autosave during render all
+   -- enh (keith)  Add shimmer support to matrix faces
+   -- enh (dkulp)  Update wxWidgets to 3.2/3.3
+   -- enh (scott)  Add M16-PI controller
+   -- enh (scott)  Added duplicate node custom model checkbox, doesn't work with 3D models as buffer z is not used
+   -- enh (scott)  Add smart remote and model chaining details to DXF export
+   -- enh (scott)  Added Bulk Edit to Text Effect File Picker
+   -- bug (keith)  Fix picture files showing red as if there is an error when there isnt an error
+   -- bug (keith)  Dont use render cache for text effect if text is coming from a file
+   -- bug (keith)  Fix a bug with importing models and adding them correctly to existing groups
+   -- bug (keith)  Fix speed value curve reset on the video effect
+   -- bug (keith)  Fix brightness blend does not respect alpha channel
+   -- bug (keith)  Fix xSchedule adds multiple sequences in reverse order than expected
+   -- bug (keith)  Fix reverse video does not work for start positions other than 0ms
+   -- bug (keith)  Fix servo effect crash due to missing Nod channel
+   -- bug (keith)  Fix Falcon v3 upload leaves unused ports with invalid settings
+   -- bug (keith)  Fix hang if indiv start channels refers to a model on no-controller
+   -- bug (keith)  Fix crash when xlDo killed while executing a render
+   -- bug (keith)  Fix shadow model for errors which cannot be corrected through UI (on load)
+   -- bug (scott)  Fix WLED pixel limis and universe limits to match current capabilities
+   -- bug (scott)  Escape model names for xmaphints export
+   -- bug (scott)  Disable Universe Per String, when Auto Size is disabled as it does nothing
+   -- bug (dkulp)  Fix crash for some per model renders
+   -- bug (dkulp)  Fix DMX models returning zero size resulting in problems with centre calculation
+   -- bug (cyber)  Fix host name validation for controller reports some valid names as errors
 2022.16 August 22, 2022
    -- enh (keith)  Allow optional turn off of house and model window docking
    -- enh (keith)  On Falcon and FPP allow definition of zigzag in xlights for upload
