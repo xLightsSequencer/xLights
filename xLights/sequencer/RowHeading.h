@@ -108,6 +108,8 @@ private:
     static const long ID_ROW_MNU_RENDERDISABLE_MODEL;
     static const long ID_ROW_MNU_DELETE_ROW_EFFECTS;
     static const long ID_ROW_MNU_DELETE_MODEL_EFFECTS;
+    static const long ID_ROW_MNU_DELETE_MODEL_STRAND_EFFECTS;
+    static const long ID_ROW_MNU_DELETE_MODEL_NODE_EFFECTS;
     static const long ID_ROW_MNU_SELECT_ROW_EFFECTS;
     static const long ID_ROW_MNU_SELECT_MODEL_EFFECTS;
     static const long ID_ROW_MNU_SELECT_TIMING_EFFECTS;
