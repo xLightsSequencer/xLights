@@ -68,6 +68,13 @@
 			<MaxSerialPort>1</MaxSerialPort>
 		</Variant>
     </Controller>
+    <Controller Name="PixLite T8-S Mk3">
+		<Variant Name="" Base="Advatek:PLMK3">
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>24</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+		</Variant>
+    </Controller>
     <AbstractVariant Name="PLMK1">
         <SupportsPixelPortCommonSettings/>
         <SupportsUpload/>
