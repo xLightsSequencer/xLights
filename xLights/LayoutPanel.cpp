@@ -191,6 +191,7 @@ const long LayoutPanel::ID_MNU_MAKEALLSCNOTOVERLAPPING = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_TO_EXISTING_GROUPS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETE_ACTIVE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_RENAME_ACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELETEPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDCURVE = wxNewId();
@@ -4494,6 +4495,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             mnu.AppendSeparator();
         }
         mnu.Append(ID_PREVIEW_DELETE_ACTIVE,"Delete this Preview");
+        mnu.Append(ID_PREVIEW_RENAME_ACTIVE, "Rename this Preview");
     }
 
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
@@ -4810,8 +4812,9 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE)
     {
         DeleteCurrentPreview();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT)
+    } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {
+        RenameCurrentPreview();
+    } else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT)
     {
         Model* md=dynamic_cast<Model*>(selectedBaseObject);
         if( md == nullptr ) return;
@@ -7159,6 +7162,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         md->ExportXlightsModel();
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
+    } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {
+        RenameCurrentPreview();
     } else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
@@ -7873,7 +7878,7 @@ int LayoutPanel::GetBackgroundAlphaForSelectedPreview()
 
 void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
     ChoiceLayoutGroups->SetSelection(0);
-    for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++) {
+    for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); ++i) {
         if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
             ChoiceLayoutGroups->SetSelection(i);
             break;
@@ -7898,7 +7903,7 @@ void LayoutPanel::DeleteCurrentPreview() {
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DeleteCurrentPreview");
 
-        for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++) {
+        for (size_t i = 0; i < ChoiceLayoutGroups->GetCount(); ++i) {
             if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
                 ChoiceLayoutGroups->Delete(i);
                 break;
@@ -7925,6 +7930,64 @@ void LayoutPanel::DeleteCurrentPreview() {
         modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::DeleteCurrentPreview");
     }
+}
+
+void LayoutPanel::RenameCurrentPreview()
+{
+    wxTextEntryDialog dlg(this, "Change preview name", "Enter the new preview name:", currentLayoutGroup);
+    do {
+        if (dlg.ShowModal() == wxCANCEL)
+            return;
+    } while (::Lower(currentLayoutGroup) != ::Lower(dlg.GetValue()) && GetLayoutGroup(dlg.GetValue().ToStdString()) != nullptr);
+
+    for (const auto& it : xlights->AllModels) {
+        Model* model = it.second;
+        if (model->GetLayoutGroup() == currentLayoutGroup) {
+            model->SetLayoutGroup(dlg.GetValue());
+        }
+    }
+
+    wxXmlNode* node = nullptr;
+    for (wxXmlNode* n = xlights->LayoutGroupsNode->GetChildren(); n != nullptr; n = n->GetNext()) {
+        if (n->GetAttribute("name") == currentLayoutGroup) {
+            n->DeleteAttribute("name");
+            n->AddAttribute("name", dlg.GetValue());
+            node = n;
+            break;
+        }
+    }
+
+    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
+        if ((*it)->GetName() == currentLayoutGroup) {
+            (*it)->SetName(dlg.GetValue());
+            break;
+        }
+    }
+
+     for (size_t i = 0; i < ChoiceLayoutGroups->GetCount(); ++i) {
+        if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
+            ChoiceLayoutGroups->SetString(i, dlg.GetValue());
+            break;
+        }
+    }
+
+    currentLayoutGroup = dlg.GetValue();
+
+    SetCurrentLayoutGroup(currentLayoutGroup);
+    SwitchChoiceToCurrentLayoutGroup();
+    xlights->SetStoredLayoutGroup(currentLayoutGroup);
+    UpdateModelList(true);
+
+    modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
+    modelPreview->SetDisplay2DGrid(xlights->GetDisplay2DGrid(), xlights->GetDisplay2DGridSpacing());
+    modelPreview->SetDisplay2DCenter0(xlights->GetDisplay2DCenter0());
+    modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
+    modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
+    modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::RenameCurrentPreview");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::RenameCurrentPreview");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::RenameCurrentPreview");
 }
 
 void LayoutPanel::ShowPropGrid(bool show) {
