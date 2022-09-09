@@ -2259,11 +2259,14 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
     message.clear();
     bool res = false;
 
+    SetStatusText(message);
+
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (controller == nullptr) return res;
 
     auto caps = GetControllerCaps(controller->GetName());
     if (caps != nullptr) {
+        SetStatusText("Uploading inputs to controller.");
         caps->Dump();
         if (caps->SupportsInputOnlyUpload()) {
             auto vendor = controller->GetVendor();
@@ -2321,11 +2324,14 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
     message.clear();
     bool res = false;
 
+    SetStatusText(message);
+
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (controller == nullptr) return res;
 
     auto caps = GetControllerCaps(controller->GetName());
     if (caps != nullptr) {
+        SetStatusText("Uploading outputs to controller.");
         caps->Dump();
         if (caps->SupportsUpload()) {
             auto vendor = controller->GetVendor();
