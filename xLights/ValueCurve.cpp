@@ -2153,3 +2153,31 @@ wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)
     }
     return bmp;
 }
+
+void ValueCurve::ScaleAndOffsetValues(float scale, int offset)
+{
+    if (offset == 0 && abs(scale - 1.0) < 0.0001) {
+        return;
+    }
+
+    auto ScaleVal = [&](float val) 
+    {
+        float newVal = (val * (scale * _divisor )) + (offset * _divisor);
+        newVal = std::min(newVal, _max);
+        newVal = std::max(newVal, _min);
+        return (val * scale ) + offset;
+    };
+
+    _parameter1 = ScaleVal(_parameter1);
+    _parameter2 = ScaleVal(_parameter2);
+    _parameter3 = ScaleVal(_parameter3);
+    _parameter4 = ScaleVal(_parameter4);
+
+    if (_type == "Custom")
+    {
+        for (auto& it : _values)
+        {
+            it.y = ScaleVal(it.y);
+        }
+    }
+}

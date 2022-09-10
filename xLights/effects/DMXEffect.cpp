@@ -33,20 +33,21 @@ DMXEffect::~DMXEffect()
     //dtor
 }
 
-void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::pair<int, int>>& pairs) const
+void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::tuple<int, int, float, int>>& dmxmappings) const
 {
     SettingsMap &settings = effect->GetSettings();
     SettingsMap oldSettings = settings;
-    for (auto p : pairs)
+    for (auto const [ fromi, toi, scale, offset ] : dmxmappings)
     {
-        auto froms = wxString::Format("%d", p.first);
-        auto tos = wxString::Format("%d", p.second);
+        auto froms = wxString::Format("%d", fromi);
+        auto tos = wxString::Format("%d", toi);
         auto slider = oldSettings.Get("E_SLIDER_DMX" + froms, "NOTTHERE");
         auto vc = oldSettings.Get("E_VALUECURVE_DMX" + froms, "NOTTHERE");
 
         if (slider != "NOTTHERE")
         {
-            settings["E_SLIDER_DMX" + tos] = slider;
+            int new_value = ((double)std::stoi(slider) * scale) + offset;
+            settings["E_SLIDER_DMX" + tos] = std::to_string( new_value);
         }
         else
         {
@@ -54,7 +55,12 @@ void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<s
         }
         if (vc != "NOTTHERE")
         {
-            settings["E_VALUECURVE_DMX" + tos] = vc;
+            ValueCurve valc;
+            valc.SetDivisor(1.0F);
+            valc.SetLimits(DMX_MIN, DMX_MAX);
+            valc.Deserialise(vc);
+            valc.ScaleAndOffsetValues(scale, offset);
+            settings["E_VALUECURVE_DMX" + tos] = valc.Serialise();
         }
         else
         {
@@ -385,7 +391,7 @@ void DMXEffect::SetPanelStatus(Model *cls) {
 
     int num_channels = m->GetNumChannels();
 
-    for(int i = 1; i <= 40; ++i) {
+    for(int i = 1; i <= DMX_CHANNELS; ++i) {
         wxString label_ctrl = wxString::Format("ID_STATICTEXT_DMX%d", i);
         std::string name = m->GetNodeName(i-1);
         wxStaticText* label = (wxStaticText*)(p->FindWindowByName(label_ctrl));

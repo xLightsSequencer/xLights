@@ -16,6 +16,8 @@
 #define DMX_MIN 0
 #define DMX_MAX 255
 
+constexpr int DMX_CHANNELS = 40;
+
 class DMXEffect : public RenderableEffect
 {
 public:
@@ -32,7 +34,7 @@ public:
     {
         return true;
     }
-    void RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::pair<int, int>>& pairs) const;
+    void RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::tuple<int, int, float, int>>& dmxmappings) const;
 
     virtual double GetSettingVCMin(const std::string& name) const override
     {

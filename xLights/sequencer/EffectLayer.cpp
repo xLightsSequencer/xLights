@@ -1253,7 +1253,7 @@ void EffectLayer::ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& und
     }
 }
 
-void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::pair<int, int>>& pairs, const EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
+void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::tuple<int, int, float, int>>& dmxmappings, const EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
     DMXEffect* dmx = static_cast<DMXEffect*>(effectManager.GetEffect("DMX"));
 
@@ -1263,7 +1263,7 @@ void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoMa
                 (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
                 (mEffects[i]->GetSelected() == EFFECT_SELECTED))) {
             undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
-            dmx->RemapSelectedDMXEffectValues(mEffects[i], pairs);
+            dmx->RemapSelectedDMXEffectValues(mEffects[i], dmxmappings);
 
             rangeAccumulator.Add(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
         }

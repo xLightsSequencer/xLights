@@ -186,4 +186,5 @@ public:
     void Reverse();
     void Flip();
     void ConvertDivider(int oldDivider, int newDivider);
+    void ScaleAndOffsetValues(float scale, int offset);
 };

@@ -16,14 +16,16 @@
 						<growablerows>0</growablerows>
 						<object class="sizeritem">
 							<object class="wxGrid" name="ID_GRID1" variable="Grid1" member="yes">
-								<cols>2</cols>
+								<cols>4</cols>
 								<rows>40</rows>
 								<defaultcolsize>150</defaultcolsize>
 								<collabels>
 									<item>Map From</item>
 									<item>Map To</item>
+									<item>Scale</item>
+									<item>Offset</item>
 								</collabels>
-								<size>400,400</size>
+								<size>609,400</size>
 							</object>
 							<flag>wxEXPAND</flag>
 						</object>
