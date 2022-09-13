@@ -7353,6 +7353,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
 
     wxFileName fn(CurrentSeqXmlFile->GetFullPath());
     wxString filename = fn.GetName() + ".zip";
+    wxString filePath = fn.GetPath() + wxFileName::GetPathSeparator() + filename;
 
     if (showDialogs) {
         wxFileDialog fd(this, "Zip file to create.", CurrentDir, filename, "zip file(*.zip)|*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -7360,7 +7361,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         if (fd.ShowModal() == wxID_CANCEL) {
             return "";
         }
-        filename = fd.GetPath();
+        filePath = fd.GetPath();
     }
     // make sure everything is up to date
     if (Notebook1->GetSelection() != LAYOUTTAB) {
@@ -7368,7 +7369,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     }
     RecalcModels();
 
-    wxFileName fnZip(filename);
+    wxFileName fnZip(filePath);
     logger_base.debug("Packaging sequence into %s.", (const char*)fnZip.GetFullPath().c_str());
 
     wxFFileOutputStream out(fnZip.GetFullPath());
@@ -7533,13 +7534,13 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     }
 
     if (!zip.Close()) {
-        logger_base.warn("Error packaging sequence into %s.", (const char*)filename.c_str());
+        logger_base.warn("Error packaging sequence into %s.", (const char*)filePath.c_str());
     }
     out.Close();
 
     prog.Update(100);
 
-    return fn.GetPath() + wxFileName::GetPathSeparator() + filename;
+    return filePath;
 }
 
 bool xLightsFrame::IsInShowFolder(const std::string& file) const
