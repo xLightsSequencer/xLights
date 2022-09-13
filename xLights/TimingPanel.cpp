@@ -358,7 +358,7 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
                                      "* 2 reveals 1: (Superimpose) Effect 2 reveals Effect 1\n"
                                      "* Layered: Effect 1 only shows in black regions of Effect 2.\n"
                                      "* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum\n"
-                                     "* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a plit screen display\n"
+                                     "* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a split screen display\n"
                                      "* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model.\n"
                                      "* Additive -  Take value of Effect 1  and Add it to Value from Effect 2.\n"
                                      "* Subtractive -  Take value of Effect 1  and Subtract it from the Value from Effect 2.\n"
