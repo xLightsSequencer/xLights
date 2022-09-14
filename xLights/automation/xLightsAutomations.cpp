@@ -966,6 +966,27 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse(response, "", 200, true);
         }
         return sendResponse("target effect doesn't exists.", "msg", 503, false);
+    } else if (cmd == "importXLightsSequence") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        auto filename = params["filename"];
+        if (filename == "" || filename == "null"|| !wxFile::Exists(filename)) {
+            return sendResponse("Inport File not valid.", "msg", 503, false);
+        }
+        auto mapname = params["mapfile"];
+        if (mapname == "" || mapname == "null" || !wxFile::Exists(mapname)) {
+            return sendResponse("Mapping File no valid.", "msg", 503, false);
+        }
+        ImportXLights(wxFileName(filename), mapname);
+
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(this, eventRowHeaderChanged);
+        mainSequencer->PanelEffectGrid->Refresh();
+        
+        std::string response = "{\"msg\":\"Imported XLights Sequence.\",\"worked\":\"true\"}";
+        return sendResponse(response, "", 200, true);
+       
     }
 
     return false;

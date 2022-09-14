@@ -337,6 +337,12 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
         if (faceName != wxEmptyString) {
             ImportFaceInfo(mappedEffect, target, faceName);
         }
+    } else if (effName == "Shape") {
+        wxString shapePath = settings["E_FILEPICKERCTRL_SVG"];
+        if (!shapePath.empty()) {
+            settingEffectFile = shapePath;
+            targetMediaFolder = _importOptions.GetDir(MediaTargetDir::IMAGES_DIR);
+        }
     }
 
     if (!settingEffectFile.IsEmpty()) {

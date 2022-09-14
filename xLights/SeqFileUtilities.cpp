@@ -1179,7 +1179,7 @@ void MapXLightsEffects(Element *target,
     }
 }
 
-void xLightsFrame::ImportXLights(const wxFileName &filename) {
+void xLightsFrame::ImportXLights(const wxFileName &filename, std::string const& mapFile) {
     wxStopWatch sw; // start a stopwatch timer
 
     SequencePackage xsqPkg(filename, this);
@@ -1210,7 +1210,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
         Element *el = se.GetElement(e);
         elements.push_back(el);
     }
-    ImportXLights(se, elements, xsqPkg, supportsModelBlending, true);
+    ImportXLights(se, elements, xsqPkg, supportsModelBlending, true, false, false, mapFile);
 
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
@@ -1235,7 +1235,7 @@ ImportXLights(se, elements, xsqPkg, modelBlending, showModelBlending, allowAllMo
 }
 
 void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element*>& elements, SequencePackage& xsqPkg,
-    bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc)
+    bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc, std::string const& mapFile)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::map<std::string, EffectLayer*> layerMap;
@@ -1321,8 +1321,12 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
     dlg.timingTrackAlreadyExists = timingTrackAlreadyExists;
     bool ok = dlg.InitImport();
 
-    if (!ok || dlg.ShowModal() != wxID_OK) {
-        return;
+    if (mapFile.empty()) {
+        if (!ok || dlg.ShowModal() != wxID_OK) {
+            return;
+        }
+    } else {
+        dlg.LoadMappingFile(mapFile, true);
     }
 
     if (showModelBlending && dlg.GetImportModelBlending()) {
