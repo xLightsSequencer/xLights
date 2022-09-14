@@ -934,7 +934,7 @@ void WiringDialog::Export_DXF()
 
                     int lasty = lastpt.y ;
                     dxfFile.WriteWire(CADPoint( _start.x - lastx, _start.y - lasty, 0),
-                        CADPoint( _start.x - x,  _start.y - y, 0));
+                        CADPoint( _start.x - x,  _start.y - y, 0), 0);
                 }
 
                 last = it->first;
@@ -947,7 +947,7 @@ void WiringDialog::Export_DXF()
             for (auto it = itp->second.begin(); it != itp->second.end(); ++it) {
                 int x = it->second.front().x;
                 int y = it->second.front().y ;
-                dxfFile.WriteNode(CADPoint( _start.x - x, _start.y - y, 0));
+                dxfFile.WriteNode(CADPoint( _start.x - x, _start.y - y, 0), 0);
                 minX = std::min(_start.x - x, minX);
             }
         }
@@ -966,13 +966,13 @@ void WiringDialog::Export_DXF()
                     label = wxString::Format("%d:%d", string, it->first).ToStdString();
                 }
 
-                dxfFile.WriteText(CADPoint( _start.x - x, _start.y - y, 0), label, 0.5 );
+                dxfFile.WriteText(CADPoint( _start.x - x, _start.y - y, 0), label, 0.5 , 0);
             }
             string++;
         }
 
-        dxfFile.WriteText(CADPoint(minX, _start.y + 2  , 0), "Model: " + _modelname, 1);
-        dxfFile.WriteText(CADPoint(minX, _start.y, 0), "CAUTION: Rear view", 1);
+        dxfFile.WriteText(CADPoint(minX, _start.y + 2  , 0), "Model: " + _modelname, 1, 0);
+        dxfFile.WriteText(CADPoint(minX, _start.y, 0), "CAUTION: Rear view", 1, 0);
 
         dxfFile.WriteEndOfFile();
     }

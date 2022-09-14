@@ -30,4 +30,5 @@ private:
 	std::vector<CADPoint> m_nodes;
 	std::vector<CADLine> m_wires;
 	std::vector<CADText> m_texts;
+	uint32_t m_color;
 };

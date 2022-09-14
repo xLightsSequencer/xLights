@@ -14,6 +14,7 @@
 
 #include "../models/Model.h"
 #include "../Pixels.h"
+#include "../Color.h"
 
 #include <algorithm>
 
@@ -64,6 +65,8 @@ void CADModel::LoadModel(Model* model, bool twoD, bool addNodeNumbers, bool addC
 			m_texts.push_back(CADText(minX, minY - 8.0F, minZ, portName, 1.5F));
 		}
 	}
+
+	m_color = xlColor(model->GetTagColour()).GetRGB(false);
 }
 
 void CADModel::ShiftModel(float x, float y, float z)
@@ -97,31 +100,31 @@ void CADModel::WriteToCAD(CADWriter* writer)
 
 	//do something special for first node, diff shape or color?
 	if (m_nodes.size() > 0) {
-		writer->WriteFirstNode(m_nodes.front());
+		writer->WriteFirstNode(m_nodes.front(), m_color);
 	}
 
 	if (m_nodes.size() > 2) {
-		std::for_each(std::begin(m_nodes) + 1, std::end(m_nodes) - 1, [writer](CADPoint pt) {
-			writer->WriteNode(pt);
+		std::for_each(std::begin(m_nodes) + 1, std::end(m_nodes) - 1, [&](CADPoint pt) {
+			writer->WriteNode(pt, m_color);
 		});
 	}
 
 	//do something special for last node, diff shape or color?
 	if (m_nodes.size() > 1) {
-		writer->WriteLastNode(m_nodes.back());
+		writer->WriteLastNode(m_nodes.back(), m_color);
 	}
 
 	writer->WriteNodeFooter();
 
 	writer->WriteWireHeader();
 	for (auto& ln : m_wires) {
-		writer->WriteWire(ln.Loc1, ln.Loc2);
+		writer->WriteWire(ln.Loc1, ln.Loc2, m_color);
 	}
 	writer->WriteWireFooter();
 
 	writer->WriteTextHeader();
 	for (auto& txt : m_texts) {
-		writer->WriteText(txt.Loc, txt.Text, txt.Size, txt.Rotation);
+		writer->WriteText(txt.Loc, txt.Text, txt.Size, m_color, txt.Rotation);
 	}
 	writer->WriteTextFooter();
 }
