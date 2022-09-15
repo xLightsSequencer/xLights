@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Improve drawing of 3 point models (Arch, Candy Cane, Icicles) when green square is right of blue square.
+                   Note: If model changes look because it was on a tilt an X rotation with the red rotate handle should fix it.
 2022.17 September 8, 2022
    -- enh (keith)  Add xSchedule Remote Falcon option to send the first playing effect as the currently playing sequence
    -- enh (keith)  Add SVG support to the shapes effect (some SVGs with gradients may have an issue)
