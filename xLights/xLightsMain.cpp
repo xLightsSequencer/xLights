@@ -1266,6 +1266,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(wxID_COPY, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
     Connect(wxID_PASTE, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
 
+    ShowDirectoryLabel->Bind(wxEVT_LEFT_DCLICK,
+         [&](wxMouseEvent&) {
+             wxLaunchDefaultApplication(showDirectory);
+         });
+
     SetPanelSequencerLabel("");
 
     _outputModelManager.SetFrame(this);
