@@ -8638,6 +8638,15 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         }
         else if (type == "MODEL_ALIGN_CENTER_HORIZ") {
             PreviewModelAlignHCenter();
+        } 
+        else if (type == "MODEL_ALIGN_BACKS") {
+            PreviewModelAlignBacks();
+        } 
+        else if (type == "MODEL_ALIGN_FRONTS") {
+            PreviewModelAlignFronts();
+        } 
+        else if (type == "MODEL_ALIGN_GROUND") {
+            PreviewModelAlignWithGround();
         }
         else if (type == "MODEL_DISTRIBUTE_HORIZ") {
             PreviewModelHDistribute();
