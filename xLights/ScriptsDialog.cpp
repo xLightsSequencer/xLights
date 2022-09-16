@@ -20,6 +20,10 @@
 #include "xLightsMain.h"
 
 #include "automation/LuaRunner.h"
+
+#if defined(PYTHON_RUNNER)
+#include "automation/PythonRunner.h"
+#endif
 #include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
@@ -85,6 +89,9 @@ ScriptsDialog::ScriptsDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos
     Connect(ID_LISTBOX_SCRIPTS, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ScriptsDialog::OnListRClick);
 
     _runner = std::make_unique<LuaRunner>(_frame);
+#if defined(PYTHON_RUNNER)
+    _pyrunner = std::make_unique<PythonRunner>(_frame);
+#endif
 
     LoadScriptDir();
 }
@@ -192,6 +199,16 @@ void ScriptsDialog::ProcessScriptDir(wxString const& dir)
         _scripts.push_back(path);
         ListBoxScripts->Append(fn.GetFullName());
     }
+
+#if defined(PYTHON_RUNNER)
+    GetAllFilesInDir(dir, files, "*.py");
+    for (auto & file : files) {
+        wxFileName fn(file);
+        wxString path = fn.GetFullPath();
+        _scripts.push_back(path);
+        ListBoxScripts->Append(fn.GetFullName());
+    }
+#endif
 }
 
 void ScriptsDialog::Run_Selected_Script()
@@ -209,7 +226,11 @@ void ScriptsDialog::Run_Selected_Script()
 
     auto filePath = _scripts.at(sel);
 
-    Run_Lua_Script(filePath);
+    if (filePath.EndsWith(".lua")) {
+        Run_Lua_Script(filePath);
+    } else if (filePath.EndsWith(".py")) {
+        Run_Python_Script(filePath);
+    }
 
     ListBoxScripts->Enable();
     Button_Run->Enable();
@@ -229,6 +250,22 @@ void ScriptsDialog::Run_Lua_Script(wxString const& filepath) const
         logger_base.info("%s", (const char*)message.c_str());
     };
     _runner->Run_Script(filepath, LogMessage);
+}
+
+void ScriptsDialog::Run_Python_Script(wxString const& filepath) const
+{
+#if defined(PYTHON_RUNNER)
+    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+
+    auto LogMessage = [&](std::string const& message) {
+        TextCtrl_Log->AppendText(message);
+        TextCtrl_Log->AppendText("\n");
+        logger_base.info("%s", (const char*)message.c_str());
+    };
+    _pyrunner->Run_Script(filepath, LogMessage);
+#endif
 }
 
 

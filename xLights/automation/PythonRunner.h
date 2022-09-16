@@ -15,45 +15,45 @@
 #include "../../xSchedule/wxJSON/jsonreader.h"
 #include "../../xSchedule/wxJSON/jsonwriter.h"
 
-#define SOL_ALL_SAFETIES_ON 1
-#include "sol/sol.hpp"
-#include <lua.h>
-
 #include <map>
 #include <string>
+
+namespace pybind11
+{
+   class dict;
+};
 
 class xLightsFrame;
 class wxJSONValue;
 
-class LuaRunner 
+class PythonRunner 
 {
 public:
-    explicit LuaRunner(xLightsFrame* frame);
+    explicit PythonRunner(xLightsFrame* frame);
 
     bool Run_Script(wxString const& filepath, std::function<void(std::string const& msg)> SendResponse);
 
     [[nodiscard]] std::string GetUserScriptFolder() const;
     [[nodiscard]] static std::string GetSystemScriptFolder();
 
-    [[nodiscard]] sol::object RunCommand(std::string const& cmd, std::map<std::string, std::string> parms, sol::this_state thislua);
-    void ShowMessage(std::string const& text) const;
+    [[nodiscard]] std::string RunCommand(std::string const& cmd, const pybind11::dict& dict);
+
     [[nodiscard]] std::string PromptString(std::string const& text) const;
-    [[nodiscard]] std::string PromptSelection(sol::object const& items, std::string const& message) const;
+
     [[nodiscard]] std::list<std::string> PromptSequences() const;
-    
-    [[nodiscard]] sol::object JSONToTable(std::string const& json, sol::this_state s) const;
+
+    [[nodiscard]] std::string PromptSelection(std::list<std::string> const& items, std::string const& message) const;
+
     [[nodiscard]] std::list<std::string> SplitString(std::string const& text, char const& delimiter) const;
-    [[nodiscard]] std::string JoinString(sol::object const& list, char const& delimiter) const;
-    [[nodiscard]] std::string TableToJSON(sol::object const& items) const;
+
+    [[nodiscard]] std::string getFolder() const;
+
+    void ShowMessage(std::string text) const;
 
 private:
     xLightsFrame* _frame = nullptr;
 
     [[nodiscard]] wxString JSONtoString(wxJSONValue const& json) const;
-    [[nodiscard]] wxString CommandtoString(std::string const& cmd, std::map<std::string, std::string> const& parms) const;
-    [[nodiscard]] sol::object getObjectType(wxJSONValue const& val, sol::state_view lua) const;
-    [[nodiscard]] wxArrayString getArrayString(sol::object const& items) const;
-    void SendObjResponse(sol::object const& val, std::function<void(std::string const& msg)> SendResponse) const;
-    void ObjectToJSON(sol::object const& items, wxJSONValue& json) const;
-    bool is_integer(double n) const;
+    [[nodiscard]] wxString CommandtoString(std::string const& cmd, const pybind11::dict& dict) const;
+
 };

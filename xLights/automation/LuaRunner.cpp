@@ -259,15 +259,13 @@ void LuaRunner::ObjectToJSON(sol::object const& items, wxJSONValue &json) const
                 json[key] = it.second.as<std::string>();
             } else if (it.second.get_type() == sol::type::boolean) {
                 json[key] = toStr(it.second.as<bool>());
-            } else if (it.second.get_type() == sol::type::number)
-            {
-                if (is_integer(it.second.as<double>())) 
-                {
+            } else if (it.second.get_type() == sol::type::number) {
+                if (is_integer(it.second.as<double>())) {
                     json[key] = std::to_string(it.second.as<int>());
                 } else {
                     json[key] = std::to_string(it.second.as<double>());
-                }                
-            }            
+                }
+            }
         }
     } else if (items.get_type() == sol::type::userdata) {
         if (items.is<std::map<std::string, std::string>>()) {
