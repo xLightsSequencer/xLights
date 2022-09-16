@@ -1818,6 +1818,8 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
 
     NextRenderer wait;
     Element* el = _sequenceElements.GetElement(model);
+    if (el == nullptr)
+        return false;
     RenderJob* job = new RenderJob(dynamic_cast<ModelElement*>(el), _seqData, this, true);
     wxASSERT(job != nullptr);
     SequenceData* data = job->createExportBuffer();
