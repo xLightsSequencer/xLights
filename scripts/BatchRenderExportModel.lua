@@ -32,3 +32,4 @@ for i,seq in ipairs(seqs) do
     result = RunCommand('closeSequence', {})
     Log(result['msg'])
 end
+
