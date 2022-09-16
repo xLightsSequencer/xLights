@@ -54,7 +54,7 @@ protected:
     bool _ok = false;                          // controller initiated ok
     bool _autoSize = true;                    // controller flexes the number of outputs to meet the needs of xLights
     bool _fullxLightsControl = true;          // when true on upload xLights wipes all other config
-    int _defaultBrightnessUnderFullControl = 100; // brightness to use when controllers dont have anything on a port
+    int _defaultBrightnessUnderFullControl = 30; // brightness to use when controllers dont have anything on a port
     float _defaultGammaUnderFullControl = 1.0F; // Gamma to use when controllers dont have anything on a port
     std::list<Output*> _outputs;               // the outputs on the controller
     ACTIVESTATE _active = ACTIVESTATE::ACTIVE; // output to controller is active
