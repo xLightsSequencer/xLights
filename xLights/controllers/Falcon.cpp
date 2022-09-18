@@ -519,6 +519,8 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
 #define V4_PIXEL_PROTOCOL_WS2801 13
 #define V4_PIXEL_PROTOCOL_WS2811 14
 #define V4_PIXEL_PROTOCOL_WS2811_SLOW 15
+#define V4_PIXEL_PROTOCOL_SJ1221 16
+#define V4_PIXEL_PROTOCOL_DMX512P_4 17
 
 std::string Falcon::V4_DecodeMode(int mode) const
 {
@@ -540,7 +542,10 @@ std::string Falcon::V4_DecodePixelProtocol(int protocol)
     case V4_PIXEL_PROTOCOL_APA102: return "apa102";
     case V4_PIXEL_PROTOCOL_APA109: return "apa109";
     case V4_PIXEL_PROTOCOL_DMX512P: return "dmx512p";
-    case V4_PIXEL_PROTOCOL_LPD6803: return "lpd6803";
+    case V4_PIXEL_PROTOCOL_DMX512P_4:
+        return "dmx512p-4";
+    case V4_PIXEL_PROTOCOL_LPD6803:
+        return "lpd6803";
     case V4_PIXEL_PROTOCOL_LPD8806: return "lpd8806";
     case V4_PIXEL_PROTOCOL_SM16716: return "sm16716";
     case V4_PIXEL_PROTOCOL_TLS3001: return "tls3001";
@@ -552,7 +557,10 @@ std::string Falcon::V4_DecodePixelProtocol(int protocol)
     case V4_PIXEL_PROTOCOL_UCS8904_16: return "ucs8904 16 bit";
     case V4_PIXEL_PROTOCOL_WS2801: return "ws2801";
     case V4_PIXEL_PROTOCOL_WS2811: return "ws2811";
-    case V4_PIXEL_PROTOCOL_WS2811_SLOW: return "ws2811 slow";
+    case V4_PIXEL_PROTOCOL_WS2811_SLOW:
+        return "ws2811 slow";
+    case V4_PIXEL_PROTOCOL_SJ1221:
+        return "sj1221";
     }
     return "";
 }
@@ -562,7 +570,10 @@ int Falcon::V4_EncodePixelProtocol(const std::string& protocol)
     if (protocol == "apa102") return V4_PIXEL_PROTOCOL_APA102;
     if (protocol == "apa109") return V4_PIXEL_PROTOCOL_APA109;
     if (protocol == "dmx512p") return V4_PIXEL_PROTOCOL_DMX512P;
-    if (protocol == "lpd6803") return V4_PIXEL_PROTOCOL_LPD6803;
+    if (protocol == "dmx512p-4")
+        return V4_PIXEL_PROTOCOL_DMX512P_4;
+    if (protocol == "lpd6803")
+        return V4_PIXEL_PROTOCOL_LPD6803;
     if (protocol == "lpd8806") return V4_PIXEL_PROTOCOL_LPD8806;
     if (protocol == "sm16716") return V4_PIXEL_PROTOCOL_SM16716;
     if (protocol == "tls3001") return V4_PIXEL_PROTOCOL_TLS3001;
@@ -578,6 +589,8 @@ int Falcon::V4_EncodePixelProtocol(const std::string& protocol)
 
     if (protocol == "tm18xx") return V4_PIXEL_PROTOCOL_WS2811;
     if (protocol == "lx1203") return V4_PIXEL_PROTOCOL_WS2811;
+    if (protocol == "sj1221")
+        return V4_PIXEL_PROTOCOL_SJ1221;
     return -1;
 }
 
@@ -693,6 +706,10 @@ int Falcon::V4_GetMaxPortPixels(int boardMode, int protocol)
             return 192;
         case V4_PIXEL_PROTOCOL_DMX512P:
             return 510;
+        case V4_PIXEL_PROTOCOL_DMX512P_4:
+            return 382;
+        case V4_PIXEL_PROTOCOL_SJ1221:
+            return 232;
         }
     }
     else {
@@ -720,6 +737,10 @@ int Falcon::V4_GetMaxPortPixels(int boardMode, int protocol)
             return 288;
         case V4_PIXEL_PROTOCOL_DMX512P:
             return 743;
+        case V4_PIXEL_PROTOCOL_DMX512P_4:
+            return 557;
+        case V4_PIXEL_PROTOCOL_SJ1221:
+            return 339;
         }
     }
 

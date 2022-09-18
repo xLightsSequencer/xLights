@@ -42,7 +42,9 @@
 // |--------------------------------------------------------------------------------------------------------------------------------------|
 // | DM412          | ?, ? bit, ? wire       |                                                   |                                        |
 // |--------------------------------------------------------------------------------------------------------------------------------------|
-// | DMX512P        | WRGB, 8 bit, 3 wire    | DMX512                                            |                                        |
+// | DMX512P        | RGB, 8 bit, 3 wire     | DMX512, UCS512, WS2822                            |                                        |
+// |--------------------------------------------------------------------------------------------------------------------------------------|
+// | DMX512P-4      | RGBW, 8 bit, 3 wire    | UCS512C4                                          |                                        |
 // |--------------------------------------------------------------------------------------------------------------------------------------|
 // | GECE           | RGB, 5 bit, 3 wire     |                                                   |                                        |
 // |--------------------------------------------------------------------------------------------------------------------------------------|
@@ -123,7 +125,8 @@ const static std::vector<std::vector<std::string>> __equivalentPixels =
     { "apa101", "apa102", "apa102c", "hd107s", "sk9822" },
     { "apa109", "sk6812rgbw", "sk6818", "sm16704", "ucs2904", "ws2814" },
     { "dm412" },
-    { "dmx512p", "dmx512" },
+    { "dmx512p", "dmx512", "ucs512", "ws2822" },
+    { "dmx512p-4", "ucs512c4" },
     { "gece" },
     { "gw6205" },
     { "d705", "lpd1101", "lpd6803", "ucs6909", "ucs6912s" },
@@ -163,7 +166,7 @@ const static std::vector<std::vector<std::string>> __equivalentSerial = {
 
 const static std::vector<std::string> __artificalTypes =
 {
-    "tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "ucs8903 (16)", "ucs8904 (16)", "gs820x", "rgb+2", "dmx512p"
+    "tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "ucs8903 (16)", "ucs8904 (16)", "gs820x", "rgb+2", "dmx512p", "dmx512p-4"
 };
 
 bool IsArtificialPixelType(const std::string& p)
@@ -345,7 +348,7 @@ bool IsVirtualMatrixProtocol(const std::string& p1)
 
 int GetChannelsPerPixel(const std::string& p)
 {
-    const static std::vector<std::string> fourChanPixels = { "apa109", "sk6812rgbw", "sk6818", "sm16704", "ucs2904", "ws2814", "dmx512p", "dmx512", "my9291", "tm1814", "tm1814a", "ucs8904", "ucs8904 (16)" };
+    const static std::vector<std::string> fourChanPixels = { "apa109", "sk6812rgbw", "sk6818", "sm16704", "ucs2904", "ws2814", "dmx512p-4", "dmx512", "my9291", "tm1814", "tm1814a", "ucs8904", "ucs8904 (16)" };
 
     if (std::find(begin(fourChanPixels), end(fourChanPixels), p) != end(fourChanPixels)) {
         return 4;

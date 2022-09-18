@@ -197,6 +197,9 @@
 			<Protocol>ws2801</Protocol>
 			<Protocol>ws2811</Protocol>
 			<Protocol>ws2811 slow</Protocol>
+			<Protocol>dmx512p</Protocol>
+			<Protocol>dmx512p-4</Protocol>
+			<Protocol>sj1221</Protocol>
 	</PixelProtocols>
         <InputProtocols>
             <Protocol>e131</Protocol>
