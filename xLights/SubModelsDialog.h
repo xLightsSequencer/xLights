@@ -32,6 +32,7 @@ class wxListCtrl;
 class wxNotebook;
 class wxNotebookEvent;
 class wxPanel;
+class wxSearchCtrl;
 class wxSplitterEvent;
 class wxSplitterWindow;
 class wxStaticText;
@@ -66,6 +67,20 @@ class SubModelTextDropTarget : public wxTextDropTarget
         wxWindow* _owner;
         wxListCtrl* _list;
         wxString _type;
+};
+
+//https://forums.wxwidgets.org/viewtopic.php?f=20&t=41045
+class StretchGrid : public wxGrid
+{
+public:
+    StretchGrid (wxWindow *parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+	       long style = wxWANTS_CHARS, const wxString& name = wxGridNameStr);
+    ~StretchGrid ();
+
+protected:
+    void OnGridWindowSize (wxSizeEvent& event);
+    void OnColHeaderSize (wxGridSizeEvent& event);
+    void AutoSizeLastCol ();
 };
 
 class SubModelsDialog : public wxDialog
@@ -119,6 +134,7 @@ public:
     void Save();
 
     //(*Declarations(SubModelsDialog)
+    StretchGrid* NodesGrid;
     wxButton* AddButton;
     wxButton* AddRowButton;
     wxButton* ButtonCopy;
@@ -138,13 +154,13 @@ public:
     wxChoice* ChoiceBufferStyle;
     wxFlexGridSizer* PreviewSizer;
     wxFlexGridSizer* SubBufferSizer;
-    wxGrid* NodesGrid;
     wxListCtrl* ListCtrl_SubModels;
     wxNotebook* TypeNotebook;
     wxPanel* ModelPreviewPanelLocation;
     wxPanel* Panel2;
     wxPanel* Panel3;
     wxPanel* SubBufferPanelHolder;
+    wxSearchCtrl* SearchCtrl1;
     wxSplitterWindow* SplitterWindow1;
     wxStaticText* StaticText1;
     wxStaticText* StaticText2;
@@ -157,6 +173,7 @@ protected:
     //(*Identifiers(SubModelsDialog)
     static const long ID_STATICTEXT1;
     static const long ID_LISTCTRL_SUB_MODELS;
+    static const long ID_SEARCHCTRL1;
     static const long ID_BUTTON3;
     static const long ID_BUTTON4;
     static const long ID_BUTTONCOPY;
@@ -200,6 +217,7 @@ protected:
     static const long SUBMODEL_DIALOG_REVERSE;
     static const long SUBMODEL_DIALOG_JOIN;
     static const long SUBMODEL_DIALOG_SORT_BY_NAME;
+    static const long SUBMODEL_DIALOG_REMOVE_DUPLICATE;
 
     void SaveXML(Model* m);
     wxString GetSelectedName() const;
@@ -229,6 +247,7 @@ protected:
     void FlipHorizontal();
     void FlipVertical();
     void Reverse();
+    void RemoveDuplicates();
 
     void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
     void DisplayRange(const wxString &range);
@@ -239,6 +258,7 @@ protected:
 
     void ImportSubModel(std::string filename);
     void ReadSubModelXML(wxXmlNode* xmlData);
+    void ImportSubModelXML(wxXmlNode* xmlData);
     wxArrayString getModelList(ModelManager* modelManager);
     void ExportSubModels(wxString const& filename);
     void ExportSubModelAsxModel(wxString const& filename, const std::string& name);
@@ -281,6 +301,9 @@ private:
     void OnButton_ExportClick(wxCommandEvent& event);
     void OnListCtrl_SubModelsItemRClick(wxListEvent& event);
     void OnChoiceBufferStyleSelect(wxCommandEvent& event);
+    void OnButton_SearchClick(wxCommandEvent& event);
+    void OnInit(wxInitDialogEvent& event);
+    void OnNodesGridCellRightClick(wxGridEvent& event);
     //*)
 
     void OnPreviewLeftUp(wxMouseEvent& event);
@@ -293,6 +316,7 @@ private:
     void OnEditBtnPopup(wxCommandEvent& event);
     void OnExportBtnPopup(wxCommandEvent& event);
     void OnListPopup(wxCommandEvent& event);
+    void OnNodesGridPopup(wxCommandEvent& event);
 
     void RenderModel();
     void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
