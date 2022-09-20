@@ -2413,16 +2413,18 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     maxport = cud.GetMaxPixelPort(); // 1 based
 
+    wxString fppDriver = rules->GetCustomPropertyByPath("fppStringDriverType");
     if (fppFileName == "co-bbbStrings") {
-        stringData["type"] = wxString("BBB48String");
+        if (fppDriver.empty()) {
+            fppDriver = "BBB48String";
+        }
+        stringData["type"] = fppDriver;
         if (!IsCompatible(parent, ipAddress, rules, controllerVendor, controllerModel, controllerVariant, origType)) {
             return true;
         }
-
         stringData["subType"] = rules->GetID();
         stringData["pinoutVersion"] = pinout;
     } else {
-        wxString fppDriver = rules->GetCustomPropertyByPath("fppStringDriverType");
         if (fppDriver.empty()) {
             fppDriver = "RPIWS281X";
         }
