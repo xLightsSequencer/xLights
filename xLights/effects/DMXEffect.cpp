@@ -37,7 +37,7 @@ void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<s
 {
     SettingsMap &settings = effect->GetSettings();
     SettingsMap oldSettings = settings;
-    for (auto const [ fromi, toi, scale, offset ] : dmxmappings)
+    for (auto const &[ fromi, toi, scale, offset ] : dmxmappings)
     {
         auto froms = wxString::Format("%d", fromi);
         auto tos = wxString::Format("%d", toi);

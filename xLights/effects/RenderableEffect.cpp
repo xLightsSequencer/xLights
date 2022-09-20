@@ -1018,8 +1018,6 @@ std::string RenderableEffect::UpgradeValueCurve(EffectManager* effectManager, co
 {
     // value curve has to be active
     if (value.find("Active=TRUE") != std::string::npos) {
-        bool notRV = value.find("RV=TRUE") == std::string::npos;
-
         RenderableEffect* effect = effectManager->GetEffect(effectName);
 
         if (effect != nullptr) {
