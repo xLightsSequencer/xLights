@@ -193,16 +193,17 @@ xlColor DmxColorAbilityWheel::GetBeamColor( const std::vector<NodeBaseClassPtr>&
 
         if (auto const& colordata = GetWheelColorFromDMXValue(proxy); colordata) {
             beam_color = *colordata;
+        }else {
+             beam_color = xlBLACK;
+        }
 
-            if (CheckChannel(dimmer_channel, NodeCount)) {
-                xlColor proxy;
-                Nodes[dimmer_channel - 1]->GetColor(proxy);
-
-                HSVValue hsv = proxy.asHSV();
-                beam_color.red = (beam_color.red * hsv.value);
-                beam_color.blue = (beam_color.blue * hsv.value);
-                beam_color.green = (beam_color.green * hsv.value);
-            }
+        if (CheckChannel(dimmer_channel, NodeCount)) {
+            xlColor proxy;
+            Nodes[dimmer_channel - 1]->GetColor(proxy);
+            HSVValue hsv = proxy.asHSV();
+            beam_color.red = (beam_color.red * hsv.value);
+            beam_color.blue = (beam_color.blue * hsv.value);
+            beam_color.green = (beam_color.green * hsv.value);
         }
     }
     return beam_color;
@@ -382,7 +383,7 @@ std::optional<xlColor> DmxColorAbilityWheel::GetDMXWheelValue(xlColor const& col
 std::optional<xlColor> DmxColorAbilityWheel::GetWheelColorFromDMXValue(xlColor const& dmx) const
 {
     if (auto const found{ std::find_if(colors.begin(), colors.end(),
-                                       [&dmx](auto const& col) { return dmx.Red() == col.dmxValue; }) };
+                                       [&dmx](auto const& col) { return abs(dmx.Red() - col.dmxValue)<=5; }) };
         found != colors.end()) {
         return (*found).color;
     }
