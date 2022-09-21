@@ -6632,6 +6632,18 @@ void LayoutPanel::ReplaceModel()
             }
         }
 
+        if (replaceModel->GetNumSubModels() > 0 ) {
+            if (wxMessageBox("Merge The Submodels", "Merge The Submodels", wxYES_NO) == wxYES) {
+                for (int i = 0; i < replaceModel->GetNumSubModels(); ++i) {
+                    auto name{ replaceModel->GetSubModel(i)->Name() };
+                    if (modelToReplaceItWith->GetSubModel(name) != nullptr) {
+                        continue;
+                    }
+                    modelToReplaceItWith->AddSubmodel(replaceModel->GetSubModel(i)->GetModelXml());
+                }
+            }
+        }
+
         auto rmn = replaceModel->GetName();
         auto riw = modelToReplaceItWith->GetName();
         xlights->AllModels.RenameInListOnly(dlg.GetStringSelection().ToStdString(), "Iamgoingtodeletethismodel");
