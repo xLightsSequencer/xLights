@@ -36,7 +36,7 @@ class MainSequencer: public wxPanel
 {
 	public:
 
-		MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~MainSequencer();
 		void SetSequenceElements(SequenceElements* elements);
         void UpdateEffectGridVerticalScrollBar();
@@ -73,6 +73,7 @@ class MainSequencer: public wxPanel
         bool HandleSequencerKeyBinding(wxKeyEvent& event);
         void ScrollToRow(int row);
         void UpdateEffectGridHorizontalScrollBar();
+        void SetEffectDuration(const std::string& effectType, const uint32_t durationMS);
 
         void Cut();
         void Copy();

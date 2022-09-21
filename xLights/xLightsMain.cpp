@@ -391,6 +391,7 @@ wxDEFINE_EVENT(EVT_PLAYJUKEBOXITEM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SETEFFECTCHOICE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TIPOFDAY_READY, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SET_EFFECT_DURATION, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
@@ -447,6 +448,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_COLOUR_CHANGED, xLightsFrame::ColourChanged)
     EVT_COMMAND(wxID_ANY, EVT_SETEFFECTCHOICE, xLightsFrame::SetEffectChoice)
     EVT_COMMAND(wxID_ANY, EVT_TIPOFDAY_READY, xLightsFrame::TipOfDayReady)
+    EVT_COMMAND(wxID_ANY, EVT_SET_EFFECT_DURATION, xLightsFrame::SetEffectDuration)
     EVT_SYS_COLOUR_CHANGED(xLightsFrame::OnSysColourChanged)
 END_EVENT_TABLE()
 

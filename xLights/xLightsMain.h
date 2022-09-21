@@ -189,6 +189,7 @@ wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SETEFFECTCHOICE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIPOFDAY_READY, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SET_EFFECT_DURATION, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights/FPP Sequences(*.fseq)|*.fseq|xLights Imports(*.iseq)|*.iseq";
@@ -1711,6 +1712,7 @@ private:
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
     void SetEffectChoice(wxCommandEvent& event);
     void TipOfDayReady(wxCommandEvent& event);
+    void SetEffectDuration(wxCommandEvent& event);
 
     bool isRandom_(wxControl* ctl, const char*debug);
     void SetSyncUniverse(int syncUniverse);

@@ -2698,6 +2698,11 @@ void xLightsFrame::TipOfDayReady(wxCommandEvent& event)
 #endif
 }
 
+void xLightsFrame::SetEffectDuration(wxCommandEvent& event)
+{
+    mainSequencer->SetEffectDuration(event.GetString(), event.GetInt());
+}
+
 void xLightsFrame::ApplyLast(wxCommandEvent& event)
 {
     // Handle the EVT_APPLYLAST event

@@ -223,7 +223,7 @@ EVT_PAINT(TimeDisplayControl::Paint)
 EVT_SYS_COLOUR_CHANGED(TimeDisplayControl::OnSysColourChanged)
 END_EVENT_TABLE()
 
-MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id,const wxPoint& pos,const wxSize& size)
+MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("                Creating main sequencer");
@@ -1824,6 +1824,33 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
         ScrollBarEffectsHorizontal->Enable();
     }
     ScrollBarEffectsHorizontal->Refresh();
+}
+
+void MainSequencer::SetEffectDuration(const std::string& effectType, const uint32_t durationMS)
+{
+    // find the selected effect
+    auto eff = GetSelectedEffect();
+    if (eff != nullptr) {
+        // check it matches the effect type
+        if (eff->GetEffectName() == effectType) {
+            auto start = eff->GetStartTimeMS();
+            if (start < PanelTimeLine->GetSequenceEnd()) {
+                // get the end of the sequence
+                uint32_t seqLeft = PanelTimeLine->GetSequenceEnd() - start;
+                // get its start time
+                // get the next effect after that effect
+                uint32_t nextEffectTime = 0xFFFFFFFF;
+                auto nextEff = eff->GetParentEffectLayer()->GetEffectAfterTime(eff->GetEndTimeMS());
+                if (nextEff != nullptr) {
+                    nextEffectTime = nextEff->GetStartTimeMS() - start;
+                }
+                // set the effect duration to the minimum of (video length, space up until next effect, space up until sequence end)
+                uint32_t duration = TimeLine::RoundToMultipleOfPeriod(std::min(durationMS, std::min(nextEffectTime, seqLeft)), PanelTimeLine->GetFrameMS());
+                eff->SetEndTimeMS(start + duration);
+                PanelEffectGrid->ForceRefresh(); // update the display of effects
+            }
+        }
+    }
 }
 
 void MainSequencer::TagAllSelectedEffects()

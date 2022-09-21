@@ -90,6 +90,20 @@
 										<border>2</border>
 										<option>1</option>
 									</object>
+									<object class="spacer">
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON1" variable="Button_MatchVideoDuration" member="yes">
+											<label>Match Effect To Video Duration</label>
+											<handler function="OnButton_MatchVideoDurationClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT_Video_DurationTreatment" variable="StaticText1" member="yes">
 											<label>Duration Treatment</label>
