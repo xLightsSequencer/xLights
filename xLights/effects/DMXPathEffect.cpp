@@ -15,6 +15,7 @@
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../models/ModelGroup.h"
+#include "../models/DMX/DmxMovingHead.h"
 
 #include "../../include/dmxpath-16.xpm"
 #include "../../include/dmxpath-24.xpm"
@@ -61,22 +62,21 @@ void DMXPathEffect::SetDMXColorPixel(int chan, uint8_t value, RenderBuffer &buff
     buffer.SetPixel(chan, 0, color, false, false, true);
 }
 
-void DMXPathEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void DMXPathEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition(1.0F);
 
-    if (eff_pos > 1.0) {
-        auto t = "arrrrr";
-    }
     auto startTm = buffer.GetStartTimeMS();
     auto endTm = buffer.GetEndTimeMS();
     auto length = endTm - startTm;
     std::string type_Str = SettingsMap["CHOICE_DMXPath_Type"];
     auto width = SettingsMap.GetInt("SLIDER_DMXPath_Width", 30);
     auto heigth = SettingsMap.GetInt("SLIDER_DMXPath_Height", 30);
-    auto x_offset = SettingsMap.GetInt("SLIDER_DMXPath_X", 127);
-    auto y_offset = SettingsMap.GetInt("SLIDER_DMXPath_Y", 127);
+    auto x_offset = SettingsMap.GetInt("SLIDER_DMXPath_X_Offset", 0);
+    auto y_offset = SettingsMap.GetInt("SLIDER_DMXPath_Y_Offset", 0);
 
     int rotation = GetValueCurveInt("DMXPath_Rotation", 0, SettingsMap, eff_pos, DMXPATH_ROTATION_MIN, DMXPATH_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int pan = GetValueCurveInt("DMXPath_Pan", 0, SettingsMap, eff_pos, PAN_MIN, PAN_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int tilt = GetValueCurveInt("DMXPath_Tilt", 0, SettingsMap, eff_pos, TILT_MIN, TILT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     if (buffer.cur_model == "") {
         return;
@@ -89,19 +89,51 @@ void DMXPathEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     if (!StartsWith(string_type, "Single Color")) {
         return;
     }
+    int panChan { -1 };
+    int tiltChan{ -1 };
+    int panDegrees{ 360 };
+    int tiltDegrees{ 150 };
+
+    if (model_info->IsDMXModel()) {
+        auto dmxTilt = static_cast<DmxMovingHead*>(model_info);
+        if (nullptr != dmxTilt) {
+            panChan = dmxTilt->GetPanChannel();
+            tiltChan = dmxTilt->GetTiltChannel();
+            panDegrees = dmxTilt->GetPanDegOfRot();
+            tiltDegrees = dmxTilt->GetTiltDegOfRot();
+        }
+    }
+
+    if (panChan == -1 && tiltChan == -1) {
+        int num_channels = model_info->GetNumChannels();
+        for (int i = 0; i < num_channels; ++i) {
+            std::string name = model_info->GetNodeName(i);
+            if (StartsWith(name, "Tilt")) {
+                tiltChan = i;
+            }
+            if (StartsWith(name, "Pan")) {
+                panChan = i;
+            }
+        }
+    }
 
     auto pathType = DecodeType(type_Str);
-    auto [x, y] = renderPath(pathType, eff_pos, length, heigth,width,x_offset,y_offset,rotation);
 
-    int num_channels = model_info->GetNumChannels();
+    if (pathType != DMXPathType::Custom) {
+        auto [x, y] = renderPath(pathType, eff_pos, length, heigth, width, x_offset, y_offset, rotation);
 
-    for (int i = 0; i < num_channels; ++i) {
-        std::string name = model_info->GetNodeName(i);
-        if (StartsWith(name, "Tilt")) {
-            SetDMXColorPixel(i,x,buffer);
+        if (panChan != -1) {
+            SetDMXColorPixel(panChan, ScaleToDMX(x, panDegrees), buffer);
         }
-        if (StartsWith(name, "Pan")) {
-            SetDMXColorPixel(i, y, buffer);
+        if (tiltChan != -1) {
+            SetDMXColorPixel(tiltChan, ScaleToDMX(y, tiltDegrees), buffer);
+        }
+    } else {
+        if (panChan != -1) {
+            SetDMXColorPixel(panChan, ScaleToDMX(pan, panDegrees), buffer);
+        }
+        if (tiltChan != -1) {
+            SetDMXColorPixel(tiltChan, ScaleToDMX(tilt, tiltDegrees), buffer);
         }
     }
 }
@@ -149,11 +181,6 @@ std::pair<uint8_t, uint8_t> DMXPathEffect::renderPath(DMXPathType effectType, do
 
     //x += x_off;
     //y += y_off;
-    xx = std::min(DMX_MAX, xx);
-    xx = std::max(DMX_MIN, xx);
-    yy = std::min(DMX_MAX, yy);
-    yy = std::max(DMX_MIN, yy);
-
     return {xx,yy};
 }
 
@@ -210,7 +237,16 @@ std::pair<float, float> DMXPathEffect::calcLocation(DMXPathType effectType, floa
     return { x, y };
 }
 
-DMXPathType DMXPathEffect::DecodeType(const std::string& shape)
+
+int DMXPathEffect::ScaleToDMX(int value, int degresOfMovement) const
+{
+    int MinMax = degresOfMovement / 2;
+    value = std::min(MinMax, value);
+    value = std::max(-MinMax, value);
+    return std::round((value * 255) / MinMax);
+}
+
+DMXPathType DMXPathEffect::DecodeType(const std::string& shape) const
 {
     if (shape == "Circle") {
         return DMXPathType::Circle;
@@ -224,6 +260,8 @@ DMXPathType DMXPathEffect::DecodeType(const std::string& shape)
         return DMXPathType::Leaf;
     } else if (shape == "Eight") {
         return DMXPathType::Eight;
+    } else if (shape == "Custom") {
+        return DMXPathType::Custom;
     }
     return DMXPathType::Unknown;
 }

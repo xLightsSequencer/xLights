@@ -30,6 +30,9 @@ class DmxPanTiltAbility
         int GetPanChannel() { return pan_channel; }
         int GetTiltChannel() { return tilt_channel; }
 
+        int GetPanDegOfRot() { return pan_deg_of_rot; }
+        int GetTiltDegOfRot() { return tilt_deg_of_rot; }
+
     protected:
         int pan_channel;
         int pan_orient;
