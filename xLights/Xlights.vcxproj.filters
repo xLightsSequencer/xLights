@@ -1000,6 +1000,9 @@
       <Filter>Preferences</Filter>
     </ClCompile>
     <ClCompile Include="UtilClasses.cpp" />
+    <ClCompile Include="automation\PythonRunner.cpp">
+      <Filter>automation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2006,6 +2009,9 @@
     <ClInclude Include="LayoutUtils.h" />
     <ClInclude Include="preferences\CheckSequenceSettingsPanel.h">
       <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="automation\PythonRunner.h">
+      <Filter>automation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

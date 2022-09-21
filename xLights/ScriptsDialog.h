@@ -25,6 +25,10 @@
 #include <memory>
 #include <string>
 
+#if __has_include("Python.h") && __has_include(<pybind11/pybind11.h>)
+#define PYTHON_RUNNER
+#endif
+
 class LuaRunner;
 #if defined(PYTHON_RUNNER)
 class PythonRunner;
@@ -68,6 +72,7 @@ public:
 	//*)
 
 	static const long ID_MCU_VIEWSCRIPT;
+	static const long ID_MCU_VIEWSCRIPTFOLDER;
 
 private:
 
