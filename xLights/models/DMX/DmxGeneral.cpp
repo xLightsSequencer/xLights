@@ -20,6 +20,7 @@
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
 #include "DmxColorAbilityRGB.h"
+#include "DmxPresetAbility.h"
 
 DmxGeneral::DmxGeneral(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
   : DmxModel(node, manager, zeroBased)
@@ -108,6 +109,7 @@ void DmxGeneral::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</dmxgeneral>");
     f.Close();
 }
@@ -143,7 +145,7 @@ void DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
         GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxGeneral::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxGeneral::ImportXlightsModel");
@@ -156,7 +158,7 @@ void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
 {
     size_t nodeCount = Nodes.size();
 
-    if (!color_ability->IsValidModelSettings(this)) {
+    if (!color_ability->IsValidModelSettings(this) || !preset_ability->IsValidModelSettings(this)) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
@@ -263,6 +265,14 @@ void DmxGeneral::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* 
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(Nodes);
+    if (boundingBox) {
+        boundingBox[0] = -0.5;
+        boundingBox[1] = -0.5;
+        boundingBox[2] = -0.5;
+        boundingBox[3] = 0.5;
+        boundingBox[4] = 0.5;
+        boundingBox[5] = 0.5;
+    }
 
     sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();

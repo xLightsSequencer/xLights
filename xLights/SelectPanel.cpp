@@ -215,7 +215,7 @@ void SelectPanel::populateEffectsList()
                 std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, starttime, endtime);
                 for (Effect* eff : effs) {
                     if (ContainsColor(eff)) {
-                        ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
+                        ListBox_Select_Effects->Append(wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname), (void*)eff);
                     }
                 }
             }
@@ -231,7 +231,7 @@ void SelectPanel::populateEffectsList()
                                 std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, starttime, endtime);
                                 for (Effect* eff : effs) {
                                     if (ContainsColor(eff)) {
-                                        ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
+                                        ListBox_Select_Effects->Append(wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname), (void*)eff);
                                     }
                                 }
                             }

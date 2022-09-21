@@ -23,22 +23,22 @@ void STLWriter::WriteEndOfFile()
 	m_file << "endsolid xLights\n";
 }
 
-void STLWriter::WriteText(CADPoint const& loc, std::string const& text, float height, float rotation)
+void STLWriter::WriteText(CADPoint const& /*loc*/, std::string const& /*text*/, float /*height*/, uint32_t /*color*/, float /*rotation*/)
 {
 	//not implemented
 }
 
-void STLWriter::WriteWire(CADPoint const& loc1, CADPoint const& loc2)
+void STLWriter::WriteWire(CADPoint const& /*loc1*/, CADPoint const& /*loc2*/, uint32_t /*color*/)
 {
 	//not implemented
 }
 
-void STLWriter::WriteNode(CADPoint const& loc)
+void STLWriter::WriteNode(CADPoint const& loc, uint32_t /*color*/)
 {
 	WriteNode(loc, 0.2f);
 }
 
-void STLWriter::WriteFirstNode(CADPoint const& loc)
+void STLWriter::WriteFirstNode(CADPoint const& loc, uint32_t /*color*/)
 {
 	WriteNode(loc, 0.4f);
 }

@@ -1494,26 +1494,43 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     static int last = -1;
+    static uint32_t shortFramesSkipped = 0;
+    static uint32_t longFrames = 0;
 
     if (__schedule == nullptr) return;
 
     static long long lastms = wxGetLocalTimeMillis().GetValue() - 25;
     long long now = wxGetLocalTimeMillis().GetValue();
-    int elapsed = (int)(now - lastms);
+    long long elapsed = (now - lastms);
+
+    logger_frame.info("Timer: Start frame elapsed %lld now %lld last %lld", elapsed, now, lastms);
 
     if (elapsed < _timer.GetInterval() / 2)
     {
         // this is premature ... maybe it is a backed up timer event ... lets skip it
-        logger_frame.warn("Timer: Frame event fire interval %dms less than 1/2 frame time %dms", elapsed, _timer.GetInterval() / 2);
+        ++shortFramesSkipped;
+        // log slow and fast frames infrequently
+        if (shortFramesSkipped % 200 == 1) {
+            logger_frame.warn("Timer: Frame event fire interval %dms less than 1/2 frame time %dms. %u events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
+        }
+        else {
+            logger_frame.debug("Timer: Frame event fire interval %dms less than 1/2 frame time %dms. %u events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
+        }
         return;
     }
 
-    logger_frame.info("Timer: Start frame %d", elapsed);
     if (elapsed > _timer.GetInterval() * 4)
     {
         if (lastms != 0 && __schedule->IsOutputToLights())
         {
-            logger_base.warn("Frame interval greater than 200%% of what it should have been [%d] %d", _timer.GetInterval() * 2, (int)(now - lastms));
+            ++longFrames;
+            // log slow and fast frames infrequently
+            if (longFrames % 200 == 1) {
+                logger_frame.warn("Timer: Frame interval greater than 200%% of what it should have been [%d] %d : So far %u", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
+            }
+            else {
+                logger_frame.debug("Timer: Frame interval greater than 200%% of what it should have been [%d] %d : So far %u", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
+            }
             _lastSlow = wxGetUTCTimeMillis();
         }
     }
@@ -1556,7 +1573,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         _timerOutputFrame = !_timerOutputFrame;
     }
 
-    logger_frame.info("Timer: Frame time %ld", ms);
+    logger_frame.info("Timer: End Frame: Time %ld", ms);
 }
 
 void xScheduleFrame::UpdateSchedule()
@@ -1778,7 +1795,7 @@ void xScheduleFrame::CreateButtons()
 
     FlexGridSizer4->SetCols(5);
     int rows = bs.size() / 5;
-    if (bs.size() % 5 != 0) rows++;
+    if (bs.size() % 5 != 0) ++rows;
     FlexGridSizer4->SetRows(rows);
 
     for (auto it : bs) {
@@ -1988,7 +2005,7 @@ void xScheduleFrame::OnResize(wxSizeEvent& event)
             it->GetSize(&w, &h);
 
             if ((x < lastx && y == lasty) || x + w > pw - 10) {
-                n--;
+                --n;
                 changed = true;
                 break;
             }
@@ -2137,7 +2154,7 @@ void xScheduleFrame::UpdateStatus(bool force)
                     ListView_Running->SetItem(i, 2, FormatTime(it->GetLengthMS()));
                     ListView_Running->SetItem(i, 3, it->GetFSEQTimeStamp());
                     ListView_Running->SetItemData(i, it->GetId());
-                    i++;
+                    ++i;
                 }
             }
         }
@@ -2154,11 +2171,11 @@ void xScheduleFrame::UpdateStatus(bool force)
         bool nexthighlighted = false;
 
         if (step != nullptr) {
-            for (int i = 0; i < ListView_Running->GetItemCount(); i++) {
+            for (int i = 0; i < ListView_Running->GetItemCount(); ++i) {
                 if (!currenthighlighted && ListView_Running->GetItemData(i) == step->GetId()) {
                     currenthighlighted = true;
                     ListView_Running->SetItem(i, 3, step->GetStatus());
-                    if (step->GetAudioManager() != nullptr && AudioManager::GetSDL()->IsNoAudio()) {
+                    if (step->GetAudioManager() != nullptr && AudioManager::GetSDLManager()->IsNoAudio()) {
                         ListView_Running->SetItemBackgroundColour(i, wxColor(244, 146, 155));
                         const std::string noaudio = "Audio not playing due to no audio device found.";
                         if (ListView_Running->GetToolTipText() != noaudio) ListView_Running->SetToolTip(noaudio);
@@ -2616,6 +2633,9 @@ void xScheduleFrame::CorrectTimer(int rate)
     if (rate == 0) {
         rate = 50;
         _useHalfFrames = true;
+    }
+    else {
+        _useHalfFrames = rate > 1000 / 30; // slower than 30 fps
     }
     if ((rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1) != _timer.GetInterval())
     {
@@ -3279,7 +3299,7 @@ void xScheduleFrame::UpdateUI(bool force)
         for (auto it : pingresults) {
             // find it in the list
             int item = -1;
-            for (int i = 0; i < ListView_Ping->GetItemCount(); i++) {
+            for (int i = 0; i < ListView_Ping->GetItemCount(); ++i) {
                 if (ListView_Ping->GetItemText(i) == it->GetName()) {
                     item = i;
                     break;
@@ -3355,7 +3375,7 @@ void xScheduleFrame::UpdateUI(bool force)
             if (serial != nullptr) {
                 // find it in the list
                 int item = -1;
-                for (int i = 0; i < ListView_Ping->GetItemCount(); i++) {
+                for (int i = 0; i < ListView_Ping->GetItemCount(); ++i) {
                     if (ListView_Ping->GetItemText(i) == serial->GetName()) {
                         item = i;
                         break;
@@ -3403,7 +3423,7 @@ void xScheduleFrame::UpdateUI(bool force)
         }
 
         // remove anything in the tree which isnt in the results
-        for (int i = 0; i < ListView_Ping->GetItemCount(); i++) {
+        for (int i = 0; i < ListView_Ping->GetItemCount(); ++i) {
             bool found = false;
             for (auto it : pingresults) {
                 if (ListView_Ping->GetItemText(i) == it->GetName()) {
@@ -3423,7 +3443,7 @@ void xScheduleFrame::UpdateUI(bool force)
 
             if (!found) {
                 ListView_Ping->DeleteItem(i);
-                i--;
+                --i;
             }
         }
         ListView_Ping->Thaw();

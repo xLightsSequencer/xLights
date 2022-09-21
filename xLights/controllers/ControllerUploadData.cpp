@@ -22,6 +22,9 @@
 #include "../UtilFunctions.h"
 #include "../Pixels.h"
 
+#define NO_VALUE_INT -9999
+#define NO_VALUE_STRING "unknown"
+
 #include <log4cpp/Category.hh>
 
 #pragma region UDControllerPortModel
@@ -134,7 +137,7 @@ char UDControllerPortModel::GetSmartRemoteLetter() const
 
 float UDControllerPortModel::GetAmps(int defaultBrightness) const
 {
-    return ((float)AMPS_PER_PIXEL * (Channels() / 3.0F) * GetBrightness(defaultBrightness)) / 100.0F;
+    return ((float)AMPS_PER_PIXEL * (float)INTROUNDUPDIV(Channels() , GetChannelsPerPixel()) * GetBrightness(defaultBrightness)) / 100.0F;
 }
 
 int UDControllerPortModel::GetSmartTs(int currentSmartTs) const
@@ -175,6 +178,15 @@ int UDControllerPortModel::GetGroupCount(int currentGroupCount) const
     return currentGroupCount;
 }
 
+int UDControllerPortModel::GetZigZag(int currentZigZag) const
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("zigZag")) {
+        return wxAtoi(node->GetAttribute("zigZag"));
+    }
+    return currentZigZag;
+}
+
 std::string UDControllerPortModel::GetName() const {
     if (_string == -1) {
         return _model->GetName();
@@ -191,7 +203,7 @@ void UDControllerPortModel::Dump() const {
     if (_string == -1) {
         logger_base.debug("                Model %s. Controller Connection %s. Start Channel %d. End Channel %d. Channels %d. Pixels %d. Start Channel #%d:%d",
             (const char*)_model->GetName().c_str(), (const char*)_model->GetControllerConnectionRangeString().c_str(),
-            _startChannel, _endChannel, Channels(), (int)(Channels() / 3), GetUniverse(), GetUniverseStartChannel());
+            _startChannel, _endChannel, Channels(),  INTROUNDUPDIV(Channels() , GetChannelsPerPixel()), GetUniverse(), GetUniverseStartChannel());
     }
     else {
         logger_base.debug("                Model %s. String %d. Controller Connection %s. Start Channel %d. End Channel %d.",
@@ -225,6 +237,10 @@ bool UDControllerPortModel::Check(Controller* controller, const ControllerCaps* 
     }
     if (rules->GetMinGroupPixels() >= 0 && GetGroupCount(999) < rules->GetMinGroupPixels()) {
         res += wxString::Format("ERR: Model %s has too few grouped pixels : %d. Minimum %d.\n", GetName(), GetGroupCount(999), rules->GetMinGroupPixels());
+        success = false;
+    }
+    if (rules->GetMaxZigZagPixels() >= 0 && GetZigZag(-1) > rules->GetMaxZigZagPixels()) {
+        res += wxString::Format("ERR: Model %s has too many zig zagged pixels : %d. Maximum %d.\n", GetName(), GetZigZag(-1), rules->GetMaxZigZagPixels());
         success = false;
     }
     return success;
@@ -517,15 +533,16 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
     UDVirtualString* current = nullptr;
     for (const auto& it : _models) {
         bool first = false;
-        int brightness = it->GetBrightness(-9999);
-        int startNullPixels = it->GetStartNullPixels(-9999);
-        int endNullPixels = it->GetEndNullPixels(-9999);
+        int brightness = it->GetBrightness(NO_VALUE_INT);
+        int startNullPixels = it->GetStartNullPixels(NO_VALUE_INT);
+        int endNullPixels = it->GetEndNullPixels(NO_VALUE_INT);
         int smartRemote = it->GetSmartRemote();
-        std::string reverse = it->GetDirection("unknown");
-        std::string colourOrder = it->GetColourOrder("unknown");
-        float gamma = it->GetGamma(-9999);
-        int groupCount = it->GetGroupCount(-9999);
-        int ts = it->GetSmartTs(-9999);
+        std::string reverse = it->GetDirection(NO_VALUE_STRING);
+        std::string colourOrder = it->GetColourOrder(NO_VALUE_STRING);
+        float gamma = it->GetGamma(NO_VALUE_INT);
+        int groupCount = it->GetGroupCount(NO_VALUE_INT);
+        int zigZag = it->GetZigZag(NO_VALUE_INT);
+        int ts = it->GetSmartTs(NO_VALUE_INT);
 
         if (current == nullptr || !mergeSequential) {
             if (smartRemote != 0) {
@@ -541,7 +558,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                     current->_protocol = it->GetProtocol();
                     current->_universe = it->GetUniverse();
                     current->_universeStartChannel = it->GetUniverseStartChannel();
-                    current->_channelsPerPixel = 3;
+                    current->_channelsPerPixel = GetChannelsPerPixel(it->GetProtocol());
                     current->_smartRemote = sr;
                     current->_smartRemoteType = it->GetSmartRemoteType();
                     current->_gammaSet = false;
@@ -554,6 +571,8 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                     current->_brightness = 0;
                     current->_groupCountSet = false;
                     current->_groupCount = 0;
+                    current->_zigZagSet = false;
+                    current->_zigZag = 0;
                     current->_reverseSet = false;
                     current->_reverse = "";
                     current->_colourOrderSet = false;
@@ -571,15 +590,16 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
         }
         else {
             wxASSERT(current != nullptr);
-            if ((brightness != -9999 && current->_brightness != brightness) ||
-                (startNullPixels != -9999) ||
-                (endNullPixels != -9999 || (endNullPixels == -9999 && current->_endNullPixels != 0)) ||
+            if ((brightness != NO_VALUE_INT && current->_brightness != brightness) ||
+                (startNullPixels != NO_VALUE_INT) ||                                                    // we always create a new virtual string for models with start nulls
+                (endNullPixels != NO_VALUE_INT || (endNullPixels == NO_VALUE_INT && current->_endNullPixels != 0)) || // we dont assume end nulls carries across automatically between props and we always create a new virtual string for models with end nulls
                 (current->_smartRemote != smartRemote) ||
-                (reverse == "unknown" && current->_reverse == "Reverse") ||
-                (reverse != "unknown" && (current->_reverse != reverse || current->_reverse == "Reverse")) ||
-                (colourOrder != "unknown" && current->_colourOrder != colourOrder) ||
-                (gamma != -9999 && current->_gamma != gamma) ||
-                (groupCount != -9999 && current->_groupCount != groupCount) ||
+                (reverse == NO_VALUE_STRING && current->_reverse == "Reverse") ||
+                (reverse != NO_VALUE_STRING && (current->_reverse != reverse || current->_reverse == "Reverse")) ||
+                (colourOrder != NO_VALUE_STRING && current->_colourOrder != colourOrder) ||
+                (gamma != NO_VALUE_INT && current->_gamma != gamma) ||
+                (groupCount != NO_VALUE_INT && current->_groupCount != groupCount) ||
+                (zigZag != NO_VALUE_INT || (zigZag == NO_VALUE_INT && current->_zigZag != 0)) || // we dont assume zigzag carries across automatically between props and we always create a new virtual string for models with zig zag set
                 lastEndChannel + 1 != it->GetStartChannel()) {
 
                 // smart remote has changed ... but did we miss one
@@ -594,7 +614,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                         current->_protocol = it->GetProtocol();
                         current->_universe = it->GetUniverse();
                         current->_universeStartChannel = it->GetUniverseStartChannel();
-                        current->_channelsPerPixel = 3;
+                        current->_channelsPerPixel = GetChannelsPerPixel(it->GetProtocol());
                         current->_smartRemote = sr;
                         current->_smartRemoteType = it->GetSmartRemoteType();
                         current->_gammaSet = false;
@@ -607,6 +627,8 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                         current->_brightness = 0;
                         current->_groupCountSet = false;
                         current->_groupCount = 0;
+                        current->_zigZagSet = false;
+                        current->_zigZag = 0;
                         current->_reverseSet = false;
                         current->_reverse = "";
                         current->_colourOrderSet = false;
@@ -634,11 +656,12 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
             current->_universe = it->GetUniverse();
             current->_universeStartChannel = it->GetUniverseStartChannel();
             current->_channelsPerPixel = it->GetChannelsPerPixel();
-            if (current->_channelsPerPixel == 1) current->_channelsPerPixel = 3; // this happens if a channel block is dropped first on a port and we dont want that
+            if (current->_channelsPerPixel == 1)
+                current->_channelsPerPixel = GetChannelsPerPixel(it->GetProtocol()); // this happens if a channel block is dropped first on a port and we dont want that
             current->_smartRemote = it->GetSmartRemote();
             current->_smartRemoteType = it->GetSmartRemoteType();
 
-            if (gamma == -9999) {
+            if (gamma == NO_VALUE_INT) {
                 current->_gammaSet = false;
                 current->_gamma = 0;
             }
@@ -646,7 +669,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_gammaSet = true;
                 current->_gamma = gamma;
             }
-            if (startNullPixels == -9999) {
+            if (startNullPixels == NO_VALUE_INT) {
                 current->_startNullPixelsSet = false;
                 current->_startNullPixels = 0;
             }
@@ -654,7 +677,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_startNullPixelsSet = true;
                 current->_startNullPixels = startNullPixels;
             }
-            if (endNullPixels == -9999) {
+            if (endNullPixels == NO_VALUE_INT) {
                 current->_endNullPixelsSet = false;
                 current->_endNullPixels = 0;
             }
@@ -662,7 +685,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_endNullPixelsSet = true;
                 current->_endNullPixels = endNullPixels;
             }
-            if (brightness == -9999) {
+            if (brightness == NO_VALUE_INT) {
                 current->_brightnessSet = false;
                 current->_brightness = 0;
             }
@@ -670,7 +693,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_brightnessSet = true;
                 current->_brightness = brightness;
             }
-            if (groupCount == -9999) {
+            if (groupCount == NO_VALUE_INT) {
                 current->_groupCountSet = false;
                 current->_groupCount = 0;
             }
@@ -678,7 +701,14 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_groupCountSet = true;
                 current->_groupCount = groupCount;
             }
-            if (ts == -9999) {
+            if (zigZag == NO_VALUE_INT) {
+                current->_zigZagSet = false;
+                current->_zigZag = 0;
+            } else {
+                current->_zigZagSet = true;
+                current->_zigZag = zigZag;
+            }
+            if (ts == NO_VALUE_INT) {
                 current->_tsSet = false;
                 current->_ts = 0;
             }
@@ -686,7 +716,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_tsSet = true;
                 current->_ts = ts;
             }
-            if (reverse == "unknown") {
+            if (reverse == NO_VALUE_STRING) {
                 current->_reverseSet = false;
                 current->_reverse = "";
             }
@@ -694,7 +724,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                 current->_reverseSet = true;
                 current->_reverse = reverse;
             }
-            if (colourOrder == "unknown") {
+            if (colourOrder == NO_VALUE_STRING) {
                 current->_colourOrderSet = false;
                 current->_colourOrder = "";
             }
@@ -912,7 +942,7 @@ void UDControllerPort::Dump() const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.debug("            Port %d. Protocol %s. Valid %s. Invalid Reason '%s'. Channels %d. Pixels %d. Start #%d:%d.", _port, (const char*)_protocol.c_str(), toStr( _valid ), (const char*)_invalidReason.c_str(), Channels(), (int)(Channels() / 3), GetUniverse(), GetUniverseStartChannel());
+    logger_base.debug("            Port %d. Protocol %s. Valid %s. Invalid Reason '%s'. Channels %d. Pixels %d. Start #%d:%d.", _port, (const char*)_protocol.c_str(), toStr( _valid ), (const char*)_invalidReason.c_str(), Channels(),  INTROUNDUPDIV(Channels(), GetChannelsPerPixel(_protocol)), GetUniverse(), GetUniverseStartChannel());
     for (const auto& it : _models) {
         it->Dump();
     }
@@ -938,6 +968,7 @@ bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* ru
         }
 
         // port must not have too many pixels on it
+        // max channels is always expressed in terms of 3 channel pixels
         if (Channels() > rules->GetMaxPixelPortChannels()) {
             res += wxString::Format("ERR: Pixel port %d has %d nodes allocated but maximum is %d.\n", _port, (int)Channels() / 3, rules->GetMaxPixelPortChannels() / 3).ToStdString();
             success = false;
@@ -1012,7 +1043,7 @@ std::vector<std::string> UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS 
         port += "(CHANS:" + std::to_string(Channels()) + ")";
     }
     if ((settings & ExportSettings::SETTINGS_PORT_PIXELS) && Channels() != 0 && _type != "Serial") {
-        port += "(PIX:" + std::to_string(Channels() / 3) + ")";
+        port += "(PIX:" + std::to_string( INTROUNDUPDIV(Channels(), GetChannelsPerPixel(GetProtocol()))) + ")";
     }
     if (settings & ExportSettings::SETTINGS_PORT_CURRENT && _type != "Serial" ) {
         port += wxString::Format("(CUR:%0.2fA)", GetAmps(brightness));
@@ -1029,7 +1060,7 @@ std::vector<std::string> UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS 
         }
         model += it->GetName();
         if ((settings & ExportSettings::SETTINGS_MODEL_DESCRIPTIONS) && it->GetModel()->description != "") {
-            model += "(DESP:" + it->GetModel()->description + ")";
+            model += "(DESC:" + it->GetModel()->description + ")";
         }
         if (settings & ExportSettings::SETTINGS_MODEL_ABSADDRESS) {
             model += "(SC:" + std::to_string(it->GetStartChannel()) + ")";
@@ -1695,6 +1726,15 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         }
     }
 
+    if (rules->AllInputUniversesMustBe510()) {
+        for (const auto& it : outputs) {
+            if (it->GetChannels() != 510) {
+                res += wxString::Format("ERR: All universes must be 510 channels. %d found.\n", (int)it->GetChannels()).ToStdString();
+                success = false;
+            }
+        }
+    }
+
     if (rules->GetNumberOfBanks() > 1) {
         if (_pixelPorts.size() <= rules->GetMaxPixelPort()) {//dont do bank checking if pixel port count is over the max of the controller, it isnt going to work anyways
             int const banksize = rules->GetBankSize();
@@ -1711,6 +1751,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
 
             int const sum = accumulate(bankSizes.begin(), bankSizes.end(), 0);
             if (sum > rules->GetMaxPixelPortChannels()) {
+                // always expressed in terms of 3 channel pixels
                 res += wxString::Format("ERR: Controllers 'Bank' channel count [%d (%d)] is over the maximum [%d (%d)].\n", sum, sum / 3, rules->GetMaxPixelPortChannels(), rules->GetMaxPixelPortChannels() / 3).ToStdString();
                 res += "     Largest ports on banks: ";
                 for (int i = 0; i < rules->GetNumberOfBanks(); i++) {

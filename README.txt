@@ -11,6 +11,139 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Improve drawing of 3 point models (Arch, Candy Cane, Icicles) when green square is right of blue square.
+                   Note: If model changes look because it was on a tilt an X rotation with the red rotate handle should fix it.
+2022.17 September 8, 2022
+   -- enh (keith)  Add xSchedule Remote Falcon option to send the first playing effect as the currently playing sequence
+   -- enh (keith)  Add SVG support to the shapes effect (some SVGs with gradients may have an issue)
+   -- enh (keith)  Allow optional disabling of more pedantic Check Sequence checks
+   -- enh (keith)  Disable autosave during render all
+   -- enh (keith)  Add shimmer support to matrix faces
+   -- enh (dkulp)  Update wxWidgets to 3.2/3.3
+   -- enh (scott)  Add M16-PI controller
+   -- enh (scott)  Added duplicate node custom model checkbox, doesn't work with 3D models as buffer z is not used
+   -- enh (scott)  Add smart remote and model chaining details to DXF export
+   -- enh (scott)  Added Bulk Edit to Text Effect File Picker
+   -- bug (keith)  Fix picture files showing red as if there is an error when there isnt an error
+   -- bug (keith)  Dont use render cache for text effect if text is coming from a file
+   -- bug (keith)  Fix a bug with importing models and adding them correctly to existing groups
+   -- bug (keith)  Fix speed value curve reset on the video effect
+   -- bug (keith)  Fix brightness blend does not respect alpha channel
+   -- bug (keith)  Fix xSchedule adds multiple sequences in reverse order than expected
+   -- bug (keith)  Fix reverse video does not work for start positions other than 0ms
+   -- bug (keith)  Fix servo effect crash due to missing Nod channel
+   -- bug (keith)  Fix Falcon v3 upload leaves unused ports with invalid settings
+   -- bug (keith)  Fix hang if indiv start channels refers to a model on no-controller
+   -- bug (keith)  Fix crash when xlDo killed while executing a render
+   -- bug (keith)  Fix shadow model for errors which cannot be corrected through UI (on load)
+   -- bug (scott)  Fix WLED pixel limis and universe limits to match current capabilities
+   -- bug (scott)  Escape model names for xmaphints export
+   -- bug (scott)  Disable Universe Per String, when Auto Size is disabled as it does nothing
+   -- bug (dkulp)  Fix crash for some per model renders
+   -- bug (dkulp)  Fix DMX models returning zero size resulting in problems with centre calculation
+   -- bug (cyber)  Fix host name validation for controller reports some valid names as errors
+2022.16 August 22, 2022
+   -- enh (keith)  Allow optional turn off of house and model window docking
+   -- enh (keith)  On Falcon and FPP allow definition of zigzag in xlights for upload
+   -- enh (keith)  Include controller connection zigzag in xmodel export and import
+   -- enh (ruskin) added an xSchedule command to clear all pixel overlays
+   -- enh (scott)  WLED 0.13.2 updates
+   -- enh (scott)  Add xmaphint mapping for strands and submodels
+   -- bug (keith)  Fix hang if xSchedule is both FPP master and remote
+   -- bug (keith)  Fix flash when xSchedule starts video
+   -- bug (keith)  Address xLights lagging due to timer issues
+   -- bug (keith)  Resize of effect row does not immediately adjust number of rows drawn
+   -- bug (keith)  Fix multiselect of state effect corrupts state radio button
+   -- bug (keith)  Fix xlDo closexLights does not work
+   -- bug (keith)  Fix ugly outline on effect buttons
+   -- bug (keith)  Fix xlDo openSequence does not accept sequence name in json
+   -- bug (keith)  Fix picture effect warns multiple times that file not valid
+   -- bug (keith)  Fix replace model loses group membership
+   -- bug (keith)  Fix Falcon FPP upload over wifi not working
+   -- bug (ruskin) Fix  "Set pixel range" doesn't clear pixels when channel count of zero is used
+   -- bug (scott)  Adjust x/y locations of FPP virtual display map to the whole preview, not the arbitrary bounding box
+   -- bug (scott)  Fix stand rendering with layered arches and stars
+   -- bug (scott)  On Hink Pro move DMX after pixels
+2022.15 August 4, 2022
+   -- enh (keith)  Add a Liquid effect gravity direction.(fixes #3343)
+   -- enh (keith)  Add ZCPP support for default port brightness.
+   -- enh (scott)  Added Model Icons to Import Dialog if a rgbeffects file is found.
+   -- enh (scott)  Added Wally Light's WB1616 Controller.
+   -- bug (keith)  Fix possible xScanner crash.
+   -- bug (scott)  Fix virtual display map upload on FPP 6.
+   -- bug (scott)  Fix strand order for rendering on stars.
+   -- bug (scott)  Fix loading matrix face images from Network Shared Folder.(fixes #3342)
+   -- bug (scott)  Fix Text Effect Replace with encoded characters.(fixes #3359)
+   -- bug (scott)  Fix Import Effects Automap not matching strand/node name.(fixes #3328)
+   -- bug (pierre) Prevent duplicate values when bulk editing comboboxes.
+   -- bug (keith)  xSchedule: Fix Non-Musical Sequences Playback Slower Than Expected.(fixes #3322)
+2022.14 July 10, 2022
+   -- enh (keith) Add a tool for remapping custom models to alternate pixel layouts
+   -- enh (keith) Make random effect generation cancellable
+   -- enh (keith) Add option to RGB Cycle testing to tag every 50th pixel
+   -- enh (keith) Allow user dictionary items to override the standard dictionaries
+   -- enh (keith) Allow visualiser and upload support for APA109 compatible pixels on a WS2811 port
+   -- enh (dkulp) Add host specific media support to FPP connect
+   -- enh (scott) Add backup restore process
+   -- bug (dkulp) Fix some issues where multiple audio devices exist
+   -- bug (dkulp) Fix some crashes where render buffer needs to be larger than model
+   -- bug (dkulp) Fix fractal/ivy wave effect
+   -- bug (dkulp) Fix playlist item duplication in FPP upload
+   -- bug (keith) Fix some ripple parameter scales on S5 import
+   -- bug (keith) Fix rotozoom order not saved
+   -- bug (keith) Fix issue with audio file upload to FalconV4
+   -- bug (keith) Fix export as custom model does not export depth
+   -- bug (keith) Fix some duplication in transition time combobox behaviour
+   -- bug (keith) Fix video reported as missing if using sequence media
+   -- bug (scott) Fix color error in sketch effect
+   -- bug (scott) Fix issue with PiHat upload
+   -- bug (scott) Fix fire effect crash
+   -- bug (moc)   Fix some issues with model state dialog
+2022.13 June 26, 2022
+   -- enh (scott) Added Controller Hyperlinks to FPP Connect
+   -- enh (scott) Add FPP 6 DPIPixels support
+   -- enh (scott) Added setting to Select Video Export Video Codec
+   -- enh (scott) Added right click option to change tree/matrix/custom model string count from the visualizer
+   -- enh (scott) Add Bulb Type to LOR S5 Preview Import
+   -- enh (scott) Remember Controllers Splitter Location
+   -- enh (keith) Add infrastructure for tip of the day functionality. Currently not enabled.
+   -- enh (keith) Allow xSchedule to direct and source audio from specific sound cards
+   -- enh (keith) Add support for the Advatek MK3 controllers
+   -- enh (moc)   Add horizontal tree option to the tree model
+   -- enh (dkulp) Move to latest wxWidgets on OSX and Windows
+   -- bug (scott) Fix Empty Brightness Field in Dimming Curve Dialog
+   -- bug (scott) Fix Loading Timing Labels flagging the Sequence as changed
+   -- bug (scott) Fix DMX Validate Settings off by 1 error
+   -- bug (keith) Increase colour dropper limit from 200 to 1024
+   -- bug (keith) Add a way to optionally force strict source port compliance for artnet
+   -- bug (keith) Add more import of Ripple properties from S5
+   -- bug (keith) Ensure ZCPP respects default controller brightness
+   -- bug (keith) Show search and select effect times formatted.
+   -- bug (keith) Fix link colour on windows when in dark mode
+   -- bug (keith) Add back manual custom model generation for tricky models to video
+   -- bug (nash)  Fix numerous issues with perpare audio feature
+   -- bug (dkulp) Fix some corruption of canvas effect buffers when layers below use subbuffers
+   -- bug (dkulp) Fix canvas mode effects that use Per Model render styles.
+   -- bug (dkulp) Fix issue when loading a xsq by double clicking on it
+   -- bug (dkulp) DMX moving heads use sequence frame timestamp to calculate pan/tilt rates instead of real time
+   -- bug (moc)   Fix drag select on submodels dialog loses mouse if you leave the window area.
+2022.12 June 7, 2022
+   -- enh (scott) Move ScottNation controllers under their own vendor
+   -- enh (keith) Rewrite custom model generation to use a faster algorithm
+   -- enh (scott) Add DMX color wheel support
+   -- enh (keith) Lift Falcon V4 max group size to match latest firmware
+   -- enh (dkulp) Add twinkly output upload to FPP
+   -- enh (dkulp) Merge artnet multi-lines to one when uploading to FPP
+   -- enh (scott) Added the Ability to define "Preset" channel values when render non DMX Effects on a DMX model
+   -- enh (keith) When a ruler is defined on import or export of some model types save the real world dimensions 
+                  in the xmodel file and apply them when loading it
+   -- enh (keith) Add an option to silence the audio in xLights
+   -- bug (scott) Fix faces effect required a minimum of 10 states
+   -- bug (scott) Fix default gamma not saving
+   -- bug (keith) Fix twinkly model data import imports upside down
+   -- bug (dkulp) Abort render whenever a model group is changed
+   -- bug (keith) Abort render whenever a timing track is deleted or renamed
+   -- bug (keith) If there is no LUA mime handler use the txt handler instead
 2022.11 May 21, 2022
    -- enh (scott) Added Load from State to DMX Effect
    -- enh (scott) Add import from SVG to Sketch Assistant Panel
@@ -349,7 +482,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith) Double click on model removes it from the port.
    -- enh (keith) When double clicking to add model to port scroll the controller so it is visible
    -- enh (scott) Add detailed messages to multi controller upload
-   -- enh (scott) Enhance visualiser exporr with start channel and pixel count properties
+   -- enh (scott) Enhance visualiser export with start channel and pixel count properties
    -- bug (keith) Put in some protections for stupid long sequences in sequence settings. Also defer actually setting the sequence length until it is actually required.
    -- bug (keith) Fix batch render shows sequences in backup folders even when told not to
    -- bug (keith) Fix some artificial WS2811 protocol chips not showing in protocol list
@@ -1284,7 +1417,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                    in xSchedule or when uploaded to a FPP master the output will be disabled.
    -- enh (keith)  Add option to fade to black or fade to zero in the set colour and set all playlist items in xSchedule
    -- enh (keith)  Add an offset to the schedule start end time when sunrise or sunset is used.
-   -- enh (scott)  Updated HinksPix Export Dialog with Remote support and Master/Remote mode.
    -- bug (priemd) Fix submodel names dont update in model list when changed
 2020.17 May 1 2020
    -- enh (keith)  Add native media player option for video in xSchedule. This slightly reduces control but improves performance
@@ -1355,7 +1487,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add SMPTE linear time code remote support to xSchedule
    -- enh (keith)  In visualiser pressing a key will scroll right hand list of models to 
                    the first model starting with that letter
-   -- bug (scott)  Escape CSV File Fields
    -- bug (keith)  Fix channel block model does not update correctly in model list
    -- bug (keith)  Give effects a bit more time to render a frame
    -- bug (keith)  Fix cancelling custom model editing screws up model location and size

@@ -85,7 +85,7 @@ MetalButterflyEffect::~MetalButterflyEffect() {
 }
 
 
-void MetalButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void MetalButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
     int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
 

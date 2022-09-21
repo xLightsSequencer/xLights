@@ -87,6 +87,10 @@ Source: "../../xSchedule\xSMSDaemon\PhoneBlacklist.txt"; DestDir: "{app}"; Flags
 ; RemoteFalcon
 Source: "../../xSchedule/RemoteFalcon/x64/Release/RemoteFalcon.dll"; DestDir: "{app}"
 
+; TipOfDay
+; Commented out until we have enough content and assuming we want to distribute that content
+; Source: "../../TipOfDay/*.*"; DestDir: "{app}/TipOfDay"; Flags: ignoreversion 
+
 ; wxWidgets
 ; Statically linkes
 

@@ -278,3 +278,10 @@ Command
     {"cmd":"setEffectSettings","model":"model name","layer":"0","id":"0","name":"On","palette":{"C_BUTTON_Palette1":"#0000FF","C_CHECKBOX_Palette1":"1" },"settings":{"E_TEXTCTRL_Eff_On_Start":"10"},"startTime":"10","endTime":"100"}
 Response
     {"res":200, "msg":"Set Effect Settings.","worked":"true"}
+
+Import Effects from a xLights Sequence.
+Command
+    {"cmd":"importXLightsSequence","filename":"xsq/zip file path","mapfile":"xjmap/xmap/xmaphint file path"}
+Response
+    {"res":200, "msg":"Imported XLights Sequence.","worked":"true"}
+

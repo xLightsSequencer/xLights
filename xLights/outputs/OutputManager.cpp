@@ -159,7 +159,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
     // Remove any existing outputs
     DeleteAllControllers();
 
-    wxFileName fn(showdir + "/" + GetNetworksFileName());
+    wxFileName fn(showdir + wxFileName::GetPathSeparator() + GetNetworksFileName());
     _filename = fn.GetFullPath();
 
     wxXmlDocument doc;
@@ -888,7 +888,7 @@ void OutputManager::SetGlobalForceLocalIP(const std::string& forceLocalIP)
 
 void OutputManager::SetShowDir(const std::string& showDir) {
 
-    wxFileName fn(showDir + "/" + GetNetworksFileName());
+    wxFileName fn(showDir + wxFileName::GetPathSeparator() + GetNetworksFileName());
     _filename = fn.GetFullPath();
 }
 
@@ -945,9 +945,18 @@ std::string OutputManager::UniqueName(const std::string& prefix) {
     if (GetController(prefix) == nullptr) return prefix;
 
     wxString n;
-    int i = 1;
+    std::string nprefix { BeforeLast(prefix, '_') };
+    if (nprefix.empty()) {
+        nprefix = prefix;
+    }
+    std::string snum { AfterLast(prefix, '_') };
+    int i{ ExtractInt(snum) };
+    if (-1 == i) {
+        i = 1;
+    }
+
     do {
-        n = wxString::Format("%s_%d", prefix, i++);
+        n = wxString::Format("%s_%d", nprefix, i++);
     } while (GetController(n) != nullptr);
     return n.ToStdString();
 }

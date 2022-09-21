@@ -98,8 +98,8 @@ int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ImageObject::OnPropertyGridChange::Brightness");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ImageObject::OnPropertyGridChange::Transparency");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Transparency");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ImageObject::OnPropertyGridChange::Brightness");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Brightness");
         return 0;
     }
 

@@ -192,6 +192,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_RESIZE_SAMEHEIGHT;
         static const long ID_PREVIEW_RESIZE_SAMESIZE;
         static const long ID_PREVIEW_DELETE_ACTIVE;
+        static const long ID_PREVIEW_RENAME_ACTIVE;
         static const long ID_PREVIEW_MODEL_ADDPOINT;
         static const long ID_PREVIEW_MODEL_DELETEPOINT;
         static const long ID_PREVIEW_MODEL_ADDCURVE;
@@ -251,13 +252,8 @@ class LayoutPanel: public wxPanel
 		void OnChar(wxKeyEvent& event);
 		void OnChoiceLayoutGroupsSelect(wxCommandEvent& event);
 		void OnCheckBox_3DClick(wxCommandEvent& event);
-		void OnCheckBox_SelectionClick(wxCommandEvent& event);
-		void OnCheckBox_XZClick(wxCommandEvent& event);
 		void OnPreviewRotateGesture(wxRotateGestureEvent& event);
 		void OnPreviewZoomGesture(wxZoomGestureEvent& event);
-		void OnChoice_InsertObjectSelect(wxCommandEvent& event);
-		void OnChoice_EditModelObjectsSelect(wxCommandEvent& event);
-		void OnNotebook1PageChanged(wxNotebookEvent& event);
 		void OnNotebook_ObjectsPageChanged(wxNotebookEvent& event);
 		//*)
 
@@ -298,7 +294,6 @@ class LayoutPanel: public wxPanel
         void UnSelectAllModels(bool addBkgProps = true );
         void showBackgroundProperties();
         void SelectAllModels();
-        void SelectModels(const wxTreeListItems& models);
         void SetupPropGrid(BaseObject *model);
         void AddPreviewChoice(const std::string &name);
         ModelPreview* GetMainPreview() const {return modelPreview;}
@@ -485,32 +480,6 @@ class LayoutPanel: public wxPanel
         void Set3d(bool is3d);
 
     private:
-        enum
-        {
-            Icon_File,
-            Icon_FolderClosed,
-            Icon_FolderOpened,
-            Icon_Arches,
-            Icon_CandyCane,
-            Icon_Circle,
-            Icon_ChannelBlock,
-            Icon_Cube,
-            Icon_Custom,
-            Icon_Dmx,
-            Icon_Icicle,
-            Icon_Image,
-            Icon_Line,
-            Icon_Matrix,
-            Icon_Poly,
-            Icon_Sphere,
-            Icon_Spinner,
-            Icon_Star,
-            Icon_SubModel,
-            Icon_Tree,
-            Icon_Window,
-            Icon_Wreath
-        };
-
         int Col_Model = 0;
         int Col_StartChan = 1;
         int Col_EndChan = 2;
@@ -556,14 +525,13 @@ class LayoutPanel: public wxPanel
 		const wxString& GetBackgroundImageForSelectedPreview();
         void SwitchChoiceToCurrentLayoutGroup();
         void DeleteCurrentPreview();
+        void RenameCurrentPreview();
         void ShowPropGrid(bool show);
         void SetCurrentLayoutGroup(const std::string& group);
         void FinalizeModel();
         void SelectBaseObject3D();
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
-        void InitImageList();
         wxTreeListCtrl* CreateTreeListCtrl(long style, wxPanel* panel);
-        int GetModelTreeIcon(Model* model, bool open);
         int AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName = false);
         void RenameModelInTree(Model* model, const std::string& new_name);
         void DisplayAddObjectPopup();
@@ -573,7 +541,6 @@ class LayoutPanel: public wxPanel
         void OnAddDmxPopup(wxCommandEvent& event);
         void SelectViewObject(ViewObject *v, bool highlight_tree = true);
         void ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups);
-        //int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
         int GetColumnIndex(const std::string& name) const;
 
         class ModelListComparator : public wxTreeListItemComparator

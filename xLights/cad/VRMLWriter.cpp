@@ -24,7 +24,7 @@ void VRMLWriter::WriteHeader()
         << "}\n";
 }
 
-void VRMLWriter::WriteText(CADPoint const& loc, std::string const& text, float height, float rotation)
+void VRMLWriter::WriteText(CADPoint const& loc, std::string const& text, float height, uint32_t color, float rotation)
 {
 	m_file
 		<< "Transform {\n"
@@ -57,24 +57,24 @@ void VRMLWriter::WriteText(CADPoint const& loc, std::string const& text, float h
 		<< "}\n";
 }
 
-void VRMLWriter::WriteWire(CADPoint const& loc1, CADPoint const& loc2)
+void VRMLWriter::WriteWire(CADPoint const& /*loc1*/, CADPoint const& /*loc2*/, uint32_t /*color*/)
 {
 	//not implemented
 }
 
-void VRMLWriter::WriteNode(CADPoint const& loc)
+void VRMLWriter::WriteNode(CADPoint const& loc, uint32_t /*color*/)
 {
 				  //R     G     B
 	WriteNode(loc, "0.800 0.800 0.800");
 }
 
-void VRMLWriter::WriteFirstNode(CADPoint const& loc)
+void VRMLWriter::WriteFirstNode(CADPoint const& loc, uint32_t /*color*/)
 {
 				  //R     G     B
 	WriteNode(loc, "0.000 0.000 1.000");
 }
 
-void VRMLWriter::WriteLastNode(CADPoint const& loc)
+void VRMLWriter::WriteLastNode(CADPoint const& loc, uint32_t /*color*/)
 {
 				  //R     G     B
 	WriteNode(loc, "0.000 1.000 0.000");

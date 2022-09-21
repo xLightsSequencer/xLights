@@ -664,7 +664,7 @@ void ListenerManager::StartListeners(const std::string& localIP)
 
         if (!smpteExists)
         {
-            _listeners.push_back(new ListenerSMPTE(mode, this));
+            _listeners.push_back(new ListenerSMPTE(mode, this, _scheduleManager->GetOptions()->GetSMPTEDevice()));
             _listeners.back()->Start();
         }
     }

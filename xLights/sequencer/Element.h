@@ -226,11 +226,7 @@ public:
     }
 
     int GetNodeNumber(NodeLayer* nl);
-    std::string GetStrandName() const {
-        if(GetName() == "")
-            return wxString::Format("Strand %d", mStrand + 1).ToStdString();
-        return GetName();
-    }
+    std::string GetStrandName() const;
 
     virtual std::string GetFullName() const override;
     

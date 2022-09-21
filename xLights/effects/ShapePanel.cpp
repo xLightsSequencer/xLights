@@ -18,6 +18,7 @@
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
+#include <wx/filepicker.h>
 #include <wx/font.h>
 #include <wx/fontpicker.h>
 #include <wx/image.h>
@@ -31,7 +32,6 @@
 //*)
 
 #include <wx/fontenum.h>
-
 
 class Emoji
 {
@@ -74,6 +74,8 @@ const long ShapePanel::ID_FONTPICKER_Shape_Font = wxNewId();
 const long ShapePanel::ID_SPINCTRL_Shape_Char = wxNewId();
 const long ShapePanel::ID_STATICTEXT2 = wxNewId();
 const long ShapePanel::ID_CHOICE_Shape_SkinTone = wxNewId();
+const long ShapePanel::ID_STATICTEXT1 = wxNewId();
+const long ShapePanel::ID_FILEPICKERCTRL_SVG = wxNewId();
 const long ShapePanel::ID_STATICTEXT_Shape_Thickness = wxNewId();
 const long ShapePanel::ID_SLIDER_Shape_Thickness = wxNewId();
 const long ShapePanel::ID_VALUECURVE_Shape_Thickness = wxNewId();
@@ -181,6 +183,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     Choice_Shape_ObjectToDraw->Append(_("Crucifix"));
     Choice_Shape_ObjectToDraw->Append(_("Present"));
     Choice_Shape_ObjectToDraw->Append(_("Emoji"));
+    Choice_Shape_ObjectToDraw->Append(_("SVG"));
     FlexGridSizer57->Add(Choice_Shape_ObjectToDraw, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     StaticText9 = new wxStaticText(this, wxID_ANY, _("Character"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -188,7 +191,8 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer8->AddGrowableCol(1);
     FlexGridSizer8->AddGrowableRow(0);
-    FontPickerCtrl_Font = new BulkEditFontPicker(this, ID_FONTPICKER_Shape_Font, wxNullFont, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Shape_Font"));
+    wxFont PickerFont_1(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,_T("Segoe UI Emoji"),wxFONTENCODING_DEFAULT);
+    FontPickerCtrl_Font = new BulkEditFontPicker(this, ID_FONTPICKER_Shape_Font, PickerFont_1, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Shape_Font"));
     wxFont FontPickerCtrl_FontFont(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,_T("Segoe UI Emoji"),wxFONTENCODING_DEFAULT);
     FontPickerCtrl_Font->SetFont(FontPickerCtrl_FontFont);
     FlexGridSizer8->Add(FontPickerCtrl_Font, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -209,6 +213,11 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     SkinToneChoice->Append(_("Dark"));
     FlexGridSizer57->Add(SkinToneChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText10 = new wxStaticText(this, ID_STATICTEXT1, _("SVG File"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    FlexGridSizer57->Add(StaticText10, 1, wxALL|wxEXPAND, 5);
+    FilePickerCtrl_SVG = new BulkEditFilePickerCtrl(this, ID_FILEPICKERCTRL_SVG, wxEmptyString, _("Select a file"), _T("*.svg"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_SVG"));
+    FlexGridSizer57->Add(FilePickerCtrl_SVG, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer57->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText72 = new wxStaticText(this, ID_STATICTEXT_Shape_Thickness, _("Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Thickness"));
     FlexGridSizer57->Add(StaticText72, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -384,6 +393,8 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer57->Add(Choice_Shape_TimingTrack, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     SetSizer(FlexGridSizer57);
+    FlexGridSizer57->Fit(this);
+    FlexGridSizer57->SetSizeHints(this);
 
     Connect(ID_CHOICE_Shape_ObjectToDraw,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ShapePanel::OnChoice_Shape_ObjectToDrawSelect);
     Connect(ID_FONTPICKER_Shape_Font,wxEVT_COMMAND_FONTPICKER_CHANGED,(wxObjectEventFunction)&ShapePanel::OnFontPickerCtrl_FontFontChanged);
@@ -540,6 +551,13 @@ void ShapePanel::ValidateWindow()
 		StaticText1->SetLabel("Points");
 	}
 
+    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "SVG") {
+        FilePickerCtrl_SVG->Enable();
+    } else {
+        FilePickerCtrl_SVG->Enable(false);
+        FilePickerCtrl_SVG->SetFileName(wxFileName(""));
+    }
+
     if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji") {
         FontPickerCtrl_Font->Enable();
         SpinCtrl_CharCode->Enable();
@@ -577,9 +595,16 @@ void ShapePanel::ValidateWindow()
         TextCtrl_Shape_Thickness->Enable();
     }
 
+    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "SVG") {
+        CheckBox_Shape_HoldColour->Enable(false);
+    } else {
+        CheckBox_Shape_HoldColour->Enable();
+    }
+
     if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji" ||
 		Choice_Shape_ObjectToDraw->GetStringSelection() == "Candy Cane" ||
-		Choice_Shape_ObjectToDraw->GetStringSelection() == "Random" ||
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "SVG" ||
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Random" ||
         Choice_Shape_ObjectToDraw->GetStringSelection() == "Circle" ) {
 		Slider_Shape_Rotation->Disable();
 		TextCtrl_Shape_Rotation->Disable();

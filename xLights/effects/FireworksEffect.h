@@ -35,19 +35,61 @@
 
 class FireworksEffect : public RenderableEffect
 {
-    public:
-        FireworksEffect(int id);
-        virtual ~FireworksEffect();
-        virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
-        virtual void SetDefaultParameters() override;
-        virtual void SetPanelStatus(Model *cls) override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
-        virtual bool AppropriateOnNodes() const override { return false; }
+public:
+    FireworksEffect(int id);
+    virtual ~FireworksEffect();
+    virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
+    virtual void SetDefaultParameters() override;
+    virtual void SetPanelStatus(Model* cls) override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
+    virtual bool AppropriateOnNodes() const override
+    {
+        return false;
+    }
+
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Fireworks_Count")
+            return FIREWORKSCOUNT_MIN;
+        if (name == "E_VALUECURVE_Fireworks_Fade")
+            return FIREWORKSFADE_MIN;
+        if (name == "E_VALUECURVE_Fireworks_Velocity")
+            return FIREWORKSVELOCITY_MIN;
+        if (name == "E_VALUECURVE_Fireworks_XVelocity")
+            return FIREWORKSXVELOCITY_MIN;
+        if (name == "E_VALUECURVE_Fireworks_YVelocity")
+            return FIREWORKSYVELOCITY_MIN;
+        if (name == "E_VALUECURVE_Fireworks_XLocation")
+            return FIREWORKSXLOCATION_MIN;
+        if (name == "E_VALUECURVE_Fireworks_YLocation")
+            return FIREWORKSYLOCATION_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Fireworks_Count")
+            return FIREWORKSCOUNT_MAX;
+        if (name == "E_VALUECURVE_Fireworks_Fade")
+            return FIREWORKSFADE_MAX;
+        if (name == "E_VALUECURVE_Fireworks_Velocity")
+            return FIREWORKSVELOCITY_MAX;
+        if (name == "E_VALUECURVE_Fireworks_XVelocity")
+            return FIREWORKSXVELOCITY_MAX;
+        if (name == "E_VALUECURVE_Fireworks_YVelocity")
+            return FIREWORKSYVELOCITY_MAX;
+        if (name == "E_VALUECURVE_Fireworks_XLocation")
+            return FIREWORKSXLOCATION_MAX;
+        if (name == "E_VALUECURVE_Fireworks_YLocation")
+            return FIREWORKSYLOCATION_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
+
 protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
-        void SetPanelTimingTracks() const;
-        static std::pair<int, int> GetFireworkLocation(int width, int height, int overridex = -1, int overridey = -1);
-        virtual bool needToAdjustSettings(const std::string &version) override;
-        virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
+    void SetPanelTimingTracks() const;
+    static std::pair<int, int> GetFireworkLocation(int width, int height, int overridex = -1, int overridey = -1);
+    virtual bool needToAdjustSettings(const std::string& version) override;
+    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
 };

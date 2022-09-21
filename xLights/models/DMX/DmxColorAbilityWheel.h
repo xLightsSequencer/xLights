@@ -53,8 +53,8 @@ class DmxColorAbilityWheel : public DmxColorAbility
         void SetNodeNames(std::vector<std::string> & names) const override;
 
     private:
-        int wheel_channel;
-        int dimmer_channel;
+        uint32_t wheel_channel;
+        uint32_t dimmer_channel;
         std::vector<WheelColor> colors;
 
         std::optional<xlColor> GetDMXWheelValue(xlColor const & color) const;

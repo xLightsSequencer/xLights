@@ -94,14 +94,6 @@ typedef enum MEDIAPLAYINGSTATE {
 
 typedef void (__cdecl * AudioManagerProgressCallback) (wxProgressDialog* dlg, int pct);
 
-typedef enum SDLSTATE {
-    SDLUNINITIALISED,
-    SDLINITIALISED,
-    SDLOPENED,
-    SDLPLAYING,
-    SDLNOTPLAYING
-} SDLSTATE;
-
 class AudioData
 {
     public:
@@ -127,66 +119,124 @@ class AudioData
         void Pause(bool pause) { _paused = pause; }
 };
 
-class SDL
+class BaseSDL
 {
-    SDL_AudioDeviceID _dev;
-    SDL_AudioDeviceID _inputdev;
-    SDLSTATE _state;
-    std::list<AudioData*> _audioData;
-    std::mutex _audio_Lock;
-    float _playbackrate = 1.0f;
-    SDL_AudioSpec _wanted_spec;
-    SDL_AudioSpec _wanted_inputspec;
-    int _initialisedRate = 44100;
-    std::string _device;
-    std::string _inputDevice;
-    int _listeners = 0;
-    bool _audioDeviceFailed = false;
+protected:
+    typedef enum SDLSTATE {
+        SDLPLAYING,
+        SDLNOTPLAYING
+    } SDLSTATE;
 
-    void Reopen();
-    AudioData* GetData(int id);
+    SDL_AudioDeviceID _dev = 0;
+    SDLSTATE _state = SDLSTATE::SDLNOTPLAYING;
+    std::string _device;
+    SDL_AudioSpec _wanted_spec;
+    bool _input = false;
 
 public:
-    SDL(const std::string& device = "", const std::string& inputDevice = "");
-    virtual ~SDL();
-    std::list<AudioData*> GetAudio() const { return _audioData; }
+    BaseSDL(const std::string& device) :
+        _device(device)
+    {
+    }
+
+    virtual ~BaseSDL();
+    bool CloseDevice();
+    void DumpState(std::string device, int devid, SDL_AudioSpec* wanted, SDL_AudioSpec* actual) const;
+    bool OpenDevice(bool input, int rate);
+};
+
+class InputSDL : public BaseSDL
+{
+    int _listeners = 0;
+
+    bool OpenDevice();
+
+public:
+    InputSDL(const std::string& device) :
+        BaseSDL(device)
+    {
+    }
+
+    virtual ~InputSDL()
+    {}
+    static std::list<std::string> GetAudioDevices();
+    bool IsListening() const;
+    void StopListening();
+    void StartListening();
+    void PurgeAllButInputAudio(int ms) const;
+    int GetAudio(uint8_t* buffer, int bufsize);
+    int GetMax(int ms) const;
+    std::vector<float> GetSpectrum(int ms) const;
+    void PurgeInput();
+};
+
+class OutputSDL : public BaseSDL
+{
+    float _playbackrate = 1.0f;
+    std::list<AudioData*> _audioData;
+    std::mutex _audio_Lock;
+    int _initialisedRate = 44100;
+
+public:
+    OutputSDL(const std::string& device);
+    virtual ~OutputSDL();
+    static std::list<std::string> GetAudioDevices();
+    bool OpenDevice();
+    std::list<AudioData*> GetAudio() const;
     long Tell(int id);
-    void Seek(int id, long ms);
-    void SetRate(float rate);
+    void Seek(int id, long pos);
+    [[nodiscard]] std::mutex* GetAudioLock();
+    [[nodiscard]] bool HasAudio(int id) const;
+    // gets the spectrum for the current output frame
+    std::vector<float> GetSpectrum(int ms) const;
+    void SeekAndLimitPlayLength(int id, long pos, long len);
+    int GetVolume(int id);
+    void SetVolume(int id, int volume); // volume is 0->100
+    AudioData* GetData(int id) const;
     int AddAudio(long len, Uint8* buffer, int volume, int rate, long tracksize, long lengthMS);
     void RemoveAudio(int id);
+    void Pause(int id, bool pause);
+    void SetRate(float rate);
     void Play();
+    void Stop();
     void Pause();
     void Unpause();
     void TogglePause();
-    void Stop();
-    void SetVolume(int id, int volume);
-    int GetVolume(int id);
-    static void SetGlobalVolume(int volume);
-    static int GetGlobalVolume();
-    void SeekAndLimitPlayLength(int id, long pos, long len);
-    void Pause(int id, bool pause);
-    bool HasAudio(int id);
-    static std::list<std::string> GetAudioDevices();
-    static std::list<std::string> GetInputAudioDevices();
-    bool AudioDeviceChanged();
-    bool OpenAudioDevice(const std::string& device);
-    bool OpenInputAudioDevice(const std::string& device);
-    void SetAudioDevice(const std::string& device);
-    void SetInputAudioDevice(const std::string& inputDevice);
-    bool CloseAudioDevice();
-    bool CloseInputAudioDevice();
-    int GetInputMax(int ms);
-	std::vector<float> GetOutputSpectrum(int ms);
-    int GetInputAudio(uint8_t* buffer, int bufsize);
-    void PurgeAllButInputAudio(int ms);
-    std::vector<float> GetInputSpectrum(int ms);
-    void PurgeInput();
-    void DumpState(std::string device, int devid, SDL_AudioSpec* wanted, SDL_AudioSpec* actual);
-    void StartListening(const std::string& inputDevice = "");
-    void StopListening();
-    bool IsListening();
-    bool IsNoAudio() { return _audioDeviceFailed; }
+    void Reopen();
+};
+
+class SDLManager
+{
+    std::map<std::string, std::unique_ptr<InputSDL>> _inputs;
+    std::map<std::string, std::unique_ptr<OutputSDL>> _outputs;
+    int _globalVolume = 100;
+    bool _initialised = false;
+    std::string _defaultInput = "";
+    std::string _defaultOutput = "";
+
+public:
+    SDLManager();
+    virtual ~SDLManager();
+    [[nodiscard]] InputSDL* GetInputSDL(const std::string& device);
+    [[nodiscard]] OutputSDL* GetOutputSDL(const std::string& device);
+    void SetGlobalVolume(int volume);
+    [[nodiscard]] int GetGlobalVolume() const;
+    [[nodiscard]] bool IsNoAudio() const;
+    void SetRate(float rate);
+    void SetDefaultInput(const std::string& input)
+    {
+        if (input == "(Default)")
+            _defaultInput = "";
+        else
+            _defaultInput = input;
+    }
+    void SetDefaultOutput(const std::string& output)
+    {
+        if (output == "(Default)")
+            _defaultOutput = "";
+        else
+            _defaultOutput = output;
+    }
 };
 
 typedef struct FilteredAudioData
@@ -236,6 +286,7 @@ class AudioManager
     std::string _hash;
     std::future<void> _prepFrameData;
     std::future<void> _loadingAudio;
+    std::string _device;
 
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
@@ -279,15 +330,13 @@ public:
 	MEDIAPLAYINGSTATE GetPlayingState() const;
 	long Tell() const;
 	xLightsVamp* GetVamp() { return &_vamp; };
-	AudioManager(const std::string& audio_file, int intervalMS = -1);
+    AudioManager(const std::string& audio_file, int intervalMS = -1, const std::string& device = "");
 	~AudioManager();
 	void SetVolume(int volume) const;
     int GetVolume() const;
     static void SetGlobalVolume(int volume);
     static int GetGlobalVolume();
-    static void SetAudioDevice(const std::string& device);
     static std::list<std::string> GetAudioDevices();
-    static void SetInputAudioDevice(const std::string& device);
     static std::list<std::string> GetInputAudioDevices();
     long GetTrackSize() const { return _trackSize; };
 	long GetRate() const { return _rate; };
@@ -326,9 +375,9 @@ public:
     static bool CreateAudioFile( const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate );
     bool WriteCurrentAudio( const std::string& path, long bitrate);
 
-    bool AudioDeviceChanged();
+    void  AudioDeviceChanged();
 
-    static SDL* GetSDL();
+    static SDLManager* GetSDLManager();
 };
 
 struct AudioParams

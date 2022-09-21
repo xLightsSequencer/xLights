@@ -27,9 +27,9 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
 
   b) Select a base directory to place all your souce code in. From now on this is represented as <basedir>
 
-  c) Download and build wxWidgets for Windows (currently using a patched version of 3.1.6)
+  c) Download and build wxWidgets for Windows (currently using a patched version of 3.2.0)
 
-    git clone  --recurse-submodules -b xlights_2022.11 https://github.com/xLightsSequencer/wxWidgets
+    git clone  --recurse-submodules -b xlights_2022.17b https://github.com/xLightsSequencer/wxWidgets
 
      1) Also if you have built wxWidgets before you should delete the following 2 folders
         - <basedir>\wxWidgets\build\msw\vc_mswuddll
@@ -77,9 +77,9 @@ Here are the steps to compile xLights for Windows using the MinGW compiler.
         Navigate to: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/
         Click the i686-posix-dwarf link.
 
-  b) wxWidgets for Windows (currently using a patched version of 3.1.5)
+  b) wxWidgets for Windows (currently using a patched version of 3.2.0)
 
-     git clone  --recurse-submodules -b xlights_2021.31b https://github.com/xLightsSequencer/wxWidgets
+     git clone  --recurse-submodules -b xlights_2022.17b https://github.com/xLightsSequencer/wxWidgets
 
      1) Open a command prompt
      2) cd to the build\msw directory under your wxWidgets base directory
@@ -141,9 +141,9 @@ Here are the steps to compile xLights for Windows using the MinGW 64-bit compile
         Navigate to: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/
         Click the x86_64-posix-seh link.
 
-  c) wxWidgets for Windows (currently using a patch of version 3.1.5)
+  c) wxWidgets for Windows (currently using a patch of version 3.2.0)
 
-     git clone  --recurse-submodules -b xlights_2021.31b https://github.com/xLightsSequencer/wxWidgets
+     git clone  --recurse-submodules -b xlights_2022.17b https://github.com/xLightsSequencer/wxWidgets
 
      To compile it yourself:
 

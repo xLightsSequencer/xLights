@@ -15,7 +15,7 @@
 #if __has_include("xlights_build_version.h")
 #include "xlights_build_version.h"
 #else
-static const wxString xlights_version_string  = "2022.11";
+static const wxString xlights_version_string  = "2022.17";
 #endif
 #ifdef DEBUG
 static const wxString xlights_qualifier       = " DEBUG";
@@ -26,3 +26,5 @@ static const wxString xlights_build_date      = __DATE__;
 	
 const wxString &GetBitness();
 wxString GetDisplayVersionString();
+
+#define WXWIDGETS_VERSION "33"

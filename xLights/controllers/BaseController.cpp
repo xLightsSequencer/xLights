@@ -17,8 +17,11 @@
 
 #include <curl/curl.h>
 
-#include <log4cpp/Category.hh>
+#ifdef __WXMSW__
+#include "../../xSchedule/xSMSDaemon/Curl.h"
+#endif
 
+#include <log4cpp/Category.hh>
 
 #include "BaseController.h"
 #include "Falcon.h"
@@ -31,7 +34,6 @@
 #include "SanDevices.h"
 #include "Minleon.h"
 #include "WLED.h"
-
 
 #pragma region Constructors and Destructors
 BaseController::BaseController(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("") {
@@ -104,9 +106,12 @@ std::string BaseController::GetURL(const std::string& url, const std::string& us
 
     CURL* curl = curl_easy_init();
     if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
+        auto u = std::string("http://" + baseIP + _baseUrl + url);
+        logger_base.debug("Curl GET: %s", (const char*)u.c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15);
         curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
+        //curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1);
 
         std::string response_string;
 
@@ -115,6 +120,12 @@ std::string BaseController::GetURL(const std::string& url, const std::string& us
             curl_easy_setopt(curl, CURLOPT_USERNAME, (const char*)username.c_str());
             curl_easy_setopt(curl, CURLOPT_PASSWORD, (const char*)password.c_str());
         }
+
+#ifdef __WXMSW__
+         curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, Curl::CurlDebug);
+         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
 
@@ -145,7 +156,14 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
     CURL* curl = curl_easy_init();
     if (curl != nullptr) {
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
+        auto u = std::string("http://" + baseIP + _baseUrl + url);
+        logger_base.debug("Curl POST: %s", (const char*)u.c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
+
+#ifdef __WXMSW__
+        curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, Curl::CurlDebug);
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
 
         struct curl_slist* headers = NULL;
 
@@ -153,6 +171,7 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)request.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)request.c_str());
+        //curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1);
 
         if (username != "")
         {

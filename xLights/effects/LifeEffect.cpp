@@ -32,26 +32,28 @@ LifeEffect::~LifeEffect()
     //dtor
 }
 
-
-xlEffectPanel *LifeEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel* LifeEffect::CreatePanel(wxWindow* parent)
+{
     return new LifePanel(parent);
 }
 
-static int Life_CountNeighbors(RenderBuffer &buffer, int x0, int y0)
+static size_t Life_CountNeighbors(RenderBuffer& buffer, int x0, int y0)
 {
     //     2   3   4
     //     1   X   5
     //     0   7   6
-    static int n_x[] = {-1,-1,-1,0,1,1,1,0};
-    static int n_y[] = {-1,0,1,1,1,0,-1,-1};
-    int x,y,cnt=0;
-    for (int i=0; i < 8; i++)
-    {
-        x=(x0+n_x[i]) % buffer.BufferWi;
-        y=(y0+n_y[i]) % buffer.BufferHt;
-        if (x < 0) x+=buffer.BufferWi;
-        if (y < 0) y+=buffer.BufferHt;
-        if (buffer.GetTempPixelRGB(x,y) != xlBLACK) cnt++;
+    static const int n_x[] = { -1, -1, -1, 0, 1, 1, 1, 0 };
+    static const int n_y[] = { -1, 0, 1, 1, 1, 0, -1, -1 };
+    size_t cnt = 0;
+    for (size_t i = 0; i < 8; ++i) {
+        int x = (x0 + n_x[i]) % buffer.BufferWi;
+        int y = (y0 + n_y[i]) % buffer.BufferHt;
+        if (x < 0)
+            x += buffer.BufferWi;
+        if (y < 0)
+            y += buffer.BufferHt;
+        if (buffer.GetTempPixelRGB(x, y) != xlBLACK)
+            ++cnt;
     }
     return cnt;
 }
@@ -76,7 +78,7 @@ void LifeEffect::SetDefaultParameters() {
     SetSliderValue(lp->Slider_Life_Speed, 10);
 }
 
-void LifeEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer)
+void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     int Count = SettingsMap.GetInt("SLIDER_Life_Count", 50);
     int Type = SettingsMap.GetInt("SLIDER_Life_Seed", 0);

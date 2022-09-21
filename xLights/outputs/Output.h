@@ -222,7 +222,14 @@ public:
     #ifndef EXCLUDENETWORKUI
     virtual void AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {}
     virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) { return false; }
-    virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) {}
+    virtual void AddMultiProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
+    {}
+    virtual bool HandleMultiPropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
+    {
+        return false;
+    }
+    virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded)
+    {}
     #endif
     #pragma endregion UI
 };

@@ -13,8 +13,8 @@
 // not needed, now it si defined in xLightsMain.h, line 242
 // #define XLIGHTS_VERSION "4.0.4"
 #define XLIGHTS_CONFIG_ID "xLights"
-#define XLIGHTS_HELP_URL        "http://sourceforge.net/apps/mediawiki/xlights/index.php?title=Main_Page"
-#define XLIGHTS_SCRIPT_HELP_URL "http://sourceforge.net/apps/mediawiki/xlights/index.php?title=XScheduler_Script_Reference"
+//#define XLIGHTS_HELP_URL        "http://sourceforge.net/apps/mediawiki/xlights/index.php?title=Main_Page"
+//#define XLIGHTS_SCRIPT_HELP_URL "http://sourceforge.net/apps/mediawiki/xlights/index.php?title=XScheduler_Script_Reference"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -22,10 +22,11 @@
 
 #define XLIGHTS_ANIMATION_FILE     "xlights_animation.xml"
 #define XLIGHTS_NETWORK_FILE       "xlights_networks.xml"
-#define XLIGHTS_CHANNEL_FILE       "xlights_channels.csv"
-#define XLIGHTS_SCHEDULE_FILE      "xlights_schedule.xml"
+//#define XLIGHTS_CHANNEL_FILE       "xlights_channels.csv"
+//#define XLIGHTS_SCHEDULE_FILE      "xlights_schedule.xml"
 #define XLIGHTS_RGBEFFECTS_FILE    "xlights_rgbeffects.xml"
 #define XLIGHTS_RGBEFFECTS_FILE_BACKUP    "xlights_rgbeffects.xbkp"
+#define XLIGHTS_KEYBINDING_FILE    "xlights_keybindings.xml"
 #define XLIGHTS_PGOFACES_FILE      "xlights_papagayo.xml"
 #define XLIGHTS_RGBEFFECTS_VERSION "0007"
 #define XLIGHTS_SEQUENCE_EXT       "xseq"

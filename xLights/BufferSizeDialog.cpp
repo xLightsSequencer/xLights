@@ -12,7 +12,7 @@
 #include "ValueCurveDialog.h"
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
-#include "PixelBuffer.h"
+#include "BufferPanel.h"
 #include "ExternalHooks.h"
 
 //(*InternalHeaders(BufferSizeDialog)

@@ -26,6 +26,7 @@
 
 #define AMPS_PER_PIXEL (0.055f)
 #define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", ((uint32_t)ms) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
+#define INTROUNDUPDIV(a, b) (((a) + (b) - 1) / (b))
 constexpr double PI = 3.141592653589793238463;
 
 // Consolidated set of utility functions
@@ -50,6 +51,7 @@ std::string UnXmlSafe(const wxString &s);
 std::string XmlSafe(const std::string& s);
 std::string RemoveUnsafeXmlChars(const std::string& s);
 std::string EscapeCSV(const std::string& s);
+std::string EscapeRegex(const std::string& s);
 inline bool isOdd(int n) { return n % 2 != 0; }
 wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& def = "");
 wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std::string& def = "");
@@ -100,6 +102,7 @@ inline double rand01()
 void SaveWindowPosition(const std::string& tag, wxWindow* window);
 void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position);
 int intRand(const int& min, const int& max);
+int ExtractInt(std::string& s);
 void SaveInt(const std::string& tag, int value);
 int LoadInt(const std::string& tag, int defaultValue);
 int NumberAwareStringCompare(const std::string &a, const std::string &b);
@@ -211,6 +214,13 @@ inline std::string AfterLast(const std::string& in, char c)
     return in.substr(pos+1);
 }
 
+inline std::string BeforeLast(const std::string& in, char c)
+{
+    auto pos = in.find_last_of(c);
+    if (pos == std::string::npos) return "";
+    return in.substr(0, pos);
+}
+
 inline void Replace(std::string& in, const std::string& what, const std::string& with)
 {
     auto pos = in.find(what);
@@ -288,17 +298,41 @@ inline std::string Lower(const std::string& input) noexcept
 
 inline std::string Trim(const std::string& input)
 {
-    if (input == "") return "";
+    if (input.empty()) return "";
 
     size_t firstnonblank = 0;
     int lastnonblank = input.size()-1;
 
     while (firstnonblank < input.size() && (input[firstnonblank] == ' ' || input[firstnonblank] == '\t')) { firstnonblank++; }
-    while (lastnonblank > 0 && (input[lastnonblank] == ' ' || input[lastnonblank] == '\t')) { lastnonblank--; }
+    while (lastnonblank > 0 && (input[lastnonblank] == ' ' || input[lastnonblank] == '\t')) { --lastnonblank; }
     if (lastnonblank < firstnonblank) return "";
     return input.substr(firstnonblank, lastnonblank - firstnonblank + 1);
 }
-
+inline void Split(const std::string &frag, char splitBy, std::vector<std::string>& tokens, bool trim = false)
+{
+    // Loop infinitely - break is internal.
+    size_t lastIdx = 0;
+    while (true) {
+        size_t splitAt = frag.find_first_of(splitBy, lastIdx);
+        // If we didn't find a new split point...
+        if (splitAt == std::string::npos) {
+            std::string f = frag.substr(lastIdx);
+            tokens.push_back(trim ? Trim(f) : f);
+            break;
+        }
+        std::string newf = frag.substr(lastIdx, splitAt - lastIdx);
+        if (trim) {
+            newf = Trim(newf);
+        }
+        tokens.push_back(newf);
+        lastIdx = splitAt + 1;
+    }
+}
+inline std::vector<std::string> Split(const std::string &frag, char splitBy, bool trim = false) {
+    std::vector<std::string> r;
+    Split(frag, splitBy, r, trim);
+    return r;
+}
 static inline double toRadians(float degrees)
 {
     return 2.0 * M_PI * double(degrees) / 360.0;
@@ -316,6 +350,7 @@ inline const char* const toStr(bool b)
 bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);
 std::list<std::string> GetLocalIPs();
 bool IsValidLocalIP(const std::string& ip);
+bool IsValidLocalIP(const wxIPV4address& ip);
 bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::string& mask = "255.255.255.0");
 
 void ViewTempFile(const wxString& content, const wxString& name = "temp", const wxString& type = "txt");
@@ -326,3 +361,4 @@ uint64_t GetPhysicalMemorySizeMB();
 bool IsxLights();
 std::string ReverseCSV(const std::string& csv);
 void DumpBinary(uint8_t* buffer, size_t read);
+wxColor CyanOrBlue();

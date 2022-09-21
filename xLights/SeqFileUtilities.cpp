@@ -212,7 +212,7 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
 
 void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog* plog)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     ClearNonExistentFiles();
 
@@ -225,7 +225,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         filename = passed_filename;
     }
     if (!filename.empty()) {
-        if (filename.Contains(XLIGHTS_RGBEFFECTS_FILE) || filename.Contains(XLIGHTS_NETWORK_FILE) || filename.Contains("xlights_keybindings.xml" )) {
+        if (filename.Contains(XLIGHTS_RGBEFFECTS_FILE) || filename.Contains(XLIGHTS_NETWORK_FILE) || filename.Contains(XLIGHTS_KEYBINDING_FILE)) {
             wxMessageBox("the 'xlights_rgbeffects.xml', 'xlights_networks.xml' or 'xlights_keybindings.xml' files are not valid sequence files", "Error");
             return;
         }
@@ -240,8 +240,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         }
 
         // check if there is a autosave backup file which is newer than the file we have been asked to open
-        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq")
-        {
+        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq") {
             wxFileName fn(filename);
             wxFileName xx = fn;
             xx.SetExt("xbkp");
@@ -266,8 +265,8 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                         wxRenameFile(asfile, filename);
                     } else {
                         if (FileExists(fn)) {
-                            //set the backup to be older than the XML files to avoid re-promting
-                            xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resulution is 2 seconds
+                            // set the backup to be older than the XML files to avoid re-promting
+                            xmltime -= wxTimeSpan(0, 0, 3, 0); // subtract 2 seconds as FAT time resulution is 2 seconds
                             asfn.SetTimes(&xmltime, &xmltime, &xmltime);
                         }
                     }
@@ -295,58 +294,57 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         fseq_file.SetExt("fseq");
 
         wxFileName fseq_file_SEQ_fold = selected_file;
-		fseq_file_SEQ_fold.SetExt("fseq");
+        fseq_file_SEQ_fold.SetExt("fseq");
 
-		// Only Look for FSEQ file in FSEQ FOLDER, if folder are unlinked
-		if (wxFileName(fseqDirectory) != wxFileName(showDirectory)) {
+        // Only Look for FSEQ file in FSEQ FOLDER, if folder are unlinked
+        if (wxFileName(fseqDirectory) != wxFileName(showDirectory)) {
             ObtainAccessToURL(fseqDirectory);
-			fseq_file.SetPath(fseqDirectory);
-			if (!FileExists(fseq_file)) {
-				//no FSEQ file found in FSEQ Folder, look for it next to the SEQ File
-				if (FileExists(fseq_file_SEQ_fold)) {
-					//if found, move file to fseq folder
-					logger_base.debug("Moving FSEQ File: '%s' to '%s'", (const char *)fseq_file_SEQ_fold.GetPath().c_str(), (const char *)fseq_file.GetPath().c_str());
-					wxRenameFile(fseq_file_SEQ_fold.GetFullPath(), fseq_file.GetFullPath());
-				}
-			} else {
-				//if FSEQ File is Found in FSEQ Folder, remove old file next to the Seq File
-				/***************************/
-				//TODO: Maybe remove this if Keith/Gil/Dan think it's bad - Scott
-				if (FileExists(fseq_file_SEQ_fold)) {
-					//remove FSEQ file next to seg file
-					logger_base.debug("Deleting old FSEQ File: '%s'", (const char *)fseq_file_SEQ_fold.GetPath().c_str());
-					wxRemoveFile(fseq_file_SEQ_fold.GetFullPath());//
-				}
-			}
-		}
+            fseq_file.SetPath(fseqDirectory);
+            if (!FileExists(fseq_file)) {
+                // no FSEQ file found in FSEQ Folder, look for it next to the SEQ File
+                if (FileExists(fseq_file_SEQ_fold)) {
+                    // if found, move file to fseq folder
+                    logger_base.debug("Moving FSEQ File: '%s' to '%s'", (const char*)fseq_file_SEQ_fold.GetPath().c_str(), (const char*)fseq_file.GetPath().c_str());
+                    wxRenameFile(fseq_file_SEQ_fold.GetFullPath(), fseq_file.GetFullPath());
+                }
+            } else {
+                // if FSEQ File is Found in FSEQ Folder, remove old file next to the Seq File
+                /***************************/
+                // TODO: Maybe remove this if Keith/Gil/Dan think it's bad - Scott
+                if (FileExists(fseq_file_SEQ_fold)) {
+                    // remove FSEQ file next to seg file
+                    logger_base.debug("Deleting old FSEQ File: '%s'", (const char*)fseq_file_SEQ_fold.GetPath().c_str());
+                    wxRemoveFile(fseq_file_SEQ_fold.GetFullPath()); //
+                }
+            }
+        }
 
-        xlightsFilename = fseq_file.GetFullPath(); //this need to be set , as it is checked when saving is triggered
+        xlightsFilename = fseq_file.GetFullPath(); // this need to be set , as it is checked when saving is triggered
 
         // load the fseq data file if it exists
-        if(FileExists(fseq_file)) {
-            logger_base.debug("Opening FSEQ File at: '%s'", (const char *)fseq_file.GetFullPath().c_str());
+        if (FileExists(fseq_file)) {
+            logger_base.debug("Opening FSEQ File at: '%s'", (const char*)fseq_file.GetFullPath().c_str());
             if (plog != nullptr) {
                 plog->Show(true);
             }
             std::string mf;
-            ConvertParameters read_params(xlightsFilename,                              // input filename
-                                          _seqData,                                      // sequence data object
-                                          &_outputManager,                              // global network info
-                                          ConvertParameters::READ_MODE_LOAD_MAIN,       // file read mode
-                                          this,                                         // xLights main frame
+            ConvertParameters read_params(xlightsFilename,                        // input filename
+                                          _seqData,                               // sequence data object
+                                          &_outputManager,                        // global network info
+                                          ConvertParameters::READ_MODE_LOAD_MAIN, // file read mode
+                                          this,                                   // xLights main frame
                                           nullptr,
                                           plog,
-                                          &mf );                                        // media filename
+                                          &mf); // media filename
 
             FileConverter::ReadFalconFile(read_params);
-            if( mf != "" )
-            {
+            if (mf != "") {
                 media_file = mapFileName(wxFileName::FileName(mf));
             }
             DisplayXlightsFilename(xlightsFilename);
-            SeqBaseChannel=1;
-            SeqChanCtrlBasic=false;
-            SeqChanCtrlColor=false;
+            SeqBaseChannel = 1;
+            SeqChanCtrlBasic = false;
+            SeqChanCtrlColor = false;
             loaded_fseq = true;
 
             logger_base.debug("    Fseq file loaded.");
@@ -354,10 +352,8 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             logger_base.debug("        Frame Time %u", _seqData.FrameTime());
             logger_base.debug("        Frames %u", _seqData.NumFrames());
             logger_base.debug("        Length %u", _seqData.TotalTime());
-        }
-        else
-        {
-            logger_base.debug("Could not Find FSEQ File at: '%s'", (const char *)fseq_file.GetFullPath().c_str());
+        } else {
+            logger_base.debug("Could not Find FSEQ File at: '%s'", (const char*)fseq_file.GetFullPath().c_str());
         }
 
         // assign global xml file object
@@ -369,8 +365,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName().ToStdString());
 
         // if fseq didn't have media check xml
-        if (CurrentSeqXmlFile->GetMediaFile() != "")
-        {
+        if (CurrentSeqXmlFile->GetMediaFile() != "") {
             media_file = mapFileName(CurrentSeqXmlFile->GetMediaFile());
             ObtainAccessToURL(media_file.GetFullPath().ToStdString());
         }
@@ -411,8 +406,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                         media_file = detect_media;
                         ObtainAccessToURL(media_file.GetFullPath().ToStdString());
                         break;
-                    }
-                    else {
+                    } else {
                         // search selected file directory
                         detect_media.SetPath(selected_file.GetPath());
                         if (FileExists(detect_media)) {
@@ -447,9 +441,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         }
 
         // if fseq had media update xml
-        if( !CurrentSeqXmlFile->HasAudioMedia()
-           && FileExists(media_file)
-           && wxFileName(media_file).IsFileReadable()) {
+        if (!CurrentSeqXmlFile->HasAudioMedia() && FileExists(media_file) && wxFileName(media_file).IsFileReadable()) {
             CurrentSeqXmlFile->SetMediaFile(GetShowDirectory(), media_file.GetFullPath(), true);
             int length_ms = CurrentSeqXmlFile->GetMedia()->LengthMS();
             CurrentSeqXmlFile->SetSequenceDurationMS(length_ms);
@@ -484,7 +476,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         bool loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
 
         unsigned int numChan = GetMaxNumChannels();
-        size_t memRequired = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(),  mMediaLengthMS) / ms;
+        size_t memRequired = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(), mMediaLengthMS) / ms;
         memRequired *= numChan;
         memRequired /= 1024; // ->kb
         memRequired /= 1024; // ->mb
@@ -493,18 +485,12 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         }
 
         if ((numChan > _seqData.NumChannels()) ||
-            (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames() )
-        {
-            if (_seqData.NumChannels() > 0)
-            {
-                if (numChan > _seqData.NumChannels())
-                {
+            (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames()) {
+            if (_seqData.NumChannels() > 0) {
+                if (numChan > _seqData.NumChannels()) {
                     logger_base.warn("Fseq file had %u channels but sequence has %u channels so dumping the fseq data.", numChan, _seqData.NumChannels());
-                }
-                else
-                {
-                    if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames())
-                    {
+                } else {
+                    if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames()) {
                         logger_base.warn("Fseq file had %u frames but sequence has %u frames so dumping the fseq data.",
                                          CurrentSeqXmlFile->GetSequenceDurationMS() / ms,
                                          _seqData.NumFrames());
@@ -512,7 +498,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                 }
             }
             _seqData.init(numChan, mMediaLengthMS / ms, ms);
-        } else if( !loaded_fseq ) {
+        } else if (!loaded_fseq) {
             _seqData.init(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
 
@@ -535,7 +521,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             return;
         }
 
-        float elapsedTime = sw.Time()/1000.0; //msec => sec
+        float elapsedTime = sw.Time() / 1000.0; // msec => sec
         SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
         SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);
 
@@ -1193,7 +1179,7 @@ void MapXLightsEffects(Element *target,
     }
 }
 
-void xLightsFrame::ImportXLights(const wxFileName &filename) {
+void xLightsFrame::ImportXLights(const wxFileName &filename, std::string const& mapFile) {
     wxStopWatch sw; // start a stopwatch timer
 
     SequencePackage xsqPkg(filename, this);
@@ -1224,7 +1210,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
         Element *el = se.GetElement(e);
         elements.push_back(el);
     }
-    ImportXLights(se, elements, xsqPkg, supportsModelBlending, true);
+    ImportXLights(se, elements, xsqPkg, supportsModelBlending, true, false, false, mapFile);
 
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
@@ -1249,7 +1235,7 @@ ImportXLights(se, elements, xsqPkg, modelBlending, showModelBlending, allowAllMo
 }
 
 void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element*>& elements, SequencePackage& xsqPkg,
-    bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc)
+    bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc, std::string const& mapFile)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::map<std::string, EffectLayer*> layerMap;
@@ -1277,7 +1263,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
             }
             if (hasEffects) {
-                dlg.channelNames.push_back(el->GetName());
+                dlg.AddChannel(el->GetName());
             }
             elementMap[el->GetName()] = el;
             int s = 0;
@@ -1294,7 +1280,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 }
                 if (sme->HasEffects()) {
                     elementMap[el->GetName() + "/" + smName] = sme;
-                    dlg.channelNames.push_back(el->GetName() + "/" + smName);
+                    dlg.AddChannel(el->GetName() + "/" + smName);
                 }
                 if (ste != nullptr) {
                     for (size_t n = 0; n < ste->GetNodeLayerCount(); ++n) {
@@ -1304,7 +1290,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                             if (nodeName == "") {
                                 nodeName = wxString::Format("Node %d", (int)(n + 1));
                             }
-                            dlg.channelNames.push_back(el->GetName() + "/" + smName + "/" + nodeName);
+                            dlg.AddChannel(el->GetName() + "/" + smName + "/" + nodeName);
                             layerMap[el->GetName() + "/" + smName + "/" + nodeName] = nl;
                         }
                     }
@@ -1330,13 +1316,17 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
         }
     }
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    dlg.SortChannels();
     dlg.timingTracks = timingTrackNames;
     dlg.timingTrackAlreadyExists = timingTrackAlreadyExists;
     bool ok = dlg.InitImport();
 
-    if (!ok || dlg.ShowModal() != wxID_OK) {
-        return;
+    if (mapFile.empty()) {
+        if (!ok || dlg.ShowModal() != wxID_OK) {
+            return;
+        }
+    } else {
+        dlg.LoadMappingFile(mapFile, true);
     }
 
     if (showModelBlending && dlg.GetImportModelBlending()) {
@@ -1705,7 +1695,9 @@ void MapVixChannelInformation(xLightsFrame *xlights, EffectLayer *layer,
 #endif
 
 
-static void CheckForVixenRGB(const std::string &name, std::vector<std::string> &channelNames, xlColor &c, std::map<std::string, xlColor> &channelColors) {
+static void CheckForVixenRGB(const std::string& name, xlColor& c, xLightsImportChannelMapDialog &dlg)
+{
+    auto const channelNames{ dlg.GetChannelNames() };
     bool addRGB = false;
     std::string base;
     if (EndsWith(name, "Red") || EndsWith(name, "-R")) {
@@ -1749,10 +1741,10 @@ static void CheckForVixenRGB(const std::string &name, std::vector<std::string> &
                 addRGB = true;
             }
     }
-    channelColors[name] = c;
+    dlg.channelColors[name] = c;
     if (addRGB) {
-        channelColors[base] = xlBLACK;
-        channelNames.push_back(base);
+        dlg.channelColors[base] = xlBLACK;
+        dlg.AddChannel(base);
     }
 }
 
@@ -1829,11 +1821,11 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                     chanColor = wxAtoi(stagEvent->getAttrValue("color")) & 0xFFFFFF;
                     NodeName = SafeGetAttrValue(stagEvent, "name");
                     if (NodeName != "") {
-                        dlg.channelNames.push_back(NodeName);
+                        dlg.AddChannel(NodeName);
                         unsortedChannels.push_back(NodeName);
 
                         xlColor c(chanColor, false);
-                        CheckForVixenRGB(NodeName, dlg.channelNames, c, dlg.channelColors);
+                        CheckForVixenRGB(NodeName, c, dlg);
 
                         context.pop_back();
                         context.push_back("IgnoreChannelElement");
@@ -1872,10 +1864,10 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                         for (int x = 0; x < VixChannelNames.size(); x++) {
                             std::string name = VixChannelNames[x].ToStdString();
                             xlColor c = colors[x];
-                            dlg.channelNames.push_back(name);
+                            dlg.AddChannel(name);
                             unsortedChannels.push_back(name);
 
-                            CheckForVixenRGB(name, dlg.channelNames, c, dlg.channelColors);
+                            CheckForVixenRGB(name, c, dlg);
                         }
 
                     }
@@ -1894,11 +1886,11 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                         }
                     }
                     else if (context[1] == "Channels" && context[2] == "Channel") {
-                        dlg.channelNames.push_back(NodeValue);
+                        dlg.AddChannel(NodeValue);
                         unsortedChannels.push_back(NodeValue);
 
                         xlColor c(chanColor, false);
-                        CheckForVixenRGB(NodeValue, dlg.channelNames, c, dlg.channelColors);
+                        CheckForVixenRGB(NodeValue, c, dlg);
                     }
                 }
                 break;
@@ -1924,7 +1916,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     // the previous calculation because it had a partial last frame
     int numFrames = (int)std::ceil((float)time / (float)frameTime);
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    dlg.SortChannels();
 
     logger_base.debug("Showing mapping dialog.");
     dlg.InitImport();
@@ -2805,7 +2797,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                         std::string color = chan->GetAttribute("color").ToStdString();
                         std::string unit = chan->GetAttribute("unit").ToStdString();
                         std::string circuit = chan->GetAttribute("circuit").ToStdString();
-                        if (std::find(begin(dlg.channelNames), end(dlg.channelNames), name) != end(dlg.channelNames)) {
+                        if (dlg.GetImportChannel(name)) {
                             name += "_Unit_" + unit + "_Circuit_" + circuit;
                         }
                         dlg.channelColors[name] = GetColor(color);
@@ -2827,7 +2819,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                             if (i > 0 && name != "")
                             {
                                 ccr = true;
-                                dlg.channelNames.push_back(name);
+                                dlg.AddChannel(name);
                                 //if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), name.substr(0, idxSP - 1)) == dlg.ccrNames.end())
                                 if (name.substr(0, idxSP) != "" && std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), name.substr(0, idxSP)) == dlg.ccrNames.end())
                                 {
@@ -2840,7 +2832,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
 
                     if (!ccr && name != "")
                     {
-                        dlg.channelNames.push_back(name);
+                        dlg.AddChannel(name);
                     }
                 }
             }
@@ -2864,7 +2856,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         }
     }
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    dlg.SortChannels();
     std::sort(dlg.ccrNames.begin(), dlg.ccrNames.end(), stdlistNumberAwareStringCompare);
     dlg.timingTracks = timingTrackNames;
 
@@ -2937,7 +2929,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
             {
                 if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
                 {
-                    MapCCR(dlg.channelNames, model, m, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
+                    MapCCR(dlg.GetChannelNames(), model, m, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                 }
                 else
                 {
@@ -2968,7 +2960,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                     {
                         StrandElement *se = model->GetStrand(str);
                         if (se != nullptr) {
-                            MapCCRStrand(dlg.channelNames, se, s, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
+                            MapCCRStrand(dlg.GetChannelNames(), se, s, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
                         else {
                             logger_base.debug("LMS Import: Strand %d not found.", str);
@@ -4492,10 +4484,12 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
     dlg.xlights = this;
 
     dlg.timingTracks = lorEdit.GetTimingTracks();
-    dlg.channelNames = lorEdit.GetModelsWithEffects();
+    for (auto const& m : lorEdit.GetModelsWithEffects()) {
+        dlg.AddChannel(m);
+    }
     dlg.ccrNames = lorEdit.GetNodesWithEffects();
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    dlg.SortChannels();
 
     dlg.InitImport("Stands and Channels");
 
@@ -4664,14 +4658,14 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
                             }
                         }
                     }
-                    dlg.channelNames.push_back(name);
+                    dlg.AddChannel(name);
                     dlg.channelColors[name] = xlBLACK;
                 }
             }
         }
     }
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    dlg.SortChannels();
     dlg.timingTracks = timingTrackNames;
 
     dlg.InitImport();
@@ -4847,10 +4841,10 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
         }
         else
         {
-            dlg.channelNames.push_back(it);
+            dlg.AddChannel(it);
         }
     }
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    dlg.SortChannels();
     auto timings = vixen.GetTimings();
     for (const auto& it : timings)
     {

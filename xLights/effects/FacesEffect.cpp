@@ -266,7 +266,7 @@ void FacesEffect::SetPanelStatus(Model* cls) {
 
             std::list<std::string> used;
             for (const auto& it : m->stateInfo) {
-                if (std::find(begin(used), end(used), it.first) == end(used) /* && it.second.size() > 30*/) // actually it should be about 120
+                if (std::find(begin(used), end(used), it.first) == end(used) )
                 {
                     fp->Choice1->Append(it.first);
                     used.push_back(it.first);
@@ -433,7 +433,7 @@ uint8_t FacesEffect::CalculateAlpha(SequenceElements* elements, int leadFrames, 
     return res;
 }
 
-void FacesEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer) {
+void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
     uint8_t alpha = 255;
     if (SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false)) {
         if (SettingsMap["CHOICE_Faces_TimingTrack"] != "") {
@@ -1258,10 +1258,20 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
         std::string picture = "";
         if (model_info->faceInfo[definition].find(key + e) != model_info->faceInfo[definition].end()) {
             picture = model_info->faceInfo[definition][key + e];
+            if (shimmer) {
+                if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0) {
+                    picture = model_info->faceInfo[definition]["Mouth-rest-Eyes" + e];
+                }
+            }
         }
         if (picture == "" && e == "Closed") {
             if (model_info->faceInfo[definition].find(key + "Open") != model_info->faceInfo[definition].end()) {
                 picture = model_info->faceInfo[definition][key + "Open"];
+                if (shimmer) {
+                    if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0) {
+                        picture = model_info->faceInfo[definition]["Mouth-rest-EyesOpen"];
+                    }
+                }
             }
         }
         std::string dirstr = "none"; /*RENDER_PICTURE_NONE*/

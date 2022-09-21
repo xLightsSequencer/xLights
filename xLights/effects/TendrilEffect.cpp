@@ -447,23 +447,23 @@ void TendrilEffect::SetDefaultParameters() {
     SetSliderValue(tp->Slider_Tendril_ManualY, 0);
 }
 
-void TendrilEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void TendrilEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
-        SettingsMap.Get("CHOICE_Tendril_Movement", "Random"),
-        GetValueCurveInt("Tendril_TuneMovement", 10, SettingsMap, oset, 0, 20, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        SettingsMap.GetInt("TEXTCTRL_Tendril_Speed", 10),
-        GetValueCurveInt("Tendril_Thickness", 1, SettingsMap, oset, 1, 20, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        SettingsMap.GetFloat("TEXTCTRL_Tendril_Friction", 10) / 20 * 0.2 + 0.4, // 0.4->0.6 but on screen 0-20: def 0.5
-        SettingsMap.GetFloat("TEXTCTRL_Tendril_Dampening", 10) / 20 * 0.5, // 0->0.5 but on screen 0-20: def 0.25
-        SettingsMap.GetFloat("TEXTCTRL_Tendril_Tension", 20) / 39 * 0.039 + 0.96, // 0.960->0.999 but on screen 0->39: def 0.980
-        SettingsMap.GetInt("TEXTCTRL_Tendril_Trails", 1),
-        SettingsMap.GetInt("TEXTCTRL_Tendril_Length", 60),
-        GetValueCurveInt("Tendril_XOffset", 0, SettingsMap, oset, -100, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Tendril_YOffset", 0, SettingsMap, oset, -100, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Tendril_ManualX", 0, SettingsMap, oset, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Tendril_ManualY", 0, SettingsMap, oset, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS())
-    );
+           SettingsMap.Get("CHOICE_Tendril_Movement", "Random"),
+           GetValueCurveInt("Tendril_TuneMovement", 10, SettingsMap, oset, TENDRIL_MOVEMENT_MIN, TENDRIL_MOVEMENT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetInt("TEXTCTRL_Tendril_Speed", 10),
+           GetValueCurveInt("Tendril_Thickness", 1, SettingsMap, oset, TENDRIL_THICKNESS_MIN, TENDRIL_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetFloat("TEXTCTRL_Tendril_Friction", 10) / 20 * 0.2 + 0.4,   // 0.4->0.6 but on screen 0-20: def 0.5
+           SettingsMap.GetFloat("TEXTCTRL_Tendril_Dampening", 10) / 20 * 0.5,        // 0->0.5 but on screen 0-20: def 0.25
+           SettingsMap.GetFloat("TEXTCTRL_Tendril_Tension", 20) / 39 * 0.039 + 0.96, // 0.960->0.999 but on screen 0->39: def 0.980
+           SettingsMap.GetInt("TEXTCTRL_Tendril_Trails", 1),
+           SettingsMap.GetInt("TEXTCTRL_Tendril_Length", 60),
+           GetValueCurveInt("Tendril_XOffset", 0, SettingsMap, oset, TENDRIL_OFFSETX_MIN, TENDRIL_OFFSETX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Tendril_YOffset", 0, SettingsMap, oset, TENDRIL_OFFSETY_MIN, TENDRIL_OFFSETY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Tendril_ManualX", 0, SettingsMap, oset, TENDRIL_MANUALX_MIN, TENDRIL_MANUALX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Tendril_ManualY", 0, SettingsMap, oset, TENDRIL_MANUALY_MIN, TENDRIL_MANUALY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
 }
 
 class TendrilRenderCache : public EffectRenderCache {

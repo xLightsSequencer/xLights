@@ -56,7 +56,7 @@ void LinesEffect::SetDefaultParameters()
     lp->ValidateWindow();
 }
 
-void LinesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void LinesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
         SettingsMap.GetInt("SLIDER_Lines_Objects", 2),

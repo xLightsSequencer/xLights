@@ -110,6 +110,18 @@ bool HttpServer::Stop()
 	return true;
 }
 
+// Added for xLights
+bool HttpServer::IsConnectionValid(HttpConnection* connection) const
+{
+    for (const auto& it : _connections) {
+        if (it.second == connection) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void HttpServer::OnServerEvent(wxSocketEvent& event)
 {
 #ifdef DETAILED_LOGGING

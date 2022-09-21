@@ -28,7 +28,10 @@
 #include "OPCOutput.h"
 #include "../controllers/ControllerCaps.h"
 #include "../models/ModelManager.h"
+
+#ifndef EXCLUDENETWORKUI
 #include "../xLightsMain.h"
+#endif
 
 #pragma region Property Choices
 wxPGChoices ControllerEthernet::__types;
@@ -500,9 +503,6 @@ bool ControllerEthernet::SupportsFullxLightsControl() const
 
 bool ControllerEthernet::SupportsDefaultBrightness() const
 {
-    if (_type == OUTPUT_ZCPP)
-        return false;
-
     auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
     if (c != nullptr) {
         return c->SupportsDefaultBrightness();
@@ -841,6 +841,9 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     bool allSameSize = AllSameSize();
     if (_outputs.size() == 1) {
         _outputs.front()->AddProperties(propertyGrid, allSameSize, expandProperties);
+    }
+    else {
+        _outputs.front()->AddMultiProperties(propertyGrid, allSameSize, expandProperties);
     }
 
     if (_type == OUTPUT_KINET) {
@@ -1197,6 +1200,17 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
 
     if (_outputs.size() == 1) {
         if (_outputs.front()->HandlePropertyEvent(event, outputModelManager)) return true;
+    }
+    else {
+        if (_outputs.front()->HandleMultiPropertyEvent(event, outputModelManager)) {
+            auto it = _outputs.begin();
+            ++it;
+            while (it != _outputs.end()) {
+                (*it)->HandleMultiPropertyEvent(event, outputModelManager);
+                ++it;
+            }
+            return true;
+        }
     }
 
     return false;

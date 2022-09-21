@@ -99,8 +99,6 @@ wxString ColorWashEffect::GetEffectString() {
     return ret.str();
 }
 
-
-
 xlEffectPanel *ColorWashEffect::CreatePanel(wxWindow *parent) {
     return new ColorWashPanel(parent);
 }
@@ -131,6 +129,7 @@ void ColorWashEffect::adjustSettings(const std::string &version, Effect *effect,
     effect->GetSettings().erase("E_SLIDER_ColorWash_Y1");
     effect->GetSettings().erase("E_SLIDER_ColorWash_Y2");
 }
+
 void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect) {
     SettingsMap &settingsMap = effect->GetSettings();
     if (settingsMap.Get("E_CHECKBOX_ColorWash_HFade", "") == "0") {
@@ -151,7 +150,7 @@ void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect)
     RenderableEffect::RemoveDefaults(version, effect);
 }
 
-void ColorWashEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     float cycles = GetValueCurveDouble("ColorWash_Cycles", 1.0, SettingsMap, oset, COLOURWASH_CYCLES_MIN, COLOURWASH_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

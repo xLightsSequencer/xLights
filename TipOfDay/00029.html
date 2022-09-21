@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00029.html" title="Blend Effects Between Models" category="Sequencing" level="Expert" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Blend Effects Between Models</h1>
+        <p>In the sequence settings is an option that allows you to turn on/off blending effects between models.</p>
+        <p>When it is turned off each model effectively renders independently of any other model. If 2 models contain the same channel (such as 2 groups containing the same model or the model and a group containing that model) have effects on it at the same time the model lower in the master view will not only be the thing that renders last on the model but the content of the other models effects will be totally ignored.</p>
+        <p>When it is turned on ... its like the earlier model is a layer under the latter model in the master view and any blend style applied blends the pixel data between the two different models effects.</p>
+        <p>Obviously this can make a big difference to how effects come together and it is one of the reasons why when you import a sequence we by default copy the state of this option from the sequence you are importing from. Otherwise effects even added to models in the same order may not look the same.</p>
+    </body>
+</html>

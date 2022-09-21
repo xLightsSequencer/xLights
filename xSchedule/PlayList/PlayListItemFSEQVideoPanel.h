@@ -55,6 +55,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		wxCheckBox* CheckBox_SuppressVirtualMatrix;
 		wxCheckBox* CheckBox_Topmost;
 		wxCheckBox* CheckBox_UseMediaPlayer;
+		wxChoice* Choice_AudioDevice;
 		wxChoice* Choice_BlendMode;
 		wxSlider* Slider1;
 		wxSpinCtrl* SpinCtrl_Channels;
@@ -62,6 +63,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		wxSpinCtrl* SpinCtrl_FadeOut;
 		wxSpinCtrl* SpinCtrl_Priority;
 		wxStaticText* StaticText10;
+		wxStaticText* StaticText11;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -105,6 +107,8 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		static const long ID_CHECKBOX9;
 		static const long ID_CHECKBOX2;
 		static const long ID_SLIDER1;
+		static const long ID_STATICTEXT13;
+		static const long ID_CHOICE2;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT10;

@@ -25,7 +25,7 @@ SUDO		= `which sudo`
 
 SUBDIRS         = xLights xSchedule xCapture xFade xScanner xSchedule/xSMSDaemon xSchedule/RemoteFalcon
 
-WXWIDGETS_TAG=xlights_2022.11
+WXWIDGETS_TAG=xlights_2022.17b
 
 .NOTPARALLEL:
 
@@ -77,7 +77,7 @@ log4cpp: FORCE
 
 wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
-	@if test "`wx-config --version`" != "3.1.7"; \
+	@if test "`wx-config --version`" != "3.3.0"; \
 		then if test ! -d wxWidgets-$(WXWIDGETS_TAG); \
 			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b $(WXWIDGETS_TAG) https://github.com/xLightsSequencer/wxWidgets wxWidgets-$(WXWIDGETS_TAG); \
 		fi; \

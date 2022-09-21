@@ -14,6 +14,7 @@
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../../xLights/outputs/OutputManager.h"
+#include "../../xLights/AudioManager.h"
 
 //(*InternalHeaders(PlayListItemColourOrganPanel)
 #include <wx/intl.h>
@@ -25,6 +26,8 @@ const long PlayListItemColourOrganPanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListItemColourOrganPanel::ID_TEXTCTRL1 = wxNewId();
 const long PlayListItemColourOrganPanel::ID_STATICTEXT2 = wxNewId();
 const long PlayListItemColourOrganPanel::ID_CHOICE1 = wxNewId();
+const long PlayListItemColourOrganPanel::ID_STATICTEXT14 = wxNewId();
+const long PlayListItemColourOrganPanel::ID_CHOICE2 = wxNewId();
 const long PlayListItemColourOrganPanel::ID_STATICTEXT3 = wxNewId();
 const long PlayListItemColourOrganPanel::ID_COLOURPICKERCTRL1 = wxNewId();
 const long PlayListItemColourOrganPanel::ID_STATICTEXT10 = wxNewId();
@@ -74,6 +77,10 @@ PlayListItemColourOrganPanel::PlayListItemColourOrganPanel(wxWindow* parent, Out
 	Choice_Mode = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	Choice_Mode->SetSelection( Choice_Mode->Append(_("Maximum")) );
 	FlexGridSizer1->Add(Choice_Mode, 1, wxALL|wxEXPAND, 5);
+	StaticText13 = new wxStaticText(this, ID_STATICTEXT14, _("Input Audio Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT14"));
+	FlexGridSizer1->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_InputDevice = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	FlexGridSizer1->Add(Choice_InputDevice, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Colour:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ColourPickerCtrl1 = new wxColourPickerCtrl(this, ID_COLOURPICKERCTRL1, wxColour(255,255,255), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL1"));
@@ -136,6 +143,12 @@ PlayListItemColourOrganPanel::PlayListItemColourOrganPanel(wxWindow* parent, Out
     PopulateBlendModes(Choice_BlendMode);
     Choice_BlendMode->SetSelection(0);
 
+    Choice_InputDevice->SetSelection(Choice_InputDevice->Append(_("(Default)")));
+    auto inputAudioDevices = AudioManager::GetInputAudioDevices();
+    for (const auto& it : inputAudioDevices) {
+        Choice_InputDevice->Append(it);
+    }
+
     long channels = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
     SpinCtrl_Channels->SetRange(1, channels / 3);
 
@@ -151,6 +164,10 @@ PlayListItemColourOrganPanel::PlayListItemColourOrganPanel(wxWindow* parent, Out
     SpinCtrl_FadeFrames->SetValue(_ColourOrgan->GetFadeFrames());
 	SpinCtrl_Priority->SetValue(_ColourOrgan->GetPriority());
 	SpinCtrl_Threshold->SetValue(_ColourOrgan->GetThreshold());
+    Choice_InputDevice->SetStringSelection(_ColourOrgan->GetInputDevice());
+    if (_ColourOrgan->GetInputDevice() == "") {
+        Choice_InputDevice->SetSelection(0);
+    }
 
     ValidateWindow();
 }
@@ -171,6 +188,7 @@ PlayListItemColourOrganPanel::~PlayListItemColourOrganPanel()
     _ColourOrgan->SetFadeFrames(SpinCtrl_FadeFrames->GetValue());
 	_ColourOrgan->SetPriority(SpinCtrl_Priority->GetValue());
 	_ColourOrgan->SetThreshold(SpinCtrl_Threshold->GetValue());
+    _ColourOrgan->SetInputDevice(Choice_InputDevice->GetStringSelection());
 }
 
 void PlayListItemColourOrganPanel::OnTextCtrl_NameText(wxCommandEvent& event)

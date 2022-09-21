@@ -44,6 +44,7 @@ class KeyBindingEditDialog: public wxDialog
 		//(*Declarations(KeyBindingEditDialog)
 		wxButton* ButtonAddApplySetting;
 		wxButton* ButtonAddPreset;
+		wxButton* ButtonSave;
 		wxButton* Button_AddEffect;
 		wxButton* Button_Close;
 		wxChoice* Choice_Scope;
@@ -63,6 +64,7 @@ class KeyBindingEditDialog: public wxDialog
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON2;
+		static const long ID_BUTTON_SAVE;
 		static const long ID_BUTTON_CANCEL;
 		//*)
 
@@ -79,6 +81,7 @@ class KeyBindingEditDialog: public wxDialog
 		void OnButton_AddEffectClick(wxCommandEvent& event);
 		void OnButtonAddApplySettingClick(wxCommandEvent& event);
 		void OnButtonAddPresetClick(wxCommandEvent& event);
+		void OnButtonSaveClick(wxCommandEvent& event);
 		//*)
 
 		void OnControllerPropertyGridChange(wxPropertyGridEvent& event);

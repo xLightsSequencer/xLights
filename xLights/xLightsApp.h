@@ -14,7 +14,17 @@
 
 class xLightsFrame;
 
-class xLightsApp : public xlGLBaseApp
+#include "graphics/xlGraphicsBase.h"
+
+#if defined(XL_DRAWING_WITH_OPENGL)
+#define xLightsAppBaseClass xlGLBaseApp
+#else
+#define xLightsAppBaseClass xlBaseApp
+#endif
+
+
+
+class xLightsApp : public xLightsAppBaseClass
 {
     void WipeSettings();
 

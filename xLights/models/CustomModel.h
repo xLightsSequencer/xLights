@@ -47,6 +47,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int MapPhysicalStringToLogicalString(int string) const override;
 
         virtual int GetNumPhysicalStrings() const override;
+        bool SupportsChangingStringCount() const override{ return true; };
+        bool ChangeStringCount(long count, std::string& message) override;
 
         std::string GetCustomData() const;
         void SetCustomData(const std::string &data);
@@ -86,4 +88,5 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         std::string custom_background;
         int _strings;
         std::vector<int> stringStartNodes;
+        std::vector<std::vector<std::vector<int>>> locations;
 };

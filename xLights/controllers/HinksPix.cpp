@@ -47,7 +47,7 @@ void HinksPixOutput::Dump() const {
 }
 
 void HinksPixOutput::SetConfig(wxString const& data) {
-    const wxArrayString config = Split(data, { ',' });
+    const wxArrayString config = Split(data, std::vector<char>({ ',' }));
     if (config.size() != 10) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("Invalid config data '%s'", (const char*)data.c_str());
@@ -149,7 +149,7 @@ void HinksSmartOutput::Dump() const {
 }
 
 void HinksSmartOutput::SetConfig(wxString const& data) {
-    const wxArrayString config = Split(data, { ',' });
+    const wxArrayString config = Split(data, std::vector<char>({ ',' }));
     if (config.size() != 6) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("Invalid config data '%s'", (const char*)data.c_str());
@@ -1267,7 +1267,7 @@ wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, st
 std::map<wxString, wxString> HinksPix::StringToMap(wxString const& text) const
 {
     std::map<wxString, wxString> map;
-    const wxArrayString items = Split(text, { ',' });
+    const wxArrayString items = Split(text, std::vector<char>({ ',' }));
     if (items.size() % 2 == 0) {
         for (int i = 0; i < items.size() - 1; i += 2) {
             map[items[i]] = items[i + 1];

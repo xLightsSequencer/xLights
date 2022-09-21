@@ -768,10 +768,12 @@ void Controller::SetAutoSize(bool autosize, OutputModelManager* omm)
     if (_autoSize != autosize) {
         _autoSize = autosize;
         _dirty = true;
-        if (_autoSize) {
-            ControllerEthernet* ce = dynamic_cast<ControllerEthernet*>(this);
-            if (ce != nullptr) {
+        ControllerEthernet* ce = dynamic_cast<ControllerEthernet*>(this);
+        if (ce != nullptr) {
+            if (_autoSize) {
                 ce->SetAllSameSize(true, omm);
+            } else {
+                ce->SetUniversePerString(false);
             }
         }
     }

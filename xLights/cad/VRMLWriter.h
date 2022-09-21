@@ -22,11 +22,11 @@ struct VRMLWriter : CADWriter
 	bool MapToScreen() override { return false; };
 
 	void WriteHeader() override;
-	void WriteText(CADPoint const& loc, std::string const& text, float height, float rotation = 0.0 ) override;
-	void WriteWire(CADPoint const& loc1, CADPoint const& loc2 ) override;
-	void WriteNode(CADPoint const& loc) override;
-	void WriteFirstNode(CADPoint const& loc) override;
-	void WriteLastNode(CADPoint const& loc) override;
+	void WriteText(CADPoint const& loc, std::string const& text, float height, uint32_t color, float rotation = 0.0 ) override;
+	void WriteWire(CADPoint const& loc1, CADPoint const& loc2, uint32_t color ) override;
+	void WriteNode(CADPoint const& loc, uint32_t color) override;
+	void WriteFirstNode(CADPoint const& loc, uint32_t color) override;
+	void WriteLastNode(CADPoint const& loc, uint32_t color) override;
 
 	void WriteNode(CADPoint const& loc, std::string const& color);
 };

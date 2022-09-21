@@ -14,6 +14,7 @@
 
 #include "DmxFloodlight.h"
 #include "DmxColorAbilityRGB.h"
+#include "DmxPresetAbility.h"
 #include "../../ModelPreview.h"
 #include "../../UtilFunctions.h"
 #include "../../xLightsMain.h"
@@ -125,12 +126,19 @@ void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
     preview->GetVirtualCanvasSize(w, h);
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(1, 1, 1);
+    if (boundingBox) {
+        boundingBox[0] = -0.5;
+        boundingBox[1] = -0.5;
+        boundingBox[2] = -0.5;
+        boundingBox[3] = 0.5;
+        boundingBox[4] = 0.5;
+        boundingBox[5] = 0.5;
+    }
 
     // determine if shutter is open for floods that support it
     bool shutter_open = allowSelected || IsShutterOpen(Nodes);
 
-    size_t NodeCount = Nodes.size();
-    if (!color_ability->IsValidModelSettings(this)) {
+    if (!color_ability->IsValidModelSettings(this) || !preset_ability->IsValidModelSettings(this)) {
         DmxModel::DrawInvalid(solidProgram, &(GetModelScreenLocation()), is_3d, true);
     } else {
         xlColor center, edge;
@@ -262,6 +270,7 @@ void DmxFloodlight::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</dmxmodel>");
     f.Close();
 }
@@ -286,7 +295,7 @@ void DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxFloodlight::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxFloodlight::ImportXlightsModel");

@@ -39,6 +39,7 @@ class RemoteFalconOptions
     bool _clearQueueOnStart = true;
     bool _sendEnableDisable = false;
     bool _effectPlaylist = false;
+    bool _sendPlayingEffect = false;
     EFFECT_MODE _effectMode = EFFECT_MODE::EM_PLAY_IMMEDIATELY;
 
     public:
@@ -54,6 +55,18 @@ class RemoteFalconOptions
 
         bool GetClearQueueOnStart() const { return _clearQueueOnStart; }
         void SetClearQueueOnStart(bool clearQueue) { if (clearQueue != _clearQueueOnStart) { _clearQueueOnStart = clearQueue; _changeCount++; } }
+
+        bool IsSendPlayingEffect() const
+        {
+            return _sendPlayingEffect;
+        }
+        void SetSendPlayignEffect(bool sendPlayingEffect)
+        {
+            if (_sendPlayingEffect != sendPlayingEffect) {
+                _sendPlayingEffect = sendPlayingEffect;
+                _changeCount++;
+            }
+        }
 
         bool IsEnableDisable() const { return _sendEnableDisable; }
         void SetEnableDisable(bool sendEnableDisable) { if (_sendEnableDisable != sendEnableDisable) { _sendEnableDisable = sendEnableDisable; _changeCount++; } }

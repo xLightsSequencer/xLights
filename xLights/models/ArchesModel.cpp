@@ -379,6 +379,14 @@ void ArchesModel::InitModel()
 }
 
 int ArchesModel::MapToNodeIndex(int strand, int node) const {
+    if (GetLayerSizeCount() != 0) {
+        int idx = 0;
+        for (int x = GetLayerSizeCount() - 1; x > strand; x--) {
+            idx += GetStrandLength(x);
+        }
+        idx += node;
+        return idx;
+    }
     return strand * parm2 + node;
 }
 int ArchesModel::GetNumStrands() const {
@@ -387,6 +395,24 @@ int ArchesModel::GetNumStrands() const {
     }
     return parm1;
 }
+
+int ArchesModel::GetStrandLength(int strand) const
+{
+    if (GetLayerSizeCount() == 0) {
+        return Model::GetStrandLength(strand);
+    } else {
+        return GetLayerSize(strand);
+    }
+}
+
+int ArchesModel::GetMappedStrand(int strand) const
+{
+    if (GetLayerSizeCount() != 0) {
+        return GetLayerSizeCount() - strand - 1;
+    }
+    return strand;
+}
+
 int ArchesModel::CalcCannelsPerString()
 {
     SingleChannel = false;
@@ -520,8 +546,8 @@ void ArchesModel::ExportXlightsModel()
     wxString p3 = ModelXml->GetAttribute("parm3");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ss = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
@@ -567,6 +593,7 @@ void ArchesModel::ExportXlightsModel()
     if (submodel != "") {
         f.Write(submodel);
     }
+    ExportDimensions(f);
     f.Write("</archesmodel>");
     f.Close();
 }
@@ -580,8 +607,8 @@ void ArchesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         wxString p3 = root->GetAttribute("parm3");
         wxString st = root->GetAttribute("StringType");
         wxString ps = root->GetAttribute("PixelSize");
-        wxString t = root->GetAttribute("Transparency");
-        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString t = root->GetAttribute("Transparency", "0");
+        wxString mb = root->GetAttribute("ModelBrightness", "0");
         wxString a = root->GetAttribute("Antialias");
         wxString an = root->GetAttribute("Angle");
         wxString ss = root->GetAttribute("StartSide");
@@ -623,7 +650,7 @@ void ArchesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::ImportXlightsModel");

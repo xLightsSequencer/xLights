@@ -33,6 +33,7 @@
 #include "../xSchedule/xSMSDaemon/Curl.h"
 
 #include <mutex>
+#include <string_view>
 
 #ifdef __WXMSW__
 #include <psapi.h>
@@ -594,6 +595,20 @@ std::string EscapeCSV(const std::string& s)
     return res;
 }
 
+std::string EscapeRegex(const std::string& s)
+{
+    // \,*,+,?,|,{,[, (,),^,$,.,#,
+    constexpr std::string_view BADREX {R"(\*+?|{[()^$,#)"};
+    std::string safe;
+    for (auto& c : s) {
+        if (BADREX.find(c) != std::string::npos) {
+            safe += "\\";
+        }
+        safe += c;
+    }
+    return safe;
+}
+
 wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& def)
 {
     wxXmlNode* curr = parent;
@@ -1096,6 +1111,11 @@ bool IsValidLocalIP(const std::string& ip)
     return false;
 }
 
+bool IsValidLocalIP(const wxIPV4address& ip)
+{
+    return IsValidLocalIP(ip.IPAddress().ToStdString());
+}
+
 bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::string& mask)
 {
     wxIPV4address i1;
@@ -1169,7 +1189,7 @@ std::string Ordinal(int i)
 {
     wxString ii = wxString::Format("%d", i);
 
-    if (ii.EndsWith("11") || ii.EndsWith("12") || ii.EndsWith("12")) {
+    if (ii.EndsWith("11") || ii.EndsWith("12") || ii.EndsWith("13")) {
         return (ii + "th").ToStdString();
     }
     else if (ii.EndsWith("1")) {
@@ -1225,30 +1245,13 @@ bool IsIPValidOrHostname(const std::string& ip, bool iponly)
         return true;
     }
 
-    if (ip == "") return false;
+    static wxRegEx regxIPAddr("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
 
-    bool hasChar = false;
-    bool hasDot = false;
-    //hostnames need at least one char in it if fully qualified
-    //if not fully qualified (no .), then the hostname only COULD be just numeric
-    for (size_t y = 0; y < ip.length(); y++) {
-        char x = ip[y];
-        if ((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || x == '-') {
-            hasChar = true;
-        }
-        if (x == '.') {
-            hasDot = true;
-        }
+    wxString ips = wxString(ip).Trim(false).Trim(true);
+    if (regxIPAddr.Matches(ips)) {
+        return true;
     }
-    if (hasChar || (!hasDot && !hasChar)) {
-        if (iponly) return true;
-        wxIPV4address addr;
-        addr.Hostname(ip);
-        wxString ipAddr = addr.IPAddress();
-        if (ipAddr != "0.0.0.0") {
-            return true;
-        }
-    }
+    
     return false;
 }
 
@@ -1484,7 +1487,7 @@ void DumpBinary(uint8_t* buffer, size_t sz)
         }
         out += "    ";
         for (size_t j = i * 16; j < std::min(sz, (i + 1) * 16); j++) {
-            if (buffer[j] < 32 || buffer[j] > 127) {
+            if (buffer[j] < 32 || buffer[j] > 126) {
                 out += '.';
             }
             else {
@@ -1493,6 +1496,20 @@ void DumpBinary(uint8_t* buffer, size_t sz)
         }
         logger_base.debug(out);
     }
+}
+
+wxColor CyanOrBlue()
+{
+#ifndef __WXMSW__
+    if (wxSystemSettings::GetAppearance().IsDark()) {
+        // In Dark Mode blue is hard to read
+        return *wxCYAN;
+    } else {
+#endif
+        return *wxBLUE;
+#ifndef __WXMSW__
+    }
+#endif
 }
 
 void CleanupIpAddress(wxString& IpAddr)

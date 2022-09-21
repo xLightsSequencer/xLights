@@ -40,7 +40,8 @@
 			<SupportsPixelPortNullPixels/>
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
-            <SupportsUniversePerString/>
+			<SupportsUniversePerString/>
+			<DMXAfterPixels/>
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>16</SupportsSmartRemotes>
 			<SupportsUpload/>
@@ -64,11 +65,11 @@
 				<Protocol>artnet</Protocol>
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
-            <SmartRemoteTypes>
-                <Type>hinkspix_4</Type>
-                <Type>hinkspix_16</Type>
-                <Type>hinkspix_16ac</Type>
-            </SmartRemoteTypes>
+			<SmartRemoteTypes>
+				<Type>hinkspix_4</Type>
+				<Type>hinkspix_16</Type>
+				<Type>hinkspix_16ac</Type>
+			</SmartRemoteTypes>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</Variant>
 	</Controller>

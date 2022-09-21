@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "TwinklePanel.h"
+#include "TwinkleEffect.h"
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(TwinklePanel)
@@ -123,8 +124,8 @@ TwinklePanel::TwinklePanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&TwinklePanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&TwinklePanel::OnValidateWindow, 0, this);
 
-	BitmapButton_Twinkle_CountVC->GetValue()->SetLimits(2, 100);
-	BitmapButton_Twinkle_StepsVC->GetValue()->SetLimits(2, 200);
+	BitmapButton_Twinkle_CountVC->GetValue()->SetLimits(TWINKLE_COUNT_MIN, TWINKLE_COUNT_MAX);
+    BitmapButton_Twinkle_StepsVC->GetValue()->SetLimits(TWINKLE_STEPS_MIN, TWINKLE_STEPS_MAX);
 
     SetName("ID_PANEL_TWINKLE");
 

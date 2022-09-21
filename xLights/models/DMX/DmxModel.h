@@ -14,6 +14,7 @@
 
 #include <memory>
 class DmxColorAbility;
+class DmxPresetAbility;
 class wxFile;
 
 static const char* DMX_COLOR_TYPES_VALUES[] = {
@@ -44,7 +45,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         bool HasColorAbility() { return nullptr != color_ability ; }
         DmxColorAbility* GetColorAbility() { return color_ability.get(); }
-        virtual void EnableFixedChannels(xlColorVector& pixelVector){};
+        virtual void EnableFixedChannels(xlColorVector& pixelVector);
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
@@ -66,6 +67,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetNodeNames(const std::string& default_names, bool force = false);
 
         std::unique_ptr<DmxColorAbility> color_ability;
+        std::unique_ptr<DmxPresetAbility> preset_ability;
 
     private:
 };

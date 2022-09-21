@@ -294,6 +294,9 @@
     <ClInclude Include="..\xLights\outputs\TwinklyOutput.h">
       <Filter>xLights</Filter>
     </ClInclude>
+    <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h">
+      <Filter>xLights</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

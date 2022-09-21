@@ -25,9 +25,9 @@ void PhonemeDictionary::LoadDictionaries(const wxString& showDir, wxWindow* pare
     if (phoneme_dict.size() > 0)
         return;
 
-    LoadDictionary("user_dictionary", showDir, parent);
     LoadDictionary("standard_dictionary", showDir, parent, wxFONTENCODING_ISO8859_1);
     LoadDictionary("extended_dictionary", showDir, parent, wxFONTENCODING_ISO8859_1);
+    LoadDictionary("user_dictionary", showDir, parent); // load user last so it overrides the other dictionaries
 
     wxFileName phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
     phonemeFile.SetFullName("phoneme_mapping");

@@ -13,6 +13,7 @@
 #include <vector>
 #include <map>
 #include "Color.h"
+#include <wx/wx.h>
 #include <wx/xml/xml.h>
 
 class Model;
@@ -51,6 +52,44 @@ struct LOREditEffect
     static wxString RescaleWithRangeI(wxString r, wxString vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, wxString& vc, float targetRealMin, float targetRealMax);
     static wxString RescaleWithRangeF(wxString r, wxString vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, wxString& vc, float targetRealMin, float targetRealMax);
     std::string GetBlend() const;
+    static std::string SafeGetStringParm(const wxArrayString& arr, int param)
+    {
+        if (param < arr.size())
+            return arr[param];
+        return "";
+    }
+    static int SafeGetIntParm(const wxArrayString& arr, int param)
+    {
+        if (param < arr.size())
+            return wxAtoi(arr[param]);
+        return 0;
+    }
+    static bool SafeGetBoolParm(const wxArrayString& arr, int param)
+    {
+        if (param < arr.size())
+            return arr[param] == "True";
+        return false;
+    }
+    static std::string ProperCase(const std::string_view& s)
+    {
+        std::string res;
+        bool cap = true;
+        for (const auto& it: s) {
+            if (it == ' ' || it == '\t') {
+                cap = true;
+                res += it;
+            } else 
+            {
+                if (cap) {
+                    res += std::toupper(it);
+                    cap = false;
+                } else {
+                    res += it;
+                }
+            }
+        }
+        return res;
+    }
 };
 
 class LOREdit {

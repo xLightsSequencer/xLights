@@ -70,6 +70,8 @@
 #include "CustomModelDialog.h"
 #include "SubModelsDialog.h"
 
+#include "LayoutUtils.h"
+
 #include <log4cpp/Category.hh>
 
 #include <set>
@@ -189,6 +191,7 @@ const long LayoutPanel::ID_MNU_MAKEALLSCNOTOVERLAPPING = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_TO_EXISTING_GROUPS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETE_ACTIVE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_RENAME_ACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELETEPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDCURVE = wxNewId();
@@ -271,8 +274,8 @@ class NewModelBitmapButton : public wxBitmapButton
 {
 public:
 
-    NewModelBitmapButton(wxWindow *parent, const wxBitmap &bmp, const std::string &type)
-        : wxBitmapButton(parent, wxID_ANY, bmp), state(0), bitmap(bmp), modelType(type) {
+    NewModelBitmapButton(wxWindow *parent, const wxBitmapBundle &bmp, const wxBitmapBundle& bmpDis, const wxBitmapBundle& pBmp, const std::string &type)
+        : wxBitmapButton(parent, wxID_ANY, bmp), bitmap(bmp), bitmapDisabled(bmpDis), pressedBitmap(pBmp), modelType(type) {
         SetToolTip("Create new " + type);
     }
     virtual ~NewModelBitmapButton() {}
@@ -283,10 +286,9 @@ public:
         }
         state = s;
         if (state == 2) {
-            SetBitmap(bitmap.ConvertToDisabled());
+            SetBitmap(bitmapDisabled);
         } else if (state == 1) {
-            const wxImage imgDisabled = bitmap.ConvertToImage().ConvertToDisabled(128);
-            SetBitmap(wxBitmap(imgDisabled, -1, bitmap.GetScaleFactor()));
+            SetBitmap(pressedBitmap);
         } else {
             SetBitmap(bitmap);
         }
@@ -302,8 +304,10 @@ public:
 protected:
 private:
     const std::string modelType;
-    unsigned int state;
-    wxBitmap bitmap;
+    uint32_t state = 0;
+    wxBitmapBundle bitmap;
+    wxBitmapBundle bitmapDisabled;
+    wxBitmapBundle pressedBitmap;
 };
 
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) : xlights(xl), main_sequencer(sequencer)
@@ -443,7 +447,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
                                         // Default style
                                         wxPG_DEFAULT_STYLE);
     propertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
-    InitImageList();
+    LayoutUtils::CreateImageList(m_imageList);
 
     wxFlexGridSizer* FlexGridSizerModels = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizerModels->AddGrowableCol(0);
@@ -585,32 +589,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     }
 }
 
-void LayoutPanel::InitImageList()
-{
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("wxART_NORMAL_FILE", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_GROUP_CLOSED", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_GROUP_OPEN", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_ARCH_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CANE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CIRCLE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CHANNELBLOCK_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CUBE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CUSTOM_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_DMX_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_ICICLE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_IMAGE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_LINE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_MATRIX_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_POLY_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SPHERE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SPINNER_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_STAR_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SUBMODEL_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_TREE_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_WINDOW_ICON", wxART_LIST));
-    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_WREATH_ICON", wxART_LIST));
-}
-
 wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
 {
     wxTreeListCtrl* const
@@ -735,18 +713,28 @@ std::string LayoutPanel::GetCurrentPreview() const
     return ChoiceLayoutGroups->GetStringSelection().ToStdString();
 }
 
-NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
-    wxImage image(data);
-#if defined(__WXOSX__)
-    wxBitmap bitmap(image, -1, 2.0);
+#ifdef __WXMSW__
+// On windows wxIMAGE_QUALITY_HIGH results in blank rescaled images
+#define RESCALE_MODEL_BUTTON_QUALITY wxIMAGE_QUALITY_BICUBIC 
 #else
-    image.Rescale(ScaleWithSystemDPI(24),
-                  ScaleWithSystemDPI(24),
-                  wxIMAGE_QUALITY_HIGH);
-    wxBitmap bitmap(image);
+#define RESCALE_MODEL_BUTTON_QUALITY wxIMAGE_QUALITY_HIGH
 #endif
 
-    NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, bitmap, type);
+NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
+
+    wxImage image(data);
+    wxImage disImage = image.ConvertToDisabled();
+    wxImage presImage = image.ConvertToDisabled(128);
+
+    wxImage img24 = image.Scale(24, 24, RESCALE_MODEL_BUTTON_QUALITY);
+    wxImage disImg24 = disImage.Scale(24, 24, RESCALE_MODEL_BUTTON_QUALITY);
+    wxImage presImg24 = presImage.Scale(24, 24, RESCALE_MODEL_BUTTON_QUALITY);
+
+    wxBitmapBundle bmp = wxBitmapBundle::FromBitmaps(img24, image);
+    wxBitmapBundle disBmp = wxBitmapBundle::FromBitmaps(disImg24, disImage);
+    wxBitmapBundle presBmp = wxBitmapBundle::FromBitmaps(presImg24, presImage);
+
+    NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, bmp, disBmp, presBmp, type);
     ToolSizer->Add(button, 1, wxALL, 0);
     buttons.push_back(button);
     Connect(button->GetId(), wxEVT_BUTTON, (wxObjectEventFunction)&LayoutPanel::OnNewModelTypeButtonClicked);
@@ -1187,13 +1175,6 @@ void LayoutPanel::FreezeTreeListView() {
     TreeListViewModels->SetColumnWidth(3, TreeListViewModels->GetColumnWidth(3));
 }
 
-#ifdef __WXOSX__
-// need to add a bit for the arrow which isn't accounted for in column with on OSX
-#define ADDTIONAL_COLUMN_WIDTH 8
-#else
-#define ADDTIONAL_COLUMN_WIDTH 0
-#endif
-
 void LayoutPanel::ThawTreeListView() {
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
@@ -1204,7 +1185,7 @@ void LayoutPanel::ThawTreeListView() {
     if (i <= 20) {
         i = 100;
     }
-    TreeListViewModels->SetColumnWidth(0, i + ADDTIONAL_COLUMN_WIDTH); // add a smidgen to account for borders
+    TreeListViewModels->SetColumnWidth(0, i);
     TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
     TreeListViewModels->Thaw();
     TreeListViewModels->Refresh();
@@ -1283,56 +1264,6 @@ void LayoutPanel::RenameModelInTree(Model *model, const std::string& new_name)
     }
 }
 
-int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
-    if( model->GetDisplayAs() == "ModelGroup" ) {
-        return open ? Icon_FolderOpened : Icon_FolderClosed;
-    }
-    const std::string type = model->GetDisplayAs();
-    if( type == "Arches" ) {
-        return Icon_Arches;
-    } else if( type == "Candy Canes" ) {
-        return Icon_CandyCane;
-    } else if( type == "Circle" ) {
-        return Icon_Circle;
-    } else if (type == "Channel Block") {
-        return Icon_ChannelBlock;
-    } else if( type == "Cube" ) {
-        return Icon_Cube;
-    } else if( type == "Custom" ) {
-        return Icon_Custom;
-    } else if (type == "DMXFloodlight" ||
-               type == "DMXMovingHead" ||
-               type == "DMXMovingHead3D" ||
-               type == "DMXSkull" ||
-               type == "DMXGeneral") {
-        return Icon_Dmx;
-    } else if( type == "Image" ) {
-        return Icon_Image;
-    } else if( type == "Icicles" ) {
-        return Icon_Icicle;
-    } else if( type == "Single Line" ) {
-        return Icon_Line;
-    } else if( type == "Matrix" ) {
-        return Icon_Matrix;
-    } else if( type == "Poly Line" ) {
-        return Icon_Poly;
-    } else if( type == "Sphere" ) {
-        return Icon_Sphere;
-    } else if( type == "Spinner" ) {
-        return Icon_Spinner;
-    } else if( type == "Star" ) {
-        return Icon_Star;
-    } else if( type == "SubModel" ) {
-        return Icon_SubModel;
-    } else if( type == "Tree" ) {
-        return Icon_Tree;
-    } else if( type == "Wreath" ) {
-        return Icon_Wreath;
-    } else if( type == "Window Frame" ) {
-        return Icon_Window;
-    }
-    return Icon_File;
-}
 
 int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1345,8 +1276,8 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
     //logger_base.debug("Adding model %s", (const char *)model->GetFullName().c_str());
 
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, TreeModelName(model, fullName),
-                                                         GetModelTreeIcon(model, false),
-                                                         GetModelTreeIcon(model, true),
+                                                         LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Closed),
+                                                         LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Opened),
                                                          new ModelTreeData(model, nativeOrder, fullName));
     if( model->GetDisplayAs() != "ModelGroup" ) {
         wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
@@ -2309,15 +2240,15 @@ public:
     }
     
     void setImage(const wxImage &img) {
-#if wxRELEASE_NUMBER < 7
+#if (wxRELEASE_NUMBER > 6) || (wxMINOR_VERSION >= 2)
+        m_image = img;
+#else
         if (img.IsOk()) {
             m_pImage = new wxImage(img);
         } else {
             delete m_pImage;
             m_pImage = nullptr;
         }
-#else
-        m_image = img;
 #endif
     }
 
@@ -4564,6 +4495,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             mnu.AppendSeparator();
         }
         mnu.Append(ID_PREVIEW_DELETE_ACTIVE,"Delete this Preview");
+        mnu.Append(ID_PREVIEW_RENAME_ACTIVE, "Rename this Preview");
     }
 
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
@@ -4880,8 +4812,9 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE)
     {
         DeleteCurrentPreview();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT)
+    } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {
+        RenameCurrentPreview();
+    } else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT)
     {
         Model* md=dynamic_cast<Model*>(selectedBaseObject);
         if( md == nullptr ) return;
@@ -5947,20 +5880,17 @@ void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
         if (event.GetId() == it->GetId()) {
             if (it->GetModelType() == "Add Object") {
                 DisplayAddObjectPopup();
-            }
-            else if (it->GetModelType() == "DMX") {
+            } else if (it->GetModelType() == "DMX") {
                 selectedButton = it;
                 DisplayAddDmxPopup();
-            }
-            else {
+            } else {
                 int state = it->GetState();
                 it->SetState(state + 1);
                 if (it->GetState()) {
                     selectedButton = it;
                     UnSelectAllModels();
                     modelPreview->SetFocus();
-                }
-                else {
+                } else {
                     selectedButton = nullptr;
                     _lastXlightsModel = "";
                 }
@@ -5977,15 +5907,8 @@ void LayoutPanel::AddObjectButton(wxMenu& mnu, const long id, const std::string 
     wxMenuItem* menu_item = mnu.Append(id, name);
     if (icon != nullptr) {
         wxImage image(icon);
-#if defined(__WXOSX__)
-        wxBitmap bitmap(image, -1, 2.0);
-#else
-        image.Rescale(ScaleWithSystemDPI(GetContentScaleFactor(), 24),
-            ScaleWithSystemDPI(GetContentScaleFactor(), 24),
-            wxIMAGE_QUALITY_HIGH);
-        wxBitmap bitmap(image);
-#endif
-        menu_item->SetBitmap(image);
+        wxImage halfImg = image.Scale(24, 24, wxIMAGE_QUALITY_HIGH);
+        menu_item->SetBitmap(wxBitmapBundle::FromBitmaps(halfImg, image));
     }
 }
 
@@ -7239,6 +7162,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         md->ExportXlightsModel();
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
+    } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {
+        RenameCurrentPreview();
     } else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
@@ -7953,7 +7878,7 @@ int LayoutPanel::GetBackgroundAlphaForSelectedPreview()
 
 void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
     ChoiceLayoutGroups->SetSelection(0);
-    for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++) {
+    for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); ++i) {
         if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
             ChoiceLayoutGroups->SetSelection(i);
             break;
@@ -7978,7 +7903,7 @@ void LayoutPanel::DeleteCurrentPreview() {
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DeleteCurrentPreview");
 
-        for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++) {
+        for (size_t i = 0; i < ChoiceLayoutGroups->GetCount(); ++i) {
             if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
                 ChoiceLayoutGroups->Delete(i);
                 break;
@@ -8005,6 +7930,64 @@ void LayoutPanel::DeleteCurrentPreview() {
         modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::DeleteCurrentPreview");
     }
+}
+
+void LayoutPanel::RenameCurrentPreview()
+{
+    wxTextEntryDialog dlg(this, "Change preview name", "Enter the new preview name:", currentLayoutGroup);
+    do {
+        if (dlg.ShowModal() == wxCANCEL)
+            return;
+    } while (::Lower(currentLayoutGroup) != ::Lower(dlg.GetValue()) && GetLayoutGroup(dlg.GetValue().ToStdString()) != nullptr);
+
+    for (const auto& it : xlights->AllModels) {
+        Model* model = it.second;
+        if (model->GetLayoutGroup() == currentLayoutGroup) {
+            model->SetLayoutGroup(dlg.GetValue());
+        }
+    }
+
+    wxXmlNode* node = nullptr;
+    for (wxXmlNode* n = xlights->LayoutGroupsNode->GetChildren(); n != nullptr; n = n->GetNext()) {
+        if (n->GetAttribute("name") == currentLayoutGroup) {
+            n->DeleteAttribute("name");
+            n->AddAttribute("name", dlg.GetValue());
+            node = n;
+            break;
+        }
+    }
+
+    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
+        if ((*it)->GetName() == currentLayoutGroup) {
+            (*it)->SetName(dlg.GetValue());
+            break;
+        }
+    }
+
+     for (size_t i = 0; i < ChoiceLayoutGroups->GetCount(); ++i) {
+        if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
+            ChoiceLayoutGroups->SetString(i, dlg.GetValue());
+            break;
+        }
+    }
+
+    currentLayoutGroup = dlg.GetValue();
+
+    SetCurrentLayoutGroup(currentLayoutGroup);
+    SwitchChoiceToCurrentLayoutGroup();
+    xlights->SetStoredLayoutGroup(currentLayoutGroup);
+    UpdateModelList(true);
+
+    modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
+    modelPreview->SetDisplay2DGrid(xlights->GetDisplay2DGrid(), xlights->GetDisplay2DGridSpacing());
+    modelPreview->SetDisplay2DCenter0(xlights->GetDisplay2DCenter0());
+    modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
+    modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
+    modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::RenameCurrentPreview");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::RenameCurrentPreview");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::RenameCurrentPreview");
 }
 
 void LayoutPanel::ShowPropGrid(bool show) {
@@ -8052,7 +8035,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                 mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Model");
                 auto par = TreeListViewModels->GetItemParent(selectedTreeModels[0]);
                 if (par != TreeListViewModels->GetRootItem()) {
-                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Groop");
+                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Group");
                 }
                 mnuContext.AppendSeparator();
             }
@@ -8070,7 +8053,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                 mnuContext.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock Models");
                 
                 if (allSameParent && parent != TreeListViewModels->GetRootItem()) {
-                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Groop");
+                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Group");
                 }
                 mnuContext.AppendSeparator();
             }
@@ -8078,9 +8061,9 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
             auto par = TreeListViewModels->GetItemParent(selectedTreeSubModels[0]);
             if (par != TreeListViewModels->GetRootItem()) {
                 if ((selectedTreeSubModels.size() + selectedTreeModels.size()) == 1) {
-                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Groop");
+                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Group");
                 } else {
-                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Groop");
+                    mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Group");
                 }
                 mnuContext.AppendSeparator();
             }
@@ -8655,6 +8638,15 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         }
         else if (type == "MODEL_ALIGN_CENTER_HORIZ") {
             PreviewModelAlignHCenter();
+        } 
+        else if (type == "MODEL_ALIGN_BACKS") {
+            PreviewModelAlignBacks();
+        } 
+        else if (type == "MODEL_ALIGN_FRONTS") {
+            PreviewModelAlignFronts();
+        } 
+        else if (type == "MODEL_ALIGN_GROUND") {
+            PreviewModelAlignWithGround();
         }
         else if (type == "MODEL_DISTRIBUTE_HORIZ") {
             PreviewModelHDistribute();

@@ -29,6 +29,7 @@ class RenderCache;
 class Model;
 class RenderableEffect;
 class xLightsFrame;
+class EffectManager;
 
 #define EFFECT_NOT_SELECTED     0
 #define EFFECT_LT_SELECTED      1
@@ -64,7 +65,7 @@ class Effect
     static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors, xlColorCurveVector& mCC);
 
 public:
-    Effect(EffectLayer* parent, int id, const std::string & name, const std::string &settings, const std::string &palette,
+    Effect(EffectManager* effectManager, EffectLayer* parent, int id, const std::string & name, const std::string &settings, const std::string &palette,
         int startTimeMS, int endTimeMS, int Selected, bool Protected);
     virtual ~Effect();
 

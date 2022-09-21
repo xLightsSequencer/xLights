@@ -19,6 +19,8 @@
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 
+
+
 //(*IdInit(RemapDMXChannelsDialog)
 const long RemapDMXChannelsDialog::ID_GRID1 = wxNewId();
 const long RemapDMXChannelsDialog::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -48,13 +50,15 @@ RemapDMXChannelsDialog::RemapDMXChannelsDialog(wxWindow* parent, wxWindowID id,c
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(0);
-	Grid1 = new wxGrid(ScrolledWindow1, ID_GRID1, wxDefaultPosition, wxSize(400,400), 0, _T("ID_GRID1"));
-	Grid1->CreateGrid(40,2);
+	Grid1 = new wxGrid(ScrolledWindow1, ID_GRID1, wxDefaultPosition, wxSize(609,400), 0, _T("ID_GRID1"));
+	Grid1->CreateGrid(40,4);
 	Grid1->EnableEditing(true);
 	Grid1->EnableGridLines(true);
 	Grid1->SetDefaultColSize(150, true);
 	Grid1->SetColLabelValue(0, _("Map From"));
 	Grid1->SetColLabelValue(1, _("Map To"));
+	Grid1->SetColLabelValue(2, _("Scale"));
+	Grid1->SetColLabelValue(3, _("Offset"));
 	Grid1->SetDefaultCellFont( Grid1->GetFont() );
 	Grid1->SetDefaultCellTextColour( Grid1->GetForegroundColour() );
 	FlexGridSizer3->Add(Grid1, 0, wxEXPAND, 0);
@@ -90,12 +94,19 @@ RemapDMXChannelsDialog::RemapDMXChannelsDialog(wxWindow* parent, wxWindowID id,c
     ca->SetReadOnly();
     Grid1->SetColAttr(0, ca);
 
+    Grid1->SetColFormatFloat(2,3,2);
+    Grid1->SetColFormatNumber(3);
+    Grid1->SetColSize(2, 75);
+    Grid1->SetColSize(3, 75);
+
     wxArrayString mapTo;
     for (int i = 0; i < 40; i++)
     {
         mapTo.push_back(wxString::Format("Channel %d", i + 1));
-        Grid1->SetCellValue(i, 0, mapTo[i]);
-        Grid1->SetCellValue(i, 1, mapTo[i]);
+        Grid1->SetCellValue(i, DMXMappingColumns::From, mapTo[i]);
+        Grid1->SetCellValue(i, DMXMappingColumns::To, mapTo[i]);
+        Grid1->SetCellValue(i, DMXMappingColumns::Scale, "1.00");
+        Grid1->SetCellValue(i, DMXMappingColumns::Offset, "0");
     }
     wxGridCellChoiceEditor *editor = new wxGridCellChoiceEditor(mapTo);
     Grid1->SetDefaultEditor(editor);
@@ -126,7 +137,11 @@ void RemapDMXChannelsDialog::OnButton_SaveMappingClick(wxCommandEvent& event)
 		if (output.IsOk()) {
 			wxTextOutputStream text(output);
 			for (int i = 0; i < Grid1->GetNumberRows(); i++) {
-				text.WriteString(wxString::Format("%s,%s\n", Grid1->GetCellValue(i, 0), Grid1->GetCellValue(i, 1)));
+				text.WriteString(wxString::Format("%s,%s,%s,%s\n", 
+					Grid1->GetCellValue(i, DMXMappingColumns::From),
+					Grid1->GetCellValue(i, DMXMappingColumns::To),
+					Grid1->GetCellValue(i, DMXMappingColumns::Scale), 
+					Grid1->GetCellValue(i, DMXMappingColumns::Offset)));
 			}
 			output.Close();
 		}
@@ -136,11 +151,33 @@ void RemapDMXChannelsDialog::OnButton_SaveMappingClick(wxCommandEvent& event)
 bool RemapDMXChannelsDialog::IsValidRemapping(const wxString& value)
 {
 	for (int ii = 0; ii < Grid1->GetNumberRows(); ii++) {
-		if (Grid1->GetCellValue(ii, 0) == value) {
+		if (Grid1->GetCellValue(ii, DMXMappingColumns::From) == value) {
 			return true;
 		}
 	}
 	return false;
+}
+
+double RemapDMXChannelsDialog::GetChanScale(int idx)
+{
+	return wxAtof(Grid1->GetCellValue(idx, DMXMappingColumns::Scale));
+}
+
+int RemapDMXChannelsDialog::GetChanOffset(int idx)
+{
+	return wxAtoi(Grid1->GetCellValue(idx, DMXMappingColumns::Offset));
+}
+
+bool RemapDMXChannelsDialog::DoMapping(int idx)
+{
+	return Grid1->GetCellValue(idx, DMXMappingColumns::From) != Grid1->GetCellValue(idx, DMXMappingColumns::To)
+		|| GetChanOffset(idx) != 0 
+		|| abs(GetChanScale(idx) - 1.0) > 0.0001;
+}
+
+int RemapDMXChannelsDialog::GetToChannel(int idx)
+{
+	return wxAtoi(Grid1->GetCellValue(idx,  DMXMappingColumns::To).AfterLast(' '));
 }
 
 void RemapDMXChannelsDialog::OnButton_LoadMappingClick(wxCommandEvent& event)
@@ -151,25 +188,33 @@ void RemapDMXChannelsDialog::OnButton_LoadMappingClick(wxCommandEvent& event)
 		if (input.IsOk()) {
 			// reset the mappings
 			for (int ii = 0; ii < Grid1->GetNumberRows(); ii++) {
-				Grid1->SetCellValue(ii, 1, Grid1->GetCellValue(ii, 0));
+				Grid1->SetCellValue(ii, DMXMappingColumns::To, Grid1->GetCellValue(ii, DMXMappingColumns::From));
 			}
 
 			int i = 0;
 			wxTextInputStream text(input, ",");
 			auto line = text.ReadLine();
 			while (line != "" && i < Grid1->GetNumberRows()) {
-				auto ll = wxSplit(line, ',');
-				if (ll.size() == 2) 					{
-					if (Grid1->GetCellValue(i, 0) == ll[0]) {
+				auto const ll = wxSplit(line, ',');
+				if (ll.size() == 2 || ll.size() == 4) {
+                    if (Grid1->GetCellValue(i, DMXMappingColumns::From) == ll[0]) {
 						if (IsValidRemapping(ll[1])) {
-							Grid1->SetCellValue(i, 1, ll[1]);
+                            Grid1->SetCellValue(i, DMXMappingColumns::To, ll[1]);
+                            if (ll.size() == 4) {
+                                Grid1->SetCellValue(i, DMXMappingColumns::Scale, ll[2]);
+                                Grid1->SetCellValue(i, DMXMappingColumns::Offset, ll[3]);
+                            }
 						}
 					}
-					else 						{
-						for (int ii = 0; ii < Grid1->GetNumberRows(); ii++) 							{
-							if (Grid1->GetCellValue(ii, 0) == ll[0]) {
+					else {
+						for (int ii = 0; ii < Grid1->GetNumberRows(); ii++) {
+                            if (Grid1->GetCellValue(ii, DMXMappingColumns::From) == ll[0]) {
 								if (IsValidRemapping(ll[1])) {
-									Grid1->SetCellValue(ii, 1, ll[1]);
+                                    Grid1->SetCellValue(ii, DMXMappingColumns::To, ll[1]);
+                                    if (ll.size() == 4) {
+                                        Grid1->SetCellValue(ii, DMXMappingColumns::Scale, ll[2]);
+                                        Grid1->SetCellValue(ii, DMXMappingColumns::Offset, ll[3]);
+                                    }
 								}
 								ii = Grid1->GetNumberRows();
 								i = ii;

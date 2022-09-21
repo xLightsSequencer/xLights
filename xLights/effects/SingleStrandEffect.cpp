@@ -138,7 +138,7 @@ void SingleStrandEffect::adjustSettings(const std::string& version, Effect* effe
     }
 }
 
-void SingleStrandEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer)
+void SingleStrandEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     if ("Skips" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {

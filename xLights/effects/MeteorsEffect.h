@@ -32,20 +32,58 @@
 
 class MeteorsEffect : public RenderableEffect
 {
-    public:
-        MeteorsEffect(int id);
-        virtual ~MeteorsEffect();
-        virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
-        virtual bool AppropriateOnNodes() const override { return false; }
+public:
+    MeteorsEffect(int id);
+    virtual ~MeteorsEffect();
+    virtual void SetDefaultParameters() override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
+    virtual bool AppropriateOnNodes() const override
+    {
+        return false;
+    }
+
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Meteors_Count")
+            return METEORS_COUNT_MIN;
+        if (name == "E_VALUECURVE_Meteors_Length")
+            return METEORS_LENGTH_MIN;
+        if (name == "E_VALUECURVE_Meteors_Swirl_Intensity")
+            return METEORS_SWIRL_MIN;
+        if (name == "E_VALUECURVE_Meteors_Speed")
+            return METEORS_SPEED_MIN;
+        if (name == "E_VALUECURVE_Meteors_XOffset")
+            return METEORS_XOFFSET_MIN;
+        if (name == "E_VALUECURVE_Meteors_YOffset")
+            return METEORS_YOFFSET_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Meteors_Count")
+            return METEORS_COUNT_MAX;
+        if (name == "E_VALUECURVE_Meteors_Length")
+            return METEORS_LENGTH_MAX;
+        if (name == "E_VALUECURVE_Meteors_Swirl_Intensity")
+            return METEORS_SWIRL_MAX;
+        if (name == "E_VALUECURVE_Meteors_Speed")
+            return METEORS_SPEED_MAX;
+        if (name == "E_VALUECURVE_Meteors_XOffset")
+            return METEORS_XOFFSET_MAX;
+        if (name == "E_VALUECURVE_Meteors_YOffset")
+            return METEORS_YOFFSET_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
+
 protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
-    private:
-    
-    void RenderMeteorsVertical(RenderBuffer &buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
-    void RenderMeteorsHorizontal(RenderBuffer &buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
-    void RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed, int xoffset, int yoffset, bool fadeWithDistance);
-    void RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
-    void RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed, int xoffset, int yoffset, bool fadeWithDistance);
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
+
+private:
+    void RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
+    void RenderMeteorsHorizontal(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
+    void RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed, int xoffset, int yoffset, bool fadeWithDistance);
+    void RenderIcicleDrip(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
+    void RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed, int xoffset, int yoffset, bool fadeWithDistance);
 };

@@ -54,6 +54,7 @@ const long CustomModelDialog::ID_STATICTEXT1 = wxNewId();
 const long CustomModelDialog::ID_SPINCTRL3 = wxNewId();
 const long CustomModelDialog::ID_CHECKBOX1 = wxNewId();
 const long CustomModelDialog::ID_BUTTON3 = wxNewId();
+const long CustomModelDialog::ID_CHECKBOX_SHOW_DUPS = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_CUT = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_COPY = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_PASTE = wxNewId();
@@ -366,6 +367,9 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer8->Add(CheckBox_ShowWiring, 1, wxALL|wxEXPAND, 5);
 	ButtonWiring = new wxButton(this, ID_BUTTON3, _("Wiring View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	FlexGridSizer8->Add(ButtonWiring, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Show_Duplicates = new wxCheckBox(this, ID_CHECKBOX_SHOW_DUPS, _("Show Duplicate Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_SHOW_DUPS"));
+	CheckBox_Show_Duplicates->SetValue(false);
+	FlexGridSizer8->Add(CheckBox_Show_Duplicates, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 7, 0, 0);
 	BitmapButtonCustomCut = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_CUT, wxArtProvider::GetBitmapBundle("wxART_CUT", wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_CUT"));
@@ -444,15 +448,20 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Notebook1 = new CustomNotebook(Panel11, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
 	FlexGridSizer11->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
 	Panel11->SetSizer(FlexGridSizer11);
+	FlexGridSizer11->Fit(Panel11);
+	FlexGridSizer11->SetSizeHints(Panel11);
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer10->AddGrowableCol(0);
 	FlexGridSizer10->AddGrowableRow(0);
 	Panel1->SetSizer(FlexGridSizer10);
+	FlexGridSizer10->Fit(Panel1);
+	FlexGridSizer10->SetSizeHints(Panel1);
 	SplitterWindow1->SplitHorizontally(Panel11, Panel1);
 	SplitterWindow1->SetSashPosition(30);
 	FlexGridSizer9->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 2);
 	Sizer1->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
+	SetSizer(Sizer1);
 	SetSizer(Sizer1);
 	Layout();
 	Center();
@@ -462,6 +471,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnSpinCtrl_DepthChange);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnCheckBox_ShowWiringClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButtonWiringClick);
+	Connect(ID_CHECKBOX_SHOW_DUPS,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnCheckBox_Show_DuplicatesClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCutClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCopyClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomPasteClick);
@@ -656,6 +666,9 @@ void CustomModelDialog::Setup(CustomModel* m)
 // make grid the size specified by the spin controls
 void CustomModelDialog::ResizeCustomGrid()
 {
+    CheckBox_Show_Duplicates->SetValue(false);
+    ClearDupNodes();
+    
     int numCols = WidthSpin->GetValue();
     int numRows = HeightSpin->GetValue();
     int numLayers = SpinCtrl_Depth->GetValue();
@@ -2833,6 +2846,8 @@ void CustomModelDialog::RemovePage()
 
 void CustomModelDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
 {
+    CheckBox_Show_Duplicates->SetValue(false);
+    ClearDupNodes();
     bool first = (Notebook1->GetSelection() == 0);
     bool last = (Notebook1->GetSelection() == Notebook1->GetPageCount() - 1);
 
@@ -3066,6 +3081,9 @@ void CustomModelDialog::FindLast()
 
 void CustomModelDialog::OnSwitchGrid(wxCommandEvent& event)
 {
+    CheckBox_Show_Duplicates->SetValue(false);
+    ClearDupNodes();
+
     int moveVal = event.GetInt();
     auto col = GetActiveGrid()->GetGridCursorCol();
     auto row = GetActiveGrid()->GetGridCursorRow();
@@ -3208,4 +3226,50 @@ void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event
             }
         }
     }
+}
+
+void CustomModelDialog::OnCheckBox_Show_DuplicatesClick(wxCommandEvent& event)
+{
+    if (CheckBox_Show_Duplicates->IsChecked()) {
+        DrawDupNodes();
+    } else {
+        ClearDupNodes();
+    }
+    
+}
+
+void CustomModelDialog::DrawDupNodes()
+{
+    int const layer = Notebook1->GetSelection();
+    int const numCols = WidthSpin->GetValue();
+    auto grid = GetActiveGrid();
+    _dup_pts.clear();
+    for (size_t ii = 0; ii < _model->GetNodeCount(); ii++) {
+        std::vector<wxPoint> pts;
+        _model->GetNodeCoords(ii, pts);
+        if (pts.size() > 1) {
+            for (auto const& pt : pts) 
+            {
+                int const x{ pt.x - (numCols * layer) };
+                int const y{ (int)_model->GetCustomHeight() - (pt.y) - 1 };
+                if (x < 0 || x > numCols) {
+                    continue;
+                }
+                wxPoint npt{ x, y };
+                _dup_pts.emplace_back(npt, grid->GetCellBackgroundColour(y, x));
+                grid->SetCellBackgroundColour(y, x, *wxYELLOW);
+            }
+        }
+    }
+    grid->Refresh();
+}
+
+void CustomModelDialog::ClearDupNodes()
+{
+    auto grid = GetActiveGrid();
+    for (auto const& pt :_dup_pts) {
+        grid->SetCellBackgroundColour(pt.first.y, pt.first.x, pt.second);
+    }
+    grid->Refresh();
+    _dup_pts.clear();
 }

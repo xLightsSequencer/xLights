@@ -58,6 +58,12 @@ id<MTLBuffer> MetalRenderBufferComputeData::getPixelBufferCopy() {
     }
     return pixelBufferCopy;
 }
+void MetalRenderBufferComputeData::bufferResized() {
+    if (pixelBuffer && pixelBufferSize < renderBuffer->GetPixelCount()) {
+        //buffer needs to get bigger
+        getPixelBuffer(false);
+    }
+}
 
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
     if (pixelBufferSize < renderBuffer->GetPixelCount()) {

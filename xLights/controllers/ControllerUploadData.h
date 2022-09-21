@@ -19,6 +19,8 @@
 #include <vector>
 
 #include "../ExportSettings.h"
+#include "../UtilFunctions.h"
+#include "../Pixels.h"
 
 class UDControllerPort;
 class UDController;
@@ -88,7 +90,11 @@ public:
     std::string GetColourOrder(const std::string& currentColourOrder) const;
     std::string GetDirection(const std::string& currentDirection) const;
     int GetGroupCount(int currentGroupCount) const;
-    std::string GetProtocol() const { return _protocol; }
+    int GetZigZag(int currentZigZag) const;
+    std::string GetProtocol() const
+    {
+        return _protocol;
+    }
     bool IsFirstModelString() const { return _string < 1; }
     int GetString() const { return _string; }
 
@@ -128,6 +134,8 @@ struct UDVirtualString
     int _endNullPixels = 0;
     bool _groupCountSet = false;
     int _groupCount = 1;
+    bool _zigZagSet = false;
+    int _zigZag = 0;
     bool _reverseSet = false;
     bool _tsSet = false;
     int _ts = 0;
@@ -198,7 +206,10 @@ class UDControllerPort
     int GetUniverseStartChannel() const;
     std::string GetType() const { return _type; }
 
-    int Pixels() const { return Channels() / 3; }
+    int Pixels() const
+    { 
+        return INTROUNDUPDIV(Channels(), GetChannelsPerPixel(GetProtocol())); 
+    }
 
     std::string GetProtocol() const { return _protocol; }
     bool IsPixelProtocol() const;

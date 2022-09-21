@@ -231,17 +231,17 @@ Discovery::Discovery(wxWindow* frame, OutputManager* outputManager) : _frame(fra
 }
 
 Discovery::~Discovery() {
-    for (size_t x = 0; x < curls.size(); x++) {
+    for (size_t x = 0; x < curls.size(); ++x) {
         if (curls[x]) {
             curl_multi_remove_handle(curlMulti, curls[x]);
             delete curls[x];
             curls[x] = nullptr;
-            numCurls--;
+            --numCurls;
         }
     }
     curl_multi_cleanup(curlMulti);
     
-    for (size_t x = 0; x < results.size(); x++) {
+    for (size_t x = 0; x < results.size(); ++x) {
         delete results[x];
     }
     for (auto &dg : datagrams) {
@@ -356,6 +356,18 @@ DiscoveredData *Discovery::FindByIp(const std::string &ip, const std::string &hn
     }
     return nullptr;
 }
+
+DiscoveredData *Discovery::FindByUUID(const std::string &uuid) {
+    if (uuid != "") {
+        for (auto a : results) {
+            if (a->uuid == uuid) {
+                return a;
+            }
+        }
+    }
+    return nullptr;
+}
+
 
 DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std::string &proxy, const std::string &htmlBuffer) {
 #ifndef EXCLUDENETWORKUI
@@ -486,10 +498,12 @@ void Discovery::Discover() {
     if (curlMulti == nullptr) return;
 
     auto endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1200l;
+    auto maxTime = wxGetLocalTimeMillis().GetValue() + 10000L; // 10 seconds max
     int running = numCurls;
     uint8_t buffer[1500];
     
-    while (running || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime)) {
+    while ((running || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime))
+           && (wxGetLocalTimeMillis().GetValue() < maxTime)){
         memset(buffer, 0x00, sizeof(buffer));
         int readSize = 0;
         //first check to see if any of the socket have received data
@@ -526,7 +540,7 @@ void Discovery::Discover() {
                                 curl_multi_remove_handle(curlMulti, curls[x]->curl);
                                 delete curls[x];
                                 curls[x] = nullptr;
-                                numCurls--;
+                                --numCurls;
                             }
                         }
                     }

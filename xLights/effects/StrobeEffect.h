@@ -18,7 +18,7 @@ class StrobeEffect : public RenderableEffect
         StrobeEffect(int id);
         virtual ~StrobeEffect();
         virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 protected:
         virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;

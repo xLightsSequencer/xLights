@@ -22,6 +22,8 @@ public:
     
     MetalRenderBufferComputeData(RenderBuffer *rb, MetalPixelBufferComputeData *pixelBufferData);
     ~MetalRenderBufferComputeData();
+    
+    void bufferResized();
 
     MetalPixelBufferComputeData *pixelBufferData;
 

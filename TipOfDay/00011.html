@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00011.html" title="Backups" category="Tools" level="Intermediate" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Backups</h1>
+        <p>Backup options are available in the preferences dialog:</p>
+        <ul>
+            <li><i>Backup on save</i> - Generally this should be turned off as it just generates an excessive number of backups. When it is on every time you save a sequence xLights will back up your show folder.</li>
+            <li><i>Backup on launch</i> - Generally this should be turned on unless you have some other systems backup strategy that guarantees you can roll back to any saved file. When it is on every time you launch xLights the show folder will be backed up ensuring even after a crash you can get back any sequence file.</li>
+            <li><i>Backup subfolders</i> - If you store all your sequence files (xsq files) in your base show folder then you can turn this off. If however you put them into subfolders then you must turn this on or xLights will NOT back your sequence files up.</li>
+            <li><i>Purge backups</i> - I would generally turn this on to about 90 days to manage the size of your backup folder. This will cause xLights when it starts to find any backups more than the specified age and delete them.</li>
+            <li><i>Backup directory</i> - This defaults to your show folder but if you have your show folder being replicated into the cloud and you cannot exclude the backup folder then I would move it to a location which is purely local. If you dont you are going to use a lot of remote storage for no real reason.</li>
+        </ul>
+        <p>When the backup runs it scans the show folder looking for XML, XSQ and XBKP files and copies them into a folder under the backup folder.</p>
+        <p>XBKP files are autosaved files. In the case of a crash these are the files you should be looking to to recover unsaved work. For sequences that had never been saved the autosave file will be named _.XBKP.</p>
+        <p>To recover an XBKP file just rename it to XML or XSQ (depending on what it is a backup of.</p>
+    </body>
+</html>

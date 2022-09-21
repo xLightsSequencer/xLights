@@ -1027,7 +1027,7 @@ void PlayListDialog::OnDropFiles(wxDropFilesEvent& event)
         wxString name;
         wxArrayString files;
 
-        for (int i = 0; i < event.GetNumberOfFiles(); i++) {
+        for (int i = 0; i < event.GetNumberOfFiles(); ++i) {
             name = dropped[i];
             if (wxFileExists(name))
                 files.push_back(name);
@@ -1035,16 +1035,20 @@ void PlayListDialog::OnDropFiles(wxDropFilesEvent& event)
                 wxDir::GetAllFiles(name, &files);
         }
 
-        for (auto it = files.begin(); it != files.end(); ++it)
+        int index = 0;
+        if (pos == -1)
+            pos = -10000;
+        for (const auto& it : files)
         {
-            wxFileName fn(*it);
+            wxFileName fn(it);
             if (fn.GetExt().Lower() == "fseq")
             {
                 PlayListItemFSEQ* fseq = new PlayListItemFSEQ(_outputManager);
                 fseq->SetFSEQFileName(fn.GetFullPath().ToStdString());
                 PlayListStep* step = new PlayListStep();
                 step->AddItem(fseq);
-                _playlist->AddStep(step, pos);
+                _playlist->AddStep(step, pos + index);
+                ++index;
             }
             else if (PlayListItemVideo::IsVideo(fn.GetExt().Lower().ToStdString()))
             {
@@ -1052,7 +1056,8 @@ void PlayListDialog::OnDropFiles(wxDropFilesEvent& event)
                 video->SetVideoFile(fn.GetFullPath().ToStdString());
                 PlayListStep* step = new PlayListStep();
                 step->AddItem(video);
-                _playlist->AddStep(step, pos);
+                _playlist->AddStep(step, pos + index);
+                ++index;
             }
             else if (PlayListItemAudio::IsAudio(fn.GetExt().Lower().ToStdString()))
             {
@@ -1060,7 +1065,8 @@ void PlayListDialog::OnDropFiles(wxDropFilesEvent& event)
                 audio->SetAudioFile(fn.GetFullPath().ToStdString());
                 PlayListStep* step = new PlayListStep();
                 step->AddItem(audio);
-                _playlist->AddStep(step, pos);
+                _playlist->AddStep(step, pos + index);
+                ++index;
             }
         }
         PopulateTree(_playlist, nullptr, nullptr);
@@ -1103,21 +1109,23 @@ void PlayListDialog::OnButton_AddFSEQClick(wxCommandEvent& event)
         wxArrayString files;
         FileDialog1->GetPaths(files);
 
-        for (auto it = files.begin(); it != files.end(); ++it)
+        int index = 0;
+        for (const auto& it : files)
         {
             PlayListItemFSEQ* pli = new PlayListItemFSEQ(_outputManager);
-            pli->SetFSEQFileName(it->ToStdString());
+            pli->SetFSEQFileName(it.ToStdString());
             PlayListStep* pls = new PlayListStep();
             pls->AddItem(pli);
 
             if (!treeitem.IsOk() || IsPlayList(treeitem))
             {
-                _playlist->AddStep(pls, 0);
+                _playlist->AddStep(pls, -1);
             }
             else
             {
-                _playlist->AddStep(pls, GetPos(treeitem) + 1);
+                _playlist->AddStep(pls, GetPos(treeitem) + 1 + index);
             }
+            ++index;
         }
         PopulateTree(_playlist, step, nullptr);
     }
@@ -1139,21 +1147,23 @@ void PlayListDialog::OnButton_FSEQVideoClick(wxCommandEvent& event)
         wxArrayString files;
         FileDialog1->GetPaths(files);
 
-        for (auto it = files.begin(); it != files.end(); ++it)
+        int index = 0;
+        for (const auto& it : files)
         {
             PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo(_outputManager, _options);
-            pli->SetFSEQFileName(it->ToStdString());
+            pli->SetFSEQFileName(it.ToStdString());
             PlayListStep* pls = new PlayListStep();
             pls->AddItem(pli);
 
             if (!treeitem.IsOk() || IsPlayList(treeitem))
             {
-                _playlist->AddStep(pls, 0);
+                _playlist->AddStep(pls, -1);
             }
             else
             {
-                _playlist->AddStep(pls, GetPos(treeitem) + 1);
+                _playlist->AddStep(pls, GetPos(treeitem) + 1 + index);
             }
+            ++index;
         }
         PopulateTree(_playlist, step, nullptr);
     }
@@ -1175,21 +1185,23 @@ void PlayListDialog::OnButton_AddAudioClick(wxCommandEvent& event)
         wxArrayString files;
         FileDialog1->GetPaths(files);
 
-        for (auto it = files.begin(); it != files.end(); ++it)
+        int index = 0;
+        for (const auto& it : files)
         {
             PlayListItemAudio* pli = new PlayListItemAudio();
-            pli->SetAudioFile(it->ToStdString());
+            pli->SetAudioFile(it.ToStdString());
             PlayListStep* pls = new PlayListStep();
             pls->AddItem(pli);
 
             if (!treeitem.IsOk() || IsPlayList(treeitem))
             {
-                _playlist->AddStep(pls, 0);
+                _playlist->AddStep(pls, -1);
             }
             else
             {
-                _playlist->AddStep(pls, GetPos(treeitem) + 1);
+                _playlist->AddStep(pls, GetPos(treeitem) + 1 + index);
             }
+            ++index;
         }
         PopulateTree(_playlist, step, nullptr);
     }

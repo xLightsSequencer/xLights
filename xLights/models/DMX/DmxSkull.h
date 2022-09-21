@@ -47,24 +47,78 @@ class DmxSkull : public DmxModel
         void SetSkulltronix() { setup_skulltronix = true; }
 
         int GetEyeBrightnessChannel() { return eye_brightness_channel; }
-        int GetPanChannel() { return pan_servo->GetChannel(); }
-        int GetPanMinLimit() { return pan_servo->GetMinLimit(); }
-        int GetPanMaxLimit() { return pan_servo->GetMaxLimit(); }
-        int GetTiltChannel() { return tilt_servo->GetChannel(); }
-        int GetTiltMinLimit() { return tilt_servo->GetMinLimit(); }
-        int GetTiltMaxLimit() { return tilt_servo->GetMaxLimit(); }
-        int GetNodChannel() { return nod_servo->GetChannel(); }
-        int GetNodMinLimit() { return nod_servo->GetMinLimit(); }
-        int GetNodMaxLimit() { return nod_servo->GetMaxLimit(); }
-        int GetJawChannel() { return jaw_servo->GetChannel(); }
-        int GetJawMinLimit() { return jaw_servo->GetMinLimit(); }
-        int GetJawMaxLimit() { return jaw_servo->GetMaxLimit(); }
-        int GetEyeUDChannel() { return eye_ud_servo->GetChannel(); }
-        int GetEyeUDMinLimit() { return eye_ud_servo->GetMinLimit(); }
-        int GetEyeUDMaxLimit() { return eye_ud_servo->GetMaxLimit(); }
-        int GetEyeLRChannel() { return eye_lr_servo->GetChannel(); }
-        int GetEyeLRMinLimit() { return eye_lr_servo->GetMinLimit(); }
-        int GetEyeLRMaxLimit() { return eye_lr_servo->GetMaxLimit(); }
+        int GetPanChannel()
+        {
+            return pan_servo ==nullptr ? 0 : pan_servo->GetChannel();
+        }
+        int GetPanMinLimit()
+        {
+            return pan_servo == nullptr ? 0 : pan_servo->GetMinLimit();
+        }
+        int GetPanMaxLimit()
+        {
+            return pan_servo == nullptr ? 0 : pan_servo->GetMaxLimit();
+        }
+        int GetTiltChannel()
+        {
+            return tilt_servo == nullptr ? 0 : tilt_servo->GetChannel();
+        }
+        int GetTiltMinLimit()
+        {
+            return tilt_servo == nullptr ? 0 : tilt_servo->GetMinLimit();
+        }
+        int GetTiltMaxLimit()
+        {
+            return tilt_servo == nullptr ? 0 : tilt_servo->GetMaxLimit();
+        }
+        int GetNodChannel()
+        {
+            return nod_servo == nullptr ? 0 : nod_servo->GetChannel();
+        }
+        int GetNodMinLimit()
+        {
+            return nod_servo == nullptr ? 0 : nod_servo->GetMinLimit();
+        }
+        int GetNodMaxLimit()
+        {
+            return nod_servo == nullptr ? 0 : nod_servo->GetMaxLimit();
+        }
+        int GetJawChannel()
+        {
+            return jaw_servo == nullptr ? 0 : jaw_servo->GetChannel();
+        }
+        int GetJawMinLimit()
+        {
+            return jaw_servo == nullptr ? 0 : jaw_servo->GetMinLimit();
+        }
+        int GetJawMaxLimit()
+        {
+            return jaw_servo == nullptr ? 0 : jaw_servo->GetMaxLimit();
+        }
+        int GetEyeUDChannel()
+        {
+            return eye_ud_servo == nullptr ? 0 : eye_ud_servo->GetChannel();
+        }
+        int GetEyeUDMinLimit()
+        {
+            return eye_ud_servo == nullptr ? 0 : eye_ud_servo->GetMinLimit();
+        }
+        int GetEyeUDMaxLimit()
+        {
+            return eye_ud_servo == nullptr ? 0 : eye_ud_servo->GetMaxLimit();
+        }
+        int GetEyeLRChannel()
+        {
+            return eye_lr_servo == nullptr ? 0 : eye_lr_servo->GetChannel();
+        }
+        int GetEyeLRMinLimit()
+        {
+            return eye_lr_servo == nullptr ? 0 : eye_lr_servo->GetMinLimit();
+        }
+        int GetEyeLRMaxLimit()
+        {
+            return eye_lr_servo == nullptr ? 0 : eye_lr_servo->GetMaxLimit();
+        }
 
     protected:
         enum SERVO_TYPE {

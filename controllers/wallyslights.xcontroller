@@ -1,0 +1,10 @@
+<Vendor Name="Wallys Lights">
+    <Controller Name="WB1616">
+        <Variant Name="" ID="WB1616" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>32</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
+</Vendor>

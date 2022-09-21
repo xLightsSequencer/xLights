@@ -25,11 +25,11 @@ struct STLWriter : CADWriter
 
 	void WriteHeader() override;
 	void WriteEndOfFile() override;
-	void WriteText(CADPoint const& loc, std::string const& text, float height, float rotation = 0.0) override;
-	void WriteWire(CADPoint const& loc1, CADPoint const& loc2 ) override;
+	void WriteText(CADPoint const& loc, std::string const& text, float height, uint32_t color, float rotation = 0.0) override;
+	void WriteWire(CADPoint const& loc1, CADPoint const& loc2, uint32_t color ) override;
 
-	void WriteFirstNode(CADPoint const& loc) override;
-	void WriteNode(CADPoint const& loc ) override;
+	void WriteFirstNode(CADPoint const& loc, uint32_t color) override;
+	void WriteNode(CADPoint const& loc, uint32_t color ) override;
 	void WriteNode(CADPoint const& loc, float offset);
 
 private:

@@ -26,13 +26,39 @@
 
 class CandleEffect : public RenderableEffect
 {
-    public:
-        CandleEffect(int id);
-        virtual ~CandleEffect();
-        virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
+public:
+    CandleEffect(int id);
+    virtual ~CandleEffect();
+    virtual void SetDefaultParameters() override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
+
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Candle_FlameAgility")
+            return CANDLE_AGILITY_MIN;
+        if (name == "E_VALUECURVE_Candle_WindBaseline")
+            return CANDLE_WINDBASELINE_MIN;
+        if (name == "E_VALUECURVE_Candle_WindVariability")
+            return CANDLE_WINDVARIABILITY_MIN;
+        if (name == "E_VALUECURVE_Candle_WindCalmness")
+            return CANDLE_WINDCALMNESS_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Candle_FlameAgility")
+            return CANDLE_AGILITY_MAX;
+        if (name == "E_VALUECURVE_Candle_WindBaseline")
+            return CANDLE_WINDBASELINE_MAX;
+        if (name == "E_VALUECURVE_Candle_WindVariability")
+            return CANDLE_WINDVARIABILITY_MAX;
+        if (name == "E_VALUECURVE_Candle_WindCalmness")
+            return CANDLE_WINDCALMNESS_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
+
 protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
-        void Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline);
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
+    void Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline);
 };

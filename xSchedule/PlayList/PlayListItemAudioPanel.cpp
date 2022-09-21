@@ -12,6 +12,7 @@
 #include "PlayListItemAudio.h"
 #include "PlayListDialog.h"
 #include "PlayListSimpleDialog.h"
+#include "../../xLights/AudioManager.h"
 
 //(*InternalHeaders(PlayListItemAudioPanel)
 #include <wx/intl.h>
@@ -24,6 +25,8 @@ const long PlayListItemAudioPanel::ID_FILEPICKERCTRL2 = wxNewId();
 const long PlayListItemAudioPanel::ID_CHECKBOX2 = wxNewId();
 const long PlayListItemAudioPanel::ID_SLIDER1 = wxNewId();
 const long PlayListItemAudioPanel::ID_CHECKBOX1 = wxNewId();
+const long PlayListItemAudioPanel::ID_STATICTEXT1 = wxNewId();
+const long PlayListItemAudioPanel::ID_CHOICE1 = wxNewId();
 const long PlayListItemAudioPanel::ID_STATICTEXT4 = wxNewId();
 const long PlayListItemAudioPanel::ID_SPINCTRL1 = wxNewId();
 const long PlayListItemAudioPanel::ID_STATICTEXT3 = wxNewId();
@@ -78,6 +81,10 @@ PlayListItemAudioPanel::PlayListItemAudioPanel(wxWindow* parent, PlayListItemAud
 	CheckBox_FastStartAudio = new wxCheckBox(this, ID_CHECKBOX1, _("Fast Start Audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_FastStartAudio->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_FastStartAudio, 1, wxALL|wxEXPAND, 5);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Audio Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_AudioDevice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+	FlexGridSizer1->Add(Choice_AudioDevice, 1, wxALL|wxEXPAND, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Priority:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Priority = new wxSpinCtrl(this, ID_SPINCTRL1, _T("5"), wxDefaultPosition, wxDefaultSize, 0, 1, 10, 5, _T("ID_SPINCTRL1"));
@@ -109,6 +116,16 @@ PlayListItemAudioPanel::PlayListItemAudioPanel(wxWindow* parent, PlayListItemAud
         CheckBox_OverrideVolume->SetValue(false);
     }
 
+    Choice_AudioDevice->SetSelection(Choice_AudioDevice->Append(_("(Default)")));
+    auto audioDevices = AudioManager::GetAudioDevices();
+    for (const auto& it : audioDevices) {
+        Choice_AudioDevice->Append(it);
+    }
+    Choice_AudioDevice->SetStringSelection(audio->GetAudioDevice());
+    if (Choice_AudioDevice->GetSelection() == -1) {
+        Choice_AudioDevice->SetStringSelection("(Default)");
+    }
+
     ValidateWindow();
 }
 
@@ -127,6 +144,11 @@ PlayListItemAudioPanel::~PlayListItemAudioPanel()
         _audio->SetVolume(-1);
     }
     _audio->SetAudioFile(FilePickerCtrl_AudioFile->GetFileName().GetFullPath().ToStdString());
+    if (Choice_AudioDevice->GetStringSelection() == "(Default)") {
+        _audio->SetAudioDevice("");
+    } else {
+        _audio->SetAudioDevice(Choice_AudioDevice->GetStringSelection().ToStdString());
+    }
 }
 
 

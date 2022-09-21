@@ -83,6 +83,7 @@
 #include "models/Model.h"
 #include "SequencePackage.h"
 #include "ScriptsDialog.h"
+#include "TipOfTheDayDialog.h"
 
 class wxDebugReport;
 
@@ -187,6 +188,7 @@ wxDECLARE_EVENT(EVT_PLAYJUKEBOXITEM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SETEFFECTCHOICE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_TIPOFDAY_READY, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights/FPP Sequences(*.fseq)|*.fseq|xLights Imports(*.iseq)|*.iseq";
@@ -284,6 +286,9 @@ public:
     xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1);
     virtual ~xLightsFrame();
 
+    static bool IsCheckSequenceOptionDisabled(const std::string& option);
+    static void SetCheckSequenceOptionDisable(const std::string& option, bool value);
+
     enum PlayListIds
     {
         CHKBOX_AUDIO,
@@ -316,6 +321,12 @@ public:
     std::mutex saveLock;
     RenderCache _renderCache;
     std::atomic_bool _exiting;
+    #ifdef __WXMSW__
+    // windows has issues if we create it later
+    TipOfTheDayDialog _tod;
+    #else
+    TipOfTheDayDialog* _tod = nullptr;
+    #endif
 
     PhonemeDictionary dictionary;
 
@@ -397,11 +408,11 @@ public:
     bool ExportVideoPreview(wxString const& path);
 
 	void SetAudioControls();
-    void ImportXLights(const wxFileName &filename);
+    void ImportXLights(const wxFileName &filename, std::string const& mapFile = std::string());
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
         bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
-        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
+        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string());
     void ImportVix(const wxFileName &filename);
     void ImportHLS(const wxFileName &filename);
     void ImportLMS(const wxFileName &filename);
@@ -599,6 +610,11 @@ public:
     void OnMenuItem_ColorReplaceSelected(wxCommandEvent& event);
     void OnMenuItemFindDataSelected(wxCommandEvent& event);
     void OnMenuItemSearchEffectsSelected(wxCommandEvent& event);
+    void OnMenuItem_SilentVolSelected(wxCommandEvent& event);
+    void OnMenuItem_TODSelected(wxCommandEvent& event);
+    void OnMenuItem_RemapCustomSelected(wxCommandEvent& event);
+    void OnMenuItemRestoreBackupSelected(wxCommandEvent& event);
+    void OnMenuItem_SuppressDock(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -710,6 +726,7 @@ public:
     static const long ID_MENUITEM8;
     static const long ID_MENUITEM_RECENTFOLDERS;
     static const long ID_FILE_BACKUP;
+    static const long ID_FILE_RESTOREBACKUP;
     static const long ID_FILE_ALTBACKUP;
     static const long ID_SHIFT_EFFECTS;
     static const long ID_MNU_SHIFT_SELECTED_EFFECTS;
@@ -735,6 +752,7 @@ public:
     static const long ID_MNU_DUMPRENDERSTATE;
     static const long ID_MENU_GENERATE2DPATH;
     static const long ID_MENUITEM_GenerateCustomModel;
+    static const long ID_MNU_REMAPCUSTOM;
     static const long ID_MNU_GENERATELYRICS;
     static const long ID_MENUITEM_CONVERT;
     static const long ID_MNU_PREPAREAUDIO;
@@ -766,6 +784,9 @@ public:
     static const long ID_MENUITEM_VIDEOPREVIEW;
     static const long ID_MNU_JUKEBOX;
     static const long ID_MNU_FINDDATA;
+    static const long ID_MNU_SUPPRESSDOCK_HP;
+    static const long ID_MNU_SUPPRESSDOCK_MP;
+    static const long ID_MENUITEM3;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM_WINDOWS_DOCKALL;
     static const long ID_MENUITEM11;
@@ -782,7 +803,9 @@ public:
     static const long ID_MNU_MEDVOLUME;
     static const long ID_MNU_QUIET;
     static const long ID_MNU_SUPERQUIET;
+    static const long ID_MNU_SILENT;
     static const long ID_IMPORT_EFFECTS;
+    static const long ID_MNU_TOD;
     static const long ID_MNU_MANUAL;
     static const long ID_MNU_ZOOM;
     static const long ID_MENUITEM1;
@@ -850,6 +873,7 @@ public:
     wxMenu* Menu3;
     wxMenu* MenuFile;
     wxMenu* MenuItem18;
+    wxMenu* MenuItem1;
     wxMenu* MenuItemPerspectives;
     wxMenu* MenuView;
     wxMenu* RecentSequencesMenu;
@@ -885,6 +909,7 @@ public:
     wxMenuItem* MenuItemLayerSettings;
     wxMenuItem* MenuItemLoadEditPerspective;
     wxMenuItem* MenuItemModelPreview;
+    wxMenuItem* MenuItemRestoreBackup;
     wxMenuItem* MenuItemRunScript;
     wxMenuItem* MenuItemSearchEffects;
     wxMenuItem* MenuItemSelectEffect;
@@ -927,8 +952,13 @@ public:
     wxMenuItem* MenuItem_PurgeRenderCache;
     wxMenuItem* MenuItem_PurgeVendorCache;
     wxMenuItem* MenuItem_QuietVol;
+    wxMenuItem* MenuItem_RemapCustom;
+    wxMenuItem* MenuItem_SD_HP;
+    wxMenuItem* MenuItem_SD_MP;
     wxMenuItem* MenuItem_ShowACRamps;
     wxMenuItem* MenuItem_ShowKeyBindings;
+    wxMenuItem* MenuItem_SilentVol;
+    wxMenuItem* MenuItem_TOD;
     wxMenuItem* MenuItem_Update;
     wxMenuItem* MenuItem_UserManual;
     wxMenuItem* MenuItem_VQuietVol;
@@ -1038,6 +1068,8 @@ public:
     SequenceElements _presetSequenceElements;
     bool _presetRendering = false;
     wxString _defaultSeqView;
+    wxString _videoExportCodec;
+    int _videoExportBitrate;
 
     std::unique_ptr< wxAppProgressIndicator> _appProgress;
 
@@ -1153,6 +1185,9 @@ public:
     bool GetPurgeDownloadCacheOnStart() const { return _purgeDownloadCacheOnStart; }
     void SetPurgeDownloadCacheOnStart(bool b) { _purgeDownloadCacheOnStart = b; }
 
+    bool GetRecycleTips() const;
+    void SetRecycleTips(bool b);
+
     bool ModelBlendDefaultOff() const { return _modelBlendDefaultOff;}
     void SetModelBlendDefaultOff(bool b) { _modelBlendDefaultOff = b;}
     void SetLowDefinitionRender(bool b)
@@ -1204,6 +1239,15 @@ public:
     const wxString& GetDefaultSeqView() const { return _defaultSeqView; }
     void SetDefaultSeqView(const wxString& view);
     wxArrayString GetSequenceViews();
+
+    const wxString& GetVideoExportCodec() const { return _videoExportCodec; }
+    void SetVideoExportCodec(const wxString& codec);
+
+    std::string GetMinTipLevel() const;
+    void SetMinTipLevel(const wxString& level);
+
+    const int& GetVideoExportBitrate() const { return _videoExportBitrate; }
+    void SetVideoExportBitrate(int bitrate);
 
     bool EnableOutputs(bool ignoreCheck = false);
     bool ToggleOutputs(bool ignoreCheck = false);
@@ -1416,14 +1460,13 @@ protected:
     void ResetEffectsXml();
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
     bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
-    void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
+    void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, bool backupSubfolders, std::string& errors);
     void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors);
     void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
     void OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone);
     std::string OpenAndCheckSequence(const std::string& origFilenames);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
-    void PreviewOutput(int period);
     void TimerOutput(int period);
     void UpdateChannelNames();
     void StopNow();
@@ -1667,9 +1710,14 @@ private:
     void ShowHidePreviewWindow(wxCommandEvent& event);
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
     void SetEffectChoice(wxCommandEvent& event);
+    void TipOfDayReady(wxCommandEvent& event);
 
     bool isRandom_(wxControl* ctl, const char*debug);
     void SetSyncUniverse(int syncUniverse);
+
+    bool IsDockable(const std::string& panel);
+    void LoadDockable();
+    void SaveDockable();
 
     Effect* GetPersistentEffectOnModelStartingAtTime(const std::string& model, uint32_t startms) const;
     void EnableToolbarButton(wxAuiToolBar* toolbar, int id, bool enable);

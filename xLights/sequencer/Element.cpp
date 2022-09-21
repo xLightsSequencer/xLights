@@ -348,7 +348,12 @@ StrandElement::~StrandElement() {
 std::string StrandElement::GetFullName() const {
     return GetModelName() + "/" + GetStrandName();
 }
-
+std::string StrandElement::GetStrandName() const {
+    static const std::string STRAND = "Strand ";
+    if (GetName() == "")
+        return STRAND + std::to_string(mStrand + 1);
+    return GetName();
+}
 void StrandElement::CleanupAfterRender() {
     for (auto &a : mNodeLayers) {
         a->CleanupAfterRender();

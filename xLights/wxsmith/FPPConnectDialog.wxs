@@ -2,6 +2,7 @@
 <wxsmith>
 	<object class="wxDialog" name="FPPConnectDialog">
 		<title>FPP Upload</title>
+		<minsize>800,-1</minsize>
 		<id_arg>0</id_arg>
 		<style>wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX</style>
 		<handler function="OnClose" entry="EVT_CLOSE" />
@@ -11,11 +12,10 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
-					<minpanesize>200</minpanesize>
-					<minsize>550,-1d</minsize>
+					<minsize>100</minsize>
 					<style>wxSP_3D|wxSP_3DSASH</style>
 					<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="FPPInstanceList" member="yes">
-						<minsize>-1,150d</minsize>
+						<minsize>800,100d</minsize>
 						<object class="wxFlexGridSizer" variable="FPPInstanceSizer" member="yes">
 							<cols>11</cols>
 						</object>
@@ -96,7 +96,9 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-					<cols>5</cols>
+					<cols>4</cols>
+					<growablecols>1</growablecols>
+					<growablerows>0</growablerows>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON1" variable="AddFPPButton" member="yes">
 							<label>Add FPP</label>
@@ -106,16 +108,13 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="wxID_ANY" variable="StaticText3" member="no">
+							<label></label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
-					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-						<size>50,-1d</size>
 					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_Upload" variable="Button_Upload" member="yes">

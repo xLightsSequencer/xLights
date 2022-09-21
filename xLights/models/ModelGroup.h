@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <vector>
+#include <set>
 #include <string>
 
 #include "Model.h"
@@ -22,7 +23,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
     public:
 
         static bool AllModelsExist(wxXmlNode* node, const ModelManager& models);
-        static bool RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels);
+        static bool RemoveNonExistentModels(wxXmlNode* node, const std::set<std::string>& allmodels);
 
         ModelGroup(wxXmlNode *node, const ModelManager &manager, int previewW, int previewH);
         ModelGroup(wxXmlNode* node, const ModelManager& m, int w, int h, const std::string& mgname, const std::string& mname);
@@ -46,7 +47,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         Model* GetFirstModel() const;
         std::list<Model*> GetFlatModels(bool removeDuplicates = true) const;
         bool ContainsModelGroup(ModelGroup* mg);
-        bool ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited);
+        bool ContainsModelGroup(ModelGroup* mg, std::set<Model*>& visited);
         bool DirectlyContainsModel(Model* m) const;
         bool DirectlyContainsModel(std::string const& m) const;
         bool ContainsModel(Model* m) const;

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00051.html" title="Render progress" category="Sequencing" level="Advanced" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Render progress</h1>
+        <p>When you do a render all the progress through the render is shown in the status bar at the bottom of the screen. Clicking on the progress indicator will bring up the detail progress dialog which shows rendering progress on a model by model basis.</p>
+        <p>If you are experiencing slow rendering it can help you understand which model is rendering slowly.</p>
+        <p>Often you will see many models rendering slowly. This is usually because there are some channel overlaps between models or groups and one of them has to render first before the others can so they render as slow as the model they are dependent upon. In these cases, the top slow rendering model is usually the one to blame for the slowness.</p>
+        <p>Hovering over a bar will show details of the current effect being rendered. If there is one layer this will be the effect. If there are multiple layers this may not help identifying what is slow.</p>
+        <p>Model groups are one of the biggest cause of slow rendering. If you have say a simple 1 second on effect on a model which also happens to be in a group which has say a video effect that spans the whole sequence and you have blending between models then the net impact is that the entire video effect has to be re-rendered when the on effect is rendered as there are direct dependencies between them. This is where render cache can make a huge render time difference.</p>
+    </body>
+</html>

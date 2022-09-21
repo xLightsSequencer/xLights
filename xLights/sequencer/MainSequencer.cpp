@@ -552,7 +552,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "APPLYSETTING") {
                 SettingsMap newSetting = SettingsMap();
-                newSetting.Parse(binding->GetEffectString());
+                newSetting.Parse(nullptr, binding->GetEffectString(), "");
 
                 // Apply setting on the UI
                 mSequenceElements->GetXLightsFrame()->SetEffectControls(newSetting);
@@ -1456,9 +1456,9 @@ void MainSequencer::ApplyButtonPressToSelected(const std::string& effectName, co
     return PanelEffectGrid->ApplyButtonPressToSelected(effectName, id);
 }
 
-void MainSequencer::RemapSelectedDMXEffectValues(const std::vector<std::pair<int, int>>& pairs)
+void MainSequencer::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int>>& dmxmappings)
 {
-    return PanelEffectGrid->RemapSelectedDMXEffectValues(pairs);
+    return PanelEffectGrid->RemapSelectedDMXEffectValues(dmxmappings);
 }
 
 void MainSequencer::ConvertSelectedEffectsTo(const std::string& effectName)

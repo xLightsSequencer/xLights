@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="RestoreBackupDialog">
+		<title>Restore Dialog</title>
+		<size>900,500</size>
+		<minsize>800,400</minsize>
+		<id_arg>0</id_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+					<sashpos>10</sashpos>
+					<minpanesize>100</minpanesize>
+					<orientation>vertical</orientation>
+					<size>602,134</size>
+					<minsize>900,400</minsize>
+					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+							<cols>1</cols>
+							<rows>2</rows>
+							<growablecols>0</growablecols>
+							<growablerows>1</growablerows>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+									<label>Backups:</label>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxListBox" name="ID_LISTBOX_BACKUPS" variable="ListBoxBackups" member="yes">
+									<default>-1</default>
+									<minsize>250,400</minsize>
+									<handler function="OnListBoxBackupsSelect" entry="EVT_LISTBOX" />
+								</object>
+								<flag>wxEXPAND</flag>
+							</object>
+						</object>
+					</object>
+					<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
+						<pos>545,100</pos>
+						<minsize>600,400</minsize>
+						<object class="notebookpage">
+							<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW2" variable="SplitterWindow2" member="yes">
+								<sashgravity>0.600000</sashgravity>
+								<minpanesize>10</minpanesize>
+								<orientation>vertical</orientation>
+								<pos>57,24</pos>
+								<object class="wxCheckListBox" name="ID_CHECKLISTBOX_LAYOUT" variable="CheckListBoxLayout" member="yes">
+									<pos>42,42</pos>
+									<minsize>0,300</minsize>
+									<handler function="OnCheckListBoxLayoutToggled" entry="EVT_CHECKLISTBOX" />
+								</object>
+								<object class="wxTreeCtrl" name="ID_TREECTRL_LAYOUT" variable="TreeCtrlBackupLayout" member="yes">
+									<image_list>&lt;none&gt;</image_list>
+									<tree_items>
+										<item>TreeCtrlBackupLayout</item>
+										<item>&lt;none&gt;</item>
+									</tree_items>
+									<items_text>
+										<item2>TreeCtrlBackupLayout</item2>
+										<item2>&lt;none&gt;</item2>
+									</items_text>
+									<pos>412,61</pos>
+									<minsize>0,300</minsize>
+								</object>
+							</object>
+							<label>Controllers/Layout</label>
+							<selected>1</selected>
+						</object>
+						<object class="notebookpage">
+							<object class="wxCheckListBox" name="ID_CHECKLISTBOX_SEQUENCES" variable="CheckListBoxSequences" member="yes">
+								<pos>150,7</pos>
+								<handler function="OnCheckListBoxSequencesToggled" entry="EVT_CHECKLISTBOX" />
+							</object>
+							<label>Sequences</label>
+						</object>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>2</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT_BACKUPFOLDER" variable="StaticTextBackUpFolder" member="yes">
+							<label>Label</label>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_RUN" variable="ButtonRun" member="yes">
+							<label>Restore Files</label>
+							<handler function="OnButtonRunClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL</flag>
+						<border>5</border>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

@@ -298,6 +298,7 @@
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="KeyBindingEditDialog.cpp" />
     <ClCompile Include="LayerSelectDialog.cpp" />
+    <ClCompile Include="LayoutUtils.cpp" />
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
     <ClCompile Include="LOREdit.cpp" />
     <ClCompile Include="LORPreview.cpp" />
@@ -305,6 +306,7 @@
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="MediaImportOptionsDialog.cpp" />
     <ClCompile Include="ModelChainDialog.cpp" />
+    <ClCompile Include="ModelRemap.cpp" />
     <ClCompile Include="models\BaseObject.cpp" />
     <ClCompile Include="models\BoxedScreenLocation.cpp" />
     <ClCompile Include="models\ChannelBlockModel.cpp" />
@@ -320,6 +322,7 @@
     <ClCompile Include="models\DMX\DmxMovingHead.cpp" />
     <ClCompile Include="models\DMX\DmxMovingHead3D.cpp" />
     <ClCompile Include="models\DMX\DmxPanTiltAbility.cpp" />
+    <ClCompile Include="models\DMX\DmxPresetAbility.cpp" />
     <ClCompile Include="models\DMX\DmxServo.cpp" />
     <ClCompile Include="models\DMX\DmxServo3D.cpp" />
     <ClCompile Include="models\DMX\DmxShutterAbility.cpp" />
@@ -554,6 +557,7 @@
     <ClCompile Include="Pixels.cpp" />
     <ClCompile Include="PixelTestDialog.cpp" />
     <ClCompile Include="preferences\BackupSettingsPanel.cpp" />
+    <ClCompile Include="preferences\CheckSequenceSettingsPanel.cpp" />
     <ClCompile Include="preferences\ColorManagerSettingsPanel.cpp" />
     <ClCompile Include="preferences\EffectsGridSettingsPanel.cpp" />
     <ClCompile Include="preferences\OtherSettingsPanel.cpp" />
@@ -570,6 +574,7 @@
     <ClCompile Include="RenderCache.cpp" />
     <ClCompile Include="RenderProgressDialog.cpp" />
     <ClCompile Include="ResizeImageDialog.cpp" />
+    <ClCompile Include="RestoreBackupDialog.cpp" />
     <ClCompile Include="SaveChangesDialog.cpp" />
     <ClCompile Include="ScriptsDialog.cpp" />
     <ClCompile Include="SearchPanel.cpp" />
@@ -615,10 +620,12 @@
     <ClCompile Include="TabSequence.cpp" />
     <ClCompile Include="TabSetup.cpp" />
     <ClCompile Include="TimingPanel.cpp" />
+    <ClCompile Include="TipOfTheDayDialog.cpp" />
     <ClCompile Include="tmGridCell.cpp" />
     <ClCompile Include="TopEffectsPanel.cpp" />
     <ClCompile Include="TraceLog.cpp" />
     <ClCompile Include="UpdaterDialog.cpp" />
+    <ClCompile Include="UtilClasses.cpp" />
     <ClCompile Include="UtilFunctions.cpp" />
     <ClCompile Include="ValueCurve.cpp" />
     <ClCompile Include="ValueCurveButton.cpp" />
@@ -763,6 +770,7 @@
     <ClInclude Include="graphics\xlMesh.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
+    <ClInclude Include="LayoutUtils.h" />
     <ClInclude Include="LORPreview.h" />
     <ClInclude Include="JukeboxPanel.h" />
     <ClInclude Include="KeyBindingEditDialog.h" />
@@ -773,6 +781,7 @@
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
     <ClInclude Include="MediaImportOptionsDialog.h" />
     <ClInclude Include="ModelChainDialog.h" />
+    <ClInclude Include="ModelRemap.h" />
     <ClInclude Include="models\BaseObject.h" />
     <ClInclude Include="models\BoxedScreenLocation.h" />
     <ClInclude Include="models\ChannelBlockModel.h" />
@@ -788,6 +797,7 @@
     <ClInclude Include="models\DMX\DmxMovingHead.h" />
     <ClInclude Include="models\DMX\DmxMovingHead3D.h" />
     <ClInclude Include="models\DMX\DmxPanTiltAbility.h" />
+    <ClInclude Include="models\DMX\DmxPresetAbility.h" />
     <ClInclude Include="models\DMX\DmxServo.h" />
     <ClInclude Include="models\DMX\DmxServo3D.h" />
     <ClInclude Include="models\DMX\DmxShutterAbility.h" />
@@ -1024,6 +1034,7 @@
     <ClInclude Include="Pixels.h" />
     <ClInclude Include="PixelTestDialog.h" />
     <ClInclude Include="preferences\BackupSettingsPanel.h" />
+    <ClInclude Include="preferences\CheckSequenceSettingsPanel.h" />
     <ClInclude Include="preferences\ColorManagerSettingsPanel.h" />
     <ClInclude Include="preferences\EffectsGridSettingsPanel.h" />
     <ClInclude Include="preferences\OtherSettingsPanel.h" />
@@ -1040,6 +1051,7 @@
     <ClInclude Include="RenderProgressDialog.h" />
     <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="ResizeImageDialog.h" />
+    <ClInclude Include="RestoreBackupDialog.h" />
     <ClInclude Include="SaveChangesDialog.h" />
     <ClInclude Include="ScriptsDialog.h" />
     <ClInclude Include="SearchPanel.h" />
@@ -1081,6 +1093,7 @@
     <ClInclude Include="support\GridCellChoiceRenderer.h" />
     <ClInclude Include="support\VectorMath.h" />
     <ClInclude Include="TimingPanel.h" />
+    <ClInclude Include="TipOfTheDayDialog.h" />
     <ClInclude Include="tmGridCell.h" />
     <ClInclude Include="TopEffectsPanel.h" />
     <ClInclude Include="TraceLog.h" />

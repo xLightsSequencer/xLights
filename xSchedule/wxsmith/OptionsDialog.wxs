@@ -351,7 +351,7 @@
 					<growablecols>3</growablecols>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
-							<label>Audio Device:</label>
+							<label>Default Audio Output Device:</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -370,7 +370,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText12" member="yes">
-							<label>Input Audio Device:</label>
+							<label>Default Input Audio Device:</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -392,6 +392,20 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxChoice" name="ID_CHOICE6" variable="Choice_SMPTEFrameRate" member="yes" />
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT14" variable="StaticText14" member="yes">
+							<label>SMPTE Input Device:</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE8" variable="Choice_SMPTEDevice" member="yes" />
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>

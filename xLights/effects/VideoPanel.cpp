@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "VideoPanel.h"
+#include "VideoEffect.h"
 #include "EffectPanelUtils.h"
 #include "UtilFunctions.h"
 #include "../ExternalHooks.h"

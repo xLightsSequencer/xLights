@@ -119,9 +119,9 @@ void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass
             channels_per_pass = 16;
             int num_ids = channel_count / channels_per_pass;
             if ((num_ids * channels_per_pass) < channel_count) {
-                num_ids++;
+                ++num_ids;
             }
-            for (int i = 0; i < num_ids; i++) {
+            for (int i = 0; i < num_ids; ++i) {
                 unit_id_in_use[unit_id + i] = true;
             }
         }
@@ -163,7 +163,7 @@ void LOROptimisedOutput::GenerateCommand(uint8_t d[], size_t& idx, int unit_id, 
             d[idx++] |= 0x02;
             d[idx] = dbyte;
         }
-        idx++;
+        ++idx;
         d[idx] = bank;
         if (!msb) {
             d[idx] |= 0x40;
@@ -171,7 +171,7 @@ void LOROptimisedOutput::GenerateCommand(uint8_t d[], size_t& idx, int unit_id, 
         else if (!lsb) {
             d[idx] |= 0x80;
         }
-        idx++;
+        ++idx;
     }
     else {
         if (!msb) {
@@ -187,7 +187,7 @@ void LOROptimisedOutput::GenerateCommand(uint8_t d[], size_t& idx, int unit_id, 
             d[idx++] |= 0x02;
             d[idx] = dbyte;
         }
-        idx++;
+        ++idx;
     }
     if (lsb) {
         d[idx++] = lsb;
@@ -301,7 +301,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             //    bank_changed = true;
             //    frame_changed = true;
             //}
-            //_framesSinceForcedOutput++;
+            //++_framesSinceForcedOutput;
 
             // gather all the data and compress common values on a per 16 channel bank basis
             int channels_to_process = channels_per_pass;
@@ -337,16 +337,16 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
                 }
                 _lastSent[cur_channel] = data[cur_channel];
 
-                chan_offset++;
+                ++chan_offset;
                 if (chan_offset == 16 || (channels_to_process == 1)) {
                     chan_offset = 0;
                     banks_changed[shift_offset] = bank_changed;
                     bank_changed = false;
-                    shift_offset++;
+                    ++shift_offset;
                     color_mode[shift_offset] = false;
                 }
-                channels_to_process--;
-                cur_channel++;
+                --channels_to_process;
+                ++cur_channel;
             }
 
             // now build the commands to send out the serial port
@@ -386,7 +386,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
                                 else if (!lsb) {
                                     d[idx] |= 0x80;
                                 }
-                                idx++;
+                                ++idx;
                                 if (lsb) {
                                     d[idx++] = lsb;
                                 }
@@ -436,7 +436,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             }
             lorBankData.clear();
             controller_channels_to_process -= channels_per_pass;
-            unit_id++;
+            ++unit_id;
         }
     }
     //logger_base.debug("    LOROptimisedOutput: Sent %d bytes", total_bytes_sent);
@@ -473,7 +473,7 @@ void LOROptimisedOutput::AllOff() {
                     d[idx++] = 0x41;
                 }
                 channels_to_process -= 16;
-                bank++;
+                ++bank;
             }
             d[idx++] = 0x0;
             d[idx++] = 0x0;
@@ -484,7 +484,7 @@ void LOROptimisedOutput::AllOff() {
                 SetDontDieUntil(wxGetUTCTimeMillis() + MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE);
             }
             controller_channels_to_process -= channels_per_pass;
-            unit_id++;
+            ++unit_id;
         }
     }
 
@@ -546,7 +546,7 @@ void LOROptimisedOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSam
 
         if (it->IsExpanded()) expandProperties.push_back(p2);
 
-        i++;
+        ++i;
     }
 }
 

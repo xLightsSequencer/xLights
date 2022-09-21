@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00008.html" title="Controller Active Property" category="Controller" level="Advanced" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Controller Active Property</h1>
+        <p>Controllers have an active property which can be one of 3 values:</p>
+        <ul>
+            <li><i>Active</i> - Controllers which are active will always have data sent to them when you turn on output to lights, run a sequence in xSchedule, or play a sequence on FPP.</li>
+            <li><i>Inactive</i> - Controllers which are inactive will never have any data sent to them. This is most useful when a controller is temporarily not connected as sending data to non-existent controllers can generate errors in the case of USB controllers or cause periodic slowdowns in the case of ethernet controllers.</li>
+            <li><i>xLights only</i> - Controllers with this status have data sent to them when you turn on output to lights in xLights but when running a sequence from xSchedule or after uploading to FPP the data will not be sent to these controllers. This makes sense for props which will be on controllers which are being controlled by synchronisation packets or are local to the show player.</li>
+        </ul>
+    </body>
+</html>

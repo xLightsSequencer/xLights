@@ -14,6 +14,7 @@
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../../xLights/outputs/OutputManager.h"
+#include "../../xLights/AudioManager.h"
 
 //(*InternalHeaders(PlayListItemMicrophonePanel)
 #include <wx/intl.h>
@@ -25,6 +26,8 @@ const long PlayListItemMicrophonePanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListItemMicrophonePanel::ID_TEXTCTRL1 = wxNewId();
 const long PlayListItemMicrophonePanel::ID_STATICTEXT2 = wxNewId();
 const long PlayListItemMicrophonePanel::ID_CHOICE1 = wxNewId();
+const long PlayListItemMicrophonePanel::ID_STATICTEXT8 = wxNewId();
+const long PlayListItemMicrophonePanel::ID_CHOICE2 = wxNewId();
 const long PlayListItemMicrophonePanel::ID_STATICTEXT3 = wxNewId();
 const long PlayListItemMicrophonePanel::ID_COLOURPICKERCTRL1 = wxNewId();
 const long PlayListItemMicrophonePanel::ID_STATICTEXT10 = wxNewId();
@@ -66,6 +69,10 @@ PlayListItemMicrophonePanel::PlayListItemMicrophonePanel(wxWindow* parent, Outpu
 	Choice_Mode = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	Choice_Mode->SetSelection( Choice_Mode->Append(_("Maximum")) );
 	FlexGridSizer1->Add(Choice_Mode, 1, wxALL|wxEXPAND, 5);
+	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Input Audio Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+	FlexGridSizer1->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_InputDevice = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	FlexGridSizer1->Add(Choice_InputDevice, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Colour:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ColourPickerCtrl1 = new wxColourPickerCtrl(this, ID_COLOURPICKERCTRL1, wxColour(255,255,255), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL1"));
@@ -109,6 +116,12 @@ PlayListItemMicrophonePanel::PlayListItemMicrophonePanel(wxWindow* parent, Outpu
     PopulateBlendModes(Choice_BlendMode);
     Choice_BlendMode->SetSelection(0);
 
+	Choice_InputDevice->SetSelection(Choice_InputDevice->Append(_("(Default)")));
+    auto inputAudioDevices = AudioManager::GetInputAudioDevices();
+    for (const auto& it : inputAudioDevices) {
+        Choice_InputDevice->Append(it);
+    }
+
     long channels = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
     SpinCtrl_Channels->SetRange(1, channels / 3);
 
@@ -120,6 +133,11 @@ PlayListItemMicrophonePanel::PlayListItemMicrophonePanel(wxWindow* parent, Outpu
     TextCtrl_Duration->SetValue(wxString::Format(wxT("%.3f"), (float)_microphone->GetDurationMS() / 1000));
     Choice_BlendMode->SetSelection(_microphone->GetBlendMode());
 	SpinCtrl_Priority->SetValue(_microphone->GetPriority());
+    Choice_InputDevice->SetStringSelection(_microphone->GetInputDevice());
+    if (_microphone->GetInputDevice() == "") {
+        Choice_InputDevice->SetSelection(0);
+	}
+
 
     ValidateWindow();
 }
@@ -136,6 +154,7 @@ PlayListItemMicrophonePanel::~PlayListItemMicrophonePanel()
     _microphone->SetDuration(wxAtof(TextCtrl_Duration->GetValue()) * 1000);
     _microphone->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
 	_microphone->SetPriority(SpinCtrl_Priority->GetValue());
+    _microphone->SetInputDevice(Choice_InputDevice->GetStringSelection());
 }
 
 void PlayListItemMicrophonePanel::OnTextCtrl_NameText(wxCommandEvent& event)

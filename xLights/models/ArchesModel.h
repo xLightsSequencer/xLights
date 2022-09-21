@@ -44,6 +44,8 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual int GetNumStrands() const override;
         virtual int CalcCannelsPerString() override;
         virtual bool IsNodeFirst(int n) const override;
+        virtual int GetStrandLength(int strand) const override;
+        virtual int GetMappedStrand(int strand) const override;
 
     private:
         void SetLayerdArchCoord(int archcount, int maxLen);

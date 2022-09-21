@@ -46,134 +46,121 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    try
-    {
+    if (!isFatalException) {
+        logger_base.warn("Non fatal exception: %s", (const char*)msg.c_str());
+    } else {
+        try {
 #if defined(_DEBUG)
-        // During debug, don't generate crash dumps. Instead, just bring debugger here.
-        wxTrap();
+            // During debug, don't generate crash dumps. Instead, just bring debugger here.
+            wxTrap();
 #else
-        // Protect against simultaneous crashes from different threads.
-        std::unique_lock<std::mutex> lock(m_crashMutex);
+            // Protect against simultaneous crashes from different threads.
+            std::unique_lock<std::mutex> lock(m_crashMutex);
 
-        logger_base.crit("Crashed: " + msg);
+            logger_base.crit("Crashed: " + msg);
 
-        wxDebugReportCompress report;
-        m_report = &report;
+            wxDebugReportCompress report;
+            m_report = &report;
 
 #ifdef __WXOSX__
-        wxMessageBox("If you haven't already, please turn on the system settings to share crash data with the app developers.\n\n To do that, go to:\n"
-            "System Preferences -> Security and Privacy -> Privacy -> Analytics & Improvements\n\n"
-            "and turn on the \"Share Mac Analytics\" setting and also the \"Share with App Developers\" setting.\n\n"
-            "This provides more information to the xLights developers than just our normal crash logs.");
+            wxMessageBox("If you haven't already, please turn on the system settings to share crash data with the app developers.\n\n To do that, go to:\n"
+                         "System Preferences -> Security and Privacy -> Privacy -> Analytics & Improvements\n\n"
+                         "and turn on the \"Share Mac Analytics\" setting and also the \"Share with App Developers\" setting.\n\n"
+                         "This provides more information to the xLights developers than just our normal crash logs.");
 #endif
 
 #if (wxUSE_STACKWALKER || wxUSE_CRASHREPORT)
-        wxDebugReport::Context const ctx = isFatalException ? wxDebugReport::Context_Exception : wxDebugReport::Context_Current;
+            wxDebugReport::Context const ctx = isFatalException ? wxDebugReport::Context_Exception : wxDebugReport::Context_Current;
 #endif
 
 #if wxUSE_STACKWALKER
-        report.AddContext(ctx);
+            report.AddContext(ctx);
 #endif
 
 #if wxUSE_CRASHREPORT
-        wxFileName fn(report.GetDirectory(), report.GetReportName(), wxT("dmp"));
-        wxCrashReport::SetFileName(fn.GetFullPath());
+            wxFileName fn(report.GetDirectory(), report.GetReportName(), wxT("dmp"));
+            wxCrashReport::SetFileName(fn.GetFullPath());
 
-        int const crashRptFlags = wxCRASH_REPORT_LOCATION | wxCRASH_REPORT_STACK; // | wxCRASH_REPORT_GLOBALS; - remove globals to limit size of DMP file
+            int const crashRptFlags = wxCRASH_REPORT_LOCATION | wxCRASH_REPORT_STACK; // | wxCRASH_REPORT_GLOBALS; - remove globals to limit size of DMP file
 
-        if ((ctx == wxDebugReport::Context_Exception) ? wxCrashReport::Generate(crashRptFlags) : wxCrashReport::GenerateNow(crashRptFlags))
-        {
-            report.AddFile(fn.GetFullName(), _("dump of the process state (binary)"));
-        }
+            if ((ctx == wxDebugReport::Context_Exception) ? wxCrashReport::Generate(crashRptFlags) : wxCrashReport::GenerateNow(crashRptFlags)) {
+                report.AddFile(fn.GetFullName(), _("dump of the process state (binary)"));
+            }
 #endif
 
-        wxString backtrace_txt = wxString::Format("%s version %s\n", m_appName.c_str(), GetDisplayVersionString());
-        backtrace_txt += "Time: " + wxDateTime::Now().FormatISOCombined() + "\n";
+            wxString backtrace_txt = wxString::Format("%s version %s\n", m_appName.c_str(), GetDisplayVersionString());
+            backtrace_txt += "Time: " + wxDateTime::Now().FormatISOCombined() + "\n";
 
-        std::ostringstream threadIdStr;
-        threadIdStr << std::showbase // show the 0x prefix
-                    << std::internal // fill between the prefix and the number
-                    << std::setfill('0') << std::setw(10)
-                    << std::hex << std::this_thread::get_id();
+            std::ostringstream threadIdStr;
+            threadIdStr << std::showbase // show the 0x prefix
+                        << std::internal // fill between the prefix and the number
+                        << std::setfill('0') << std::setw(10)
+                        << std::hex << std::this_thread::get_id();
 
-        backtrace_txt += wxString::Format("Crashed Thread ID: %s", threadIdStr.str());
+            backtrace_txt += wxString::Format("Crashed Thread ID: %s", threadIdStr.str());
 
-        if (wxThread::IsMain())
-        {
-            backtrace_txt += " (Main Thread)";
-        }
+            if (wxThread::IsMain()) {
+                backtrace_txt += " (Main Thread)";
+            }
 
-        backtrace_txt += "\n\n";
+            backtrace_txt += "\n\n";
 
-    #ifdef __WXMSW__
-        xlStackWalker sw(!isFatalException, isFatalException);
-        backtrace_txt += sw.GetStackTrace();
-    #else
-        void* callstack[128];
-        int frames = backtrace(callstack, 128);
-        char** strs = backtrace_symbols(callstack, frames);
-        for (int i = 0; i < frames; ++i)
-        {
-            backtrace_txt += strs[i];
-            backtrace_txt += "\n";
-        }
-        free(strs);
-    #endif
-
-        report.AddText("backtrace.txt", backtrace_txt, "Backtrace");
-        logger_base.crit("%s", (const char *)backtrace_txt.c_str());
-
-        xlFrame* const topFrame = GetTopWindow();
-        std::string const logFileName = m_appName + "_l4cpp.log";
 #ifdef __WXMSW__
-        wxString dir;
-        wxGetEnv("APPDATA", &dir);
-        std::string const logFilePath = std::string(dir.c_str()) + "/" + logFileName;
+            xlStackWalker sw(!isFatalException, isFatalException);
+            backtrace_txt += sw.GetStackTrace();
+#else
+            void* callstack[128];
+            int frames = backtrace(callstack, 128);
+            char** strs = backtrace_symbols(callstack, frames);
+            for (int i = 0; i < frames; ++i) {
+                backtrace_txt += strs[i];
+                backtrace_txt += "\n";
+            }
+            free(strs);
+#endif
+
+            report.AddText("backtrace.txt", backtrace_txt, "Backtrace");
+            logger_base.crit("%s", (const char*)backtrace_txt.c_str());
+
+            xlFrame* const topFrame = GetTopWindow();
+            std::string const logFileName = m_appName + "_l4cpp.log";
+#ifdef __WXMSW__
+            wxString dir;
+            wxGetEnv("APPDATA", &dir);
+            std::string const logFilePath = std::string(dir.c_str()) + "/" + logFileName;
 #endif
 #ifdef __WXOSX__
-        wxFileName home;
-        home.AssignHomeDir();
-        wxString const dir = home.GetFullPath();
-        std::string const logFilePath = std::string(dir.c_str()) + "/Library/Logs/" + logFileName;
+            wxFileName home;
+            home.AssignHomeDir();
+            wxString const dir = home.GetFullPath();
+            std::string const logFilePath = std::string(dir.c_str()) + "/Library/Logs/" + logFileName;
 #endif
 #ifdef __LINUX__
-        std::string const logFilePath = "/tmp/" + logFileName;
+            std::string const logFilePath = "/tmp/" + logFileName;
 #endif
 
-        if (FileExists(logFilePath))
-        {
-            report.AddFile(logFilePath, logFileName.c_str());
-        }
-        else if ((topFrame != nullptr) && FileExists(wxFileName(topFrame->GetCurrentDir(), logFileName.c_str()).GetFullPath()))
-        {
-            report.AddFile(wxFileName(topFrame->GetCurrentDir(), logFileName.c_str()).GetFullPath(), logFileName.c_str());
-        }
-        else if (FileExists(wxFileName(wxGetCwd(), logFileName.c_str()).GetFullPath()))
-        {
-            report.AddFile(wxFileName(wxGetCwd(), logFileName.c_str()).GetFullPath(), logFileName.c_str());
-        }
+            if (FileExists(logFilePath)) {
+                report.AddFile(logFilePath, logFileName.c_str());
+            } else if ((topFrame != nullptr) && FileExists(wxFileName(topFrame->GetCurrentDir(), logFileName.c_str()).GetFullPath())) {
+                report.AddFile(wxFileName(topFrame->GetCurrentDir(), logFileName.c_str()).GetFullPath(), logFileName.c_str());
+            } else if (FileExists(wxFileName(wxGetCwd(), logFileName.c_str()).GetFullPath())) {
+                report.AddFile(wxFileName(wxGetCwd(), logFileName.c_str()).GetFullPath(), logFileName.c_str());
+            }
 
-        if (topFrame == nullptr)
-        {
-            logger_base.crit("Unable to tell user about debug report. Crash report saved to %s.", (const char*)report.GetCompressedFileName().c_str());
-        }
-        else
-        {
-            if (wxThread::IsMain())
-            {
-                topFrame->CreateDebugReport(this);
+            if (topFrame == nullptr) {
+                logger_base.crit("Unable to tell user about debug report. Crash report saved to %s.", (const char*)report.GetCompressedFileName().c_str());
+            } else {
+                if (wxThread::IsMain()) {
+                    topFrame->CreateDebugReport(this);
+                } else {
+                    topFrame->CallAfter(&xlFrame::CreateDebugReport, this);
+                    m_crashDoneSignal.wait(lock);
+                }
             }
-            else
-            {
-                topFrame->CallAfter(&xlFrame::CreateDebugReport, this);
-                m_crashDoneSignal.wait(lock);
-            }
-        }
 #endif // (defined(_DEBUG))
-    }
-    catch (...)
-    {
-        logger_base.crit("We had an exception within the HandleCrash() function.");
+        } catch (...) {
+            logger_base.crit("We had an exception within the HandleCrash() function.");
+        }
     }
 
     m_report = nullptr;

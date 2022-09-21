@@ -468,7 +468,20 @@ void PathDrawingContext::SetPen(wxPen &pen) {
         gc->SetPen(pen);
 }
 
-void TextDrawingContext::SetPen(wxPen &pen) {
+void PathDrawingContext::SetBrush(wxBrush& brush)
+{
+    if (gc != nullptr)
+        gc->SetBrush(brush);
+}
+
+void PathDrawingContext::SetBrush(wxGraphicsBrush& brush)
+{
+    if (gc != nullptr)
+        gc->SetBrush(brush);
+}
+
+void TextDrawingContext::SetPen(wxPen& pen)
+{
     if (gc != nullptr) {
         gc->SetPen(pen);
     } else {
@@ -486,7 +499,13 @@ void PathDrawingContext::StrokePath(wxGraphicsPath& path)
     gc->StrokePath(path);
 }
 
-void TextDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
+void PathDrawingContext::FillPath(wxGraphicsPath& path, wxPolygonFillMode fillStyle)
+{
+    gc->FillPath(path, fillStyle);
+}
+
+void TextDrawingContext::SetFont(wxFontInfo& font, const xlColor& color)
+{
     if (gc != nullptr) {
         int style = wxFONTFLAG_NOT_ANTIALIASED;
         if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
@@ -676,10 +695,19 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     // This is an absurdly high number but there are circumstances right now when creating a buffer based on a zoomed in camera when these can be hit.
     //wxASSERT(NumPixels < 500000);
 
-    pixelVector.resize(NumPixels);
-    pixels = &pixelVector[0];
-    tempbufVector.resize(NumPixels);
-    tempbuf = &tempbufVector[0];
+    if (NumPixels != pixelVector.size()) {
+        bool resetPtr = pixelVector.size() == 0 || pixels == &pixelVector[0];
+        pixelVector.resize(NumPixels);
+        tempbufVector.resize(NumPixels);
+        if (resetPtr) {
+            // If the pixels or tempbuf ptr did not point to the first element
+            // originally, then it is pointing into GPU memory and we need
+            // to keep that pointer pointing there so the data can be retreived
+            // from the GPU.
+            pixels = &pixelVector[0];
+            tempbuf = &tempbufVector[0];
+        }
+    }
     isTransformed = (bufferTransform != "None");
 }
 

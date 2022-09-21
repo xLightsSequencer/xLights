@@ -176,7 +176,7 @@
 					<Add option="-std=c++1z" />
 					<Add option="-g" />
 					<Add option="-std=gnu++17" />
-					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags lua53`" />
@@ -206,7 +206,7 @@
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
-					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --libs lua53`" />
 					<Add option="-lexpat" />
@@ -229,7 +229,7 @@
 					<Add option="-O2" />
 					<Add option="-Wall" />
 					<Add option="-std=gnu++17" />
-					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags lua53`" />
@@ -259,7 +259,7 @@
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
-					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --libs lua53`" />
 					<Add option="-lexpat" />
@@ -589,6 +589,8 @@
 		<Unit filename="LayoutGroup.h" />
 		<Unit filename="LayoutPanel.cpp" />
 		<Unit filename="LayoutPanel.h" />
+		<Unit filename="LayoutUtils.cpp" />
+		<Unit filename="LayoutUtils.h" />
 		<Unit filename="LinkJukeboxButtonDialog.cpp" />
 		<Unit filename="LinkJukeboxButtonDialog.h" />
 		<Unit filename="LorConvertDialog.cpp" />
@@ -616,6 +618,8 @@
 		<Unit filename="ModelGroupPanel.h" />
 		<Unit filename="ModelPreview.cpp" />
 		<Unit filename="ModelPreview.h" />
+		<Unit filename="ModelRemap.cpp" />
+		<Unit filename="ModelRemap.h" />
 		<Unit filename="ModelStateDialog.cpp" />
 		<Unit filename="ModelStateDialog.h" />
 		<Unit filename="Mouse3DManager.cpp" />
@@ -671,6 +675,8 @@
 		<Unit filename="RenderProgressDialog.h" />
 		<Unit filename="ResizeImageDialog.cpp" />
 		<Unit filename="ResizeImageDialog.h" />
+		<Unit filename="RestoreBackupDialog.cpp" />
+		<Unit filename="RestoreBackupDialog.h" />
 		<Unit filename="SOIL.h" />
 		<Unit filename="SaveChangesDialog.cpp" />
 		<Unit filename="SaveChangesDialog.h" />
@@ -724,12 +730,16 @@
 		<Unit filename="TabSetup.cpp" />
 		<Unit filename="TimingPanel.cpp" />
 		<Unit filename="TimingPanel.h" />
+		<Unit filename="TipOfTheDayDialog.cpp" />
+		<Unit filename="TipOfTheDayDialog.h" />
 		<Unit filename="TopEffectsPanel.cpp" />
 		<Unit filename="TopEffectsPanel.h" />
 		<Unit filename="TraceLog.cpp" />
 		<Unit filename="TraceLog.h" />
 		<Unit filename="UpdaterDialog.cpp" />
 		<Unit filename="UpdaterDialog.h" />
+		<Unit filename="UtilClasses.cpp" />
+		<Unit filename="UtilClasses.h" />
 		<Unit filename="UtilFunctions.cpp" />
 		<Unit filename="UtilFunctions.h" />
 		<Unit filename="VAMPPluginDialog.cpp" />
@@ -1120,6 +1130,8 @@
 		<Unit filename="models/DMX/DmxMovingHead3D.h" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.cpp" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.h" />
+		<Unit filename="models/DMX/DmxPresetAbility.cpp" />
+		<Unit filename="models/DMX/DmxPresetAbility.h" />
 		<Unit filename="models/DMX/DmxServo.cpp" />
 		<Unit filename="models/DMX/DmxServo.h" />
 		<Unit filename="models/DMX/DmxServo3D.cpp" />
@@ -1269,6 +1281,8 @@
 		<Unit filename="outputs/xxxSerialOutput.h" />
 		<Unit filename="preferences/BackupSettingsPanel.cpp" />
 		<Unit filename="preferences/BackupSettingsPanel.h" />
+		<Unit filename="preferences/CheckSequenceSettingsPanel.cpp" />
+		<Unit filename="preferences/CheckSequenceSettingsPanel.h" />
 		<Unit filename="preferences/ColorManagerSettingsPanel.cpp" />
 		<Unit filename="preferences/ColorManagerSettingsPanel.h" />
 		<Unit filename="preferences/EffectsGridSettingsPanel.cpp" />
@@ -1380,6 +1394,7 @@
 		<Unit filename="wxsmith/CandlePanel.wxs" />
 		<Unit filename="wxsmith/CharMapDialog.wxs" />
 		<Unit filename="wxsmith/CheckboxSelectDialog.wxs" />
+		<Unit filename="wxsmith/CheckSequenceSettingsPanel.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
 		<Unit filename="wxsmith/ColorManagerDialog.wxs" />
@@ -1444,6 +1459,7 @@
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="wxsmith/ModelGroupPanel.wxs" />
 		<Unit filename="wxsmith/ModelPreview3DDialog.wxs" />
+		<Unit filename="wxsmith/ModelRemap.wxs" />
 		<Unit filename="wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
 		<Unit filename="wxsmith/MultiControllerUploadDialog.wxs" />
@@ -1508,6 +1524,7 @@
 		<Unit filename="wxsmith/TendrilPanel.wxs" />
 		<Unit filename="wxsmith/TextPanel.wxs" />
 		<Unit filename="wxsmith/TimingPanel.wxs" />
+		<Unit filename="wxsmith/TipOfTheDayDialog.wxs" />
 		<Unit filename="wxsmith/TopEffectsPanel.wxs" />
 		<Unit filename="wxsmith/TreePanel.wxs" />
 		<Unit filename="wxsmith/TwinklePanel.wxs" />
@@ -1723,6 +1740,7 @@
 					<wxPanel wxs="wxsmith/ViewObjectPanel.wxs" src="ViewObjectPanel.cpp" hdr="ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ShaderPanel.wxs" src="effects/ShaderPanel.cpp" hdr="effects/ShaderPanel.h" fwddecl="0" i18n="1" name="ShaderPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/BackupSettingsPanel.wxs" src="preferences/BackupSettingsPanel.cpp" hdr="preferences/BackupSettingsPanel.h" fwddecl="1" i18n="1" name="BackupSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/CheckSequenceSettingsPanel.wxs" src="preferences/CheckSequenceSettingsPanel.cpp" hdr="preferences/CheckSequenceSettingsPanel.h" fwddecl="1" i18n="1" name="CheckSequenceSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ViewSettingsPanel.wxs" src="preferences/ViewSettingsPanel.cpp" hdr="preferences/ViewSettingsPanel.h" fwddecl="1" i18n="1" name="ViewSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SequenceFileSettingsPanel.wxs" src="preferences/SequenceFileSettingsPanel.cpp" hdr="preferences/SequenceFileSettingsPanel.h" fwddecl="1" i18n="1" name="SequenceFileSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/OutputSettingsPanel.wxs" src="preferences/OutputSettingsPanel.cpp" hdr="preferences/OutputSettingsPanel.h" fwddecl="1" i18n="1" name="OutputSettingsPanel" language="CPP" />
@@ -1737,11 +1755,11 @@
 					<wxDialog wxs="wxsmith/MediaImportOptionsDialog.wxs" src="MediaImportOptionsDialog.cpp" hdr="MediaImportOptionsDialog.h" fwddecl="0" i18n="1" name="MediaImportOptionsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ScriptsDialog.wxs" src="ScriptsDialog.cpp" hdr="ScriptsDialog.h" fwddecl="0" i18n="1" name="ScriptsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ColourReplaceDialog.wxs" src="ColourReplaceDialog.cpp" hdr="ColourReplaceDialog.h" fwddecl="0" i18n="1" name="ColourReplaceDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/TipOfTheDayDialog.wxs" src="TipOfTheDayDialog.cpp" hdr="TipOfTheDayDialog.h" fwddecl="0" i18n="1" name="TipOfTheDayDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelRemap.wxs" src="ModelRemap.cpp" hdr="ModelRemap.h" fwddecl="0" i18n="1" name="ModelRemap" language="CPP" />
+					<wxDialog wxs="wxsmith/RestoreBackupDialog.wxs" src="RestoreBackupDialog.cpp" hdr="RestoreBackupDialog.h" fwddecl="0" i18n="1" name="RestoreBackupDialog" language="CPP" />
 				</resources>
 			</wxsmith>
-			<code_completion />
-			<envvars />
-			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

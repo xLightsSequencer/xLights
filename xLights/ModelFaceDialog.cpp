@@ -1220,7 +1220,7 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
             std::string faceZip = dlg.GetFaceFile();
 
             // create folder if necessary
-            std::string dir = xLightsFrame::CurrentDir.ToStdString() + "/DownloadedFaces";
+            wxString const dir = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "DownloadedFaces";
             if (!wxDir::Exists(dir))
             {
                 wxMkDir(dir, wxS_DIR_DEFAULT);
@@ -1234,7 +1234,7 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
             wxZipEntry *ent = zin.GetNextEntry();
             while (ent != nullptr)
             {
-                std::string filename = dir + "/" + ent->GetName().ToStdString();
+                wxString filename = dir + wxFileName::GetPathSeparator() + ent->GetName();
                 files.push_back(filename);
 
                 if (!FileExists(filename))

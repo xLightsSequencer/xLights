@@ -29,29 +29,65 @@
 
 class SingleStrandEffect : public RenderableEffect
 {
-    public:
-        SingleStrandEffect(int id);
-        virtual ~SingleStrandEffect();
-        virtual void SetDefaultParameters() override;
-        virtual bool needToAdjustSettings(const std::string& version) override;
-        virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return true; }
-        virtual bool CanRenderPartialTimeInterval() const override { return true; }
+public:
+    SingleStrandEffect(int id);
+    virtual ~SingleStrandEffect();
+    virtual void SetDefaultParameters() override;
+    virtual bool needToAdjustSettings(const std::string& version) override;
+    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override
+    {
+        return true;
+    }
+    virtual bool CanRenderPartialTimeInterval() const override
+    {
+        return true;
+    }
 
-    protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Chase_Rotations")
+            return SINGLESTRAND_ROTATIONS_MIN;
+        if (name == "E_VALUECURVE_Number_Chases")
+            return SINGLESTRAND_CHASES_MIN;
+        if (name == "E_VALUECURVE_Color_Mix1")
+            return SINGLESTRAND_COLOURMIX_MIN;
+        if (name == "E_VALUECURVE_FX_Intensity")
+            return SINGLESTRAND_FXINTENSITY_MIN;
+        if (name == "E_VALUECURVE_FX_Speed")
+            return SINGLESTRAND_FXSPEED_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
 
-    private:    
-        void RenderSingleStrandChase(RenderBuffer &buffer,
-                                 const std::string &ColorScheme,int Number_Chases,int chaseSize,
-                                 const std::string &Chase_Type1,
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Chase_Rotations")
+            return SINGLESTRAND_ROTATIONS_MAX;
+        if (name == "E_VALUECURVE_Number_Chases")
+            return SINGLESTRAND_CHASES_MAX;
+        if (name == "E_VALUECURVE_Color_Mix1")
+            return SINGLESTRAND_COLOURMIX_MAX;
+        if (name == "E_VALUECURVE_FX_Intensity")
+            return SINGLESTRAND_FXINTENSITY_MAX;
+        if (name == "E_VALUECURVE_FX_Speed")
+            return SINGLESTRAND_FXSPEED_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
+
+protected:
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
+
+private:
+    void RenderSingleStrandChase(RenderBuffer& buffer,
+                                 const std::string& ColorScheme, int Number_Chases, int chaseSize,
+                                 const std::string& Chase_Type1,
                                  bool Chase_3dFade1, bool Chase_Group_All,
                                  float chaseSpeed);
-        void RenderSingleStrandSkips(RenderBuffer &buffer, Effect *eff, int Skips_BandSize,
+    void RenderSingleStrandSkips(RenderBuffer& buffer, Effect* eff, int Skips_BandSize,
                                  int Skips_SkipSize, int Skips_StartPos, const std::string& Skips_Direction, int advances);
-        void RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, int intensity, int speed, const std::string& fx, const std::string& palette);
-        void draw_chase(RenderBuffer& buffer,
-                    int x, bool group, int ColorScheme,int Number_Chases,bool autoReverse,int width,
-                    int Color_Mix1,bool Chase_Fade3d1,int ChaseDirection, bool mirror);
+    void RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, int intensity, int speed, const std::string& fx, const std::string& palette);
+    void draw_chase(RenderBuffer& buffer,
+                    int x, bool group, int ColorScheme, int Number_Chases, bool autoReverse, int width,
+                    int Color_Mix1, bool Chase_Fade3d1, int ChaseDirection, bool mirror);
 };

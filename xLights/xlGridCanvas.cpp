@@ -128,12 +128,12 @@ void xlGridCanvas::DrawBaseGrid(xlGraphicsContext *ctx)
     float cellSize = getCellSize();
     float height = cellSize * mRows;
     float width = cellSize * mColumns;
-    float inset = mapLogicalToAbsolute(5.0) + 0.25;
+    float inset = mapLogicalToAbsolute(5.0f) + 0.25f;
     va->PreAlloc((mRows + mColumns + 2) * 2 * 3);
 
     float lwidth = mapLogicalToAbsolute(0.8);
-    if (lwidth < 1.1)
-        lwidth = 1.1;
+    if (lwidth < 1.1f)
+        lwidth = 1.1f;
 
     for (int row = 0; row <= mRows; row++ ) {
         float y = std::round(cellSize * row + inset) - lwidth / 2.0;

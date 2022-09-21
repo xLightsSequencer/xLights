@@ -165,10 +165,15 @@ void LyricUserDictDialog::OnButtonAddLyricClick(wxCommandEvent& event)
 
     //only error if word is in main dictionary and not marked to be deleted on close
     // or its already populated in the dialog
-    if ((m_dictionary->ContainsPhoneme(TextCtrlNewLyric->GetValue().Upper()) && !found)
-        || DoesGridContain(TextCtrlNewLyric->GetValue().Upper())) {
-        DisplayError("Word '" + TextCtrlNewLyric->GetValue() + "' Already Exists In Phoneme Dictionary", this);
+    if (DoesGridContain(TextCtrlNewLyric->GetValue().Upper())) {
+        DisplayError("Word '" + TextCtrlNewLyric->GetValue() + "' Already Exists In User Dictionary", this);
         return;
+    }
+
+    if (m_dictionary->ContainsPhoneme(TextCtrlNewLyric->GetValue().Upper()) && !found) {
+        if (wxMessageBox("Word '" + TextCtrlNewLyric->GetValue() + "' Already Exists In Phoneme Dictionary. Do you want to override it?", "Override", wxYES_NO, this) == wxNO) {
+            return;
+        }
     }
 
     const auto& str_list = wxSplit(TextCtrlOldLyric->GetValue().Upper(), ' ');
@@ -304,9 +309,16 @@ void LyricUserDictDialog::InsertRow(const wxString & text, std::vector<wxArraySt
     wxArrayString all_phonemes;
 
     for (auto & phonem : phonemeList) {
-        if (phonem.size() > 2) {
-            phonem.RemoveAt(0, 2);//phonemeList has a name and a space at the beginning
-            all_phonemes.insert(all_phonemes.end(), phonem.begin(), phonem.end());
+        if (phonem.size() >= 2) {
+            if (phonem[1].Trim() == "") {
+                phonem.RemoveAt(0, 2); // phonemeList has a name and a space at the beginning
+            }
+            else {
+                phonem.RemoveAt(0, 1); // phonemeList has a name only at the beginning
+            }
+            if (phonem.size() > 0) {
+                all_phonemes.insert(all_phonemes.end(), phonem.begin(), phonem.end());
+            }
         }
     }
     GridUserLyricDict->SetCellValue(row, 1, wxJoin(all_phonemes, ' '));

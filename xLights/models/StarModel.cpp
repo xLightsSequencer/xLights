@@ -208,6 +208,13 @@ int StarModel::GetNumStrands() const {
     return GetLayerSizeCount();
 }
 
+int StarModel::GetMappedStrand(int strand) const {
+    if (GetLayerSizeCount() != 0) {
+        return GetLayerSizeCount() - strand - 1;
+    }
+    return strand;
+}
+
 bool StarModel::AllNodesAllocated() const
 {
     int allocated = 0;
@@ -667,8 +674,8 @@ void StarModel::ExportXlightsModel()
     wxString p3 = ModelXml->GetAttribute("parm3");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ls = ModelXml->GetAttribute("LayerSizes");
     wxString sr = ModelXml->GetAttribute("starRatio", "2.618034");
@@ -716,6 +723,7 @@ void StarModel::ExportXlightsModel()
     if (submodel != "") {
         f.Write(submodel);
     }
+    ExportDimensions(f);
     f.Write("</starmodel>");
     f.Close();
 }
@@ -729,8 +737,8 @@ void StarModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         wxString p3 = root->GetAttribute("parm3");
         wxString st = root->GetAttribute("StringType");
         wxString ps = root->GetAttribute("PixelSize");
-        wxString t = root->GetAttribute("Transparency");
-        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString t = root->GetAttribute("Transparency", "0");
+        wxString mb = root->GetAttribute("ModelBrightness", "0");
         wxString a = root->GetAttribute("Antialias");
         wxString sts = root->GetAttribute("StartSide");
         wxString ls = root->GetAttribute("starSizes");
@@ -785,7 +793,7 @@ void StarModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::ImportXlightsModel");

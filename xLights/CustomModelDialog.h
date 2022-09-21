@@ -73,6 +73,9 @@ class CustomModelDialog: public wxDialog
 	void CreateMinimalSubmodelFromRow(int row);
 	void SetGridSizeForFont(const wxFont& font);
 
+	void DrawDupNodes();
+    void ClearDupNodes();
+
     static const long CUSTOMMODELDLGMNU_CUT;
     static const long CUSTOMMODELDLGMNU_COPY;
     static const long CUSTOMMODELDLGMNU_PASTE;
@@ -137,6 +140,7 @@ class CustomModelDialog: public wxDialog
 		wxCheckBox* CheckBoxAutoIncrement;
 		wxCheckBox* CheckBoxAutoNumber;
 		wxCheckBox* CheckBox_ShowWiring;
+		wxCheckBox* CheckBox_Show_Duplicates;
 		wxFlexGridSizer* FlexGridSizer10;
 		wxFlexGridSizer* Sizer1;
 		wxPanel* Panel11;
@@ -168,6 +172,7 @@ class CustomModelDialog: public wxDialog
 		static const long ID_SPINCTRL3;
 		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON3;
+		static const long ID_CHECKBOX_SHOW_DUPS;
 		static const long ID_BITMAPBUTTON_CUSTOM_CUT;
 		static const long ID_BITMAPBUTTON_CUSTOM_COPY;
 		static const long ID_BITMAPBUTTON_CUSTOM_PASTE;
@@ -202,6 +207,7 @@ class CustomModelDialog: public wxDialog
         std::vector<wxModelGridCellRenderer*> _renderers;
         ModelPreview* _modelPreview = nullptr;
 		int _highlightpixel = 0;
+        std::vector<std::pair<wxPoint, wxColour>> _dup_pts;
 
 	public:
 
@@ -229,6 +235,7 @@ class CustomModelDialog: public wxDialog
 		void OnResize(wxSizeEvent& event);
 		void OnCheckBox_ShowWiringClick(wxCommandEvent& event);
 		void OnButton_ImportFromControllerClick(wxCommandEvent& event);
+		void OnCheckBox_Show_DuplicatesClick(wxCommandEvent& event);
 		//*)
 
         void OnMove(wxMoveEvent& event);

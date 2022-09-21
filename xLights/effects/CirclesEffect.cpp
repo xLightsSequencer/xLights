@@ -156,7 +156,7 @@ void CirclesEffect::SetDefaultParameters() {
     SetCheckBoxValue(cp->CheckBox_Circles_Linear_Fade, false);
 }
 
-void CirclesEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer) {
+void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     int number = GetValueCurveInt("Circles_Count", 3, SettingsMap, oset, CIRCLES_COUNT_MIN, CIRCLES_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

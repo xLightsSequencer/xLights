@@ -25,16 +25,42 @@
 
 class BarsEffect : public RenderableEffect
 {
-    public:
-        BarsEffect(int id);
-        virtual ~BarsEffect();
-        virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return true; }
-        virtual bool CanRenderPartialTimeInterval() const override { return true; }
+public:
+    BarsEffect(int id);
+    virtual ~BarsEffect();
+    virtual void SetDefaultParameters() override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override
+    {
+        return true;
+    }
+    virtual bool CanRenderPartialTimeInterval() const override
+    {
+        return true;
+    }
 
-    protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
-        void GetSpatialColor(xlColor& color, size_t colorIndex, float x, float y, RenderBuffer &buffer, bool gradient, bool highlight, bool show3d, int BarHt, int n, float pct, int color2Index);
-    private:
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Bars_BarCount")
+            return BARCOUNT_MIN;
+        if (name == "E_VALUECURVE_Bars_Cycles")
+            return BARCYCLES_MIN;
+        if (name == "E_VALUECURVE_Bars_Center")
+            return BARCENTER_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Bars_BarCount")
+            return BARCOUNT_MAX;
+        if (name == "E_VALUECURVE_Bars_Cycles")
+            return BARCYCLES_MAX;
+        if (name == "E_VALUECURVE_Bars_Center")
+            return BARCENTER_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
+
+protected:
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
+    void GetSpatialColor(xlColor& color, size_t colorIndex, float x, float y, RenderBuffer& buffer, bool gradient, bool highlight, bool show3d, int BarHt, int n, float pct, int color2Index);
 };

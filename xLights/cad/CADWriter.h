@@ -29,12 +29,12 @@ struct CADWriter
 	virtual void WriteHeader() { };
 	virtual void WriteEndOfFile() { };
 
-	virtual void WriteText(CADPoint const& loc, std::string const& text, float height, float rotation = 0.0 ) = 0;
-	virtual void WriteWire(CADPoint const& loc1 , CADPoint const& loc2) = 0;
-	virtual void WriteNode(CADPoint const& loc) = 0;
+	virtual void WriteText(CADPoint const& loc, std::string const& text, float height, uint32_t color, float rotation = 0.0 ) = 0;
+	virtual void WriteWire(CADPoint const& loc1 , CADPoint const& loc2, uint32_t color) = 0;
+	virtual void WriteNode(CADPoint const& loc, uint32_t color) = 0;
 
-	virtual void WriteFirstNode(CADPoint const& loc);
-	virtual void WriteLastNode(CADPoint const& loc);
+	virtual void WriteFirstNode(CADPoint const& loc, uint32_t color);
+	virtual void WriteLastNode(CADPoint const& loc, uint32_t color);
 
 	virtual void WriteTextHeader() { };
 	virtual void WriteTextFooter() { };
