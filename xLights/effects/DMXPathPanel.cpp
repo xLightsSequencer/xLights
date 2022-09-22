@@ -194,13 +194,14 @@ DMXPathPanel::DMXPathPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_DMXPath_Tilt = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_DMXPath_Tilt, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_DMXPath_Tilt"));
 	BitmapButton_DMXPath_Tilt->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer_Main->Add(BitmapButton_DMXPath_Tilt, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer_Main->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Main->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_DMXPath_2D = new wxButton(this, ID_BUTTON_DMXPath_2D, _("2D Path"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DMXPath_2D"));
 	FlexGridSizer_Main->Add(Button_DMXPath_2D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer_Main);
 	FlexGridSizer_Main->Fit(this);
 	FlexGridSizer_Main->SetSizeHints(this);
 
+	Connect(ID_CHOICE_DMXPath_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&DMXPathPanel::OnChoice_DMXPath_TypeSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_DMXPath_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPathPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_DMXPath_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPathPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_DMXPath_X,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPathPanel::OnLockButtonClick);
@@ -209,10 +210,14 @@ DMXPathPanel::DMXPathPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_VALUECURVE_DMXPath_Pan,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPathPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_DMXPath_Tilt,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPathPanel::OnVCButtonClick);
 	//*)
-    SetName("ID_PANEL_DMX");
 
-    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&DMXPathPanel::OnVCChanged, 0, this);
+	Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&DMXPathPanel::OnVCChanged, 0, this);
 	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&DMXPathPanel::OnValidateWindow, 0, this);
+
+	BitmapButton_DMXPath_PanVC->SetLimits(DMXPATH_PAN_MIN, DMXPATH_PAN_MAX);
+    BitmapButton_DMXPath_TiltVC->SetLimits(DMXPATH_TILT_MIN, DMXPATH_TILT_MAX);
+    BitmapButton_DMXPath_RotationVC->SetLimits(DMXPATH_ROTATION_MIN, DMXPATH_ROTATION_MIN);
+    SetName("ID_PANEL_DMX");
 
 	ValidateWindow();
 }

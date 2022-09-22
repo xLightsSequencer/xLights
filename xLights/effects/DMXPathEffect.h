@@ -12,11 +12,14 @@
 
 #include "RenderableEffect.h"
 
-#define PAN_MIN -180
-#define PAN_MAX 180
+#define DMXPATH_PAN_MIN -180
+#define DMXPATH_PAN_MAX 180
 
-#define TILT_MIN -180
-#define TILT_MAX 180
+#define DMXPATH_TILT_MIN -180
+#define DMXPATH_TILT_MAX 180
+
+#define DMXPATH_ROTATION_MIN 0
+#define DMXPATH_ROTATION_MAX 360
 
 enum class DMXPathType {
     Circle,
@@ -39,11 +42,34 @@ public:
     void SetPanelStatus(Model *cls) override;
     void SetDefaultParameters() override;
     bool CanRenderPartialTimeInterval() const override { return true; }
+
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_DMXPath_Pan")
+            return DMXPATH_PAN_MIN;
+        if (name == "E_VALUECURVE_DMXPath_Tilt")
+            return DMXPATH_TILT_MIN;
+        if (name == "E_VALUECURVE_DMXPath_Rotation")
+            return DMXPATH_ROTATION_MAX;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_DMXPath_Pan")
+            return DMXPATH_PAN_MAX;
+        if (name == "E_VALUECURVE_DMXPath_Tilt")
+            return DMXPATH_TILT_MAX;
+        if (name == "E_VALUECURVE_DMXPath_Rotation")
+            return DMXPATH_ROTATION_MIN;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
+
 protected:
     xlEffectPanel *CreatePanel(wxWindow *parent) override;
 private:
     void SetDMXColorPixel(int chan, uint8_t value, RenderBuffer &buffer);
-    std::pair<uint8_t, uint8_t> renderPath(DMXPathType effectType, double eff_pos, long length, int height, int width, int x_off, int y_off, int rot);
+    std::pair<int, int> renderPath(DMXPathType effectType, double eff_pos, long length, int height, int width, int x_off, int y_off, int rot);
     std::pair<float, float> calcLocation(DMXPathType effectType, float degpos);
     DMXPathType DecodeType(const std::string& shape) const; 
 

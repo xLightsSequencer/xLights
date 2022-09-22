@@ -24,8 +24,7 @@
 #include "../../include/dmxpath-64.xpm"
 #include "UtilFunctions.h"
 
-#define DMXPATH_ROTATION_MIN 0
-#define DMXPATH_ROTATION_MAX 360
+
 
 DMXPathEffect::DMXPathEffect(int id) : RenderableEffect(id, "DMX Path", dmxpath_16, dmxpath_24, dmxpath_32, dmxpath_48, dmxpath_64)
 {
@@ -59,7 +58,7 @@ void DMXPathEffect::SetDefaultParameters() {
 void DMXPathEffect::SetDMXColorPixel(int chan, uint8_t value, RenderBuffer &buffer)
 {
     xlColor color(value, value, value);
-    buffer.SetPixel(chan, 0, color, false, false, true);
+    buffer.SetPixel(chan - 1, 0, color, false, false, true);
 }
 
 void DMXPathEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -75,8 +74,8 @@ void DMXPathEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     auto y_offset = SettingsMap.GetInt("SLIDER_DMXPath_Y_Offset", 0);
 
     int rotation = GetValueCurveInt("DMXPath_Rotation", 0, SettingsMap, eff_pos, DMXPATH_ROTATION_MIN, DMXPATH_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int pan = GetValueCurveInt("DMXPath_Pan", 0, SettingsMap, eff_pos, PAN_MIN, PAN_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int tilt = GetValueCurveInt("DMXPath_Tilt", 0, SettingsMap, eff_pos, TILT_MIN, TILT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int pan = GetValueCurveInt("DMXPath_Pan", 0, SettingsMap, eff_pos, DMXPATH_PAN_MIN, DMXPATH_PAN_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int tilt = GetValueCurveInt("DMXPath_Tilt", 0, SettingsMap, eff_pos, DMXPATH_TILT_MIN, DMXPATH_TILT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     if (buffer.cur_model == "") {
         return;
@@ -162,7 +161,7 @@ void DMXPathEffect::SetPanelStatus(Model *cls) {
     p->Refresh();
 }
 
-std::pair<uint8_t, uint8_t> DMXPathEffect::renderPath(DMXPathType effectType, double eff_pos,long length, int height, int width, int x_off, int y_off, int rot)
+std::pair<int, int> DMXPathEffect::renderPath(DMXPathType effectType, double eff_pos,long length, int height, int width, int x_off, int y_off, int rot)
 {
     float position = 360.0 * (eff_pos);
 
@@ -189,7 +188,7 @@ std::pair<float, float> DMXPathEffect::calcLocation(DMXPathType effectType, floa
     float x;
     float y;
 
-    double radpos = degpos * PI / 180.0;
+    double radpos = degpos * M_PI / 180.0;
 
     switch (effectType) {
     case DMXPathType::Circle:
@@ -243,7 +242,7 @@ int DMXPathEffect::ScaleToDMX(int value, int degresOfMovement) const
     int MinMax = degresOfMovement / 2;
     value = std::min(MinMax, value);
     value = std::max(-MinMax, value);
-    return std::round((value * 255) / MinMax);
+    return (double(value + MinMax) / degresOfMovement) * 255.0;
 }
 
 DMXPathType DMXPathEffect::DecodeType(const std::string& shape) const

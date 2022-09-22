@@ -25,6 +25,7 @@
 						<item>Custom</item>
 					</content>
 					<selection>0</selection>
+					<handler function="OnChoice_DMXPath_TypeSelect" entry="EVT_CHOICE" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
