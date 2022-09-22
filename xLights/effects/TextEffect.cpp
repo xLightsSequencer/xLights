@@ -1410,6 +1410,15 @@ void TextEffect::ReplaceVaribles(wxString& msg, RenderBuffer& buffer) const
     msg.Replace("${COMMENT}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::COMMENT));
     msg.Replace("${URL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::URL));
     msg.Replace("${WEBSITE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::WEBSITE));
+
+    if (msg.Contains("${UPPER}")) {
+        msg.Replace("${UPPER}", "");
+        msg = msg.Upper();
+    }
+    if (msg.Contains("${LOWER}")) {
+        msg.Replace("${LOWER}", "");
+        msg = msg.Lower();
+    }
 }
 
 std::vector<std::string> TextEffect::WordSplit(const std::string& text) const
