@@ -37,6 +37,7 @@ class FacesPanel: public xlEffectPanel
 
 		//(*Declarations(FacesPanel)
 		BulkEditCheckBox* CheckBox_Faces_Outline;
+		BulkEditCheckBox* CheckBox_SuppressShimmer;
 		BulkEditCheckBox* CheckBox_SuppressWhenNotSinging;
 		BulkEditCheckBox* CheckBox_TransparentBlack;
 		BulkEditChoice* Choice_Faces_Eyes;
@@ -68,6 +69,7 @@ class FacesPanel: public xlEffectPanel
 		static const long ID_STATICTEXT_Faces_Eyes;
 		static const long ID_CHOICE_Faces_Eyes;
 		static const long ID_CHECKBOX_Faces_Outline;
+		static const long ID_CHECKBOX_Faces_SuppressShimmer;
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE_Faces_UseState;
 		static const long ID_CHECKBOX_Faces_SuppressWhenNotSinging;

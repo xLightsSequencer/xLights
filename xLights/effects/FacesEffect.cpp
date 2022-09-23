@@ -85,6 +85,10 @@ wxString FacesEffect::GetEffectString() {
         }
     }
 
+    if (p->CheckBox_SuppressShimmer->GetValue()) {
+        ret << "E_CHECKBOX_Faces_SuppressShimmer=1,";
+    }
+
     if (p->CheckBox_SuppressWhenNotSinging->GetValue() && !p->RadioButton1->GetValue()) {
         ret << "E_CHECKBOX_Faces_SuppressWhenNotSinging=1,";
         if (p->CheckBox_Fade->GetValue()) {
@@ -355,6 +359,7 @@ void FacesEffect::SetDefaultParameters() {
         fp->Face_FaceDefinitonChoice->SetSelection(0);
     }
 
+    SetCheckBoxValue(fp->CheckBox_SuppressShimmer, false);
     SetCheckBoxValue(fp->CheckBox_Faces_Outline, false);
     SetCheckBoxValue(fp->CheckBox_SuppressWhenNotSinging, false);
     SetCheckBoxValue(fp->CheckBox_Fade, false);
@@ -433,7 +438,8 @@ uint8_t FacesEffect::CalculateAlpha(SequenceElements* elements, int leadFrames, 
     return res;
 }
 
-void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
+void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
     uint8_t alpha = 255;
     if (SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false)) {
         if (SettingsMap["CHOICE_Faces_TimingTrack"] != "") {
@@ -446,7 +452,7 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                                SettingsMap["CHOICE_Faces_Phoneme"],
                                SettingsMap.Get("CHOICE_Faces_Eyes", "Auto"),
                                SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
-                               alpha);
+                               alpha, SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", false));
     } else {
         RenderFaces(buffer,
                     effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
@@ -458,12 +464,12 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                     SettingsMap.GetBool("CHECKBOX_Faces_TransparentBlack", false),
                     SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0),
                     alpha,
-                    SettingsMap.Get("CHOICE_Faces_UseState", "")
-            );
+                    SettingsMap.Get("CHOICE_Faces_UseState", ""),
+                    SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", false));
     }
 }
 
-void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool outline, uint8_t alpha) {
+void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool outline, uint8_t alpha, bool suppressShimmer) {
     if (alpha == 0)
         return; // 0 alpha means there is nothing to do
 
@@ -483,7 +489,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, 
 
     wxString pp = Phoneme;
     std::string p = pp.BeforeFirst('-');
-    bool shimmer = pp.Lower().EndsWith("-shimmer");
+    bool shimmer = !suppressShimmer && pp.Lower().EndsWith("-shimmer");
 
     std::map<wxString, int>::const_iterator it = phonemeMap.find(p);
     int PhonemeInt = 0;
@@ -792,7 +798,7 @@ static bool parse_model(const wxString& want_model)
 // Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
 // Eyes_x_y = list of random elements (intended for eye blinks, etc)
 
-void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, uint8_t alpha)
+void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, uint8_t alpha, bool suppressShimmer)
 {
     if (alpha == 0) return;
 
@@ -808,7 +814,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
 
     if (auto_phonemes.find((const char*)Phoneme.c_str()) != auto_phonemes.end())
     {
-        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, face_outline, alpha);
+        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, face_outline, alpha, suppressShimmer);
         return;
     }
 
@@ -871,7 +877,7 @@ std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr,
 void FacesEffect::RenderFaces(RenderBuffer& buffer,
                               SequenceElements* elements, const std::string& faceDef,
                               const std::string& Phoneme, const std::string& trackName,
-                              const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState)
+                              const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState, bool suppressShimmer)
 {
     if (alpha == 0)
         return; // if alpha is zero dont bother.
@@ -1073,7 +1079,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
 
     wxString pp = phoneme;
     std::string p = pp.BeforeFirst('-');
-    bool shimmer = pp.Lower().EndsWith("-shimmer");
+    bool shimmer = !suppressShimmer && pp.Lower().EndsWith("-shimmer");
 
     std::vector<std::string> todo;
     std::vector<xlColor> colors;
@@ -1242,7 +1248,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     }
 
     if (type == 2) {
-        RenderFaces(buffer, phoneme, eyes, face_outline, alpha);
+        RenderFaces(buffer, phoneme, eyes, face_outline, alpha, suppressShimmer);
         return;
     }
     if (type == 3) {
