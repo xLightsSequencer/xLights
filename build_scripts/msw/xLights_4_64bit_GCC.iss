@@ -124,6 +124,7 @@ Source: "../../bin64/hidapi.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin/extended_dictionary"; DestDir: "{app}"
 Source: "../../bin/phoneme_mapping";     DestDir: "{app}"
 Source: "../../bin/standard_dictionary"; DestDir: "{app}"
+Source: "../../bin/german_dictionary";   DestDir: "{app}"
 Source: "../../bin/user_dictionary";     DestDir: "{app}"
 
 ; Vamp dll's
