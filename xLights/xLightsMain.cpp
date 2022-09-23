@@ -1237,12 +1237,36 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
 
-    #ifdef __WXMSW__
-    _tod.PrepTipOfDay(this);
-    #else
-    _tod = new TipOfTheDayDialog("", this);
-    _tod->PrepTipOfDay(this);
-    #endif
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config == nullptr) {
+        logger_base.error("Null config ... this wont end well.");
+    }
+
+    wxString dir;
+    dir.clear();
+    bool ok = true;
+    bool showDirFromCommandLine = false;
+    if (!xLightsApp::showDir.IsNull()) {
+        wxString t;
+        config->Read("LastDir", &t);
+
+        if (t != xLightsApp::showDir) {
+            showDirFromCommandLine = true;
+        }
+        dir = xLightsApp::showDir;
+    } else {
+        ok = config->Read("LastDir", &dir);
+    }
+    logger_base.debug("Show directory %s.", (const char*)dir.c_str());
+
+    if (dir != "") {
+#ifdef __WXMSW__
+        _tod.PrepTipOfDay(this);
+#else
+        _tod = new TipOfTheDayDialog("", this);
+        _tod->PrepTipOfDay(this);
+#endif
+    }
 
     Connect(wxEVT_HELP, (wxObjectEventFunction)&xLightsFrame::OnHelp);
     Notebook1->Connect(wxEVT_HELP, (wxObjectEventFunction) & xLightsFrame::OnHelp, 0, this);
@@ -1373,10 +1397,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
     modelsChangeCount = 0;
 
-    wxConfigBase* config = wxConfigBase::Get();
-    if (config == nullptr) {
-        logger_base.error("Null config ... this wont end well.");
-    }
     logger_base.debug("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor %s.",
         (const char *)config->GetAppName().c_str(),
         (const char *)config->GetPath().c_str(),
@@ -1463,14 +1483,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     _scrollTimer.Connect(wxEVT_TIMER, wxTimerEventHandler(xLightsFrame::OnListItemScrollTimerControllers), nullptr, this);
 
     // get list of most recently used directories
-    wxString dir;
+    wxString dirmru;
     for (int i = 0; i < MRUD_LENGTH; i++) {
         wxString mru_name = wxString::Format("mru%d",i);
-        dir.clear();
-        if (config->Read(mru_name, &dir)) {
-            if (!dir.IsEmpty()) {
-                int idx = mruDirectories.Index(dir);
-                if (idx == wxNOT_FOUND) mruDirectories.Add(dir);
+        dirmru.clear();
+        if (config->Read(mru_name, &dirmru)) {
+            if (!dirmru.IsEmpty()) {
+                int idx = mruDirectories.Index(dirmru);
+                if (idx == wxNOT_FOUND) mruDirectories.Add(dirmru);
             }
         }
         mrud_MenuItem[i] = nullptr;
@@ -1483,23 +1503,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
     logger_base.debug("xLightsFrame constructor loading config.");
 
-    dir.clear();
-    bool ok = true;
-    bool showDirFromCommandLine = false;
-    if (!xLightsApp::showDir.IsNull()) {
-        wxString t;
-        config->Read("LastDir", &t);
-
-        if (t != xLightsApp::showDir) {
-            showDirFromCommandLine = true;
-        }
-        dir = xLightsApp::showDir;
-    }
-    else {
-        ok = config->Read("LastDir", &dir);
-    }
-    logger_base.debug("Show directory %s.", (const char *)dir.c_str());
-
     wxString md;
 
     if (!xLightsApp::mediaDir.IsNull()) {
@@ -1509,9 +1512,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
         mediaDirectories.push_back(md);
     } else if (config->Read(_("MediaDir"), &md)) {
         wxArrayString entries = wxSplit(md, '|', '\0');
-        for (auto & dir : entries) {
-            ObtainAccessToURL(dir.ToStdString());
-            mediaDirectories.push_back(dir.ToStdString());
+        for (auto & d : entries) {
+            ObtainAccessToURL(d.ToStdString());
+            mediaDirectories.push_back(d.ToStdString());
         }
     }
     SetFixFileDirectories(mediaDirectories);
