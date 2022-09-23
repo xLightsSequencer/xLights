@@ -2105,9 +2105,10 @@ float ValueCurve::GetPointAt(float x) const
 void ValueCurve::SetPointAt(float x, float y)
 {
     for (auto& it : _values) {
-        if (it.x == x)
+        if (it.x == x) {
             it.y = y;
-        return;
+            return;
+        }
     }
 }
 
