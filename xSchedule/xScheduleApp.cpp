@@ -50,7 +50,11 @@
 #pragma comment(lib, "portmidid.lib")
 #pragma comment(lib, "msvcprtd.lib")
 #pragma comment(lib, "libzstdd_static_VS.lib")
+
+#if !defined(SKIP_SMPTE)
 #pragma comment(lib, "libltcd.lib")
+#endif
+
 #else
 #pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u.lib")
 #pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u_net.lib")
@@ -69,7 +73,9 @@
 //#pragma comment(lib, "log4cpp.lib")
 #pragma comment(lib, "portmidi.lib")
 #pragma comment(lib, "msvcprt.lib")
+#if !defined(SKIP_SMPTE)
 #pragma comment(lib, "libltc.lib")
+#endif
 #endif
 #pragma comment(lib, "libcurl.dll.a")
 #pragma comment(lib, "z.lib")

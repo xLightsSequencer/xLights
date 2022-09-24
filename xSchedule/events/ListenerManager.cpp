@@ -152,7 +152,7 @@ void ListenerManager::StartListeners(const std::string& localIP)
                 }
             }
         }
-#ifndef __WXOSX__
+#if !defined(__WXOSX__) && !defined(SKIP_SMPTE)
         else if ((*it)->GetType() == "SMPTE")
         {
             if (_sync == 7)
@@ -649,6 +649,7 @@ void ListenerManager::StartListeners(const std::string& localIP)
             _listeners.back()->Start();
         }
     }
+#if !defined(SKIP_SMPTE)
     else if (_sync == 7)
     {
         int mode = _scheduleManager->GetOptions()->GetSMPTEMode();
@@ -668,6 +669,7 @@ void ListenerManager::StartListeners(const std::string& localIP)
             _listeners.back()->Start();
         }
     }
+#endif
 }
 
 void ListenerManager::SetRemoteOSC()

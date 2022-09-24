@@ -60,7 +60,7 @@ mkdir build_scripts\msw\xScanner
 copy xScanner\x64\Release\*.pdb build_scripts\msw\xScanner
 
 cd xSchedule
-msbuild.exe -m:10 xSchedule.sln -p:Configuration="Release" -p:Platform="x64"
+msbuild.exe -m:10 xSchedule.sln -p:Configuration="Release" -p:Platform="x64" /p:DefineConstants="SKIP_SMPTE"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 
