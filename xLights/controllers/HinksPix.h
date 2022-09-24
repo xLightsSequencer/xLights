@@ -133,6 +133,8 @@ class HinksPix : public BaseController
         Local_AC
     };
 
+    static constexpr int UN_PER = 6;
+
 #pragma region Member Variables
     EXPType _EXP_Outputs[3];
     std::string _controllerType;
@@ -189,10 +191,6 @@ class HinksPix : public BaseController
     const int GetNumberOfOutputs() { return _numberOfOutputs; }
     const int GetNumberOfSerial() { return 1; }
 
-    static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
-        data->append((char*)ptr, size * nmemb);
-        return size * nmemb;
-    }
 #pragma endregion
 
 public:

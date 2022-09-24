@@ -330,21 +330,20 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
         return true;
     }
 
-    //Joes code allows 6 universe settings uploaded at a time
-    //loop though and submit every 6
-    int numberOfCalls;
-    if (_numberOfUniverses <= 65) {
-        numberOfCalls = 11;
-    } else {
-        numberOfCalls = 25;
-    }
+    // Joes code allows 6 universe settings uploaded at a time
+    //  loop though and submit every 6
+    //
+    //  EasyLights 16 max is 65 universes
+    //  HinksPix Pro prev v111 firmware is 145 universes
+    //  HinksPix Pro v111 firmware is 402 universes
+    int numberOfCalls = std::ceil(_numberOfUniverses / UN_PER) + 1;
 
     int index = 1;
     int num_of_unv = 0;
 
     for (int j = 0; j < numberOfCalls; j++) {
         wxString requestString = wxString::Format("DATA: {\"CMD\":\"E131\",\"BLK\":\"%d\",\"LIST\":[", j);
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < UN_PER; i++) {
             auto inpUn = std::find_if(inputUniverses.begin(), inputUniverses.end(), [index](auto const& inp) { return inp.index == index; });
             if (inpUn != inputUniverses.end()) {
                 if (i != 0) {
@@ -430,20 +429,14 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
         if (type != 1) {
 
             //Joes code allows 6 universe settings uploaded at a time
-            //loop though and submit every 6
-            int numberOfCalls;
-            if (maxUnv <= 65) {
-                numberOfCalls = 11;
-            }
-            else {
-                numberOfCalls = 25;
-            }
-
+            // loop though and submit every 6
+            // EasyLights 16 max is 65 universes
+            int numberOfCalls = std::ceil(maxUnv / UN_PER) + 1;
             int index = 1;
 
             for (int j = 0; j < numberOfCalls; j++) {
                 wxString requestString = wxString::Format("ROWCNT=16:ROW=%d:", j);
-                for (int i = 0; i < 6; i++) {
+                for (int i = 0; i < UN_PER; i++) {
                     auto inpUn = std::find_if(inputUniverses.begin(), inputUniverses.end(), [index](auto const& inp) { return inp.index == index; });
                     if (inpUn != inputUniverses.end()) {
                         if (i != 0) {
