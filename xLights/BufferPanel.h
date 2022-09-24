@@ -60,13 +60,13 @@
 #define RZ_YPIVOT_MIN 0
 #define RZ_YPIVOT_MAX 100
 
-#define SB_LEFT_BOTTOM_MIN -100
+#define SB_LEFT_BOTTOM_MIN (-100)
 #define SB_LEFT_BOTTOM_MAX 99
 
 #define SB_RIGHT_TOP_MIN 1
 #define SB_RIGHT_TOP_MAX 200
 
-#define SB_CENTRE_MIN -100
+#define SB_CENTRE_MIN (-100)
 #define SB_CENTRE_MAX 100
 
 class Model;

@@ -180,9 +180,10 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         buffer.needToInit = false;
 
         if (perNode) {
-            for (size_t x = 0; x < buffer.BufferWi; ++x) {
-                for (size_t y = 0; y < buffer.BufferHt; ++y) {
-                    size_t index = y * buffer.BufferWi + x;
+            wxPoint maxBuffer = buffer.GetMaxBuffer(SettingsMap);
+            for (size_t x = 0; x < maxBuffer.x; ++x) {
+                for (size_t y = 0; y < maxBuffer.y; ++y) {
+                    size_t index = y * maxBuffer.x + x;
                     InitialiseState(index, states);
                 }
             }

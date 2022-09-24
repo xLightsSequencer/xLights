@@ -24,6 +24,7 @@
 #include "models/DMX/DmxModel.h"
 #include "models/DMX/DmxColorAbility.h"
 #include "GPURenderUtils.h"
+#include "BufferPanel.h"
 
 #include <log4cpp/Category.hh>
 #include "Parallel.h"
@@ -357,7 +358,32 @@ void DrawingContext::ResetSize(int BufferWi, int BufferHt) {
     }
 }
 
-void DrawingContext::Clear() {
+size_t DrawingContext::GetWidth() const
+{
+    if (gc != nullptr) {
+        wxDouble w = 0, h = 0;
+        gc->GetSize(&w, &h);
+        return w;
+    } else if (image != nullptr) {
+        return image->GetWidth();
+    }
+    return 0;
+}
+
+size_t DrawingContext::GetHeight() const
+{
+    if (gc != nullptr) {
+        wxDouble w = 0, h = 0;
+        gc->GetSize(&w, &h);
+        return h;
+    } else if (image != nullptr) {
+        return image->GetHeight();
+    }
+    return 0;
+}
+
+void DrawingContext::Clear()
+{
     if (dc != nullptr)
     {
         dc->SelectObject(nullBitmap);
@@ -663,16 +689,21 @@ PathDrawingContext * RenderBuffer::GetPathDrawingContext()
     {
         _pathDrawingContext = PathDrawingContext::GetContext();
         _pathDrawingContext->ResetSize(BufferWi, BufferHt);
+    } else if (_pathDrawingContext->GetWidth() != BufferWi || _pathDrawingContext->GetHeight() != BufferHt) {
+        // varying subbuffers the size may have changed
+        _pathDrawingContext->ResetSize(BufferWi, BufferHt);
     }
 
     return _pathDrawingContext;
 }
 
-TextDrawingContext * RenderBuffer::GetTextDrawingContext()
+TextDrawingContext* RenderBuffer::GetTextDrawingContext()
 {
-    if (_textDrawingContext == nullptr)
-    {
+    if (_textDrawingContext == nullptr) {
         _textDrawingContext = TextDrawingContext::GetContext();
+        _textDrawingContext->ResetSize(BufferWi, BufferHt);
+    } else if (_textDrawingContext->GetWidth() != BufferWi || _textDrawingContext->GetHeight() != BufferHt) {
+        // varying subbuffers the size may have changed
         _textDrawingContext->ResetSize(BufferWi, BufferHt);
     }
 
@@ -1301,6 +1332,23 @@ void RenderBuffer::CopyTempBufToPixels() {
 }
 void RenderBuffer::CopyPixelsToTempBuf() {
     memcpy(tempbuf, pixels, pixelVector.size() * 4);
+}
+
+// Gets the maximum oversized buffer size a model could have
+// Useful for models which need to track data per cell as with value curves the buffer size could
+// get as large as this during the effect
+wxPoint RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
+{
+    Model* m = GetModel();
+    wxString bufferstyle = SettingsMap.Get("B_CHOICE_BufferStyle", "Default");
+    wxString transform = SettingsMap.Get("B_CHOICE_BufferTransform", "None");
+    wxString camera = SettingsMap.Get("B_CHOICE_PerPreviewCamera", "2D");
+    int w, h;
+    m->GetBufferSize(bufferstyle.ToStdString(), camera.ToStdString(), transform.ToStdString(), w, h);
+
+    float xScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
+    float yScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
+    return wxPoint(xScale * w, yScale * h);
 }
 
 float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) const {

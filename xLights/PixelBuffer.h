@@ -245,7 +245,7 @@ private:
 
 public:
     static std::vector<std::string> GetMixTypes();
-    void GetMixedColor(int x, int y, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod);
+    void GetMixedColor(int x, int y, xlColor& c, const std::vector<bool>& validLayers, int EffectPeriod);
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
     xlColor GetNodeColor(size_t nodenum) const;
