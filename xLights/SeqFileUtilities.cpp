@@ -285,7 +285,11 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             xml_file.SetExt("xsq");
             // maybe the filename has not changed
             if (!FileExists(xml_file)) {
-                xml_file.SetExt("xml");
+                // xsq not found ... maybe it is xbkp
+                xml_file.SetExt("xbkp");
+                if (!FileExists(xml_file)) {
+                    xml_file.SetExt("xml");
+                }
             }
         }
         wxFileName media_file;

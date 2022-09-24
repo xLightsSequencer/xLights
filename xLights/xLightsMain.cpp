@@ -4066,10 +4066,13 @@ void xLightsFrame::SaveWorking()
     wxString fn = CurrentSeqXmlFile->GetFullName();
     wxString tmp;
 
+    wxFileName fnp(fn);
     if (fn == "") {
         tmp = p + "/" + "__.xbkp";
-    } else {
-        wxFileName fnp(fn);
+    } else if (CountChar(fnp.GetName(), '_') == fnp.GetName().size()) {
+        tmp = p + "/" + fnp.GetName() + "_.xbkp";
+    }
+    else {
         tmp = p + "/" + fnp.GetName() + ".xbkp";
     }
     wxFileName ftmp(tmp);

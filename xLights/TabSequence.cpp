@@ -1307,6 +1307,8 @@ void xLightsFrame::SaveSequence()
         // Remove the old xml file as we are about to save it as an xsq
         wxRemoveFile(CurrentSeqXmlFile->GetFullPath());
         CurrentSeqXmlFile->SetExt("xsq");
+    } else if (CurrentSeqXmlFile->GetExt().Lower() == "xbkp") {
+        CurrentSeqXmlFile->SetExt("xsq");
     }
     SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xsq."));
     logger_base.info("Saving XSQ file.");
