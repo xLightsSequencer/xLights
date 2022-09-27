@@ -336,7 +336,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
     //  EasyLights 16 max is 65 universes
     //  HinksPix Pro prev v111 firmware is 145 universes
     //  HinksPix Pro v111 firmware is 402 universes
-    int numberOfCalls = std::ceil(_numberOfUniverses / UN_PER) + 1;
+    int numberOfCalls = std::ceil(_numberOfUniverses / UN_PER);
 
     int index = 1;
     int num_of_unv = 0;

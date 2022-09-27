@@ -45,7 +45,7 @@
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>16</SupportsSmartRemotes>
 			<SupportsUpload/>
-			<MaxInputUniverses>144</MaxInputUniverses>
+			<MaxInputUniverses>402</MaxInputUniverses>
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
