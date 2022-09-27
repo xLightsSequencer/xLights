@@ -134,6 +134,8 @@
         <MinGroup>1</MinGroup>
         <NoWebUI/>
         <SupportsAutoLayout/>
+        <SupportsPixelZigZag/>
+        <MaxZigZag>768</MaxZigZag>
         <NeedsFullUniverseForSerial/>
         <SupportsFullxLightsControl/>
         <AllInputUniversesMustBeSameSize/>

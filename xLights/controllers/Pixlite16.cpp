@@ -540,9 +540,9 @@ int Pixlite16::PrepareV4Config(uint8_t* data) const
         mn = "PixLite" + _config._modelName.substr(6);
     }
 
-    WriteString(data, pos, _config._modelNameLen, mn);
+    WriteString(data, pos, 20, mn);
     data[pos++] = _config._dhcp;
-    WriteString(data, pos, _config._nicknameLen, _config._nickname);
+    WriteString(data, pos, 40, _config._nickname);
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputPixels[i]); }
     data[pos++] = _config._protocol;
     pos++; // unused
@@ -624,7 +624,7 @@ int Pixlite16::PrepareV5Config(uint8_t* data) const
     data[pos++] = _config._currentDriverSpeed;
     data[pos++] = _config._currentDriverExpanded;
     for (auto g : _config._gamma) { data[pos++] = g; }
-    WriteString(data, pos, _config._nicknameLen, _config._nickname);
+    WriteString(data, pos, 40, _config._nickname);
     data[pos++] = _config._maxTargetTemp;
 
     return pos;
@@ -656,7 +656,7 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const
     pos += sizeof(_config._staticSubnetMask);
     data[pos++] = _config._protocol;
     data[pos++] = _config._holdLastFrame;
-    data[pos++] = 1; // We always do complex config : _config._simpleConfig;
+    data[pos++] = 0; // documentation is incorrect - 0 is advanced : _config._simpleConfig;
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputPixels[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputUniverse[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputStartChannel[i]); }
@@ -673,7 +673,7 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const
     data[pos++] = _config._currentDriverSpeed;
     data[pos++] = _config._currentDriverExpanded;
     for (auto g : _config._gamma) { data[pos++] = g; }
-    WriteString(data, pos, _config._nicknameLen, _config._nickname);
+    WriteString(data, pos, 40, _config._nickname);
     data[pos++] = _config._maxTargetTemp;
 
     return pos;
@@ -1465,6 +1465,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 _config._outputGrouping[pp - 1] = std::max(1, port->GetFirstModel()->GetGroupCount(1));
                 _config._outputBrightness[pp - 1] = port->GetFirstModel()->GetBrightness(100);
                 _config._outputColourOrder[pp - 1] = EncodeColourOrder(port->GetFirstModel()->GetColourOrder("RGB"));
+                _config._outputZigZag[pp - 1] = port->GetFirstModel()->GetZigZag(0);
                 if (port->GetFirstModel()->GetDirection("Forward") == "Reverse") {
                     _config._outputReverse[pp - 1] = 1;
                 }
