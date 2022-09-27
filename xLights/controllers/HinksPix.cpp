@@ -431,7 +431,7 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
             //Joes code allows 6 universe settings uploaded at a time
             // loop though and submit every 6
             // EasyLights 16 max is 65 universes
-            int numberOfCalls = std::ceil(maxUnv / UN_PER) + 1;
+            int numberOfCalls = std::ceil(maxUnv / UN_PER);
             int index = 1;
 
             for (int j = 0; j < numberOfCalls; j++) {
