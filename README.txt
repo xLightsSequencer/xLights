@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.18 September 28, 2022
+   -- enh (dkulp)  Add discovery for new BBShiftString FPP capes
+   -- enh (dkulp)  Add upload config support for K128D-B cape
+   -- enh (scott)  Support for new HinksPix firmware to support 402 universes
    -- enh (gil)    Improve drawing of 3 point models (Arch, Candy Cane, Icicles) when green square is right of blue square.
                    Note: If model changes look because it was on a tilt an X rotation with the red rotate handle should fix it.
    -- enh (scott)  Added the ability to scale/offset DMX Values in the DMX Remap Dialog
@@ -20,10 +24,21 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (scott)  add "${UPPER}" and "${LOWER}" to Text Effect
    -- enh (scott)  Added JSON format import mapping file.
    -- enh (scott)  Added Align Front, Back, & To Ground KeyBindings.
+   -- enh (keith)  Add german dictionary to install, user will need to manually add
+   -- enh (keith)  Allow shimmer to be suppressed on a face effect
+   -- enh (keith)  Allow double click to manually set custom value curve Y values
+   -- enh (keith)  Add ability to match video effect duration to the selected video
+   -- enh (keith)  Add DMX512P and SJ1221 pixels to Falcon
+   -- enh (keith)  Allow renaming of previews
+   -- enh (keith)  Aldd option to delete model strand and node effects
+   -- bug (keith)  Suppress Tip of the Day if not show folder is set
+   -- bug (keith)  More workarounds for image scaling on Windows release builds with MSVC22
+   -- bug (keith)  Don't allow opening of _.xbkp files without renaming
+   -- bug (keith)  Fix controller name, advanced config, zigzag for pixlite controllers
    -- bug (scott)  Fix DMX Beam Always On when using Color Wheel
    -- bug (scott)  Fix Package Sequence from automation API
    -- bug (scott)  Fix SubModel Dialog not persisting screen position and size.
-
+   -- bug (dkulp)  Older BBBSerial outputs may have device improperly configured during FPP upload
 2022.17 September 8, 2022
    -- enh (keith)  Add xSchedule Remote Falcon option to send the first playing effect as the currently playing sequence
    -- enh (keith)  Add SVG support to the shapes effect (some SVGs with gradients may have an issue)
