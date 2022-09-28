@@ -1643,7 +1643,7 @@ bool FPP::SetInputUniverses(Controller* controller, wxWindow* parentWin) {
         }
     }
 
-    parentWin = parent;
+    parent = parentWin;
 
     return (AuthenticateAndUpdateVersions() && !SetInputUniversesBridge(controller));
 }
@@ -2322,14 +2322,11 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
                              Controller* controller) {
     int maxString = 1;
-    int maxdmx = 0;
-
     auto rules = ControllerCaps::GetControllerConfig(controller);
     if (rules == nullptr) {
         return false;
     }
 
-    maxdmx = rules->GetMaxSerialPort();
     maxString = rules->GetMaxPixelPort();
     if (maxString == 0) {
         return false;

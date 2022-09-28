@@ -348,8 +348,6 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
 
     wxString selection = Choice_TimingTrack->GetStringSelection();
 
-    // check if anything has been removed ... if it has clear the list and we will have to rebuild it as you cant delete items from a combo box
-    bool removed = false;
     for (size_t i = 0; i < Choice_TimingTrack->GetCount(); i++)
     {
         bool found = false;
@@ -364,7 +362,6 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
         if (!found)
         {
             Choice_TimingTrack->Clear();
-            removed = true;
             break;
         }
     }

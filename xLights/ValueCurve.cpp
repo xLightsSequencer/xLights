@@ -1754,9 +1754,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         if (__audioManager != nullptr && _values.size() == 0) {
             float min = (GetParameter1() - _min) / (_max - _min);
             float max = (GetParameter2() - _min) / (_max - _min);
-            int step = (endMS - startMS) / VC_X_POINTS;
             int frameMS = __audioManager->GetFrameInterval();
-            if (step < frameMS) step = frameMS;
             int fadeFrames = GetParameter4();
             float yperFrame = (max - min) / fadeFrames;
             float perPoint = vcSortablePoint::perPoint();

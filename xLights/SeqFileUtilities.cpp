@@ -210,7 +210,7 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
     PanelSequencer->SetLabel("XLIGHTS_SEQUENCER_TAB:" + sequence);
 }
 
-void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog* plog)
+void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

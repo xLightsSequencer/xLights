@@ -8152,14 +8152,15 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     if (selectedTreeModels.size() == 1 && selectedTreeSubModels.size() == 0 && selectedTreeGroups.size() == 0) {
         ModelTreeData* data = (ModelTreeData*)TreeListViewModels->GetItemData(selectedTreeModels[0]);
         Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
-
-        if (!model->CouldComputeStartChannel || !model->IsValidStartChannelString()) {
-            mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Valid");
-            foundInvalid = true;
-        }
-        if (xlights->AllModels.IsModelOverlapping(model)) {
-            foundOverlapping = true;
-            mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Not Overlapping");
+        if (model) {
+            if (!model->CouldComputeStartChannel || !model->IsValidStartChannelString()) {
+                mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Valid");
+                foundInvalid = true;
+            }
+            if (xlights->AllModels.IsModelOverlapping(model)) {
+                foundOverlapping = true;
+                mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Not Overlapping");
+            }
         }
     }
 

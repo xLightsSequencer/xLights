@@ -152,7 +152,7 @@ void ListenerManager::StartListeners(const std::string& localIP)
                 }
             }
         }
-#if !defined(__WXOSX__) && !defined(SKIP_SMPTE)
+#if !defined(SKIP_SMPTE)
         else if ((*it)->GetType() == "SMPTE")
         {
             if (_sync == 7)

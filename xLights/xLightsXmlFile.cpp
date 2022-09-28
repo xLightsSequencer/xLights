@@ -198,7 +198,7 @@ void xLightsXmlFile::SetSequenceTiming(const wxString& timing)
 
     // looking to work out if this is why i have seen a crash in this function
     if (root == nullptr) {
-        logger_base.crit("SetSequenceTiming is about to crash because sequence XML document has not root. Strange!");
+        logger_base.crit("SetSequenceTiming is about to crash because sequence XML document has no root. Strange!");
     }
 
     for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {

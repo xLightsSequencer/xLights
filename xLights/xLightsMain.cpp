@@ -6131,8 +6131,6 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         if (errcount + warncount == errcountsave + warncountsave) {
             LogAndWrite(f, "    No problems found");
         }
-        errcountsave = errcount;
-        warncountsave = warncount;
 
         if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
             LogAndWrite(f, "");

@@ -388,7 +388,7 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
     p->SetEditor("CheckBox");
 
-    p = grid->Append(new wxEnumProperty("Strand Direction", "StrandDir", TREE_DIRECTIONS, vMatrix ? 1 : 0));
+    grid->Append(new wxEnumProperty("Strand Direction", "StrandDir", TREE_DIRECTIONS, vMatrix ? 1 : 0));
 }
 
 void TreeModel::ExportXlightsModel()

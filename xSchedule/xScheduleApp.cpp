@@ -208,19 +208,6 @@ void InitialiseLogging(bool fromMain)
 #ifdef __WXMSW__
         std::string initFileName = "xschedule.windows.properties";
 #endif
-#ifdef __WXOSX__
-        std::string initFileName = "xschedule.mac.properties";
-        std::string resourceName = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/xschedule.mac.properties";
-        if (!wxFile::Exists(initFileName)) {
-            if (fromMain) {
-                return;
-            } else if (wxFile::Exists(resourceName)) {
-                initFileName = resourceName;
-            }
-        }
-        loggingInitialised = true;
-
-#endif
 #ifdef __LINUX__
         std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xschedule.linux.properties";
         if (!wxFile::Exists(initFileName)) {

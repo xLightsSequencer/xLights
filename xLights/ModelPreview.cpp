@@ -546,7 +546,6 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
     float maxx = -999999;
     float miny = 999999;
     float maxy = -999999;
-    bool group = false;
     const xlColor* defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
     const xlColor* selColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
     const xlColor* overlapColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
@@ -555,10 +554,6 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
 
             if (xlights->IsNewModel(m)) {
                 xlights->AddTraceMessage("ModelPreview::RenderModels IsNewModel was true.");
-            }
-
-            if (m->GroupSelected) {
-                group = true;
             }
 
             const xlColor* color = defColor;
@@ -599,12 +594,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 if (allowSelected) {
                     color = selColor;
                     for (auto& sm : m->GetSubModels()) {
-                        if (sm->GroupSelected) {
-                            group = true;
-                        }
-
                         if (sm->GroupSelected || sm->Selected) {
-                            
                             float bounds[6];
                             bounds[0] = bounds[1] = bounds[2] = 999999;
                             bounds[3] = bounds[4] = bounds[5] = -999999;

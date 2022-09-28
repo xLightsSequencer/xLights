@@ -472,12 +472,6 @@ void xSMSDaemonFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxGetEnv("APPDATA", &dir);
     wxString filename = dir + wxFileName::GetPathSeparator() + fileName;
 #endif
-#ifdef __WXOSX__
-    wxFileName home;
-    home.AssignHomeDir();
-    dir = home.GetFullPath();
-    wxString filename = dir + "/Library/Logs/" + fileName;
-#endif
 #ifdef __LINUX__
     wxString filename = "/tmp/" + fileName;
 #endif

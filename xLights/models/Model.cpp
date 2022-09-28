@@ -5221,17 +5221,6 @@ std::vector<int> Model::GetNodesInBoundingBox(ModelPreview* preview, wxPoint sta
     float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
     float scale = scaleY < scaleX ? scaleY : scaleX;
 
-    float pointScale = scale;
-    if (pointScale > 2.5) {
-        pointScale = 2.5;
-    }
-    if (pointScale > GetModelScreenLocation().RenderHt) {
-        pointScale = GetModelScreenLocation().RenderHt;
-    }
-    if (pointScale > GetModelScreenLocation().RenderWi) {
-        pointScale = GetModelScreenLocation().RenderWi;
-    }
-
     std::vector<int> nodes;
 
     float startpx = start.x;
