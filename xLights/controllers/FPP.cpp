@@ -2627,7 +2627,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     for (int sp = 1; sp <= cud.GetMaxSerialPort(); sp++) {
         if (cud.HasSerialPort(sp)) {
             UDControllerPort* port = cud.GetControllerSerialPort(sp);
-            isDMX &= ((port->GetProtocol() == "DMX") || (port->GetProtocol() == "dmx"));
+            isDMX &= ((port->GetProtocol() == "DMX") || (port->GetProtocol() == "dmx") || (port->GetProtocol() == "DMX-Open"));
 
             //int dmxOffset = 1;
             //UDControllerPortModel* m = port->GetFirstModel();
@@ -2711,8 +2711,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         bbbDmxData["enabled"] = 1;
         bbbDmxData["startChannel"] = 1;
         bbbDmxData["type"] = wxString("BBBSerial");
-        bbbDmxData["subType"] = wxString("DMX");
-        bbbDmxData["device"] = wxString(pixelControllerType);
+        bbbDmxData["subType"] = isDMX ? wxString("DMX") : wxString("PixelNet") ;
+        bbbDmxData["device"] = wxString(rules->GetID());
         root["channelOutputs"].Append(bbbDmxData);
     } else {
         wxJSONValue otherOrigRoot = otherDmxData;
