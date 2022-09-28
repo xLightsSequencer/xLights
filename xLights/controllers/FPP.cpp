@@ -499,6 +499,7 @@ void FPP::parseControllerType(wxJSONValue& val) {
         if (val["channelOutputs"][x]["enabled"].AsInt()) {
             if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X"||
                 val["channelOutputs"][x]["type"].AsString() == "BBB48String" ||
+                val["channelOutputs"][x]["type"].AsString() == "BBShiftString" ||
                 val["channelOutputs"][x]["type"].AsString() == "DPIPixels") {
                 pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
             } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
@@ -3059,10 +3060,13 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
         if (val["channelOutputs"][x]["enabled"].AsInt()) {
             if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X"||
                 val["channelOutputs"][x]["type"].AsString() == "BBB48String" ||
+                val["channelOutputs"][x]["type"].AsString() == "BBShiftString" ||
                 val["channelOutputs"][x]["type"].AsString() == "DPIPixels") {
                 inst->pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
             } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
-                inst->pixelControllerType = LEDPANELS;
+                if (inst->pixelControllerType.empty()) {
+                    inst->pixelControllerType = LEDPANELS;
+                }
                 int pw = val["channelOutputs"][x]["panelWidth"].AsInt();
                 int ph = val["channelOutputs"][x]["panelHeight"].AsInt();
                 int nw = 0; int nh = 0;
@@ -3085,7 +3089,9 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
                 inst->panelSize.append("x");
                 inst->panelSize.append(std::to_string(ph * nh));
             } else if (val["channelOutputs"][x]["type"].AsString() == "VirtualMatrix") {
-                inst->pixelControllerType = "Virtual Matrix";
+                if (inst->pixelControllerType.empty()) {
+                    inst->pixelControllerType = "Virtual Matrix";
+                }
             }
         }
     }
@@ -3157,7 +3163,6 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
             baseIp = inst->proxy;
             baseUrl = "/proxy/" + inst->ip;
         }
-        std::string fullAddress = baseUrl + "/fppjson.php?command=getChannelOutputs&file=" + file;
         discovery.AddCurl(baseIp, baseUrl + "/fppjson.php?command=getChannelOutputs&file=" + file,
                           [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
             if (rc == 200) {
@@ -3187,7 +3192,6 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
                 }
                 return true;
             });
-            fullAddress = baseUrl + "/api/proxies";
         }
     }
 }
