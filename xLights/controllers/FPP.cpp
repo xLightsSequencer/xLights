@@ -2711,6 +2711,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         bbbDmxData["type"] = wxString("BBBSerial");
         bbbDmxData["subType"] = isDMX ? wxString("DMX") : wxString("PixelNet") ;
         bbbDmxData["device"] = wxString(rules->GetID());
+        bbbDmxData["pinoutVersion"] = pinout;
         root["channelOutputs"].Append(bbbDmxData);
     } else {
         wxJSONValue otherOrigRoot = otherDmxData;
