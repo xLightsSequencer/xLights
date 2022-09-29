@@ -205,6 +205,13 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Twinkly: Invoke " + method + " http://" + _ip + path);
+    if (body != nullptr)
+        logger_base.debug("         %s", body);
+
+    wxString bod;
+    if (body != nullptr) {
+        bod = wxString(body);
+    }
 
     std::vector<std::pair<std::string, std::string>> customHeaders = {};
     if (!m_token.empty()) {
@@ -212,7 +219,7 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
         customHeaders.push_back(std::pair("X-Auth-Token", m_token));
     }
     int responseCode;
-    std::string httpResponse = Curl::HTTPSPost("http://" + _ip + path, body, "", "", "JSON", HTTP_TIMEOUT, customHeaders, &responseCode);
+    std::string httpResponse = Curl::HTTPSPost("http://" + _ip + path, bod, "", "", "JSON", HTTP_TIMEOUT, customHeaders, &responseCode);
 
     if (responseCode != 200) {
         logger_base.error("Twinkly: Error %d : %s", responseCode, (const char*)httpResponse.c_str());
