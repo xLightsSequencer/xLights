@@ -1339,7 +1339,7 @@ void RenderBuffer::CopyPixelsToTempBuf() {
 // get as large as this during the effect
 wxPoint RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
 {
-    Model* m = GetModel();
+    Model* m = frame->AllModels[cur_model];
     if (m == nullptr) {
         return wxPoint(-1, -1);
     }
