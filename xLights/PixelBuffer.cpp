@@ -965,7 +965,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
 
 void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, int timing)
 {
-    for (const auto& it : model.Models()) {
+    for (const auto& it : model.ActiveModels()) {
         Model* m = it;
         wxASSERT(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame);
@@ -979,7 +979,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
 
 void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int layer, int timing)
 {
-    for (const auto& it : model.GetFlatModels(false)) {
+    for (const auto& it : model.GetFlatModels(false, true)) {
         Model* m = it;
         wxASSERT(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame);
@@ -2417,7 +2417,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                 inf->modelBuffers = &inf->deepModelBuffers;
                 const ModelGroup* gp = dynamic_cast<const ModelGroup*>(model);
                 if (gp != nullptr) {
-                    std::list<Model*> flat_models = gp->GetFlatModels(false);
+                    std::list<Model*> flat_models = gp->GetFlatModels(false, true);
                     std::list<Model*>::iterator it_m = flat_models.begin();
                     for (const auto& it : inf->deepModelBuffers) {
                         std::string ntype = "Default"; // type.substr(10, type.length() - 10);
@@ -2443,7 +2443,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                         std::string ntype = type.substr(10, type.length() - 10);
                         int bw, bh;
                         it->Nodes.clear();
-                        gp->Models()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
+                        gp->ActiveModels()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
                         if (bw == 0)
                             bw = 1; // zero sized buffers are a problem
                         if (bh == 0)
@@ -2572,7 +2572,7 @@ void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
     layers[layer]->buffer.SetState(period, resetState, modelName);
     if (layers[layer]->modelBuffers == &layers[layer]->deepModelBuffers) {
         const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
-        std::list<Model*> flat_models = grp->GetFlatModels(false);
+        std::list<Model*> flat_models = grp->GetFlatModels(false, true);
         std::list<Model*>::iterator it_m = flat_models.begin();
         for (auto it = layers[layer]->modelBuffers->begin(); it != layers[layer]->modelBuffers->end(); ++it, it_m++) {
             if (frame->AllModels[(*it_m)->Name()] == nullptr) {
@@ -2585,10 +2585,10 @@ void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
         int cnt = 0;
         const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
         for (auto it = layers[layer]->modelBuffers->begin(); it != layers[layer]->modelBuffers->end(); ++it, cnt++) {
-            if (frame->AllModels[grp->Models()[cnt]->Name()] == nullptr) {
-                (*it)->SetState(period, resetState, grp->Models()[cnt]->GetFullName());
+            if (frame->AllModels[grp->ActiveModels()[cnt]->Name()] == nullptr) {
+                (*it)->SetState(period, resetState, grp->ActiveModels()[cnt]->GetFullName());
             } else {
-                (*it)->SetState(period, resetState, grp->Models()[cnt]->Name());
+                (*it)->SetState(period, resetState, grp->ActiveModels()[cnt]->Name());
             }
         }
     }

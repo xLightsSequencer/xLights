@@ -870,7 +870,7 @@ std::list<Model*> DMXPanel::GetActiveModels()
 						if (model->GetDisplayAs() == "ModelGroup") {
 							auto mg = dynamic_cast<ModelGroup*>(model);
 							if (mg != nullptr) {
-								for (const auto& it : mg->GetFlatModels()) {
+								for (const auto& it : mg->GetFlatModels(true, false)) {
 									if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {
 										res.push_back(it);
 									}

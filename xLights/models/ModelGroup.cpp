@@ -64,7 +64,7 @@ Model* ModelGroup::GetFirstModel() const
 }
 
 // Gets a list of models in the group flattening out any groups and optionally removing any duplicates - submodels will be included if they are in the groups
-std::list<Model*> ModelGroup::GetFlatModels(bool removeDuplicates) const
+std::list<Model*> ModelGroup::GetFlatModels(bool removeDuplicates, bool activeOnly) const
 {
     std::list<Model*> res;
 
@@ -74,14 +74,18 @@ std::list<Model*> ModelGroup::GetFlatModels(bool removeDuplicates) const
             if (m->GetDisplayAs() == "ModelGroup") {
                 auto mg = dynamic_cast<ModelGroup*>(m);
                 if (mg != nullptr) {
-                    for (const auto& it : mg->GetFlatModels(removeDuplicates)) {
+                    for (const auto& it : mg->GetFlatModels(removeDuplicates, activeOnly)) {
                         if (!removeDuplicates || (std::find(begin(res), end(res), it) == end(res))) {
-                            res.push_back(it);
+                            if (!activeOnly || m->IsActive()) {
+                                res.push_back(it);
+                            }
                         }
                     }
                 }
             } else if (!removeDuplicates || (std::find(begin(res), end(res), m) == end(res))) {
-                res.push_back(m);
+                if (!activeOnly || m->IsActive()) {
+                    res.push_back(m);
+                }
             }
         }
     }
@@ -388,7 +392,7 @@ void LoadRenderBufferNodes(Model *m, const std::string &type, const std::string 
     {
         ModelGroup *g = dynamic_cast<ModelGroup*>(m);
         if (g != nullptr) {
-            for (const auto& it : g->Models()) {
+            for (const auto& it : g->ActiveModels()) {
                 LoadRenderBufferNodes(it, type, camera, newNodes, bufferWi, bufferHi);
             }
         }
@@ -444,6 +448,7 @@ bool ModelGroup::Reset(bool zeroBased) {
     }
     Nodes.clear();
     models.clear();
+    activeModels.clear();
     modelNames.clear();
     changeCount = 0;
     auto mn = Split(ModelXml->GetAttribute("models").ToStdString(), ',', true);
@@ -454,6 +459,9 @@ bool ModelGroup::Reset(bool zeroBased) {
         if (c != nullptr) {
             modelNames.push_back(c->GetFullName());
             models.push_back(c);
+            if (c->IsActive()) {
+                activeModels.push_back(c);
+            }
             changeCount += c->GetChangeCount();
             nc += c->GetNodeCount();
         }
@@ -618,6 +626,7 @@ bool ModelGroup::Reset(bool zeroBased) {
 void ModelGroup::ResetModels()
 {
     models.clear();
+    activeModels.clear();
     std::string modelString = ModelXml->GetAttribute("models");
     std::vector<std::string> mn;
     Split(modelString, ',', mn, true);
@@ -628,6 +637,9 @@ void ModelGroup::ResetModels()
                 static_cast<ModelGroup*>(c)->ResetModels();
             }
             models.push_back(c);
+            if (c->IsActive()) {
+                activeModels.push_back(c);
+            }
         }
     }
 }
@@ -1222,7 +1234,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         BufferHt = 1;
         BufferWi = 0;
         if (deep) {
-            for (const auto& it : GetFlatModels(false)) {
+            for (const auto& it : GetFlatModels(false, true)) {
                 Model* m = it;
                 wxASSERT(m != nullptr);
                 if (!m->IsActive()) continue;

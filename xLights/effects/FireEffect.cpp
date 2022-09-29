@@ -219,8 +219,8 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         HeightPct = 1;
 
     wxPoint maxBuffer = buffer.GetMaxBuffer(SettingsMap);
-    int maxMWi = maxBuffer.x;
-    int maxMHt = maxBuffer.y;
+    int maxMWi = maxBuffer.x == -1 ? buffer.BufferWi : maxBuffer.x;
+    int maxMHt = maxBuffer.y == -1 ? buffer.BufferHt : maxBuffer.y;
     if (loc == 2 || loc == 3) {
         maxMHt = buffer.BufferWi;
         maxMWi = buffer.BufferHt;

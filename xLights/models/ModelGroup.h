@@ -43,9 +43,10 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}
         const std::vector<Model *> &Models() const { return models;}
+        const std::vector<Model *> &ActiveModels() const { return activeModels;}
         Model* GetModel(std::string modelName) const;
         Model* GetFirstModel() const;
-        std::list<Model*> GetFlatModels(bool removeDuplicates = true) const;
+        std::list<Model*> GetFlatModels(bool removeDuplicates = true, bool activeOnly = true) const;
         bool ContainsModelGroup(ModelGroup* mg);
         bool ContainsModelGroup(ModelGroup* mg, std::set<Model*>& visited);
         bool DirectlyContainsModel(Model* m) const;
@@ -78,6 +79,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 
         std::vector<std::string> modelNames;
         std::vector<Model *> models;
+        std::vector<Model *> activeModels;
         bool selected;
         std::string defaultBufferStyle;
 };

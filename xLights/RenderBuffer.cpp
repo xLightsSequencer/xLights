@@ -1340,6 +1340,9 @@ void RenderBuffer::CopyPixelsToTempBuf() {
 wxPoint RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
 {
     Model* m = GetModel();
+    if (m == nullptr) {
+        return wxPoint(-1, -1);
+    }
     wxString bufferstyle = SettingsMap.Get("B_CHOICE_BufferStyle", "Default");
     wxString transform = SettingsMap.Get("B_CHOICE_BufferTransform", "None");
     wxString camera = SettingsMap.Get("B_CHOICE_PerPreviewCamera", "2D");

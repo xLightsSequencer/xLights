@@ -181,9 +181,11 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
         if (perNode) {
             wxPoint maxBuffer = buffer.GetMaxBuffer(SettingsMap);
-            for (size_t x = 0; x < maxBuffer.x; ++x) {
-                for (size_t y = 0; y < maxBuffer.y; ++y) {
-                    size_t index = y * maxBuffer.x + x;
+            int maxMWi = maxBuffer.x == -1 ? buffer.BufferWi : maxBuffer.x;
+            int maxMHt = maxBuffer.y == -1 ? buffer.BufferHt : maxBuffer.y;
+            for (size_t x = 0; x < maxMWi; ++x) {
+                for (size_t y = 0; y < maxMHt; ++y) {
+                    size_t index = y * maxMWi + x;
                     InitialiseState(index, states);
                 }
             }
