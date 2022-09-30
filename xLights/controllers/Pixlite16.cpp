@@ -857,43 +857,47 @@ int Pixlite16::PrepareV8Config(uint8_t* data) const
     data[pos++] = _config._protocol;
     data[pos++] = _config._holdLastFrame;
     data[pos++] = 0; // documentation is incorrect - 0 is advanced : _config._simpleConfig;
-    for (int i = 0; i < _config._numOutputs; i++) {
+    bool expanded = false;
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
         Write16(data, pos, _config._outputPixels[i]);
+        if (i >= _config._numOutputs / 2 && _config._outputPixels[i] > 0) {
+            expanded = true;
+        }
     }
-    for (int i = 0; i < _config._numOutputs; i++) {
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
         Write16(data, pos, _config._outputUniverse[i]);
     }
-    for (int i = 0; i < _config._numOutputs; i++) {
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
         Write16(data, pos, _config._outputStartChannel[i]);
     }
-    for (int i = 0; i < _config._numOutputs; i++) {
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
         data[pos++] = _config._outputNullPixels[i];
     }
-    for (int i = 0; i < _config._numOutputs; i++) {
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
         Write16(data, pos, _config._outputZigZag[i]);
     }
-    for (int i = 0; i < _config._numOutputs; i++) {
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
         data[pos++] = _config._outputReverse[i];
     }
-    for (int i = 0; i < _config._numOutputs; i++) {
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
         data[pos++] = _config._outputColourOrder[i];
     }
-    for (int i = 0; i < _config._numOutputs; i++) {
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
         Write16(data, pos, _config._outputGrouping[i]);
     }
-    for (int i = 0; i < _config._numOutputs; i++) {
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
         data[pos++] = _config._outputBrightness[i];
     }
-    for (int i = 0; i < _config._numDMX; i++) {
+    for (size_t i = 0; i < _config._numDMX; ++i) {
         data[pos++] = _config._dmxOn[i];
     }
-    for (int i = 0; i < _config._numDMX; i++) {
+    for (size_t i = 0; i < _config._numDMX; ++i) {
         Write16(data, pos, _config._dmxUniverse[i]);
     }
     data[pos++] = _config._currentDriver;
     data[pos++] = _config._currentDriverType;
     data[pos++] = _config._currentDriverSpeed;
-    data[pos++] = _config._currentDriverExpanded;
+    data[pos++] = expanded ? 1 : 0;
     for (auto g : _config._gamma) {
         data[pos++] = g;
     }
