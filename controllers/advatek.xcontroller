@@ -152,6 +152,7 @@
             <Protocol>lpd8806</Protocol>
             <Protocol>apa102</Protocol>
             <Protocol>apa109</Protocol>
+            <Protocol>dmx512</Protocol>
             <Protocol>sm16716</Protocol>
             <Protocol>mb16020</Protocol>
             <Protocol>my9231</Protocol>
