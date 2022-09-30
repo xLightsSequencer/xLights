@@ -515,6 +515,158 @@ bool Pixlite16::ParseV6Config(uint8_t* data, Pixlite16::Config& config)
     return true;
 }
 
+bool Pixlite16::ParseV8Config(uint8_t* data, Pixlite16::Config& config)
+{
+    int pos = 13;
+    char buffer[256];
+    memcpy(config._mac, &data[pos], sizeof(config._mac));
+    pos += 6;
+
+    config._modelNameLen = data[pos++];
+    memset(buffer, 0x00, sizeof(buffer));
+    memcpy(buffer, &data[pos], config._modelNameLen);
+    config._modelName = std::string(buffer);
+    pos += config._modelNameLen;
+
+    config._hwRevision = data[pos++];
+    memcpy(config._minAssistantVer, &data[pos], sizeof(config._minAssistantVer));
+    pos += sizeof(config._minAssistantVer);
+
+    config._firmwareVersionLen = data[pos++];
+    memset(buffer, 0x00, sizeof(buffer));
+    memcpy(buffer, &data[pos + 1], config._firmwareVersionLen);
+    config._firmwareVersion = std::string(buffer);
+    pos += config._firmwareVersionLen;
+
+    config._brand = data[pos++];
+
+    memcpy(config._currentIP, &data[pos], sizeof(config._currentIP));
+    pos += sizeof(config._currentIP);
+
+    memcpy(config._currentSubnetMask, &data[pos], sizeof(config._currentSubnetMask));
+    pos += sizeof(config._currentSubnetMask);
+
+    config._dhcp = data[pos++];
+
+    memcpy(config._staticIP, &data[pos], sizeof(config._staticIP));
+    pos += sizeof(config._staticIP);
+
+    memcpy(config._staticSubnetMask, &data[pos], sizeof(config._staticSubnetMask));
+    pos += sizeof(config._staticSubnetMask);
+
+    config._protocol = data[pos++];
+    config._holdLastFrame = data[pos++];
+    config._simpleConfig = data[pos++];
+    config._maxPixelsPerOutput = Read16(data, pos);
+    config._numOutputs = data[pos++];
+    config._realOutputs = config._numOutputs;
+    config._outputPixels.resize(config._numOutputs);
+    config._outputUniverse.resize(config._numOutputs);
+    config._outputStartChannel.resize(config._numOutputs);
+    config._outputNullPixels.resize(config._numOutputs);
+    config._outputZigZag.resize(config._numOutputs);
+    config._outputReverse.resize(config._numOutputs);
+    config._outputColourOrder.resize(config._numOutputs);
+    config._outputGrouping.resize(config._numOutputs);
+    config._outputBrightness.resize(config._numOutputs);
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputPixels[i] = Read16(data, pos);
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputUniverse[i] = Read16(data, pos);
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputStartChannel[i] = Read16(data, pos);
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputNullPixels[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputZigZag[i] = Read16(data, pos);
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputReverse[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputColourOrder[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputGrouping[i] = Read16(data, pos);
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputBrightness[i] = data[pos++];
+    }
+
+    config._numDMX = data[pos++];
+    config._protocolsOnDMX = data[pos++];
+    config._realDMX = config._numDMX;
+    config._dmxOn.resize(config._numDMX);
+    config._dmxUniverse.resize(config._numDMX);
+    for (int i = 0; i < config._numDMX; i++) {
+        config._dmxOn[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numDMX; i++) {
+        config._dmxUniverse[i] = Read16(data, pos);
+    }
+
+    config._numDrivers = data[pos++];
+    config._driverNameLen = data[pos++];
+    config._driverType.resize(config._numDrivers);
+    config._driverSpeed.resize(config._numDrivers);
+    config._driverExpandable.resize(config._numDrivers);
+    config._driverName.resize(config._numDrivers);
+    for (int i = 0; i < config._numDrivers; i++) {
+        config._driverType[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numDrivers; i++) {
+        config._driverSpeed[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numDrivers; i++) {
+        config._driverExpandable[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numDrivers; i++) {
+        memset(buffer, 0x00, sizeof(buffer));
+        memcpy(buffer, &data[pos], config._driverNameLen);
+        pos += config._driverNameLen;
+        config._driverName[i] = std::string(buffer);
+    }
+
+    config._currentDriver = data[pos++];
+    config._currentDriverType = data[pos++];
+    config._currentDriverSpeed = data[pos++];
+    config._currentDriverExpanded = data[pos++];
+    config._gamma.resize(4);
+    for (int i = 0; i < config._gamma.size(); i++) {
+        config._gamma[i] = data[pos++];
+    }
+
+    config._nicknameLen = 40;
+    memset(buffer, 0x00, sizeof(buffer));
+    memcpy(buffer, &data[pos], config._nicknameLen);
+    pos += config._nicknameLen;
+    config._nickname = std::string(buffer);
+
+    config._temperature = Read16(data, pos);
+    config._maxTargetTemp = data[pos++];
+
+    config._numBanks = data[pos++];
+    config._bankVoltage.resize(config._numBanks);
+    for (int i = 0; i < config._numBanks; i++) {
+        config._bankVoltage[i] = Read16(data, pos);
+    }
+
+    config._testMode = data[pos++];
+
+    config._testParameters.resize(4);
+    for (int i = 0; i < config._testParameters.size(); i++) {
+        config._testParameters[i] = data[pos++];
+    }
+    config._testOutputNum = data[pos++];
+    config._testPixelNum = Read16(data, pos);
+
+    return true;
+}
+
 int Pixlite16::PrepareV4Config(uint8_t* data) const
 {
     int pos = 0;
@@ -645,7 +797,7 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const
     data[pos++] = 'h';
     data[pos++] = 0x00;
     Write16(data, pos, 5);
-    data[pos++] = 0x08;
+    data[pos++] = 0x06;
 
     memcpy(&data[pos], _config._mac, sizeof(_config._mac));
     pos += sizeof(_config._mac);
@@ -673,6 +825,78 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const
     data[pos++] = _config._currentDriverSpeed;
     data[pos++] = _config._currentDriverExpanded;
     for (auto g : _config._gamma) { data[pos++] = g; }
+    WriteString(data, pos, 40, _config._nickname);
+    data[pos++] = _config._maxTargetTemp;
+
+    return pos;
+}
+
+int Pixlite16::PrepareV8Config(uint8_t* data) const
+{
+    int pos = 0;
+
+    data[pos++] = 'A';
+    data[pos++] = 'd';
+    data[pos++] = 'v';
+    data[pos++] = 'a';
+    data[pos++] = 't';
+    data[pos++] = 'e';
+    data[pos++] = 'c';
+    data[pos++] = 'h';
+    data[pos++] = 0x00;
+    Write16(data, pos, 5);
+    data[pos++] = 0x08;
+
+    memcpy(&data[pos], _config._mac, sizeof(_config._mac));
+    pos += sizeof(_config._mac);
+    data[pos++] = _config._dhcp;
+    memcpy(&data[pos], _config._staticIP, sizeof(_config._staticIP));
+    pos += sizeof(_config._staticIP);
+    memcpy(&data[pos], _config._staticSubnetMask, sizeof(_config._staticSubnetMask));
+    pos += sizeof(_config._staticSubnetMask);
+    data[pos++] = _config._protocol;
+    data[pos++] = _config._holdLastFrame;
+    data[pos++] = 0; // documentation is incorrect - 0 is advanced : _config._simpleConfig;
+    for (int i = 0; i < _config._numOutputs; i++) {
+        Write16(data, pos, _config._outputPixels[i]);
+    }
+    for (int i = 0; i < _config._numOutputs; i++) {
+        Write16(data, pos, _config._outputUniverse[i]);
+    }
+    for (int i = 0; i < _config._numOutputs; i++) {
+        Write16(data, pos, _config._outputStartChannel[i]);
+    }
+    for (int i = 0; i < _config._numOutputs; i++) {
+        data[pos++] = _config._outputNullPixels[i];
+    }
+    for (int i = 0; i < _config._numOutputs; i++) {
+        Write16(data, pos, _config._outputZigZag[i]);
+    }
+    for (int i = 0; i < _config._numOutputs; i++) {
+        data[pos++] = _config._outputReverse[i];
+    }
+    for (int i = 0; i < _config._numOutputs; i++) {
+        data[pos++] = _config._outputColourOrder[i];
+    }
+    for (int i = 0; i < _config._numOutputs; i++) {
+        Write16(data, pos, _config._outputGrouping[i]);
+    }
+    for (int i = 0; i < _config._numOutputs; i++) {
+        data[pos++] = _config._outputBrightness[i];
+    }
+    for (int i = 0; i < _config._numDMX; i++) {
+        data[pos++] = _config._dmxOn[i];
+    }
+    for (int i = 0; i < _config._numDMX; i++) {
+        Write16(data, pos, _config._dmxUniverse[i]);
+    }
+    data[pos++] = _config._currentDriver;
+    data[pos++] = _config._currentDriverType;
+    data[pos++] = _config._currentDriverSpeed;
+    data[pos++] = _config._currentDriverExpanded;
+    for (auto g : _config._gamma) {
+        data[pos++] = g;
+    }
     WriteString(data, pos, 40, _config._nickname);
     data[pos++] = _config._maxTargetTemp;
 
@@ -751,6 +975,9 @@ bool Pixlite16::GetConfig()
                         break;
                     case 6:
                         connected = ParseV6Config(data, _config);
+                        break;
+                    case 8:
+                        connected = ParseV8Config(data, _config);
                         break;
                     default:
                         logger_base.error("Unsupported Pixlite protocol version: %d.", _config._protocolVersion);
@@ -910,6 +1137,9 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
                 break;
             case 6:
                 connected = ParseV6Config(data, it);
+                break;
+            case 8:
+                connected = ParseV8Config(data, it);
                 break;
             default:
                 logger_base.error("Unsupported protocol : %d.", it._protocolVersion);
@@ -1262,7 +1492,10 @@ bool Pixlite16::SendConfig(bool logresult) const
         size = PrepareV5Config(data);
         break;
     case 6:
-        size = PrepareV6Config(data);
+        size = PrepareV8Config(data); // Yeah this is weird but they seem to prefer the V8 packet
+        break;
+    case 8:
+        size = PrepareV8Config(data);
         break;
     default:
         logger_base.error("Unsupported protocol : %d.", _protocolVersion);

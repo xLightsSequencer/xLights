@@ -57,6 +57,7 @@ public:
         std::vector<uint16_t> _outputGrouping;
         std::vector<uint8_t> _outputBrightness;
         uint8_t _numDMX = 0;
+        uint8_t _protocolsOnDMX = 0;
         uint8_t _realDMX = 0;
         std::vector<uint8_t> _dmxOn;
         std::vector<uint16_t> _dmxUniverse;
@@ -82,6 +83,8 @@ public:
         uint8_t _protocolVersion = 0;
         bool _pixelsCanBeSplit = false;
         uint8_t _maxUsedPixelPort = 0;
+        uint8_t _testOutputNum = 0;
+        uint16_t _testPixelNum = 0;
     };
 
 protected:
@@ -111,9 +114,11 @@ protected:
     static bool ParseV4Config(uint8_t* data, Pixlite16::Config& config);
     static bool ParseV5Config(uint8_t* data, Pixlite16::Config& config);
     static bool ParseV6Config(uint8_t* data, Pixlite16::Config& config);
+    static bool ParseV8Config(uint8_t* data, Pixlite16::Config& config);
     int PrepareV4Config(uint8_t* data) const;
     int PrepareV5Config(uint8_t* data) const;
     int PrepareV6Config(uint8_t* data) const;
+    int PrepareV8Config(uint8_t* data) const;
 
     bool GetConfig();
 
