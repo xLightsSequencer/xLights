@@ -72,7 +72,10 @@ public:
     std::string GetControllerFPPProxy() const { return _fppProxy; }
     virtual std::string GetFPPProxy() const override;
 
-    bool IsFPPProxyable() const { return _type == OUTPUT_E131 || _type == OUTPUT_DDP; }
+    bool IsFPPProxyable() const
+    {
+        return _type == OUTPUT_E131 || _type == OUTPUT_DDP || _type == OUTPUT_TWINKLY;
+    }
 
     void SetManaged(bool managed) { if (_managed != managed) { _managed = managed; _dirty = true; } }
 

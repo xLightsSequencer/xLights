@@ -68,6 +68,13 @@ std::string TwinklyOutput::GetLongDescription() const
     res += "[" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
     return res;
 }
+
+void TwinklyOutput::SetTransientData(int32_t& startChannel, int nullnumber)
+{
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetTransientData(startChannel, nullnumber);
+    }
+}
 #pragma endregion
 
 #pragma region Start and Stop
@@ -75,6 +82,10 @@ bool TwinklyOutput::Open()
 {
     if (!IPOutput::Open()) {
         return false;
+    }
+
+    if (_fppProxyOutput) {
+        return _ok;
     }
 
     // ensure the token is fresh
@@ -100,9 +111,11 @@ void TwinklyOutput::Close()
         _datagram = nullptr;
     }
 
-    // turn off
-    wxJSONValue result;
-    MakeCall("POST", "/xled/v1/led/mode", result, "{\"mode\": \"off\"}");
+    if (!_fppProxyOutput) {
+        // turn off
+        wxJSONValue result;
+        MakeCall("POST", "/xled/v1/led/mode", result, "{\"mode\": \"off\"}");
+    }
 
     IPOutput::Close();
 }
@@ -116,6 +129,11 @@ void TwinklyOutput::StartFrame(long msec)
     if (!_enabled) {
         return;
     }
+
+    if (_fppProxyOutput) {
+        return _fppProxyOutput->StartFrame(msec);
+    }
+
     if (_datagram == nullptr && OutputManager::IsRetryOpen()) {
         OpenDatagram();
         if (_ok) {
@@ -131,6 +149,12 @@ void TwinklyOutput::EndFrame(int suppressFrames)
     if (!_enabled || _suspend || _tempDisable || _datagram == nullptr) {
         return;
     }
+
+    if (_fppProxyOutput) {
+        _fppProxyOutput->EndFrame(suppressFrames);
+        return;
+    }
+
     if (_channels > m_channelData.size()) {
         m_channelData.resize(_channels);
     }
@@ -177,27 +201,54 @@ void TwinklyOutput::EndFrame(int suppressFrames)
 
 void TwinklyOutput::ResetFrame()
 {
+    if (!_enabled)
+        return;
+    if (_fppProxyOutput) {
+        _fppProxyOutput->ResetFrame();
+        return;
+    }
 }
 #pragma endregion
 
 #pragma region Frame Handling
 void TwinklyOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
-    if (_channels > m_channelData.size()) {
-        m_channelData.resize(_channels);
+    if (!_enabled)
+        return;
+
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetOneChannel(channel, data);
+    } else {
+        if (_channels > m_channelData.size()) {
+            m_channelData.resize(_channels);
+        }
+        m_channelData[channel] = data;
     }
-    m_channelData[channel] = data;
 }
 void TwinklyOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t size)
 {
-    if (_channels > m_channelData.size()) {
-        m_channelData.resize(_channels);
+    if (!_enabled)
+        return;
+
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetManyChannels(channel, data, size);
+    } else {
+        if (_channels > m_channelData.size()) {
+            m_channelData.resize(_channels);
+        }
+        std::copy(data, data + size, m_channelData.data());
     }
-    std::copy(data, data + size, m_channelData.data());
 }
 void TwinklyOutput::AllOff()
 {
-    memset(m_channelData.data(), 0x00, m_channelData.size());
+    if (!_enabled)
+        return;
+
+    if (_fppProxyOutput) {
+        _fppProxyOutput->AllOff();
+    } else {
+        memset(m_channelData.data(), 0x00, m_channelData.size());
+    }
 }
 #pragma endregion
 
