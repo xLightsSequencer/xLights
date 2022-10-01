@@ -686,7 +686,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         image = rawimage;
 // work around wxWidgets image rescaling bug on windows in VS release builds
 #ifdef __WXMSW__
-        image.Rescale(BufferWi, BufferHt, wxIMAGE_QUALITY_BICUBIC);
+        image.Rescale(BufferWi, BufferHt, wxIMAGE_QUALITY_BILINEAR); // I tried bicubic but it creates visual artefacts
 #else
         image.Rescale(BufferWi, BufferHt);
 #endif
@@ -704,7 +704,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             sc = std::max(xr, yr);
 // work around wxWidgets image rescaling bug on windows in VS release builds
 #ifdef __WXMSW__
-        image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc, wxIMAGE_QUALITY_BICUBIC);
+        image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc, wxIMAGE_QUALITY_BILINEAR); // I tried bicubic but it creates visual artefacts
 #else
         image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc);
 #endif
@@ -722,7 +722,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             imgwidth = std::max(imgwidth, 1);
             imght = std::max(imght, 1);
 #ifdef __WXMSW__
-            image.Rescale(imgwidth, imght, wxIMAGE_QUALITY_BICUBIC);
+            image.Rescale(imgwidth, imght, wxIMAGE_QUALITY_BILINEAR); // I tried bicubic but it creates visual artefacts
 #else
             image.Rescale(imgwidth, imght);
 #endif
