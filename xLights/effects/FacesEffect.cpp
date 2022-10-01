@@ -505,11 +505,18 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, 
     mouth(buffer, PhonemeInt, Ht, Wt, shimmer); // draw a mouth syllable
 }
 
+bool FacesEffect::ShimmerState(RenderBuffer& buffer) const
+{
+    //return !((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0);
+    // This is frame rate independent
+    return !((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs % 200 >= 150);
+}
+
 //TODO: add params for eyes, outline
 void FacesEffect::mouth(RenderBuffer& buffer, int Phoneme, int BufferHt, int BufferWi, bool shimmer) {
     if (shimmer) {
         // dont draw every third frame
-        if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0)
+        if (!ShimmerState(buffer))
             return;
     }
 
@@ -1265,7 +1272,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
         if (model_info->faceInfo[definition].find(key + e) != model_info->faceInfo[definition].end()) {
             picture = model_info->faceInfo[definition][key + e];
             if (shimmer) {
-                if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0) {
+                if (!ShimmerState(buffer)) {
                     picture = model_info->faceInfo[definition]["Mouth-rest-Eyes" + e];
                 }
             }
@@ -1274,7 +1281,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             if (model_info->faceInfo[definition].find(key + "Open") != model_info->faceInfo[definition].end()) {
                 picture = model_info->faceInfo[definition][key + "Open"];
                 if (shimmer) {
-                    if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0) {
+                    if (!ShimmerState(buffer)) {
                         picture = model_info->faceInfo[definition]["Mouth-rest-EyesOpen"];
                     }
                 }
@@ -1314,7 +1321,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     }
     for (size_t t = 0; t < todo.size(); t++) {
         if (shimmer && StartsWith(todo[t], "Mouth-")) {
-            if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0)
+            if (!ShimmerState(buffer))
                 continue;
         }
         std::string channels = model_info->faceInfo[definition][todo[t]];
