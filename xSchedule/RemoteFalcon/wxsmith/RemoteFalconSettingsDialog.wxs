@@ -162,6 +162,28 @@
 						<border>2</border>
 						<option>1</option>
 					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText5" member="yes">
+							<label>Message Level:</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE3" variable="Choice_MessageLevel" member="yes">
+							<content>
+								<item>Error</item>
+								<item>Warn</item>
+								<item>Info</item>
+								<item>Debug</item>
+							</content>
+							<selection>1</selection>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>

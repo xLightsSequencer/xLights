@@ -46,6 +46,7 @@ wxDECLARE_EVENT(EVT_ADDMESSAGE, wxCommandEvent);
 
 class RemoteFalconFrame : public wxFrame
 {
+    protected:
     RemoteFalcon* _remoteFalcon = nullptr;
     RemoteFalconOptions _options;
     std::string _showDir;
@@ -62,7 +63,7 @@ class RemoteFalconFrame : public wxFrame
     bool _viewerControlEnabled = false;
 
     void ValidateWindow();
-    void AddMessage(const std::string& msg);
+    void AddMessage(MESSAGE_LEVEL lvl, const std::string& msg);
     void DoAddMessage(const std::string& msg);
     void DoNotifyStatus(const std::string& status);
     void DoSendPlayingSong(const std::string& playing);
