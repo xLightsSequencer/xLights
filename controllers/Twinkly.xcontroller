@@ -1,0 +1,141 @@
+<Vendor Name="Twinkly">
+    <AbstractVariant Name="BaseTwinklySettings">
+        <NoWebUI/>
+        <SupportsAutoLayout/>
+        <PixelProtocols>
+            <Protocol>qed3110</Protocol>
+        </PixelProtocols>
+        <InputProtocols>
+            <Protocol>twinkly</Protocol>
+        </InputProtocols>
+    </AbstractVariant>
+	<Controller Name="Twinkly Strings">
+		<Variant Name="250 RGB+W" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>1000</MaxPixelPortChannels>
+        </Variant>
+		<Variant Name="400 RGB+W" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>1600</MaxPixelPortChannels>
+        </Variant>
+		<Variant Name="600 RGB+W" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>2400</MaxPixelPortChannels>
+        </Variant>
+		<Variant Name="100 RGB" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>300</MaxPixelPortChannels>
+        </Variant>
+		<Variant Name="250 RGB" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>750</MaxPixelPortChannels>
+        </Variant>
+		<Variant Name="400 RGB" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>1200</MaxPixelPortChannels>
+        </Variant>
+		<Variant Name="600 RGB" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>1800</MaxPixelPortChannels>
+        </Variant>
+	</Controller>
+	<Controller Name="Twinkly Festoon">
+		<Variant Name="20 RGB" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>60</MaxPixelPortChannels>
+        </Variant>
+		<Variant Name="40 RGB" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>120</MaxPixelPortChannels>
+        </Variant>
+	</Controller>
+	<Controller Name="Twinkly Cluster">
+		<Variant Name="400 RGB" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>1200</MaxPixelPortChannels>
+        </Variant>
+	</Controller>
+	<Controller Name="Twinkly Flex">
+	</Controller>
+	<Controller Name="Twinkly Line">
+	</Controller>
+	<Controller Name="Twinkly Icicle">
+		<Variant Name="190 RGB+W" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>760</MaxPixelPortChannels>
+        </Variant>
+	</Controller>
+	<Controller Name="Twinkly Spritzer">
+		<Variant Name="200 RGB" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>600</MaxPixelPortChannels>
+        </Variant>
+	</Controller>
+	<Controller Name="Twinkly Dots">
+		<Variant Name="60 RGB" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>180</MaxPixelPortChannels>
+        </Variant>
+		<Variant Name="200 RGB" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>500</MaxPixelPortChannels>
+        </Variant>
+		<Variant Name="400 RGB" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>1200</MaxPixelPortChannels>
+        </Variant>
+	</Controller>
+	<Controller Name="Twinkly Squares">
+		<Variant Name="5+1" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>192</MaxPixelPortChannels>
+        </Variant>
+	</Controller>
+	<Controller Name="Twinkly Curtain">
+		<Variant Name="210 RGB+W" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>840</MaxPixelPortChannels>
+        </Variant>
+	</Controller>
+	<Controller Name="Twinkly Light Wall Tree">
+		<Variant Name="2m 70 RGB+W" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>280</MaxPixelPortChannels>
+        </Variant>
+	</Controller>
+	<Controller Name="Twinkly Light Tree">
+		<Variant Name="2m 300 RGB+W" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>1200</MaxPixelPortChannels>
+        </Variant>
+		<Variant Name="3m 450 RGB+W" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>1800</MaxPixelPortChannels>
+        </Variant>
+		<Variant Name="4m 750 RGB+W" Base="Twinkly:BaseTwinklySettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>3000</MaxPixelPortChannels>
+        </Variant>
+	</Controller>
+</Vendor>
