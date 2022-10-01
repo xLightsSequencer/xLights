@@ -506,9 +506,10 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
                 }
             }
             if (models.GetCount() > 0) {
-                propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
+                p = propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
 
                 if (_model != "") {
+                    p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
                     int v = -1;
                     wxPGChoices versions;
                     std::list<std::string> variants = ControllerCaps::GetVariants(GetType(), _vendor, _model);
@@ -525,6 +526,9 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
                         }
                         propertyGrid->Append(new wxEnumProperty("Variant", "Variant", versions, v));
                     }
+                }
+                else {
+                    p->SetBackgroundColour(*wxRED);
                 }
             }
         }
