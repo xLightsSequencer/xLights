@@ -695,7 +695,14 @@ int Pixlite16::PrepareV4Config(uint8_t* data) const
     WriteString(data, pos, 20, mn);
     data[pos++] = _config._dhcp;
     WriteString(data, pos, 40, _config._nickname);
-    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputPixels[i]); }
+
+    bool expanded = _config._forceExpanded;
+    for (int i = 0; i < _config._numOutputs; i++) {
+        Write16(data, pos, _config._outputPixels[i]);
+        if (i >= _config._numOutputs / 2 && _config._outputPixels[i] > 0) {
+            expanded = true;
+        }
+    }
     data[pos++] = _config._protocol;
     pos++; // unused
     pos++; // unused
@@ -728,7 +735,7 @@ int Pixlite16::PrepareV4Config(uint8_t* data) const
     for (int i = 0; i < _config._numOutputs; i++) { data[pos++] = _config._outputBrightness[i]; }
     data[pos++] = _config._holdLastFrame;
     data[pos++] = _config._maxTargetTemp;
-    data[pos++] = _config._currentDriverExpanded;
+    data[pos++] = expanded ? 1 : 0;
     data[pos++] = _config._currentDriverType;
 
     return pos;
@@ -760,7 +767,14 @@ int Pixlite16::PrepareV5Config(uint8_t* data) const
     data[pos++] = _config._protocol;
     data[pos++] = _config._holdLastFrame;
     data[pos++] = 0; // We always do complex config : _config._simpleConfig;
-    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputPixels[i]); }
+
+    bool expanded = _config._forceExpanded;
+    for (int i = 0; i < _config._numOutputs; i++) {
+        Write16(data, pos, _config._outputPixels[i]);
+        if (i >= _config._numOutputs / 2 && _config._outputPixels[i] > 0) {
+            expanded = true;
+        }
+    }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputUniverse[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputStartChannel[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { data[pos++] = _config._outputNullPixels[i]; }
@@ -774,7 +788,7 @@ int Pixlite16::PrepareV5Config(uint8_t* data) const
     data[pos++] = _config._currentDriver;
     data[pos++] = _config._currentDriverType;
     data[pos++] = _config._currentDriverSpeed;
-    data[pos++] = _config._currentDriverExpanded;
+    data[pos++] = expanded ? 1 : 0;
     for (auto g : _config._gamma) { data[pos++] = g; }
     WriteString(data, pos, 40, _config._nickname);
     data[pos++] = _config._maxTargetTemp;
@@ -809,7 +823,13 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const
     data[pos++] = _config._protocol;
     data[pos++] = _config._holdLastFrame;
     data[pos++] = 0; // documentation is incorrect - 0 is advanced : _config._simpleConfig;
-    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputPixels[i]); }
+    bool expanded = _config._forceExpanded;
+    for (int i = 0; i < _config._numOutputs; i++) {
+        Write16(data, pos, _config._outputPixels[i]);
+        if (i >= _config._numOutputs / 2 && _config._outputPixels[i] > 0) {
+            expanded = true;
+        }
+    }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputUniverse[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputStartChannel[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { data[pos++] = _config._outputNullPixels[i]; }
@@ -823,7 +843,7 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const
     data[pos++] = _config._currentDriver;
     data[pos++] = _config._currentDriverType;
     data[pos++] = _config._currentDriverSpeed;
-    data[pos++] = _config._currentDriverExpanded;
+    data[pos++] = expanded ? 1 : 0;
     for (auto g : _config._gamma) { data[pos++] = g; }
     WriteString(data, pos, 40, _config._nickname);
     data[pos++] = _config._maxTargetTemp;
@@ -857,7 +877,7 @@ int Pixlite16::PrepareV8Config(uint8_t* data) const
     data[pos++] = _config._protocol;
     data[pos++] = _config._holdLastFrame;
     data[pos++] = 0; // documentation is incorrect - 0 is advanced : _config._simpleConfig;
-    bool expanded = false;
+    bool expanded = _config._forceExpanded;
     for (size_t i = 0; i < _config._numOutputs; ++i) {
         Write16(data, pos, _config._outputPixels[i]);
         if (i >= _config._numOutputs / 2 && _config._outputPixels[i] > 0) {
@@ -1286,10 +1306,14 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     std::string request = "{\"req\":\"configChange\",\"id\":1,\"params\":{\"action\":\"save\",\"config\":{";
 
+    bool expanded = _config._forceExpanded;
     int pp = 0;
     for (uint8_t i = 0; i < _config._outputPixels.size(); ++i) {
         if (_config._outputPixels[i] > 0) {
             pp = i + 1;
+            if (i >= _config._numOutputs / 2 && _config._outputPixels[i] > 0) {
+                expanded = true;
+            }
         };
     }
     pp = pp <= _config._numOutputs / 2 ? _config._numOutputs / 2 : _config._numOutputs;
@@ -1302,7 +1326,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
     if (Mk3FrequencyForProtocol(_config._protocolName) != 0) {
         request += wxString::Format("\"freq\":%d,", Mk3FrequencyForProtocol(_config._protocolName));
     }
-    request += wxString::Format("\"expand\":%s,", pp == _config._numOutputs ? "true" : "false");
+    request += wxString::Format("\"expand\":%s,", expanded ? "true" : "false");
     request += "\"inFormat\":\"8Bit\",\"pixsSpanUni\":true},";
 
     // pix port
@@ -1729,6 +1753,11 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 }
             }
         }
+    }
+
+    auto caps = ControllerCaps::GetControllerConfig(controller);
+    if (caps != nullptr) {
+        _config._forceExpanded = Lower(caps->GetCustomPropertyByPath("ForceExpanded", "false")) == "true";
     }
 
     if (success) {

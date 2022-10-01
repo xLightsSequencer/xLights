@@ -55,24 +55,42 @@
         </InputProtocols>
     </AbstractVariant>
     <Controller Name="PixLite E4-S Mk3">
-		<Variant Name="" Base="Advatek:PLMK3">
+		<Variant Name="Normal" Base="Advatek:PLMK3">
+			<MaxInputUniverses>24</MaxInputUniverses>
+			<MaxPixelPort>4</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+		</Variant>
+		<Variant Name="Expanded" Base="Advatek:PLMK3">
 			<MaxInputUniverses>24</MaxInputUniverses>
 			<MaxPixelPort>8</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
+            <ForceExpanded>true</ForceExpanded>
 		</Variant>
     </Controller>
     <Controller Name="PixLite E16-S Mk3">
-		<Variant Name="" Base="Advatek:PLMK3">
+		<Variant Name="Normal" Base="Advatek:PLMK3">
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+		</Variant>
+		<Variant Name="Expanded" Base="Advatek:PLMK3">
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
+            <ForceExpanded>true</ForceExpanded>
 		</Variant>
     </Controller>
     <Controller Name="PixLite T8-S Mk3">
-		<Variant Name="" Base="Advatek:PLMK3">
+		<Variant Name="Normal" Base="Advatek:PLMK3">
 			<MaxInputUniverses>96</MaxInputUniverses>
-			<MaxPixelPort>24</MaxPixelPort>
+			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
+		</Variant>
+		<Variant Name="Expanded" Base="Advatek:PLMK3">
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>32</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+            <ForceExpanded>true</ForceExpanded>
 		</Variant>
     </Controller>
     <AbstractVariant Name="PLMK1">
@@ -118,10 +136,16 @@
         </InputProtocols>
     </AbstractVariant>
 	<Controller Name="PixLite 4">
-		<Variant Name="" Base="Advatek:PLMK1">
+		<Variant Name="Normal" Base="Advatek:PLMK1">
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
+		</Variant>
+		<Variant Name="Expanded" Base="Advatek:PLMK1">
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>8</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+            <ForceExpanded>true</ForceExpanded>
 		</Variant>
 	</Controller>
     <AbstractVariant Name="PLMK2">
@@ -170,38 +194,68 @@
         </InputProtocols>
     </AbstractVariant>
 	<Controller Name="PixLite 4 MkII">
-		<Variant Name="" Base="Advatek:PLMK2">
+		<Variant Name="Normal" Base="Advatek:PLMK2">
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>4</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+		</Variant>
+		<Variant Name="Expanded" Base="Advatek:PLMK2">
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>8</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
+            <ForceExpanded>true</ForceExpanded>
 		</Variant>
 	</Controller>
 	<Controller Name="PixLite 16">
-		<Variant Name="" Base="Advatek:PLMK1">
+		<Variant Name="Normal" Base="Advatek:PLMK1">
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
+		</Variant>
+		<Variant Name="Expanded" Base="Advatek:PLMK1">
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>32</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+            <ForceExpanded>true</ForceExpanded>
 		</Variant>
 	</Controller>
 	<Controller Name="PixLite 16 Long Range">
-		<Variant Name="" Base="Advatek:PLMK1">
+		<Variant Name="Normal" Base="Advatek:PLMK1">
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
 		</Variant>
+		<Variant Name="Expanded" Base="Advatek:PLMK1">
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>32</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+            <ForceExpanded>true</ForceExpanded>
+		</Variant>
 	</Controller>
 	<Controller Name="PixLite 16 MkII">
-		<Variant Name="" Base="Advatek:PLMK2">
+		<Variant Name="Normal" Base="Advatek:PLMK2">
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+		</Variant>
+		<Variant Name="Expanded" Base="Advatek:PLMK2">
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>32</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+            <ForceExpanded>true</ForceExpanded>
+		</Variant>
+	</Controller>
+	<Controller Name="PixLite 16 MkII Long Range">
+		<Variant Name="Normal" Base="Advatek:PLMK2">
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
 		</Variant>
-	</Controller>
-	<Controller Name="PixLite 16 MkII Long Range">
-		<Variant Name="" Base="Advatek:PLMK2">
+		<Variant Name="Expanded" Base="Advatek:PLMK2">
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
+            <ForceExpanded>true</ForceExpanded>
 		</Variant>
 	</Controller>
 </Vendor>

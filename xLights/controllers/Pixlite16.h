@@ -85,6 +85,7 @@ public:
         uint8_t _maxUsedPixelPort = 0;
         uint8_t _testOutputNum = 0;
         uint16_t _testPixelNum = 0;
+        bool _forceExpanded = false;
     };
 
 protected:
