@@ -24,6 +24,9 @@
 				<Protocol>ucs2903</Protocol>
 				<Protocol>gs820x</Protocol>
 				<Protocol>sk6812</Protocol>
+				<Protocol>rgb+</Protocol>
+				<Protocol>rgbw+</Protocol>
+				<Protocol>rgb+2</Protocol>
 			</PixelProtocols>
 			<SerialProtocols/>
 			<InputProtocols>
@@ -59,6 +62,9 @@
 				<Protocol>ucs2903</Protocol>
 				<Protocol>gs820x</Protocol>
 				<Protocol>sk6812</Protocol>
+				<Protocol>rgb+</Protocol>
+				<Protocol>rgbw+</Protocol>
+				<Protocol>rgb+2</Protocol>
 			</PixelProtocols>
 			<SerialProtocols/>
 			<InputProtocols>
