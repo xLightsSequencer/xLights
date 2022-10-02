@@ -152,7 +152,7 @@ std::list<std::string> DmxMovingHead3D::CheckModelSettings()
 }
 
 void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor* c) {
-    float pan_angle, pan_angle_raw, tilt_angle, beam_length_displayed; //, angle1, angle2
+    float pan_angle_raw, beam_length_displayed; //, angle1, angle2
     //int x1, x2, y1, y2;
     size_t NodeCount = Nodes.size();
 
@@ -204,6 +204,7 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
         old_tilt_angle = st.tilt_angle;
     }
 
+    float pan_angle = 0;
     if (pan_channel > 0 && active) {
         Nodes[pan_channel - 1]->GetColor(color_angle);
         pan_angle = (color_angle.red / 255.0f) * pan_deg_of_rot + pan_orient;
@@ -212,10 +213,21 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
         pan_angle = pan_orient;
     }
 
+    float tilt_angle = 0;
+    if (tilt_channel > 0 && active) {
+        Nodes[tilt_channel - 1]->GetColor(color_angle);
+        tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
+    } else {
+        tilt_angle = tilt_orient;
+    }
+
     uint32_t ms = preview->getCurrentFrameTime();
     uint32_t time_delta = 0;
     if (ms > old_ms) {
         time_delta = ms - old_ms;
+    } else if (ms == old_ms && active) {
+        pan_angle = old_pan_angle;
+        tilt_angle = old_tilt_angle;
     }
     if (time_delta > 500) {
         // more than 1/2 second off, assume a jump of some sort
@@ -237,12 +249,6 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
     }
 
     pan_angle_raw = pan_angle;
-    if (tilt_channel > 0 && active) {
-        Nodes[tilt_channel - 1]->GetColor(color_angle);
-        tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
-    } else {
-        tilt_angle = tilt_orient;
-    }
 
     if (time_delta != 0 && active) {
         // tilt slew limiting

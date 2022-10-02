@@ -472,7 +472,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
         old_tilt_angle = st.tilt_angle;
     }
 
-    float pan_angle;
+    float pan_angle = 0;
     if (pan_channel > 0 && pan_channel <= NodeCount && active) {
         Nodes[pan_channel - 1]->GetColor(color_angle);
         pan_angle = (color_angle.red / 255.0f) * pan_deg_of_rot + pan_orient;
@@ -480,16 +480,26 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
         pan_angle = pan_orient;
     }
 
+    float tilt_angle = 0;
+    if (tilt_channel > 0 && tilt_channel <= NodeCount && active) {
+        Nodes[tilt_channel - 1]->GetColor(color_angle);
+        tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
+    } else {
+        tilt_angle = tilt_orient;
+    }
+
     uint32_t ms = preview->getCurrentFrameTime();
     uint32_t time_delta = 0;
     if (ms > old_ms) {
         time_delta = ms - old_ms;
+    } else if (ms == old_ms && active) {
+        pan_angle = old_pan_angle;
+        tilt_angle = old_tilt_angle;
     }
     if (time_delta > 500) {
         // more than 1/2 second off, assume a jump of some sort
         time_delta = 0;
     }
-
 
     if (time_delta != 0 && active) {
         // pan slew limiting
@@ -506,13 +516,6 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     }
 
     float pan_angle_raw = pan_angle;
-    float tilt_angle;
-    if (tilt_channel > 0 && tilt_channel <= NodeCount && active) {
-        Nodes[tilt_channel - 1]->GetColor(color_angle);
-        tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
-    } else {
-        tilt_angle = tilt_orient;
-    }
 
     if (time_delta != 0 && active) {
         // tilt slew limiting
