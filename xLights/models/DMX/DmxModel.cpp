@@ -119,12 +119,15 @@ void DmxModel::UpdateChannelCount(int num_channels, bool do_work)
 
 int DmxModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
+    IncrementChangeCount();
     if ("DmxChannelCount" == event.GetPropertyName()) {
+        IncrementChangeCount();
         UpdateChannelCount((int)event.GetPropertyValue().GetLong(), true);
         return 0;
     }
 
     if (nullptr != preset_ability && preset_ability->OnPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        IncrementChangeCount();
         return 0;
     }
 

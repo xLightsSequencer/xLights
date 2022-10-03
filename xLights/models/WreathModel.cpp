@@ -93,6 +93,7 @@ int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     if ("WreathStringCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         //AdjustStringProperties(grid, parm1);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WreathModel::OnPropertyGridChange::WreathStringCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WreathModel::OnPropertyGridChange::WreathStringCount");
@@ -104,6 +105,7 @@ int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     } else if ("WreathLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WreathModel::OnPropertyGridChange::WreathLightCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WreathModel::OnPropertyGridChange::WreathLightCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WreathModel::OnPropertyGridChange::WreathLightCount");
@@ -116,6 +118,7 @@ int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
         ModelXml->DeleteAttribute("StartSide");
         ModelXml->AddAttribute("StartSide", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B");
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WreathModel::OnPropertyGridChange::WreathStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WreathModel::OnPropertyGridChange::WreathStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WreathModel::OnPropertyGridChange::WreathStart");

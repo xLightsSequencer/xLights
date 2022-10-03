@@ -266,6 +266,7 @@ int MultiPointModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPrope
             sp = grid->GetPropertyByLabel("# Lights");
         }
         sp->SetValueFromInt((int)event.GetPropertyValue().GetLong());
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::OnPropertyGridChange::MultiPointNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::OnPropertyGridChange::MultiPointNodes");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MultiPointModel::OnPropertyGridChange::MultiPointNodes");
@@ -295,6 +296,7 @@ int MultiPointModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPrope
         }
         ModelXml->DeleteAttribute("MultiStrings");
         ModelXml->AddAttribute("MultiStrings", wxString::Format("%d", _strings));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
@@ -314,6 +316,7 @@ int MultiPointModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPrope
         }
         ModelXml->DeleteAttribute("ModelHeight");
         ModelXml->AddAttribute("ModelHeight", event.GetPropertyValue().GetString());
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::OnPropertyGridChange::ModelHeight");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::OnPropertyGridChange::ModelHeight");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MultiPointModel::OnPropertyGridChange::ModelHeight");
