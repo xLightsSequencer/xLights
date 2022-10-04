@@ -11,6 +11,26 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.19 October 4, 2022
+   -- enh (keith)  Add DMX512P pixel support to Advatek controllers
+   -- enh (keith)  Add Advatek v8 protocol support
+   -- enh (keith)  Separate Advatek expanded mode support as a variant. 
+                   Users who were using expanded mode may need to change variant to upload.
+   -- enh (keith)  Add twinkly products as recognised controllers
+   -- enh (keith)  Show as an error non selection of controller model
+   -- enh (keith)  Give remote falcon users in xSchedule more control over logging volume
+   -- bug (dkulp)  Fix issue where model groups dont update until xLights restart
+   -- bug (dkulp)  Fix crashes where Fire/Candle effect is used on a submodel
+   -- bug (dkulp)  Fix crashes where inactive models are added to groups
+   -- bug (dkulp)  Ensure BBB serial output uses the same pinout version as strings
+   -- bug (keith)  Possibly address some twinkly start output crashes and if not capture more information
+   -- bug (keith)  Fix expanded mode not being set on Advatek boards when it should be
+   -- bug (keith)  Fix Twinkly protocol not proxyable via FPP
+   -- bug (keith)  Fix not all minleon controllers show the minleon protocols
+   -- bug (keith)  Slightly improve visual artefacts on pixture effect on windows due to wxWidgets bug on visual studio
+   -- bug (keith)  Fix unnecessary reboot prompt when uploading DDP to F48 V3 controllers
+   -- bug (keith)  Fix face shimmer is not frame rate independent
+   -- bug (gil)    Fix moving heads dont move smoothly on windows
 2022.18 September 28, 2022
    -- enh (dkulp)  Add discovery for new BBShiftString FPP capes
    -- enh (dkulp)  Add upload config support for K128D-B cape
