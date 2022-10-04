@@ -1229,7 +1229,11 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
 
     wxFileInputStream input(filename);
     wxTextInputStream text(input, "\t");
-    text.ReadLine(); // map by strand ... ignore this
+    wxString const firstLine = text.ReadLine(); // map by strand ... ignore this
+    if (firstLine.Contains("{")) {
+        LoadJSONMapping(filename, hideWarnings);
+        return;
+    }
     int count = wxAtoi(text.ReadLine());
     for (int x = 0; x < count; x++) {
         std::string mn = text.ReadLine().ToStdString();
@@ -1325,7 +1329,7 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
 
 void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
 {
-    wxFileDialog dlg(this, "Save mapping", wxEmptyString, _mappingFile, "Text Maping (*.xmap)|*.xmap|JSON Mapping Files (*.xjmap)|*.xjmap|xMapHint (*.xmaphint)|*.xmaphint|All Files (*.)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxFileDialog dlg(this, "Save mapping", wxEmptyString, _mappingFile, "Text Maping (*.xmap)|*.xmap|JSON Mapping Files (*.xjmap)|*.xjmap|xMapHint (*.xmaphint)|*.xmaphint", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (dlg.ShowModal() == wxID_OK) {
         if (dlg.GetPath().Lower().EndsWith(".xmaphint")) {
             generateMapHintsFile(dlg.GetPath());
