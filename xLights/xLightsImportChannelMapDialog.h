@@ -233,11 +233,6 @@ public:
         _pendingAdditions.Add(wxDataViewItem(child));
     }
 
-    void NotifyItemsAdded(const wxDataViewItem& parent = wxDataViewItem(0)) {
-        ItemsAdded(parent, _pendingAdditions);
-        _pendingAdditions.Clear();
-    }
-
     void Append(xLightsImportModelNode* child)
     {
         m_children.Add(child);

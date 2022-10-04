@@ -362,3 +362,4 @@ bool IsxLights();
 std::string ReverseCSV(const std::string& csv);
 void DumpBinary(uint8_t* buffer, size_t read);
 wxColor CyanOrBlue();
+wxColor LightOrMediumGrey();

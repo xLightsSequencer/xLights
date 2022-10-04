@@ -661,8 +661,24 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     PopulateAvailable(false);
 
     _dataModel = new xLightsImportTreeModel();
+    //fill in the datamodel prior to sticking it in the tree
+    int ms = 0;
+    for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
+        if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            Element* e = mSequenceElements->GetElement(i);
 
+            Model *m = xlights->GetModel(e->GetName());
+            if (m != nullptr) {
+                AddModel(m, ms);
+            }
+        }
+
+    }
+    if (_dataModel->GetChildCount() != 0) {
+        _dataModel->Resort();
+    }
     TreeListCtrl_Mapping = new wxDataViewCtrl(Panel1, ID_TREELISTCTRL1, wxDefaultPosition, wxDefaultSize, wxDV_HORIZ_RULES | wxDV_VERT_RULES | wxDV_MULTIPLE, wxDefaultValidator);
+    TreeListCtrl_Mapping->Freeze();
     TreeListCtrl_Mapping->AssociateModel(_dataModel);
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE));
     TreeListCtrl_Mapping->GetColumn(0)->SetSortOrder(true);
@@ -700,24 +716,6 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     TreeListCtrl_Mapping->SetDropTarget(mdt);
 #endif
     TreeListCtrl_Mapping->SetIndent(8);
-    TreeListCtrl_Mapping->Freeze();
-
-    int ms = 0;
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
-        if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-            Element* e = mSequenceElements->GetElement(i);
-
-            Model *m = xlights->GetModel(e->GetName());
-            if (m != nullptr) {
-                AddModel(m, ms);
-            }
-        }
-
-    }
-
-    // Notify Tree Ctrl to update after all models have been added. This is a big
-    // performance improvement for large layouts.
-    _dataModel->NotifyItemsAdded();
     TreeListCtrl_Mapping->GetColumn(0)->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     TreeListCtrl_Mapping->Thaw();
     TreeListCtrl_Mapping->Refresh();
@@ -725,10 +723,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     if (_dataModel->GetChildCount() == 0) {
         DisplayError("No models to import to. Add some models to the rows of the effects grid.");
         return false;
-    } else {
-        _dataModel->Resort();
     }
-
     return true;
 }
 
@@ -2072,7 +2067,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
             }
         } else {
             //used
-            ListCtrl_Available->SetItemTextColour(i, *wxLIGHT_GREY);
+            ListCtrl_Available->SetItemTextColour(i, LightOrMediumGrey());
         }
     }
     ListCtrl_Available->Thaw();

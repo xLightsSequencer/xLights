@@ -1511,7 +1511,19 @@ wxColor CyanOrBlue()
     }
 #endif
 }
-
+wxColor LightOrMediumGrey()
+{
+#ifndef __WXMSW__
+    if (wxSystemSettings::GetAppearance().IsDark()) {
+        static const wxColor medGray(128, 128, 128);
+        return medGray;
+    } else {
+#endif
+        return *wxLIGHT_GREY;
+#ifndef __WXMSW__
+    }
+#endif
+}
 void CleanupIpAddress(wxString& IpAddr)
 {
     static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
