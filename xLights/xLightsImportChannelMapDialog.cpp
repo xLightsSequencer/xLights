@@ -1045,15 +1045,15 @@ void xLightsImportChannelMapDialog::LoadMappingFile(wxString const& filepath, bo
     {
         LoadJSONMapping(filepath, hideWarnings);
     }
-    else if (ext == "xmap")
+    else// if (ext == "xmap")
     {
         LoadXMapMapping(filepath, hideWarnings);
     }
-    else
-    {
-        logger_base.error("Invalid Mapping file type %s.", (const char*)ext.c_str());
-        return;
-    }
+    //else
+    //{
+    //    logger_base.error("Invalid Mapping file type %s.", (const char*)ext.c_str());
+    //    return;
+    //}
 
     _dirty = false;
 
