@@ -9,6 +9,7 @@
  **************************************************************/
 #include <iomanip>
 #include <thread>
+#include <inttypes.h>
 
 #include <wx/buffer.h>
 #include <wx/datetime.h>
@@ -69,11 +70,17 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
                          "This provides more information to the xLights developers than just our normal crash logs.");
 #endif
 
+            wxString backtrace_txt = wxString::Format("%s version %s\n", m_appName.c_str(), GetDisplayVersionString());
+            backtrace_txt += "Time: " + wxDateTime::Now().FormatISOCombined() + "\n";
+
 #if (wxUSE_STACKWALKER || wxUSE_CRASHREPORT)
             wxDebugReport::Context const ctx = isFatalException ? wxDebugReport::Context_Exception : wxDebugReport::Context_Current;
 #endif
 
 #if wxUSE_STACKWALKER
+            wxCrashContext c;
+            backtrace_txt += wxString::Format("Context address 0x%016" PRIx64 "\n", (uint64_t)c.addr);
+            backtrace_txt += "Exception: " + c.GetExceptionString() + "\n";
             report.AddContext(ctx);
 #endif
 
@@ -83,13 +90,15 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
 
             int const crashRptFlags = wxCRASH_REPORT_LOCATION | wxCRASH_REPORT_STACK; // | wxCRASH_REPORT_GLOBALS; - remove globals to limit size of DMP file
 
+            extern EXCEPTION_POINTERS* wxGlobalSEInformation;
+            if (wxGlobalSEInformation != nullptr) {
+                backtrace_txt += wxString::Format("Structured exception at 0x%016" PRIx64 "\n", (uint64_t)wxGlobalSEInformation->ExceptionRecord->ExceptionAddress);
+            }
+
             if ((ctx == wxDebugReport::Context_Exception) ? wxCrashReport::Generate(crashRptFlags) : wxCrashReport::GenerateNow(crashRptFlags)) {
                 report.AddFile(fn.GetFullName(), _("dump of the process state (binary)"));
             }
 #endif
-
-            wxString backtrace_txt = wxString::Format("%s version %s\n", m_appName.c_str(), GetDisplayVersionString());
-            backtrace_txt += "Time: " + wxDateTime::Now().FormatISOCombined() + "\n";
 
             std::ostringstream threadIdStr;
             threadIdStr << std::showbase // show the 0x prefix
