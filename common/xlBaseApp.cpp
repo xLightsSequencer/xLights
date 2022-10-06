@@ -78,9 +78,11 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
 #endif
 
 #if wxUSE_STACKWALKER
+#ifdef __WXMSW__
             wxCrashContext c;
             backtrace_txt += wxString::Format("Context address 0x%016" PRIx64 "\n", (uint64_t)c.addr);
             backtrace_txt += "Exception: " + c.GetExceptionString() + "\n";
+#endif
             report.AddContext(ctx);
 #endif
 
