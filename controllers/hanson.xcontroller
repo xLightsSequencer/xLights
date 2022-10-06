@@ -160,19 +160,37 @@
 		</Variant>
 	</Controller>	
 	<Controller Name="HE123">
-        <Variant Name="" ID="HE123" Base="FPP:FPPStringCape">
-			<MaxPixelPort>48</MaxPixelPort>
-			<MaxSerialPort>0</MaxSerialPort>
-			<MaxSerialPortChannels>0</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4800</MaxPixelPortChannels>
-			<fpp>6</fpp>
-			<fpp1>1,8</fpp1>
-			<fpp2>9,8</fpp2>
-			<fpp3>17,8</fpp3>
-			<fpp4>25,8</fpp4>
-			<fpp5>33,8</fpp5>
-			<fpp6>41,8</fpp6>
-		</Variant>
+                <Variant Name="No Expansions" ID="HE123" Base="FPP:FPPStringCape">
+                        <MaxPixelPort>16</MaxPixelPort>
+                        <MaxSerialPort>0</MaxSerialPort>
+                        <MaxSerialPortChannels>0</MaxSerialPortChannels>
+                        <fpp>2</fpp>
+                        <fpp1>17,-1</fpp1>
+                        <fpp2>33,-1</fpp2>
+                </Variant>
+                <Variant Name="One Expansion" ID="HE123" Base="FPP:FPPStringCape">
+                        <MaxPixelPort>32</MaxPixelPort>
+                        <MaxSerialPort>0</MaxSerialPort>
+                        <MaxSerialPortChannels>0</MaxSerialPortChannels>
+                        <fpp>2</fpp>
+                        <fpp1>17,16</fpp1>
+                        <fpp2>33,-1</fpp2>
+                </Variant>
+                <Variant Name="Two Expansions" ID="HE123" Base="FPP:FPPStringCape">
+                        <MaxPixelPort>48</MaxPixelPort>
+                        <MaxSerialPort>0</MaxSerialPort>
+                        <MaxSerialPortChannels>0</MaxSerialPortChannels>
+                        <fpp>2</fpp>
+                        <fpp1>17,16</fpp1>
+                        <fpp2>33,16</fpp2>
+                </Variant>
+	</Controller>
+	<Controller Name="HE123D">
+                <Variant Name="" ID="HE123D" Base="FPP:FPPStringCape">
+                        <MaxPixelPort>48</MaxPixelPort>
+                        <MaxSerialPort>0</MaxSerialPort>
+                        <MaxSerialPortChannels>0</MaxSerialPortChannels>
+                </Variant>
 	</Controller>
 	<Controller Name="rPi-P10">
 		<Variant Name="" ID="rPi-P10" Base="FPP:BaseFPPSettings">
