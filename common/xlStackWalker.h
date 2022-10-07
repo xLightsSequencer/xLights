@@ -52,36 +52,8 @@ class xlStackWalker : public wxStackWalker
             while (!infile.eof()) {
                 std::string inl;
                 std::getline(infile, inl);
-                wxString line(inl);
-                line.Trim(true).Trim(false);
-
-                if (line.Contains("Preferred load address is")) {
-                    sscanf(line.substr(28).c_str(), "%llx", &preferedLoadAddress);
-                }
-
-                if ((line.StartsWith("0001:") || line.StartsWith("0002:")) && (line.EndsWith(".obj") || line.EndsWith(".o"))) {
-                    while (line.Replace("  ", " ") > 0)
-                        ;
-                    auto comp = wxSplit(line, ' ');
-                    if (comp.size() > 3) {
-                        size_t ln = 0;
-                        for (size_t i = 3; i < comp.size(); i++) {
-                            if (comp[i].size() > 2) {
-                                ln = i;
-                                break;
-                            }
-                        }
-
-                        long long addr = 0;
-                        sscanf(comp[2].c_str(), "%llx", &addr);
-
-                        auto l = wxString::Format("%016llx\t\t%s\t%s", addr - (uint64_t)preferedLoadAddress, comp[ln], comp[1]);
-                        _mapLines.Add(l);
-                        // logger_base.debug("Map file line: %s", (const char *)line.c_str());
-                    }
-                }
+                _mapLines.push_back(inl);
             }
-            _mapLines.Sort();
             logger_base.debug("    Map file loaded.");
             return true;
         } else {
@@ -190,7 +162,7 @@ private:
     wxString m_stackTrace;
     unsigned m_numFrames = 0;
     bool _mapFileOk = false;
-    wxArrayString _mapLines;
+    std::list<std::string> _mapLines;
 };
 
 #endif
