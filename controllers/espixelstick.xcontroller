@@ -44,9 +44,9 @@
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
             </PixelProtocols>
+            <SerialProtocols>
                 <Protocol>dmx</Protocol>
                 <Protocol>renard</Protocol>
-            <SerialProtocols>
             </SerialProtocols>
             <InputProtocols>
                 <Protocol>e131</Protocol>
@@ -74,9 +74,9 @@
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
             </PixelProtocols>
+            <SerialProtocols>
                 <Protocol>dmx</Protocol>
                 <Protocol>renard</Protocol>
-            <SerialProtocols>
             </SerialProtocols>
             <InputProtocols>
                 <Protocol>e131</Protocol>
