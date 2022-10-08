@@ -458,6 +458,12 @@ public:
     virtual std::string GetStartLocation() const;
     bool IsCustom(void);
     virtual bool SupportsExportAsCustom() const = 0;
+    virtual bool SupportsExportAsCustom3D() const
+    {
+        return false;
+    }
+    virtual void ExportAsCustomXModel3D() const
+    {}
     virtual bool SupportsWiringView() const = 0;
     size_t GetChannelCoords(wxArrayString& choices); //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
     static bool ParseFaceElement(const std::string& str, std::vector<wxPoint>& first_xy);
