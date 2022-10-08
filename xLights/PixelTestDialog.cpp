@@ -945,7 +945,7 @@ public:
     }
     virtual std::string GetType() const override
     {
-        return "Port";
+        return "SR";
     }
     std::list<ModelTestItem*> GetModels() const
     {
@@ -966,6 +966,7 @@ class CPR_PortTestItem : public TestItemBase
     bool _channelsAvailable = false;
     std::list<CPR_SRTestItem*> _remotes;
     std::string _portName;
+    uint16_t _port = 0xFFFF;
 
     CPR_SRTestItem* GetSmartRemote(char srl, UDControllerPort* pud, ModelManager& modelManager, bool channelsAvailable)
     {
@@ -1017,6 +1018,7 @@ public:
 
         _absoluteStartChannel = pud->GetStartChannel();
         _absoluteEndChannel = pud->GetEndChannel();
+        _port = pud->GetPort();
 
         for (const auto& it : pud->GetModels()) {
             int nodes = it->Channels() / it->GetChannelsPerPixel();
@@ -1044,6 +1046,10 @@ public:
     std::list<CPR_SRTestItem*> GetRemotes() const
     {
         return _remotes;
+    }
+    uint16_t GetPort() const
+    {
+        return _port;
     }
 };
 
@@ -1126,6 +1132,7 @@ const long PixelTestDialog::ID_MNU_TEST_SELECTALL = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_DESELECTALL = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_SELECTN = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_DESELECTN = wxNewId();
+const long PixelTestDialog::ID_MNU_TEST_NUMBER = wxNewId();
 
 //(*IdInit(PixelTestDialog)
 const long PixelTestDialog::ID_BUTTON_Load = wxNewId();
@@ -2041,6 +2048,8 @@ void PixelTestDialog::OnContextMenu(wxTreeListEvent& event)
     mnuContext.Append(ID_MNU_TEST_DESELECTALL, "Deselect All");
     mnuContext.Append(ID_MNU_TEST_SELECTN, "Select Many");
     mnuContext.Append(ID_MNU_TEST_DESELECTN, "Deselect Many");
+    if (_rcTree == TreeListCtrl_Controllers)
+        mnuContext.Append(ID_MNU_TEST_NUMBER, "Number");
 
     mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&PixelTestDialog::OnListPopup, nullptr, this);
     PopupMenu(&mnuContext);
@@ -2144,6 +2153,155 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
 
                     selected = tree->GetNextSibling(selected);
                     count--;
+                }
+            }
+        }
+    } else if (id == ID_MNU_TEST_NUMBER) {
+        if (selected.IsOk()) {
+            TestItemBase* tc = (TestItemBase*)tree->GetItemData(selected);
+
+            if (tc->IsClickable()) {
+                if (tc->GetType() == "Controller") {
+                    // controller
+                    for (auto p = tree->GetFirstChild(selected); p != nullptr; p = tree->GetNextSibling(p)) {
+                        tc = (TestItemBase*)tree->GetItemData(p);
+                        uint16_t port = ((CPR_PortTestItem*)tc)->GetPort();
+                        uint16_t pixel = 0;
+                        for (auto srporm = tree->GetFirstChild(p); srporm != nullptr; srporm = tree->GetNextSibling(srporm)) {
+                            tc = (TestItemBase*)tree->GetItemData(srporm);
+                            if (tc->GetType() == "SR") {
+                                for (auto m = tree->GetFirstChild(srporm); m != nullptr; m = tree->GetNextSibling(m)) {
+                                    for (auto px = tree->GetFirstChild(m); px != nullptr; px = tree->GetNextSibling(px)) {
+                                        tc = (TestItemBase*)tree->GetItemData(px);
+                                        if (tc != nullptr) {
+                                            if (pixel < port) {
+                                                tree->CheckItem(px, wxCHK_CHECKED);
+                                                _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                                RollUpAll(tree, px);
+                                            } else {
+                                                tree->CheckItem(px, wxCHK_UNCHECKED);
+                                                _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                                RollUpAll(tree, px);
+                                            }
+                                            ++pixel;
+                                        } else {
+                                            ModelTestItem* tm = (ModelTestItem*)tree->GetItemData(m);
+                                            if (pixel < port) {
+                                                tree->CheckItem(px, wxCHK_CHECKED);
+                                                auto ep = std::min(tm->GetLastChannel(), tm->GetFirstChannel() + (port - pixel) * tm->GetChannelsPerNode() - 1);
+                                                _channelTracker.AddRange(tm->GetFirstChannel(), ep);
+                                                if (ep != tm->GetLastChannel()) {
+                                                    _channelTracker.RemoveRange(ep + 1, tm->GetLastChannel());
+                                                }
+                                                pixel += (ep - tm->GetFirstChannel() + 1) / tm->GetChannelsPerNode();
+                                                RollUpAll(tree, px);
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                for (auto px = tree->GetFirstChild(srporm); px != nullptr; px = tree->GetNextSibling(px)) {
+                                    tc = (TestItemBase*)tree->GetItemData(px);
+                                    if (tc != nullptr) {
+                                        if (pixel < port) {
+                                            tree->CheckItem(px, wxCHK_CHECKED);
+                                            _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                            RollUpAll(tree, px);
+                                        } else {
+                                            tree->CheckItem(px, wxCHK_UNCHECKED);
+                                            _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                            RollUpAll(tree, px);
+                                        }
+                                        ++pixel;
+                                    } else {
+                                        ModelTestItem* tm = (ModelTestItem*)tree->GetItemData(srporm);
+                                        if (pixel < port) {
+                                            tree->CheckItem(px, wxCHK_CHECKED);
+                                            auto ep = std::min(tm->GetLastChannel(), tm->GetFirstChannel() + (port - pixel) * tm->GetChannelsPerNode() - 1);
+                                            _channelTracker.AddRange(tm->GetFirstChannel(), ep);
+                                            if (ep != tm->GetLastChannel()) {
+                                                _channelTracker.RemoveRange(ep + 1, tm->GetLastChannel());
+                                            }
+                                            pixel += (ep - tm->GetFirstChannel() + 1) / tm->GetChannelsPerNode();
+                                            RollUpAll(tree, px);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // port / Node
+                    // move up to the port
+                    while (tc != nullptr && tc->GetType() != "Port") {
+                        selected = tree->GetItemParent(selected);
+                        tc = (TestItemBase*)tree->GetItemData(selected);
+                    }
+                    uint16_t port = ((CPR_PortTestItem*)tc)->GetPort();
+                    uint16_t pixel = 0;
+
+                    for (auto srporm = tree->GetFirstChild(selected); srporm != nullptr; srporm = tree->GetNextSibling(srporm)) {
+                        tc = (TestItemBase*)tree->GetItemData(srporm);
+                        if (tc->GetType() == "SR") {
+                            for (auto m = tree->GetFirstChild(srporm); m != nullptr; m = tree->GetNextSibling(m)) {
+                                for (auto px = tree->GetFirstChild(m); px != nullptr; px = tree->GetNextSibling(px)) {
+                                    tc = (TestItemBase*)tree->GetItemData(px);
+                                    if (tc != nullptr) {
+                                        if (pixel < port) {
+                                            tree->CheckItem(px, wxCHK_CHECKED);
+                                            _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                            RollUpAll(tree, px);
+                                        } else {
+                                            tree->CheckItem(px, wxCHK_UNCHECKED);
+                                            _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                            RollUpAll(tree, px);
+                                        }
+                                        ++pixel;
+                                    } else {
+                                        ModelTestItem* tm = (ModelTestItem*)tree->GetItemData(m);
+                                        if (pixel < port) {
+                                            tree->CheckItem(px, wxCHK_CHECKED);
+                                            auto ep = std::min(tm->GetLastChannel(), tm->GetFirstChannel() + (port - pixel) * tm->GetChannelsPerNode() - 1);
+                                            _channelTracker.AddRange(tm->GetFirstChannel(), ep);
+                                            if (ep != tm->GetLastChannel()) {
+                                                _channelTracker.RemoveRange(ep + 1, tm->GetLastChannel());
+                                            }
+                                            pixel += (ep - tm->GetFirstChannel() + 1) / tm->GetChannelsPerNode();
+                                            RollUpAll(tree, px);
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            for (auto px = tree->GetFirstChild(srporm); px != nullptr; px = tree->GetNextSibling(px)) {
+                                tc = (TestItemBase*)tree->GetItemData(px);
+                                if (tc != nullptr) {
+                                    if (pixel < port) {
+                                        tree->CheckItem(px, wxCHK_CHECKED);
+                                        _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                        RollUpAll(tree, px);
+                                    } else {
+                                        tree->CheckItem(px, wxCHK_UNCHECKED);
+                                        _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                        RollUpAll(tree, px);
+                                    }
+                                    ++pixel;
+                                } else {
+                                    ModelTestItem* tm = (ModelTestItem*)tree->GetItemData(srporm);
+                                    if (pixel < port) {
+                                        tree->CheckItem(px, wxCHK_CHECKED);
+                                        auto ep = std::min(tm->GetLastChannel(), tm->GetFirstChannel() + (port - pixel) * tm->GetChannelsPerNode() - 1);
+                                        _channelTracker.AddRange(tm->GetFirstChannel(), ep);
+                                        if (ep != tm->GetLastChannel()) {
+                                            _channelTracker.RemoveRange(ep + 1, tm->GetLastChannel());
+                                        }
+                                        pixel += (ep - tm->GetFirstChannel() + 1) / tm->GetChannelsPerNode();
+                                        RollUpAll(tree, px);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -2574,7 +2732,7 @@ void PixelTestDialog::OnTimer(long curtime)
     static int LastBgIntensity, LastFgIntensity, LastBgColor[3], LastFgColor[3], *ShimColor, ShimIntensity;
     static int LastSequenceSpeed;
     static int LastTwinkleRatio;
-    static int LastAutomatedTest;
+    //static int LastAutomatedTest;
     static long NextSequenceStart = -1;
     static TestFunctions LastFunc = PixelTestDialog::TestFunctions::OFF;
     static unsigned int interval, rgbCycle, TestSeqIdx;
@@ -2625,7 +2783,7 @@ void PixelTestDialog::OnTimer(long curtime)
         LastSequenceSpeed = -1;
         LastBgIntensity = -1;
         LastFgIntensity = -1;
-        LastAutomatedTest = -1;
+        //LastAutomatedTest = -1;
         LastTwinkleRatio = -1;
         for (i = 0; i < 3; i++) {
             LastBgColor[i] = -1;

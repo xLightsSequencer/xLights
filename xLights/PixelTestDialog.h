@@ -334,6 +334,7 @@ class PixelTestDialog: public wxDialog
         static const long ID_MNU_TEST_DESELECTALL;
         static const long ID_MNU_TEST_SELECTN;
         static const long ID_MNU_TEST_DESELECTN;
+        static const long ID_MNU_TEST_NUMBER;
 
 		//(*Identifiers(PixelTestDialog)
 		static const long ID_BUTTON_Load;
