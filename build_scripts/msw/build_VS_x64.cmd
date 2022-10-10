@@ -12,6 +12,7 @@ Echo VS Preview Detected
 GOTO Start
 
 :Community
+IF NOT EXIST "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64" GOTO Start
 set PATH=C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64;%PATH%
 Echo VS Community Detected
 :Start
