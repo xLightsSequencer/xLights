@@ -1025,18 +1025,17 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                 wxArrayString srv = GetSmartRemoteValues(smartRemoteCount);
                 grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", srv, wxArrayInt(), sr-1));
 
-                bool cop = GetSRCascadeOnPort();
-
-                sp = grid->AppendIn(p, new wxBoolProperty("Cascade On Port", "CascadeOnPort", cop));
-                sp->SetAttribute("UseCheckbox", true);
-                p->SetHelpString("When selected order is 1A 1B 1C etc. When not selected order is 1A 2A 3A 4A 1B etc.");
-
-                if (cop) {
+                if (GetNumPhysicalStrings() > 1 )
+                {
                     sp = grid->AppendIn(p, new wxUIntProperty("Max Cascade Remotes", "MaxCascadeRemotes", GetSRMaxCascade()));
                     sp->SetAttribute("Min", 1);
                     sp->SetAttribute("Max", smartRemoteCount);
                     p->SetHelpString("This is the number of smart remotes on a chain to use so if start is B and this is 2 then B and C remotes will be used.");
                     sp->SetEditor("SpinCtrl");
+
+                    sp = grid->AppendIn(p, new wxBoolProperty("Cascade On Port", "CascadeOnPort", GetSRCascadeOnPort()));
+                    sp->SetAttribute("UseCheckbox", true);
+                    p->SetHelpString("When selected order is 1A 1B 1C etc. When not selected order is 1A 2A 3A 4A 1B etc.");
                 }
             }
         }
@@ -2386,7 +2385,7 @@ wxString Model::SerialiseConnection() const
 
 wxString Model::SerialiseGroups() const
 {
-    return modelManager.SerialiseModelGroupsForModel(GetName());
+    return modelManager.SerialiseModelGroupsForModel(const_cast<Model*>(this));
 }
 
 void Model::AddModelGroups(wxXmlNode* n, int w, int h, const wxString& name, bool& merge, bool& ask)
