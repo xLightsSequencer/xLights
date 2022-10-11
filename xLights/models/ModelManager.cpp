@@ -349,16 +349,16 @@ void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std:
     }
 }
 
-std::string ModelManager::SerialiseModelGroupsForModel(const std::string& name) const
+std::string ModelManager::SerialiseModelGroupsForModel(Model* m) const
 {
     wxArrayString allGroups;
     wxArrayString onlyGroups;
     for (const auto& it : models) {
         if (it.second->GetDisplayAs() == "ModelGroup"){
-            if (dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(name)) {
+            if (dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(m->Name())) {
                 onlyGroups.Add(it.first);
                 allGroups.Add(it.first);
-            } else if (dynamic_cast<ModelGroup*>(it.second)->DirectlyContainsModel(name)) {
+            } else if (dynamic_cast<ModelGroup*>(it.second)->ContainsModel(m)) {
                 allGroups.Add(it.first);
             }
         }
@@ -382,7 +382,7 @@ std::string ModelManager::SerialiseModelGroupsForModel(const std::string& name) 
 
     for (const auto& it : models) {
         if (onlyGroups.Index(it.first) != wxNOT_FOUND) {
-            res += dynamic_cast<ModelGroup*>(it.second)->SerialiseModelGroup(name);
+            res += dynamic_cast<ModelGroup*>(it.second)->SerialiseModelGroup(m->Name());
         }
     }
 

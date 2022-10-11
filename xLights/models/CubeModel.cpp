@@ -153,7 +153,7 @@ void CubeModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Strings", "CubeStrings", GetStrings()));
+    p = grid->Append(new wxUIntProperty("# Strings", "CubeStrings", GetStrings()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");

@@ -58,7 +58,7 @@ class ModelManager : public ObjectManager
         std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol) const;
         std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol, int smartReceiver) const;
         void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
-        std::string SerialiseModelGroupsForModel(const std::string& name) const;
+        std::string SerialiseModelGroupsForModel(Model* m) const;
         void AddModelGroups(wxXmlNode* n, int w, int h, const std::string& name, bool& merge, bool& ask);
         void LoadModels(wxXmlNode *modelNode, int previewW, int previewH);
         bool LoadGroups(wxXmlNode *groupNode, int previewW, int previewH);
