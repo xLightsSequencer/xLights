@@ -1003,6 +1003,9 @@
     <ClCompile Include="automation\PythonRunner.cpp">
       <Filter>automation</Filter>
     </ClCompile>
+    <ClCompile Include="controllers\Experience.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2012,6 +2015,9 @@
     </ClInclude>
     <ClInclude Include="automation\PythonRunner.h">
       <Filter>automation</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\Experience.h">
+      <Filter>Controllers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

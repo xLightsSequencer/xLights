@@ -34,6 +34,7 @@
 #include "SanDevices.h"
 #include "Minleon.h"
 #include "WLED.h"
+#include "Experience.h"
 
 #pragma region Constructors and Destructors
 BaseController::BaseController(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("") {
@@ -85,6 +86,8 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
         bc = new FPP(ip, proxy, caps->GetModel());
     } else if (vendor == "Minleon") {
         bc = new Minleon(ip, proxy, flip);
+    } else if (vendor == "Experience Lights") {
+        bc = new Experience(ip, proxy);
     } else if (vendor == "WLED") {
         bc = new WLED(ip, proxy);
     } else {
@@ -98,7 +101,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
 #pragma endregion
 
 #pragma region Protected Functions
-std::string BaseController::GetURL(const std::string& url, const std::string& username, const std::string& password) {
+std::string BaseController::GetURL(const std::string& url, const std::string& username, const std::string& password) const{
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string res;
@@ -145,7 +148,8 @@ std::string BaseController::GetURL(const std::string& url, const std::string& us
     return res;
 }
 
-std::string BaseController::PutURL(const std::string& url, const std::string& request, const std::string& username, const std::string& password, const std::string& contentType) {
+std::string BaseController::PutURL(const std::string& url, const std::string& request, const std::string& username, const std::string& password, const std::string& contentType) const
+{
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
