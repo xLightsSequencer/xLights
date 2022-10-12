@@ -469,15 +469,15 @@ uint8_t WS2812FX::gamma8(uint8_t b)
 
 uint8_t DecodeMode(const std::string& mode)
 {
-    static wxArrayString effects;
+    static std::vector<std::string> effects;
 
     if (effects.size() == 0) {
-        wxString names = JSON_mode_names;
-        names.Replace("\n", "");
-        names.Replace("\"", "");
-        names.Replace("[", "");
-        names.Replace("]", "");
-        effects = wxSplit(names, ',');
+        std::string names(JSON_mode_names);
+        Replace(names,"\n", "");
+        Replace(names,"\"", "");
+        Replace(names,"[", "");
+        Replace(names,"]", "");
+        effects = Split(names, ',');
     }
 
     uint8_t i = 0;
