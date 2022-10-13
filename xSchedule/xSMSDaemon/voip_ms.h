@@ -47,7 +47,7 @@ class Voip_ms : public SMSService
         virtual std::string GetServiceName() const override { return "Voip.ms"; }
         virtual bool RetrieveMessages() override
         {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
             bool added = false;
 
@@ -57,14 +57,19 @@ class Voip_ms : public SMSService
             Replace(url, "{token}", GetToken());
             url += "getSMS";
 
-            std::vector<Curl::Var> vars;
-            vars.push_back(Curl::Var("type", "1"));
-            vars.push_back(Curl::Var("limit", "100"));
-            vars.push_back(Curl::Var("timezone", "0"));
+            // std::vector<Curl::Var> vars;
+            // vars.push_back(Curl::Var("type", "1"));
+            // vars.push_back(Curl::Var("limit", "100"));
+            // vars.push_back(Curl::Var("timezone", "0"));
+
+            std::vector<std::pair<std::string, std::string> > vars;
+            vars.push_back({ "type", "1" });
+            vars.push_back({ "limit", "100" });
+            vars.push_back({"timezone", "0"});
 
             //logger_base.debug("HTTPS Post %s", (const char*)url.c_str());
             logger_base.debug("Retrieving messages: %s", (const char*)url.c_str());
-            std::string res = Curl::HTTPSPost(url, vars);
+            std::string res = Curl::HTTPSGet(url, "", "", 10, vars);
             logger_base.debug("Result '%s'", (const char*)res.c_str());
 
             // construct the JSON root object

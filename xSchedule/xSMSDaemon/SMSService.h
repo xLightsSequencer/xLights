@@ -305,8 +305,15 @@ class SMSService
                                                     auto s = msg._message;
                                                     Replace(s, "!!u!!", "\\u");
                                                     Replace(s, "!!U!!", "\\u");
+                                                    std::wstring wide;
+                                                    // This code at least on windows is not deprecated but I am not including at this time as I have not had a chance to test it
+                                                    //#ifdef __WXMSW__
+                                                    //wide.resize(s.size());
+                                                    //::MultiByteToWideChar(CP_UTF8, 0, s.c_str(), s.size(), &wide[0], wide.size());
+                                                    //#else
                                                     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-                                                    std::wstring wide = converter.from_bytes(s);
+                                                    wide = converter.from_bytes(s);
+                                                    //#endif
                                                     std::wstring w;
                                                     std::string utf;
                                                     int state = 0;

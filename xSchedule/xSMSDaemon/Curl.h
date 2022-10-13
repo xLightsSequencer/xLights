@@ -384,7 +384,8 @@ public:
                 logger_curl.debug("RESPONSE END ----------");
                 return buffer;
             } else {
-                logger_curl.error("Curl post failed: %d", res);
+                const char* err = curl_easy_strerror(res);
+                logger_curl.error("Curl post failed: %d : %s", res, err);
             }
         }
 
