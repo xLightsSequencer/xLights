@@ -362,6 +362,7 @@ class SMSService
                                                 bool magic = false;
                                                 for (const auto& it : _options->GetMagicWords()) {
                                                     if (it->CheckMessage(msg))                                                         {
+                                                        logger_base.info("Magic Msg: %s", (const char*)msg.GetLog().c_str());
                                                         _rejectedMessages.push_back(msg);
                                                         magic = true;
                                                         break;
@@ -399,6 +400,8 @@ class SMSService
                                             logger_base.warn("Rejected Msg: Censored : %s", (const char*)msg.GetLog().c_str());
                                             _rejectedMessages.push_back(msg);
                                             SendRejectMessage(msg, _options->GetRejectMessage());
+                                        } else {
+                                            logger_base.warn("Rejected Msg: Blank : '%s'", (const char*)msg.GetLog().c_str());
                                         }
                                     }
                                 }
@@ -433,11 +436,12 @@ class SMSService
                 else
                 {
                     // we already have this message but dont log
+                    logger_base.debug("Rejected Msg: Already in list : %s", (const char*)msg.GetLog().c_str());
                 }
             }
             else
             {
-                // too old but dont log
+                logger_base.debug("Rejected Msg: Too old : %s. Age %d > Max Age %d", (const char*)msg.GetLog().c_str(), msg.GetAgeMins(), maxAgeMins);
             }
 
             return added;

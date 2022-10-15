@@ -83,6 +83,7 @@ const long RowHeading::ID_ROW_MNU_SELECT_MODEL_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SELECT_TIMING_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_MODEL_CONVERTTOPERMODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_ROW_CONVERTTOPERMODEL = wxNewId();
+const long RowHeading::ID_ROW_MNU_RENDERENABLE_ALL = wxNewId();
 
 // Timing Track popup menu
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
@@ -378,6 +379,19 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 } else {
                     modelMenu->Append(ID_ROW_MNU_RENDERDISABLE_MODEL, "Disable Render");
                 }
+
+                bool modelDisabled = false;
+                for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
+                    auto e = mSequenceElements->GetElement(i);
+                    if (e->IsRenderDisabled()) {
+                        modelDisabled = true;
+                        break;
+                    }
+                }
+                if (modelDisabled) {
+                    modelMenu->Append(ID_ROW_MNU_RENDERENABLE_ALL, "Enable Render On All Models");
+                } 
+
                 modelMenu->Append(ID_ROW_MNU_PLAY_MODEL, "Play");
                 modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
                 modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
@@ -843,6 +857,15 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxPostEvent(GetParent(), eventForceRefresh);
     } else if (id == ID_ROW_MNU_RENDERENABLE_MODEL) {
         element->SetRenderDisabled(false);
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    } else if (id == ID_ROW_MNU_RENDERENABLE_ALL) {
+        for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
+            auto e = mSequenceElements->GetElement(i);
+            if (e->IsRenderDisabled()) {
+                e->SetRenderDisabled(false);
+            }
+        }
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
     } else if (id == ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS) {
