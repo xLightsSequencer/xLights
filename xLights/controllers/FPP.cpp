@@ -1348,21 +1348,28 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
         if (GetURLAsJSON("/api/models", ogModelJSON)) {
             auto ogModels = ogModelJSON.AsArray();
             for (size_t i = 0; i < ogModels->Count(); i++) {
-                if (!ogModels->Item(i).HasMember("Name") || !ogModels->Item(i).HasMember("StartChannel")) {
+                if (!ogModels->Item(i).HasMember("Name") ) {
                     continue;
                 }
-                if (!ogModels->Item(i).Item(i)["Name"].IsString() || !ogModels->Item(i).Item(i)["StartChannel"].IsInt32()) {
+                if (!ogModels->Item(i)["Name"].IsString()) {
                     continue;
                 }
                 auto ogName = ogModels->Item(i)["Name"].AsString();
-                auto ogStartChan = ogModels->Item(i)["StartChannel"].AsInt32();
-                auto wasAutoCreated = false;
-                if (ogModels->Item(i).HasMember("autoCreated") && ogModels->Item(i).Item(i)["autoCreated"].IsBool()) {
-                    wasAutoCreated = ogModels->Item(i)["autoCreated"].AsBool();
+
+                if (ogModels->Item(i).HasMember("autoCreated") && ogModels->Item(i)["autoCreated"].IsBool()) {
+                    auto wasAutoCreated = ogModels->Item(i)["autoCreated"].AsBool();
+                    if (wasAutoCreated) {
+                        continue;
+                    }
                 }
-                if (ogStartChan < startChan || ogStartChan > endChannel || wasAutoCreated) {
-                    continue;
+
+                if (ogModels->Item(i).HasMember("StartChannel") && ogModels->Item(i)["StartChannel"].IsInt32()) {
+                    auto ogStartChan = ogModels->Item(i)["StartChannel"].AsInt32();
+                    if (ogStartChan < startChan || ogStartChan > endChannel ) {
+                        continue;
+                    }
                 }
+                
                 if (std::find(names.cbegin(), names.cend(), ogName) != names.end()) { // only add if name doesn't exist
                     continue;
                 }
