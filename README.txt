@@ -11,6 +11,23 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.20 October 17, 2022
+   -- enh (scott)  Add Experience Lights upload support
+   -- enh (scott)  Add VU Meter Timing Event chase to/from middle
+   -- enh (keith)  Add menu option ot re-enable rendering on all models
+   -- enh (keith)  Add the ability to light up the port number of pixels on each port on a controller in controller test
+   -- bug (dkulp)  Fix auto-upload of FPP config causing reset to player mode with FPP6
+   -- bug (dkulp)  Attempt to fix crash on macOS when double clicking on xseq files
+   -- bug (keith)  Fix several Shader parameters not resetting and Offset X not loading
+   -- bug (scott)  Fix FPP upload not remembering models from Controller
+   -- bug (scott)  Fix/workaround a VS2022 optimizer bug causing a crash
+   -- bug (scott)  Fix Bulk Set Port and increment with multistring models
+   -- bug (scott)  Fix SerialiseModelGroups with groups with other models
+   -- bug (scott)  Max Cascade should not be dependent on cascade on ports
+   -- bug (scott)  Fix Export 3D custom model trees
+   -- bug (scott)  Fix serial on espixelstick v4
+   -- bug (scott)  Mapping dialog: Remove *.* from save filter, switch format if JSON formatting is found
+   -- bug (dkulp)  Fix crash on Effect Import dialog on Linux
 2022.19 October 4, 2022
    -- enh (keith)  Add DMX512P pixel support to Advatek controllers
    -- enh (keith)  Add Advatek v8 protocol support
