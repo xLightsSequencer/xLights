@@ -182,7 +182,7 @@ private:
     std::string baseSeqName;
     FSEQFile *outputFile = nullptr;
 
-    void setupCurl();
+    void setupCurl(int timeout = 30000);
     CURL *curl = nullptr;
     std::string curlInputBuffer;
     

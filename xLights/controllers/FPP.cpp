@@ -203,7 +203,7 @@ static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userp) {
     return dt->readData(ptr, buffer_size);
 }
 
-void FPP::setupCurl() {
+void FPP::setupCurl(int timeout) {
     if (curl == nullptr) {
         curl = curl_easy_init();
     }
@@ -212,7 +212,7 @@ void FPP::setupCurl() {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curlInputBuffer);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, defaultConnectTimeout);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 30000);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout);
     curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
 }
 
@@ -1675,8 +1675,8 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
     UploadPixelOutputs(allmodels, outputManager, controller);
     UploadSerialOutputs(allmodels, outputManager, controller);
     SetInputUniversesBridge(controller);
-
-    if (majorVersion >= 4) {
+    
+    if (majorVersion >= 4 && majorVersion < 6) {
         controller->SetRuntimeProperty("FPPMode", curMode);
         if (restartNeeded || curMode != "bridge") {
             Restart("bridge");

@@ -784,7 +784,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     for (const auto& inst : instances) {
         inst->progressDialog = &prgs;
         inst->parent = this;
-        // not in discovery so we can increate the timeouts to make sure things get transferred
+        // not in discovery so we can increase the timeouts to make sure things get transferred
         inst->defaultConnectTimeout = 5000;
         inst->messages.clear();
         std::string rowStr = std::to_string(row);
