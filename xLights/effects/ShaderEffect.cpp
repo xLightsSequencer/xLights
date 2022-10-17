@@ -279,11 +279,16 @@ void ShaderEffect::SetDefaultParameters()
     }
 
     fp->BitmapButton_Shader_Speed->SetActive(false);
+    fp->BitmapButton_Shader_Offset_X->SetActive(false);
+    fp->BitmapButton_Shader_Offset_Y->SetActive(false);
+    fp->BitmapButton_Shader_Zoom->SetActive(false);
 
     SetSliderValue(fp->Slider_Shader_LeadIn, 0);
     SetSliderValue(fp->Slider_Shader_Speed, 100);
     fp->FilePickerCtrl1->SetFileName(wxFileName());
-    
+    SetSliderValue(fp->Slider_Shader_Offset_X, 0);
+    SetSliderValue(fp->Slider_Shader_Offset_Y, 0);
+    SetSliderValue(fp->Slider_Shader_Zoom, 0);
     
     if (fp->_shaderConfig != nullptr) {
         for (const auto& it : fp->_shaderConfig->GetParms()) {
@@ -347,7 +352,7 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
             it.first != "E_TEXTCTRL_Shader_Offset_X" &&
             it.first != "E_TEXTCTRL_Shader_Offset_Y" &&
             it.first != "E_TEXTCTRL_Shader_Zoom" &&
-            it.first != "E_ID_VALUECURVE_Shader_Offset_X"
+            it.first != "E_VALUECURVE_Shader_Offset_X"
            ) {
             if (StartsWith(it.first, "E_") && !Contains(it.first, "SHADERXYZZY")) {
                 std::string undecorated = AfterFirst(it.first, '_');
