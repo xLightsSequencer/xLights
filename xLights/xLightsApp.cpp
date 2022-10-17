@@ -407,11 +407,12 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
     }
     
     if (__frame) {
-        __frame->CallAfter([showDir, fileName] {
-            if (showDir != "" && showDir != __frame->showDirectory) {
+        xLightsFrame* frame = __frame;
+        frame->CallAfter([showDir, fileName, frame] {
+            if (showDir != "" && showDir != frame->showDirectory) {
                 wxString nsd = showDir;
                 if (!ObtainAccessToURL(nsd)) {
-                    wxDirDialog dlg(__frame, "Select Show Directory", nsd,  wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+                    wxDirDialog dlg(frame, "Select Show Directory", nsd,  wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
                     if (dlg.ShowModal() == wxID_OK) {
                         nsd = dlg.GetPath();
                     }
@@ -419,9 +420,9 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
                         return;
                     }
                 }
-                __frame->SetDir(nsd, false);
+                frame->SetDir(nsd, false);
             }
-            __frame->OpenSequence(fileName, nullptr);
+            frame->OpenSequence(fileName, nullptr);
         });
     } else {
         logger_base.info("       No xLightsFrame");
