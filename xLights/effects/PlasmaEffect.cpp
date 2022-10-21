@@ -42,7 +42,7 @@ xlEffectPanel *PlasmaEffect::CreatePanel(wxWindow *parent) {
 #define PLASMA_PRESET3          3
 #define PLASMA_PRESET4          4
 
-static inline int GetPlasmaColorScheme(const std::string &ColorSchemeStr) {
+int PlasmaEffect::GetPlasmaColorScheme(const std::string &ColorSchemeStr) {
     if (ColorSchemeStr == "Preset Colors 1") {
         return PLASMA_PRESET1;
     } else if (ColorSchemeStr == "Preset Colors 2") {

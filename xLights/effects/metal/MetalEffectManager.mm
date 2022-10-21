@@ -79,6 +79,8 @@ RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
         switch (eff) {
         case EffectManager::eff_BUTTERFLY:
             return new MetalButterflyEffect(eff);
+        case EffectManager::eff_PLASMA:
+            return new MetalPlasmaEffect(eff);
         case EffectManager::eff_WARP:
             return new MetalWarpEffect(eff);
         default:

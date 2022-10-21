@@ -33,3 +33,19 @@ struct WarpData {
     
     int direction;
 };
+
+struct PlasmaData
+{
+    float Style;
+    float state;
+    float Line_Density;
+    float time;
+    float sin_time_5;
+    float cos_time_3;
+    float sin_time_2;
+    uint32_t width;
+    uint32_t height;
+
+    simd::uchar4 colors[8];
+    uint16_t numColors;
+};
