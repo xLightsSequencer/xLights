@@ -1343,9 +1343,9 @@ wxPoint RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
     if (m == nullptr) {
         return wxPoint(-1, -1);
     }
-    wxString bufferstyle = SettingsMap.Get("B_CHOICE_BufferStyle", "Default");
-    wxString transform = SettingsMap.Get("B_CHOICE_BufferTransform", "None");
-    wxString camera = SettingsMap.Get("B_CHOICE_PerPreviewCamera", "2D");
+    wxString bufferstyle = SettingsMap.Get("CHOICE_BufferStyle", "Default");
+    wxString transform = SettingsMap.Get("CHOICE_BufferTransform", "None");
+    wxString camera = SettingsMap.Get("CHOICE_PerPreviewCamera", "2D");
     int w, h;
     m->GetBufferSize(bufferstyle.ToStdString(), camera.ToStdString(), transform.ToStdString(), w, h);
 
