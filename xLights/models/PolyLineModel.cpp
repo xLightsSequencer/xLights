@@ -598,7 +598,7 @@ void PolyLineModel::InitModel()
             int seg_idx = 0;
             int count = 0;
             int num = Nodes[0].get()->Coords.size();
-            float offset = 0.5f;
+            float offset = 0.0f;
             if (num > 1) {
                 offset -= 1.0f / (float)num;
             }
@@ -679,7 +679,7 @@ void PolyLineModel::InitModel()
                     for (size_t n = 0; n < polyLineSizes[m]; n++) {
                         int count = 0;
                         int num = Nodes[idx].get()->Coords.size();
-                        float offset = 0.5f;
+                        float offset = 0.0f;
                         if (num > 1) {
                             offset -= 1.0f / (float)num;
                         }
