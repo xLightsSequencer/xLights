@@ -1343,12 +1343,21 @@ wxPoint RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
     if (m == nullptr) {
         return wxPoint(-1, -1);
     }
-    wxString bufferstyle = SettingsMap.Get("CHOICE_BufferStyle", "Default");
-    wxString transform = SettingsMap.Get("CHOICE_BufferTransform", "None");
-    wxString camera = SettingsMap.Get("CHOICE_PerPreviewCamera", "2D");
+    std::string bufferstyle = SettingsMap.Get("CHOICE_BufferStyle", "Default");
+    std::string transform = SettingsMap.Get("CHOICE_BufferTransform", "None");
+    std::string camera = SettingsMap.Get("CHOICE_PerPreviewCamera", "2D");
     int w, h;
-    m->GetBufferSize(bufferstyle.ToStdString(), camera.ToStdString(), transform.ToStdString(), w, h);
-
+    
+    static const std::string PER_MODEL("Per Model");
+    static const std::string DEEP("Deep");
+    if (bufferstyle.compare(0, 9, PER_MODEL) == 0) {
+        bufferstyle = bufferstyle.substr(10);
+        if (bufferstyle.compare(bufferstyle.length() - 4, 4, DEEP) == 0) {
+            bufferstyle = bufferstyle.substr(0, bufferstyle.length() - 5);
+        }
+    }
+    
+    m->GetBufferSize(bufferstyle, camera, transform, w, h);
     float xScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
     float yScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
     return wxPoint(xScale * w, yScale * h);
