@@ -257,7 +257,7 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Twinkly: Invoke " + method + " http://" + _ip + path);
     if (body != nullptr)
-        logger_base.debug("         %s", body);
+        logger_base.debug("         '%s'", body);
 
     wxString bod;
     if (body != nullptr) {
@@ -284,7 +284,7 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
         for (int i = 0; i < errors.GetCount(); i++) {
             result.Append(errors.Item(i)).Append(", ");
         }
-        logger_base.error("Twinkly: Returned json is not valid: " + result);
+        logger_base.error("Twinkly: Returned json is not valid: " + result + " : '" + str + "'");
         return false;
     }
 
