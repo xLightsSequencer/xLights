@@ -5315,7 +5315,8 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
         // size indepentent and thus can be re-used unless the models rendeWi/Hi
         // changes (which should trigger the uiObjectsInvalid and clear
         // the cache anyway)
-        if (cache == nullptr || cache->renderWi != renderWi || cache->renderHi != renderHi) {
+        if (cache == nullptr || cache->renderWi != renderWi || cache->renderHi != renderHi
+            || cache->modelChangeCount != this->changeCount) {
             if (cache != nullptr) {
                 delete cache;
             }
@@ -5326,6 +5327,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
             cache->height = h;
             cache->renderWi = renderWi;
             cache->renderHi = renderHi;
+            cache->modelChangeCount = this->changeCount;
 
             created = true;
 
