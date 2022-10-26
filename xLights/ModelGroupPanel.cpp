@@ -716,7 +716,7 @@ void ModelGroupPanel::SaveGroupChanges()
     }
     e->AddAttribute("TagColour", ColourPickerCtrl_ModelGroupTagColour->GetColour().GetAsString());
     g->Reset();
-    layoutPanel->ModelGroupUpdated(g, false);
+    layoutPanel->ModelGroupUpdated(g, true); // if i dont set this to true then it leaves the house preview with a pointer to an invalid model which crashes
 }
 
 void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
