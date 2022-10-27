@@ -341,7 +341,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 
     for (int sp = 1; sp <= GetNumberOfSerial(); sp++) {
         wxJSONValue sport;
-        sport["long_range_port_index"] = GetNumberOfRemoteOutputs() + sp;
+        sport["long_range_port_index"] = GetNumberOfRemoteOutputs() + sp - 1;
         int portID = GetNumberOfPixelOutputs() + (GetNumberOfRemoteOutputs() * 4) + sp;
         int lrIdx = GetNumberOfRemoteOutputs() + sp - 1;
         if (cud.HasSerialPort(sp)) {
