@@ -664,6 +664,7 @@ protected:
         int height = 0;
         int renderWi = 0;
         int renderHi = 0;
+        int modelChangeCount = 0;
         bool isTransparent = false;
         float boundingBox[6];
     };

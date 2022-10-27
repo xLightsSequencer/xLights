@@ -728,6 +728,7 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
 
     if (NumPixels != pixelVector.size()) {
         bool resetPtr = pixelVector.size() == 0 || pixels == &pixelVector[0];
+        bool resetTPtr = tempbufVector.size() == 0 || tempbuf == &tempbufVector[0];
         pixelVector.resize(NumPixels);
         tempbufVector.resize(NumPixels);
         if (resetPtr) {
@@ -736,6 +737,8 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
             // to keep that pointer pointing there so the data can be retreived
             // from the GPU.
             pixels = &pixelVector[0];
+        }
+        if (resetTPtr) {
             tempbuf = &tempbufVector[0];
         }
     }
