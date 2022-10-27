@@ -78,9 +78,17 @@ protected:
     std::string ComputeStringStartNode(int x) const;
     int GetCustomNodeStringNumber(int node) const;
 
+    static std::string CornerAttrName(int idx)
+    {
+        return wxString::Format(wxT("Corner%d"), idx + 1).ToStdString();
+    }
+
     float total_length = 0.0f;
     int num_segments = 0;
     std::vector<int> polyLineSizes;
+    std::vector<float> polyLeadOffset;
+    std::vector<float> polyTrailOffset;
+    std::vector<float> polyGapSize;
     bool hasIndivSeg = false;
     bool segs_collapsed = true;
     void NormalizePointData();

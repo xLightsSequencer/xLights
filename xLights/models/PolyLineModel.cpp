@@ -45,6 +45,13 @@ PolyLineModel::~PolyLineModel()
     //dtor
 }
 
+static const char* POLY_CORNER_VALUES[] = {
+    "Leading Segment",
+    "Trailing Segment",
+    "Neither"
+};
+static wxPGChoices POLY_CORNERS(wxArrayString(3, POLY_CORNER_VALUES));
+
 std::vector<std::string> PolyLineModel::POLYLINE_BUFFER_STYLES;
 
 const std::vector<std::string> &PolyLineModel::GetBufferStyles() const {
@@ -258,6 +265,9 @@ void PolyLineModel::InitModel()
     unsigned int drop_index = 0;
     polyLineSizes.resize(num_segments);
     polyLineSegDropSizes.resize(num_segments);
+    polyLeadOffset.resize(num_segments);
+    polyTrailOffset.resize(num_segments);
+    polyGapSize.resize(num_segments);
     if (hasIndivSeg) {
         parm1 = SingleNode ? 1 : num_segments;
         for (int x = 0; x < num_segments; x++) {
@@ -281,6 +291,21 @@ void PolyLineModel::InitModel()
         parm2 = numLights;
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%ld", parm2));
+        for (int x = 0; x <= num_segments; x++) {
+            wxString val = ModelXml->GetAttribute(CornerAttrName(x));
+            if( x == 0 ) {
+                polyLeadOffset[x] = (val == "Leading Segment" ? 1.0 : val == "Trailing Segment" ? 0.0 : 0.5);
+            } else if( x == num_segments ) {
+                polyTrailOffset[x-1] = (val == "Leading Segment" ? 0.0 : val == "Trailing Segment" ? 1.0 : 0.5);
+            } else {
+                polyTrailOffset[x-1] = (val == "Leading Segment" ? 0.0 : val == "Trailing Segment" ? 1.0 : 0.5);
+                polyLeadOffset[x] = (val == "Leading Segment" ? 1.0 : val == "Trailing Segment" ? 0.0 : 0.5);
+            }
+        }
+        for (int x = 0; x < num_segments; x++) {
+            float num_gaps = polyLeadOffset[x] + polyTrailOffset[x] + float(polyLineSizes[x]) - 1.0f;
+            polyGapSize[x] = float(polyLineSizes[x]) / num_gaps;
+        }
     }
     else {
         parm1 = 1;
@@ -679,24 +704,24 @@ void PolyLineModel::InitModel()
                     for (size_t n = 0; n < polyLineSizes[m]; n++) {
                         int count = 0;
                         int num = Nodes[idx].get()->Coords.size();
-                        float offset = 0.0f;
+                        float offset = polyLeadOffset[m];
                         if (num > 1) {
                             offset -= 1.0f / (float)num;
                         }
                         size_t CoordCount = GetCoordCount(idx);
-                        int x_pos = seg_idx;
                         bool up = dropSizes[drop_index] < 0;
                         unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
                         for (size_t c = 0; c < CoordCount; c++) {
                             if (num > 1) {
-                                loc_x = x_pos + offset + ((float)count / (float)num);
+                                loc_x = (seg_idx + offset + ((float)count / (float)num)) * polyGapSize[m];
                                 count++;
                             }
                             else {
-                                loc_x = x_pos + offset;
+                                loc_x = (seg_idx + offset) * polyGapSize[m];
                             }
 
-                            glm::vec3 v = glm::vec3(*pPos[m].matrix * glm::vec4(loc_x / (float)polyLineSizes[m], 0, 0, 1));
+                            glm::vec3 v;
+                            v = glm::vec3(*pPos[m].matrix * glm::vec4(loc_x / polyLineSizes[m], 0, 0, 1));
 
                             for (size_t z = 0; z < drops_this_node; z++) {
                                 if (SingleNode) {
@@ -863,11 +888,13 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
     int coords_per_node = Nodes[0].get()->Coords.size();
     int lights_to_distribute = SingleNode ? lights : lights * coords_per_node;
     float total_length = pPos[segment].curve->GetLength();
-    float offset = total_length / (float)lights_to_distribute;
-    float current_pos = offset / 2.0f;
+    
+    float num_gaps = polyLeadOffset[segment] + polyTrailOffset[segment] + float(lights_to_distribute) - 1.0f;
+    float offset = total_length / num_gaps;
+    float current_pos = polyLeadOffset[segment] * offset;
     size_t c = 0;
     int sub_segment = 0;
-    float seg_start = current_pos;
+    float seg_start = 0;
     float segment_length = pPos[segment].curve->GetSegLength(sub_segment);
     float seg_end = seg_start + segment_length;
     for (size_t m = 0; m < lights_to_distribute; m++) {
@@ -1029,14 +1056,29 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid)
         if (segs_collapsed) {
             grid->Collapse(p);
         }
+        
+        p = grid->Append(new wxStringProperty("Corner Settings", "PolyCornerProperties", ""));
+        for (int x = 0; x < num_segments + 1; x++) {
+            std::string val = ModelXml->GetAttribute(CornerAttrName(x)).ToStdString();
+            if (val == "") {
+                val = "Neither";
+                ModelXml->DeleteAttribute(CornerAttrName(x));
+                ModelXml->AddAttribute(CornerAttrName(x), val);
+            }
+            wxString nm = wxString::Format("Corner %d", x + 1);
+            grid->AppendIn(p, new wxEnumProperty(nm, CornerAttrName(x), POLY_CORNERS, val == "Leading Segment" ? 0 : val == "Trailing Segment" ? 1 : 2 ));
+       }
     }
     else {
         for (int x = 0; x < 100; x++) {
             ModelXml->DeleteAttribute(SegAttrName(x));
+            ModelXml->DeleteAttribute(CornerAttrName(x));
         }
         // If we dont have individual segments ... then we dont have individual start channels
         ModelXml->DeleteAttribute("Advanced");
     }
+
+
 }
 
 int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
@@ -1125,6 +1167,21 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments2");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments2");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments2");
+        return 0;
+    }
+    else if (event.GetPropertyName().StartsWith("PolyCornerProperties.")) {
+        wxString str = event.GetPropertyName();
+        str = str.SubString(str.Find(".") + 1, str.length());
+        ModelXml->DeleteAttribute(str);
+        ModelXml->AddAttribute(str, POLY_CORNER_VALUES[event.GetPropertyValue().GetLong()]);
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
         return 0;
     }
     else if ("PolyLineStrings" == event.GetPropertyName()) {
@@ -1366,6 +1423,13 @@ int PolyLineModel::OnPropertyGridSelection(wxPropertyGridInterface* grid, wxProp
         int segment = wxAtoi(str) - 1;
         return segment;
     }
+    else if (event.GetPropertyName().StartsWith("PolyCornerProperties.")) {
+        wxString str = event.GetPropertyName();
+        str = str.SubString(str.Find(".") + 1, str.length());
+        str = str.SubString(6, str.length());
+        int segment = wxAtoi(str) - 1;
+        return segment;
+    }
     return -1;
 }
 
@@ -1448,6 +1512,11 @@ void PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
                 int seg_length = wxAtoi(seg);
                 ModelXml->AddAttribute(SegAttrName(x), wxString::Format("%d", seg_length));
             }
+            for (int x = 0; x < num_segments-1; x++) {
+                ModelXml->DeleteAttribute(CornerAttrName(x));
+                wxString corner = root->GetAttribute(CornerAttrName(x), "Neither");
+                SetProperty(CornerAttrName(x), corner);
+            }
         }
 
         ModelXml->DeleteAttribute("PointData");
@@ -1514,6 +1583,10 @@ void PolyLineModel::ExportXlightsModel()
     for (int x = 0; x < count; x++) {
         wxString seg = ModelXml->GetAttribute(SegAttrName(x), "");
         f.Write(wxString::Format("%s=\"%s\" ", SegAttrName(x), seg));
+    }
+    for (int x = 0; x < count-1; x++) {
+        wxString corner = ModelXml->GetAttribute(CornerAttrName(x), "Neither");
+        f.Write(wxString::Format("%s=\"%s\" ", CornerAttrName(x), corner));
     }
     f.Write(wxString::Format("PointData=\"%s\" ", point_data));
     f.Write(wxString::Format("cPointData=\"%s\" ", cpoint_data));
