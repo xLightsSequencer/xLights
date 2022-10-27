@@ -11,9 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (gil).   Fix PolyLine first pixel offset when using Individual Segments.  The first pixel
-                   was being spaced away from the start point for straight sections but not curved 
-                   sections.  Now the pixels start at the beginning of each segment.
+   -- enh (gil).   PolyLine enhancement. Add ability to define which segment owns the pixel at each endpoint.
 2022.20 October 17, 2022
    -- enh (scott)  Add Experience Lights upload support
    -- enh (scott)  Add VU Meter Timing Event chase to/from middle
