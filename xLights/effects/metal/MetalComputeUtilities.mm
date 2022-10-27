@@ -5,6 +5,8 @@
 
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
 
+#include "MetalEffectDataTypes.h"
+
 MetalComputeUtilities MetalComputeUtilities::INSTANCE;
 
 
@@ -39,6 +41,7 @@ MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
         }
     }
 }
+
 id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer() {
     if (commandBuffer == nil) {
         commandBuffer = [[MetalComputeUtilities::INSTANCE.commandQueue commandBuffer] retain];
@@ -244,6 +247,112 @@ bool MetalRenderBufferComputeData::blur(int radius) {
     }
 }
 
+bool MetalRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings &settings) {
+    if ((renderBuffer->BufferWi * renderBuffer->BufferHt) < 256) {
+        // Smallish buffer, overhead of sending to GPU will be more than the gain
+        return false;
+    }
+    
+    RotoZoomData data;
+    data.width = renderBuffer->BufferWi;
+    data.height = renderBuffer->BufferHt;
+    
+    data.offset = settings.offset;
+    data.xrotation = settings.xrotation;
+    data.xpivot = settings.xpivot;
+    data.yrotation = settings.yrotation;
+    data.ypivot = settings.ypivot;
+    data.zrotation = settings.zrotation;
+    data.zoom = settings.zoom;
+    data.zoomquality = settings.zoomquality;
+    data.pivotpointx = settings.pivotpointx;
+    data.pivotpointy = settings.pivotpointy;
+    
+    id<MTLBuffer> bufferResult = getPixelBuffer();
+    if (bufferResult == nil) {
+        return false;
+    }
+    id<MTLBuffer> bufferCopy = getPixelBufferCopy();
+    if (bufferCopy == nil) {
+        return false;
+    }
+    bool dbg = false;
+    if (commandBuffer != nil) {
+        dbg = true;
+        [commandBuffer pushDebugGroup:@"RotoZoom"];
+    }
+    for (auto &c : settings.rotationorder) {
+        switch (c) {
+            case 'X':
+                if (data.xrotation != 0 && data.xrotation != 360) {
+                    callRotoZoomFunction(MetalComputeUtilities::INSTANCE.xrotateFunction, data);
+                }
+                break;
+            case 'Y':
+                if (data.yrotation != 0 && data.yrotation != 360) {
+                    callRotoZoomFunction(MetalComputeUtilities::INSTANCE.yrotateFunction, data);
+                }
+                break;
+            case 'Z':
+                if (data.zrotation != 0.0 || data.zoom != 1.0) {
+                    callRotoZoomFunction(MetalComputeUtilities::INSTANCE.zrotateFunction, data);
+                }
+                break;
+        }
+    }
+    if (dbg) {
+        [commandBuffer popDebugGroup];
+    }
+    return true;
+}
+
+bool MetalRenderBufferComputeData::callRotoZoomFunction(id<MTLComputePipelineState> &function, RotoZoomData &data) {
+    id<MTLBuffer> bufferResult = getPixelBuffer();
+    id<MTLCommandBuffer> commandBuffer = getCommandBuffer();
+    id<MTLBuffer> bufferCopy = getPixelBufferCopy();
+    id<MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
+    [blitCommandEncoder setLabel:@"CopyDataToCopyBuffer"];
+    [blitCommandEncoder copyFromBuffer:bufferResult
+                          sourceOffset:0
+                              toBuffer:bufferCopy
+                     destinationOffset:0
+                                  size:(data.width*data.height*4)];
+    [blitCommandEncoder endEncoding];
+    
+    id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+    [computeEncoder setLabel:MetalComputeUtilities::INSTANCE.rotateBlankFunction.label];
+    [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.rotateBlankFunction];
+    
+    NSInteger dataSize = sizeof(data);
+    [computeEncoder setBytes:&data length:dataSize atIndex:0];
+    [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
+    int w = MetalComputeUtilities::INSTANCE.rotateBlankFunction.threadExecutionWidth;
+    int h = MetalComputeUtilities::INSTANCE.rotateBlankFunction.maxTotalThreadsPerThreadgroup / w;
+    MTLSize threadsPerThreadgroup = MTLSizeMake(w, h, 1);
+    MTLSize threadsPerGrid = MTLSizeMake(data.width, data.height, 1);
+    [computeEncoder dispatchThreads:threadsPerGrid
+              threadsPerThreadgroup:threadsPerThreadgroup];
+    [computeEncoder endEncoding];
+    
+    computeEncoder = [commandBuffer computeCommandEncoder];
+    [computeEncoder setLabel:function.label];
+    [computeEncoder setComputePipelineState:function];
+    
+    dataSize = sizeof(data);
+    [computeEncoder setBytes:&data length:dataSize atIndex:0];
+    [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
+    [computeEncoder setBuffer:bufferCopy offset:0 atIndex:2];
+    w = function.threadExecutionWidth;
+    h = function.maxTotalThreadsPerThreadgroup / w;
+    threadsPerThreadgroup = MTLSizeMake(w, h, 1);
+    threadsPerGrid = MTLSizeMake(data.width, data.height, 1);
+    [computeEncoder dispatchThreads:threadsPerGrid
+              threadsPerThreadgroup:threadsPerThreadgroup];
+    
+    [computeEncoder endEncoding];
+    return true;
+}
+
 MetalRenderBufferComputeData *MetalRenderBufferComputeData::getMetalRenderBufferComputeData(RenderBuffer *b) {
     return static_cast<MetalRenderBufferComputeData*>(b->gpuRenderData);
 }
@@ -288,12 +397,22 @@ MetalComputeUtilities::MetalComputeUtilities() {
     }
     [commandQueue setLabel:@"MetalEffectCommandQueue"];
     enabled = true;
+    
+    xrotateFunction = FindComputeFunction("RotoZoomRotateX");
+    yrotateFunction = FindComputeFunction("RotoZoomRotateY");
+    zrotateFunction = FindComputeFunction("RotoZoomRotateZ");
+    rotateBlankFunction = FindComputeFunction("RotoZoomBlank");
 }
 MetalComputeUtilities::~MetalComputeUtilities() {
     @autoreleasepool {
         commandQueue = nil;
         library = nil;
         device = nil;
+        
+        xrotateFunction = nil;
+        yrotateFunction = nil;
+        zrotateFunction = nil;
+        rotateBlankFunction = nil;
     }
 }
 

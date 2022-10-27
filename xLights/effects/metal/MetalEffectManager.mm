@@ -67,6 +67,14 @@ public:
         }
         return false;
     }
+    virtual bool doRotoZoom(RenderBuffer *c, RotoZoomSettings &settings) override {
+        if (c->gpuRenderData) {
+            MetalRenderBufferComputeData *d = static_cast<MetalRenderBufferComputeData*>(c->gpuRenderData);
+            return d->rotoZoom(settings);
+        }
+        return false;
+    }
+
 
     bool isEnabled = true;
 };

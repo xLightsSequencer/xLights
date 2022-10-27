@@ -3,6 +3,9 @@
 #include <Metal/Metal.h>
 #include <MetalKit/MetalKit.h>
 
+#include "GPURenderUtils.h"
+#include "MetalEffectDataTypes.h"
+
 class PixelBufferClass;
 class RenderBuffer;
 
@@ -41,7 +44,11 @@ public:
     
     void setDataLocation(CurrentDataLocation dl) { currentDataLocation = dl; }
     bool blur(int radius);
+    bool rotoZoom(GPURenderUtils::RotoZoomSettings &settings);
+
 private:
+    bool callRotoZoomFunction(id<MTLComputePipelineState> &f, RotoZoomData &data);
+    
     RenderBuffer *renderBuffer;
     id<MTLCommandBuffer> commandBuffer;
     id<MTLBuffer> pixelBuffer;
@@ -71,5 +78,10 @@ public:
     id<MTLCommandQueue> commandQueue;
 
 
+    id<MTLComputePipelineState> xrotateFunction;
+    id<MTLComputePipelineState> yrotateFunction;
+    id<MTLComputePipelineState> zrotateFunction;
+    id<MTLComputePipelineState> rotateBlankFunction;
+    
     static MetalComputeUtilities INSTANCE;
 };

@@ -49,3 +49,20 @@ struct PlasmaData
     simd::uchar4 colors[8];
     uint16_t numColors;
 };
+
+struct RotoZoomData {
+    uint32_t width;
+    uint32_t height;
+    
+    float offset;
+    float xrotation;
+    int32_t xpivot;
+    float yrotation;
+    int32_t ypivot;
+    
+    float zrotation;
+    float zoom;
+    float zoomquality;
+    int32_t pivotpointx;
+    int32_t pivotpointy;
+};

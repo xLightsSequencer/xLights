@@ -17,6 +17,7 @@
 #include "RenderBuffer.h"
 #include "ValueCurve.h"
 #include "RenderUtils.h"
+#include "GPURenderUtils.h"
 #include "Color.h"
 
  /**
@@ -229,9 +230,10 @@ private:
     void reset(int layers, int timing, bool isNode = false);
 	void Blur(LayerInfo* layer, float offset);
     void RotoZoom(LayerInfo* layer, float offset);
-    void RotateX(LayerInfo* layer, float offset);
-    void RotateY(LayerInfo* layer, float offset);
-    void RotateZAndZoom(LayerInfo* layer, float offset);
+    void RotateX(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings);
+    void RotateY(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings);
+    void RotateZAndZoom(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings);
+    
     void GetMixedColor(int node, const std::vector<bool> & validLayers, int EffectPeriod, int saveLayer);
 
     std::string modelName;
