@@ -623,7 +623,7 @@ void PolyLineModel::InitModel()
             int seg_idx = 0;
             int count = 0;
             int num = Nodes[0].get()->Coords.size();
-            float offset = 0.0f;
+            float offset = polyLeadOffset[segment];
             if (num > 1) {
                 offset -= 1.0f / (float)num;
             }
@@ -632,14 +632,14 @@ void PolyLineModel::InitModel()
                 if (segment < polyLineSizes.size()) // this can be greater if coord count > segments * segment sizes
                 {
                     if (num > 1) {
-                        loc_x = seg_idx + offset + ((float)count / (float)num);
+                        loc_x = (seg_idx + offset + ((float)count / (float)num)) * polyGapSize[segment];
                         count++;
                     }
                     else {
-                        loc_x = seg_idx + offset;
+                        loc_x = (seg_idx + offset) * polyGapSize[segment];
                     }
 
-                    glm::vec3 v = glm::vec3(*pPos[segment].matrix * glm::vec4(loc_x / (float)polyLineSizes[segment], 0, 0, 1));
+                    glm::vec3 v = glm::vec3(*pPos[segment].matrix * glm::vec4(loc_x / polyLineSizes[segment], 0, 0, 1));
 
                     bool up = dropSizes[drop_index] < 0;
                     unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
