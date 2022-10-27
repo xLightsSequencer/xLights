@@ -175,9 +175,6 @@ void RenderCache::RemoveItem(RenderCacheItem *item) {
         if (item == *it) {
             logger_rcache.info("RenderCache item removed " + (*it)->Description());
             l.erase(it);
-            if (l.empty()) {
-                _cache.erase(item->EffectName());
-            }
             break;
         }
     }
@@ -294,6 +291,11 @@ void RenderCache::Close()
     Purge(nullptr, false);
     _cacheFolder = "";
 
+    
+    for (auto &a : _cache) {
+        delete a.second;
+        a.second = nullptr;
+    }
     logger_base.debug("    Closed.");
 }
 
@@ -399,15 +401,19 @@ void RenderCache::Purge(SequenceElements* sequenceElements, bool dodelete)
     }
 
     std::unique_lock<std::recursive_mutex> lock(_cacheLock);
-    for (auto &l : _cache) {
-        std::unique_lock<std::shared_mutex> ulock(l.second->lock);
-        while (l.second->cache.size() > 0) {
+    for (auto &it : _cache) {
+        auto &l = it.second;
+        std::unique_lock<std::shared_mutex> ulock(l->lock);
+        while (l->cache.size() > 0) {
+            auto frnt = l->cache.front();
             if (dodelete) {
-                l.second->cache.front()->Delete();
+                ulock.unlock();
+                frnt->Delete();
+                ulock.lock();
             } else {
-                l.second->cache.front()->Save();
-                delete l.second->cache.front();
-                l.second->cache.pop_front();
+                frnt->Save();
+                delete frnt;
+                l->cache.pop_front();
             }
         }
     }
