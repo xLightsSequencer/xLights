@@ -1025,6 +1025,11 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier)
             }
         }
     }
+    return false;
+#elif defined(__WXOSX__)
+    // max of 24G of swap used
+    constexpr size_t MAX = 24l * 1024 * 1024 * 1024;
+    return wxDir::GetTotalSize("/System/Volumes/VM") > MAX;
 #else
     // test memory availability by allocating 200MB ... if it fails then treat this as a low memory problem
     //void* test = malloc(200 * 1024 * 1024);
@@ -1033,8 +1038,8 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier)
     //    return true;
     //}
     //free(test);
-#endif
     return false;
+#endif
 }
 
 std::list<std::string> GetLocalIPs()
