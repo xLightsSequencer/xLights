@@ -26,6 +26,7 @@
 #include "PixelBuffer.h"
 #include "Parallel.h"
 #include "ExternalHooks.h"
+#include "GPURenderUtils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -2119,6 +2120,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                             if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap)) {
                                 if (!effectObj->GetFrame(*rb, _renderCache)) {
                                     reff->Render(effectObj, SettingsMap, *rb);
+                                    GPURenderUtils::waitForRenderCompletion(rb);
                                     effectObj->AddFrame(*rb, _renderCache);
                                 }
                             }
