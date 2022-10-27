@@ -15,6 +15,8 @@
 #include <map>
 #include <vector>
 #include <mutex>
+#include <shared_mutex>
+
 
 class Effect;
 class RenderCache;
