@@ -227,8 +227,6 @@ void PolyLineModel::SetSegsCollapsed(bool collapsed)
 
 void PolyLineModel::InitModel()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
     wxString dropPattern = GetModelXml()->GetAttribute("DropPattern", "1");
     wxArrayString pat = wxSplit(dropPattern, ',');
@@ -241,8 +239,11 @@ void PolyLineModel::InitModel()
     std::vector<int> dropSizes;
     unsigned int maxH = 0;
     for (int x = 0; x < pat.size(); x++) {
-        dropSizes.push_back(wxAtoi(pat[x]));
-        maxH = std::max(maxH, (unsigned int)std::abs(dropSizes[x]));
+        int pat_size = wxAtoi(pat[x]);
+        if( pat_size> 0 ) {
+            dropSizes.push_back(pat_size);
+            maxH = std::max(maxH, (unsigned int)std::abs(dropSizes[x]));
+        }
     }
     if (dropSizes.size() == 0) {
         dropSizes.push_back(5);

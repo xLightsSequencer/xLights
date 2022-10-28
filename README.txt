@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix bug where program appeared to hang if dropsize is set to 0 for PolyLine
 2022.21 October 28, 2022
    -- enh (dkulp)  Much faster algorithm for finding frames in the RenderCache, should speed up initial rendering after load
    -- enh (dkulp)  macOS: RenderCache uses mmap to reduce actual memory usage and allow the OS cache to handle loading/discarding
