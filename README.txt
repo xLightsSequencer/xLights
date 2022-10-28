@@ -11,8 +11,28 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.21 October 28, 2022
+   -- enh (dkulp)  Much faster algorithm for finding frames in the RenderCache, should speed up initial rendering after load
+   -- enh (dkulp)  macOS: RenderCache uses mmap to reduce actual memory usage and allow the OS cache to handle loading/discarding
+   -- enh (dkulp)  macOS: Add RotoZoom to Metal based GPU rendering engine
+   -- enh (dkulp)  macOS: Add Plasma to Metal based GPU rendering engine
+   -- enh (dkulp)  Several performance improvements for the Parallel job pool
+   -- enh (scott)  Several updates for Experience Lights controllers
    -- enh (gil)    PolyLine enhancement. Add ability to define which segment owns the pixel at each endpoint.
-   -- bug (gil).   PolyLine: Fix #Lights/Node not working when > 1.  Still fails when Icicle drops are used.  Working on it.
+   -- enh (dkulp)  Display submodel effect rendering status as tool tips in Rendering progress dialog
+   -- bug (dkulp)  Fix Shift/Two Finger panning on TouchPad when not viewing from front
+   -- bug (gil)    PolyLine: Fix #Lights/Node not working when > 1.  Still fails when Icicle drops are used.  Working on it.
+   -- bug (dkulp)  Fix problems with GPU rendered effects saving as "black" into RenderCache
+   -- bug (dkulp)  Fix crash when creating new sequence if "More Options" button is used aand certain other values are adjusted
+   -- bug (dkulp)  Fix crash in "Log Rendering Status" if models have finished
+   -- bug (keith)  Fix crash after removing a submodel from a group
+   -- bug (dkulp)  Fix display of model groups when some models are added/removed
+   -- bug (keith)  Context menu of SubBuffer has options that don't make sense in that context and can cause a crash
+   -- bug (keith)  RGBW doesn't always zero out the unset channels
+   -- bug (dkulp)  Fix crash with certain effects if they occur after a GPU rendered effect
+   -- bug (dkulp)  Fix fire effect on "Per Model Per Preview" render buffers
+   -- bug (dkulp)  Fix fire effect on submodels with non-default render style
+   -- bug (dkulp)  Honor the "max group size" in more cases to avoid massive render buffers
 2022.20 October 17, 2022
    -- enh (scott)  Add Experience Lights upload support
    -- enh (scott)  Add VU Meter Timing Event chase to/from middle
