@@ -11,7 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (gil).   PolyLine enhancement. Add ability to define which segment owns the pixel at each endpoint.
+   -- enh (gil)    PolyLine enhancement. Add ability to define which segment owns the pixel at each endpoint.
+   -- bug (gil).   PolyLine: Fix #Lights/Node not working when > 1.  Still fails when Icicle drops are used.  Working on it.
 2022.20 October 17, 2022
    -- enh (scott)  Add Experience Lights upload support
    -- enh (scott)  Add VU Meter Timing Event chase to/from middle

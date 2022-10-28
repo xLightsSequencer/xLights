@@ -328,7 +328,13 @@ void PolyLineModel::InitModel()
     Nodes.clear();
     SetNodeCount(1, numLights, rgbOrder);
 
-    //if (num_points == 1) return;  // TODO:  Should we even allow this creation
+    if (!SingleNode) {
+        if (parm3 > 1) {
+            for (size_t x = 0; x < Nodes.size(); x++) {
+                Nodes[x]->Coords.resize(parm3);
+            }
+        }
+    }
 
     // process our own start channels
     drop_index = 0;
@@ -524,7 +530,7 @@ void PolyLineModel::InitModel()
     int chan = 0;
     int LastStringNum = -1;
     int ChanIncr = GetNodeChannelCount(StringType);
-    int lights = numLights;
+    int lights = numLights * (SingleNode ? 1 : parm3);
     int y = 0;
     drop_index = 0;
     int width = 0;
@@ -597,9 +603,11 @@ void PolyLineModel::InitModel()
         if (!SingleNode) {
             chan += ChanIncr;
         }
-        y++;
         lights--;
         curCoord++;
+        if( SingleNode || curCoord == parm3 ) {
+            y++;
+        }
     }
 
     SetBufferSize(maxH, SingleNode ? 1 : width + 1);
@@ -862,7 +870,9 @@ void PolyLineModel::InitModel()
             polyLineSegDropSizes[segment] += drops_this_node;
             drop_index %= dropSizes.size();
             current_pos += offset;
-            xx++;
+            if( c == 0 ) {
+                xx++;
+            }
         }
         polyLineSizes[segment] = lights_to_distribute - last_seg_light_num;
     }
