@@ -68,9 +68,32 @@ protected:
         return wxString::Format(wxT("Seg%d"), idx + 1).ToStdString();
     }
     void SetSegsCollapsed(bool collapsed);
-    virtual void DistributeLightsAcrossCurveSegment(int lights, int segment, size_t& idx, std::vector<xlPolyPoint>& pPos,
-        std::vector<int>& dropSizes, unsigned int& drop_index, float& mheight, int& xx, int maxH);
+    
+    void DistributeLightsEvenly( const std::vector<xlPolyPoint>& pPos,
+                                 const std::vector<int>&         dropSizes,
+                                 const float&                    mheight,
+                                 const int                       maxH );
 
+    void DistributeLightsAcrossIndivSegments( const std::vector<xlPolyPoint>& pPos,
+                                              const std::vector<int>&         dropSizes,
+                                              const float&                    mheight,
+                                              const int                       maxH );
+
+    void DistributeSingleNodeLightsAcrossIndivSegments( const std::vector<xlPolyPoint>& pPos,
+                                                        const std::vector<int>&         dropSizes,
+                                                        const float&                    mheight,
+                                                        const int                       maxH );
+
+    void DistributeLightsAcrossCurveSegment( const int                       lights,
+                                             const int                       segment,
+                                                   size_t&                   idx,
+                                             const std::vector<xlPolyPoint>& pPos,
+                                             const std::vector<int>&         dropSizes,
+                                                   unsigned int&             drop_index,
+                                             const float&                    mheight,
+                                                   int&                      xx,
+                                             const int                       maxH);
+    
     static std::string StartNodeAttrName(int idx)
     {
         return wxString::Format(wxT("PolyNode%i"), idx + 1).ToStdString(); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans

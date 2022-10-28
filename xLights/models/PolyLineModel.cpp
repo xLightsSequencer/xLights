@@ -599,6 +599,8 @@ void PolyLineModel::InitModel()
                 Nodes[curNode]->Coords[curCoord].screenY = maxH - y - 1;
             }
         }
+        //logger_base.debug("PolyBuffer: curNode: %d  curCoord: %d  X: %d  Y: %d Coord Size: %d", curNode, curCoord, Nodes[curNode]->Coords[curCoord].bufX, Nodes[curNode]->Coords[curCoord].bufY, Nodes[curNode]->Coords.size());
+
         Nodes[curNode]->Coords[curCoord].screenX = width;
         if (!SingleNode) {
             chan += ChanIncr;
@@ -622,259 +624,17 @@ void PolyLineModel::InitModel()
 
     // place the nodes/coords along each line segment
     drop_index = 0;
-    idx = 0;
-    float loc_x;
     if (hasIndivSeg) {
         // distribute the lights as defined by the polysize string
         if (SingleNode) {
-            int segment = 0;
-            int seg_idx = 0;
-            int count = 0;
-            int num = Nodes[0].get()->Coords.size();
-            float offset = polyLeadOffset[segment];
-            if (num > 1) {
-                offset -= 1.0f / (float)num;
-            }
-            size_t CoordCount = GetCoordCount(0);
-            for (size_t c = 0; c < CoordCount;) {
-                if (segment < polyLineSizes.size()) // this can be greater if coord count > segments * segment sizes
-                {
-                    if (num > 1) {
-                        loc_x = (seg_idx + offset + ((float)count / (float)num)) * polyGapSize[segment];
-                        count++;
-                    }
-                    else {
-                        loc_x = (seg_idx + offset) * polyGapSize[segment];
-                    }
-
-                    glm::vec3 v = glm::vec3(*pPos[segment].matrix * glm::vec4(loc_x / polyLineSizes[segment], 0, 0, 1));
-
-                    bool up = dropSizes[drop_index] < 0;
-                    unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
-                    for (size_t z = 0; z < drops_this_node && c < CoordCount; z++) {
-                        Nodes[idx]->Coords[c].screenX = v.x;
-                        if (up) {
-                            Nodes[idx]->Coords[c].screenY = v.y + z * mheight;
-                        }
-                        else {
-                            Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
-                        }
-                        Nodes[idx]->Coords[c].screenZ = v.z;
-                        c++;
-                        if (!SingleNode) {
-                            idx++;
-                        }
-                    }
-                    drop_index %= dropSizes.size();
-                    seg_idx++;
-                    if (seg_idx >= polyLineSizes[segment]) {
-                        segment++;
-                        seg_idx = 0;
-                        count = 0;
-                        for (int x = segment; x < polyLineSizes.size(); ++x) {
-                            if (polyLineSizes[x] == 0) {
-                                segment++;
-                            }
-                            else {
-                                break;
-                            }
-                        }
-                    }
-                    if (pPos[segment].has_curve) {
-                        int xx = 0;
-                        DistributeLightsAcrossCurveSegment(polyLineSizes[segment], segment, c, pPos, dropSizes, drop_index, mheight, xx, maxH);
-                        c += std::abs(dropSizes[drop_index]);
-                        segment++;
-                        for (int x = segment; x < polyLineSizes.size(); ++x) {
-                            if (polyLineSizes[x] == 0) {
-                                segment++;
-                            }
-                            else {
-                                break;
-                            }
-                        }
-                    }
-                }
-                else {
-                    logger_base.warn("Polyine segents * segment sizes < number of coordinates.");
-                    break;
-                }
-            }
-        }
-        else {
-            int xx = 0;
-            for (size_t m = 0; m < num_segments; m++) {
-                if (pPos[m].has_curve) {
-                    DistributeLightsAcrossCurveSegment(polyLineSizes[m], m, idx, pPos, dropSizes, drop_index, mheight, xx, maxH);
-                }
-                else {
-                    int seg_idx = 0;
-                    for (size_t n = 0; n < polyLineSizes[m]; n++) {
-                        int count = 0;
-                        int num = Nodes[idx].get()->Coords.size();
-                        float offset = polyLeadOffset[m];
-                        if (num > 1) {
-                            offset -= 1.0f / (float)num;
-                        }
-                        size_t CoordCount = GetCoordCount(idx);
-                        bool up = dropSizes[drop_index] < 0;
-                        unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
-                        for (size_t c = 0; c < CoordCount; c++) {
-                            if (num > 1) {
-                                loc_x = (seg_idx + offset + ((float)count / (float)num)) * polyGapSize[m];
-                                count++;
-                            }
-                            else {
-                                loc_x = (seg_idx + offset) * polyGapSize[m];
-                            }
-
-                            glm::vec3 v;
-                            v = glm::vec3(*pPos[m].matrix * glm::vec4(loc_x / polyLineSizes[m], 0, 0, 1));
-
-                            for (size_t z = 0; z < drops_this_node; z++) {
-                                if (SingleNode) {
-                                    Nodes[idx]->Coords[c].screenX = v.x;
-                                    if (up) {
-                                        Nodes[idx]->Coords[c].screenY = v.y + z * mheight;
-                                    }
-                                    else {
-                                        Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
-                                    }
-                                    Nodes[idx]->Coords[c].screenZ = v.z;
-                                }
-                                else {
-                                    auto node = FindNodeAtXY(xx, maxH - z - 1);
-                                    if (node == -1) {
-                                        logger_base.error("Polyline buffer x,y %d, %d not found.", xx, maxH - z - 1);
-                                    }
-                                    else {
-                                        Nodes[node]->Coords[c].screenX = v.x;
-                                        if (up) {
-                                            Nodes[node]->Coords[c].screenY = v.y + z * mheight;
-                                        }
-                                        else {
-                                            Nodes[node]->Coords[c].screenY = v.y - z * mheight;
-                                        }
-                                        Nodes[node]->Coords[c].screenZ = v.z;
-                                    }
-                                }
-                                if (!SingleNode) {
-                                    idx++;
-                                }
-                            }
-                            drop_index %= dropSizes.size();
-                        }
-                        seg_idx++;
-                        xx++;
-                    }
-                }
-            }
+            DistributeSingleNodeLightsAcrossIndivSegments( pPos, dropSizes, mheight, maxH );
+        } else {
+            DistributeLightsAcrossIndivSegments( pPos, dropSizes, mheight, maxH );
         }
     }
     else {
         // distribute the lights evenly across the line segments
-        int coords_per_node = Nodes[0].get()->Coords.size();
-        int lights_to_distribute = SingleNode ? numDropPoints : numDropPoints * coords_per_node;
-        float offset = total_length / (float)lights_to_distribute;
-        float current_pos = offset / 2.0f;
-        idx = 0;
-        size_t c = 0;
-        int segment = 0;
-        int sub_segment = 0;
-        int last_seg_light_num = 0;
-        float seg_start = current_pos;
-        float segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
-        float seg_end = seg_start + segment_length;
-        int xx = 0;
-        for (int x = 0; x < polyLineSizes.size(); x++) {
-            polyLineSizes[x] = 0;
-            polyLineSegDropSizes[x] = 0;
-        }
-        for (size_t m = 0; m < lights_to_distribute; m++) {
-            while (current_pos > seg_end) {
-                sub_segment++;
-                if (pPos[segment].has_curve && (sub_segment < pPos[segment].curve->GetNumSegments())) {
-                    seg_start = seg_end;
-                    segment_length = pPos[segment].curve->GetSegLength(sub_segment);
-                    seg_end = seg_start + segment_length;
-                }
-                else {
-                    if (segment == polyLineSizes.size() - 1) {
-                        // cant increase segment ... so just fudge the segment end
-                        seg_end += 0.0001f;
-                    }
-                    else {
-                        sub_segment = 0;
-                        polyLineSizes[segment] = m - last_seg_light_num;
-                        last_seg_light_num = m;
-                        segment++;
-                        seg_start = seg_end;
-                        segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
-                        seg_end = seg_start + segment_length;
-                    }
-                }
-            }
-            glm::vec3 v;
-            float pos = (current_pos - seg_start) / segment_length;
-            if (pPos[segment].has_curve) {
-                v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4(pos, 0, 0, 1));
-            }
-            else {
-                v = glm::vec3(*pPos[segment].matrix * glm::vec4(pos, 0, 0, 1));
-            }
-            bool up = dropSizes[drop_index] < 0;
-            unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
-            for (size_t z = 0; z < drops_this_node; z++) {
-                if (SingleNode) {
-                    Nodes[idx]->Coords[c].screenX = v.x;
-                    if (up) {
-                        Nodes[idx]->Coords[c].screenY = v.y + z * mheight;
-                    }
-                    else {
-                        Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
-                    }
-                    Nodes[idx]->Coords[c].screenZ = v.z;
-                }
-                else {
-                    int node = -1;
-                    if (up) {
-                        node = FindNodeAtXY(xx, z);
-                    }
-                    else {
-                        node = FindNodeAtXY(xx, maxH - z - 1);
-                    }
-                    if (node == -1) {
-                        logger_base.error("Polyline buffer x,y %d, %d not found.", xx, maxH - z - 1);
-                    }
-                    else {
-                        Nodes[node]->Coords[c].screenX = v.x;
-                        if (up) {
-                            Nodes[node]->Coords[c].screenY = v.y + z * mheight;
-                        }
-                        else {
-                            Nodes[node]->Coords[c].screenY = v.y - z * mheight;
-                        }
-                        Nodes[node]->Coords[c].screenZ = v.z;
-                    }
-                }
-                if (c < coords_per_node - 1) {
-                    c++;
-                }
-                else {
-                    c = 0;
-                    if (!SingleNode) {
-                        idx++;
-                    }
-                }
-            }
-            polyLineSegDropSizes[segment] += drops_this_node;
-            drop_index %= dropSizes.size();
-            current_pos += offset;
-            if( c == 0 ) {
-                xx++;
-            }
-        }
-        polyLineSizes[segment] = lights_to_distribute - last_seg_light_num;
+        DistributeLightsEvenly( pPos, dropSizes, mheight, maxH );
     }
 
     // cleanup curves and matrices
@@ -889,8 +649,289 @@ void PolyLineModel::InitModel()
     }
 }
 
-void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, size_t& idx, std::vector<xlPolyPoint>& pPos,
-    std::vector<int>& dropSizes, unsigned int& drop_index, float& mheight, int& xx, int maxH)
+void PolyLineModel::DistributeLightsEvenly( const std::vector<xlPolyPoint>& pPos,
+                                            const std::vector<int>&         dropSizes,
+                                            const float&                    mheight,
+                                            const int                       maxH )
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    unsigned int drop_index = 0;
+    size_t idx = 0;
+    int coords_per_node = Nodes[0].get()->Coords.size();
+    int lights_to_distribute = SingleNode ? numDropPoints : numDropPoints * coords_per_node;
+    float offset = total_length / (float)lights_to_distribute;
+    float current_pos = offset / 2.0f;
+    idx = 0;
+    size_t c = 0;
+    int segment = 0;
+    int sub_segment = 0;
+    int last_seg_light_num = 0;
+    float seg_start = current_pos;
+    float segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
+    float seg_end = seg_start + segment_length;
+    int xx = 0;
+    for (int x = 0; x < polyLineSizes.size(); x++) {
+        polyLineSizes[x] = 0;
+        polyLineSegDropSizes[x] = 0;
+    }
+    for (size_t m = 0; m < lights_to_distribute; m++) {
+        while (current_pos > seg_end) {
+            sub_segment++;
+            if (pPos[segment].has_curve && (sub_segment < pPos[segment].curve->GetNumSegments())) {
+                seg_start = seg_end;
+                segment_length = pPos[segment].curve->GetSegLength(sub_segment);
+                seg_end = seg_start + segment_length;
+            }
+            else {
+                if (segment == polyLineSizes.size() - 1) {
+                    // cant increase segment ... so just fudge the segment end
+                    seg_end += 0.0001f;
+                }
+                else {
+                    sub_segment = 0;
+                    polyLineSizes[segment] = m - last_seg_light_num;
+                    last_seg_light_num = m;
+                    segment++;
+                    seg_start = seg_end;
+                    segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
+                    seg_end = seg_start + segment_length;
+                }
+            }
+        }
+        glm::vec3 v;
+        float pos = (current_pos - seg_start) / segment_length;
+        if (pPos[segment].has_curve) {
+            v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4(pos, 0, 0, 1));
+        }
+        else {
+            v = glm::vec3(*pPos[segment].matrix * glm::vec4(pos, 0, 0, 1));
+        }
+        bool up = dropSizes[drop_index] < 0;
+        unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
+        for (size_t z = 0; z < drops_this_node; z++) {
+            if (SingleNode) {
+                Nodes[idx]->Coords[c].screenX = v.x;
+                if (up) {
+                    Nodes[idx]->Coords[c].screenY = v.y + z * mheight;
+                }
+                else {
+                    Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
+                }
+                Nodes[idx]->Coords[c].screenZ = v.z;
+            }
+            else {
+                int node = -1;
+                if (up) {
+                    node = FindNodeAtXY(xx, z);
+                }
+                else {
+                    node = FindNodeAtXY(xx, maxH - z - 1);
+                }
+                if (node == -1) {
+                    logger_base.error("Polyline buffer x,y %d, %d not found.", xx, maxH - z - 1);
+                }
+                else {
+                    Nodes[node]->Coords[c].screenX = v.x;
+                    if (up) {
+                        Nodes[node]->Coords[c].screenY = v.y + z * mheight;
+                    }
+                    else {
+                        Nodes[node]->Coords[c].screenY = v.y - z * mheight;
+                    }
+                    Nodes[node]->Coords[c].screenZ = v.z;
+                }
+            }
+            if (c < coords_per_node - 1) {
+                c++;
+            }
+            else {
+                c = 0;
+                if (!SingleNode) {
+                    idx++;
+                }
+            }
+        }
+        polyLineSegDropSizes[segment] += drops_this_node;
+        drop_index %= dropSizes.size();
+        current_pos += offset;
+        if( c == 0 ) {
+            xx++;
+        }
+    }
+    polyLineSizes[segment] = lights_to_distribute - last_seg_light_num;
+}
+
+void PolyLineModel::DistributeLightsAcrossIndivSegments( const std::vector<xlPolyPoint>& pPos,
+                                                         const std::vector<int>&         dropSizes,
+                                                         const float&                    mheight,
+                                                         const int                       maxH )
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    unsigned int drop_index = 0;
+    size_t idx = 0;
+    float loc_x;
+    int xx = 0;
+    for (size_t m = 0; m < num_segments; m++) {
+    if (pPos[m].has_curve) {
+        DistributeLightsAcrossCurveSegment(polyLineSizes[m], m, idx, pPos, dropSizes, drop_index, mheight, xx, maxH);
+    }
+    else {
+        int seg_idx = 0;
+        for (size_t n = 0; n < polyLineSizes[m]; n++) {
+            int count = 0;
+            int num = Nodes[idx].get()->Coords.size();
+            float offset = polyLeadOffset[m];
+            if (num > 1) {
+                offset -= 1.0f / (float)num;
+            }
+            size_t CoordCount = GetCoordCount(idx);
+            bool up = dropSizes[drop_index] < 0;
+            unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
+            for (size_t c = 0; c < CoordCount; c++) {
+                if (num > 1) {
+                    loc_x = (seg_idx + offset + ((float)count / (float)num)) * polyGapSize[m];
+                    count++;
+                }
+                else {
+                    loc_x = (seg_idx + offset) * polyGapSize[m];
+                }
+
+                glm::vec3 v;
+                v = glm::vec3(*pPos[m].matrix * glm::vec4(loc_x / polyLineSizes[m], 0, 0, 1));
+
+                for (size_t z = 0; z < drops_this_node; z++) {
+                    if (SingleNode) {
+                        Nodes[idx]->Coords[c].screenX = v.x;
+                        if (up) {
+                            Nodes[idx]->Coords[c].screenY = v.y + z * mheight;
+                        }
+                        else {
+                            Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
+                        }
+                        Nodes[idx]->Coords[c].screenZ = v.z;
+                    }
+                    else {
+                        auto node = FindNodeAtXY(xx, maxH - z - 1);
+                        if (node == -1) {
+                            logger_base.error("Polyline buffer x,y %d, %d not found.", xx, maxH - z - 1);
+                        }
+                        else {
+                            Nodes[node]->Coords[c].screenX = v.x;
+                            if (up) {
+                                Nodes[node]->Coords[c].screenY = v.y + z * mheight;
+                            }
+                            else {
+                                Nodes[node]->Coords[c].screenY = v.y - z * mheight;
+                            }
+                            Nodes[node]->Coords[c].screenZ = v.z;
+                        }
+                    }
+                    if (!SingleNode) {
+                        idx++;
+                    }
+                }
+                drop_index %= dropSizes.size();
+            }
+            seg_idx++;
+            xx++;
+        }
+    }
+}
+}
+
+void PolyLineModel::DistributeSingleNodeLightsAcrossIndivSegments( const std::vector<xlPolyPoint>& pPos,
+                                                                   const std::vector<int>&         dropSizes,
+                                                                   const float&                    mheight,
+                                                                   const int                       maxH )
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    unsigned int drop_index = 0;
+    size_t idx = 0;
+    float loc_x;
+    int segment = 0;
+    int seg_idx = 0;
+    int count = 0;
+    int num = Nodes[0].get()->Coords.size();
+    float offset = polyLeadOffset[segment];
+    if (num > 1) {
+        offset -= 1.0f / (float)num;
+    }
+    size_t CoordCount = GetCoordCount(0);
+    for (size_t c = 0; c < CoordCount;) {
+        if (segment < polyLineSizes.size()) // this can be greater if coord count > segments * segment sizes
+        {
+            if (num > 1) {
+                loc_x = (seg_idx + offset + ((float)count / (float)num)) * polyGapSize[segment];
+                count++;
+            }
+            else {
+                loc_x = (seg_idx + offset) * polyGapSize[segment];
+            }
+
+            glm::vec3 v = glm::vec3(*pPos[segment].matrix * glm::vec4(loc_x / polyLineSizes[segment], 0, 0, 1));
+
+            bool up = dropSizes[drop_index] < 0;
+            unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
+            for (size_t z = 0; z < drops_this_node && c < CoordCount; z++) {
+                Nodes[idx]->Coords[c].screenX = v.x;
+                if (up) {
+                    Nodes[idx]->Coords[c].screenY = v.y + z * mheight;
+                }
+                else {
+                    Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
+                }
+                Nodes[idx]->Coords[c].screenZ = v.z;
+                c++;
+                if (!SingleNode) {
+                    idx++;
+                }
+            }
+            drop_index %= dropSizes.size();
+            seg_idx++;
+            if (seg_idx >= polyLineSizes[segment]) {
+                segment++;
+                seg_idx = 0;
+                count = 0;
+                for (int x = segment; x < polyLineSizes.size(); ++x) {
+                    if (polyLineSizes[x] == 0) {
+                        segment++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+            if (pPos[segment].has_curve) {
+                int xx = 0;
+                DistributeLightsAcrossCurveSegment(polyLineSizes[segment], segment, c, pPos, dropSizes, drop_index, mheight, xx, maxH);
+                c += std::abs(dropSizes[drop_index]);
+                segment++;
+                for (int x = segment; x < polyLineSizes.size(); ++x) {
+                    if (polyLineSizes[x] == 0) {
+                        segment++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+        }
+        else {
+            logger_base.warn("PolyLine segments * segment sizes < number of coordinates.");
+            break;
+        }
+    }
+}
+
+void PolyLineModel::DistributeLightsAcrossCurveSegment( const int                       lights,
+                                                        const int                       segment,
+                                                              size_t&                   idx,
+                                                        const std::vector<xlPolyPoint>& pPos,
+                                                        const std::vector<int>&         dropSizes,
+                                                              unsigned int&             drop_index,
+                                                        const float&                    mheight,
+                                                              int&                      xx,
+                                                        const int                       maxH)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
