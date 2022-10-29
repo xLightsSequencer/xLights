@@ -63,6 +63,8 @@ class RenderCache
 {
     class PerEffectCache {
     public:
+        PerEffectCache() {}
+        ~PerEffectCache() {}
         std::list<RenderCacheItem*> cache;
         std::shared_mutex lock;
     };

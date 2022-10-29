@@ -291,11 +291,12 @@ void RenderCache::Close()
     Purge(nullptr, false);
     _cacheFolder = "";
 
-    
+    std::unique_lock<std::recursive_mutex> lock(_cacheLock);
     for (auto &a : _cache) {
         delete a.second;
         a.second = nullptr;
     }
+    _cache.clear();
     logger_base.debug("    Closed.");
 }
 
@@ -361,23 +362,25 @@ void RenderCache::CleanupCache(SequenceElements* sequenceElements)
     int deleted = 0;
     std::unique_lock<std::recursive_mutex> lock(_cacheLock);
     for (auto &l : _cache) {
-        std::unique_lock<std::shared_mutex> ulock(l.second->lock);
-        auto it = l.second->cache.begin();
-        while (it != l.second->cache.end()) {
-            bool found = false;
-            
-            for (int i = 0; i < sequenceElements->GetElementCount() && !found; i++) {
-                Element* em = sequenceElements->GetElement(i);
-                found = findMatch(em, *it);
-            }
-            
-            if (!found) {
-                auto todelete = it;
-                ++it;
-                (*todelete)->Delete();
-                deleted++;
-            } else {
-                ++it;
+        if (l.second != nullptr) {
+            std::unique_lock<std::shared_mutex> ulock(l.second->lock);
+            auto it = l.second->cache.begin();
+            while (it != l.second->cache.end()) {
+                bool found = false;
+
+                for (int i = 0; i < sequenceElements->GetElementCount() && !found; i++) {
+                    Element* em = sequenceElements->GetElement(i);
+                    found = findMatch(em, *it);
+                }
+
+                if (!found) {
+                    auto todelete = it;
+                    ++it;
+                    (*todelete)->Delete();
+                    deleted++;
+                } else {
+                    ++it;
+                }
             }
         }
     }
@@ -402,18 +405,20 @@ void RenderCache::Purge(SequenceElements* sequenceElements, bool dodelete)
 
     std::unique_lock<std::recursive_mutex> lock(_cacheLock);
     for (auto &it : _cache) {
-        auto &l = it.second;
-        std::unique_lock<std::shared_mutex> ulock(l->lock);
-        while (l->cache.size() > 0) {
-            auto frnt = l->cache.front();
-            if (dodelete) {
-                ulock.unlock();
-                frnt->Delete();
-                ulock.lock();
-            } else {
-                frnt->Save();
-                delete frnt;
-                l->cache.pop_front();
+        if (it.second != nullptr) {
+            auto& l = it.second;
+            std::unique_lock<std::shared_mutex> ulock(l->lock);
+            while (l->cache.size() > 0) {
+                auto frnt = l->cache.front();
+                if (dodelete) {
+                    ulock.unlock();
+                    frnt->Delete();
+                    ulock.lock();
+                } else {
+                    frnt->Save();
+                    delete frnt;
+                    l->cache.pop_front();
+                }
             }
         }
     }
@@ -447,7 +452,7 @@ void RenderCacheItem::PurgeFrames()
     _purged = true;
     for (auto& it : _frames) {
         for (int x = it.second.size() - 1; x >= 0; --x) {
-            if (it.second[x]) {
+            if (it.second[x] != nullptr) {
                 if (!_mmap) {
                     free(it.second[x]);
                 }
@@ -771,7 +776,9 @@ void RenderCacheItem::Save()
         for (const auto& itm : _frames) {
             for (const auto& it : itm.second) {
                 wxASSERT(it != nullptr);
-                file.Write(it, _frameSize.at(itm.first));
+                if (it != nullptr) {
+                    file.Write(it, _frameSize.at(itm.first));
+                }
             }
         }
 
