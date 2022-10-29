@@ -291,15 +291,12 @@ void RenderCache::Close()
     Purge(nullptr, false);
     _cacheFolder = "";
 
+    std::unique_lock<std::recursive_mutex> lock(_cacheLock);
     for (auto &a : _cache) {
         delete a.second;
         a.second = nullptr;
     }
-    // I think we should do this ... but i dont know if it will impact the mmap code
-    // What i do know is lots of crashes are occurring and i suspect it is because we are using the .second pointer and it is null
-    // To stop it crashing I have checked them all but clearing the list here would also solve it.
-    //_cache.clear();
-
+    _cache.clear();
     logger_base.debug("    Closed.");
 }
 
