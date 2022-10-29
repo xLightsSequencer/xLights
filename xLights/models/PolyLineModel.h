@@ -72,28 +72,24 @@ protected:
     void DistributeLightsEvenly( const std::vector<xlPolyPoint>& pPos,
                                  const std::vector<int>&         dropSizes,
                                  const float&                    mheight,
-                                 const int                       maxH );
+                                 const int                       maxH,
+                                 const int                       numLights );
 
     void DistributeLightsAcrossIndivSegments( const std::vector<xlPolyPoint>& pPos,
                                               const std::vector<int>&         dropSizes,
                                               const float&                    mheight,
                                               const int                       maxH );
 
-    void DistributeSingleNodeLightsAcrossIndivSegments( const std::vector<xlPolyPoint>& pPos,
-                                                        const std::vector<int>&         dropSizes,
-                                                        const float&                    mheight,
-                                                        const int                       maxH );
+    void DistributeLightsAcrossSegment( const int                       segment,
+                                              size_t&                   idx,
+                                        const std::vector<xlPolyPoint>& pPos,
+                                        const std::vector<int>&         dropSizes,
+                                              unsigned int&             drop_index,
+                                        const float&                    mheight,
+                                              int&                      xpos,
+                                        const int                       maxH,
+                                        const bool                      isCurve );
 
-    void DistributeLightsAcrossCurveSegment( const int                       lights,
-                                             const int                       segment,
-                                                   size_t&                   idx,
-                                             const std::vector<xlPolyPoint>& pPos,
-                                             const std::vector<int>&         dropSizes,
-                                                   unsigned int&             drop_index,
-                                             const float&                    mheight,
-                                                   int&                      xx,
-                                             const int                       maxH);
-    
     static std::string StartNodeAttrName(int idx)
     {
         return wxString::Format(wxT("PolyNode%i"), idx + 1).ToStdString(); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
