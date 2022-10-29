@@ -555,7 +555,7 @@ void PolyLineModel::InitModel()
                 drop_index = 0;
             }
             nodesInDrop = std::abs(dropSizes[drop_index]);
-            if (!IsLtoR && !SingleNode) {
+            if (!IsLtoR && !SingleNode && curCoord == 0) {
                 chan -= ((nodesInDropLast + nodesInDrop) * GetNodeChannelCount(StringType));
             }
             nodesInDropLast = nodesInDrop;
@@ -564,7 +564,7 @@ void PolyLineModel::InitModel()
         if (Nodes[curNode]->StringNum != LastStringNum) {
             LastStringNum = Nodes[curNode]->StringNum;
             chan = stringStartChan[LastStringNum];
-            if (!IsLtoR && !SingleNode) {
+            if (!IsLtoR && !SingleNode && curCoord == 0) {
                 chan += (NodesPerString(LastStringNum) - nodesInDrop) * GetNodeChannelCount(StringType);
             }
         }
@@ -604,7 +604,7 @@ void PolyLineModel::InitModel()
         }
 
         Nodes[curNode]->Coords[curCoord].screenX = width;
-        if (!SingleNode) {
+        if (!SingleNode && curCoord == 0) {
             chan += ChanIncr;
         }
         lights--;
