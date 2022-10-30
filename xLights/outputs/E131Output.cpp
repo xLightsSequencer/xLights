@@ -278,7 +278,6 @@ void E131Output::SetTransientData(int32_t& startChannel, int nullnumber) {
     }
 
     wxASSERT(startChannel != -1);
-    //_outputNumber = on++;
     _startChannel = startChannel;
     startChannel += GetChannels();
 }

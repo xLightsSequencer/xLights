@@ -74,6 +74,10 @@ void TwinklyOutput::SetTransientData(int32_t& startChannel, int nullnumber)
     if (_fppProxyOutput) {
         _fppProxyOutput->SetTransientData(startChannel, nullnumber);
     }
+
+    wxASSERT(startChannel != -1);
+    _startChannel = startChannel;
+    startChannel += GetChannels();
 }
 #pragma endregion
 
