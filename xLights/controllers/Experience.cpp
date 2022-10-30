@@ -161,6 +161,9 @@ int32_t Experience::SetInputUniverses(wxJSONValue& data, Controller* controller)
         data["system"]["operating_mode"] = wxString("ddp");
         DDPOutput* ddp = (DDPOutput*)out;
         data["system"]["start_channel"] = ddp->IsKeepChannelNumbers() ? ddp->GetStartChannel() : 1;
+        if (ddp->IsKeepChannelNumbers()) {
+            startChannel = 1;
+        }
     } else  {
         //should never hit this
         DisplayError(wxString::Format(
