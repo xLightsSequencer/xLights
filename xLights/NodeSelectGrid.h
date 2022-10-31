@@ -89,9 +89,9 @@ class NodeSelectGrid: public wxDialog
 		static const long ID_TEXTCTRL1;
 		//*)
 
-        wxImage* bkg_image;
-        wxModelGridCellRenderer* renderer;
-        bool bkgrd_active;
+        wxImage* bkg_image = nullptr;
+        wxModelGridCellRenderer* renderer = nullptr;
+        bool bkgrd_active = true;
 
 	private:
 
@@ -143,7 +143,7 @@ class NodeSelectGrid: public wxDialog
 		void GetMinMaxNode(long& min, long& max);
 		void Find();
 
-        Model *model;
+        Model *model = nullptr;
 
         wxColour selectColor;
         wxColour unselectColor;
