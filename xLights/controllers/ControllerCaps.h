@@ -89,6 +89,7 @@ public:
     bool SupportsPixelPortColourOrder() const;
     bool SupportsEthernetInputProtols() const;
     bool SupportsSerialInputProtols() const;
+    bool IsPlayerOnly() const;
     bool NeedsFullUniverseForDMX() const;
     bool AllSmartRemoteTypesPerPortMustBeSame() const;
     bool DMXAfterPixels() const;

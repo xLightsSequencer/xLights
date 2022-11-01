@@ -362,4 +362,38 @@
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
     </Controller>
+    <Controller Name="FPP Player Only">
+        <Variant Name="" ID="SP">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxPixelPortChannels>0</MaxPixelPortChannels>
+            <PixelProtocols>
+            </PixelProtocols>
+            <SerialProtocols>
+            </SerialProtocols>
+            <InputProtocols>
+                <Protocol>player only</Protocol>
+            </InputProtocols>
+            <PlayerOnly/>
+            <PreferredInputProtocol>Player Only</PreferredInputProtocol>
+        </Variant>
+    </Controller>
+    <Controller Name="FPP Video Playing Remote Only">
+        <Variant Name="" ID="MP">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxPixelPortChannels>0</MaxPixelPortChannels>
+            <PixelProtocols>
+            </PixelProtocols>
+            <SerialProtocols>
+            </SerialProtocols>
+            <InputProtocols>
+                <Protocol>player only</Protocol>
+            </InputProtocols>
+            <PlayerOnly/>
+            <PreferredInputProtocol>Player Only</PreferredInputProtocol>
+        </Variant>
+    </Controller>
 </Vendor>

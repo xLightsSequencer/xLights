@@ -200,8 +200,11 @@ std::list<std::string> ControllerCaps::GetModels(const std::string& type, const 
                 if (type == CONTROLLER_ETHERNET && it3->SupportsEthernetInputProtols()) {
                     models.push_back(it.first);
                     break;
+                } else if (type == CONTROLLER_SERIAL && it3->SupportsSerialInputProtols()) {
+                    models.push_back(it.first);
+                    break;
                 }
-                else if (type == CONTROLLER_SERIAL && it3->SupportsSerialInputProtols()) {
+                else if (type == CONTROLLER_ETHERNET && it3->IsPlayerOnly()) {
                     models.push_back(it.first);
                     break;
                 }
@@ -429,6 +432,11 @@ bool ControllerCaps::SupportsEthernetInputProtols() const
             return true;
     }
     return false;
+}
+
+bool ControllerCaps::IsPlayerOnly() const
+{
+    return DoesXmlNodeExist(_config, "PlayerOnly");
 }
 
 bool ControllerCaps::SupportsSerialInputProtols() const

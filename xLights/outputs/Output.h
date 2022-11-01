@@ -46,6 +46,7 @@ class Controller;
 #define OUTPUT_OPC "OPC"
 #define OUTPUT_GENERICSERIAL "Generic Serial"
 #define OUTPUT_TWINKLY "Twinkly"
+#define OUTPUT_PLAYER_ONLY "Player Only"
 #pragma endregion
 
 class Output

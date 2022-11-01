@@ -114,7 +114,14 @@ public:
 
     virtual bool CanTempDisable() const override { return true; }
 
-    virtual bool SupportsAutoSize() const override { return _managed && IsAutoLayout(); }
+    virtual bool SupportsAutoSize() const override
+    {
+        return _managed && IsAutoLayout() && GetProtocol() != OUTPUT_PLAYER_ONLY;
+    }
+    virtual bool SupportsSuppressDuplicateFrames() const override
+    {
+        return GetProtocol() != OUTPUT_PLAYER_ONLY;
+    }
     virtual bool SupportsFullxLightsControl() const override;
     virtual bool SupportsDefaultBrightness() const override;
     virtual bool SupportsDefaultGamma() const override;
