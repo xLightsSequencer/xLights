@@ -7330,6 +7330,12 @@ void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
 
+    if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
+        if (wxMessageBox("Open sequence has not been saved. If you plan on uploading it to FPP then it needs to be saved. Do you want to save it now?", "Save Sequence", wxYES_NO | wxCENTRE, this) == wxYES) {
+            SaveSequence();
+        }
+    }
+
     FPPConnectDialog dlg(this, &_outputManager);
 
     dlg.ShowModal();
