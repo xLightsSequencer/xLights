@@ -178,14 +178,14 @@ protected:
 class FacesDialogAdapter : public wxPGEditorDialogAdapter
 {
 public:
-    FacesDialogAdapter(Model* model)
-        : wxPGEditorDialogAdapter(), m_model(model)
+    FacesDialogAdapter(Model* model, OutputManager* om) :
+        wxPGEditorDialogAdapter(), m_model(model), _outputManager(om)
     {
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
         wxPGProperty* WXUNUSED(property)) override
     {
-        ModelFaceDialog dlg(propGrid);
+        ModelFaceDialog dlg(propGrid, _outputManager);
         dlg.SetFaceInfo(m_model, m_model->faceInfo);
         if (dlg.ShowModal() == wxID_OK) {
             m_model->faceInfo.clear();
@@ -197,20 +197,21 @@ public:
         return false;
     }
 protected:
-    Model* m_model;
+    Model* m_model = nullptr;
+    OutputManager* _outputManager = nullptr;
 };
 
 class StatesDialogAdapter : public wxPGEditorDialogAdapter
 {
 public:
-    StatesDialogAdapter(Model* model)
-        : wxPGEditorDialogAdapter(), m_model(model)
+    StatesDialogAdapter(Model* model, OutputManager* om)
+        : wxPGEditorDialogAdapter(), m_model(model), _outputManager(om)
     {
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
         wxPGProperty* WXUNUSED(property)) override
     {
-        ModelStateDialog dlg(propGrid);
+        ModelStateDialog dlg(propGrid, _outputManager);
         dlg.SetStateInfo(m_model, m_model->stateInfo);
         if (dlg.ShowModal() == wxID_OK) {
             m_model->stateInfo.clear();
@@ -222,7 +223,8 @@ public:
         return false;
     }
 protected:
-    Model* m_model;
+    Model* m_model = nullptr;
+    OutputManager* _outputManager = nullptr;
 };
 
 std::map<std::string, std::map<std::string, std::string> > Model::GetDimmingInfo() const
@@ -352,11 +354,13 @@ class PopupDialogProperty : public wxStringProperty
 {
 public:
     PopupDialogProperty(Model *m,
+                        OutputManager* om,
                         const wxString& label,
                         const wxString& name,
                         const wxString& value,
-                        int type)
-    : wxStringProperty(label, name, value), m_model(m), m_tp(type) {
+                        int type) :
+        wxStringProperty(label, name, value), m_model(m), m_tp(type), _outputManager(om)
+    {
     }
     // Set editor to have button
     virtual const wxPGEditor* DoGetEditorClass() const override {
@@ -368,11 +372,11 @@ public:
         case 1:
             return new StrandNodeNamesDialogAdapter(m_model);
         case 2:
-            return new FacesDialogAdapter(m_model);
+            return new FacesDialogAdapter(m_model, _outputManager);
         case 3:
             return new DimmingCurveDialogAdapter(m_model);
         case 4:
-            return new StatesDialogAdapter(m_model);
+            return new StatesDialogAdapter(m_model, _outputManager);
         case 5:
             return new SubModelsDialogAdapter(m_model);
         default:
@@ -382,6 +386,7 @@ public:
     }
 protected:
     Model *m_model = nullptr;
+    OutputManager* _outputManager = nullptr;
     int m_tp;
 };
 
@@ -769,15 +774,15 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     grid->Append(new wxStringProperty("Description", "Description", description));
     grid->Append(new wxEnumProperty("Preview", "ModelLayoutGroup", LAYOUT_GROUPS, wxArrayInt(), layout_group_number));
 
-    p = grid->Append(new PopupDialogProperty(this, "Strand/Node Names", "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
+    p = grid->Append(new PopupDialogProperty(this, outputManager, "Strand/Node Names", "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(this, "Faces", "ModelFaces", CLICK_TO_EDIT, 2));
+    p = grid->Append(new PopupDialogProperty(this, outputManager, "Faces", "ModelFaces", CLICK_TO_EDIT, 2));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(this, "Dimming Curves", "ModelDimmingCurves", CLICK_TO_EDIT, 3));
+    p = grid->Append(new PopupDialogProperty(this, outputManager, "Dimming Curves", "ModelDimmingCurves", CLICK_TO_EDIT, 3));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(this, "States", "ModelStates", CLICK_TO_EDIT, 4));
+    p = grid->Append(new PopupDialogProperty(this, outputManager, "States", "ModelStates", CLICK_TO_EDIT, 4));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(this, "SubModels", "SubModels", CLICK_TO_EDIT, 5));
+    p = grid->Append(new PopupDialogProperty(this, outputManager, "SubModels", "SubModels", CLICK_TO_EDIT, 5));
     grid->LimitPropertyEditing(p);
 
     auto modelGroups = modelManager.GetGroupsContainingModel(this);

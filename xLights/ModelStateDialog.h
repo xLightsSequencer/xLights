@@ -24,6 +24,7 @@
 #include <wx/stattext.h>
 //*)
 
+#include <wx/timer.h>
 #include <wx/colourdata.h>
 #include <glm/glm.hpp>
 
@@ -34,13 +35,14 @@ class ModelPreview;
 class xLightsFrame;
 class ModelManager;
 class xlColor;
+class OutputManager;
 
 class ModelStateDialog : public wxDialog
 {
     static wxColourData _colorData;
 
 public:
-    ModelStateDialog(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    ModelStateDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~ModelStateDialog();
 
     //(*Declarations(ModelStateDialog)
@@ -48,6 +50,7 @@ public:
     wxButton* Button_7Segment;
     wxButton* Button_Import;
     wxButton* DeleteButton;
+    wxCheckBox* CheckBox_OutputToLights;
     wxCheckBox* CustomColorNodeRanges;
     wxCheckBox* CustomColorSingleNode;
     wxChoice* NameChoice;
@@ -62,6 +65,8 @@ public:
 
     void SetStateInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>>& info);
     void GetStateInfo(std::map<std::string, std::map<std::string, std::string>>& info);
+    void StartOutputToLights();
+    void StopOutputToLights();
 
 protected:
     //(*Identifiers(ModelStateDialog)
@@ -75,6 +80,7 @@ protected:
     static const long ID_GRID_COROSTATES;
     static const long ID_PANEL2;
     static const long ID_CHECKBOX2;
+    static const long ID_CHECKBOX3;
     static const long ID_BUTTON2;
     static const long ID_GRID3;
     static const long ID_PANEL6;
@@ -83,6 +89,7 @@ protected:
     static const long ID_PANEL_PREVIEW;
     static const long ID_SPLITTERWINDOW1;
     //*)
+    static const long ID_TIMER1;
 
     static const long STATE_DIALOG_IMPORT_SUB;
     static const long STATE_DIALOG_IMPORT_MODEL;
@@ -117,6 +124,7 @@ private:
     void OnButton_ImportClick(wxCommandEvent& event);
     void OnSingleNodeGridLabelLeftClick(wxGridEvent& event);
     void OnNodeRangeGridLabelLeftClick(wxGridEvent& event);
+    void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
     //*)
 
     void OnAddBtnPopup(wxCommandEvent& event);
@@ -125,9 +133,13 @@ private:
     void OnPreviewLeftDown(wxMouseEvent& event);
     void OnPreviewLeftDClick(wxMouseEvent& event);
     void OnPreviewMouseMove(wxMouseEvent& event);
+    void OnTimer1Trigger(wxTimerEvent& event);
 
     DECLARE_EVENT_TABLE()
 
+    wxTimer timer1;
+    bool _oldOutputToLights = false;
+    OutputManager* _outputManager = nullptr;
     bool m_creating_bound_rect = false;
     int m_bound_start_x = 0;
     int m_bound_start_y = 0;

@@ -4923,7 +4923,7 @@ void LayoutPanel::EditFaces()
     if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel")
         return;
 
-    ModelFaceDialog dlg(this);
+    ModelFaceDialog dlg(this, &xlights->_outputManager);
     dlg.SetFaceInfo(md, md->faceInfo);
     if (dlg.ShowModal() == wxID_OK) {
         md->faceInfo.clear();
@@ -4939,7 +4939,7 @@ void LayoutPanel::EditStates()
     if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel")
         return;
 
-    ModelStateDialog dlg(this);
+    ModelStateDialog dlg(this, &xlights->_outputManager);
     dlg.SetStateInfo(md, md->stateInfo);
     if (dlg.ShowModal() == wxID_OK) {
         md->stateInfo.clear();

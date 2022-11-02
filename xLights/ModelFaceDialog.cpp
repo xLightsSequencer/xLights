@@ -51,6 +51,7 @@
 #include "xLightsApp.h"
 #include "support/VectorMath.h"
 #include "models/CustomModel.h"
+#include "outputs/OutputManager.h"
 
 #include <log4cpp/Category.hh>
 
@@ -69,6 +70,7 @@ const long ModelFaceDialog::ID_GRID_COROFACES = wxNewId();
 const long ModelFaceDialog::ID_PANEL2 = wxNewId();
 const long ModelFaceDialog::ID_PANEL8 = wxNewId();
 const long ModelFaceDialog::ID_CHECKBOX2 = wxNewId();
+const long ModelFaceDialog::ID_CHECKBOX3 = wxNewId();
 const long ModelFaceDialog::ID_GRID3 = wxNewId();
 const long ModelFaceDialog::ID_PANEL6 = wxNewId();
 const long ModelFaceDialog::ID_PANEL7 = wxNewId();
@@ -81,6 +83,7 @@ const long ModelFaceDialog::ID_PANEL5 = wxNewId();
 const long ModelFaceDialog::ID_PANEL1 = wxNewId();
 const long ModelFaceDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
+const long ModelFaceDialog::ID_TIMER1 = wxNewId();
 
 const long ModelFaceDialog::FACES_DIALOG_IMPORT_SUB = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_IMPORT_MODEL = wxNewId();
@@ -108,12 +111,13 @@ enum {
 #define wxEVT_GRID_CELL_CHANGE wxEVT_GRID_CELL_CHANGED
 #endif
 
-ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id, const wxPoint& pos,const wxSize& size):
-    mPointSize(PIXEL_SIZE_ON_DIALOGS)
+ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id, const wxPoint& pos,const wxSize& size):
+    mPointSize(PIXEL_SIZE_ON_DIALOGS), _outputManager(outputManager)
 {
 	//(*Initialize(ModelFaceDialog)
 	wxButton* AddButton;
 	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -207,9 +211,14 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id, const wxPoint& 
 	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer9->AddGrowableCol(0);
 	FlexGridSizer9->AddGrowableRow(1);
+	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
 	CustomColorNodeRanges = new wxCheckBox(NodeRangePanel, ID_CHECKBOX2, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CustomColorNodeRanges->SetValue(false);
-	FlexGridSizer9->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer11->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_OutputToLights = new wxCheckBox(NodeRangePanel, ID_CHECKBOX3, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+	CheckBox_OutputToLights->SetValue(false);
+	FlexGridSizer11->Add(CheckBox_OutputToLights, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 5);
 	NodeRangeGrid = new wxGrid(NodeRangePanel, ID_GRID3, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID3"));
 	NodeRangeGrid->CreateGrid(18,2);
 	NodeRangeGrid->SetMinSize(wxDLG_UNIT(NodeRangePanel,wxSize(-1,200)));
@@ -330,6 +339,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id, const wxPoint& 
 	Connect(ID_GRID_COROFACES,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellSelect);
 	Panel_NodeRanges->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ModelFaceDialog::Paint,0,this);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnCustomColorCheckboxClick);
+	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnCheckBox_OutputToLightsClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellLeftClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellRightClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellLeftDClick);
@@ -367,12 +377,21 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id, const wxPoint& 
     FlexGridSizer1->SetSizeHints(this);
     Center();
     SetEscapeId(wxID_CANCEL);
+
+    _oldOutputToLights = _outputManager->IsOutputting();
+    if (_oldOutputToLights) {
+        _outputManager->StopOutput();
+    }
 }
 
 ModelFaceDialog::~ModelFaceDialog()
 {
 	//(*Destroy(ModelFaceDialog)
 	//*)
+
+    if (_oldOutputToLights) {
+        _outputManager->StartOutput();
+    }
 }
 
 void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<std::string, std::string> > &finfo) {
@@ -935,8 +954,10 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
 {
     int nn = model->GetNodeCount();
     xlColor cb(xlDARK_GREY);
+    xlColor cc(c);
     if (model->modelDimmingCurve) {
         model->modelDimmingCurve->apply(cb);
+        model->modelDimmingCurve->apply(cc);
     }
     for (int node = 0; node < nn; node++) {
         model->SetNodeColor(node, cb);
@@ -953,7 +974,7 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
                 for (size_t n = 0; n < model->GetNodeCount(); n++) {
                     wxString ns = model->GetNodeName(n, true);
                     if (ns == valstr) {
-                        model->SetNodeColor(n, c);
+                        model->SetNodeColor(n, cc);
                     }
                 }
             }
@@ -964,7 +985,7 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
             {
                 if (it < (int)model->GetNodeCount())
                 {
-                    model->SetNodeColor(it, c);
+                    model->SetNodeColor(it, cc);
                 }
             }
         }
@@ -1896,4 +1917,81 @@ void ModelFaceDialog::ReverseFaceNodes()
     UpdatePreview("", *wxWHITE);
 }
 
+void ModelFaceDialog::OnTimer1Trigger(wxTimerEvent& event)
+{
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name == "") {
+        return;
+    }
 
+    std::vector<uint32_t> nodes;
+    if (faceData[name]["Type"] == "SingleNode") {
+        int row = SingleNodeGrid->GetGridCursorRow();
+        if (row < 0)
+            return;
+
+        wxStringTokenizer wtkz(SingleNodeGrid->GetCellValue(row, CHANNEL_COL), ",");
+        while (wtkz.HasMoreTokens()) {
+            wxString valstr = wtkz.GetNextToken();
+            for (size_t n = 0; n < model->GetNodeCount(); n++) {
+                wxString ns = model->GetNodeName(n, true);
+                if (ns == valstr) {
+                    nodes.push_back(n);
+                }
+            }
+        }
+    } else if (faceData[name]["Type"] == "NodeRange") {
+        int row = NodeRangeGrid->GetGridCursorRow();
+        if (row < 0)
+            return;
+
+        std::list<int> ch = model->ParseFaceNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
+        for (const auto& it : ch) {
+            if (it < (int)model->GetNodeCount()) {
+                nodes.push_back(it);
+            }
+        }
+    }
+
+    _outputManager->StartFrame(0);
+    for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
+        auto ch = model->NodeStartChannel(n);
+        if (std::find(begin(nodes), end(nodes), n) != end(nodes)) {
+            for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
+                _outputManager->SetOneChannel(ch++, 30);
+            }
+        } else {
+            for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
+                _outputManager->SetOneChannel(ch++, 0);
+            }
+        }
+    }
+    _outputManager->EndFrame();
+}
+
+void ModelFaceDialog::StartOutputToLights()
+{
+    if (!timer1.IsRunning()) {
+        _outputManager->StartOutput();
+        timer1.SetOwner(this, ID_TIMER1);
+        Connect(ID_TIMER1, wxEVT_TIMER, (wxObjectEventFunction)&ModelFaceDialog::OnTimer1Trigger);
+        timer1.Start(50, false);
+    }
+}
+
+void ModelFaceDialog::StopOutputToLights()
+{
+    if (timer1.IsRunning()) {
+        timer1.Stop();
+        _outputManager->StopOutput();
+    }
+}
+
+void ModelFaceDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
+{
+    if (CheckBox_OutputToLights->IsChecked()) {
+        StartOutputToLights();
+    } else {
+        StopOutputToLights();
+    }
+}

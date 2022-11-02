@@ -159,7 +159,11 @@
 															<border>5</border>
 															<option>1</option>
 														</object>
-														<object class="spacer">
+														<object class="sizeritem">
+															<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_OutputToLights" member="yes">
+																<label>Output to Lights</label>
+																<handler function="OnCheckBox_OutputToLightsClick" entry="EVT_CHECKBOX" />
+															</object>
 															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 															<border>5</border>
 															<option>1</option>
