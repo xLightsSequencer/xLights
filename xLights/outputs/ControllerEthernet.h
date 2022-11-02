@@ -74,7 +74,8 @@ public:
 
     bool IsFPPProxyable() const
     {
-        return _type == OUTPUT_E131 || _type == OUTPUT_DDP || _type == OUTPUT_TWINKLY;
+        // player only is proxyable because the web UI is
+        return _type == OUTPUT_E131 || _type == OUTPUT_DDP || _type == OUTPUT_TWINKLY || _type == OUTPUT_PLAYER_ONLY;
     }
 
     void SetManaged(bool managed) { if (_managed != managed) { _managed = managed; _dirty = true; } }
