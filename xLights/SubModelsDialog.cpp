@@ -53,6 +53,7 @@
 wxDEFINE_EVENT(EVT_SMDROP, wxCommandEvent);
 
 //(*IdInit(SubModelsDialog)
+const long SubModelsDialog::ID_CHECKBOX2 = wxNewId();
 const long SubModelsDialog::ID_STATICTEXT1 = wxNewId();
 const long SubModelsDialog::ID_LISTCTRL_SUB_MODELS = wxNewId();
 const long SubModelsDialog::ID_SEARCHCTRL1 = wxNewId();
@@ -85,6 +86,7 @@ const long SubModelsDialog::ID_PANEL5 = wxNewId();
 const long SubModelsDialog::ID_PANEL1 = wxNewId();
 const long SubModelsDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
+const long SubModelsDialog::ID_TIMER1 = wxNewId();
 
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_MODEL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_FILE = wxNewId();
@@ -147,13 +149,14 @@ void StretchGrid::AutoSizeLastCol ()
         SetColSize (GetNumberCols() - 1, 10);
 }
 
-SubModelsDialog::SubModelsDialog(wxWindow* parent) :
+SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     m_creating_bound_rect(false),
     m_bound_start_x(0),
     m_bound_start_y(0),
     m_bound_end_x(0),
     m_bound_end_y(0),
-    mPointSize(PIXEL_SIZE_ON_DIALOGS)
+    mPointSize(PIXEL_SIZE_ON_DIALOGS),
+    _outputManager(om)
 {
 	//(*Initialize(SubModelsDialog)
 	wxBoxSizer* BoxSizer1;
@@ -179,9 +182,12 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	FlexGridSizer2->AddGrowableCol(1);
 	FlexGridSizer2->AddGrowableRow(0);
 	Panel2 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
-	FlexGridSizer9 = new wxFlexGridSizer(4, 1, 0, 0);
+	FlexGridSizer9 = new wxFlexGridSizer(5, 1, 0, 0);
 	FlexGridSizer9->AddGrowableCol(0);
-	FlexGridSizer9->AddGrowableRow(1);
+	FlexGridSizer9->AddGrowableRow(2);
+	CheckBox_OutputToLights = new wxCheckBox(Panel2, ID_CHECKBOX2, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CheckBox_OutputToLights->SetValue(false);
+	FlexGridSizer9->Add(CheckBox_OutputToLights, 1, wxALL|wxEXPAND, 5);
 	StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("SubModels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer9->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ListCtrl_SubModels = new wxListCtrl(Panel2, ID_LISTCTRL_SUB_MODELS, wxDefaultPosition, wxSize(200,133), wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_SUB_MODELS"));
@@ -315,6 +321,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	Layout();
 	Center();
 
+	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnCheckBox_OutputToLightsClick);
 	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsBeginDrag);
 	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsItemSelect);
 	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsItemRClick);
@@ -402,6 +409,11 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
     NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
     SetEscapeId(wxID_CANCEL);
     EnableCloseButton(false);
+
+    _oldOutputToLights = _outputManager->IsOutputting();
+    if (_oldOutputToLights) {
+        _outputManager->StopOutput();
+    }
 }
 
 /*
@@ -452,6 +464,13 @@ SubModelsDialog::~SubModelsDialog()
     int i = SplitterWindow1->GetSashPosition();
     config->Write("SubModelsDialogSashPosition", i);
     config->Flush();
+
+    if (_outputManager->IsOutputting()) {
+        _outputManager->StopOutput();
+    }
+    if (_oldOutputToLights) {
+        _outputManager->StartOutput();
+    }
 }
 
 //void SubModelsDialog::OnGridChar(wxKeyEvent& event)
@@ -1328,6 +1347,7 @@ void SubModelsDialog::SelectAll(const wxString &names) {
 
 void SubModelsDialog::DisplayRange(const wxString &range)
 {
+    _selected.clear();
     float x1 = 0;
     float x2 = 100;
     float y1 = 0;
@@ -1362,6 +1382,7 @@ void SubModelsDialog::DisplayRange(const wxString &range)
     for (int node = 0; node < nn; node++) {
         if (model->IsNodeInBufferRange(node, x1, y1, x2, y2)) {
             model->SetNodeColor(node, xlWHITE);
+            _selected.push_back(node);
         } else {
             model->SetNodeColor(node, c);
         }
@@ -1382,25 +1403,26 @@ void SubModelsDialog::ClearNodeColor(Model *m)
 }
 
 void SubModelsDialog::SelectRow(int r) {
+    _selected.clear();
     ClearNodeColor(model);
 
     static wxColor priorc = wxColor(255, 100, 255);
     if (r == -1) {
         for (int i = 0; i < NodesGrid->GetNumberRows(); ++i) {
-            SetNodeColor(i, xlWHITE);
+            SetNodeColor(i, xlWHITE, true);
         }
     } else {
         for (int i = 0; i < NodesGrid->GetNumberRows(); ++i) {
-            SetNodeColor(i, r == i ? xlWHITE : priorc);
+            SetNodeColor(i, r == i ? xlWHITE : priorc, false);
         }
         // redo the selected row to ensure any duplicated nodes are highlighted
-        SetNodeColor(r, xlWHITE);
+        SetNodeColor(r, xlWHITE, true);
     }
     NodesGrid->Refresh();
     model->DisplayEffectOnWindow(modelPreview, mPointSize);
 }
 
-bool SubModelsDialog::SetNodeColor(int row, xlColor const& c) {
+bool SubModelsDialog::SetNodeColor(int row, xlColor const& c, bool highlight) {
 
     wxString v = NodesGrid->GetCellValue(row, 0);
     if (v.empty()) {
@@ -1426,6 +1448,7 @@ bool SubModelsDialog::SetNodeColor(int row, xlColor const& c) {
         while (!done) {
             if (n >= 0 && n < (int)model->GetNodeCount()) {
                 model->SetNodeColor(n, c);
+                if (highlight) _selected.push_back(n);
                 found = true;
             }
             if (start2 > end2) {
@@ -3070,5 +3093,53 @@ void SubModelsDialog::ExportSubmodelToOtherModels()
             m->IncrementChangeCount();
             ReloadLayout = true;
         }
+    }
+}
+
+void SubModelsDialog::OnTimer1Trigger(wxTimerEvent& event)
+{
+    _outputManager->StartFrame(0);
+    for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
+        auto ch = model->NodeStartChannel(n);
+        if (std::find(begin(_selected), end(_selected), n) != end(_selected)) {
+            for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
+                _outputManager->SetOneChannel(ch++, 30);
+            }
+        } else {
+            for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
+                _outputManager->SetOneChannel(ch++, 0);
+            }
+        }
+    }
+    _outputManager->EndFrame();
+}
+
+void SubModelsDialog::StartOutputToLights()
+{
+    if (!timer1.IsRunning()) {
+        _outputManager->StartOutput();
+        timer1.SetOwner(this, ID_TIMER1);
+        Connect(ID_TIMER1, wxEVT_TIMER, (wxObjectEventFunction)&SubModelsDialog::OnTimer1Trigger);
+        timer1.Start(50, false);
+    }
+}
+
+void SubModelsDialog::StopOutputToLights()
+{
+    if (timer1.IsRunning()) {
+        timer1.Stop();
+        _outputManager->StartFrame(0);
+        _outputManager->AllOff();
+        _outputManager->EndFrame();
+        _outputManager->StopOutput();
+    }
+}
+
+void SubModelsDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
+{
+    if (CheckBox_OutputToLights->IsChecked()) {
+        StartOutputToLights();
+    } else {
+        StopOutputToLights();
     }
 }

@@ -4902,7 +4902,7 @@ void LayoutPanel::EditSubmodels()
     if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel")
         return;
 
-    SubModelsDialog dlg(this);
+    SubModelsDialog dlg(this, &xlights->_outputManager);
     dlg.Setup(md);
     if (dlg.ShowModal() == wxID_OK) {
         dlg.Save();

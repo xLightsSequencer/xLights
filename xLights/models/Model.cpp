@@ -303,12 +303,13 @@ protected:
 class SubModelsDialogAdapter : public wxPGEditorDialogAdapter
 {
 public:
-    SubModelsDialogAdapter(Model *model)
-    : wxPGEditorDialogAdapter(), m_model(model) {
+    SubModelsDialogAdapter(Model *model, OutputManager* om) :
+        wxPGEditorDialogAdapter(), m_model(model), _outputManager(om)
+    {
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
                               wxPGProperty* WXUNUSED(property) ) override {
-        SubModelsDialog dlg(propGrid);
+        SubModelsDialog dlg(propGrid, _outputManager);
         dlg.Setup(m_model);
         if (dlg.ShowModal() == wxID_OK) {
             dlg.Save();
@@ -326,7 +327,8 @@ public:
         return false;
     }
 protected:
-    Model *m_model;
+    Model *m_model = nullptr;
+    OutputManager* _outputManager = nullptr;
 };
 
 class ModelChainDialogAdapter : public wxPGEditorDialogAdapter
@@ -378,7 +380,7 @@ public:
         case 4:
             return new StatesDialogAdapter(m_model, _outputManager);
         case 5:
-            return new SubModelsDialogAdapter(m_model);
+            return new SubModelsDialogAdapter(m_model, _outputManager);
         default:
             break;
         }

@@ -285,6 +285,9 @@ ModelStateDialog::~ModelStateDialog()
 {
     //(*Destroy(ModelStateDialog)
     //*)
+    if (_outputManager->IsOutputting()) {
+        _outputManager->StopOutput();
+    }
     if (_oldOutputToLights) {
         _outputManager->StartOutput();
     }
@@ -588,44 +591,46 @@ xlColor ModelStateDialog::GetRowColor(wxGrid* grid, int const row, bool const pr
 }
 
 void ModelStateDialog::SelectRow(wxGrid* grid, int const r) {
+
+    _selected.clear();
     ClearNodeColor(model);
 
     if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
         if (r == -1) {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
                 xlColor const c = GetRowColor(grid, i, false, CustomColorSingleNode->IsChecked());
-                SetSingleNodeColor(grid, i, c);
+                SetSingleNodeColor(grid, i, c, true);
             }
         } else {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
                 xlColor const c = GetRowColor(grid, i, r != i, CustomColorSingleNode->IsChecked());
-                SetSingleNodeColor(grid, i, c );
+                SetSingleNodeColor(grid, i, c, false);
             }
             // redo the selected row to ensure it is white
             xlColor const cc = GetRowColor(grid, r, false, CustomColorNodeRanges->IsChecked());
-            SetSingleNodeColor(grid, r, cc);
+            SetSingleNodeColor(grid, r, cc, true);
         }
     } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
         if (r == -1) {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
                 xlColor const c = GetRowColor(grid, i, false, CustomColorNodeRanges->IsChecked());
-                SetNodeColor(grid, i, c);
+                SetNodeColor(grid, i, c, true);
             }
         } else {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
                 xlColor const c = GetRowColor(grid, i, r != i, CustomColorNodeRanges->IsChecked());
-                SetNodeColor(grid, i, c );
+                SetNodeColor(grid, i, c, false);
             }
             // redo the selected row to ensure it is white
             xlColor const cc = GetRowColor(grid, r, false, CustomColorNodeRanges->IsChecked());
-            SetNodeColor(grid, r, cc);
+            SetNodeColor(grid, r, cc, true);
         }
     }
     grid->Refresh();
     model->DisplayEffectOnWindow(modelPreview, mPointSize);
 }
 
-void ModelStateDialog::SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c) {
+void ModelStateDialog::SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c, bool highlight) {
     wxString v = grid->GetCellValue(row, CHANNEL_COL);
     wxStringTokenizer wtkz(v, ",");
     while (wtkz.HasMoreTokens()) {
@@ -634,12 +639,13 @@ void ModelStateDialog::SetSingleNodeColor(wxGrid* grid, const int row, xlColor c
             wxString ns = model->GetNodeName(n, true);
             if (ns == valstr) {
                 model->SetNodeColor(n, c);
+                if (highlight) _selected.push_back(n);
             }
         }
     }
 }
 
-bool ModelStateDialog::SetNodeColor(wxGrid* grid, int const row, xlColor const& c) {
+bool ModelStateDialog::SetNodeColor(wxGrid* grid, int const row, xlColor const& c, bool highlight) {
 
     wxString v = grid->GetCellValue(row, CHANNEL_COL);
     if (v.empty()) {
@@ -671,6 +677,7 @@ bool ModelStateDialog::SetNodeColor(wxGrid* grid, int const row, xlColor const& 
         while (!done) {
             if (n >= 0 && n < (int)model->GetNodeCount()) {
                 model->SetNodeColor(n, cc);
+                if (highlight) _selected.push_back(n);
                 found = true;
             }
             if (start2 > end2) {
@@ -1541,44 +1548,10 @@ void ModelStateDialog::ReverseStateNodes()
 
 void ModelStateDialog::OnTimer1Trigger(wxTimerEvent& event)
 {
-    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    if (name == "") {
-        return;
-    }
-
-    std::vector<uint32_t> nodes;
-    if (stateData[name]["Type"] == "SingleNode") {
-        int row = SingleNodeGrid->GetGridCursorRow();
-        if (row < 0)
-            return;
-
-        wxStringTokenizer wtkz(SingleNodeGrid->GetCellValue(row, CHANNEL_COL), ",");
-        while (wtkz.HasMoreTokens()) {
-            wxString valstr = wtkz.GetNextToken();
-            for (size_t n = 0; n < model->GetNodeCount(); n++) {
-                wxString ns = model->GetNodeName(n, true);
-                if (ns == valstr) {
-                    nodes.push_back(n);
-                }
-            }
-        }
-    } else if (stateData[name]["Type"] == "NodeRange") {
-        int row = NodeRangeGrid->GetGridCursorRow();
-        if (row < 0)
-            return;
-
-        std::list<int> ch = model->ParseFaceNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
-        for (const auto& it : ch) {
-            if (it < (int)model->GetNodeCount()) {
-                nodes.push_back(it);
-            }
-        }
-    }
-
     _outputManager->StartFrame(0);
     for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
         auto ch = model->NodeStartChannel(n);
-        if (std::find(begin(nodes), end(nodes), n) != end(nodes)) {
+        if (std::find(begin(_selected), end(_selected), n) != end(_selected)) {
             for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
                 _outputManager->SetOneChannel(ch++, 30);
             }
@@ -1586,7 +1559,7 @@ void ModelStateDialog::OnTimer1Trigger(wxTimerEvent& event)
             for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
                 _outputManager->SetOneChannel(ch++, 0);
             }
-        } 
+        }
     }
     _outputManager->EndFrame();
 }
@@ -1605,6 +1578,9 @@ void ModelStateDialog::StopOutputToLights()
 {
     if (timer1.IsRunning()) {
         timer1.Stop();
+        _outputManager->StartFrame(0);
+        _outputManager->AllOff();
+        _outputManager->EndFrame();
         _outputManager->StopOutput();
     }
 }

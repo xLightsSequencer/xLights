@@ -164,6 +164,7 @@ private:
     wxTimer timer1;
     bool _oldOutputToLights = false;
     OutputManager* _outputManager = nullptr;
+    std::vector<uint32_t> _selected;
     bool m_creating_bound_rect = false;
     int m_bound_start_x = 0;
     int m_bound_start_y = 0;

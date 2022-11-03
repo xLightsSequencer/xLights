@@ -389,6 +389,9 @@ ModelFaceDialog::~ModelFaceDialog()
 	//(*Destroy(ModelFaceDialog)
 	//*)
 
+    if (_outputManager->IsOutputting()) {
+        _outputManager->StopOutput();
+    }
     if (_oldOutputToLights) {
         _outputManager->StartOutput();
     }
@@ -952,6 +955,8 @@ void ModelFaceDialog::GetValue(wxGrid *grid, const int row, const int col, std::
 
 void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
 {
+    _selected.clear();
+
     int nn = model->GetNodeCount();
     xlColor cb(xlDARK_GREY);
     xlColor cc(c);
@@ -959,7 +964,7 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
         model->modelDimmingCurve->apply(cb);
         model->modelDimmingCurve->apply(cc);
     }
-    for (int node = 0; node < nn; node++) {
+    for (int node = 0; node < nn; ++node) {
         model->SetNodeColor(node, cb);
     }
 
@@ -975,6 +980,7 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
                     wxString ns = model->GetNodeName(n, true);
                     if (ns == valstr) {
                         model->SetNodeColor(n, cc);
+                        _selected.push_back(n);
                     }
                 }
             }
@@ -986,6 +992,7 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
                 if (it < (int)model->GetNodeCount())
                 {
                     model->SetNodeColor(it, cc);
+                    _selected.push_back(it);
                 }
             }
         }
@@ -1919,44 +1926,10 @@ void ModelFaceDialog::ReverseFaceNodes()
 
 void ModelFaceDialog::OnTimer1Trigger(wxTimerEvent& event)
 {
-    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    if (name == "") {
-        return;
-    }
-
-    std::vector<uint32_t> nodes;
-    if (faceData[name]["Type"] == "SingleNode") {
-        int row = SingleNodeGrid->GetGridCursorRow();
-        if (row < 0)
-            return;
-
-        wxStringTokenizer wtkz(SingleNodeGrid->GetCellValue(row, CHANNEL_COL), ",");
-        while (wtkz.HasMoreTokens()) {
-            wxString valstr = wtkz.GetNextToken();
-            for (size_t n = 0; n < model->GetNodeCount(); n++) {
-                wxString ns = model->GetNodeName(n, true);
-                if (ns == valstr) {
-                    nodes.push_back(n);
-                }
-            }
-        }
-    } else if (faceData[name]["Type"] == "NodeRange") {
-        int row = NodeRangeGrid->GetGridCursorRow();
-        if (row < 0)
-            return;
-
-        std::list<int> ch = model->ParseFaceNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
-        for (const auto& it : ch) {
-            if (it < (int)model->GetNodeCount()) {
-                nodes.push_back(it);
-            }
-        }
-    }
-
     _outputManager->StartFrame(0);
     for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
         auto ch = model->NodeStartChannel(n);
-        if (std::find(begin(nodes), end(nodes), n) != end(nodes)) {
+        if (std::find(begin(_selected), end(_selected), n) != end(_selected)) {
             for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
                 _outputManager->SetOneChannel(ch++, 30);
             }
@@ -1983,6 +1956,9 @@ void ModelFaceDialog::StopOutputToLights()
 {
     if (timer1.IsRunning()) {
         timer1.Stop();
+        _outputManager->StartFrame(0);
+        _outputManager->AllOff();
+        _outputManager->EndFrame();
         _outputManager->StopOutput();
     }
 }

@@ -16,7 +16,7 @@
 #include <wx/listctrl.h>
 #include <wx/xml/xml.h>
 #include <wx/regex.h>
-
+#include <wx/timer.h>
 #include <glm/glm.hpp>
 
 //(*Headers(SubModelsDialog)
@@ -48,6 +48,7 @@ class xLightsFrame;
 class LayoutPanel;
 class ModelManager;
 class xlColor;
+class OutputManager;
 
 wxDECLARE_EVENT(EVT_SMDROP, wxCommandEvent);
 
@@ -110,9 +111,13 @@ class SubModelsDialog : public wxDialog
         std::vector<wxString> strands;
     };
 
-    Model *model;
-    ModelPreview *modelPreview;
-    SubBufferPanel *subBufferPanel;
+    wxTimer timer1;
+    bool _oldOutputToLights = false;
+    OutputManager* _outputManager = nullptr;
+    std::vector<uint32_t> _selected;
+    Model* model = nullptr;
+    ModelPreview *modelPreview = nullptr;
+    SubBufferPanel *subBufferPanel = nullptr;
     bool _isMatrix = false;
 
     bool m_creating_bound_rect;
@@ -122,12 +127,15 @@ class SubModelsDialog : public wxDialog
     int m_bound_end_y;
     int mPointSize;
 
+    void StartOutputToLights();
+    void StopOutputToLights();
+
 public:
     std::vector<SubModelInfo*> _subModels;
 
     bool ReloadLayout = false;
 
-    SubModelsDialog(wxWindow* parent);
+    SubModelsDialog(wxWindow* parent, OutputManager* outputManager);
     virtual ~SubModelsDialog();
 
     void Setup(Model *m);
@@ -150,6 +158,7 @@ public:
     wxButton* Button_SortRow;
     wxButton* DeleteButton;
     wxButton* DeleteRowButton;
+    wxCheckBox* CheckBox_OutputToLights;
     wxCheckBox* LayoutCheckbox;
     wxChoice* ChoiceBufferStyle;
     wxFlexGridSizer* PreviewSizer;
@@ -171,6 +180,7 @@ public:
 protected:
 
     //(*Identifiers(SubModelsDialog)
+    static const long ID_CHECKBOX2;
     static const long ID_STATICTEXT1;
     static const long ID_LISTCTRL_SUB_MODELS;
     static const long ID_SEARCHCTRL1;
@@ -203,6 +213,7 @@ protected:
     static const long ID_PANEL1;
     static const long ID_SPLITTERWINDOW1;
     //*)
+    static const long ID_TIMER1;
 
     static const long SUBMODEL_DIALOG_IMPORT_MODEL;
     static const long SUBMODEL_DIALOG_IMPORT_FILE;
@@ -252,7 +263,7 @@ protected:
     void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
     void DisplayRange(const wxString &range);
     void SelectRow(int r);
-    bool SetNodeColor(int row, xlColor const& c);
+    bool SetNodeColor(int row, xlColor const& c, bool highlight);
     void ClearNodeColor(Model* m);
     wxString ReverseRow(wxString row);
 
@@ -304,6 +315,7 @@ private:
     void OnButton_SearchClick(wxCommandEvent& event);
     void OnInit(wxInitDialogEvent& event);
     void OnNodesGridCellRightClick(wxGridEvent& event);
+    void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
     //*)
 
     void OnPreviewLeftUp(wxMouseEvent& event);
@@ -311,6 +323,7 @@ private:
     void OnPreviewLeftDown(wxMouseEvent& event);
     void OnPreviewLeftDClick(wxMouseEvent& event);
     void OnPreviewMouseMove(wxMouseEvent& event);
+    void OnTimer1Trigger(wxTimerEvent& event);
 
     void OnImportBtnPopup(wxCommandEvent& event);
     void OnEditBtnPopup(wxCommandEvent& event);

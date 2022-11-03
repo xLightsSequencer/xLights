@@ -104,13 +104,13 @@ private:
     void OnMatrixNameChoiceSelect(wxCommandEvent& event);
     void OnButtonMatrixAddClicked(wxCommandEvent& event);
     void OnButtonMatrixDeleteClick(wxCommandEvent& event);
-    void OnMatrixModelsGridCellLeftClick(wxGridEvent& event);
-    void OnMatrixModelsGridCellChange(wxGridEvent& event);
-    void OnMatricImagePlacementChoiceSelect(wxCommandEvent& event);
+    //void OnMatrixModelsGridCellLeftClick(wxGridEvent& event);
+    //void OnMatrixModelsGridCellChange(wxGridEvent& event);
+    //void OnMatricImagePlacementChoiceSelect(wxCommandEvent& event);
     void OnCustomColorCheckboxClick(wxCommandEvent& event);
     void OnNodeRangeGridCellChange(wxGridEvent& event);
     void OnSingleNodeGridCellChange(wxGridEvent& event);
-    void OnFaceTypeChoicePageChanged(wxChoicebookEvent& event);
+    //void OnFaceTypeChoicePageChanged(wxChoicebookEvent& event);
     void OnNodeRangeGridCellLeftDClick(wxGridEvent& event);
     void OnSingleNodeGridCellLeftDClick(wxGridEvent& event);
     void OnStateTypeChoicePageChanged(wxChoicebookEvent& event);
@@ -140,6 +140,7 @@ private:
     wxTimer timer1;
     bool _oldOutputToLights = false;
     OutputManager* _outputManager = nullptr;
+    std::vector<uint32_t> _selected;
     bool m_creating_bound_rect = false;
     int m_bound_start_x = 0;
     int m_bound_start_y = 0;
@@ -153,8 +154,8 @@ private:
     void SelectStateModel(const std::string& s);
     void UpdateStateType();
     void SelectRow(wxGrid* grid, int const row);
-    void SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c);
-    bool SetNodeColor(wxGrid* grid, int const row, xlColor const& c);
+    void SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c, bool highlight);
+    bool SetNodeColor(wxGrid* grid, int const row, xlColor const& c, bool highlight);
     void ClearNodeColor(Model* m);
     xlColor GetRowColor(wxGrid* grid, int const row, bool const prev, bool const force);
 
