@@ -55,7 +55,7 @@
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "CachedFileDownloader.h"
 
-#define MOST_STRINGS_WE_EXPECT 100
+#define MOST_STRINGS_WE_EXPECT 480
 
 const long Model::ID_LAYERSIZE_INSERT = wxNewId();
 const long Model::ID_LAYERSIZE_DELETE = wxNewId();
@@ -740,7 +740,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
                 wxString nm = StartChanAttrName(x);
                 ModelXml->DeleteAttribute(nm);
             }
-            wxASSERT(!ModelXml->HasAttribute(StartChanAttrName(MOST_STRINGS_WE_EXPECT))); // if this fires in debug then our magic 100 just isnt big enough
+            wxASSERT(!ModelXml->HasAttribute(StartChanAttrName(MOST_STRINGS_WE_EXPECT))); // if this fires in debug then our magic # just isnt big enough
         }
     }
 
@@ -893,7 +893,7 @@ void Model::ClearIndividualStartChannels()
     for (int x = 0; x < MOST_STRINGS_WE_EXPECT; ++x) {
         ModelXml->DeleteAttribute(StartChanAttrName(x));
     }
-    wxASSERT(!ModelXml->HasAttribute(StartChanAttrName(MOST_STRINGS_WE_EXPECT))); // if this fires then 100 is not the right magic number
+    wxASSERT(!ModelXml->HasAttribute(StartChanAttrName(MOST_STRINGS_WE_EXPECT))); // if this fires then # is not the right magic number
 }
 
 void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
@@ -4998,7 +4998,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
             GetModelScreenLocation().TranslatePoint(x2, y2, z2);
 
             glm::vec3 a = glm::vec3(x2, y2, z2) - glm::vec3(x1, y1, z1);
-            float length = std::max(std::max(a.x, a.y), a.z);
+            float length =std::max(std::max(std::abs(a.x), std::abs(a.y)), std::abs(a.z));
             modelPixelSize /= std::abs(length);
         }
 
