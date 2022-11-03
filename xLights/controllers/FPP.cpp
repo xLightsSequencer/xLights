@@ -2862,7 +2862,7 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
         }
         inst->pixelControllerType = inst->platformModel;
         SetControllerType(inst);
-    } else if (inst->typeId >= 0x80 && inst->typeId <= 0x0F) {
+    } else if (inst->typeId >= 0x80 && inst->typeId <= 0x8F) {
         //falcon range
         if (created) {
             inst->controller->SetProtocol(OUTPUT_E131);
