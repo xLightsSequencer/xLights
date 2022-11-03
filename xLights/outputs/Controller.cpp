@@ -73,7 +73,11 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
     ControllerNameVendorMap("SanDevices", "E6804 Firmware 4", "SanDevices", "E6804", "4.x Firmware"),
     ControllerNameVendorMap("SanDevices", "E6804 Firmware 5", "SanDevices", "E6804", "5.x Firmware"),
     ControllerNameVendorMap("SanDevices", "E682 Firmware 4", "SanDevices", "E682", "4.x Firmware"),
-    ControllerNameVendorMap("SanDevices", "E682 Firmware 5", "SanDevices", "E682", "5.x Firmware")
+    ControllerNameVendorMap("SanDevices", "E682 Firmware 5", "SanDevices", "E682", "5.x Firmware"),
+
+    ControllerNameVendorMap("Experience Lights", "Genius Pixel 16 Controller", "Experience Lights", "Genius Pixel 16"),
+    ControllerNameVendorMap("Experience Lights", "Genius Pixel 8 Controller", "Experience Lights", "Genius Pixel 8"),
+    ControllerNameVendorMap("Experience Lights", "Genius Long Range Controller", "Experience Lights", "Genius Long Range")
 };
 
 #pragma region Constructors and Destructors

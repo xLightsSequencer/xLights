@@ -2855,7 +2855,14 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
             inst->pixelControllerType = "ESP32";
         }
         SetControllerType(inst);
-    } else if (inst->typeId >= 0x80 && inst->typeId <= 0xCF) {
+    } else if (inst->typeId >= 0xA0 && inst->typeId <= 0xAF) {
+        //Experence Lights
+        if (inst->controller->GetProtocol() != OUTPUT_DDP) {
+            inst->controller->SetProtocol(OUTPUT_DDP);
+        }
+        inst->pixelControllerType = inst->platformModel;
+        SetControllerType(inst);
+    } else if (inst->typeId >= 0x80 && inst->typeId <= 0x0F) {
         //falcon range
         if (created) {
             inst->controller->SetProtocol(OUTPUT_E131);
