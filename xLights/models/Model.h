@@ -202,7 +202,7 @@ public:
     virtual void AddControllerProperties(wxPropertyGridInterface* grid);
     virtual void UpdateControllerProperties(wxPropertyGridInterface* grid);
     virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) {};
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid) override {};
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override{};
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {};
     virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) override;
     virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;

@@ -63,7 +63,7 @@ void DmxModel::InitRenderBufferNodes(const std::string& type, const std::string&
     }
 }
 
-void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
     wxPGProperty* p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", parm1));
     p->SetAttribute("Min", 1);

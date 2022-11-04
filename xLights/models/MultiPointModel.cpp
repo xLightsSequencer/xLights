@@ -186,7 +186,7 @@ void MultiPointModel::InitLine() {
         idx++;
     }
 }
-void MultiPointModel::AddTypeProperties(wxPropertyGridInterface* grid)
+void MultiPointModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
     wxPGProperty* p;
     if (SingleNode) {

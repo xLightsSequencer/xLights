@@ -104,7 +104,8 @@ enum DMX_STYLE {
     DMX_STYLE_MOVING_HEAD_3D
 };
 
-void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface *grid) {
+void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
     if (DMX_STYLES.GetCount() == 0) {
         DMX_STYLES.Add("Moving Head Top");
         DMX_STYLES.Add("Moving Head Side");
@@ -116,7 +117,7 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     grid->Append(new wxEnumProperty("DMX Style", "DmxStyle", DMX_STYLES, dmx_style_val));
 
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     wxPGProperty* p = grid->Append(new wxBoolProperty("Hide Body", "HideBody", hide_body));
     p->SetAttribute("UseCheckbox", true);

@@ -53,7 +53,7 @@ void ViewObject::AddProperties(wxPropertyGridInterface *grid, OutputManager* out
     p = grid->Append(new wxBoolProperty("Active", "Active", IsActive()));
     p->SetAttribute("UseCheckbox", true);
 
-    AddTypeProperties(grid);
+    AddTypeProperties(grid, outputManager);
 
     //int layout_group_number = 0;
     //for( int grp=0; grp < LAYOUT_GROUPS.Count(); grp++)

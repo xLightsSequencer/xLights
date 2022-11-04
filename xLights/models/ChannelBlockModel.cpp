@@ -41,7 +41,8 @@ const std::vector<std::string> &ChannelBlockModel::GetBufferStyles() const {
     return LINE_BUFFER_STYLES;
 }
 
-void ChannelBlockModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void ChannelBlockModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Channels", "ChannelBlockCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 64);

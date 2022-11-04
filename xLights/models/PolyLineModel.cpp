@@ -898,7 +898,7 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
 static const char* LEFT_RIGHT_VALUES[] = { "Green Square", "Blue Square" };
 static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES)); 
 
-void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid)
+void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
     wxPGProperty* p;
     if (SingleNode) {

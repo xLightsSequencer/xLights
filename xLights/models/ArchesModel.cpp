@@ -49,7 +49,7 @@ static const char* LEFT_RIGHT_INSIDE_OUTSIDE_VALUES[] = {
 };
 static wxPGChoices LEFT_RIGHT_INSIDE_OUTSIDE(wxArrayString(4, LEFT_RIGHT_INSIDE_OUTSIDE_VALUES));
 
-void ArchesModel::AddTypeProperties(wxPropertyGridInterface* grid)
+void ArchesModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
     wxPGProperty* p = grid->Append(new wxBoolProperty("Layered Arches", "LayeredArches", GetLayerSizeCount() != 0));
     p->SetEditor("CheckBox");

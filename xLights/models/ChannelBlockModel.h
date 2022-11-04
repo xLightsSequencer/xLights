@@ -25,7 +25,7 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
                                            std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep = false) const override;
         virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override {}
         virtual std::string GetDimension() const override { return ""; }
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) override;

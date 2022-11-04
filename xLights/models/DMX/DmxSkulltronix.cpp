@@ -90,9 +90,9 @@ public:
     }
 };
 
-void DmxSkulltronix::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxSkulltronix::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     AddPanTiltTypeProperties(grid);
 

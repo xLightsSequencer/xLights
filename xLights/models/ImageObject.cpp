@@ -52,7 +52,8 @@ void ImageObject::InitModel() {
     screenLocation.SetRenderSize(width, height, 10.0f);
 }
 
-void ImageObject::AddTypeProperties(wxPropertyGridInterface *grid) {
+void ImageObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
 	wxPGProperty *p = grid->Append(new wxImageFileProperty("Image",
                                              "Image",
                                              _imageFile));

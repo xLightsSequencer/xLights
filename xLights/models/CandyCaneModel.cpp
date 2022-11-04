@@ -35,7 +35,8 @@ static const char *LEFT_RIGHT_VALUES[] = {
 };
 static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
 
-void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Canes", "CandyCaneCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 20);

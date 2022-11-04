@@ -45,7 +45,7 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual std::string ChannelLayoutHtml(OutputManager * outputManager) override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     protected:

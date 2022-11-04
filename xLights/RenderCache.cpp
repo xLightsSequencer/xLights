@@ -651,7 +651,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
 
     size_t totFramesSize = buffer->curEffEndPer - buffer->curEffStartPer + 1;
     totFramesSize *= _frameSize[mname];
-    constexpr size_t MAX = 4l * 1024 * 1024 * 1024;
+    constexpr size_t MAX = 4LL * 1024LL * 1024LL * 1024LL;
     if (totFramesSize > MAX) {
         // more that 4GB in size, we're not going to cache this effect
         PurgeFrames();

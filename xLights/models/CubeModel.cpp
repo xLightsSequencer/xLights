@@ -131,7 +131,8 @@ int CubeModel::CalcTransformationIndex() const
     return (GetStartIndex() * CUBE_STYLES.GetCount()) + (horizontal << 1) + (stacked << 2) + leftright;
 }
 
-void CubeModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void CubeModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
     grid->Append(new wxEnumProperty("Starting Location", "CubeStart", TOP_BOT_LEFT_RIGHT, GetStartIndex()));
     grid->Append(new wxEnumProperty("Direction", "CubeStyle", CUBE_STYLES, GetStyleIndex()));
     grid->Append(new wxEnumProperty("Strand Style", "StrandPerLine", STRAND_STYLES, GetStrandStyleIndex()));

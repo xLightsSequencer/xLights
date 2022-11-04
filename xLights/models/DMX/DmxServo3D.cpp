@@ -191,9 +191,9 @@ protected:
 
 static wxPGChoices MOTION_LINKS;
 
-void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     wxPGProperty* p = grid->Append(new ServoPopupDialogProperty(this, "Servo Config", "ServoConfig", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);

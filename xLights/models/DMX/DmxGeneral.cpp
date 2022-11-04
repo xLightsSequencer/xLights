@@ -33,9 +33,9 @@ DmxGeneral::~DmxGeneral()
     //dtor
 }
 
-void DmxGeneral::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxGeneral::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     if (nullptr != color_ability) {
         color_ability->AddColorTypeProperties(grid);

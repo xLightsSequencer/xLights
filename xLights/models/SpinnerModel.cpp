@@ -153,7 +153,7 @@ int SpinnerModel::EncodeStartLocation()
     }
 }
 
-void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) {
     
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "SpinnerStringCount", parm1));
     p->SetAttribute("Min", 1);

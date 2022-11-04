@@ -4958,7 +4958,7 @@ void LayoutPanel::EditModelData()
     md->SaveDisplayDimensions();
     auto oldAutoSave = md->GetModelManager().GetXLightsFrame()->_suspendAutoSave;
     md->GetModelManager().GetXLightsFrame()->_suspendAutoSave = true; // because we will tamper with model we need to suspend autosave
-    CustomModelDialog dlg(this);
+    CustomModelDialog dlg(this, &xlights->_outputManager);
     dlg.Setup(md);
     if (dlg.ShowModal() == wxID_OK) {
         dlg.Save(md);

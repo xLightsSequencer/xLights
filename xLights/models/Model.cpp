@@ -668,7 +668,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     wxPGProperty* p;
     grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
 
-    AddTypeProperties(grid);
+    AddTypeProperties(grid, outputManager);
 
     if (SupportsLowDefinitionRender()) {
         p = grid->Append(new wxUIntProperty("Low Definition Factor", "LowDefinition", _lowDefFactor));

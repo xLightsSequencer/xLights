@@ -416,7 +416,8 @@ static const char* CLOCKWISE_ANTI_VALUES[] = {
 };
 static wxPGChoices CLOCKWISE_ANTI(wxArrayString(2, CLOCKWISE_ANTI_VALUES));
 
-void WindowFrameModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void WindowFrameModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Lights Top", "WFTopCount", parm1));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 1000);

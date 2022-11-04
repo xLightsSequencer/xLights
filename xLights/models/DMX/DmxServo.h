@@ -27,7 +27,7 @@ public:
                                       float *boundingBox = nullptr) override;
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual std::list<std::string> CheckModelSettings() override;
 

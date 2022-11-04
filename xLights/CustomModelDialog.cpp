@@ -46,6 +46,7 @@
 #include "ModelPreview.h"
 #include "outputs/TwinklyOutput.h"
 #include "Discovery.h"
+#include "outputs/OutputManager.h"
 
 //(*IdInit(CustomModelDialog)
 const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
@@ -55,6 +56,7 @@ const long CustomModelDialog::ID_SPINCTRL3 = wxNewId();
 const long CustomModelDialog::ID_CHECKBOX1 = wxNewId();
 const long CustomModelDialog::ID_BUTTON3 = wxNewId();
 const long CustomModelDialog::ID_CHECKBOX_SHOW_DUPS = wxNewId();
+const long CustomModelDialog::ID_CHECKBOX2 = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_CUT = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_COPY = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_PASTE = wxNewId();
@@ -116,6 +118,7 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREHORIZONTALLEFT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREVERTICALTOP = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREVERTICALBOTTOM = wxNewId();
+const long CustomModelDialog::ID_TIMER1 = wxNewId();
 
 wxDEFINE_EVENT(EVT_GRID_KEY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SWITCH_GRID, wxCommandEvent);
@@ -307,14 +310,14 @@ class CopyPasteGrid : public wxGrid
     }
 };
 
-CustomModelDialog::CustomModelDialog(wxWindow* parent)
-: background_image(""),
+CustomModelDialog::CustomModelDialog(wxWindow* parent, OutputManager* om) : background_image(""),
   bkg_image(nullptr),
   bkgrd_active(true),
   lightness(80),
   autonumber(false),
   autoincrement(false),
-  next_channel(1)
+  next_channel(1),
+    _outputManager(om)
 {
 	//(*Initialize(CustomModelDialog)
 	wxFlexGridSizer* FlexGridSizer11;
@@ -369,7 +372,10 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer8->Add(ButtonWiring, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Show_Duplicates = new wxCheckBox(this, ID_CHECKBOX_SHOW_DUPS, _("Show Duplicate Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_SHOW_DUPS"));
 	CheckBox_Show_Duplicates->SetValue(false);
-	FlexGridSizer8->Add(CheckBox_Show_Duplicates, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(CheckBox_Show_Duplicates, 1, wxALL|wxEXPAND, 5);
+	CheckBox_OutputToLights = new wxCheckBox(this, ID_CHECKBOX2, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CheckBox_OutputToLights->SetValue(false);
+	FlexGridSizer8->Add(CheckBox_OutputToLights, 1, wxALL|wxEXPAND, 5);
 	Sizer2->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 7, 0, 0);
 	BitmapButtonCustomCut = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_CUT, wxArtProvider::GetBitmapBundle("wxART_CUT", wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_CUT"));
@@ -472,6 +478,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnCheckBox_ShowWiringClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButtonWiringClick);
 	Connect(ID_CHECKBOX_SHOW_DUPS,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnCheckBox_Show_DuplicatesClick);
+	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnCheckBox_OutputToLightsClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCutClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCopyClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomPasteClick);
@@ -510,6 +517,11 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
     Layout();
 
     ValidateWindow();
+
+    _oldOutputToLights = _outputManager->IsOutputting();
+    if (_oldOutputToLights) {
+        _outputManager->StopOutput();
+    }
 }
 
 CustomModelDialog::~CustomModelDialog()
@@ -528,6 +540,11 @@ CustomModelDialog::~CustomModelDialog()
 
 	if( bkg_image != nullptr ) {
         delete bkg_image;
+    }
+
+    StopOutputToLights();
+    if (_oldOutputToLights) {
+        _outputManager->StartOutput();
     }
 }
 
@@ -563,7 +580,6 @@ void CustomModelDialog::UpdatePreview()
 
 void CustomModelDialog::Setup(CustomModel* m)
 {
-
     _model = m;
     _modelPreview->SetModel(m, CheckBox_ShowWiring->IsChecked(), true);
     name = m->GetName();
@@ -668,7 +684,7 @@ void CustomModelDialog::ResizeCustomGrid()
 {
     CheckBox_Show_Duplicates->SetValue(false);
     ClearDupNodes();
-    
+
     int numCols = WidthSpin->GetValue();
     int numRows = HeightSpin->GetValue();
     int numLayers = SpinCtrl_Depth->GetValue();
@@ -3235,7 +3251,7 @@ void CustomModelDialog::OnCheckBox_Show_DuplicatesClick(wxCommandEvent& event)
     } else {
         ClearDupNodes();
     }
-    
+
 }
 
 void CustomModelDialog::DrawDupNodes()
@@ -3248,7 +3264,7 @@ void CustomModelDialog::DrawDupNodes()
         std::vector<wxPoint> pts;
         _model->GetNodeCoords(ii, pts);
         if (pts.size() > 1) {
-            for (auto const& pt : pts) 
+            for (auto const& pt : pts)
             {
                 int const x{ pt.x - (numCols * layer) };
                 int const y{ (int)_model->GetCustomHeight() - (pt.y) - 1 };
@@ -3272,4 +3288,57 @@ void CustomModelDialog::ClearDupNodes()
     }
     grid->Refresh();
     _dup_pts.clear();
+}
+
+void CustomModelDialog::OnTimer1Trigger(wxTimerEvent& event)
+{
+    wxASSERT(_outputManager->IsOutputting());
+    _outputManager->StartFrame(0);
+    auto grid = GetActiveGrid();
+    auto value = grid->GetCellValue(grid->GetGridCursorRow(), grid->GetGridCursorCol());
+    auto v = -1;
+    if (value != "") {
+        v = wxAtoi(value) - 1;
+    }
+    for (uint32_t ch = _model->GetFirstChannel(); ch <= _model->GetLastChannel(); ++ch) {
+        auto n = (ch - _model->GetFirstChannel()) / _model->GetChanCountPerNode();
+        if (v != -1 && v == n) {
+            _outputManager->SetOneChannel(ch, 30);
+        } else {
+            _outputManager->SetOneChannel(ch, 0);
+        }
+    }
+    _outputManager->EndFrame();
+}
+
+void CustomModelDialog::StartOutputToLights()
+{
+    if (!timer1.IsRunning()) {
+        _outputManager->StartOutput();
+        timer1.SetOwner(this, ID_TIMER1);
+        Connect(ID_TIMER1, wxEVT_TIMER, (wxObjectEventFunction)&CustomModelDialog::OnTimer1Trigger);
+        timer1.Start(50, false);
+    }
+}
+
+bool CustomModelDialog::StopOutputToLights()
+{
+    if (timer1.IsRunning()) {
+        timer1.Stop();
+        _outputManager->StartFrame(0);
+        _outputManager->AllOff();
+        _outputManager->EndFrame();
+        _outputManager->StopOutput();
+        return true;
+    }
+    return false;
+}
+
+void CustomModelDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
+{
+    if (CheckBox_OutputToLights->IsChecked()) {
+        StartOutputToLights();
+    } else {
+        StopOutputToLights();
+    }
 }

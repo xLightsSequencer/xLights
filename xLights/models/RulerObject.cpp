@@ -52,7 +52,8 @@ static const char *UNITS_VALUES[] = {
     "Inches"};
 static wxArrayString RULER_UNITS(6, UNITS_VALUES);
 
-void RulerObject::AddTypeProperties(wxPropertyGridInterface *grid) {
+void RulerObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
 
 	wxPGProperty* p = grid->Append(new wxEnumProperty("Units", "Units", RULER_UNITS, wxArrayInt(), _units));
 

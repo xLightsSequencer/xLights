@@ -100,7 +100,8 @@ static const char* CIRCLE_START_LOCATION_VALUES[] = {
 
 static wxPGChoices CIRCLE_START_LOCATION(wxArrayString(8, CIRCLE_START_LOCATION_VALUES));
 
-void CircleModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void CircleModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
 
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", parm1));
     p->SetAttribute("Min", 1);

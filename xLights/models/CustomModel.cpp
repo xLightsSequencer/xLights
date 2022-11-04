@@ -44,8 +44,8 @@ static const std::string CLICK_TO_EDIT("--Click To Edit--");
 class CustomModelDialogAdapter : public wxPGEditorDialogAdapter
 {
 public:
-    CustomModelDialogAdapter(CustomModel* model)
-        : wxPGEditorDialogAdapter(), m_model(model)
+    CustomModelDialogAdapter(CustomModel* model, OutputManager* om) :
+        wxPGEditorDialogAdapter(), m_model(model), _outputManager(om)
     {
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
@@ -54,7 +54,7 @@ public:
         m_model->SaveDisplayDimensions();
         auto oldAutoSave = m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave;
         m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave = true; // because we will tamper with model we need to suspend autosave
-        CustomModelDialog dlg(propGrid);
+        CustomModelDialog dlg(propGrid, _outputManager);
         dlg.Setup(m_model);
         bool res = false;
         if (dlg.ShowModal() == wxID_OK) {
@@ -74,18 +74,19 @@ public:
         return res;
     }
 protected:
-    CustomModel* m_model;
+    CustomModel* m_model = nullptr;
+    OutputManager* _outputManager = nullptr;
 };
-
 
 class CustomModelProperty : public wxStringProperty
 {
 public:
     CustomModelProperty(CustomModel* m,
+        OutputManager* om,
         const wxString& label,
         const wxString& name,
-        const wxString& value)
-        : wxStringProperty(label, name, value), m_model(m)
+        const wxString& value) :
+        wxStringProperty(label, name, value), m_model(m), _outputManager(om)
     {
     }
     // Set editor to have button
@@ -96,15 +97,16 @@ public:
     // Set what happens on button click
     virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
     {
-        return new CustomModelDialogAdapter(m_model);
+        return new CustomModelDialogAdapter(m_model, _outputManager);
     }
 protected:
-    CustomModel* m_model;
+    CustomModel* m_model = nullptr;
+    OutputManager* _outputManager = nullptr;
 };
 
-void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid)
+void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    wxPGProperty* p = grid->Append(new CustomModelProperty(this, "Model Data", "CustomData", CLICK_TO_EDIT));
+    wxPGProperty* p = grid->Append(new CustomModelProperty(this, outputManager, "Model Data", "CustomData", CLICK_TO_EDIT));
     grid->LimitPropertyEditing(p);
 
     p = grid->Append(new wxUIntProperty("# Strings", "CustomModelStrings", _strings));

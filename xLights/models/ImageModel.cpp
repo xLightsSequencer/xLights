@@ -81,7 +81,8 @@ void ImageModel::InitRenderBufferNodes(const std::string &type, const std::strin
     newNodes.push_back(NodeBaseClassPtr(node));
 }
 
-void ImageModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void ImageModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
 	wxPGProperty *p = grid->Append(new wxImageFileProperty("Image",
                                              "Image",
                                              _imageFile));

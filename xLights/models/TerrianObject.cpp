@@ -83,7 +83,8 @@ void TerrianObject::InitModel() {
     num_points = num_points_wide * num_points_deep;
 }
 
-void TerrianObject::AddTypeProperties(wxPropertyGridInterface *grid) {
+void TerrianObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
     wxPGProperty* p = grid->Append(new wxImageFileProperty("Image",
         "Image",
         _imageFile));

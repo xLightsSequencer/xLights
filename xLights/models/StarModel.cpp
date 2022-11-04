@@ -529,7 +529,8 @@ static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = {
 
 static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(12, TOP_BOT_LEFT_RIGHT_VALUES));
 
-void StarModel::AddTypeProperties(wxPropertyGridInterface* grid) {
+void StarModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
     wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
