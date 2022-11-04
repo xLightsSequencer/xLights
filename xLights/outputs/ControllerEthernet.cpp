@@ -1219,7 +1219,9 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         }
     }
 
-    if (_outputs.size() == 1) {
+    if (_outputs.size() == 0) {
+    }
+    else if (_outputs.size() == 1) {
         if (_outputs.front()->HandlePropertyEvent(event, outputModelManager)) return true;
     }
     else {

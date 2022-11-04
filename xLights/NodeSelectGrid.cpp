@@ -31,6 +31,7 @@
 #include "models/CustomModel.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
+#include "outputs/OutputManager.h"
 
 //(*IdInit(NodeSelectGrid)
 const long NodeSelectGrid::ID_CHECKBOX1 = wxNewId();
@@ -43,11 +44,13 @@ const long NodeSelectGrid::ID_BUTTON_ZOOM_MINUS = wxNewId();
 const long NodeSelectGrid::ID_FILEPICKERCTRL1 = wxNewId();
 const long NodeSelectGrid::ID_SLIDER_IMG_BRIGHTNESS = wxNewId();
 const long NodeSelectGrid::ID_BITMAPBUTTON1 = wxNewId();
+const long NodeSelectGrid::ID_CHECKBOX2 = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_NODE_SELECT_OK = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_NODE_SELECT_CANCEL = wxNewId();
 const long NodeSelectGrid::ID_GRID_NODES = wxNewId();
 const long NodeSelectGrid::ID_TEXTCTRL1 = wxNewId();
 //*)
+const long NodeSelectGrid::ID_TIMER1 = wxNewId();
 
 const long NodeSelectGrid::NODESELECT_CUT = wxNewId();
 const long NodeSelectGrid::NODESELECT_COPY = wxNewId();
@@ -190,13 +193,13 @@ public:
 };
 
 //overloading constructor
-NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, const wxString& row, wxWindow* parent, wxWindowID id)
-    : NodeSelectGrid(multiline, title, m, std::vector<wxString>(1, row), parent, id)
+NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, const wxString& row, OutputManager* om, wxWindow* parent, wxWindowID id)
+    : NodeSelectGrid(multiline, title, m, std::vector<wxString>(1, row), om, parent, id)
 {
 }
 
-NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString& title, Model* m, const std::vector<wxString>& rows, wxWindow* parent, wxWindowID id) :
-    model(m)
+NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString& title, Model* m, const std::vector<wxString>& rows, OutputManager* om, wxWindow* parent, wxWindowID id) :
+    model(m), _outputManager(om)
 {
     unselectColor = wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT);
     unselectBackColor = wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX);
@@ -224,9 +227,9 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString& title, Model* m, 
     wxStaticBoxSizer* StaticBoxSizer2;
     wxStaticBoxSizer* StaticBoxSizer3;
 
-    Create(parent, wxID_ANY, _("Select Nodes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxCLOSE_BOX | wxMAXIMIZE_BOX | wxMINIMIZE_BOX, _T("wxID_ANY"));
-    SetClientSize(wxDLG_UNIT(parent, wxSize(432, 192)));
-    SetMinSize(wxSize(-1, -1));
+    Create(parent, wxID_ANY, _("Select Nodes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxMINIMIZE_BOX, _T("wxID_ANY"));
+    SetClientSize(wxDLG_UNIT(parent,wxSize(432,192)));
+    SetMinSize(wxSize(-1,-1));
     wxFlexSizerMain = new wxFlexGridSizer(0, 2, 0, 0);
     wxFlexSizerMain->AddGrowableCol(1);
     wxFlexSizerMain->AddGrowableRow(0);
@@ -235,76 +238,81 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString& title, Model* m, 
     FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
     CheckBox_OrderedSelection = new wxCheckBox(this, ID_CHECKBOX1, _("Ordered Selection"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     CheckBox_OrderedSelection->SetValue(false);
-    FlexGridSizer5->Add(CheckBox_OrderedSelection, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer5->Add(CheckBox_OrderedSelection, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
     ButtonSelectAll = new wxButton(this, ID_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL"));
-    FlexGridSizer3->Add(ButtonSelectAll, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer3->Add(ButtonSelectAll, 1, wxALL|wxEXPAND, 5);
     ButtonSelectNone = new wxButton(this, ID_BUTTON_SELECT_NONE, _("Select None"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_NONE"));
-    FlexGridSizer3->Add(ButtonSelectNone, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer3->Add(ButtonSelectNone, 1, wxALL|wxEXPAND, 5);
     ButtonInvertSelect = new wxButton(this, ID_BUTTON_INVERT_SELECT, _("Invert"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_INVERT_SELECT"));
-    FlexGridSizer3->Add(ButtonInvertSelect, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(ButtonInvertSelect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonLoadModel = new wxButton(this, ID_BUTTON_LOAD_MODEL, _("From Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LOAD_MODEL"));
-    FlexGridSizer3->Add(ButtonLoadModel, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer5->Add(FlexGridSizer3, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    StaticBoxSizer3->Add(FlexGridSizer5, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer4->Add(StaticBoxSizer3, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(ButtonLoadModel, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer5->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticBoxSizer3->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(StaticBoxSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Zoom"));
     ButtonZoomPlus = new wxButton(this, ID_BUTTON_ZOOM_PLUS, _("+"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ZOOM_PLUS"));
-    StaticBoxSizer2->Add(ButtonZoomPlus, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    StaticBoxSizer2->Add(ButtonZoomPlus, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonZoomMinus = new wxButton(this, ID_BUTTON_ZOOM_MINUS, _("-"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ZOOM_MINUS"));
-    StaticBoxSizer2->Add(ButtonZoomMinus, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer4->Add(StaticBoxSizer2, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    StaticBoxSizer2->Add(ButtonZoomMinus, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(StaticBoxSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, this, _("Background Image"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
-    FilePickerCtrl1 = new ImageFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
-    FlexGridSizer1->Add(FilePickerCtrl1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FilePickerCtrl1 = new ImageFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
+    FlexGridSizer1->Add(FilePickerCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SliderImgBrightness = new wxSlider(this, ID_SLIDER_IMG_BRIGHTNESS, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_IMG_BRIGHTNESS"));
-    FlexGridSizer1->Add(SliderImgBrightness, 1, wxALL | wxEXPAND, 2);
-    BitmapButton1 = new wxBitmapButton(this, ID_BITMAPBUTTON1, wxArtProvider::GetBitmapBundle("wxART_FIND", wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
-    FlexGridSizer1->Add(BitmapButton1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    StaticBoxSizer1->Add(FlexGridSizer1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxSHAPED | wxFIXED_MINSIZE, 0);
-    FlexGridSizer4->Add(StaticBoxSizer1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(SliderImgBrightness, 1, wxALL|wxEXPAND, 2);
+    BitmapButton1 = new wxBitmapButton(this, ID_BITMAPBUTTON1,  wxArtProvider::GetBitmapBundle("wxART_FIND", wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
+    FlexGridSizer1->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticBoxSizer1->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxSHAPED|wxFIXED_MINSIZE, 0);
+    FlexGridSizer4->Add(StaticBoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_OutputToLights = new wxCheckBox(this, ID_CHECKBOX2, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+    CheckBox_OutputToLights->SetValue(false);
+    FlexGridSizer4->Add(CheckBox_OutputToLights, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
     ButtonNodeSelectOK = new wxButton(this, ID_BUTTON_NODE_SELECT_OK, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NODE_SELECT_OK"));
-    BoxSizer1->Add(ButtonNodeSelectOK, 1, wxALL | wxEXPAND | wxFIXED_MINSIZE, 5);
+    BoxSizer1->Add(ButtonNodeSelectOK, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
     ButtonNodeSelectCancel = new wxButton(this, ID_BUTTON_NODE_SELECT_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NODE_SELECT_CANCEL"));
-    BoxSizer1->Add(ButtonNodeSelectCancel, 1, wxALL | wxEXPAND | wxFIXED_MINSIZE, 5);
+    BoxSizer1->Add(ButtonNodeSelectCancel, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
     FlexGridSizer4->Add(BoxSizer1, 0, wxALL, 5);
-    wxFlexSizerMain->Add(FlexGridSizer4, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    wxFlexSizerMain->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer2 = new wxBoxSizer(wxVERTICAL);
     GridNodes = new DrawGrid(this, ID_GRID_NODES, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID_NODES"));
-    GridNodes->CreateGrid(1, 1);
+    GridNodes->CreateGrid(1,1);
     GridNodes->EnableEditing(false);
     GridNodes->EnableGridLines(true);
     GridNodes->SetColLabelSize(20);
     GridNodes->SetRowLabelSize(30);
     GridNodes->SetDefaultColSize(30, true);
-    GridNodes->SetDefaultCellFont(GridNodes->GetFont());
-    GridNodes->SetDefaultCellTextColour(GridNodes->GetForegroundColour());
-    BoxSizer2->Add(GridNodes, 1, wxALL | wxEXPAND, 5);
+    GridNodes->SetDefaultCellFont( GridNodes->GetFont() );
+    GridNodes->SetDefaultCellTextColour( GridNodes->GetForegroundColour() );
+    BoxSizer2->Add(GridNodes, 1, wxALL|wxEXPAND, 5);
     TextCtrl_Nodes = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-    BoxSizer2->Add(TextCtrl_Nodes, 0, wxALL | wxEXPAND, 5);
-    wxFlexSizerMain->Add(BoxSizer2, 1, wxALL | wxEXPAND, 5);
+    BoxSizer2->Add(TextCtrl_Nodes, 0, wxALL|wxEXPAND, 5);
+    wxFlexSizerMain->Add(BoxSizer2, 1, wxALL|wxEXPAND, 5);
+    SetSizer(wxFlexSizerMain);
     SetSizer(wxFlexSizerMain);
     Layout();
 
-    Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&NodeSelectGrid::OnCheckBox_OrderedSelectionClick);
-    Connect(ID_BUTTON_SELECT_ALL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&NodeSelectGrid::OnButtonSelectAllClick);
-    Connect(ID_BUTTON_SELECT_NONE, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&NodeSelectGrid::OnButtonSelectNoneClick);
-    Connect(ID_BUTTON_INVERT_SELECT, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&NodeSelectGrid::OnButtonInvertSelectClick);
-    Connect(ID_BUTTON_LOAD_MODEL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&NodeSelectGrid::OnButtonLoadModelClick);
-    Connect(ID_BUTTON_ZOOM_PLUS, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&NodeSelectGrid::OnButtonZoomPlusClick);
-    Connect(ID_BUTTON_ZOOM_MINUS, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&NodeSelectGrid::OnButtonZoomMinusClick);
-    Connect(ID_FILEPICKERCTRL1, wxEVT_COMMAND_FILEPICKER_CHANGED, (wxObjectEventFunction)&NodeSelectGrid::OnFilePickerCtrl1FileChanged);
-    Connect(ID_SLIDER_IMG_BRIGHTNESS, wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&NodeSelectGrid::OnSliderImgBrightnessCmdScroll);
-    Connect(ID_BITMAPBUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&NodeSelectGrid::OnBitmapButton1Click);
-    Connect(ID_BUTTON_NODE_SELECT_OK, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&NodeSelectGrid::OnButtonNodeSelectOKClick);
-    Connect(ID_BUTTON_NODE_SELECT_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&NodeSelectGrid::OnButtonNodeSelectCancelClick);
-    Connect(ID_GRID_NODES, wxEVT_GRID_CELL_RIGHT_CLICK, (wxObjectEventFunction)&NodeSelectGrid::OnGridNodesCellRightClick);
-    Connect(ID_GRID_NODES, wxEVT_GRID_CELL_LEFT_DCLICK, (wxObjectEventFunction)&NodeSelectGrid::OnGridNodesCellLeftDClick);
-    Connect(ID_GRID_NODES, wxEVT_GRID_CELL_RIGHT_DCLICK, (wxObjectEventFunction)&NodeSelectGrid::OnGridNodesCellRightDClick);
-    Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&NodeSelectGrid::OnTextCtrl_NodesText);
+    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnCheckBox_OrderedSelectionClick);
+    Connect(ID_BUTTON_SELECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonSelectAllClick);
+    Connect(ID_BUTTON_SELECT_NONE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonSelectNoneClick);
+    Connect(ID_BUTTON_INVERT_SELECT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonInvertSelectClick);
+    Connect(ID_BUTTON_LOAD_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonLoadModelClick);
+    Connect(ID_BUTTON_ZOOM_PLUS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonZoomPlusClick);
+    Connect(ID_BUTTON_ZOOM_MINUS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonZoomMinusClick);
+    Connect(ID_FILEPICKERCTRL1,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&NodeSelectGrid::OnFilePickerCtrl1FileChanged);
+    Connect(ID_SLIDER_IMG_BRIGHTNESS,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&NodeSelectGrid::OnSliderImgBrightnessCmdScroll);
+    Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnBitmapButton1Click);
+    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnCheckBox_OutputToLightsClick);
+    Connect(ID_BUTTON_NODE_SELECT_OK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonNodeSelectOKClick);
+    Connect(ID_BUTTON_NODE_SELECT_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonNodeSelectCancelClick);
+    Connect(ID_GRID_NODES,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&NodeSelectGrid::OnGridNodesCellRightClick);
+    Connect(ID_GRID_NODES,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&NodeSelectGrid::OnGridNodesCellLeftDClick);
+    Connect(ID_GRID_NODES,wxEVT_GRID_CELL_RIGHT_DCLICK,(wxObjectEventFunction)&NodeSelectGrid::OnGridNodesCellRightDClick);
+    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&NodeSelectGrid::OnTextCtrl_NodesText);
     //*)
 
     Connect(wxEVT_SIZE, (wxObjectEventFunction)&NodeSelectGrid::OnResize);
@@ -393,6 +401,8 @@ NodeSelectGrid::~NodeSelectGrid()
     SaveInt("xLightsNodeSelectDialogZoom", font.GetPointSize());
 	//(*Destroy(NodeSelectGrid)
 	//*)
+
+    StopOutputToLights();
 }
 
 void NodeSelectGrid::LoadGrid(const std::vector<wxString>& rows)
@@ -440,8 +450,7 @@ void NodeSelectGrid::LoadGrid(const std::vector<wxString>& rows)
             GridNodes->SetCellValue(maxy - pts[0].y, pts[0].x - minx, wxString::Format("%i", i + 1));
             if (std::find(prevValue.begin(), prevValue.end(), i) != prevValue.end())
             {
-                GridNodes->SetCellTextColour(maxy - pts[0].y, pts[0].x - minx, selectColor);
-                GridNodes->SetCellBackgroundColour(maxy - pts[0].y, pts[0].x - minx, selectBackColor);
+                SelectNode(true, maxy - pts[0].y, pts[0].x - minx, wxAtoi(GridNodes->GetCellValue(maxy - pts[0].y, pts[0].x - minx)));
             }
         }
     }
@@ -486,8 +495,7 @@ void NodeSelectGrid::OnButtonSelectAllClick(wxCommandEvent& event)
         for (auto y = 0; y < GridNodes->GetNumberRows(); ++y) {
             const wxString value = GridNodes->GetCellValue(y, x);
             if (!value.IsNull() && !value.IsEmpty()) {
-                GridNodes->SetCellTextColour(y, x, selectColor);
-                GridNodes->SetCellBackgroundColour(y, x, selectBackColor);
+                SelectNode(true, y, x, wxAtoi(value));
             }
         }
     }
@@ -503,8 +511,7 @@ void NodeSelectGrid::OnButtonSelectNoneClick(wxCommandEvent& event)
         for (auto y = 0; y < GridNodes->GetNumberRows(); ++y) {
             const wxString value = GridNodes->GetCellValue(y, x);
             if (!value.IsNull() && !value.IsEmpty()) {
-                GridNodes->SetCellTextColour(y, x, unselectColor);
-                GridNodes->SetCellBackgroundColour(y, x, unselectBackColor);
+                SelectNode(false, y, x, wxAtoi(value));
             }
         }
     }
@@ -521,11 +528,9 @@ void NodeSelectGrid::OnButtonInvertSelectClick(wxCommandEvent& event)
             const wxString value = GridNodes->GetCellValue(y, x);
             if (!value.IsNull() && !value.IsEmpty()) {
                 if (GridNodes->GetCellTextColour(y, x) == selectColor) {
-                    GridNodes->SetCellTextColour(y, x, unselectColor);
-                    GridNodes->SetCellBackgroundColour(y, x, unselectBackColor);
+                    SelectNode(false, y, x, wxAtoi(value));
                 } else {
-                    GridNodes->SetCellTextColour(y, x, selectColor);
-                    GridNodes->SetCellBackgroundColour(y, x, selectBackColor);
+                    SelectNode(true, y, x, wxAtoi(value));
                 }
             }
         }
@@ -553,17 +558,32 @@ void NodeSelectGrid::OnGridNodesCellLeftDClick(wxGridEvent& event)
     const wxString value = GridNodes->GetCellValue(event.GetRow(), event.GetCol());
     if (!value.IsNull() && !value.IsEmpty()) {
         if (GridNodes->GetCellTextColour(event.GetRow(), event.GetCol()) == selectColor) {
-            GridNodes->SetCellTextColour(event.GetRow(), event.GetCol(), unselectColor);
-            GridNodes->SetCellBackgroundColour(event.GetRow(), event.GetCol(), unselectBackColor);
-            RemoveNode(event.GetCol(), event.GetRow());
+            SelectNode(false, event.GetRow(), event.GetCol(), wxAtoi(value), true);
         } else {
-            GridNodes->SetCellTextColour(event.GetRow(), event.GetCol(), selectColor);
-            GridNodes->SetCellBackgroundColour(event.GetRow(), event.GetCol(), selectBackColor);
-            AddNode(event.GetCol(), event.GetRow());
+            SelectNode(true, event.GetRow(), event.GetCol(), wxAtoi(value), true);
         }
         UpdateTextFromGrid();
         GridNodes->Refresh();
         ValidateWindow();
+    }
+}
+
+void NodeSelectGrid::SelectNode(bool select, int row, int col, int node, bool addRemove)
+{
+    auto loc = std::find(begin(_selected), end(_selected), node);
+    if (select) {
+        GridNodes->SetCellTextColour(row, col, selectColor);
+        GridNodes->SetCellBackgroundColour(row, col, selectBackColor);
+        if (addRemove) AddNode(col, row);
+        if (loc == end(_selected)) {
+            _selected.push_back(node);
+        }
+    } else {
+        GridNodes->SetCellTextColour(row, col, unselectColor);
+        GridNodes->SetCellBackgroundColour(row, col, unselectBackColor);
+        if (addRemove) RemoveNode(col, row);
+        if (loc != end(_selected))
+            _selected.erase(loc);
     }
 }
 
@@ -572,13 +592,9 @@ void NodeSelectGrid::OnGridNodesCellRightDClick(wxGridEvent& event)
     const wxString value = GridNodes->GetCellValue(event.GetRow(), event.GetCol());
     if (!value.IsNull() && !value.IsEmpty()) {
         if (event.ShiftDown()) {
-            GridNodes->SetCellTextColour(event.GetRow(), event.GetCol(), unselectColor);
-            GridNodes->SetCellBackgroundColour(event.GetRow(), event.GetCol(), unselectBackColor);
-            RemoveNode(event.GetCol(), event.GetRow());
+            SelectNode(false, event.GetRow(), event.GetCol(), wxAtoi(value), true);
         } else {
-            GridNodes->SetCellTextColour(event.GetRow(), event.GetCol(), selectColor);
-            GridNodes->SetCellBackgroundColour(event.GetRow(), event.GetCol(), selectBackColor);
-            AddNode(event.GetCol(), event.GetRow());
+            SelectNode(true, event.GetRow(), event.GetCol(), wxAtoi(value), true);
         }
 
         UpdateTextFromGrid();
@@ -610,11 +626,9 @@ void NodeSelectGrid::OnGridNodesCellSelect(wxGridRangeSelectEvent& event)
             const wxString value = GridNodes->GetCellValue(y, x);
             if (!value.IsNull() && !value.IsEmpty()) {
                 if (GridNodes->GetCellTextColour(y, x) == selectColor) {
-                    GridNodes->SetCellTextColour(y, x, unselectColor);
-                    GridNodes->SetCellBackgroundColour(y, x, unselectBackColor);
+                    SelectNode(false, y, x, wxAtoi(value));
                 } else {
-                    GridNodes->SetCellTextColour(y, x, selectColor);
-                    GridNodes->SetCellBackgroundColour(y, x, selectBackColor);
+                    SelectNode(true, y, x, wxAtoi(value));
                 }
             }
         }
@@ -922,8 +936,7 @@ void NodeSelectGrid::ImportModelXML(wxXmlNode* xmlData)
             if (!value.empty()) {
                 const wxString cellval = GridNodes->GetCellValue(row + rowOffset, col + colOffset);
                 if (!cellval.IsNull() && !cellval.IsEmpty()) {
-                    GridNodes->SetCellTextColour(row + rowOffset, col + colOffset, selectColor);
-                    GridNodes->SetCellBackgroundColour(row + rowOffset, col + colOffset, selectBackColor);
+                    SelectNode(true, row + rowOffset, col + colOffset, wxAtoi(value));
                 }
             }
             ++col;
@@ -1049,8 +1062,7 @@ void NodeSelectGrid::CutOrCopyToClipboard(bool isCut)
                 if (GridNodes->GetCellTextColour(i, k) == selectColor) {
                     copy_data += "X"; // finally we need the field value
                     if (isCut) {
-                        GridNodes->SetCellTextColour(i, k, unselectColor);
-                        GridNodes->SetCellBackgroundColour(i, k, unselectBackColor);
+                        SelectNode(false, i, k, wxAtoi(GridNodes->GetCellValue(i, k)));
                     }
                 }
             }
@@ -1118,8 +1130,7 @@ void NodeSelectGrid::Paste()
                 if (!field.IsEmpty()) {
                     const wxString cellval = GridNodes->GetCellValue(i, k + fieldnum);
                     if (!cellval.IsNull() && !cellval.IsEmpty()) {
-                        GridNodes->SetCellTextColour(i, k + fieldnum, selectColor);
-                        GridNodes->SetCellBackgroundColour(i, k + fieldnum, selectBackColor);
+                        SelectNode(true, i, k + fieldnum, wxAtoi(cellval));
                     }
                 }
             }
@@ -1196,11 +1207,9 @@ void NodeSelectGrid::UpdateSelectedFromText()
         for (int y = 0; y < GridNodes->GetNumberRows(); ++y) {
             if (GridNodes->GetCellValue(y, x) != "") {
                 if (std::find(begin(nodes), end(nodes), GridNodes->GetCellValue(y, x)) == end(nodes)) {
-                    GridNodes->SetCellTextColour(y, x, unselectColor);
-                    GridNodes->SetCellBackgroundColour(y, x, unselectBackColor);
+                    SelectNode(false, y, x, wxAtoi(GridNodes->GetCellValue(y,x)));
                 } else {
-                    GridNodes->SetCellTextColour(y, x, selectColor);
-                    GridNodes->SetCellBackgroundColour(y, x, selectBackColor);
+                    SelectNode(true, y, x, wxAtoi(GridNodes->GetCellValue(y,x)));
                 }
             }
         }
@@ -1326,5 +1335,70 @@ void NodeSelectGrid::OnKeyDown(wxKeyEvent& event)
         }
     } else {
         event.Skip(true);
+    }
+}
+
+void NodeSelectGrid::OnTimer1Trigger(wxTimerEvent& event)
+{
+    wxASSERT(_outputManager->IsOutputting());
+    _outputManager->StartFrame(0);
+    for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
+        auto ch = model->NodeStartChannel(n-1);
+        if (std::find(begin(_selected), end(_selected), n) != end(_selected)) {
+            for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
+                _outputManager->SetOneChannel(ch++, 30);
+            }
+        } else {
+            for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
+                _outputManager->SetOneChannel(ch++, 0);
+            }
+        }
+    }
+
+    // make the currently focussed pixel red
+    if (GridNodes->GetGridCursorRow() >= 0 && GridNodes->GetGridCursorCol() >= 0) {
+        const wxString value = GridNodes->GetCellValue(GridNodes->GetGridCursorRow(), GridNodes->GetGridCursorCol());
+        if (value != "") {
+            auto v = wxAtoi(value);
+            if (v > 0) {
+                auto ch = model->NodeStartChannel(v - 1);
+                _outputManager->SetOneChannel(ch++, 255);
+                _outputManager->SetOneChannel(ch++, 0);
+            }
+        }
+    }
+
+    _outputManager->EndFrame();
+}
+
+void NodeSelectGrid::StartOutputToLights()
+{
+    if (!timer1.IsRunning()) {
+        _outputManager->StartOutput();
+        timer1.SetOwner(this, ID_TIMER1);
+        Connect(ID_TIMER1, wxEVT_TIMER, (wxObjectEventFunction)&NodeSelectGrid::OnTimer1Trigger);
+        timer1.Start(50, false);
+    }
+}
+
+bool NodeSelectGrid::StopOutputToLights()
+{
+    if (timer1.IsRunning()) {
+        timer1.Stop();
+        _outputManager->StartFrame(0);
+        _outputManager->AllOff();
+        _outputManager->EndFrame();
+        _outputManager->StopOutput();
+        return true;
+    }
+    return false;
+}
+
+void NodeSelectGrid::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
+{
+    if (CheckBox_OutputToLights->IsChecked()) {
+        StartOutputToLights();
+    } else {
+        StopOutputToLights();
     }
 }

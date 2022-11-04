@@ -128,7 +128,7 @@ class SubModelsDialog : public wxDialog
     int mPointSize;
 
     void StartOutputToLights();
-    void StopOutputToLights();
+    bool StopOutputToLights();
 
 public:
     std::vector<SubModelInfo*> _subModels;

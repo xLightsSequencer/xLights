@@ -389,9 +389,7 @@ ModelFaceDialog::~ModelFaceDialog()
 	//(*Destroy(ModelFaceDialog)
 	//*)
 
-    if (_outputManager->IsOutputting()) {
-        _outputManager->StopOutput();
-    }
+    StopOutputToLights();
     if (_oldOutputToLights) {
         _outputManager->StartOutput();
     }
@@ -1038,15 +1036,19 @@ void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
     if (event.GetCol() == CHANNEL_COL) {
         const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         const wxString title = name + " - " + NodeRangeGrid->GetRowLabelValue(event.GetRow());
-        NodeSelectGrid dialog(true, title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
+        bool wasOutputting = StopOutputToLights();
+        { // we need to scope the dialog
+            NodeSelectGrid dialog(true, title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), _outputManager, this);
 
-        if (dialog.ShowModal() == wxID_OK)
-        {
-            NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
-            NodeRangeGrid->Refresh();
-            GetValue(NodeRangeGrid, event.GetRow(), event.GetCol(), faceData[name]);
-            dialog.Close();
+            if (dialog.ShowModal() == wxID_OK) {
+                NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
+                NodeRangeGrid->Refresh();
+                GetValue(NodeRangeGrid, event.GetRow(), event.GetCol(), faceData[name]);
+                dialog.Close();
+            }
         }
+        if (wasOutputting)
+            StartOutputToLights();
     }
     else if (event.GetCol() == COLOR_COL) {
         const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
@@ -1340,17 +1342,20 @@ void ModelFaceDialog::OnNodeRangeGridLabelLeftDClick(wxGridEvent& event)
 
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     const wxString title = name + " - " + NodeRangeGrid->GetRowLabelValue(event.GetRow());
-    NodeSelectGrid dialog(true, title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
+    bool wasOutputting = StopOutputToLights();
+    { // we need to scope the dialog
+        NodeSelectGrid dialog(true, title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), _outputManager, this);
 
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
-        NodeRangeGrid->Refresh();
-        GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, faceData[name]);
-        dialog.Close();
+        if (dialog.ShowModal() == wxID_OK) {
+            NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
+            NodeRangeGrid->Refresh();
+            GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, faceData[name]);
+            dialog.Close();
+        }
     }
+    if (wasOutputting)
+        StartOutputToLights();
 }
-
 
 void ModelFaceDialog::OnGridPopup(const int rightEventID, wxGridEvent& gridEvent)
 {
@@ -1926,6 +1931,7 @@ void ModelFaceDialog::ReverseFaceNodes()
 
 void ModelFaceDialog::OnTimer1Trigger(wxTimerEvent& event)
 {
+    wxASSERT(_outputManager->IsOutputting());
     _outputManager->StartFrame(0);
     for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
         auto ch = model->NodeStartChannel(n);
@@ -1952,7 +1958,7 @@ void ModelFaceDialog::StartOutputToLights()
     }
 }
 
-void ModelFaceDialog::StopOutputToLights()
+bool ModelFaceDialog::StopOutputToLights()
 {
     if (timer1.IsRunning()) {
         timer1.Stop();
@@ -1960,7 +1966,9 @@ void ModelFaceDialog::StopOutputToLights()
         _outputManager->AllOff();
         _outputManager->EndFrame();
         _outputManager->StopOutput();
+        return true;
     }
+    return false;
 }
 
 void ModelFaceDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)

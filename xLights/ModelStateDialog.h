@@ -66,7 +66,7 @@ public:
     void SetStateInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>>& info);
     void GetStateInfo(std::map<std::string, std::map<std::string, std::string>>& info);
     void StartOutputToLights();
-    void StopOutputToLights();
+    bool StopOutputToLights();
 
 protected:
     //(*Identifiers(ModelStateDialog)
@@ -104,13 +104,9 @@ private:
     void OnMatrixNameChoiceSelect(wxCommandEvent& event);
     void OnButtonMatrixAddClicked(wxCommandEvent& event);
     void OnButtonMatrixDeleteClick(wxCommandEvent& event);
-    //void OnMatrixModelsGridCellLeftClick(wxGridEvent& event);
-    //void OnMatrixModelsGridCellChange(wxGridEvent& event);
-    //void OnMatricImagePlacementChoiceSelect(wxCommandEvent& event);
     void OnCustomColorCheckboxClick(wxCommandEvent& event);
     void OnNodeRangeGridCellChange(wxGridEvent& event);
     void OnSingleNodeGridCellChange(wxGridEvent& event);
-    //void OnFaceTypeChoicePageChanged(wxChoicebookEvent& event);
     void OnNodeRangeGridCellLeftDClick(wxGridEvent& event);
     void OnSingleNodeGridCellLeftDClick(wxGridEvent& event);
     void OnStateTypeChoicePageChanged(wxChoicebookEvent& event);

@@ -54,7 +54,7 @@ class ModelFaceDialog : public wxDialog
     void TryToFindPath(wxString& filename) const;
     void ValidateMatrixGrid(int r, int c) const;
     void StartOutputToLights();
-    void StopOutputToLights();
+    bool StopOutputToLights();
 
         public:
     ModelFaceDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);

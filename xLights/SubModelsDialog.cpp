@@ -465,9 +465,7 @@ SubModelsDialog::~SubModelsDialog()
     config->Write("SubModelsDialogSashPosition", i);
     config->Flush();
 
-    if (_outputManager->IsOutputting()) {
-        _outputManager->StopOutput();
-    }
+    StopOutputToLights();
     if (_oldOutputToLights) {
         _outputManager->StartOutput();
     }
@@ -1952,21 +1950,25 @@ void SubModelsDialog::OnButton_Draw_ModelClick(wxCommandEvent& event)
         return;
     }
 
-    SubModelInfo* sm = GetSubModelInfo(name);
-    NodeSelectGrid dialog(true, name, model, sm->strands, this);
+    bool wasOutputting = StopOutputToLights();
+    { // we need to scope the dialog
+        SubModelInfo* sm = GetSubModelInfo(name);
+        NodeSelectGrid dialog(true, name, model, sm->strands, _outputManager, this);
 
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        sm->strands = dialog.GetRowData();
+        if (dialog.ShowModal() == wxID_OK) {
+            sm->strands = dialog.GetRowData();
 
-        Select(GetSelectedName());
-        dialog.Close();
+            Select(GetSelectedName());
+            dialog.Close();
 
-        Panel3->SetFocus();
-        NodesGrid->SetFocus();
+            Panel3->SetFocus();
+            NodesGrid->SetFocus();
 
-        ValidateWindow();
+            ValidateWindow();
+        }
     }
+    if (wasOutputting)
+        StartOutputToLights();
 }
 
 void SubModelsDialog::OnNodesGridLabelLeftDClick(wxGridEvent& event)
@@ -1984,23 +1986,27 @@ void SubModelsDialog::OnNodesGridCellLeftDClick(wxGridEvent& event)
 
     SubModelInfo* sm = GetSubModelInfo(name);
 
-    const wxString title = name + " - " + NodesGrid->GetRowLabelValue(row);
-    NodeSelectGrid dialog(false, title, model, sm->strands[sm->strands.size() - 1 - row], this);
+    bool wasOutputting = StopOutputToLights();
+    { // we need to scope the dialog
+        const wxString title = name + " - " + NodesGrid->GetRowLabelValue(row);
+        NodeSelectGrid dialog(false, title, model, sm->strands[sm->strands.size() - 1 - row], _outputManager, this);
 
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        sm->strands[sm->strands.size() - 1 - row] = dialog.GetNodeList(false);
+        if (dialog.ShowModal() == wxID_OK) {
+            sm->strands[sm->strands.size() - 1 - row] = dialog.GetNodeList(false);
 
-        Select(GetSelectedName());
-        dialog.Close();
+            Select(GetSelectedName());
+            dialog.Close();
 
-        NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
-        Panel3->SetFocus();
-        NodesGrid->SetFocus();
-        SelectRow(row >= 0 ? row : 0);
+            NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
+            Panel3->SetFocus();
+            NodesGrid->SetFocus();
+            SelectRow(row >= 0 ? row : 0);
 
-        ValidateWindow();
+            ValidateWindow();
+        }
     }
+    if (wasOutputting)
+        StartOutputToLights();
 }
 
 wxString SubModelsDialog::ReverseRow(wxString row)
@@ -3098,6 +3104,7 @@ void SubModelsDialog::ExportSubmodelToOtherModels()
 
 void SubModelsDialog::OnTimer1Trigger(wxTimerEvent& event)
 {
+    wxASSERT(_outputManager->IsOutputting());
     _outputManager->StartFrame(0);
     for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
         auto ch = model->NodeStartChannel(n);
@@ -3124,7 +3131,7 @@ void SubModelsDialog::StartOutputToLights()
     }
 }
 
-void SubModelsDialog::StopOutputToLights()
+bool SubModelsDialog::StopOutputToLights()
 {
     if (timer1.IsRunning()) {
         timer1.Stop();
@@ -3132,7 +3139,9 @@ void SubModelsDialog::StopOutputToLights()
         _outputManager->AllOff();
         _outputManager->EndFrame();
         _outputManager->StopOutput();
+        return true;
     }
+    return false;
 }
 
 void SubModelsDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
