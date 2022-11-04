@@ -1,4 +1,29 @@
 <Vendor Name="Minleon">
+	<Controller Name="RGB NDB">
+		<Variant Name="">
+			<!--SupportsUpload/-->
+			<SupportsTs/>
+			<!--SupportsFullxLightsControl/-->
+			<MaxInputUniverses>16</MaxInputUniverses>
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<UniversesMustBeSequential/>
+			<UniversesMustBeInNumericalOrder/>
+			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
+			<MinInputUniverseChannels>510</MinInputUniverseChannels>
+			<PixelProtocols>
+				<Protocol>rgb+</Protocol>
+			</PixelProtocols>
+			<SerialProtocols/>
+			<InputProtocols>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
+			</InputProtocols>
+		</Variant>
+	</Controller>
 	<Controller Name="RGB NDB Plus">
 		<Variant Name="">
 			<SupportsUpload/>
