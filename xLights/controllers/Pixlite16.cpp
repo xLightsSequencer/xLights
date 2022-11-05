@@ -25,6 +25,8 @@
 
 #include <log4cpp/Category.hh>
 
+#define PIXLITE_PORT 49150
+
 #pragma region Encode and Decode
 int Pixlite16::DecodeStringPortProtocol(const std::string& protocol)
 {
@@ -927,6 +929,22 @@ int Pixlite16::PrepareV8Config(uint8_t* data) const
     return pos;
 }
 
+void Pixlite16::CreateDiscovery(uint8_t* buffer)
+{
+    buffer[0] = 'A';
+    buffer[1] = 'd';
+    buffer[2] = 'v';
+    buffer[3] = 'a';
+    buffer[4] = 't';
+    buffer[5] = 'e';
+    buffer[6] = 'c';
+    buffer[7] = 'h';
+    buffer[8] = 0x00;
+    buffer[9] = 0x00;
+    buffer[10] = 0x01;
+    buffer[11] = 0x06;
+}
+
 bool Pixlite16::GetConfig()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -938,9 +956,9 @@ bool Pixlite16::GetConfig()
     // broadcast packet to find all of them
     wxIPV4address localAddr;
     localAddr.AnyAddress();
-    localAddr.Service(49150);
+    localAddr.Service(PIXLITE_PORT);
 
-    auto discovery = new wxDatagramSocket(localAddr, wxSOCKET_NOWAIT);
+    auto discovery = new wxDatagramSocket(localAddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
 
     if (discovery == nullptr) {
         logger_base.error("Error initialising PixLite/PixCon datagram.");
@@ -954,33 +972,34 @@ bool Pixlite16::GetConfig()
         delete discovery;
     }
     else {
+        discovery->SetTimeout(1);
+        discovery->Notify(false);
+
         wxIPV4address remoteAddr;
         remoteAddr.Hostname(_ip);
-        remoteAddr.Service(49150);
+        remoteAddr.Service(PIXLITE_PORT);
 
-        wxByte discoveryData[12];
-        discoveryData[0] = 'A';
-        discoveryData[1] = 'd';
-        discoveryData[2] = 'v';
-        discoveryData[3] = 'a';
-        discoveryData[4] = 't';
-        discoveryData[5] = 'e';
-        discoveryData[6] = 'c';
-        discoveryData[7] = 'h';
-        discoveryData[8] = 0x00;
-        discoveryData[9] = 0x00;
-        discoveryData[10] = 0x01;
-        discoveryData[11] = 0x06;
+        uint8_t discoveryData[12];
+        Pixlite16::CreateDiscovery(discoveryData);
+        logger_base.debug("Sending discovery to pixlite: %s:%d.", (const char*)_ip.c_str(), PIXLITE_PORT);
         discovery->SendTo(remoteAddr, discoveryData, sizeof(discoveryData));
 
         if (discovery->Error()) {
             logger_base.error("PixLite/PixCon error sending to %s => %d : %s.", (const char*)_ip.c_str(), discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
         }
         else {
-            wxMilliSleep(500);
+            uint32_t count = 0;
+            #define SLP_TIME 100
+            while (count < 5000 && !discovery->IsData()) {
+                wxMilliSleep(SLP_TIME);
+                count += SLP_TIME;
+            }
+            
+            if (!discovery->IsData()) {
+                logger_base.warn("No discovery responses.");
+            }
 
             // look through responses for one that matches my ip
-
             while (discovery->IsData()) {
                 uint8_t data[1500];
                 memset(data, 0x00, sizeof(data));
@@ -988,20 +1007,34 @@ bool Pixlite16::GetConfig()
                 discovery->RecvFrom(pixliteAddr, data, sizeof(data));
 
                 if (!discovery->Error() && data[10] == 0x02) {
+                    logger_base.debug("   Discover response from %s.", (const char *)pixliteAddr.IPAddress().c_str());
                     bool connected = false;
                     _config._protocolVersion = data[11];
+                    logger_base.debug("   Protocol version %d.", _config._protocolVersion);
                     switch (_config._protocolVersion) {
                     case 4:
                         connected = ParseV4Config(data, _config);
+                        if (!connected) {
+                            logger_base.error("   Failed to parse v4 config packet.");
+                        }
                         break;
                     case 5:
                         connected = ParseV5Config(data, _config);
+                        if (!connected) {
+                            logger_base.error("   Failed to parse v5 config packet.");
+                        }
                         break;
                     case 6:
                         connected = ParseV6Config(data, _config);
+                        if (!connected) {
+                            logger_base.error("   Failed to parse v6 config packet.");
+                        }
                         break;
                     case 8:
                         connected = ParseV8Config(data, _config);
+                        if (!connected) {
+                            logger_base.error("   Failed to parse v8 config packet.");
+                        }
                         break;
                     default:
                         logger_base.error("Unsupported Pixlite protocol version: %d.", _config._protocolVersion);
@@ -1028,9 +1061,9 @@ bool Pixlite16::GetConfig()
                     logger_base.error("Error reading PixLite/PixCon response => %d : %s.", discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
                 }
             }
-            discovery->Close();
-            delete discovery;
         }
+        discovery->Close();
+        delete discovery;
     }
 
     return res;
@@ -1132,21 +1165,11 @@ bool Pixlite16::GetMK3Config()
 void Pixlite16::PrepareDiscovery(Discovery& discovery)
 {
     uint8_t discoveryData[12];
-    discoveryData[0] = 'A';
-    discoveryData[1] = 'd';
-    discoveryData[2] = 'v';
-    discoveryData[3] = 'a';
-    discoveryData[4] = 't';
-    discoveryData[5] = 'e';
-    discoveryData[6] = 'c';
-    discoveryData[7] = 'h';
-    discoveryData[8] = 0x00;
-    discoveryData[9] = 0x00;
-    discoveryData[10] = 0x01;
-    discoveryData[11] = 0x06;
+    Pixlite16::CreateDiscovery(discoveryData);
 
-    discovery.AddBroadcast(49150, [&discovery](wxDatagramSocket* socket, uint8_t* data, int len) {
+    discovery.AddBroadcast(PIXLITE_PORT, [&discovery](wxDatagramSocket* socket, uint8_t* data, int len) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.error("    Advatech discovery packet type : %d.", data[10]);
         if (data[10] == 0x02) {
             Pixlite16::Config it;
             memset(&it, 0x00, sizeof(it));
@@ -1213,7 +1236,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
             }
         }
         });
-    discovery.SendBroadcastData(49150, discoveryData, sizeof(discoveryData));
+    discovery.SendBroadcastData(PIXLITE_PORT, discoveryData, sizeof(discoveryData));
 
     // MK3 Discovery
     uint8_t discoveryDataMK3[34]; // assumes we exclude no MAC Addresses
@@ -1484,7 +1507,7 @@ bool Pixlite16::SendConfig(bool logresult) const
     // broadcast packet to find all of them
     wxIPV4address localAddr;
     localAddr.AnyAddress();
-    localAddr.Service(49150);
+    localAddr.Service(PIXLITE_PORT);
 
     auto config = new wxDatagramSocket(localAddr, wxSOCKET_NOWAIT);
 
@@ -1506,7 +1529,7 @@ bool Pixlite16::SendConfig(bool logresult) const
     logger_base.debug("PixLite/PixCon sending config to %s.", (const char*)_ip.c_str());
     wxIPV4address toAddr;
     toAddr.Hostname(_ip);
-    toAddr.Service(49150);
+    toAddr.Service(PIXLITE_PORT);
 
     uint8_t data[1500];
     memset(data, 0x00, sizeof(data));
@@ -1600,6 +1623,7 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "")
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _connected = false;
+    logger_base.debug("Requesting pixlite configuration.");
     if (GetConfig()) {
         logger_base.debug("*** Success connecting to PixLite/PixCon controller on %s.", (const char*)_ip.c_str());
         _protocolVersion = _config._protocolVersion;
@@ -1608,6 +1632,7 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "")
         _connected = true;
     }
     else {
+        logger_base.debug("Requesting pixlite MK3 configuration.");
         if (GetMK3Config()) {
            _model = _config._modelName;
            _version = _config._firmwareVersion;

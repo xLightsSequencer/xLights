@@ -121,6 +121,7 @@ protected:
     int PrepareV6Config(uint8_t* data) const;
     int PrepareV8Config(uint8_t* data) const;
 
+    static void CreateDiscovery(uint8_t* buffer);
     bool GetConfig();
 
     bool SendConfig(bool logresult = false) const;

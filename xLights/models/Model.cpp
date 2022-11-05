@@ -4385,6 +4385,14 @@ uint32_t Model::GetChanCount() const {
     return max - min;
 }
 
+NodeBaseClass* Model::GetNode(uint32_t node) const
+{
+    if (node < Nodes.size()) {
+        return Nodes[node].get();
+    }
+    return nullptr;
+}
+
 int Model::GetChanCountPerNode() const {
     size_t NodeCnt = GetNodeCount();
     if (NodeCnt == 0) {
