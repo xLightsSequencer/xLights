@@ -1,9 +1,10 @@
 <Vendor Name="Minleon">
 	<Controller Name="RGB NDB">
 		<Variant Name="">
-			<!--SupportsUpload/-->
+			<SupportsUpload/>
+            <SupportsAutoLayout/>
 			<SupportsTs/>
-			<!--SupportsFullxLightsControl/-->
+			<SupportsFullxLightsControl/>
 			<MaxInputUniverses>16</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -27,6 +28,7 @@
 	<Controller Name="RGB NDB Plus">
 		<Variant Name="">
 			<SupportsUpload/>
+            <SupportsAutoLayout/>
 			<SupportsPixelPortGrouping/>
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
@@ -65,6 +67,7 @@
 	<Controller Name="RGB NDB 4">
 		<Variant Name="">
 			<SupportsUpload/>
+            <SupportsAutoLayout/>
 			<SupportsPixelPortGrouping/>
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
@@ -103,7 +106,8 @@
 	<Controller Name="NDB Pro">
 		<Variant Name="">
 			<SupportsUpload/>
-			<SupportsPixelPortDirection/>
+            <SupportsAutoLayout/>
+            <SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
 			<SupportsTs/>
 			<SupportsFullxLightsControl/>

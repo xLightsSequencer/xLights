@@ -39,6 +39,7 @@ class Minleon : public BaseController
     std::string _chip = "ws2811";
     std::string _conv;
     bool _ndbPro = false;
+    bool _ndbOrig = false;
     #pragma endregion
 
     #pragma region Private Functions
@@ -55,10 +56,12 @@ class Minleon : public BaseController
     void PostURL(const std::string& url, const std::string& data) const;
     int GetMax16PortPixels(const std::string& chip) const;
     int GetMax8PortPixels(const std::string& chip) const;
+    std::string ParseNDBHTML(const std::string& html, uint8_t index);
     #pragma endregion
 
     #pragma region Port Handling
-    void Upload(bool reboot);
+    void UploadNDPPlus(bool reboot);
+    void UploadNDB(bool reboot);
     void UploadNDBPro(bool reboot);
     #pragma endregion
 
