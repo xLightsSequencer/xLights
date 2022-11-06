@@ -442,7 +442,7 @@ bool ModelPreview::ValidateModels(const ModelManager& mm)
 }
 
 void ModelPreview::SetModel(const Model* model, bool wiring, bool highlightFirst) {
-    if (model) {
+    if (model != nullptr) {
         _wiring = wiring;
         _highlightFirst = highlightFirst;
         this->xlights = model->GetModelManager().GetXLightsFrame();

@@ -379,6 +379,7 @@ public:
     void SetFromXml(wxXmlNode* ModelNode, bool zeroBased = false) override;
     virtual bool ModelRenamed(const std::string& oldName, const std::string& newName);
     uint32_t GetNodeCount() const;
+    NodeBaseClass* GetNode(uint32_t node) const;
     uint32_t GetChanCount() const;
     uint32_t GetActChanCount() const;
     int GetChanCountPerNode() const;
