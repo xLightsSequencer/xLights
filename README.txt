@@ -11,31 +11,47 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.22 November 7, 2022
+   -- enh (gil)    Refactored several huge sections of code in PolyLine reducing the complexity of the code
+   -- enh (keith)  Add a way to add show players and pure media players to the controller tab
+   -- enh (keith)  Prompt user if sequence unsaved and they try to access FPP connect
+   -- enh (keith)  Add option to output to lights when defining faces, states, submodels and using the node select dialog
+   -- enh (keith)  Add support for the original Minleon NDB controller
+   -- enh (keith)  Add Custom Christmas Creations as a prop vendor in the model download
+   -- enh (keith)  Add visual model node selection to the test function
+   -- enh (scott)  Add experience lights discovery
+   -- enh (dkulp)  Increase maximum matrix size
    -- bug (gil)    PolyLine: Now all variations of using lights/node > 1 should work
    -- bug (gil)    Fix bug where program appeared to hang if dropsize is set to 0 for PolyLine
-   -- enh (gil)    Refactored several huge sections of code in PolyLine reducing the complexity of the code
+   -- bug (keith)  Address a crash in render cache. This is not a complete fix as we are seeing some hangs in batch render related to this.
+   -- bug (keith)  Fix Twinkly start channel bug
+   -- bug (keith)  Fix node select does not work on windows if dark mode selected
+   -- bug (keith)  Fix some Pixlite controller uploads failing
+   -- bug (scott)  Fix experience lights DDP start channel and max pixels per port
+   -- bug (dkulp)  Fix falcon FPP discovery
+   -- bug (dkulp)  Fix blended/solid circle node display not dependent on camera view point
 2022.21 October 28, 2022
    -- enh (dkulp)  Much faster algorithm for finding frames in the RenderCache, should speed up initial rendering after load
    -- enh (dkulp)  macOS: RenderCache uses mmap to reduce actual memory usage and allow the OS cache to handle loading/discarding
    -- enh (dkulp)  macOS: Add RotoZoom to Metal based GPU rendering engine
    -- enh (dkulp)  macOS: Add Plasma to Metal based GPU rendering engine
    -- enh (dkulp)  Several performance improvements for the Parallel job pool
+   -- enh (dkulp)  Display submodel effect rendering status as tool tips in Rendering progress dialog
    -- enh (scott)  Several updates for Experience Lights controllers
    -- enh (gil)    PolyLine enhancement. Add ability to define which segment owns the pixel at each endpoint.
-   -- enh (dkulp)  Display submodel effect rendering status as tool tips in Rendering progress dialog
    -- bug (dkulp)  Fix Shift/Two Finger panning on TouchPad when not viewing from front
-   -- bug (gil)    PolyLine: Fix #Lights/Node not working when > 1.  Still fails when Icicle drops are used.  Working on it.
    -- bug (dkulp)  Fix problems with GPU rendered effects saving as "black" into RenderCache
    -- bug (dkulp)  Fix crash when creating new sequence if "More Options" button is used aand certain other values are adjusted
    -- bug (dkulp)  Fix crash in "Log Rendering Status" if models have finished
-   -- bug (keith)  Fix crash after removing a submodel from a group
    -- bug (dkulp)  Fix display of model groups when some models are added/removed
-   -- bug (keith)  Context menu of SubBuffer has options that don't make sense in that context and can cause a crash
-   -- bug (keith)  RGBW doesn't always zero out the unset channels
    -- bug (dkulp)  Fix crash with certain effects if they occur after a GPU rendered effect
    -- bug (dkulp)  Fix fire effect on "Per Model Per Preview" render buffers
    -- bug (dkulp)  Fix fire effect on submodels with non-default render style
    -- bug (dkulp)  Honor the "max group size" in more cases to avoid massive render buffers
+   -- bug (gil)    PolyLine: Fix #Lights/Node not working when > 1.  Still fails when Icicle drops are used.  Working on it.
+   -- bug (keith)  Fix crash after removing a submodel from a group
+   -- bug (keith)  Context menu of SubBuffer has options that don't make sense in that context and can cause a crash
+   -- bug (keith)  RGBW doesn't always zero out the unset channels
 2022.20 October 17, 2022
    -- enh (scott)  Add Experience Lights upload support
    -- enh (scott)  Add VU Meter Timing Event chase to/from middle
