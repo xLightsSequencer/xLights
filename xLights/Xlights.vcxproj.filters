@@ -1006,6 +1006,12 @@
     <ClCompile Include="controllers\Experience.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
+    <ClCompile Include="effects\cuda\CudaEffectManager.cpp">
+      <Filter>Effects\cuda</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\cuda\CudaComputeUtilities.cpp">
+      <Filter>Effects\cuda</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2019,6 +2025,12 @@
     <ClInclude Include="controllers\Experience.h">
       <Filter>Controllers</Filter>
     </ClInclude>
+    <ClInclude Include="effects\cuda\CudaComputeUtilities.h">
+      <Filter>Effects\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\cuda\CudaEffectDataTypes.h">
+      <Filter>Effects\cuda</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2057,8 +2069,22 @@
     <Filter Include="common">
       <UniqueIdentifier>{d66f2316-0042-426b-8102-445d990406d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\cuda">
+      <UniqueIdentifier>{b9331ab6-372f-4dbd-ab95-767baaa5119e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="effects\cuda\CudaRenderUtils.h">
+      <Filter>Effects\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="effects\cuda\CudaRenderBufferComputeData.cu">
+      <Filter>Effects\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="effects\cuda\CudaRenderBufferComputeData.cuh">
+      <Filter>Effects\cuda</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

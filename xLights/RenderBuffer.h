@@ -67,7 +67,7 @@ class Effect;
 class SettingsMap;
 class SequenceElements;
 class MetalRenderBufferComputeData;
-
+class CudaRenderBufferComputeData;
 
 class DrawingContext {
 protected:
@@ -522,6 +522,7 @@ private:
     xlColor *tempbuf = nullptr;
 
     friend class MetalRenderBufferComputeData;
+    friend class CudaRenderBufferComputeData;
 public:
     uint32_t GetPixelCount() { return pixelVector.size(); }
     xlColor *GetPixels() { return pixels; }

@@ -69,6 +69,11 @@ extern RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff);
 inline RenderableEffect* CreateGPUEffect(EffectManager::RGB_EFFECTS_e eff) {
     return CreateMetalEffect(eff);
 }
+#elif CUDA
+extern RenderableEffect* CreateCudaEffect(EffectManager::RGB_EFFECTS_e eff);
+inline RenderableEffect* CreateGPUEffect(EffectManager::RGB_EFFECTS_e eff) {
+    return CreateCudaEffect(eff);
+}
 #else
 inline RenderableEffect* CreateGPUEffect(EffectManager::RGB_EFFECTS_e eff) {
     return nullptr;
