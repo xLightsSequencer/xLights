@@ -376,7 +376,9 @@ void RenderCache::CleanupCache(SequenceElements* sequenceElements)
                 if (!found) {
                     auto todelete = it;
                     ++it;
+                    ulock.unlock();
                     (*todelete)->Delete();
+                    ulock.lock();
                     deleted++;
                 } else {
                     ++it;
