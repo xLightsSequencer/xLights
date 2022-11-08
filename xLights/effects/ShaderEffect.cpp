@@ -263,11 +263,19 @@ ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceEle
     f.Close();
 
     if (code == "") return nullptr;
+    
+    if (code[0] == '{' && code[1] == '"') {
+        wxJSONReader reader;
+        wxJSONValue root;
+        reader.Parse(code, &root);
+        if (root.HasMember("rawFragmentSource")) {
+            code = root["rawFragmentSource"].AsString();
+            if (code == "") return nullptr;
+        }
+    }
 
     wxRegEx re("\\/\\*(.*?)\\*\\/", wxRE_ADVANCED);
-
     if (!re.Matches(code)) return nullptr;
-
     return new ShaderConfig(filename, code, re.GetMatch(code, 1), sequenceElements);
 }
 
@@ -1057,12 +1065,13 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         _timeMS += buffer.frameTimeInMs * timeRate;
     }
 
+    ShaderRenderCache::ShaderInfo *si = cache->s_shaderInfo;
     // if there is no config then we should paint it red ... just like the video effect
     if (_shaderConfig == nullptr) {
         setRenderBufferAll(buffer, xlRED);
         UnsetGLContext(cache);
         return;
-    } else if (programId == 0u) {
+    } else if (programId == 0u || si == nullptr) {
         setRenderBufferAll(buffer, xlYELLOW);
         UnsetGLContext(cache);
         return;
@@ -1118,7 +1127,6 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     }
 
     int colourIndex = 0;
-    ShaderRenderCache::ShaderInfo *si = cache->s_shaderInfo;
     if (!si->SetUniform2f("RENDERSIZE", buffer.BufferWi, buffer.BufferHt)) {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize()) {
             logger_base.warn("Unable to bind to RENDERSIZE\n%s", (const char*)_shaderConfig->GetCode().c_str());
@@ -1351,7 +1359,7 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCac
     }
 
     lock.unlock();
-    unsigned programId = OpenGLShaders::compile(vsSrc, fragmentShaderSrc);
+    unsigned programId = OpenGLShaders::compile(vsSrc, fragmentShaderSrc, cfg->GetFilename());
     if (programId == 0u) {
         lock.lock();
         logger_base.error("ShaderEffect::programIdForShaderCode() - failed to compile shader program %s", (const char *)cfg->GetFilename().c_str());
