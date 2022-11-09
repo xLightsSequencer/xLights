@@ -76,7 +76,7 @@ int Experience::EncodeGamma(double gamma) const
 wxString Experience::EncodeColorOrder(std::string const& colorOrder) const
 {
     //no convertion needed yet
-    return colorOrder;
+    return Lower(colorOrder);
 }
 #pragma endregion
 
