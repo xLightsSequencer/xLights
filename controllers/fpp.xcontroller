@@ -152,8 +152,15 @@
             <SupportsAutoLayout/>
             <PixelProtocols>
             </PixelProtocols>
-            <SerialProtocols>
-            </SerialProtocols>
+        <SerialProtocols>
+            <Protocol>DMX-Pro</Protocol>
+            <Protocol>DMX-Open</Protocol>
+            <Protocol>GenericSerial</Protocol>
+            <Protocol>LOR</Protocol>
+            <Protocol>Pixelnet-Lynx</Protocol>
+            <Protocol>Pixelnet-Open</Protocol>
+            <Protocol>Renard</Protocol>
+        </SerialProtocols>
         </Variant>
     </Controller>
     <Controller Name="Virtual Matrix">
@@ -167,8 +174,15 @@
             <SupportsAutoLayout/>
             <PixelProtocols>
             </PixelProtocols>
-            <SerialProtocols>
-            </SerialProtocols>
+        <SerialProtocols>
+            <Protocol>DMX-Pro</Protocol>
+            <Protocol>DMX-Open</Protocol>
+            <Protocol>GenericSerial</Protocol>
+            <Protocol>LOR</Protocol>
+            <Protocol>Pixelnet-Lynx</Protocol>
+            <Protocol>Pixelnet-Open</Protocol>
+            <Protocol>Renard</Protocol>
+        </SerialProtocols>
         </Variant>
     </Controller>
     <Controller Name="Pi4 Virtual Matrix">
@@ -183,8 +197,15 @@
             <SupportsAutoLayout/>
             <PixelProtocols>
             </PixelProtocols>
-            <SerialProtocols>
-            </SerialProtocols>
+        <SerialProtocols>
+            <Protocol>DMX-Pro</Protocol>
+            <Protocol>DMX-Open</Protocol>
+            <Protocol>GenericSerial</Protocol>
+            <Protocol>LOR</Protocol>
+            <Protocol>Pixelnet-Lynx</Protocol>
+            <Protocol>Pixelnet-Open</Protocol>
+            <Protocol>Renard</Protocol>
+        </SerialProtocols>
         </Variant>
     </Controller>
     <Controller Name="Pi Hat">
