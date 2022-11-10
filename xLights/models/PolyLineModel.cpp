@@ -546,6 +546,9 @@ void PolyLineModel::InitModel()
         if (curCoord >= Nodes[curNode]->Coords.size()) {
             curNode++;
             curCoord = 0;
+            if (!SingleNode) {
+                chan += ChanIncr;
+            }
         }
         while (y >= std::abs(dropSizes[drop_index])) {
             width++;
@@ -604,9 +607,6 @@ void PolyLineModel::InitModel()
         }
 
         Nodes[curNode]->Coords[curCoord].screenX = width;
-        if (!SingleNode && curCoord == 0) {
-            chan += ChanIncr;
-        }
         lights--;
         curCoord++;
         if( SingleNode || curCoord == parm3 ) {

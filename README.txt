@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil).   Fix start channel bug when PolyLine Lights/Node is greater than 1
 2022.22 November 7, 2022
    -- enh (gil)    Refactored several huge sections of code in PolyLine reducing the complexity of the code
    -- enh (keith)  Add a way to add show players and pure media players to the controller tab
