@@ -340,7 +340,7 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
     } else if (effName == "Shape") {
         wxString shapePath = settings["E_FILEPICKERCTRL_SVG"];
         if (!shapePath.empty()) {
-            settingEffectFile = shapePath;
+            settingEffectFile = "E_FILEPICKERCTRL_SVG";
             targetMediaFolder = _importOptions.GetDir(MediaTargetDir::IMAGES_DIR);
         }
     }
