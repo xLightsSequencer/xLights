@@ -674,9 +674,11 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         }
 
     }
+#ifndef __WXMSW__
     if (_dataModel->GetChildCount() != 0) {
         _dataModel->Resort();
     }
+#endif
     TreeListCtrl_Mapping = new wxDataViewCtrl(Panel1, ID_TREELISTCTRL1, wxDefaultPosition, wxDefaultSize, wxDV_HORIZ_RULES | wxDV_VERT_RULES | wxDV_MULTIPLE, wxDefaultValidator);
     TreeListCtrl_Mapping->Freeze();
     TreeListCtrl_Mapping->AssociateModel(_dataModel);
@@ -724,6 +726,11 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         DisplayError("No models to import to. Add some models to the rows of the effects grid.");
         return false;
     }
+#ifdef __WXMSW__
+    else {
+        _dataModel->Resort();
+    }
+#endif
     return true;
 }
 
