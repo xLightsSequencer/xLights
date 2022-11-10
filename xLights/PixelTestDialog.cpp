@@ -1995,6 +1995,7 @@ void PixelTestDialog::OnPreviewLeftDClick(wxMouseEvent& event)
             }
             UpdateVisualModelFromTracker();
             RenderModel();
+            _checkChannelList = true;
         }
     }
 }
@@ -2068,6 +2069,7 @@ void PixelTestDialog::SelectAllInBoundingRect(bool shiftDwn)
 
         UpdateVisualModelFromTracker();
         RenderModel();
+        _checkChannelList = true;
     }
 }
 #pragma endregion
