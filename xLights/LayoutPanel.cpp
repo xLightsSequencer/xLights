@@ -6465,6 +6465,7 @@ void LayoutPanel::DeleteSelectedModels() {
             // we suspend deferred work because if the delete model pops a dialog then the ASAP work gets done prematurely
             xlights->GetOutputModelManager()->SuspendDeferredWork(true);
             xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
+            xlights->AbortRender(); // stop any rendering as deleting models from under the renderer will crash xlights
 
             CreateUndoPoint("All", wxJoin(modelsToDelete, ','));
 
@@ -6509,6 +6510,8 @@ void LayoutPanel::DeleteSelectedGroups()
 		CreateUndoPoint("All", wxJoin(groupsToDelete, ','));
 
 		xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
+        xlights->AbortRender(); // stop rendering as deleting groups while rendering is not good
+
 		for (const auto& it : groupsToDelete) {
 			xlights->AllModels.Delete(it.ToStdString());
 		}
@@ -6544,6 +6547,8 @@ void LayoutPanel::ReplaceModel()
     if (dlg.ShowModal() == wxID_OK)
     {
         xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
+        xlights->AbortRender(); // we dont want to be rendering when we do this
+
         Model* replaceModel = nullptr;
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
@@ -7310,6 +7315,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
                     ++it;
                     if (mg->GetModelCount() == 0) {
                         xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
+                        xlights->AbortRender();
+
                         xlights->AllModels.Delete(mg->GetName());
                         deleted = true;
                     }

@@ -685,11 +685,11 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     if (scale_to_fit == "Scale To Fit" && (BufferWi != imgwidth || BufferHt != imght)) {
         image = rawimage;
 // work around wxWidgets image rescaling bug on windows in VS release builds
-#ifdef __WXMSW__
-        image.Rescale(BufferWi, BufferHt, wxIMAGE_QUALITY_BILINEAR); // I tried bicubic but it creates visual artefacts
-#else
+//#ifdef __WXMSW__
+//        image.Rescale(BufferWi, BufferHt, wxIMAGE_QUALITY_BILINEAR); // I tried bicubic but it creates visual artefacts
+//#else
         image.Rescale(BufferWi, BufferHt);
-#endif
+//#endif
         imgwidth = image.GetWidth();
         imght = image.GetHeight();
         yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
@@ -703,11 +703,11 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         if(scale_to_fit.find("Crop") != std::string::npos)
             sc = std::max(xr, yr);
 // work around wxWidgets image rescaling bug on windows in VS release builds
-#ifdef __WXMSW__
-        image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc, wxIMAGE_QUALITY_BILINEAR); // I tried bicubic but it creates visual artefacts
-#else
+//#ifdef __WXMSW__
+//        image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc, wxIMAGE_QUALITY_BILINEAR); // I tried bicubic but it creates visual artefacts
+//#else
         image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc);
-#endif
+//#endif
         imgwidth = image.GetWidth();
         imght = image.GetHeight();
         yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
@@ -721,11 +721,11 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             imght = (image.GetHeight() * current_scale) / 100;
             imgwidth = std::max(imgwidth, 1);
             imght = std::max(imght, 1);
-#ifdef __WXMSW__
-            image.Rescale(imgwidth, imght, wxIMAGE_QUALITY_BILINEAR); // I tried bicubic but it creates visual artefacts
-#else
+//#ifdef __WXMSW__
+//            image.Rescale(imgwidth, imght, wxIMAGE_QUALITY_BILINEAR); // I tried bicubic but it creates visual artefacts
+//#else
             image.Rescale(imgwidth, imght);
-#endif
+//#endif
             yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
             xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
         }
