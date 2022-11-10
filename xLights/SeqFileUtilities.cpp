@@ -41,6 +41,7 @@
 #include "sequencer/MainSequencer.h"
 #include "SelectPanel.h"
 #include "SearchPanel.h"
+#include "BufferPanel.h"
 
 #include "effects/SpiralsEffect.h"
 #include "effects/ButterflyEffect.h"
@@ -1109,6 +1110,30 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
             
             // remove lock if it is there
             Replace(settings, ",X_Effect_Locked=True", "");
+
+            // if we are mapping the effect onto a group and it is a per preview render buffer then use the goups default camera
+            Model* m = target->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->GetModel(target->GetParentElement()->GetModelName());
+            if (m != nullptr) {
+                auto mg = dynamic_cast<const ModelGroup*>(m);
+                if (mg != nullptr) {
+                    // so is it a per preview render buffer
+                    auto rb = ef->GetSettings()["B_CHOICE_BufferStyle"];
+                    if (BufferPanel::CanRenderBufferUseCamera(rb)) {
+                        if (Contains(settings, "B_CHOICE_PerPreviewCamera")) {
+                            Replace(settings, ",B_CHOICE_PerPreviewCamera=" + ef->GetSettings()["B_CHOICE_PerPreviewCamera"],
+                                    ",B_CHOICE_PerPreviewCamera=" + mg->GetDefaultCamera());
+                        }
+                        else {
+                            settings += ",B_CHOICE_PerPreviewCamera=" + mg->GetDefaultCamera();
+                        }
+                    }
+                }
+            }
+            else {
+                // cant see why this would happen
+                wxASSERT(false);
+            }
+
             target->AddEffect(0, ef->GetEffectName(), settings, ef->GetPaletteAsString(),
                 ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
         }

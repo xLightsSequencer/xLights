@@ -39,6 +39,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetGridSize() const;
         int GetXCentreOffset() const;
         int GetYCentreOffset() const;
+        std::string GetDefaultCamera() const;
 
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}

@@ -421,6 +421,11 @@ int ModelGroup::GetYCentreOffset() const
     return wxAtoi(ModelXml->GetAttribute("YCentreOffset", "0"));
 }
 
+std::string ModelGroup::GetDefaultCamera() const
+{
+    return ModelXml->GetAttribute("DefaultCamera", "2D");
+}
+
 bool ModelGroup::Reset(bool zeroBased) {
     this->zeroBased = zeroBased;
     selected = false;

@@ -1259,6 +1259,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
         // need to do this otherwise they dont update when we drop the model
         bufferPanel->UpdateBufferStyles(AllModels[el->GetParentElement()->GetModelName()]);
+        bufferPanel->UpdateCamera(AllModels[el->GetParentElement()->GetModelName()]);
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
             DoStopSequence();

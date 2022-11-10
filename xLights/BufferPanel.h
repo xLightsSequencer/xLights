@@ -79,9 +79,12 @@ public:
 		BufferPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~BufferPanel();
 
+		static bool CanRenderBufferUseCamera(const std::string& rb);
+
         wxString GetBufferString();
         void SetDefaultControls(const Model *model, bool optionbased = false);
         void UpdateBufferStyles(const Model* model);
+        void UpdateCamera(const Model* model);
         void ValidateWindow();
 
 		static double GetSettingVCMin(const std::string& name)
@@ -229,7 +232,9 @@ public:
 		xlLockButton* BitmapButton_ZoomQuality;
 		//*)
 
-        SubBufferPanel *subBufferPanel;
+        SubBufferPanel *subBufferPanel = nullptr;
+        std::string _defaultCamera = "2D";
+
 	protected:
 
 		//(*Identifiers(BufferPanel)

@@ -24,6 +24,7 @@
 
 #include "PixelBuffer.h"
 #include "models/Model.h"
+#include "models/ModelGroup.h"
 #include "effects/EffectPanelUtils.h"
 #include "ValueCurveDialog.h"
 #include "SubBufferPanel.h"
@@ -659,6 +660,19 @@ wxString BufferPanel::GetBufferString() {
     return s;
 }
 
+void BufferPanel::UpdateCamera(const Model* model)
+{
+    _defaultCamera = "2D";
+    Choice_PerPreviewCamera->SetStringSelection("2D");
+    if (model != nullptr) {
+        auto mg = dynamic_cast<const ModelGroup*>(model);
+        if (mg != nullptr) {
+            Choice_PerPreviewCamera->SetStringSelection(mg->GetDefaultCamera());
+            _defaultCamera = mg->GetDefaultCamera();
+        }
+    }
+}
+
 void BufferPanel::UpdateBufferStyles(const Model* model)
 {
     auto sel = BufferStyleChoice->GetStringSelection();
@@ -690,7 +704,15 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
         if (BufferStyleChoice->IsEmpty()) {
             BufferStyleChoice->Append("Default");
         }
+
         Choice_PerPreviewCamera->SetStringSelection("2D");
+        if (model != nullptr) {
+            auto mg = dynamic_cast<const ModelGroup*>(model);
+            if (mg != nullptr) {
+                Choice_PerPreviewCamera->SetStringSelection(mg->GetDefaultCamera());
+            }
+        }
+
         subBufferPanel->SetDefaults();
 
         Slider_EffectBlur->SetValue(1);
@@ -984,11 +1006,16 @@ void BufferPanel::OnCheckBox_ResetBufferPanelClick(wxCommandEvent& event)
     config->Write("xLightsResetBufferPanel", CheckBox_ResetBufferPanel->IsChecked());
 }
 
+bool BufferPanel::CanRenderBufferUseCamera(const std::string& rb)
+{
+    return (rb == "Per Preview" || rb == "Per Model Per Preview");
+}
+
 void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event)
 {
     auto bs = BufferStyleChoice->GetStringSelection();
 
-    if (bs == "Per Preview" || bs == "Per Model Per Preview")
+    if (BufferPanel::CanRenderBufferUseCamera(bs))
     {
         Choice_PerPreviewCamera->Clear();
 
@@ -1001,7 +1028,10 @@ void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event)
             Choice_PerPreviewCamera->Append(frame->viewpoint_mgr.GetCamera3D(i)->GetName());
         }
 
-        Choice_PerPreviewCamera->SetStringSelection("2D");
+        Choice_PerPreviewCamera->SetStringSelection(_defaultCamera);
+        if (Choice_PerPreviewCamera->GetStringSelection() != _defaultCamera) {
+            Choice_PerPreviewCamera->SetStringSelection("2D");
+        }
     }
     else
     {
