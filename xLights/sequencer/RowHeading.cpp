@@ -139,6 +139,10 @@ void RowHeading::ProcessTooltip(wxMouseEvent& event)
                 layers = wxString::Format(" [%d]", (int)e->GetEffectLayerCount());
             }
 
+            // wxClientDC is going to be deprecated and removed as it cannot draw onto the
+            // screen from all ports (example: wayland).  However, it can be used
+            // at this point to query text metrics until they can introduce a replacement.
+            // https://github.com/wxWidgets/wxWidgets/issues/12486
             wxClientDC dc(this);
             wxSize size = dc.GetTextExtent(e->GetName() + layers);
 
@@ -469,7 +473,8 @@ void RowHeading::rightClick( wxMouseEvent& event)
         mnuLayer.AppendSeparator();
         mnuLayer.Append(ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS, "Edit Display Elements");
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
-        Draw();
+        Refresh(false);
+        Update();
         PopupMenu(&mnuLayer);
     }
 }
@@ -1336,15 +1341,6 @@ int RowHeading::GetMaxRows()
     return max;
 }
 
-void RowHeading::render( wxPaintEvent& event )
-{
-#ifdef __LINUX__
-    if(!IsShownOnScreen()) return;
-#endif
-    wxPaintDC dc(this);
-    Draw();
-}
-
 static float ComputeRHFontSize() {
     // DEFAULT_ROW_HEADING_HEIGHT is either 16, 22, 30, 38, or 54
     // default size is appropriate for "22", scale others appropriately.
@@ -1373,10 +1369,13 @@ static void SetFontPixelSize(wxFont &font, float f) {
 }
 #endif
 
-
-void RowHeading::Draw()
+void RowHeading::render( wxPaintEvent& event )
 {
-    wxClientDC dc(this);
+#ifdef __LINUX__
+    if(!IsShownOnScreen()) return;
+#endif
+    wxPaintDC dc(this);
+
     wxCoord w,h;
     dc.GetSize(&w,&h);
     xlColor rowHeaderCol = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER);

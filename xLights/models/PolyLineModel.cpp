@@ -227,7 +227,6 @@ void PolyLineModel::SetSegsCollapsed(bool collapsed)
 
 void PolyLineModel::InitModel()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
     wxString dropPattern = GetModelXml()->GetAttribute("DropPattern", "1");
     wxArrayString pat = wxSplit(dropPattern, ',');

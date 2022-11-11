@@ -46,7 +46,6 @@ public:
 protected:
 private:
     DECLARE_EVENT_TABLE()
-    void Draw();
     void render(wxPaintEvent& event);
     void mouseLeftDown(wxMouseEvent& event);
     void mouseLeftUp(wxMouseEvent& event);

@@ -342,6 +342,7 @@ void TimeLine::SetSequenceEnd(int ms)
 bool TimeLine::SetPlayMarkerMS(int ms)
 {
     mCurrentPlayMarkerMS = ms;
+    int oldmCurrentPlayMarker = mCurrentPlayMarker;
     bool changed = false;
     if (ms < mStartTimeMS) {
         if (mCurrentPlayMarker != -1) {
@@ -356,8 +357,10 @@ bool TimeLine::SetPlayMarkerMS(int ms)
         mCurrentPlayMarker = i;
     }
     if (changed) {
-        wxClientDC dc(this);
-        render(dc);
+        wxRect rct(std::min(oldmCurrentPlayMarker - marker_size - 1, mCurrentPlayMarker - marker_size - 1), 0,
+                   std::max(oldmCurrentPlayMarker + marker_size + 1, mCurrentPlayMarker + marker_size + 1), GetSize().GetHeight());
+        RefreshRect(rct);
+        Update();
     }
     return changed;
 }
@@ -916,8 +919,7 @@ void TimeLine::render( wxDC& dc ) {
     }
 
     // draw timeline selection range or point
-    if( mCurrentPlayMarkerStart >= 0 )
-    {
+    if( mCurrentPlayMarkerStart >= 0 ) {
         int left_pos = mCurrentPlayMarkerStart + 1;
         if( mCurrentPlayMarkerEnd >= 0 && mCurrentPlayMarkerStart != mCurrentPlayMarkerEnd)
         {
@@ -928,27 +930,30 @@ void TimeLine::render( wxDC& dc ) {
         }
         DrawTriangleMarkerFacingLeft(dc, left_pos, marker_size, h);
     }
-
     // draw green current play arrow
-    if( mCurrentPlayMarker >= 0 )
-    {
-        dc.SetPen(*pen_green);
+    if (mCurrentPlayMarker >= 0) {
+        wxPoint points[4];
         int play_start_mark = mCurrentPlayMarker - marker_size;
         int play_end_mark = mCurrentPlayMarker + marker_size;
-        int x1, x2, y_bottom = 0;
-        for( x1 = play_start_mark, x2 = play_end_mark; x1 <= x2; x1++, x2--, y_bottom++ )
-        {
-            dc.DrawLine(x1, y_bottom, x2+1, y_bottom);
-        }
+        points[0].x = play_start_mark;
+        points[0].y = 0;
+        points[1].x = play_end_mark + 1;
+        points[1].y = 0;
+        points[2].x = mCurrentPlayMarker;
+        points[2].y = (play_end_mark - play_start_mark) / 2 + 1;
+        points[3].x = play_start_mark;
+        points[3].y = 0;
+        
+        dc.SetPen(*pen_green);
+        dc.SetBrush(*wxGREEN_BRUSH);
+        dc.DrawPolygon(4, points);
         dc.SetPen(*pen_black);
-        dc.DrawLine(play_start_mark, 0, play_end_mark, 0);
-        dc.DrawLine(play_start_mark, 0, mCurrentPlayMarker, y_bottom);
-        dc.DrawLine(play_end_mark, 0, mCurrentPlayMarker, y_bottom);
-        dc.DrawPoint(mCurrentPlayMarker, y_bottom);
+        dc.SetBrush(wxNullBrush);
+        dc.DrawLines(4, points);
     }
 
     // Draw the selection line if not a range
-    if( mSelectedPlayMarkerStart != -1 && mSelectedPlayMarkerEnd == -1 ) {
+    if (mSelectedPlayMarkerStart != -1 && mSelectedPlayMarkerEnd == -1) {
         dc.SetPen(*pen_black);
         dc.DrawLine(mSelectedPlayMarkerStart, 0, mSelectedPlayMarkerStart, h-1);
     }
