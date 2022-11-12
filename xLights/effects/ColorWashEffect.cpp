@@ -8,9 +8,6 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/checkbox.h>
-#include <wx/notebook.h>
-
 #include "ColorWashEffect.h"
 #include "ColorWashPanel.h"
 #include "../sequencer/Effect.h"
@@ -24,6 +21,7 @@
 
 static const std::string CHECKBOX_ColorWash_HFade("CHECKBOX_ColorWash_HFade");
 static const std::string CHECKBOX_ColorWash_VFade("CHECKBOX_ColorWash_VFade");
+static const std::string CHECKBOX_ColorWash_ReverseFades("CHECKBOX_ColorWash_ReverseFades");
 static const std::string TEXTCTRL_ColorWash_Cycles("TEXTCTRL_ColorWash_Cycles");
 static const std::string CHECKBOX_ColorWash_Shimmer("CHECKBOX_ColorWash_Shimmer");
 static const std::string CHECKBOX_ColorWash_CircularPalette("CHECKBOX_ColorWash_CircularPalette");
@@ -63,6 +61,7 @@ void ColorWashEffect::SetDefaultParameters() {
     p->CyclesTextCtrl->SetValue("1.0");
     SetCheckBoxValue(p->HFadeCheckBox, false);
     SetCheckBoxValue(p->VFadeCheckBox, false);
+    SetCheckBoxValue(p->ReverseFadesCheckBox, false);
     SetCheckBoxValue(p->ShimmerCheckBox, false);
     SetCheckBoxValue(p->CircularPaletteCheckBox, false);
     p->BitmapButton_ColorWash_CyclesVC->SetActive(false);
@@ -89,6 +88,9 @@ wxString ColorWashEffect::GetEffectString() {
     }
     if (p->HFadeCheckBox->GetValue()) {
         ret << "E_CHECKBOX_ColorWash_HFade=1,";
+    }
+    if (p->ReverseFadesCheckBox->GetValue()) {
+        ret << "E_CHECKBOX_ColorWash_ReverseFades=1,";
     }
     if (p->ShimmerCheckBox->GetValue()) {
         ret << "E_CHECKBOX_ColorWash_Shimmer=1,";
@@ -138,6 +140,9 @@ void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect)
     if (settingsMap.Get("E_CHECKBOX_ColorWash_VFade", "") == "0") {
         settingsMap.erase("E_CHECKBOX_ColorWash_VFade");
     }
+    if (settingsMap.Get("E_CHECKBOX_ColorWashColorWash_ReverseFades", "") == "0") {
+        settingsMap.erase("E_CHECKBOX_ColorWash_ColorWash_ReverseFades");
+    }
     if (settingsMap.Get("E_CHECKBOX_ColorWash_Shimmer", "") == "0") {
         settingsMap.erase("E_CHECKBOX_ColorWash_Shimmer");
     }
@@ -155,8 +160,9 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     float oset = buffer.GetEffectTimeIntervalPosition();
     float cycles = GetValueCurveDouble("ColorWash_Cycles", 1.0, SettingsMap, oset, COLOURWASH_CYCLES_MIN, COLOURWASH_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    bool HorizFade = SettingsMap.GetBool(CHECKBOX_ColorWash_HFade);
+    bool HorizFade = SettingsMap.GetBool(CHECKBOX_ColorWash_HFade);;
     bool VertFade = SettingsMap.GetBool(CHECKBOX_ColorWash_VFade);
+    bool reverseFades = SettingsMap.GetBool(CHECKBOX_ColorWash_ReverseFades); // todo - use this!!
     bool shimmer = SettingsMap.GetBool(CHECKBOX_ColorWash_Shimmer);
     bool circularPalette = SettingsMap.GetBool(CHECKBOX_ColorWash_CircularPalette);
 

@@ -20,6 +20,7 @@ const long ColorWashPanel::ID_CHECKBOX_ColorWash_VFade = wxNewId();
 const long ColorWashPanel::ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade = wxNewId();
 const long ColorWashPanel::ID_CHECKBOX_ColorWash_HFade = wxNewId();
 const long ColorWashPanel::ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade = wxNewId();
+const long ColorWashPanel::ID_CHECKBOX_ColorWash_ReverseFades = wxNewId();
 const long ColorWashPanel::ID_CHECKBOX_ColorWash_Shimmer = wxNewId();
 const long ColorWashPanel::ID_CHECKBOX_ColorWash_CircularPalette = wxNewId();
 
@@ -36,7 +37,7 @@ ColorWashPanel::ColorWashPanel(wxWindow* parent) : xlEffectPanel(parent)
 	wxFlexGridSizer* FlexGridSizer9;
 
 #if 0
-wxSmith-generated layout:
+wxSmith-generated layout (updated for ReverseFadesCheckBox):
 
 37 (0 x 1) main layout
  \
@@ -55,7 +56,7 @@ wxSmith-generated layout:
      BitmapButton_ColorWashVFade (2:4 in 75)
      HFadeCheckBox (3:4 in 75)
      BitmapButton_ColorWashHFade (4:4 in 75)
-     Reverse Fade
+     ReverseFadeCheckBox(4:5 in 75)
   114 (0 x 1) (3:4 in 37)
      \
       124 (0 x 2) (1:1 in 114)
@@ -86,7 +87,7 @@ wxSmith-generated layout:
 	BitmapButton_ColorWashCount->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer9->Add(BitmapButton_ColorWashCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer37->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer75 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer75 = new wxFlexGridSizer(0, 5, 0, 0);
 	FlexGridSizer75->AddGrowableCol(2);
 	VFadeCheckBox = new BulkEditCheckBox(this, ID_CHECKBOX_ColorWash_VFade, _("Vertical Fade"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ColorWash_VFade"));
 	VFadeCheckBox->SetValue(false);
@@ -100,6 +101,9 @@ wxSmith-generated layout:
 	BitmapButton_ColorWashHFade = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade"));
 	BitmapButton_ColorWashHFade->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer75->Add(BitmapButton_ColorWashHFade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    ReverseFadesCheckBox = new BulkEditCheckBox(this, ID_CHECKBOX_ColorWash_ReverseFades, _("Reverse Fades"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ColorWash_ReverseFades"));
+    ReverseFadesCheckBox->SetValue(false);
+    FlexGridSizer75->Add(ReverseFadesCheckBox, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer37->Add(FlexGridSizer75, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer114 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer114->AddGrowableCol(0);

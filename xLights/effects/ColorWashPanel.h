@@ -33,6 +33,7 @@ public:
 	xlLockButton* BitmapButton_ColorWashCount;
 	xlLockButton* BitmapButton_ColorWashHFade;
 	xlLockButton* BitmapButton_ColorWashVFade;
+    BulkEditCheckBox* ReverseFadesCheckBox;
 
 	static const long ID_STATICTEXT_ColorWash_Cycles;
 	static const long IDD_SLIDER_ColorWash_Cycles;
@@ -43,6 +44,7 @@ public:
 	static const long ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade;
 	static const long ID_CHECKBOX_ColorWash_HFade;
 	static const long ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade;
+	static const long ID_CHECKBOX_ColorWash_ReverseFades;
 	static const long ID_CHECKBOX_ColorWash_Shimmer;
 	static const long ID_CHECKBOX_ColorWash_CircularPalette;
 
