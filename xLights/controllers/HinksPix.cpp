@@ -723,22 +723,32 @@ void HinksPix::CalculateSmartRecievers(UDControllerPort* stringData) {
                 auto smartOut = std::find_if(_smartOutputs[expansionBoard][bank].begin(), _smartOutputs[expansionBoard][bank].end(), [id](auto const& so) {
                     return so.id == id;
                 });
-                if (smartOut != _smartOutputs[expansionBoard][bank].end()) {
+                if (smartOut != _smartOutputs[expansionBoard][bank].end()) {//if sr exists update start pixel count
                     smartOut->portStartPixel[subPort] = start_pixels;
-                } else {
-                    auto& smartPort = _smartOutputs[expansionBoard][bank].emplace_back(id);
-                    smartPort.portStartPixel[subPort] = start_pixels;
-                    if (it->GetSmartRemoteType().find("16ac") != std::string::npos) {
-                        smartPort.type = 2;
-                        smartPort.portStartPixel = { 0, 0, 0, 0 };
-                        smartPort.portStartPixel[subPort] = start_pixels;
-                    }
-                    else if (it->GetSmartRemoteType().find("16") != std::string::npos && ((id % 4) == 0)) {
+                } else {//if sr doesnt exists, add it
+                    if (it->GetSmartRemoteType().find("16") != std::string::npos && 
+                        it->GetSmartRemoteType().find("16ac") == std::string::npos) { //add 16 port
+                        //add all four remotes, starting at the first id 0,4,8,12
+                        int id16 = (id / 4) * 4;
+                        auto& smartPort = _smartOutputs[expansionBoard][bank].emplace_back(id16);
                         smartPort.type = 1;
-                        //fluff the Receivers
-                        _smartOutputs[expansionBoard][bank].emplace_back(id + 1);
-                        _smartOutputs[expansionBoard][bank].emplace_back(id + 2);
-                        _smartOutputs[expansionBoard][bank].emplace_back(id + 3);
+                        // fluff the Receivers
+                        _smartOutputs[expansionBoard][bank].emplace_back(id16 + 1);
+                        _smartOutputs[expansionBoard][bank].emplace_back(id16 + 2);
+                        _smartOutputs[expansionBoard][bank].emplace_back(id16 + 3);
+                        //get real sm 0,1,2,3, etc
+                        auto smartOut16 = std::find_if(_smartOutputs[expansionBoard][bank].begin(), _smartOutputs[expansionBoard][bank].end(), [id](auto const& so) {
+                            return so.id == id;
+                        });
+                        if (smartOut16 != _smartOutputs[expansionBoard][bank].end()) {//should always be true. we just added it
+                            smartOut16->portStartPixel[subPort] = start_pixels;
+                        }
+                    } else {//add four port or 16ac
+                        auto& smartPort = _smartOutputs[expansionBoard][bank].emplace_back(id);
+                        smartPort.portStartPixel[subPort] = start_pixels;
+                        if (it->GetSmartRemoteType().find("16ac") != std::string::npos) {
+                            smartPort.type = 2;
+                        }
                     }
                 }
             }

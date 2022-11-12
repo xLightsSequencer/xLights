@@ -90,7 +90,7 @@ struct HinksSmartOutput {
     HinksSmartOutput(int id_) :
         id(id_), 
         type(0), 
-        portStartPixel{ 1, 1, 1, 1 } {};
+        portStartPixel{ 0, 0, 0, 0 } {};
     int id;
     int type;
     std::array<int, 4> portStartPixel;
