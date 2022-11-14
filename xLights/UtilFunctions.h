@@ -165,6 +165,24 @@ inline bool Contains(const std::string& in, const std::string& contains) noexcep
     return in.find(contains) != std::string::npos;
 }
 
+inline bool ContainsBetweenCommas(const std::string& in, const std::string& contains) noexcept
+{
+    size_t idx = 0;
+    while (idx < in.length()) {
+        size_t nidx = in.find(',', idx);
+        if (nidx == std::string::npos) {
+            nidx = in.length();
+        }
+        if (nidx - idx == contains.length() &&
+            in.substr(idx, nidx - idx) == contains)
+        {
+            return true;
+        }
+        idx = nidx + 1;
+    }
+    return false;
+}
+
 inline bool Contains(const std::wstring& in, const std::wstring& contains) noexcept
 {
     return in.find(contains) != std::wstring::npos;
