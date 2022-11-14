@@ -422,7 +422,6 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                         auto mgmn = wxString(it);
                         mgmn = mname + "/" + mgmn.AfterFirst('/');
                         std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
-                        // MoC - This is a bug if em is a substring of the model you are looking for
                         if (ContainsBetweenCommas(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
                             std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
                             !mmg->DirectlyContainsModel(mgmn)) {
