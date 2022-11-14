@@ -162,7 +162,7 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
 
     bool HorizFade = SettingsMap.GetBool(CHECKBOX_ColorWash_HFade);;
     bool VertFade = SettingsMap.GetBool(CHECKBOX_ColorWash_VFade);
-    bool reverseFades = SettingsMap.GetBool(CHECKBOX_ColorWash_ReverseFades); // todo - use this!!
+    bool reverseFades = SettingsMap.GetBool(CHECKBOX_ColorWash_ReverseFades);
     bool shimmer = SettingsMap.GetBool(CHECKBOX_ColorWash_Shimmer);
     bool circularPalette = SettingsMap.GetBool(CHECKBOX_ColorWash_CircularPalette);
 
@@ -172,44 +172,67 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     double position = buffer.GetEffectTimeIntervalPosition(cycles);
     buffer.GetMultiColorBlend(position, circularPalette, color);
 
-    int startX = 0;
-    int startY = 0;
+    const int StartX = 0;
+    const int StartY = 0;
     int endX = buffer.BufferWi - 1;
     int endY = buffer.BufferHt - 1;
 
     int tot = buffer.curPeriod - buffer.curEffStartPer;
     if (!shimmer || (tot % 2) == 0) {
-        double HalfHt=double(endY - startY)/2.0;
-        double HalfWi=double(endX - startX)/2.0;
+        double HalfHt=double(endY - StartY)/2.0;
+        double HalfWi=double(endX - StartX)/2.0;
 
         orig = color;
         HSVValue hsvOrig = color.asHSV();
         xlColor color2 = color;
-        for (int x = startX; x <= endX; x++)
+        for (int x = StartX; x <= endX; x++)
         {
             HSVValue hsv = hsvOrig;
             if (HorizFade) {
-                if (buffer.allowAlpha) {
-                    color.alpha = (double)orig.alpha*(1.0-std::abs(HalfWi-x-startX)/HalfWi);
+                if (reverseFades) {
+                    double mult = std::abs(HalfWi - x - StartX) / HalfWi;
+                    if (buffer.allowAlpha) {
+                        color.alpha = (double)orig.alpha * mult;
+                    } else {
+                        hsv.value *= mult;
+                        color = hsv;
+                    }
                 } else {
-                    hsv.value*=1.0-std::abs(HalfWi-x-startX)/HalfWi;
-                    color = hsv;
+                    double mult = 1.0 - std::abs(HalfWi - x - StartX) / HalfWi;
+                    if (buffer.allowAlpha) {
+                        color.alpha = (double)orig.alpha * mult;
+                    } else {
+                        hsv.value *= mult;
+                        color = hsv;
+                    }
                 }
             }
             else
             {
                 color.alpha = orig.alpha;
             }
-
+ 
             color2.alpha = color.alpha;
-            for (y=startY; y<=endY; y++) {
+            for (y=StartY; y<=endY; y++) {
                 if (VertFade) {
-                    if (buffer.allowAlpha) {
-                        color.alpha = (double)color2.alpha*(1.0-std::abs(HalfHt-(y-startY))/HalfHt);
+                    if (reverseFades) {
+                        double mult = std::abs(HalfHt - (y - StartY)) / HalfHt;
+                        if (buffer.allowAlpha) {
+                            color.alpha = (double)color2.alpha * mult;
+                        } else {
+                            HSVValue hsv2 = hsv;
+                            hsv2.value *= mult;
+                            color = hsv2;
+                        }
                     } else {
-                        HSVValue hsv2 = hsv;
-                        hsv2.value*=1.0-std::abs(HalfHt-(y-startY))/HalfHt;
-                        color = hsv2;
+                        double mult = 1.0 - std::abs(HalfHt - (y - StartY)) / HalfHt;
+                        if (buffer.allowAlpha) {
+                            color.alpha = (double)color2.alpha * mult;
+                        } else {
+                            HSVValue hsv2 = hsv;
+                            hsv2.value *= mult;
+                            color = hsv2;
+                        }
                     }
                 }
                 buffer.SetPixel(x, y, color);
@@ -231,8 +254,8 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                                    orig, xlBLACK);
     } else {
         effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);
-        int midX = (startX + endX) / 2;
-        int midY = (startY + endY) / 2;
+        int midX = (StartX + endX) / 2;
+        int midY = (StartY + endY) / 2;
         buffer.CopyPixelsToDisplayListX(effect, midY, midX, midX);
     }
 }
