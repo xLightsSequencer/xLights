@@ -358,7 +358,7 @@ std::string ModelManager::SerialiseModelGroupsForModel(Model* m) const
             if (dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(m->Name())) {
                 onlyGroups.Add(it.first);
                 allGroups.Add(it.first);
-            } else if (dynamic_cast<ModelGroup*>(it.second)->ContainsModel(m)) {
+            } else if (dynamic_cast<ModelGroup*>(it.second)->ContainsModelOrSubmodel(m)) {
                 allGroups.Add(it.first);
             }
         }
@@ -1591,6 +1591,27 @@ std::vector<std::string> ModelManager::GetGroupsContainingModel(Model* model) co
             else {
                 for (const auto& sm : model->GetSubModels()) {
                     if (mg->ContainsModel(sm)) {
+                        res.push_back(it.first);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return res;
+}
+
+std::vector<std::string> ModelManager::GetGroupsContainingModelOrSubmodel(Model* model) const
+{
+    std::vector<std::string> res;
+    for (const auto& it : *this) {
+        if (it.second->GetDisplayAs() == "ModelGroup") {
+            auto mg = dynamic_cast<ModelGroup*>(it.second);
+            if (mg->ContainsModelOrSubmodel(model)) {
+                res.push_back(it.first);
+            } else {
+                for (const auto& sm : model->GetSubModels()) {
+                    if (mg->ContainsModelOrSubmodel(sm)) {
                         res.push_back(it.first);
                         break;
                     }

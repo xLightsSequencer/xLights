@@ -164,9 +164,34 @@ bool ModelGroup::DirectlyContainsModel(Model* m) const
     return false;
 }
 
-bool ModelGroup::DirectlyContainsModel(std::string const& m ) const
+bool ModelGroup::DirectlyContainsModel(std::string const& m) const
 {
     return std::find(modelNames.begin(), modelNames.end(), m) != modelNames.end();
+}
+
+bool ModelGroup::ContainsModelOrSubmodel(Model* m) const
+{
+    wxASSERT(m->GetDisplayAs() != "ModelGroup");
+
+    std::list<const Model*> visited;
+    visited.push_back(this);
+
+    bool found = false;
+    for (auto it = models.begin(); !found && it != models.end(); ++it) {
+        if ((*it)->GetDisplayAs() == "ModelGroup") {
+            if (std::find(visited.begin(), visited.end(), *it) == visited.end()) {
+                found |= dynamic_cast<ModelGroup*>(*it)->ContainsModelOrSubmodel(m, visited);
+            } else {
+                // already seen this group so dont follow
+            }
+        } else {
+            if (StartsWith((*it)->GetFullName(), m->GetName())) {
+                found = true;
+            }
+        }
+    }
+
+    return found;
 }
 
 bool ModelGroup::ContainsModel(Model* m) const
@@ -225,6 +250,31 @@ bool ModelGroup::ContainsModel(Model* m, std::list<const Model*>& visited) const
         {
             if (m == it)
             {
+                found = true;
+                break;
+            }
+        }
+    }
+
+    return found;
+}
+
+bool ModelGroup::ContainsModelOrSubmodel(Model* m, std::list<const Model*>& visited) const
+{
+    visited.push_back(this);
+
+    bool found = false;
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() == "ModelGroup") {
+            if (std::find(visited.begin(), visited.end(), it) == visited.end()) {
+                found |= dynamic_cast<ModelGroup*>(it)->ContainsModelOrSubmodel(m, visited);
+                if (found)
+                    break;
+            } else {
+                // already seen this group so dont follow
+            }
+        } else {
+            if (StartsWith(it->GetFullName(), m->GetName())) {
                 found = true;
                 break;
             }
