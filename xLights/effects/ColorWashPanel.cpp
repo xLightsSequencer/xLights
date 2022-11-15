@@ -11,6 +11,21 @@
 #include "ColorWashPanel.h"
 #include "ColorWashEffect.h"
 
+//(*InternalHeaders(ColorWashPanel)
+#include <wx/bitmap.h>
+#include <wx/bmpbuttn.h>
+#include <wx/checkbox.h>
+#include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+//*)
+
+//(*IdInit(ColorWashPanel)
 const long ColorWashPanel::ID_STATICTEXT_ColorWash_Cycles = wxNewId();
 const long ColorWashPanel::IDD_SLIDER_ColorWash_Cycles = wxNewId();
 const long ColorWashPanel::ID_VALUECURVE_ColorWash_Cycles = wxNewId();
@@ -23,47 +38,22 @@ const long ColorWashPanel::ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade = wxNewId();
 const long ColorWashPanel::ID_CHECKBOX_ColorWash_ReverseFades = wxNewId();
 const long ColorWashPanel::ID_CHECKBOX_ColorWash_Shimmer = wxNewId();
 const long ColorWashPanel::ID_CHECKBOX_ColorWash_CircularPalette = wxNewId();
+//*)
 
 BEGIN_EVENT_TABLE(ColorWashPanel,wxPanel)
+//(*EventTable(ColorWashPanel)
+//*)
 END_EVENT_TABLE()
 
 ColorWashPanel::ColorWashPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
+    //(*Initialize(ColorWashPanel)
 	wxFlexGridSizer* FlexGridSizer114;
 	wxFlexGridSizer* FlexGridSizer124;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer37;
 	wxFlexGridSizer* FlexGridSizer75;
 	wxFlexGridSizer* FlexGridSizer9;
-
-#if 0
-wxSmith-generated layout (updated for ReverseFadesCheckBox):
-
-37 (0 x 1) main layout
- \
-  9 (0 x 4) (1:4 in 37) 
-   \
-    "Count" (1:4 in 9)
-    1 (0 x 2) (2:4 in 9)
-     \
-      SliderCycles (1:2 in 1)
-      BitmapButton_ColorWash_CyclesVC (2:2 in 1)
-    CyclesTextCtrl (3:4 in 9)
-    BitmapButton_ColorWashCount (4:4 in 9)
-  75 (0 x 5) (2:4 in 37)
-    \
-     VFadeCheckBox (1:4 in 75)
-     BitmapButton_ColorWashVFade (2:4 in 75)
-     HFadeCheckBox (3:4 in 75)
-     BitmapButton_ColorWashHFade (4:4 in 75)
-     ReverseFadeCheckBox(4:5 in 75)
-  114 (0 x 1) (3:4 in 37)
-     \
-      124 (0 x 2) (1:1 in 114)
-         \ 
-          ShimmerCheckBox (1:2 in 124)
-          CircularPaletteCheckBox (2:2 in 124)
-#endif
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 
@@ -122,6 +112,7 @@ wxSmith-generated layout (updated for ReverseFadesCheckBox):
 	Connect(ID_BITMAPBUTTON_SLIDER_ColorWash_Cycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorWashPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorWashPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorWashPanel::OnLockButtonClick);
+    //*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ColorWashPanel::OnVCChanged, 0, this);
 	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&ColorWashPanel::OnValidateWindow, 0, this);
@@ -135,6 +126,8 @@ wxSmith-generated layout (updated for ReverseFadesCheckBox):
 
 ColorWashPanel::~ColorWashPanel()
 {
+    //(*Destroy(ColorWashPanel)
+    //*)
 }
 
 void ColorWashPanel::ValidateWindow()
