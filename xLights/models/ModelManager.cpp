@@ -422,7 +422,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                         auto mgmn = wxString(it);
                         mgmn = mname + "/" + mgmn.AfterFirst('/');
                         std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
-                        if (Contains(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
+                        if (ContainsBetweenCommas(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
                             std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
                             !mmg->DirectlyContainsModel(mgmn)) {
                             mmg->AddModel(mgmn);
@@ -431,7 +431,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                         }
                     }
                     else {
-                        if (Contains(grpModels, it) && std::find(mmnmn.begin(), mmnmn.end(), mname) == mmnmn.end() &&
+                        if (ContainsBetweenCommas(grpModels, it) && std::find(mmnmn.begin(), mmnmn.end(), mname) == mmnmn.end() &&
                             std::find(prevousNames.begin(), prevousNames.end(), mname) == prevousNames.end() &&
                             !mmg->DirectlyContainsModel(mname)) {
                             mmg->AddModel(mname);
