@@ -169,6 +169,15 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& /*se
     return std::list<std::string>();
 }
 
+std::list<std::string> SketchEffect::GetFileReferences(Model* model, const SettingsMap& SettingsMap) const
+{
+    std::list<std::string> res;
+    if (SettingsMap["E_FILEPICKER_SketchBackground"] != "") {
+        res.push_back(SettingsMap["E_FILEPICKER_SketchBackground"]);
+    }
+    return res;
+}
+
 AssistPanel* SketchEffect::GetAssistPanel(wxWindow* parent, xLightsFrame* /*xl_frame*/)
 {
     if (m_panel == nullptr)
