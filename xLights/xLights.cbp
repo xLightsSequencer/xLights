@@ -850,8 +850,8 @@
 		<Unit filename="effects/CirclesPanel.h" />
 		<Unit filename="effects/ColorWashEffect.cpp" />
 		<Unit filename="effects/ColorWashEffect.h" />
-		<Unit filename="effects/ColorWashPanel.cpp" />
-		<Unit filename="effects/ColorWashPanel.h" />
+                <Unit filename="effects/ColorWashPanel.cpp" />
+                <Unit filename="effects/ColorWashPanel.h" />
 		<Unit filename="effects/CurtainEffect.cpp" />
 		<Unit filename="effects/CurtainEffect.h" />
 		<Unit filename="effects/CurtainPanel.cpp" />
@@ -1397,6 +1397,7 @@
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
 		<Unit filename="wxsmith/ColorManagerDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
+                <Unit filename="wxsmith/ColorWashPanel.wxs" />
 		<Unit filename="wxsmith/ColourReplaceDialog.wxs" />
 		<Unit filename="wxsmith/ColoursPanel.wxs" />
 		<Unit filename="wxsmith/ControllerConnectionDialog.wxs" />
@@ -1678,6 +1679,7 @@
 					<wxPanel wxs="wxsmith/ButterflyPanel.wxs" src="effects/ButterflyPanel.cpp" hdr="effects/ButterflyPanel.h" fwddecl="1" i18n="1" name="ButterflyPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CandlePanel.wxs" src="effects/CandlePanel.cpp" hdr="effects/CandlePanel.h" fwddecl="1" i18n="1" name="CandlePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CirclesPanel.wxs" src="effects/CirclesPanel.cpp" hdr="effects/CirclesPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
+                                        <wxPanel wxs="wxsmith/ColorWashPanel.wxs" src="effects/ColorWashPanel.cpp" hdr = "effects/ColorWashPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CurtainPanel.wxs" src="effects/CurtainPanel.cpp" hdr="effects/CurtainPanel.h" fwddecl="1" i18n="1" name="CurtainPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/DMXPanel.wxs" src="effects/DMXPanel.cpp" hdr="effects/DMXPanel.h" fwddecl="1" i18n="1" name="DMXPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FacesPanel.wxs" src="effects/FacesPanel.cpp" hdr="effects/FacesPanel.h" fwddecl="1" i18n="1" name="FacesPanel" language="CPP" />

@@ -72,7 +72,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer75" member="no">
-					<cols>4</cols>
+					<cols>5</cols>
 					<growablecols>2</growablecols>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_VFade" subclass="BulkEditCheckBox" variable="VFadeCheckBox" member="yes">
@@ -110,6 +110,14 @@
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_ReverseFades" subclass="BulkEditCheckBox" variable="ReverseFadesCheckBox" member="yes">
+							<label>Reverse Fades</label>
+						</object>
+						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>

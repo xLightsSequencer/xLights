@@ -10,6 +10,15 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+//(*Headers(ColorWashPanel)
+#include <wx/panel.h>
+class wxBitmapButton;
+class wxCheckBox;
+class wxFlexGridSizer;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
+//*)
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
@@ -22,7 +31,8 @@ public:
 	virtual ~ColorWashPanel();
 	virtual void ValidateWindow() override;
 
-	BulkEditCheckBox* CircularPaletteCheckBox;
+    //(*Declarations(ColorWashPanel)
+    BulkEditCheckBox* CircularPaletteCheckBox;
 	BulkEditCheckBox* HFadeCheckBox;
 	BulkEditCheckBox* ShimmerCheckBox;
 	BulkEditCheckBox* VFadeCheckBox;
@@ -34,7 +44,9 @@ public:
 	xlLockButton* BitmapButton_ColorWashHFade;
 	xlLockButton* BitmapButton_ColorWashVFade;
     BulkEditCheckBox* ReverseFadesCheckBox;
+    //*)
 
+    //(*Identifiers(ColorWashPanel)
 	static const long ID_STATICTEXT_ColorWash_Cycles;
 	static const long IDD_SLIDER_ColorWash_Cycles;
 	static const long ID_VALUECURVE_ColorWash_Cycles;
@@ -47,6 +59,11 @@ public:
 	static const long ID_CHECKBOX_ColorWash_ReverseFades;
 	static const long ID_CHECKBOX_ColorWash_Shimmer;
 	static const long ID_CHECKBOX_ColorWash_CircularPalette;
+    //*)
+
+    //(*Handlers(ColorWashPanel)
+    //*)
+
 
 	DECLARE_EVENT_TABLE()
 };
