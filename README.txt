@@ -11,7 +11,24 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- bug (gil).   Fix start channel bug when PolyLine Lights/Node is greater than 1
+2022.23 November 17, 2022
+   -- enh (keith)  Upgraded to newer Visual Studio, hopefully fixes some image issues
+   -- enh (dkulp)  Add Shader filename in log if shader cannot be compiled to make debugging shader issues easier
+   -- enh (dkulp)  Finer grained FixFiles locking results in faster startup when bouncing back/forth between Windows/macOS
+   -- enh (keith)  Add a default camera to groups and handle using it when selecting per preview render buffers
+   -- enh (MrPaulAR) Add serial outputs to visualizer to some Pi based controllers
+   -- enh (keith)  Add Mattos Designs controller
+   -- enh (KMojek) Add "Reverse Fades" checkbox to ColorWashPanel
+   -- enh (merryoncherry) Import custom model - add submodels to groups
+   -- bug (keith)  Export model does not allow selection of groups containing submodels of the model being exported
+   -- bug (keith)  Sketch effect background image not included in packaged sequences
+   -- bug (scott)  Fix hinkspix upload if only using SR ID of B,C,D on 16SR.
+   -- bug (scott)  Fix model sorting in import dialog
+   -- bug (scott)  Fix SVG import from packaged sequences
+   -- bug (scott)  Fix ExperienceLights upload color order
+   -- bug (dkulp)  Fix crash in Shader effect if shader is not a proper shader or is using invalid unicode characters
+   -- bug (dkulp)  Fix hang on sequence close with RenderCache enabled
+   -- bug (gil)    Fix start channel bug when PolyLine Lights/Node is greater than 1
 2022.22 November 7, 2022
    -- enh (gil)    Refactored several huge sections of code in PolyLine reducing the complexity of the code
    -- enh (keith)  Add a way to add show players and pure media players to the controller tab
