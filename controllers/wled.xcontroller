@@ -79,7 +79,7 @@
             <Port6>5</Port6>
             <Port7>12</Port7>
             <Port8>13</Port8>
-		</Variant>    
+	</Variant>    
     </Controller>
     <Controller Name="QuinLED-Dig-Uno">
         <Variant Name="ESP8266" Base="WLED:BaseWLEDSettings">
