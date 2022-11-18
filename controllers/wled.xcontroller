@@ -50,6 +50,20 @@
             <Port8>33</Port8>
         </Variant>
     </Controller>
+    <Controller Name="QuinLED-Dig-Octa">
+        <Variant Name="" Base="WLED:ESP32WLEDSettings">
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>0</Port1>
+            <Port2>1</Port2>
+            <Port3>2</Port3>
+            <Port4>3</Port4>
+            <Port5>4</Port5>
+            <Port6>5</Port6>
+            <Port7>12</Port7>
+            <Port8>13</Port8>
+        </Variant>
+    </Controller>
     <Controller Name="QuinLED-Dig-Quad">
         <Variant Name="ESP32" Base="WLED:ESP32WLEDSettings">
             <MaxPixelPort>5</MaxPixelPort>
