@@ -132,6 +132,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
             DisplayError("Unable to load RGB effects file ... creating a default one.", this);
             CreateDefaultEffectsXml();
         }
+        wxXmlDoctype dt("");
+        EffectsXml.SetDoctype(dt);
     }
 
     wxXmlNode* root = EffectsXml.GetRoot();
@@ -711,6 +713,8 @@ void xLightsFrame::CreateDefaultEffectsXml()
 {
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xrgb" );
     EffectsXml.SetRoot( root );
+    wxXmlDoctype dt("");
+    EffectsXml.SetDoctype(dt);
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
     UpdateControllerSave();
