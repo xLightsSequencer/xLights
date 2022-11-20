@@ -78,12 +78,13 @@ Effect* EffectLayer::GetEffect(int index) const
         return nullptr;
     }
 }
+
 Effect* EffectLayer::GetEffectByTime(int timeMS) {
     std::unique_lock<std::recursive_mutex> locker(lock);
-    for(std::vector<Effect*>::iterator i = mEffects.begin(); i != mEffects.end(); i++) {
-        if (timeMS >= (*i)->GetStartTimeMS() &&
-            timeMS <= (*i)->GetEndTimeMS()) {
-            return (*i);
+    for(const auto& it : mEffects) {
+        if (timeMS >= it->GetStartTimeMS() &&
+            timeMS <= it->GetEndTimeMS()) {
+            return it;
         }
     }
     return nullptr;

@@ -1248,7 +1248,14 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                                     logger_base.crit("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
                                 }
 
+                                if (te_start->GetEndTimeMS() == te_start->GetStartTimeMS()) {
+                                    logger_base.crit("MainSequencer::GetSelectedEffectsData start effect start and end time is the same ... this is going to crash.");
+                                }
                                 int start_pct = ((ef->GetStartTimeMS() - te_start->GetStartTimeMS()) * 100) / (te_start->GetEndTimeMS() - te_start->GetStartTimeMS());
+
+                                if (te_end->GetEndTimeMS() == te_end->GetStartTimeMS()) {
+                                    logger_base.crit("MainSequencer::GetSelectedEffectsData end effect start and end time is the same ... this is going to crash.");
+                                }
                                 int end_pct = ((ef->GetEndTimeMS() - te_end->GetStartTimeMS()) * 100) / (te_end->GetEndTimeMS() - te_end->GetStartTimeMS());
                                 int start_index;
                                 int end_index;
