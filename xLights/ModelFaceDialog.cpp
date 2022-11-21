@@ -1269,6 +1269,12 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
 
                 if (!FileExists(filename))
                 {
+#ifdef __WXMSW__
+                    if (filename.length() > MAX_PATH) {
+                        logger_base.warn("Target filename longer than %d chars (%d). This will likely fail. %s.", MAX_PATH, (int)filename.length(), (const char*) filename.c_str());
+                    }
+#endif
+
                     logger_base.debug("Extracting %s:%s to %s.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)filename.c_str());
                     wxFileOutputStream fout(filename);
                     zin.Read(fout);
