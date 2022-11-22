@@ -1006,6 +1006,7 @@
     <ClCompile Include="controllers\Experience.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
+    <ClCompile Include="BulkEditComboDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2019,6 +2020,7 @@
     <ClInclude Include="controllers\Experience.h">
       <Filter>Controllers</Filter>
     </ClInclude>
+    <ClInclude Include="BulkEditComboDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

@@ -20,6 +20,7 @@
 #include "BulkEditSliderDialog.h"
 #include "BulkEditFontPickerDialog.h"
 #include "BulkEditColourPickerDialog.h"
+#include "BulkEditComboDialog.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
@@ -831,27 +832,25 @@ void BulkEditComboBox::OnComboBoxPopup(wxCommandEvent& event)
 
         PopulateComboBox();
 
-        int sel = -1;
         auto value = wxString::Format("%0.02f", wxAtof(GetValue()));
 
         wxArrayString choices;
         for (size_t i = 0; i < GetCount(); i++) {
             choices.push_back(GetString(i));
-            if (GetString(i) == value)
-                sel = i;
         }
 
-        wxSingleChoiceDialog dlg(GetParent(), "", label, choices);
-        if (sel >= 0 && sel < choices.size()) {
-            dlg.SetSelection(sel);
-        }
+        BulkEditComboDialog dlg(GetParent(), value, label, choices);
         OptimiseDialogPosition(&dlg);
 
         if (dlg.ShowModal() == wxID_OK) {
-            SetSelection(dlg.GetSelection());
+
+            std::string value = dlg.GetValue();
+
+            // as a new item may have been added we need to update our options
+            PopulateComboBox();
+            SetValue(value);
 
             std::string id = GetName().ToStdString();
-            std::string value = GetString(dlg.GetSelection());
             id = FixIdForPanel(GetPanelName(GetParent()), id);
 
             if (GetPanelName(GetParent()) == "Effect") {

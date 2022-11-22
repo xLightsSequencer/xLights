@@ -1739,3 +1739,24 @@ void ReverseNodes(std::map<std::string, std::string> & nodes, int max)
             line.second = CompressNodes(wxJoin(newNodeArray, ','));
     }
 }
+
+// returns true if the string contains what looks like a floating point number
+bool IsFloat(const std::string& number)
+{
+    // it cant be blank
+    if (number == "")
+        return false;
+    // if it contains a - it must be the first character and there must only be one of them
+    if (CountChar(number, '-') > 1 || (Contains(number, "-") && number[0] != '-'))
+        return false;
+    // it must contain zero or 1 '.'
+    if (CountChar(number, '.') > 1)
+        return false;
+    // all other characters must be 0-9
+    for (const auto it : number)
+    {
+        if (it != '.' && it != '-' && (it < '0' || it > '9'))
+            return false;
+    }
+    return true;
+}

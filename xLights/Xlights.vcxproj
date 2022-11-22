@@ -217,6 +217,7 @@
     <ClCompile Include="automation\xLightsAutomations.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditColourPickerDialog.cpp" />
+    <ClCompile Include="BulkEditComboDialog.cpp" />
     <ClCompile Include="BulkEditControls.cpp" />
     <ClCompile Include="BulkEditFontPickerDialog.cpp" />
     <ClCompile Include="BulkEditSliderDialog.cpp" />
@@ -694,6 +695,7 @@
     <ClInclude Include="automation\PythonRunner.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditColourPickerDialog.h" />
+    <ClInclude Include="BulkEditComboDialog.h" />
     <ClInclude Include="BulkEditControls.h" />
     <ClInclude Include="BulkEditFontPickerDialog.h" />
     <ClInclude Include="BulkEditSliderDialog.h" />

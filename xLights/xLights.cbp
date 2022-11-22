@@ -474,6 +474,8 @@
 		<Unit filename="BufferSizeDialog.h" />
 		<Unit filename="BulkEditColourPickerDialog.cpp" />
 		<Unit filename="BulkEditColourPickerDialog.h" />
+		<Unit filename="BulkEditComboDialog.cpp" />
+		<Unit filename="BulkEditComboDialog.h" />
 		<Unit filename="BulkEditControls.cpp" />
 		<Unit filename="BulkEditControls.h" />
 		<Unit filename="BulkEditFontPickerDialog.cpp" />
@@ -850,8 +852,8 @@
 		<Unit filename="effects/CirclesPanel.h" />
 		<Unit filename="effects/ColorWashEffect.cpp" />
 		<Unit filename="effects/ColorWashEffect.h" />
-                <Unit filename="effects/ColorWashPanel.cpp" />
-                <Unit filename="effects/ColorWashPanel.h" />
+		<Unit filename="effects/ColorWashPanel.cpp" />
+		<Unit filename="effects/ColorWashPanel.h" />
 		<Unit filename="effects/CurtainEffect.cpp" />
 		<Unit filename="effects/CurtainEffect.h" />
 		<Unit filename="effects/CurtainPanel.cpp" />
@@ -1386,18 +1388,19 @@
 		<Unit filename="wxsmith/BufferPanel.wxs" />
 		<Unit filename="wxsmith/BufferSizeDialog.wxs" />
 		<Unit filename="wxsmith/BulkEditColourPickerDialog.wxs" />
+		<Unit filename="wxsmith/BulkEditComboDialog.wxs" />
 		<Unit filename="wxsmith/BulkEditFontPickerDialog.wxs" />
 		<Unit filename="wxsmith/BulkEditSliderDialog.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
 		<Unit filename="wxsmith/CandlePanel.wxs" />
 		<Unit filename="wxsmith/CharMapDialog.wxs" />
-		<Unit filename="wxsmith/CheckboxSelectDialog.wxs" />
 		<Unit filename="wxsmith/CheckSequenceSettingsPanel.wxs" />
+		<Unit filename="wxsmith/CheckboxSelectDialog.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
 		<Unit filename="wxsmith/ColorManagerDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
-                <Unit filename="wxsmith/ColorWashPanel.wxs" />
+		<Unit filename="wxsmith/ColorWashPanel.wxs" />
 		<Unit filename="wxsmith/ColourReplaceDialog.wxs" />
 		<Unit filename="wxsmith/ColoursPanel.wxs" />
 		<Unit filename="wxsmith/ControllerConnectionDialog.wxs" />
@@ -1679,7 +1682,7 @@
 					<wxPanel wxs="wxsmith/ButterflyPanel.wxs" src="effects/ButterflyPanel.cpp" hdr="effects/ButterflyPanel.h" fwddecl="1" i18n="1" name="ButterflyPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CandlePanel.wxs" src="effects/CandlePanel.cpp" hdr="effects/CandlePanel.h" fwddecl="1" i18n="1" name="CandlePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CirclesPanel.wxs" src="effects/CirclesPanel.cpp" hdr="effects/CirclesPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
-                                        <wxPanel wxs="wxsmith/ColorWashPanel.wxs" src="effects/ColorWashPanel.cpp" hdr = "effects/ColorWashPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ColorWashPanel.wxs" src="effects/ColorWashPanel.cpp" hdr="effects/ColorWashPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CurtainPanel.wxs" src="effects/CurtainPanel.cpp" hdr="effects/CurtainPanel.h" fwddecl="1" i18n="1" name="CurtainPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/DMXPanel.wxs" src="effects/DMXPanel.cpp" hdr="effects/DMXPanel.h" fwddecl="1" i18n="1" name="DMXPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FacesPanel.wxs" src="effects/FacesPanel.cpp" hdr="effects/FacesPanel.h" fwddecl="1" i18n="1" name="FacesPanel" language="CPP" />
@@ -1755,6 +1758,7 @@
 					<wxDialog wxs="wxsmith/TipOfTheDayDialog.wxs" src="TipOfTheDayDialog.cpp" hdr="TipOfTheDayDialog.h" fwddecl="0" i18n="1" name="TipOfTheDayDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelRemap.wxs" src="ModelRemap.cpp" hdr="ModelRemap.h" fwddecl="0" i18n="1" name="ModelRemap" language="CPP" />
 					<wxDialog wxs="wxsmith/RestoreBackupDialog.wxs" src="RestoreBackupDialog.cpp" hdr="RestoreBackupDialog.h" fwddecl="0" i18n="1" name="RestoreBackupDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BulkEditComboDialog.wxs" src="BulkEditComboDialog.cpp" hdr="BulkEditComboDialog.h" fwddecl="0" i18n="1" name="BulkEditComboDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>
