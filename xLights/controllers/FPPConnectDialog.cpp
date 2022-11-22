@@ -609,12 +609,14 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
 
             xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
 
-            std::string fseqName = frame->GetFseqDirectory() + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
+            // if fpp dir and show dir match then start with the fseq in the current dir ... only if that does not exist take the one from the show dir
+            // this is consistent with the code in SaveSequence
+            std::string fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
+            if (frame->GetFseqDirectory() != frame->GetShowDirectory() || !FileExists(fseqName)) {
+                fseqName = frame->GetFseqDirectory() + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
+            }
             if (isSequence) {
                 //need to check for existence of fseq
-                if (!FileExists(fseqName)) {
-                    fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
-                }
                 if (!FileExists(fseqName)) {
                     isSequence = false;
                 }

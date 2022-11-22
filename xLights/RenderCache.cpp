@@ -71,7 +71,9 @@ private:
             if (rci != nullptr && !rci->IsPurged()) {
                 _cache->AddCacheItem(rci);
             } else {
-                delete rci;
+                if (rci != nullptr) {
+                    delete rci;
+                }
                 logger_base.warn("Failed to load cache item %s.", (const char*)it.c_str());
             }
         }
