@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix bug when drop sizes set negative. Introduced in 2022.22 when fixing drop size set to 0 bug.
 2022.23 November 17, 2022
    -- enh (keith)  Upgraded to newer Visual Studio, hopefully fixes some image issues
    -- enh (dkulp)  Add Shader filename in log if shader cannot be compiled to make debugging shader issues easier
