@@ -240,10 +240,11 @@ void PolyLineModel::InitModel()
     unsigned int maxH = 0;
     for (int x = 0; x < pat.size(); x++) {
         int pat_size = wxAtoi(pat[x]);
-        if( pat_size> 0 ) {
-            dropSizes.push_back(pat_size);
-            maxH = std::max(maxH, (unsigned int)std::abs(dropSizes[x]));
+        if( pat_size == 0 ) {
+            pat_size = 1;
         }
+        dropSizes.push_back(pat_size);
+        maxH = std::max(maxH, (unsigned int)std::abs(dropSizes[x]));
     }
     if (dropSizes.size() == 0) {
         dropSizes.push_back(5);
