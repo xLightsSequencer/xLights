@@ -31,7 +31,7 @@ const long SearchPanel::ID_CHECKBOX_SEARCH_REGEX = wxNewId();
 const long SearchPanel::ID_STATICTEXT2 = wxNewId();
 const long SearchPanel::ID_TEXTCTRL_SEARCH = wxNewId();
 const long SearchPanel::ID_BUTTON_SEARCH_FIND = wxNewId();
-const long SearchPanel::ID_LISTBOX_RESULTS = wxNewId();
+const long SearchPanel::ID_LISTCTRL_Results = wxNewId();
 const long SearchPanel::ID_BUTTON_SELECT_ALL = wxNewId();
 //*)
 
@@ -65,8 +65,8 @@ SearchPanel::SearchPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	Button_Search_Find = new wxButton(this, ID_BUTTON_SEARCH_FIND, _("Find"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SEARCH_FIND"));
 	FlexGridSizer1->Add(Button_Search_Find, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ListBoxResults = new wxListBox(this, ID_LISTBOX_RESULTS, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX_RESULTS"));
-	FlexGridSizer1->Add(ListBoxResults, 1, wxALL|wxEXPAND, 5);
+	ListCtrl_Results = new wxListCtrl(this, ID_LISTCTRL_Results, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING, wxDefaultValidator, _T("ID_LISTCTRL_Results"));
+	FlexGridSizer1->Add(ListCtrl_Results, 1, wxALL|wxEXPAND, 5);
 	ButtonSelectAll = new wxButton(this, ID_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL"));
 	FlexGridSizer1->Add(ButtonSelectAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	SetSizer(FlexGridSizer1);
@@ -76,12 +76,15 @@ SearchPanel::SearchPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	Connect(ID_COMBOBOX_SEARCH_MODEL,wxEVT_COMMAND_COMBOBOX_DROPDOWN,(wxObjectEventFunction)&SearchPanel::OnComboBox_Search_ModelDropdown);
 	Connect(ID_TEXTCTRL_SEARCH,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&SearchPanel::OnTextCtrlSearchTextEnter);
 	Connect(ID_BUTTON_SEARCH_FIND,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SearchPanel::OnButton_Search_FindClick);
-	Connect(ID_LISTBOX_RESULTS,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&SearchPanel::OnListBoxResultsSelect);
+	Connect(ID_LISTCTRL_Results,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&SearchPanel::OnListCtrl_ResultsItemSelect);
+	Connect(ID_LISTCTRL_Results,wxEVT_COMMAND_LIST_ITEM_DESELECTED,(wxObjectEventFunction)&SearchPanel::OnListCtrl_ResultsItemDeselect);
 	Connect(ID_BUTTON_SELECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SearchPanel::OnButtonSelectAllClick);
 	//*)
 
     mSequenceElements = elements;
     mainSequencer = sequencer;
+
+    ListCtrl_Results->AppendColumn("", wxLIST_FORMAT_LEFT, 1000);
 }
 
 SearchPanel::~SearchPanel()
@@ -94,7 +97,8 @@ void SearchPanel::ClearData()
 {
     ComboBox_Search_Model->Clear();
     TextCtrlSearch->Clear();
-    ListBoxResults->Clear();
+    ListCtrl_Results->ClearAll();
+    ListCtrl_Results->AppendColumn("", wxLIST_FORMAT_LEFT, 1000);
 }
 
 void SearchPanel::OnButton_Search_FindClick(wxCommandEvent& event)
@@ -114,14 +118,9 @@ void SearchPanel::OnComboBox_Search_ModelDropdown(wxCommandEvent& event)
 
 void SearchPanel::OnButtonSelectAllClick(wxCommandEvent& event)
 {
-    for (uint32_t i = 0; i < ListBoxResults->GetCount(); ++i) {
-        ListBoxResults->SetSelection(i);
+    for (uint32_t i = 0; i < ListCtrl_Results->GetItemCount(); ++i) {
+        ListCtrl_Results->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
     }
-    SelectEffects();
-}
-
-void SearchPanel::OnListBoxResultsSelect(wxCommandEvent& event)
-{
     SelectEffects();
 }
 
@@ -174,7 +173,8 @@ void SearchPanel::PopulateModelsList()
 
 void SearchPanel::FindSettings()
 {
-    ListBoxResults->Clear();
+    ListCtrl_Results->ClearAll();
+    ListCtrl_Results->AppendColumn("", wxLIST_FORMAT_LEFT, 1000);
 
     auto const& search = TextCtrlSearch->GetValue();
 
@@ -207,7 +207,8 @@ void SearchPanel::FindSettings()
             auto effs = elay->GetEffects();
             for (auto* eff : effs) {
                 if (ContainsSetting(eff, search, regex, value)) {
-                    ListBoxResults->Append(wxString::Format("%s [%s,%s] %s %s", value, FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname), (void*)eff);
+                    ListCtrl_Results->InsertItem(ListCtrl_Results->GetItemCount(), wxString::Format("%s [%s,%s] %s %s", value, FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname));
+                    ListCtrl_Results->SetItemPtrData(ListCtrl_Results->GetItemCount() - 1, (wxUIntPtr)eff);
                 }
             }
         }
@@ -223,7 +224,8 @@ void SearchPanel::FindSettings()
                             auto effs = elay->GetEffects();
                             for (auto* eff : effs) {
                                 if (ContainsSetting(eff, search, regex, value)) {
-                                    ListBoxResults->Append(wxString::Format("%s [%s,%s] %s %s", value,  FORMATTIME(eff->GetStartTimeMS()),  FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname), (void*)eff);
+                                    ListCtrl_Results->InsertItem(ListCtrl_Results->GetItemCount() , wxString::Format("%s [%s,%s] %s %s", value, FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname));
+                                    ListCtrl_Results->SetItemPtrData(ListCtrl_Results->GetItemCount() - 1, (wxUIntPtr)eff);
                                 }
                             }
                         }
@@ -233,8 +235,8 @@ void SearchPanel::FindSettings()
         }
     }
 
-    if (ListBoxResults->GetCount() == 1) {
-        ListBoxResults->SetSelection(0);
+    if (ListCtrl_Results->GetItemCount() == 1) {
+        ListCtrl_Results->SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
         SelectEffects();
     }
 }
@@ -271,14 +273,18 @@ bool SearchPanel::ContainsSetting(Effect* eff, std::string const& search, bool r
 void SearchPanel::SelectEffects()
 {
     wxArrayInt effectsSelected;
-    ListBoxResults->GetSelections(effectsSelected);
+    for (uint32_t i = 0; i < ListCtrl_Results->GetItemCount(); ++i) {
+        if (ListCtrl_Results->GetItemState(i, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED) {
+            effectsSelected.Add(i);
+        }
+    }
 
     if (!effectsSelected.empty()) {
         bool first = true;
         mSequenceElements->UnSelectAllEffects();
 
         for (auto value : effectsSelected) {
-            auto* eff = static_cast<Effect*>(ListBoxResults->GetClientData(value));
+            auto* eff = (Effect*)ListCtrl_Results->GetItemData(value);
             if (eff != nullptr) {
                 eff->SetSelected(EFFECT_SELECTED);
                 if (first) {
@@ -291,3 +297,14 @@ void SearchPanel::SelectEffects()
     }
 }
 
+void SearchPanel::OnListCtrl_ResultsItemSelect(wxListEvent& event)
+{
+    SelectEffects();
+    ListCtrl_Results->SetFocus();
+}
+
+void SearchPanel::OnListCtrl_ResultsItemDeselect(wxListEvent& event)
+{
+    SelectEffects();
+    ListCtrl_Results->SetFocus();
+}
