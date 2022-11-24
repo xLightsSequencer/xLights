@@ -17,6 +17,7 @@
 #include <wx/file.h>
 #include <wx/numdlg.h>
 #include <wx/config.h>
+#include <wx/config.h>
 #include <wx/choicdlg.h>
 
 //(*InternalHeaders(CustomModelDialog)
@@ -82,7 +83,9 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_COPY = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_PASTE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_DELETE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FLIPH = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_FLIPHSELECTED = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FLIPV = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_FLIPVSELECTED = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_ROTATE90 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_ROTATE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_REVERSE = wxNewId();
@@ -1996,6 +1999,55 @@ void CustomModelDialog::ShiftSelected()
     }
 }
 
+void CustomModelDialog::FlipHorzSelected()
+{
+    for (auto grid : _grids) 
+    {
+        // Rewrite the grid values
+        for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+            std::list<wxString> vals;
+            for (auto c = 0; c < grid->GetNumberCols(); c++) {
+                if (grid->IsInSelection(r, c)) { // only if selected
+                    vals.push_front(grid->GetCellValue(r, c));
+                }
+            }
+            for (auto c = 0; c < grid->GetNumberCols(); c++) {
+                if (grid->IsInSelection(r, c)) { // only if selected
+                    grid->SetCellValue(r, c, vals.front());
+                    vals.erase(vals.begin());
+                }
+            }
+        }
+    }
+    UpdateBackground();
+    UpdatePreview();
+    ValidateWindow();
+}
+
+void CustomModelDialog::FlipVertSelected()
+{
+    for (auto grid : _grids) {
+        // Rewrite the grid values
+        for (auto c = 0; c < grid->GetNumberCols(); c++) {
+            std::list<wxString> vals;
+            for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+                if (grid->IsInSelection(r, c)) { // only if selected
+                    vals.push_front(grid->GetCellValue(r, c));
+                }
+            }
+            for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+                if (grid->IsInSelection(r, c)) { // only if selected
+                    grid->SetCellValue(r, c, vals.front());
+                    vals.erase(vals.begin());
+                }
+            }
+        }
+    }
+    UpdateBackground();
+    UpdatePreview();
+    ValidateWindow();
+}
+
 void CustomModelDialog::OnPaste(wxCommandEvent& event)
 {
     UpdateHighlight(-1,-1);
@@ -2080,8 +2132,12 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
         DeleteCells();
     } else if (id == CUSTOMMODELDLGMNU_FLIPH) {
         FlipHorizontal();
+    } else if (id == CUSTOMMODELDLGMNU_FLIPHSELECTED) {
+        FlipHorzSelected();
     } else if (id == CUSTOMMODELDLGMNU_FLIPV) {
         FlipVertical();
+    } else if (id == CUSTOMMODELDLGMNU_FLIPVSELECTED) {
+        FlipVertSelected();
     } else if (id == CUSTOMMODELDLGMNU_ROTATE90) {
         Rotate90();
     } else if (id == CUSTOMMODELDLGMNU_ROTATE) {
@@ -2651,7 +2707,13 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     mnu.AppendSeparator();
 
     mnu.Append(CUSTOMMODELDLGMNU_FLIPH, "Horizontal Flip");
+    if (GetActiveGrid()->GetSelectionBlockBottomRight().Count() > 0) {
+        mnu.Append(CUSTOMMODELDLGMNU_FLIPHSELECTED, "Horizontal Flip Selected");
+    }
     mnu.Append(CUSTOMMODELDLGMNU_FLIPV, "Vertical Flip");
+    if (GetActiveGrid()->GetSelectionBlockBottomRight().Count() > 0) {
+        mnu.Append(CUSTOMMODELDLGMNU_FLIPVSELECTED, "Vertical Flip Selected");
+    }
     mnu.Append(CUSTOMMODELDLGMNU_ROTATE90, "Rotate 90");
     mnu.Append(CUSTOMMODELDLGMNU_ROTATE, "Rotate x");
     mnu.Append(CUSTOMMODELDLGMNU_REVERSE, "Reverse");

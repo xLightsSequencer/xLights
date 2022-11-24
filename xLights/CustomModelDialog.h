@@ -88,7 +88,9 @@ class CustomModelDialog: public wxDialog
     static const long CUSTOMMODELDLGMNU_PASTE;
 	static const long CUSTOMMODELDLGMNU_DELETE;
     static const long CUSTOMMODELDLGMNU_FLIPH;
+    static const long CUSTOMMODELDLGMNU_FLIPHSELECTED;
     static const long CUSTOMMODELDLGMNU_FLIPV;
+    static const long CUSTOMMODELDLGMNU_FLIPVSELECTED;
     static const long CUSTOMMODELDLGMNU_ROTATE90;
     static const long CUSTOMMODELDLGMNU_ROTATE;
     static const long CUSTOMMODELDLGMNU_REVERSE;
@@ -276,6 +278,8 @@ class CustomModelDialog: public wxDialog
         void Insert(int selRow, int selCol);
         void Shift();
 		void ShiftSelected();
+        void FlipHorzSelected();
+        void FlipVertSelected();
         void Compress();
 		void Find();
 		void FindLast();
