@@ -258,6 +258,12 @@ void SketchAssistPanel::SelectLastPath()
 
 void SketchAssistPanel::UpdateSketchBackground(const wxString& imagePath, int opacity)
 {
+    if (!wxFileExists(imagePath)) {
+        m_sketchCanvasPanel->clearBackgroundBitmap();
+        m_bgImagePath = "";
+        return;
+    }
+
     if (imagePath == m_bgImagePath && opacity == m_bitmapAlpha)
         return;
 
@@ -454,8 +460,10 @@ void SketchAssistPanel::OnPopupCommand(wxCommandEvent& event)
 
 void SketchAssistPanel::updateBgImage()
 {
-    if (!m_bgImage.IsOk())
+    if (!m_bgImage.IsOk()) {
+        m_sketchCanvasPanel->clearBackgroundBitmap();
         return;
+    }
 
     int w = m_bgImage.GetWidth();
     int h = m_bgImage.GetHeight();

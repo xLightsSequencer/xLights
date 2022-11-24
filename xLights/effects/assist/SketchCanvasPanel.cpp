@@ -771,6 +771,12 @@ bool SketchCanvasPanel::HandleHoveredOrGrabbed() const
     return false;
 }
 
+void SketchCanvasPanel::clearBackgroundBitmap()
+{
+    m_bgBitmap = nullptr;
+    Refresh();
+}
+
 void SketchCanvasPanel::setBackgroundBitmap(std::unique_ptr<wxBitmap> bm)
 {
     m_bgBitmap = std::move(bm);
