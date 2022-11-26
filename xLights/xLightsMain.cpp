@@ -32,6 +32,7 @@
 #include <wx/wfstream.h>
 #include <wx/version.h>
 #include <wx/tooltip.h>
+#include <wx/taskbar.h>
 
 #include <cctype>
 #include <cstring>
@@ -489,8 +490,6 @@ inline wxBitmapBundle GetButtonBitmapBundle(const wxString &id)  {
 }
 
 #ifdef __WXOSX__
-#include <wx/taskbar.h>
-
 const long NEWINSTANCE_ID = wxNewId();
 
 class xlMacDockIcon : public wxTaskBarIcon {
