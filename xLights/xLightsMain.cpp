@@ -488,6 +488,36 @@ inline wxBitmapBundle GetButtonBitmapBundle(const wxString &id)  {
     return wxArtProvider::GetBitmapBundle(id, wxART_BUTTON);
 }
 
+#ifdef __WXOSX__
+#include <wx/taskbar.h>
+
+const long NEWINSTANCE_ID = wxNewId();
+
+class xlMacDockIcon : public wxTaskBarIcon {
+public:
+    xlMacDockIcon(xLightsFrame*f) : wxTaskBarIcon(wxTBI_DOCK), _frame(f) {
+    }
+    
+    
+    virtual wxMenu *CreatePopupMenu() override {
+        wxMenu *menu = new wxMenu;
+        menu->Append(NEWINSTANCE_ID, "Open New Instance");
+        return menu;
+    }
+
+    void OnMenuOpenNewInstance(wxCommandEvent&e) {
+        _frame->OnMenuItem_File_NewXLightsInstance(e);
+    }
+    
+    xLightsFrame *_frame;
+    wxDECLARE_EVENT_TABLE();
+};
+
+wxBEGIN_EVENT_TABLE(xlMacDockIcon, wxTaskBarIcon)
+    EVT_MENU(NEWINSTANCE_ID, xlMacDockIcon::OnMenuOpenNewInstance)
+wxEND_EVENT_TABLE()
+#endif
+
 xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     _sequenceElements(this),
     jobPool("RenderPool"),
@@ -1306,6 +1336,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     _appProgress = std::make_unique<wxAppProgressIndicator>(this);
     _appProgress->SetRange(100);
     _appProgress->Reset();
+    
 
     AddEffectToolbarButtons(effectManager, EffectsToolBar);
     wxSize sz = EffectsToolBar->GetSize();
@@ -1847,6 +1878,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     bool gpuRendering = false;
     config->Read(_("xLightsGPURendering"), &gpuRendering, false);
     GPURenderUtils::SetEnabled(gpuRendering);
+    
+    _taskBarIcon = std::make_unique<xlMacDockIcon>(this);
 #else
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);

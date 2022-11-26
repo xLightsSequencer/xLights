@@ -118,6 +118,7 @@ class ControllerEthernet;
 class HttpServer;
 class HttpConnection;
 class HttpRequest;
+class wxTaskBarIcon;
 
 // max number of most recently used show directories on the File menu
 #define MRUD_LENGTH 4
@@ -1073,6 +1074,7 @@ public:
     int _videoExportBitrate;
 
     std::unique_ptr< wxAppProgressIndicator> _appProgress;
+    std::unique_ptr< wxTaskBarIcon > _taskBarIcon;
 
     HttpServer* _automationServer = nullptr;
     int _xFadePort = 0;
