@@ -684,20 +684,24 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         auto const vendors = ControllerCaps::GetVendors(GetType());
         auto it = begin(vendors);
         std::advance(it, event.GetValue().GetLong());
-        SetVendor(*it);
+        if (event.GetValue().GetLong() >= 0 && it != end(vendors)) {
+            SetVendor(*it);
 
-        auto models = ControllerCaps::GetModels(GetType(), *it);
-        if (models.size() == 2) {
-            SetModel(models.back());
-            auto variants = ControllerCaps::GetVariants(GetType(), *it, models.front());
-            if (variants.size() == 2) {
-                SetVariant(variants.back());
-            }
-            else {
+            auto models = ControllerCaps::GetModels(GetType(), *it);
+            if (models.size() == 2) {
+                SetModel(models.back());
+                auto variants = ControllerCaps::GetVariants(GetType(), *it, models.front());
+                if (variants.size() == 2) {
+                    SetVariant(variants.back());
+                } else {
+                    SetVariant("");
+                }
+            } else {
+                SetModel("");
                 SetVariant("");
             }
-        }
-        else {
+        } else {
+            SetVendor("");
             SetModel("");
             SetVariant("");
         }
