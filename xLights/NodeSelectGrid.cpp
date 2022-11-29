@@ -100,6 +100,12 @@ class DrawGrid : public wxGrid
         wxChar uc = event.GetUnicodeKey();
 
         switch (uc) {
+        case WXK_SPACE: 
+            if (m_currentCellCoords.GetRow() >= 0 && m_currentCellCoords.GetCol() >= 0) {
+                wxGridEvent gridEvent(GetId(), wxEVT_GRID_CELL_LEFT_DCLICK, this, m_currentCellCoords.GetRow(), m_currentCellCoords.GetCol());
+                wxPostEvent(this, gridEvent);
+            }
+            break;
         case 'c':
         case 'C':
         case WXK_CONTROL_C:
@@ -183,7 +189,8 @@ public:
     DrawGrid(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name) :
         wxGrid(parent, id, pos, size, style, name)
     {
-        Connect(wxEVT_CHAR, (wxObjectEventFunction)&DrawGrid::DoOnChar, 0, this);
+        //Connect(wxEVT_CHAR, (wxObjectEventFunction)&DrawGrid::DoOnChar, 0, this);
+        Connect(wxEVT_KEY_DOWN, (wxObjectEventFunction)&DrawGrid::DoOnChar, 0, this);
         Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&DrawGrid::HandleOnMouseWheel, 0, this);
     }
 
