@@ -440,6 +440,8 @@ uint8_t FacesEffect::CalculateAlpha(SequenceElements* elements, int leadFrames, 
 
 void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //wxStopWatch sw;
     uint8_t alpha = 255;
     if (SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false)) {
         if (SettingsMap["CHOICE_Faces_TimingTrack"] != "") {
@@ -467,6 +469,10 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                     SettingsMap.Get("CHOICE_Faces_UseState", ""),
                     SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", false));
     }
+
+    //if (sw.TimeInMicro() > 2000) {
+    //    logger_base.debug("Face effect frame render time: %lldus %s", sw.TimeInMicro(), (const char*)buffer.GetModel()->GetFullName().c_str());
+    //}
 }
 
 void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool outline, uint8_t alpha, bool suppressShimmer) {
@@ -902,14 +908,6 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     }
     std::string eyes = eyesIn;
 
-    Element* track = elements->GetElement(trackName);
-    std::recursive_timed_mutex tmpLock;
-    std::recursive_timed_mutex* lock = &tmpLock;
-    if (track != nullptr) {
-        lock = &track->GetChangeLock();
-    }
-    std::unique_lock<std::recursive_timed_mutex> locker(*lock);
-
     if (buffer.cur_model == "") {
         return;
     }
@@ -992,15 +990,17 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     }
 
     std::string phoneme = Phoneme;
+
     if (phoneme == "") {
-        //GET Phoneme from timing track
+        Element* track = elements->GetElement(trackName);
+        // GET Phoneme from timing track
         if (track == nullptr || track->GetEffectLayerCount() < 3) {
             phoneme = "rest";
             if ("Auto" == eyes) {
                 if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
-                    //roughly every 5 seconds we'll blink
+                    // roughly every 5 seconds we'll blink
                     cache->nextBlinkTime += intRand(4500, 5500);
-                    cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
+                    cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
                     eyes = "Closed";
                 } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
                     eyes = "Closed";
@@ -1009,73 +1009,82 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 }
             }
         } else {
+            // Limit the lock for only as long as we access the timing track - this minimises contention ... especially when using faces effect on groups
+            std::recursive_timed_mutex* lock = &track->GetChangeLock();
+            std::unique_lock<std::recursive_timed_mutex> locker(*lock);
+
             int startms = -1;
             int endms = -1;
 
             EffectLayer* layer = track->GetEffectLayer(2);
-            std::unique_lock<std::recursive_mutex> locker2(layer->GetLock());
-            int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
-            Effect* ef = layer->GetEffectByTime(time);
-            if (ef == nullptr) {
+            if (layer == nullptr) {
                 phoneme = "rest";
+                eyes = "Open";
             } else {
-                startms = ef->GetStartTimeMS();
-                endms = ef->GetEndTimeMS();
-                phoneme = ef->GetEffectName();
-            }
-            if ("Auto" == eyes && phoneme == "rest" && type != 2) {
-                if (startms == -1) {
-                    //need to figure out the time
-                    for (int x = 0; x < layer->GetEffectCount() && startms == -1; x++) {
-                        ef = layer->GetEffect(x);
-                        if (ef->GetStartTimeMS() > buffer.curPeriod * buffer.frameTimeInMs) {
-                            endms = ef->GetStartTimeMS();
-                            if (x > 0) {
-                                startms = layer->GetEffect(x - 1)->GetEndTimeMS();
-                            } else {
-                                startms = 0;
+                std::unique_lock<std::recursive_mutex> locker2(layer->GetLock());
+                int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
+                Effect* ef = layer->GetEffectByTime(time);
+                if (ef == nullptr) {
+                    phoneme = "rest";
+                } else {
+                    startms = ef->GetStartTimeMS();
+                    endms = ef->GetEndTimeMS();
+                    phoneme = ef->GetEffectName();
+                }
+                if ("Auto" == eyes && phoneme == "rest" && type != 2) {
+                    if (startms == -1) {
+                        // need to figure out the time
+                        for (int x = 0; x < layer->GetEffectCount() && startms == -1; x++) {
+                            ef = layer->GetEffect(x);
+                            if (ef->GetStartTimeMS() > buffer.curPeriod * buffer.frameTimeInMs) {
+                                endms = ef->GetStartTimeMS();
+                                if (x > 0) {
+                                    startms = layer->GetEffect(x - 1)->GetEndTimeMS();
+                                } else {
+                                    startms = 0;
+                                }
                             }
                         }
                     }
-                }
 
-                if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
-                    if ((startms + 150) >= (buffer.curPeriod * buffer.frameTimeInMs)) {
-                        //don't want to blink RIGHT at the start of the rest, delay a little bie
-                        int tmp = (buffer.curPeriod * buffer.frameTimeInMs) + intRand(150, 549);
+                    if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
+                        if ((startms + 150) >= (buffer.curPeriod * buffer.frameTimeInMs)) {
+                            // don't want to blink RIGHT at the start of the rest, delay a little bie
+                            int tmp = (buffer.curPeriod * buffer.frameTimeInMs) + intRand(150, 549);
 
-                        //also don't want it right at the end
-                        if ((tmp + 130) > endms) {
-                            cache->nextBlinkTime = (startms + endms) / 2;
+                            // also don't want it right at the end
+                            if ((tmp + 130) > endms) {
+                                cache->nextBlinkTime = (startms + endms) / 2;
+                            } else {
+                                cache->nextBlinkTime = tmp;
+                            }
                         } else {
-                            cache->nextBlinkTime = tmp;
+                            // roughly every 5 seconds we'll blink
+                            cache->nextBlinkTime += intRand(4500, 5500);
+                            cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
+                            eyes = "Closed";
                         }
-                    } else {
-                        //roughly every 5 seconds we'll blink
-                        cache->nextBlinkTime += intRand(4500, 5500);
-                        cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
+                    } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
                         eyes = "Closed";
+                    } else {
+                        eyes = "Open";
                     }
+                }
+            }
+        }
+    } else if (phoneme == "rest" || phoneme == "(off)") {
+            if ("Auto" == eyes) {
+                if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
+                    // roughly every 5 seconds we'll blink
+                    cache->nextBlinkTime += intRand(4500, 5500);
+                    cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
+                    eyes = "Closed";
                 } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
                     eyes = "Closed";
                 } else {
                     eyes = "Open";
                 }
             }
-        }
-    } else if (phoneme == "rest" || phoneme == "(off)") {
-        if ("Auto" == eyes) {
-            if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
-                //roughly every 5 seconds we'll blink
-                cache->nextBlinkTime += intRand(4500, 5500);
-                cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
-                eyes = "Closed";
-            } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
-                eyes = "Closed";
-            } else {
-                eyes = "Open";
-            }
-        }
     }
 
     int colorOffset = 0;
@@ -1259,7 +1268,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
         return;
     }
     if (type == 3) {
-        //picture
+        // picture
         std::string e = eyes;
         if (eyes == "Auto") {
             e = "Open";
@@ -1319,41 +1328,27 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             }
         }
     }
+
     for (size_t t = 0; t < todo.size(); t++) {
         if (shimmer && StartsWith(todo[t], "Mouth-")) {
             if (!ShimmerState(buffer))
                 continue;
         }
-        std::string channels = model_info->faceInfo[definition][todo[t]];
-        wxStringTokenizer wtkz(channels, ",");
-        while (wtkz.HasMoreTokens()) {
-            wxString valstr = wtkz.GetNextToken();
-
-            if (type == 0) {
-                auto it2 = cache->nodeNameCache.find(valstr.ToStdString());
-                if (it2 != cache->nodeNameCache.end()) {
-                    int n = it2->second;
-                    buffer.SetNodePixel(n, colors[t], true);
-                }
-            } else if (type == 1) {
-                int start, end;
-                if (valstr.Contains("-")) {
-                    int idx = valstr.Index('-');
-                    start = wxAtoi(valstr.Left(idx));
-                    end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
-                    if (end < start) {
-                        std::swap(start, end);
+        if (type == 1) {
+            for (const auto it : model_info->faceInfoNodes[definition][todo[t]]) {
+                buffer.SetNodePixel(it, colors[t], true);
+            }
+        } else {
+            std::string channels = model_info->faceInfo[definition][todo[t]];
+            wxStringTokenizer wtkz(channels, ",");
+            while (wtkz.HasMoreTokens()) {
+                wxString valstr = wtkz.GetNextToken();
+                if (type == 0) {
+                    auto it2 = cache->nodeNameCache.find(valstr.ToStdString());
+                    if (it2 != cache->nodeNameCache.end()) {
+                        int n = it2->second;
+                        buffer.SetNodePixel(n, colors[t], true);
                     }
-                } else {
-                    start = end = wxAtoi(valstr);
-                }
-                if (start > end) {
-                    start = end;
-                }
-                start--;
-                end--;
-                for (int n = start; n <= end; n++) {
-                    buffer.SetNodePixel(n, colors[t], true);
                 }
             }
         }
@@ -1368,29 +1363,10 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                         if (r != "") {
                             xlColor colour = xlColor(c);
                             colour.alpha = ((int)alpha * colour.alpha) / 255;
-                            wtkz = wxStringTokenizer(r, ",");
-                            while (wtkz.HasMoreTokens()) {
-                                wxString valstr = wtkz.GetNextToken();
 
-                                int start, end;
-                                if (valstr.Contains("-")) {
-                                    int idx = valstr.Index('-');
-                                    start = wxAtoi(valstr.Left(idx));
-                                    end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
-                                    if (end < start) {
-                                        std::swap(start, end);
-                                    }
-                                } else {
-                                    start = end = wxAtoi(valstr);
-                                }
-                                if (start > end) {
-                                    start = end;
-                                }
-                                start--;
-                                end--;
-                                for (int n = start; n <= end; n++) {
-                                    buffer.SetNodePixel(n, colour, true);
-                                }
+                            // use the nodes as it is faster
+                            for (const auto it : model_info->stateInfoNodes[outlineState][wxString::Format("s%d", (int)i)]) {
+                                buffer.SetNodePixel(it, colour, true);
                             }
                         }
                     }

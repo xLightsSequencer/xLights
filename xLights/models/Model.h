@@ -154,10 +154,15 @@ public:
     wxString SerialiseConnection() const;
     void AddModelGroups(wxXmlNode* n, int w, int h, const wxString& name, bool& merge, bool& ask);
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
+    std::map<std::string, std::map<std::string, std::list<int> > > faceInfoNodes;
+
+    void UpdateFaceInfoNodes();
+    void UpdateStateInfoNodes();
 
     static void ParseStateInfo(wxXmlNode* fiNode, std::map<std::string, std::map<std::string, std::string> >& stateInfo);
     static void WriteStateInfo(wxXmlNode* fiNode, const std::map<std::string, std::map<std::string, std::string> >& stateInfo, bool customColours = false);
     std::map<std::string, std::map<std::string, std::string> > stateInfo;
+    std::map<std::string, std::map<std::string, std::list<int>>> stateInfoNodes;
     void AddFace(wxXmlNode* n);
     void AddState(wxXmlNode* n);
     void AddSubmodel(wxXmlNode* n);
