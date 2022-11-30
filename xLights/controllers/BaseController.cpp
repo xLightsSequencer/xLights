@@ -86,7 +86,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
         bc = new FPP(ip, proxy, caps->GetModel());
     } else if (vendor == "Minleon") {
         bc = new Minleon(ip, proxy, flip);
-    } else if (vendor == "Experience Lights") {
+    } else if (vendor == "Experience Lights" || vendor == "Mattos Designs") {
         bc = new Experience(ip, proxy);
     } else if (vendor == "WLED") {
         bc = new WLED(ip, proxy);
