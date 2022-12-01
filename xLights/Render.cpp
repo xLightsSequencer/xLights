@@ -930,8 +930,8 @@ private:
     SettingsMap *statusMap;
     volatile int statusLayer;
     volatile int statusSubmodel = -1;
-    volatile int statusStrand;
-    volatile int statusNode;
+    volatile int statusStrand = -1;
+    volatile int statusNode = -1;
     log4cpp::Category &renderLog;
 
     wxGauge *gauge;

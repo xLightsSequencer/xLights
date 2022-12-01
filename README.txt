@@ -11,7 +11,24 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- bug (gil)    Fix bug when drop sizes set negative. Introduced in 2022.22 when fixing drop size set to 0 bug.
+2022.24 December 1, 2022
+   -- enh (keith)  SubModel creation - allow user to press space when a cell is the active cell to "double click" on the cell
+   -- enh (keith)  Improve some face/state effect render times
+   -- enh (dkulp)  macOS - Add "Open New Instance" to Doc icon
+   -- enh (keith)  Allow removal of Sketch effect background image
+   -- enh (keith)  Allow keyboard delete of a preset
+   -- enh (scott)  CustomModel dialog - allow h/v flip of selected area
+   -- enh (keith)  Expand fan effect radius
+   -- enh (scott)  Added search to Face Download Dialog
+   -- enh (scott)  Added support for QuinLED-Dig-Octa
+   -- bug (gil)    Fix bug when drop sizes set negative. Introduced in 2022.22 when fixing drop size set to 0 bug
+   -- bug (dkulp)  Fix crash in render on Linux
+   -- bug (scott)  Fix upload to Dragon controllers
+   -- bug (keith)  Bulk Edit Combo box does not work as a combo box
+   -- bug (keith)  FPP Connect uses different method to determine FSEQ location than save sequence
+   -- bug (keith)  Put warnings in log when zip extract filenames exceed MAX_PATH
+   -- bug (keith)  Add more logging to Twinkly enable
+   -- bug (keith)  Fix crash on render model to LCB
 2022.23 November 17, 2022
    -- enh (keith)  Upgraded to newer Visual Studio, hopefully fixes some image issues
    -- enh (dkulp)  Add Shader filename in log if shader cannot be compiled to make debugging shader issues easier
