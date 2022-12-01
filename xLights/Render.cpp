@@ -467,7 +467,7 @@ public:
     }
 
     wxString GetwxStatus() {
-        std::string n = statusSubmodel == -1 ? name : subModelInfos[statusSubmodel]->element->GetFullName();
+        std::string n = (statusSubmodel == -1 || statusSubmodel >= subModelInfos.size()) ? name : subModelInfos[statusSubmodel]->element->GetFullName();
         switch (statusType) {
         case 0:
             return statusMsg;
@@ -929,7 +929,7 @@ private:
     volatile int statusFrame;
     SettingsMap *statusMap;
     volatile int statusLayer;
-    volatile int statusSubmodel;
+    volatile int statusSubmodel = -1;
     volatile int statusStrand;
     volatile int statusNode;
     log4cpp::Category &renderLog;
