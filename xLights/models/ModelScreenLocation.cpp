@@ -717,8 +717,7 @@ wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, gl
         axisbb_max[0].x = active_handle_pos.x - ModelMatrix[3][0] + arrow_offset;
         axisbb_max[0].y = active_handle_pos.y - ModelMatrix[3][1] + arrow_offset;
         axisbb_max[0].z = active_handle_pos.z - ModelMatrix[3][2] + arrow_offset;
-    }
-    else if (IsElevationHandle()) {
+    } else if (IsElevationHandle()) {
         float axis_radius = GetAxisRadius(zoom, scale);
         float arrow_length = GetAxisArrowLength(zoom, scale);
         float head_length = GetAxisHeadLength(zoom, scale);
@@ -728,8 +727,7 @@ wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, gl
         axisbb_max[0].x = active_handle_pos.x - ModelMatrix[3][0] + axis_radius;
         axisbb_max[0].y = active_handle_pos.y - ModelMatrix[3][1] + arrow_length + 3;
         axisbb_max[0].z = active_handle_pos.z - ModelMatrix[3][2] + axis_radius;
-    }
-    else {
+    } else {
         float axis_radius = GetAxisRadius(zoom, scale);
         float arrow_length = GetAxisArrowLength(zoom, scale);
         float head_length = GetAxisHeadLength(zoom, scale);
@@ -754,18 +752,16 @@ wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, gl
     }
 
     // see if an axis handle is selected
-    for (size_t i = 0; i < num_axis_handles; i++)
-    {
+    for (size_t i = 0; i < num_axis_handles; i++) {
         float intersection_distance; // Output of TestRayOBBIntersection()
 
         if (VectorMath::TestRayOBBIntersection(
-            ray_origin,
-            ray_direction,
-            axisbb_min[i],
-            axisbb_max[i],
-            TranslateMatrix,      // axis is not rotated
-            intersection_distance)
-            ) {
+                ray_origin,
+                ray_direction,
+                axisbb_min[i],
+                axisbb_max[i],
+                TranslateMatrix, // axis is not rotated
+                intersection_distance)) {
             if (intersection_distance < distance) {
                 distance = intersection_distance;
                 handle = i | HANDLE_AXIS;
@@ -780,15 +776,14 @@ wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, gl
 bool ModelScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const
 {
     if (VectorMath::TestRayOBBIntersection(
-        ray_origin,
-        ray_direction,
-        aabb_min,
-        aabb_max,
-        ModelMatrix,
-        intersection_distance)
-        ) {
-            return true;
-        }
+            ray_origin,
+            ray_direction,
+            aabb_min,
+            aabb_max,
+            ModelMatrix,
+            intersection_distance)) {
+        return true;
+    }
     return false;
 }
 
@@ -816,4 +811,3 @@ void ModelScreenLocation::UpdateBoundingBox(float width, float height, float dep
         aabb_min.z -= 5;
     }
 }
-

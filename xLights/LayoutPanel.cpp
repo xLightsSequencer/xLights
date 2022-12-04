@@ -2347,11 +2347,11 @@ void LayoutPanel::showBackgroundProperties()
     if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
         wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
         prop->SetAttribute("Min", 0);
-        prop->SetAttribute("Max", 4096);
+        prop->SetAttribute("Max", 16384);
         prop->SetEditor("SpinCtrl");
         prop = propertyEditor->Append(new wxUIntProperty("Height", "BkgSizeHeight", modelPreview->GetVirtualCanvasHeight()));
         prop->SetAttribute("Min", 0);
-        prop->SetAttribute("Max", 4096);
+        prop->SetAttribute("Max", 16384);
         prop->SetEditor("SpinCtrl");
     }
     wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Brightness", "BkgBrightness", previewBackgroundBrightness));
