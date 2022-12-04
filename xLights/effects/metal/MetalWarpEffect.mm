@@ -102,7 +102,7 @@ public:
             
             id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
             if (computeEncoder == nil) {
-                commandBuffer = nil;
+                rbcd->abortCommandBuffer();
                 return false;
             }
             [computeEncoder setLabel:@"WarpEffect"];

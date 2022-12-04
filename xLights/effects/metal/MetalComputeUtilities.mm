@@ -15,6 +15,8 @@ MetalPixelBufferComputeData::MetalPixelBufferComputeData() {
 MetalPixelBufferComputeData::~MetalPixelBufferComputeData() {
 }
 
+std::atomic<uint32_t> MetalRenderBufferComputeData::commandBufferCount(0);
+#define MAX_COMMANDBUFFER_COUNT 512
 
 MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, MetalPixelBufferComputeData *pbd) : renderBuffer(rb), pixelBufferData(pbd) {
     commandBuffer = nil;
@@ -29,6 +31,7 @@ MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
     @autoreleasepool {
         if (commandBuffer != nil) {
             [commandBuffer release];
+            --commandBufferCount;
         }
         if (pixelBuffer != nil) {
             [pixelBuffer release];
@@ -44,12 +47,24 @@ MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
 
 id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer() {
     if (commandBuffer == nil) {
+        if (commandBufferCount.fetch_add(1) > (MAX_COMMANDBUFFER_COUNT - 4)) {
+            --commandBufferCount;
+            return nil;
+        }
         commandBuffer = [[MetalComputeUtilities::INSTANCE.commandQueue commandBuffer] retain];
         NSString* mn = [NSString stringWithUTF8String:renderBuffer->GetModelName().c_str()];
         [commandBuffer setLabel:mn];
     }
     return commandBuffer;
 }
+void MetalRenderBufferComputeData::abortCommandBuffer() {
+    @autoreleasepool {
+        [commandBuffer release];
+        commandBuffer = nil;
+        --commandBufferCount;
+    }
+}
+
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBufferCopy() {
     if (pixelBufferCopy == nil) {
         int bufferSize = renderBuffer->GetPixelCount() * 4;
@@ -199,6 +214,7 @@ void MetalRenderBufferComputeData::waitForCompletion() {
             [commandBuffer release];
             commandBuffer = nil;
             committed = false;
+            --commandBufferCount;
         }
     }
 }
@@ -209,6 +225,9 @@ bool MetalRenderBufferComputeData::blur(int radius) {
     }
     @autoreleasepool {
         id<MTLCommandBuffer> commandBuffer = getCommandBuffer();
+        if (commandBuffer == nil) {
+            return false;
+        }
         getPixelTexture();
         
         /*
@@ -391,7 +410,7 @@ MetalComputeUtilities::MetalComputeUtilities() {
     }
     [library setLabel:@"EffectComputeFunctionsLibrary"];
 
-    commandQueue = [device newCommandQueue];
+    commandQueue = [device newCommandQueueWithMaxCommandBufferCount:MAX_COMMANDBUFFER_COUNT];
     if (!commandQueue) {
         return;
     }

@@ -34,6 +34,7 @@ public:
     static MetalRenderBufferComputeData *getMetalRenderBufferComputeData(RenderBuffer *);
 
     id<MTLCommandBuffer> getCommandBuffer();
+    void abortCommandBuffer();
     
     id<MTLBuffer> getPixelBuffer(bool sendToGPU = true);
     id<MTLTexture> getPixelTexture();
@@ -58,6 +59,8 @@ private:
     std::pair<uint32_t, uint32_t> pixelTextureSize;
     bool committed = false;
     CurrentDataLocation currentDataLocation = BUFFER;
+    
+    static std::atomic<uint32_t> commandBufferCount;
 };
 
 
