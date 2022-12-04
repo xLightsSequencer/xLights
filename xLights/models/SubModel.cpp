@@ -9,6 +9,8 @@
  **************************************************************/
 
 #include "SubModel.h"
+#include "ModelManager.h"
+#include "ModelGroup.h"
 
 #include <wx/xml/xml.h>
 #include <wx/tokenzr.h>
@@ -342,4 +344,22 @@ void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outpu
     p = grid->Append(new wxStringProperty("SubModel", "SMN", _properyGridDisplay));
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     p->ChangeFlag(wxPG_PROP_READONLY, true);
+
+    auto modelGroups = parent->GetModelManager().GetGroupsContainingModel(this);
+    if (modelGroups.size() > 0) {
+        std::string mgs;
+        std::string mgscr;
+        for (const auto& it : modelGroups) {
+            if (mgs != "") {
+                mgs += ", ";
+                mgscr += "\n";
+            }
+            mgs += it;
+            mgscr += it;
+        }
+        p = grid->Append(new wxStringProperty("In Model Groups", "MGS", mgs));
+        p->SetHelpString(mgscr);
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPG_PROP_READONLY, true);
+    }
 }
