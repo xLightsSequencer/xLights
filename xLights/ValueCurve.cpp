@@ -1985,6 +1985,8 @@ void ValueCurve::DeletePoint(float offset)
 
 void ValueCurve::RemoveExcessCustomPoints()
 {
+    if (_values.size() < 3)
+        return;
     // go through list and remove middle points where 3 in a row have the same value
     auto it1 = _values.begin();
     auto it2 = it1;
