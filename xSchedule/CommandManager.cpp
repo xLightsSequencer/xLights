@@ -89,23 +89,23 @@ std::string Command::GetParametersTip() const
     return tip;
 }
 
-size_t Command::GetMandatoryParametersCount() const
+std::tuple<size_t,size_t> Command::GetMandatoryParametersCount() const
 {
-    size_t count = 0;
+    size_t mcount{ 0};
     for (const auto it : _parmtype) {
         if (it != PARMTYPE::OPTIONALSTRING)
-            count++;
+            mcount++;
     }
-    return count;
+    return {mcount, _parmtype.size()};
 }
 
 #ifndef EXCLUDE_COMMAND_VALIDATION
 bool Command::IsValid(wxString parms, PlayList* selectedPlayList, PlayListStep* selectedPlayListStep, Schedule* selectedSchedule, ScheduleManager* scheduleManager, wxString& msg, bool queuedMode) const
 {
     auto components = wxSplit(parms, ',');
-
-    if (_parms != -1 && components.Count() != GetMandatoryParametersCount()) {
-        msg = wxString::Format("Invalid number of parameters. Found %d when there should be %d.", (int)components.Count(), GetMandatoryParametersCount()).ToStdString();
+    auto [minp, maxp ] = GetMandatoryParametersCount();
+    if (_parms != -1 && (minp > components.Count() || maxp < components.Count())) {
+        msg = wxString::Format("Invalid number of parameters. Found %d when there should be between %d and %d.", (int)components.Count(), (int)minp, (int)maxp).ToStdString();
         return false;
     }
 

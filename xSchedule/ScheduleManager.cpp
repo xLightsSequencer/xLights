@@ -1823,7 +1823,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                 }
                 else if (command == "Start plugin") {
                     auto plugin = ((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().GetPluginFromLabel(parameters);
-                    if (plugin == "")                         {
+                    if (plugin == "") {
                         msg = "Plugin not found";
                         result = false;
                     }
@@ -1842,14 +1842,14 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         result = false;
                     }
                     else {
-                        if (!((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().StopPlugin(plugin))                             {
+                        if (!((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().StopPlugin(plugin)) {
                             msg = "Plugin could not be stopped";
                             result = false;
                         }
                     }
                     ((xScheduleApp*)wxTheApp)->GetFrame()->PluginStateChanged();
                 }
-                else if (command == "Send command to plugin")                     {
+                else if (command == "Send command to plugin") {
 
                     wxArrayString split = wxSplit(parameters, ',');
                     std::string plugin;
