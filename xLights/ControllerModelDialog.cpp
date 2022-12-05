@@ -604,8 +604,13 @@ public:
         if (name != displayName) {
             _string = wxAtoi(AfterLast(displayName, '-')) -1;
         }
+        auto cmn = displayName.substr(0, displayName.find("-str-"));
         if (GetModel() != nullptr) {
             _isShadow = GetModel()->GetShadowModelFor() != "" || GetModel()->GetModelManager().IsModelShadowing(GetModel());
+        } else if (cmn != "" && (*mm)[cmn] != nullptr)
+            {
+            auto m = (*mm)[cmn];
+            _isShadow = m->GetShadowModelFor() != "" || mm->IsModelShadowing(m);
         }
     }
 
