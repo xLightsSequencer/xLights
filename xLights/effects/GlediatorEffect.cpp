@@ -23,6 +23,7 @@
 #include "../xLightsXmlFile.h"
 #include "../xLightsMain.h" 
 #include "../UtilFunctions.h"
+#include "../ExternalHooks.h"
 
 #include "../../include/glediator-16.xpm"
 #include "../../include/glediator-64.xpm"
@@ -150,7 +151,7 @@ std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& s
 
     wxString GledFilename = settings.Get("E_FILEPICKERCTRL_Glediator_Filename", "");
 
-    if (GledFilename == "" || !wxFile::Exists(GledFilename))
+    if (GledFilename == "" || !FileExists(GledFilename))
     {
         res.push_back(wxString::Format("    ERR: Glediator effect cant find file '%s'. Model '%s', Start %s", GledFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
@@ -235,7 +236,7 @@ void GlediatorEffect::adjustSettings(const std::string &version, Effect *effect,
 
     if (file != "")
     {
-        if (!wxFile::Exists(file))
+        if (!FileExists(file))
         {
             settings["E_FILEPICKERCTRL_Glediator_Filename"] = FixFile("", file);
         }
@@ -255,7 +256,7 @@ bool GlediatorEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Set
 {
     bool rc = false;
     wxString file = SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"];
-    if (wxFile::Exists(file))
+    if (FileExists(file))
     {
         if (!frame->IsInShowFolder(file))
         {
@@ -295,7 +296,7 @@ public:
     float _frameMS;
 };
 
-void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer)
+void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -330,7 +331,7 @@ void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             _csvReader = nullptr;
         }
 
-        if (wxFileExists(glediatorFilename))
+        if (FileExists(glediatorFilename))
         {
             if (IsCSVFile(glediatorFilename))
             {

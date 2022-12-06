@@ -18,7 +18,8 @@
 #include "../../Color.h"
 #include <glm/mat4x4.hpp>
 #include <glm/mat3x3.hpp>
-
+#include <glm/mat3x3.hpp>
+#include <glm/fwd.hpp>
 #include "../xlGraphicsContext.h"
 
 class xlGLCanvas;
@@ -69,7 +70,6 @@ namespace DrawGLUtils
         float* vertices;
         uint32_t count;
         uint32_t _max;
-        uint32_t coordsPerVertex;
 
     protected:
         void DoReset() { count = 0; }
@@ -81,28 +81,26 @@ namespace DrawGLUtils
         };
         virtual void DoRealloc(int newMax)
         {
-            vertices = (float*)realloc(vertices, sizeof(float) * newMax * coordsPerVertex);
+            vertices = (float*)realloc(vertices, sizeof(float) * newMax * 3);
         }
-        xlVertexAccumulatorBase() : count(0), _max(64), coordsPerVertex(2)
+        xlVertexAccumulatorBase() : count(0), _max(64)
         {
-            vertices = (float*)malloc(sizeof(float) * _max * coordsPerVertex);
+            vertices = (float*)malloc(sizeof(float) * _max * 3);
         }
-        xlVertexAccumulatorBase(unsigned int m) : count(0), _max(m), coordsPerVertex(2)
+        xlVertexAccumulatorBase(unsigned int m) : count(0), _max(m)
         {
-            vertices = (float*)malloc(sizeof(float) * _max * coordsPerVertex);
+            vertices = (float*)malloc(sizeof(float) * _max * 3);
         }
 
         xlVertexAccumulatorBase(const xlVertexAccumulatorBase& mv)
         {
-            coordsPerVertex = mv.coordsPerVertex;
             count = mv.count;
             _max = mv._max;
-            vertices = (float*)malloc(sizeof(float) * _max * coordsPerVertex);
-            memcpy(vertices, mv.vertices, count * sizeof(float) * coordsPerVertex);
+            vertices = (float*)malloc(sizeof(float) * _max * 3);
+            memcpy(vertices, mv.vertices, count * sizeof(float) * 3);
         }
         xlVertexAccumulatorBase(xlVertexAccumulatorBase&& mv) noexcept
         {
-            coordsPerVertex = mv.coordsPerVertex;
             vertices = mv.vertices;
             mv.vertices = nullptr;
             count = mv.count;
@@ -111,12 +109,6 @@ namespace DrawGLUtils
         virtual ~xlVertexAccumulatorBase()
         {
             if (vertices != nullptr) free(vertices);
-        }
-
-        void SetCoordsPerVertex(unsigned int c)
-        {
-            coordsPerVertex = c;
-            DoRealloc(_max);
         }
     };
 
@@ -135,12 +127,10 @@ namespace DrawGLUtils
         }
         virtual void SetVertex(uint32_t vertex, float x, float y, float z) override {
             if (vertex < count) {
-                int i = vertex * coordsPerVertex;
+                int i = vertex * 3;
                 vertices[i++] = x;
                 vertices[i++] = y;
-                if (coordsPerVertex == 3) {
-                    vertices[i] = z;
-                }
+                vertices[i] = z;
             }
         }
         virtual void FlushRange(uint32_t start, uint32_t end) override {
@@ -152,12 +142,10 @@ namespace DrawGLUtils
         virtual void AddVertex(float x, float y, float z)  override {
             if (!finalized) {
                 PreAlloc(1);
-                int i = count * coordsPerVertex;
+                int i = count * 3;
                 vertices[i++] = x;
                 vertices[i++] = y;
-                if (coordsPerVertex == 3) {
-                    vertices[i] = z;
-                }
+                vertices[i] = z;
                 count++;
             }
         }
@@ -198,12 +186,10 @@ namespace DrawGLUtils
         }
         virtual void SetVertex(uint32_t vertex, float x, float y, float z, const xlColor &c) {
             if (vertex < count) {
-                int i = vertex * coordsPerVertex;
+                int i = vertex * 3;
                 vertices[i++] = x;
                 vertices[i++] = y;
-                if (coordsPerVertex == 3) {
-                    vertices[i] = z;
-                }
+                vertices[i] = z;
 
                 i = vertex * 4;
                 colors[i++] = c.Red();
@@ -214,12 +200,10 @@ namespace DrawGLUtils
         };
         virtual void SetVertex(uint32_t vertex, float x, float y, float z) {
             if (vertex < count) {
-                int i = vertex * coordsPerVertex;
+                int i = vertex * 3;
                 vertices[i++] = x;
                 vertices[i++] = y;
-                if (coordsPerVertex == 3) {
-                    vertices[i] = z;
-                }
+                vertices[i] = z;
             }
         };
         virtual void SetVertex(uint32_t vertex, const xlColor &c) {
@@ -242,8 +226,8 @@ namespace DrawGLUtils
         void AddVertex(float x, float y, float z, const xlColor& c, bool replace) {
             if (replace) {
                 for (unsigned int i = 0; i < count; i++) {
-                    int base = i * coordsPerVertex;
-                    if (vertices[base] == x && vertices[base + 1] == y && (coordsPerVertex == 2 || vertices[base + 2] == z)) {
+                    int base = i * 3;
+                    if (vertices[base] == x && vertices[base + 1] == y && vertices[base + 2] == z) {
                         base = i * 4;
                         colors[base] = c.Red();
                         colors[base + 1] = c.Green();
@@ -255,12 +239,11 @@ namespace DrawGLUtils
             }
 
             PreAlloc(1);
-            int i = count * coordsPerVertex;
+            int i = count * 3;
             vertices[i++] = x;
             vertices[i++] = y;
-            if (coordsPerVertex == 3) {
-                vertices[i] = z;
-            }
+            vertices[i] = z;
+
             i = count * 4;
             colors[i++] = c.Red();
             colors[i++] = c.Green();
@@ -333,15 +316,15 @@ namespace DrawGLUtils
 
         virtual void AddVertex(float x, float y, float z, float tx, float ty) override {
             PreAlloc(1);
-            int i = count * coordsPerVertex;
+            int i = count * 3;
+            int ti = count * 2;
             vertices[i] = x;
-            tvertices[i] = tx;
+            tvertices[ti] = tx;
             i++;
+            ti++;
             vertices[i] = y;
-            tvertices[i] = ty;
-            if (coordsPerVertex == 3) {
-                vertices[i + 1] = z;
-            }
+            tvertices[ti] = ty;
+            vertices[i + 1] = z;
             count++;
         }
         virtual void AddVertex(float x, float y, float tx, float ty) override {
@@ -501,44 +484,6 @@ namespace DrawGLUtils
     };
 
 
-    class xlVertex3Accumulator : public xlVertexAccumulator {
-    public:
-        xlVertex3Accumulator() : xlVertexAccumulator() { SetCoordsPerVertex(3); }
-
-    };
-
-    class xlVertex3ColorAccumulator : public xlVertexColorAccumulator {
-    public:
-        xlVertex3ColorAccumulator() : xlVertexColorAccumulator()
-        {
-            SetCoordsPerVertex(3);
-        }
-        xlVertex3ColorAccumulator(unsigned int m) : xlVertexColorAccumulator(m)
-        {
-            SetCoordsPerVertex(3);
-        }
-        xlVertex3ColorAccumulator(xlVertex3ColorAccumulator&& mv) noexcept : xlVertexColorAccumulator(mv)
-        {
-        }
-        xlVertex3ColorAccumulator(const xlVertex3ColorAccumulator& mv) : xlVertexColorAccumulator(mv)
-        {
-        }
-
-        virtual ~xlVertex3ColorAccumulator()
-        {
-        }
-
-    protected:
-    };
-
-    class xl3Accumulator : public xlAccumulator {
-    public:
-        xl3Accumulator() : xlAccumulator() { SetCoordsPerVertex(3); }
-        xl3Accumulator(unsigned int max) : xlAccumulator(max) { SetCoordsPerVertex(3); }
-        virtual ~xl3Accumulator() {}
-
-    private:
-    };
 
     class xlGLCacheInfo {
     public:
@@ -547,9 +492,9 @@ namespace DrawGLUtils
 
         virtual bool IsCoreProfile() { return false; }
         virtual void SetCurrent();
-        virtual void Draw(xlVertexAccumulator& va, const xlColor& color, int type, int enableCapability = 0) = 0;
-        virtual void Draw(xlVertexColorAccumulator& va, int type, int enableCapability = 0) = 0;
-        virtual void Draw(xlVertexTextureAccumulator& va, int type, int enableCapability = 0) = 0;
+        virtual void Draw(xlVertexAccumulator& va, const xlColor& color, int type, int enableCapability = 0, int start = 0, int count = -1) = 0;
+        virtual void Draw(xlVertexColorAccumulator& va, int type, int enableCapability = 0, int start = 0, int count = -1) = 0;
+        virtual void Draw(xlVertexTextureAccumulator& va, int type, int enableCapability = 0, int start = 0, int count = -1) = 0;
 
         virtual void Draw(xlAccumulator& va) = 0;
 
@@ -562,7 +507,9 @@ namespace DrawGLUtils
 
         virtual void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) = 0;
         virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y, int zDepth) = 0;
-        virtual void SetCamera(glm::mat4& view_matrix) = 0;
+        virtual void SetCamera(const glm::mat4& view_matrix) = 0;
+        virtual void SetModelMatrix(const glm::mat4& model_matrix) = 0;
+        virtual void ApplyMatrix(const glm::mat4& model_matrix) = 0;
         virtual void PushMatrix() = 0;
         virtual void PopMatrix() = 0;
         virtual void Translate(float x, float y, float z) = 0;
@@ -587,7 +534,9 @@ namespace DrawGLUtils
 
     void SetViewport(xlGLCanvas& win, int x1, int y1, int x2, int y2);
     void SetViewport3D(xlGLCanvas& win, int x1, int y1, int x2, int y2);
-    void SetCamera(glm::mat4& view_matrix);
+    void SetCamera(const glm::mat4& view_matrix);
+    void SetModelMatrix(const glm::mat4& model_matrix);
+    void ApplyMatrix(const glm::mat4& model_matrix);
     void PushMatrix();
     void PopMatrix();
     void Translate(float x, float y, float z);
@@ -602,12 +551,10 @@ namespace DrawGLUtils
     int NextTextureIdx();
 
     void Draw(xlAccumulator& va);
-    void Draw(xl3Accumulator& va);
-    void Draw(xlVertexAccumulator& va, const xlColor& color, int type, int enableCapability = 0);
-    void Draw(xlVertexColorAccumulator& va, int type, int enableCapability = 0);
-    void Draw(xlVertexTextureAccumulator& va, int type, int enableCapability = 0);
+    void Draw(xlVertexAccumulator& va, const xlColor& color, int type, int enableCapability = 0, int start = 0, int count = -1);
+    void Draw(xlVertexColorAccumulator& va, int type, int enableCapability = 0, int start = 0, int count = -1);
+    void Draw(xlVertexTextureAccumulator& va, int type, int enableCapability = 0, int start = 0, int count = -1);
     void Draw(xlVertexTextAccumulator& va, int size, float factor);
-    void Draw(xlVertex3Accumulator& va, const xlColor& color, int type, int enableCapability = 0);
 
     xl3DMesh* createMesh();
 
@@ -647,10 +594,8 @@ namespace DrawGLUtils
 
     void UpdateTexturePixel(GLuint texture, double x, double y, const xlColor& color, bool hasAlpha);
 
-    void DrawCube(double x, double y, double z, double width, const xlColor& color, xl3Accumulator& va);
-    void DrawSphere(double x, double y, double z, double radius, const xlColor& color, xl3Accumulator& va);
-    void DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator& va);
-    // 2D version is mainly useful for debugging hit testing
+    void DrawCube(double x, double y, double z, double width, const xlColor& color, xlAccumulator& va);
+    void DrawSphere(double x, double y, double z, double radius, const xlColor& color, xlAccumulator& va);
     void DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator& va);
 }
 

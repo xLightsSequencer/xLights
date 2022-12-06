@@ -18,6 +18,7 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
+#include <wx/combobox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/scrolwin.h>
@@ -29,6 +30,12 @@
 //*)
 
 class Model;
+
+#define IN_TRANSITION_MIN 0
+#define IN_TRANSITION_MAX 100
+
+#define OUT_TRANSITION_MIN 0
+#define OUT_TRANSITION_MAX 100
 
 class TimingPanel: public xlEffectPanel
 {
@@ -48,6 +55,31 @@ class TimingPanel: public xlEffectPanel
         void ValidateWindow();
         void SetLayersSelected(std::string layersSelected) { _layersSelected = layersSelected; }
 
+		static double GetSettingVCMin(const std::string& name)
+        {
+            if (name == "T_VALUECURVE_In_Transition_Adjust")
+                return IN_TRANSITION_MIN;
+            if (name == "T_VALUECURVE_Out_Transition_Adjust")
+                return OUT_TRANSITION_MIN;
+            wxASSERT(false);
+            return 0;
+        }
+
+        static double GetSettingVCMax(const std::string& name)
+        {
+            if (name == "T_VALUECURVE_In_Transition_Adjust")
+                return IN_TRANSITION_MAX;
+            if (name == "T_VALUECURVE_Out_Transition_Adjust")
+                return OUT_TRANSITION_MAX;
+            wxASSERT(false);
+            return 100;
+        }
+
+        static int GetSettingVCDivisor(const std::string& name)
+        {
+            return 1;
+        }
+
 		//(*Declarations(TimingPanel)
 		BulkEditCheckBox* CheckBox_Canvas;
 		BulkEditCheckBox* CheckBox_In_Reverse;
@@ -56,14 +88,14 @@ class TimingPanel: public xlEffectPanel
 		BulkEditChoice* Choice_In_Transition_Type;
 		BulkEditChoice* Choice_LayerMethod;
 		BulkEditChoice* Choice_Out_Transition_Type;
+		BulkEditComboBox* TextCtrl_Fadein;
+		BulkEditComboBox* TextCtrl_Fadeout;
 		BulkEditSlider* Slider_EffectLayerMix;
 		BulkEditSlider* Slider_In_Adjust;
 		BulkEditSlider* Slider_Out_Adjust;
 		BulkEditSpinCtrl* SpinCtrl_FreezeEffectAtFrame;
 		BulkEditSpinCtrl* SpinCtrl_SuppressEffectUntil;
 		BulkEditTextCtrl* TextCtrl_EffectLayerMix;
-		BulkEditTextCtrl* TextCtrl_Fadein;
-		BulkEditTextCtrl* TextCtrl_Fadeout;
 		BulkEditTextCtrl* TextCtrl_In_Adjust;
 		BulkEditTextCtrl* TextCtrl_Out_Adjust;
 		BulkEditValueCurveButton* BitmapButton_In_Transition_Adjust;
@@ -136,6 +168,8 @@ class TimingPanel: public xlEffectPanel
 		void OnButton_AboutClick(wxCommandEvent& event);
 		void OnTextCtrl_FadeinText(wxCommandEvent& event);
 		void OnTextCtrl_FadeoutText(wxCommandEvent& event);
+		void OnTextCtrl_FadeinDropdown(wxCommandEvent& event);
+		void OnTextCtrl_FadeoutDropdown(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

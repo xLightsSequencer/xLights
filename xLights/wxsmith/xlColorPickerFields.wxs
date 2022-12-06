@@ -2,12 +2,12 @@
 <wxsmith>
 	<object class="wxPanel" name="xlColorPickerFields">
 		<id_arg>0</id_arg>
-		<style>wxSTATIC_BORDER</style>
+		<style>wxBORDER_STATIC</style>
 		<object class="wxGridBagSizer" variable="GridBagSizer1" member="yes">
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL_Palette" subclass="xlColorCanvas" variable="Panel_Palette" member="yes">
 					<minsize>200,200d</minsize>
-					<style>wxSUNKEN_BORDER|wxTAB_TRAVERSAL</style>
+					<style>wxBORDER_SUNKEN|wxTAB_TRAVERSAL</style>
 				</object>
 				<colspan>10</colspan>
 				<rowspan>11</rowspan>
@@ -20,7 +20,7 @@
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL_SLIDER" subclass="xlColorCanvas" variable="Panel_Slider" member="yes">
 					<minsize>25,200d</minsize>
-					<style>wxSUNKEN_BORDER|wxTAB_TRAVERSAL</style>
+					<style>wxBORDER_SUNKEN|wxTAB_TRAVERSAL</style>
 				</object>
 				<rowspan>11</rowspan>
 				<col>11</col>
@@ -33,7 +33,7 @@
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch1" variable="BitmapButton_Swatch1" member="yes">
 					<bg>#FF0000</bg>
 					<minsize>15,15d</minsize>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
 				<col>1</col>
@@ -75,7 +75,7 @@
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL_CurrentColor" variable="Panel_CurrentColor" member="yes">
 					<minsize>75,55d</minsize>
-					<style>wxSUNKEN_BORDER</style>
+					<style>wxBORDER_SUNKEN</style>
 				</object>
 				<colspan>2</colspan>
 				<rowspan>3</rowspan>
@@ -185,7 +185,7 @@
 						<family>modern</family>
 					</font>
 					<minsize>25,-1d</minsize>
-					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
+					<style>wxTE_LEFT|wxBORDER_SIMPLE</style>
 					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
 				</object>
 				<col>14</col>
@@ -202,7 +202,7 @@
 						<family>modern</family>
 					</font>
 					<minsize>25,-1d</minsize>
-					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
+					<style>wxTE_LEFT|wxBORDER_SIMPLE</style>
 					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
 				</object>
 				<col>14</col>
@@ -219,7 +219,7 @@
 						<family>modern</family>
 					</font>
 					<minsize>25,-1d</minsize>
-					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
+					<style>wxTE_LEFT|wxBORDER_SIMPLE</style>
 					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
 				</object>
 				<col>14</col>
@@ -236,7 +236,7 @@
 						<family>modern</family>
 					</font>
 					<minsize>25,-1d</minsize>
-					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
+					<style>wxTE_LEFT|wxBORDER_SIMPLE</style>
 					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
 				</object>
 				<col>14</col>
@@ -253,7 +253,7 @@
 						<family>modern</family>
 					</font>
 					<minsize>25,-1d</minsize>
-					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
+					<style>wxTE_LEFT|wxBORDER_SIMPLE</style>
 					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
 				</object>
 				<col>14</col>
@@ -270,7 +270,7 @@
 						<family>modern</family>
 					</font>
 					<minsize>25,-1d</minsize>
-					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
+					<style>wxTE_LEFT|wxBORDER_SIMPLE</style>
 					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
 				</object>
 				<col>14</col>
@@ -283,7 +283,7 @@
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch2" variable="BitmapButton_Swatch2" member="yes">
 					<bg>#00FF00</bg>
 					<minsize>15,15d</minsize>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
 				<col>2</col>
@@ -296,7 +296,7 @@
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch3" variable="BitmapButton_Swatch3" member="yes">
 					<bg>#0000FF</bg>
 					<minsize>15,15d</minsize>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
 				<col>3</col>
@@ -309,7 +309,7 @@
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch4" variable="BitmapButton_Swatch4" member="yes">
 					<bg>#FFFF00</bg>
 					<minsize>15,15d</minsize>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
 				<col>4</col>
@@ -322,7 +322,7 @@
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch5" variable="BitmapButton_Swatch5" member="yes">
 					<bg>#FF8000</bg>
 					<minsize>15,15d</minsize>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
 				<col>5</col>
@@ -335,7 +335,7 @@
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch6" variable="BitmapButton_Swatch6" member="yes">
 					<bg>#00FFFF</bg>
 					<minsize>15,15d</minsize>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
 				<col>6</col>
@@ -348,7 +348,7 @@
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch7" variable="BitmapButton_Swatch7" member="yes">
 					<bg>#FF00FF</bg>
 					<minsize>15,15d</minsize>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
 				<col>7</col>
@@ -361,7 +361,7 @@
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch8" variable="BitmapButton_Swatch8" member="yes">
 					<bg>#8000FF</bg>
 					<minsize>15,15d</minsize>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
 				<col>8</col>

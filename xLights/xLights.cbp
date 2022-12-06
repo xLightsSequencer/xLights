@@ -176,9 +176,10 @@
 					<Add option="-std=c++1z" />
 					<Add option="-g" />
 					<Add option="-std=gnu++17" />
-					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`pkg-config --cflags lua53`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
@@ -197,19 +198,24 @@
 					<Add directory="outputs" />
 					<Add directory="xLights" />
 					<Add directory="xLights/models" />
+					<Add directory="../dependencies/libxlsxwriter/include" />
+					<Add directory="../include/sol2-3.2.2" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
-					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`pkg-config --libs lua53`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
 					<Add option="-lz" />
 					<Add option="-lzstd" />
+					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
+					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Release">
@@ -223,9 +229,10 @@
 					<Add option="-O2" />
 					<Add option="-Wall" />
 					<Add option="-std=gnu++17" />
-					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
+					<Add option="`pkg-config --cflags lua53`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
@@ -244,19 +251,24 @@
 					<Add directory="outputs" />
 					<Add directory="xLights" />
 					<Add directory="xLights/models" />
+					<Add directory="../dependencies/libxlsxwriter/include" />
+					<Add directory="../include/sol2-3.2.2" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
-					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`pkg-config --libs lua53`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
 					<Add option="-lz" />
 					<Add option="-lzstd" />
+					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
+					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
 				</Linker>
 			</Target>
 			<Target title="64bit MinGW_Release">
@@ -421,10 +433,24 @@
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
 		</Compiler>
+		<Unit filename="../common/xlBaseApp.cpp" />
+		<Unit filename="../common/xlBaseApp.h" />
+		<Unit filename="../common/xlStackWalker.h" />
 		<Unit filename="../xFade/wxLED.cpp" />
 		<Unit filename="../xFade/wxLED.h" />
 		<Unit filename="../xSchedule/md5.cpp" />
 		<Unit filename="../xSchedule/md5.h" />
+		<Unit filename="../xSchedule/wxHTTPServer/connection.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/context.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/message.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/pages.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/request.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/response.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/server.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/sha1.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/sha1.h" />
+		<Unit filename="../xSchedule/wxHTTPServer/status.cpp" />
+		<Unit filename="../xSchedule/wxHTTPServer/wxhttpserver.h" />
 		<Unit filename="../xSchedule/wxJSON/json_defs.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonreader.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonreader.h" />
@@ -448,6 +474,8 @@
 		<Unit filename="BufferSizeDialog.h" />
 		<Unit filename="BulkEditColourPickerDialog.cpp" />
 		<Unit filename="BulkEditColourPickerDialog.h" />
+		<Unit filename="BulkEditComboDialog.cpp" />
+		<Unit filename="BulkEditComboDialog.h" />
 		<Unit filename="BulkEditControls.cpp" />
 		<Unit filename="BulkEditControls.h" />
 		<Unit filename="BulkEditFontPickerDialog.cpp" />
@@ -471,6 +499,8 @@
 		<Unit filename="ColorManager.h" />
 		<Unit filename="ColorPanel.cpp" />
 		<Unit filename="ColorPanel.h" />
+		<Unit filename="ColourReplaceDialog.cpp" />
+		<Unit filename="ColourReplaceDialog.h" />
 		<Unit filename="ColoursPanel.cpp" />
 		<Unit filename="ColoursPanel.h" />
 		<Unit filename="ControllerConnectionDialog.cpp" />
@@ -522,6 +552,8 @@
 		<Unit filename="FSEQFile.h" />
 		<Unit filename="FileConverter.cpp" />
 		<Unit filename="FileConverter.h" />
+		<Unit filename="FindDataPanel.cpp" />
+		<Unit filename="FindDataPanel.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
 		<Unit filename="FlickerFreeBitmapButton.h" />
 		<Unit filename="FontManager.cpp" />
@@ -559,6 +591,8 @@
 		<Unit filename="LayoutGroup.h" />
 		<Unit filename="LayoutPanel.cpp" />
 		<Unit filename="LayoutPanel.h" />
+		<Unit filename="LayoutUtils.cpp" />
+		<Unit filename="LayoutUtils.h" />
 		<Unit filename="LinkJukeboxButtonDialog.cpp" />
 		<Unit filename="LinkJukeboxButtonDialog.h" />
 		<Unit filename="LorConvertDialog.cpp" />
@@ -572,7 +606,6 @@
 		<Unit filename="MIDI/MidiEventList.cpp" />
 		<Unit filename="MIDI/MidiFile.cpp" />
 		<Unit filename="MIDI/MidiMessage.cpp" />
-		<Unit filename="MSWStackWalk.h" />
 		<Unit filename="MatrixFaceDownloadDialog.cpp" />
 		<Unit filename="MatrixFaceDownloadDialog.h" />
 		<Unit filename="MediaImportOptionsDialog.cpp" />
@@ -587,8 +620,12 @@
 		<Unit filename="ModelGroupPanel.h" />
 		<Unit filename="ModelPreview.cpp" />
 		<Unit filename="ModelPreview.h" />
+		<Unit filename="ModelRemap.cpp" />
+		<Unit filename="ModelRemap.h" />
 		<Unit filename="ModelStateDialog.cpp" />
 		<Unit filename="ModelStateDialog.h" />
+		<Unit filename="Mouse3DManager.cpp" />
+		<Unit filename="Mouse3DManager.h" />
 		<Unit filename="MultiControllerUploadDialog.cpp" />
 		<Unit filename="MultiControllerUploadDialog.h" />
 		<Unit filename="MusicXML.cpp" />
@@ -640,9 +677,15 @@
 		<Unit filename="RenderProgressDialog.h" />
 		<Unit filename="ResizeImageDialog.cpp" />
 		<Unit filename="ResizeImageDialog.h" />
+		<Unit filename="RestoreBackupDialog.cpp" />
+		<Unit filename="RestoreBackupDialog.h" />
 		<Unit filename="SOIL.h" />
 		<Unit filename="SaveChangesDialog.cpp" />
 		<Unit filename="SaveChangesDialog.h" />
+		<Unit filename="ScriptsDialog.cpp" />
+		<Unit filename="ScriptsDialog.h" />
+		<Unit filename="SearchPanel.cpp" />
+		<Unit filename="SearchPanel.h" />
 		<Unit filename="SelectPanel.cpp" />
 		<Unit filename="SelectPanel.h" />
 		<Unit filename="SelectTimingsDialog.cpp" />
@@ -689,12 +732,16 @@
 		<Unit filename="TabSetup.cpp" />
 		<Unit filename="TimingPanel.cpp" />
 		<Unit filename="TimingPanel.h" />
+		<Unit filename="TipOfTheDayDialog.cpp" />
+		<Unit filename="TipOfTheDayDialog.h" />
 		<Unit filename="TopEffectsPanel.cpp" />
 		<Unit filename="TopEffectsPanel.h" />
 		<Unit filename="TraceLog.cpp" />
 		<Unit filename="TraceLog.h" />
 		<Unit filename="UpdaterDialog.cpp" />
 		<Unit filename="UpdaterDialog.h" />
+		<Unit filename="UtilClasses.cpp" />
+		<Unit filename="UtilClasses.h" />
 		<Unit filename="UtilFunctions.cpp" />
 		<Unit filename="UtilFunctions.h" />
 		<Unit filename="VAMPPluginDialog.cpp" />
@@ -734,6 +781,11 @@
 		<Unit filename="WiringDialog.cpp" />
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="automation/LuaRunner.cpp" />
+		<Unit filename="automation/LuaRunner.h" />
+		<Unit filename="automation/automation.cpp" />
+		<Unit filename="automation/automation.h" />
+		<Unit filename="automation/xLightsAutomations.cpp" />
 		<Unit filename="cad/CADModel.cpp" />
 		<Unit filename="cad/CADModel.h" />
 		<Unit filename="cad/CADPoint.h" />
@@ -757,6 +809,8 @@
 		<Unit filename="controllers/ControllerUploadData.h" />
 		<Unit filename="controllers/ESPixelStick.cpp" />
 		<Unit filename="controllers/ESPixelStick.h" />
+		<Unit filename="controllers/Experience.cpp" />
+		<Unit filename="controllers/Experience.h" />
 		<Unit filename="controllers/FPP.cpp" />
 		<Unit filename="controllers/FPP.h" />
 		<Unit filename="controllers/FPPConnectDialog.cpp" />
@@ -812,6 +866,8 @@
 		<Unit filename="effects/EffectManager.h" />
 		<Unit filename="effects/EffectPanelUtils.cpp" />
 		<Unit filename="effects/EffectPanelUtils.h" />
+		<Unit filename="effects/FX.cpp" />
+		<Unit filename="effects/FX.h" />
 		<Unit filename="effects/FacesEffect.cpp" />
 		<Unit filename="effects/FacesEffect.h" />
 		<Unit filename="effects/FacesPanel.cpp" />
@@ -936,6 +992,12 @@
 		<Unit filename="effects/SingleStrandEffect.h" />
 		<Unit filename="effects/SingleStrandPanel.cpp" />
 		<Unit filename="effects/SingleStrandPanel.h" />
+		<Unit filename="effects/SketchEffect.cpp" />
+		<Unit filename="effects/SketchEffect.h" />
+		<Unit filename="effects/SketchEffectDrawing.cpp" />
+		<Unit filename="effects/SketchEffectDrawing.h" />
+		<Unit filename="effects/SketchPanel.cpp" />
+		<Unit filename="effects/SketchPanel.h" />
 		<Unit filename="effects/SnowflakesEffect.cpp" />
 		<Unit filename="effects/SnowflakesEffect.h" />
 		<Unit filename="effects/SnowflakesPanel.cpp" />
@@ -996,6 +1058,10 @@
 		<Unit filename="effects/assist/AssistPanel.h" />
 		<Unit filename="effects/assist/PicturesAssistPanel.cpp" />
 		<Unit filename="effects/assist/PicturesAssistPanel.h" />
+		<Unit filename="effects/assist/SketchAssistPanel.cpp" />
+		<Unit filename="effects/assist/SketchAssistPanel.h" />
+		<Unit filename="effects/assist/SketchCanvasPanel.cpp" />
+		<Unit filename="effects/assist/SketchCanvasPanel.h" />
 		<Unit filename="effects/assist/xlGridCanvasEmpty.cpp" />
 		<Unit filename="effects/assist/xlGridCanvasEmpty.h" />
 		<Unit filename="effects/assist/xlGridCanvasMorph.cpp" />
@@ -1019,6 +1085,8 @@
 		<Unit filename="graphics/xlGraphicsAccumulators.h" />
 		<Unit filename="graphics/xlGraphicsBase.h" />
 		<Unit filename="graphics/xlGraphicsContext.h" />
+		<Unit filename="graphics/xlMesh.cpp" />
+		<Unit filename="graphics/xlMesh.h" />
 		<Unit filename="kiss_fft/kiss_fft.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -1029,6 +1097,8 @@
 		<Unit filename="models/ArchesModel.h" />
 		<Unit filename="models/BaseObject.cpp" />
 		<Unit filename="models/BaseObject.h" />
+		<Unit filename="models/BoxedScreenLocation.cpp" />
+		<Unit filename="models/BoxedScreenLocation.h" />
 		<Unit filename="models/CandyCaneModel.cpp" />
 		<Unit filename="models/CandyCaneModel.h" />
 		<Unit filename="models/ChannelBlockModel.cpp" />
@@ -1040,6 +1110,10 @@
 		<Unit filename="models/CustomModel.h" />
 		<Unit filename="models/DMX/DmxColorAbility.cpp" />
 		<Unit filename="models/DMX/DmxColorAbility.h" />
+		<Unit filename="models/DMX/DmxColorAbilityRGB.cpp" />
+		<Unit filename="models/DMX/DmxColorAbilityRGB.h" />
+		<Unit filename="models/DMX/DmxColorAbilityWheel.cpp" />
+		<Unit filename="models/DMX/DmxColorAbilityWheel.h" />
 		<Unit filename="models/DMX/DmxFloodArea.cpp" />
 		<Unit filename="models/DMX/DmxFloodArea.h" />
 		<Unit filename="models/DMX/DmxFloodlight.cpp" />
@@ -1056,6 +1130,8 @@
 		<Unit filename="models/DMX/DmxMovingHead3D.h" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.cpp" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.h" />
+		<Unit filename="models/DMX/DmxPresetAbility.cpp" />
+		<Unit filename="models/DMX/DmxPresetAbility.h" />
 		<Unit filename="models/DMX/DmxServo.cpp" />
 		<Unit filename="models/DMX/DmxServo.h" />
 		<Unit filename="models/DMX/DmxServo3D.cpp" />
@@ -1095,12 +1171,18 @@
 		<Unit filename="models/ModelManager.h" />
 		<Unit filename="models/ModelScreenLocation.cpp" />
 		<Unit filename="models/ModelScreenLocation.h" />
+		<Unit filename="models/MultiPointModel.cpp" />
+		<Unit filename="models/MultiPointModel.h" />
+		<Unit filename="models/MultiPointScreenLocation.cpp" />
+		<Unit filename="models/MultiPointScreenLocation.h" />
 		<Unit filename="models/Node.cpp" />
 		<Unit filename="models/Node.h" />
 		<Unit filename="models/ObjectManager.cpp" />
 		<Unit filename="models/ObjectManager.h" />
 		<Unit filename="models/PolyLineModel.cpp" />
 		<Unit filename="models/PolyLineModel.h" />
+		<Unit filename="models/PolyPointScreenLocation.cpp" />
+		<Unit filename="models/PolyPointScreenLocation.h" />
 		<Unit filename="models/RulerObject.cpp" />
 		<Unit filename="models/RulerObject.h" />
 		<Unit filename="models/Shapes.cpp" />
@@ -1119,8 +1201,12 @@
 		<Unit filename="models/TerrianObject.cpp" />
 		<Unit filename="models/TerrianObject.h" />
 		<Unit filename="models/TerrianScreenLocation.h" />
+		<Unit filename="models/ThreePointScreenLocation.cpp" />
+		<Unit filename="models/ThreePointScreenLocation.h" />
 		<Unit filename="models/TreeModel.cpp" />
 		<Unit filename="models/TreeModel.h" />
+		<Unit filename="models/TwoPointScreenLocation.cpp" />
+		<Unit filename="models/TwoPointScreenLocation.h" />
 		<Unit filename="models/ViewObject.cpp" />
 		<Unit filename="models/ViewObject.h" />
 		<Unit filename="models/ViewObjectManager.cpp" />
@@ -1182,6 +1268,8 @@
 		<Unit filename="outputs/SerialOutput.h" />
 		<Unit filename="outputs/TestPreset.cpp" />
 		<Unit filename="outputs/TestPreset.h" />
+		<Unit filename="outputs/TwinklyOutput.cpp" />
+		<Unit filename="outputs/TwinklyOutput.h" />
 		<Unit filename="outputs/ZCPP.h" />
 		<Unit filename="outputs/ZCPPOutput.cpp" />
 		<Unit filename="outputs/ZCPPOutput.h" />
@@ -1193,6 +1281,8 @@
 		<Unit filename="outputs/xxxSerialOutput.h" />
 		<Unit filename="preferences/BackupSettingsPanel.cpp" />
 		<Unit filename="preferences/BackupSettingsPanel.h" />
+		<Unit filename="preferences/CheckSequenceSettingsPanel.cpp" />
+		<Unit filename="preferences/CheckSequenceSettingsPanel.h" />
 		<Unit filename="preferences/ColorManagerSettingsPanel.cpp" />
 		<Unit filename="preferences/ColorManagerSettingsPanel.h" />
 		<Unit filename="preferences/EffectsGridSettingsPanel.cpp" />
@@ -1298,17 +1388,20 @@
 		<Unit filename="wxsmith/BufferPanel.wxs" />
 		<Unit filename="wxsmith/BufferSizeDialog.wxs" />
 		<Unit filename="wxsmith/BulkEditColourPickerDialog.wxs" />
+		<Unit filename="wxsmith/BulkEditComboDialog.wxs" />
 		<Unit filename="wxsmith/BulkEditFontPickerDialog.wxs" />
 		<Unit filename="wxsmith/BulkEditSliderDialog.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
 		<Unit filename="wxsmith/CandlePanel.wxs" />
 		<Unit filename="wxsmith/CharMapDialog.wxs" />
+		<Unit filename="wxsmith/CheckSequenceSettingsPanel.wxs" />
 		<Unit filename="wxsmith/CheckboxSelectDialog.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
 		<Unit filename="wxsmith/ColorManagerDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
 		<Unit filename="wxsmith/ColorWashPanel.wxs" />
+		<Unit filename="wxsmith/ColourReplaceDialog.wxs" />
 		<Unit filename="wxsmith/ColoursPanel.wxs" />
 		<Unit filename="wxsmith/ControllerConnectionDialog.wxs" />
 		<Unit filename="wxsmith/ControllerModelDialog.wxs" />
@@ -1331,6 +1424,7 @@
 		<Unit filename="wxsmith/FacesPanel.wxs" />
 		<Unit filename="wxsmith/FanPanel.wxs" />
 		<Unit filename="wxsmith/FillPanel.wxs" />
+		<Unit filename="wxsmith/FindDataPanel.wxs" />
 		<Unit filename="wxsmith/FirePanel.wxs" />
 		<Unit filename="wxsmith/FireworksPanel.wxs" />
 		<Unit filename="wxsmith/GalaxyPanel.wxs" />
@@ -1366,6 +1460,7 @@
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="wxsmith/ModelGroupPanel.wxs" />
 		<Unit filename="wxsmith/ModelPreview3DDialog.wxs" />
+		<Unit filename="wxsmith/ModelRemap.wxs" />
 		<Unit filename="wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
 		<Unit filename="wxsmith/MultiControllerUploadDialog.wxs" />
@@ -1397,6 +1492,8 @@
 		<Unit filename="wxsmith/ResizeImageDialog.wxs" />
 		<Unit filename="wxsmith/RipplePanel.wxs" />
 		<Unit filename="wxsmith/SaveChangesDialog.wxs" />
+		<Unit filename="wxsmith/ScriptsDialog.wxs" />
+		<Unit filename="wxsmith/SearchPanel.wxs" />
 		<Unit filename="wxsmith/SelectPanel.wxs" />
 		<Unit filename="wxsmith/SelectTimingsDialog.wxs" />
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
@@ -1428,6 +1525,7 @@
 		<Unit filename="wxsmith/TendrilPanel.wxs" />
 		<Unit filename="wxsmith/TextPanel.wxs" />
 		<Unit filename="wxsmith/TimingPanel.wxs" />
+		<Unit filename="wxsmith/TipOfTheDayDialog.wxs" />
 		<Unit filename="wxsmith/TopEffectsPanel.wxs" />
 		<Unit filename="wxsmith/TreePanel.wxs" />
 		<Unit filename="wxsmith/TwinklePanel.wxs" />
@@ -1584,12 +1682,13 @@
 					<wxPanel wxs="wxsmith/ButterflyPanel.wxs" src="effects/ButterflyPanel.cpp" hdr="effects/ButterflyPanel.h" fwddecl="1" i18n="1" name="ButterflyPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CandlePanel.wxs" src="effects/CandlePanel.cpp" hdr="effects/CandlePanel.h" fwddecl="1" i18n="1" name="CandlePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CirclesPanel.wxs" src="effects/CirclesPanel.cpp" hdr="effects/CirclesPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ColorWashPanel.wxs" src="effects/ColorWashPanel.cpp" hdr="effects/ColorWashPanel.h" fwddecl="1" i18n="1" name="ColorWashPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ColorWashPanel.wxs" src="effects/ColorWashPanel.cpp" hdr="effects/ColorWashPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CurtainPanel.wxs" src="effects/CurtainPanel.cpp" hdr="effects/CurtainPanel.h" fwddecl="1" i18n="1" name="CurtainPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/DMXPanel.wxs" src="effects/DMXPanel.cpp" hdr="effects/DMXPanel.h" fwddecl="1" i18n="1" name="DMXPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FacesPanel.wxs" src="effects/FacesPanel.cpp" hdr="effects/FacesPanel.h" fwddecl="1" i18n="1" name="FacesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FanPanel.wxs" src="effects/FanPanel.cpp" hdr="effects/FanPanel.h" fwddecl="1" i18n="1" name="FanPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FillPanel.wxs" src="effects/FillPanel.cpp" hdr="effects/FillPanel.h" fwddecl="1" i18n="1" name="FillPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/FindDataPanel.wxs" src="FindDataPanel.cpp" hdr="FindDataPanel.h" fwddecl="1" i18n="1" name="FindDataPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FirePanel.wxs" src="effects/FirePanel.cpp" hdr="effects/FirePanel.h" fwddecl="1" i18n="1" name="FirePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FireworksPanel.wxs" src="effects/FireworksPanel.cpp" hdr="effects/FireworksPanel.h" fwddecl="1" i18n="1" name="FireworksPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/GalaxyPanel.wxs" src="effects/GalaxyPanel.cpp" hdr="effects/GalaxyPanel.h" fwddecl="1" i18n="1" name="GalaxyPanel" language="CPP" />
@@ -1641,6 +1740,7 @@
 					<wxPanel wxs="wxsmith/ViewObjectPanel.wxs" src="ViewObjectPanel.cpp" hdr="ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ShaderPanel.wxs" src="effects/ShaderPanel.cpp" hdr="effects/ShaderPanel.h" fwddecl="0" i18n="1" name="ShaderPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/BackupSettingsPanel.wxs" src="preferences/BackupSettingsPanel.cpp" hdr="preferences/BackupSettingsPanel.h" fwddecl="1" i18n="1" name="BackupSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/CheckSequenceSettingsPanel.wxs" src="preferences/CheckSequenceSettingsPanel.cpp" hdr="preferences/CheckSequenceSettingsPanel.h" fwddecl="1" i18n="1" name="CheckSequenceSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ViewSettingsPanel.wxs" src="preferences/ViewSettingsPanel.cpp" hdr="preferences/ViewSettingsPanel.h" fwddecl="1" i18n="1" name="ViewSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SequenceFileSettingsPanel.wxs" src="preferences/SequenceFileSettingsPanel.cpp" hdr="preferences/SequenceFileSettingsPanel.h" fwddecl="1" i18n="1" name="SequenceFileSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/OutputSettingsPanel.wxs" src="preferences/OutputSettingsPanel.cpp" hdr="preferences/OutputSettingsPanel.h" fwddecl="1" i18n="1" name="OutputSettingsPanel" language="CPP" />
@@ -1648,10 +1748,17 @@
 					<wxPanel wxs="wxsmith/EffectsGridSettingsPanel.wxs" src="preferences/EffectsGridSettingsPanel.cpp" hdr="preferences/EffectsGridSettingsPanel.h" fwddecl="1" i18n="1" name="EffectsGridSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/RandomEffectsSettingsPanel.wxs" src="preferences/RandomEffectsSettingsPanel.cpp" hdr="preferences/RandomEffectsSettingsPanel.h" fwddecl="1" i18n="1" name="RandomEffectsSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ColorManagerSettingsPanel.wxs" src="preferences/ColorManagerSettingsPanel.cpp" hdr="preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/SearchPanel.wxs" src="SearchPanel.cpp" hdr="SearchPanel.h" fwddecl="0" i18n="1" name="SearchPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditColourPickerDialog.wxs" src="BulkEditColourPickerDialog.cpp" hdr="BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MediaImportOptionsDialog.wxs" src="MediaImportOptionsDialog.cpp" hdr="MediaImportOptionsDialog.h" fwddecl="0" i18n="1" name="MediaImportOptionsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ScriptsDialog.wxs" src="ScriptsDialog.cpp" hdr="ScriptsDialog.h" fwddecl="0" i18n="1" name="ScriptsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ColourReplaceDialog.wxs" src="ColourReplaceDialog.cpp" hdr="ColourReplaceDialog.h" fwddecl="0" i18n="1" name="ColourReplaceDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/TipOfTheDayDialog.wxs" src="TipOfTheDayDialog.cpp" hdr="TipOfTheDayDialog.h" fwddecl="0" i18n="1" name="TipOfTheDayDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelRemap.wxs" src="ModelRemap.cpp" hdr="ModelRemap.h" fwddecl="0" i18n="1" name="ModelRemap" language="CPP" />
+					<wxDialog wxs="wxsmith/RestoreBackupDialog.wxs" src="RestoreBackupDialog.cpp" hdr="RestoreBackupDialog.h" fwddecl="0" i18n="1" name="RestoreBackupDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BulkEditComboDialog.wxs" src="BulkEditComboDialog.cpp" hdr="BulkEditComboDialog.h" fwddecl="0" i18n="1" name="BulkEditComboDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

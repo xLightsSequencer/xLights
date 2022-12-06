@@ -548,13 +548,12 @@ void xlGridCanvasMorph::StoreUpdatedMorphPositions()
 static std::vector<std::vector<wxImage>> CORNER_IMAGES;
 void xlGridCanvasMorph::CreateCornerTextures(xlGraphicsContext *ctx)
 {
-    wxString tooltip;
     if (CORNER_IMAGES.empty()) {
         CORNER_IMAGES.resize(6);
         for (int x = 0; x < 6; x++) {
-            CORNER_IMAGES[x].emplace_back(BitmapCache::GetCornerIcon(x, tooltip, 64, true).ConvertToImage());
-            CORNER_IMAGES[x].emplace_back(BitmapCache::GetCornerIcon(x, tooltip, 32, true).ConvertToImage());
-            CORNER_IMAGES[x].emplace_back(BitmapCache::GetCornerIcon(x, tooltip, 16, true).ConvertToImage());
+            CORNER_IMAGES[x].emplace_back(BitmapCache::GetCornerIcon(x, 64));
+            CORNER_IMAGES[x].emplace_back(BitmapCache::GetCornerIcon(x, 32));
+            CORNER_IMAGES[x].emplace_back(BitmapCache::GetCornerIcon(x, 16));
             CORNER_IMAGES[x].emplace_back(CORNER_IMAGES[x][2].Scale(8, 8, wxIMAGE_QUALITY_HIGH));
             CORNER_IMAGES[x].emplace_back(CORNER_IMAGES[x][2].Scale(4, 4, wxIMAGE_QUALITY_HIGH));
             CORNER_IMAGES[x].emplace_back(CORNER_IMAGES[x][2].Scale(2, 2, wxIMAGE_QUALITY_HIGH));

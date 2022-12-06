@@ -61,9 +61,13 @@ void SequenceVideoPanel::SetMediaPath(const std::string& path)
         bool isHWAccel = VideoReader::IsHardwareAcceleratedVideo();
         // if using hardware acceleration, keep it in the native BGRA format
         // to avoid some byte reordering, extra copies, etc...
-        _videoReader.reset(new VideoReader(path, 0, 0, true, true, isHWAccel, isHWAccel));
-        if (_videoReader->IsValid())
-        {
+        bool wantsHWType = false;
+#ifdef XL_DRAWING_WITH_METAL
+        wantsHWType = isHWAccel;
+#endif
+        
+        _videoReader.reset(new VideoReader(path, 0, 0, true, true, isHWAccel, isHWAccel, wantsHWType));
+        if (_videoReader->IsValid()) {
             _isValidVideo = true;
             _videoWidth = _videoReader->GetWidth();
             _videoHeight = _videoReader->GetHeight();
@@ -74,20 +78,20 @@ void SequenceVideoPanel::SetMediaPath(const std::string& path)
 
 void SequenceVideoPanel::UpdateVideo( int ms )
 {
-   if ( !_isValidVideo || !IsShownOnScreen() )
-      return;
+    if ( !_isValidVideo || !IsShownOnScreen() )
+        return;
 
-   int clampedTime = std::min( ms, _videoLength );
+    int clampedTime = std::min( ms, _videoLength );
 
-   AVFrame *frame = _videoReader->GetNextFrame( clampedTime );
-   if ( frame != nullptr )
-   _videoPreview->Render( frame );
+    AVFrame *frame = _videoReader->GetNextFrame( clampedTime );
+    if ( frame != nullptr ) {
+        _videoPreview->Render( frame );
+    }
 }
 
 void SequenceVideoPanel::Resized( wxSizeEvent& evt )
 {
-   if ( _videoPreview )
-   {
+   if ( _videoPreview ) {
       _videoPreview->Move( 0, 0 );
       _videoPreview->SetSize( evt.GetSize() );
    }

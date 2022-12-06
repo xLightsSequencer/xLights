@@ -10,18 +10,20 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/app.h>
+#include "../common/xlBaseApp.h"
+
 
 class wxSingleInstanceChecker;
 class xScheduleFrame;
 
-class xScheduleApp : public wxApp
+class xScheduleApp : public xlBaseApp
 {
     wxSingleInstanceChecker* _checker = nullptr;
 
     public:
+        xScheduleApp();
+
         virtual bool OnInit() override;
-        virtual void OnFatalException() override;
         void WipeSettings();
         virtual int OnExit() override;
         xScheduleFrame* GetFrame() { return (xScheduleFrame*)GetTopWindow(); }

@@ -23,8 +23,7 @@ class DmxFloodArea : public DmxFloodlight
     protected:
         virtual void InitModel() override;
 
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active) override;
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active) override;
+        virtual void DrawModel(xlVertexColorAccumulator *vac, xlColor &center, xlColor &edge, float beam_length) override;
 
     private:
 };

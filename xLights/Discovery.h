@@ -86,6 +86,7 @@ public:
     int minorVersion = 0;
     int majorVersion = 0;
     int typeId = 0;
+    std::string uuid;
     
     std::string platform;
     std::string platformModel;
@@ -130,6 +131,7 @@ public:
     DiscoveredData *DetectControllerType(const std::string &ip, const std::string &proxy, const std::string &htmlBuffer);
     
     DiscoveredData *FindByIp(const std::string &ip, const std::string &hostname = "", bool create = false);
+    DiscoveredData *FindByUUID(const std::string &uuid);
 private:
     void HandleAuth(int curlIdx);
     

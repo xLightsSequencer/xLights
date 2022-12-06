@@ -47,6 +47,7 @@
 
 class AudioManager;
 class xLightsFrame;
+enum class HEADER_INFO_TYPES;
 
 // eventually this will go in some header..
 // the idea is to define this (currently) for the MS compiler
@@ -78,6 +79,8 @@ public:
     static void CleanUp();
 
     void ResetSize(int BufferWi, int BufferHt);
+    size_t GetWidth() const;
+    size_t GetHeight() const;
     virtual void Clear();
     virtual wxImage *FlushAndGetImage();
     virtual bool AllowAlphaChannel() { return true;};
@@ -100,9 +103,27 @@ public:
     virtual void Clear() override;
 
     void SetPen(wxPen& pen);
+    void SetBrush(wxBrush& brush);
+    void SetBrush(wxGraphicsBrush& brush);
+    wxGraphicsBrush CreateLinearGradientBrush(wxDouble x1, wxDouble y1, wxDouble x2, wxDouble y2, const wxGraphicsGradientStops& stops) const
+    {
+        if (gc != nullptr)
+            return gc->CreateLinearGradientBrush(x1, y1, x2, y2, stops);
+
+        return wxGraphicsBrush();
+    }
+    wxGraphicsBrush CreateLinearGradientBrush(wxDouble x1, wxDouble y1, wxDouble x2, wxDouble y2, const wxColour& c1, const wxColour& c2) const
+    {
+        if (gc != nullptr)
+            return gc->CreateLinearGradientBrush(x1, y1, x2, y2, c1, c2);
+
+        return wxGraphicsBrush();
+    }
 
     wxGraphicsPath CreatePath();
     void StrokePath(wxGraphicsPath& path);
+    void FillPath(wxGraphicsPath& path, wxPolygonFillMode fillStyle);
+
 private:
 };
 
@@ -220,6 +241,13 @@ public:
     {
         if (idx >= color.size()) return false;
         return (cc[idx].IsActive() && cc[idx].GetTimeCurve() != TC_TIME);
+    }
+
+    bool IsRadial(size_t idx) const
+    {
+        if (idx >= color.size())
+            return false;
+        return (cc[idx].IsActive() && (cc[idx].GetTimeCurve() == TC_RADIALIN || cc[idx].GetTimeCurve() == TC_RADIALOUT || cc[idx].GetTimeCurve() == TC_CW || cc[idx].GetTimeCurve() == TC_CCW));
     }
 
     xlColor CalcRoundColor(int idx, double round, int type) const
@@ -397,11 +425,12 @@ public:
     RenderBuffer(xLightsFrame *frame);
     ~RenderBuffer();
     RenderBuffer(RenderBuffer& buffer);
-    void InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform, bool nodeBuffer = false);
+    void InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform, bool nodeBuffer = false);
     AudioManager* GetMedia() const;
     Model* GetModel() const;
     Model* GetPermissiveModel() const; // gets the model even if it is a submodel/strand
     std::string GetModelName() const;
+    wxString GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const;
 
     void AlphaBlend(const RenderBuffer& src);
     bool IsNodeBuffer() const { return _nodeBuffer; }
@@ -485,8 +514,6 @@ public:
 
     int BufferHt = 1;
     int BufferWi = 1;  // size of the buffer
-    int ModelBufferHt = 1;
-    int ModelBufferWi = 1;  // size of the buffer
 
 private:
     xlColorVector pixelVector; // this is the calculation buffer
@@ -501,6 +528,7 @@ public:
     xlColor *GetTempBuf() { return tempbuf; }
     void CopyTempBufToPixels();
     void CopyPixelsToTempBuf();
+    wxPoint GetMaxBuffer(const SettingsMap& SettingsMap) const;
 
     PaletteClass palette;
     bool _nodeBuffer = false;

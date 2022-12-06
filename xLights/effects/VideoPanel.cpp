@@ -9,14 +9,17 @@
  **************************************************************/
 
 #include "VideoPanel.h"
+#include "VideoEffect.h"
 #include "EffectPanelUtils.h"
 #include "UtilFunctions.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
+#include "../xLightsMain.h"
+#include "../xLightsApp.h"
 
 //(*InternalHeaders(VideoPanel)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
+#include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/filepicker.h>
@@ -37,6 +40,7 @@ const long VideoPanel::IDD_SLIDER_Video_Starttime = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Video_Starttime = wxNewId();
 const long VideoPanel::ID_STATICTEXT1 = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Duration = wxNewId();
+const long VideoPanel::ID_BUTTON1 = wxNewId();
 const long VideoPanel::ID_STATICTEXT_Video_DurationTreatment = wxNewId();
 const long VideoPanel::ID_CHOICE_Video_DurationTreatment = wxNewId();
 const long VideoPanel::ID_STATICTEXT2 = wxNewId();
@@ -119,6 +123,9 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl2 = new wxTextCtrl(this, ID_TEXTCTRL_Duration, _("0:00:00.000"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Duration"));
 	TextCtrl2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT));
 	FlexGridSizer5->Add(TextCtrl2, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_MatchVideoDuration = new wxButton(this, ID_BUTTON1, _("Match Effect To Video Duration"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer5->Add(Button_MatchVideoDuration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Video_DurationTreatment, _("Duration Treatment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Video_DurationTreatment"));
 	FlexGridSizer5->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Video_DurationTreatment = new BulkEditChoice(this, ID_CHOICE_Video_DurationTreatment, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Video_DurationTreatment"));
@@ -136,7 +143,7 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer8->Add(StaticText7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Video_Speed = new BulkEditSliderF2(this, IDD_SLIDER_Video_Speed, 100, -1000, 1000, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_Speed"));
 	FlexGridSizer8->Add(Slider_Video_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Video_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_Speed"));
+	BitmapButton_Video_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_Speed, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_Speed"));
 	FlexGridSizer8->Add(BitmapButton_Video_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Video_Speed = new BulkEditTextCtrlF2(this, ID_TEXTCTRL_Video_Speed, _("1.00"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_Speed"));
 	FlexGridSizer8->Add(TextCtrl_Video_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -155,7 +162,7 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer9->AddGrowableCol(0);
 	Slider_Video_CropLeft = new BulkEditSlider(this, IDD_SLIDER_Video_CropLeft, 0, 0, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_CropLeft"));
 	FlexGridSizer9->Add(Slider_Video_CropLeft, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Video_CropLeftVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropLeft, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropLeft"));
+	BitmapButton_Video_CropLeftVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropLeft, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropLeft"));
 	FlexGridSizer9->Add(BitmapButton_Video_CropLeftVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Video_CropLeft = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropLeft, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropLeft"));
@@ -166,7 +173,7 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer10->AddGrowableCol(0);
 	Slider_Video_CropRight = new BulkEditSlider(this, IDD_SLIDER_Video_CropRight, 100, 0, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_CropRight"));
 	FlexGridSizer10->Add(Slider_Video_CropRight, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Video_CropRightVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropRight, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropRight"));
+	BitmapButton_Video_CropRightVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropRight, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropRight"));
 	FlexGridSizer10->Add(BitmapButton_Video_CropRightVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Video_CropRight = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropRight, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropRight"));
@@ -177,7 +184,7 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer11->AddGrowableCol(0);
 	Slider_Video_CropTop = new BulkEditSlider(this, IDD_SLIDER_Video_CropTop, 100, 0, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_CropTop"));
 	FlexGridSizer11->Add(Slider_Video_CropTop, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Video_CropTopVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropTop, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropTop"));
+	BitmapButton_Video_CropTopVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropTop, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropTop"));
 	FlexGridSizer11->Add(BitmapButton_Video_CropTopVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Video_CropTop = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropTop, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropTop"));
@@ -188,7 +195,7 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer12->AddGrowableCol(0);
 	Slider_Video_CropBottom = new BulkEditSlider(this, IDD_SLIDER_Video_CropBottom, 0, 0, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_CropBottom"));
 	FlexGridSizer12->Add(Slider_Video_CropBottom, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Video_CropBottomVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropBottom, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropBottom"));
+	BitmapButton_Video_CropBottomVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropBottom, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropBottom"));
 	FlexGridSizer12->Add(BitmapButton_Video_CropBottomVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Video_CropBottom = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropBottom, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropBottom"));
@@ -211,6 +218,7 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer42->SetSizeHints(this);
 
 	Connect(ID_FILEPICKERCTRL_Video_Filename,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&VideoPanel::OnFilePicker_Video_FilenameFileChanged);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnButton_MatchVideoDurationClick);
 	Connect(ID_CHOICE_Video_DurationTreatment,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&VideoPanel::OnChoice_Video_DurationTreatmentSelect);
 	Connect(ID_VALUECURVE_Video_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnVCButtonClick);
 	Connect(ID_CHECKBOX_SynchroniseWithAudio,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&VideoPanel::OnCheckBox_SynchroniseWithAudioClick);
@@ -328,4 +336,18 @@ void VideoPanel::ValidateWindow()
 void VideoPanel::OnChoice_Video_DurationTreatmentSelect(wxCommandEvent& event)
 {
     ValidateWindow();
+}
+
+void VideoPanel::OnButton_MatchVideoDurationClick(wxCommandEvent& event)
+{
+    // This can't actually be done here ... we need to grab the video duration then send it in a message to the frame window who can then apply it to the currently selected video effect
+    wxCommandEvent e(EVT_SET_EFFECT_DURATION);
+    wxFileName fn = FilePicker_Video_Filename->GetFileName();
+    ObtainAccessToURL(fn.GetFullPath().ToStdString());
+    auto duration = videoTimeCache[fn.GetFullPath().ToStdString()];
+    if (duration > 0) {
+        e.SetString("Video");
+        e.SetInt(duration);
+        wxPostEvent(wxTheApp->GetTopWindow(), e);
+    }
 }

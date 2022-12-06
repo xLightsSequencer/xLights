@@ -21,6 +21,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxModel.h"
+#include "DmxColorAbility.h"
+#include "DmxColorAbilityRGB.h"
+#include "DmxColorAbilityWheel.h"
+#include "DmxPresetAbility.h"
 #include "../ModelScreenLocation.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
@@ -45,7 +49,7 @@ void DmxModel::GetBufferSize(const std::string& type, const std::string& camera,
 }
 
 void DmxModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform,
-    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi) const
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, bool deep) const
 {
     BufferHi = 1;
     BufferWi = GetNodeCount();
@@ -59,12 +63,16 @@ void DmxModel::InitRenderBufferNodes(const std::string& type, const std::string&
     }
 }
 
-void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
     wxPGProperty* p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
+
+    if (nullptr != preset_ability ) {
+        preset_ability->AddProperties(grid);
+    }
 }
 
 void DmxModel::DisableUnusedProperties(wxPropertyGridInterface* grid)
@@ -111,8 +119,15 @@ void DmxModel::UpdateChannelCount(int num_channels, bool do_work)
 
 int DmxModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
+    IncrementChangeCount();
     if ("DmxChannelCount" == event.GetPropertyName()) {
+        IncrementChangeCount();
         UpdateChannelCount((int)event.GetPropertyValue().GetLong(), true);
+        return 0;
+    }
+
+    if (nullptr != preset_ability && preset_ability->OnPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        IncrementChangeCount();
         return 0;
     }
 
@@ -153,96 +168,7 @@ void DmxModel::InitModel()
         curNode++;
     }
     SetBufferSize(1, parm1);
-}
-
-void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
-{
-    if (!IsActive()) return;
-
-    bool success = preview->StartDrawing(pointSize);
-
-    if (success) {
-        DrawGLUtils::xlAccumulator va(maxVertexCount);
-
-        float sx, sy;
-        xlColor color, proxy;
-        int w, h;
-
-        GetModelScreenLocation().PrepareToDraw(false, false);
-
-        va.PreAlloc(maxVertexCount);
-
-        preview->GetSize(&w, &h);
-
-        sx = w / 2;
-        sy = h / 2;
-
-        DrawModelOnWindow(preview, va, nullptr, sx, sy, true);
-
-        DrawGLUtils::Draw(va);
-
-        preview->EndDrawing();
-
-    }
-}
-
-// display model using colors
-void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float&maxy, bool is_3d, const xlColor *c, bool allowSelected, bool highlightFirst) {
-
-    if (!IsActive()) return;
-
-    int w, h;
-    preview->GetVirtualCanvasSize(w, h);
-
-    GetModelScreenLocation().PrepareToDraw(false, false);
-
-    tva.PreAlloc(maxVertexCount);
-
-    float sx = 0;
-    float sy = 0;
-    float sz = 0;
-    GetModelScreenLocation().TranslatePoint(sx, sy, sz);
-
-    GetModelScreenLocation().SetDefaultMatrices();
-    GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
-
-    DrawModelOnWindow(preview, tva, c, sx, sy, !allowSelected);
-
-    if (sx < minx) minx = sx;
-    if (sy < miny) miny = sy;
-    if (sx > maxx) maxx = sx;
-    if (sy > maxy) maxy = sy;
-
-    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(sva, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
-    }
-}
-
-// display model using colors
-void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d, const xlColor *c, bool allowSelected, bool wiring, bool highlightFirst, int highlightpixel) {
-
-    if (!IsActive()) return;
-
-    int w, h;
-    preview->GetVirtualCanvasSize(w, h);
-
-    GetModelScreenLocation().PrepareToDraw(false, false);
-
-    tva.PreAlloc(maxVertexCount);
-
-    float sx = 0;
-    float sy = 0;
-    float sz = 0;
-    GetModelScreenLocation().TranslatePoint(sx, sy, sz);
-
-    GetModelScreenLocation().SetDefaultMatrices();
-    GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
-
-    DrawModelOnWindow(preview, tva, c, sx, sy, sz, !allowSelected);
-
-    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(sva, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
-    }
+    preset_ability = std::make_unique<DmxPresetAbility>(ModelXml);
 }
 
 int DmxModel::GetChannelValue(int channel, bool bits16)
@@ -304,6 +230,61 @@ void DmxModel::SetNodeNames(const std::string& default_names, bool force)
     }
 }
 
+std::list<std::string> DmxModel::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    if (nullptr != color_ability) {
+        res = color_ability->CheckModelSettings(this);
+    }
+
+    if (nullptr != preset_ability) {
+        res.splice(res.end(), preset_ability->CheckModelSettings(this));
+    }
+
+    res.splice(res.end(), Model::CheckModelSettings());
+    return res;
+}
+
+void DmxModel::DrawInvalid(xlGraphicsProgram* pg, ModelScreenLocation* msl, bool is_3d, bool applyTransform)
+{
+    if (applyTransform) {
+        pg->addStep([msl, is_3d](xlGraphicsContext* ctx) {
+            ctx->PushMatrix();
+            if (!is_3d) {
+                //not 3d, flatten to the 0.5 plane
+                ctx->Translate(0, 0, 0.5f);
+                ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
+            }
+            msl->ApplyModelViewMatrices(ctx);
+        });
+    }
+    auto vac = pg->getAccumulator();
+    int start = vac->getCount();
+    vac->PreAlloc(12);
+    vac->AddVertex(-0.5, -0.5, 0, *wxRED);
+    vac->AddVertex(-0.5, 0.5, 0, *wxRED);
+    vac->AddVertex(-0.5, 0.5, 0, *wxRED);
+    vac->AddVertex(0.5, 0.5, 0, *wxRED);
+    vac->AddVertex(0.5, 0.5, 0, *wxRED);
+    vac->AddVertex(0.5, -0.5, 0, *wxRED);
+    vac->AddVertex(0.5, -0.5, 0, *wxRED);
+    vac->AddVertex(-0.5, -0.5, 0, *wxRED);
+    vac->AddVertex(-0.5, -0.5, 0, *wxRED);
+    vac->AddVertex(0.5, 0.5, 0, *wxRED);
+    vac->AddVertex(-0.5, 0.5, 0, *wxRED);
+    vac->AddVertex(0.5, -0.5, 0, *wxRED);
+    int end = vac->getCount();
+    pg->addStep([=](xlGraphicsContext* ctx) {
+        ctx->drawLines(vac, start, end - start);
+    });
+    if (applyTransform) {
+        pg->addStep([=](xlGraphicsContext* ctx) {
+            ctx->PopMatrix();
+        });
+    }
+}
+
 void DmxModel::ExportBaseParameters(wxFile& f)
 {
     wxString p1 = ModelXml->GetAttribute("parm1");
@@ -311,8 +292,8 @@ void DmxModel::ExportBaseParameters(wxFile& f)
     wxString p3 = ModelXml->GetAttribute("parm3");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ss = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
@@ -336,6 +317,10 @@ void DmxModel::ExportBaseParameters(wxFile& f)
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+
+    if (nullptr != preset_ability) {
+        preset_ability->ExportParameters(f, ModelXml);
+    }
 }
 
 void DmxModel::ImportBaseParameters(wxXmlNode* root)
@@ -345,8 +330,8 @@ void DmxModel::ImportBaseParameters(wxXmlNode* root)
     wxString p3 = root->GetAttribute("parm3");
     wxString st = root->GetAttribute("StringType");
     wxString ps = root->GetAttribute("PixelSize");
-    wxString t = root->GetAttribute("Transparency");
-    wxString mb = root->GetAttribute("ModelBrightness");
+    wxString t = root->GetAttribute("Transparency", "0");
+    wxString mb = root->GetAttribute("ModelBrightness", "0");
     wxString a = root->GetAttribute("Antialias");
     wxString ss = root->GetAttribute("StartSide");
     wxString dir = root->GetAttribute("Dir");
@@ -367,4 +352,30 @@ void DmxModel::ImportBaseParameters(wxXmlNode* root)
     SetProperty("StrandNames", sn);
     SetProperty("NodeNames", nn);
     SetProperty("DisplayAs", da);
+
+    if (nullptr != preset_ability) {
+        preset_ability->ImportParameters(root, this);
+    }
+}
+
+std::vector<std::string> DmxModel::GenerateNodeNames() const
+{
+    std::vector<std::string> names;
+    for (int i=0; i< parm1; ++i) {// parm1 is channel count
+        names.push_back("");
+    }
+    if (nullptr != color_ability) {
+        color_ability->SetNodeNames(names);
+    }
+    if (nullptr != preset_ability) {
+        preset_ability->SetNodeNames(names);
+    }
+    return names;
+}
+
+void DmxModel::EnableFixedChannels(xlColorVector& pixelVector)
+{
+    if (nullptr != preset_ability) {
+         preset_ability->SetPresetValues(pixelVector);
+    }
 }

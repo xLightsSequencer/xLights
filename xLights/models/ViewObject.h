@@ -15,6 +15,8 @@
 #include "ViewObjectManager.h"
 
 class ModelPreview;
+class xlGraphicsProgram;
+class xlGraphicsContext;
 
 class ViewObject : public BaseObject
 {
@@ -24,7 +26,8 @@ public:
 
     virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override {}
-    virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {}
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override
+    {}
     virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) override;
     virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override {}
     virtual std::string GetDimension() const override
@@ -46,8 +49,7 @@ public:
     virtual const ModelScreenLocation &GetObjectScreenLocation() const = 0;
     virtual ModelScreenLocation &GetObjectScreenLocation() = 0;
 
-    virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected = false) {};
-
+    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) { return false; }
 protected:
 
 private:

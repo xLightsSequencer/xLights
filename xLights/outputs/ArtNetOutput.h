@@ -33,10 +33,11 @@ class Discovery;
 class ArtNetOutput : public IPOutput
 {
 #pragma region Member Variables
-    uint8_t _data[ARTNET_PACKET_LEN];
-    uint8_t _sequenceNum;
+    uint8_t _data[ARTNET_PACKET_LEN] = { 0 };
+    uint8_t _sequenceNum = 0;
     wxIPV4address _remoteAddr;
-    wxDatagramSocket* _datagram;
+    wxDatagramSocket* _datagram = nullptr;
+    bool _forceSourcePort = false;
 
     // These are used for artnet sync
     static int __ip1;
@@ -62,7 +63,7 @@ public:
     static int GetArtNetSubnet(int u) { return (u & 0x00F0) >> 4; }
     static int GetArtNetUniverse(int u) { return u & 0x000F; }
     static int GetArtNetCombinedUniverse(int net, int subnet, int universe) { return ((net & 0x007F) << 8) + ((subnet & 0x000F) << 4) + (universe & 0x000F); }
-    static void SendSync();
+    static void SendSync(const std::string& localIP);
 #ifndef EXCLUDEDISCOVERY
     static void PrepareDiscovery(Discovery &discovery);
 #endif
@@ -101,4 +102,15 @@ public:
     virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;
 #pragma endregion
+
+    #pragma region UI
+#ifndef EXCLUDENETWORKUI
+    virtual void AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
+    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) override;
+    virtual void AddMultiProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
+    virtual bool HandleMultiPropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) override;
+#endif
+#pragma endregion]
+
+    virtual wxXmlNode* Save() override;
 };

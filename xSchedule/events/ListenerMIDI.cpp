@@ -16,7 +16,7 @@
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
 
-ListenerMIDI::ListenerMIDI(int deviceId, ListenerManager* listenerManager) : ListenerBase(listenerManager)
+ListenerMIDI::ListenerMIDI(int deviceId, ListenerManager* listenerManager) : ListenerBase(listenerManager, "")
 {
     _deviceId = deviceId;
     _frameMS = 50;
@@ -27,7 +27,7 @@ void ListenerMIDI::Start()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("MIDI listener starting.");
-    _thread = new ListenerThread(this);
+    _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerMIDI::Stop()
@@ -47,7 +47,7 @@ void ListenerMIDI::Stop()
     }
 }
 
-void ListenerMIDI::StartProcess()
+void ListenerMIDI::StartProcess(const std::string& localIP)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // We set timeout to one second so it is responsive when we go to shut it down

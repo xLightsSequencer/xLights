@@ -13,6 +13,7 @@
 //(*Headers(VideoPanel)
 #include <wx/panel.h>
 class wxBitmapButton;
+class wxButton;
 class wxCheckBox;
 class wxChoice;
 class wxFilePickerCtrl;
@@ -28,12 +29,6 @@ class wxTextCtrl;
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
-
-#define VIDEO_SPEED_MIN -1000
-#define VIDEO_SPEED_MAX 1000
-#define VIDEO_SPEED_DIVISOR 100
-#define VIDEO_CROP_MIN 0
-#define VIDEO_CROP_MAX 100
 
 #define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv;*.gif"
 
@@ -91,6 +86,7 @@ class VideoPanel: public xlEffectPanel
         BulkEditValueCurveButton* BitmapButton_Video_CropRightVC;
         BulkEditValueCurveButton* BitmapButton_Video_CropTopVC;
         BulkEditValueCurveButton* BitmapButton_Video_Speed;
+        wxButton* Button_MatchVideoDuration;
         wxStaticText* StaticText1;
         wxStaticText* StaticText2;
         wxStaticText* StaticText3;
@@ -115,6 +111,7 @@ protected:
 		static const long ID_TEXTCTRL_Video_Starttime;
 		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL_Duration;
+		static const long ID_BUTTON1;
 		static const long ID_STATICTEXT_Video_DurationTreatment;
 		static const long ID_CHOICE_Video_DurationTreatment;
 		static const long ID_STATICTEXT2;
@@ -150,6 +147,7 @@ protected:
 		void OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event);
 		void OnCheckBox_SynchroniseWithAudioClick(wxCommandEvent& event);
 		void OnChoice_Video_DurationTreatmentSelect(wxCommandEvent& event);
+		void OnButton_MatchVideoDurationClick(wxCommandEvent& event);
 		//*)
 
         void SetVideoDetails(wxCommandEvent& event);

@@ -1,5 +1,5 @@
 #ifndef MIDILISTENER_H
-#define MISLISTENER_H
+#define MIDILISTENER_H
 
 #include <atomic>
 #include <string>

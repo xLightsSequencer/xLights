@@ -29,6 +29,7 @@ class LOROptimisedOutput : public LOROutput
     bool unit_id_in_use[256];
     uint8_t _curData[LOR_MAX_CHANNELS];
     LorControllers _controllers;
+    //uint8_t _framesSinceForcedOutput = 0xFF;
     #pragma endregion Member Variables
 
     #pragma region Private Functions
@@ -54,6 +55,8 @@ public:
 
     virtual std::string GetType() const override { return OUTPUT_LOR_OPT; }
     #pragma endregion 
+
+    virtual bool Open() override;
 
     #pragma region Frame Handling
     virtual void EndFrame(int suppressFrames) override;

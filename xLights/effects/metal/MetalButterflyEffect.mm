@@ -1,7 +1,7 @@
 
 #include "MetalComputeUtilities.hpp"
-#include "MetalButterflyEffect.hpp"
-#include "ButterflyTypes.h"
+#include "MetalEffects.hpp"
+#include "MetalEffectDataTypes.h"
 
 #include "../../RenderBuffer.h"
 
@@ -40,9 +40,10 @@ public:
             }
             id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
             if (computeEncoder == nil) {
-                commandBuffer = nil;
+                rbcd->abortCommandBuffer();
                 return false;
             }
+            [computeEncoder setLabel:@"ButterflyEffect"];
             [computeEncoder setComputePipelineState:functions[style]];
 
             NSInteger dataSize = sizeof(data);
@@ -52,7 +53,7 @@ public:
             id<MTLBuffer> bufferResult = rbcd->getPixelBuffer();
             if (bufferResult == nil) {
                 computeEncoder = nil;
-                commandBuffer = nil;
+                rbcd->abortCommandBuffer();
                 return false;
             }
 
@@ -64,15 +65,13 @@ public:
             MTLSize gridSize = MTLSizeMake(dataSize, 1, 1);
             MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
 
-            [computeEncoder dispatchThreadgroups:gridSize
+            [computeEncoder dispatchThreads:gridSize
                       threadsPerThreadgroup:threadsPerThreadgroup];
 
             [computeEncoder endEncoding];
-            [commandBuffer commit];
         }
         return true;
     }
-
     std::array<id<MTLComputePipelineState>, 11> functions;
 };
 
@@ -86,12 +85,12 @@ MetalButterflyEffect::~MetalButterflyEffect() {
 }
 
 
-void MetalButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void MetalButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
     int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
 
-    //currently just  Style 1 is GPU enabled
-    if (rbcd == nullptr || !data->canRenderStyle(Style)) {
+    //currently just  Styles 1-5 are GPU enabled, if smaller buffer, overhead of prep for GPU will be higher than benefit
+    if (rbcd == nullptr || !data->canRenderStyle(Style) || ((buffer.BufferWi * buffer.BufferHt) < 1024)) {
         ButterflyEffect::Render(effect, SettingsMap, buffer);
         return;
     }

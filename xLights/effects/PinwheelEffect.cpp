@@ -96,7 +96,7 @@ PinwheelEffect::Pinwheel3DType PinwheelEffect::to3dType(const std::string& pinwh
     return PW_3D_NONE;
 }
 
-void PinwheelEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer) {
+void PinwheelEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 

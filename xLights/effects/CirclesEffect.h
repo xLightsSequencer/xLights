@@ -26,21 +26,44 @@ class MetaBall;
 
 class CirclesEffect : public RenderableEffect
 {
-    public:
-        CirclesEffect(int id);
-        virtual ~CirclesEffect();
-        virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool AppropriateOnNodes() const override { return false; }
+public:
+    CirclesEffect(int id);
+    virtual ~CirclesEffect();
+    virtual void SetDefaultParameters() override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual bool AppropriateOnNodes() const override
+    {
+        return false;
+    }
 
-    protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
-    private:
-    
-        void RenderMetaBalls(RenderBuffer &buffer, int numBalls, MetaBall *metaballs);
-        void RenderRadial(RenderBuffer &buffer, int start_x,int start_y,int radius,
-                          int colorCnt, int number, bool radial_3D,
-                          const int effectState);
-        void RenderCirclesUpdate(RenderBuffer &buffer, int number, RgbBalls* effObjs, int circleSpeed);
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Circles_Count")
+            return CIRCLES_COUNT_MIN;
+        if (name == "E_VALUECURVE_Circles_Size")
+            return CIRCLES_SIZE_MIN;
+        if (name == "E_VALUECURVE_Circles_Speed")
+            return CIRCLES_SPEED_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Circles_Count")
+            return CIRCLES_COUNT_MAX;
+        if (name == "E_VALUECURVE_Circles_Size")
+            return CIRCLES_SIZE_MAX;
+        if (name == "E_VALUECURVE_Circles_Speed")
+            return CIRCLES_SPEED_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
 
+protected:
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
+
+private:
+    void RenderMetaBalls(RenderBuffer& buffer, int numBalls, MetaBall* metaballs);
+    void RenderRadial(RenderBuffer& buffer, int start_x, int start_y, int radius,
+                      int colorCnt, int number, bool radial_3D,
+                      const int effectState);
+    void RenderCirclesUpdate(RenderBuffer& buffer, int number, RgbBalls* effObjs, int circleSpeed);
 };

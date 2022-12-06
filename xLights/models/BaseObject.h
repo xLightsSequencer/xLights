@@ -12,6 +12,7 @@
 
 #include <string>
 #include "../OutputModelManager.h"
+#include "ModelScreenLocation.h"
 #include <glm/mat3x3.hpp>
 
 class xLightsFrame;
@@ -32,7 +33,7 @@ public:
 
     virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
     virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
-    virtual void AddTypeProperties(wxPropertyGridInterface *grid) = 0;
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) = 0;
     virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) = 0;
     virtual void AddDimensionProperties(wxPropertyGridInterface* grid) = 0;
@@ -48,6 +49,7 @@ public:
     virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
     virtual glm::vec3 MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
+    virtual glm::vec3 MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov);
     void SelectHandle(int handle);
     void Lock(bool lock);
     virtual void AddASAPWork(uint32_t work, const std::string& from);
@@ -66,7 +68,7 @@ public:
     void SetWidth(float w, bool ignoreLock = false);
     void SetHeight(float h, bool ignoreLock = false);
     void SetDepth(float d, bool ignoreLock = false);
-    bool Rotate(int axis, float factor);
+    bool Rotate(ModelScreenLocation::MSLAXIS axis, float factor);
     void FlipHorizontal(bool ignoreLock = false);
     void FlipVertical(bool ignoreLock = false);
 
@@ -93,7 +95,7 @@ public:
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
 
-    virtual void IncrementChangeCount() { ++changeCount;};
+    virtual void IncrementChangeCount() { ++changeCount; uiObjectsInvalid = true; }
 
 	void AddOffset(double deltax, double deltay, double deltaz);
     void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
@@ -117,6 +119,8 @@ protected:
     std::string layout_group;
     unsigned long changeCount = 0;
     bool _active = true;
+    
+    bool uiObjectsInvalid = true;
 
 private:
 };

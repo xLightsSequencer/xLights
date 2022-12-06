@@ -73,8 +73,8 @@ void ShimmerEffect::adjustSettings(const std::string &version, Effect *effect, b
     }
 }
 
-void ShimmerEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer) {
-
+void ShimmerEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Duty_Factor = GetValueCurveInt("Shimmer_Duty_Factor", 50, SettingsMap, oset, SHIMMER_DUTYFACTOR_MIN, SHIMMER_DUTYFACTOR_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool Use_All_Colors = SettingsMap.GetBool("CHECKBOX_Shimmer_Use_All_Colors", false);
@@ -83,8 +83,7 @@ void ShimmerEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffe
     int colorcnt = buffer.GetColorCount();
 
     int ColorIdx = 0;
-    if (pre2017_7)
-    {
+    if (pre2017_7) {
         double position = buffer.GetEffectTimeIntervalPosition(cycles);
 
         ColorIdx = round(position * 0.999 * (double)colorcnt);
@@ -96,29 +95,23 @@ void ShimmerEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffe
         if (pos2 * 100 > Duty_Factor) {
             return;
         }
-    }
-    else
-    {
+    } else {
         // If cycles are too high maximise out at on and off
-        if (cycles > ((double)buffer.curEffEndPer - (double)buffer.curEffStartPer) / 2.0)
-        {
+        if (cycles > ((double)buffer.curEffEndPer - (double)buffer.curEffStartPer) / 2.0) {
             ColorIdx = (buffer.curPeriod - buffer.curEffStartPer) % (2 * colorcnt);
-            if (ColorIdx % 2 == 0)
-            {
+            if (ColorIdx % 2 == 0) {
                 ColorIdx /= 2;
-            }
-            else
-            {
+            } else {
                 return;
             }
-        }
-        else
-        {
+        } else {
             double position = buffer.GetEffectTimeIntervalPosition(cycles);
-            if (position > 1.0) position = 0.0;
+            if (position > 1.0)
+                position = 0.0;
 
             // black if we are beyond the duty factor
-            if (position >= (double)Duty_Factor / 100.0) return;
+            if (position >= (double)Duty_Factor / 100.0)
+                return;
 
             // now we need to work out the color
 
@@ -132,12 +125,10 @@ void ShimmerEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffe
     buffer.palette.GetColor(ColorIdx, color);
     for (int y = 0; y < buffer.BufferHt; y++) {
         for (int x = 0; x < buffer.BufferWi; x++) {
-            if (Use_All_Colors) { // Should we randomly assign colors from palette or cycle thru sequentially?
-                ColorIdx = rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+            if (Use_All_Colors) {                         // Should we randomly assign colors from palette or cycle thru sequentially?
+                ColorIdx = rand() % colorcnt;             // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
                 buffer.palette.GetColor(ColorIdx, color); // Now go and get the hsv value for this ColorIdx
-            }
-            else
-            {
+            } else {
                 buffer.palette.GetSpatialColor(ColorIdx, (float)x / (float)buffer.BufferWi, (float)y / (float)buffer.BufferHt, color);
             }
 

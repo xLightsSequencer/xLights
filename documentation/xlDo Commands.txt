@@ -1,0 +1,287 @@
+
+xLights REST Automation API
+If the xFade service is enabled in the xLights preferences panel, an HTTP port is opened
+on port 49913 (for A) or 49914 (for B).
+
+Important note:  GET requests require the parameters to have any spaces escaped with %20
+and cannot support / in parameters.
+
+Currently xLights provides the following REST endpoints:
+
+GET /getVersion - Get xLights Version
+
+GET /openSequence - returns the currently open sequence
+
+GET /openSequence/My%20Sequence.xsq - opens the "My Sequence.xsq" sequence
+    Can have optional query params of:
+    force=true to force opening even if a current sequence is open
+    promptIssues=true to prompt for any issues during opening
+
+POST /openSequence - opens a sequence, the payload needs to be application/json:
+    {"seq":"My Sequence.xsq", "promptIssues":true|false, "force":true|false}
+
+GET /renderAll - renders the open sequence
+    {"highdef":"false|true"}
+
+GET /closeSequence - closes the sequence
+    Can have optional query params of:
+    quiet=true don't report an error if a sequence isn't open
+    force=true to close even if there are unsaved changes
+
+GET /newSequence
+    Needs two query params:
+    duration=  Time in seconds
+    media= Media filename
+
+GET /saveSequence
+    seq=  Sequence name to save as, don't specify to use current name
+    
+GET /batchRender
+    seq_#=  # starts at 0 and increases, each sequence to render
+    
+GET /uploadController
+GET /uploadFPPConfig
+GET /uploadSequence
+GET /checkSequence
+GET /changeShowFolder
+GET /openController
+GET /openControllerProxy
+GET /exportModelsCSV
+GET /exportModel
+GET /exportModelWithRender
+GET /closexLights
+GET /lightsOn
+GET /lightsOff
+GET /playJukebox
+GET /jukeboxButtonTooltips
+GET /jukeboxButtonEffectPresent
+GET /e131Tag
+
+
+POST /xlDoAutomation - runs one of the command JSON's below.
+
+
+WARNING:  This is extremely experimental and will likely be replaced with a proper REST
+  API in the not to distant future.   Plan accordingly.
+
+
+Start xLights
+    {"cmd:"startxLights", "ifNotRunning":"true|false"}
+    
+Render all (assumes an open sequence)
+    {"cmd":"renderAll", "highdef":"true|false"}
+Response
+    {"res":200, "msg": "Rendered."}
+
+Load a sequence
+    {"cmd":"loadSequence", "seq":"filename", "promptIssues":"true|false"}
+Response
+    {"res":200, "seq": "SequenceName.xsq", "fullseq": "C:\FullPath\SequenceName.xsq", "media": "C:\FullPath\media.mp3", "len": "120000", "framems": "25"}
+
+    
+Close a sequence
+    {"cmd":"closeSequence", "quiet":"true|false", "force":"true|false"}
+    
+    Quiet when true will return success even if no sequence was open
+    This command will fail if the sequence has unsaved changes
+Response
+    {"res":200, "msg": "Sequence closed."}
+
+Close xLights
+    {"cmd":"closexLights", "force":"true|false"}
+
+    if force is not true then it will fail if anything is unsaved
+Response
+    {"res":200, "msg": "xLights closed."}
+
+New Sequence    
+    {"cmd":"newSequence", "force":"true|false", "mediaFile":"media filename", "durationSecs":30}
+    
+    If force is not true then this command will fail if there is a sequence already open
+    If mediaFile is blank then durationSecs is the length of the animation opened
+    If mediaFile is not blank then sequence is created for the audio
+Response
+    {"res":200, "msg": "Sequence created."}
+
+Save Sequence
+    {"cmd":"saveSequence", "seq":"filename"}
+
+    If seq is blank then it will save the sequence using the name it was opened with
+Response
+    {"res":200, "msg": "Sequence Saved."}
+
+Batch Render Named Sequences
+    {"cmd":"batchRender", "seqs":["filename"], "promptIssues":"true|false"}
+Response
+    {"res":200, "msg": "Sequence batch rendered."}
+    
+Upload controller configuration
+    {"cmd":"uploadController", "ip":"ip address"}
+Response
+    {"res":200, "msg": "Uploaded to controller '192.168.1.100'"}
+
+Upload FPP configuration
+    {"cmd":"uploadFPPConfig", "ip":"ip address", "udp":"all|proxy|", "models":"true|false", "map":"true|false"}
+    
+    If models is true then the models are uploaded to FPP
+    If map is true then the virtual display map is uploaded to FPP
+Response
+    {"res":200, "msg": "Uploaded to FPP '192.168.1.100'"}
+
+Upload Sequence to FPP/Falcon V4/Pixel Stick
+    {"cmd":"uploadSequence", "ip":"ip address", "media":"true|false", "format":"v1|v2std|v2zlib|v2uncompressedsparse|v2uncompressed|v2stdsparse|v2zlibsparse", "seq":"xsq filename"}
+Response
+    {"res":200, "msg": "Sequence uploaded."}
+
+Check sequence
+    {"cmd":"checkSequence", "seq":"xsq filename"}
+
+    Open and check a sequence
+Response
+    {"res":200, "msg": "Sequence checked.","output":"Path to Check Seq File Path"}
+    
+Change Show Folder
+    {"cmd":"changeShowFolder", "folder":"show folder", "force":"true|false"}
+Response
+    {"res":200, "msg": "Show folder changed to (show_folder_path)."}
+
+Open Controller
+    {"cmd":"openController", "ip":"ip address"}
+
+    Opens the controller in a browser
+Response
+    {"res":200, "msg": "Controller opened"}
+    
+Get xLights Version
+    {"cmd":"getVersion"}
+
+    Gets the xLights version
+Response
+    {"res":200, "version": "2022.3"}
+
+Export Models CSV
+    {"cmd":"exportModels", "filename":"file to create"}
+Response
+    {"res":200, "msg": "Models Exported.", "output": "C:\FullPath\Models_.csv"}
+
+Export Model
+    {"cmd":"exportModel", "filename":"file to create", "model":"model to export", format":"lsp|lorclipboard|lorclipboards5|vixenroutine|hls|eseq|eseqcompressed|avicompressed|aviuncompressed|minleon|gif"}
+    
+    This assumes the rendered model data is up to date
+
+Export Model With Render
+    {"cmd":"exportModelWithRender", "filename":"file to create", "model":"model to export", "highdef":"true|false", format":"lsp|lorclipboard|lorclipboards5|vixenroutine|hls|eseq|eseqcompressed|avicompressed|aviuncompressed|minleon|gif"}
+    
+Response
+    {"res":200, "msg": "Model exported."}
+    
+Lights On
+    {"cmd":"lightsOn"}
+Response
+    {"res":200, "msg": "Lights on."}
+
+Lights Off
+    {"cmd":"lightsOff"}
+Response
+    {"res":200, "msg": "Lights off."}
+
+Play jukebox button
+    {"cmd":"playJukebox","button":1}
+Response
+    {"res":200, "msg": "Played button 1"}
+    
+Get Jukebox tooltips
+    {"cmd":"getJukeboxButtonTooltips"}
+Response
+    {"res":200, "tooltips": ["Tooltips Button 1","Tooltips Button 2", "Tooltips Button 3"]}
+
+Get Jukebox buttons have effects
+    {"cmd":"getJukeboxButtonEffectPresent"}
+Response
+    {"res":200, "effects": ["1","2", "3"]}
+
+Get open sequence 
+    {"cmd":"getOpenSequence"}
+Response
+    {"res":200, "seq": "SequenceName.xsq", "fullseq": "C:\FullPath\SequenceName.xsq", "media": "C:\FullPath\media.mp3", "len": "120000", "framems": "25"}
+
+Get E131 Tag
+    {"cmd":"getE131Tag"}
+Response
+    {"res":200, "tag": "xLights 984566"}
+
+Add Ethernet Type Controller
+    {"cmd":"addEthernetController", "ip":"IP Address", "name", "Name in xLights"}
+Response
+    {"res":200, "msg": "Added Ethernet Controller"}
+
+Packaged Sequence Files
+    {"cmd":"packageSequence"}
+Response
+    {"res":200, "output": "SequenceName.zip"}
+
+Packaged Log Files
+    {"cmd":"packageLogFiles"}
+Response
+    {"res":200, "output": "xLightsProblem.zip"}
+
+Export Video Preview
+    {"cmd":"exportVideoPreview", "filename":"Export File Name"}
+Response
+    {"res":200, "output": "Filename.mp4"}
+
+Run Lua Script
+    {"cmd":"runScript", "filename":"Lua File Name"}
+Response
+    {"res":200,"msg":"Script Was Successful."}
+
+Copy All Effects from One Model to Another Model
+    {"cmd":"cloneModelEffects", "target":"Model to Copy Effects To", "source":"Model to Copy Effects From", "eraseModel":"Erase Existing Effects from Target Model"}
+Response
+    {"res":200, "msg":"Model Effects Cloned.","worked":"true"}
+
+Add Effect to a Model
+    {"cmd":"addEffect", "target":"Model to Add Effect To", "effect":"Effect Type", "settings":"Effect Settings", "palette":"Color Palette Settings", "layer":"Effect Layer", "startTime":"Start Time in ms", "endTime":"End Time in ms"}
+Response
+    {"res":200, "msg":"Added Effects.","worked":"true"}
+
+Get List of all the Models and Model Groups
+    {"cmd":"getModels"}
+Response
+    {"res":200, "models": ["All House","MegaTree","Arch1","Arch2","Outline","WindowFrame1"]}
+
+Get List of all the Controllers by Name
+    {"cmd":"getControllerNames"}
+Response
+    {"res":200, "controllers": ["House_Falcon","Yard_K16"]}
+
+Get List of all the Controllers by IP Address, if they are a Ethernet based controller
+Command
+    {"cmd":"getControllerIPs"}
+Response
+    {"res":200, "controllers":[ "192.168.1.205","192.168.1.100"]}
+
+Get List of all the Effect IDs by Layer for a model.
+Command
+    {"cmd":"getEffectIDs", "model":"model name"}
+Response
+    {"res":200, "effects":[ ["0","1"],[]]}
+
+Get the Effect Settings for an Effect on a model.
+Command
+    {"cmd":"getEffectSettings", "model":"model name", "layer":"0", "id":"0" }
+Response
+    {"res":200,"name":"On","palette":{"C_BUTTON_Palette1":"#0000FF","C_CHECKBOX_Palette1":"1" },"settings":{"E_TEXTCTRL_Eff_On_Start":"10"},"startTime":"10","endTime":"100","selected":"0"}
+
+Set Effect Settings for an Effect on a model.
+Command
+    {"cmd":"setEffectSettings","model":"model name","layer":"0","id":"0","name":"On","palette":{"C_BUTTON_Palette1":"#0000FF","C_CHECKBOX_Palette1":"1" },"settings":{"E_TEXTCTRL_Eff_On_Start":"10"},"startTime":"10","endTime":"100"}
+Response
+    {"res":200, "msg":"Set Effect Settings.","worked":"true"}
+
+Import Effects from a xLights Sequence.
+Command
+    {"cmd":"importXLightsSequence","filename":"xsq/zip file path","mapfile":"xjmap/xmap/xmaphint file path"}
+Response
+    {"res":200, "msg":"Imported XLights Sequence.","worked":"true"}
+

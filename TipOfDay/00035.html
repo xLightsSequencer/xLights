@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00035.html" title="Channels, Controllers and Models" category="Layout" level="Advanced" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Channels, Controllers and Models</h1>
+        <p>Lots of users seem to be confused by the controller tab and its relationship to models and universes etc so I thought I would try to explain how this all works under the covers. You may need to read this a couple of times but I think it will help you get what is going on.</p>
+        <p>Fundamentally xLights is just generating a bunch of data in a big chunk of memory. That memory is broken down into frames and each frame represents the number of channels that are sent out to your lights every 50 or 25ms. When the FSEQ file is saved 99%+ of the file is just that memory written to disk.</p>
+        <p>So lets look at one frame. How big is it?</p>
+        <p>It is determined by the maximum of two possible calculations.</p>
+        <ol>
+            <li>On the controller tab you define a whole bunch of controllers and xLights keeps a running total of all the channels defined for those controllers. That final total is one of the possible values that could be the size of the frame.</li>
+            <li>The other one is more complicated. Each model on the layout tab is given a start channel and has a number of channels that the model represents. The second value is determined by going through all the models, working out their start channels and then adding on the number of channels used by the model to work out the end channel. The maximum end channel across all your models is the second possible frame size. This can lead to some crazy outcomes. If you drop one string only of 50 pixels as a model and set the start channel to 1,000,000 then the end channel is 1,000,149 ... thats a lot of channels for just one model.</li>
+        </ol>
+        <p>Having determined the size of your frame we can now go back and look at the controller tab in a different light. The controllers on the controller tab now just tell us what xlights should do with the data in the frame when it needs to send the data to the lights. If you have 510 channels of renard as the first controller then the first 510 bytes in the buffer will be sent out the serial port to your renard controller. If you then have 10 universes of 512 channels of e131 data then 10 packets will be sent of e131 data to those controllers again pulling the data from the frame memory. In this process there is no awareness of models at all. The output is just grabbing data from the frame memory and sending it to the appropriate output device. If you models result in a bigger frame than your setup tab defines in outputs then the data not described in an output just wont be sent anywhere.</p>
+        <p>So now if we go back to our models the start channel on a model is just a way of telling xlights where in the frame buffer to put the data relating to that model. So if you set the start channel to 200 and there are 150 channels in the model then when you drop and effect on that model the data will be written to the frame buffer between channels 200 and 349. Properties like strands per string and setting node colour order in xlights impacts the way in which channels 200 to 349 are filled in but don't change the size or the way the output process picks it up and sends it to your controllers.</p>
+        <p>When you use start channel formats like #universe:startchannel or >modelname:offset things do get a bit murkier. Basically now the start channel will move according to either changes in controller tab or changes in other models. But no matter how you specify start channel it results in an absolute number (shown in braces in the model list on the layout tab). When you render that is where the data is written. If you change the start channel then you must re-render and re-save to update the fseq file.</p>
+        <p>When you use the visualiser nothing magical is happening. All the visualiser is doing is setting the start channel as !&lt;controllername&gt;:shartchannel. The only difference here is you typically have auto layout models on and then xlights is shuffling around the models within the controllers channel range to optimise it for the controller.</p>
+    </body>
+</html>

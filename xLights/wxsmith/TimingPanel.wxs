@@ -111,7 +111,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_LayerMorph" subclass="xlLockButton" variable="BitmapButton_CheckBox_LayerMorph" member="yes">
-													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													
 													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -145,7 +145,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" subclass="xlLockButton" variable="BitmapButton_EffectLayerMix" member="yes">
-													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													
 													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -236,14 +236,22 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadein" subclass="BulkEditTextCtrl" variable="TextCtrl_Fadein" member="yes">
-																		<value>0.00</value>
-																		<maxlength>4</maxlength>
-																		<size>25,-1d</size>
+																	<object class="wxComboBox" name="ID_TEXTCTRL_Fadein" subclass="BulkEditComboBox" variable="TextCtrl_Fadein" member="yes">
+																		<content>
+																			<item>0.00</item>
+																			<item>0.50</item>
+																			<item>1.00</item>
+																			<item>1.50</item>
+																			<item>2.00</item>
+																		</content>
+																		<selection>0</selection>
+																		<size>100,-1</size>
+																		<style>wxCB_SORT</style>
+																		<handler function="OnTextCtrl_FadeinDropdown" entry="EVT_COMBOBOX_DROPDOWN" />
 																		<handler function="OnTextCtrl_FadeinText" entry="EVT_TEXT" />
 																	</object>
-																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																	<border>2</border>
+																	<flag>wxALL|wxEXPAND</flag>
+																	<border>5</border>
 																	<option>1</option>
 																</object>
 															</object>
@@ -365,14 +373,22 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadeout" subclass="BulkEditTextCtrl" variable="TextCtrl_Fadeout" member="yes">
-																		<value>0.00</value>
-																		<maxlength>4</maxlength>
-																		<size>25,-1d</size>
+																	<object class="wxComboBox" name="ID_TEXTCTRL_Fadeout" subclass="BulkEditComboBox" variable="TextCtrl_Fadeout" member="yes">
+																		<content>
+																			<item>0.00</item>
+																			<item>0.50</item>
+																			<item>1.00</item>
+																			<item>1.50</item>
+																			<item>2.00</item>
+																		</content>
+																		<selection>0</selection>
+																		<size>100,-1</size>
+																		<style>wxCB_SORT</style>
+																		<handler function="OnTextCtrl_FadeoutDropdown" entry="EVT_COMBOBOX_DROPDOWN" />
 																		<handler function="OnTextCtrl_FadeoutText" entry="EVT_TEXT" />
 																	</object>
-																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																	<border>2</border>
+																	<flag>wxALL|wxEXPAND</flag>
+																	<border>5</border>
 																	<option>1</option>
 																</object>
 															</object>

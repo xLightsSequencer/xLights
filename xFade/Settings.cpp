@@ -1,7 +1,11 @@
 #include "Settings.h"
-#include "../xSchedule/wxMIDI/src/wxMidi.h"
 #include <wx/string.h>
 #include <wx/socket.h>
+
+#ifndef __WXOSX__
+#include "../xSchedule/wxMIDI/src/wxMidi.h"
+#endif
+
 #include <log4cpp/Category.hh>
 
 Settings::Settings(std::string settings)
@@ -456,8 +460,8 @@ std::list<int> Settings::GetUsedMIDIDevices() const
 std::list<std::string> Settings::GetMIDIDevices()
 {
     static std::list<std::string> res;
+#ifndef __WXOSX__
     static int alldevicecount;
-
     wxMidiSystem* midiSystem = wxMidiSystem::GetInstance();
     int devices = midiSystem->CountDevices();
 
@@ -475,12 +479,13 @@ std::list<std::string> Settings::GetMIDIDevices()
             delete midiDev;
         }
     }
-
+#endif
     return res;
 }
 
 std::string Settings::GetMIDIDeviceName(int device)
 {
+#ifndef __WXOSX__
     for (auto it : GetMIDIDevices())
     {
         if (GetMIDIDeviceId(it) == device)
@@ -488,5 +493,6 @@ std::string Settings::GetMIDIDeviceName(int device)
             return it;
         }
     }
+#endif
     return "";
 }

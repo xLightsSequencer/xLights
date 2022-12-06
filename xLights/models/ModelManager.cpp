@@ -35,6 +35,7 @@
 #include "WholeHouseModel.h"
 #include "SingleLineModel.h"
 #include "PolyLineModel.h"
+#include "MultiPointModel.h"
 #include "ModelGroup.h"
 #include "WindowFrameModel.h"
 #include "WreathModel.h"
@@ -247,6 +248,17 @@ void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
     logger_base.debug("Models loaded in %ldms", timer.Time());
     _modelsLoading = false;
 
+    // Check all recorded shadow models actually exist
+    for (auto& it : models) {
+        if (it.second->GetShadowModelFor() != "") {
+            auto m = models.find(it.second->GetShadowModelFor());
+            if (m == models.end()) {
+                // showing model does not exist
+                it.second->SetShadowModelFor("");
+            }
+        }
+    }
+
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ModelManager::LoadModels");
     //RecalcStartChannels();
 }
@@ -270,6 +282,11 @@ void ModelManager::ResetModelGroups() const
     for (const auto& it : models) {
         if (it.second != nullptr && it.second->GetDisplayAs() == "ModelGroup") {
             ((ModelGroup*)(it.second))->ResetModels();
+        }
+    }
+    for (const auto& it : models) {
+        if (it.second != nullptr && it.second->GetDisplayAs() == "ModelGroup") {
+            ((ModelGroup*)(it.second))->CheckForChanges();
         }
     }
 }
@@ -332,15 +349,17 @@ void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std:
     }
 }
 
-std::string ModelManager::SerialiseModelGroupsForModel(const std::string& name) const
+std::string ModelManager::SerialiseModelGroupsForModel(Model* m) const
 {
     wxArrayString allGroups;
     wxArrayString onlyGroups;
     for (const auto& it : models) {
         if (it.second->GetDisplayAs() == "ModelGroup"){
-            allGroups.Add(it.first);
-            if (dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(name)) {
+            if (dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(m->Name())) {
                 onlyGroups.Add(it.first);
+                allGroups.Add(it.first);
+            } else if (dynamic_cast<ModelGroup*>(it.second)->ContainsModelOrSubmodel(m)) {
+                allGroups.Add(it.first);
             }
         }
     }
@@ -363,7 +382,7 @@ std::string ModelManager::SerialiseModelGroupsForModel(const std::string& name) 
 
     for (const auto& it : models) {
         if (onlyGroups.Index(it.first) != wxNOT_FOUND) {
-            res += dynamic_cast<ModelGroup*>(it.second)->SerialiseModelGroup(name);
+            res += dynamic_cast<ModelGroup*>(it.second)->SerialiseModelGroup(m->Name());
         }
     }
 
@@ -395,14 +414,15 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                 ModelGroup* mmg = dynamic_cast<ModelGroup*>(mg);
                 bool found = false;
                 std::vector<wxString> prevousNames;
-                for (const auto& it : mmg->ModelNames()) {
+                auto oldModelNames = mmg->ModelNames(); // we copy the name list as we are going to be modifying the group while we iterate over these
+                for (const auto& it : oldModelNames) {
                     auto mmnmn = mmg->ModelNames();
                     if (Contains(it, "/"))
                     {//only add new SubModel if the name matches an old SubModel name, I don't understand why?
                         auto mgmn = wxString(it);
                         mgmn = mname + "/" + mgmn.AfterFirst('/');
                         std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
-                        if (Contains(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
+                        if (ContainsBetweenCommas(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
                             std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
                             !mmg->DirectlyContainsModel(mgmn)) {
                             mmg->AddModel(mgmn);
@@ -411,7 +431,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                         }
                     }
                     else {
-                        if (Contains(grpModels, it) && std::find(mmnmn.begin(), mmnmn.end(), mname) == mmnmn.end() &&
+                        if (ContainsBetweenCommas(grpModels, it) && std::find(mmnmn.begin(), mmnmn.end(), mname) == mmnmn.end() &&
                             std::find(prevousNames.begin(), prevousNames.end(), mname) == prevousNames.end() &&
                             !mmg->DirectlyContainsModel(mname)) {
                             mmg->AddModel(mname);
@@ -426,7 +446,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                     //I think it makes sense to add the model if the group is in the xmodel file.
                     const auto& newNames = wxSplit(grpModels, ',');
                     for (const auto& it : newNames) {
-                        auto mmnmn = mmg->ModelNames();
+                        auto& mmnmn = mmg->ModelNames();
                         if (Contains(it, "/")) {
                             auto mgmn = wxString(it);
                             mgmn.Replace("EXPORTEDMODEL", mname);
@@ -472,7 +492,7 @@ bool ModelManager::RecalcStartChannels() const {
         if (it.second->GetDisplayAs() != "ModelGroup")
         {
             char first = '0';
-            if (Trim(it.second->ModelStartChannel) != "") first = Trim(it.second->ModelStartChannel)[0];
+            if (!Trim(it.second->ModelStartChannel).empty()) first = Trim(it.second->ModelStartChannel)[0];
             if (first != '>' && first != '@')
             {
                 modelsDone.emplace(it.first);
@@ -499,7 +519,7 @@ bool ModelManager::RecalcStartChannels() const {
             if (it.second->GetDisplayAs() != "ModelGroup")
             {
                 char first = '0';
-                if (Trim(it.second->ModelStartChannel) != "") first = Trim(it.second->ModelStartChannel)[0];
+                if (!Trim(it.second->ModelStartChannel).empty()) first = Trim(it.second->ModelStartChannel)[0];
                 if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel)
                 {
                     std::string dependsOn = Trim(Trim(it.second->ModelStartChannel).substr(1, Trim(it.second->ModelStartChannel).find(':') - 1));
@@ -534,7 +554,7 @@ bool ModelManager::RecalcStartChannels() const {
     for (const auto& it : models) {
         if (it.second->GetDisplayAs() != "ModelGroup") {
             char first = '0';
-            if (Trim(it.second->ModelStartChannel) != "") first = Trim(it.second->ModelStartChannel)[0];
+            if (!Trim(it.second->ModelStartChannel).empty()) first = Trim(it.second->ModelStartChannel)[0];
             if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel) {
                 modelsDone.emplace(it.first);
                 auto oldsc = it.second->GetFirstChannel();
@@ -587,7 +607,7 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
     std::list<Model*> sameOutput;
     tip = "";
     auto controllerName = m->GetControllerName();
-    if (controllerName == "") return true; // we dont check these
+    if (controllerName.empty()) return true; // we dont check these
 
     auto port = m->GetControllerPort();
     if (port == 0) return true; // we dont check these
@@ -604,7 +624,7 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
     if (!isPixel)
     {
         // For DMX outputs then beginning is always ok
-        if (chain == "")
+        if (chain.empty())
         {
             return true;
         }
@@ -633,18 +653,17 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
     }
 
     // if no other models then chain must be blank
-    if (sameOutput.size() == 0)
-    {
-        if (chain != "") tip = "Only model on an output must not chain to anything.";
-        return (chain == "");
+    if (sameOutput.size() == 0) {
+        if (!chain.empty()) tip = "Only model on an output must not chain to anything.";
+        return (chain.empty());
     }
 
     if (chain == "") return true; // this model is the beginning
 
     // valid if i can follow the chain to blank
     int checks = 0;
-    auto current = startModel;
-    auto next = chain;
+    std::string current = startModel;
+    std::string next = chain;
     while (checks <= sameOutput.size())
     {
         bool found = false;
@@ -657,7 +676,7 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
                 {
                     next = next.substr(1);
                 }
-                if (next == "") return true; // we found the beginning
+                if (next.empty()) return true; // we found the beginning
                 found = true;
                 current = it->GetName();
                 break;
@@ -688,6 +707,12 @@ bool ModelManager::ReworkStartChannel() const
     for (const auto& it : outputManager->GetControllers())
     {
         auto caps = it->GetControllerCaps();
+
+        wxString serialPrefix;
+        if (caps && caps->DMXAfterPixels()) {
+            serialPrefix = "zzz";
+        }
+
         std::map<std::string, std::list<Model*>> cmodels;
         std::lock_guard<std::recursive_mutex> lock(_modelMutex);
         for (auto itm : models)
@@ -704,7 +729,7 @@ bool ModelManager::ReworkStartChannel() const
                 }
                 else
                 {
-                    cc = wxString::Format("%s:%02d", itm.second->GetControllerProtocol(), itm.second->GetControllerPort()).Lower();
+                    cc = wxString::Format("%s%s:%02d", serialPrefix, itm.second->GetControllerProtocol(), itm.second->GetControllerPort()).Lower();
                 }
                 if (cmodels.find(cc) == cmodels.end())
                 {
@@ -736,7 +761,7 @@ bool ModelManager::ReworkStartChannel() const
             for (const auto& itmm : itcc.second)
             {
                 auto ch = itmm->GetModelChain();
-                if (ch == "" || ch == "Beginning")
+                if (ch.empty() || ch == "Beginning")
                 {
                     beginningFound = true;
                 }
@@ -845,7 +870,7 @@ bool ModelManager::ReworkStartChannel() const
                     if (itm->GetModelChain() == last ||
                         itm->GetModelChain() == ">" + last ||
                         ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == "")) {
-                        auto osc = itm->ModelStartChannel;
+                        std::string osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
@@ -855,7 +880,7 @@ bool ModelManager::ReworkStartChannel() const
                             outputsChanged = true;
                         }
                     } else {
-                        auto osc = itm->ModelStartChannel;
+                        std::string osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
@@ -867,7 +892,7 @@ bool ModelManager::ReworkStartChannel() const
                         }
                     }
                 } else if (itm->IsLEDPanelMatrixProtocol()) {
-                    auto osc = itm->ModelStartChannel;
+                    std::string osc = itm->ModelStartChannel;
                     sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
                     itm->SetStartChannel(sc);
                     itm->ClearIndividualStartChannels();
@@ -906,7 +931,7 @@ bool ModelManager::ReworkStartChannel() const
                     {
                         // when not chained use dmx channel
                         uint32_t msc = chstart + itm->GetControllerDMXChannel() - 1;
-                        auto osc = itm->ModelStartChannel;
+                        std::string osc = itm->ModelStartChannel;
                         sc = "!" + it->GetName() + ":" + wxString::Format("%d", msc);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
@@ -974,7 +999,7 @@ bool ModelManager::ReworkStartChannel() const
         std::lock_guard<std::recursive_mutex> lock(_modelMutex);
         for (auto itm : models) {
             std::list<std::string> visited;
-            if (ModelHasNoDependencyOnNoController(itm.second, visited)) {
+            if (ModelHasNoDependencyOnNoController(itm.second, visited) || itm.second->GetControllerName() == NO_CONTROLLER) {
                 if (itm.second->GetControllerName() != NO_CONTROLLER) {
                     lastChannel = std::max(lastChannel, itm.second->GetLastChannel() + 1);
                 } else {
@@ -1010,16 +1035,34 @@ bool ModelManager::ModelHasNoDependencyOnNoController(Model* m, std::list<std::s
     if (!m->CouldComputeStartChannel) // this should stop this looping forever due to chain loops
         return false;
 
-    wxString sc = m->ModelStartChannel;
-    if (sc != "" && (sc[0] == '>' || sc[0] == '@')) {
-        std::string dependson = sc.substr(1).BeforeFirst(':');
-        Model* mm = GetModel(dependson);
-        if (mm != nullptr) {
-            if (mm->GetControllerName() == NO_CONTROLLER)
-                return false;
-            return ModelHasNoDependencyOnNoController(mm, visited);
+    if (m->HasIndividualStartChannels()) {
+        size_t c = m->GetNumPhysicalStrings();
+        for (size_t i = 0; i < c; ++i) {
+            wxString sc = m->GetIndividualStartChannel(i);
+            if (sc != "" && (sc[0] == '>' || sc[0] == '@')) {
+                std::string dependson = sc.substr(1).BeforeFirst(':');
+                Model* mm = GetModel(dependson);
+                if (mm != nullptr) {
+                    if (mm->GetControllerName() == NO_CONTROLLER)
+                        return false;
+                    if (!ModelHasNoDependencyOnNoController(mm, visited))
+                        return false;
+                }
+            }
+        }
+    } else {
+        wxString sc = m->ModelStartChannel;
+        if (sc != "" && (sc[0] == '>' || sc[0] == '@')) {
+            std::string dependson = sc.substr(1).BeforeFirst(':');
+            Model* mm = GetModel(dependson);
+            if (mm != nullptr) {
+                if (mm->GetControllerName() == NO_CONTROLLER)
+                    return false;
+                return ModelHasNoDependencyOnNoController(mm, visited);
+            }
         }
     }
+
     return true;
 }
 
@@ -1032,7 +1075,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) 
     bool changed = false;
 
     std::list<wxXmlNode*> toBeDone;
-    std::list<std::string> allModels;
+    std::set<std::string> allModels;
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
 
     // do all the models without embedded groups first or where the model order means everything exists
@@ -1040,15 +1083,12 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) 
         if (e->GetName() == "modelGroup") {
             std::string name = e->GetAttribute("name").ToStdString();
             if (!name.empty()) {
-                allModels.push_back(name);
-                if (ModelGroup::AllModelsExist(e, *this))
-                {
+                allModels.insert(name);
+                if (ModelGroup::AllModelsExist(e, *this)) {
                     ModelGroup* model = new ModelGroup(e, *this, previewW, previewH);
                     models[model->name] = model;
                     model->SetLayoutGroup(e->GetAttribute("LayoutGroup", "Unassigned").ToStdString());
-                }
-                else
-                {
+                }  else {
                     toBeDone.push_back(e);
                 }
             }
@@ -1056,40 +1096,33 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) 
     }
 
     // add in models and SubModels
-    for (const auto& it : models)
-    {
-        allModels.push_back(it.second->GetName());
-        for (auto it2 : it.second->GetSubModels())
-        {
-            allModels.push_back(it2->GetFullName());
+    for (const auto& it : models) {
+        allModels.insert(it.second->GetName());
+        for (auto it2 : it.second->GetSubModels()) {
+            allModels.insert(it2->GetFullName());
         }
     }
 
     // remove any totally non existent models from model groups
     // this stops some end conditions which cant be resolved
-    for (const auto& it : toBeDone)
-    {
+    for (const auto& it : toBeDone) {
         changed |= ModelGroup::RemoveNonExistentModels(it, allModels);
     }
 
     // try up to however many models we have left
     int maxIter = toBeDone.size();
-    while (maxIter > 0 && toBeDone.size() > 0)
-    {
+    while (maxIter > 0 && toBeDone.size() > 0) {
         maxIter--;
         std::list<wxXmlNode*> processing(toBeDone);
         toBeDone.clear();
         for (const auto& it : processing) {
-            if (ModelGroup::AllModelsExist(it, *this))
-            {
+            if (ModelGroup::AllModelsExist(it, *this)) {
                 ModelGroup* model = new ModelGroup(it, *this, previewW, previewH);
                 bool reset = model->Reset();
                 wxASSERT(reset);
                 models[model->name] = model;
                 model->SetLayoutGroup(it->GetAttribute("LayoutGroup", "Unassigned").ToStdString());
-            }
-            else
-            {
+            } else {
                 toBeDone.push_back(it);
             }
         }
@@ -1256,8 +1289,11 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         if (type == "DmxServo3Axis") {
             node->DeleteAttribute("DisplayAs");
             node->AddAttribute("DisplayAs", "DmxServo3d");
+            node->DeleteAttribute("NumServos");
             node->AddAttribute("NumServos", "3");
+            node->DeleteAttribute("NumStatic");
             node->AddAttribute("NumStatic", "1");
+            node->DeleteAttribute("NumMotion");
             node->AddAttribute("NumMotion", "3");
             node->DeleteAttribute("parm1");
             node->AddAttribute("parm1", "6");
@@ -1293,6 +1329,8 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         model = new SingleLineModel(node, *this, false);
     } else if (type == "Poly Line") {
         model = new PolyLineModel(node, *this, false);
+    } else if (type == "MultiPoint") {
+        model = new MultiPointModel(node, *this, false);
     } else if (type == "Cube") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "5");
@@ -1399,6 +1437,7 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         type = "DmxServo3d";
         node->DeleteAttribute("DisplayAs");
         node->AddAttribute("DisplayAs", type);
+        node->DeleteAttribute("NumServos");
         node->AddAttribute("NumServos", "3");
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "6");
@@ -1447,6 +1486,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         model = new SingleLineModel(node, *this, zeroBased);
     } else if (type == "Poly Line") {
         model = new PolyLineModel(node, *this, zeroBased);
+    } else if (type == "MultiPoint") {
+        model = new MultiPointModel(node, *this, zeroBased);
     } else if (type == "Cube") {
         model = new CubeModel(node, *this, zeroBased);
     } else if (type == "Custom") {
@@ -1467,7 +1508,7 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
     }
     model->GetModelScreenLocation().previewW = previewW;
     model->GetModelScreenLocation().previewH = previewH;
-    if (model->GetModelScreenLocation().CheckUpgrade(node) == UPGRADE_EXEC_READ) {
+    if (model->GetModelScreenLocation().CheckUpgrade(node) == ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_EXEC_READ) {
         model->GetModelScreenLocation().Read(node);
     }
     return model;
@@ -1550,6 +1591,27 @@ std::vector<std::string> ModelManager::GetGroupsContainingModel(Model* model) co
             else {
                 for (const auto& sm : model->GetSubModels()) {
                     if (mg->ContainsModel(sm)) {
+                        res.push_back(it.first);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return res;
+}
+
+std::vector<std::string> ModelManager::GetGroupsContainingModelOrSubmodel(Model* model) const
+{
+    std::vector<std::string> res;
+    for (const auto& it : *this) {
+        if (it.second->GetDisplayAs() == "ModelGroup") {
+            auto mg = dynamic_cast<ModelGroup*>(it.second);
+            if (mg->ContainsModelOrSubmodel(model)) {
+                res.push_back(it.first);
+            } else {
+                for (const auto& sm : model->GetSubModels()) {
+                    if (mg->ContainsModelOrSubmodel(sm)) {
                         res.push_back(it.first);
                         break;
                     }

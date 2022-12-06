@@ -1,0 +1,55 @@
+<Vendor Name="Experience Lights">
+	<AbstractVariant Name="BaseExperienceSettings">
+		<SupportsPixelPortBrightness/>
+		<SupportsPixelPortGamma/>
+		<SupportsPixelPortNullPixels/>
+		<SupportsPixelPortDirection/>
+		<SupportsPixelPortColourOrder/>
+		<SupportsRemotes/>
+		<SupportsSmartRemotes>6</SupportsSmartRemotes>
+		<AllSmartRemoteTypesPerPortMustBeSame/>
+		<SupportsPixelPortEndNullPixels/>
+		<SupportsUpload/>
+		<MaxInputUniverses>64</MaxInputUniverses>
+		<MaxPixelPort>24</MaxPixelPort>
+		<MaxSerialPort>2</MaxSerialPort>
+		<MaxSerialPortChannels>512</MaxSerialPortChannels>
+		<MaxPixelPortChannels>6000</MaxPixelPortChannels>
+		<SupportsVirtualStrings/>
+		<SupportsAutoLayout/>
+		<SupportsFullxLightsControl/>
+		<SupportsDefaultBrightness/>
+		<PreferredInputProtocol>DDP</PreferredInputProtocol>
+		<PixelProtocols>
+			<Protocol>ws2811</Protocol>
+		</PixelProtocols>
+		<SerialProtocols>
+			<Protocol>dmx</Protocol>
+		</SerialProtocols>
+		<InputProtocols>
+			<Protocol>e131</Protocol>
+			<Protocol>ddp</Protocol>
+		</InputProtocols>
+		<SmartRemoteTypes>
+			<Type>falcon_v2</Type>
+		</SmartRemoteTypes>
+	</AbstractVariant>
+	<Controller Name="Genius Pixel 8">
+		<Variant Name="" Base="Experience Lights:BaseExperienceSettings">
+			<MaxPixelPort>24</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+		</Variant>
+	</Controller>
+	<Controller Name="Genius Pixel 16">
+		<Variant Name="" Base="Experience Lights:BaseExperienceSettings">
+			<MaxPixelPort>24</MaxPixelPort>
+			<MaxSerialPort>2</MaxSerialPort>
+		</Variant>
+	</Controller>
+	<Controller Name="Genius Long Range">
+		<Variant Name="" Base="Experience Lights:BaseExperienceSettings">
+			<MaxPixelPort>40</MaxPixelPort>
+			<MaxSerialPort>2</MaxSerialPort>
+		</Variant>
+	</Controller>
+</Vendor>

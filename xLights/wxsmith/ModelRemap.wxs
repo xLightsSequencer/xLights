@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="ModelRemap">
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+					<label>Set in code</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>2</cols>
+					<hgap>2</hgap>
+					<growablecols>1</growablecols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+							<label>Custom xModel File With the faces/states/submodels:</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" variable="FilePickerCtrl_Original" member="yes">
+							<wildcard>*.xmodel</wildcard>
+							<handler function="OnFilePickerCtrl_OriginalFileChanged" entry="EVT_FILEPICKER_CHANGED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+							<label>Custom xModel File with the correct wiring layout:</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL2" variable="FilePickerCtrl_NewWiring" member="yes">
+							<wildcard>*.xmodel</wildcard>
+							<handler function="OnFilePickerCtrl_NewWiringFileChanged" entry="EVT_FILEPICKER_CHANGED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Messages" member="yes">
+					<value>Select xModel files.</value>
+					<size>0,200</size>
+					<style>wxTE_MULTILINE|wxTE_READONLY</style>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxButton" name="ID_BUTTON1" variable="Button_Generate" member="yes">
+					<label>Generate xModel</label>
+					<handler function="OnButton_GenerateClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

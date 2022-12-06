@@ -34,11 +34,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Plasma_Color" variable="BitmapButton_PlasmaColor" member="no">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Plasma_Color" subclass="xlLockButton" variable="BitmapButton_PlasmaColor" member="no">
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -74,11 +73,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Plasma_Style" variable="BitmapButton_PlasmaStyle" member="no">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Plasma_Style" subclass="xlLockButton" variable="BitmapButton_PlasmaStyle" member="no">
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -114,11 +112,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Plasma_Line_Density" variable="BitmapButton_PlasmaLineDensity" member="no">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Plasma_Line_Density" subclass="xlLockButton" variable="BitmapButton_PlasmaLineDensity" member="no">
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -147,8 +144,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Plasma_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Plasma_SpeedVC" member="yes">
-                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -170,11 +167,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Plasma_Speed" variable="BitmapButton_PlasmaSpeed" member="no">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Plasma_Speed" subclass="xlLockButton" variable="BitmapButton_PlasmaSpeed" member="no">
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

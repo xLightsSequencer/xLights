@@ -3,6 +3,7 @@
 	<object class="wxDialog" name="StrandNodeNamesDialog">
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -47,6 +48,21 @@
 							<handler function="OnNodesGridCellChanged" entry="EVT_CMD_GRID_CELL_CHANGED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_GEN_NAMES" variable="ButtonGenNames" member="yes">
+							<label>Generate Node Names</label>
+							<hidden>1</hidden>
+							<handler function="OnButtonGenNamesClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

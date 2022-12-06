@@ -40,7 +40,7 @@ public:
     PlayListItemTest(OutputManager* outputManager, wxXmlNode* node);
     PlayListItemTest(OutputManager* outputManager);
     virtual ~PlayListItemTest();
-    virtual PlayListItem* Copy() const override;
+    virtual PlayListItem* Copy(const bool isClone) const override;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters

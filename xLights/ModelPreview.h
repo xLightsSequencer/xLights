@@ -14,16 +14,22 @@
 
 #include <wx/wx.h>
 
-#include "graphics/opengl/Image.h"
-#include "graphics/opengl/XlightsDrawable.h"
+#include "graphics/xlGraphicsBase.h"
+#include "graphics/xlGraphicsAccumulators.h"
+
 #include "Color.h"
-#include "graphics/opengl/xlGLCanvas.h"
 #include "ViewpointMgr.h"
 #include "models/ModelManager.h"
+
+#include "Mouse3DManager.h"
 
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+// This does not actually fix the pixel size on dialog problem but consolidating this value into one location makes sense
+// This is the default size pixels render in things like submodel, faces etc dialogs
+#define PIXEL_SIZE_ON_DIALOGS 2
 
 class Model;
 class ModelGroup;
@@ -32,7 +38,7 @@ class LayoutGroup;
 class xLightsFrame;
 class xlVertex3Accumulator;
 
-class ModelPreview : public xlGLCanvas
+class ModelPreview : public GRAPHICS_BASE_CLASS
 {
     int _cameraView_last_offsetx = 0;
     int _cameraView_last_offsety = 0;
@@ -63,18 +69,9 @@ public:
     void EndDrawing(bool swapBuffers=true);
 	void SetCanvasSize(int width,int height);
     void SetVirtualCanvasSize(int width, int height);
-    void GetVirtualCanvasSize(int &w, int& h) const
-    {
-        w = virtualWidth; h = virtualHeight;
-    }
-    int GetVirtualCanvasHeight() const
-    {
-        return virtualHeight;
-    }
-    int GetVirtualCanvasWidth() const
-    {
-        return virtualWidth;
-    }
+    void GetVirtualCanvasSize(int &w, int& h) const { w = virtualWidth; h = virtualHeight; }
+    int GetVirtualCanvasHeight() const  { return virtualHeight; }
+    int GetVirtualCanvasWidth() const { return virtualWidth; }
 	void SetbackgroundImage(wxString image);
     const wxString &GetBackgroundImage() const { return mBackgroundImage;}
 	void SetBackgroundBrightness(int brightness, int alpha);
@@ -92,7 +89,7 @@ public:
 
     void DrawGroupCentre(float x, float y);
     void Render();
-    void Render(const unsigned char *data, bool swapBuffers=true);
+    void Render(uint32_t frameTime, const unsigned char *data, bool swapBuffers=true);
     void RenderModels(const std::vector<Model*>& models, bool selected, bool showFirstPixel);
     void RenderModel(Model* m, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
 
@@ -116,17 +113,16 @@ public:
     void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
     void SetActive(bool show);
     bool GetActive() const;
-    float GetZoom() const { return (is_3d ? camera3d->GetZoom() : camera2d->GetZoom()); }
+    float GetZoom() const { return (is3d ? camera3d->GetZoom() : camera2d->GetZoom()); }
     double GetCurrentScaleFactor() const { return std::max((float)virtualWidth / (float)mWindowWidth, (float)virtualHeight / (float)mWindowHeight); }
-    float GetCameraRotationY() const { return (is_3d ? camera3d->GetAngleY() : camera2d->GetAngleY()); }
-    float GetCameraRotationX() const { return (is_3d ? camera3d->GetAngleX() : camera2d->GetAngleX()); }
+    float GetCameraRotationY() const { return (is3d ? camera3d->GetAngleY() : camera2d->GetAngleY()); }
+    float GetCameraRotationX() const { return (is3d ? camera3d->GetAngleX() : camera2d->GetAngleX()); }
     void SetPan(float deltax, float deltay, float deltaz);
-    void Set3D(bool value) { is_3d = value; }
-    bool Is3D() const { return is_3d; }
+    void Set3D(bool value) { is3d = value; }
+    bool Is3D() const { return is3d; }
     glm::mat4& GetProjViewMatrix() { return ProjViewMatrix; }
     glm::mat4& GetProjMatrix() { return ProjMatrix; }
 
-	virtual void render(const wxSize& size=wxSize(0,0)) override;
 
     void SaveCurrentCameraPosition();
     void SaveDefaultCameraPosition();
@@ -136,22 +132,36 @@ public:
     void SetDisplay2DBoundingBox(bool bb) {
         _display2DBox = bb; 
     }
-    void SetDisplay2DGrid(bool grid, long gridSpacing) { _displayGrid = grid; _displayGridSpacing = gridSpacing; }
-    void SetDisplay2DCenter0(bool bb) { _center2D0 = bb; }
+    void SetDisplay2DGrid(bool grid, long gridSpacing) { _displayGrid = grid; _displayGridSpacing = gridSpacing; grid2dValid=false; }
+    void SetDisplay2DCenter0(bool bb) { _center2D0 = bb; grid2dValid=false; }
 
     bool IsNoCurrentModel() { return currentModel == "&---none---&"; }
     void SetRenderOrder(int i) { renderOrder = i; Refresh(); }
 
     void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
+
+
+    void render() override;
+    
+    bool drawingUsingLogicalSize() const override { return true; }
+    virtual bool RequiresDepthBuffer() const override { return true; }
+
+    void setCurrentFrameTime(uint32_t ft) { currentFrameTime = ft; }
+    uint32_t getCurrentFrameTime() const { return currentFrameTime; }
+    xlGraphicsContext *getCurrentGraphicsContext() { return currentContext; }
+    xlGraphicsProgram *getCurrentSolidProgram() { return solidProgram; }
+    xlGraphicsProgram *getCurrentTransparentProgram() { return transparentProgram; }
+    
+    
+    void OnMotion3DEvent(Motion3DEvent &event);
+    void OnMotion3DButtonEvent(wxCommandEvent &event);
+
 protected:
     void AddGridToAccumulator(const glm::mat4& ViewScale);
-    virtual void InitializeGLCanvas() override;
-    virtual void InitializeGLContext() override;
 
 private:
     void setupCameras();
 	void Paint(wxPaintEvent& event);
-    void DoPaint();
 	void SetOrigin();
 	void mouseMoved(wxMouseEvent& event);
 	void mouseLeftDown(wxMouseEvent& event);
@@ -167,7 +177,7 @@ private:
     void OnZoomGesture(wxZoomGestureEvent& event);
 
     void OnPopup(wxCommandEvent& event);
-    void OnSysColourChanged(wxSysColourChangedEvent& event);
+
     bool mIsDrawing = false;
     bool mBackgroundImageExists = false;
     wxString mBackgroundImage;
@@ -181,28 +191,29 @@ private:
     bool _displayGrid = false;
     long _displayGridSpacing = 100;
     bool _center2D0 = false;
-    Image* image = nullptr;
     bool scaleImage = false;
-    xLightsDrawable* sprite = nullptr;
     bool allowSelected;
     bool allowPreviewChange;
     PreviewPane* mPreviewPane;
-    DrawGLUtils::xlAccumulator solidAccumulator;
-    DrawGLUtils::xlAccumulator transparentAccumulator;
 
     xLightsFrame* xlights = nullptr;
     std::string currentModel;
     std::string currentLayoutGroup;
     std::vector<Model*> tmpModelList;
     Model *additionalModel = nullptr;
+    uint32_t currentFrameTime = 0;
+
+    xlGraphicsProgram *solidProgram = nullptr;
+    xlGraphicsProgram *transparentProgram = nullptr;
+    xlGraphicsProgram *solidViewObjectProgram = nullptr;
+    xlGraphicsProgram *transparentViewObjectProgram = nullptr;
+    xlTexture *background = nullptr;
+    wxSize backgroundSize;
+    
+    xlVertexAccumulator *grid2d = nullptr;
+    bool grid2dValid = false;
 
     int renderOrder = 0;
-	DrawGLUtils::xl3Accumulator solidViewObjectAccumulator;
-    DrawGLUtils::xl3Accumulator transparentViewObjectAccumulator;
-    DrawGLUtils::xl3Accumulator solidAccumulator3d;
-    DrawGLUtils::xl3Accumulator transparentAccumulator3d;
-    DrawGLUtils::xl3Accumulator linesAccumulator3d;
-    bool is_3d = false;
     bool _wiring = false;
     bool _highlightFirst = false;
     bool m_mouse_down = false;
@@ -219,6 +230,11 @@ private:
     static const long ID_VIEWPOINT3D;
     static const long ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE;
     double currentPixelScaleFactor = 1.0;
+
+
+    xlGraphicsContext *currentContext = nullptr;
+    std::list<xlTexture *> texturesToDelete;
+
 
 	DECLARE_EVENT_TABLE()
 };

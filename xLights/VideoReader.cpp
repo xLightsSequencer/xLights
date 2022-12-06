@@ -20,19 +20,9 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/hwcontext.h>
-#ifdef __WXMSW__
-#include <libavutil/hwcontext_dxva2.h>
-#include <libavcodec/dxva2.h>
-#include <libavutil/imgutils.h>
-#endif
 }
 
-#ifdef __WXMSW__
-#include <d3dcompiler.h>
-#endif
-
 #include "SpecialOptions.h"
-
 #include <log4cpp/Category.hh>
 
 #ifdef __WXOSX__
@@ -49,7 +39,12 @@ static inline bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame 
 static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false; }
 #endif
 
-static enum AVPixelFormat __hw_pix_fmt = AV_PIX_FMT_NONE;
+#ifdef __WXMSW__
+#include "WindowsHardwareVideoReader.h"
+#include <VersionHelpers.h>
+#endif
+
+static enum AVPixelFormat __hw_pix_fmt = ::AVPixelFormat::AV_PIX_FMT_NONE;
 static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelFormat* pix_fmts)
 {
     const enum AVPixelFormat* p;
@@ -85,9 +80,11 @@ void VideoReader::InitHWAcceleration() {
     InitVideoToolboxAcceleration();
 }
 
-VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/, bool wantAlpha, bool bgr)
+VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/,
+                         bool wantAlpha, bool bgr, bool wantsHWType)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _wantsHWType = wantsHWType;
     _maxwidth = maxwidth;
     _maxheight = maxheight;
     _filename = filename;
@@ -111,6 +108,37 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	_swsCtx = nullptr;
     _dtspersec = 1.0;
     _frames = 0;
+    _width = _maxwidth;
+    _height = _maxheight;
+
+#ifdef __WXMSW__
+
+    if ( HW_ACCELERATION_ENABLED && ::IsWindows8OrGreater() ) {
+        _windowsHardwareVideoReader = new WindowsHardwareVideoReader(filename, _wantAlpha, usenativeresolution, keepaspectratio, maxwidth, maxheight, _pixelFmt);
+        if (_windowsHardwareVideoReader->IsOk()) {
+            _frames = _windowsHardwareVideoReader->GetFrames();
+            _lengthMS = _windowsHardwareVideoReader->GetDuration();
+            _height = _windowsHardwareVideoReader->GetHeight();
+            _width = _windowsHardwareVideoReader->GetWidth();
+            _frameMS = _windowsHardwareVideoReader->GetFrameMS();
+            _valid = true;
+
+            logger_base.info("Video loaded: " + filename);
+            logger_base.info("      Length MS: %.2f", _lengthMS);
+            logger_base.info("      _frames: %d", _frames);
+            logger_base.info("      Frames per second %.2f", (double)_frames * 1000.0 / _lengthMS);
+            logger_base.info("      Source size: %dx%d", _windowsHardwareVideoReader->GetNativeWidth(), _windowsHardwareVideoReader->GetNativeHeight());
+            logger_base.info("      Output size: %dx%d", _width, _height);
+            if (_wantAlpha)
+                logger_base.info("      Alpha: TRUE");
+            logger_base.info("      Frame ms %d", _frameMS);
+            return;
+        } else {
+            delete _windowsHardwareVideoReader;
+            _windowsHardwareVideoReader = nullptr;
+        }
+    }
+#endif
 
     #if LIBAVFORMAT_VERSION_MAJOR < 58
     av_register_all();
@@ -128,17 +156,20 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	}
 
 	// Find the video stream
-	_streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &_decoder, 0);
+#if LIBAVFORMAT_VERSION_MAJOR >= 59
+    _streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &_decoder, 0);
+#else
+    AVCodec* decoder = nullptr;
+	_streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &decoder, 0);
+    _decoder = decoder;
+#endif
 	if (_streamIndex < 0) {
         logger_base.error("VideoReader: Could not find any video stream in " + filename);
 		return;
 	}
 
 	_videoStream = _formatContext->streams[_streamIndex];
-    _videoStream->discard = AVDISCARD_NONE;
-
-    _width = _maxwidth;
-    _height = _maxheight;
+    _videoStream->discard = ::AVDiscard::AVDISCARD_NONE;
 
     reopenContext();
 
@@ -197,15 +228,20 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
         }
     }
 
-    if (_frames > 0)
+    if (_videoStream->time_base.num != 0 && _videoStream->duration != 0) {
+        _lengthMS = ((double)_videoStream->duration * (double)_videoStream->time_base.num) / (double)_videoStream->time_base.den * 1000.0;
+    }
+    else if (_frames > 0)
 	{
-        if (_videoStream->avg_frame_rate.num != 0)
-        {
-            _lengthMS = ((double)_frames * (double)_videoStream->avg_frame_rate.den * 1000.0) / (double)_videoStream->avg_frame_rate.num;
-        }
-        else
-        {
-            logger_base.info("VideoReader: _videoStream->avg_frame_rate.num = 0");
+        if (_videoStream->r_frame_rate.num != 0) {
+            // r_frame_rate seems more accurate when it is there ... avg_frame_rate for some formats has an off by 1 problem
+            _lengthMS = ((double)_frames * (double)_videoStream->r_frame_rate.den * 1000.0) / (double)_videoStream->r_frame_rate.num;
+        } else {
+            if (_videoStream->avg_frame_rate.num != 0) {
+                _lengthMS = ((double)_frames * (double)_videoStream->avg_frame_rate.den * 1000.0) / (double)_videoStream->avg_frame_rate.num;
+            } else {
+                logger_base.info("VideoReader: _videoStream->avg_frame_rate.num = 0");
+            }
         }
     }
 
@@ -259,13 +295,16 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     _srcFrame = av_frame_alloc();
     _srcFrame2 = av_frame_alloc();
 
-    av_init_packet(&_packet);
+    _packet = av_packet_alloc();
+    //av_init_packet(&_packet);
 	_valid = true;
 
     logger_base.info("Video loaded: " + filename);
     logger_base.info("      Length MS: %.2f", _lengthMS);
     logger_base.info("      _videoStream->time_base.num: %d", _videoStream->time_base.num);
     logger_base.info("      _videoStream->time_base.den: %d", _videoStream->time_base.den);
+    logger_base.info("      _videoStream->r_frame_rate.num: %d", _videoStream->r_frame_rate.num);
+    logger_base.info("      _videoStream->r_frame_rate.den: %d", _videoStream->r_frame_rate.den);
     logger_base.info("      _videoStream->avg_frame_rate.num: %d", _videoStream->avg_frame_rate.num);
     logger_base.info("      _videoStream->avg_frame_rate.den: %d", _videoStream->avg_frame_rate.den);
     logger_base.info("      DTS per sec: %f", _dtspersec);
@@ -293,7 +332,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     _firstFramePos = -1;
 }
 
-void VideoReader::reopenContext() {
+void VideoReader::reopenContext(bool allowHWDecoder) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_codecContext != nullptr) {
         CleanupVideoToolbox(_codecContext, hwDecoderCache);
@@ -303,10 +342,10 @@ void VideoReader::reopenContext() {
     }
 
     #if LIBAVFORMAT_VERSION_MAJOR > 57
-    enum AVHWDeviceType type = AV_HWDEVICE_TYPE_NONE;
-    if (IsHardwareAcceleratedVideo()) {
+    enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
+    if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
 #if defined(__WXMSW__)
-        std::list<std::string> hwdecoders = { "dxva2" }; //{ "d3d11va", "dxva2", "cuda", "qsv" };
+        std::list<std::string> hwdecoders;
 #elif defined(__WXOSX__)
         std::list<std::string> hwdecoders = { "videotoolbox" };
 #else
@@ -342,7 +381,7 @@ void VideoReader::reopenContext() {
         return;
     }
 
-    _codecContext->thread_safe_callbacks = 1;
+    //_codecContext->thread_safe_callbacks = 1;
     _codecContext->thread_type = 0;
     _codecContext->thread_count = 1;
     _codecContext->skip_frame = AVDISCARD_NONE;
@@ -357,27 +396,10 @@ void VideoReader::reopenContext() {
 
     #if LIBAVFORMAT_VERSION_MAJOR > 57
     _codecContext->hwaccel_context = nullptr;
-#ifdef __WXMSW__
-    if (_codecContext->codec_id != AV_CODEC_ID_H264 && _codecContext->codec_id != AV_CODEC_ID_WMV3 && _codecContext->codec_id != AV_CODEC_ID_MPEG2VIDEO)
-    {
-        // dont enable hardware acceleration
-        logger_base.debug("Hardware decoding disabled for codec '%s' going with software decoding.", _codecContext->codec->long_name);
-    }
-    else
-#endif
     {
         if (IsHardwareAcceleratedVideo() && type != AV_HWDEVICE_TYPE_NONE)
         {
             const char* opt = nullptr;
-
-#ifdef __WXMSW__
-            std::string so;
-            so = SpecialOptions::GetOption("dxva2_device", "0").c_str();
-            opt = (const char*)so.c_str();
-
-            int priorityFilter = wxAtoi(SpecialOptions::GetOption("dxva2_filter", "-1"));
-            if (priorityFilter != -1) _dxva2_filters.push_front((D3DTEXTUREFILTERTYPE)priorityFilter);
-#endif
             if (av_hwdevice_ctx_create(&_hw_device_ctx, type, opt, nullptr, 0) < 0)
             {
                 logger_base.debug("Failed to create specified HW device.");
@@ -396,7 +418,7 @@ void VideoReader::reopenContext() {
         }
     }
     #endif
-    _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED);
+    _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED && allowHWDecoder);
 
     //  Init the decoders, with or without reference counting
     AVDictionary *opts = nullptr;
@@ -471,10 +493,8 @@ long VideoReader::GetVideoLength(const std::string& filename)
     }
 
     // Find the video stream
-    AVCodec* cdc;
-    int streamIndex = av_find_best_stream(formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &cdc, 0);
-    if (streamIndex < 0)
-    {
+    int streamIndex = av_find_best_stream(formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+    if (streamIndex < 0) {
         avformat_close_input(&formatContext);
         return 0;
     }
@@ -519,6 +539,18 @@ long VideoReader::GetVideoLength(const std::string& filename)
 VideoReader::~VideoReader()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    #ifdef __WXMSW__
+    if (_windowsHardwareVideoReader != nullptr) {
+        delete _windowsHardwareVideoReader;
+        _windowsHardwareVideoReader = nullptr;
+    }
+    #endif
+
+    if (_packet != nullptr) {
+        av_packet_free(&_packet);
+        _packet = nullptr;
+    }
     if (_swsCtx != nullptr) {
         //logger_base.debug("Releasing sws Context.");
         sws_freeContext(_swsCtx);
@@ -579,6 +611,19 @@ void VideoReader::Seek(int timestampMS, bool readFrame)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    #ifdef __WXMSW__
+    if (_windowsHardwareVideoReader != nullptr) {
+        _windowsHardwareVideoReader->Seek(timestampMS);
+        _curPos = _windowsHardwareVideoReader->GetPos();
+        if (_curPos >= _windowsHardwareVideoReader->GetDuration()) {
+            _atEnd = true;
+        } else {
+            _atEnd = false;
+        }
+        return;
+    }
+    #endif
+
     // we have to be valid
 	if (_valid) {
 #ifdef VIDEO_EXTRALOGGING
@@ -634,6 +679,7 @@ bool VideoReader::readFrame(int timestampMS) {
         {
             _curPos = DTStoMS(_srcFrame->pts, _dtspersec);
         }
+        // This code is problematic if you dont read the first frame in the video ... it assumes the first frame read is the first frame which is may not be.
         if (_firstFramePos == -1) {
             _firstFramePos = _curPos;
         }
@@ -651,7 +697,12 @@ bool VideoReader::readFrame(int timestampMS) {
             #endif
             bool hardwareScaled = false;
             if (IsVideoToolboxAcceleratedFrame(_srcFrame)) {
-                hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2, hwDecoderCache);
+                if (_wantsHWType) {
+                    hardwareScaled = true;
+                    std::swap(_dstFrame2, _srcFrame);
+                } else {
+                    hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2, hwDecoderCache);
+                }
             }
 
             if (!hardwareScaled) {
@@ -659,229 +710,8 @@ bool VideoReader::readFrame(int timestampMS) {
                 AVFrame* f = nullptr;
 #if LIBAVFORMAT_VERSION_MAJOR > 57
                 if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
-    #ifdef __WXMSW__
                     bool hwscale = false;
-                    if (__hw_pix_fmt == AV_PIX_FMT_DXVA2_VLD)
-                    {
-                        LPDIRECT3DSURFACE9 surface = (LPDIRECT3DSURFACE9)_srcFrame->data[3];
-
-                        RECT srcRect = { 0, 0, _codecContext->width, _codecContext->height };
-                        RECT tgtRect = { 0, 0, _width, _height };
-
-                        LPDIRECT3DDEVICE9 device = nullptr;
-                        HRESULT hr = surface->GetDevice(&device);
-                        if (hr != D3D_OK || device == nullptr)
-                        {
-                            logger_base.error("Unable to get DirectX device 0x%x", hr);
-                            _abandonHardwareDecode = true;
-                        }
-                        else
-                        {
-                            hr = device->BeginScene();
-                            if (hr != D3D_OK)
-                            {
-                                logger_base.error("Unable to begin DirectX scene 0x%x", hr);
-                                _abandonHardwareDecode = true;
-                            }
-                            else
-                            {
-                                D3DSURFACE_DESC surfaceDesc;
-                                hr = surface->GetDesc(&surfaceDesc);
-                                if (hr != D3D_OK)
-                                {
-                                    logger_base.error("Unable to get DirectX surface description 0x%x", hr);
-                                    _abandonHardwareDecode = true;
-                                }
-                                else
-                                {
-                                    if (_swsCtx == nullptr) // used as a proxy for first frame
-                                    {
-                                        if (surfaceDesc.Format < 255)
-                                        {
-                                            logger_base.debug("Source surface format %d:0x%x %d,%d", (int)surfaceDesc.Format, (int)surfaceDesc.Format, surfaceDesc.Width, surfaceDesc.Height);
-                                        }
-                                        else
-                                        {
-                                            if (surfaceDesc.Format < 512)
-                                            {
-                                                logger_base.debug("Source surface format %d:0x%x %d,%d", (int)surfaceDesc.Format, (int)surfaceDesc.Format, surfaceDesc.Width, surfaceDesc.Height);
-                                            }
-                                            else
-                                            {
-                                                char ff[5];
-                                                ff[0] = (char)(surfaceDesc.Format & 0xFF);
-                                                ff[1] = (char)((surfaceDesc.Format >> 8) & 0xFF);
-                                                ff[2] = (char)((surfaceDesc.Format >> 16) & 0xFF);
-                                                ff[3] = (char)((surfaceDesc.Format >> 24) & 0xFF);
-                                                ff[4] = 0x00;
-                                                logger_base.debug("Source surface format %s %d,%d", ff, surfaceDesc.Width, surfaceDesc.Height);
-                                            }
-                                        }
-                                    }
-
-                                    //int pixsize = 4;
-                                    //D3DFORMAT desired = D3DFORMAT::D3DFMT_A8R8G8B8;
-// I WOULD LIKE TO DO CONVERSION TO RGB here but just as ARGB doesnt work so doesnt RGB .. but worse
-                                    //if (!_wantAlpha)
-                                    //{
-                                    //    desired = D3DFORMAT::D3DFMT_R8G8B8;
-                                    //    pixsize = 3;
-                                    //}
-
-                                    // Lets not try to do format conversion as it does not work.
-                                    D3DFORMAT desired = surfaceDesc.Format;
-
-                                    LPDIRECT3DSURFACE9 backBuffer = nullptr;
-
-                                    hr = device->CreateRenderTarget(_width, _height, desired, surfaceDesc.MultiSampleType,
-                                        surfaceDesc.MultiSampleQuality, true, &backBuffer, nullptr);
-                                    if (hr != D3D_OK || backBuffer == nullptr)
-                                    {
-                                        logger_base.debug("Tried to create render target %d,%d multisample type %d quality %d",
-                                            _width, _height, surfaceDesc.MultiSampleType, surfaceDesc.MultiSampleQuality);
-                                        logger_base.error("Unable to create a render target 0x%x", hr);
-                                        _abandonHardwareDecode = true;
-                                    }
-
-                                    if (hr == D3D_OK && backBuffer != nullptr)
-                                    {
-                                        D3DSAMPLERSTATETYPE growshrink = D3DSAMPLERSTATETYPE::D3DSAMP_MINFILTER;
-                                        if (_codecContext->width + _codecContext->height < _width + _height)
-                                        {
-                                            growshrink = D3DSAMPLERSTATETYPE::D3DSAMP_MAGFILTER;
-                                            if (_swsCtx == nullptr)
-                                            {
-                                                logger_base.debug("Expanding video.");
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (_swsCtx == nullptr)
-                                            {
-                                                logger_base.debug("Shrinking video.");
-                                            }
-                                        }
-
-                                        hr = 1;
-                                        for (auto it = _dxva2_filters.begin(); it != _dxva2_filters.end() && hr != D3D_OK; ++it)
-                                        {
-                                            hr = device->SetSamplerState(0, growshrink, *it);
-                                            if (hr == D3D_OK && _swsCtx == nullptr)
-                                            {
-                                                logger_base.debug("Chosen Min Filter Type %d", *it);
-                                            }
-                                        }
-
-                                        // copy the current surface to my render target - shrink and convert format
-                                        // D3DTEXF_POINT or D3DTEXF_CONVOLUTIONMONO or D3DTEXF_LINEAR or D3DTEXF_GAUSSIANQUAD or D3DTEXF_NONE
-                                        // I am not enormously happy with this stretch rect ... it tends to produce really harsh looking video
-                                        hr = 1;
-                                        for (auto it = _dxva2_filters.begin(); it != _dxva2_filters.end() && hr != D3D_OK; ++it)
-                                        {
-                                            hr = device->StretchRect(surface, nullptr, backBuffer, nullptr, *it);
-                                            if (hr == D3D_OK && _swsCtx == nullptr)
-                                            {
-                                                logger_base.debug("Chosen D3D Texture Filter Type %d", *it);
-                                            }
-                                        }
-
-                                        if (hr != D3D_OK)
-                                        {
-                                            logger_base.error("Unable to scale and convert format in hardware 0x%x", hr);
-                                            _abandonHardwareDecode = true;
-                                        }
-                                        else {
-// THIS CODE IS INCOMPLETE AND LIKELY COMPLETELY WRONG
-// AND I AM NOT SURE EXACTLY HOW AND WHEN THE SHADER WOULD RUN TO DO COLOUR CONVERSION
-// DO I RESIZE FIRST THEN DO THE NV12->RGBA or RGB conversion
-                                            //std::string shaderSource = "vec4 main(__sample s) { return s.rgba; }";
-                                            //LPD3DBLOB shader = nullptr;
-                                            //LPD3DBLOB errors = nullptr;
-                                            //hr = D3DCompile(shaderSource.c_str(), shaderSource.size(), nullptr, nullptr, nullptr, "main", "ps_5_0", 0, 0, &shader, &errors);
-                                            //char* perr = (char*)errors->GetBufferPointer();
-                                            //LPDIRECT3DPIXELSHADER9 shaderObject = nullptr;
-                                            //hr = device->CreatePixelShader((DWORD*)shader->GetBufferPointer(), &shaderObject);
-                                            //shader->Release();
-                                            //errors->Release();
-
-                                            // copy down the data into _srcFrame2
-                                            D3DLOCKED_RECT LockedRect;
-                                            hr = backBuffer->LockRect(&LockedRect, &tgtRect, D3DLOCK_READONLY);
-                                            if (hr != D3D_OK || LockedRect.pBits == nullptr)
-                                            {
-                                                logger_base.error("Unable to lock rect to copy down data 0x%x", hr);
-                                                _abandonHardwareDecode = true;
-                                            }
-                                            else
-                                            {
-                                                hr = backBuffer->GetDesc(&surfaceDesc);
-
-                                                av_frame_unref(_srcFrame2);
-
-                                                //if (_wantAlpha)
-                                                //{
-                                                //    _srcFrame2->format = AV_PIX_FMT_ARGB;
-                                                //}
-                                                //else
-                                                //{
-                                                //    _srcFrame2->format = AV_PIX_FMT_RGB24;
-                                                //}
-                                                _srcFrame2->format = AV_PIX_FMT_NV12;
-                                                _srcFrame2->width = _width;
-                                                _srcFrame2->height = _height;
-
-                                                int ret = av_frame_get_buffer(_srcFrame2, 32);
-                                                wxASSERT(ret >= 0);
-
-                                                // This is the code for copying down RGB/RGBA data
-                                                //for (int i = 0; i < _height; i++)
-                                                //{
-                                                //    memcpy(_srcFrame2->data[0] + i * _srcFrame2->linesize[0], (uint8_t*)LockedRect.pBits + i * LockedRect.Pitch, _width * pixsize);
-                                                //}
-
-                                                // This is a manual download of the NV12 data into an AVFrame ... but we do it from our resized surface
-                                                // Copy Y
-                                                if (_srcFrame2->data[0] != nullptr && LockedRect.pBits != nullptr) {
-                                                    for (int i = 0; i < _height; i++) {
-                                                        memcpy(_srcFrame2->data[0] + i * _srcFrame2->linesize[0], (uint8_t*)LockedRect.pBits + i * LockedRect.Pitch, _width * 1);
-                                                    }
-                                                }
-                                                // Copy UV
-                                                if (_srcFrame2->data[1] != nullptr && LockedRect.pBits != nullptr) {
-                                                    for (int i = 0; i < _height / 2; i++) {
-                                                        memcpy(_srcFrame2->data[1] + i * _srcFrame2->linesize[1], (uint8_t*)LockedRect.pBits + _height * LockedRect.Pitch + i * LockedRect.Pitch, _width * 2);
-                                                    }
-                                                }
-
-                                                backBuffer->UnlockRect();
-
-                                                if (_srcFrame2->data[0] != nullptr && _srcFrame2->data[1] != nullptr)
-                                                {
-                                                    hwscale = true;
-
-                                                    // we will still run sws_scale on this but it should be faster as it is already the right size and in ARGB format
-                                                    f = _srcFrame2;
-                                                }
-                                                else
-                                                {
-                                                    logger_base.warn("Failed to copy data from hardware decode because at least one of the frame data pointers was null");
-                                                    _abandonHardwareDecode = true;
-                                                }
-                                            }
-                                            //shaderObject->Release();
-                                        }
-
-                                        backBuffer->Release();
-                                    }
-                                    hr = device->EndScene();
-                                }
-                            }
-                            device->Release();
-                        }
-                    }
-
                     if (!hwscale)
-    #endif
                     {
                         /* retrieve data from GPU to CPU */
                         if (av_hwframe_transfer_data(_srcFrame2, _srcFrame, 0) < 0) {
@@ -968,9 +798,7 @@ bool VideoReader::readFrame(int timestampMS) {
 
 AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 {
-#ifdef VIDEO_EXTRALOGGING
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-#endif
 
     if (!_valid || _frames == 0)
     {
@@ -982,6 +810,19 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
         _atEnd = true;
         return nullptr;
     }
+
+#ifdef __WXMSW__
+    if (_windowsHardwareVideoReader != nullptr) {
+        AVFrame * frame = _windowsHardwareVideoReader->GetNextFrame(timestampMS, gracetime);
+        _curPos = _windowsHardwareVideoReader->GetPos();
+        if (_curPos >= _windowsHardwareVideoReader->GetDuration()) {
+            _atEnd = true;
+            return nullptr;
+        } else {
+            return frame;
+        }
+    }
+#endif
 
 #ifdef VIDEO_EXTRALOGGING
     logger_base.debug("Video %s getting frame %d.", (const char *)_filename.c_str(), timestampMS);
@@ -1005,11 +846,11 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
         return _dstFrame2;
     }
 
-    // If the caller is after an old frame we have to seek first
-    if (currenttime > timestampMS + gracetime)
+    // If the caller is after an old frame we have to seek first. We also seek if the frame we want is more than a second away from where we are
+    if (currenttime > timestampMS + gracetime || timestampMS - currenttime > 1000)
     {
 #ifdef VIDEO_EXTRALOGGING
-        logger_base.debug("    Video %s seeking back from %d to %d.", (const char *)_filename.c_str(), currenttime, timestampMS);
+        logger_base.debug("    Video %s seeking from %d to %d.", (const char *)_filename.c_str(), currenttime, timestampMS);
 #endif
         Seek(timestampMS, false);
         currenttime = GetPos();
@@ -1024,21 +865,31 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
         bool seekedForward = false;
 		while (!_abort && (firstframe || ((currenttime + (_frameMS / 2.0)) < timestampMS)) &&
                currenttime <= _lengthMS &&
-               (av_read_frame(_formatContext, &_packet)) == 0) {
+               (av_read_frame(_formatContext, _packet)) == 0) {
             // Is this a packet from the video stream?
-			if (_packet.stream_index == _streamIndex) {
+			if (_packet->stream_index == _streamIndex) {
 
                 // Decode video frame
                 int decodeCount = 0;
-                while (!_abort && avcodec_send_packet(_codecContext, &_packet)) {
-                    if (readFrame(timestampMS)) {
-                        firstframe = false;
-                        currenttime = _curPos;
+                int ret = avcodec_send_packet(_codecContext, _packet);
+                while (!_abort && ret != 0) {
+                    if (ret != AVERROR(EAGAIN) && _videoToolboxAccelerated) {
+                        logger_base.debug("    Hardware video decoding failed for %s. Reverting to software decoding.", (const char*)_filename.c_str());
+                        reopenContext(false);
+                        Seek(timestampMS, false);
+                        currenttime = GetPos();
+                        ret = 0;
                     } else {
-                        decodeCount++;
-                        if (decodeCount == 100) {
-                            return nullptr;
+                        if (readFrame(timestampMS)) {
+                            firstframe = false;
+                            currenttime = _curPos;
+                        } else {
+                            decodeCount++;
+                            if (decodeCount == 100) {
+                                return nullptr;
+                            }
                         }
+                        ret = avcodec_send_packet(_codecContext, _packet);
                     }
                 }
 
@@ -1064,7 +915,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
                 }
 			}
 			// Free the packet that was allocated by av_read_frame
-			av_packet_unref(&_packet);
+			av_packet_unref(_packet);
 		}
     } else {
 		_atEnd = true;

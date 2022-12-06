@@ -1,5 +1,4 @@
 //(*InternalHeaders(HinksPixExportDialog)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/intl.h>
@@ -11,11 +10,12 @@
 #include <wx/progdlg.h>
 #include <wx/volume.h>
 #include <wx/wfstream.h>
+#include <wx/artprov.h>
 
 #include "AudioManager.h"
 #include "ControllerCaps.h"
 #include "ControllerUploadData.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 #include "HinksPixExportDialog.h"
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
@@ -191,14 +191,11 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_3DSASH, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinimumPaneSize(100);
 	SplitterWindow1->SetSashGravity(0.5);
 	HinkControllerList = new wxScrolledWindow(SplitterWindow1, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
 	HinkControllerList->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(-1,150)));
 	HinkControllerSizer = new wxFlexGridSizer(0, 8, 0, 0);
 	HinkControllerList->SetSizer(HinkControllerSizer);
-	HinkControllerSizer->Fit(HinkControllerList);
-	HinkControllerSizer->SetSizeHints(HinkControllerList);
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer2 = new wxFlexGridSizer(2, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
@@ -217,16 +214,14 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	FlexGridSizer3->Add(ChoiceFolder, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2->Add(FlexGridSizer3, 1, wxEXPAND, 0);
 	BoxSizer2 = new wxBoxSizer(wxVERTICAL);
-	BitmapButtonMoveUp = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_MOVE_UP, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_UP")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_MOVE_UP"));
+	BitmapButtonMoveUp = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_MOVE_UP, wxArtProvider::GetBitmapBundle("wxART_GO_UP", wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_MOVE_UP"));
 	BoxSizer2->Add(BitmapButtonMoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	BitmapButtonMoveDown = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_MOVE_DOWN, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_DOWN")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_MOVE_DOWN"));
+	BitmapButtonMoveDown = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_MOVE_DOWN, wxArtProvider::GetBitmapBundle("wxART_GO_DOWN", wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_MOVE_DOWN"));
 	BoxSizer2->Add(BitmapButtonMoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer2->Add(BoxSizer2, 1, wxALL|wxALIGN_CENTER_VERTICAL, 0);
 	CheckListBox_Sequences = new wxListView(Panel1, ID_LISTVIEW_Sequences, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTVIEW_Sequences"));
 	FlexGridSizer2->Add(CheckListBox_Sequences, 1, wxEXPAND, 0);
 	Panel1->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(Panel1);
-	FlexGridSizer2->SetSizeHints(Panel1);
 	SplitterWindow1->SplitHorizontally(HinkControllerList, Panel1);
 	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
@@ -259,7 +254,6 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	BoxSizer1->Add(cancelButton, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHOICE_FILTER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&HinksPixExportDialog::OnChoiceFilterSelect);
@@ -449,15 +443,18 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
     wxDir directory;
     directory.Open(dir);
 
-    wxString file;
-    bool fcont = directory.GetFirst(&file, "*.x*");
+    wxArrayString files;
+    GetAllFilesInDir(dir, files, "*.x*");
     static const int BUFFER_SIZE = 1024 * 12;
     std::vector<char> buf(BUFFER_SIZE); //12K buffer
-    while (fcont) {
-        if (file != "xlights_rgbeffects.xml" && file != OutputManager::GetNetworksFileName() && file != "xlights_keybindings.xml" && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))) {
+    for (auto &filename : files) {
+        wxFileName fn(filename);
+        wxString file =fn.GetFullName();
+        if (file != XLIGHTS_RGBEFFECTS_FILE && file != OutputManager::GetNetworksFileName() && file != XLIGHTS_KEYBINDING_FILE && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))
+            && FileExists(filename)) {
             // this could be a sequence file ... lets open it and check
             //just check if <xsequence" is in the first 512 bytes, parsing every XML is way too expensive
-            wxFile doc(dir + wxFileName::GetPathSeparator() + file);
+            wxFile doc(filename);
             SP_XmlPullParser* parser = new SP_XmlPullParser();
             size_t read = doc.Read(&buf[0], BUFFER_SIZE);
             parser->append(&buf[0], read);
@@ -517,7 +514,7 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
             std::string fseqName = frame->GetFseqDirectory() + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
             if (isSequence) {
                 //need to check for existence of fseq
-                if (!wxFile::Exists(fseqName)) {
+                if (!FileExists(fseqName)) {
                     fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
                 }
                 if (!wxFile::Exists(fseqName)) {
@@ -525,18 +522,18 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
                 }
             }
             if (!mediaName.empty()) {
-                if (!wxFile::Exists(mediaName)) {
+                if (!FileExists(mediaName)) {
                     wxFileName fn(mediaName);
                     for (auto const& md : frame->GetMediaFolders()) {
                         std::string tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
-                        if (wxFile::Exists(tmn)) {
+                        if (FileExists(tmn)) {
                             mediaName = tmn;
                             break;
                         }
                     }
-                    if (!wxFile::Exists(mediaName)) {
+                    if (!FileExists(mediaName)) {
                         const std::string fixedMN = FixFile(frame->CurrentDir, mediaName);
-                        if (!wxFile::Exists(fixedMN)) {
+                        if (!FileExists(fixedMN)) {
                             logger_base.info("Could not find media: %s", mediaName.c_str());
                             mediaName = "";
                         } else {
@@ -554,10 +551,10 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
                 }
             }
         }
-        fcont = directory.GetNext(&file);
     }
     if (ChoiceFilter->GetSelection() == 0) {
-        fcont = directory.GetFirst(&file, wxEmptyString, wxDIR_DIRS);
+        wxString file;
+        bool fcont = directory.GetFirst(&file, wxEmptyString, wxDIR_DIRS);
         while (fcont) {
             if (file != "Backup") {
                 LoadSequencesFromFolder(dir + wxFileName::GetPathSeparator() + file);
@@ -836,13 +833,18 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
         }
 
         wxString drive = GetChoiceValue(DISK_COL + rowStr);
+        
+        //try to fix path
+        wxFileName dirname( drive, "" );
+        drive = dirname.GetPath();
 
         if (drive.IsEmpty()) {
             error = true;
             errorMsg = wxString::Format("No USB Drive Set for '%s'", hix->GetName());
             continue;
         }
-        if (!ObtainAccessToURL(drive)) {
+        if (!ObtainAccessToURL(drive) || !createTestFile(drive))
+        {
             wxDirDialog dlg(this, "Select SD Directory", drive, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
             if (dlg.ShowModal() == wxID_OK) {
                 drive = dlg.GetPath();
@@ -1280,10 +1282,12 @@ std::vector<HinksChannelMap> HinksPixExportDialog::getModelChannelMap(Controller
     UDController cud(hinks, m_outputManager, m_modelManager, false);
     int32_t hinkstartChan = 1;
 
-    //serial first
-    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxSerialPort(); port++) {
-        if (cud.HasSerialPort(port)) {
-            UDControllerPort* portData = cud.GetControllerSerialPort(port);
+    wxASSERT(hinks->GetControllerCaps()->DMXAfterPixels());
+
+    //pixels first
+    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxPixelPort(); port++) {
+        if (cud.HasPixelPort(port)) {
+            UDControllerPort* portData = cud.GetControllerPixelPort(port);
             for (auto const& m : portData->GetModels()) {
                 auto sizeofchan = m->Channels();
                 auto startChan = m->GetStartChannel();
@@ -1294,10 +1298,10 @@ std::vector<HinksChannelMap> HinksPixExportDialog::getModelChannelMap(Controller
         }
     }
 
-    //pixels second
-    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxPixelPort(); port++) {
-        if (cud.HasPixelPort(port)) {
-            UDControllerPort* portData = cud.GetControllerPixelPort(port);
+    // serial second
+    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxSerialPort(); port++) {
+        if (cud.HasSerialPort(port)) {
+            UDControllerPort* portData = cud.GetControllerSerialPort(port);
             for (auto const& m : portData->GetModels()) {
                 auto sizeofchan = m->Channels();
                 auto startChan = m->GetStartChannel();
@@ -1347,6 +1351,26 @@ void HinksPixExportDialog::AddInstanceHeader(const wxString& h) {
     BoxSizer1->Fit(Panel1);
     BoxSizer1->SetSizeHints(Panel1);
     HinkControllerSizer->Add(Panel1, 1, wxALL | wxEXPAND, 0);
+}
+
+bool HinksPixExportDialog::createTestFile(wxString const& drive) const {
+#ifdef __WXOSX__
+    wxFile f;
+    wxString const filename = drive + wxFileName::GetPathSeparator() + "test.seh";
+
+    f.Open(filename, wxFile::write);
+
+    if (f.IsOpened()) {
+        f.Write("test\r\n");
+        f.Close();
+        
+        wxRemoveFile(filename);
+        return true;
+    }
+    return false;
+#else
+    return true;
+#endif
 }
 
 bool HinksPixExportDialog::GetCheckValue(const wxString& col) const {

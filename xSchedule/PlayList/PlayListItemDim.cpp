@@ -50,7 +50,7 @@ PlayListItemDim::PlayListItemDim(OutputManager* outputManager) : PlayListItem()
     _dim = 100;
 }
 
-PlayListItem* PlayListItemDim::Copy() const
+PlayListItem* PlayListItemDim::Copy(const bool isClone) const
 {
     PlayListItemDim* res = new PlayListItemDim(_outputManager);
     res->_outputManager = _outputManager;
@@ -58,7 +58,7 @@ PlayListItem* PlayListItemDim::Copy() const
     res->_channels = _channels;
     res->_duration = _duration;
     res->_dim = _dim;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

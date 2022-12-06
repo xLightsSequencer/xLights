@@ -11,7 +11,7 @@
 
 #ifdef LINUX
 #include <arpa/inet.h>
-#endif 
+#endif
 
 #include <wx/config.h>
 #include <wx/artprov.h>
@@ -53,6 +53,7 @@
 #include "outputs/DDPOutput.h"
 #include "outputs/DMXOutput.h"
 #include "outputs/LOROptimisedOutput.h"
+#include "outputs/TwinklyOutput.h"
 #include "Discovery.h"
 
 #include "../xFade/wxLED.h"
@@ -102,7 +103,7 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
     while (mruFiles.size() >= MRUF_LENGTH) {
         mruFiles.pop_back();
     }
-    
+
     for (int x = 0; x < MRUF_LENGTH; x++) {
         if (mruf_MenuItem[x] != nullptr) {
             Disconnect(mruf_MenuItem[x]->GetId(), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMRUSequence);
@@ -126,7 +127,7 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
             cnt++;
             int menuID = wxNewId();
             mruf_MenuItem[x] = new wxMenuItem(RecentSequencesMenu, menuID, mruFiles[x]);
-            mruf_MenuItem[x]->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER));
+            mruf_MenuItem[x]->SetBitmap(wxArtProvider::GetBitmapBundle("wxART_FILE_OPEN", wxART_MENU));
             Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMRUSequence);
             RecentSequencesMenu->Append(mruf_MenuItem[x]);
         } else {
@@ -163,13 +164,6 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
 
     // remove any 3d viewpoints
     viewpoint_mgr.Clear();
-
-    if (nd != CurrentDir && "" != CurrentDir) {
-        wxFileName kbf;
-        kbf.AssignDir(CurrentDir);
-        kbf.SetFullName("xlights_keybindings.xml");
-        mainSequencer->keyBindings.Save(kbf);
-    }
 
     // Check to see if any show directory files need to be saved
     CheckUnsavedChanges();
@@ -233,13 +227,13 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
         wxMenuItem *item = RecentShowFoldersMenu->FindItemByPosition(0);
         RecentShowFoldersMenu->Delete(item);
     }
-    
+
     // append mru items to menu
     cnt = mruDirectories.GetCount();
     for (size_t i = 0; i < cnt; i++) {
         int menuID = wxNewId();
         mrud_MenuItem[i] = new wxMenuItem(RecentShowFoldersMenu, menuID, mruDirectories[i]);
-        mrud_MenuItem[i]->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER));
+        mrud_MenuItem[i]->SetBitmap(wxArtProvider::GetBitmapBundle("wxART_FOLDER_OPEN", wxART_MENU));
         Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
         RecentShowFoldersMenu->Append(mrud_MenuItem[i]);
     }
@@ -302,7 +296,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     // load network
     networkFile.AssignDir(CurrentDir);
     networkFile.SetFullName(_(XLIGHTS_NETWORK_FILE));
-    if (networkFile.FileExists()) {
+    if (FileExists(networkFile)) {
+        ObtainAccessToURL(networkFile.GetFullPath());
         logger_base.debug("Loading networks.");
         wxStopWatch sww;
         if (!_outputManager.Load(CurrentDir.ToStdString())) {
@@ -340,6 +335,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
         font.SetWeight(wxFONTWEIGHT_NORMAL);
         ShowDirectoryLabel->SetFont(font);
         Button_CheckShowFolderTemporarily->SetLabelText("Change Temporarily");
+        Button_ChangeTemporarilyAgain->Hide();
     }
     else {
         ShowDirectoryLabel->SetForegroundColour(wxColor(255, 200, 0));
@@ -347,8 +343,9 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
         font.SetWeight(wxFONTWEIGHT_BOLD);
         ShowDirectoryLabel->SetFont(font);
         Button_CheckShowFolderTemporarily->SetLabelText("Restore to Permanent");
+        Button_ChangeTemporarilyAgain->Show();
     }
-    
+
     // do layout after so button resizes to fit label (only issue on osx, "Restore to Permanent" is cut off)
     ShowDirectoryLabel->GetParent()->Layout();
 
@@ -358,10 +355,10 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
 
     wxFileName kbf;
     kbf.AssignDir(CurrentDir);
-    kbf.SetFullName("xlights_keybindings.xml");
+    kbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
     mainSequencer->keyBindings.Load(kbf);
 
-    
+
     LoadEffectsFile();
 
     logger_base.debug("Get start channels right.");
@@ -384,7 +381,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     Notebook1->ChangeSelection(SETUPTAB);
     SetStatusText("");
     FileNameText->SetLabel(nd);
-    
+
     if (AllModels.ReworkStartChannel() || UnsavedRgbEffectsChanges) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
     }
@@ -397,6 +394,10 @@ void xLightsFrame::OnMenuOpenFolderSelected(wxCommandEvent& event) {
     PromptForShowDirectory(true);
 }
 
+void xLightsFrame::OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event)
+{
+    PromptForShowDirectory(false);
+}
 
 void xLightsFrame::OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event)
 {
@@ -408,6 +409,7 @@ void xLightsFrame::OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event)
         layoutPanel->ClearUndo();
         wxASSERT(_permanentShowFolder != "");
         SetDir(_permanentShowFolder, true);
+        Button_ChangeTemporarilyAgain->Hide();
     }
 }
 
@@ -416,8 +418,10 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent) {
     wxDirDialog DirDialog1(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
 
     while (DirDialog1.ShowModal() == wxID_OK) {
+        bool dirOK = true;
         AbortRender(); // make sure nothing is still rendering
         wxString newdir = DirDialog1.GetPath();
+        ObtainAccessToURL(newdir);
         if (newdir == CurrentDir) return true;
 
         if (ShowFolderIsInBackup(newdir.ToStdString())) {
@@ -427,10 +431,24 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent) {
 #ifdef __WXMSW__
         if (ShowFolderIsInProgramFiles(newdir.ToStdString())) {
             DisplayWarning("ERROR: Show folder inside your Program Files folder either just wont work or will cause you security issues ... so please choose again.", this);
+            dirOK = false;
         }
-        else
 #endif
-        {
+        if (dirOK) {
+            wxString fn;
+            // if new directory contains a networks or rgbeffects file then ok
+            if (FileExists(newdir + wxFileName::GetPathSeparator() + XLIGHTS_NETWORK_FILE) || FileExists(newdir + wxFileName::GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE)) {
+            }
+            // if new directory is empty then ok
+            else if (!wxDir(newdir).GetFirst(&fn)) {
+            }
+            // otherwise ... this may not be a show directory ... check the user is sure about this
+            else if (wxMessageBox("Folder chosen does not contain xLights show folder files and is not empty. Are you sure you chose the right folder?", "Possibly incorrect folder chosen.", wxYES_NO, this) == wxNO) {
+                dirOK = false;
+            }
+        }
+
+        if (dirOK) {
             displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
             layoutPanel->ClearUndo();
             return SetDir(newdir, permanent);
@@ -812,7 +830,7 @@ bool xLightsFrame::SaveNetworksFile() {
     if (autoLayout) {
         GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerModelDialog::ControllerModelDialog");
         GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerModelDialog::ControllerModelDialog");
-        
+
         // Now need to let all the recalculations work
         while (!DoAllWork()) {
             // dont get into a redraw loop from here
@@ -833,15 +851,13 @@ bool xLightsFrame::SaveNetworksFile() {
 void xLightsFrame::UpdateControllerSave() {
     if (UnsavedNetworkChanges || (IsControllersAndLayoutTabSaveLinked() && UnsavedRgbEffectsChanges)) {
 #ifdef __WXOSX__
-        ButtonSaveSetup->SetBackgroundColour(wxColour(255, 0, 0));
-        ButtonSaveSetup->Refresh();
+        SetButtonBackground(ButtonSaveSetup, wxColour(255, 0, 0), 0);
 #else
         ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
 #endif
     } else {
 #ifdef __WXOSX__
-        ButtonSaveSetup->SetBackgroundColour(wxTransparentColour);
-        ButtonSaveSetup->Refresh();
+        SetButtonBackground(ButtonSaveSetup, wxTransparentColour, 0);
 #else
         ButtonSaveSetup->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 #endif
@@ -851,15 +867,13 @@ void xLightsFrame::UpdateControllerSave() {
 void xLightsFrame::UpdateLayoutSave() {
     if (UnsavedRgbEffectsChanges || (IsControllersAndLayoutTabSaveLinked() && UnsavedNetworkChanges)) {
 #ifdef __WXOSX__
-        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxColour(255, 0, 0));
-        layoutPanel->ButtonSavePreview->Refresh();
+        SetButtonBackground(layoutPanel->ButtonSavePreview, wxColour(255, 0, 0), 2);
 #else
         layoutPanel->ButtonSavePreview->SetBackgroundColour(wxColour(255, 108, 108));
 #endif
     } else {
 #ifdef __WXOSX__
-        layoutPanel->ButtonSavePreview->SetBackgroundColour(wxTransparentColour);
-        layoutPanel->ButtonSavePreview->Refresh();
+        SetButtonBackground(layoutPanel->ButtonSavePreview, wxTransparentColour, 2);
 #else
         layoutPanel->ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 #endif
@@ -935,8 +949,8 @@ bool xLightsFrame::DoAllWork() {
     DoWork(_outputModelManager.GetSetupWork(), "Setup");
     DoWork(_outputModelManager.GetLayoutWork(), "Layout");
     DoWork(_outputModelManager.GetASAPWork(), "ASAP");
-    return (_outputModelManager.PeekASAPWork() == OutputModelManager::WORK_NOTHING && 
-            _outputModelManager.PeekSetupWork() == OutputModelManager::WORK_NOTHING && 
+    return (_outputModelManager.PeekASAPWork() == OutputModelManager::WORK_NOTHING &&
+            _outputModelManager.PeekSetupWork() == OutputModelManager::WORK_NOTHING &&
             _outputModelManager.PeekLayoutWork() == OutputModelManager::WORK_NOTHING);
 }
 
@@ -1082,7 +1096,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
     if (work & OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS) {
         logger_work.debug("    WORK_MODELS_REWORK_STARTCHANNELS.");
         // Moves all the models around optimally
-        
+
         //abort any render as it will crash if the model changes
         AbortRender();
         if (AllModels.ReworkStartChannel())
@@ -1198,7 +1212,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         // Reload the property grid either because a value changed and needs to be shown or optional properties should be added or removed
         layoutPanel->resetPropertyGrid();
     }
-    work = _outputModelManager.ClearWork(type, work, 
+    work = _outputModelManager.ClearWork(type, work,
         OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_SAVE_NETWORKS
     );
@@ -1234,7 +1248,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
 }
 
 void xLightsFrame::DoLayoutWork() {
-    
+
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("Doing Switch To Layout Tab Work.");
     DoWork(_outputModelManager.GetLayoutWork(), "Layout");
@@ -1290,13 +1304,14 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
     ArtNetOutput::PrepareDiscovery(discovery);
     ZCPPOutput::PrepareDiscovery(discovery);
     DDPOutput::PrepareDiscovery(discovery);
+    TwinklyOutput::PrepareDiscovery(discovery);
     FPP::PrepareDiscovery(discovery);
     Pixlite16::PrepareDiscovery(discovery);
     discovery.Discover();
-    
+
     std::map<std::string, std::string> renames;
     bool found = false;
-    
+
     for (int x = 0; x < discovery.GetResults().size(); x++) {
         auto discovered = discovery.GetResults()[x];
         if (!discovered->controller) {
@@ -1522,7 +1537,7 @@ void xLightsFrame::InitialiseControllersTab() {
     }
 
     List_Controllers->Thaw();
-    
+
     Panel2->Layout();
     Panel5->Layout();
     Layout();
@@ -1543,7 +1558,7 @@ void xLightsFrame::SetControllersProperties() {
     std::list<wxPGProperty*> expandProperties;
 
     if (GetFirstSelectedControllerIndex() >= 0 && ButtonAddControllerSerial->IsEnabled()) {
-        if (Controllers_PropertyEditor->GetPropertyByName("ControllerName") == nullptr || 
+        if (Controllers_PropertyEditor->GetPropertyByName("ControllerName") == nullptr ||
             List_Controllers->GetItemText(GetFirstSelectedControllerIndex()) != Controllers_PropertyEditor->GetPropertyByName("ControllerName")->GetValue().GetString()) {
             auto doping = _outputManager.GetController(List_Controllers->GetItemText(GetFirstSelectedControllerIndex()));
             if (doping != nullptr) doping->AsyncPing();
@@ -1604,12 +1619,12 @@ void xLightsFrame::SetControllersProperties() {
         wxPGChoices choices;
         int val = 0;
         choices.Add("");
-        for (const auto& it : ips) { 
-            if (it == mLocalIP) val = choices.GetCount();
+        for (const auto& it : ips) {
+            if (it == _outputManager.GetGlobalForceLocalIP()) val = choices.GetCount();
             choices.Add(it);
         }
 
-        Controllers_PropertyEditor->Append(new wxEnumProperty("Force Local IP", "ForceLocalIP", choices, val));
+        Controllers_PropertyEditor->Append(new wxEnumProperty("Global Force Local IP", "ForceLocalIP", choices, val));
 
         Controllers_PropertyEditor->Append(new wxStringProperty("Global FPP Proxy", "GlobalFPPProxy", _outputManager.GetGlobalFPPProxy()));
     }
@@ -1809,7 +1824,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
             auto ips = GetLocalIPs();
 
             if (event.GetValue().GetLong() == 0) {
-                mLocalIP = "";
+                _outputManager.SetGlobalForceLocalIP("");
             }
             else {
                 if (event.GetValue().GetLong() >= ips.size() + 1) {//need to add one as dropdown has blank first entry
@@ -1818,15 +1833,10 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
                 else {
                     auto it = begin(ips);
                     std::advance(it, event.GetValue().GetLong() - 1);
-                    mLocalIP = *it;
+                    _outputManager.SetGlobalForceLocalIP(*it);
                 }
             }
-
-            _outputManager.SetForceFromIP(mLocalIP);
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::ForceLocalIP");
-            wxConfigBase* config = wxConfigBase::Get();
-            config->Write("xLightsLocalIP", wxString(mLocalIP));
-            config->Flush();
             CycleOutputsIfOn();
         }
     }
@@ -1885,12 +1895,28 @@ void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)
 {
     auto name = List_Controllers->GetItemText(event.GetItem());
     auto controller = _outputManager.GetController(name);
-    if (controller != nullptr && controller->GetIP() != "") {
-        if (controller->GetFPPProxy() != "" && controller->GetFPPProxy() != controller->GetIP()) {
-            ::wxLaunchDefaultBrowser("http://" + controller->GetFPPProxy() + "/proxy/" + controller->GetIP() + "/");
+    if (wxGetKeyState(WXK_CONTROL) || wxGetKeyState(WXK_SHIFT)) {
+        if (controller != nullptr && controller->GetIP() != "") {
+            if (controller->GetFPPProxy() != "" && controller->GetFPPProxy() != controller->GetIP()) {
+                ::wxLaunchDefaultBrowser("http://" + controller->GetFPPProxy() + "/proxy/" + controller->GetIP() + "/");
+            }
+            else {
+                ::wxLaunchDefaultBrowser("http://" + controller->GetIP());
+            }
+        }
+    } else {
+        if (controller != nullptr) {
+            int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
+            if (usingip == 1 && controller->CanVisualise()) {
+                UDController cud(controller, &_outputManager, &AllModels, true);
+                ControllerModelDialog dlg(this, &cud, &AllModels, controller);
+                dlg.ShowModal();
+            } else {
+                DisplayError(name + " cannot be Visualise", this);
+            }
         }
         else {
-            ::wxLaunchDefaultBrowser("http://" + controller->GetIP());
+            DisplayError(name + " cannot find the controller", this);
         }
     }
 }
@@ -2233,11 +2259,14 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
     message.clear();
     bool res = false;
 
+    SetStatusText(message);
+
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (controller == nullptr) return res;
 
     auto caps = GetControllerCaps(controller->GetName());
     if (caps != nullptr) {
+        SetStatusText("Uploading inputs to controller.");
         caps->Dump();
         if (caps->SupportsInputOnlyUpload()) {
             auto vendor = controller->GetVendor();
@@ -2295,11 +2324,14 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
     message.clear();
     bool res = false;
 
+    SetStatusText(message);
+
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (controller == nullptr) return res;
 
     auto caps = GetControllerCaps(controller->GetName());
     if (caps != nullptr) {
+        SetStatusText("Uploading outputs to controller.");
         caps->Dump();
         if (caps->SupportsUpload()) {
             auto vendor = controller->GetVendor();
@@ -2473,14 +2505,14 @@ int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>&
     p->nullPixels = np;
     logger_zcpp.debug("       Start Null Pixels %d", (int)np);
 
-    wxByte b = 100;
+    wxByte b = controller->GetDefaultBrightnessUnderFullControl();
     if (vs != nullptr) {
         if (vs->_brightnessSet) {
             b = vs->_brightness;
         }
     }
     else if (m != nullptr) {
-        b = m->GetBrightness(100);
+        b = m->GetBrightness(controller->GetDefaultBrightnessUnderFullControl());
     }
     p->brightness = b;
     logger_zcpp.debug("       Brightness %d", (int)b);

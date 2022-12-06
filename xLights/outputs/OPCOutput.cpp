@@ -38,11 +38,11 @@ void OPCOutput::OpenSocket() {
     else
     {
         wxIPV4address localaddr;
-        if (IPOutput::__localIP == "") {
+        if (GetForceLocalIPToUse() == "") {
             localaddr.AnyAddress();
         }
         else {
-            localaddr.Hostname(IPOutput::__localIP);
+            localaddr.Hostname(GetForceLocalIPToUse());
         }
 
         _socket->SetFlags(wxSOCKET_NOWAIT);

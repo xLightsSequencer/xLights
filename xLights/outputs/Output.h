@@ -45,6 +45,8 @@ class Controller;
 #define OUTPUT_xxxETHERNET "xxx Ethernet"
 #define OUTPUT_OPC "OPC"
 #define OUTPUT_GENERICSERIAL "Generic Serial"
+#define OUTPUT_TWINKLY "Twinkly"
+#define OUTPUT_PLAYER_ONLY "Player Only"
 #pragma endregion
 
 class Output
@@ -72,7 +74,9 @@ protected:
     bool _changed = false; // set to true when something in the packed has changed
     std::string _fppProxy;
     std::string _globalFPPProxy;
-    Output *_fppProxyOutput = nullptr;
+    std::string _forceLocalIP;
+    std::string _globalForceLocalIP;
+    Output* _fppProxyOutput = nullptr;
 
     bool _autoSize_CONVERT = false;
     std::string _description_CONVERT;
@@ -129,6 +133,12 @@ public:
     void SetFPPProxyIP(const std::string& ip) { _fppProxy = ip; }
     bool IsUsingFPPProxy() const { return _fppProxy != ""; }
     void SetGlobalFPPProxyIP(const std::string& ip) { _globalFPPProxy = ip; }
+
+    const std::string GetForceLocalIP() const { return _forceLocalIP; }
+    void SetForceLocalIP(const std::string& ip) { _forceLocalIP = ip; }
+    bool IsUsingForceLocalIP() const { return _forceLocalIP != ""; }
+    void SetGlobalForceLocalIP(const std::string& ip) { _globalForceLocalIP = ip; }
+    std::string GetForceLocalIPToUse() const;
 
     int GetUniverse() const { return _universe; }
     void SetUniverse(int universe) { _universe = universe; _dirty = true; }
@@ -213,7 +223,14 @@ public:
     #ifndef EXCLUDENETWORKUI
     virtual void AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {}
     virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) { return false; }
-    virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) {}
+    virtual void AddMultiProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
+    {}
+    virtual bool HandleMultiPropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
+    {
+        return false;
+    }
+    virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded)
+    {}
     #endif
     #pragma endregion UI
 };

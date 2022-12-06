@@ -99,7 +99,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shader_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shader_Speed" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -135,7 +135,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shader_Offset_X" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shader_Offset_X" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -171,7 +171,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shader_Offset_Y" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shader_Offset_Y" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -207,7 +207,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Shader_Zoom" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shader_Zoom" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

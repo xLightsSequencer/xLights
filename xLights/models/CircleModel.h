@@ -23,14 +23,14 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int GetNumStrands() const override;
         virtual bool AllNodesAllocated() const override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsExportAsCustom() const override { return true; } 
         virtual bool SupportsWiringView() const override { return true; }
 
 		virtual bool SupportsXlightsModel() override { return true; }
 		virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
         virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;

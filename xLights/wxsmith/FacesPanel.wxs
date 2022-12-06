@@ -124,6 +124,19 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_Faces_SuppressShimmer" subclass="BulkEditCheckBox" variable="CheckBox_SuppressShimmer" member="yes">
+							<label>Suppress shimmer</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText2" member="yes">
 							<label>Use State as outline</label>

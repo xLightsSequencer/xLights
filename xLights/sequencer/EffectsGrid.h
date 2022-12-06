@@ -32,10 +32,10 @@
 
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
 
-typedef enum ACTYPE { SELECT, ON, OFF, SHIMMER, TWINKLE, NILTYPEOVERRIDE } ACTYPE;
-typedef enum ACSTYLE { INTENSITY, RAMPUP, RAMPDOWN, RAMPUPDOWN, NILSTYLEOVERRIDE } ACSTYLE;
-typedef enum ACMODE { FOREGROUND, BACKGROUND, MODENIL, NILMODEOVERRIDE} ACMODE;
-typedef enum ACTOOL { FILL, CASCADE, TOOLNIL, NILTOOLOVERRIDE } ACTOOL;
+enum class ACTYPE { SELECT, ON, OFF, SHIMMER, TWINKLE, NILTYPEOVERRIDE };
+enum class ACSTYLE { INTENSITY, RAMPUP, RAMPDOWN, RAMPUPDOWN, NILSTYLEOVERRIDE };
+enum class ACMODE { FOREGROUND, BACKGROUND, MODENIL, NILMODEOVERRIDE};
+enum class ACTOOL { FILL, CASCADE, TOOLNIL, NILTOOLOVERRIDE };
 
 enum class HitLocation {
     NONE,
@@ -69,6 +69,23 @@ struct EffectDropData;
 class MainSequencer;
 class PixelBufferClass;
 class SequenceData;
+class DataLayer;
+
+// this is used to keep track of effect found which might be generating data on a node
+typedef struct findDataEffect {
+    Element* e = nullptr;
+    EffectLayer* el = nullptr;
+    NodeLayer* nl = nullptr;
+    Effect* ef = nullptr;
+    DataLayer* dl = nullptr;
+
+    // helper functions
+    int GetStrand() const;
+    int GetNode() const;
+    std::string GetTypeDescription() const;
+    std::string GetName() const;
+    std::string GetStrandSubmodel() const;
+} findDataEffect;
 
 class EffectsGrid : public GRAPHICS_BASE_CLASS
 {
@@ -116,7 +133,7 @@ public:
     bool AreAllSelectedEffectsOnTheSameElement() const;
     void ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
     void ApplyButtonPressToSelected(const std::string& effectName, const std::string id);
-    void RemapSelectedDMXEffectValues(const std::vector<std::pair<int, int>>& pairs);
+    void RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int>>& dmxmappings);
     void ConvertSelectedEffectsTo(const std::string& effectName);
 
     bool HandleACKey(wxChar key, bool shift = false);
@@ -160,6 +177,17 @@ public:
     void SelectEffect(Effect* ef);
     void ScrollBy(int by);
     void Draw();
+    void UpdateMousePosition(int time) const;
+    int GetDropStartMS() const
+    {
+        return mDropStartTimeMS;
+    }
+    bool CanDropEffect() const;
+    SequenceElements* GetSequenceElements() const
+    {
+        return mSequenceElements;
+    }
+
 protected:
 
 private:
@@ -197,7 +225,6 @@ private:
     void Resize(int position, bool offset, bool control);
     void RunMouseOverHitTests(int rowIndex, int x,int y);
     void UpdateTimePosition(int time) const;
-    void UpdateMousePosition(int time) const;
     void UpdateZoomPosition(int time) const;
     void EstablishSelectionRectangle();
     void UpdateSelectionRectangle();
@@ -237,6 +264,8 @@ private:
     int GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos, long startMS, long endMS);
     Effect* DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settings, std::string palette, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS, int offsetMS = 0);
     void TruncateBrightnessValueCurve(ValueCurve& vc, double startPos, double endPos, int startMS, int endMS, int originalLength);
+    uint32_t FindChannel(Element* element, int strandIndex, int nodeIndex, uint8_t& channelsPerNode) const;
+    void FindEffectsForData(uint32_t channel, uint8_t chans, uint32_t _findDataMS) const;
 
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
@@ -317,6 +346,7 @@ private:
     static const long ID_GRID_MNU_UNLOCK;
     static const long ID_GRID_MNU_RENDERDISABLE;
     static const long ID_GRID_MNU_RENDERENABLE;
+    static const long ID_GRID_MNU_FINDEFFECTFORDATA;
     static const long ID_GRID_MNU_TIMING;
     static const long ID_GRID_MNU_UNDO;
     static const long ID_GRID_MNU_REDO;
@@ -332,11 +362,13 @@ private:
     static const long ID_GRID_MNU_ALIGN_MATCH_DURATION;
     static const long ID_GRID_MNU_ALIGN_START_TIMES_SHIFT;
     static const long ID_GRID_MNU_ALIGN_END_TIMES_SHIFT;
+    static const long ID_GRID_MNU_SPLIT_EFFECT;
+    EventPlayEffectArgs* playArgs = nullptr;
 
-    EventPlayEffectArgs* playArgs;
-
-    const SequenceData *seqData;
-    xLightsFrame *xlights;
+    const SequenceData *seqData = nullptr;
+    xLightsFrame *xlights = nullptr;
+    Row_Information_Struct* _findDataRI = nullptr;
+    uint32_t _findDataMS = 0xFFFFFFFF;
 
 	DECLARE_EVENT_TABLE()
 };

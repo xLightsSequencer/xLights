@@ -13,7 +13,6 @@
 #include "FireEffect.h"
 
 //(*InternalHeaders(FirePanel)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
@@ -73,13 +72,13 @@ FirePanel::FirePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer1->AddGrowableCol(0);
 	Slider_Fire_Height = new BulkEditSlider(this, ID_SLIDER_Fire_Height, 50, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fire_Height"));
 	FlexGridSizer1->Add(Slider_Fire_Height, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Fire_HeightVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fire_Height, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fire_Height"));
+	BitmapButton_Fire_HeightVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fire_Height, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Fire_Height"));
 	FlexGridSizer1->Add(BitmapButton_Fire_HeightVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer38->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Fire_Height = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Fire_Height, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Fire_Height"));
 	TextCtrl_Fire_Height->SetMaxLength(3);
 	FlexGridSizer38->Add(TextCtrl_Fire_Height, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_FireHeight = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fire_Height, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fire_Height"));
+	BitmapButton_FireHeight = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fire_Height, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fire_Height"));
 	BitmapButton_FireHeight->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer38->Add(BitmapButton_FireHeight, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText132 = new wxStaticText(this, ID_STATICTEXT_Fire_HueShift, _("Hue Shift"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fire_HueShift"));
@@ -88,13 +87,13 @@ FirePanel::FirePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer2->AddGrowableCol(0);
 	Slider_Fire_HueShift = new BulkEditSlider(this, ID_SLIDER_Fire_HueShift, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fire_HueShift"));
 	FlexGridSizer2->Add(Slider_Fire_HueShift, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Fire_HueShiftVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fire_HueShift, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fire_HueShift"));
+	BitmapButton_Fire_HueShiftVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fire_HueShift, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Fire_HueShift"));
 	FlexGridSizer2->Add(BitmapButton_Fire_HueShiftVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer38->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	TextCtrl20 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Fire_HueShift, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Fire_HueShift"));
 	TextCtrl20->SetMaxLength(3);
 	FlexGridSizer38->Add(TextCtrl20, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_FireWidth = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fire_HueShift, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fire_HueShift"));
+	BitmapButton_FireWidth = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fire_HueShift, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fire_HueShift"));
 	BitmapButton_FireWidth->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer38->Add(BitmapButton_FireWidth, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText30 = new wxStaticText(this, ID_STATICTEXT_Fire_GrowthCycles, _("Growth Cycles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fire_GrowthCycles"));
@@ -103,13 +102,13 @@ FirePanel::FirePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer3->AddGrowableCol(0);
 	Slider_Fire_GrowthCycles = new BulkEditSliderF1(this, IDD_SLIDER_Fire_GrowthCycles, 0, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Fire_GrowthCycles"));
 	FlexGridSizer3->Add(Slider_Fire_GrowthCycles, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Fire_GrowthCyclesVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fire_GrowthCycles, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fire_GrowthCycles"));
+	BitmapButton_Fire_GrowthCyclesVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fire_GrowthCycles, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Fire_GrowthCycles"));
 	FlexGridSizer3->Add(BitmapButton_Fire_GrowthCyclesVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer38->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Fire_GrowthCycles = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Fire_GrowthCycles, _("0.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fire_GrowthCycles"));
 	TextCtrl_Fire_GrowthCycles->SetMaxLength(3);
 	FlexGridSizer38->Add(TextCtrl_Fire_GrowthCycles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_FireGrow = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fire_GrowthCycles, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fire_GrowthCycles"));
+	BitmapButton_FireGrow = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fire_GrowthCycles, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fire_GrowthCycles"));
 	BitmapButton_FireGrow->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer38->Add(BitmapButton_FireGrow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer38->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -117,7 +116,7 @@ FirePanel::FirePanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Fire_GrowWithMusic->SetValue(false);
 	FlexGridSizer38->Add(CheckBox_Fire_GrowWithMusic, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer38->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Fire_GrowWithMusic = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Fire_GrowWithMusic, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Fire_GrowWithMusic"));
+	BitmapButton_Fire_GrowWithMusic = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Fire_GrowWithMusic, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Fire_GrowWithMusic"));
 	BitmapButton_Fire_GrowWithMusic->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer38->Add(BitmapButton_Fire_GrowWithMusic, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText193 = new wxStaticText(this, ID_STATICTEXT_Fire_Location, _("Location"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fire_Location"));
@@ -129,8 +128,6 @@ FirePanel::FirePanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Fire_Location->Append(_("Right"));
 	FlexGridSizer38->Add(Choice_Fire_Location, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer38);
-	FlexGridSizer38->Fit(this);
-	FlexGridSizer38->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_Fire_Height,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FirePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Fire_Height,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FirePanel::OnLockButtonClick);

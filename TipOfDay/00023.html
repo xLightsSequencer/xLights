@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00023.html" title="Effects with problems" category="Sequencer" level="Intermediate" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Effects with problems</h1>
+        <p>Some effects ... specifically the Video, Pixture and Shader effects will display a solid colour in some error conditions. Knowing what these mean can help you determine what is wrong:</p>
+        <p>Video Effect</p>
+        <ul>
+            <li><i>Blue</i> - displayed when a video that is shorter than the effect length ends and no looping has been configured ... like an old school VHS recorder.</li>
+            <li><i>Red</i> - displayed when the video file cannot be opened ... most commonly because it is not where the effect thinks it is. It may also be displayed if the model/buffer lacks the dimensions to display a video.</li>
+        </ul>
+        <p>Picture Effect</p>
+        <ul>
+            <li><i>Red</i> - displayed when the image file cannot be opened ... most commonly because it is not where the effect thinks it is.</i></li>
+        </ul>
+        <p>Shader Effect</p>
+        <ul>
+            <li><i>Red</i> - displayed when the shader file cannot be opened ... most commonly because it is not where the effect thinks it is.</i></li>
+            <li><i>Yellow</i> - displayed when there is an error compiling the shader and thus it is unable to run.</li>
+            <li><i>Cyan</i> - displayed when your video card has a problem running the shader.</li>
+        </ul>
+    </body>
+</html>

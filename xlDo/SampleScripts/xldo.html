@@ -1,0 +1,45 @@
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <script>
+            function GetVersion() {
+                http = new XMLHttpRequest();
+                http.onload = function() {
+                    if (http.readyState == 4 && http.status == 200) {
+                        $('#result').html(http.responseText);
+                    }
+                    else
+                    {
+                        $('#result').html("Error");
+                    }
+                }
+                
+                http.open('GET', 'http://localhost:49913/getVersion', true);
+                http.send();
+            }
+            function CheckSequence() {
+                http = new XMLHttpRequest();
+                http.onload = function() {
+                    if (http.readyState == 4 && http.status == 200) {
+                        var res = JSON.parse(http.responseText);
+                        $('#csresult').html(res.output);
+                    }
+                    else
+                    {
+                        $('#csresult').html("Error");
+                    }
+                }
+                
+                http.open('GET', 'http://localhost:49913/checkSequence?seq=' + $('#seq').val(), true);
+                http.send();
+            }
+        </script>
+        <input type="button" onclick="GetVersion()" value="Get Version">
+        <div><label>Version:</label><div id="result"></div></div>
+        <br/>
+        <input type="button" onclick="CheckSequence()" value="Check Sequence"><input type="text" id="seq">        
+        <div><label>Check Sequence File:</label><div id="csresult"></div></div>
+    <body>
+</html>

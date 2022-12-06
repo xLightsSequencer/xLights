@@ -39,7 +39,7 @@ const long ViewObjectPanel::ID_TREELISTVIEW_OBJECTS = wxNewId();
 const long ViewObjectPanel::ID_MNU_DELETE_OBJECT = wxNewId();
 
 ViewObjectPanel::ViewObjectPanel(wxWindow* parent,ViewObjectManager &Objects,LayoutPanel *xl,wxWindowID id,const wxPoint& pos,const wxSize& size)
-:   layoutPanel(xl), mViewObjects(Objects), mSelectedObject(nullptr), m_imageList(nullptr)
+:   layoutPanel(xl), mViewObjects(Objects), mSelectedObject(nullptr)
 {
 	//(*Initialize(ViewObjectPanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -57,8 +57,6 @@ ViewObjectPanel::ViewObjectPanel(wxWindow* parent,ViewObjectManager &Objects,Lay
 	FlexGridSizer2->Add(FirstPanel, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(wxEVT_CHAR,(wxObjectEventFunction)&ViewObjectPanel::OnChar);
 	//*)
@@ -82,7 +80,6 @@ ViewObjectPanel::ViewObjectPanel(wxWindow* parent,ViewObjectManager &Objects,Lay
 ViewObjectPanel::~ViewObjectPanel()
 {
     TreeListViewObjects->DeleteAllItems();
-    delete m_imageList;
 }
 
 class ObjectTreeData : public wxTreeItemData {
@@ -102,29 +99,13 @@ private:
     ViewObject *view_object;
 };
 
-extern void AddIcon(wxImageList &list, const std::string &id, double scaleFactor);  // defined in LayoutPanel.cpp
-
 void ViewObjectPanel::InitImageList()
 {
-    double scaleFactor = GetContentScaleFactor();
-    wxSize iconSize = wxArtProvider::GetSizeHint(wxART_LIST);
-    if ( iconSize == wxDefaultSize ) {
-        iconSize = wxSize(ScaleWithSystemDPI(scaleFactor, 16),
-                          ScaleWithSystemDPI(scaleFactor, 16));
-#if !defined(__WXOSX__) && !defined(__WXMSW__)
-    } else {
-        iconSize = wxSize(ScaleWithSystemDPI(scaleFactor, iconSize.x),
-                          ScaleWithSystemDPI(scaleFactor, iconSize.y));
-#endif
-    }
-
-    m_imageList = new wxImageList(iconSize.x, iconSize.y);
-
-    AddIcon(*m_imageList, "wxART_NORMAL_FILE", scaleFactor);
-    AddIcon(*m_imageList, "xlART_GROUP_CLOSED", scaleFactor);
-    AddIcon(*m_imageList, "xlART_GROUP_OPEN", scaleFactor);
-    AddIcon(*m_imageList, "xlART_IMAGE_ICON", scaleFactor);
-    AddIcon(*m_imageList, "xlART_POLY_ICON", scaleFactor);
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("wxART_NORMAL_FILE", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_GROUP_CLOSED", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_GROUP_OPEN", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_IMAGE_ICON", wxART_LIST));
+    m_imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_POLY_ICON", wxART_LIST));
 }
 
 wxTreeListCtrl* ViewObjectPanel::CreateTreeListCtrl(long style)
@@ -133,7 +114,7 @@ wxTreeListCtrl* ViewObjectPanel::CreateTreeListCtrl(long style)
     tree = new wxTreeListCtrl(FirstPanel, ID_TREELISTVIEW_OBJECTS,
                               wxDefaultPosition, wxDefaultSize,
                               style, "ID_TREELISTVIEW_OBJECTS");
-    tree->SetImageList(m_imageList);
+    tree->SetImages(m_imageList);
 
     tree->AppendColumn("Object / Group",
                        wxCOL_WIDTH_AUTOSIZE,

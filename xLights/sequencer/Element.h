@@ -46,6 +46,7 @@ public:
     virtual ~Element();
     
     virtual ElementType GetType() const = 0;
+    std::string GetTypeDescription() const;
 
     SequenceElements *GetSequenceElements() const {return parent;}
 
@@ -75,6 +76,11 @@ public:
     int GetSelectedEffectCount() const;
     int GetFirstSelectedEffectStartMS() const;
     int GetLastSelectedEffectEndMS() const;
+    void SetRenderDisabled(bool rd);
+    bool IsRenderDisabled() const
+    {
+        return _renderDisabled;
+    }
 
     EffectLayer* AddEffectLayer();
     void RemoveEffectLayer(int index);
@@ -131,6 +137,7 @@ protected:
     int mIndex = 0;
     bool mVisible = true;
     bool mCollapsed = false;
+    bool _renderDisabled = false;
 
     std::vector<EffectLayer*> mEffectLayers;
     std::list<EffectLayer *> mLayersToDelete;
@@ -218,11 +225,8 @@ public:
         return mNodeLayers.size();
     }
 
-    std::string GetStrandName() const {
-        if(GetName() == "")
-            return wxString::Format("Strand %d", mStrand + 1).ToStdString();
-        return GetName();
-    }
+    int GetNodeNumber(NodeLayer* nl);
+    std::string GetStrandName() const;
 
     virtual std::string GetFullName() const override;
     

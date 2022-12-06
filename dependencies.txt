@@ -26,7 +26,7 @@ Usage:       HTTPS
 Link:        https://curl.haxx.se/libcurl/
 Source:      https://github.com/curl/curl
 Last Pulled: Feb13, 2019
-Version:     7.64.0 [latest available as at Jan 2021 is 7.74.0]
+Version:     7.80.0 [latest available as at Nov 2021 is 7.80.0]
 License:     MIT Style but more complex
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 
@@ -43,8 +43,8 @@ Library:     libavcodec/ffmpeg
 Usage:       Audio and Video processing
 Link:        https://www.ffmpeg.org/
 Source:      https://github.com/FFmpeg/FFmpeg
-Last Pulled: Oct 10, 2019 - Windows binaries directly from ffmpeg.org
-Version:     4.2.1 [latest available as at Jan 2021 is 4.3.1]
+Last Pulled: Feb 6, 2022 - Windows binaries directly from https://github.com/BtbN/FFmpeg-Builds/releases
+Version:     5.0
 License:     LGPL
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 
@@ -196,7 +196,44 @@ Library:     libltc
 Usage:       generate and consume SMTPE timecode
 Link:        https://github.com/x42/libltc
 Source:      https://github.com/x42/libltc
-Last Pulled: 2019-09-27
-Version:     1.3.1 [Latest version as at Jan 2021 is 1.3.1 released Apr 2019]
+Last Pulled: 2022-02-26
+Version:     1.3.1+ [Latest version as at Jan 2021 is 1.3.1 released Apr 2019]
 License:     GNU Lesser GPL2
 Strategy:    Header added to repository. static libraries added for windows
+
+Library:     libxlsxwriter
+Usage:       write SpreadSheet files
+Link:        https://github.com/jmcnamara/libxlsxwriter
+Source:      https://github.com/jmcnamara/libxlsxwriter
+Last Pulled:
+Version:	 [latest version available as at Jan 2022 is 1.1.4 released Oct 2021]
+License:     BSD
+Strategy:    added as git submodule, build lib with cMake or make
+
+Library:     WS2812FX & WLED & FastLED
+Usage:       Single strand effect FX
+Link:        https://github.com/Aircoookie/WLED
+Source:      https://github.com/Aircoookie/WLED
+Last Pulled:
+Version:	 January 2021
+License:     MIT
+Strategy:    FX.cpp and FX.h created as a merge of all dependent functions across libraries. To the degree possible the actual effect
+             algorithms are unchanged.
+
+Library:     hidapi
+Usage:       3D mouse support
+Link:        https://github.com/libusb/hidapi
+Source:      https://github.com/libusb/hidapi
+Last Pulled:
+Version:	 0.11.2
+License:     BSD/GPLv3
+Strategy:    Header added to repository. static libraries added for windows
+
+Library:     nanosvg
+Usage:       SVG Parser
+Link:        https://github.com/memononen/nanosvg
+Source:      https://github.com/memononen/nanosvg
+Last Pulled: 5/20/22
+Version:     [latest version available as at May 2022]
+License:     zlib License
+Strategy:    Header added to repository. Header only library

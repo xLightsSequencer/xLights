@@ -41,7 +41,7 @@ bool ListenerE131::IsValidHeader(uint8_t* buffer)
         buffer[12] == '7';
 }
 
-ListenerE131::ListenerE131(ListenerManager* listenerManager) : ListenerBase(listenerManager)
+ListenerE131::ListenerE131(ListenerManager* listenerManager, const std::string& localIP) : ListenerBase(listenerManager, localIP)
 {
     _socket = nullptr;
 }
@@ -50,7 +50,7 @@ void ListenerE131::Start()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("E131 listener starting.");
-    _thread = new ListenerThread(this);
+    _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerE131::Stop()
@@ -72,18 +72,18 @@ void ListenerE131::Stop()
     }
 }
 
-void ListenerE131::StartProcess()
+void ListenerE131::StartProcess(const std::string& localIP)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
+    if (localIP == "")
     {
         localaddr.AnyAddress();
     }
     else
     {
-        localaddr.Hostname(IPOutput::GetLocalIP());
+        localaddr.Hostname(localIP);
     }
     localaddr.Service(E131_PORT);
 

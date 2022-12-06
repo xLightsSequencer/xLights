@@ -15,7 +15,7 @@
 #include <string>
 #include <wx/wx.h>
 
-enum class PARMTYPE { PLAYLIST, STEP, SCHEDULE, INTEGER, STRING, COMMAND, ANY, ITEM};
+enum class PARMTYPE { PLAYLIST, STEP, SCHEDULE, INTEGER, STRING, COMMAND, ANY, ITEM, OPTIONALSTRING};
 
 class PlayList;
 class PlayListStep;
@@ -46,6 +46,7 @@ class Command
     bool IsUIOnly() const { return _uiOnly; }
     std::string GetParametersTip() const;
     void SetCommand(std::string command) { _command = command; _commandLower = wxString(_command).Lower(); }
+    std::tuple<size_t,size_t> GetMandatoryParametersCount() const;
 };
 
 class CommandManager

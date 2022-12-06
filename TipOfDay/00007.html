@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00007.html" title="Invalid Start Channels" category="Layout" level="Advanced" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Invalid Start Channels</h1>
+        <p>When a models start channel cannot be determined it will appear in the model list on the Layout tab with "***" before the start channel.</p>
+        <img src="00007.png" alt="Image showing the *** prefix on the start channel"/>
+        <p>There are several reasons why this might happen:</p>
+        <ul>
+            <li>Using a model chain that refers to a model that does not exist in the layout. >non-existent_model:1</li>
+            <li>Using a model chain that has a circular reference such as modelC follows modelB which follows modelA which follows modelC.</li>
+            <li>Using a controller start channel for a non-existent controller. !non-existent_controller:1</li>
+            <li>Chaining a model to another model which is defined as being on no controller.</li>
+            <li>Referencing a universe that does not exist.</li>
+        </ul>
+        <p>To fix these problems you can either use the visualiser to get them set up correctly or you can just right click on the model list and select "Make All Start Channels Valid". This latter method does not really make things right but instead just moves all the invalid start channels to be no controller which then just gives them a fixed start channel that appears outside the channel range of all defined controllers. You will of course need to correct this to a valid start channel on a controller before you will be able to send data to the model.</p>
+    </body>
+</html>

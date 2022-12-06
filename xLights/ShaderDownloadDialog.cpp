@@ -28,6 +28,7 @@
 
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include <log4cpp/Category.hh>
 
 #include "../xSchedule/xSMSDaemon/Curl.h"
@@ -335,9 +336,7 @@ ShaderDownloadDialog::ShaderDownloadDialog(wxWindow* parent, wxWindowID id, cons
     ListView_Sites->InsertItem(0, "glslsandbox.com/");
     ListView_Sites->SetColumnWidth(0, wxLIST_AUTOSIZE);
 
-    if (wxSystemSettings::GetAppearance().IsDark()) {
-        HyperlinkCtrl_Website->SetNormalColour(*wxCYAN);
-    }
+    HyperlinkCtrl_Website->SetNormalColour(CyanOrBlue());
     PopulateShaderPanel((MShader*)nullptr);
 
     ValidateWindow();
@@ -358,7 +357,7 @@ wxXmlDocument* ShaderDownloadDialog::GetXMLFromURL(wxURI url, std::string& filen
 {
     filename = "";
     wxFileName fn = wxFileName(ShaderDownloadDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION, "", prog, low, high));
-    if (fn.Exists())
+    if (FileExists(fn))
     {
         filename = fn.GetFullPath();
         return new wxXmlDocument(fn.GetFullPath());
@@ -533,7 +532,7 @@ void ShaderDownloadDialog::PopulateShaderPanel(MShader* shader)
     }
 
     shader->DownloadImages();
-    if (wxFile::Exists(shader->_imageFile))
+    if (FileExists(shader->_imageFile))
     {
         if (_shaderImage.LoadFile(shader->_imageFile) && _shaderImage.IsOk())
         {

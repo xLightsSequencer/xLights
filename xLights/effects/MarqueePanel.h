@@ -11,18 +11,18 @@
  **************************************************************/
 
  //(*Headers(MarqueePanel)
-#include <wx/panel.h>
-class wxBitmapButton;
-class wxCheckBox;
-class wxFlexGridSizer;
-class wxGridBagSizer;
-class wxNotebook;
-class wxNotebookEvent;
-class wxSlider;
-class wxStaticLine;
-class wxStaticText;
-class wxTextCtrl;
-//*)
+ #include <wx/panel.h>
+ class wxBitmapButton;
+ class wxCheckBox;
+ class wxFlexGridSizer;
+ class wxGridBagSizer;
+ class wxNotebook;
+ class wxNotebookEvent;
+ class wxSlider;
+ class wxStaticLine;
+ class wxStaticText;
+ class wxTextCtrl;
+ //*)
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"

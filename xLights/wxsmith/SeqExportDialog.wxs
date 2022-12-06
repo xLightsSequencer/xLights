@@ -22,20 +22,6 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxChoice" name="ID_CHOICE1" variable="ChoiceFormat" member="yes">
-							<content>
-								<item>LOR. *.lms or *.las</item>
-								<item>Lcb, LOR Clipboard *.lcb</item>
-								<item>Lcb, LOR S5 Clipboard *.lcb</item>
-								<item>Vixen, Vixen sequence file *.vix</item>
-								<item>Vir, Vixen Routine file. *.vir</item>
-								<item>LSP, Light Show Pro </item>
-								<item>HLS, Hinkle Lighte Sequencer *.hlsnc</item>
-								<item>xLights/FPP, *.fseq</item>
-								<item>Compressed Video, *.avi</item>
-								<item>Uncompressed Video, *.avi</item>
-								<item>Minleon Network Effects Controller, *.bin</item>
-								<item>GIF Image, *.gif</item>
-							</content>
 							<selection>0</selection>
 							<handler function="OnChoiceFormatSelect" entry="EVT_CHOICE" />
 						</object>

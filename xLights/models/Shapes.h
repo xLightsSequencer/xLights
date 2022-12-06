@@ -12,7 +12,9 @@
 
 #include <vector>
 #include <glm/mat3x3.hpp>
-#include "../graphics/opengl/DrawGLUtils.h"
+#include "../Color.h"
+
+class xlVertexColorAccumulator;
 
 class BezierCurve
 {
@@ -130,8 +132,8 @@ public:
     virtual void UpdatePoints() = 0;
     void UpdateMatrices();
     void UpdateBoundingBox(bool is_3d);
-    void DrawBoundingBoxes(xlColor c, DrawGLUtils::xl3Accumulator &va);
-    void DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator &va); // used for debugging hit testing
+    void DrawBoundingBoxes(const xlColor &c, xlVertexColorAccumulator *va);
+    void DrawBoundingBox(const xlColor &c, xlVertexColorAccumulator *va); 
     void CreateNormalizedMatrix(float &minX, float &maxX, float &minY, float &maxY, float &minZ, float &maxZ);
     float GetLength();
     float GetSegLength(int segment);

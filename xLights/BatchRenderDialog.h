@@ -13,6 +13,7 @@
  //(*Headers(BatchRenderDialog)
  #include <wx/dialog.h>
  class wxButton;
+ class wxCheckBox;
  class wxCheckListBox;
  class wxChoice;
  class wxFlexGridSizer;
@@ -33,6 +34,7 @@ class BatchRenderDialog: public wxDialog
 		//(*Declarations(BatchRenderDialog)
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
+		wxCheckBox* CheckBox_ForceHighDefinition;
 		wxCheckListBox* SequenceList;
 		wxChoice* FilterChoice;
 		wxChoice* FolderChoice;
@@ -58,6 +60,7 @@ protected:
 		static const long ID_CHOICE_FOLDER;
 		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL1;
+		static const long ID_CHECKBOX1;
 		static const long ID_CHECKLISTBOX_SEQUENCES;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;

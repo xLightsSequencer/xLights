@@ -41,6 +41,7 @@
 #include "../HousePreviewPanel.h"
 #include "../UtilFunctions.h"
 #include "../JukeboxPanel.h"
+#include "../FindDataPanel.h"
 #include "../EffectsPanel.h"
 #include "../EffectAssist.h"
 #include "../ColorPanel.h"
@@ -49,6 +50,7 @@
 #include "MainSequencer.h"
 #include "../PerspectivesPanel.h"
 #include "../SelectPanel.h"
+#include "../SearchPanel.h"
 #include "../LayoutGroup.h"
 #include "../ViewpointMgr.h"
 #include "../LayoutPanel.h"
@@ -56,6 +58,7 @@
 #include "../effects/EffectPanelUtils.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
+#include "../models/ModelGroup.h"
 
 #include <log4cpp/Category.hh>
 
@@ -89,12 +92,12 @@ void xLightsFrame::CreateSequencer()
     logger_base.debug("        Model preview.");
     _modelPreviewPanel = new ModelPreview(PanelSequencer, this);
     m_mgr->AddPane(_modelPreviewPanel, wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
-                   Left().Layer(1).PaneBorder(true).BestSize(250,250).MaximizeButton(true));
+                   Left().Layer(1).PaneBorder(true).BestSize(250,250).MaximizeButton(true).Dockable(IsDockable("MP")));
 
     logger_base.debug("        House preview.");
     _housePreviewPanel = new HousePreviewPanel(PanelSequencer, this, _playControlsOnPreview, PreviewModels, LayoutGroups, false, 0, true);
     m_mgr->AddPane(_housePreviewPanel, wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
-        Left().Layer(1).BestSize(250, 250).MaximizeButton(true));
+        Left().Layer(1).BestSize(250, 250).MaximizeButton(true).Dockable(IsDockable("HP")));
 
     logger_base.debug("        Effects.");
     effectsPnl = new TopEffectsPanel(PanelSequencer);
@@ -141,6 +144,9 @@ void xLightsFrame::CreateSequencer()
 
     logger_base.debug("        Jukebox.");
     jukeboxPanel = new JukeboxPanel(PanelSequencer);
+    
+    logger_base.debug("        Find Data.");
+    _findDataPanel = new FindDataPanel(PanelSequencer);
 
     // DisplayElements Panel
     logger_base.debug("        Display Elements.");
@@ -168,11 +174,16 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(_selectPanel, wxAuiPaneInfo().Name(wxT("SelectEffect")).Caption(wxT("Select Effects")).
         Left().Layer(1).Hide());
 
+    logger_base.debug("CreateSequencer: Adding Search Panel.");
+    _searchPanel = new SearchPanel(&_sequenceElements, mainSequencer, PanelSequencer);
+    m_mgr->AddPane(_searchPanel, wxAuiPaneInfo().Name(wxT("SearchPanel")).Caption(wxT("Search Panel")).Left().Layer(1).Hide());
+
     m_mgr->AddPane(effectPalettePanel,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).Top().Layer(0).Hide());
     m_mgr->AddPane(_valueCurvesPanel, wxAuiPaneInfo().Name(wxT("ValueCurveDropper")).Caption(wxT("Value Curves")).Top().Layer(0).Hide());
     m_mgr->AddPane(_coloursPanel, wxAuiPaneInfo().Name(wxT("ColourDropper")).Caption(wxT("Colours")).Top().Layer(0).Hide());
     m_mgr->AddPane(jukeboxPanel,wxAuiPaneInfo().Name(wxT("Jukebox")).Caption(wxT("Jukebox")).Top().Layer(0).Hide());
-    m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
+    m_mgr->AddPane(_findDataPanel, wxAuiPaneInfo().Name(wxT("FindData")).Caption(wxT("Find Data")).Top().Layer(0).Hide());
+    m_mgr->AddPane(colorPanel, wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
     m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
     m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0));
 
@@ -222,10 +233,13 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     config->DeleteEntry("ToolbarLocations");
     config->DeleteEntry("xLightsMachinePerspective");
     SaveWindowPosition("xLightsSubModelDialogPosition", nullptr);
+    SaveWindowPosition("xLightsTipOfTheDay", nullptr);
     SaveWindowPosition("xLightsImportDialogPosition", nullptr);
     SaveWindowPosition("xLightsNodeSelectDialogPosition", nullptr);
     SaveWindowPosition("ControllerModelDialogPosition", nullptr);
     SaveWindowPosition("xLightsTestDialogPosition", nullptr);
+
+    UpdateViewMenu();
 }
 
 void xLightsFrame::InitSequencer()
@@ -506,7 +520,11 @@ void xLightsFrame::CheckForValidModels()
 
     bool mapall = false;
     if (missingModelCount > 7) {
-        auto msg = wxString::Format("Sequence you are opening contains %d models which are not in your layout. We suggest you import this sequence instead. Do you want to continue to open it?", (int)missingModelCount);
+        std::string seqName = "No Name";
+        if (CurrentSeqXmlFile != nullptr) {
+            seqName = CurrentSeqXmlFile->GetFullName();
+        }
+        auto msg = wxString::Format("Sequence you are opening '%s' contains %d models which are not in your layout. We suggest you import this sequence instead. Do you want to continue to open it?", seqName, (int)missingModelCount);
         if (wxMessageBox(msg, "Many missing models in this sequence", wxYES_NO) == wxNO) {
             mapall = true;
         }
@@ -729,7 +747,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
         if (xml_file.GetMedia() == nullptr) {
             mediaFilename = xml_file.GetMediaFile();
             ObtainAccessToURL(mediaFilename);
-            if ((mediaFilename == wxEmptyString) || !wxFileExists(mediaFilename) || !wxIsReadable(mediaFilename)) {
+            if ((mediaFilename == wxEmptyString) || !FileExists(mediaFilename) || !wxIsReadable(mediaFilename)) {
                 SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectories, wxT(""), wxEmptyString);
                 setting_dlg.Fit();
                 int ret_val = setting_dlg.ShowModal();
@@ -873,22 +891,21 @@ void xLightsFrame::Scrub(wxCommandEvent& event)
     sequenceVideoPanel->UpdateVideo(ms);
 
     //have the frame, copy from SeqData
+    TimerOutput(frame);
     if (playModel != nullptr) {
         int nn = playModel->GetNodeCount();
         for (int node = 0; node < nn; node++) {
             int start = playModel->NodeStartChannel(node);
             playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
         }
-    }
-    TimerOutput(frame);
-    if (playModel != nullptr) {
+        _modelPreviewPanel->setCurrentFrameTime(ms);
         playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
     }
-    _housePreviewPanel->GetModelPreview()->Render(&_seqData[frame][0]);
+    _housePreviewPanel->GetModelPreview()->Render(ms, &_seqData[frame][0]);
     for (const auto& it : PreviewWindows) {
         ModelPreview* preview = it;
         if (preview->GetActive()) {
-            preview->Render(&_seqData[frame][0]);
+            preview->Render(ms, &_seqData[frame][0]);
         }
     }
 }
@@ -1163,7 +1180,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                 selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
                 selectedEffect = effect;
 
-                if (effect->GetPaletteMap().empty() || resetStrings) {
+                if (effect->GetPaletteMap().empty() || resetStrings || effect->SettingsChanged(selectedEffectString)) { // the settings changed is necessary because there are some situations where a new effect wont render because somehow the selectedEffectString changes without triggering a render. I think it relates to effects that auto-set certain values based on the model such as faces and states
                     effect->SetPalette(selectedEffectPalette);
                     effect->SetSettings(selectedEffectString, true);
                     if (!_suspendRender) {
@@ -1190,7 +1207,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
     }
     if (event.updateUI || event.updateBtn) {
         RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
-        effectsPnl->SetDragIconBuffer(eff->GetEffectIcon(16));
+        effectsPnl->SetDragIconBuffer(eff->GetEffectIcon());
         effectsPnl->BitmapButtonSelectedEffect->SetEffect(eff, mIconSize);
         if( effect != nullptr ) {
             UpdateEffectAssistWindow(effect, eff);
@@ -1242,6 +1259,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
         // need to do this otherwise they dont update when we drop the model
         bufferPanel->UpdateBufferStyles(AllModels[el->GetParentElement()->GetModelName()]);
+        bufferPanel->UpdateCamera(AllModels[el->GetParentElement()->GetModelName()]);
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
             DoStopSequence();
@@ -1460,6 +1478,7 @@ void xLightsFrame::AutoShowHouse()
             }
         }
     }
+    UpdateViewMenu();
 }
 
 void xLightsFrame::DoPlaySequence()
@@ -1882,19 +1901,15 @@ void xLightsFrame::SequenceSeekTo(wxCommandEvent& event)
 
     int pos = event.GetInt();
     int current_play_time;
-    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr)
-    {
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr) {
         current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
-    }
-    else
-    {
+    } else {
         wxTimeSpan ts = wxDateTime::UNow() - starttime;
         long curtime = ts.GetMilliseconds().ToLong();
         int msec;
         if (playAnimation) {
             msec = curtime * playSpeed;
-        }
-        else {
+        } else {
             msec = curtime;
         }
 
@@ -1904,16 +1919,15 @@ void xLightsFrame::SequenceSeekTo(wxCommandEvent& event)
     long origtime = current_play_time;
     current_play_time += (pos - current_play_time);
     int end_ms = CurrentSeqXmlFile->GetSequenceDurationMS();
-    if (current_play_time > end_ms) current_play_time = end_ms;
+    if (current_play_time > end_ms) {
+        current_play_time = end_ms;
+    }
 
     if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-        if (CurrentSeqXmlFile->GetMedia() != nullptr)
-        {
+        if (CurrentSeqXmlFile->GetMedia() != nullptr) {
             CurrentSeqXmlFile->GetMedia()->Seek(current_play_time);
         }
-    }
-    else
-    {
+    } else {
         starttime += wxTimeSpan(0, 0, (origtime - current_play_time) / 1000, (origtime - current_play_time) % 1000);
     }
 
@@ -2253,7 +2267,6 @@ void xLightsFrame::StartOutputTimer() {
     //printf("Timer started - StartOutputTimer %d\n", playType);
 }
 
-
 bool xLightsFrame::TimerRgbSeq(long msec)
 {
     //check if there are models that depend on timing tracks or similar that need to be rendered
@@ -2311,27 +2324,70 @@ bool xLightsFrame::TimerRgbSeq(long msec)
         return true;
     }
 
-    if (playType == PLAY_TYPE_MODEL) {
+    
+    StartGraphicsSyncPoint();
 
-        int current_play_time;
-		if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING) {
-			current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
+#if 0
+    std::array<uint32_t, 20> timePoints;
+    int currTimePoint = 0;
+#define DO_PRINT_TIMINGS
+#define RecordTimingCheckpoint() timePoints[currTimePoint++] = wxGetUTCTimeMillis().GetLo()
+#else
+#define RecordTimingCheckpoint()
+#endif
+
+    int current_play_time = 0;
+    if (playType == PLAY_TYPE_MODEL) {
+        if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING) {
+            current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
             curt = current_play_time;
         } else {
             current_play_time = curt;
         }
+    }
+    
+    RecordTimingCheckpoint();
+    int frame = curt / _seqData.FrameTime();
+    if (frame < _seqData.NumFrames()) {
+        //have the frame, copy from SeqData
+        TimerOutput(frame);
+        if (playModel != nullptr) {
+            int nn = playModel->GetNodeCount();
+            for (int node = 0; node < nn; node++) {
+                int start = playModel->NodeStartChannel(node);
+                wxASSERT(start < _seqData.NumChannels());
+                playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
+            }
+            _modelPreviewPanel->setCurrentFrameTime(curt);
+            playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
+        }
+        RecordTimingCheckpoint();
+        _housePreviewPanel->GetModelPreview()->Render(curt, &_seqData[frame][0]);
+        RecordTimingCheckpoint();
+
+        for (const auto& it : PreviewWindows) {
+            if (it->GetActive()) {
+                it->Render(curt, &_seqData[frame][0]);
+            }
+        }
+        RecordTimingCheckpoint();
+    }
+    
+    if (playType == PLAY_TYPE_MODEL) {
         // see if its time to stop model play
         if (curt >= playEndTime) {
             if (mLoopAudio) {
-				DoPlaySequence();
-				return true;
+                DoPlaySequence();
+                EndGraphicsSyncPoint();
+                return true;
             } else {
-				playStartTime = playEndTime = 0;
-				playStartMS = -1;
-				wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
-				wxPostEvent(this, playEvent);
-				return true;
-			}
+                playStartTime = playEndTime = 0;
+                playStartMS = -1;
+                wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+                wxPostEvent(this, playEvent);
+                EndGraphicsSyncPoint();
+                return true;
+            }
         }
 
         wxASSERT(_seqData.FrameTime() != 0);
@@ -2356,8 +2412,9 @@ bool xLightsFrame::TimerRgbSeq(long msec)
             }
         }
 
-        //static wxLongLong ms = wxGetUTCTimeMillis();
+        RecordTimingCheckpoint();
         mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
+        RecordTimingCheckpoint();
         if (mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time)) {
             mainSequencer->PanelWaveForm->UpdatePlayMarker();
             mainSequencer->PanelWaveForm->CheckNeedToScroll();
@@ -2365,39 +2422,21 @@ bool xLightsFrame::TimerRgbSeq(long msec)
             wxASSERT(CurrentSeqXmlFile->GetFrameMS() != 0);
             _housePreviewPanel->SetPositionFrames(current_play_time / CurrentSeqXmlFile->GetFrameMS());
         }
-
+        RecordTimingCheckpoint();
         sequenceVideoPanel->UpdateVideo( current_play_time );
-
-        //wxLongLong me = wxGetUTCTimeMillis();
-        //printf("%d     %d    %d\n", (me-ms).GetLo(), SeqData.FrameTime(), Timer1.GetInterval());
-        //ms = me;
+        RecordTimingCheckpoint();
     }
-
-    int frame = curt / _seqData.FrameTime();
-    if (frame < _seqData.NumFrames()) {
-        //have the frame, copy from SeqData
-        if (playModel != nullptr) {
-            int nn = playModel->GetNodeCount();
-            for (int node = 0; node < nn; node++) {
-                int start = playModel->NodeStartChannel(node);
-                wxASSERT(start < _seqData.NumChannels());
-                playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
-            }
-        }
-        TimerOutput(frame);
-        if (playModel != nullptr) {
-            playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
-        }
-
-        _housePreviewPanel->GetModelPreview()->Render(&_seqData[frame][0]);
-
-        for (const auto& it : PreviewWindows) {
-            if (it->GetActive()) {
-                it->Render(&_seqData[frame][0]);
-            }
-        }
+    EndGraphicsSyncPoint();
+#ifdef DO_PRINT_TIMINGS
+    timePoints[currTimePoint++] = wxGetUTCTimeMillis().GetLo();
+    printf("Frame %d \n", frame);
+    for (int x = 1; x < currTimePoint; x++) {
+        int r = timePoints[x];
+        int d = timePoints[x] - timePoints[x - 1];
+        int dt = timePoints[x] - timePoints[0];
+        printf("   %d:   %d      %d   %d\n", x, r, d, dt);
     }
-
+#endif
     return true;
 }
 
@@ -2438,10 +2477,11 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     //colorPanel->Thaw();
 }
 
-bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
+bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool res = true;
+    auto orig = name;
     wxWindow* ContextWin = nullptr;
 	if (name.StartsWith("E_"))
 	{
@@ -2503,8 +2543,19 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
 		}
 		else if (name.StartsWith("ID_TEXTCTRL"))
 		{
-			wxTextCtrl* ctrl = (wxTextCtrl*)CtrlWin;
-			ctrl->SetValue(value);
+			wxTextCtrl* ctrl = dynamic_cast<wxTextCtrl*>(CtrlWin);
+            if (ctrl != nullptr) {
+                ctrl->SetValue(value);
+            }
+            else {
+                // some text ctrls have been replace with combo boxes ... maybe this is one of those
+                wxComboBox* ctrl = dynamic_cast<wxComboBox*>(CtrlWin);
+                if (ctrl != nullptr) {
+                    ctrl->SetValue(value);
+                } else {
+                    wxASSERT(false);
+                }
+            }
 		}
 		else if (name.StartsWith("ID_SPINCTRL"))
 		{
@@ -2519,16 +2570,26 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
 				b->SetValue(true);
 				wxCommandEvent evt(wxEVT_RADIOBUTTON, b->GetId());
 				evt.SetEventObject(b);
-				wxPostEvent(b->GetEventHandler(), evt);
+                b->ProcessWindowEvent(evt); // dont post ... if we post it gets processed in the wrong order
 			}
 
 			wxChoice* ctrl = (wxChoice*)CtrlWin;
 			ctrl->SetStringSelection(value);
-
-			wxCommandEvent event(wxEVT_CHOICE, ctrl->GetId());
-			event.SetEventObject(ctrl);
-			event.SetString(value);
-			ctrl->ProcessWindowEvent(event);
+            if (ctrl->GetStringSelection() != value && count < 10) {
+                // if did not take ... possibly because it has not loaded the values yet
+                // If it doesn't take after 10 attempts, the "value" is not in the list of possible values
+                // so we'll just use whatever the default/last value is to prevent an infinite loop
+                // waiting for the value to to be added
+                wxCommandEvent event(EVT_SETEFFECTCHOICE);
+                event.SetString(orig + "|" + value);
+                event.SetInt(count + 1);
+                wxPostEvent(this, event);
+            } else {
+                wxCommandEvent event(wxEVT_CHOICE, ctrl->GetId());
+                event.SetEventObject(ctrl);
+                event.SetString(ctrl->GetStringSelection());
+                ctrl->ProcessWindowEvent(event);
+            }
 		}
 		else if (name.StartsWith("ID_BUTTON"))
 		{
@@ -2613,6 +2674,37 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
         }
 	}
     return res;
+}
+
+void xLightsFrame::SetEffectChoice(wxCommandEvent& event)
+{
+    auto v = wxSplit(event.GetString(), '|');
+    if (v.size() == 2) {
+        ApplySetting(v[0], v[1], event.GetInt());
+    }
+    else {
+        wxASSERT(false);
+    }
+}
+
+void xLightsFrame::TipOfDayReady(wxCommandEvent& event)
+{
+    // only show tip of the day if show directory is set
+    if (CurrentDir != "") {
+        // at this point if we are downloading tip of day content then the tip of day content is downloaded and ready to go
+#ifdef __WXMSW__
+        _tod.SetTODXMLFile(event.GetString());
+        _tod.DoTipOfDay(false);
+#else
+        _tod->SetTODXMLFile(event.GetString());
+        _tod->DoTipOfDay(false);
+#endif
+    }
+}
+
+void xLightsFrame::SetEffectDuration(wxCommandEvent& event)
+{
+    mainSequencer->SetEffectDuration(event.GetString(), event.GetInt());
 }
 
 void xLightsFrame::ApplyLast(wxCommandEvent& event)
@@ -2802,6 +2894,7 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
     }
     UpdateLayoutSave();
     UpdateControllerSave();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::LoadPerspective(wxCommandEvent& event)
@@ -2884,6 +2977,7 @@ void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
     UpdateControllerSave();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
@@ -2896,6 +2990,7 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
     info.FloatingSize(std::max(600, w), std::max(400, h));
     info.Show();
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::OnMenuDockAllSelected(wxCommandEvent& event)
@@ -2914,6 +3009,7 @@ void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
         m_mgr->GetPane("LayerSettings").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
@@ -2935,6 +3031,7 @@ void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
         info.Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideEffectSettingsWindow(wxCommandEvent& event)
@@ -2947,6 +3044,7 @@ void xLightsFrame::ShowHideEffectSettingsWindow(wxCommandEvent& event)
         m_mgr->GetPane("Effect").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideColorWindow(wxCommandEvent& event)
@@ -2959,6 +3057,7 @@ void xLightsFrame::ShowHideColorWindow(wxCommandEvent& event)
         m_mgr->GetPane("Color").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideLayerTimingWindow(wxCommandEvent& event)
@@ -2971,6 +3070,7 @@ void xLightsFrame::ShowHideLayerTimingWindow(wxCommandEvent& event)
         m_mgr->GetPane("LayerTiming").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
@@ -2983,6 +3083,7 @@ void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
         m_mgr->GetPane("ModelPreview").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideHousePreview(wxCommandEvent& event)
@@ -2995,6 +3096,7 @@ void xLightsFrame::ShowHideHousePreview(wxCommandEvent& event)
         m_mgr->GetPane("HousePreview").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideEffectDropper(wxCommandEvent& event)
@@ -3007,6 +3109,7 @@ void xLightsFrame::ShowHideEffectDropper(wxCommandEvent& event)
         m_mgr->GetPane("EffectDropper").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHidePerspectivesWindow(wxCommandEvent& event)
@@ -3019,6 +3122,7 @@ void xLightsFrame::ShowHidePerspectivesWindow(wxCommandEvent& event)
         m_mgr->GetPane("Perspectives").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
@@ -3033,6 +3137,7 @@ void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
         mEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
@@ -3049,7 +3154,7 @@ TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
     _sequenceElements.DeactivateAllTimingElements();
     int timingCount = _sequenceElements.GetNumberOfTimingElements();
     std::string type = "timing";
-    TimingElement* e = dynamic_cast<TimingElement*>(_sequenceElements.AddElement(timingCount, n, type, true, false, true, false));
+    TimingElement* e = dynamic_cast<TimingElement*>(_sequenceElements.AddElement(timingCount, n, type, true, false, true, false, false));
     e->AddEffectLayer();
     _sequenceElements.AddTimingToCurrentView(n);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -3318,16 +3423,15 @@ std::map<int, std::list<float>> xLightsFrame::LoadMusicXMLFile(std::string file,
 
 std::map<int, std::list<float>> xLightsFrame::LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track)
 {
-    static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    static log4cpp::Category& logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<float>> res;
 
     float speedadjust = speedAdjust / 100.0;
 
-    int notestate[128];
-    for (int i = 0; i <= 127; i++)
-    {
-        notestate[i] = 0;
-    }
+    int notestate[128] = {0};
+//    for (int i = 0; i <= 127; ++i) {
+//        notestate[i] = 0;
+//    }
 
     logger_pianodata.debug("Processing midi file " + file);
     logger_pianodata.debug("Interval %d.", intervalMS);
@@ -3336,18 +3440,13 @@ std::map<int, std::list<float>> xLightsFrame::LoadMIDIFile(std::string file, int
 
     MidiFile midifile;
     float lasttime = -1;
-    if (midifile.read(file) != 0)
-    {
+    if (midifile.read(file) != 0) {
         int ntrack = 0;
-        if (track == "All" || track == "")
-        {
+        if (track == "All" || track == "") {
             midifile.joinTracks();
-        }
-        else
-        {
+        } else {
             ntrack = wxAtoi(track) - 1;
-            if (ntrack >= midifile.getNumTracks())
-            {
+            if (ntrack >= midifile.getNumTracks()) {
                 ntrack = 0;
             }
         }
@@ -3357,33 +3456,25 @@ std::map<int, std::list<float>> xLightsFrame::LoadMIDIFile(std::string file, int
         logger_pianodata.debug("Event,time(s)->ms,adjustedtime(s)->ms,isnote,isnoteon,isnoteoff,midinote");
 
         // process each event
-        for (int i = 0; i < midifile.getNumEvents(ntrack); i++)
-        {
+        for (int i = 0; i < midifile.getNumEvents(ntrack); ++i) {
             MidiEvent e = midifile.getEvent(ntrack, i);
 
-            if (e.isNote())
-            {
+            if (e.isNote()) {
                 float time = (float)startAdjustMS / 100.0 + midifile.getTimeInSeconds(ntrack, i) * speedadjust;
 
-                if (logger_pianodata.isDebugEnabled())
-                {
+                if (logger_pianodata.isDebugEnabled()) {
                     logger_pianodata.debug("%d,%f->%d,%f->%d,%d,%d,%d,%d", i, midifile.getTimeInSeconds(ntrack, i), LowerTS(midifile.getTimeInSeconds(ntrack, i), intervalMS), time, LowerTS(time, intervalMS), e.isNote(), e.isNoteOn(), e.isNoteOff(), e.getKeyNumber());
                 }
-                if (time != lasttime)
-                {
-                    if (lasttime >= 0)
-                    {
+                if (time != lasttime) {
+                    if (lasttime >= 0) {
                         // we can update things now
                         int start = LowerTS(lasttime, intervalMS);
                         int end = UpperTS(time, intervalMS);
 
-                        for (int j = start; j < end; j += intervalMS)
-                        {
+                        for (int j = start; j < end; j += intervalMS) {
                             std::list<float> f;
-                            for (int k = 0; k <= 127; k++)
-                            {
-                                if (notestate[k] > 0)
-                                {
+                            for (int k = 0; k <= 127; ++k) {
+                                if (notestate[k] > 0) {
                                     f.push_back(k);
                                 }
                             }
@@ -3394,38 +3485,29 @@ std::map<int, std::list<float>> xLightsFrame::LoadMIDIFile(std::string file, int
                     lasttime = time;
                 }
 
-                if (e.isNoteOn())
-                {
+                if (e.isNoteOn()) {
                     notestate[e.getKeyNumber()]++;
-                }
-                else if (e.isNoteOff())
-                {
+                } else if (e.isNoteOff()) {
                     notestate[e.getKeyNumber()]--;
-                    if (notestate[e.getKeyNumber()] < 0)
-                    {
+                    if (notestate[e.getKeyNumber()] < 0) {
                         // this should never happen
                     }
                 }
             }
         }
 
-        if (logger_pianodata.isDebugEnabled())
-        {
+        if (logger_pianodata.isDebugEnabled()) {
             logger_pianodata.debug("Note data calculated:");
             logger_pianodata.debug("Time MS, Keys");
-            for (auto it = res.begin(); it != res.end(); ++it)
-            {
+            for (auto it = res.begin(); it != res.end(); ++it) {
                 std::string keys = "";
-                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-                {
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
                     keys += " " + std::string(wxString::Format("%f", *it2).c_str());
                 }
-                logger_pianodata.debug("%d,%s", it->first, (const char *)keys.c_str());
+                logger_pianodata.debug("%d,%s", it->first, (const char*)keys.c_str());
             }
         }
-    }
-    else
-    {
+    } else {
         logger_pianodata.warn("Invalid MIDI file " + file);
     }
 
@@ -3436,8 +3518,7 @@ void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
 {
     NoteImportDialog dlgNoteImport(this, _sequenceElements, (CurrentSeqXmlFile->GetMedia() != nullptr));
 
-    if (dlgNoteImport.ShowModal() == wxID_OK)
-    {
+    if (dlgNoteImport.ShowModal() == wxID_OK) {
         wxString name = dlgNoteImport.TextCtrl_TimingName->GetValue();
         _sequenceElements.DeactivateAllTimingElements();
         Element* element = AddTimingElement(std::string(name.ToStdString()));
@@ -3447,20 +3528,13 @@ void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
         int interval = CurrentSeqXmlFile->GetFrameMS();
         wxString type = dlgNoteImport.Choice_Piano_Notes_Source->GetStringSelection();
         std::map<int, std::list<float>> notes;
-        if (type == "Audacity Timing File")
-        {
+        if (type == "Audacity Timing File") {
             notes = LoadAudacityFile(dlgNoteImport.TextCtrl_Piano_File->GetValue().ToStdString(), interval);
-        }
-        else if (type == "Music XML File")
-        {
+        } else if (type == "Music XML File") {
             notes = LoadMusicXMLFile(dlgNoteImport.TextCtrl_Piano_File->GetValue().ToStdString(), interval, dlgNoteImport.Slider_Piano_MIDI_Speed->GetValue(), dlgNoteImport.Slider_Piano_MIDI_Start->GetValue(), dlgNoteImport.Choice_Piano_MIDITrack_APPLYLAST->GetStringSelection().ToStdString());
-        }
-        else if (type == "MIDI File")
-        {
+        } else if (type == "MIDI File") {
             notes = LoadMIDIFile(dlgNoteImport.TextCtrl_Piano_File->GetValue().ToStdString(), interval, dlgNoteImport.Slider_Piano_MIDI_Speed->GetValue(), dlgNoteImport.Slider_Piano_MIDI_Start->GetValue(), dlgNoteImport.Choice_Piano_MIDITrack_APPLYLAST->GetStringSelection().ToStdString());
-        }
-        else if (type == "Polyphonic Transcription")
-        {
+        } else if (type == "Polyphonic Transcription") {
             notes = LoadPolyphonicTranscription(CurrentSeqXmlFile->GetMedia(), interval);
         }
 
@@ -3475,10 +3549,8 @@ std::string xLightsFrame::CreateNotesLabel(const std::list<float>& notes) const
 {
     std::string res;
 
-    for (auto it = notes.begin(); it != notes.end(); ++it)
-    {
-        if (res != "")
-        {
+    for (auto it = notes.begin(); it != notes.end(); ++it) {
+        if (res != "") {
             res += ",";
         }
         res += DecodeMidi((int)*it);
@@ -3491,79 +3563,57 @@ void xLightsFrame::CreateNotes(EffectLayer* el, std::map<int, std::list<float>>&
 {
     size_t last = 0;
     std::string lastLabel = "";
-    for (size_t i = 0; i <= frames; i++)
-    {
+    for (size_t i = 0; i <= frames; ++i) {
         std::string label = "";
-        if (notes.find((float)(i*interval)) != notes.end())
-        {
-            label = CreateNotesLabel(notes[i*interval]);
+        if (notes.find((float)(i * interval)) != notes.end()) {
+            label = CreateNotesLabel(notes[i * interval]);
         }
 
-        if (label == lastLabel)
-        {
+        if (label == lastLabel) {
             // do nothing
-        }
-        else
-        {
-            if (i != 0)
-            {
-                el->AddEffect(0, lastLabel, "", "", last * interval, i*interval, EFFECT_NOT_SELECTED, false);
+        } else {
+            if (i != 0) {
+                el->AddEffect(0, lastLabel, "", "", last * interval, i * interval, EFFECT_NOT_SELECTED, false);
             }
             last = i;
             lastLabel = label;
         }
     }
-    el->AddEffect(0, lastLabel, "", "", last * interval, frames*interval, EFFECT_NOT_SELECTED, false);
+    el->AddEffect(0, lastLabel, "", "", last * interval, frames * interval, EFFECT_NOT_SELECTED, false);
 }
 
-void xLightsFrame::ExecuteImportTimingElement(wxCommandEvent &command) {
+void xLightsFrame::ExecuteImportTimingElement(wxCommandEvent& command)
+{
     ImportTimingElement();
 }
 
 void xLightsFrame::ImportTimingElement()
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Timing file(s)", wxEmptyString, wxEmptyString,
-        "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Subrip Subtitle File (*.srt)|*.srt|Text files (*.txt)|*.txt|Vixen 3 (*.tim)|*.tim|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq|xLights (*.xsq)|*.xsq|Old xLights (*.xml)|*.xml",
+    wxFileDialog* OpenDialog = new wxFileDialog(this, "Choose Timing file(s)", wxEmptyString, wxEmptyString,
+                                                "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Subrip Subtitle File (*.srt)|*.srt|Text files (*.txt)|*.txt|Vixen 3 (*.tim)|*.tim|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq|xLights (*.xsq)|*.xsq|Old xLights (*.xml)|*.xml",
                                                 wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
     wxString fDir;
-    if (OpenDialog->ShowModal() == wxID_OK)
-    {
-        fDir =	OpenDialog->GetDirectory();
+    if (OpenDialog->ShowModal() == wxID_OK) {
+        fDir = OpenDialog->GetDirectory();
         wxArrayString filenames;
         OpenDialog->GetFilenames(filenames);
-        if(filenames.size() > 0)
-        {
+        if (filenames.size() > 0) {
             wxFileName file1(filenames[0]);
-            if( file1.GetExt().Lower() == "lms"|| file1.GetExt().Lower() == "las" )
-            {
+            if (file1.GetExt().Lower() == "lms" || file1.GetExt().Lower() == "las") {
                 CurrentSeqXmlFile->ProcessLorTiming(fDir, filenames, this);
-            }
-            else if (file1.GetExt().Lower() == "xtiming")
-            {
+            } else if (file1.GetExt().Lower() == "xtiming") {
                 CurrentSeqXmlFile->ProcessXTiming(fDir, filenames, this);
-            }
-            else if (file1.GetExt().Lower() == "pgo")
-            {
+            } else if (file1.GetExt().Lower() == "pgo") {
                 CurrentSeqXmlFile->ProcessPapagayo(fDir, filenames, this);
-            }
-            else if (file1.GetExt().Lower() == "srt")
-            {
+            } else if (file1.GetExt().Lower() == "srt") {
                 CurrentSeqXmlFile->ProcessSRT(fDir, filenames, this);
-            }
-            else if (file1.GetExt().Lower() == "msq")
-            {
+            } else if (file1.GetExt().Lower() == "msq") {
                 CurrentSeqXmlFile->ProcessLSPTiming(fDir, filenames, this);
-            }
-            else if (file1.GetExt().Lower() == "xml" || file1.GetExt().Lower() == "xsq")
-            {
+            } else if (file1.GetExt().Lower() == "xml" || file1.GetExt().Lower() == "xsq") {
                 CurrentSeqXmlFile->ProcessXLightsTiming(fDir, filenames, this);
-            }
-            else if (file1.GetExt().Lower() == "tim")
-            {
+            } else if (file1.GetExt().Lower() == "tim") {
                 CurrentSeqXmlFile->ProcessVixen3Timing(fDir, filenames, this);
-            }
-            else
-            {
+            } else {
                 CurrentSeqXmlFile->ProcessAudacityTimingFiles(fDir, filenames, this);
             }
         }
@@ -3579,29 +3629,28 @@ void xLightsFrame::OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event)
     m_mgr->Update();
 }
 
-
-bool isOnLine(int x1, int y1, int x2, int y2, int x3, int y3) {
+bool isOnLine(int x1, int y1, int x2, int y2, int x3, int y3)
+{
     double diffx = x2 - x1;
     double diffy = y2 - y1;
-    double b = y1 - diffy/diffx*x1;
-    double ye1 = diffy/diffx*x3 + b;
+    double b = y1 - diffy / diffx * x1;
+    double ye1 = diffy / diffx * x3 + b;
 
-    return (y3 + 1) >= ye1
-        && (y3 - 1) <= ye1;
+    return (y3 + 1) >= ye1 && (y3 - 1) <= ye1;
 }
 
-bool isOnLineColor(const xlColor &v1, const xlColor &v2, const xlColor &v3,
-              int x, int x2, int x3) {
-    return isOnLine(x, v1.Red(), x2, v2.Red(), x3, v3.Red())
-    && isOnLine(x, v1.Green(), x2, v2.Green(), x3, v3.Green())
-    && isOnLine(x, v1.Blue(), x2, v2.Blue(), x3, v3.Blue());
+bool isOnLineColor(const xlColor& v1, const xlColor& v2, const xlColor& v3,
+                   int x, int x2, int x3)
+{
+    return isOnLine(x, v1.Red(), x2, v2.Red(), x3, v3.Red()) && isOnLine(x, v1.Green(), x2, v2.Green(), x3, v3.Green()) && isOnLine(x, v1.Blue(), x2, v2.Blue(), x3, v3.Blue());
 }
-int RampLenColor(int start, std::vector<xlColor> &colors) {
 
+int RampLenColor(int start, std::vector<xlColor>& colors)
+{
     int s = start + 2;
     for (; s < colors.size(); s++) {
-        if (!isOnLineColor(colors[start], colors[s-1], colors[s],
-                      start, s-1, s)) {
+        if (!isOnLineColor(colors[start], colors[s - 1], colors[s],
+                           start, s - 1, s)) {
             return s - start;
         }
     }
@@ -3611,16 +3660,16 @@ int RampLenColor(int start, std::vector<xlColor> &colors) {
     return 0;
 }
 
-
-void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime, bool eraseExisting) {
-
-    if (eraseExisting) layer->DeleteAllEffects();
+void xLightsFrame::DoConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, int frameTime, bool eraseExisting)
+{
+    if (eraseExisting)
+        layer->DeleteAllEffects();
 
     colors.push_back(xlBLACK);
     int startTime = 0;
     xlColor lastColor(xlBLACK);
 
-    for (size_t x = 0; x < colors.size()-3; x++) {
+    for (size_t x = 0; x < colors.size() - 3; ++x) {
         if (colors[x] != colors[x + 1]) {
             int len = RampLenColor(x, colors);
             if (len >= 3) {
@@ -3628,7 +3677,7 @@ void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &
                 HSVValue v2 = colors[x + len - 1].asHSV();
 
                 int stime = x * frameTime;
-                int etime = (x+len)*frameTime;
+                int etime = (x + len) * frameTime;
                 if (colors[x] == xlBLACK || colors[x + len - 1] == xlBLACK || (v1.hue == v2.hue)) {
                     HSVValue c = colors[x].asHSV();
                     if (colors[x] == xlBLACK) {
@@ -3641,35 +3690,33 @@ void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &
                     int i2 = v2.value * 100.0;
                     std::string settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2).ToStdString();
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1";
-                    if (!layer->HasEffectsInTimeRange(stime, etime))
-                    {
+                    if (!layer->HasEffectsInTimeRange(stime, etime)) {
                         layer->AddEffect(0, "On", settings, palette, stime, etime, false, false);
                     }
                 } else {
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)colors[x] + ",C_CHECKBOX_Palette1=1,"
-                        "C_BUTTON_Palette2=" + (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1";
-                    if (!layer->HasEffectsInTimeRange(stime, etime))
-                    {
+                                                                                          "C_BUTTON_Palette2=" +
+                                          (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1";
+                    if (!layer->HasEffectsInTimeRange(stime, etime)) {
                         layer->AddEffect(0, "Color Wash", "", palette, stime, etime, false, false);
                     }
                 }
-                for (int z = 0; z < len; z++) {
-                    //clear it
+                for (int z = 0; z < len; ++z) {
+                    // clear it
                     colors[x + z] = xlBLACK;
                 }
             }
         }
     }
 
-    for (size_t x = 0; x < colors.size(); x++) {
+    for (size_t x = 0; x < colors.size(); ++x) {
         if (lastColor != colors[x]) {
             int time = x * frameTime;
             if (lastColor != xlBLACK) {
                 std::string palette = "C_BUTTON_Palette1=" + (std::string)lastColor + ",C_CHECKBOX_Palette1=1";
 
                 if (time != startTime) {
-                    if (!layer->HasEffectsInTimeRange(startTime, time))
-                    {
+                    if (!layer->HasEffectsInTimeRange(startTime, time)) {
                         layer->AddEffect(0, "On", "", palette, startTime, time, false, false);
                     }
                 }
@@ -3680,22 +3727,18 @@ void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &
     }
 }
 
-void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
-
+void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent& event)
+{
     Element* e = (Element*)event.GetClientData();
-    if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
-    {
+    if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
         ModelElement* el = dynamic_cast<ModelElement*>(e);
         Model* model = GetModel(el->GetModelName());
 
         // we cant do this on model groups & submodels
-        if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel")
-        {
-            for (int i = 0; i < el->GetStrandCount(); i++)
-            {
+        if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
+            for (int i = 0; i < el->GetStrandCount(); ++i) {
                 StrandElement* se = el->GetStrand(i);
-                for (int j = 0; j < se->GetNodeLayerCount(); j++)
-                {
+                for (int j = 0; j < se->GetNodeLayerCount(); ++j) {
                     EffectLayer* layer = se->GetNodeLayer(j);
                     xlColorVector colors;
                     colors.reserve(_seqData.NumFrames());
@@ -3704,7 +3747,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
                         SingleLineModel* ssModel = new SingleLineModel(model->GetModelManager());
                         ssModel->Reset(1, *model, i, j);
 
-                        for (size_t f = 0; f < _seqData.NumFrames(); f++) {
+                        for (size_t f = 0; f < _seqData.NumFrames(); ++f) {
                             ssModel->SetNodeChannelValues(0, &_seqData[f][ssModel->NodeStartChannel(0)]);
                             xlColor c = ssModel->GetNodeColor(0);
                             colors.push_back(c);
@@ -3715,19 +3758,15 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
                 }
             }
         }
-    }
-    else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND)
-    {
+    } else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
         StrandElement* el = dynamic_cast<StrandElement*>(e);
         Model* model = GetModel(el->GetModelName());
         int node = event.GetInt() & 0xFFFF;
         int strand = (event.GetInt() >> 16) & 0xFFFF;
 
-        if (node == 0xFFFF)
-        {
+        if (node == 0xFFFF) {
             // this is a strand
-            for (int i = 0; i < el->GetNodeLayerCount(); i++)
-            {
+            for (int i = 0; i < el->GetNodeLayerCount(); ++i) {
                 EffectLayer* layer = el->GetNodeLayer(i);
                 xlColorVector colors;
                 colors.reserve(_seqData.NumFrames());
@@ -3736,7 +3775,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
                     SingleLineModel* ssModel = new SingleLineModel(model->GetModelManager());
                     ssModel->Reset(1, *model, strand, i);
 
-                    for (size_t f = 0; f < _seqData.NumFrames(); f++) {
+                    for (size_t f = 0; f < _seqData.NumFrames(); ++f) {
                         ssModel->SetNodeChannelValues(0, &_seqData[f][ssModel->NodeStartChannel(0)]);
                         xlColor c = ssModel->GetNodeColor(0);
                         colors.push_back(c);
@@ -3745,9 +3784,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
                     delete ssModel;
                 }
             }
-        }
-        else
-        {
+        } else {
             EffectLayer* layer = el->GetNodeLayer(node);
             xlColorVector colors;
             colors.reserve(_seqData.NumFrames());
@@ -3756,7 +3793,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
                 SingleLineModel* ssModel = new SingleLineModel(model->GetModelManager());
                 ssModel->Reset(1, *model, strand, node);
 
-                for (size_t f = 0; f < _seqData.NumFrames(); f++) {
+                for (size_t f = 0; f < _seqData.NumFrames(); ++f) {
                     ssModel->SetNodeChannelValues(0, &_seqData[f][ssModel->NodeStartChannel(0)]);
                     xlColor c = ssModel->GetNodeColor(0);
                     colors.push_back(c);
@@ -3770,7 +3807,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
 
 wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
 {
-    wxXmlNode* NewXml=new wxXmlNode(wxXML_ELEMENT_NODE, "effect");
+    wxXmlNode* NewXml = new wxXmlNode(wxXML_ELEMENT_NODE, "effect");
     NewXml->AddAttribute("name", name);
     wxString copy_data;
     mainSequencer->GetPresetData(copy_data);
@@ -3793,21 +3830,21 @@ std::vector<std::string> GetPresets(wxXmlNode* node, const std::string& path)
 {
     std::vector<std::string> res;
 
-    if (node == nullptr) return res;
+    if (node == nullptr)
+        return res;
 
-    for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
-    {
-        if (n->GetName() == "effect")
-        {
+    for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
+        if (n->GetName() == "effect") {
             auto name = UnXmlSafe(n->GetAttribute("name", ""));
-            if (path != "") name = path + "\\" + name;
-            if (name != "") res.push_back(name);
-        }
-        else if (n->GetName() == "effectGroup")
-        {
+            if (path != "")
+                name = path + "\\" + name;
+            if (name != "")
+                res.push_back(name);
+        } else if (n->GetName() == "effectGroup") {
             auto name = UnXmlSafe(n->GetAttribute("name", ""));
             auto p = path;
-            if (p != "") p = p + "\\";
+            if (p != "")
+                p = p + "\\";
             p = p + name;
             auto toadd = GetPresets(n, p);
             res.reserve(res.size() + toadd.size()); // preallocate memory
@@ -3825,24 +3862,16 @@ std::vector<std::string> xLightsFrame::GetPresets() const
 
 wxXmlNode* xLightsFrame::FindPreset(wxXmlNode* node, wxArrayString& path, int level) const
 {
-    for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
-    {
-        if (n->GetName() == "effect")
-        {
-            if (UnXmlSafe(n->GetAttribute("name", "")) == path[level])
-            {
+    for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
+        if (n->GetName() == "effect") {
+            if (UnXmlSafe(n->GetAttribute("name", "")) == path[level]) {
                 return n;
             }
-        }
-        else if (n->GetName() == "effectGroup" && level < path.size() - 1)
-        {
-            if (UnXmlSafe(n->GetAttribute("name", "")) == path[level])
-            {
+        } else if (n->GetName() == "effectGroup" && level < path.size() - 1) {
+            if (UnXmlSafe(n->GetAttribute("name", "")) == path[level]) {
                 return FindPreset(n, path, level + 1);
             }
-        }
-        else
-        {
+        } else {
             wxASSERT(false);
         }
     }
@@ -3858,42 +3887,41 @@ Effect* xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
 
     ele = FindPreset(_sequenceElements.GetEffectsNode(), path, 0);
 
-    if (ele != nullptr)
-    {
+    if (ele != nullptr) {
         res = mainSequencer->PanelEffectGrid->Paste(ele->GetAttribute("settings"), ele->GetAttribute("xLightsVersion", "4.0"));
     }
 
     return res;
 }
 
-void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion)
+void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString& pasteDataVersion)
 {
     mainSequencer->PanelEffectGrid->Paste(data, pasteDataVersion);
 }
 
-void xLightsFrame::PromoteEffects(wxCommandEvent &command) {
-    ModelElement *el = dynamic_cast<ModelElement*>((Element*)command.GetClientData());
+void xLightsFrame::PromoteEffects(wxCommandEvent& command)
+{
+    ModelElement* el = dynamic_cast<ModelElement*>((Element*)command.GetClientData());
     DoPromoteEffects(el);
 }
 
-bool equals(Effect *e, Effect *e2, const wxString &pal, const wxString &set) {
-    if (e->GetEffectIndex() != e2->GetEffectIndex()
-        || e->GetStartTimeMS() != e2->GetStartTimeMS()
-        || e->GetEndTimeMS() != e2->GetEndTimeMS()) {
+bool equals(Effect* e, Effect* e2, const wxString& pal, const wxString& set)
+{
+    if (e->GetEffectIndex() != e2->GetEffectIndex() || e->GetStartTimeMS() != e2->GetStartTimeMS() || e->GetEndTimeMS() != e2->GetEndTimeMS()) {
         return false;
     }
-    if (pal != e2->GetPaletteAsString()
-        || set != e2->GetSettingsAsString()) {
+    if (pal != e2->GetPaletteAsString() || set != e2->GetSettingsAsString()) {
         return false;
     }
     return true;
 }
 
-void xLightsFrame::DoPromoteEffects(ModelElement *element) {
-    //first promote from nodes to strands
+void xLightsFrame::DoPromoteEffects(ModelElement* element)
+{
+    // first promote from nodes to strands
     for (int x = 0; x < element->GetStrandCount(); x++) {
-        StrandElement *se = element->GetStrand(x);
-        EffectLayer *target = se->GetEffectLayer(0);
+        StrandElement* se = element->GetStrand(x);
+        EffectLayer* target = se->GetEffectLayer(0);
         if (element->GetStrandCount() <= 1) {
             if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
                 element->InsertEffectLayer(0);
@@ -3901,13 +3929,13 @@ void xLightsFrame::DoPromoteEffects(ModelElement *element) {
             target = element->GetEffectLayer(0);
         }
         if (se->GetNodeLayerCount() > 0) {
-            NodeLayer *base = se->GetNodeLayer(0);
+            NodeLayer* base = se->GetNodeLayer(0);
             for (int e = base->GetEffectCount() - 1; e >= 0; e--) {
-                Effect *eff = base->GetEffect(e);
-                const std::string &name = eff->GetEffectName();
+                Effect* eff = base->GetEffect(e);
+                const std::string& name = eff->GetEffectName();
 
                 if (target->HasEffectsInTimeRange(eff->GetStartTimeMS(), eff->GetEndTimeMS())) {
-                    //cannot promote, already an effect there
+                    // cannot promote, already an effect there
                     continue;
                 }
                 if (name == "On" || name == "Color Wash") {
@@ -3917,22 +3945,21 @@ void xLightsFrame::DoPromoteEffects(ModelElement *element) {
                     bool collapse = true;
 
                     for (int n = 1; n < se->GetNodeLayerCount() && collapse; n++) {
-                        NodeLayer *node = se->GetNodeLayer(n);
+                        NodeLayer* node = se->GetNodeLayer(n);
                         int nodeIndex = 0;
                         if (node->HitTestEffectByTime(mp, nodeIndex)) {
-                            Effect *nf = node->GetEffect(nodeIndex);
+                            Effect* nf = node->GetEffect(nodeIndex);
                             if (!equals(eff, nf, pal, set)) {
                                 collapse = false;
                             }
-                        }
-                        else {
+                        } else {
                             collapse = false;
                         }
                     }
                     if (collapse) {
                         target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false);
                         for (int n = 0; n < se->GetNodeLayerCount() && collapse; n++) {
-                            NodeLayer *node = se->GetNodeLayer(n);
+                            NodeLayer* node = se->GetNodeLayer(n);
                             int nodeIndex = 0;
                             if (node->HitTestEffectByTime(mp, nodeIndex)) {
                                 node->DeleteEffectByIndex(nodeIndex);
@@ -3943,16 +3970,17 @@ void xLightsFrame::DoPromoteEffects(ModelElement *element) {
             }
         }
     }
-    if (element->GetStrandCount() <= 1) return;
-    //OK, we're now promoted to strand level effects, try and promote to Model level
-    EffectLayer *base = element->GetStrand(0)->GetEffectLayer(0);
+    if (element->GetStrandCount() <= 1)
+        return;
+    // OK, we're now promoted to strand level effects, try and promote to Model level
+    EffectLayer* base = element->GetStrand(0)->GetEffectLayer(0);
     if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
         element->InsertEffectLayer(0);
     }
-    EffectLayer *target = element->GetEffectLayer(0);
+    EffectLayer* target = element->GetEffectLayer(0);
     for (int e = base->GetEffectCount() - 1; e >= 0; e--) {
-        Effect *eff = base->GetEffect(e);
-        const std::string &name = eff->GetEffectName();
+        Effect* eff = base->GetEffect(e);
+        const std::string& name = eff->GetEffectName();
 
         if (name == "On" || name == "Color Wash") {
             const std::string pal = eff->GetPaletteAsString();
@@ -3961,20 +3989,19 @@ void xLightsFrame::DoPromoteEffects(ModelElement *element) {
             bool collapse = true;
 
             for (int n = 0; n < element->GetStrandCount() && collapse; n++) {
-                StrandElement *se = element->GetStrand(n);
+                StrandElement* se = element->GetStrand(n);
                 for (int l = 0; l < se->GetEffectLayerCount(); l++) {
-                    EffectLayer *node = se->GetEffectLayer(l);
+                    EffectLayer* node = se->GetEffectLayer(l);
                     if (node == base) {
                         continue;
                     }
                     int nodeIndex = 0;
                     if (node->HitTestEffectByTime(mp, nodeIndex)) {
-                        Effect *nf = node->GetEffect(nodeIndex);
+                        Effect* nf = node->GetEffect(nodeIndex);
                         if (!equals(eff, nf, pal, set)) {
                             collapse = false;
                         }
-                    }
-                    else {
+                    } else {
                         collapse = false;
                     }
                 }
@@ -3982,9 +4009,9 @@ void xLightsFrame::DoPromoteEffects(ModelElement *element) {
             if (collapse) {
                 target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false);
                 for (int n = 0; n < element->GetStrandCount() && collapse; n++) {
-                    StrandElement *se = element->GetStrand(n);
+                    StrandElement* se = element->GetStrand(n);
                     for (int l = 0; l < se->GetEffectLayerCount(); l++) {
-                        EffectLayer *node = se->GetEffectLayer(l);
+                        EffectLayer* node = se->GetEffectLayer(l);
                         int nodeIndex = 0;
                         if (node->HitTestEffectByTime(mp, nodeIndex)) {
                             node->DeleteEffectByIndex(nodeIndex);
@@ -4002,19 +4029,18 @@ void xLightsFrame::OnAuiToolBarItemShowHideEffects(wxCommandEvent& event)
     bool visible = m_mgr->GetPane("EffectDropper").IsShown();
     if (visible) {
         m_mgr->GetPane("EffectDropper").Hide();
-    }
-    else {
+    } else {
         m_mgr->GetPane("EffectDropper").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
 }
 
 void xLightsFrame::UpdateSequenceVideoPanel(const wxString& path)
 {
-   if ( sequenceVideoPanel != nullptr )
-   {
-      std::string spath( path.ToStdString() );
-      ObtainAccessToURL( spath );
-      sequenceVideoPanel->SetMediaPath( spath );
-   }
+    if (sequenceVideoPanel != nullptr) {
+        std::string spath(path.ToStdString());
+        ObtainAccessToURL(spath);
+        sequenceVideoPanel->SetMediaPath(spath);
+    }
 }

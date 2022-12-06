@@ -132,7 +132,14 @@ public:
     wxStaticText *value;
 
 };
-void processFeatures( Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels) {
+
+enum class VAMPCONVERT {
+    USELABEL,
+    USEFIRSTVALUE,
+    USEFIRSTVALUEASMIDINOTE
+};
+
+void processFeatures( Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels, VAMPCONVERT convert) {
     bool hadDuration = true;
     for (int x = 0; x < feature.size(); x++) {
         int start = feature[x].timestamp.msec() + feature[x].timestamp.sec * 1000;
@@ -145,7 +152,13 @@ void processFeatures( Vamp::Plugin::FeatureList &feature, std::vector<int> &star
             int end = start + feature[x].duration.msec() + feature[x].duration.sec * 1000;
             ends.push_back(end);
         }
-        labels.push_back(feature[x].label);
+        if (convert == VAMPCONVERT::USEFIRSTVALUE) {
+            labels.push_back(wxString::Format("%f", feature[x].values[0]));
+        } else if (convert == VAMPCONVERT::USEFIRSTVALUEASMIDINOTE) {
+            labels.push_back(AudioManager::MidiToNote(feature[x].values[0]));
+        } else {
+            labels.push_back(feature[x].label);
+        }
     }
     if (!hadDuration) {
         ends.push_back(starts[starts.size() - 1]);
@@ -239,6 +252,12 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
 
     }
     Fit();
+
+    VAMPCONVERT convert = VAMPCONVERT::USELABEL;
+    if (name == "Polyphonic Transcription") {
+        convert = VAMPCONVERT::USEFIRSTVALUEASMIDINOTE;
+    }
+
     int res = ShowModal();
     if (res == wxID_OK) {
         while (xml_file->TimingAlreadyExists(TimingName->GetValue().ToStdString(), xLightsParent)) {
@@ -314,7 +333,7 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
 
             Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, media->GetRate());
             Vamp::Plugin::FeatureSet features = p->process(pdata, timestamp);
-            processFeatures(features[output], starts, ends, labels);
+            processFeatures(features[output], starts, ends, labels, convert);
 
             if (len > (long)step) {
                 len -= step;
@@ -330,7 +349,7 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
             }
         }
         Vamp::Plugin::FeatureSet features = p->getRemainingFeatures();
-        processFeatures(features[output], starts, ends, labels);
+        processFeatures(features[output], starts, ends, labels, convert);
         progress.Update(100);
 
         xml_file->AddNewTimingSection(TimingName->GetValue().ToStdString(), xLightsParent, starts, ends, labels);

@@ -11,16 +11,16 @@
  **************************************************************/
 
  //(*Headers(PlayListItemFSEQPanel)
-#include <wx/checkbox.h>
-#include <wx/choice.h>
-#include <wx/filepicker.h>
-#include <wx/panel.h>
-#include <wx/sizer.h>
-#include <wx/slider.h>
-#include <wx/spinctrl.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-//*)
+ #include <wx/checkbox.h>
+ #include <wx/choice.h>
+ #include <wx/filepicker.h>
+ #include <wx/panel.h>
+ #include <wx/sizer.h>
+ #include <wx/slider.h>
+ #include <wx/spinctrl.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 class OutputManager;
 class PlayListItemFSEQ;
@@ -45,6 +45,7 @@ class PlayListItemFSEQPanel: public wxPanel
 		wxCheckBox* CheckBox_LimitChannels;
 		wxCheckBox* CheckBox_OverrideAudio;
 		wxCheckBox* CheckBox_OverrideVolume;
+		wxChoice* Choice_AudioDevice;
 		wxChoice* Choice_BlendMode;
 		wxSlider* Slider1;
 		wxSpinCtrl* SpinCtrl_Channels;
@@ -56,6 +57,7 @@ class PlayListItemFSEQPanel: public wxPanel
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
 		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
 		wxStaticText* StaticText_StartChannel;
 		wxTextCtrl* TextCtrl_Delay;
 		wxTextCtrl* TextCtrl_StartChannel;
@@ -80,6 +82,8 @@ class PlayListItemFSEQPanel: public wxPanel
 		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX2;
 		static const long ID_SLIDER1;
+		static const long ID_STATICTEXT9;
+		static const long ID_CHOICE2;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT3;

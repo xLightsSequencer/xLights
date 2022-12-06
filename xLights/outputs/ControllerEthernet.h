@@ -35,6 +35,7 @@ protected:
     std::string _ip;
     std::string _resolvedIp;
     std::string _type;
+    std::string _forceLocalIP;
     bool _forceSizes = false;
     int _priority = 100;
     int _version = 1;
@@ -62,11 +63,20 @@ public:
     virtual std::string GetProtocol() const override { return _type; }
     void SetProtocol(const std::string& protocol);
 
+    std::string GetForceLocalIP() const;
+    std::string GetControllerForceLocalIP() const;
+    void SetForceLocalIP(const std::string& localIP);
+    void SetGlobalForceLocalIP(const std::string& localIP);
+
     void SetFPPProxy(const std::string& proxy);
     std::string GetControllerFPPProxy() const { return _fppProxy; }
     virtual std::string GetFPPProxy() const override;
 
-    bool IsFPPProxyable() const { return _type == OUTPUT_E131 || _type == OUTPUT_DDP; }
+    bool IsFPPProxyable() const
+    {
+        // player only is proxyable because the web UI is
+        return _type == OUTPUT_E131 || _type == OUTPUT_DDP || _type == OUTPUT_TWINKLY || _type == OUTPUT_PLAYER_ONLY;
+    }
 
     void SetManaged(bool managed) { if (_managed != managed) { _managed = managed; _dirty = true; } }
 
@@ -105,8 +115,17 @@ public:
 
     virtual bool CanTempDisable() const override { return true; }
 
-    virtual bool SupportsAutoSize() const override { return _managed && IsAutoLayout(); }
+    virtual bool SupportsAutoSize() const override
+    {
+        return _managed && IsAutoLayout() && GetProtocol() != OUTPUT_PLAYER_ONLY;
+    }
+    virtual bool SupportsSuppressDuplicateFrames() const override
+    {
+        return GetProtocol() != OUTPUT_PLAYER_ONLY;
+    }
     virtual bool SupportsFullxLightsControl() const override;
+    virtual bool SupportsDefaultBrightness() const override;
+    virtual bool SupportsDefaultGamma() const override;
 
     virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetUniverseString() const override { return ""; }

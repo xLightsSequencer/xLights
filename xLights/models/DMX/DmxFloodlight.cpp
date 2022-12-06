@@ -13,6 +13,8 @@
 #include <wx/xml/xml.h>
 
 #include "DmxFloodlight.h"
+#include "DmxColorAbilityRGB.h"
+#include "DmxPresetAbility.h"
 #include "../../ModelPreview.h"
 #include "../../UtilFunctions.h"
 #include "../../xLightsMain.h"
@@ -21,7 +23,6 @@
 DmxFloodlight::DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     : DmxModel(node, manager, zeroBased), beam_length(1)
 {
-    color_ability = this;
     SetFromXml(node, zeroBased);
 }
 
@@ -30,10 +31,13 @@ DmxFloodlight::~DmxFloodlight()
     //dtor
 }
 
-void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid) {
+void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
 
-    DmxModel::AddTypeProperties(grid);
-    AddColorTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
+    if (nullptr != color_ability) {
+        color_ability->AddColorTypeProperties(grid);
+    }
     AddShutterTypeProperties(grid);
 
     auto p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
@@ -60,8 +64,8 @@ void DmxFloodlight::DisableUnusedProperties(wxPropertyGridInterface* grid)
     DmxModel::DisableUnusedProperties(grid);
 }
 
-int DmxFloodlight::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
-
+int DmxFloodlight::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
+{
     if ("DmxBeamLength" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxBeamLength");
         ModelXml->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
@@ -71,7 +75,7 @@ int DmxFloodlight::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         return 0;
     }
 
-    if (OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
     }
 
@@ -82,188 +86,154 @@ int DmxFloodlight::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
     return DmxModel::OnPropertyGridChange(grid, event);
 }
 
-void DmxFloodlight::InitModel() {
+void DmxFloodlight::InitModel()
+{
     DmxModel::InitModel();
     DisplayAs = "DmxFloodlight";
-    red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "1"));
-    green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "2"));
-    blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "3"));
-    white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
+
+    color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+
     shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
     shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
+    shutter_on_value = wxAtoi(ModelXml->GetAttribute("DmxShutterOnValue", "0"));
     beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "1.0"));
-    screenLocation.SetRenderSize(1, 1);
+    screenLocation.SetRenderSize(1, 1, 1);
 }
 
-void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
+void DmxFloodlight::GetColors(xlColor& center, xlColor& edge, bool allowSelected, const xlColor* c)
 {
-    if (!IsActive()) return;
-
-    // determine if shutter is open for floods that support it
-    bool shutter_open = true;
-    if (shutter_channel > 0 && shutter_channel <= Nodes.size() && active) {
-        xlColor proxy;
-        Nodes[shutter_channel - 1]->GetColor(proxy);
-        int shutter_value = proxy.red;
-        if (shutter_value >= 0) {
-            shutter_open = shutter_value >= shutter_threshold;
-        }
-        else {
-            shutter_open = shutter_value <= std::abs(shutter_threshold);
-        }
-    }
-
-    size_t NodeCount=Nodes.size();
-
-    if( red_channel > NodeCount ||
-        green_channel > NodeCount ||
-        blue_channel > NodeCount ||
-        white_channel > NodeCount )
-    {
-        return;
-    }
-
-	xlColor color;
-	xlColor ecolor;
-	xlColor beam_color(xlWHITE);
-	if (c != nullptr) {
-		color = *c;
-		ecolor = *c;
-	}
-
-	int trans = color == xlBLACK ? blackTransparency : transparency;
-	if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
-
-        xlColor proxy = xlBLACK;
-        if (white_channel > 0)
-        {
-            Nodes[white_channel - 1]->GetColor(proxy);
-            beam_color = proxy;
-        }
-
-        if (proxy == xlBLACK)
-        {
-            Nodes[red_channel - 1]->GetColor(proxy);
-            beam_color.red = proxy.red;
-            Nodes[green_channel - 1]->GetColor(proxy);
-            beam_color.green = proxy.red;
-            Nodes[blue_channel - 1]->GetColor(proxy);
-            beam_color.blue = proxy.red;
-        }
-	}
-    else if (white_channel > 0)
-    {
-        xlColor proxy;
-        Nodes[white_channel - 1]->GetColor(proxy);
-        beam_color.red = proxy.red;
-        beam_color.green = proxy.red;
-        beam_color.blue = proxy.red;
-    }
-
-	if (!active) {
-		beam_color = color;
-	}
-
-	ApplyTransparency(beam_color, trans, trans);
-    if (pixelStyle == 2) {
-        ecolor = beam_color;
-    } else {
-        ecolor.alpha = 0;
-    }
-
-    float rh = ((BoxedScreenLocation)screenLocation).GetMWidth();
-    float rw = ((BoxedScreenLocation)screenLocation).GetMHeight();
-	float min_size = (float)(std::min(rh, rw));
-
-    if (shutter_open) {
-        va.AddCircleAsTriangles(sx, sy, min_size / 2.0f, beam_color, ecolor);
-        va.Finish(GL_TRIANGLES);
+    color_ability->GetColor(center, transparency, blackTransparency, allowSelected, c, Nodes);
+    edge = center;
+    if (_pixelStyle != PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE) {
+        edge.alpha = 0;
     }
 }
 
-void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active)
+void DmxFloodlight::DrawModel(xlVertexColorAccumulator* vac, xlColor& center, xlColor& edge, float beam_length)
 {
-    if (!IsActive()) return;
+    vac->AddCircleAsTriangles(0, 0, 0, 0.5, center, edge, beam_length);
+}
 
-    // determine if shutter is open for floods that support it
-    bool shutter_open = true;
-    if (shutter_channel > 0 && shutter_channel <= Nodes.size() && active) {
-        xlColor proxy;
-        Nodes[shutter_channel - 1]->GetColor(proxy);
-        int shutter_value = proxy.red;
-        if (shutter_value >= 0) {
-            shutter_open = shutter_value >= shutter_threshold;
-        }
-        else {
-            shutter_open = shutter_value <= std::abs(shutter_threshold);
-        }
+void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+                                         xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d,
+                                         const xlColor* c, bool allowSelected, bool wiring,
+                                         bool highlightFirst, int highlightpixel,
+                                         float* boundingBox)
+{
+    if (!IsActive())
+        return;
+
+    int w, h;
+    preview->GetVirtualCanvasSize(w, h);
+    screenLocation.PrepareToDraw(is_3d, allowSelected);
+    screenLocation.UpdateBoundingBox(1, 1, 1);
+    if (boundingBox) {
+        boundingBox[0] = -0.5;
+        boundingBox[1] = -0.5;
+        boundingBox[2] = -0.5;
+        boundingBox[3] = 0.5;
+        boundingBox[4] = 0.5;
+        boundingBox[5] = 0.5;
     }
 
-    size_t NodeCount = Nodes.size();
+    // determine if shutter is open for floods that support it
+    bool shutter_open = allowSelected || IsShutterOpen(Nodes);
 
-    if (red_channel > NodeCount ||
-        green_channel > NodeCount ||
-        blue_channel > NodeCount ||
-        white_channel > NodeCount)
-    {
+    if (!color_ability->IsValidModelSettings(this) || !preset_ability->IsValidModelSettings(this)) {
+        DmxModel::DrawInvalid(solidProgram, &(GetModelScreenLocation()), is_3d, true);
+    } else {
+        xlColor center, edge;
+        GetColors(center, edge, allowSelected, c);
+
+        // beam length doesn't use the zscale, it draws out of our normal bounding box
+        // we need to calculate a length
+        float rh = ((BoxedScreenLocation)screenLocation).GetMWidth();
+        float rw = ((BoxedScreenLocation)screenLocation).GetMHeight();
+        float min_size = (float)(std::min(rh, rw));
+
+        if (shutter_open) {
+            auto* vac = transparentProgram->getAccumulator();
+            int start = vac->getCount();
+            DrawModel(vac, center, edge, is_3d ? beam_length * min_size : 0);
+            int end = vac->getCount();
+            transparentProgram->addStep([=](xlGraphicsContext* ctx) {
+                ctx->PushMatrix();
+                if (!is_3d) {
+                    //not 3d, flatten to the 0 plane
+                    ctx->Scale(1.0, 1.0, 0.0);
+                }
+                GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+                ctx->drawTriangles(vac, start, end - start);
+                ctx->PopMatrix();
+            });
+        }
+    }
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
+        if (is_3d) {
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+        } else {
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+        }
+    }
+}
+
+void DmxFloodlight::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+{
+    if (!IsActive() && preview->IsNoCurrentModel()) {
         return;
     }
 
-    xlColor color;
-    xlColor ecolor;
-    xlColor beam_color(xlWHITE);
-    if (c != nullptr) {
-        color = *c;
-        ecolor = *c;
+    bool shutter_open = IsShutterOpen(Nodes);
+    if (!shutter_open) {
+        return;
     }
-
-    int trans = color == xlBLACK ? blackTransparency : transparency;
-    if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
-
-        xlColor proxy = xlBLACK;
-        if (white_channel > 0) {
-            Nodes[white_channel - 1]->GetColor(proxy);
-            beam_color = proxy;
-        }
-
-        if (proxy == xlBLACK) {
-            Nodes[red_channel - 1]->GetColor(proxy);
-            beam_color.red = proxy.red;
-            Nodes[green_channel - 1]->GetColor(proxy);
-            beam_color.green = proxy.red;
-            Nodes[blue_channel - 1]->GetColor(proxy);
-            beam_color.blue = proxy.red;
+    bool mustEnd = false;
+    xlGraphicsContext* ctx = preview->getCurrentGraphicsContext();
+    if (ctx == nullptr) {
+        bool success = preview->StartDrawing(pointSize);
+        if (success) {
+            ctx = preview->getCurrentGraphicsContext();
+            mustEnd = true;
         }
     }
-    else if (white_channel > 0) {
-        xlColor proxy;
-        Nodes[white_channel - 1]->GetColor(proxy);
-        beam_color.red = proxy.red;
-        beam_color.green = proxy.red;
-        beam_color.blue = proxy.red;
+    if (ctx) {
+        xlColor center, edge;
+        GetColors(center, edge, false, nullptr);
+        xlGraphicsProgram* p = preview->getCurrentTransparentProgram();
+        auto vac = p->getAccumulator();
+        int start = vac->getCount();
+        DrawModel(vac, center, edge, 0);
+        int end = vac->getCount();
+
+        int w, h;
+        preview->GetSize(&w, &h);
+        float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
+        float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
+
+        float aspect = screenLocation.GetScaleX();
+        aspect /= screenLocation.GetScaleY();
+        if (scaleY < scaleX) {
+            scaleX = scaleY * aspect;
+        } else {
+            scaleY = scaleX / aspect;
+        }
+        float ml, mb;
+        GetMinScreenXY(ml, mb);
+        ml += GetModelScreenLocation().RenderWi / 2;
+        mb += GetModelScreenLocation().RenderHt / 2;
+
+        p->addStep([=](xlGraphicsContext* ctx) {
+            ctx->PushMatrix();
+            ctx->Translate(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Scale(scaleX, scaleY, 1.0);
+
+            ctx->drawTriangles(vac, start, end - start);
+            ctx->PopMatrix();
+        });
     }
-
-    if (!active) {
-        beam_color = color;
-    }
-
-    ApplyTransparency(beam_color, trans, trans);
-    if (pixelStyle == 2) {
-        ecolor = beam_color;
-    } else {
-        ecolor.alpha = 0;
-    }
-
-
-    float rh = ((BoxedScreenLocation)screenLocation).GetMWidth();
-    float rw = ((BoxedScreenLocation)screenLocation).GetMHeight();
-    float min_size = (float)(std::min(rh, rw));
-
-    glm::quat rotation = GetModelScreenLocation().GetRotationQuat();
-
-    if (shutter_open) {
-        va.AddRotatedCircleAsTriangles(sx, sy, sz, rotation, min_size / 2.0f, beam_color, ecolor, beam_length);
-        va.Finish(GL_TRIANGLES);
+    if (mustEnd) {
+        preview->EndDrawing();
     }
 }
 
@@ -272,94 +242,75 @@ void DmxFloodlight::ExportXlightsModel()
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
     wxFile f(filename);
-    //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    //    bool isnew = !FileExists(filename);
+    if (!f.Create(filename, true) || !f.IsOpened())
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
-    ExportBaseParameters(f);
 
-    wxString rc = ModelXml->GetAttribute("DmxRedChannel", "0");
-    wxString gc = ModelXml->GetAttribute("DmxGreenChannel", "0");
-    wxString bc = ModelXml->GetAttribute("DmxBlueChannel", "0");
-    wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
     wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
-    f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));
-    f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
-    f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
-    f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
+    ExportBaseParameters(f);
+    color_ability->ExportParameters(f,ModelXml);
     f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
 
     f.Write(" >\n");
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString groups = SerialiseGroups();
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</dmxmodel>");
     f.Close();
 }
 
-void DmxFloodlight::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    // We have already loaded gdtf properties
-    if (EndsWith(filename, "gdtf")) return;
+void DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "dmxmodel") {
+        ImportBaseParameters(root);
 
-    wxXmlDocument doc(filename);
+        wxString name = root->GetAttribute("name");
+        wxString v = root->GetAttribute("SourceVersion");
 
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
+        wxString dbl = root->GetAttribute("DmxBeamLength", "1");
 
-        if (root->GetName() == "dmxmodel")
-        {
-            ImportBaseParameters(root);
+        // Add any model version conversion logic here
+        // Source version will be the program version that created the custom model
 
-            wxString name = root->GetAttribute("name");
-            wxString v = root->GetAttribute("SourceVersion");
+        color_ability->ImportParameters(root, this);
+        SetProperty("DmxBeamLength", dbl);
 
-            wxString rc = root->GetAttribute("DmxRedChannel");
-            wxString gc = root->GetAttribute("DmxGreenChannel");
-            wxString bc = root->GetAttribute("DmxBlueChannel");
-            wxString wc = root->GetAttribute("DmxWhiteChannel");
-            wxString dbl = root->GetAttribute("DmxBeamLength", "1");
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        GetModelScreenLocation().Write(ModelXml);
+        SetProperty("name", newname, true);
 
-            // Add any model version conversion logic here
-            // Source version will be the program version that created the custom model
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
-            SetProperty("DmxRedChannel", rc);
-            SetProperty("DmxGreenChannel", gc);
-            SetProperty("DmxBlueChannel", bc);
-            SetProperty("DmxWhiteChannel", wc);
-            SetProperty("DmxBeamLength", dbl);
-
-            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-            GetModelScreenLocation().Write(ModelXml);
-            SetProperty("name", newname, true);
-
-            ImportModelChildren(root, xlights, newname);
-
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxFloodlight::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxFloodlight::ImportXlightsModel");
-        }
-        else
-        {
-            DisplayError("Failure loading DmxFloodlight model file.");
-        }
-    }
-    else
-    {
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxFloodlight::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxFloodlight::ImportXlightsModel");
+    } else {
         DisplayError("Failure loading DmxFloodlight model file.");
     }
+}
+
+std::vector<std::string> DmxFloodlight::GenerateNodeNames() const
+{
+    std::vector<std::string> names = DmxModel::GenerateNodeNames();
+
+    if (0 != shutter_channel && shutter_channel < names.size()) {
+        names[shutter_channel - 1] = "Shutter";
+    }
+    return names;
 }

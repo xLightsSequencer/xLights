@@ -23,12 +23,12 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, bool deep = false) const override;
 
         virtual int GetStrandLength(int strand) const override;
         virtual int MapToNodeIndex(int strand, int node) const override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
         virtual std::list<std::string> GetFileReferences() override;
@@ -36,6 +36,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual std::string GetStartLocation() const override { return "n/a"; }
 
+        bool IsAllNodesUnique() const;
         long GetCustomWidth() const { return parm1;}
         long GetCustomHeight() const { return parm2;}
         long GetCustomDepth() const { return _depth;}
@@ -46,6 +47,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int MapPhysicalStringToLogicalString(int string) const override;
 
         virtual int GetNumPhysicalStrings() const override;
+        bool SupportsChangingStringCount() const override{ return true; };
+        bool ChangeStringCount(long count, std::string& message) override;
 
         std::string GetCustomData() const;
         void SetCustomData(const std::string &data);
@@ -58,7 +61,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsXlightsModel() override {return true;}
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return true; }
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
         void ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
         virtual void ExportXlightsModel() override;
 
@@ -85,4 +88,5 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         std::string custom_background;
         int _strings;
         std::vector<int> stringStartNodes;
+        std::vector<std::vector<std::vector<int>>> locations;
 };

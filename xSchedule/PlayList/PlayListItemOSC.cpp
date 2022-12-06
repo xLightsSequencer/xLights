@@ -59,7 +59,7 @@ PlayListItemOSC::PlayListItemOSC() : PlayListItem()
 	}
 }
 
-PlayListItem* PlayListItemOSC::Copy() const
+PlayListItem* PlayListItemOSC::Copy(const bool isClone) const
 {
     PlayListItemOSC* res = new PlayListItemOSC();
 
@@ -72,7 +72,7 @@ PlayListItem* PlayListItemOSC::Copy() const
 		res->_types[i] = _types[i];
 		res->_values[i] = _values[i];
 	}
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }
@@ -195,7 +195,7 @@ void PlayListItemOSC::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fram
                 }
             }
 
-            packet.Send(_ip, _port);
+            packet.Send(_ip, _port, GetLocalIP());
             logger_base.info("OSC Sent.");
         }
         else             {

@@ -17,9 +17,9 @@
 #include "UtilFunctions.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
+#include "ExternalHooks.h"
 
 //(*InternalHeaders(ColorPanel)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/intl.h>
@@ -27,6 +27,7 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/artprov.h>
 #include <wx/dnd.h>
 #include <wx/valnum.h>
 #include <wx/wfstream.h>
@@ -288,16 +289,16 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxALIGN_RIGHT, 2);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer11->AddGrowableCol(1);
-	BitmapButton_ShuffleColours = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON4, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_colorpanel_switch_xpm")),wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
+	BitmapButton_ShuffleColours = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON4, wxArtProvider::GetBitmapBundle("xlART_colorpanel_switch_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
 	FlexGridSizer11->Add(BitmapButton_ShuffleColours, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_ColourChoice = new ColourList(ColorScrollWindow,ID_CUSTOM1,wxDefaultPosition,wxDefaultSize,ZERO,wxDefaultValidator,_T("ID_CUSTOM1"));
 	FlexGridSizer11->Add(BitmapButton_ColourChoice, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_SavePalette = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON3, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_colorpanel_save_xpm")),wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
+	BitmapButton_SavePalette = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON3, wxArtProvider::GetBitmapBundle("xlART_colorpanel_save_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
 	FlexGridSizer11->Add(BitmapButton_SavePalette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer11->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonColor1 = new wxButton(ColorScrollWindow, ID_BUTTON1, _("Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer11->Add(ButtonColor1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_DeletePalette = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_colorpanel_delete_xpm")),wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
+	BitmapButton_DeletePalette = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON2, wxArtProvider::GetBitmapBundle("xlART_colorpanel_delete_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
 	FlexGridSizer11->Add(BitmapButton_DeletePalette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer9->Add(FlexGridSizer11, 1, wxALL|wxALIGN_LEFT, 2);
 	FlexGridSizer9->Add(-1,-1,1, wxALL|wxEXPAND, 5);
@@ -325,12 +326,12 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer8->AddGrowableCol(0);
 	Slider_SparkleFrequency = new BulkEditSlider(ColorScrollWindow, ID_SLIDER_SparkleFrequency, 0, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_SparkleFrequency"));
 	FlexGridSizer8->Add(Slider_SparkleFrequency, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_SparkleFrequencyVC = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_SparkleFrequency, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_SparkleFrequency"));
+	BitmapButton_SparkleFrequencyVC = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_SparkleFrequency, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_SparkleFrequency"));
 	FlexGridSizer8->Add(BitmapButton_SparkleFrequencyVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer2->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 0);
 	txtCtrlSparkleFreq = new BulkEditTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_SparkleFrequency, _("0"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_SparkleFrequency"));
 	FlexGridSizer2->Add(txtCtrlSparkleFreq, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_SparkleFrequency = new xlLockButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_SparkleFrequency, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_SparkleFrequency"));
+	BitmapButton_SparkleFrequency = new xlLockButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_SparkleFrequency, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_SparkleFrequency"));
 	BitmapButton_SparkleFrequency->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer2->Add(BitmapButton_SparkleFrequency, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -339,7 +340,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer2->Add(CheckBox_MusicSparkles, 1, wxALL|wxEXPAND, 2);
 	ColourPickerCtrl_SparklesColour = new BulkEditColourPickerCtrl(ColorScrollWindow, ID_COLOURPICKERCTRL_SparklesColour, wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL_SparklesColour"));
 	FlexGridSizer2->Add(ColourPickerCtrl_SparklesColour, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_MusicSparkles = new xlLockButton(ColorScrollWindow, ID_BITMAPBUTTON_MusicSparkles, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_MusicSparkles"));
+	BitmapButton_MusicSparkles = new xlLockButton(ColorScrollWindow, ID_BITMAPBUTTON_MusicSparkles, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_MusicSparkles"));
 	BitmapButton_MusicSparkles->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer2->Add(BitmapButton_MusicSparkles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	StaticText126 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT_Brightness, _("Brightness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Brightness"));
@@ -348,12 +349,12 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer7->AddGrowableCol(0);
 	Slider_Brightness = new BulkEditSlider(ColorScrollWindow, ID_SLIDER_Brightness, 100, 0, 400, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Brightness"));
 	FlexGridSizer7->Add(Slider_Brightness, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_VCBrightness = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Brightness, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Brightness"));
+	BitmapButton_VCBrightness = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Brightness, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Brightness"));
 	FlexGridSizer7->Add(BitmapButton_VCBrightness, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer2->Add(FlexGridSizer7, 1, wxEXPAND, 0);
 	txtCtlBrightness = new BulkEditTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_Brightness, _("100"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Brightness"));
 	FlexGridSizer2->Add(txtCtlBrightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Brightness = new xlLockButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_Brightness, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Brightness"));
+	BitmapButton_Brightness = new xlLockButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_Brightness, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Brightness"));
 	BitmapButton_Brightness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer2->Add(BitmapButton_Brightness, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	StaticText127 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT_Contrast, _("Contrast"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Contrast"));
@@ -362,7 +363,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer2->Add(Slider_Contrast, 1, wxALL|wxEXPAND, 0);
 	txtCtlContrast = new BulkEditTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_Contrast, _("0"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Contrast"));
 	FlexGridSizer2->Add(txtCtlContrast, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Contrast = new xlLockButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_Contrast, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Contrast"));
+	BitmapButton_Contrast = new xlLockButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_Contrast, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Contrast"));
 	BitmapButton_Contrast->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer2->Add(BitmapButton_Contrast, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer4->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
@@ -378,7 +379,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer13->AddGrowableCol(0);
 	Slider_Color_HueAdjust = new BulkEditSlider(ColorScrollWindow, ID_SLIDER_Color_HueAdjust, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Color_HueAdjust"));
 	FlexGridSizer13->Add(Slider_Color_HueAdjust, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_Color_HueAdjust = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Color_HueAdjust, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Color_HueAdjust"));
+	BitmapButton_Color_HueAdjust = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Color_HueAdjust, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Color_HueAdjust"));
 	FlexGridSizer13->Add(BitmapButton_Color_HueAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer12->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Color_HueAdjust = new BulkEditTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_Color_HueAdjust, _("0"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Color_HueAdjust"));
@@ -390,7 +391,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer15->AddGrowableCol(0);
 	Slider_Color_SaturationAdjust = new BulkEditSlider(ColorScrollWindow, ID_SLIDER_Color_SaturationAdjust, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Color_SaturationAdjust"));
 	FlexGridSizer15->Add(Slider_Color_SaturationAdjust, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_Color_SaturationAdjust = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Color_SaturationAdjust, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Color_SaturationAdjust"));
+	BitmapButton_Color_SaturationAdjust = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Color_SaturationAdjust, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Color_SaturationAdjust"));
 	FlexGridSizer15->Add(BitmapButton_Color_SaturationAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer12->Add(FlexGridSizer15, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Color_SaturationAdjust = new BulkEditTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_Color_SaturationAdjust, _("0"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Color_SaturationAdjust"));
@@ -402,7 +403,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer14->AddGrowableCol(0);
 	Slider_Color_ValueAdjust = new BulkEditSlider(ColorScrollWindow, ID_SLIDER_Color_ValueAdjust, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Color_ValueAdjust"));
 	FlexGridSizer14->Add(Slider_Color_ValueAdjust, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_Color_ValueAdjust = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Color_ValueAdjust, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Color_ValueAdjust"));
+	BitmapButton_Color_ValueAdjust = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Color_ValueAdjust, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Color_ValueAdjust"));
 	FlexGridSizer14->Add(BitmapButton_Color_ValueAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer12->Add(FlexGridSizer14, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Color_ValueAdjust = new BulkEditTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_Color_ValueAdjust, _("0"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Color_ValueAdjust"));
@@ -410,16 +411,10 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer12->Add(TextCtrl_Color_ValueAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer4->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 2);
 	ColorScrollWindow->SetSizer(FlexGridSizer4);
-	FlexGridSizer4->Fit(ColorScrollWindow);
-	FlexGridSizer4->SetSizeHints(ColorScrollWindow);
 	FlexGridSizer3->Add(ColorScrollWindow, 1, wxALL|wxEXPAND, 0);
 	Panel_Sizer->SetSizer(FlexGridSizer3);
-	FlexGridSizer3->Fit(Panel_Sizer);
-	FlexGridSizer3->SetSizeHints(Panel_Sizer);
 	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShuffleColoursClick);
 	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_SavePaletteClick);
@@ -484,7 +479,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
     for (int x = 0; x < PALETTE_SIZE; x++) {
         wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_Palette%d", (x + 1));
         long id2 = wxNewId();
-        wxBitmapButton *bb = new xlLockButton(ColorScrollWindow, id2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON),
+        wxBitmapButton *bb = new xlLockButton(ColorScrollWindow, id2, wxArtProvider::GetBitmapBundle("xlART_PADLOCK_OPEN", wxART_BUTTON),
                                                 wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, ids);
         FlexGridSizer_Palette->Add(bb, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
         Connect(id2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
@@ -492,7 +487,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
     for (int x = 0; x < PALETTE_SIZE; x++) {
         wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_PaletteCC%d", (x + 1));
         long id2 = wxNewId();
-        wxBitmapButton *bb = new xlSizedBitmapButton(ColorScrollWindow, id2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_cc_na_xpm"))), wxDefaultPosition,
+        wxBitmapButton *bb = new xlSizedBitmapButton(ColorScrollWindow, id2, wxArtProvider::GetBitmapBundle("xlART_cc_na_xpm", wxART_BUTTON), wxDefaultPosition,
                                                 wxSize(13, 13), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, ids);
         bb->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
         FlexGridSizer_Palette->Add(bb, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
@@ -583,136 +578,121 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
 {
     static wxRegEx cregex("^\\$[^:]*: rgba\\(([^)]*)\\)");
 
-    wxString filename;
-    bool cont = directory.GetFirst(&filename, "*.xpalette", wxDIR_FILES);
-    while (cont)
-    {
-        wxFileName fn(directory.GetNameWithSep() + filename);
-        wxFileInputStream input(fn.GetFullPath());
-        if (input.IsOk())
-        {
-            wxTextInputStream text(input);
-            wxString s = text.ReadLine();
-            wxString scomp = s.BeforeLast(',');
+    wxArrayString files;
+    GetAllFilesInDir(directory.GetName(), files, "*.xpalette");
+    for (auto &filename : files) {
+        if (FileExists(filename)) {
+            wxFileName fn(filename);
+            wxFileInputStream input(fn.GetFullPath());
+            if (input.IsOk()) {
+                wxTextInputStream text(input);
+                wxString s = text.ReadLine();
+                wxString scomp = s.BeforeLast(',');
 
-            bool found = false;
-            for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it)
-            {
-                wxString p(*it);
-                if (p.BeforeLast(',') == scomp)
-                {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
-            {
-                _loadedPalettes.push_back(s.ToStdString() + fn.GetFullName().ToStdString());
-            }
-        }
-        cont = directory.GetNext(&filename);
-    }
-
-    filename = "";
-    cont = directory.GetFirst(&filename, "*.scss", wxDIR_FILES);
-    while (cont)
-    {
-        wxFileName fn(directory.GetNameWithSep() + filename);
-        wxFileInputStream input(fn.GetFullPath());
-        if (input.IsOk())
-        {
-            wxString pal;
-            int cols = 0;
-            wxTextInputStream text(input);
-            while (!input.Eof())
-            {
-                wxString line = text.ReadLine();
-                if (cregex.Matches(line))
-                {
-                    wxString rgb = cregex.GetMatch(line, 1);
-                    wxArrayString comp = wxSplit(rgb, ',');
-                    if (comp.size() == 4)
-                    {
-                        pal += wxString::Format("#%2x%2x%2x,",
-                            wxAtoi(comp[0]),
-                            wxAtoi(comp[1]),
-                            wxAtoi(comp[2])
-                        );
-                        cols++;
-                    }
-                }
-            }
-            if (cols > 0)
-            {
-                while (cols < 8)
-                {
-                    pal += "#FFFFFF,";
-                    cols++;
-                }
-                bool found = false;
-                for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it)
-                {
-                    wxString p(*it);
-                    if (p.BeforeLast(',') == pal)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found)
-                {
-                    _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
-                }
-            }
-        }
-        cont = directory.GetNext(&filename);
-    }
-
-    filename = "";
-    cont = directory.GetFirst(&filename, "*.svg", wxDIR_FILES);
-    while (cont) {
-
-        wxFileName fn(directory.GetNameWithSep() + filename);
-        wxXmlDocument svg;
-        svg.Load(directory.GetNameWithSep() + filename);
-
-        if (svg.IsOk()) {
-            wxString pal;
-            int cols = 0;
-            for (auto n = svg.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
-                if (n->GetName() == "rect") {
-                    if (n->HasAttribute("fill")) {
-                        pal += n->GetAttribute("fill") + ",";
-                        cols++;
-                    }
-                }
-            }
-            if (cols > 0) {
-                while (cols < 8) {
-                    pal += "#FFFFFF,";
-                    cols++;
-                }
                 bool found = false;
                 for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
                     wxString p(*it);
-                    if (p.BeforeLast(',') == pal) {
+                    if (p.BeforeLast(',') == scomp) {
                         found = true;
                         break;
                     }
                 }
                 if (!found) {
-                    _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
+                    _loadedPalettes.push_back(s.ToStdString() + fn.GetFullName().ToStdString());
                 }
             }
         }
-        cont = directory.GetNext(&filename);
     }
 
-    if (subdirs)
-    {
-        cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
-        while (cont)
-        {
+    files.clear();
+    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.scss");
+    for (auto &filename : files) {
+        if (FileExists(filename)) {
+            wxFileName fn(filename);
+            wxFileInputStream input(fn.GetFullPath());
+            if (input.IsOk()) {
+                wxString pal;
+                int cols = 0;
+                wxTextInputStream text(input);
+                while (!input.Eof()) {
+                    wxString line = text.ReadLine();
+                    if (cregex.Matches(line)) {
+                        wxString rgb = cregex.GetMatch(line, 1);
+                        wxArrayString comp = wxSplit(rgb, ',');
+                        if (comp.size() == 4) {
+                            pal += wxString::Format("#%2x%2x%2x,",
+                                wxAtoi(comp[0]),
+                                wxAtoi(comp[1]),
+                                wxAtoi(comp[2])
+                            );
+                            cols++;
+                        }
+                    }
+                }
+                if (cols > 0) {
+                    while (cols < 8) {
+                        pal += "#FFFFFF,";
+                        cols++;
+                    }
+                    bool found = false;
+                    for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
+                        wxString p(*it);
+                        if (p.BeforeLast(',') == pal) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
+                    }
+                }
+            }
+        }
+    }
+    files.clear();
+    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.svg");
+    for (auto &filename : files) {
+        if (FileExists(filename)) {
+            wxFileName fn(filename);
+            wxXmlDocument svg;
+            svg.Load(filename);
+
+            if (svg.IsOk()) {
+                wxString pal;
+                int cols = 0;
+                for (auto n = svg.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
+                    if (n->GetName() == "rect") {
+                        if (n->HasAttribute("fill")) {
+                            pal += n->GetAttribute("fill") + ",";
+                            cols++;
+                        }
+                    }
+                }
+                if (cols > 0) {
+                    while (cols < 8) {
+                        pal += "#FFFFFF,";
+                        cols++;
+                    }
+                    bool found = false;
+                    for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
+                        wxString p(*it);
+                        if (p.BeforeLast(',') == pal) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
+                    }
+                }
+            }
+        }
+    }
+
+    if (subdirs) {
+        wxString filename;
+        bool cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        while (cont) {
             wxDir dir(directory.GetNameWithSep() + filename);
             LoadPalettes(dir, subdirs);
             cont = directory.GetNext(&filename);
@@ -1034,8 +1014,8 @@ void ColorPanel::SetDefaultSettings(bool optionbased)
 {
     if (!optionbased)
     {
-        for (auto it = checkBoxes.begin(); it != checkBoxes.end(); ++it) {
-            (*it)->SetValue(false);
+        for (const auto& it : checkBoxes) {
+            it->SetValue(false);
         }
     }
 
@@ -1183,38 +1163,38 @@ void ColorPanel::ValidateWindow()
         {
             if (!_supportslinear && !_supportsradial)
             {
-                ts->SetBitmap(wxArtProvider::GetBitmap("xlART_cc_timelocked_xpm"));
+                ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_timelocked_xpm", wxART_BUTTON));
             }
             else
             {
                 switch (ccb->GetValue()->GetTimeCurve())
                 {
                 case TC_TIME:
-                    ts->SetBitmap(wxArtProvider::GetBitmap("xlART_cc_time_xpm"));
+                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_time_xpm", wxART_BUTTON));
                     break;
                 case TC_LEFT:
-                    ts->SetBitmap(wxArtProvider::GetBitmap("xlART_cc_left_xpm"));
+                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_left_xpm", wxART_BUTTON));
                     break;
                 case TC_RIGHT:
-                    ts->SetBitmap(wxArtProvider::GetBitmap("xlART_cc_right_xpm"));
+                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_right_xpm", wxART_BUTTON));
                     break;
                 case TC_UP:
-                    ts->SetBitmap(wxArtProvider::GetBitmap("xlART_cc_up_xpm"));
+                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_up_xpm", wxART_BUTTON));
                     break;
                 case TC_DOWN:
-                    ts->SetBitmap(wxArtProvider::GetBitmap("xlART_cc_down_xpm"));
+                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_down_xpm", wxART_BUTTON));
                     break;
                 case TC_RADIALOUT:
-                    ts->SetBitmap(wxArtProvider::GetBitmap("xlART_cc_radialout_xpm"));
+                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_radialout_xpm", wxART_BUTTON));
                     break;
                 case TC_RADIALIN:
-                    ts->SetBitmap(wxArtProvider::GetBitmap("xlART_cc_radialin_xpm"));
+                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_radialin_xpm", wxART_BUTTON));
                     break;
                 case TC_CW:
-                    ts->SetBitmap(wxArtProvider::GetBitmap("xlART_cc_cw_xpm"));
+                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_cw_xpm", wxART_BUTTON));
                     break;
                 case TC_CCW:
-                    ts->SetBitmap(wxArtProvider::GetBitmap("xlART_cc_ccw_xpm"));
+                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_ccw_xpm", wxART_BUTTON));
                     break;
                 }
             }
@@ -1222,7 +1202,7 @@ void ColorPanel::ValidateWindow()
         else
         {
             // it should already be this
-            ts->SetBitmap(wxArtProvider::GetBitmap("xlART_cc_na_xpm"));
+            ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_na_xpm", wxART_BUTTON));
         }
     }
 
@@ -1274,28 +1254,24 @@ void ColorPanel::OnColourChoiceDropDown(wxCommandEvent& WXUNUSED(event))
 void ColorPanel::OnBitmapButton_SavePaletteClick(wxCommandEvent& event)
 {
     // Double check that this has not been saved before
-    if (BitmapButton_ColourChoice->GetCount() == 1)
-    {
+    if (BitmapButton_ColourChoice->GetCount() == 1) {
         LoadAllPalettes();
         ValidateWindow();
-        if (!BitmapButton_SavePalette->IsEnabled())
-        {
+        if (!BitmapButton_SavePalette->IsEnabled()) {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.error("Already saved xpalette ... skipped.");
             return;
         }
     }
 
-    if (!wxDir::Exists(xLightsFrame::CurrentDir + "/Palettes"))
-    {
+    if (!wxDir::Exists(xLightsFrame::CurrentDir + "/Palettes")) {
         wxDir::Make(xLightsFrame::CurrentDir + "/Palettes");
     }
 
     int i = 1;
     wxString fn = "PAL001.xpalette";
 
-    while (wxFile::Exists(xLightsFrame::CurrentDir + "/Palettes/" + fn))
-    {
+    while (FileExists(xLightsFrame::CurrentDir + "/Palettes/" + fn)) {
         i++;
         fn = wxString::Format("PAL%03d.xpalette", i);
     }
@@ -1303,17 +1279,14 @@ void ColorPanel::OnBitmapButton_SavePaletteClick(wxCommandEvent& event)
     wxFile f;
     f.Create(xLightsFrame::CurrentDir + "/Palettes/" + fn);
 
-    if (f.IsOpened())
-    {
+    if (f.IsOpened()) {
         std::string pal = GetCurrentPalette();
 
         f.Write(wxString(pal.c_str()));
         f.Close();
 
         _loadedPalettes.push_back(pal);
-    }
-    else
-    {
+    } else {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("Unable to create file %s.", (const char *)fn.c_str());
     }
@@ -1328,8 +1301,7 @@ void ColorPanel::OnColourChoiceSelect(wxCommandEvent& event)
     long sel = event.GetInt();
     wxString s = BitmapButton_ColourChoice->GetString(sel);
 
-    if (s != "(Load)")
-    {
+    if (s != "(Load)") {
         wxArrayString as = wxSplit(s, ',');
 
         for (size_t i = 0; i < std::min(as.size(), buttons.size()); i++)
@@ -1355,30 +1327,24 @@ void ColorPanel::OnColourChoiceSelect(wxCommandEvent& event)
 
 wxString ColorPanel::FindPaletteFile(const wxString& filename, const wxString& palette) const
 {
-    if (wxFile::Exists(xLightsFrame::CurrentDir + "/" + filename))
-    {
-        wxFileInputStream input(xLightsFrame::CurrentDir + "/" + filename);
-        if (input.IsOk())
-        {
+    if (FileExists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + filename)) {
+        wxFileInputStream input(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + filename);
+        if (input.IsOk()) {
             wxTextInputStream text(input);
             wxString s = text.ReadLine();
-            if (s == palette)
-            {
-                return xLightsFrame::CurrentDir + "/" + filename;
+            if (s == palette) {
+                return xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + filename;
             }
         }
     }
 
-    if (wxFile::Exists(xLightsFrame::CurrentDir + "/Palettes/" + filename))
-    {
-        wxFileInputStream input(xLightsFrame::CurrentDir + "/Palettes/" + filename);
-        if (input.IsOk())
-        {
+    if (FileExists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "Palettes"  + wxFileName::GetPathSeparator() + filename)) {
+        wxFileInputStream input(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "Palettes" + wxFileName::GetPathSeparator() + filename);
+        if (input.IsOk()) {
             wxTextInputStream text(input);
             wxString s = text.ReadLine();
-            if (s == palette)
-            {
-                return xLightsFrame::CurrentDir + "/Palettes/" + filename;
+            if (s == palette) {
+                return xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "Palettes" + wxFileName::GetPathSeparator() + filename;
             }
         }
     }

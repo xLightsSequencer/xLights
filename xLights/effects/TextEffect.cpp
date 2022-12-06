@@ -26,6 +26,8 @@
 #include "../UtilFunctions.h"
 #include "../FontManager.h"
 #include "../xLightsMain.h"
+#include "../ExternalHooks.h"
+#include "../xLightsXmlFile.h"
 
 #include "../../include/text-16.xpm"
 #include "../../include/text-24.xpm"
@@ -58,7 +60,7 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
     {
         res.push_back(wxString::Format("    ERR: Text effect has no actual text. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
-    else if (textFilename != "" && !wxFile::Exists(textFilename))
+    else if (textFilename != "" && !FileExists(textFilename))
     {
         res.push_back(wxString::Format("    ERR: Text effect cant find file '%s'. Model '%s', Start %s", textFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
@@ -90,7 +92,7 @@ bool TextEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Settings
 {
     bool rc = false;
     wxString file = SettingsMap["E_FILEPICKERCTRL_Text_File"];
-    if (wxFile::Exists(file))
+    if (FileExists(file))
     {
         if (!frame->IsInShowFolder(file))
         {
@@ -115,7 +117,16 @@ static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
     c->ProcessWindowEvent(evt);
 }
 
-void TextEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
+bool TextEffect::SupportsRenderCache(const SettingsMap& settings) const
+{
+    // we dont want to use render cache if text is coming from a file as the file might have changed
+    if (ToWXString(settings["TEXTCTRL_Text"]) == "" && FileExists(settings["FILEPICKERCTRL_Text_File"]))
+        return false;
+    return true;
+}
+
+void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
     SettingsMap &settings = effect->GetSettings();
     if (IsVersionOlder("2016.46", version) || RenderableEffect::needToAdjustSettings(version))
     {
@@ -266,7 +277,7 @@ void TextEffect::adjustSettings(const std::string &version, Effect *effect, bool
     wxString file = settings["E_FILEPICKERCTRL_Text_File"];
     if (file != "")
     {
-        if (!wxFile::Exists(file))
+        if (!FileExists(file))
         {
             settings["E_FILEPICKERCTRL_Text_File"] = FixFile("", file);
         }
@@ -423,7 +434,8 @@ enum TextDirection {
     TEXTDIR_UPRIGHT,
     TEXTDIR_DOWNRIGHT,
     TEXTDIR_WAVEY_LRUPDOWN,
-    TEXTDIR_VECTOR
+    TEXTDIR_VECTOR,
+    TEXTDIR_WORDFLIP
 };
 
 static TextDirection TextEffectDirectionsIndex(const wxString &st) {
@@ -437,7 +449,10 @@ static TextDirection TextEffectDirectionsIndex(const wxString &st) {
     if (st == "up-right") return TEXTDIR_UPRIGHT;
     if (st == "down-right") return TEXTDIR_DOWNRIGHT;
     if (st == "wavey") return TEXTDIR_WAVEY_LRUPDOWN;
-    if (st == "vector") return TEXTDIR_VECTOR;
+    if (st == "vector")
+        return TEXTDIR_VECTOR;
+    if (st == "word-flip")
+        return TEXTDIR_WORDFLIP;
     return TEXTDIR_NONE;
 }
 static int TextCountDownIndex(const wxString &st) {
@@ -461,7 +476,7 @@ static int TextEffectsIndex(const wxString &st) {
     return 0;
 }
 
-void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     // determine if we are rendering an xLights Font
     wxString xl_font = SettingsMap.Get("CHOICE_Text_Font", "Use OS Fonts");
@@ -475,9 +490,9 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     wxString filename = SettingsMap["FILEPICKERCTRL_Text_File"];
     wxString lyricTrack = SettingsMap["CHOICE_Text_LyricTrack"];
 
-    if (text == "")
+    if (text.IsEmpty())
     {
-        if (wxFile::Exists(filename))
+        if (FileExists(filename))
         {
             wxTextFile f(filename);
             f.Open();
@@ -488,9 +503,9 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 text += f.GetNextLine() + "\n";
                 i++;
             }
-            if (text != "")
+            if (!text.IsEmpty())
             {
-                while (text.Last() == '\n')
+                while (!text.IsEmpty() && text.Last() == '\n' )
                 {
                     text = text.BeforeLast('\n');
                 }
@@ -499,7 +514,7 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         }
         else
         {
-            if (lyricTrack != "")
+            if (!lyricTrack.IsEmpty())
             {
                 Element* t = nullptr;
                 for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
@@ -541,7 +556,12 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         }
     }
 
-    if (text != "") {
+    TextDirection dir = TextEffectDirectionsIndex(SettingsMap["CHOICE_Text_Dir"]);
+    if (dir == TEXTDIR_WORDFLIP) {
+        text = FlipWord(SettingsMap, text, buffer);
+    }
+
+    if (!text.IsEmpty()) {
 
         int starty = wxAtoi(SettingsMap.Get("SLIDER_Text_YStart", "0"));
         int startx = wxAtoi(SettingsMap.Get("SLIDER_Text_XStart", "0"));
@@ -932,6 +952,8 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
 
     FormatCountdown(Countdown, state, Line, buffer, msg, Line_orig);
 
+    ReplaceVaribles(msg, buffer);
+
     double TextRotation=0.0;
     switch(Effect)
     {
@@ -1074,6 +1096,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
                 else
                     rect.Offset(xlimit/16 - state % xlimit/8, zigzag(state/4, totheight)/2 - totheight/4);
                 break; // left-to-right, wavey up-down 1/2 height (too bouncy if full height is used), slow down up/down motion (too fast unless scaled)
+            case TEXTDIR_WORDFLIP:
             case TEXTDIR_NONE: //fall thru to default
             default:
                 //rect.Offset(0, OffsetTop);
@@ -1372,6 +1395,83 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
     }
 }
 
+
+void TextEffect::ReplaceVaribles(wxString& msg, RenderBuffer& buffer) const
+{
+    msg.Replace("${TITLE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
+    msg.Replace("${SONG}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
+    msg.Replace("${ARTIST}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ARTIST));
+    msg.Replace("${ALBUM}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ALBUM));
+    if (buffer.GetMedia() != nullptr) {
+        msg.Replace("${FILENAME}", buffer.GetMedia()->FileName());
+    }
+    msg.Replace("${AUTHOR}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR));
+    msg.Replace("${AUTHOREMAIL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR_EMAIL));
+    msg.Replace("${COMMENT}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::COMMENT));
+    msg.Replace("${URL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::URL));
+    msg.Replace("${WEBSITE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::WEBSITE));
+
+    if (msg.Contains("${UPPER}")) {
+        msg.Replace("${UPPER}", "");
+        msg = msg.Upper();
+    }
+    if (msg.Contains("${LOWER}")) {
+        msg.Replace("${LOWER}", "");
+        msg = msg.Lower();
+    }
+}
+
+std::vector<std::string> TextEffect::WordSplit(const std::string& text) const
+{
+    std::vector<std::string> res;
+
+    std::string word;
+    for (auto c : text) {
+        if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
+            if (word != "") {
+                res.push_back(word);
+                word = "";
+            }
+        }
+        else {
+            word += c;
+        }
+    }
+
+    if (word != "") {
+        res.push_back(word);
+    }
+
+    return res;
+}
+
+std::string TextEffect::FlipWord(const SettingsMap& settings, const std::string& text, RenderBuffer& buffer) const
+{
+    auto words = WordSplit(text);
+
+    if (words.size() > 1) {
+        // we need to adjust the text
+        int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10")); // 0 to 50
+
+        // zero means just show the first word ... never advance
+        // one means go through words once
+
+        float msPerWord = 0;
+        if (tspeed != 0) {
+            msPerWord = ((buffer.curEffEndPer - buffer.curEffStartPer + 1) * buffer.frameTimeInMs) / (words.size() * tspeed);
+        }
+        int word = 0;        
+        if (msPerWord != 0) {
+            word = ((float)(buffer.curPeriod - buffer.curEffStartPer) * (float)buffer.frameTimeInMs) / msPerWord;
+        }
+
+        word = word % words.size();
+        return words[word];
+    }
+
+    return text;
+}
+
 void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
     xlColor c;
@@ -1404,7 +1504,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     wxString lyricTrack = settings["CHOICE_Text_LyricTrack"];
 
     if (text == "") {
-        if (wxFile::Exists(filename)) {
+        if (FileExists(filename)) {
             wxTextFile f(filename);
             f.Open();
             int i = 0;
@@ -1464,6 +1564,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         FormatCountdown(Countdown, state, Line, buffer, msg, text);
         msg.Replace(" : ", ":");
     }
+    ReplaceVaribles(msg, buffer);
     text = msg;
     int text_length = font_mgr.get_length(font, text);
 
@@ -1482,6 +1583,11 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         if (text_effect == 4) {
             up = true;
         }
+    }
+
+    TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
+    if (dir == TEXTDIR_WORDFLIP) {
+        text = FlipWord(settings, text, buffer);
     }
 
     int PreOffsetLeft = OffsetLeft;

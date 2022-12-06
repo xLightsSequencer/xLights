@@ -14,6 +14,9 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
+#define XLIGHTS_FX 
+#include "FX.h"
+
 #include "../../include/singleStrand-16.xpm"
 #include "../../include/singleStrand-64.xpm"
 
@@ -79,10 +82,14 @@ void SingleStrandEffect::SetDefaultParameters()
     sp->BitmapButton_Color_Mix1VC->SetActive(false);
     sp->BitmapButton_Number_ChasesVC->SetActive(false);
     sp->BitmapButton_Chase_Rotations->SetActive(false);
+    sp->BitmapButton_FX_IntensityVC->SetActive(false);
+    sp->BitmapButton_FX_SpeedVC->SetActive(false);
 
     SetChoiceValue(sp->Choice_SingleStrand_Colors, "Palette");
     SetChoiceValue(sp->Choice_Skips_Direction, "Left");
     SetChoiceValue(sp->Choice_Chase_Type1, "Left-Right");
+    SetChoiceValue(sp->Choice_SingleStrand_FX, "Fireworks 1D");
+    SetChoiceValue(sp->Choice_FX_Palette, "* Colors Only");
 
     SetSliderValue(sp->Slider_Number_Chases, 1);
     SetSliderValue(sp->Slider_Color_Mix1, 10);
@@ -91,6 +98,8 @@ void SingleStrandEffect::SetDefaultParameters()
     SetSliderValue(sp->Slider_Skips_SkipSize, 1);
     SetSliderValue(sp->Slider_Skips_StartPos, 1);
     SetSliderValue(sp->Slider_Skips_Advance, 0);
+    SetSliderValue(sp->Slider_FX_Intensity, 128);
+    SetSliderValue(sp->Slider_FX_Speed, 128);
 
     SetCheckBoxValue(sp->CheckBox_Chase_3dFade1, false);
     SetCheckBoxValue(sp->CheckBox_Chase_Group_All, false);
@@ -98,7 +107,7 @@ void SingleStrandEffect::SetDefaultParameters()
 
 bool SingleStrandEffect::needToAdjustSettings(const std::string& version) {
     // give the base class a chance to adjust any settings
-    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2020.57", version);
+    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2021.40", version);
 }
 
 void SingleStrandEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
@@ -116,18 +125,35 @@ void SingleStrandEffect::adjustSettings(const std::string& version, Effect* effe
             }
         }
     }
+    if (IsVersionOlder("2021.40", version)) {
+        SettingsMap& sm = effect->GetSettings();
+        wxString rzRotations = sm.Get("E_VALUECURVE_Chase_Rotations", "");
+        if (rzRotations.Contains("VALUECURVE") && !rzRotations.Contains("RV=TRUE")) {
+            ValueCurve vc;
+            vc.SetLimits(1, 500);
+            vc.Deserialise(rzRotations);
+            sm["E_VALUECURVE_Chase_Rotations"] = vc.Serialise();
+            wxASSERT(vc.IsRealValue());
+        }
+    }
 }
 
-void SingleStrandEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void SingleStrandEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
+    double eff_pos = buffer.GetEffectTimeIntervalPosition();
     if ("Skips" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {
         RenderSingleStrandSkips(buffer, effect,
-                                SettingsMap.GetInt("SLIDER_Skips_BandSize",1),
-                                SettingsMap.GetInt("SLIDER_Skips_SkipSize",1),
-                                SettingsMap.GetInt("SLIDER_Skips_StartPos",1),
+                                SettingsMap.GetInt("SLIDER_Skips_BandSize", 1),
+                                SettingsMap.GetInt("SLIDER_Skips_SkipSize", 1),
+                                SettingsMap.GetInt("SLIDER_Skips_StartPos", 1),
                                 SettingsMap["CHOICE_Skips_Direction"],
                                 SettingsMap.GetInt("SLIDER_Skips_Advance", 0));
+    } else if ("FX" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {
+        RenderSingleStrandFX(buffer, effect,
+                             GetValueCurveInt("FX_Intensity", 128, SettingsMap, eff_pos, SINGLESTRAND_FXINTENSITY_MIN, SINGLESTRAND_FXINTENSITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+                             GetValueCurveInt("FX_Speed", 128, SettingsMap, eff_pos, SINGLESTRAND_FXSPEED_MIN, SINGLESTRAND_FXSPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+                             SettingsMap.Get("CHOICE_SingleStrand_FX", "Blink"), SettingsMap.Get("CHOICE_SingleStrand_FX_Palette", "Default"));
     } else {
-        double eff_pos = buffer.GetEffectTimeIntervalPosition();
         RenderSingleStrandChase(buffer,
                                 SettingsMap.Get("CHOICE_SingleStrand_Colors", "Palette"),
                                 GetValueCurveInt("Number_Chases", 1, SettingsMap, eff_pos, SINGLESTRAND_CHASES_MIN, SINGLESTRAND_CHASES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
@@ -135,8 +161,7 @@ void SingleStrandEffect::Render(Effect *effect, SettingsMap &SettingsMap, Render
                                 SettingsMap.Get("CHOICE_Chase_Type1", "Left-Right"),
                                 SettingsMap.GetBool("CHECKBOX_Chase_3dFade1", false),
                                 SettingsMap.GetBool("CHECKBOX_Chase_Group_All", false),
-                                GetValueCurveDouble("Chase_Rotations", 1.0, SettingsMap, eff_pos, SINGLESTRAND_ROTATIONS_MIN, SINGLESTRAND_ROTATIONS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10)
-                                );
+                                GetValueCurveDouble("Chase_Rotations", 1.0, SettingsMap, eff_pos, SINGLESTRAND_ROTATIONS_MIN, SINGLESTRAND_ROTATIONS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10));
     }
 }
 
@@ -240,6 +265,67 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
     buffer.CopyPixelsToDisplayListX(eff, 0, 0, max);
 }
 
+class SingleStrandFXRenderCache : public EffectRenderCache
+{
+public:
+    SingleStrandFXRenderCache(RenderBuffer& buffer) {
+        _fx = new WS2812FX();
+    };
+    virtual ~SingleStrandFXRenderCache(){
+        if (_fx != nullptr)
+            delete _fx;
+    };
+
+    WS2812FX* _fx = nullptr;
+};
+
+void SingleStrandEffect::RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, int intensity, int speed, const std::string& fx, const std::string& palette)
+{
+    SingleStrandFXRenderCache* cache = dynamic_cast <SingleStrandFXRenderCache*>(buffer.infoCache[id]);
+    if (cache == nullptr) {
+
+        // this could happen if the cache type changes
+        if (buffer.infoCache[id] != nullptr) {
+            delete buffer.infoCache[id];
+        }
+
+        cache = new SingleStrandFXRenderCache(buffer);
+        buffer.infoCache[id] = cache;
+    }
+
+    auto pfx = cache->_fx;
+    wxASSERT(pfx != nullptr);
+
+    pfx->SetBuffer(&buffer);
+
+    if (buffer.needToInit) {
+        buffer.ClearTempBuf();
+        pfx->SetBuffer(&buffer);
+        pfx->setSegment(0, 0, buffer.BufferWi);
+        pfx->setMode(0, DecodeMode(fx));
+        pfx->getSegment(0).palette = DecodePalette(palette);
+        pfx->finalizeInit();
+    }
+
+    pfx->getSegment(0).intensity = intensity;
+    pfx->getSegment(0).speed = speed;
+    if (buffer.GetColorCount() == 0) {
+        pfx->getSegment(0).colors[0] = convertColour(xlWHITE);
+    } else {
+        for (size_t i = 0; i < NUM_COLORS; i++) {
+            if (buffer.GetColorCount() > i) {
+                pfx->getSegment(0).colors[i] = convertColour(buffer.GetPalette().GetColor(i)); // dont use set colour as it transitions
+            } else {
+                pfx->getSegment(0).colors[i] = 0xFF000000;
+            }
+        }
+    }
+
+    pfx->service();
+
+    buffer.needToInit = false;
+}
+
 int mapChaseType(const std::string &Chase_Type) {
     if ("Left-Right" == Chase_Type) return 0;
     if ("Right-Left" == Chase_Type) return 1;
@@ -323,8 +409,15 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
     else {
         width = buffer.BufferWi;
     }
+    
+    if (Mirror) {
+        if ((width % 2) == 0) {
+            width /= 2;
+        } else {
+            width = (width + 1) / 2;
+        }
+    }
 
-    if (Mirror) width /= 2;
     if (width == 0) width = 1;
 
     // Make this a variable since it's used regularly

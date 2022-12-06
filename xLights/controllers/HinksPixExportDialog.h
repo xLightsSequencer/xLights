@@ -170,6 +170,8 @@ private:
     ControllerEthernet* getSlaveController(const std::string& name);
 
     [[nodiscard]] std::vector<HinksChannelMap> getModelChannelMap(ControllerEthernet* hinks, int32_t& chanCount) const;
+    
+    [[nodiscard]] bool createTestFile(wxString const& drive) const;
 
     DECLARE_EVENT_TABLE()
 };

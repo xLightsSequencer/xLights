@@ -54,7 +54,7 @@ public:
     #pragma endregion
 
     #pragma region Static Functions
-    static void SendSync(int syncUniverse);
+    static void SendSync(int syncUniverse, const std::string& localIP);
     static std::string GetTag();
     #pragma endregion
 

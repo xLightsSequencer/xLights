@@ -109,20 +109,12 @@ PicturesAssistPanel::PicturesAssistPanel(wxWindow* parent, wxWindowID id,const w
 	PaintFuntionsSizer->Add(StaticText_ModelSize, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer_RightSide->Add(PaintFuntionsSizer, 1, wxALL|wxEXPAND, 5);
 	Panel_RightSide->SetSizer(FlexGridSizer_RightSide);
-	FlexGridSizer_RightSide->Fit(Panel_RightSide);
-	FlexGridSizer_RightSide->SetSizeHints(Panel_RightSide);
 	FlexGridSizer_Container->Add(Panel_RightSide, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ScrolledWindowEffectAssist->SetSizer(FlexGridSizer_Container);
-	FlexGridSizer_Container->Fit(ScrolledWindowEffectAssist);
-	FlexGridSizer_Container->SetSizeHints(ScrolledWindowEffectAssist);
 	FlexGridSizer2->Add(ScrolledWindowEffectAssist, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_Sizer->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(Panel_Sizer);
-	FlexGridSizer2->SetSizeHints(Panel_Sizer);
 	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BUTTON_NewImage,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesAssistPanel::OnButton_NewImageClick);
 	Connect(ID_BUTTON_LoadImage,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesAssistPanel::OnButton_LoadImageClick);

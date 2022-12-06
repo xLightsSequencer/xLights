@@ -25,6 +25,8 @@
 #include "UtilFunctions.h"
 #include "PixelBuffer.h"
 #include "Parallel.h"
+#include "ExternalHooks.h"
+#include "GPURenderUtils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -59,6 +61,7 @@ public:
 
     int numLayers;
     int strand;
+    int submodel = -1;
     Element *element;
     PixelBufferClassPtr buffer;
     std::vector<Effect*> currentEffects;
@@ -240,17 +243,26 @@ public:
                     for (int l = numLayers - 1; l >= 0; --l) {
                         EffectLayer *layer = row->GetEffectLayer(l);
                         bool perModelEffects = false;
+                        bool perModelEffectsDeep = false;
                         for (int e = 0; e < layer->GetEffectCount() && !perModelEffects; ++e) {
                             static const std::string CHOICE_BufferStyle("B_CHOICE_BufferStyle");
                             static const std::string DEFAULT("Default");
                             static const std::string PER_MODEL("Per Model");
-                            const std::string &bt = layer->GetEffect(e)->GetSettings().Get(CHOICE_BufferStyle, DEFAULT);
+                            static const std::string DEEP("Deep");
+                            const std::string& bt = layer->GetEffect(e)->GetSettings().Get(CHOICE_BufferStyle, DEFAULT);
                             if (bt.compare(0, 9, PER_MODEL) == 0) {
-                                perModelEffects = true;
+                                if (bt.compare(bt.length() - 4, 4, DEEP) == 0) {
+                                    perModelEffectsDeep = true;
+                                } else {
+                                    perModelEffects = true;
+                                }
                             }
                         }
+                        const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
+                        if (perModelEffectsDeep) {
+                            mainBuffer->InitPerModelBuffersDeep(*grp, l, data.FrameTime());
+                        }
                         if (perModelEffects) {
-                            const ModelGroup *grp = dynamic_cast<const ModelGroup*>(model);
                             mainBuffer->InitPerModelBuffers(*grp, l, data.FrameTime());
                         }
                     }
@@ -265,6 +277,7 @@ public:
                                 subModelInfos.back()->element = se;
                                 subModelInfos.back()->buffer.reset(new PixelBufferClass(xframe));
                                 subModelInfos.back()->strand = ste->GetStrand();
+                                subModelInfos.back()->submodel = subModelInfos.size() -1;
                                 subModelInfos.back()->buffer->InitStrandBuffer(*model, ste->GetStrand(), data.FrameTime(), se->GetEffectLayerCount());
                             }
                         } else {
@@ -272,6 +285,7 @@ public:
                             if (subModel != nullptr) {
                                 subModelInfos.push_back(new EffectLayerInfo(se->GetEffectLayerCount() + 1));
                                 subModelInfos.back()->element = se;
+                                subModelInfos.back()->submodel = subModelInfos.size() -1;
                                 subModelInfos.back()->buffer.reset(new PixelBufferClass(xframe));
                                 subModelInfos.back()->buffer->InitBuffer(*subModel, se->GetEffectLayerCount() + 1, data.FrameTime(), false);
                             }
@@ -379,33 +393,39 @@ public:
         return PctSafe(statusMap->AsString());
     }
 
-    void SetRenderingStatus(int frame, SettingsMap*map, int layer, int strand, int node, bool debugLog = false) {
+    void SetRenderingStatus(int frame, SettingsMap*map, int layer, int submodel, int strand, int node, bool debugLog = false) {
         statusType = 2;
         statusFrame = frame;
         statusLayer = layer;
         statusStrand = strand;
+        statusSubmodel = submodel;
         statusNode = node;
         statusMap = map;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
-    void SetCalOutputStatus(int frame, int strand = -1, int node = -1, bool debugLog = true) {
+    void SetCalOutputStatus(int frame, int submodel, int strand, int node, bool debugLog = true) {
         statusType = 3;
         statusFrame = frame;
         statusStrand = strand;
+        statusSubmodel = submodel;
         statusNode = node;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
-    void SetInializingStatus(int frame, int layer, int strand = -1, int node = -1, bool debugLog = false) {
+    void SetInializingStatus(int frame, int layer, int submodel, int strand, int node, bool debugLog = false) {
         statusType = 1;
         statusFrame = frame;
         statusLayer = layer;
         statusStrand = strand;
+        statusSubmodel = submodel;
         statusNode = node;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-
+    void SetWaitingStatus(int frame, bool debugLog = false) {
+        statusType = 13;
+        statusFrame = frame;
+    }
     void SetStatus(const wxString &st, bool debugLog = false) {
         statusMsg = st;
         statusType = 0;
@@ -425,43 +445,55 @@ public:
     wxString GetStatusForUser()
     {
         int lastIdx = 0;
-        Effect* effect = findEffectForFrame(this->statusLayer, GetCurrentFrame(), lastIdx);
+        int submodel = -1;
+        if (statusType >= 1 && statusType <= 3) {
+            submodel = statusSubmodel;
+        }
+        Effect* effect = findEffectForFrame(this->statusLayer, GetCurrentFrame(), submodel, lastIdx);
 
-        if (effect != nullptr)
-        {
-            return wxString::Format("Effect: %s Start: %s End %s", effect->GetEffectName(), FORMATTIME(effect->GetStartTimeMS()), FORMATTIME(effect->GetEndTimeMS()));
+        if (effect != nullptr) {
+            std::string mname = "";
+            if (submodel >= 0) {
+                mname = "Submodel: " + subModelInfos[submodel]->element->GetName() + " ";
+            }
+            return wxString::Format("%sEffect: %s Start: %s End %s", mname.c_str(), effect->GetEffectName().c_str(),
+                                    FORMATTIME(effect->GetStartTimeMS()), FORMATTIME(effect->GetEndTimeMS()));
+        }
+        if (statusType == 13) {
+            return wxString::Format("Waiting to start frame %d", statusFrame);
         }
 
         return "";
     }
 
     wxString GetwxStatus() {
+        std::string n = (statusSubmodel == -1 || statusSubmodel >= subModelInfos.size()) ? name : subModelInfos[statusSubmodel]->element->GetFullName();
         switch (statusType) {
         case 0:
             return statusMsg;
         case 1:
             if (statusStrand == -1) {
-                return wxString::Format("Initializing effect at frame %d for %s, layer %d.", statusFrame, name, statusLayer);
+                return wxString::Format("Initializing effect at frame %d for %s, layer %d", statusFrame, n, statusLayer);
             } else if (statusNode == -1) {
-                return wxString::Format("Initializing strand effect at frame %d for %s, strand %d.", statusFrame, name, statusStrand);
+                return wxString::Format("Initializing strand effect at frame %d for %s, strand %d", statusFrame, n, statusStrand);
             } else {
-                return wxString::Format("Initializing node effect at frame %d for %s, strand %d, node %d.", statusFrame, name, statusStrand, statusNode);
+                return wxString::Format("Initializing node effect at frame %d for %s, strand %d, node %d", statusFrame, n, statusStrand, statusNode);
             }
         case 2:
             if (statusStrand == -1) {
-                return wxString::Format("Rendering layer effect for frame %d of %s, layer %d.", statusFrame, name, statusLayer) + PrintStatusMap();
+                return wxString::Format("Rendering layer effect for frame %d of %s, layer %d: ", statusFrame, n, statusLayer) + PrintStatusMap();
             } else if (statusNode == -1) {
-                return wxString::Format("Rendering strand effect for frame %d of %s, strand %d.", statusFrame, name, statusStrand) + PrintStatusMap();
+                return wxString::Format("Rendering strand effect for frame %d of %s, strand %d: ", statusFrame, n, statusStrand) + PrintStatusMap();
             } else {
-                return wxString::Format("Rendering node effect for frame %d of %s, strand %d, node %d.", statusFrame, name, statusLayer, statusNode) + PrintStatusMap();
+                return wxString::Format("Rendering node effect for frame %d of %s, strand %d, node %d: ", statusFrame, n, statusLayer, statusNode) + PrintStatusMap();
             }
         case 3:
             if (statusStrand == -1) {
-                return wxString::Format("Calculating output at frame %d for %s.", statusFrame, name) + PrintStatusMap();
+                return wxString::Format("Calculating output at frame %d for %s: ", statusFrame, n) + PrintStatusMap();
             } else if (statusNode == -1) {
-                return wxString::Format("Calculating output at frame %d for %s, strand %d.", statusFrame, name, statusStrand) + PrintStatusMap();
+                return wxString::Format("Calculating output at frame %d for %s, strand %d: ", statusFrame, n, statusStrand) + PrintStatusMap();
             } else {
-                return wxString::Format("Calculating output at frame %d for %s, strand %d, node %d.", statusFrame, name, statusStrand, statusNode) + PrintStatusMap();
+                return wxString::Format("Calculating output at frame %d for %s, strand %d, node %d: ", statusFrame, n, statusStrand, statusNode) + PrintStatusMap();
             }
         case 4:
             return wxString::Format(statusMsg, name, statusFrame);
@@ -481,8 +513,8 @@ public:
             return wxString::Format(statusMsgChars, name, statusFrame, statusLayer) + PrintStatusMap();
         case 12:
             return statusMsgChars;
-
-
+        case 13:
+            return wxString::Format("Waiting to start frame %d for %s", statusFrame, n);
         }
         return statusMsg;
     }
@@ -525,7 +557,6 @@ public:
     }
 
     bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
-
         wxStopWatch sw;
         bool effectsToUpdate = false;
         int numLayers = el->GetEffectLayerCount();
@@ -542,20 +573,18 @@ public:
             Effect* ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
             if (ef != info.currentEffects[layer]) {
                 info.currentEffects[layer] = ef;
-                SetInializingStatus(frame, layer, strand);
+                SetInializingStatus(frame, layer, info.submodel, strand, -1);
                 initialize(layer, frame, ef, info.settingsMaps[layer], buffer);
                 info.effectStates[layer] = true;
             }
 
-            if (buffer->IsVariableSubBuffer(layer))
-            {
+            if (buffer->IsVariableSubBuffer(layer)) {
                 buffer->PrepareVariableSubBuffer(frame, layer);
             }
 
             bool persist = buffer->IsPersistent(layer);
             bool freeze = false;
-            if (ef != nullptr && buffer != nullptr)
-            {
+            if (ef != nullptr && buffer != nullptr) {
                 freeze = buffer->GetFreezeFrame(layer) != 999999 && buffer->GetFreezeFrame(layer) <= GetEffectFrame(ef, frame, mainBuffer->GetFrameTimeInMS());
             }
 
@@ -564,38 +593,29 @@ public:
             }
 
             bool suppress = false;
-            if (ef != nullptr && buffer != nullptr)
-            {
+            if (ef != nullptr && buffer != nullptr) {
                 suppress = buffer->GetSuppressUntil(layer) > GetEffectFrame(ef, frame, mainBuffer->GetFrameTimeInMS());
             }
 
-            SetRenderingStatus(frame, &info.settingsMaps[layer], layer, strand, -1, true);
+            SetRenderingStatus(frame, &info.settingsMaps[layer], layer, info.submodel, strand, -1, true);
             bool b = info.effectStates[layer];
 
-            if (!freeze)
-            {
+            if (!freeze) {
                 // Mix canvas pre-loads the buffer with data from underlying layers
-                if (buffer->IsCanvasMix(layer) && layer < numLayers - 1)
-                {
+                if (buffer->IsCanvasMix(layer) && layer < numLayers - 1) {
                     auto vl = info.validLayers;
-                    if (info.settingsMaps[layer].Get("LayersSelected", "") != "")
-                    {
+                    if (info.settingsMaps[layer].Get("LayersSelected", "") != "") {
                         // remove from valid layers any layers we dont need to include
                         wxArrayString ls = wxSplit(info.settingsMaps[layer].Get("LayersSelected", ""), '|');
-                        for (int i = layer + 1; i < vl.size(); i++)
-                        {
-                            if (vl[i])
-                            {
+                        for (int i = layer + 1; i < vl.size(); i++) {
+                            if (vl[i]) {
                                 bool found = false;
-                                for (auto it = ls.begin(); !found && it != ls.end(); ++it)
-                                {
-                                    if (wxAtoi(*it) + layer + 1 == i)
-                                    {
+                                for (auto it = ls.begin(); !found && it != ls.end(); ++it) {
+                                    if (wxAtoi(*it) + layer + 1 == i) {
                                         found = true;
                                     }
                                 }
-                                if (!found)
-                                {
+                                if (!found) {
                                     vl[i] = false;
                                 }
                             }
@@ -611,27 +631,27 @@ public:
                     rb.CopyNodeColorsToPixels(done);
                     // now fill in any spaces in the buffer that don't have nodes mapped to them
                     parallel_for(0, rb.BufferHt, [&rb, &buffer, &done, &vl, frame](int y) {
+                        xlColor c;
                         for (int x = 0; x < rb.BufferWi; x++) {
                             if (!done[y * rb.BufferWi + x]) {
-                                xlColor c = xlBLACK;
                                 buffer->GetMixedColor(x, y, c, vl, frame);
                                 rb.SetPixel(x, y, c);
                             }
                         }
                         });
+                    buffer->UnMergeBuffersForLayer(layer);
                 }
 
                 info.validLayers[layer] = xLights->RenderEffectFromMap(suppress, ef, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);
                 effectsToUpdate |= info.validLayers[layer];
                 info.effectStates[layer] = b;
 
-                if (suppress)
-                {
+                if (suppress) {
                     info.validLayers[layer] = false;
+                } else {
+                    buffer->HandleLayerBlurZoom(frame, layer);
                 }
-            }
-            else
-            {
+            } else {
                 info.validLayers[layer] = true;
                 info.effectStates[layer] = b;
                 effectsToUpdate = true;
@@ -639,7 +659,7 @@ public:
         }
 
         if (effectsToUpdate) {
-            SetCalOutputStatus(frame, strand);
+            SetCalOutputStatus(frame, info.submodel, strand, -1);
             if (blend) {
                 buffer->SetColors(numLayers, &((*seqData)[frame][0]));
                 info.validLayers[numLayers] = true;
@@ -734,12 +754,12 @@ public:
                 //make sure we can do this frame
                 if (frame >= maxFrameBeforeCheck) {
                     wxStopWatch sw;
+                    SetWaitingStatus(frame);
                     maxFrameBeforeCheck = waitForFrame(frame);
-
-                    if (sw.Time() > 500)
-                    {
+                    if (sw.Time() > 500) {
                         renderLog.info("Model %s rendering frame %d waited %dms waiting for other models to finish.", (const char *)(mainModelInfo.element != nullptr) ? mainModelInfo.element->GetName().c_str() : "", frame, sw.Time());
                     }
+                    SetGenericStatus("%s: Processing frame %d ", frame, true, true);
                 }
                 bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
                 if (!subModelInfos.empty()) {
@@ -753,8 +773,7 @@ public:
                         SNPair node = it.first;
                         PixelBufferClass *buffer = it.second.get();
 
-                        if (buffer == nullptr)
-                        {
+                        if (buffer == nullptr) {
                             logger_base.crit("RenderJob::Process PixelBufferPointer is null ... this is going to crash.");
                         }
 
@@ -774,7 +793,7 @@ public:
                         Effect *el = findEffectForFrame(nlayer, frame, nodeEffectIdxs[node]);
                         if (el != nodeEffects[node] || frame == startFrame) {
                             nodeEffects[node] = el;
-                            SetInializingStatus(frame, -1, strand, inode);
+                            SetInializingStatus(frame, -1, -1, strand, inode);
                             initialize(0, frame, el, nodeSettingsMaps[node], buffer);
                             nodeEffectStates[node] = true;
                         }
@@ -783,9 +802,9 @@ public:
                             buffer->Clear(0);
                         }
 
-                        SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, strand, inode, cleared);
+                        SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, -1, strand, inode, cleared);
                         if (xLights->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
-                            SetCalOutputStatus(frame, strand, inode);
+                            SetCalOutputStatus(frame, -1, strand, inode);
                             //copy to output
                             std::vector<bool> valid(2, true);
                             buffer->SetColors(1, &((*seqData)[frame][0]));
@@ -800,7 +819,7 @@ public:
                     FrameDone(frame);
                 }
             }
-            SetGenericStatus("%s: All done - Completed frame %d ", endFrame, true, true);
+            SetGenericStatus("%s: All done - Completed frame %d ", endFrame, true, false);
         } catch ( std::exception &ex) {
             wxASSERT(false); // so when we debug we catch them
             printf("Caught an exception %s", ex.what());
@@ -822,6 +841,7 @@ public:
             SetGenericStatus("%s: Notifying next renderer of final frame", 0, true);
             FrameDone(END_OF_RENDER_FRAME);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering \"" + rowToRender->GetModelName() + "\""), 0);
+            SetGenericStatus("%s: All done - Completed frame %d ", endFrame, true, false);
         } else {
             xLights->CallAfter(&xLightsFrame::RenderDone);
         }
@@ -876,6 +896,12 @@ private:
     Effect *findEffectForFrame(int layer, int frame, int &lastIdx) {
         return findEffectForFrame(rowToRender->GetEffectLayer(layer), frame, lastIdx);
     }
+    Effect *findEffectForFrame(int layer, int frame, int submodel, int &lastIdx) {
+        if (submodel == -1) {
+            return findEffectForFrame(rowToRender->GetEffectLayer(layer), frame, lastIdx);
+        }
+        return findEffectForFrame(subModelInfos[submodel]->element->GetEffectLayer(layer), frame, lastIdx);
+    }
 
     void loadSettingsMap(const std::string &effectName,
                          Effect *effect,
@@ -903,8 +929,9 @@ private:
     volatile int statusFrame;
     SettingsMap *statusMap;
     volatile int statusLayer;
-    volatile int statusStrand;
-    volatile int statusNode;
+    volatile int statusSubmodel = -1;
+    volatile int statusStrand = -1;
+    volatile int statusNode = -1;
     log4cpp::Category &renderLog;
 
     wxGauge *gauge;
@@ -1008,15 +1035,23 @@ void xLightsFrame::LogRenderStatus()
                 }
 
                 logger_base.debug("    Progress %s - %ld%%.", (const char *)job->GetName().c_str(), (long)(curFrame - it->startFrame + 1) * 100 / frames);
-                logger_base.debug("             %s.", (const char *)job->GetStatusForUser().c_str());
-                logger_base.debug("             %s.", (const char *)job->GetStatus().c_str());
+                std::string su = job->GetStatusForUser();
+                if (!su.empty()) {
+                    logger_base.debug("             %s.", (const char *)su.c_str());
+                }
+                su = job->GetStatus();
+                if (!su.empty()) {
+                    logger_base.debug("             %s.", (const char *)su.c_str());
+                }
 
-                bool blocked = job->GetwxStatus().StartsWith("Initializing rendering thread");
                 auto row = job->GetModelElement();
                 if (row != nullptr) {
-                    logger_base.debug("             Element %s, Blocked %d, Wait Count %d.",
-                                      (const char *)row->GetModelName().c_str(), blocked,
-                                      row->GetWaitCount());
+                    bool blocked = job->GetwxStatus().StartsWith("Initializing rendering thread");
+                    if (blocked || row->GetWaitCount()) {
+                        logger_base.debug("             Element %s, Blocked %d, Wait Count %d.",
+                                          (const char *)row->GetModelName().c_str(), blocked,
+                                          row->GetWaitCount());
+                    }
                 }
             }
         }
@@ -1787,140 +1822,164 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
     });
 }
 
-void xLightsFrame::ExportModel(wxCommandEvent &command) {
+bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame, const std::string& model, const std::string& fn, const std::string& fmt, bool doRender)
+{
+    if (endFrame == 0)
+        endFrame = _seqData.NumFrames();
 
+    Model* m = GetModel(model);
+    if (m == nullptr)
+        return false;
+
+    if (m->GetDisplayAs() == "ModelGroup")
+        return false;
+
+    wxString filename(fn);
+    wxString format(fmt);
+
+    wxStopWatch sw;
+    wxString Out3 = format.Left(3);
+
+    if (Out3 == "LSP") {
+        filename = filename + "_USER";
+    }
+    wxFileName oName(filename);
+
+    if (oName.GetPathWithSep() == "") {
+        oName.SetPath(CurrentDir);
+    }
+    wxString fullpath;
+
+    SetStatusText(wxString::Format("Starting Export for %s - %s", format, Out3));
+    wxYield();
+
+    NextRenderer wait;
+    Element* el = _sequenceElements.GetElement(model);
+    if (el == nullptr)
+        return false;
+    RenderJob* job = new RenderJob(dynamic_cast<ModelElement*>(el), _seqData, this, true);
+    wxASSERT(job != nullptr);
+    SequenceData* data = job->createExportBuffer();
+    wxASSERT(data != nullptr);
+    int cpn = job->getBuffer()->GetChanCountPerNode();
+
+    if (doRender) {
+        // always render the whole model
+        job->setRenderRange(0, _seqData.NumFrames());
+        job->setPreviousFrameDone(END_OF_RENDER_FRAME);
+        job->addNext(&wait);
+        jobPool.PushJob(job);
+        //wait to complete
+        while (!wait.checkIfDone(_seqData.NumFrames())) {
+            wxYield();
+        }
+    } else {
+        Model* m2 = GetModel(model);
+        for (size_t frame = 0; frame < _seqData.NumFrames(); ++frame) {
+            for (size_t x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
+                //chan in main buffer
+                int ostart = m2->NodeStartChannel(x);
+                int nstart = job->getBuffer()->NodeStartChannel(x);
+                //copy to render buffer for export
+                job->getBuffer()->SetNodeChannelValues(x, &_seqData[frame][ostart]);
+                job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
+            }
+        }
+    }
+    delete job;
+
+    if (Out3 == "Lcb") {
+        oName.SetExt(_("lcb"));
+        fullpath = oName.GetFullPath();
+        int lcbVer = 1;
+        if (format.Contains("S5")) {
+            lcbVer = 2;
+        }
+        WriteLcbFile(fullpath, data->NumChannels(), startFrame, endFrame, data, lcbVer, cpn);
+    } else if (Out3 == "Vir") {
+        oName.SetExt(_("vir"));
+        fullpath = oName.GetFullPath();
+        WriteVirFile(fullpath, data->NumChannels(), startFrame, endFrame, data);
+    } else if (Out3 == "LSP") {
+        oName.SetExt(_("xml"));
+        fullpath = oName.GetFullPath();
+        WriteLSPFile(fullpath, data->NumChannels(), startFrame, endFrame, data, cpn);
+    } else if (Out3 == "HLS") {
+        oName.SetExt(_("hlsnc"));
+        fullpath = oName.GetFullPath();
+        WriteHLSFile(fullpath, data->NumChannels(), startFrame, endFrame, data);
+    } else if (Out3 == "FPP") {
+        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+        oName.SetExt(_("eseq"));
+        fullpath = oName.GetFullPath();
+        bool v2 = format.Contains("Compressed");
+        WriteFalconPiModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), v2);
+    } else if (Out3 == "Com") {
+        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+        oName.SetExt(_("mp4"));
+        fullpath = oName.GetFullPath();
+        WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), true);
+    } else if (Out3 == "Unc") {
+        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+        fullpath = oName.GetFullPath();
+        WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false);
+    } else if (Out3 == "Min") {
+        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+        oName.SetExt(_("bin"));
+        fullpath = oName.GetFullPath();
+        WriteMinleonNECModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model));
+    } else if (Out3 == "GIF") {
+        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+        oName.SetExt(_("gif"));
+        fullpath = oName.GetFullPath();
+        WriteGIFModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), _seqData.FrameTime());
+    }
+    float s = sw.Time();
+    s /= 1000;
+    SetStatusText(wxString::Format("Finished writing model: %s in %0.3fs ", fullpath, s));
+
+    delete data;
+    EnableSequenceControls(true);
+
+    return true;
+}
+
+void xLightsFrame::ExportModel(wxCommandEvent& command)
+{
     unsigned int startFrame = 0;
     unsigned int endFrame = _seqData.NumFrames();
-    if (command.GetString().Contains('|'))
-    {
+    if (command.GetString().Contains('|')) {
         auto as = wxSplit(command.GetString(), '|');
-        if (as.size() == 3)
-        {
+        if (as.size() == 3) {
             startFrame = wxAtoi(as[1]);
             endFrame = wxAtoi(as[2]);
         }
     }
 
     std::string model = command.GetString().BeforeFirst('|').ToStdString();
-    Model *m = GetModel(model);
-    if (m == nullptr) return;
+    Model* m = GetModel(model);
+    if (m == nullptr)
+        return;
 
     bool isgroup = (m->GetDisplayAs() == "ModelGroup");
 
     bool isboxed = false;
-    if (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(m) != nullptr)
-    {
+    if (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(m) != nullptr) {
         // line models, arches etc make no sense for videos
         isboxed = true;
     }
 
     SeqExportDialog dialog(this, m->GetName());
     dialog.ModelExportTypes(isgroup || !isboxed);
+    dialog.SetExportType(command.GetString().Contains('|'), command.GetInt() == 1);
 
     if (dialog.ShowModal() == wxID_OK) {
         wxString filename = dialog.TextCtrlFilename->GetValue();
+        ObtainAccessToURL(filename);
         EnableSequenceControls(false);
         wxString format = dialog.ChoiceFormat->GetStringSelection();
-        wxStopWatch sw;
-        wxString Out3 = format.Left(3);
 
-        if (Out3 == "LSP") {
-            filename = filename + "_USER";
-        }
-        wxFileName oName(filename);
-
-        if (oName.GetPathWithSep() == "") {
-            oName.SetPath(CurrentDir);
-        }
-        wxString fullpath;
-
-        SetStatusText(wxString::Format("Starting Export for %s - %s", format, Out3));
-        wxYield();
-
-        NextRenderer wait;
-        Element * el = _sequenceElements.GetElement(model);
-        RenderJob *job = new RenderJob(dynamic_cast<ModelElement*>(el), _seqData, this, true);
-        wxASSERT(job != nullptr);
-        SequenceData *data = job->createExportBuffer();
-        wxASSERT(data != nullptr);
-        int cpn = job->getBuffer()->GetChanCountPerNode();
-
-        if (command.GetInt() == 1) {
-            // always render the whole model
-            job->setRenderRange(0, _seqData.NumFrames());
-            job->setPreviousFrameDone(END_OF_RENDER_FRAME);
-            job->addNext(&wait);
-            jobPool.PushJob(job);
-            //wait to complete
-            while (!wait.checkIfDone(_seqData.NumFrames())) {
-                wxYield();
-            }
-        } else {
-            Model *m2 = GetModel(model);
-            for (size_t frame = 0; frame < _seqData.NumFrames(); ++frame) {
-                for (size_t x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
-                    //chan in main buffer
-                    int ostart = m2->NodeStartChannel(x);
-                    int nstart = job->getBuffer()->NodeStartChannel(x);
-                    //copy to render buffer for export
-                    job->getBuffer()->SetNodeChannelValues(x, &_seqData[frame][ostart]);
-                    job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
-                }
-            }
-        }
-        delete job;
-
-        if (Out3 == "Lcb") {
-            oName.SetExt(_("lcb"));
-            fullpath = oName.GetFullPath();
-            int lcbVer = 1;
-            if (format.Contains("S5")) {
-                lcbVer = 2;
-            }
-            WriteLcbFile(fullpath, data->NumChannels(), startFrame, endFrame, data, lcbVer, cpn);
-        } else if (Out3 == "Vir") {
-            oName.SetExt(_("vir"));
-            fullpath = oName.GetFullPath();
-            WriteVirFile(fullpath, data->NumChannels(), startFrame, endFrame, data);
-        } else if (Out3 == "LSP") {
-            oName.SetExt(_("xml"));
-            fullpath = oName.GetFullPath();
-            WriteLSPFile(fullpath, data->NumChannels(), startFrame, endFrame, data, cpn);
-        } else if (Out3 == "HLS") {
-            oName.SetExt(_("hlsnc"));
-            fullpath = oName.GetFullPath();
-            WriteHLSFile(fullpath, data->NumChannels(), startFrame, endFrame, data);
-        } else if (Out3 == "FPP") {
-            int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-            oName.SetExt(_("eseq"));
-            fullpath = oName.GetFullPath();
-            bool v2 = format.Contains("Compressed");
-            WriteFalconPiModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), v2);
-        } else if (Out3 == "Com") {
-            int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-            oName.SetExt(_("avi"));
-            fullpath = oName.GetFullPath();
-            WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), true);
-        } else if (Out3 == "Unc") {
-            int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-            oName.SetExt(_("avi"));
-            fullpath = oName.GetFullPath();
-            WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false);
-        } else if (Out3 == "Min") {
-            int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-            oName.SetExt(_("bin"));
-            fullpath = oName.GetFullPath();
-            WriteMinleonNECModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model));
-        } else if (Out3 == "GIF") {
-            int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-            oName.SetExt(_("gif"));
-            fullpath = oName.GetFullPath();
-            WriteGIFModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), _seqData.FrameTime());
-        }
-        SetStatusText(wxString::Format("Finished writing model: %s in %ld ms ", fullpath, sw.Time()));
-
-        delete data;
-        EnableSequenceControls(true);
+        DoExportModel(startFrame, endFrame, model, filename, format, command.GetInt() == 1);
     }
 }
 
@@ -2061,6 +2120,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                             if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap)) {
                                 if (!effectObj->GetFrame(*rb, _renderCache)) {
                                     reff->Render(effectObj, SettingsMap, *rb);
+                                    GPURenderUtils::waitForRenderCompletion(rb);
                                     effectObj->AddFrame(*rb, _renderCache);
                                 }
                             }

@@ -21,7 +21,7 @@ extern "C"
 }
 
 #ifdef __WXMSW__
-#include <d3d9.h>
+class WindowsHardwareVideoReader;
 #endif
 
 class VideoReader
@@ -29,7 +29,8 @@ class VideoReader
 public:
     static bool IsVideoFile(const std::string &filename);
     static long GetVideoLength(const std::string& filename);
-	VideoReader(const std::string& filename, int width, int height, bool keepaspectratio, bool usenativeresolution = false, bool wantAlpha = false, bool bgr = false);
+	VideoReader(const std::string& filename, int width, int height, bool keepaspectratio, bool usenativeresolution = false,
+                bool wantAlpha = false, bool bgr = false, bool wantsHardwareDecoderType = false);
 	~VideoReader();
 	int GetLengthMS() const { return (int)_lengthMS; };
 	void Seek(int timestampMS, bool readFrame = true);
@@ -47,8 +48,9 @@ public:
 private:
     static bool HW_ACCELERATION_ENABLED;
     bool readFrame(int timestampMS);
-    void reopenContext();
+    void reopenContext(bool allowHWDecoder = true);
     
+    bool _wantsHWType = false;
     int _maxwidth = 0;
     int _maxheight = 0;
 	bool _valid = false;
@@ -61,7 +63,7 @@ private:
 	AVFormatContext* _formatContext = nullptr;
 	AVCodecContext* _codecContext = nullptr;
 	AVStream* _videoStream = nullptr;
-    AVCodec* _decoder = nullptr;
+    const AVCodec* _decoder = nullptr;
     AVBufferRef* _hw_device_ctx = nullptr;
     void *hwDecoderCache = nullptr;
 	int _streamIndex = 0;
@@ -74,14 +76,14 @@ private:
     int _curPos = 0;
     int _firstFramePos = -1;
     SwsContext *_swsCtx = nullptr;
-    AVPacket _packet;
+    AVPacket* _packet = nullptr;
 	AVPixelFormat _pixelFmt;
 	bool _atEnd = false;
     std::string _filename;
     bool _abort = false;
     bool _videoToolboxAccelerated; 
     bool _abandonHardwareDecode = false;
-#ifdef __WXMSW__
-    std::list<D3DTEXTUREFILTERTYPE> _dxva2_filters = { D3DTEXF_ANISOTROPIC, D3DTEXF_PYRAMIDALQUAD, D3DTEXF_GAUSSIANQUAD, D3DTEXF_LINEAR, D3DTEXF_POINT, D3DTEXF_NONE };
-#endif
+    #ifdef __WXMSW__
+    WindowsHardwareVideoReader* _windowsHardwareVideoReader = nullptr;
+    #endif
 };

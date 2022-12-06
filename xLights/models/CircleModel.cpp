@@ -100,7 +100,8 @@ static const char* CIRCLE_START_LOCATION_VALUES[] = {
 
 static wxPGChoices CIRCLE_START_LOCATION(wxArrayString(8, CIRCLE_START_LOCATION_VALUES));
 
-void CircleModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void CircleModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
 
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", parm1));
     p->SetAttribute("Min", 1);
@@ -145,6 +146,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         //AdjustStringProperties(grid, parm1);
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStringCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStringCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleStringCount");
@@ -157,6 +159,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
     else if ("CircleLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleLightCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleLightCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleLightCount");
@@ -169,6 +172,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
     else if ("CircleCenterPercent" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
@@ -185,6 +189,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         ModelXml->AddAttribute("StartSide", v < 4 ? "T" : "B");
         ModelXml->AddAttribute("InsideOut", v & 0x2 ? "1" : "0");
 
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleStart");
@@ -313,15 +318,15 @@ void CircleModel::ExportXlightsModel()
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
-    //    bool isnew = !wxFile::Exists(filename);
+    //    bool isnew = !FileExists(filename);
     if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString p3 = ModelXml->GetAttribute("parm3");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ss = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
@@ -362,77 +367,68 @@ void CircleModel::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    ExportDimensions(f);
     f.Write("</circlemodel>");
     f.Close();
 }
 
-void CircleModel::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    wxXmlDocument doc(filename);
-
-    if (doc.IsOk()) {
-        wxXmlNode* root = doc.GetRoot();
-
-        if (root->GetName() == "circlemodel") {
-            wxString name = root->GetAttribute("name");
-            wxString p1 = root->GetAttribute("parm1");
-            wxString p2 = root->GetAttribute("parm2");
-            wxString p3 = root->GetAttribute("parm3");
-            wxString st = root->GetAttribute("StringType");
-            wxString ps = root->GetAttribute("PixelSize");
-            wxString t = root->GetAttribute("Transparency");
-            wxString mb = root->GetAttribute("ModelBrightness");
-            wxString a = root->GetAttribute("Antialias");
-            wxString ss = root->GetAttribute("StartSide");
-            wxString dir = root->GetAttribute("Dir");
-            wxString ls = root->GetAttribute("circleSizes");
-            if (ls == "") {
-                ls = root->GetAttribute("LayerSizes");
-            }
-            else {
-                ls = ReverseCSV(ls);
-            }
-            wxString io = root->GetAttribute("InsideOut");
-            wxString v = root->GetAttribute("SourceVersion");
-            wxString da = root->GetAttribute("DisplayAs");
-            wxString pc = root->GetAttribute("PixelCount");
-            wxString pt = root->GetAttribute("PixelType");
-            wxString psp = root->GetAttribute("PixelSpacing");
-
-            // Add any model version conversion logic here
-            // Source version will be the program version that created the custom model
-
-            SetProperty("parm1", p1);
-            SetProperty("parm2", p2);
-            SetProperty("parm3", p3);
-            SetProperty("StringType", st);
-            SetProperty("PixelSize", ps);
-            SetProperty("Transparency", t);
-            SetProperty("ModelBrightness", mb);
-            SetProperty("Antialias", a);
-            SetProperty("StartSide", ss);
-            SetProperty("Dir", dir);
-            SetProperty("LayerSizes", ls);
-            SetProperty("InsideOut", io);
-            SetProperty("DisplayAs", da);
-            SetProperty("PixelCount", pc);
-            SetProperty("PixelType", pt);
-            SetProperty("PixelSpacing", psp);
-
-            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-            GetModelScreenLocation().Write(ModelXml);
-            SetProperty("name", newname, true);
-
-            ImportSuperStringColours(root);
-            ImportModelChildren(root, xlights, newname);
-
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::ImportXlightsModel");
+void CircleModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "circlemodel") {
+        wxString name = root->GetAttribute("name");
+        wxString p1 = root->GetAttribute("parm1");
+        wxString p2 = root->GetAttribute("parm2");
+        wxString p3 = root->GetAttribute("parm3");
+        wxString st = root->GetAttribute("StringType");
+        wxString ps = root->GetAttribute("PixelSize");
+        wxString t = root->GetAttribute("Transparency", "0");
+        wxString mb = root->GetAttribute("ModelBrightness", "0");
+        wxString a = root->GetAttribute("Antialias");
+        wxString ss = root->GetAttribute("StartSide");
+        wxString dir = root->GetAttribute("Dir");
+        wxString ls = root->GetAttribute("circleSizes");
+        if (ls == "") {
+            ls = root->GetAttribute("LayerSizes");
+        } else {
+            ls = ReverseCSV(ls);
         }
-        else {
-            DisplayError("Failure loading Circle model file.");
-        }
-    }
-    else {
+        wxString io = root->GetAttribute("InsideOut");
+        wxString v = root->GetAttribute("SourceVersion");
+        wxString da = root->GetAttribute("DisplayAs");
+        wxString pc = root->GetAttribute("PixelCount");
+        wxString pt = root->GetAttribute("PixelType");
+        wxString psp = root->GetAttribute("PixelSpacing");
+
+        // Add any model version conversion logic here
+        // Source version will be the program version that created the custom model
+
+        SetProperty("parm1", p1);
+        SetProperty("parm2", p2);
+        SetProperty("parm3", p3);
+        SetProperty("StringType", st);
+        SetProperty("PixelSize", ps);
+        SetProperty("Transparency", t);
+        SetProperty("ModelBrightness", mb);
+        SetProperty("Antialias", a);
+        SetProperty("StartSide", ss);
+        SetProperty("Dir", dir);
+        SetProperty("LayerSizes", ls);
+        SetProperty("InsideOut", io);
+        SetProperty("DisplayAs", da);
+        SetProperty("PixelCount", pc);
+        SetProperty("PixelType", pt);
+        SetProperty("PixelSpacing", psp);
+
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        GetModelScreenLocation().Write(ModelXml);
+        SetProperty("name", newname, true);
+
+        ImportSuperStringColours(root);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
+
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::ImportXlightsModel");
+    } else {
         DisplayError("Failure loading Circle model file.");
     }
 }

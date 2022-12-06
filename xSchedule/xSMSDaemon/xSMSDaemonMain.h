@@ -54,7 +54,6 @@ class xSMSDaemonFrame : public wxFrame
 
     void RefreshList();
     void ValidateWindow();
-    void SendReport(const wxString &loc, wxDebugReportCompress &report);
     std::string xScheduleShowDir();
     std::string xSMSDaemonShowDir();
     void LoadShowDir();

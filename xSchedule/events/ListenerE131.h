@@ -26,12 +26,12 @@ class ListenerE131 : public ListenerBase
     void Subscribe(uint16_t universe);
 
 	public:
-        ListenerE131(ListenerManager* _listenerManager);
+        ListenerE131(ListenerManager* _listenerManager, const std::string& localIP);
 		virtual ~ListenerE131() {}
 		virtual void Start() override;
         virtual void Stop() override;
         virtual std::string GetType() const override { return "E131"; }
-        virtual void StartProcess() override;
+        virtual void StartProcess(const std::string& localIP) override;
         virtual void StopProcess() override;
         virtual void Poll() override;
         void AddMulticast(uint16_t universe);

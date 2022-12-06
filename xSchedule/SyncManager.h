@@ -108,8 +108,8 @@ class SyncManager
         void ClearRemote();
         void ClearMasters();
         void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const; // send out to all masters
-        void Start(int mode, REMOTEMODE remoteMode);
-        void Stop();
+        void Start(int mode, REMOTEMODE remoteMode, const std::string& localIP);
+        void Stop(const std::string& localIP);
         bool IsSlave() const { return _remote != nullptr; }
         bool IsTimecodeSlave() const;
         bool IsFPPRemoteOrMaster() const;

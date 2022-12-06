@@ -21,6 +21,13 @@ enum class EFFECT_MODE {
     EM_PLAY_IMMEDIATELY_LOOPED
 };
 
+enum class MESSAGE_LEVEL {
+    ML_ERROR,
+    ML_WARN,
+    ML_INFO,
+    ML_DEBUG
+};
+
 class RemoteFalconOptions
 {
     public:
@@ -39,7 +46,9 @@ class RemoteFalconOptions
     bool _clearQueueOnStart = true;
     bool _sendEnableDisable = false;
     bool _effectPlaylist = false;
+    bool _sendPlayingEffect = false;
     EFFECT_MODE _effectMode = EFFECT_MODE::EM_PLAY_IMMEDIATELY;
+    MESSAGE_LEVEL _messageLevel = MESSAGE_LEVEL::ML_WARN;
 
     public:
 
@@ -54,6 +63,30 @@ class RemoteFalconOptions
 
         bool GetClearQueueOnStart() const { return _clearQueueOnStart; }
         void SetClearQueueOnStart(bool clearQueue) { if (clearQueue != _clearQueueOnStart) { _clearQueueOnStart = clearQueue; _changeCount++; } }
+
+        MESSAGE_LEVEL GetMessageLevel() const
+        {
+            return _messageLevel;
+        }
+        void SetMessageLevel(MESSAGE_LEVEL messageLevel)
+        {
+            if (messageLevel != _messageLevel) {
+                _messageLevel = messageLevel;
+                _changeCount++;
+            }
+        }
+
+        bool IsSendPlayingEffect() const
+        {
+            return _sendPlayingEffect;
+        }
+        void SetSendPlayignEffect(bool sendPlayingEffect)
+        {
+            if (_sendPlayingEffect != sendPlayingEffect) {
+                _sendPlayingEffect = sendPlayingEffect;
+                _changeCount++;
+            }
+        }
 
         bool IsEnableDisable() const { return _sendEnableDisable; }
         void SetEnableDisable(bool sendEnableDisable) { if (_sendEnableDisable != sendEnableDisable) { _sendEnableDisable = sendEnableDisable; _changeCount++; } }

@@ -15,6 +15,8 @@
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 #include "ControllerEthernet.h"
+#include "../OutputModelManager.h"
+#include "../SpecialOptions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -35,14 +37,19 @@ void ArtNetOutput::OpenDatagram() {
     if (_datagram != nullptr) return;
 
     wxIPV4address localaddr;
-    if (IPOutput::__localIP == "") {
+    if (GetForceLocalIPToUse() == "") {
         localaddr.AnyAddress();
     }
     else {
-        localaddr.Hostname(IPOutput::__localIP);
+        localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    wxSocketFlags flags = wxSOCKET_NOWAIT;
+    if (_forceSourcePort) {
+        flags |= wxSOCKET_REUSEADDR;
+        localaddr.Service(ARTNET_PORT);
+    }
+    _datagram = new wxDatagramSocket(localaddr, flags);
     if (_datagram == nullptr) {
         logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. %s", (const char*)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char*)localaddr.IPAddress().c_str());
         _ok = false;
@@ -69,7 +76,10 @@ ArtNetOutput::ArtNetOutput(wxXmlNode* node) : IPOutput(node) {
     if (_autoSize_CONVERT) _autoSize_CONVERT = false;
     _sequenceNum = 0;
     _datagram = nullptr;
+    _forceSourcePort = false;
     memset(_data, 0, sizeof(_data));
+
+    _forceSourcePort = node->GetAttribute("ForceSourcePort", "FALSE") == "TRUE";
 }
 
 ArtNetOutput::ArtNetOutput() : IPOutput() {
@@ -77,6 +87,7 @@ ArtNetOutput::ArtNetOutput() : IPOutput() {
     _channels = 510;
     _sequenceNum = 0;
     _datagram = nullptr;
+    _forceSourcePort = false;
     memset(_data, 0, sizeof(_data));
 }
 
@@ -86,7 +97,7 @@ ArtNetOutput::~ArtNetOutput() {
 #pragma endregion
 
 #pragma region Static Functions
-void ArtNetOutput::SendSync() {
+void ArtNetOutput::SendSync(const std::string& localIP) {
 
     log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static uint8_t syncdata[ARTNET_SYNCPACKET_LEN];
@@ -109,18 +120,25 @@ void ArtNetOutput::SendSync() {
         syncdata[11] = 0x0E; // Protocol version Low
 
         wxIPV4address localaddr;
-        if (IPOutput::__localIP == "") {
+        if (localIP == "") {
             localaddr.AnyAddress();
         }
         else {
-            localaddr.Hostname(IPOutput::__localIP);
+            localaddr.Hostname(localIP);
         }
 
         if (syncdatagram != nullptr) {
             delete syncdatagram;
         }
 
-        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+        // using the forced source port for sync packets is buried in a special options as its use is very very rare. Few devices implement this restriction and few users use artnet sync
+        wxSocketFlags flags = wxSOCKET_NOWAIT;
+        if (SpecialOptions::GetOption("ForceArtNetSourcePort", "false") == "true") {
+            flags |= wxSOCKET_REUSEADDR;
+            localaddr.Service(ARTNET_PORT);
+        }
+
+        syncdatagram = new wxDatagramSocket(localaddr, flags);
         if (syncdatagram == nullptr) {
             logger_base.error("Error initialising Artnet sync datagram. %s", (const char*)localaddr.IPAddress().c_str());
             return;
@@ -414,3 +432,47 @@ void ArtNetOutput::AllOff() {
     _changed = true;
 }
 #pragma endregion
+
+#pragma region UI
+#ifndef EXCLUDENETWORKUI
+void ArtNetOutput::AddMultiProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
+{
+    auto p = propertyGrid->Append(new wxBoolProperty("Force source port", "ForceSourcePort", _forceSourcePort));
+    p->SetEditor("CheckBox");
+    p->SetHelpString("You should only set this option if your ArtNet device is not seeing the ArtNet packets because it strictly requires that packets come from port 0x1936.");
+}
+
+void ArtNetOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
+{
+    AddMultiProperties(propertyGrid, allSameSize, expandProperties);
+}
+
+bool ArtNetOutput::HandleMultiPropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
+{
+    wxString const name = event.GetPropertyName();
+
+    if (name == "ForceSourcePort") {
+        _forceSourcePort = event.GetValue().GetBool();
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ArtNetOutput::HandlePropertyEvent::ForceSourcePort");
+        return true;
+    }
+
+    return false;
+}
+
+bool ArtNetOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
+{
+    return HandleMultiPropertyEvent(event, outputModelManager);
+}
+
+#endif
+#pragma endregion
+
+wxXmlNode* ArtNetOutput::Save()
+{
+    auto node = IPOutput::Save();
+    if (_forceSourcePort) {
+        node->AddAttribute("ForceSourcePort", "TRUE");
+    }
+    return node;
+}

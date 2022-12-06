@@ -38,7 +38,7 @@ class SeqSettingsDialog: public wxDialog
     ConvertLogDialog* _plog;
 	public:
 
-		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_ = false);
+		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_ = false, const std::string& media = "", uint32_t durationMS = 0);
 		virtual ~SeqSettingsDialog();
 
         const std::string GetView() const {return selected_view;}
@@ -278,24 +278,24 @@ class SeqSettingsDialog: public wxDialog
         wxTreeItemId selected_branch;
         bool needs_render = false;
         bool wizard_active = false;
-        wxBitmap musical_seq;
-        wxBitmap musical_seq_pressed;
-        wxBitmap animation_seq;
-        wxBitmap animation_seq_pressed;
-        wxBitmap time_25ms;
-        wxBitmap time_25ms_pressed;
-        wxBitmap time_50ms;
-        wxBitmap time_50ms_pressed;
-        wxBitmap time_custom;
-        wxBitmap time_custom_pressed;
-        wxBitmap lightorama;
-        wxBitmap vixen;
-        wxBitmap glediator;
-        wxBitmap hls;
-        wxBitmap lynx;
-        wxBitmap xlights_logo;
-        wxBitmap quick_start;
-        wxBitmap quick_start_pressed;
+        wxBitmapBundle musical_seq;
+        wxBitmapBundle musical_seq_pressed;
+        wxBitmapBundle animation_seq;
+        wxBitmapBundle animation_seq_pressed;
+        wxBitmapBundle time_25ms;
+        wxBitmapBundle time_25ms_pressed;
+        wxBitmapBundle time_50ms;
+        wxBitmapBundle time_50ms_pressed;
+        wxBitmapBundle time_custom;
+        wxBitmapBundle time_custom_pressed;
+        wxBitmapBundle lightorama;
+        wxBitmapBundle vixen;
+        wxBitmapBundle glediator;
+        wxBitmapBundle hls;
+        wxBitmapBundle lynx;
+        wxBitmapBundle xlights_logo;
+        wxBitmapBundle quick_start;
+        wxBitmapBundle quick_start_pressed;
 
         std::vector<wxGridCellButtonRenderer*> mCellRenderers;
 

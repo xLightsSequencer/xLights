@@ -16,6 +16,7 @@
 #include "models/ModelGroup.h"
 #include "UtilClasses.h"
 #include "AudioManager.h"
+#include "BufferPanel.h"
 #include "xLightsMain.h"
 #include <log4cpp/Category.hh>
 
@@ -202,8 +203,6 @@ namespace
    {
       return a.x * b.x + a.y * b.y + a.z * b.z;
    }
-
-   const float PI = 3.14159265359f;
 
    // code for fold transition
    xlColor foldIn( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress, bool isReverse )
@@ -957,36 +956,48 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
         layers[x]->pivotpointyValueCurve = "";
         layers[x]->xpivotValueCurve = "";
         layers[x]->ypivotValueCurve = "";
-        layers[x]->ModelBufferHt = layers[x]->BufferHt;
-        layers[x]->ModelBufferWi = layers[x]->BufferWi;
-        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->ModelBufferHt, layers[x]->ModelBufferWi, layers[x]->bufferTransform, isNode);
+        layers[x]->BufferOffsetX = 0;
+        layers[x]->BufferOffsetY = 0;
+        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->bufferTransform, isNode);
         GPURenderUtils::setupRenderBuffer(this, &layers[x]->buffer);
     }
 }
 
-void PixelBufferClass::InitPerModelBuffers(const ModelGroup &model, int layer, int timing) {
-    for (const auto& it : model.Models()) {
-        Model *m = it;
+void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, int timing)
+{
+    for (const auto& it : model.ActiveModels()) {
+        Model* m = it;
         wxASSERT(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame);
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
-        buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->BufferHt, buf->BufferWi, "None");
+        buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
         GPURenderUtils::setupRenderBuffer(this, buf);
-        layers[layer]->modelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
+        layers[layer]->shallowModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
 
-void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, bool zeroBased)
+void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int layer, int timing)
+{
+    for (const auto& it : model.GetFlatModels(false, true)) {
+        Model* m = it;
+        wxASSERT(m != nullptr);
+        RenderBuffer* buf = new RenderBuffer(frame);
+        buf->SetFrameTimeInMs(timing);
+        m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
+        buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
+        GPURenderUtils::setupRenderBuffer(this, buf);
+        layers[layer]->deepModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
+    }
+}
+
+void PixelBufferClass::InitBuffer(const Model& pbc, int layers, int timing, bool zeroBased)
 {
     modelName = pbc.GetFullName();
-    if (zeroBased)
-    {
+    if (zeroBased) {
         zbModel = pbc.GetModelManager().CreateModel(pbc.GetModelXml(), 0, 0, zeroBased);
         model = zbModel;
-    }
-    else
-    {
+    } else {
         model = &pbc;
     }
     reset(layers + 1, timing);
@@ -1065,32 +1076,32 @@ uint32_t PixelBufferClass::GetChanCountPerNode() const
 
 bool MixTypeHandlesAlpha(MixTypes mt)
 {
-    return mt == Mix_Normal;
+    return mt == MixTypes::Mix_Normal;
 }
 
 static std::map<std::string, MixTypes> MixTypesMap = {
-    {"Effect 1", Mix_Effect1},
-    {"Effect 2", Mix_Effect2},
-    {"1 is Mask", Mix_Mask1},
-    {"2 is Mask", Mix_Mask2},
-    {"1 is Unmask", Mix_Unmask1},
-    {"2 is Unmask", Mix_Unmask2},
-    {"1 is True Unmask", Mix_TrueUnmask1},
-    {"2 is True Unmask", Mix_TrueUnmask2},
-    {"1 reveals 2", Mix_1_reveals_2},
-    {"2 reveals 1", Mix_2_reveals_1},
-    {"Shadow 1 on 2", Mix_Shadow_1on2},
-    {"Shadow 2 on 1", Mix_Shadow_2on1},
-    {"Layered", Mix_Layered},
-    {"Normal", Mix_Normal},
-    {"Additive", Mix_Additive},
-    {"Subtractive", Mix_Subtractive},
-    {"Brightness", Mix_AsBrightness},
-    {"Average", Mix_Average},
-    {"Bottom-Top", Mix_BottomTop},
-    {"Left-Right", Mix_LeftRight},
-    {"Max", Mix_Max},
-    {"Min", Mix_Min}
+    { "Effect 1", MixTypes::Mix_Effect1 },
+    { "Effect 2", MixTypes::Mix_Effect2 },
+    { "1 is Mask", MixTypes::Mix_Mask1 },
+    { "2 is Mask", MixTypes::Mix_Mask2 },
+    { "1 is Unmask", MixTypes::Mix_Unmask1 },
+    { "2 is Unmask", MixTypes::Mix_Unmask2 },
+    { "1 is True Unmask", MixTypes::Mix_TrueUnmask1 },
+    { "2 is True Unmask", MixTypes::Mix_TrueUnmask2 },
+    { "1 reveals 2", MixTypes::Mix_1_reveals_2 },
+    { "2 reveals 1", MixTypes::Mix_2_reveals_1 },
+    { "Shadow 1 on 2", MixTypes::Mix_Shadow_1on2 },
+    { "Shadow 2 on 1", MixTypes::Mix_Shadow_2on1 },
+    { "Layered", MixTypes::Mix_Layered },
+    { "Normal", MixTypes::Mix_Normal },
+    { "Additive", MixTypes::Mix_Additive },
+    { "Subtractive", MixTypes::Mix_Subtractive },
+    { "Brightness", MixTypes::Mix_AsBrightness },
+    { "Average", MixTypes::Mix_Average },
+    { "Bottom-Top", MixTypes::Mix_BottomTop },
+    { "Left-Right", MixTypes::Mix_LeftRight },
+    { "Max", MixTypes::Mix_Max },
+    { "Min", MixTypes::Mix_Min }
 };
 
 std::vector<std::string> PixelBufferClass::GetMixTypes()
@@ -1107,7 +1118,7 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
 {
     auto it = MixTypesMap.find(MixName);
     if (it == MixTypesMap.end()) {
-        layers[layer]->mixType = Mix_Effect1;
+        layers[layer]->mixType = MixTypes::Mix_Effect1;
     } else {
         layers[layer]->mixType = it->second;
     }
@@ -1152,12 +1163,12 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
     float effectMixThreshold = layer->outputEffectMixThreshold;
     switch (layer->mixType)
     {
-    case Mix_Normal:
+    case MixTypes::Mix_Normal:
         fg.alpha = fg.alpha * layer->fadeFactor * (1.0 - effectMixThreshold);
         bg.AlphaBlendForgroundOnto(fg);
         break;
-    case Mix_Effect1:
-    case Mix_Effect2:
+    case MixTypes::Mix_Effect1:
+    case MixTypes::Mix_Effect2:
     {
         double emt, emtNot;
         if (!layer->effectMixVaries) {
@@ -1176,7 +1187,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             emtNot = 1 - effectMixThreshold;
         }
 
-        if (layer->mixType == Mix_Effect2) {
+        if (layer->mixType == MixTypes::Mix_Effect2) {
             fg.Set(fg.Red()*(emtNot),fg.Green()*(emtNot), fg.Blue()*(emtNot));
             bg.Set(bg.Red()*(emt),bg.Green()*(emt), bg.Blue()*(emt));
         } else {
@@ -1186,7 +1197,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         bg.Set(fg.Red()+bg.Red(), fg.Green()+bg.Green(), fg.Blue()+bg.Blue());
         break;
     }
-    case Mix_Mask1:
+    case MixTypes::Mix_Mask1:
     {
         // first masks second
         HSVValue hsv0 = fg.asHSV();
@@ -1195,7 +1206,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Mask2:
+    case MixTypes::Mix_Mask2:
     {
         // second masks first
         HSVValue hsv1 = bg.asHSV();
@@ -1206,7 +1217,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Unmask1:
+    case MixTypes::Mix_Unmask1:
     {
         // first unmasks second
         HSVValue hsv0 = fg.asHSV();
@@ -1219,7 +1230,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_TrueUnmask1:
+    case MixTypes::Mix_TrueUnmask1:
     {
         // first unmasks second
         HSVValue hsv0 = fg.asHSV();
@@ -1228,7 +1239,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Unmask2:
+    case MixTypes::Mix_Unmask2:
     {
         // second unmasks first
         HSVValue hsv1 = bg.asHSV();
@@ -1242,7 +1253,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_TrueUnmask2:
+    case MixTypes::Mix_TrueUnmask2:
     {
         // second unmasks first
         HSVValue hsv1 = bg.asHSV();
@@ -1254,7 +1265,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Shadow_1on2:
+    case MixTypes::Mix_Shadow_1on2:
     {
         // Effect 1 shadows onto effect 2
         HSVValue hsv0 = fg.asHSV();
@@ -1270,7 +1281,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         //   }
         break;
     }
-    case Mix_Shadow_2on1:
+    case MixTypes::Mix_Shadow_2on1:
     {
         // Effect 2 shadows onto effect 1
         HSVValue hsv0 = fg.asHSV();
@@ -1282,7 +1293,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         bg = hsv0;
         break;
     }
-    case Mix_Layered:
+    case MixTypes::Mix_Layered:
     {
         HSVValue hsv1 = bg.asHSV();
         if (hsv1.value <= effectMixThreshold) {
@@ -1290,33 +1301,33 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         }
         break;
     }
-    case Mix_Average:
+    case MixTypes::Mix_Average:
         // only average when both colors are non-black
         if (bg == xlBLACK) {
             bg = fg;
         } else if (fg != xlBLACK) {
-            bg.Set( (fg.Red()+bg.Red())/2, (fg.Green()+bg.Green())/2, (fg.Blue()+bg.Blue())/2 );
+            bg.Set((fg.Red() + bg.Red()) / 2, (fg.Green() + bg.Green()) / 2, (fg.Blue() + bg.Blue()) / 2, (fg.alpha + bg.alpha) / 2);
         }
         break;
-    case Mix_BottomTop:
+    case MixTypes::Mix_BottomTop:
         bg = y < layer->BufferHt/2 ? fg : bg;
         break;
-    case Mix_LeftRight:
+    case MixTypes::Mix_LeftRight:
         bg = x < layer->BufferWi/2 ? fg : bg;
         break;
-    case Mix_1_reveals_2:
+    case MixTypes::Mix_1_reveals_2:
     {
         HSVValue hsv0 = fg.asHSV();
         bg = hsv0.value > effectMixThreshold ? fg : bg; // if effect 1 is non black
         break;
     }
-    case Mix_2_reveals_1:
+    case MixTypes::Mix_2_reveals_1:
     {
         HSVValue hsv1 = bg.asHSV();
         bg = hsv1.value > effectMixThreshold ? bg : fg; // if effect 2 is non black
         break;
     }
-    case Mix_Additive:
+    case MixTypes::Mix_Additive:
         {
             int r = fg.red + bg.red;
             int g = fg.green + bg.green;
@@ -1327,39 +1338,43 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             bg.Set(r, g, b);
         }
         break;
-    case Mix_Subtractive:
+    case MixTypes::Mix_Subtractive:
         {
             int r = bg.red - fg.red;
             int g = bg.green - fg.green;
             int b = bg.blue - fg.blue;
-            if (r < 0) r = 0;
+            if (r < 0)
+                r = 0;
             if (g < 0) g = 0;
             if (b < 0) b = 0;
             bg.Set(r, g, b);
         }
         break;
 
-    case Mix_Min:
+    case MixTypes::Mix_Min:
         {
-            int r = std::min(fg.red, bg.red);
-            int g = std::min(fg.green, bg.green);
-            int b = std::min(fg.blue, bg.blue);
+            float alpha = (float)fg.alpha / 255.0;
+            int r = std::min(fg.red, bg.red) * alpha;
+            int g = std::min(fg.green, bg.green) * alpha;
+            int b = std::min(fg.blue, bg.blue) * alpha;
             bg.Set(r, g, b);
         }
         break;
-    case Mix_Max:
+    case MixTypes::Mix_Max:
         {
-            int r = std::max(fg.red, bg.red);
-            int g = std::max(fg.green, bg.green);
-            int b = std::max(fg.blue, bg.blue);
+            float alpha = (float)fg.alpha / 255.0;
+            int r = std::max(fg.red, bg.red) * alpha;
+            int g = std::max(fg.green, bg.green) * alpha;
+            int b = std::max(fg.blue, bg.blue) * alpha;
             bg.Set(r, g, b);
         }
         break;
-    case Mix_AsBrightness:
+    case MixTypes::Mix_AsBrightness:
         {
-        int r = fg.red * bg.red / 255;
-        int g = fg.green *  bg.green / 255;
-        int b = fg.blue * bg.blue / 255;
+        float alpha = (float)fg.alpha / 255.0;
+        int r = fg.red * bg.red / 255 * alpha;
+        int g = fg.green * bg.green / 255 * alpha;
+        int b = fg.blue * bg.blue / 255 * alpha;
         bg.Set(r, g, b);
     }
         break;
@@ -1514,7 +1529,7 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool> & validLa
     layers[saveLayer]->buffer.Nodes[node]->SetColor(c);
 }
 
-void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod)
+void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1522,24 +1537,21 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
     c = xlBLACK;
     xlColor color;
 
-    for (int layer = numLayers - 1; layer >= 0; layer--)
-    {
-        if (validLayers[layer])
-        {
+    for (int layer = numLayers - 1; layer >= 0; layer--) {
+        if (validLayers[layer]) {
             auto thelayer = layers[layer];
+            
+            int x = lx - thelayer->BufferOffsetX;
+            int y = ly - thelayer->BufferOffsetY;
 
             // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
-            if (thelayer == nullptr)
-            {
+            if (thelayer == nullptr) {
                 logger_base.crit("PixelBufferClass::GetMixedColor thelayer is nullptr ... this is going to crash.");
             }
 
-            if (x >= thelayer->BufferWi || y >= thelayer->BufferHt)
-            {
+            if (x >= thelayer->BufferWi || y >= thelayer->BufferHt || x < 0 || y < 0) {
                 // out of bounds
-            }
-            else
-            {
+            } else {
                 int effStartPer, effEndPer;
                 thelayer->buffer.GetEffectPeriods(effStartPer, effEndPer);
                 float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
@@ -1557,31 +1569,22 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                 }
 
                 float ha;
-                if (thelayer->HueAdjustValueCurve.IsActive())
-                {
+                if (thelayer->HueAdjustValueCurve.IsActive()) {
                     ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
-                }
-                else
-                {
+                } else {
                     ha = (float)thelayer->hueadjust / 100.0;
                 }
                 float sa;
-                if (thelayer->SaturationAdjustValueCurve.IsActive())
-                {
+                if (thelayer->SaturationAdjustValueCurve.IsActive()) {
                     sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
-                }
-                else
-                {
+                } else {
                     sa = (float)thelayer->saturationadjust / 100.0;
                 }
 
                 float va;
-                if (thelayer->ValueAdjustValueCurve.IsActive())
-                {
+                if (thelayer->ValueAdjustValueCurve.IsActive()) {
                     va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
-                }
-                else
-                {
+                } else {
                     va = (float)thelayer->valueadjust / 100.0;
                 }
 
@@ -1589,41 +1592,29 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                 if (ha != 0 || sa != 0 || va != 0) {
                     HSVValue hsv = color.asHSV();
 
-                    if (ha != 0)
-                    {
+                    if (ha != 0) {
                         hsv.hue += ha;
-                        if (hsv.hue < 0)
-                        {
+                        if (hsv.hue < 0) {
                             hsv.hue += 1.0;
-                        }
-                        else if (hsv.hue > 1)
-                        {
+                        } else if (hsv.hue > 1) {
                             hsv.hue -= 1.0;
                         }
                     }
 
-                    if (sa != 0)
-                    {
+                    if (sa != 0) {
                         hsv.saturation += sa;
-                        if (hsv.saturation < 0)
-                        {
+                        if (hsv.saturation < 0) {
                             hsv.saturation = 0.0;
-                        }
-                        else if (hsv.saturation > 1)
-                        {
+                        } else if (hsv.saturation > 1) {
                             hsv.saturation = 1.0;
                         }
                     }
 
-                    if (va != 0)
-                    {
+                    if (va != 0) {
                         hsv.value += va;
-                        if (hsv.value < 0)
-                        {
+                        if (hsv.value < 0) {
                             hsv.value = 0.0;
-                        }
-                        else if (hsv.value > 1)
-                        {
+                        } else if (hsv.value > 1) {
                             hsv.value = 1.0;
                         }
                     }
@@ -1634,12 +1625,9 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                 }
 
                 int b;
-                if (thelayer->BrightnessValueCurve.IsActive())
-                {
+                if (thelayer->BrightnessValueCurve.IsActive()) {
                     b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS());
-                }
-                else
-                {
+                } else {
                     b = thelayer->brightness;
                 }
                 if (thelayer->contrast != 0) {
@@ -1648,13 +1636,10 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                     hsv.value = hsv.value * ((double)b / 100.0);
 
                     // Apply Contrast
-                    if (hsv.value < 0.5)
-                    {
+                    if (hsv.value < 0.5) {
                         // reduce brightness when below 0.5 in the V value or increase if > 0.5
                         hsv.value = hsv.value - (hsv.value* ((double)thelayer->contrast / 100.0));
-                    }
-                    else
-                    {
+                    } else {
                         hsv.value = hsv.value + (hsv.value* ((double)thelayer->contrast / 100.0));
                     }
 
@@ -1934,12 +1919,9 @@ static inline int roundInt(float r) {
 void PixelBufferClass::Blur(LayerInfo* layer, float offset)
 {
     int b;
-    if (layer->BlurValueCurve.IsActive())
-    {
+    if (layer->BlurValueCurve.IsActive()) {
         b = (int)layer->BlurValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-    }
-    else
-    {
+    } else {
         b = layer->blur;
     }
 
@@ -1948,42 +1930,44 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
     }
     if (b < 2) {
         return;
-    } else if (b > 2 && layer->BufferWi > 6 && layer->BufferHt > 6) {
-        int os = std::max((int)layer->buffer.pixelVector.size(), layer->BufferWi * layer->BufferHt);
-        int pixCount = layer->buffer.pixelVector.size();
-        std::vector<float> input;
-        input.resize(os * 4);
-        std::vector<float> tmp;
-        tmp.resize(os * 4);
-        //float * input = new float[pixCount * 4];
-        //float * tmp = new float[pixCount * 4];
-        for (int x = 0; x < pixCount; x++) {
-            const xlColor &c = layer->buffer.pixels[x];
-            input[x * 4] = c.red;
-            input[x * 4 + 1] = c.green;
-            input[x * 4 + 2] = c.blue;
-            input[x * 4 + 3] = c.alpha;
-        }
-        gaussBlur_4(input, tmp, layer->BufferWi, layer->BufferHt, b, pixCount);
+    }
+    if (b > 2 && layer->BufferWi > 6 && layer->BufferHt > 6) {
+        if (!GPURenderUtils::Blur(&layer->buffer, b)) {
+            GPURenderUtils::waitForRenderCompletion(&layer->buffer);
+            int os = std::max((int)layer->buffer.pixelVector.size(), layer->BufferWi * layer->BufferHt);
+            int pixCount = layer->buffer.pixelVector.size();
+            std::vector<float> input;
+            input.resize(os * 4);
+            std::vector<float> tmp;
+            tmp.resize(os * 4);
+            //float * input = new float[pixCount * 4];
+            //float * tmp = new float[pixCount * 4];
+            for (int x = 0; x < pixCount; x++) {
+                const xlColor &c = layer->buffer.pixels[x];
+                input[x * 4] = c.red;
+                input[x * 4 + 1] = c.green;
+                input[x * 4 + 2] = c.blue;
+                input[x * 4 + 3] = c.alpha;
+            }
+            gaussBlur_4(input, tmp, layer->BufferWi, layer->BufferHt, b, pixCount);
 
-        for (int x = 0; x < pixCount; x++) {
-            layer->buffer.pixels[x].Set(roundInt(tmp[x*4]),
-                                        roundInt(tmp[x*4 + 1]),
-                                        roundInt(tmp[x*4 + 2]),
-                                        roundInt(tmp[x*4 + 3]));
+            for (int x = 0; x < pixCount; x++) {
+                layer->buffer.pixels[x].Set(roundInt(tmp[x*4]),
+                                            roundInt(tmp[x*4 + 1]),
+                                            roundInt(tmp[x*4 + 2]),
+                                            roundInt(tmp[x*4 + 3]));
+            }
         }
-        //delete [] input;
-        //delete [] tmp;
     } else {
+        //small blur
+        GPURenderUtils::waitForRenderCompletion(&layer->buffer);
+
         int d;
         int u;
-        if (b % 2 == 0)
-        {
+        if (b % 2 == 0) {
             d = b / 2;
             u = (b - 1) / 2;
-        }
-        else
-        {
+        } else {
             d = (b - 1) / 2;
             u = (b - 1) / 2;
         }
@@ -2022,8 +2006,8 @@ void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors, xlColorCu
 {
     RenderBuffer& buf = layers[layer]->buffer;
     buf.SetPalette(newcolors, newcc);
-    if (layers[layer]->usingModelBuffers) {
-        for (auto& it : layers[layer]->modelBuffers) {
+    if (layers[layer]->modelBuffers) {
+        for (auto& it : *(layers[layer]->modelBuffers)) {
             it->SetPalette(newcolors, newcc);
         }
     }
@@ -2118,109 +2102,13 @@ void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve,
     theValueCurve.Deserialise(valueCurve);
 }
 
-// Works out the maximum buffer size reached based on a subbuffer - this may be larger than the model size but never less than the model size
-void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, int& maxHt, int& maxWi, long startMS, long endMS)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (subBuffer.find("Active=TRUE") != std::string::npos) {
-        // value curve present ... we have work to do
-        wxString sb = subBuffer;
-        sb.Replace("Max", "yyz");
-
-        wxArrayString v = wxSplit(sb, 'x');
-
-        bool fx1vc = v.size() > 0 && v[0].Contains("Active=TRUE");
-        bool fy1vc = v.size() > 1 && v[1].Contains("Active=TRUE");
-        bool fx2vc = v.size() > 2 && v[2].Contains("Active=TRUE");
-        bool fy2vc = v.size() > 3 && v[3].Contains("Active=TRUE");
-
-        // We can ignore x and y centre as this works on the difference and the centre cancels out
-
-        // the larger the number the more fine grained the buffer assessment will be ... makes crashes less likely
-        #define VCITERATIONS (10.0 * VC_X_POINTS)
-
-        float maxX = 0;
-        if (fx1vc || fx2vc)
-        {
-            v[0].Replace("yyz", "Max");
-            v[2].Replace("yyz", "Max");
-            ValueCurve vcx1(v[0].ToStdString());
-            ValueCurve vcx2(v[2].ToStdString());
-            vcx1.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
-            vcx2.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
-            for (int i = 0; i < VCITERATIONS; ++i)
-            {
-                float valx1 = 0.0;
-                if (fx1vc)
-                {
-                    valx1 = vcx1.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
-                }
-                float valx2 = BufferWi;
-                if (fx2vc)
-                {
-                    valx2 = vcx2.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
-                }
-                float diff = std::abs(valx2 - valx1);
-                if (diff > maxX)
-                {
-                    maxX = diff;
-                }
-            }
-        }
-
-        float maxY = 0;
-        if (fy1vc || fy2vc)
-        {
-            v[1].Replace("yyz", "Max");
-            v[3].Replace("yyz", "Max");
-            ValueCurve vcy1(v[1].ToStdString());
-            ValueCurve vcy2(v[3].ToStdString());
-            vcy1.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
-            vcy2.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
-            for (int i = 0; i < VCITERATIONS; ++i)
-            {
-                float valy1 = 0.0;
-                if (fy1vc)
-                {
-                    valy1 = vcy1.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
-                }
-                float valy2 = BufferHt;
-                if (fy2vc)
-                {
-                    valy2 = vcy2.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
-                }
-                float diff = std::abs(valy2 - valy1);
-                if (diff > maxY)
-                {
-                    maxY = diff;
-                }
-            }
-        }
-
-        maxX *= (float)BufferWi;
-        maxY *= (float)BufferHt;
-        maxX /= 100.0;
-        maxY /= 100.0;
-
-        maxWi = std::max((int)std::ceil(maxX), BufferWi);
-        maxHt = std::max((int)std::ceil(maxY), BufferHt);
-
-        logger_base.debug("Max buffer calculated to be %dx%d on model of size %dx%d <= %s", maxWi, maxHt, BufferWi, BufferHt, (const char *)subBuffer.c_str());
-    }
-    else
-    {
-        maxHt = BufferHt;
-        maxWi = BufferWi;
-    }
-}
-
-void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi, float progress, long startMS, long endMS) {
-
+void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes,
+                      int &bufferWi, int &bufferHi,
+                      int &buffOffsetX, int &buffOffsetY,
+                      float progress, long startMS, long endMS) {
     if (subBuffer == STR_EMPTY) {
         return;
     }
-
     wxString sb = subBuffer;
     sb.Replace("Max", "yyz");
 
@@ -2239,8 +2127,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
         ValueCurve vc(v[4].ToStdString());
         vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
         x = vc.GetOutputValueAt(progress, startMS, endMS);
-    }
-    else if (v.size() > 4) {
+    } else if (v.size() > 4) {
         x = wxAtof(v[4]);
     }
 
@@ -2250,63 +2137,50 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
         ValueCurve vc(v[5].ToStdString());
         vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
         y = vc.GetOutputValueAt(progress, startMS, endMS);
-    }
-    else if (v.size() > 5) {
+    } else if (v.size() > 5) {
         y = wxAtof(v[5]);
     }
 
     float x1 = 0.0;
-    if (fx1vc)
-    {
+    if (fx1vc) {
         v[0].Replace("yyz", "Max");
         ValueCurve vc(v[0].ToStdString());
         vc.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
         x1 = vc.GetOutputValueAt(progress, startMS, endMS);
-    }
-    else if (v.size() > 0)
-    {
+    } else if (v.size() > 0) {
         x1 = wxAtof(v[0]);
     }
     x1 += x;
 
     float y1 = 0.0;
-    if (fy1vc)
-    {
+    if (fy1vc) {
         v[1].Replace("yyz", "Max");
         ValueCurve vc(v[1].ToStdString());
         vc.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
         y1 = vc.GetOutputValueAt(progress, startMS, endMS);
-    }
-    else if (v.size() > 1)
-    {
+    } else if (v.size() > 1) {
         y1 = wxAtof(v[1]);
     }
     y1 += y;
 
     float x2 = 100.0;
-    if (fx2vc)
-    {
+    if (fx2vc) {
         v[2].Replace("yyz", "Max");
         ValueCurve vc(v[2].ToStdString());
         vc.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
         x2 = vc.GetOutputValueAt(progress, startMS, endMS);
-    }
-    else if (v.size() > 2)
-    {
+    } else if (v.size() > 2) {
         x2 = wxAtof(v[2]);
     }
     x2 += x;
 
     float y2 = 100.0;
-    if (fy2vc)
-    {
+    if (fy2vc) {
         v[3].Replace("yyz", "Max");
         ValueCurve vc(v[3].ToStdString());
         vc.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
         y2 = vc.GetOutputValueAt(progress, startMS, endMS);
-    }
-    else if (v.size() > 3)
-    {
+    } else if (v.size() > 3) {
         y2 = wxAtof(v[3]);
     }
     y2 += y;
@@ -2338,6 +2212,8 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
             it2.bufY -= y1Int;
         }
     }
+    buffOffsetX = x1Int;
+    buffOffsetY = y1Int;
 }
 
 namespace
@@ -2382,7 +2258,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->rotations = (float)settingsMap.GetInt(SLIDER_Rotations, 0) / 10.0f;
     inf->zoom = (float)settingsMap.GetInt(SLIDER_Zoom, 10) / 10.0f;
     inf->zoomquality = settingsMap.GetInt(SLIDER_ZoomQuality, 1);
-    inf->rotationorder = settingsMap.Get(CHOICE_RZ_RotationOrder, "X, Y, Z");
+    inf->rotationorder = settingsMap.Get(CHOICE_RZ_RotationOrder, "X-Y-Z");
     inf->pivotpointx = settingsMap.GetInt(SLIDER_PivotPointX, 50);
     inf->pivotpointy = settingsMap.GetInt(SLIDER_PivotPointY, 50);
     inf->xpivot = settingsMap.GetInt(SLIDER_XPivot, 50);
@@ -2412,7 +2288,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->camera = settingsMap.Get(CHOICE_PerPreviewCamera, "2D");
     inf->transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
 
-    const std::string &type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
+    std::string type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
     const std::string &camera = settingsMap.Get(CHOICE_PerPreviewCamera, "2D");
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
     const std::string &subBuffer = settingsMap.Get(CUSTOM_SubBuffer, STR_EMPTY);
@@ -2466,24 +2342,36 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         // 2019-02-22 This was "Horizontal Per Model" but it causes DMX Model issues ...
         // so I have changed it to "Single Line". In theory both should create all the nodes
         auto tt = type;
-        if (StartsWith(type, "Per Model")) {
-            tt = "Single Line";
+        bool go_deep = false;
+        if (model->Name() == "PRESET_Matrix_XYZZY") {
+            // for presets we just turn it into the non-per model style
+            if (StartsWith(type, "Per Model")) {
+                type = type.substr(10);
+                if (EndsWith(type, "Deep")) {
+                    type = type.substr(0, type.length() - 5);
+                }
+            }
+        } else {
+            if (StartsWith(type, "Per Model")) {
+                tt = "Single Line";
+                if (type.compare(type.length() - 4, 4, "Deep") == 0) {
+                    go_deep = true;
+                }
+            }
         }
-        model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+
+        inf->BufferOffsetX = 0;
+        inf->BufferOffsetY = 0;
+        model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, go_deep);
         if (origNodeCount != 0 && origNodeCount != inf->buffer.Nodes.size()) {
             inf->buffer.Nodes.clear();
-            model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+            model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, go_deep);
         }
 
-        int curBH = inf->BufferHt;
-        int curBW = inf->BufferWi;
-        ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, 0, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS());
-
-        curBH = std::max(curBH, inf->BufferHt);
-        curBW = std::max(curBW, inf->BufferWi);
-
-        // save away the full model buffer size ... some effects need to know this
-        ComputeMaxBuffer(subBuffer, curBH, curBW, inf->ModelBufferHt, inf->ModelBufferWi, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS());
+        ComputeSubBuffer(subBuffer, inf->buffer.Nodes,
+                         inf->BufferWi, inf->BufferHt,
+                         inf->BufferOffsetX, inf->BufferOffsetY,
+                         0, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS());
 
         ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
         ComputeValueCurve(hueAdjustValueCurve, inf->HueAdjustValueCurve);
@@ -2521,27 +2409,54 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->ypivotValueCurve = ypivotValueCurve;
 
         // we create the buffer oversized to prevent issues
-        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
+        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->bufferTransform);
         GPURenderUtils::setupRenderBuffer(this, &inf->buffer);
 
-        if (type.compare(0, 9, "Per Model") == 0) {
-            inf->usingModelBuffers = true;
-            const ModelGroup *gp = dynamic_cast<const ModelGroup*>(model);
-            int cnt = 0;
-            for (const auto& it : inf->modelBuffers) {
-                std::string ntype = type.substr(10, type.length() - 10);
-                int bw, bh;
-                it->Nodes.clear();
-                gp->Models()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
-                if (bw == 0) bw = 1; // zero sized buffers are a problem
-                if (bh == 0) bh = 1;
-                it->InitBuffer(bh, bw, bh, bw, transform);
-                it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
-                GPURenderUtils::setupRenderBuffer(this, it.get());
-                ++cnt;
+        if (type.compare(0, 9, "Per Model") == 0 && model->GetDisplayAs() == "ModelGroup") {
+            if (type.compare(type.length()-4, 4, "Deep") == 0) {
+                inf->modelBuffers = &inf->deepModelBuffers;
+                const ModelGroup* gp = dynamic_cast<const ModelGroup*>(model);
+                if (gp != nullptr) {
+                    std::list<Model*> flat_models = gp->GetFlatModels(false, true);
+                    std::list<Model*>::iterator it_m = flat_models.begin();
+                    for (const auto& it : inf->deepModelBuffers) {
+                        std::string ntype = "Default"; // type.substr(10, type.length() - 10);
+                        int bw, bh;
+                        it->Nodes.clear();
+                        (*it_m)->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
+                        if (bw == 0)
+                            bw = 1; // zero sized buffers are a problem
+                        if (bh == 0)
+                            bh = 1;
+                        it->InitBuffer(bh, bw, transform);
+                        it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
+                        GPURenderUtils::setupRenderBuffer(this, it.get());
+                        ++it_m;
+                    }
+                }
+            } else {
+                inf->modelBuffers = &inf->shallowModelBuffers;
+                const ModelGroup* gp = dynamic_cast<const ModelGroup*>(model);
+                if (gp != nullptr) {
+                    int cnt = 0;
+                    for (const auto& it : inf->shallowModelBuffers) {
+                        std::string ntype = type.substr(10, type.length() - 10);
+                        int bw, bh;
+                        it->Nodes.clear();
+                        gp->ActiveModels()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
+                        if (bw == 0)
+                            bw = 1; // zero sized buffers are a problem
+                        if (bh == 0)
+                            bh = 1;
+                        it->InitBuffer(bh, bw, transform);
+                        it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
+                        GPURenderUtils::setupRenderBuffer(this, it.get());
+                        ++cnt;
+                    }
+                }
             }
         } else {
-            inf->usingModelBuffers = false;
+            inf->modelBuffers = nullptr;
         }
     }
 }
@@ -2562,53 +2477,86 @@ int PixelBufferClass::GetSuppressUntil(int layer)
 
 RenderBuffer& PixelBufferClass::BufferForLayer(int layer, int idx)
 {
-    if (idx >= 0 && layers[layer]->usingModelBuffers && idx < layers[layer]->modelBuffers.size()) {
-        return *layers[layer]->modelBuffers[idx];
+    if (idx >= 0 && layers[layer]->modelBuffers && idx < layers[layer]->modelBuffers->size()) {
+        return *(*layers[layer]->modelBuffers)[idx];
     }
     return layers[layer]->buffer;
 }
 
 uint32_t PixelBufferClass::BufferCountForLayer(int layer)
 {
-    if (layers[layer]->usingModelBuffers) {
-        return layers[layer]->modelBuffers.size();
+    if (layers[layer]->modelBuffers) {
+        return layers[layer]->modelBuffers->size();
     }
     return 1;
 }
 
-void PixelBufferClass::MergeBuffersForLayer(int layer) {
+void PixelBufferClass::UnMergeBuffersForLayer(int layer) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (layers[layer]->usingModelBuffers) {
+    if (layers[layer]->modelBuffers) {
         //get all the data
         xlColor color;
         int nc = 0;
-        for (auto& modelBuffer : layers[layer]->modelBuffers) {
+        
+        GPURenderUtils::waitForRenderCompletion(&layers[layer]->buffer);
+
+        for (const auto& modelBuffer : *(layers[layer]->modelBuffers)) {
+            for (const auto& mbnode : modelBuffer->Nodes) {
+                if (nc < layers[layer]->buffer.Nodes.size()) {
+                    auto &node = layers[layer]->buffer.Nodes[nc];
+                    layers[layer]->buffer.GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
+                    for (const auto& coord : mbnode->Coords) {
+                        modelBuffer->SetPixel(coord.bufX, coord.bufY, color);
+                    }
+                    nc++;
+                } else {
+                    // Where this happens it is usually a sign that there is a bug in one of our models where it creates a different number of nodes depending on the render buffer size
+                    // To find the cause uncomment the model group function TestNodeInit and the call in PixelBuffer::SetLayerSettings
+
+                    if (layers[layer]->buffer.curPeriod == layers[layer]->buffer.curEffStartPer) {
+                        logger_base.warn("PixelBufferClass::UnMergeBuffersForLayer(%d) Model '%s' Mismatch in number of nodes across layers.", layer, (const char*)modelName.c_str());
+                        for (int i = 0; i < GetLayerCount(); i++) {
+                            logger_base.warn("    Layer %d node count %d buffer '%s'", i, (int)layers[i]->buffer.Nodes.size(), (const char*)layers[i]->bufferType.c_str());
+                        }
+                        int mbnodes = 0;
+                        for (const auto& mb : *(layers[layer]->modelBuffers)) {
+                            mbnodes += mb->Nodes.size();
+                        }
+                        wxASSERT(false);
+                    }
+                }
+            }
+        }
+    }
+}
+void PixelBufferClass::MergeBuffersForLayer(int layer) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (layers[layer]->modelBuffers) {
+        //get all the data
+        xlColor color;
+        int nc = 0;
+        for (auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             GPURenderUtils::waitForRenderCompletion(modelBuffer.get());
         }
-        for (const auto& modelBuffer : layers[layer]->modelBuffers) {
+        for (const auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             for (const auto& node : modelBuffer->Nodes) {
-                if (nc < layers[layer]->buffer.Nodes.size())
-                {
+                if (nc < layers[layer]->buffer.Nodes.size()) {
                     modelBuffer->GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
                     for (const auto& coord : layers[layer]->buffer.Nodes[nc]->Coords) {
                         layers[layer]->buffer.SetPixel(coord.bufX, coord.bufY, color);
                     }
                     nc++;
-                }
-                else
-                {
+                } else {
                     // Where this happens it is usually a sign that there is a bug in one of our models where it creates a different number of nodes depending on the render buffer size
                     // To find the cause uncomment the model group function TestNodeInit and the call in PixelBuffer::SetLayerSettings
 
-                    if (layers[layer]->buffer.curPeriod == layers[layer]->buffer.curEffStartPer)
-                    {
+                    if (layers[layer]->buffer.curPeriod == layers[layer]->buffer.curEffStartPer) {
                         logger_base.warn("PixelBufferClass::MergeBuffersForLayer(%d) Model '%s' Mismatch in number of nodes across layers.", layer, (const char*)modelName.c_str());
-                        for (int i = 0; i < GetLayerCount(); i++)
-                        {
+                        for (int i = 0; i < GetLayerCount(); i++) {
                             logger_base.warn("    Layer %d node count %d buffer '%s'", i, (int)layers[i]->buffer.Nodes.size(), (const char*)layers[i]->bufferType.c_str());
                         }
                         int mbnodes = 0;
-                        for (const auto& mb : layers[layer]->modelBuffers) {
+                        for (const auto& mb : *(layers[layer]->modelBuffers)) {
                             mbnodes += mb->Nodes.size();
                         }
                         wxASSERT(false);
@@ -2622,14 +2570,25 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
 void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
 {
     layers[layer]->buffer.SetState(period, resetState, modelName);
-    if (layers[layer]->usingModelBuffers) {
-        int cnt = 0;
-        const ModelGroup *grp = dynamic_cast<const ModelGroup*>(model);
-        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it, cnt++) {
-            if (frame->AllModels[grp->Models()[cnt]->Name()] == nullptr) {
-                (*it)->SetState(period, resetState, grp->Models()[cnt]->GetFullName());
+    if (layers[layer]->modelBuffers == &layers[layer]->deepModelBuffers) {
+        const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
+        std::list<Model*> flat_models = grp->GetFlatModels(false, true);
+        std::list<Model*>::iterator it_m = flat_models.begin();
+        for (auto it = layers[layer]->modelBuffers->begin(); it != layers[layer]->modelBuffers->end(); ++it, it_m++) {
+            if (frame->AllModels[(*it_m)->Name()] == nullptr) {
+                (*it)->SetState(period, resetState, (*it_m)->GetFullName());
             } else {
-                (*it)->SetState(period, resetState, grp->Models()[cnt]->Name());
+                (*it)->SetState(period, resetState, (*it_m)->Name());
+            }
+        }
+    } else if (layers[layer]->modelBuffers) {
+        int cnt = 0;
+        const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
+        for (auto it = layers[layer]->modelBuffers->begin(); it != layers[layer]->modelBuffers->end(); ++it, cnt++) {
+            if (frame->AllModels[grp->ActiveModels()[cnt]->Name()] == nullptr) {
+                (*it)->SetState(period, resetState, grp->ActiveModels()[cnt]->GetFullName());
+            } else {
+                (*it)->SetState(period, resetState, grp->ActiveModels()[cnt]->Name());
             }
         }
     }
@@ -2638,8 +2597,8 @@ void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
 void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 {
     layers[layer]->buffer.SetEffectDuration(startTime, endTime);
-    if (layers[layer]->usingModelBuffers) {
-        for (const auto& it : layers[layer]->modelBuffers) {
+    if (layers[layer]->modelBuffers) {
+        for (const auto& it : *(layers[layer]->modelBuffers)) {
             it->SetEffectDuration(startTime, endTime);
         }
     }
@@ -2756,170 +2715,104 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 
 }
 
-void PixelBufferClass::RotateX(LayerInfo* layer, float offset)
+void PixelBufferClass::RotateX(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings)
 {
     // Now do the rotation around a point on the x axis
 
-    float xrotation = layer->xrotation;
-    if (layer->XRotationValueCurve.IsActive())
-    {
-        xrotation = layer->XRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-    }
+    float xrotation = settings.xrotation;
+    if (xrotation != 0 && xrotation != 360) {
+        GPURenderUtils::waitForRenderCompletion(&buffer);
+        int xpivot = settings.xpivot;
 
-    if (xrotation != 0 && xrotation != 360)
-    {
-        int xpivot = layer->xpivot;
-        if (layer->XPivotValueCurve.IsActive())
-        {
-            xpivot = layer->XPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-        }
-
-        RenderBuffer orig(layer->buffer);
-        layer->buffer.Clear();
+        RenderBuffer orig(buffer);
+        buffer.Clear();
 
         float sine = sin((xrotation + 90) * M_PI / 180);
-        float pivot = xpivot * layer->buffer.BufferWi / 100;
+        float pivot = xpivot * buffer.BufferWi / 100;
 
-        for (int x = pivot; x < layer->buffer.BufferWi; ++x)
-        {
+        for (int x = pivot; x < buffer.BufferWi; ++x) {
             float tox = sine * (x - pivot) + pivot;
-            for (int y = 0; y < layer->buffer.BufferHt; ++y)
-            {
-                layer->buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+            for (int y = 0; y < buffer.BufferHt; ++y) {
+                buffer.SetPixel(tox, y, orig.GetPixel(x, y));
             }
         }
 
-        for (int x = pivot - 1; x >= 0; --x)
-        {
+        for (int x = pivot - 1; x >= 0; --x) {
             float tox = -1 * sine * (pivot - x) + pivot;
-            for (int y = 0; y < layer->buffer.BufferHt; ++y)
-            {
-                layer->buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+            for (int y = 0; y < buffer.BufferHt; ++y) {
+                buffer.SetPixel(tox, y, orig.GetPixel(x, y));
             }
         }
     }
 }
 
-void PixelBufferClass::RotateY(LayerInfo* layer, float offset)
+void PixelBufferClass::RotateY(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings)
 {
     // Now do the rotation around a point on the y axis
-    float yrotation = layer->yrotation;
-    if (layer->YRotationValueCurve.IsActive())
-    {
-        yrotation = layer->YRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-    }
+    float yrotation = settings.yrotation;
+    if (yrotation != 0 && yrotation != 360) {
+        GPURenderUtils::waitForRenderCompletion(&buffer);
 
-    if (yrotation != 0 && yrotation != 360)
-    {
-        int ypivot = layer->ypivot;
-        if (layer->YPivotValueCurve.IsActive())
-        {
-            ypivot = layer->YPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-        }
-
-        RenderBuffer orig(layer->buffer);
-        layer->buffer.Clear();
+        int ypivot = settings.ypivot;
+        RenderBuffer orig(buffer);
+        buffer.Clear();
 
         float sine = sin((yrotation + 90) * M_PI / 180);
-        float pivot = ypivot * layer->buffer.BufferHt / 100;
+        float pivot = ypivot * buffer.BufferHt / 100;
 
-        for (int y = pivot; y < layer->buffer.BufferHt; ++y)
-        {
+        for (int y = pivot; y < buffer.BufferHt; ++y) {
             float toy = sine * (y - pivot) + pivot;
-            for (int x = 0; x < layer->buffer.BufferWi; ++x)
-            {
-                layer->buffer.SetPixel(x, toy, orig.GetPixel(x, y));
+            for (int x = 0; x < buffer.BufferWi; ++x) {
+                buffer.SetPixel(x, toy, orig.GetPixel(x, y));
             }
         }
 
-        for (int y = pivot - 1; y >= 0; --y)
-        {
+        for (int y = pivot - 1; y >= 0; --y) {
             float toy = -1 * sine * (pivot - y) + pivot;
-            for (int x = 0; x < layer->buffer.BufferWi; ++x)
-            {
-                layer->buffer.SetPixel(x, toy, orig.GetPixel(x, y));
+            for (int x = 0; x < buffer.BufferWi; ++x) {
+                buffer.SetPixel(x, toy, orig.GetPixel(x, y));
             }
         }
     }
 }
 
-void PixelBufferClass::RotateZAndZoom(LayerInfo* layer, float offset)
+void PixelBufferClass::RotateZAndZoom(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings)
 {
     // Do the Z axis rotate and zoom first
-    float zoom = layer->zoom;
-    if (layer->ZoomValueCurve.IsActive())
-    {
-        zoom = layer->ZoomValueCurve.GetOutputValueAtDivided(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-    }
-    float rotations = layer->rotations;
-    float rotationoffset = offset;
-    float offsetperrotation = 1.0f;
-    if (layer->RotationsValueCurve.IsActive())
-    {
-        rotations = layer->RotationsValueCurve.GetOutputValueAtDivided(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-    }
-    if (rotations > 0)
-    {
-        offsetperrotation = 1.0f / rotations;
-    }
-    while (rotationoffset > offsetperrotation)
-    {
-        rotationoffset -= offsetperrotation;
-    }
-    rotationoffset *= rotations;
-    float rotation = (float)layer->rotation / 100.0;
-    if (rotations > 0)
-    {
-        if (layer->RotationValueCurve.IsActive())
-        {
-            rotation = layer->RotationValueCurve.GetValueAt(rotationoffset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-        }
-    }
+    float zoom = settings.zoom;
+    float rotation = settings.zrotation;
 
-    if (rotation != 0.0 || zoom != 1.0)
-    {
+    if (rotation != 0.0 || zoom != 1.0) {
+        GPURenderUtils::waitForRenderCompletion(&buffer);
+
         static const float PI_2 = 6.283185307f;
         xlColor c;
-        RenderBuffer orig(layer->buffer);
-        int q = layer->zoomquality;
-        int cx = layer->pivotpointx;
-        if (layer->PivotPointXValueCurve.IsActive())
-        {
-            cx = layer->PivotPointXValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-        }
-        int cy = layer->pivotpointy;
-        if (layer->PivotPointYValueCurve.IsActive())
-        {
-            cy = layer->PivotPointYValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-        }
+        RenderBuffer orig(buffer);
+        int q = settings.zoomquality;
+        int cx = settings.pivotpointx;
+        int cy = settings.pivotpointy;
         float inc = 1.0 / (float)q;
 
         float angle = PI_2 * -rotation;
-        float xoff = (cx * layer->buffer.BufferWi) / 100.0;
-        float yoff = (cy * layer->BufferHt) / 100.0;
+        float xoff = (cx * buffer.BufferWi) / 100.0;
+        float yoff = (cy * buffer.BufferHt) / 100.0;
         float anglecos = cos(-angle);
         float anglesin = sin(-angle);
 
-        layer->buffer.Clear();
-        for (int x = 0; x < layer->BufferWi; x++)
-        {
-            for (int i = 0; i < q; i++)
-            {
-                for (int y = 0; y < layer->BufferHt; y++)
-                {
+        buffer.Clear();
+        for (int x = 0; x < buffer.BufferWi; x++) {
+            for (int i = 0; i < q; i++) {
+                for (int y = 0; y < buffer.BufferHt; y++) {
                     orig.GetPixel(x, y, c);
-                    for (int j = 0; j < q; j++)
-                    {
+                    for (int j = 0; j < q; j++) {
                         float xx = (float)x + ((float)i * inc) - xoff;
                         float yy = (float)y + ((float)j * inc) - yoff;
                         float u = xoff + anglecos * xx * zoom + anglesin * yy * zoom;
-                        if (u >= 0 && u < layer->BufferWi)
-                        {
+                        if (u >= 0 && u < buffer.BufferWi) {
                             float v = yoff + -anglesin * xx * zoom + anglecos * yy * zoom;
 
-                            if (v >= 0 && v < layer->BufferHt)
-                            {
-                                layer->buffer.SetPixel(u, v, c);
+                            if (v >= 0 && v < buffer.BufferHt) {
+                                buffer.SetPixel(u, v, c);
                             }
                         }
                     }
@@ -2933,22 +2826,79 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
 {
     if (std::isinf(offset)) offset = 1.0;
 
-    wxArrayString order = wxSplit(layer->rotationorder, ',');
+    GPURenderUtils::RotoZoomSettings settings;
+    settings.offset = offset;
+    settings.rotationorder = layer->rotationorder;
+    
+    settings.xrotation = layer->xrotation;
+    if (layer->XRotationValueCurve.IsActive()) {
+        settings.xrotation = layer->XRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+    }
+    if (settings.xrotation != 0 && settings.xrotation != 360) {
+        GPURenderUtils::waitForRenderCompletion(&layer->buffer);
+        settings.xpivot = layer->xpivot;
+        if (layer->XPivotValueCurve.IsActive()) {
+            settings.xpivot = layer->XPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+        }
+    }
+    settings.yrotation = layer->yrotation;
+    if (layer->YRotationValueCurve.IsActive()) {
+        settings.yrotation = layer->YRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+    }
+    if (settings.yrotation != 0 && settings.yrotation != 360) {
+        settings.ypivot = layer->ypivot;
+        if (layer->YPivotValueCurve.IsActive()) {
+            settings.ypivot = layer->YPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+        }
+    }
+    
+    settings.zoom = layer->zoom;
+    if (layer->ZoomValueCurve.IsActive()) {
+        settings.zoom = layer->ZoomValueCurve.GetOutputValueAtDivided(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+    }
+    float rotations = layer->rotations;
+    if (layer->RotationsValueCurve.IsActive()) {
+        rotations = layer->RotationsValueCurve.GetOutputValueAtDivided(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+    }
 
-    for (auto it = order.begin(); it != order.end(); ++it)
-    {
-        char c = it->Trim(false).ToStdString()[0];
-        switch(c)
-        {
-        case 'X':
-            RotateX(layer, offset);
-            break;
-        case 'Y':
-            RotateY(layer, offset);
-            break;
-        case 'Z':
-            RotateZAndZoom(layer, offset);
-            break;
+    float rotationoffset = offset;
+    float offsetperrotation = 1.0f;
+    if (rotations > 0) {
+        offsetperrotation = 1.0f / rotations;
+    }
+    while (rotationoffset > offsetperrotation) {
+        rotationoffset -= offsetperrotation;
+    }
+    rotationoffset *= rotations;
+    settings.zrotation = (float)layer->rotation / 100.0;
+    if (rotations > 0) {
+        if (layer->RotationValueCurve.IsActive()) {
+            settings.zrotation = layer->RotationValueCurve.GetValueAt(rotationoffset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+        }
+    }
+    settings.zoomquality = layer->zoomquality;
+    settings.pivotpointx = layer->pivotpointx;
+    if (layer->PivotPointXValueCurve.IsActive()) {
+        settings.pivotpointx = layer->PivotPointXValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+    }
+    settings.pivotpointy = layer->pivotpointy;
+    if (layer->PivotPointYValueCurve.IsActive()) {
+        settings.pivotpointy = layer->PivotPointYValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+    }
+    
+    if (!GPURenderUtils::RotoZoom(&layer->buffer, settings)) {
+        for (auto &c : layer->rotationorder) {
+            switch(c) {
+            case 'X':
+                RotateX(layer->buffer, settings);
+                break;
+            case 'Y':
+                RotateY(layer->buffer, settings);
+                break;
+            case 'Z':
+                RotateZAndZoom(layer->buffer, settings);
+                break;
+            }
         }
     }
 }
@@ -2986,40 +2936,50 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
     const std::string &camera = layers[layer]->camera;
     const std::string &transform = layers[layer]->transform;
     layers[layer]->buffer.Nodes.clear();
+    layers[layer]->BufferOffsetX = 0;
+    layers[layer]->BufferOffsetY = 0;
     model->InitRenderBufferNodes(type, camera, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
-    ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, offset, layers[layer]->buffer.GetStartTimeMS(), layers[layer]->buffer.GetEndTimeMS());
+    ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt,
+                     layers[layer]->BufferOffsetX, layers[layer]->BufferOffsetY,
+                     offset, layers[layer]->buffer.GetStartTimeMS(), layers[layer]->buffer.GetEndTimeMS());
     layers[layer]->buffer.BufferWi = layers[layer]->BufferWi;
     layers[layer]->buffer.BufferHt = layers[layer]->BufferHt;
 
     if (layers[layer]->buffer.BufferWi == 0) layers[layer]->buffer.BufferWi = 1;
     if (layers[layer]->buffer.BufferHt == 0) layers[layer]->buffer.BufferHt = 1;
+    
+    layers[layer]->buffer.InitBuffer(layers[layer]->BufferHt, layers[layer]->BufferWi, transform);
+    GPURenderUtils::setupRenderBuffer(this, &layers[layer]->buffer);
+}
+
+void PixelBufferClass::HandleLayerBlurZoom(int EffectPeriod, int layer) {
+    int effStartPer, effEndPer;
+    layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
+    float offset = 0.0f;
+    if (effEndPer != effStartPer) {
+        offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
+    }
+    offset = std::min(offset, 1.0f);
+
+    if (layers[layer]->freezeAfterFrame > EffectPeriod - effStartPer) {
+        // do gausian blur
+        if (layers[layer]->BlurValueCurve.IsActive() || layers[layer]->blur > 1) {
+            Blur(layers[layer], offset);
+        }
+        RotoZoom(layers[layer], offset);
+    }
+    // All rendering is encoded, commit it so the GPU can start
+    GPURenderUtils::commitRenderBuffer(&layers[layer]->buffer);
 }
 
 void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers, int saveLayer)
 {
     int curStep;
 
-    // blur all the layers if necessary ... before the merge?
-    for (int layer = 0; layer < numLayers; layer++) {
-        int effStartPer, effEndPer;
-        GPURenderUtils::waitForRenderCompletion(&layers[layer]->buffer);
-        layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
-        float offset = 0.0f;
-        if (effEndPer != effStartPer) {
-            offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
-        }
-        offset = std::min(offset, 1.0f);
-
-        if (layers[layer]->freezeAfterFrame > EffectPeriod - effStartPer) {
-            // do gausian blur
-            if (layers[layer]->BlurValueCurve.IsActive() || layers[layer]->blur > 1) {
-                Blur(layers[layer], offset);
-            }
-            RotoZoom(layers[layer], offset);
-        }
-    }
-
     for(int ii=0; ii < numLayers; ii++) {
+        if (!validLayers[ii]) {
+            continue;
+        }
         if (layers[ii]->use_music_sparkle_count &&
             layers[ii]->buffer.GetMedia() != nullptr) {
             float f = 0.0;
@@ -3078,6 +3038,8 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
            layers[ii]->mask.clear();
         }
         layers[ii]->calculateNodeOutputParams(EffectPeriod);
+        
+        GPURenderUtils::waitForRenderCompletion(&layers[ii]->buffer);
     }
 
     // layer calculation and map to output
@@ -3172,8 +3134,8 @@ static int DecodeType(const std::string &type)
 }
 void PixelBufferClass::LayerInfo::clear() {
     buffer.Clear();
-    if (usingModelBuffers) {
-        for (auto it = modelBuffers.begin();  it != modelBuffers.end(); ++it) {
+    if (modelBuffers) {
+        for (auto it = modelBuffers->begin();  it != modelBuffers->end(); ++it) {
             (*it)->Clear();
         }
     }

@@ -17,14 +17,35 @@
 
 class PlasmaEffect : public RenderableEffect
 {
-    public:
-        PlasmaEffect(int id);
-        virtual ~PlasmaEffect();
-        virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool CanRenderPartialTimeInterval() const override { return true; }
-        virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
-    protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
-    private:
+public:
+    PlasmaEffect(int id);
+    virtual ~PlasmaEffect();
+    virtual void SetDefaultParameters() override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual bool CanRenderPartialTimeInterval() const override
+    {
+        return true;
+    }
+    virtual bool SupportsRenderCache(const SettingsMap& settings) const override
+    {
+        return true;
+    }
+
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Plasma_Speed")
+            return PLASMA_SPEED_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Plasma_Speed")
+            return PLASMA_SPEED_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
+
+    static int GetPlasmaColorScheme(const std::string &ColorSchemeStr);
+
+protected:
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

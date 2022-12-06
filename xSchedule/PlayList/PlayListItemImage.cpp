@@ -75,7 +75,7 @@ PlayListItemImage::PlayListItemImage(ScheduleOptions* options) : PlayListItem()
     }
 }
 
-PlayListItem* PlayListItemImage::Copy() const
+PlayListItem* PlayListItemImage::Copy(const bool isClone) const
 {
     PlayListItemImage* res = new PlayListItemImage((ScheduleOptions*)nullptr);
     res->_ImageFile = _ImageFile;
@@ -84,7 +84,7 @@ PlayListItem* PlayListItemImage::Copy() const
     res->_duration = _duration;
     res->_topMost = _topMost;
     res->_suppressVirtualMatrix = _suppressVirtualMatrix;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

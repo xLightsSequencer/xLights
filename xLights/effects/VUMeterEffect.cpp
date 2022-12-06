@@ -68,6 +68,8 @@ namespace RenderType
         TIMING_EVENT_TIMED_SWEEP2,
         TIMING_EVENT_ALTERNATE_TIMED_SWEEP,
         TIMING_EVENT_ALTERNATE_TIMED_SWEEP2,
+        TIMING_EVENT_CHASE_FROM_MIDDLE,
+        TIMING_EVENT_CHASE_TO_MIDDLE,
         LEVEL_JUMP,
         LEVEL_JUMP100,
         NOTE_LEVEL_JUMP,
@@ -146,15 +148,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
 
     wxString timing = settings.Get("E_CHOICE_VUMeter_TimingTrack", "");
 
-    if (type == "Timing Event Spike" ||
-        type == "Timing Event Sweep" ||
-        type == "Timing Event Bar" ||
-        type == "Timing Event Random Bar" ||
-        type == "Timing Event Bars" ||
-        type == "Timing Event Color" ||
-        type == "Timing Event Pulse" ||
-        type == "Timing Event Jump 100" ||
-        type == "Timing Event Jump")
+    if (type.StartsWith("Timing Event") )
     {
         if (timing == "")
         {
@@ -171,16 +165,22 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
 
 bool VUMeterEffect::needToAdjustSettings(const std::string& version)
 {
-    return IsVersionOlder("2019.16", version);
+    return IsVersionOlder("2022.04", version);
 }
 
 void VUMeterEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
 {
-    SettingsMap &settings = effect->GetSettings();
-    if (settings.Contains("E_CHECKBOX_Fireworks_LogarithmicX"))
-    {
-        settings["E_CHECKBOX_VUMeter_LogarithmicX"] = settings.Get("E_CHECKBOX_Fireworks_LogarithmicX", "0");
-        settings.erase("E_CHECKBOX_Fireworks_LogarithmicX");
+    SettingsMap& settings = effect->GetSettings();
+    if (IsVersionOlder("2019.16", version)) {
+        if (settings.Contains("E_CHECKBOX_Fireworks_LogarithmicX")) {
+            settings["E_CHECKBOX_VUMeter_LogarithmicX"] = settings.Get("E_CHECKBOX_Fireworks_LogarithmicX", "0");
+            settings.erase("E_CHECKBOX_Fireworks_LogarithmicX");
+        }
+    }
+    if (IsVersionOlder("2022.04", version)) {
+        if (settings.Get("CHOICE_VUMeter_Type", "Waveform") == "Timing Event Color") {
+            settings["E_SLIDER_VUMeter_Sensitivity"] = "100";
+        }
     }
 }
 
@@ -253,7 +253,7 @@ void VUMeterEffect::RenameTimingTrack(std::string oldname, std::string newname, 
     }
 }
 
-void VUMeterEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
         effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
@@ -326,6 +326,12 @@ int VUMeterEffect::DecodeType(const std::string& type)
     }
     else if (type == "Timing Event Alternate Timed Sweep 2") {
         return RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2;
+    }
+    else if (type == "Timing Event Timed Chase From Middle") {
+        return RenderType::TIMING_EVENT_CHASE_FROM_MIDDLE;
+    } 
+    else if (type == "Timing Event Timed Chase To Middle") {
+        return RenderType::TIMING_EVENT_CHASE_TO_MIDDLE;
     }
     else if (type == "On") {
         return RenderType::ON;
@@ -600,6 +606,10 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
         case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2:
             RenderTimingEventTimedSweepFrame(buffer, usebars, nType, timingtrack, _nCount);
             break;
+        case RenderType::TIMING_EVENT_CHASE_TO_MIDDLE:
+        case RenderType::TIMING_EVENT_CHASE_FROM_MIDDLE:
+            RenderTimingEventTimedChaseFrame(buffer, usebars, nType, timingtrack, _nCount);
+            break;
         case RenderType::TIMING_EVENT_SPIKE:
 		case RenderType::TIMING_EVENT_SWEEP:
         case RenderType::TIMING_EVENT_SWEEP2:
@@ -636,7 +646,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             RenderDominantFrequencyColour(buffer, sensitivity, startnote, endnote, true);
             break;
         case RenderType::TIMING_EVENT_COLOR:
-            RenderTimingEventColourFrame(buffer, _colourindex, timingtrack);
+            RenderTimingEventColourFrame(buffer, _colourindex, timingtrack, sensitivity);
             break;
         case RenderType::NOTE_ON:
             RenderNoteOnFrame(buffer, startnote, endnote, gain);
@@ -1282,6 +1292,41 @@ void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int u
     }
 }
 
+void VUMeterEffect::RenderTimingEventTimedChaseFrame(RenderBuffer& buffer, int usebars, int nType, std::string timingtrack, int& nCount)
+{
+    Effect* timing = GetCurrentTiming(buffer, timingtrack);
+
+    if (timing == nullptr)
+        return;
+
+    if (buffer.curPeriod * buffer.frameTimeInMs == timing->GetStartTimeMS()) {
+        nCount++;
+    }
+
+    // we have a timing mark
+    double lengthOfTiming = timing->GetEndTimeMS() - timing->GetStartTimeMS();
+    double lengthOfTimingFrames = lengthOfTiming / buffer.frameTimeInMs;
+    double distanceToTravel = buffer.BufferWi + ( 2 * usebars);
+
+    double perFrameDistance = distanceToTravel / lengthOfTimingFrames;
+    double posInTiming = (buffer.curPeriod * buffer.frameTimeInMs - timing->GetStartTimeMS()) / buffer.frameTimeInMs;
+    int startX = perFrameDistance * posInTiming;
+
+    for (int x = 0; x < usebars; x++) {
+        xlColor color1;
+        buffer.GetMultiColorBlend((double)x / usebars, false, color1);
+        for (int y = 0; y < buffer.BufferHt; y++) {           
+            if (nType == RenderType::TIMING_EVENT_CHASE_FROM_MIDDLE) {  
+                buffer.SetPixel(std::round(buffer.BufferWi / 2) - (x + startX), y, color1);
+                buffer.SetPixel(std::round(buffer.BufferWi / 2) + (x + startX), y, color1);
+            } else {
+                buffer.SetPixel(buffer.BufferWi - (x + startX) - 1, y, color1);
+                buffer.SetPixel((x + startX), y, color1);
+            }
+        }
+    }
+}
+
 void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer, int gain)
 {
     if (buffer.GetMedia() == nullptr) return;
@@ -1635,14 +1680,16 @@ void VUMeterEffect::RenderLevelColourFrame(RenderBuffer &buffer, int& colourinde
         lasttimingmark = buffer.curPeriod;
     }
 
-    xlColor color1;
-    buffer.palette.GetColor(colourindex, color1);
+    if (colourindex < 0) {
+        // dont render anything until at least something triggers
+    } else {
+        xlColor color1;
+        buffer.palette.GetColor(colourindex, color1);
 
-    for (int x = 0; x < buffer.BufferWi; x++)
-    {
-        for (int y = 0; y < buffer.BufferHt; y++)
-        {
-            buffer.SetPixel(x, y, color1);
+        for (int x = 0; x < buffer.BufferWi; x++) {
+            for (int y = 0; y < buffer.BufferHt; y++) {
+                buffer.SetPixel(x, y, color1);
+            }
         }
     }
 }
@@ -1829,19 +1876,30 @@ void VUMeterEffect::DrawHeart(RenderBuffer &buffer, int xc, int yc, double radiu
 	double interpolation = 0.75;
 	double t = (double)thickness - 1.0 + interpolation;
 
-	for (double x = -2.0; x <= 2.0; x += 0.01f)
+    double xincr = 0.01;
+	for (double x = -2.0; x <= 2.0; x += xincr)
 	{
 		double y1 = std::sqrt(1.0 - (std::abs(x) - 1.0) * (std::abs(x) - 1.0));
 		double y2 = std::acos(1.0 - std::abs(x)) - M_PI;
 
-		double r = radius;
-
-		for (double i = 0.0; i < t; i += interpolation)
+        double r = radius;
+        for (double i = 0.0; i < t; i += interpolation)
 		{
 			if (r >= 0)
 			{
-				buffer.SetPixel(std::round(x * r / 2.0) + xc, std::round(y1 * r / 2.0) + yc, color);
-				buffer.SetPixel(std::round(x * r / 2.0) + xc, std::round(y2 * r / 2.0) + yc, color);
+                double xx1 = std::round((x * r) / 2.0) + xc;
+                double yy1 = ((y1 * r) / 2.0) + yc;
+                double yy2 = ((y2 * r) / 2.0) + yc;
+                buffer.SetPixel(xx1, std::round(yy1), color);
+				buffer.SetPixel(xx1, std::round(yy2), color);
+                if (x + xincr > 2.0 || x == -2.0 + xincr) {
+                    if (yy1 > yy2)
+                        std::swap(yy1, yy2);
+
+                    for (double z = yy1; z < yy2; z += 0.5) {
+                        buffer.SetPixel(xx1, std::round(z), color);
+                    }
+                }
 			}
 			else
 			{
@@ -2508,7 +2566,7 @@ void VUMeterEffect::RenderTimingEventPulseColourFrame(RenderBuffer &buffer, int 
     }
 }
 
-void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colourindex, std::string timingtrack)
+void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colourindex, std::string timingtrack, int sensitivity)
 {
     if (timingtrack != "")
     {
@@ -2539,6 +2597,8 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colo
                 else if (ems > ms) break;
             }
 
+            bool effectActuallyPresent = el->GetEffectAtTime(ms) != nullptr;
+
             if (effectPresent)
             {
                 colourindex++;
@@ -2552,6 +2612,9 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colo
 
             xlColor color;
             buffer.palette.GetColor(colourindex, color);
+            if (!effectActuallyPresent) {
+                color.alpha = (sensitivity * 255) / 100;
+            }
 
             for (int x = 0; x < buffer.BufferWi; x++)
             {

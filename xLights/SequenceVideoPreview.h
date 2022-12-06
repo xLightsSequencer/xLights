@@ -10,12 +10,14 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "graphics/opengl/xlGLCanvas.h"
+#include "graphics/xlGraphicsBase.h"
+#include "graphics/xlGraphicsAccumulators.h"
 
 struct AVFrame;
 class wxPanel;
+class xlGraphicsContext;
 
-class SequenceVideoPreview : public xlGLCanvas
+class SequenceVideoPreview : public GRAPHICS_BASE_CLASS
 {
 public:
    SequenceVideoPreview(wxPanel *parent);
@@ -26,16 +28,15 @@ public:
    void Clear();
 
 protected:
-   void InitializeGLContext() override;
 
-   void reinitTexture( int width, int height );
+   void reinitTexture( xlGraphicsContext *ctx, int width, int height );
 
    void deleteTexture();
 
 private:
    void paint( wxPaintEvent& evt );
 
-   unsigned _texId;
+   xlTexture *_texture;
    int      _texWidth;
    int      _texHeight;
 

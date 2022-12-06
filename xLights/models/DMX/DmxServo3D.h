@@ -21,11 +21,16 @@ class DmxServo3d : public DmxModel
         DmxServo3d(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
         virtual ~DmxServo3d();
 
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active) override;
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                          xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
+                                          const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
+                                          bool highlightFirst = false, int highlightpixel = 0,
+                                          float *boundingBox = nullptr) override;
+        virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
+        virtual std::list<std::string> CheckModelSettings() override;
 
         Servo* GetAxis(int num) { return num < num_servos ? servos[num] : servos[0]; }
         int GetNumServos() const { return num_servos; }
@@ -39,8 +44,10 @@ class DmxServo3d : public DmxModel
         virtual void InitModel() override;
         void Clear();
 
+        void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active);
+
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
         float brightness = 100.0f;
 

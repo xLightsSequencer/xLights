@@ -31,7 +31,7 @@ wxColor XyzzyPiece::GetColour() const
 
 void XyzzyPiece::Rotate()
 {
-    _rotation++;
+    ++_rotation;
     if (_rotation > 3) _rotation = 0;
 }
 
@@ -173,11 +173,11 @@ void XyzzyBase::DrawNode(int x, int y, wxColour c, uint8_t* buffer, size_t size)
 
 void XyzzyBase::DrawPixel(int x, int y, wxColour c, uint8_t* buffer, size_t size)
 {
-    for (int xout = 0; xout < _colsPerSquare; xout++)
+    for (int xout = 0; xout < _colsPerSquare; ++xout)
     {
         if (x >= 0 && x < _bw)
         {
-            for (int yout = 0; yout < _rowsPerSquare; yout++)
+            for (int yout = 0; yout < _rowsPerSquare; ++yout)
             {
                 if (y >= 0 && y < _bh)
                 {
@@ -192,9 +192,9 @@ void XyzzyBase::DrawBlack(uint8_t* buffer, size_t size)
 {
     if (_matrixMapper == nullptr) return;
 
-    for (int x = 0; x < _matrixMapper->GetWidth(); x++)
+    for (int x = 0; x < _matrixMapper->GetWidth(); ++x)
     {
-        for (int y = 0; y < _matrixMapper->GetHeight(); y++)
+        for (int y = 0; y < _matrixMapper->GetHeight(); ++y)
         {
             DrawNode(x, y, *wxBLACK, buffer, size);
         }
@@ -218,9 +218,9 @@ bool Xyzzy::Frame(uint8_t* buffer, size_t size, bool outputframe)
         }
 
         // Erase the board background
-        for (int x = _sideBorder; x < _sideBorder + _bw * _colsPerSquare; x++)
+        for (int x = _sideBorder; x < _sideBorder + _bw * _colsPerSquare; ++x)
         {
-            for (int y = _bottomBorder; y < _bottomBorder + _bh * _rowsPerSquare; y++)
+            for (int y = _bottomBorder; y < _bottomBorder + _bh * _rowsPerSquare; ++y)
             {
                 DrawNode(x, y, *wxBLACK, buffer, size);
             }
@@ -228,42 +228,42 @@ bool Xyzzy::Frame(uint8_t* buffer, size_t size, bool outputframe)
 
         // draw borders
         // left
-        for (int x = 0; x < _sideBorder; x++)
+        for (int x = 0; x < _sideBorder; ++x)
         {
-            for (int y = 0; y < _matrixMapper->GetHeight(); y++)
+            for (int y = 0; y < _matrixMapper->GetHeight(); ++y)
             {
                 DrawNode(x, y, colour, buffer, size);
             }
         }
         // right
-        for (int x = _sideBorder + _bw * _colsPerSquare; x < _matrixMapper->GetWidth(); x++)
+        for (int x = _sideBorder + _bw * _colsPerSquare; x < _matrixMapper->GetWidth(); ++x)
         {
-            for (int y = 0; y < _matrixMapper->GetHeight(); y++)
+            for (int y = 0; y < _matrixMapper->GetHeight(); ++y)
             {
                 DrawNode(x, y, colour, buffer, size);
             }
         }
         // bottom
-        for (int y = 0; y < _bottomBorder; y++)
+        for (int y = 0; y < _bottomBorder; ++y)
         {
-            for (int x = 0; x < _matrixMapper->GetWidth(); x++)
+            for (int x = 0; x < _matrixMapper->GetWidth(); ++x)
             {
                 DrawNode(x, y, colour, buffer, size);
             }
         }
         // top
-        for (int y = _bottomBorder + _bh * _rowsPerSquare; y < _matrixMapper->GetHeight(); y++)
+        for (int y = _bottomBorder + _bh * _rowsPerSquare; y < _matrixMapper->GetHeight(); ++y)
         {
-            for (int x = 0; x < _matrixMapper->GetWidth(); x++)
+            for (int x = 0; x < _matrixMapper->GetWidth(); ++x)
             {
                 DrawNode(x, y, colour, buffer, size);
             }
         }
 
         // draw the board
-        for (int x = 0; x < _bw; x++)
+        for (int x = 0; x < _bw; ++x)
         {
-            for (int y = 0; y < _bh; y++)
+            for (int y = 0; y < _bh; ++y)
             {
                 if (_board[y*_bw + x] != 0xFF)
                 {
@@ -330,42 +330,42 @@ bool Xyzzy2::Frame(uint8_t* buffer, size_t size, bool outputframe)
 
         // draw borders
         // left
-        for (int x = 0; x < _sideBorder; x++)
+        for (int x = 0; x < _sideBorder; ++x)
         {
-            for (int y = 0; y < _matrixMapper->GetHeight(); y++)
+            for (int y = 0; y < _matrixMapper->GetHeight(); ++y)
             {
                 DrawNode(x, y, colour, buffer, size);
             }
         }
         // right
-        for (int x = _sideBorder + _bw * _colsPerSquare; x < _matrixMapper->GetWidth(); x++)
+        for (int x = _sideBorder + _bw * _colsPerSquare; x < _matrixMapper->GetWidth(); ++x)
         {
-            for (int y = 0; y < _matrixMapper->GetHeight(); y++)
+            for (int y = 0; y < _matrixMapper->GetHeight(); ++y)
             {
                 DrawNode(x, y, colour, buffer, size);
             }
         }
         // bottom
-        for (int y = 0; y < _bottomBorder; y++)
+        for (int y = 0; y < _bottomBorder; ++y)
         {
-            for (int x = 0; x < _matrixMapper->GetWidth(); x++)
+            for (int x = 0; x < _matrixMapper->GetWidth(); ++x)
             {
                 DrawNode(x, y, colour, buffer, size);
             }
         }
         // top
-        for (int y = _bottomBorder + _bh * _rowsPerSquare; y < _matrixMapper->GetHeight(); y++)
+        for (int y = _bottomBorder + _bh * _rowsPerSquare; y < _matrixMapper->GetHeight(); ++y)
         {
-            for (int x = 0; x < _matrixMapper->GetWidth(); x++)
+            for (int x = 0; x < _matrixMapper->GetWidth(); ++x)
             {
                 DrawNode(x, y, colour, buffer, size);
             }
         }
 
         // draw the board
-        for (int x = 0; x < _bw; x++)
+        for (int x = 0; x < _bw; ++x)
         {
-            for (int y = 0; y < _bh; y++)
+            for (int y = 0; y < _bh; ++y)
             {
                 if (_board[y * _bw + x] == XYZZY2::PILL)
                 {
@@ -1138,7 +1138,7 @@ void Xyzzy::Drop()
     while (TestMoveDown())
     {
         _currentPiece->MoveDown();
-        dropdistance++;
+        ++dropdistance;
     }
 
     auto loc = _currentPiece->DrawPoints();
@@ -1221,16 +1221,16 @@ XyzzyPiece* XyzzyPiece::CreatePiece()
             hardcount = 0;
             return new JPiece();
         case 3:
-            hardcount++;
+            ++hardcount;
             return new SPiece();
         case 4:
-            hardcount++;
+            ++hardcount;
             return new ZPiece();
         case 5:
             hardcount = 0;
             return new OPiece();
         case 6:
-            hardcount++;
+            ++hardcount;
             return new TPiece();
         default:
             break;
@@ -1465,7 +1465,7 @@ std::list<wxPoint> TPiece::GetPoints(int rotation, wxPoint position) const
 std::list<wxPoint> XyzzyPiece::TestRotate() const
 {
     int r = _rotation;
-    r++;
+    ++r;
     if (r > 3) r = 0;
     return GetPoints(r, _position);
 }
@@ -1473,21 +1473,21 @@ std::list<wxPoint> XyzzyPiece::TestRotate() const
 std::list<wxPoint> XyzzyPiece::TestLeft() const
 {
     wxPoint p = _position;
-    p.x--;
+    --(p.x);
     return GetPoints(_rotation, p);
 }
 
 std::list<wxPoint> XyzzyPiece::TestRight() const
 {
     wxPoint p = _position;
-    p.x++;
+    ++(p.x);
     return GetPoints(_rotation, p);
 }
 
 std::list<wxPoint> XyzzyPiece::TestDown() const
 {
     wxPoint p = _position;
-    p.y--;
+    --(p.y);
     return GetPoints(_rotation, p);
 }
 
@@ -1512,7 +1512,7 @@ bool Xyzzy::AdvanceGame()
     {
         _fullTime = 0;
         // clear any white rows
-        for (int y = 0; y < _bh; y++)
+        for (int y = 0; y < _bh; ++y)
         {
             if (_board[y * _bw] == 7)
             {
@@ -1524,7 +1524,7 @@ bool Xyzzy::AdvanceGame()
 
                 // blank top row
                 memset(&_board[(_bh - 1) * _bw], 0xFF, _bw);
-                y--;
+                --y;
             }
         }
     }
@@ -1622,6 +1622,8 @@ bool Xyzzy2::AdvanceGame()
         case XYZZY2::DOWN:
             np = wxPoint(np.x, np.y - 1);
             break;
+        default:
+            break;
         }
 
         if (np.x < 0 || np.x >= _bw || np.y < 0 || np.y >= _bh || std::find(_body.begin(), _body.end(), np) != _body.end())
@@ -1638,7 +1640,7 @@ bool Xyzzy2::AdvanceGame()
         }
         else
         {
-            _score++;
+            ++_score;
             _pill = RandomPill();
         }
 
@@ -1674,10 +1676,10 @@ void Xyzzy::CheckFullRow()
 
     // now check if any row is complete
     int fullcount = 0;
-    for (int y = 0; y < _bh; y++)
+    for (int y = 0; y < _bh; ++y)
     {
         bool full = true;
-        for (int x = 0; x < _bw; x++)
+        for (int x = 0; x < _bw; ++x)
         {
             if (_board[y * _bw + x] == 0xFF)
             {
@@ -1688,8 +1690,8 @@ void Xyzzy::CheckFullRow()
 
         if (full)
         {
-            fullcount++;
-            for (int x = 0; x < _bw; x++)
+            ++fullcount;
+            for (int x = 0; x < _bw; ++x)
             {
                 _board[y * _bw + x] = 7;
                 _fullTime = wxGetUTCTimeMillis();

@@ -163,7 +163,12 @@ public:
     PlayListStep* GetRandomStep();
     bool LoopStep(const std::string step);
     PlayListItemText* GetRunningText(const std::string& name);
-    #pragma endregion Getters and Setters
+    bool IsFirstStepPlaying();
+    bool IsLastStepPlaying();
+    void StartEveryStep(int loops);
+    void StopEveryStep();
+    void RestartEveryStep();
+#pragma endregion Getters and Setters
 
     void ConsolidateEveryDay();
     void SeparateEveryDay();

@@ -2,7 +2,6 @@
 ; File used for building xLights.exe
 
 ;  SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
-; mar 3,2015: added new line for bin/xlights.map
 ; mar 3,2016:  added Source: "bin/avcodec-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 ; mar 3,2016:  added Source: "bin/avformat-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 ; mar 3,2016:  added Source: "bin/avutil-55.dll"; DestDir: "{app}";  Flags: "ignoreversion"
@@ -43,21 +42,18 @@ Source: "../../include\xLights_nutcracker.ico"; DestDir: "{app}"
 
 ; xSchedule
 Source: "../../xSchedule/Release/xSchedule.exe"; DestDir: "{app}"
-Source: "../../xSchedule/Release/xSchedule.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: ignoreversion recursesubdirs
 Source: "../../include\xSchedule.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xSMSDaemon
 Source: "../../xSchedule/xSMSDaemon/Release/xSMSDaemon.dll"; DestDir: "{app}"
-Source: "../../xSchedule/xSMSDaemon/Release/xSMSDaemon.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xSchedule\xSMSDaemon\Blacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xSchedule\xSMSDaemon\Whitelist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xSchedule\xSMSDaemon\PhoneBlacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; RemoteFalcon
 Source: "../../xSchedule/RemoteFalcon/Release/RemoteFalcon.dll"; DestDir: "{app}"
-Source: "../../xSchedule/RemoteFalcon/Release/RemoteFalcon.map"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; wxWidgets
 ; Statically linked

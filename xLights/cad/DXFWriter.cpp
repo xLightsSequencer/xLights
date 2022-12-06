@@ -28,22 +28,22 @@ void DXFWriter::WriteEndOfFile()
 	m_file << "EOF\n";
 }
 
-void DXFWriter::WriteText(CADPoint const& loc, std::string const& text, float height, float rotation)
+void DXFWriter::WriteText(CADPoint const& loc, std::string const& text, float height, uint32_t color, float rotation)
 {
-	DrawText(loc.X, loc.Y, loc.Z, text, height, rotation, 1, 1);
+	DrawText(loc.X, loc.Y, loc.Z, text, height, rotation, 1, 1, color);
 }
 
-void DXFWriter::WriteWire(CADPoint const& loc1, CADPoint const& loc2)
+void DXFWriter::WriteWire(CADPoint const& loc1, CADPoint const& loc2, uint32_t color)
 {
-	DrawLine(loc1.X, loc1.Y, loc1.Z, loc2.X, loc2.Y, loc2.Z, 1, 2);
+	DrawLine(loc1.X, loc1.Y, loc1.Z, loc2.X, loc2.Y, loc2.Z, 1, 2, color);
 }
 
-void DXFWriter::WriteNode(CADPoint const& loc)
+void DXFWriter::WriteNode(CADPoint const& loc, uint32_t color)
 {
-	DrawCircle(loc.X, loc.Y, loc.Z, 0.2f, 1, 0);
+	DrawCircle(loc.X, loc.Y, loc.Z, 0.2f, 1, 0, color);
 }
 
-void DXFWriter::DrawText(float x, float y, float z, std::string const& text, float height, float rotation, int thickness, int layer)
+void DXFWriter::DrawText(float x, float y, float z, std::string const& text, float height, float rotation, int thickness, int layer, uint32_t color)
 {
 	m_file << "0\n";
 	m_file << "TEXT\n";
@@ -70,9 +70,14 @@ void DXFWriter::DrawText(float x, float y, float z, std::string const& text, flo
 		m_file << "50\n";
 		m_file << std::to_string(rotation) << '\n';
 	}
+
+	if (color != 0) {
+		m_file << "420\n";
+		m_file << std::to_string(color) << '\n';
+	}
 }
 
-void DXFWriter::DrawLine(float x1, float y1, float z1, float x2, float y2, float z2, int thickness, int layer)
+void DXFWriter::DrawLine(float x1, float y1, float z1, float x2, float y2, float z2, int thickness, int layer, uint32_t color)
 {
 	m_file << "0\n";
 	m_file << "LINE\n";
@@ -96,9 +101,14 @@ void DXFWriter::DrawLine(float x1, float y1, float z1, float x2, float y2, float
 	m_file << std::to_string(y2 * m_scale) << '\n';
 	m_file << "31\n";
 	m_file << std::to_string(z2 * m_scale) << '\n';
+
+	if (color != 0) {
+		m_file << "420\n";
+		m_file << std::to_string(color) << '\n';
+	}
 }
 
-void DXFWriter::DrawCircle(float x, float y, float z, float radius, int thickness, int layer)
+void DXFWriter::DrawCircle(float x, float y, float z, float radius, int thickness, int layer, uint32_t color)
 {
 	m_file << "0\n";
 	m_file << "CIRCLE\n";
@@ -117,9 +127,14 @@ void DXFWriter::DrawCircle(float x, float y, float z, float radius, int thicknes
 	m_file << std::to_string(z * m_scale) << '\n';
 	m_file << "40\n";
 	m_file << std::to_string(radius * m_scale) << '\n';
+
+	if (color != 0) {
+		m_file << "420\n";
+		m_file << std::to_string(color) << '\n';
+	}
 }
 
-void DXFWriter::DrawArc(float x, float y, float z, float radius, float startAngle, float endAngle, int thickness, int layer)
+void DXFWriter::DrawArc(float x, float y, float z, float radius, float startAngle, float endAngle, int thickness, int layer, uint32_t color)
 {
 	m_file << "0\n";
 	m_file << "CIRCLE\n";
@@ -142,9 +157,14 @@ void DXFWriter::DrawArc(float x, float y, float z, float radius, float startAngl
 	m_file << std::to_string(startAngle) << '\n';
 	m_file << "51\n";
 	m_file << std::to_string(endAngle) << '\n';
+
+	if (color != 0) {
+		m_file << "420\n";
+		m_file << std::to_string(color) << '\n';
+	}
 }
 
-void DXFWriter::DrawPoint(float x, float y, float z, int thickness, int layer )
+void DXFWriter::DrawPoint(float x, float y, float z, int thickness, int layer, uint32_t color )
 {
 	m_file << "0\n";
 	m_file << "POINT\n";
@@ -161,4 +181,9 @@ void DXFWriter::DrawPoint(float x, float y, float z, int thickness, int layer )
 	m_file << std::to_string(y * m_scale) << '\n';
 	m_file << "30\n";
 	m_file << std::to_string(z * m_scale) << '\n';
+
+	if (color != 0) {
+		m_file << "420\n";
+		m_file << std::to_string(color) << '\n';
+	}
 }

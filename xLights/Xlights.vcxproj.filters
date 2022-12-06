@@ -916,6 +916,97 @@
     </ClCompile>
     <ClCompile Include="graphics\opengl\XlightsDrawable.cpp" />
     <ClCompile Include="graphics\xlFontInfo.cpp" />
+    <ClCompile Include="ScriptsDialog.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\connection.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\context.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\message.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\pages.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\request.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\response.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\server.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\sha1.cpp" />
+    <ClCompile Include="..\xSchedule\wxHTTPServer\status.cpp" />
+    <ClCompile Include="graphics\xlMesh.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="automation\automation.cpp">
+      <Filter>automation</Filter>
+    </ClCompile>
+    <ClCompile Include="automation\xLightsAutomations.cpp">
+      <Filter>automation</Filter>
+    </ClCompile>
+    <ClCompile Include="automation\LuaRunner.cpp">
+      <Filter>automation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\xlBaseApp.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="Mouse3DManager.cpp" />
+    <ClCompile Include="effects\FX.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsHardwareVideoReader.cpp" />
+    <ClCompile Include="ColourReplaceDialog.cpp" />
+    <ClCompile Include="models\BoxedScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\PolyPointScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\ThreePointScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\TwoPointScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="FindDataPanel.cpp" />
+    <ClCompile Include="models\MultiPointModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\MultiPointScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="SearchPanel.cpp" />
+    <ClCompile Include="effects\SketchEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SketchPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SketchEffectDrawing.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\assist\SketchAssistPanel.cpp" />
+    <ClCompile Include="effects\assist\SketchCanvasPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\TwinklyOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxColorAbilityRGB.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxColorAbilityWheel.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxPresetAbility.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="TipOfTheDayDialog.cpp" />
+    <ClCompile Include="ModelRemap.cpp" />
+    <ClCompile Include="RestoreBackupDialog.cpp" />
+    <ClCompile Include="LayoutUtils.cpp" />
+    <ClCompile Include="preferences\CheckSequenceSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="UtilClasses.cpp" />
+    <ClCompile Include="automation\PythonRunner.cpp">
+      <Filter>automation</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\Experience.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="BulkEditComboDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -928,7 +1019,6 @@
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
-    <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\GIFImage.h" />
     <ClInclude Include="IPEntryDialog.h" />
@@ -1845,6 +1935,92 @@
     </ClInclude>
     <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
     <ClInclude Include="graphics\xlFontInfo.h" />
+    <ClInclude Include="ScriptsDialog.h" />
+    <ClInclude Include="..\xSchedule\wxHTTPServer\sha1.h" />
+    <ClInclude Include="..\xSchedule\wxHTTPServer\wxhttpserver.h" />
+    <ClInclude Include="graphics\tiny_obj_loader.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\xlMesh.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="automation\automation.h">
+      <Filter>automation</Filter>
+    </ClInclude>
+    <ClInclude Include="automation\LuaRunner.h">
+      <Filter>automation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\xlBaseApp.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\xlStackWalker.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="Mouse3DManager.h" />
+    <ClInclude Include="effects\FX.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsHardwareVideoReader.h" />
+    <ClInclude Include="ColourReplaceDialog.h" />
+    <ClInclude Include="models\BoxedScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\PolyPointScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\ThreePointScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\TwoPointScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="FindDataPanel.h" />
+    <ClInclude Include="models\MultiPointModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\MultiPointScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="SearchPanel.h" />
+    <ClInclude Include="effects\SketchEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SketchPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SketchEffectDrawing.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\assist\SketchAssistPanel.h" />
+    <ClInclude Include="effects\assist\SketchCanvasPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\TwinklyOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxColorAbilityRGB.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxColorAbilityWheel.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxPresetAbility.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="TipOfTheDayDialog.h" />
+    <ClInclude Include="ModelRemap.h" />
+    <ClInclude Include="RestoreBackupDialog.h" />
+    <ClInclude Include="LayoutUtils.h" />
+    <ClInclude Include="preferences\CheckSequenceSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="automation\PythonRunner.h">
+      <Filter>automation</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\Experience.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="BulkEditComboDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -1876,6 +2052,12 @@
     </Filter>
     <Filter Include="graphics\opengl">
       <UniqueIdentifier>{6a3bbe99-6c51-4b5c-a7af-1e8d44671419}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="automation">
+      <UniqueIdentifier>{4712b6e7-2234-4c16-8ba5-b15d04dcba71}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{d66f2316-0042-426b-8102-445d990406d2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

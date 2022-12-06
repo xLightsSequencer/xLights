@@ -32,26 +32,28 @@ LifeEffect::~LifeEffect()
     //dtor
 }
 
-
-xlEffectPanel *LifeEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel* LifeEffect::CreatePanel(wxWindow* parent)
+{
     return new LifePanel(parent);
 }
 
-static int Life_CountNeighbors(RenderBuffer &buffer, int x0, int y0)
+static size_t Life_CountNeighbors(RenderBuffer& buffer, int x0, int y0)
 {
     //     2   3   4
     //     1   X   5
     //     0   7   6
-    static int n_x[] = {-1,-1,-1,0,1,1,1,0};
-    static int n_y[] = {-1,0,1,1,1,0,-1,-1};
-    int x,y,cnt=0;
-    for (int i=0; i < 8; i++)
-    {
-        x=(x0+n_x[i]) % buffer.BufferWi;
-        y=(y0+n_y[i]) % buffer.BufferHt;
-        if (x < 0) x+=buffer.BufferWi;
-        if (y < 0) y+=buffer.BufferHt;
-        if (buffer.GetTempPixelRGB(x,y) != xlBLACK) cnt++;
+    static const int n_x[] = { -1, -1, -1, 0, 1, 1, 1, 0 };
+    static const int n_y[] = { -1, 0, 1, 1, 1, 0, -1, -1 };
+    size_t cnt = 0;
+    for (size_t i = 0; i < 8; ++i) {
+        int x = (x0 + n_x[i]) % buffer.BufferWi;
+        int y = (y0 + n_y[i]) % buffer.BufferHt;
+        if (x < 0)
+            x += buffer.BufferWi;
+        if (y < 0)
+            y += buffer.BufferHt;
+        if (buffer.GetTempPixelRGB(x, y) != xlBLACK)
+            ++cnt;
     }
     return cnt;
 }
@@ -76,122 +78,107 @@ void LifeEffect::SetDefaultParameters() {
     SetSliderValue(lp->Slider_Life_Speed, 10);
 }
 
-void LifeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
     int Count = SettingsMap.GetInt("SLIDER_Life_Count", 50);
     int Type = SettingsMap.GetInt("SLIDER_Life_Seed", 0);
     int lspeed = SettingsMap.GetInt("SLIDER_Life_Speed", 10);
-        
-    LifeRenderCache *cache = (LifeRenderCache*)buffer.infoCache[id];
+
+    LifeRenderCache* cache = (LifeRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new LifeRenderCache();
         buffer.infoCache[id] = cache;
     }
-    
-    int i,x,y,cnt;
+
+    int i, x, y, cnt;
     bool isLive;
     xlColor color;
-    
+
     int BufferHt = buffer.BufferHt;
     int BufferWi = buffer.BufferWi;
-    
-    if(BufferHt<1) BufferHt = 1;
-    Count=BufferWi * BufferHt * Count / 200 + 1;
-    if (buffer.needToInit || Count != cache->LastLifeCount || Type != cache->LastLifeType)
-    {
+
+    if (BufferHt < 1)
+        BufferHt = 1;
+    Count = BufferWi * BufferHt * Count / 200 + 1;
+    if (buffer.needToInit || Count != cache->LastLifeCount || Type != cache->LastLifeType) {
         buffer.needToInit = false;
         // seed tempbuf
-        cache->LastLifeCount=Count;
-        cache->LastLifeType=Type;
+        cache->LastLifeCount = Count;
+        cache->LastLifeType = Type;
         buffer.ClearTempBuf();
-        for(i=0; i<Count; i++)
-        {
-            x=rand() % BufferWi;
-            y=rand() % BufferHt;
-            buffer.GetMultiColorBlend(rand01(),false,color);
-            buffer.SetTempPixel(x,y,color);
+        for (i = 0; i < Count; i++) {
+            x = rand() % BufferWi;
+            y = rand() % BufferHt;
+            buffer.GetMultiColorBlend(rand01(), false, color);
+            buffer.SetTempPixel(x, y, color);
         }
     }
-    int effectState = (buffer.curPeriod-buffer.curEffStartPer) * lspeed * buffer.frameTimeInMs / 50;
-    
-    long TempState=effectState % 400 / 20;
+    int effectState = (buffer.curPeriod - buffer.curEffStartPer) * lspeed * buffer.frameTimeInMs / 50;
+
+    long TempState = effectState % 400 / 20;
     if (TempState == cache->LastLifeState) {
         buffer.CopyTempBufToPixels();
         return;
     } else {
-        cache->LastLifeState=TempState;
+        cache->LastLifeState = TempState;
     }
-    for (x=0; x < BufferWi; x++) {
-        for (y=0; y < BufferHt; y++) {
-            buffer.GetTempPixel(x,y,color);
+    for (x = 0; x < BufferWi; x++) {
+        for (y = 0; y < BufferHt; y++) {
+            buffer.GetTempPixel(x, y, color);
             isLive = color != xlBLACK;
-            cnt=Life_CountNeighbors(buffer, x, y);
+            cnt = Life_CountNeighbors(buffer, x, y);
             switch (Type) {
-                case 0:
-                    // B3/S23
-                    /*
-                     Any live cell with fewer than two live neighbours dies, as if caused by under-population.
-                     Any live cell with two or three live neighbours lives on to the next generation.
-                     Any live cell with more than three live neighbours dies, as if by overcrowding.
-                     Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
-                     */
-                    if (isLive && cnt >= 2 && cnt <= 3)
-                    {
-                        buffer.SetPixel(x,y,color);
-                    }
-                    else if (!isLive && cnt == 3)
-                    {
-                        buffer.GetMultiColorBlend(rand01(),false,color);
-                        buffer.SetPixel(x,y,color);
-                    }
-                    break;
-                case 1:
-                    // B35/S236
-                    if (isLive && (cnt == 2 || cnt == 3 || cnt == 6))
-                    {
-                        buffer.SetPixel(x,y,color);
-                    }
-                    else if (!isLive && (cnt == 3 || cnt == 5))
-                    {
-                        buffer.GetMultiColorBlend(rand01(),false,color);
-                        buffer.SetPixel(x,y,color);
-                    }
-                    break;
-                case 2:
-                    // B357/S1358
-                    if (isLive && (cnt == 1 || cnt == 3 || cnt == 5 || cnt == 8))
-                    {
-                        buffer.SetPixel(x,y,color);
-                    }
-                    else if (!isLive && (cnt == 3 || cnt == 5 || cnt == 7))
-                    {
-                        buffer.GetMultiColorBlend(rand01(),false,color);
-                        buffer.SetPixel(x,y,color);
-                    }
-                    break;
-                case 3:
-                    // B378/S235678
-                    if (isLive && (cnt == 2 || cnt == 3 || cnt >= 5))
-                    {
-                        buffer.SetPixel(x,y,color);
-                    }
-                    else if (!isLive && (cnt == 3 || cnt == 7 || cnt == 8))
-                    {
-                        buffer.GetMultiColorBlend(rand01(),false,color);
-                        buffer.SetPixel(x,y,color);
-                    }
-                    break;
-                case 4:
-                    // B25678/S5678
-                    if (isLive && (cnt >= 5))
-                    {
-                        buffer.SetPixel(x,y,color);
-                    }
-                    else if (!isLive && (cnt == 2 || cnt >= 5))
-                    {
-                        buffer.GetMultiColorBlend(rand01(),false,color);
-                        buffer.SetPixel(x,y,color);
-                    }
-                    break;
+            case 0:
+                // B3/S23
+                /*
+                 Any live cell with fewer than two live neighbours dies, as if caused by under-population.
+                 Any live cell with two or three live neighbours lives on to the next generation.
+                 Any live cell with more than three live neighbours dies, as if by overcrowding.
+                 Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+                 */
+                if (isLive && cnt >= 2 && cnt <= 3) {
+                    buffer.SetPixel(x, y, color);
+                } else if (!isLive && cnt == 3) {
+                    buffer.GetMultiColorBlend(rand01(), false, color);
+                    buffer.SetPixel(x, y, color);
+                }
+                break;
+            case 1:
+                // B35/S236
+                if (isLive && (cnt == 2 || cnt == 3 || cnt == 6)) {
+                    buffer.SetPixel(x, y, color);
+                } else if (!isLive && (cnt == 3 || cnt == 5)) {
+                    buffer.GetMultiColorBlend(rand01(), false, color);
+                    buffer.SetPixel(x, y, color);
+                }
+                break;
+            case 2:
+                // B357/S1358
+                if (isLive && (cnt == 1 || cnt == 3 || cnt == 5 || cnt == 8)) {
+                    buffer.SetPixel(x, y, color);
+                } else if (!isLive && (cnt == 3 || cnt == 5 || cnt == 7)) {
+                    buffer.GetMultiColorBlend(rand01(), false, color);
+                    buffer.SetPixel(x, y, color);
+                }
+                break;
+            case 3:
+                // B378/S235678
+                if (isLive && (cnt == 2 || cnt == 3 || cnt >= 5)) {
+                    buffer.SetPixel(x, y, color);
+                } else if (!isLive && (cnt == 3 || cnt == 7 || cnt == 8)) {
+                    buffer.GetMultiColorBlend(rand01(), false, color);
+                    buffer.SetPixel(x, y, color);
+                }
+                break;
+            case 4:
+                // B25678/S5678
+                if (isLive && (cnt >= 5)) {
+                    buffer.SetPixel(x, y, color);
+                } else if (!isLive && (cnt == 2 || cnt >= 5)) {
+                    buffer.GetMultiColorBlend(rand01(), false, color);
+                    buffer.SetPixel(x, y, color);
+                }
+                break;
             }
         }
     }

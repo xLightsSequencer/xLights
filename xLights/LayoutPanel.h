@@ -54,6 +54,7 @@ class wxScrolledWindow;
 class LayoutGroup;
 class wxStringInputStream;
 class impTreeItemData;
+class Motion3DEvent;
 
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
 
@@ -127,12 +128,12 @@ class LayoutPanel: public wxPanel
 		static const long ID_PANEL3;
 		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
+		static const long ID_CHECKBOX_3D;
 		static const long ID_CHECKBOXOVERLAP;
 		static const long ID_BUTTON_SAVE_PREVIEW;
 		static const long ID_PANEL5;
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE_PREVIEWS;
-		static const long ID_CHECKBOX_3D;
 		static const long ID_SCROLLBAR1;
 		static const long ID_SCROLLBAR2;
 		static const long ID_PANEL1;
@@ -147,6 +148,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_LOCK;
         static const long ID_PREVIEW_MODEL_UNLOCK;
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM;
+        static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM3D;
         static const long ID_PREVIEW_MODEL_CREATEGROUP;
         static const long ID_PREVIEW_MODEL_WIRINGVIEW;
         static const long ID_PREVIEW_MODEL_ASPECTRATIO;
@@ -158,6 +160,10 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_BULKEDIT_SETINACTIVE;
         static const long ID_PREVIEW_BULKEDIT_SMARTREMOTE;
         static const long ID_PREVIEW_BULKEDIT_TAGCOLOUR;
+        static const long ID_PREVIEW_BULKEDIT_PIXELSIZE;
+        static const long ID_PREVIEW_BULKEDIT_PIXELSTYLE;
+        static const long ID_PREVIEW_BULKEDIT_TRANSPARENCY;
+        static const long ID_PREVIEW_BULKEDIT_BLACKTRANSPARENCY;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERSTARTNULLNODES;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERENDNULLNODES;
@@ -187,6 +193,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_RESIZE_SAMEHEIGHT;
         static const long ID_PREVIEW_RESIZE_SAMESIZE;
         static const long ID_PREVIEW_DELETE_ACTIVE;
+        static const long ID_PREVIEW_RENAME_ACTIVE;
         static const long ID_PREVIEW_MODEL_ADDPOINT;
         static const long ID_PREVIEW_MODEL_DELETEPOINT;
         static const long ID_PREVIEW_MODEL_ADDCURVE;
@@ -246,16 +253,13 @@ class LayoutPanel: public wxPanel
 		void OnChar(wxKeyEvent& event);
 		void OnChoiceLayoutGroupsSelect(wxCommandEvent& event);
 		void OnCheckBox_3DClick(wxCommandEvent& event);
-		void OnCheckBox_SelectionClick(wxCommandEvent& event);
-		void OnCheckBox_XZClick(wxCommandEvent& event);
 		void OnPreviewRotateGesture(wxRotateGestureEvent& event);
 		void OnPreviewZoomGesture(wxZoomGestureEvent& event);
-		void OnChoice_InsertObjectSelect(wxCommandEvent& event);
-		void OnChoice_EditModelObjectsSelect(wxCommandEvent& event);
-		void OnNotebook1PageChanged(wxNotebookEvent& event);
 		void OnNotebook_ObjectsPageChanged(wxNotebookEvent& event);
 		//*)
 
+        void OnPreviewMotion3DButtonEvent(wxCommandEvent &event);
+        void OnPreviewMotion3D(Motion3DEvent &event);
         void OnPropertyGridSelection(wxPropertyGridEvent& event);
         void OnPropertyGridItemCollapsed(wxPropertyGridEvent& event);
         void OnPropertyGridItemExpanded(wxPropertyGridEvent& event);
@@ -268,6 +272,7 @@ class LayoutPanel: public wxPanel
         void DoCut(wxCommandEvent& event);
         void DoPaste(wxCommandEvent& event);
         void DoUndo(wxCommandEvent& event);
+        void RemoveSelectedModelsFromGroup();
         void DeleteSelectedModels();
 		void DeleteSelectedObject();
         void DeleteSelectedGroups();
@@ -290,7 +295,6 @@ class LayoutPanel: public wxPanel
         void UnSelectAllModels(bool addBkgProps = true );
         void showBackgroundProperties();
         void SelectAllModels();
-        void SelectModels(const wxTreeListItems& models);
         void SetupPropGrid(BaseObject *model);
         void AddPreviewChoice(const std::string &name);
         ModelPreview* GetMainPreview() const {return modelPreview;}
@@ -331,11 +335,19 @@ class LayoutPanel: public wxPanel
         void BulkEditControllerName();
         void BulkEditActive(bool active);
         void BulkEditTagColour();
+        void BulkEditPixelSize();
+        void BulkEditPixelStyle();
+        void BulkEditTransparency();
+        void BulkEditBlackTranparency();   
         void BulkEditControllerConnection(int type);
         void BulkEditControllerPreview();
         void BulkEditDimmingCurves();
         void ReplaceModel();
         void ShowNodeLayout();
+        void EditSubmodels();
+        void EditFaces();
+        void EditStates();
+        void EditModelData();
         void ShowWiring();
         void ExportModelAsCAD();
         void ExportLayoutDXF();
@@ -421,9 +433,9 @@ class LayoutPanel: public wxPanel
         wxTreeListItem selectedPrimaryTreeItem = nullptr;
         bool selectionLatched = false;
         int over_handle = -1;
-        glm::vec3 last_centerpos;
-        glm::vec3 last_worldrotate;
-        glm::vec3 last_worldscale;
+        glm::vec3 last_centerpos = {0,0,0};
+        glm::vec3 last_worldrotate = {0,0,0};
+        glm::vec3 last_worldscale = {0,0,0};
 
         void clearPropGrid();
         bool stringPropsVisible = false;
@@ -469,32 +481,6 @@ class LayoutPanel: public wxPanel
         void Set3d(bool is3d);
 
     private:
-        enum
-        {
-            Icon_File,
-            Icon_FolderClosed,
-            Icon_FolderOpened,
-            Icon_Arches,
-            Icon_CandyCane,
-            Icon_Circle,
-            Icon_ChannelBlock,
-            Icon_Cube,
-            Icon_Custom,
-            Icon_Dmx,
-            Icon_Icicle,
-            Icon_Image,
-            Icon_Line,
-            Icon_Matrix,
-            Icon_Poly,
-            Icon_Sphere,
-            Icon_Spinner,
-            Icon_Star,
-            Icon_SubModel,
-            Icon_Tree,
-            Icon_Window,
-            Icon_Wreath
-        };
-
         int Col_Model = 0;
         int Col_StartChan = 1;
         int Col_EndChan = 2;
@@ -508,7 +494,7 @@ class LayoutPanel: public wxPanel
         int previewBackgroundBrightness = 100;
         int previewBackgroundAlpha = 100;
         wxPanel* main_sequencer = nullptr;
-        wxImageList* m_imageList = nullptr;
+        wxVector<wxBitmapBundle> m_imageList;
 
         bool editing_models = true;
         bool is_3d = false;
@@ -524,6 +510,7 @@ class LayoutPanel: public wxPanel
         void HandleSelectionChanged();
         void OnItemContextMenu(wxTreeListEvent& event);
 
+        static const long ID_MNU_REMOVE_MODEL_FROM_GROUP;
         static const long ID_MNU_DELETE_MODEL;
         static const long ID_MNU_DELETE_MODEL_GROUP;
         static const long ID_MNU_DELETE_EMPTY_MODEL_GROUPS;
@@ -539,14 +526,13 @@ class LayoutPanel: public wxPanel
 		const wxString& GetBackgroundImageForSelectedPreview();
         void SwitchChoiceToCurrentLayoutGroup();
         void DeleteCurrentPreview();
+        void RenameCurrentPreview();
         void ShowPropGrid(bool show);
         void SetCurrentLayoutGroup(const std::string& group);
         void FinalizeModel();
         void SelectBaseObject3D();
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
-        void InitImageList();
         wxTreeListCtrl* CreateTreeListCtrl(long style, wxPanel* panel);
-        int GetModelTreeIcon(Model* model, bool open);
         int AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName = false);
         void RenameModelInTree(Model* model, const std::string& new_name);
         void DisplayAddObjectPopup();
@@ -556,7 +542,6 @@ class LayoutPanel: public wxPanel
         void OnAddDmxPopup(wxCommandEvent& event);
         void SelectViewObject(ViewObject *v, bool highlight_tree = true);
         void ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups);
-        //int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
         int GetColumnIndex(const std::string& name) const;
 
         class ModelListComparator : public wxTreeListItemComparator

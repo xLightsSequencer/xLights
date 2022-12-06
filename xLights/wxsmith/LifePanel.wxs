@@ -32,11 +32,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Life_Count" variable="BitmapButton_LifeCount" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Life_Count" subclass="xlLockButton" variable="BitmapButton_LifeCount" member="yes">
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -70,11 +69,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Life_Seed" variable="BitmapButton_LifeSpeed" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Life_Seed" subclass="xlLockButton" variable="BitmapButton_LifeSpeed" member="yes">
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

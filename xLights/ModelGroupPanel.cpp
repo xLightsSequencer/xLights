@@ -9,13 +9,13 @@
  **************************************************************/
 
  //(*InternalHeaders(ModelGroupPanel)
- #include <wx/artprov.h>
  #include <wx/bitmap.h>
  #include <wx/image.h>
  #include <wx/intl.h>
  #include <wx/string.h>
  //*)
 
+#include <wx/artprov.h>
 #include <wx/xml/xml.h>
 #include <wx/time.h>
 
@@ -87,13 +87,18 @@ public:
 const long ModelGroupPanel::ID_STATICTEXT5 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT6 = wxNewId();
 const long ModelGroupPanel::ID_CHOICE1 = wxNewId();
+const long ModelGroupPanel::ID_STATICTEXT12 = wxNewId();
+const long ModelGroupPanel::ID_CHOICE2 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT4 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL1 = wxNewId();
 const long ModelGroupPanel::ID_CHOICE_PREVIEWS = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT7 = wxNewId();
+const long ModelGroupPanel::ID_STATICTEXT10 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL2 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT8 = wxNewId();
+const long ModelGroupPanel::ID_STATICTEXT11 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL3 = wxNewId();
+const long ModelGroupPanel::ID_STATICTEXT8 = wxNewId();
+const long ModelGroupPanel::ID_COLOURPICKERCTRL_MG_TAGCOLOUR = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX1 = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX3 = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX2 = wxNewId();
@@ -131,6 +136,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxStaticText* StaticText4;
 	wxStaticText* StaticText6;
@@ -166,7 +172,11 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	ChoiceModelLayoutType->Append(_("Overlay - Scaled"));
 	ChoiceModelLayoutType->Append(_("Single Line Model As A Pixel"));
 	ChoiceModelLayoutType->Append(_("Default Model As A Pixel"));
-	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxEXPAND, 2);
+	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Default Camera:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
+	FlexGridSizer6->Add(StaticText12, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_DefaultCamera = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	FlexGridSizer6->Add(Choice_DefaultCamera, 1, wxALL|wxEXPAND, 5);
 	GridSizeLabel = new wxStaticText(this, ID_STATICTEXT4, _("Max Grid Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer6->Add(GridSizeLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	SizeSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("400"), wxDefaultPosition, wxDefaultSize, 0, 10, 2000, 400, _T("ID_SPINCTRL1"));
@@ -176,16 +186,24 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer6->Add(StaticText6, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	ChoicePreviews = new wxChoice(this, ID_CHOICE_PREVIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PREVIEWS"));
 	FlexGridSizer6->Add(ChoicePreviews, 1, wxALL|wxEXPAND, 2);
-	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("X Center Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Center Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer6->Add(StaticText7, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
+	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("X"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
+	FlexGridSizer4->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_XCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL2, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -1000, 1000, 0, _T("ID_SPINCTRL2"));
 	SpinCtrl_XCentreOffset->SetValue(_T("0"));
-	FlexGridSizer6->Add(SpinCtrl_XCentreOffset, 1, wxALL|wxEXPAND, 2);
-	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Y Center Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-	FlexGridSizer6->Add(StaticText8, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer4->Add(SpinCtrl_XCentreOffset, 1, wxALL|wxEXPAND, 2);
+	StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
+	FlexGridSizer4->Add(StaticText11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_YCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -1000, 1000, 0, _T("ID_SPINCTRL3"));
 	SpinCtrl_YCentreOffset->SetValue(_T("0"));
-	FlexGridSizer6->Add(SpinCtrl_YCentreOffset, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer4->Add(SpinCtrl_YCentreOffset, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer6->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
+	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Tag Color:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+	FlexGridSizer6->Add(StaticText8, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+	ColourPickerCtrl_ModelGroupTagColour = new wxColourPickerCtrl(this, ID_COLOURPICKERCTRL_MG_TAGCOLOUR, wxColour(0,0,0), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL_MG_TAGCOLOUR"));
+	FlexGridSizer6->Add(ColourPickerCtrl_ModelGroupTagColour, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_ShowSubmodels = new wxCheckBox(this, ID_CHECKBOX1, _("Show SubModels to Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_ShowSubmodels->SetValue(true);
 	FlexGridSizer6->Add(CheckBox_ShowSubmodels, 1, wxALL|wxEXPAND, 2);
@@ -225,15 +243,15 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer1->Add(ListBoxAddToModelGroup, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer12->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);
-	ButtonAddModel = new wxBitmapButton(this, ID_BITMAPBUTTON4, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_FORWARD")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
+	ButtonAddModel = new wxBitmapButton(this, ID_BITMAPBUTTON4, wxArtProvider::GetBitmapBundle("wxART_GO_FORWARD", wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
 	FlexGridSizer11->Add(ButtonAddModel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-	ButtonRemoveModel = new wxBitmapButton(this, ID_BITMAPBUTTON3, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_BACK")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
+	ButtonRemoveModel = new wxBitmapButton(this, ID_BITMAPBUTTON3, wxArtProvider::GetBitmapBundle("wxART_GO_BACK", wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
 	FlexGridSizer11->Add(ButtonRemoveModel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
 	wxSize __SpacerSize_1 = wxDLG_UNIT(this,wxSize(-1,7));
 	FlexGridSizer11->Add(__SpacerSize_1.GetWidth(),__SpacerSize_1.GetHeight(),1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonMoveUp = new wxBitmapButton(this, ID_BITMAPBUTTON1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_UP")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
+	ButtonMoveUp = new wxBitmapButton(this, ID_BITMAPBUTTON1, wxArtProvider::GetBitmapBundle("wxART_GO_UP", wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
 	FlexGridSizer11->Add(ButtonMoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-	ButtonMoveDown = new wxBitmapButton(this, ID_BITMAPBUTTON2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_DOWN")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
+	ButtonMoveDown = new wxBitmapButton(this, ID_BITMAPBUTTON2, wxArtProvider::GetBitmapBundle("wxART_GO_DOWN", wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
 	FlexGridSizer11->Add(ButtonMoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer11->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -248,10 +266,12 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	Panel_Sizer->SetSizeHints(this);
 
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoiceModelLayoutTypeSelect);
+	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoice_DefaultCameraSelect);
 	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSizeSpinCtrlChange);
 	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoicePreviewsSelect);
 	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange);
 	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange);
+	Connect(ID_COLOURPICKERCTRL_MG_TAGCOLOUR,wxEVT_COMMAND_COLOURPICKER_CHANGED,(wxObjectEventFunction)&ModelGroupPanel::OnColourPickerCtrl_ModelGroupTagColourColourChanged);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowSubmodelsClick);
 	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowInactiveModelsClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowModelGroupsClick);
@@ -277,6 +297,11 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
     ChoicePreviews->Append("Default");
     ChoicePreviews->Append("All Previews");
     ChoicePreviews->Append("Unassigned");
+
+    Choice_DefaultCamera->Append("2D");
+    for (size_t i = 0; i < Models.GetXLightsFrame()->viewpoint_mgr.GetNum3DCameras(); ++i) {
+        Choice_DefaultCamera->Append(Models.GetXLightsFrame()->viewpoint_mgr.GetCamera3D(i)->GetName());
+    }
 
     MGTextDropTarget *mdt = new MGTextDropTarget(this, ListBoxModelsInGroup, "ModelGroup");
     ListBoxModelsInGroup->SetDropTarget(mdt);
@@ -342,6 +367,12 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
     // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static wxColour BLUE_ON_DARK(100, 100, 255);
 
+    Choice_DefaultCamera->Clear();
+    Choice_DefaultCamera->Append("2D");
+    for (size_t i = 0; i < mModels.GetXLightsFrame()->viewpoint_mgr.GetNum3DCameras(); ++i) {
+        Choice_DefaultCamera->Append(mModels.GetXLightsFrame()->viewpoint_mgr.GetCamera3D(i)->GetName());
+    }
+
     int spam = ListBoxAddToModelGroup->GetTopItem();
     int spig = ListBoxModelsInGroup->GetTopItem();
 
@@ -396,7 +427,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
         }
 
         auto filter = TextCtrl_Filter->GetValue().Lower();
-        auto layoutGroup = layoutPanel->GetCurrentLayoutGroup();
+        auto& layoutGroup = layoutPanel->GetCurrentLayoutGroup();
 
         // dont allow any group that contains this group to be added as that would create a loop
         for (const auto& it : mModels) {
@@ -434,6 +465,12 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
             }
         }
 
+        auto dc = e->GetAttribute("DefaultCamera", "2D");
+        Choice_DefaultCamera->SetStringSelection(dc);
+        if (Choice_DefaultCamera->GetStringSelection() != dc) {
+            Choice_DefaultCamera->SetStringSelection("2D");
+        }
+
         wxString v = e->GetAttribute("layout", "minimalGrid");
         if (v == "grid") {
             ChoiceModelLayoutType->SetSelection(0);
@@ -469,6 +506,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
         SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
         SpinCtrl_XCentreOffset->SetValue(wxAtoi(e->GetAttribute("XCentreOffset", "0")));
         SpinCtrl_YCentreOffset->SetValue(wxAtoi(e->GetAttribute("YCentreOffset", "0")));
+        ColourPickerCtrl_ModelGroupTagColour->SetColour(e->GetAttribute("TagColour", "Black"));
     }
 
     ResizeColumns();
@@ -477,10 +515,18 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
     ListBoxAddToModelGroup->Thaw();
 
     if (!ListBoxAddToModelGroup->IsEmpty()) {
-        ListBoxAddToModelGroup->EnsureVisible(spam);
+        if (spam < ListBoxAddToModelGroup->GetItemCount()) {
+            ListBoxAddToModelGroup->EnsureVisible(spam);
+        } else {
+            ListBoxAddToModelGroup->EnsureVisible(0);
+        }
     }
     if (!ListBoxModelsInGroup->IsEmpty()) {
-        ListBoxModelsInGroup->EnsureVisible(spig);
+        if (spig < ListBoxModelsInGroup->GetItemCount()) {
+            ListBoxModelsInGroup->EnsureVisible(spig);
+        } else {
+            ListBoxModelsInGroup->EnsureVisible(0);
+        }
     }
 
     if (_lastFirstSelectedModelIndex >= ListBoxAddToModelGroup->GetItemCount()) {
@@ -651,17 +697,15 @@ void ModelGroupPanel::SaveGroupChanges()
 
     if (g == nullptr) return;
 
+    mModels.GetXLightsFrame()->AbortRender();
+
     wxXmlNode *e = g->GetModelXml();
 
     wxString ModelsInGroup = "";
-    for (int i = 0; i < ListBoxModelsInGroup->GetItemCount(); i++)
-    {
-        if (i < ListBoxModelsInGroup->GetItemCount() - 1)
-        {
+    for (int i = 0; i < ListBoxModelsInGroup->GetItemCount(); i++) {
+        if (i < ListBoxModelsInGroup->GetItemCount() - 1) {
             ModelsInGroup += ListBoxModelsInGroup->GetItemText(i, 0) + ",";
-        }
-        else
-        {
+        } else {
             ModelsInGroup += ListBoxModelsInGroup->GetItemText(i, 0);
         }
     }
@@ -674,11 +718,13 @@ void ModelGroupPanel::SaveGroupChanges()
     e->AddAttribute("GridSize", wxString::Format("%d", SizeSpinCtrl->GetValue()));
     e->DeleteAttribute("XCentreOffset");
     e->DeleteAttribute("YCentreOffset");
-    if (ChoiceModelLayoutType->GetSelection() == 1)
-    {
+    e->DeleteAttribute("TagColour");
+    if (ChoiceModelLayoutType->GetSelection() == 1) {
         e->AddAttribute("XCentreOffset", wxString::Format("%d", SpinCtrl_XCentreOffset->GetValue()));
         e->AddAttribute("YCentreOffset", wxString::Format("%d", SpinCtrl_YCentreOffset->GetValue()));
     }
+    e->DeleteAttribute("DefaultCamera");
+    e->AddAttribute("DefaultCamera", Choice_DefaultCamera->GetStringSelection());
     switch (ChoiceModelLayoutType->GetSelection()) {
     case 0:
         e->AddAttribute("layout", "grid");
@@ -696,8 +742,9 @@ void ModelGroupPanel::SaveGroupChanges()
         e->AddAttribute("layout", ChoiceModelLayoutType->GetStringSelection());
         break;
     }
+    e->AddAttribute("TagColour", ColourPickerCtrl_ModelGroupTagColour->GetColour().GetAsString());
     g->Reset();
-    layoutPanel->ModelGroupUpdated(g, false);
+    layoutPanel->ModelGroupUpdated(g, true); // if i dont set this to true then it leaves the house preview with a pointer to an invalid model which crashes
 }
 
 void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
@@ -1281,4 +1328,14 @@ void ModelGroupPanel::OnCheckBox_ShowInactiveModelsClick(wxCommandEvent& event)
 void ModelGroupPanel::OnCheckBox_ShowOnlyModelsInCurrentViewClick(wxCommandEvent& event)
 {
     UpdatePanel(mGroup);
+}
+
+void ModelGroupPanel::OnColourPickerCtrl_ModelGroupTagColourColourChanged(wxColourPickerEvent& event)
+{
+    SaveGroupChanges();
+}
+
+void ModelGroupPanel::OnChoice_DefaultCameraSelect(wxCommandEvent& event)
+{
+    SaveGroupChanges();
 }

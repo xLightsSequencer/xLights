@@ -16,7 +16,8 @@
 #include <wx/socket.h>
 #include <wx/mimetype.h>
 #include <wx/display.h>
-
+#include <wx/protocol/http.h>
+#include <wx/sstream.h>
 
 #include <random>
 #include <time.h>
@@ -26,7 +27,13 @@
 #include "xLightsVersion.h"
 #include "ExternalHooks.h"
 
+#include "../xSchedule/wxJSON/json_defs.h"
+#include "../xSchedule/wxJSON/jsonreader.h"
+#include "../xSchedule/wxJSON/jsonval.h"
+#include "../xSchedule/xSMSDaemon/Curl.h"
+
 #include <mutex>
+#include <string_view>
 
 #ifdef __WXMSW__
 #include <psapi.h>
@@ -226,7 +233,7 @@ static bool doesFileExist(const wxString &dir, const wxString &origFileWin, cons
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (origFileWin != "") {
         wxFileName fn3(dir, origFileWin);
-        if (fn3.Exists()) {
+        if (FileExists(fn3, false)) {
             logger_base.debug("File location fixed: " + origFileWin + " -> " + fn3.GetFullPath());
             path = fn3.GetFullPath();
             return true;
@@ -234,7 +241,7 @@ static bool doesFileExist(const wxString &dir, const wxString &origFileWin, cons
     }
     if (origFileUnix != "") {
         wxFileName fn4(dir, origFileUnix);
-        if (fn4.Exists()) {
+        if (FileExists(fn4, false)) {
             logger_base.debug("File location fixed: " + origFileWin + " -> " + fn4.GetFullPath());
             path = fn4.GetFullPath();
             return true;
@@ -308,7 +315,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
         return file;
     }
 
-    if (wxFileExists(file)) {
+    if (FileExists(file, false)) {
         return file;
     }
 
@@ -330,7 +337,9 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
     } else {
         sd = ShowDir;
     }
-
+    // done with __nonExistentFiles and __fileMap for right now, we'll unlock
+    // so other threads can access them, but we'll need to relock when we add entries later
+    lock.unlock();
     logger_base.debug("File not found ... attempting to fix location (" + sd + ") : " + file);
 
     // I dont know what this is trying to fix but it blows up on windows
@@ -347,17 +356,19 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
     wxString newPath;
     if (doesFileExist(sd, nameWin, nameUnix, newPath)) {
         // file exists in the new show dir
+        lock.lock();
         __fileMap[file] = newPath;
         return newPath;
     }
     for (auto &fd : SearchDirectories) {
         if (doesFileExist(fd, nameWin, nameUnix, newPath)) {
             // file exists in one of the resource directories
+            lock.lock();
             __fileMap[file] = newPath;
             return newPath;
         }
     }
-    
+
     wxDir dir(sd);
     if (dir.IsOpened()) {
         wxString foldername;
@@ -368,6 +379,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
             if (foldername.Lower() != "backup") { // dont look in backup folder
                 auto const folder = sd + wxFileName::GetPathSeparator() + foldername;
                 if (doesFileExist(folder, nameWin, nameUnix, newPath)) {
+                    lock.lock();
                     __fileMap[file] = newPath;
                     return newPath;
                 }
@@ -388,6 +400,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
     }
     if (fname == "") {
         // no subdirectory
+        lock.lock();
         __nonExistentFiles.push_back(file.ToStdString());
         return file;
     }
@@ -395,7 +408,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
     wxString showfolder = fname;
     wxString sflc = showfolder;
     sflc.LowerCase();
-    
+
     wxString appendWin;
     wxString appendUnx;
 
@@ -419,6 +432,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
     }
     if (doesFileExist(sd, appendWin, appendUnx, nameWin, nameUnix, newPath)) {
         // file exists
+        lock.lock();
         __fileMap[file] = newPath;
         return newPath;
     }
@@ -427,7 +441,8 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
         int offset = flc.Find(sflc) + showfolder.Length();
         wxString relative = file.SubString(offset, file.Length());
         wxFileName sdFn =  wxFileName::DirName(sd);
-        if (wxFileExists(relative)) {
+        if (FileExists(relative, false)) {
+            lock.lock();
             __fileMap[file] = relative;
             return relative;
         }
@@ -439,6 +454,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
         appendWin = wxFileName::GetPathSeparator() + fnWin.GetDirs()[x] + appendWin;
         if (doesFileExist(sd, appendWin, nameWin, nameUnix, newPath)) {
             // file exists
+            lock.lock();
             __fileMap[file] = newPath;
             return newPath;
         }
@@ -448,11 +464,12 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
         appendUnx = wxFileName::GetPathSeparator() + fnUnix.GetDirs()[x] + appendUnx;
         if (doesFileExist(sd, appendUnx, nameWin, nameUnix, newPath)) {
             // file exists
+            lock.lock();
             __fileMap[file] = newPath;
             return newPath;
         }
     }
-    
+
     if (ShowDir == "" && fnWin.GetDirCount() > 0) {
         return FixFile(sd + "\\" + fnWin.GetDirs().Last(), file);
     }
@@ -461,6 +478,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
     }
     logger_base.debug("   could not find a fixed file location for : " + file);
     logger_base.debug("   We will not look for this file again until a new sequence is loaded.");
+    lock.lock();
     __nonExistentFiles.push_back(file.ToStdString());
     return file;
 }
@@ -588,6 +606,20 @@ std::string EscapeCSV(const std::string& s)
     return res;
 }
 
+std::string EscapeRegex(const std::string& s)
+{
+    // \,*,+,?,|,{,[, (,),^,$,.,#,
+    constexpr std::string_view BADREX {R"(\*+?|{[()^$,#)"};
+    std::string safe;
+    for (auto& c : s) {
+        if (BADREX.find(c) != std::string::npos) {
+            safe += "\\";
+        }
+        safe += c;
+    }
+    return safe;
+}
+
 wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& def)
 {
     wxXmlNode* curr = parent;
@@ -694,6 +726,14 @@ bool DoesXmlNodeExist(wxXmlNode* parent, const std::string& path)
     return false;
 }
 
+void SetXmlNodeAttribute(wxXmlNode* node, wxString const& property, wxString const& value)
+{
+    if (node->HasAttribute(property)) {
+        node->DeleteAttribute(property);
+    }
+    node->AddAttribute(property, value);
+}
+
 void DownloadVamp()
 {
     wxMessageBox("We are about to download the Queen Mary Vamp plugins for your platform. Once downloaded please install them and then close and reopen xLights to use them.");
@@ -798,6 +838,20 @@ bool IsVersionOlder(const std::string &compare, const std::string &version)
         if (wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2])) return true;
     }
     return false;
+}
+
+std::string JSONSafe(const std::string& s)
+{
+    std::string safe;
+    for (auto& c : s) {
+        if (c == '\\')
+            safe += "\\\\";
+        else if (c == '"')
+            safe += "\\\"";
+        else
+            safe += c;
+    }
+    return safe;
 }
 
 void SaveInt(const std::string& tag, int value)
@@ -982,6 +1036,11 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier)
             }
         }
     }
+    return false;
+#elif defined(__WXOSX__)
+    // max of 24G of swap used
+    constexpr size_t MAX = 24l * 1024 * 1024 * 1024;
+    return wxDir::GetTotalSize("/System/Volumes/VM") > MAX;
 #else
     // test memory availability by allocating 200MB ... if it fails then treat this as a low memory problem
     //void* test = malloc(200 * 1024 * 1024);
@@ -990,8 +1049,8 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier)
     //    return true;
     //}
     //free(test);
-#endif
     return false;
+#endif
 }
 
 std::list<std::string> GetLocalIPs()
@@ -1054,7 +1113,7 @@ std::list<std::string> GetLocalIPs()
         tmp = tmp->ifa_next;
     }
     freeifaddrs(interfaces);
-#endif   
+#endif
 
     return res;
 }
@@ -1066,6 +1125,11 @@ bool IsValidLocalIP(const std::string& ip)
     }
 
     return false;
+}
+
+bool IsValidLocalIP(const wxIPV4address& ip)
+{
+    return IsValidLocalIP(ip.IPAddress().ToStdString());
 }
 
 bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::string& mask)
@@ -1141,7 +1205,7 @@ std::string Ordinal(int i)
 {
     wxString ii = wxString::Format("%d", i);
 
-    if (ii.EndsWith("11") || ii.EndsWith("12") || ii.EndsWith("12")) {
+    if (ii.EndsWith("11") || ii.EndsWith("12") || ii.EndsWith("13")) {
         return (ii + "th").ToStdString();
     }
     else if (ii.EndsWith("1")) {
@@ -1197,30 +1261,13 @@ bool IsIPValidOrHostname(const std::string& ip, bool iponly)
         return true;
     }
 
-    if (ip == "") return false;
+    static wxRegEx regxIPAddr("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
 
-    bool hasChar = false;
-    bool hasDot = false;
-    //hostnames need at least one char in it if fully qualified
-    //if not fully qualified (no .), then the hostname only COULD be just numeric
-    for (size_t y = 0; y < ip.length(); y++) {
-        char x = ip[y];
-        if ((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || x == '-') {
-            hasChar = true;
-        }
-        if (x == '.') {
-            hasDot = true;
-        }
+    wxString ips = wxString(ip).Trim(false).Trim(true);
+    if (regxIPAddr.Matches(ips)) {
+        return true;
     }
-    if (hasChar || (!hasDot && !hasChar)) {
-        if (iponly) return true;
-        wxIPV4address addr;
-        addr.Hostname(ip);
-        wxString ipAddr = addr.IPAddress();
-        if (ipAddr != "0.0.0.0") {
-            return true;
-        }
-    }
+    
     return false;
 }
 
@@ -1295,7 +1342,7 @@ void EnsureWindowHeaderIsOnScreen(wxWindow* win)
         wxDisplay::GetFromPoint(wxPoint(pos.x, pos.y + headerHeight)) < 0 &&
         wxDisplay::GetFromPoint(wxPoint(pos.x + size.x, pos.y)) < 0 &&
         wxDisplay::GetFromPoint(wxPoint(pos.x + size.x, pos.y + headerHeight)) < 0) {
-        
+
         // window header is not on screen
         win->Move(0, 0);
     }
@@ -1324,34 +1371,31 @@ void OptimiseDialogPosition(wxDialog* dlg)
     EnsureWindowHeaderIsOnScreen(dlg);
 }
 
-wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress)
+wxJSONValue xLightsRequest(int xFadePort, const wxString& message, const wxString& ipAddress)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    wxSocketClient socket;
-    wxIPV4address addr;
-    addr.Hostname(ipAddress);
-    addr.Service(GetxFadePort(xFadePort));
-
-    if (socket.Connect(addr)) {
-        logger_base.debug("Sending xLights message %s", (const char*)message.c_str());
-        socket.WriteMsg(message.c_str(), message.size() + 1);
-        uint8_t buffer[1534];
-        memset(buffer, 0x00, sizeof(buffer));
-        int read = 0;
-        while (read == 0) {
-            socket.ReadMsg(buffer, sizeof(buffer) - 1);
-            read = socket.LastReadCount();
-            if (read == 0) wxMilliSleep(2);
-        }
-        wxString msg((char*)buffer);
-        logger_base.debug("xLights sent response %s", (const char*)msg.c_str());
-        return msg;
+    std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/xlDoAutomation";
+    int responseCode = 0;
+    auto resultString = Curl::HTTPSPost(url, message, "", "", "application/json", 30*60, {}, &responseCode);
+    if (resultString != "" && (responseCode == 200 || responseCode >= 500)) {
+        wxJSONValue result;
+        wxJSONReader reader;
+        reader.Parse(resultString, &result);
+        result["res"] = (int)responseCode;
+        return result;
     }
-    else {
-        logger_base.warn("Unable to connect to xLights on port %d", GetxFadePort(xFadePort));
-        return "ERROR_UNABLE_TO_CONNECT";
-    }
+
+    wxString msg = "{\"res\":504,\"msg\":\"Unable to connect.\"}";
+    wxJSONValue result;
+    wxJSONReader reader;
+    reader.Parse(msg, &result);
+
+    return result;
+}
+bool xLightsRequest(std::string &result, int xFadePort, const wxString& request, const wxString& ipAddress) {
+    std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/" + request;
+    int responseCode = 0;
+    result = Curl::HTTPSGet(url, "", "", 30*60, {}, &responseCode);
+    return responseCode == 200;
 }
 
 void ViewTempFile(const wxString& content, const wxString& name, const wxString& type)
@@ -1459,7 +1503,7 @@ void DumpBinary(uint8_t* buffer, size_t sz)
         }
         out += "    ";
         for (size_t j = i * 16; j < std::min(sz, (i + 1) * 16); j++) {
-            if (buffer[j] < 32 || buffer[j] > 127) {
+            if (buffer[j] < 32 || buffer[j] > 126) {
                 out += '.';
             }
             else {
@@ -1470,6 +1514,32 @@ void DumpBinary(uint8_t* buffer, size_t sz)
     }
 }
 
+wxColor CyanOrBlue()
+{
+#ifndef __WXMSW__
+    if (wxSystemSettings::GetAppearance().IsDark()) {
+        // In Dark Mode blue is hard to read
+        return *wxCYAN;
+    } else {
+#endif
+        return *wxBLUE;
+#ifndef __WXMSW__
+    }
+#endif
+}
+wxColor LightOrMediumGrey()
+{
+#ifndef __WXMSW__
+    if (wxSystemSettings::GetAppearance().IsDark()) {
+        static const wxColor medGray(128, 128, 128);
+        return medGray;
+    } else {
+#endif
+        return *wxLIGHT_GREY;
+#ifndef __WXMSW__
+    }
+#endif
+}
 void CleanupIpAddress(wxString& IpAddr)
 {
     static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
@@ -1668,4 +1738,25 @@ void ReverseNodes(std::map<std::string, std::string> & nodes, int max)
         if(newNodeArray.size() > 0)
             line.second = CompressNodes(wxJoin(newNodeArray, ','));
     }
+}
+
+// returns true if the string contains what looks like a floating point number
+bool IsFloat(const std::string& number)
+{
+    // it cant be blank
+    if (number == "")
+        return false;
+    // if it contains a - it must be the first character and there must only be one of them
+    if (CountChar(number, '-') > 1 || (Contains(number, "-") && number[0] != '-'))
+        return false;
+    // it must contain zero or 1 '.'
+    if (CountChar(number, '.') > 1)
+        return false;
+    // all other characters must be 0-9
+    for (const auto it : number)
+    {
+        if (it != '.' && it != '-' && (it < '0' || it > '9'))
+            return false;
+    }
+    return true;
 }

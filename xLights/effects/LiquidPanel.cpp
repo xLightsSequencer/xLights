@@ -13,7 +13,6 @@
 #include "LiquidEffect.h"
 
 //(*InternalHeaders(LiquidPanel)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
@@ -56,6 +55,10 @@ const long LiquidPanel::ID_STATICTEXT1 = wxNewId();
 const long LiquidPanel::IDD_SLIDER_Liquid_Gravity = wxNewId();
 const long LiquidPanel::ID_VALUECURVE_Liquid_Gravity = wxNewId();
 const long LiquidPanel::ID_TEXTCTRL_Liquid_Gravity = wxNewId();
+const long LiquidPanel::ID_STATICTEXT2 = wxNewId();
+const long LiquidPanel::IDD_SLIDER_Liquid_GravityAngle = wxNewId();
+const long LiquidPanel::ID_VALUECURVE_Liquid_GravityAngle = wxNewId();
+const long LiquidPanel::ID_TEXTCTRL_Liquid_GravityAngle = wxNewId();
 const long LiquidPanel::ID_STATICTEXT_X1 = wxNewId();
 const long LiquidPanel::IDD_SLIDER_X1 = wxNewId();
 const long LiquidPanel::ID_VALUECURVE_X1 = wxNewId();
@@ -174,11 +177,13 @@ END_EVENT_TABLE()
 LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(LiquidPanel)
+	BulkEditTextCtrl* TextCtrl_Liquid_GravityAngle;
 	BulkEditTextCtrlF1* TextCtrl35;
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer12;
 	wxFlexGridSizer* FlexGridSizer13;
+	wxFlexGridSizer* FlexGridSizer14;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -236,7 +241,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_LifeTime = new BulkEditSlider(this, IDD_SLIDER_LifeTime, 1000, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_LifeTime"));
 	FlexGridSizer2->Add(Slider_LifeTime, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_LifeTime = new BulkEditValueCurveButton(this, ID_VALUECURVE_LifeTime, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_LifeTime"));
+	BitmapButton_LifeTime = new BulkEditValueCurveButton(this, ID_VALUECURVE_LifeTime, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_LifeTime"));
 	FlexGridSizer2->Add(BitmapButton_LifeTime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_LifeTime = new BulkEditTextCtrl(this, ID_TEXTCTRL_LifeTime, _("1000"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_LifeTime"));
 	TextCtrl_LifeTime->SetMaxLength(4);
@@ -271,12 +276,24 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer13->AddGrowableCol(0);
 	Slider_Liquid_Gravity = new BulkEditSliderF1(this, IDD_SLIDER_Liquid_Gravity, 100, -1000, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Liquid_Gravity"));
 	FlexGridSizer13->Add(Slider_Liquid_Gravity, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Liquid_Gravity = new BulkEditValueCurveButton(this, ID_VALUECURVE_Liquid_Gravity, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Liquid_Gravity"));
+	BitmapButton_Liquid_Gravity = new BulkEditValueCurveButton(this, ID_VALUECURVE_Liquid_Gravity, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Liquid_Gravity"));
 	FlexGridSizer13->Add(BitmapButton_Liquid_Gravity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer12->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 5);
 	TextCtrl35 = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Liquid_Gravity, _("10.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Liquid_Gravity"));
 	TextCtrl35->SetMaxLength(4);
 	FlexGridSizer12->Add(TextCtrl35, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText16 = new wxStaticText(this, ID_STATICTEXT2, _("Gravity Angle"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer12->Add(StaticText16, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer14 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer14->AddGrowableCol(0);
+	Slider_Liquid_GravityAngle = new BulkEditSlider(this, IDD_SLIDER_Liquid_GravityAngle, 0, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Liquid_GravityAngle"));
+	FlexGridSizer14->Add(Slider_Liquid_GravityAngle, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Liquid_GravityAngle = new BulkEditValueCurveButton(this, ID_VALUECURVE_Liquid_GravityAngle, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Liquid_GravityAngle"));
+	FlexGridSizer14->Add(BitmapButton_Liquid_GravityAngle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer12->Add(FlexGridSizer14, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_Liquid_GravityAngle = new BulkEditTextCtrl(this, ID_TEXTCTRL_Liquid_GravityAngle, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Liquid_GravityAngle"));
+	TextCtrl_Liquid_GravityAngle->SetMaxLength(3);
+	FlexGridSizer12->Add(TextCtrl_Liquid_GravityAngle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer77->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 5);
 	Notebook1 = new wxNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
 	Panel1 = new wxPanel(Notebook1, ID_PANEL1, wxPoint(115,49), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
@@ -288,7 +305,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer7->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_X1 = new BulkEditSlider(Panel1, IDD_SLIDER_X1, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_X1"));
 	FlexGridSizer7->Add(Slider_X1, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_X1 = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_X1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_X1"));
+	BitmapButton_X1 = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_X1, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_X1"));
 	FlexGridSizer7->Add(BitmapButton_X1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_X1 = new BulkEditTextCtrl(Panel1, ID_TEXTCTRL_X1, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_X1"));
 	TextCtrl_X1->SetMaxLength(4);
@@ -297,7 +314,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer7->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Y1 = new BulkEditSlider(Panel1, IDD_SLIDER_Y1, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Y1"));
 	FlexGridSizer7->Add(Slider_Y1, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Y1 = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Y1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Y1"));
+	BitmapButton_Y1 = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Y1, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Y1"));
 	FlexGridSizer7->Add(BitmapButton_Y1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Y1 = new BulkEditTextCtrl(Panel1, ID_TEXTCTRL_Y1, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Y1"));
 	TextCtrl_Y1->SetMaxLength(4);
@@ -306,7 +323,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer7->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Direction1 = new BulkEditSlider(Panel1, IDD_SLIDER_Direction1, 270, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Direction1"));
 	FlexGridSizer7->Add(Slider_Direction1, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Direction1 = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Direction1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Direction1"));
+	BitmapButton_Direction1 = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Direction1, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Direction1"));
 	FlexGridSizer7->Add(BitmapButton_Direction1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Direction1 = new BulkEditTextCtrl(Panel1, ID_TEXTCTRL_Direction1, _("270"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Direction1"));
 	TextCtrl_Direction1->SetMaxLength(4);
@@ -315,7 +332,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer7->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Velocity1 = new BulkEditSlider(Panel1, IDD_SLIDER_Velocity1, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Velocity1"));
 	FlexGridSizer7->Add(Slider_Velocity1, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Velocity1 = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Velocity1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Velocity1"));
+	BitmapButton_Velocity1 = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Velocity1, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Velocity1"));
 	FlexGridSizer7->Add(BitmapButton_Velocity1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Velocity1 = new BulkEditTextCtrl(Panel1, ID_TEXTCTRL_Velocity1, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Velocity1"));
 	TextCtrl_Velocity1->SetMaxLength(4);
@@ -324,7 +341,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer7->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Flow1 = new BulkEditSlider(Panel1, IDD_SLIDER_Flow1, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Flow1"));
 	FlexGridSizer7->Add(Slider_Flow1, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Flow1 = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Flow1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Flow1"));
+	BitmapButton_Flow1 = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Flow1, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Flow1"));
 	FlexGridSizer7->Add(BitmapButton_Flow1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Flow1 = new BulkEditTextCtrl(Panel1, ID_TEXTCTRL_Flow1, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Flow1"));
 	TextCtrl_Flow1->SetMaxLength(4);
@@ -333,7 +350,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer7->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Liquid_SourceSize1 = new BulkEditSlider(Panel1, IDD_SLIDER_Liquid_SourceSize1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Liquid_SourceSize1"));
 	FlexGridSizer7->Add(Slider_Liquid_SourceSize1, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Liquid_SourceSize1 = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Liquid_SourceSize1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Liquid_SourceSize1"));
+	BitmapButton_Liquid_SourceSize1 = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Liquid_SourceSize1, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Liquid_SourceSize1"));
 	FlexGridSizer7->Add(BitmapButton_Liquid_SourceSize1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Liquid_SourceSize1 = new BulkEditTextCtrl(Panel1, ID_TEXTCTRL_Liquid_SourceSize1, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Liquid_SourceSize1"));
 	TextCtrl_Liquid_SourceSize1->SetMaxLength(5);
@@ -360,7 +377,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer8->Add(StaticText22, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_X2 = new BulkEditSlider(Panel2, IDD_SLIDER_X2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_X2"));
 	FlexGridSizer8->Add(Slider_X2, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_X2 = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_X2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_X2"));
+	BitmapButton_X2 = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_X2, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_X2"));
 	FlexGridSizer8->Add(BitmapButton_X2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_X2 = new BulkEditTextCtrl(Panel2, ID_TEXTCTRL_X2, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_X2"));
 	TextCtrl_X2->SetMaxLength(4);
@@ -369,7 +386,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer8->Add(StaticText23, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Y2 = new BulkEditSlider(Panel2, IDD_SLIDER_Y2, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Y2"));
 	FlexGridSizer8->Add(Slider_Y2, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Y2 = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_Y2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Y2"));
+	BitmapButton_Y2 = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_Y2, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Y2"));
 	FlexGridSizer8->Add(BitmapButton_Y2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Y2 = new BulkEditTextCtrl(Panel2, ID_TEXTCTRL_Y2, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Y2"));
 	TextCtrl_Y2->SetMaxLength(4);
@@ -378,7 +395,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer8->Add(StaticText24, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Direction2 = new BulkEditSlider(Panel2, IDD_SLIDER_Direction2, 0, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Direction2"));
 	FlexGridSizer8->Add(Slider_Direction2, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Direction2 = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_Direction2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Direction2"));
+	BitmapButton_Direction2 = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_Direction2, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Direction2"));
 	FlexGridSizer8->Add(BitmapButton_Direction2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Direction2 = new BulkEditTextCtrl(Panel2, ID_TEXTCTRL_Direction2, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Direction2"));
 	TextCtrl_Direction2->SetMaxLength(4);
@@ -387,7 +404,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer8->Add(StaticText25, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Velocity2 = new BulkEditSlider(Panel2, IDD_SLIDER_Velocity2, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Velocity2"));
 	FlexGridSizer8->Add(Slider_Velocity2, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Velocity2 = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_Velocity2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Velocity2"));
+	BitmapButton_Velocity2 = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_Velocity2, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Velocity2"));
 	FlexGridSizer8->Add(BitmapButton_Velocity2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Velocity2 = new BulkEditTextCtrl(Panel2, ID_TEXTCTRL_Velocity2, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Velocity2"));
 	TextCtrl_Velocity2->SetMaxLength(4);
@@ -396,7 +413,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer8->Add(StaticText26, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Flow2 = new BulkEditSlider(Panel2, IDD_SLIDER_Flow2, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Flow2"));
 	FlexGridSizer8->Add(Slider_Flow2, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Flow2 = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_Flow2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Flow2"));
+	BitmapButton_Flow2 = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_Flow2, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Flow2"));
 	FlexGridSizer8->Add(BitmapButton_Flow2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Flow2 = new BulkEditTextCtrl(Panel2, ID_TEXTCTRL_Flow2, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Flow2"));
 	TextCtrl_Flow2->SetMaxLength(4);
@@ -405,7 +422,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer8->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Liquid_SourceSize2 = new BulkEditSlider(Panel2, IDD_SLIDER_Liquid_SourceSize2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Liquid_SourceSize2"));
 	FlexGridSizer8->Add(Slider_Liquid_SourceSize2, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Liquid_SourceSize2 = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_Liquid_SourceSize2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Liquid_SourceSize2"));
+	BitmapButton_Liquid_SourceSize2 = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_Liquid_SourceSize2, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Liquid_SourceSize2"));
 	FlexGridSizer8->Add(BitmapButton_Liquid_SourceSize2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Liquid_SourceSize2 = new BulkEditTextCtrl(Panel2, ID_TEXTCTRL_Liquid_SourceSize2, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Liquid_SourceSize2"));
 	TextCtrl_Liquid_SourceSize2->SetMaxLength(5);
@@ -432,7 +449,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer9->Add(StaticText32, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_X3 = new BulkEditSlider(Panel3, IDD_SLIDER_X3, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_X3"));
 	FlexGridSizer9->Add(Slider_X3, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_X3 = new BulkEditValueCurveButton(Panel3, ID_VALUECURVE_X3, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_X3"));
+	BitmapButton_X3 = new BulkEditValueCurveButton(Panel3, ID_VALUECURVE_X3, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_X3"));
 	FlexGridSizer9->Add(BitmapButton_X3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_X3 = new BulkEditTextCtrl(Panel3, ID_TEXTCTRL_X3, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel3,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_X3"));
 	TextCtrl_X3->SetMaxLength(4);
@@ -441,7 +458,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer9->Add(StaticText33, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Y3 = new BulkEditSlider(Panel3, IDD_SLIDER_Y3, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Y3"));
 	FlexGridSizer9->Add(Slider_Y3, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Y3 = new BulkEditValueCurveButton(Panel3, ID_VALUECURVE_Y3, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Y3"));
+	BitmapButton_Y3 = new BulkEditValueCurveButton(Panel3, ID_VALUECURVE_Y3, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Y3"));
 	FlexGridSizer9->Add(BitmapButton_Y3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Y3 = new BulkEditTextCtrl(Panel3, ID_TEXTCTRL_Y3, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel3,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Y3"));
 	TextCtrl_Y3->SetMaxLength(4);
@@ -450,7 +467,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer9->Add(StaticText34, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Direction3 = new BulkEditSlider(Panel3, IDD_SLIDER_Direction3, 90, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Direction3"));
 	FlexGridSizer9->Add(Slider_Direction3, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Direction3 = new BulkEditValueCurveButton(Panel3, ID_VALUECURVE_Direction3, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Direction3"));
+	BitmapButton_Direction3 = new BulkEditValueCurveButton(Panel3, ID_VALUECURVE_Direction3, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Direction3"));
 	FlexGridSizer9->Add(BitmapButton_Direction3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Direction3 = new BulkEditTextCtrl(Panel3, ID_TEXTCTRL_Direction3, _("90"), wxDefaultPosition, wxDLG_UNIT(Panel3,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Direction3"));
 	TextCtrl_Direction3->SetMaxLength(4);
@@ -459,7 +476,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer9->Add(StaticText35, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Velocity3 = new BulkEditSlider(Panel3, IDD_SLIDER_Velocity3, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Velocity3"));
 	FlexGridSizer9->Add(Slider_Velocity3, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Velocity3 = new BulkEditValueCurveButton(Panel3, ID_VALUECURVE_Velocity3, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Velocity3"));
+	BitmapButton_Velocity3 = new BulkEditValueCurveButton(Panel3, ID_VALUECURVE_Velocity3, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Velocity3"));
 	FlexGridSizer9->Add(BitmapButton_Velocity3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Velocity3 = new BulkEditTextCtrl(Panel3, ID_TEXTCTRL_Velocity3, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel3,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Velocity3"));
 	TextCtrl_Velocity3->SetMaxLength(4);
@@ -468,7 +485,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer9->Add(StaticText36, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Flow3 = new BulkEditSlider(Panel3, IDD_SLIDER_Flow3, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Flow3"));
 	FlexGridSizer9->Add(Slider_Flow3, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Flow3 = new BulkEditValueCurveButton(Panel3, ID_VALUECURVE_Flow3, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Flow3"));
+	BitmapButton_Flow3 = new BulkEditValueCurveButton(Panel3, ID_VALUECURVE_Flow3, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Flow3"));
 	FlexGridSizer9->Add(BitmapButton_Flow3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Flow3 = new BulkEditTextCtrl(Panel3, ID_TEXTCTRL_Flow3, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel3,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Flow3"));
 	TextCtrl_Flow3->SetMaxLength(4);
@@ -477,7 +494,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer9->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Liquid_SourceSize3 = new BulkEditSlider(Panel3, IDD_SLIDER_Liquid_SourceSize3, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Liquid_SourceSize3"));
 	FlexGridSizer9->Add(Slider_Liquid_SourceSize3, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Liquid_SourceSize3 = new BulkEditValueCurveButton(Panel3, ID_VALUECURVE_Liquid_SourceSize3, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Liquid_SourceSize3"));
+	BitmapButton_Liquid_SourceSize3 = new BulkEditValueCurveButton(Panel3, ID_VALUECURVE_Liquid_SourceSize3, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Liquid_SourceSize3"));
 	FlexGridSizer9->Add(BitmapButton_Liquid_SourceSize3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Liquid_SourceSize3 = new BulkEditTextCtrl(Panel3, ID_TEXTCTRL_Liquid_SourceSize3, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel3,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Liquid_SourceSize3"));
 	TextCtrl_Liquid_SourceSize3->SetMaxLength(5);
@@ -504,7 +521,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer10->Add(StaticText42, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_X4 = new BulkEditSlider(Panel4, IDD_SLIDER_X4, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_X4"));
 	FlexGridSizer10->Add(Slider_X4, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_X4 = new BulkEditValueCurveButton(Panel4, ID_VALUECURVE_X4, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_X4"));
+	BitmapButton_X4 = new BulkEditValueCurveButton(Panel4, ID_VALUECURVE_X4, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_X4"));
 	FlexGridSizer10->Add(BitmapButton_X4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_X4 = new BulkEditTextCtrl(Panel4, ID_TEXTCTRL_X4, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel4,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_X4"));
 	TextCtrl_X4->SetMaxLength(4);
@@ -513,7 +530,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer10->Add(StaticText43, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Y4 = new BulkEditSlider(Panel4, IDD_SLIDER_Y4, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Y4"));
 	FlexGridSizer10->Add(Slider_Y4, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Y4 = new BulkEditValueCurveButton(Panel4, ID_VALUECURVE_Y4, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Y4"));
+	BitmapButton_Y4 = new BulkEditValueCurveButton(Panel4, ID_VALUECURVE_Y4, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Y4"));
 	FlexGridSizer10->Add(BitmapButton_Y4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Y4 = new BulkEditTextCtrl(Panel4, ID_TEXTCTRL_Y4, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel4,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Y4"));
 	TextCtrl_Y4->SetMaxLength(4);
@@ -522,7 +539,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer10->Add(StaticText44, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Direction4 = new BulkEditSlider(Panel4, IDD_SLIDER_Direction4, 180, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Direction4"));
 	FlexGridSizer10->Add(Slider_Direction4, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Direction4 = new BulkEditValueCurveButton(Panel4, ID_VALUECURVE_Direction4, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Direction4"));
+	BitmapButton_Direction4 = new BulkEditValueCurveButton(Panel4, ID_VALUECURVE_Direction4, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Direction4"));
 	FlexGridSizer10->Add(BitmapButton_Direction4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Direction4 = new BulkEditTextCtrl(Panel4, ID_TEXTCTRL_Direction4, _("180"), wxDefaultPosition, wxDLG_UNIT(Panel4,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Direction4"));
 	TextCtrl_Direction4->SetMaxLength(4);
@@ -531,7 +548,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer10->Add(StaticText45, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Velocity4 = new BulkEditSlider(Panel4, IDD_SLIDER_Velocity4, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Velocity4"));
 	FlexGridSizer10->Add(Slider_Velocity4, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Velocity4 = new BulkEditValueCurveButton(Panel4, ID_VALUECURVE_Velocity4, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Velocity4"));
+	BitmapButton_Velocity4 = new BulkEditValueCurveButton(Panel4, ID_VALUECURVE_Velocity4, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Velocity4"));
 	FlexGridSizer10->Add(BitmapButton_Velocity4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Velocity4 = new BulkEditTextCtrl(Panel4, ID_TEXTCTRL_Velocity4, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel4,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Velocity4"));
 	TextCtrl_Velocity4->SetMaxLength(4);
@@ -540,7 +557,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer10->Add(StaticText46, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Flow4 = new BulkEditSlider(Panel4, IDD_SLIDER_Flow4, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Flow4"));
 	FlexGridSizer10->Add(Slider_Flow4, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Flow4 = new BulkEditValueCurveButton(Panel4, ID_VALUECURVE_Flow4, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Flow4"));
+	BitmapButton_Flow4 = new BulkEditValueCurveButton(Panel4, ID_VALUECURVE_Flow4, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Flow4"));
 	FlexGridSizer10->Add(BitmapButton_Flow4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Flow4 = new BulkEditTextCtrl(Panel4, ID_TEXTCTRL_Flow4, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel4,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Flow4"));
 	TextCtrl_Flow4->SetMaxLength(4);
@@ -549,7 +566,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer10->Add(StaticText14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Liquid_SourceSize4 = new BulkEditSlider(Panel4, IDD_SLIDER_Liquid_SourceSize4, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Liquid_SourceSize4"));
 	FlexGridSizer10->Add(Slider_Liquid_SourceSize4, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Liquid_SourceSize4 = new BulkEditValueCurveButton(Panel4, ID_VALUECURVE_Liquid_SourceSize4, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Liquid_SourceSize4"));
+	BitmapButton_Liquid_SourceSize4 = new BulkEditValueCurveButton(Panel4, ID_VALUECURVE_Liquid_SourceSize4, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Liquid_SourceSize4"));
 	FlexGridSizer10->Add(BitmapButton_Liquid_SourceSize4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_liquid_SourceSize4 = new BulkEditTextCtrl(Panel4, ID_TEXTCTRL_Liquid_SourceSize4, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel4,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Liquid_SourceSize4"));
 	TextCtrl_liquid_SourceSize4->SetMaxLength(5);
@@ -604,14 +621,18 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_VALUECURVE_Liquid_SourceSize4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
 	//*)
 
+	Connect(ID_VALUECURVE_Liquid_GravityAngle, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
+
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&LiquidPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&LiquidPanel::OnValidateWindow, 0, this);
 
     Slider_Liquid_Gravity->SetRange(LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX);
+    Slider_Liquid_GravityAngle->SetRange(LIQUID_GRAVITYANGLE_MIN, LIQUID_GRAVITYANGLE_MAX);
 
     BitmapButton_LifeTime->GetValue()->SetLimits(LIQUID_LIFETIME_MIN, LIQUID_LIFETIME_MAX);
     BitmapButton_Liquid_Gravity->GetValue()->SetLimits(LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX);
     BitmapButton_Liquid_Gravity->GetValue()->SetDivisor(LIQUID_GRAVITY_DIVISOR);
+    BitmapButton_Liquid_GravityAngle->GetValue()->SetLimits(LIQUID_GRAVITYANGLE_MIN, LIQUID_GRAVITYANGLE_MAX);
 
     BitmapButton_Direction1->GetValue()->SetLimits(LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX);
     BitmapButton_Flow1->GetValue()->SetLimits(LIQUID_FLOW_MIN, LIQUID_FLOW_MAX);

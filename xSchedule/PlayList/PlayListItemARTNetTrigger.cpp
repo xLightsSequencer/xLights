@@ -53,7 +53,7 @@ PlayListItemARTNetTrigger::PlayListItemARTNetTrigger() : PlayListItem()
     _ip = "";
 }
 
-PlayListItem* PlayListItemARTNetTrigger::Copy() const
+PlayListItem* PlayListItemARTNetTrigger::Copy(const bool isClone) const
 {
     PlayListItemARTNetTrigger* res = new PlayListItemARTNetTrigger();
     res->_oem = _oem;
@@ -62,7 +62,7 @@ PlayListItem* PlayListItemARTNetTrigger::Copy() const
     res->_ip = _ip;
     res->_data = _data;
     res->_started = false;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }
@@ -108,17 +108,17 @@ unsigned char* PlayListItemARTNetTrigger::PrepareData(const std::string s, int& 
                 if (working[i + 1] == '\\')
                 {
                     buffer[used++] = working[i];
-                    i++; // skip the second '\\'
+                    ++i; // skip the second '\\'
                 }
                 if (working[i + 1] == 'x' || working[i + 1] == 'X')
                 {
                     // up to next 2 characters if 0-F will be treated as a hex code
-                    i++;
-                    i++;
+                    ++i;
+                    ++i;
                     if (i + 1 < working.size() && isHexChar(working[i]) && isHexChar(working[i + 1]))
                     {
                         buffer[used++] = (char)HexToChar(working[i], working[i + 1]);
-                        i++;
+                        ++i;
                     }
                     else if (i < working.size() && isHexChar(working[i]))
                     {
@@ -129,7 +129,7 @@ unsigned char* PlayListItemARTNetTrigger::PrepareData(const std::string s, int& 
                         // \x was not followed by a hex digit so put in \x
                         buffer[used++] = '\\';
                         buffer[used++] = 'x';
-                        i--;
+                        --i;
                     }
                 }
             }
@@ -202,13 +202,14 @@ void PlayListItemARTNetTrigger::Frame(uint8_t* buffer, size_t size, size_t ms, s
             bool ok = true;
 
             wxIPV4address localaddr;
-            if (IPOutput::__localIP == "")
+            auto localIP = GetLocalIP();
+            if (localIP == "")
             {
                 localaddr.AnyAddress();
             }
             else
             {
-                localaddr.Hostname(IPOutput::__localIP);
+                localaddr.Hostname(localIP);
             }
 
             wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);

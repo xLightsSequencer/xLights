@@ -82,14 +82,10 @@ std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& setti
         settings.Get("E_VALUECURVE_Morph_End_Y1", "").find("Active=TRUE") != std::string::npos ||
         settings.Get("E_VALUECURVE_Morph_End_Y2", "").find("Active=TRUE") != std::string::npos ||
         settings.Get("E_VALUECURVE_MorphRepeat_Count", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_MorphRepeat_Skip", "").find("Active=TRUE") != std::string::npos
-        )
-    {
+        settings.Get("E_VALUECURVE_MorphRepeat_Skip", "").find("Active=TRUE") != std::string::npos) {
         // we cant validate a value curve
-    }
-    else
-    {
-        int startx = std::max(1,std::abs(settings.GetInt("E_SLIDER_Morph_Start_X1", 0) - settings.GetInt("E_SLIDER_Morph_Start_X2", 0)) * model->GetDefaultBufferWi() / 80);
+    } else {
+        int startx = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_X1", 0) - settings.GetInt("E_SLIDER_Morph_Start_X2", 0)) * model->GetDefaultBufferWi() / 80);
         int endx = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_X1", 0) - settings.GetInt("E_SLIDER_Morph_End_X2", 0)) * model->GetDefaultBufferWi() / 80);
         int starty = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_Y1", 0) - settings.GetInt("E_SLIDER_Morph_Start_Y2", 0)) * model->GetDefaultBufferWi() / 80);
         int endy = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_Y1", 0) - settings.GetInt("E_SLIDER_Morph_End_Y2", 0)) * model->GetDefaultBufferWi() / 80);
@@ -99,8 +95,7 @@ std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& setti
         int repeat_skip = settings.GetInt("E_SLIDER_Morph_Repeat_Skip", 0);
         int maxmodel = std::max(model->GetDefaultBufferWi(), model->GetDefaultBufferHt());
 
-        if ((minmorph + repeat_skip) * repeat_count > 2 * maxmodel)
-        {
+        if ((minmorph + repeat_skip) * repeat_count > 2 * maxmodel) {
             res.push_back(wxString::Format("    WARN: Morph effect with repeat count and skip which are larger than necessary. This may lead to slow render times. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
     }
@@ -149,6 +144,7 @@ void MorphEffect::SetDefaultParameters() {
     SetCheckBoxValue(mp->CheckBox_Morph_End_Link, false);
     SetCheckBoxValue(mp->CheckBox_Morph_Start_Link, false);
     SetCheckBoxValue(mp->CheckBox_ShowHeadAtStart, false);
+    SetCheckBoxValue(mp->CheckBox_Morph_AutoRepeat, false);
 }
 
 void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlColor &start_t, xlColor &end_t) {
@@ -237,7 +233,7 @@ static int calcPosition(int value, int base)
     return (int)((double)value / band);
 }
 
-void MorphEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int start_x1 = GetValueCurveInt("Morph_Start_X1", 0, SettingsMap, eff_pos, MORPH_X_MIN, MORPH_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -258,6 +254,7 @@ void MorphEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     bool start_linked = SettingsMap.GetBool("CHECKBOX_Morph_Start_Link");
     bool end_linked = SettingsMap.GetBool("CHECKBOX_Morph_End_Link");
     bool showEntireHeadAtStart = SettingsMap.GetBool("CHECKBOX_ShowHeadAtStart");
+    bool auto_repeat = SettingsMap.GetBool("CHECKBOX_Morph_AutoRepeat");
 
     double step_size = 0.1;
 
@@ -323,16 +320,30 @@ void MorphEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     int repeat_y = 0;
     double effect_pct = 1.0;
     double stagger_pct = 0.0;
-    if( repeat_count > 0 )
+    if( repeat_count > 0 || auto_repeat)
     {
+        int maxmodel;
         if( (std::abs((float)delta_xa) + std::abs((float)delta_xb)) < (std::abs((float)delta_ya) + std::abs((float)delta_yb)) )
         {
             repeat_x = repeat_skip;
+            maxmodel = buffer.BufferWi;
         }
         else
         {
             repeat_y = repeat_skip;
+            maxmodel = buffer.BufferHt;
         }
+
+        // auto_repeat calculates the number of repeats required to cover the model automatically
+        if( auto_repeat ) {
+            int startx = std::max(1,std::abs(start_x1 - start_x2) * buffer.BufferWi / 100);
+            int starty = std::max(1,std::abs(start_y1 - start_y2) * buffer.BufferHt / 100);
+            int endx = std::max(1,std::abs(end_x1 - end_x2) * buffer.BufferWi / 100);
+            int endy = std::max(1,std::abs(end_y1 - end_y2) * buffer.BufferHt / 100);
+            int minmorph = std::min(startx, std::min(starty, std::min(endx, endy)));
+            repeat_count = (maxmodel / (minmorph + repeat_skip - 1)) - 1;
+        }
+
         double stagger_val = (double)(std::abs((double)stagger))/200.0;
         effect_pct = 1.0 / (1 + stagger_val * repeat_count);
         stagger_pct = effect_pct * stagger_val;

@@ -46,7 +46,6 @@ public:
 protected:
 private:
     DECLARE_EVENT_TABLE()
-    void Draw();
     void render(wxPaintEvent& event);
     void mouseLeftDown(wxMouseEvent& event);
     void mouseLeftUp(wxMouseEvent& event);
@@ -67,9 +66,9 @@ private:
     bool ModelInView(const std::string& model, int view) const;
     void SetWidth(int w);
 
-    wxBitmap papagayo_icon;
-    wxBitmap papagayox_icon;
-    wxBitmap model_group_icon;
+    wxBitmapBundle papagayo_icon;
+    wxBitmapBundle papagayox_icon;
+    wxBitmapBundle model_group_icon;
 
     int mSelectedRow = -1;
     SequenceElements* mSequenceElements = nullptr;
@@ -104,10 +103,16 @@ private:
     static const long ID_ROW_MNU_COPY_MODEL;
     static const long ID_ROW_MNU_PASTE_ROW;
     static const long ID_ROW_MNU_PASTE_MODEL;
+    static const long ID_ROW_MNU_RENDERENABLE_ALL;
+    static const long ID_ROW_MNU_RENDERENABLE_MODEL;
+    static const long ID_ROW_MNU_RENDERDISABLE_MODEL;
     static const long ID_ROW_MNU_DELETE_ROW_EFFECTS;
     static const long ID_ROW_MNU_DELETE_MODEL_EFFECTS;
+    static const long ID_ROW_MNU_DELETE_MODEL_STRAND_EFFECTS;
+    static const long ID_ROW_MNU_DELETE_MODEL_NODE_EFFECTS;
     static const long ID_ROW_MNU_SELECT_ROW_EFFECTS;
     static const long ID_ROW_MNU_SELECT_MODEL_EFFECTS;
+    static const long ID_ROW_MNU_SELECT_TIMING_EFFECTS;
     static const long ID_ROW_MNU_MODEL_CONVERTTOPERMODEL;
     static const long ID_ROW_MNU_ROW_CONVERTTOPERMODEL;
 

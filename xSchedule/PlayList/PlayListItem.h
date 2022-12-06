@@ -40,7 +40,7 @@ protected:
     #pragma endregion Member Variables
 
     void Save(wxXmlNode* node);
-    void Copy(PlayListItem* to) const;
+    void Copy(PlayListItem* to, const bool isClone) const;
     bool IsInSlaveMode() const;
     bool IsSuppressAudioOnSlaves() const;
     std::string ReplaceTags(const std::string s) const;
@@ -53,7 +53,8 @@ protected:
     PlayListItem(wxXmlNode* node);
     PlayListItem();
     virtual ~PlayListItem() {};
-    virtual PlayListItem* Copy() const = 0;
+    PlayListItem* Clone() const;
+    virtual PlayListItem* Copy(const bool isClone) const = 0;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
@@ -92,6 +93,7 @@ protected:
     void SetStepLength(long stepLengthMS) { _stepLengthMS = stepLengthMS; }
     virtual bool SetPosition(size_t frame, size_t ms);
     ScheduleOptions* GetOptions() const;
+    std::string GetLocalIP() const;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() = 0;

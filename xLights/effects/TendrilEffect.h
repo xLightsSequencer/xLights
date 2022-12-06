@@ -57,16 +57,16 @@ class ATendril
 	float _tension;
 	float _spring;
 	size_t _thickness;
-	int _width;
-	int _height;
+    int _lastWidth = -1;
+    int _lastHeight = -1;
 
     std::list<TendrilNode*> _nodes;
 
 	public:
 
 	~ATendril();
-	ATendril(float friction, int size, float dampening, float tension, float spring, const wxPoint& start, size_t maxx, size_t maxy);
-	void Update(wxPoint* target);
+	ATendril(float friction, int size, float dampening, float tension, float spring, const wxPoint& start);
+    void Update(wxPoint* target, int tunemovement, int width, int height);
 	void Draw(PathDrawingContext* gc, xlColor colour, int thickness);
 	wxPoint* LastLocation();
 };
@@ -74,39 +74,80 @@ class ATendril
 class Tendril
 {
 	std::list<ATendril*> _tendrils;
-	int _width;
-	int _height;
 
 	public:
 
 	~Tendril();
-	Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const wxPoint& start, size_t maxx, size_t maxy);
-	void UpdateRandomMove(int tunemovement);
-    void Update(wxPoint* target);
-    void Update(int x, int y);
+	Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const wxPoint& start);
+	void UpdateRandomMove(int tunemovement, int width, int height);
+    void Update(wxPoint* target, int tunemovement, size_t width, size_t height);
+    void Update(int x, int y, int tunemovement, size_t width, size_t height);
     void Draw(PathDrawingContext* gc, xlColor colour, int thickness);
 };
 
 class TendrilEffect : public RenderableEffect
 {
-    public:
-        TendrilEffect(int id);
-        virtual ~TendrilEffect();
-        virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+public:
+    TendrilEffect(int id);
+    virtual ~TendrilEffect();
+    virtual void SetDefaultParameters() override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
 #ifdef LINUX
-        virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override { return false;}
+    virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override
+    {
+        return false;
+    }
 #endif
-        virtual bool AppropriateOnNodes() const override { return false; }
-        virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
+    virtual bool AppropriateOnNodes() const override
+    {
+        return false;
+    }
+    virtual bool SupportsRenderCache(const SettingsMap& settings) const override
+    {
+        return true;
+    }
 
-    protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
-		virtual bool needToAdjustSettings(const std::string &version) override;
-		virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
-        int EncodeMovement(std::string movement);
-        void Render(RenderBuffer &buffer,
-            const std::string& movement, int tunemovement, int movementSpeed, int thickness,
-            float friction, float dampening,
-            float tension, int trails, int length, int xoffset, int yoffset, int manualx, int manualy);
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Tendril_TuneMovement")
+            return TENDRIL_MOVEMENT_MIN;
+        if (name == "E_VALUECURVE_Tendril_Thickness")
+            return TENDRIL_THICKNESS_MIN;
+        if (name == "E_VALUECURVE_Tendril_ManualX")
+            return TENDRIL_MANUALX_MIN;
+        if (name == "E_VALUECURVE_Tendril_ManualY")
+            return TENDRIL_MANUALY_MIN;
+        if (name == "E_VALUECURVE_Tendril_XOffset")
+            return TENDRIL_OFFSETX_MIN;
+        if (name == "E_VALUECURVE_Tendril_YOffset")
+            return TENDRIL_OFFSETY_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Tendril_TuneMovement")
+            return TENDRIL_MOVEMENT_MAX;
+        if (name == "E_VALUECURVE_Tendril_Thickness")
+            return TENDRIL_THICKNESS_MAX;
+        if (name == "E_VALUECURVE_Tendril_ManualX")
+            return TENDRIL_MANUALX_MAX;
+        if (name == "E_VALUECURVE_Tendril_ManualY")
+            return TENDRIL_MANUALY_MAX;
+        if (name == "E_VALUECURVE_Tendril_XOffset")
+            return TENDRIL_OFFSETX_MAX;
+        if (name == "E_VALUECURVE_Tendril_YOffset")
+            return TENDRIL_OFFSETY_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
+
+protected:
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
+    virtual bool needToAdjustSettings(const std::string& version) override;
+    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
+    int EncodeMovement(std::string movement);
+    void Render(RenderBuffer& buffer,
+                const std::string& movement, int tunemovement, int movementSpeed, int thickness,
+                float friction, float dampening,
+                float tension, int trails, int length, int xoffset, int yoffset, int manualx, int manualy);
 };

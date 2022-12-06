@@ -27,6 +27,7 @@
 #include "events/EventPing.h"
 #include "events/EventOSC.h"
 #include "events/EventFPP.h"
+#include "events/EventFPPCommandPreset.h"
 #include "events/EventMIDI.h"
 #include "events/EventMQTT.h"
 #include "events/EventState.h"
@@ -47,6 +48,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _MIDITimecodeOffset = wxAtol(node->GetAttribute("MIDITimecodeOffset", "0"));
     _remoteLatency = wxAtoi(node->GetAttribute("RemoteLatency", "0"));
     _SMPTEMode = wxAtoi(node->GetAttribute("SMPTEMode", "3"));
+    _SMPTEDevice = node->GetAttribute("SMPTEDevice", "");
     _remoteAcceptableJitter = wxAtoi(node->GetAttribute("RemoteAcceptableJitter", "20"));
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
     _advancedMode = node->GetAttribute("AdvancedMode", "FALSE") == "TRUE";
@@ -76,7 +78,8 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _artNetTimeCodeFormat = static_cast<TIMECODEFORMAT>(wxAtoi(node->GetAttribute("ARTNetTimeCodeFormat", "1")));
     _audioDevice = node->GetAttribute("AudioDevice", "").ToStdString();
     _inputAudioDevice = node->GetAttribute("InputAudioDevice", "").ToStdString();
-    AudioManager::SetAudioDevice(_audioDevice);
+    AudioManager::GetSDLManager()->SetDefaultOutput(_audioDevice);
+    AudioManager::GetSDLManager()->SetDefaultInput(_inputAudioDevice);
     _password = node->GetAttribute("Password", "");
     _defaultPage = node->GetAttribute("DefaultPage", "index.html");
     _allowUnauth = node->GetAttribute("AllowUnauth", "FALSE") == "TRUE";
@@ -114,6 +117,9 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
                 }
                 else if (n2->GetName() == "EventFPP") {
                     _events.push_back(new EventFPP(n2));
+                } 
+                else if (n2->GetName() == "EventFPPCommandPreset") {
+                    _events.push_back(new EventFPPCommandPreset(n2));
                 }
                 else if (n2->GetName() == "EventMIDI") {
                     _events.push_back(new EventMIDI(n2));
@@ -163,7 +169,7 @@ void ScheduleOptions::SetAudioDevice(const std::string& audioDevice)
 {
     if (_audioDevice != audioDevice) {
         _audioDevice = audioDevice;
-        AudioManager::SetAudioDevice(_audioDevice);
+        AudioManager::GetSDLManager()->SetDefaultOutput(_audioDevice);
         _changeCount++;
     }
 }
@@ -172,7 +178,7 @@ void ScheduleOptions::SetInputAudioDevice(const std::string& audioDevice)
 {
     if (_inputAudioDevice != audioDevice) {
         _inputAudioDevice = audioDevice;
-        AudioManager::SetInputAudioDevice(_inputAudioDevice);
+        AudioManager::GetSDLManager()->SetDefaultInput(_inputAudioDevice);
         _changeCount++;
     }
 }
@@ -285,6 +291,7 @@ ScheduleOptions::ScheduleOptions()
     _MIDITimecodeFormat = TIMECODEFORMAT::F24;
     _MIDITimecodeOffset = 0;
     _SMPTEMode = 3;
+    _SMPTEDevice = "";
     _defaultVideoPos = { 0,0 };
     _defaultVideoSize = { 100, 100 };
 }
@@ -324,6 +331,7 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("RemoteLatency", wxString::Format("%d", _remoteLatency));
     res->AddAttribute("RemoteAcceptableJitter", wxString::Format("%d", _remoteAcceptableJitter));
     res->AddAttribute("SMPTEMode", wxString::Format("%d", _SMPTEMode));
+    res->AddAttribute("SMPTEDevice", _SMPTEDevice);
     res->AddAttribute("DefaultVideoSize", SerialisePair(_defaultVideoSize.x, _defaultVideoSize.y));
     res->AddAttribute("DefaultVideoPos", SerialisePair(_defaultVideoPos.x, _defaultVideoPos.y));
     if (IsSync()) {

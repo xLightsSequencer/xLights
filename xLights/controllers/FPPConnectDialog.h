@@ -43,6 +43,7 @@ class FPPConnectDialog: public wxDialog
 		wxPanel* Panel1;
 		wxScrolledWindow* FPPInstanceList;
 		wxSplitterWindow* SplitterWindow1;
+		wxStaticText* Selected_Label;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		//*)
@@ -57,6 +58,7 @@ class FPPConnectDialog: public wxDialog
 		static const long ID_CHOICE_FILTER;
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE_FOLDER;
+		static const long ID_STATICTEXT3;
 		static const long ID_PANEL2;
 		static const long ID_PANEL1;
 		static const long ID_SPLITTERWINDOW1;
@@ -106,6 +108,9 @@ class FPPConnectDialog: public wxDialog
         void SetCheckValue(const std::string &col, bool b);
 
 		void DisplayDateModified(std::string const& filePath, wxTreeListItem &index) const;
+
+		void UpdateSeqCount();
+        void OnSequenceListToggled(wxDataViewEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };

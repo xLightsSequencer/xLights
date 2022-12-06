@@ -64,6 +64,17 @@ glm::vec3 BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool Shift
     IncrementChangeCount();
     return GetBaseObjectScreenLocation().GetHandlePosition(handle);
 }
+glm::vec3 BaseObject::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+    if (GetBaseObjectScreenLocation().IsLocked()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
+
+    int i = GetBaseObjectScreenLocation().MoveHandle3D(scale, handle, rot, mov);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    if (i) {
+        SetFromXml(ModelXml);
+    }
+    IncrementChangeCount();
+    return GetBaseObjectScreenLocation().GetHandlePosition(handle);
+}
 
 void BaseObject::SelectHandle(int handle) {
     GetBaseObjectScreenLocation().SelectHandle(handle);
@@ -194,7 +205,8 @@ void BaseObject::SetDcenterPos(float pos) {
     IncrementChangeCount();
 }
 
-bool BaseObject::Rotate(int axis, float factor) {
+bool BaseObject::Rotate(ModelScreenLocation::MSLAXIS axis, float factor)
+{
     if (GetBaseObjectScreenLocation().IsLocked()) return false;
 
     bool b = GetBaseObjectScreenLocation().Rotate(axis, factor);
@@ -207,7 +219,7 @@ void BaseObject::FlipHorizontal(bool ignoreLock) {
     if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) {
         return;
     }
-    GetBaseObjectScreenLocation().Rotate(Y_AXIS, 180.0);
+    GetBaseObjectScreenLocation().Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, 180.0);
     GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
@@ -216,7 +228,7 @@ void BaseObject::FlipVertical(bool ignoreLock) {
     if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) {
         return;
     }
-    GetBaseObjectScreenLocation().Rotate(X_AXIS, 180.0);
+    GetBaseObjectScreenLocation().Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, 180.0);
     GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }

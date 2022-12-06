@@ -146,6 +146,12 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts() {
     res.push_back("/dev/ttyUSB3");
     res.push_back("/dev/ttyUSB4");
     res.push_back("/dev/ttyUSB5");
+    res.push_back("/dev/ttyACM0");
+    res.push_back("/dev/ttyACM1");
+    res.push_back("/dev/ttyACM2");
+    res.push_back("/dev/ttyACM3");
+    res.push_back("/dev/ttyACM4");
+    res.push_back("/dev/ttyACM5");
 #endif
 
     return res;

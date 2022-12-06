@@ -24,7 +24,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_VALUECURVE_Twinkle_Count" subclass="BulkEditValueCurveButton" variable="BitmapButton_Twinkle_CountVC" member="yes">
-					<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+					<bitmap code="GetValueCurveNotSelectedBitmap()" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -42,7 +42,6 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Twinkle_Count" subclass="xlLockButton" variable="BitmapButton_TwinkleCount" member="yes">
-					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -72,7 +71,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_VALUECURVE_Twinkle_Steps" subclass="BulkEditValueCurveButton" variable="BitmapButton_Twinkle_StepsVC" member="yes">
-					<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+					<bitmap code="GetValueCurveNotSelectedBitmap()" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -90,7 +89,6 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Twinkle_Steps" subclass="xlLockButton" variable="BitmapButton_TwinkleSteps" member="yes">
-					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -160,7 +158,6 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe" subclass="xlLockButton" variable="BitmapButton_TwinkleStrobe" member="yes">
-					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -194,7 +191,6 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom" subclass="xlLockButton" variable="BitmapButton24" member="yes">
-					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>

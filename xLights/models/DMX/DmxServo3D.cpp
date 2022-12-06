@@ -89,11 +89,13 @@ static const std::string CLICK_TO_EDIT("--Click To Edit--");
 class ServoConfigDialogAdapter : public wxPGEditorDialogAdapter
 {
 public:
-    ServoConfigDialogAdapter(DmxServo3d* model)
-        : wxPGEditorDialogAdapter(), m_model(model) {
+    ServoConfigDialogAdapter(DmxServo3d* model) :
+        wxPGEditorDialogAdapter(), m_model(model)
+    {
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-        wxPGProperty* WXUNUSED(property)) override {
+                              wxPGProperty* WXUNUSED(property)) override
+    {
         ServoConfigDialog dlg(propGrid);
 
         dlg.CheckBox_16bits->SetValue(m_model->Is16Bit());
@@ -130,8 +132,7 @@ public:
                 changed = true;
                 if (_16bit) {
                     m_model->GetModelXml()->AddAttribute("Bits16", "1");
-                }
-                else {
+                } else {
                     m_model->GetModelXml()->AddAttribute("Bits16", "0");
                 }
                 m_model->UpdateBits();
@@ -150,6 +151,7 @@ public:
         }
         return false;
     }
+
 protected:
     DmxServo3d* m_model;
 };
@@ -158,18 +160,21 @@ class ServoPopupDialogProperty : public wxStringProperty
 {
 public:
     ServoPopupDialogProperty(DmxServo3d* m,
-        const wxString& label,
-        const wxString& name,
-        const wxString& value,
-        int type)
-        : wxStringProperty(label, name, value), m_model(m), m_tp(type) {
+                             const wxString& label,
+                             const wxString& name,
+                             const wxString& value,
+                             int type) :
+        wxStringProperty(label, name, value), m_model(m), m_tp(type)
+    {
     }
     // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const override {
+    virtual const wxPGEditor* DoGetEditorClass() const override
+    {
         return wxPGEditor_TextCtrlAndButton;
     }
     // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override {
+    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
+    {
         switch (m_tp) {
         case 1:
             return new ServoConfigDialogAdapter(m_model);
@@ -178,6 +183,7 @@ public:
         }
         return nullptr;
     }
+
 protected:
     DmxServo3d* m_model = nullptr;
     int m_tp;
@@ -185,8 +191,9 @@ protected:
 
 static wxPGChoices MOTION_LINKS;
 
-void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid) {
-    DmxModel::AddTypeProperties(grid);
+void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     wxPGProperty* p = grid->Append(new ServoPopupDialogProperty(this, "Servo Config", "ServoConfig", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
@@ -194,16 +201,16 @@ void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid) {
     p = grid->Append(new wxBoolProperty("Show Pivot Axes", "PivotAxes", show_pivot));
     p->SetAttribute("UseCheckbox", true);
 
-    for (auto it = servos.begin(); it != servos.end(); ++it) {
-        (*it)->AddTypeProperties(grid);
+    for (const auto& it : servos) {
+        it->AddTypeProperties(grid);
     }
 
-    for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
-        (*it)->AddTypeProperties(grid);
+    for (const auto& it : static_meshs) {
+        it->AddTypeProperties(grid);
     }
 
-    for (auto it = motion_meshs.begin(); it != motion_meshs.end(); ++it) {
-        (*it)->AddTypeProperties(grid);
+    for (const auto& it : motion_meshs) {
+        it->AddTypeProperties(grid);
     }
 
     if (MOTION_LINKS.GetCount() != (unsigned int)num_servos) {
@@ -211,7 +218,7 @@ void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid) {
     }
     if (MOTION_LINKS.GetCount() == 0) {
         for (int i = 0; i < num_servos; ++i) {
-            MOTION_LINKS.Add("Mesh " + std::to_string(i+1));
+            MOTION_LINKS.Add("Mesh " + std::to_string(i + 1));
         }
     }
 
@@ -231,11 +238,11 @@ void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid) {
     }
     grid->Collapse("MeshMotionProperties");
 
-
     grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
 
-int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
+{
     std::string name = event.GetPropertyName().ToStdString();
 
     if ("DmxChannelCount" == event.GetPropertyName()) {
@@ -255,8 +262,7 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
     if ("PivotAxes" == name) {
         if (event.GetValue().GetBool()) {
             show_pivot = true;
-        }
-        else {
+        } else {
             show_pivot = false;
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::OnPropertyGridChange::PivotAxes");
@@ -265,20 +271,20 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         return 0;
     }
 
-    for (auto it = servos.begin(); it != servos.end(); ++it) {
-        if ((*it)->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+    for (const auto& it : servos) {
+        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
             return 0;
         }
     }
 
-    for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
-        if ((*it)->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+    for (const auto& it : static_meshs) {
+        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
             return 0;
         }
     }
 
-    for (auto it = motion_meshs.begin(); it != motion_meshs.end(); ++it) {
-        if ((*it)->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+    for (const auto& it : motion_meshs) {
+        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
             return 0;
         }
     }
@@ -293,8 +299,7 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
             }
             if (link_num == i) {
                 servo_links[i] = -1;
-            }
-            else {
+            } else {
                 servo_links[i] = link_num;
             }
             ModelXml->AddAttribute(linkage, "Mesh " + std::to_string(link_num + 1));
@@ -316,8 +321,7 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
             }
             if (link_num == i) {
                 mesh_links[i] = -1;
-            }
-            else {
+            } else {
                 mesh_links[i] = link_num;
             }
             ModelXml->AddAttribute(linkage, "Mesh " + std::to_string(link_num + 1));
@@ -335,7 +339,8 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
     return DmxModel::OnPropertyGridChange(grid, event);
 }
 
-void DmxServo3d::InitModel() {
+void DmxServo3d::InitModel()
+{
     num_servos = wxAtoi(ModelXml->GetAttribute("NumServos", "1"));
     num_static = wxAtoi(ModelXml->GetAttribute("NumStatic", "1"));
     num_motion = wxAtoi(ModelXml->GetAttribute("NumMotion", "1"));
@@ -404,29 +409,25 @@ void DmxServo3d::InitModel() {
         int static_idx = name.find("StaticMesh");
         int motion_idx = name.find("MotionMesh");
 
-        if ("StaticMesh" == name) {  // convert original name that had no number
+        if ("StaticMesh" == name) { // convert original name that had no number
             // copy attributes to new name
             wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "StaticMesh1");
             ModelXml->AddChild(new_node);
-            for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext())
-            {
+            for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
                 new_node->AddAttribute(a->GetName(), a->GetValue());
             }
             snode = n;
             static_meshs[0] = new Mesh(new_node, "StaticMesh1");
-        }
-        else if ("MotionMesh" == name) {  // convert original name that had no number
+        } else if ("MotionMesh" == name) { // convert original name that had no number
             // copy attributes to new name
             wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "MotionMesh1");
             ModelXml->AddChild(new_node);
-            for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext())
-            {
+            for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
                 new_node->AddAttribute(a->GetName(), a->GetValue());
             }
             mnode = n;
             motion_meshs[0] = new Mesh(new_node, "MotionMesh1");
-        }
-        else if (static_idx != std::string::npos) {
+        } else if (static_idx != std::string::npos) {
             std::string num = name.substr(10, name.length());
             int id = atoi(num.c_str()) - 1;
             if (id < num_static) {
@@ -434,8 +435,7 @@ void DmxServo3d::InitModel() {
                     static_meshs[id] = new Mesh(n, name);
                 }
             }
-        }
-        else if (motion_idx != std::string::npos) {
+        } else if (motion_idx != std::string::npos) {
             std::string num = name.substr(10, name.length());
             int id = atoi(num.c_str()) - 1;
             if (id < num_motion) {
@@ -443,8 +443,7 @@ void DmxServo3d::InitModel() {
                     motion_meshs[id] = new Mesh(n, name);
                 }
             }
-        }
-        else if (servo_idx != std::string::npos) {
+        } else if (servo_idx != std::string::npos) {
             std::string num = name.substr(5, name.length());
             int id = atoi(num.c_str()) - 1;
             if (id < num_servos) {
@@ -539,21 +538,21 @@ void DmxServo3d::InitModel() {
 
     brightness = wxAtoi(ModelXml->GetAttribute("Brightness", "100"));
 
-    for (auto it = servos.begin(); it != servos.end(); ++it) {
-        (*it)->Init(this);
-        (*it)->Set16Bit(_16bit);
+    for (const auto& it : servos) {
+        it->Init(this);
+        it->Set16Bit(_16bit);
     }
 
     bool last_exists = false;
-    for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
-        (*it)->Init(this, !last_exists);
-        last_exists = (*it)->GetExists();
+    for (const auto& it : static_meshs) {
+        it->Init(this, !last_exists);
+        last_exists = it->HasObjFile();
     }
 
-    last_exists = num_static > 0 ? static_meshs[0]->GetExists() : false;
-    for (auto it = motion_meshs.begin(); it != motion_meshs.end(); ++it) {
-        (*it)->Init(this, !last_exists);
-        last_exists = (*it)->GetExists();
+    last_exists = num_static > 0 ? static_meshs[0]->HasObjFile() : false;
+    for (const auto& it : motion_meshs) {
+        it->Init(this, !last_exists);
+        last_exists = it->HasObjFile();
     }
 
     // renumber servo changed if number of bits changed
@@ -575,8 +574,7 @@ void DmxServo3d::InitModel() {
         }
         if (_16bit) {
             names += "Servo" + std::to_string(index) + ",-Servo" + std::to_string(index);
-        }
-        else {
+        } else {
             names += "Servo" + std::to_string(index);
         }
         index++;
@@ -585,18 +583,150 @@ void DmxServo3d::InitModel() {
     update_node_names = false;
 }
 
-void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
+void DmxServo3d::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+                                      xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
+                                      const xlColor* c, bool allowSelected, bool wiring,
+                                      bool highlightFirst, int highlightpixel,
+                                      float* boundingBox)
 {
-    if (!IsActive()) return;
+    if (!IsActive())
+        return;
 
+    screenLocation.PrepareToDraw(is_3d, allowSelected);
+    screenLocation.UpdateBoundingBox(Nodes);
+    if (boundingBox) {
+        boundingBox[0] = -0.5;
+        boundingBox[1] = -0.5;
+        boundingBox[2] = -0.5;
+        boundingBox[3] = 0.5;
+        boundingBox[4] = 0.5;
+        boundingBox[5] = 0.5;
+    }
+    sprogram->addStep([=](xlGraphicsContext* ctx) {
+        ctx->PushMatrix();
+        if (!is_3d) {
+            //not 3d, flatten to the 0 plane
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
+        }
+        GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+    });
+    tprogram->addStep([=](xlGraphicsContext* ctx) {
+        ctx->PushMatrix();
+        if (!is_3d) {
+            //not 3d, flatten to the 0 plane
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
+        }
+        GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+    });
+    DrawModel(preview, ctx, sprogram, tprogram, !allowSelected);
+    sprogram->addStep([=](xlGraphicsContext* ctx) {
+        ctx->PopMatrix();
+    });
+    tprogram->addStep([=](xlGraphicsContext* ctx) {
+        ctx->PopMatrix();
+    });
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
+        if (is_3d) {
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+        } else {
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+        }
+    }
+}
+
+void DmxServo3d::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+{
+    if (!IsActive() && preview->IsNoCurrentModel()) {
+        return;
+    }
+
+    bool mustEnd = false;
+    xlGraphicsContext* ctx = preview->getCurrentGraphicsContext();
+    if (ctx == nullptr) {
+        bool success = preview->StartDrawing(pointSize);
+        if (success) {
+            ctx = preview->getCurrentGraphicsContext();
+            mustEnd = true;
+        }
+    }
+    if (ctx) {
+        int w, h;
+        preview->GetSize(&w, &h);
+        float scaleX = float(w) * 0.95f / GetModelScreenLocation().RenderWi;
+        float scaleY = float(h) * 0.95f / GetModelScreenLocation().RenderHt;
+
+        float aspect = screenLocation.GetScaleX();
+        aspect /= screenLocation.GetScaleY();
+        if (scaleY < scaleX) {
+            scaleX = scaleY * aspect;
+        } else {
+            scaleY = scaleX / aspect;
+        }
+        float ml, mb;
+        GetMinScreenXY(ml, mb);
+        ml += GetModelScreenLocation().RenderWi / 2;
+        mb += GetModelScreenLocation().RenderHt / 2;
+
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext* ctx) {
+            ctx->PushMatrix();
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
+            ctx->TranslateViewMatrix(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
+                                     h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0);
+        });
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
+            ctx->PushMatrix();
+            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
+            ctx->TranslateViewMatrix(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
+                                     h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0f);
+        });
+        DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), true);
+        preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext* ctx) {
+            ctx->PopMatrix();
+        });
+        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
+            ctx->PopMatrix();
+        });
+    }
+    if (mustEnd) {
+        preview->EndDrawing();
+    }
+}
+
+std::list<std::string> DmxServo3d::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    int nodeCount = Nodes.size();
+    int min_channels = num_servos * (_16bit ? 2 : 1);
+
+    if (min_channels > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s requires more channels %d than have been allocated to it %d.", GetName(), min_channels, nodeCount));
+    }
+    int i = 1;
+    for (const auto& it : servos) {
+        if (it->GetChannel() > nodeCount) {
+            res.push_back(wxString::Format("    ERR: Model %s servo %d is assigned to channel %d but the model only has %d channels.", GetName(), i, it->GetChannel(), nodeCount));
+        }
+        i++;
+    }
+
+    res.splice(res.end(), Model::CheckModelSettings());
+    return res;
+}
+
+void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active)
+{
     // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);
     if (min_channels > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    for (auto it = servos.begin(); it != servos.end(); ++it) {
-        if ((*it)->GetChannel() > Nodes.size())
-        {
+    for (const auto& it : servos) {
+        if (it->GetChannel() > Nodes.size()) {
+            DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
             return;
         }
     }
@@ -605,14 +735,10 @@ void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumu
     glm::mat4 Identity = glm::mat4(1.0f);
     glm::mat4 servo_matrix[SUPPORTED_SERVOS];
     glm::mat4 motion_matrix[SUPPORTED_SERVOS];
-    glm::mat4 scalingMatrix = glm::scale(Identity, GetModelScreenLocation().GetScaleMatrix());
-    glm::mat4 translateMatrix = glm::translate(Identity, GetModelScreenLocation().GetWorldPosition());
-    glm::quat rotateQuat = GetModelScreenLocation().GetRotationQuat();
-    glm::mat4 base_matrix = translateMatrix * glm::toMat4(rotateQuat) * scalingMatrix;
 
     // Draw Static Meshs
     for (int i = 0; i < num_static; ++i) {
-        static_meshs[i]->Draw(this, preview, va, base_matrix, Identity, i < num_motion ? !motion_meshs[i]->GetExists() : false, 0, 0, 0, false, false);
+        static_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, Identity, i < num_motion ? !motion_meshs[i]->GetExists(this, ctx) : false, 0, 0, 0, false, false);
     }
 
     // Get servo positions and fill motion matrices
@@ -640,7 +766,7 @@ void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumu
             while ((link != -1) && (nesting > 0)) {
                 link_list.push_back(link);
                 link = mesh_links[link];
-                nesting--;  // prevents circular loops from hanging things up
+                nesting--; // prevents circular loops from hanging things up
             }
             // multiply motion matrix based on list in reverse order
             while (!link_list.empty()) {
@@ -669,47 +795,9 @@ void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumu
 
     // Draw Motion Meshs
     for (int i = 0; i < num_motion; ++i) {
-        motion_meshs[i]->Draw(this, preview, va, base_matrix, motion_matrix[i], i < num_static ? !static_meshs[i]->GetExists() : false,
-            servos[i]->GetPivotOffsetX(), servos[i]->GetPivotOffsetY(), servos[i]->GetPivotOffsetZ(), servos[i]->IsRotate() && show_pivot, !active);
+        motion_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, motion_matrix[i], i < num_static ? !static_meshs[i]->GetExists(this, ctx) : false,
+                              servos[i]->GetPivotOffsetX(), servos[i]->GetPivotOffsetY(), servos[i]->GetPivotOffsetZ(), servos[i]->IsRotate() && show_pivot, !active);
     }
-
-}
-
-void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)
-{
-    if (!IsActive()) return;
-
-    float x1 = -0.5f;
-    float x2 = -0.5f;
-    float x3 = 0.5f;
-    float x4 = 0.5f;
-    float y1 = -0.5f;
-    float y2 = 0.5f;
-    float y3 = 0.5f;
-    float y4 = -0.5f;
-    float z1 = 0.0f;
-    float z2 = 0.0f;
-    float z3 = 0.0f;
-    float z4 = 0.0f;
-
-    GetBaseObjectScreenLocation().TranslatePoint(x1, y1, z1);
-    GetBaseObjectScreenLocation().TranslatePoint(x2, y2, z2);
-    GetBaseObjectScreenLocation().TranslatePoint(x3, y3, z3);
-    GetBaseObjectScreenLocation().TranslatePoint(x4, y4, z4);
-
-    va.AddVertex(x1, y1, z1, *wxRED);
-    va.AddVertex(x2, y2, z2, *wxRED);
-    va.AddVertex(x2, y2, z2, *wxRED);
-    va.AddVertex(x3, y3, z3, *wxRED);
-    va.AddVertex(x3, y3, z3, *wxRED);
-    va.AddVertex(x4, y4, z4, *wxRED);
-    va.AddVertex(x4, y4, z4, *wxRED);
-    va.AddVertex(x1, y1, z1, *wxRED);
-    va.AddVertex(x1, y1, z1, *wxRED);
-    va.AddVertex(x3, y3, z3, *wxRED);
-    va.AddVertex(x2, y2, z2, *wxRED);
-    va.AddVertex(x4, y4, z4, *wxRED);
-    va.Finish(GL_LINES, GL_LINE_SMOOTH, 5.0f);
 }
 
 void DmxServo3d::ExportXlightsModel()
@@ -717,16 +805,42 @@ void DmxServo3d::ExportXlightsModel()
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
     wxFile f(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    if (!f.Create(filename, true) || !f.IsOpened())
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxservo3d \n");
 
     ExportBaseParameters(f);
 
+    f.Write(wxString::Format("NumServos=\"%i\" ", num_servos));
+    f.Write(wxString::Format("NumStatic=\"%i\" ", num_static));
+    f.Write(wxString::Format("NumMotion=\"%i\" ", num_motion));
+
     wxString bits = ModelXml->GetAttribute("Bits16");
     f.Write(wxString::Format("Bits16=\"%s\" ", bits));
+
+    // servo linkages
+    for (int i = 0; i < num_servos; ++i) {
+        std::string num = std::to_string(i + 1);
+        std::string this_link = "Servo" + num + "Linkage";
+        if( ModelXml->HasAttribute(this_link)) {
+            std::string link = ModelXml->GetAttribute(this_link, "");
+            f.Write(wxString::Format("%s=\"%s\" ", this_link,link));
+        }
+    }
+
+    // mesh linkages
+    for (int i = 0; i < num_servos; ++i) {
+        std::string num = std::to_string(i + 1);
+        std::string this_link = "Mesh" + num + "Linkage";
+        if( ModelXml->HasAttribute(this_link)) {
+            std::string link = ModelXml->GetAttribute(this_link, "");
+            f.Write(wxString::Format("%s=\"%s\" ", this_link,link));
+        }
+    }
 
     f.Write(" >\n");
 
@@ -743,97 +857,146 @@ void DmxServo3d::ExportXlightsModel()
     }
 
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString groups = SerialiseGroups();
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</dmxservo3d>");
     f.Close();
 }
 
-void DmxServo3d::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    // We have already loaded gdtf properties
-    if (EndsWith(filename, "gdtf")) return;
+void DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "dmxservo3d" || root->GetName() == "dmxservo3axis") {
+        ImportBaseParameters(root);
 
-    wxXmlDocument doc(filename);
+        wxString name = root->GetAttribute("name");
+        wxString v = root->GetAttribute("SourceVersion");
+        wxString bits = root->GetAttribute("Bits16", "1");
 
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
+        // Add any model version conversion logic here
+        // Source version will be the program version that created the custom model
 
-        if (root->GetName() == "dmxservo3d" || root->GetName() == "dmxservo3axis")
-        {
-            ImportBaseParameters(root);
+        wxXmlNode* n = root->GetChildren();
+        while (n != nullptr) {
+            std::string name = n->GetName();
 
-            wxString name = root->GetAttribute("name");
-            wxString v = root->GetAttribute("SourceVersion");
-            wxString bits = ModelXml->GetAttribute("Bits16", "1");
-
-            // Add any model version conversion logic here
-            // Source version will be the program version that created the custom model
-
-            wxXmlNode* n = root->GetChildren();
-            while (n != nullptr) {
-                std::string name = n->GetName();
-
-                if ("StaticMesh" == name) {  // convert original name that had no number
-                    // copy attributes to new name
-                    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "StaticMesh1");
-                    root->AddChild(new_node);
-                    for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext())
-                    {
-                        new_node->AddAttribute(a->GetName(), a->GetValue());
-                    }
+            if ("StaticMesh" == name) { // convert original name that had no number
+                // copy attributes to new name
+                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "StaticMesh1");
+                root->AddChild(new_node);
+                for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
+                    new_node->AddAttribute(a->GetName(), a->GetValue());
                 }
-                else if ("MotionMesh" == name) {  // convert original name that had no number
-                    // copy attributes to new name
-                    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "MotionMesh1");
-                    root->AddChild(new_node);
-                    for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext())
-                    {
-                        new_node->AddAttribute(a->GetName(), a->GetValue());
-                    }
+            } else if ("MotionMesh" == name) { // convert original name that had no number
+                // copy attributes to new name
+                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "MotionMesh1");
+                root->AddChild(new_node);
+                for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
+                    new_node->AddAttribute(a->GetName(), a->GetValue());
                 }
-                n = n->GetNext();
             }
-
-            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-            GetModelScreenLocation().Write(ModelXml);
-            SetProperty("name", newname, true);
-            SetProperty("Bits16", bits);
-
-            wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
-            for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
-                (*it)->Serialise(root, ModelXml, show_dir);
-            }
-            for (auto it = motion_meshs.begin(); it != motion_meshs.end(); ++it) {
-                (*it)->Serialise(root, ModelXml, show_dir);
-            }
-            for (auto it = servos.begin(); it != servos.end(); ++it) {
-                (*it)->Serialise(root, ModelXml, show_dir);
-            }
-
-            ImportModelChildren(root, xlights, newname);
-
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3d::ImportXlightsModel");
+            n = n->GetNext();
         }
-        else
-        {
-            DisplayError("Failure loading DmxServo3d model file.");
+
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        GetModelScreenLocation().Write(ModelXml);
+        SetProperty("name", newname, true);
+        SetProperty("Bits16", bits);
+
+        num_servos = wxAtoi(root->GetAttribute("NumServos", "1"));
+        num_static = wxAtoi(root->GetAttribute("NumStatic", "1"));
+        num_motion = wxAtoi(root->GetAttribute("NumMotion", "1"));
+        SetProperty("NumServos", std::to_string(num_servos));
+        SetProperty("NumStatic", std::to_string(num_static));
+        SetProperty("NumMotion", std::to_string(num_motion));
+
+        // resize vector arrays
+        if (static_meshs.size() < num_static) {
+            static_meshs.resize(num_static);
         }
-    }
-    else
-    {
+        if (motion_meshs.size() < num_motion) {
+            motion_meshs.resize(num_motion);
+        }
+        if (servos.size() < num_servos) {
+            servos.resize(num_servos);
+        }
+
+        // create any missing servos
+        for (int i = 0; i < num_servos; ++i) {
+            if (servos[i] == nullptr) {
+                std::string new_name = "Servo" + std::to_string(i + 1);
+                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+                ModelXml->AddChild(new_node);
+                servos[i] = new Servo(new_node, new_name, true);
+                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
+            }
+        }
+
+        // create any missing static meshes
+        for (int i = 0; i < num_static; ++i) {
+            if (static_meshs[i] == nullptr) {
+                std::string new_name = "StaticMesh" + std::to_string(i + 1);
+                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+                ModelXml->AddChild(new_node);
+                static_meshs[i] = new Mesh(new_node, new_name);
+            }
+        }
+
+        // create any missing motion meshes
+        for (int i = 0; i < num_motion; ++i) {
+            if (motion_meshs[i] == nullptr) {
+                std::string new_name = "MotionMesh" + std::to_string(i + 1);
+                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+                ModelXml->AddChild(new_node);
+                motion_meshs[i] = new Mesh(new_node, new_name);
+            }
+        }
+
+        // servo linkages
+        for (int i = 0; i < num_servos; ++i) {
+            std::string num = std::to_string(i + 1);
+            std::string this_link = "Servo" + num + "Linkage";
+            if( root->HasAttribute(this_link)) {
+                wxString link = root->GetAttribute(this_link);
+                SetProperty(this_link, link);
+            }
+        }
+
+        // mesh linkages
+        for (int i = 0; i < num_servos; ++i) {
+            std::string num = std::to_string(i + 1);
+            std::string this_link = "Mesh" + num + "Linkage";
+            if( root->HasAttribute(this_link)) {
+                wxString link = root->GetAttribute(this_link);
+                SetProperty(this_link, link);
+            }
+        }
+
+        wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
+        for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
+            (*it)->Serialise(root, ModelXml, show_dir);
+        }
+        for (auto it = motion_meshs.begin(); it != motion_meshs.end(); ++it) {
+            (*it)->Serialise(root, ModelXml, show_dir);
+        }
+        for (auto it = servos.begin(); it != servos.end(); ++it) {
+            (*it)->Serialise(root, ModelXml, show_dir);
+        }
+
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
+
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3d::ImportXlightsModel");
+    } else {
         DisplayError("Failure loading DmxServo3d model file.");
     }
 }

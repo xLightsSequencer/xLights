@@ -34,7 +34,7 @@ public:
     PlayListItemFile(wxXmlNode* node);
     PlayListItemFile();
     virtual ~PlayListItemFile() {};
-    virtual PlayListItem* Copy() const override;
+    virtual PlayListItem* Copy(const bool isClone) const override;
     #pragma endregion 
 
     #pragma region Getters and Setters

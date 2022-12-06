@@ -18,6 +18,7 @@
 //(*Headers(PixelTestDialog)
 #include <wx/button.h>
 #include <wx/checkbox.h>
+#include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
@@ -29,9 +30,12 @@
 #include <wx/timer.h>
 //*)
 
-#include "xLightsTimer.h"
-#include <string>
+#include <glm/glm.hpp>
+
 #include <list>
+#include <string>
+
+#include "xLightsTimer.h"
 #include "models/ModelManager.h"
 #include "outputs/OutputManager.h"
 #include "SequenceData.h"
@@ -213,10 +217,11 @@ public:
 
 class ModelTestItem;
 class ModelGroupTestItem;
+class ModelPreview;
 
 class PixelTestDialog: public wxDialog
 {
-	enum TestFunctions
+	enum class TestFunctions
 	{
 		OFF,
 		CHASE,
@@ -233,32 +238,44 @@ class PixelTestDialog: public wxDialog
 
 		PixelTestDialog(xLightsFrame* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id=wxID_ANY);
 		virtual ~PixelTestDialog();
-		wxTreeListCtrl* TreeListCtrl_Outputs;
-		wxTreeListCtrl* TreeListCtrl_ModelGroups;
-		wxTreeListCtrl* TreeListCtrl_Models;
-		wxFileName _networkFile;
-		ModelManager* _modelManager;
-		bool _cascading;
-        ModelTestItem* _lastModel;
+		wxTreeListCtrl* TreeListCtrl_Outputs = nullptr;
+		wxTreeListCtrl* TreeListCtrl_ModelGroups = nullptr;
+		wxTreeListCtrl* TreeListCtrl_Models = nullptr;
+        wxTreeListCtrl* TreeListCtrl_Controllers = nullptr;
+        wxFileName _networkFile;
+		ModelManager* _modelManager = nullptr;
+		bool _cascading = false;
+        ModelTestItem* _lastModel = nullptr;
         std::list<ModelTestItem*> _models;
         ChannelTracker _channelTracker;
+        ModelPreview* _modelPreview = nullptr;
 
-        int _twinkleRatio;
-		int _chaseGrouping;
-		bool _checkChannelList;
+        int _twinkleRatio = 0;
+		int _chaseGrouping = 0;
+		bool _checkChannelList = false;
 		wxDateTime _starttime;
 		SeqDataType _seqData;
         wxTreeListItem _rcItem;
         wxTreeListCtrl* _rcTree = nullptr;
+        bool m_creating_bound_rect = false;
+        int m_bound_start_x = 0;
+        int m_bound_start_y = 0;
+        int m_bound_end_x = 0;
+        int m_bound_end_y = 0;
+        int mPointSize = 1;
 
 		//(*Declarations(PixelTestDialog)
 		wxButton* Button_Load;
 		wxButton* Button_Save;
 		wxCheckBox* CheckBox_OutputToLights;
 		wxCheckBox* CheckBox_SuppressUnusedOutputs;
+		wxCheckBox* CheckBox_Tag50th;
+		wxChoice* Choice_VisualModel;
+		wxFlexGridSizer* FlexGridSizer_Controllers;
 		wxFlexGridSizer* FlexGridSizer_ModelGroups;
 		wxFlexGridSizer* FlexGridSizer_Models;
 		wxFlexGridSizer* FlexGridSizer_Outputs;
+		wxFlexGridSizer* FlexGridSizer_VisualModelSizer;
 		wxNotebook* Notebook1;
 		wxNotebook* Notebook2;
 		wxPanel* Panel1;
@@ -266,9 +283,12 @@ class PixelTestDialog: public wxDialog
 		wxPanel* PanelRGB;
 		wxPanel* PanelRGBCycle;
 		wxPanel* PanelStandard;
+		wxPanel* Panel_Controllers;
+		wxPanel* Panel_Model;
 		wxPanel* Panel_ModelGroups;
 		wxPanel* Panel_Models;
 		wxPanel* Panel_Outputs;
+		wxPanel* Panel_VisualModel;
 		wxRadioButton* RadioButton_RGBCycle_ABC;
 		wxRadioButton* RadioButton_RGBCycle_ABCAll;
 		wxRadioButton* RadioButton_RGBCycle_ABCAllNone;
@@ -315,20 +335,23 @@ class PixelTestDialog: public wxDialog
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
 		wxStaticText* StatusBar1;
 		xLightsTimer Timer1;
 		//*)
 
 	protected:
 
-		OutputManager* _outputManager;
+		OutputManager* _outputManager = nullptr;
 		static const long ID_TREELISTCTRL_Outputs;
 		static const long ID_TREELISTCTRL_ModelGroups;
 		static const long ID_TREELISTCTRL_Models;
+        static const long ID_TREELISTCTRL_Controllers;
         static const long ID_MNU_TEST_SELECTALL;
         static const long ID_MNU_TEST_DESELECTALL;
         static const long ID_MNU_TEST_SELECTN;
         static const long ID_MNU_TEST_DESELECTN;
+        static const long ID_MNU_TEST_NUMBER;
 
 		//(*Identifiers(PixelTestDialog)
 		static const long ID_BUTTON_Load;
@@ -336,6 +359,11 @@ class PixelTestDialog: public wxDialog
 		static const long ID_PANEL3;
 		static const long ID_PANEL6;
 		static const long ID_PANEL7;
+		static const long ID_STATICTEXT8;
+		static const long ID_CHOICE1;
+		static const long ID_PANEL11;
+		static const long ID_PANEL5;
+		static const long ID_PANEL4;
 		static const long ID_NOTEBOOK1;
 		static const long ID_PANEL1;
 		static const long ID_CHECKBOX_OutputToLights;
@@ -385,6 +413,7 @@ class PixelTestDialog: public wxDialog
 		static const long ID_RADIOBUTTON_RGBCycle_ABCAllNone;
 		static const long ID_RADIOBUTTON_RGBCycle_MixedColors;
 		static const long ID_RADIOBUTTON_RGBCycle_RGBW;
+		static const long ID_CHECKBOX2;
 		static const long ID_PANEL10;
 		static const long ID_NOTEBOOK2;
 		static const long ID_STATICTEXT1;
@@ -405,6 +434,8 @@ class PixelTestDialog: public wxDialog
 		void OnClose(wxCloseEvent& event);
 		void OnCheckBox_SuppressUnusedOutputsClick(wxCommandEvent& event);
 		void OnNotebook1PageChanged(wxNotebookEvent& event);
+		void OnCheckBox_Tag50thClick(wxCommandEvent& event);
+		void OnChoice_VisualModelSelect(wxCommandEvent& event);
 		//*)
 
 		void OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event);
@@ -414,14 +445,29 @@ class PixelTestDialog: public wxDialog
         void OnTreeListCtrlItemSelected(wxTreeListEvent& event);
         void OnTreeListCtrlItemExpanding(wxTreeListEvent& event);
 
-		void PopulateControllerTree(OutputManager* outputManager);
+		void PopulateOutputTree(OutputManager* outputManager);
 		void PopulateModelGroupTree(ModelManager* modelManager);
 		void PopulateModelTree(ModelManager* modelManager);
+        void PopulateVisualModelTree(ModelManager* modelManager);
+        void PopulateControllerTree(OutputManager* outputManager, ModelManager* modelManager);
+        void SelectVisualModel(const std::string& model);
         void AddChannel(wxTreeListCtrl* tree, wxTreeListItem parent, long absoluteChannel, long relativeChannel, char colour);
         void AddNode(wxTreeListCtrl* tree, wxTreeListItem parent, ModelTestItem* model, long node);
         char GetChannelColour(long ch);
         void AddModelGroup(wxTreeListItem parent, Model* m);
         void AddModelGroup(wxTreeListItem parent, ModelGroupTestItem* m);
+
+		void OnPreviewLeftUp(wxMouseEvent& event);
+        void OnPreviewMouseLeave(wxMouseEvent& event);
+        void OnPreviewLeftDown(wxMouseEvent& event);
+        void OnPreviewLeftDClick(wxMouseEvent& event);
+        void OnPreviewMouseMove(wxMouseEvent& event);
+
+		void RenderModel();
+        void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
+        void SelectAllInBoundingRect(bool shiftdwn);
+        void RemoveNodes();
+        void UpdateVisualModelFromTracker();
 
         bool AreChannelsAvailable(Model* model);
         bool AreChannelsAvailable(ModelGroup* model);

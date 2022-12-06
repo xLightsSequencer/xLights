@@ -16,62 +16,68 @@
 //*)
 
 #include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
 #include <log4cpp/Configurator.hh>
+#include <log4cpp/PropertyConfigurator.hh>
 #include <wx/file.h>
 #include <wx/msgdlg.h>
 
-#include "../xLights/xLightsVersion.h"
-#include <wx/filename.h>
 #include "ScheduleManager.h"
 #include "../xLights/outputs/OutputManager.h"
-#include <wx/stdpaths.h>
-#include <wx/debugrpt.h>
+#include "../xLights/xLightsVersion.h"
 #include <wx/cmdline.h>
 #include <wx/confbase.h>
+#include <wx/debugrpt.h>
+#include <wx/filename.h>
 #include <wx/snglinst.h>
+#include <wx/stdpaths.h>
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-    #pragma comment(lib, "wxbase31ud.lib")
-    #pragma comment(lib, "wxbase31ud_net.lib")
-    #pragma comment(lib, "wxmsw31ud_core.lib")
-    #pragma comment(lib, "wxscintillad.lib")
-    #pragma comment(lib, "wxregexud.lib")
-    #pragma comment(lib, "wxbase31ud_xml.lib")
-    #pragma comment(lib, "wxtiffd.lib")
-    #pragma comment(lib, "wxjpegd.lib")
-    #pragma comment(lib, "wxpngd.lib")
-    #pragma comment(lib, "wxzlibd.lib")
-    #pragma comment(lib, "wxmsw31ud_qa.lib")
-    #pragma comment(lib, "wxexpatd.lib")
-    #pragma comment(lib, "log4cpplibd.lib")
-    //#pragma comment(lib, "log4cppd.lib")
-    #pragma comment(lib, "portmidid.lib")
-    #pragma comment(lib, "msvcprtd.lib")
-    #pragma comment(lib, "libzstdd_static_VS.lib")
-    #pragma comment(lib, "libltcd.lib")
-#else
-    #pragma comment(lib, "wxbase31u.lib")
-    #pragma comment(lib, "wxbase31u_net.lib")
-    #pragma comment(lib, "wxmsw31u_core.lib")
-    #pragma comment(lib, "wxscintilla.lib")
-    #pragma comment(lib, "wxregexu.lib")
-    #pragma comment(lib, "wxbase31u_xml.lib")
-    #pragma comment(lib, "wxtiff.lib")
-    #pragma comment(lib, "wxjpeg.lib")
-    #pragma comment(lib, "wxpng.lib")
-    #pragma comment(lib, "wxzlib.lib")
-    #pragma comment(lib, "wxmsw31u_qa.lib")
-    #pragma comment(lib, "wxexpat.lib")
-    #pragma comment(lib, "libzstd_static_VS.lib")
-    #pragma comment(lib, "log4cpplib.lib")
-    //#pragma comment(lib, "log4cpp.lib")
-    #pragma comment(lib, "portmidi.lib")
-    #pragma comment(lib, "msvcprt.lib")
-    #pragma comment(lib, "libltc.lib")
+#pragma comment(lib, "wxbase"WXWIDGETS_VERSION"ud.lib")
+#pragma comment(lib, "wxbase"WXWIDGETS_VERSION"ud_net.lib")
+#pragma comment(lib, "wxmsw"WXWIDGETS_VERSION"ud_core.lib")
+#pragma comment(lib, "wxscintillad.lib")
+#pragma comment(lib, "wxregexud.lib")
+#pragma comment(lib, "wxbase"WXWIDGETS_VERSION"ud_xml.lib")
+#pragma comment(lib, "wxtiffd.lib")
+#pragma comment(lib, "wxjpegd.lib")
+#pragma comment(lib, "wxpngd.lib")
+#pragma comment(lib, "wxzlibd.lib")
+#pragma comment(lib, "wxmsw"WXWIDGETS_VERSION"ud_qa.lib")
+#pragma comment(lib, "wxexpatd.lib")
+#pragma comment(lib, "log4cpplibd.lib")
+//#pragma comment(lib, "log4cppd.lib")
+#pragma comment(lib, "portmidid.lib")
+#pragma comment(lib, "msvcprtd.lib")
+#pragma comment(lib, "libzstdd_static_VS.lib")
+
+#if !defined(SKIP_SMPTE)
+#pragma comment(lib, "libltcd.lib")
 #endif
-#pragma comment(lib, "libcurl.lib")
+
+#else
+#pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u.lib")
+#pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u_net.lib")
+#pragma comment(lib, "wxmsw"WXWIDGETS_VERSION"u_core.lib")
+#pragma comment(lib, "wxscintilla.lib")
+#pragma comment(lib, "wxregexu.lib")
+#pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u_xml.lib")
+#pragma comment(lib, "wxtiff.lib")
+#pragma comment(lib, "wxjpeg.lib")
+#pragma comment(lib, "wxpng.lib")
+#pragma comment(lib, "wxzlib.lib")
+#pragma comment(lib, "wxmsw"WXWIDGETS_VERSION"u_qa.lib")
+#pragma comment(lib, "wxexpat.lib")
+#pragma comment(lib, "libzstd_static_VS.lib")
+#pragma comment(lib, "log4cpplib.lib")
+//#pragma comment(lib, "log4cpp.lib")
+#pragma comment(lib, "portmidi.lib")
+#pragma comment(lib, "msvcprt.lib")
+#if !defined(SKIP_SMPTE)
+#pragma comment(lib, "libltc.lib")
+#endif
+#endif
+#pragma comment(lib, "libcurl.dll.a")
 #pragma comment(lib, "z.lib")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "WS2_32.Lib")
@@ -83,7 +89,7 @@
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "oleaut32.lib")
-#pragma comment(lib, "odbc32.lib") 
+#pragma comment(lib, "odbc32.lib")
 #pragma comment(lib, "odbccp32.lib")
 #pragma comment(lib, "kernel32.lib")
 #pragma comment(lib, "user32.lib")
@@ -100,6 +106,11 @@
 #endif
 
 IMPLEMENT_APP(xScheduleApp)
+
+xScheduleApp::xScheduleApp() :
+    xlBaseApp("xSchedule")
+{
+}
 
 std::string DecodeOS(wxOperatingSystemId o)  {
     switch (o) {
@@ -197,19 +208,6 @@ void InitialiseLogging(bool fromMain)
 #ifdef __WXMSW__
         std::string initFileName = "xschedule.windows.properties";
 #endif
-#ifdef __WXOSX__
-        std::string initFileName = "xschedule.mac.properties";
-        std::string resourceName = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/xschedule.mac.properties";
-        if (!wxFile::Exists(initFileName)) {
-            if (fromMain) {
-                return;
-            } else if (wxFile::Exists(resourceName)) {
-                initFileName = resourceName;
-            }
-        }
-        loggingInitialised = true;
-
-#endif
 #ifdef __LINUX__
         std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xschedule.linux.properties";
         if (!wxFile::Exists(initFileName)) {
@@ -261,7 +259,7 @@ void InitialiseLogging(bool fromMain)
                     if (it->isNoticeEnabled()) levels += "NOTICE ";
                     if (it->isWarnEnabled()) levels += "WARN ";
 
-                    logger_base.info("    %s : %s", (const char*)it->getName().c_str(), (const char*)levels.c_str());
+                    logger_base.info("    %s : %s", it->getName().c_str(), levels.c_str());
                     if (apps != "")
                     {
                         logger_base.info("         " + apps);
@@ -278,123 +276,6 @@ void InitialiseLogging(bool fromMain)
         }
     }
 }
-
-xScheduleFrame *topFrame = nullptr;
-
-#ifndef __WXMSW__
-#include <execinfo.h>
-#else
-#include "../xLights/MSWStackWalk.h"
-#endif
-
-void handleCrash(void *data) {
-
-    // if we crash while in here we dont want to report again.
-    static bool reentry = false;
-    if (reentry) return;
-    reentry = true;
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.crit("Crash handler called.");
-    wxDebugReportCompress *report = new wxDebugReportCompress();
-    if (xScheduleFrame::GetScheduleManager() != nullptr)
-    {
-        report->SetCompressedFileDirectory(xScheduleFrame::GetScheduleManager()->GetShowDir());
-    }
-
-#ifndef __WXMSW__
-    // dont call these for windows as they dont seem to do anything.
-    report->AddAll(wxDebugReport::Context_Exception);
-    //report->AddAll(wxDebugReport::Context_Current);
-#endif
-
-    if (xScheduleFrame::GetScheduleManager() != nullptr)
-    {
-        wxFileName fn(xScheduleFrame::GetScheduleManager()->GetShowDir(), OutputManager::GetNetworksFileName());
-        if (fn.Exists()) {
-            report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
-        }
-
-        if (wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()).Exists()) {
-            report->AddFile(wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()).GetFullPath(), ScheduleManager::GetScheduleFile());
-        }
-    }
-
-    wxString trace = wxString::Format("xSchedule version %s\n\n", GetDisplayVersionString());
-
-#ifndef __WXMSW__
-    void* callstack[128];
-    int i, frames = backtrace(callstack, 128);
-    char** strs = backtrace_symbols(callstack, frames);
-    for (i = 0; i < frames; ++i) {
-        trace += strs[i];
-        trace += "\n";
-    }
-    free(strs);
-#else
-    trace += windows_get_stacktrace(data);
-#endif
-
-    int id = (int)wxThread::GetCurrentId();
-    trace += wxString::Format("\nCrashed thread id: 0x%X or %d\n", id, id);
-
-    logger_base.crit(trace);
-
-    report->AddText("backtrace.txt", trace, "Backtrace");
-
-    wxString dir;
-#ifdef __WXMSW__
-    wxGetEnv("APPDATA", &dir);
-    std::string filename = std::string(dir.c_str()) + "/xSchedule_l4cpp.log";
-#endif
-#ifdef __WXOSX__
-    wxFileName home;
-    home.AssignHomeDir();
-    dir = home.GetFullPath();
-    std::string filename = std::string(dir.c_str()) + "/Library/Logs/xSchedule_l4cpp.log";
-#endif
-#ifdef __LINUX__
-    std::string filename = "/tmp/xSchedule_l4cpp.log";
-#endif
-
-    if (wxFile::Exists(filename))
-    {
-        report->AddFile(filename, "xSchedule_l4cpp.log");
-    }
-    else if (wxFile::Exists(wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), "xSchedule_l4cpp.log").GetFullPath()))
-    {
-        report->AddFile(wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), "xSchedule_l4cpp.log").GetFullPath(), "xSchedule_l4cpp.log");
-    }
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), "xSchedule_l4cpp.log").GetFullPath()))
-    {
-        report->AddFile(wxFileName(wxGetCwd(), "xSchedule_l4cpp.log").GetFullPath(), "xSchedule_l4cpp.log");
-    }
-
-    if (xScheduleFrame::GetScheduleManager() != nullptr)
-    {
-        xScheduleFrame::GetScheduleManager()->CheckScheduleIntegrity(false);
-    }
-
-    if (!wxThread::IsMain() && topFrame != nullptr) {
-        topFrame->CallAfter(&xScheduleFrame::CreateDebugReport, report);
-        wxSleep(600000);
-    }
-    else {
-        topFrame->CreateDebugReport(report);
-    }
-
-    reentry = false;
-}
-
-#if !(wxUSE_ON_FATAL_EXCEPTION)
-#include <windows.h>
-//MinGW needs to do this manually
-LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
-{
-    handleCrash(ExceptionInfo->ContextRecord);
-	return 0;
-}
-#endif
 
 void xScheduleApp::WipeSettings()
 {
@@ -427,14 +308,6 @@ bool xScheduleApp::OnInit()
     srand(wxGetLocalTimeMillis().GetLo());
 
     wxLog::SetLogLevel(wxLOG_FatalError);
-
-#if wxUSE_ON_FATAL_EXCEPTION
-    #if !defined(_DEBUG) || !defined(_MSC_VER)
-        wxHandleFatalExceptions();
-    #endif
-#else
-    SetUnhandledExceptionFilter(windows_exception_handler);
-#endif
 
     //curl_global_init(CURL_GLOBAL_SSL);
 
@@ -529,10 +402,3 @@ bool xScheduleApp::OnInit()
     //*)
     return wxsOK;
 }
-
-// CODE COPIED FROM XLIGHTS TO DUMP STACK TRACES
-
-void xScheduleApp::OnFatalException() {
-    handleCrash(nullptr);
-}
-

@@ -35,6 +35,7 @@ PlayListItemFSEQ::PlayListItemFSEQ(OutputManager* outputManager, wxXmlNode* node
     _durationMS = 0;
     _fseqFile = nullptr;
     _audioManager = nullptr;
+    _audioDevice = "";
     PlayListItemFSEQ::Load(node);
 }
 
@@ -50,6 +51,7 @@ void PlayListItemFSEQ::Load(wxXmlNode* node)
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
     _channels = wxAtol(node->GetAttribute("Channels", "0"));
     _fastStartAudio = (node->GetAttribute("FastStartAudio", "FALSE") == "TRUE");
+    _audioDevice = node->GetAttribute("AudioDevice", "");
     _currentFrame = 0;
 
     //if (_fastStartAudio)
@@ -122,7 +124,7 @@ void PlayListItemFSEQ::LoadAudio()
     else if (wxFile::Exists(af))
     {
         logger_base.debug("FSEQ: Loading audio file '%s'.", (const char *)af.c_str());
-        _audioManager = new AudioManager(af);
+        _audioManager = new AudioManager(af, -1, _audioDevice);
 
         if (!_audioManager->IsOk())
         {
@@ -209,6 +211,7 @@ PlayListItemFSEQ::PlayListItemFSEQ(OutputManager* outputManager) : PlayListItem(
     _type = "PLIFSEQ";
     _outputManager = outputManager;
     _cachedAudioFilename = "";
+    _audioDevice = "";
     _fastStartAudio = false;
     _channels = 0;
     _sc = 0;
@@ -224,12 +227,13 @@ PlayListItemFSEQ::PlayListItemFSEQ(OutputManager* outputManager) : PlayListItem(
     _currentFrame = 0;
 }
 
-PlayListItem* PlayListItemFSEQ::Copy() const
+PlayListItem* PlayListItemFSEQ::Copy(const bool isClone) const
 {
     PlayListItemFSEQ* res = new PlayListItemFSEQ(_outputManager);
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
     res->_outputManager = _outputManager;
     res->_cachedAudioFilename = _cachedAudioFilename;
+    res->_audioDevice = _audioDevice;
     res->_fseqFileName = _fseqFileName;
     res->_applyMethod = _applyMethod;
     res->_overrideAudio = _overrideAudio;
@@ -253,6 +257,7 @@ wxXmlNode* PlayListItemFSEQ::Save()
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("FSEQFile", _fseqFileName);
+    node->AddAttribute("AudioDevice", _audioDevice);
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
     node->AddAttribute("StartChannel", _startChannel);
     node->AddAttribute("Channels", wxString::Format(wxT("%ld"), (long)_channels));
@@ -335,6 +340,14 @@ void PlayListItemFSEQ::SetAudioFile(const std::string& audioFile)
         {
             FastSetDuration();
         }
+    }
+}
+
+void PlayListItemFSEQ::SetAudioDevice(const std::string& audioDevice)
+{
+    if (_audioDevice != audioDevice) {
+        _audioDevice = audioDevice;
+        _changeCount++;
     }
 }
 
@@ -555,20 +568,21 @@ void PlayListItemFSEQ::Start(long stepLengthMS)
     // load the audio
     LoadFiles();
 
-    if (_fseqFile != nullptr)
-    {
+    if (_fseqFile != nullptr) {
         _fseqFile->prepareRead({ { 0, _fseqFile->getMaxChannel() + 1 } });
     }
 
-    if (ControlsTiming() && _audioManager != nullptr)
-    {
-        if (_delay == 0)
-        {
+    if (ControlsTiming() && _audioManager != nullptr) {
+        if (_delay == 0) {
             _audioManager->Play(0, _audioManager->LengthMS());
-        }
-        else
-        {
+        } else {
             _audioManager->Seek(0);
+        }
+    }
+
+    if (_audioManager != nullptr) {
+        if (_volume != -1) {
+            _audioManager->SetVolume(_volume);
         }
     }
 

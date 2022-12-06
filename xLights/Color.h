@@ -247,6 +247,17 @@ public:
     simd_uchar4 asChar4() const {
         return {red, green, blue, alpha};
     }
+    simd::float4 asFloat4() const {
+        float r = red;
+        float g = green;
+        float b = blue;
+        float a = alpha;
+        r /= 255.0f;
+        g /= 255.0f;
+        b /= 255.0f;
+        a /= 255.0f;
+        return {r, g, b, a};
+    }
 #endif
 
 };

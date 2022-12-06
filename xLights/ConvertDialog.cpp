@@ -28,6 +28,7 @@
 #include "UtilFunctions.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Controller.h"
+#include "ExternalHooks.h"
 
 // xml
 #include "../include/spxml-0.5/spxmlparser.hpp"
@@ -683,7 +684,7 @@ bool ConvertDialog::LoadVixenProfile(const wxString& ProfileName, wxArrayInt& Vi
     wxFileName fn;
     fn.AssignDir(_parent->CurrentDir);
     fn.SetFullName(ProfileName + ".pro");
-    if (!fn.FileExists())
+    if (!FileExists(fn))
     {
         _parent->ConversionError(wxString("Unable to find Vixen profile: ") + fn.GetFullPath() + wxString("\n\nMake sure a copy is in your xLights directory"));
         return false;
@@ -2040,7 +2041,7 @@ void ConvertDialog::DoConversion(const wxString& Filename, const wxString& Outpu
         oName.SetExt(wxString("fseq"));
         wxString fullpath = oName.GetFullPath();
         AppendConvertStatus(wxString("Writing FSEQ file\n"));
-        _parent->WriteFalconPiFile(fullpath);
+        _parent->WriteFalconPiFile(fullpath, false);
         AppendConvertStatus(wxString("Finished writing new file: ") + fullpath + wxString("\n"));
     }
 #ifndef FPP

@@ -18,7 +18,7 @@
 void VectorMath::ScreenPosToWorldRay(
     int mouseX, int mouseY,             // Mouse position, in pixels, from bottom-left corner of the window
     int screenWidth, int screenHeight,  // Window size, in pixels
-    glm::mat4 ProjViewMatrix,           // Projection / View matrix
+    const glm::mat4 &ProjViewMatrix,           // Projection / View matrix
     glm::vec3& out_origin,              // Ouput : Origin of the ray. /!\ Starts at the near plane, so if you want the ray to start at the camera's position instead, ignore this.
     glm::vec3& out_direction            // Ouput : Direction, in world space, of the ray that goes "through" the mouse.
 ) {
@@ -341,19 +341,15 @@ glm::mat4 VectorMath::rotationMatrixFromXAxisToVector(const glm::vec3 &a)
 glm::mat4 VectorMath::rotationMatrixFromXAxisToVector2(const glm::vec3 &o, const glm::vec3 &p)
 {
     glm::vec3 a = p - o;
-    glm::vec3 b(1.0f, 0.0f, 0.0f);
     if (o.y != p.y || o.z != p.z) {
         glm::vec3 v = glm::vec3(0, -a.z, a.y);
         float len = glm::length(a);
         float angle = len == 0.0f ? 0.0 : acos(a.x / len);
         return glm::rotate(angle, v);
-    }
-    else
-    {
+    } else {
         if (p.x < o.x) {
             return glm::rotate(glm::mat4(1.0f), (float)glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        }
-        else {
+        } else {
             return glm::mat4(1.0f);
         }
     }

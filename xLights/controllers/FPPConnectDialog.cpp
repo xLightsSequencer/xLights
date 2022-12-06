@@ -8,6 +8,7 @@
 #include <wx/progdlg.h>
 #include <wx/config.h>
 #include <wx/dir.h>
+#include <wx/hyperlink.h>
 
 #include "FPPConnectDialog.h"
 #include "xLightsMain.h"
@@ -36,6 +37,7 @@ const long FPPConnectDialog::ID_STATICTEXT1 = wxNewId();
 const long FPPConnectDialog::ID_CHOICE_FILTER = wxNewId();
 const long FPPConnectDialog::ID_STATICTEXT2 = wxNewId();
 const long FPPConnectDialog::ID_CHOICE_FOLDER = wxNewId();
+const long FPPConnectDialog::ID_STATICTEXT3 = wxNewId();
 const long FPPConnectDialog::ID_PANEL2 = wxNewId();
 const long FPPConnectDialog::ID_PANEL1 = wxNewId();
 const long FPPConnectDialog::ID_SPLITTERWINDOW1 = wxNewId();
@@ -53,6 +55,9 @@ const long FPPConnectDialog::ID_FPP_INSTANCE_LIST = wxNewId();
 static const long ID_POPUP_MNU_SORT_NAME = wxNewId();
 static const long ID_POPUP_MNU_SORT_IP = wxNewId();
 
+#define SORT_SEQ_NAME_COL 0
+#define SORT_SEQ_TIME_COL 1
+#define SORT_SEQ_MEDIA_COL 2
 
 BEGIN_EVENT_TABLE(FPPConnectDialog,wxDialog)
 	//(*EventTable(FPPConnectDialog)
@@ -70,22 +75,6 @@ static const std::string UDP_COL = "ID_UDPOUT_";
 static const std::string PLAYLIST_COL = "ID_PLAYLIST_";
 static const std::string UPLOAD_CONTROLLER_COL = "ID_CONTROLLER_";
 
-
-static inline int case_insensitive_match(std::string s1, std::string s2) {
-   //convert s1 and s2 into lower case strings
-   transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
-   transform(s2.begin(), s2.end(), s2.begin(), ::tolower);
-   if(s1.compare(s2) == 0)
-      return 1; //The strings are same
-   return 0; //not matched
-}
-static bool sortByName(FPP* i, FPP* j) {
-    return i->hostName < j->hostName;
-}
-static bool sortByIP(FPP* i, FPP* j) {
-    return i->ipAddress < j->ipAddress;
-}
-
 FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _outputManager = outputManager;
@@ -96,26 +85,26 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer4;
+	wxStaticText* StaticText3;
 
 	Create(parent, wxID_ANY, _("FPP Upload"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("wxID_ANY"));
+	SetMinSize(wxSize(800,-1));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_3DSASH, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinSize(wxDLG_UNIT(this,wxSize(550,-1)));
-	SplitterWindow1->SetMinimumPaneSize(200);
+	SplitterWindow1->SetMinimumPaneSize(100);
 	SplitterWindow1->SetSashGravity(0.5);
 	FPPInstanceList = new wxScrolledWindow(SplitterWindow1, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
-	FPPInstanceList->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(-1,150)));
+	FPPInstanceList->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(800,100)));
 	FPPInstanceSizer = new wxFlexGridSizer(0, 11, 0, 0);
 	FPPInstanceList->SetSizer(FPPInstanceSizer);
-	FPPInstanceSizer->Fit(FPPInstanceList);
-	FPPInstanceSizer->SetSizeHints(FPPInstanceList);
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer2 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(1);
-	FlexGridSizer3 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 5, 0, 0);
+	FlexGridSizer3->AddGrowableCol(4);
 	StaticText1 = new wxStaticText(Panel1, ID_STATICTEXT1, _("Filter:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	ChoiceFilter = new wxChoice(Panel1, ID_CHOICE_FILTER, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FILTER"));
@@ -126,29 +115,29 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer3->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	ChoiceFolder = new wxChoice(Panel1, ID_CHOICE_FOLDER, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FOLDER"));
 	FlexGridSizer3->Add(ChoiceFolder, 1, wxALL|wxEXPAND, 5);
+	Selected_Label = new wxStaticText(Panel1, ID_STATICTEXT3, _("Selected: 0"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer3->Add(Selected_Label, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2->Add(FlexGridSizer3, 1, wxEXPAND, 0);
 	CheckListBoxHolder = new wxPanel(Panel1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	CheckListBoxHolder->SetMinSize(wxSize(-1,100));
 	FlexGridSizer2->Add(CheckListBoxHolder, 1, wxALL|wxEXPAND, 0);
 	Panel1->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(Panel1);
-	FlexGridSizer2->SetSizeHints(Panel1);
 	SplitterWindow1->SplitHorizontally(FPPInstanceList, Panel1);
 	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer4 = new wxFlexGridSizer(0, 5, 0, 0);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer4->AddGrowableCol(1);
+	FlexGridSizer4->AddGrowableRow(0);
 	AddFPPButton = new wxButton(this, ID_BUTTON1, _("Add FPP"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer4->Add(AddFPPButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	wxSize __SpacerSize_1 = wxDLG_UNIT(this,wxSize(50,-1));
-	FlexGridSizer4->Add(__SpacerSize_1.GetWidth(),__SpacerSize_1.GetHeight(),1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText3 = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer4->Add(StaticText3, 1, wxALL|wxEXPAND, 5);
 	Button_Upload = new wxButton(this, ID_BUTTON_Upload, _("Upload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Upload"));
 	FlexGridSizer4->Add(Button_Upload, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	cancelButton = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("wxID_CANCEL"));
 	FlexGridSizer4->Add(cancelButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
+	Fit();
 
 	Connect(ID_CHOICE_FILTER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&FPPConnectDialog::OnChoiceFilterSelect);
 	Connect(ID_CHOICE_FOLDER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&FPPConnectDialog::OnChoiceFolderSelect);
@@ -157,11 +146,12 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&FPPConnectDialog::OnClose);
 	//*)
 
-    
+
     CheckListBox_Sequences = new wxTreeListCtrl(Panel1, wxID_ANY,
                                                 wxDefaultPosition, wxDefaultSize,
                                                 wxTL_CHECKBOX | wxTL_MULTIPLE, "ID_TREELISTVIEW_SEQUENCES");
-    CheckListBox_Sequences->SetMinSize(wxSize(-1,100));
+    Connect(CheckListBox_Sequences->GetId(), wxEVT_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)&FPPConnectDialog::OnSequenceListToggled);
+    CheckListBox_Sequences->SetMinSize(wxSize(-1, 100));
     CheckListBox_Sequences->AppendColumn("Sequence", wxCOL_WIDTH_AUTOSIZE,
                                          wxALIGN_LEFT,
                                          wxCOL_RESIZABLE | wxCOL_SORTABLE);
@@ -171,75 +161,26 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     CheckListBox_Sequences->AppendColumn("Media", wxCOL_WIDTH_AUTOSIZE,
                                          wxALIGN_LEFT,
                                          wxCOL_RESIZABLE | wxCOL_SORTABLE);
-    CheckListBox_Sequences->SetSortColumn(0, true);
-    
-    
+
+    wxConfigBase* config = wxConfigBase::Get();
+    auto seqSortCol = config->ReadLong("xLightsFPPConnectSequenceSortCol", SORT_SEQ_NAME_COL);
+    auto seqSortOrder = config->ReadBool("xLightsFPPConnectSequenceSortOrder", true);
+    CheckListBox_Sequences->SetSortColumn(seqSortCol, seqSortOrder);
+
     FlexGridSizer2->Replace(CheckListBoxHolder, CheckListBox_Sequences, true);
-    
+
     CheckListBoxHolder->Destroy();
-    
+
     FlexGridSizer2->Layout();
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
-
 
     wxProgressDialog prgs("Discovering FPP Instances",
                           "Discovering FPP Instances", 100, parent);
     prgs.Pulse("Discovering FPP Instances");
     prgs.Show();
 
-
-    std::list<std::string> startAddresses;
-    std::list<std::string> startAddressesForced;
-
-    wxConfigBase* config = wxConfigBase::Get();
-    wxString force;
-    if (config->Read("FPPConnectForcedIPs", &force)) {
-        wxArrayString ips = wxSplit(force, '|');
-        wxString newForce;
-        for (const auto &a : ips) {
-            startAddresses.push_back(a);
-            startAddressesForced.push_back(a);
-        }
-    }
-    // add existing controller IP's to the discovery, helps speed up
-    // discovery as well as makes it more reliable to discover those,
-    // particularly if on a different subnet.   This also helps
-    // make sure actually configured controllers are found
-    // so the FPP Connect dialog is more likely to
-    // have the entire list allowing the uploads to then entire
-    // show network to be easier to do
-    for (auto &it : outputManager->GetControllers()) {
-        auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr && eth->GetIP() != "") {
-            startAddresses.push_back(eth->GetIP());
-            if (eth->GetFPPProxy() != "") {
-                startAddresses.push_back(eth->GetFPPProxy());
-            }
-        }
-    }
-    
-    Discovery discovery(this, _outputManager);
-    FPP::PrepareDiscovery(discovery, startAddresses);
-    discovery.Discover();
-    FPP::MapToFPPInstances(discovery, instances, outputManager);
-    instances.sort(sortByIP);
-
-    wxString newForce = "";
-    for (const auto &a : startAddressesForced) {
-        for (const auto& fpp : instances) {
-            if (case_insensitive_match(a, fpp->hostName) || case_insensitive_match(a, fpp->ipAddress)) {
-                if (newForce != "") {
-                    newForce.append(",");
-                }
-                newForce.append(a);
-            }
-        }
-    }
-    if (newForce != force) {
-        config->Write("FPPConnectForcedIPs", newForce);
-        config->Flush();
-    }
+    instances = FPP::GetInstances(this, outputManager);
 
     prgs.Pulse("Checking for mounted media drives");
     CreateDriveList();
@@ -247,7 +188,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
     wxPanel *p = AddInstanceHeader("Location", "Host and IP Address.");
     p->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& FPPConnectDialog::LocationPopupMenu, nullptr, this);
-    
+
     AddInstanceHeader("Description");
     AddInstanceHeader("Mode", "FPP Mode.");
     AddInstanceHeader("Version", "FPP Software Version.");
@@ -283,14 +224,54 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
     LoadSequences();
 
-    int h = SplitterWindow1->GetSize().GetHeight();
-    h *= 33;
-    h /= 100;
-    SplitterWindow1->SetSashPosition(h);
-    
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
+    
+    
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsFPPConnectPos", sz, loc);
+    if (loc.x != -1) {
+        if (sz.GetWidth() < 400)
+            sz.SetWidth(400);
+        if (sz.GetHeight() < 300)
+            sz.SetHeight(300);
+        SetPosition(loc);
+        SetSize(sz);
+    }
+    int h = config->ReadLong("FPPConnectSashPosition", 0);
+    if (h == 0) {
+        SplitterWindow1->GetSize().GetHeight();
+        h *= 33;
+        h /= 100;
+    }
+    SplitterWindow1->SetSashPosition(h);
+    EnsureWindowHeaderIsOnScreen(this);
+    Layout();
+
+    UpdateSeqCount();
+}
+
+void FPPConnectDialog::UpdateSeqCount()
+{
+    uint32_t items = 0;
+    uint32_t selected = 0;
+
+    auto item = CheckListBox_Sequences->GetFirstItem();
+    while (item.IsOk()) {
+        items++;
+        if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED)
+            selected++;
+        item = CheckListBox_Sequences->GetNextItem(item);
+    }
+
+    Selected_Label->SetLabel(wxString::Format("Selected: %u/%u", selected, items));
+}
+
+void FPPConnectDialog::OnSequenceListToggled(wxDataViewEvent& event)
+{
+    UpdateSeqCount();
 }
 
 void FPPConnectDialog::OnLocationPopupClick(wxCommandEvent &evt) {
@@ -304,6 +285,7 @@ void FPPConnectDialog::OnLocationPopupClick(wxCommandEvent &evt) {
         PopulateFPPInstanceList();
     }
 }
+
 void FPPConnectDialog::LocationPopupMenu(wxContextMenuEvent& event) {
     wxMenu mnu;
     mnu.Append(ID_POPUP_MNU_SORT_NAME, "Sort by Hostname");
@@ -332,9 +314,11 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         CheckBox1->SetValue(true);
         FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
         std::string l = inst->hostName + " - " + inst->ipAddress;
-        wxStaticText *label = new wxStaticText(FPPInstanceList, wxID_ANY, l, wxDefaultPosition, wxDefaultSize, 0, _T("ID_LOCATION_" + rowStr));
-        FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
-        label = new wxStaticText(FPPInstanceList, wxID_ANY, inst->description, wxDefaultPosition, wxDefaultSize, 0, _T("ID_DESCRIPTION_" + rowStr));
+        std::string lip = "http://" + inst->ipAddress;
+        auto link = new wxHyperlinkCtrl(FPPInstanceList, wxID_ANY, l, lip, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE, _T("ID_LOCATION_" + rowStr));
+        link->SetNormalColour(CyanOrBlue());
+        FPPInstanceSizer->Add(link, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
+        auto label = new wxStaticText(FPPInstanceList, wxID_ANY, inst->description, wxDefaultPosition, wxDefaultSize, 0, _T("ID_DESCRIPTION_" + rowStr));
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
 
         auto mode = inst->mode;
@@ -389,9 +373,16 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             CheckBox1->SetValue(inst->mode != "remote");
             FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             if (inst->IsVersionAtLeast(2, 6)) {
-                CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MODELS_COL + rowStr);
-                CheckBox1->SetValue(false);
-                FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+                wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, MODELS_COL + rowStr);
+                wxFont font = Choice1->GetFont();
+                font.SetPointSize(font.GetPointSize() - 2);
+                Choice1->SetFont(font);
+
+                Choice1->Append(_("None"));
+                Choice1->Append(_("All"));
+                Choice1->Append(_("Local"));
+                Choice1->SetSelection(0);
+                FPPInstanceSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
             } else {
                 FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             }
@@ -509,10 +500,23 @@ void FPPConnectDialog::OnPopup(wxCommandEvent &event)
         }
         item = CheckListBox_Sequences->GetNextItem(item);
     }
+    UpdateSeqCount();
 }
 
 FPPConnectDialog::~FPPConnectDialog()
 {
+    unsigned int sortCol = SORT_SEQ_NAME_COL;
+    bool ascendingOrder = 1;
+    wxConfigBase* config = wxConfigBase::Get();
+    CheckListBox_Sequences->GetSortColumn(&sortCol, &ascendingOrder);
+    config->Write("xLightsFPPConnectSequenceSortCol", sortCol);
+    config->Write("xLightsFPPConnectSequenceSortOrder", ascendingOrder);
+    
+    int i = SplitterWindow1->GetSashPosition();
+    config->Write("FPPConnectSashPosition", i);
+
+    SaveWindowPosition("xLightsFPPConnectPos", this);
+    
 	//(*Destroy(FPPConnectDialog)
 	//*)
 
@@ -532,16 +536,22 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
     wxDir directory;
     directory.Open(dir);
 
-    wxString file;
-    bool fcont = directory.GetFirst(&file, "*.x*");
+    wxArrayString files;
+    GetAllFilesInDir(dir, files, "*.x*");
+
     static const int BUFFER_SIZE = 1024*12;
     std::vector<char> buf(BUFFER_SIZE); //12K buffer
-    while (fcont) {
-        if (file != "xlights_rgbeffects.xml" && file != OutputManager::GetNetworksFileName() && file != "xlights_keybindings.xml" &&
-            (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))) {
+    for (auto &filename : files) {
+        wxFileName fn(filename);
+        wxString file = fn.GetFullName();
+        if (file != XLIGHTS_RGBEFFECTS_FILE
+            && file != OutputManager::GetNetworksFileName()
+            && file != XLIGHTS_KEYBINDING_FILE
+            && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))
+            && FileExists(filename)) {
+            wxFile doc(filename);
             // this could be a sequence file ... lets open it and check
             //just check if <xsequence" is in the first 512 bytes, parsing every XML is way too expensive
-            wxFile doc(dir + wxFileName::GetPathSeparator() + file);
             SP_XmlPullParser *parser = new SP_XmlPullParser();
             size_t read = doc.Read(&buf[0], BUFFER_SIZE);
             parser->append(&buf[0], read);
@@ -599,29 +609,31 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
 
             xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
 
-            std::string fseqName = frame->GetFseqDirectory() + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
+            // if fpp dir and show dir match then start with the fseq in the current dir ... only if that does not exist take the one from the show dir
+            // this is consistent with the code in SaveSequence
+            std::string fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
+            if (frame->GetFseqDirectory() != frame->GetShowDirectory() || !FileExists(fseqName)) {
+                fseqName = frame->GetFseqDirectory() + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
+            }
             if (isSequence) {
                 //need to check for existence of fseq
-                if (!wxFile::Exists(fseqName)) {
-                    fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
-                }
-                if (!wxFile::Exists(fseqName)) {
+                if (!FileExists(fseqName)) {
                     isSequence = false;
                 }
             }
             if (mediaName != "") {
-                if (!wxFile::Exists(mediaName)) {
+                if (!FileExists(mediaName)) {
                     wxFileName fn(mediaName);
                     for (auto &md : frame->GetMediaFolders()) {
                         std::string tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
-                        if (wxFile::Exists(tmn)) {
+                        if (FileExists(tmn)) {
                             mediaName = tmn;
                             break;
                         }
                     }
-                    if (!wxFile::Exists(mediaName)) {
+                    if (!FileExists(mediaName)) {
                         const std::string fixedMN = FixFile(frame->CurrentDir, mediaName);
-                        if (!wxFile::Exists(fixedMN)) {
+                        if (!FileExists(fixedMN)) {
                             logger_base.info("Could not find media: %s ", mediaName.c_str());
                             mediaName = "";
                         } else {
@@ -655,15 +667,12 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                 }
             }
         }
-        fcont = directory.GetNext(&file);
     }
-    if (ChoiceFilter->GetSelection() == 0)
-    {
-        fcont = directory.GetFirst(&file, wxEmptyString, wxDIR_DIRS);
-        while (fcont)
-        {
-            if (file != "Backup")
-            {
+    if (ChoiceFilter->GetSelection() == 0) {
+        wxString file;
+        bool fcont = directory.GetFirst(&file, wxEmptyString, wxDIR_DIRS);
+        while (fcont) {
+            if (file != "Backup") {
                 LoadSequencesFromFolder(dir + wxFileName::GetPathSeparator() + file);
             }
             fcont = directory.GetNext(&file);
@@ -689,11 +698,9 @@ void FPPConnectDialog::LoadSequences()
     wxDir directory;
     directory.Open(freqDir);
 
-    wxString file;
-    bool fcont = directory.GetFirst(&file, "*.?seq");
-    while (fcont) {
-        wxString v = freqDir + wxFileName::GetPathSeparator() + file;
-        
+    wxArrayString files;
+    GetAllFilesInDir(freqDir, files, "*.?seq");
+    for (auto &v : files) {
         wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
         bool found = false;
         while (item.IsOk()) {
@@ -702,7 +709,7 @@ void FPPConnectDialog::LoadSequences()
             }
             item = CheckListBox_Sequences->GetNextItem(item);
         }
-        if (!found) {
+        if (!found && FileExists(v)) {
             wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), v);
             DisplayDateModified(v, item);
             FSEQFile *file = FSEQFile::openFSEQFile(v);
@@ -711,14 +718,13 @@ void FPPConnectDialog::LoadSequences()
                     if (header.code[0] == 'm' && header.code[1] == 'f') {
                         wxString mediaName = (const char*)(&header.data[0]);
                         mediaName = FixFile("", mediaName);
-                        if (wxFileExists(mediaName)) {
+                        if (FileExists(mediaName)) {
                             CheckListBox_Sequences->SetItemText(item, 2, mediaName);
                         }
                     }
                 }
             }
         }
-        fcont = directory.GetNext(&file);
     }
 
     if (xLightsFrame::CurrentSeqXmlFile != nullptr) {
@@ -775,12 +781,12 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     std::map<int, int> udpRanges;
     wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
     wxProgressDialog prgs("", "", 1001, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    wxJSONValue memoryMaps = FPP::CreateModelMemoryMap(&frame->AllModels);
-    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, frame->GetDisplay2DCenter0());
+
+    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels);
     for (const auto& inst : instances) {
         inst->progressDialog = &prgs;
         inst->parent = this;
-        // not in discovery so we can increate the timeouts to make sure things get transferred
+        // not in discovery so we can increase the timeouts to make sure things get transferred
         inst->defaultConnectTimeout = 5000;
         inst->messages.clear();
         std::string rowStr = std::to_string(row);
@@ -820,10 +826,19 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
                     }
                 }
-                if (GetCheckValue(MODELS_COL + rowStr)) {
+                if (GetChoiceValueIndex(MODELS_COL + rowStr) == 1) {
+                    wxJSONValue const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
                     cancelled |= inst->UploadModels(memoryMaps);
                     cancelled |= inst->UploadDisplayMap(displayMap);
                     inst->SetRestartFlag();
+                } else if (GetChoiceValueIndex(MODELS_COL + rowStr) == 2) {
+                    auto c = _outputManager->GetControllers(inst->ipAddress);
+                    if (c.size() == 1) {
+                        wxJSONValue const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
+                        cancelled |= inst->UploadModels(memoryMaps);
+                        // cancelled |= inst->UploadDisplayMap(displayMap);
+                        inst->SetRestartFlag();
+                    }
                 }
                 //if restart flag is now set, restart and recheck range
                 inst->Restart("", true);
@@ -846,6 +861,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED) {
+
             std::string fseq = CheckListBox_Sequences->GetItemText(item);
             std::string media = CheckListBox_Sequences->GetItemText(item, 2);
 
@@ -876,7 +892,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         cancelled |= inst->PrepareUploadSequence(*seq,
                                                                 fseq, m2,
                                                                 fseqType);
-                        
+
                         if (inst->WillUploadSequence()) {
                             uploadCount++;
                         }
@@ -967,8 +983,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         item = CheckListBox_Sequences->GetNextItem(item);
     }
     row = 0;
-    
-    
+
+
     std::string messages;
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
@@ -1003,7 +1019,9 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     prgs.Hide();
     if (!cancelled) {
         SaveSettings();
+#ifndef _DEBUG
         EndDialog(wxID_CLOSE);
+#endif
     }
 }
 
@@ -1029,7 +1047,7 @@ void FPPConnectDialog::CreateDriveList()
             && (dir != "Recovery")
             && (dir != "Macintosh HD")
             && wxDir::Exists("/Volumes/" + dir + "/sequences")) { //raw USB drive mounted
-            
+
             drives.push_back("/Volumes/" + dir + "/");
         }
         fcont = d.GetNext(&dir);
@@ -1065,7 +1083,7 @@ void FPPConnectDialog::CreateDriveList()
         inst->majorVersion = 2;
         inst->fullVersion = "Unknown";
         inst->mode = "standalone";
-        if (wxFile::Exists(a + "/fpp-info.json")) {
+        if (FileExists(a + "/fpp-info.json")) {
             //read version and hostname
             wxJSONValue system;
             wxJSONReader reader;
@@ -1086,7 +1104,7 @@ void FPPConnectDialog::CreateDriveList()
                 //could not open the file, likely not readable/writable
                 continue;
             }
-            
+
             file.ReadAll(&str);
             reader.Parse(str, &system);
 
@@ -1158,6 +1176,7 @@ std::string FPPConnectDialog::GetChoiceValue(const std::string &col) {
     }
     return "";
 }
+
 void FPPConnectDialog::SetChoiceValueIndex(const std::string &col, int i) {
     wxWindow *w = FPPInstanceList->FindWindow(col);
     if (w) {
@@ -1211,12 +1230,11 @@ void FPPConnectDialog::SaveSettings(bool onlyInsts)
         config->Write("FPPConnectUpload_" + keyPostfx, GetCheckValue(CHECK_COL + rowStr));
         config->Write("FPPConnectUploadMedia_" + keyPostfx, GetCheckValue(MEDIA_COL + rowStr));
         config->Write("FPPConnectUploadFSEQType_" + keyPostfx, GetChoiceValueIndex(FSEQ_COL + rowStr));
-        config->Write("FPPConnectUploadModels_" + keyPostfx, GetCheckValue(MODELS_COL + rowStr));
+        config->Write("FPPConnectUploadModels_" + keyPostfx, GetChoiceValueIndex(MODELS_COL + rowStr));
         config->Write("FPPConnectUploadUDPOut_" + keyPostfx, GetChoiceValueIndex(UDP_COL + rowStr));
         config->Write("FPPConnectUploadPixelOut_" + keyPostfx, GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr));
         row++;
     }
-
     config->Flush();
 }
 
@@ -1255,8 +1273,8 @@ void FPPConnectDialog::ApplySavedHostSettings()
             if (config->Read("FPPConnectUploadMedia_" + keyPostfx, &bval)) {
                 SetCheckValue(MEDIA_COL + rowStr, bval);
             }
-            if (config->Read("FPPConnectUploadModels_" + keyPostfx, &bval)) {
-                SetCheckValue(MODELS_COL + rowStr, bval);
+            if (config->Read("FPPConnectUploadModels_" + keyPostfx, &lval)) {
+                SetChoiceValueIndex(MODELS_COL + rowStr, lval);
             }
             if (config->Read("FPPConnectUploadUDPOut_" + keyPostfx, &lval)) {
                 SetChoiceValueIndex(UDP_COL + rowStr, lval);
@@ -1300,12 +1318,12 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
 
         std::list<std::string> add;
         add.push_back(ipAd);
-        
+
         Discovery discovery(this, _outputManager);
         FPP::PrepareDiscovery(discovery, add, false);
         discovery.Discover();
         FPP::MapToFPPInstances(discovery, instances, _outputManager);
-        
+
         if (curSize < instances.size()) {
             int cur = 0;
             for (const auto &fpp : instances) {
@@ -1377,8 +1395,8 @@ void FPPConnectDialog::GetFolderList(const wxString& folder)
 }
 
 void FPPConnectDialog::DisplayDateModified(std::string const& filePath, wxTreeListItem &item) const
-{ 
-    if (wxFile::Exists(filePath)) {
+{
+    if (FileExists(filePath)) {
         wxDateTime last_modified_time(wxFileModificationTime(filePath));
         CheckListBox_Sequences->SetItemText(item, 1, last_modified_time.Format(wxT("%Y-%m-%d %H:%M:%S")));
     }

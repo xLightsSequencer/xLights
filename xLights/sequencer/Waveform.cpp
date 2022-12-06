@@ -57,6 +57,7 @@ const long Waveform::ID_WAVE_MNU_ALTO = wxNewId();
 const long Waveform::ID_WAVE_MNU_TREBLE = wxNewId();
 const long Waveform::ID_WAVE_MNU_CUSTOM = wxNewId();
 const long Waveform::ID_WAVE_MNU_NONVOCALS = wxNewId();
+const long Waveform::ID_WAVE_MNU_DOUBLEHEIGHT = wxNewId();
 
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
@@ -84,6 +85,9 @@ void Waveform::CloseMedia()
 {
     views.clear();
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
+    _type = AUDIOSAMPLETYPE::RAW;
+    _lowNote = -1;
+    _highNote = -1;
 	_media = nullptr;
     mParent->Refresh();
 }
@@ -186,6 +190,8 @@ void Waveform::rightClick(wxMouseEvent& event)
         mnuWave.AppendRadioItem(ID_WAVE_MNU_ALTO, "Alto waveform")->Check(_type == AUDIOSAMPLETYPE::ALTO);
         mnuWave.AppendRadioItem(ID_WAVE_MNU_CUSTOM, "Custom filtered waveform")->Check(_type == AUDIOSAMPLETYPE::CUSTOM);
         mnuWave.AppendRadioItem(ID_WAVE_MNU_NONVOCALS, "Non Vocals waveform")->Check(_type == AUDIOSAMPLETYPE::NONVOCALS);
+        mnuWave.AppendSeparator();
+        mnuWave.AppendCheckItem(ID_WAVE_MNU_DOUBLEHEIGHT, "Double height waveform")->Check(_doubleHeight);
     }
     if (mnuWave.GetMenuItemCount() > 0) {
         mnuWave.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& Waveform::OnGridPopup, nullptr, this);
@@ -224,6 +230,8 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
             return;
         }
         _type = AUDIOSAMPLETYPE::CUSTOM;
+    } else if (id == ID_WAVE_MNU_DOUBLEHEIGHT) {
+        _doubleHeight = !_doubleHeight;
     }
 
     wxSetCursor(wxCURSOR_WAIT);
@@ -253,6 +261,7 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
 
     wxSetCursor(wxCURSOR_ARROW);
 
+    ForceRedraw();
     Refresh();
 }
 
@@ -346,10 +355,12 @@ void Waveform::mouseWheelMoved(wxMouseEvent& event)
 int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 {
     _type = AUDIOSAMPLETYPE::RAW;
+    _lowNote = -1;
+    _highNote = -1;
     _media = media;
     views.clear();
 	if (_media != nullptr) {
-        _media->SwitchTo(AUDIOSAMPLETYPE::RAW);
+        _media->SwitchTo(_type);
 		float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
 		views.emplace_back(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
 		mCurrentWaveView = 0;
@@ -363,7 +374,7 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 
 
 xlColor Waveform::ClearBackgroundColor() const {
-    if (AudioManager::GetSDL()->IsNoAudio()) {
+    if (AudioManager::GetSDLManager()->IsNoAudio()) {
         return xlRED;
     }
     return ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_BACKGROUND);
@@ -404,7 +415,22 @@ float Waveform::translateOffset(float f) {
 }
 
 
-void Waveform::DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv)
+void Waveform::ForceRedraw()
+{
+    if (mCurrentWaveView >= 0) {
+        views[mCurrentWaveView].ForceRedraw();
+    }
+}
+
+double DoubleHeight(double v, bool dh, int ht)
+{
+    if (dh) {
+        return (v) * (double)ht;
+    }
+    return v * ((double)ht / 2.0);
+}
+
+void Waveform::DrawWaveView(xlGraphicsContext* ctx, const WaveView& wv)
 {
     if (!border) {
         border = ctx->createVertexAccumulator();
@@ -436,7 +462,7 @@ void Waveform::DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv)
         float x2 = translateOffset(selected_x2);
         color = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM_SELECTED);
         color.SetAlpha(45);
-        xlVertexAccumulator *selection = ctx->createVertexAccumulator();
+        xlVertexAccumulator* selection = ctx->createVertexAccumulator();
         selection->PreAlloc(4);
         selection->AddVertex(x1, 1, 0);
         selection->AddVertex(x2, 1, 0);
@@ -451,18 +477,18 @@ void Waveform::DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv)
     int max_wave_ht = mWindowHeight - VERTICAL_PADDING;
 
     if (_media != nullptr) {
-        xlColor c(130,178,207,255);
+        xlColor c(130, 178, 207, 255);
         if (xLightsApp::GetFrame() != nullptr) {
             c = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM);
         }
 
         int max = std::min(mWindowWidth, wv.MinMaxs.size());
-        if (mStartPixelOffset != wv.lastRenderStart || max != wv.lastRenderSize) {
+        if (mStartPixelOffset != wv.lastRenderStart || max != wv.lastRenderSize || _doubleHeight != wv._doubleHeight) {
             float pixelOffset = translateOffset(mStartPixelOffset);
 
             if (wv.background.get() == nullptr) {
-                wv.background = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator());
-                wv.outline = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator());
+                wv.background = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator()->SetName("WaveFill"));
+                wv.outline = std::unique_ptr<xlVertexAccumulator>(ctx->createVertexAccumulator()->SetName("WaveLines"));
             }
             wv.background->Reset();
             wv.outline->Reset();
@@ -476,8 +502,9 @@ void Waveform::DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv)
                 int index = x;
                 index += pixelOffset;
                 if (index >= 0 && index < wv.MinMaxs.size()) {
-                    double y1 = ((wv.MinMaxs[index].min * (float)(max_wave_ht / 2))+ (mWindowHeight / 2));
-                    double y2 = ((wv.MinMaxs[index].max * (float)(max_wave_ht / 2))+ (mWindowHeight / 2));
+
+                    double y1 = DoubleHeight(wv.MinMaxs[index].min, _doubleHeight, max_wave_ht) + (mWindowHeight / 2);
+                    double y2 = DoubleHeight(wv.MinMaxs[index].max, _doubleHeight, max_wave_ht) + (mWindowHeight / 2);
 
                     wv.background->AddVertex(x, y1);
                     wv.background->AddVertex(x, y2);
@@ -493,6 +520,7 @@ void Waveform::DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv)
                     wv.outline->AddVertex(x, vertexes[x]);
                 }
             }
+            wv._doubleHeight = _doubleHeight;
             wv.lastRenderSize = max;
             wv.lastRenderStart = mStartPixelOffset;
             wv.background->FlushRange(0, wv.background->getCount());
@@ -506,8 +534,7 @@ void Waveform::DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv)
         }
     }
 
-
-    xlVertexColorAccumulator *vac = ctx->createVertexColorAccumulator();
+    xlVertexColorAccumulator* vac = ctx->createVertexColorAccumulator();
     // draw selection line if not a range
     if (selected_x1 != -1 && selected_x2 == -1) {
         color.Set(0, 0, 0, 128);

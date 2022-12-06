@@ -22,14 +22,13 @@
 #include "../UtilFunctions.h"
 #include "../xLightsMain.h" 
 #include "PicturesEffect.h"
+#include "../ExternalHooks.h"
 
 #include <wx/tokenzr.h>
 
 #include "../../include/corofaces.xpm"
 
 #include <log4cpp/Category.hh>
-
-#define PI 3.1415926
 
 class FacesRenderCache : public EffectRenderCache {
     std::map<std::string, RenderBuffer*> _imageCache;
@@ -84,6 +83,10 @@ wxString FacesEffect::GetEffectString() {
             ret << p->Choice1->GetStringSelection();
             ret << ",";
         }
+    }
+
+    if (p->CheckBox_SuppressShimmer->GetValue()) {
+        ret << "E_CHECKBOX_Faces_SuppressShimmer=1,";
     }
 
     if (p->CheckBox_SuppressWhenNotSinging->GetValue() && !p->RadioButton1->GetValue()) {
@@ -194,13 +197,13 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
                 std::string picture = it2.second;
 
                 if (picture != "") {
-                    if (!wxFileExists(picture)) {
+                    if (!FileExists(picture)) {
                         res.push_back(wxString::Format("    ERR: Face effect image file not found '%s'. Model '%s', Start %s", picture, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                     } else if (!IsFileInShowDir(xLightsFrame::CurrentDir, picture)) {
                         res.push_back(wxString::Format("    WARN: Faces effect image file '%s' not under show directory. Model '%s', Start %s", picture, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                     }
 
-                    if (wxFileExists(picture)) {
+                    if (FileExists(picture)) {
                         wxImage i;
                         i.LoadFile(picture);
                         if (i.IsOk()) {
@@ -267,7 +270,7 @@ void FacesEffect::SetPanelStatus(Model* cls) {
 
             std::list<std::string> used;
             for (const auto& it : m->stateInfo) {
-                if (std::find(begin(used), end(used), it.first) == end(used) && it.second.size() > 30) // actually it should be about 120
+                if (std::find(begin(used), end(used), it.first) == end(used) )
                 {
                     fp->Choice1->Append(it.first);
                     used.push_back(it.first);
@@ -356,6 +359,7 @@ void FacesEffect::SetDefaultParameters() {
         fp->Face_FaceDefinitonChoice->SetSelection(0);
     }
 
+    SetCheckBoxValue(fp->CheckBox_SuppressShimmer, false);
     SetCheckBoxValue(fp->CheckBox_Faces_Outline, false);
     SetCheckBoxValue(fp->CheckBox_SuppressWhenNotSinging, false);
     SetCheckBoxValue(fp->CheckBox_Fade, false);
@@ -434,7 +438,10 @@ uint8_t FacesEffect::CalculateAlpha(SequenceElements* elements, int leadFrames, 
     return res;
 }
 
-void FacesEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer) {
+void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //wxStopWatch sw;
     uint8_t alpha = 255;
     if (SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false)) {
         if (SettingsMap["CHOICE_Faces_TimingTrack"] != "") {
@@ -447,7 +454,7 @@ void FacesEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer&
                                SettingsMap["CHOICE_Faces_Phoneme"],
                                SettingsMap.Get("CHOICE_Faces_Eyes", "Auto"),
                                SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
-                               alpha);
+                               alpha, SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", false));
     } else {
         RenderFaces(buffer,
                     effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
@@ -459,12 +466,16 @@ void FacesEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer&
                     SettingsMap.GetBool("CHECKBOX_Faces_TransparentBlack", false),
                     SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0),
                     alpha,
-                    SettingsMap.Get("CHOICE_Faces_UseState", "")
-            );
+                    SettingsMap.Get("CHOICE_Faces_UseState", ""),
+                    SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", false));
     }
+
+    //if (sw.TimeInMicro() > 2000) {
+    //    logger_base.debug("Face effect frame render time: %lldus %s", sw.TimeInMicro(), (const char*)buffer.GetModel()->GetFullName().c_str());
+    //}
 }
 
-void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool outline, uint8_t alpha) {
+void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool outline, uint8_t alpha, bool suppressShimmer) {
     if (alpha == 0)
         return; // 0 alpha means there is nothing to do
 
@@ -484,7 +495,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, 
 
     wxString pp = Phoneme;
     std::string p = pp.BeforeFirst('-');
-    bool shimmer = pp.Lower().EndsWith("-shimmer");
+    bool shimmer = !suppressShimmer && pp.Lower().EndsWith("-shimmer");
 
     std::map<wxString, int>::const_iterator it = phonemeMap.find(p);
     int PhonemeInt = 0;
@@ -500,11 +511,18 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, 
     mouth(buffer, PhonemeInt, Ht, Wt, shimmer); // draw a mouth syllable
 }
 
+bool FacesEffect::ShimmerState(RenderBuffer& buffer) const
+{
+    //return !((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0);
+    // This is frame rate independent
+    return !((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs % 200 >= 150);
+}
+
 //TODO: add params for eyes, outline
 void FacesEffect::mouth(RenderBuffer& buffer, int Phoneme, int BufferHt, int BufferWi, bool shimmer) {
     if (shimmer) {
         // dont draw every third frame
-        if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0)
+        if (!ShimmerState(buffer))
             return;
     }
 
@@ -755,7 +773,7 @@ static bool parse_model(const wxString& want_model)
     wxXmlDocument pgoXml;
     pgoFile.AssignDir(xLightsFrame::CurrentDir);
     pgoFile.SetFullName(_(XLIGHTS_PGOFACES_FILE));
-    if (!pgoFile.FileExists()) return false;
+    if (!FileExists(pgoFile)) return false;
     if (!pgoXml.Load(pgoFile.GetFullPath())) return false;
     wxXmlNode* root = pgoXml.GetRoot();
     if (!root || (root->GetName() != "papagayo")) return false;
@@ -793,7 +811,7 @@ static bool parse_model(const wxString& want_model)
 // Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
 // Eyes_x_y = list of random elements (intended for eye blinks, etc)
 
-void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, uint8_t alpha)
+void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, uint8_t alpha, bool suppressShimmer)
 {
     if (alpha == 0) return;
 
@@ -809,7 +827,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
 
     if (auto_phonemes.find((const char*)Phoneme.c_str()) != auto_phonemes.end())
     {
-        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, face_outline, alpha);
+        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, face_outline, alpha, suppressShimmer);
         return;
     }
 
@@ -869,14 +887,15 @@ std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr,
     return wxString::Format("%d|%d|%s|%s|%s", bufferWi, bufferHt, dirstr, picture, stf).ToStdString();
 }
 
-void FacesEffect::RenderFaces(RenderBuffer &buffer,
-    SequenceElements *elements, const std::string &faceDef,
-    const std::string& Phoneme, const std::string &trackName,
-    const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState)
+void FacesEffect::RenderFaces(RenderBuffer& buffer,
+                              SequenceElements* elements, const std::string& faceDef,
+                              const std::string& Phoneme, const std::string& trackName,
+                              const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState, bool suppressShimmer)
 {
-    if (alpha == 0) return; // if alpha is zero dont bother.
+    if (alpha == 0)
+        return; // if alpha is zero dont bother.
 
-    FacesRenderCache *cache = (FacesRenderCache*)buffer.infoCache[id];
+    FacesRenderCache* cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new FacesRenderCache();
         buffer.infoCache[id] = cache;
@@ -889,14 +908,6 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     }
     std::string eyes = eyesIn;
 
-    Element *track = elements->GetElement(trackName);
-    std::recursive_timed_mutex tmpLock;
-    std::recursive_timed_mutex *lock = &tmpLock;
-    if (track != nullptr) {
-        lock = &track->GetChangeLock();
-    }
-    std::unique_lock<std::recursive_timed_mutex> locker(*lock);
-
     if (buffer.cur_model == "") {
         return;
     }
@@ -906,12 +917,9 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     }
 
     // if this is a submodel find the parent so we can find the face definition there
-    if (model_info->GetDisplayAs() == "SubModel")
-    {
+    if (model_info->GetDisplayAs() == "SubModel") {
         model_info = ((SubModel*)model_info)->GetParent();
-    }
-    else if (model_info->GetDisplayAs() == "ModelGroup")
-    {
+    } else if (model_info->GetDisplayAs() == "ModelGroup") {
         return;
     }
 
@@ -930,7 +938,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     }
 
     bool found = true;
-    std::map<std::string, std::map<std::string, std::string> >::iterator it = model_info->faceInfo.find(definition);
+    auto it = model_info->faceInfo.find(definition);
     if (it == model_info->faceInfo.end()) {
         //not found
         found = false;
@@ -939,16 +947,14 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         if ("Coro" == definition && model_info->faceInfo.find("SingleNode") != model_info->faceInfo.end()) {
             definition = "SingleNode";
             found = true;
-        }
-        else if ("SingleNode" == definition && model_info->faceInfo.find("Coro") != model_info->faceInfo.end()) {
+        } else if ("SingleNode" == definition && model_info->faceInfo.find("Coro") != model_info->faceInfo.end()) {
             definition = "Coro";
             found = true;
-        }
-        else if (definition != "Default" && definition != "Rendered" && definition != "") {
+        } else if (definition != "Default" && definition != "Rendered" && definition != "" && definition != "Matrix") {
             std::string firstFace = "";
-            for (const auto& it : model_info->faceInfo) {
-                if (it.first != "") {
-                    firstFace = it.first;
+            for (const auto& it2 : model_info->faceInfo) {
+                if (it2.first != "") {
+                    firstFace = it2.first;
                     break;
                 }
             }
@@ -968,124 +974,117 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
 
     if ("Coro" == modelType || "SingleNode" == modelType) {
         type = 0;
-    }
-    else if ("NodeRange" == modelType) {
+    } else if ("NodeRange" == modelType) {
         type = 1;
-    }
-    else if ("Rendered" == definition || "Default" == definition || "" == definition) {
+    } else if ("Rendered" == definition || "Default" == definition || "" == definition) {
         type = 2;
     }
 
-    if (buffer.curEffStartPer == buffer.curPeriod)
-    {
-        if (modelType != "Matrix" && modelType != "Rendered" && modelType != "Default")
-        {
-            if (buffer.isTransformed)
-            {
-                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                logger_base.warn("Faces effect starting at %dms until %dms on model %s has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char *)buffer.cur_model.c_str());
+    if (buffer.curEffStartPer == buffer.curPeriod) {
+        if (modelType != "Matrix" && modelType != "Rendered" && modelType != "Default") {
+            if (buffer.isTransformed) {
+                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("Faces effect starting at %dms until %dms on model %s has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char*)buffer.cur_model.c_str());
             }
         }
     }
 
     std::string phoneme = Phoneme;
+
     if (phoneme == "") {
-        //GET Phoneme from timing track
+        Element* track = elements->GetElement(trackName);
+        // GET Phoneme from timing track
         if (track == nullptr || track->GetEffectLayerCount() < 3) {
             phoneme = "rest";
             if ("Auto" == eyes) {
                 if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
-                    //roughly every 5 seconds we'll blink
+                    // roughly every 5 seconds we'll blink
                     cache->nextBlinkTime += intRand(4500, 5500);
-                    cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
+                    cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
                     eyes = "Closed";
-                }
-                else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
+                } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
                     eyes = "Closed";
-                }
-                else {
+                } else {
                     eyes = "Open";
                 }
             }
-        }
-        else {
+        } else {
+            // Limit the lock for only as long as we access the timing track - this minimises contention ... especially when using faces effect on groups
+            std::recursive_timed_mutex* lock = &track->GetChangeLock();
+            std::unique_lock<std::recursive_timed_mutex> locker(*lock);
+
             int startms = -1;
             int endms = -1;
 
-            EffectLayer *layer = track->GetEffectLayer(2);
-            std::unique_lock<std::recursive_mutex> locker2(layer->GetLock());
-            int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
-            Effect *ef = layer->GetEffectByTime(time);
-            if (ef == nullptr) {
+            EffectLayer* layer = track->GetEffectLayer(2);
+            if (layer == nullptr) {
                 phoneme = "rest";
-            }
-            else {
-                startms = ef->GetStartTimeMS();
-                endms = ef->GetEndTimeMS();
-                phoneme = ef->GetEffectName();
-            }
-            if ("Auto" == eyes && phoneme == "rest" && type != 2) {
-                if (startms == -1) {
-                    //need to figure out the time
-                    for (int x = 0; x < layer->GetEffectCount() && startms == -1; x++) {
-                        ef = layer->GetEffect(x);
-                        if (ef->GetStartTimeMS() > buffer.curPeriod * buffer.frameTimeInMs) {
-                            endms = ef->GetStartTimeMS();
-                            if (x > 0) {
-                                startms = layer->GetEffect(x - 1)->GetEndTimeMS();
-                            }
-                            else {
-                                startms = 0;
-                            }
-                        }
-                    }
+                eyes = "Open";
+            } else {
+                std::unique_lock<std::recursive_mutex> locker2(layer->GetLock());
+                int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
+                Effect* ef = layer->GetEffectByTime(time);
+                if (ef == nullptr) {
+                    phoneme = "rest";
+                } else {
+                    startms = ef->GetStartTimeMS();
+                    endms = ef->GetEndTimeMS();
+                    phoneme = ef->GetEffectName();
                 }
-
-                if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
-                    if ((startms + 150) >= (buffer.curPeriod * buffer.frameTimeInMs)) {
-                        //don't want to blink RIGHT at the start of the rest, delay a little bie
-                        int tmp = (buffer.curPeriod * buffer.frameTimeInMs) + intRand(150, 549);
-
-                        //also don't want it right at the end
-                        if ((tmp + 130) > endms) {
-                            cache->nextBlinkTime = (startms + endms) / 2;
-                        }
-                        else {
-                            cache->nextBlinkTime = tmp;
+                if ("Auto" == eyes && phoneme == "rest" && type != 2) {
+                    if (startms == -1) {
+                        // need to figure out the time
+                        for (int x = 0; x < layer->GetEffectCount() && startms == -1; x++) {
+                            ef = layer->GetEffect(x);
+                            if (ef->GetStartTimeMS() > buffer.curPeriod * buffer.frameTimeInMs) {
+                                endms = ef->GetStartTimeMS();
+                                if (x > 0) {
+                                    startms = layer->GetEffect(x - 1)->GetEndTimeMS();
+                                } else {
+                                    startms = 0;
+                                }
+                            }
                         }
                     }
-                    else {
-                        //roughly every 5 seconds we'll blink
-                        cache->nextBlinkTime += intRand(4500, 5500);
-                        cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
+
+                    if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
+                        if ((startms + 150) >= (buffer.curPeriod * buffer.frameTimeInMs)) {
+                            // don't want to blink RIGHT at the start of the rest, delay a little bie
+                            int tmp = (buffer.curPeriod * buffer.frameTimeInMs) + intRand(150, 549);
+
+                            // also don't want it right at the end
+                            if ((tmp + 130) > endms) {
+                                cache->nextBlinkTime = (startms + endms) / 2;
+                            } else {
+                                cache->nextBlinkTime = tmp;
+                            }
+                        } else {
+                            // roughly every 5 seconds we'll blink
+                            cache->nextBlinkTime += intRand(4500, 5500);
+                            cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
+                            eyes = "Closed";
+                        }
+                    } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
                         eyes = "Closed";
+                    } else {
+                        eyes = "Open";
                     }
                 }
-                else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
+            }
+        }
+    } else if (phoneme == "rest" || phoneme == "(off)") {
+            if ("Auto" == eyes) {
+                if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
+                    // roughly every 5 seconds we'll blink
+                    cache->nextBlinkTime += intRand(4500, 5500);
+                    cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
                     eyes = "Closed";
-                }
-                else {
+                } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
+                    eyes = "Closed";
+                } else {
                     eyes = "Open";
                 }
             }
-        }
-    }
-    else if (phoneme == "rest" || phoneme == "(off)")
-    {
-        if ("Auto" == eyes) {
-            if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
-                //roughly every 5 seconds we'll blink
-                cache->nextBlinkTime += intRand(4500, 5500);
-                cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
-                eyes = "Closed";
-            }
-            else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
-                eyes = "Closed";
-            }
-            else {
-                eyes = "Open";
-            }
-        }
     }
 
     int colorOffset = 0;
@@ -1096,12 +1095,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
 
     wxString pp = phoneme;
     std::string p = pp.BeforeFirst('-');
-    bool shimmer = pp.Lower().EndsWith("-shimmer");
+    bool shimmer = !suppressShimmer && pp.Lower().EndsWith("-shimmer");
 
     std::vector<std::string> todo;
     std::vector<xlColor> colors;
     if (p != "(off)") {
-
         todo.push_back("Mouth-" + p);
         colorOffset = 1;
         if (customColor) {
@@ -1109,13 +1107,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             colors.push_back(color);
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
@@ -1130,13 +1126,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             colors.push_back(color);
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
@@ -1147,13 +1141,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             if (buffer.palette.Size() > colorOffset + 3) {
                 buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
             }
@@ -1167,34 +1159,29 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             if (buffer.palette.Size() > colorOffset + 4) {
                 buffer.palette.GetColor(colorOffset + 4, color); //use sixth colour
             }
             colors.push_back(color);
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
-    }
-    else if (eyes == "Closed") {
+    } else if (eyes == "Closed") {
         todo.push_back("Eyes-Closed");
         if (customColor) {
             std::string cname = model_info->faceInfo[definition]["Eyes-Closed-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             colors.push_back(color);
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
@@ -1205,13 +1192,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             if (buffer.palette.Size() > colorOffset + 3) {
                 buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
             }
@@ -1225,21 +1210,18 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
-        }
-        else {
+        } else {
             if (buffer.palette.Size() > colorOffset + 4) {
                 buffer.palette.GetColor(colorOffset + 4, color); //use sixth colour
             }
             colors.push_back(color);
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
-    }
-    else if (eyes == "(off)") {
+    } else if (eyes == "(off)") {
         //no eyes
     }
     if (buffer.palette.Size() > (1 + colorOffset)) {
@@ -1252,13 +1234,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.insert(colors.begin(), xlWHITE);
                 colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.insert(colors.begin(), xlColor(cname));
                 colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
             }
-        }
-        else {
+        } else {
             colors.insert(colors.begin(), color);
             colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
         }
@@ -1273,24 +1253,22 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             if (cname == "") {
                 colors.insert(colors.begin(), xlWHITE);
                 colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
-            }
-            else {
+            } else {
                 colors.insert(colors.begin(), xlColor(cname));
                 colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
             }
-        }
-        else {
+        } else {
             colors.insert(colors.begin(), color);
             colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
         }
     }
 
     if (type == 2) {
-        RenderFaces(buffer, phoneme, eyes, face_outline, alpha);
+        RenderFaces(buffer, phoneme, eyes, face_outline, alpha, suppressShimmer);
         return;
     }
     if (type == 3) {
-        //picture
+        // picture
         std::string e = eyes;
         if (eyes == "Auto") {
             e = "Open";
@@ -1300,48 +1278,49 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         }
         std::string key = "Mouth-" + p + "-Eyes";
         std::string picture = "";
-        if (model_info->faceInfo[definition].find(key + e) != model_info->faceInfo[definition].end())
-        {
+        if (model_info->faceInfo[definition].find(key + e) != model_info->faceInfo[definition].end()) {
             picture = model_info->faceInfo[definition][key + e];
+            if (shimmer) {
+                if (!ShimmerState(buffer)) {
+                    picture = model_info->faceInfo[definition]["Mouth-rest-Eyes" + e];
+                }
+            }
         }
         if (picture == "" && e == "Closed") {
-            if (model_info->faceInfo[definition].find(key + "Open") != model_info->faceInfo[definition].end())
-            {
+            if (model_info->faceInfo[definition].find(key + "Open") != model_info->faceInfo[definition].end()) {
                 picture = model_info->faceInfo[definition][key + "Open"];
+                if (shimmer) {
+                    if (!ShimmerState(buffer)) {
+                        picture = model_info->faceInfo[definition]["Mouth-rest-EyesOpen"];
+                    }
+                }
             }
         }
         std::string dirstr = "none"; /*RENDER_PICTURE_NONE*/
         std::string stf = "Scale To Fit";
         if (model_info->faceInfo[definition]["ImagePlacement"] == "Centered") {
             stf = "No Scaling";
-        } else if (model_info->faceInfo[definition]["ImagePlacement"] == "Scale Keep Aspect Ratio" || 
-            model_info->faceInfo[definition]["ImagePlacement"] == "Scale Keep Aspect Ratio Crop") {
+        } else if (model_info->faceInfo[definition]["ImagePlacement"] == "Scale Keep Aspect Ratio" ||
+                   model_info->faceInfo[definition]["ImagePlacement"] == "Scale Keep Aspect Ratio Crop") {
             stf = model_info->faceInfo[definition]["ImagePlacement"];
         }
         RenderBuffer* crb = cache->GetImage(MakeKey(buffer.BufferWi, buffer.BufferHt, dirstr, picture, stf));
-        if (crb == nullptr)
-        {
+        if (crb == nullptr) {
             crb = new RenderBuffer(buffer);
-            PicturesEffect::Render(*crb, dirstr, picture, 0, 0, 0, 0, 0, 0, 100, 100, stf, false, false, false, true, false, false, 0);  // set for scale to fit
+            PicturesEffect::Render(*crb, dirstr, picture, 0, 0, 0, 0, 0, 0, 100, 100, stf, false, false, false, true, false, false, 0); // set for scale to fit
             cache->AddImage(MakeKey(buffer.BufferWi, buffer.BufferHt, dirstr, picture, stf), crb);
         }
 
-        for (int y = 0; y < buffer.BufferHt; y++)
-        {
-            for (int x = 0; x < buffer.BufferWi; x++)
-            {
-                if (transparentBlack)
-                {
+        for (int y = 0; y < buffer.BufferHt; y++) {
+            for (int x = 0; x < buffer.BufferWi; x++) {
+                if (transparentBlack) {
                     auto c = crb->GetPixel(x, y);
                     int level = c.Red() + c.Green() + c.Blue();
-                    if (level > transparentBlackLevel)
-                    {
+                    if (level > transparentBlackLevel) {
                         c.alpha = ((int)alpha * c.alpha) / 255;
                         buffer.SetPixel(x, y, c);
                     }
-                }
-                else
-                {
+                } else {
                     auto c = crb->GetPixel(x, y);
                     c.alpha = ((int)alpha * c.alpha) / 255;
                     buffer.SetPixel(x, y, c);
@@ -1349,45 +1328,27 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             }
         }
     }
+
     for (size_t t = 0; t < todo.size(); t++) {
-
-        if (shimmer && StartsWith(todo[t], "Mouth-"))
-        {
-            if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0) continue;
+        if (shimmer && StartsWith(todo[t], "Mouth-")) {
+            if (!ShimmerState(buffer))
+                continue;
         }
-        std::string channels = model_info->faceInfo[definition][todo[t]];
-        wxStringTokenizer wtkz(channels, ",");
-        while (wtkz.HasMoreTokens()) {
-            wxString valstr = wtkz.GetNextToken();
-
-            if (type == 0) {
-                auto it2 = cache->nodeNameCache.find(valstr.ToStdString());
-                if (it2 != cache->nodeNameCache.end()) {
-                    int n = it2->second;
-                    buffer.SetNodePixel(n, colors[t], true);
-                }
+        if (type == 1) {
+            for (const auto it : model_info->faceInfoNodes[definition][todo[t]]) {
+                buffer.SetNodePixel(it, colors[t], true);
             }
-            else if (type == 1) {
-                int start, end;
-                if (valstr.Contains("-")) {
-                    int idx = valstr.Index('-');
-                    start = wxAtoi(valstr.Left(idx));
-                    end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
-                    if (end < start)
-                    {
-                        std::swap(start, end);
+        } else {
+            std::string channels = model_info->faceInfo[definition][todo[t]];
+            wxStringTokenizer wtkz(channels, ",");
+            while (wtkz.HasMoreTokens()) {
+                wxString valstr = wtkz.GetNextToken();
+                if (type == 0) {
+                    auto it2 = cache->nodeNameCache.find(valstr.ToStdString());
+                    if (it2 != cache->nodeNameCache.end()) {
+                        int n = it2->second;
+                        buffer.SetNodePixel(n, colors[t], true);
                     }
-                }
-                else {
-                    start = end = wxAtoi(valstr);
-                }
-                if (start > end) {
-                    start = end;
-                }
-                start--;
-                end--;
-                for (int n = start; n <= end; n++) {
-                    buffer.SetNodePixel(n, colors[t], true);
                 }
             }
         }
@@ -1402,30 +1363,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                         if (r != "") {
                             xlColor colour = xlColor(c);
                             colour.alpha = ((int)alpha * colour.alpha) / 255;
-                            wtkz = wxStringTokenizer(r, ",");
-                            while (wtkz.HasMoreTokens()) {
-                                wxString valstr = wtkz.GetNextToken();
 
-                                int start, end;
-                                if (valstr.Contains("-")) {
-                                    int idx = valstr.Index('-');
-                                    start = wxAtoi(valstr.Left(idx));
-                                    end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
-                                    if (end < start) {
-                                        std::swap(start, end);
-                                    }
-                                } else {
-                                    start = end = wxAtoi(valstr);
-                                }
-                                if (start > end) {
-                                    start = end;
-                                }
-                                start--;
-                                end--;
-                                for (int n = start; n <= end; n++) {
-                                    buffer.SetNodePixel(n, colour, true);
-                                }
-                            }                            
+                            // use the nodes as it is faster
+                            for (const auto it : model_info->stateInfoNodes[outlineState][wxString::Format("s%d", (int)i)]) {
+                                buffer.SetNodePixel(it, colour, true);
+                            }
                         }
                     }
                 }

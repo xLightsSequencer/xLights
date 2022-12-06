@@ -35,14 +35,58 @@
 
 class SpirographEffect : public RenderableEffect
 {
-    public:
-        SpirographEffect(int id);
-        virtual ~SpirographEffect();
-        virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool AppropriateOnNodes() const override { return false; }
-        virtual bool CanRenderPartialTimeInterval() const override { return true; }
+public:
+    SpirographEffect(int id);
+    virtual ~SpirographEffect();
+    virtual void SetDefaultParameters() override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual bool AppropriateOnNodes() const override
+    {
+        return false;
+    }
+    virtual bool CanRenderPartialTimeInterval() const override
+    {
+        return true;
+    }
 
-    protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Spirograph_Animate")
+            return SPIROGRAPH_ANIMATE_MIN;
+        if (name == "E_VALUECURVE_Spirograph_Length")
+            return SPIROGRAPH_LENGTH_MIN;
+        if (name == "E_VALUECURVE_Spirograph_Width")
+            return SPIROGRAPH_WIDTH_MIN;
+        if (name == "E_VALUECURVE_Spirograph_R")
+            return SPIROGRAPH_R_MIN;
+        if (name == "E_VALUECURVE_Spirograph_r")
+            return SPIROGRAPH_r_MIN;
+        if (name == "E_VALUECURVE_Spirograph_Speed")
+            return SPIROGRAPH_SPEED_MIN;
+        if (name == "E_VALUECURVE_Spirograph_d")
+            return SPIROGRAPH_d_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Spirograph_Animate")
+            return SPIROGRAPH_ANIMATE_MAX;
+        if (name == "E_VALUECURVE_Spirograph_Length")
+            return SPIROGRAPH_LENGTH_MAX;
+        if (name == "E_VALUECURVE_Spirograph_Width")
+            return SPIROGRAPH_WIDTH_MAX;
+        if (name == "E_VALUECURVE_Spirograph_R")
+            return SPIROGRAPH_R_MAX;
+        if (name == "E_VALUECURVE_Spirograph_r")
+            return SPIROGRAPH_r_MAX;
+        if (name == "E_VALUECURVE_Spirograph_Speed")
+            return SPIROGRAPH_SPEED_MAX;
+        if (name == "E_VALUECURVE_Spirograph_d")
+            return SPIROGRAPH_d_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
+
+protected:
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

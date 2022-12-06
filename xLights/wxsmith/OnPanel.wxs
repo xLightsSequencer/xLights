@@ -101,8 +101,8 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_VALUECURVE_On_Transparency" subclass="BulkEditValueCurveButton" variable="BitmapButton_On_Transparency" member="yes">
-											<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+											<bitmap code="GetValueCurveNotSelectedBitmap()" />
+											<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 											<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

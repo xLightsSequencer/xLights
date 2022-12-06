@@ -18,6 +18,7 @@
 #include "xLightsXmlFile.h"
 #include "UtilFunctions.h"
 #include "AudioManager.h"
+#include "ExternalHooks.h"
 #include "sequencer/SequenceElements.h"
 
 #include <log4cpp/Category.hh>
@@ -639,6 +640,19 @@ void ValueCurve::Flip()
     else { wxASSERT(false); }
 }
 
+// call this function from adjustSettings when a value curve has been changed to have a different divider ... it will convert the values to the equivalent and then you can serialise the value curve
+void ValueCurve::ConvertDivider(int oldDivider, int newDivider)
+{
+    _parameter1 = (_parameter1 * (float)newDivider) / (float)oldDivider;
+    _parameter2 = (_parameter2 * (float)newDivider) / (float)oldDivider;
+    _parameter3 = (_parameter3 * (float)newDivider) / (float)oldDivider;
+    _parameter4 = (_parameter4 * (float)newDivider) / (float)oldDivider;
+    _min = (_min * (float)newDivider) / (float)oldDivider;
+    _max = (_max * (float)newDivider) / (float)oldDivider;
+
+    // values are 0-1 normalised so dont need to be converted
+}
+
 float ValueCurve::Normalise(int parm, float value)
 {
     float low;
@@ -774,6 +788,7 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
 
     float newrange = newmax - newmin;
     float oldrange = _max - _min;
+    float mindiff = newmin - _min;
 
     if (newrange < oldrange)
     {
@@ -781,6 +796,27 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
         wxASSERT(false);
         // continue otherwise it doesnt stop it happening in future
         // return;
+    }
+
+    float min, max;
+    GetRangeParm(1, _type, min, max);
+    if (min == MINVOID) {
+        _parameter1 = (_parameter1 * newrange / oldrange + mindiff); // / divisor;
+    }
+
+    GetRangeParm(2, _type, min, max);
+    if (min == MINVOID) {
+        _parameter2 = (_parameter2 * newrange / oldrange + mindiff); // / divisor;
+    }
+
+    GetRangeParm(3, _type, min, max);
+    if (min == MINVOID) {
+        _parameter3 = (_parameter3 * newrange / oldrange + mindiff); // / divisor;
+    }
+
+    GetRangeParm(4, _type, min, max);
+    if (min == MINVOID) {
+        _parameter4 = (_parameter4 * newrange / oldrange + mindiff); // / divisor;
     }
 
     // now handle custom
@@ -793,7 +829,7 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
         //y = y * 0.5 or 10/20 i.e. old range/new range
         for (auto& it : _values)
         {
-            it.y = it.y * oldrange / newrange;
+            it.y = it.y * oldrange / newrange + mindiff;
         }
     }
 }
@@ -1475,6 +1511,10 @@ void ValueCurve::LoadXVC(const wxFileName& fn)
 
 void ValueCurve::LoadXVC(const std::string& fn)
 {
+    if (!FileExists(fn)) {
+        DisplayError("Failure loading value curve file " + fn + ".");
+        return;
+    }
     wxXmlDocument doc(fn);
 
     if (doc.IsOk())
@@ -1714,9 +1754,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         if (__audioManager != nullptr && _values.size() == 0) {
             float min = (GetParameter1() - _min) / (_max - _min);
             float max = (GetParameter2() - _min) / (_max - _min);
-            int step = (endMS - startMS) / VC_X_POINTS;
             int frameMS = __audioManager->GetFrameInterval();
-            if (step < frameMS) step = frameMS;
             int fadeFrames = GetParameter4();
             float yperFrame = (max - min) / fadeFrames;
             float perPoint = vcSortablePoint::perPoint();
@@ -1947,6 +1985,8 @@ void ValueCurve::DeletePoint(float offset)
 
 void ValueCurve::RemoveExcessCustomPoints()
 {
+    if (_values.size() < 3)
+        return;
     // go through list and remove middle points where 3 in a row have the same value
     auto it1 = _values.begin();
     auto it2 = it1;
@@ -2010,7 +2050,7 @@ float ValueCurve::GetParameter1_100() const
     return (GetParameter1() - _min) * 100 / range;
 }
 
-float ValueCurve::FindMinPointLessThan(float point)
+float ValueCurve::FindMinPointLessThan(float point) const
 {
     float res = 0.0;
 
@@ -2025,7 +2065,7 @@ float ValueCurve::FindMinPointLessThan(float point)
     return vcSortablePoint::Normalise(res);
 }
 
-float ValueCurve::FindMaxPointGreaterThan(float point)
+float ValueCurve::FindMaxPointGreaterThan(float point) const
 {
     float res = 1.0;
 
@@ -2041,17 +2081,35 @@ float ValueCurve::FindMaxPointGreaterThan(float point)
     return vcSortablePoint::Normalise(res);
 }
 
-bool ValueCurve::NearCustomPoint(float x, float y)
+bool ValueCurve::NearCustomPoint(float x, float y) const
 {
-    for (auto it = _values.begin(); it != _values.end(); ++it)
-    {
-        if (it->IsNear(x, y))
-        {
+    for (const auto& it : _values) {
+        if (it.IsNear(x, y)) {
             return true;
         }
     }
 
     return false;
+}
+
+float ValueCurve::GetPointAt(float x) const
+{
+    for (const auto& it : _values) {
+        if (it.x == x)
+            return it.y;
+    }
+
+    return 0.0;
+}
+
+void ValueCurve::SetPointAt(float x, float y)
+{
+    for (auto& it : _values) {
+        if (it.x == x) {
+            it.y = y;
+            return;
+        }
+    }
 }
 
 wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)
@@ -2112,4 +2170,32 @@ wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)
         return wxBitmap(img, 8, scaleFactor);
     }
     return bmp;
+}
+
+void ValueCurve::ScaleAndOffsetValues(float scale, int offset)
+{
+    if (offset == 0 && abs(scale - 1.0) < 0.0001) {
+        return;
+    }
+
+    auto ScaleVal = [&](float val) 
+    {
+        float newVal = (val * (scale * _divisor )) + (offset * _divisor);
+        newVal = std::min(newVal, _max);
+        newVal = std::max(newVal, _min);
+        return (val * scale ) + offset;
+    };
+
+    _parameter1 = ScaleVal(_parameter1);
+    _parameter2 = ScaleVal(_parameter2);
+    _parameter3 = ScaleVal(_parameter3);
+    _parameter4 = ScaleVal(_parameter4);
+
+    if (_type == "Custom")
+    {
+        for (auto& it : _values)
+        {
+            it.y = ScaleVal(it.y);
+        }
+    }
 }

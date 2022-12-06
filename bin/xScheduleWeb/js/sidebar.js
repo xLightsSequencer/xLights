@@ -8,7 +8,7 @@ function populateSideBar() {
 
         var sidebar1 = `
         <div class="list-group">
-        <div class="list-group-item active main-color-bg"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Navagation </div>
+        <div class="list-group-item active main-color-bg"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Navigation </div>
         <a href="" onclick="updatePage('page','home')" class="list-group-item"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>  Home </a>
         <a href="" onclick="updatePage('page','playlists')" class="list-group-item"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>  Playlists </a>
         <a href="" onclick="updatePage('page','settings')" class="list-group-item"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>  Settings </a>

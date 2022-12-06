@@ -20,3 +20,13 @@
 	path = macOS
 	url = https://github.com/xLightsSequencer/xLights-macOS.git
 	branch = main
+[submodule "dependencies/libxlsxwriter"]
+	path = dependencies/libxlsxwriter
+	url = https://github.com/jmcnamara/libxlsxwriter.git
+[submodule "dependencies/lua"]
+	path = dependencies/lua
+	url = https://github.com/xLightsSequencer/lua.git
+[submodule "dependencies/pybind11"]
+	path = dependencies/pybind11
+	url = https://github.com/pybind/pybind11.git
+	branch = stable

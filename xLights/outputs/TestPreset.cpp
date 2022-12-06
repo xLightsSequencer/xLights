@@ -11,9 +11,10 @@
 #include "TestPreset.h"
 
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
 #include "Output.h"
 #include "../UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 #pragma region Constructors and Destructors
 TestPreset::TestPreset(const std::string& name)
@@ -23,19 +24,15 @@ TestPreset::TestPreset(const std::string& name)
 
 TestPreset::TestPreset(wxXmlNode* node)
 {
-	_name = UnXmlSafe(node->GetAttribute("name", ""));
-	
-	for (wxXmlNode* e = node->GetChildren(); e != nullptr; e = e->GetNext())
-	{
-		if (e->GetName() == "channel")
-		{
-			AddChannel(wxAtoi(e->GetAttribute("id", "")));
-		}
-		else if (e->GetName() == "channelr")
-		{
-			AddChannelRange(wxAtoi(e->GetAttribute("start", "")), wxAtoi(e->GetAttribute("end", "")));
-		}
-	}
+    _name = UnXmlSafe(node->GetAttribute("name", ""));
+
+    for (wxXmlNode* e = node->GetChildren(); e != nullptr; e = e->GetNext()) {
+        if (e->GetName() == "channel") {
+            AddChannel(wxAtoi(e->GetAttribute("id", "")));
+        } else if (e->GetName() == "channelr") {
+            AddChannelRange(wxAtoi(e->GetAttribute("start", "")), wxAtoi(e->GetAttribute("end", "")));
+        }
+    }
 }
 #pragma endregion Constructors and Destructors
 

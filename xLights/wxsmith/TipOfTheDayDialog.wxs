@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="TipOfTheDayDialog">
+		<title>Tip of the day</title>
+		<size>1000,800</size>
+		<minsize>1000,800</minsize>
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
+			<cols>1</cols>
+			<rows>2</rows>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxHtmlWindow" name="ID_HTMLWINDOW1" subclass="xlCachedHtmlWindow" variable="HtmlWindow1" member="yes">
+					<htmlcode>&lt;html&gt;&lt;body&gt;&lt;p&gt;Loading...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</htmlcode>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>3</cols>
+					<rows>1</rows>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_ShowTips_CHECKBOX" variable="ShowTipsCheckbox" member="yes">
+							<label>Show Tips on Startup</label>
+							<checked>1</checked>
+							<handler function="OnShowTipsCheckboxClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON1" variable="Button_Next" member="yes">
+							<label>Give me another one</label>
+							<handler function="OnButton_NextClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON2" variable="CloseButton" member="yes">
+							<label>Close</label>
+							<default>1</default>
+							<handler function="OnCloseButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

@@ -200,11 +200,11 @@ static void place_twinkles(int lights_to_place, int &curIndex, std::vector<Strob
     }
 }
 
-void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Count = GetValueCurveInt("Twinkle_Count", 3, SettingsMap, oset, 2, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int Steps = GetValueCurveInt("Twinkle_Steps", 30, SettingsMap, oset, 2, 200, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Count = GetValueCurveInt("Twinkle_Count", 3, SettingsMap, oset, TWINKLE_COUNT_MIN, TWINKLE_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Steps = GetValueCurveInt("Twinkle_Steps", 30, SettingsMap, oset, TWINKLE_STEPS_MIN, TWINKLE_STEPS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool Strobe = SettingsMap.GetBool("CHECKBOX_Twinkle_Strobe", false);
     bool reRandomize = SettingsMap.GetBool("CHECKBOX_Twinkle_ReRandom", false);
     const std::string& twinkle_style = SettingsMap["CHOICE_Twinkle_Style"];

@@ -53,6 +53,14 @@ ScheduleOptions* PlayListItem::GetOptions() const
     return sm->GetOptions();
 }
 
+std::string PlayListItem::GetLocalIP() const
+{
+    ScheduleManager* sm = xScheduleFrame::GetScheduleManager();
+    if (sm == nullptr)
+        return "";
+    return sm->GetForceLocalIP();
+}
+
 void PlayListItem::Load(wxXmlNode* node)
 {
     _type = node->GetName();
@@ -119,11 +127,14 @@ std::string PlayListItem::GetNameNoTime() const
     return "<unnamed>";
 }
 
-void PlayListItem::Copy(PlayListItem* to) const
+void PlayListItem::Copy(PlayListItem* to, const bool isClone) const
 {
-    to->_id = _id;
-    to->_lastSavedChangeCount = _lastSavedChangeCount;
-    to->_changeCount = _changeCount;
+    if (!isClone) {
+        // During a clone the following members are not copied because we want the values set in the constructor.
+        to->_id = _id;
+        to->_lastSavedChangeCount = _lastSavedChangeCount;
+        to->_changeCount = _changeCount;
+    }
     to->_delay = _delay;
     to->_frames = _frames;
     to->_msPerFrame = _msPerFrame;
@@ -133,6 +144,11 @@ void PlayListItem::Copy(PlayListItem* to) const
     to->_restOfStep = _restOfStep;
     to->_stepLengthMS = _stepLengthMS;
     to->_type = _type;
+}
+
+PlayListItem* PlayListItem::Clone() const
+{
+    return Copy(true);
 }
 
 bool PlayListItem::IsInSlaveMode() const
@@ -160,29 +176,9 @@ std::string PlayListItem::ReplaceTags(const std::string s) const
 
     auto now = wxDateTime::Now();
 
-    static wxRegEx nl("(^.*[^\\]+|^)(\\n)", wxRE_BASIC);
-    while (nl.Matches(res)) // need to do it several times because the results overlap
-    {
-        wxString s0 = nl.GetMatch(res, 0);
-        wxString s1 = nl.GetMatch(res, 1);
-        res = res.replace(s0.size(), s1.size(), "\n");
-    }
-
-    static wxRegEx tb("(^.*[^\\]+|^)(\\t)", wxRE_BASIC);
-    while (tb.Matches(res)) // need to do it several times because the results overlap
-    {
-        wxString s0 = tb.GetMatch(res, 0);
-        wxString s1 = tb.GetMatch(res, 1);
-        res = res.replace(s0.size(), s1.size(), "\t");
-    }
-
-    static wxRegEx sl("(^.*[^\\]+|^)(\\\\)", wxRE_BASIC);
-    while (tb.Matches(res)) // need to do it several times because the results overlap
-    {
-        wxString s0 = sl.GetMatch(res, 0);
-        wxString s1 = sl.GetMatch(res, 1);
-        res = res.replace(s0.size(), s1.size(), "\\");
-    }
+    res.Replace("\\n", "\n");
+    res.Replace("\\t", "\t");
+    res.Replace("\\\\", "\\");
 
     res.Replace("%TIMESTAMP%", now.Format("%F %T"));
     res.Replace("%TIME%", now.Format("%T"));

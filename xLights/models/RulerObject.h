@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "ViewObject.h"
+#include "TwoPointScreenLocation.h"
 
 class ModelPreview;
 
@@ -29,18 +30,19 @@ public:
 
     virtual void InitModel() override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
 
     int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-    virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected = false) override;
+    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
 	static RulerObject* GetRuler() { return __rulerObject; }
 	static int GetUnits() { if (__rulerObject != nullptr) return __rulerObject->_units; return RULER_UNITS_M; }
 	static std::string GetUnitDescription();
     static float Measure(glm::vec3 p1, glm::vec3 p2);
     static float Measure(float length);
+    static float UnMeasure(float length);
     static float MeasureWidth(glm::vec3 p1, glm::vec3 p2);
 	static float MeasureHeight(glm::vec3 p1, glm::vec3 p2);
 	static float MeasureDepth(glm::vec3 p1, glm::vec3 p2);
@@ -50,6 +52,7 @@ public:
 	static std::string MeasureWidthDescription(glm::vec3 p1, glm::vec3 p2);
 	static std::string MeasureHeightDescription(glm::vec3 p1, glm::vec3 p2);
 	static std::string MeasureDepthDescription(glm::vec3 p1, glm::vec3 p2);
+    float ConvertDimension(const std::string& units, float measure);
 
 protected:
 

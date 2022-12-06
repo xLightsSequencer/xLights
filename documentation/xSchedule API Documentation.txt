@@ -1,0 +1,418 @@
+
+The xSchedule API:
+
+	The api is implemented as a small web server with 4 specific URLs with a variety of variants.
+
+http://<host:port>/xScheduleLogin?Credential=<credential hash>
+
+	This API is used to log into the web server where a password has been configured. The <credential hash> value is the MD5 hash of a string which is the concatenation of the ip address of the requesting machine (as seen by xSchedule - to help work this out this is returned in several of the other API calls) and the password the user has set ... for example something line "127.0.0.1Password".
+	
+	Once logged in that ip address is considered logged in until either the timeout period expires (as measured since the last successful request) or an unsuccessful attempt is made to login again ... which will immediately log that IP address out.
+	
+	If login succeeds you will get a json success result. If it fails you will get a json failed result with a message and a hint as to what your clients ip address is. If the ip address is different than what you expect I would suggest trying again with the ip address returned.
+	
+http://<host:port>/xScheduleQuery?Query=<query>&Parameters=<parameters>
+	
+	This API is used to query the state of the scheduler There are several query types supported. All query types return json responses.
+	
+		GetPlayLists
+			- gets a list of playlists the scheduler can play. Data includes:
+				- Name
+				- A unique id (valid for this session only)
+				- length of the playlist.
+		
+        GetPlayingEffects
+            - gets a list of currently playing effects (just the step names)
+        
+		GetPlayListSteps <playlist name>
+			- gets a list of steps in the specified playlist. If the playlist name is not unique then it will return the first playlist found only. Data includes:
+				- Name
+				- A unique id (valid for this session only)
+				- length of the step
+				
+		GetQueuedSteps
+			- gets a list of playlist steps that have been queued up by calls to the "Enqueue playlist step" command. Data includes:
+				- Name
+				- A unique id (valid for this session only)
+				- length of the step
+	
+		GetMatrices
+			- gets a list of matrices that the user has defined for text output and other matrix runtime output. Data includes:
+				- Name
+
+		GetMatrix <matrix name>
+			- gets the matrix configuration settings for the matix name. Data includes:
+				- Name
+				- Width
+				- Height
+				- Start Channel
+				- Channels
+				- Start Location
+				- Orientation
+				- Strings
+				- String Length
+				- Strands Per String
+	
+		GetPlayListSchedules <playlist name>
+			- get the list of schedules that exist for the specified playlist. If the playlist name is not unique then it will return the first playlist found only. Data includes:
+				- Name
+				- A unique id (valid for this session only)
+				- enabled flag - can it run
+				- active flag - is it active right now
+				- looping - will it loop when run
+				- loops - if it loops is there a limit on the number of loops
+				- random - will it play songs from the playlist randomly
+				- nextactive - if it is not active right now ... when will it next be active
+				- scheduleend - if it is active right now ... when will it stop being active
+				
+		GetPlayListSchedule <playlist name><schedule name>
+			- get the details of the named schedule on the named playlist. These parameters should be expressed as "PlayListName,ScheduleName". The data returned is the same as GetPlayListSchedules
+
+		GetRangesSet
+		    - Provides back a list of channel ranges set by the "Set pixel range" and "Set pixels"
+		
+		GetPlayingStatus
+			- This API tells you all about what the scheduler is playing right now. Data includes:
+				- Status - Idle, Paused, Playing
+				- PlayList and PlayListId - the name and unique id of the playlist that is active. (valid for this session only)
+				- PlayListLooping - an indicator that the playlist is looping
+				- PlayListLoopsLeft - how many playlist loops are left is this has been specified
+				- random - flag indicating if we are playing steps randomly from the playlist
+				- Step and stepid - the name and unique id of the currently playing step. (valid for this session only)
+				- steplooping - an indicator that this step is looping
+				- steploopsleft - the number of times more that this step will loop if it has been specified
+				- length - length of the current step
+				- position - how far into the current step we are
+				- left - how much time is left in the current step
+				- trigger - why we are playing this - Manual/Queued/Scheduled
+				- schedulename and scheduleid - the name and unique id of the currently active schedule (valid for this session only). While multiple schedules can be active only this one is the one that is actually playing. All others are suspended.
+				- scheduleend - when the schedule will finish running - the schedule will enter its end state at this time ... not just stop suddenly.
+				- nextstep and next stepid - the next step that will play (where known) (valid for this session only)
+				- version - the xlights version number of the server
+				- queuelength - where playing a queue how many songs are currently in the queue
+				- volume - the current volume setting
+				- time - the time on the server
+				- ip - the ip of the client as seen by the server
+				- outputtolights - an indicator of whether data is being sent to the lights
+				
+		GetButtons
+			- This returns a list of user defined button labels which the user has setup. The UI can use the "PressButton" command to cause the scheduler to process the command as if the user had pressed it. This allows a website to show the same user defined buttons on a webpage.
+				
+http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
+
+	This API is used to trigger an action by the scheduler. Some are simple actions, but some are complex compound actions. 
+	
+		Stop All Now
+			Stops all playing playlists and all active schedules. If you have songs queued it will empty the queue.
+
+		Stop	
+			Stops the currently playing playlist/schedule. If you have multiple active schedules then then next highest priority schedule will run.
+			
+		Play selected playlist
+			This plays the currently selected playlist in the UI once. This really doesnt make sense to invoke from anything other than a button in the UI.
+			
+		Play selected playlist looped 
+			This plays the currently selected playlist in the UI and loops it. This really doesnt make sense to invoke from anything other than a button in the UI.
+			
+		Play specified playlist <playlist name>
+			This plays the specified playlist once.
+			
+		Play specified playlist if not playing <playlist name>
+			This plays the specified playlist once but only if that playlist is not already playing.
+			
+		Play specified playlist if nothing playing <playlist name>
+			This plays the specified playlist once but only if no other playlist is already playing.
+			
+		Play specified playlist looped <playlist name>
+			This plays the specified playlist and loops it.
+			
+		Stop specified playlist <playlist name>
+			This stops the specified playlist if it is currently playing ... even if it is currently suspended because something higher priority is running.
+			
+		Stop specified playlist at the end of the current step <playlist name>
+			This stops the specified playlist if it is running but not until the currently running step completes. 
+			
+		Stop specified playlist at the end of the current loop <playlist name>
+			This stops the specified playlist if it is running but not until it reaches the end of the last step ... this will also trigger any steps which are tagged as only running once at the end of the playlist.
+
+		Stop playlist at end of current step
+			This stops the currently playing playlist but not until the currently running step completes. 
+			
+		Stop playlist at end of current loop
+			This stops the currently playing playlist if it is running but not until it reaches the end of the last step ... this will also trigger any steps which are tagged as only running once at the end of the playlist.
+		
+		Jump to play once at end at end of current step and then stop
+			This lets the current step complete in the currently playing playlist and then skips to any steps which are tagged to play once at the end of the playlist.
+			
+		Pause
+			Pauses the currently playing playlist
+			
+		Next step in current playlist
+			This immediately jumps to the next step in the currently playing playlist
+			
+		Restart step in current playlist
+			This jumps back the the beginning of the current step in the currently playing playlist
+			
+		Prior step in current playlist
+			This jumps back to the step that played prior to the current step in the currently playing playlist.
+			
+		Jump to random step in current playlist
+			This stops the current step and jumps to a randomly chosen alternative step in the playlist (excluding any steps flagged as being only played at the beginning or end of the playlist). Randomness requires at least 4 non play-once steps or it will not act randomly.
+			
+		Jump to random step in specified playlist <playlist name>
+			This starts the named playlist at a random step (excluding any steps flagged as being only played at the beginning or end of the playlist). Randomness requires at least 4 non play-once steps or it will not act randomly. At the end of the step the playlist will continue to play.
+			
+        Play one random step in specified playlist <playlist name>
+			This plays the named playlist at a random step (excluding any steps flagged as being only played at the beginning or end of the playlist). Randomness requires at least 4 non play-once steps or it will not act randomly. At the end of the step the playlist will stop.
+
+		Jump to specified step in current playlist <step name>
+			This jumps to the named step in the currenly playing playlist. At the end of the step the playlist will continue to play.
+			
+		Jump to specified step in current playlist at the end of current step <step name>
+			This jumps to the named step in the currently playing playlist when the current step ends. At the end of the step the playlist will continue to play.
+			
+		Play playlist starting at step <playlist name>,<step name>
+			This starts the named playlist at the specified step then plays it through to the end.
+			
+		Play playlist step <playlist name>,<step name>
+			This plays just the named step in the named playlist.
+			
+		Play playlist starting at step looped <playlist name>,<step name>
+			This plays the named playlist looping starting with the named step
+		
+		Toggle loop current step
+			This toggles the state of the loop current step flag.
+		
+		Play specified step in specified playlist looped <playlist name>,<step name>
+			This plays the named step in the named playlist repeatedly
+		
+		Add to the current schedule n minutes <minutes>
+			This extends the currently active schedule the specified number of minutes. This can extend it beyond midnight if required.
+			
+		Set volume to <volume 0-100>
+			Sets the volume to the specified percentage.
+		
+		Adjust volume by <volume -100,100>
+			Adjusts the volume up or down if negative by the specified amount.
+		
+		Save schedule
+			This save the current state of the scheduler. It really only makes sense in the User Interface.
+		
+		Toggle output to lights
+			This toggles whether the scheduler is actually sending data out to the lights.
+		
+		Toggle current playlist random
+			This toggles whether the current playing playlist is in random mode. Random mode requires at least 4 steps which are not flagged as being start of show or end of show.
+		
+		Toggle current playlist loop
+			This toggles whether the currently playing playlist is in looping mode.
+		
+		Play specified playlist step once only <playlist name>,<step name>
+			This will play the named step in the named playlist and then stop.
+		
+		Play specified playlist n times <playlist name>,<loops>
+			This will play the named playlist the specified number of times.
+		
+		Play specified playlist step n times <playlist name>,<step name>,<loops>
+			This will play the named step in the named playlist the specified number of times.
+		
+		Increase brightness by n% <brighness -100-100>
+			Adjusts the global brightness level by the specified amount. Unless you are running a fully pixel show this is unlikely to be useful as it adjusts the value of every single output channel. To dim selected channels/elements see the schedulers output processing settings.
+
+		Activate all schedules 
+			Sets all schedules to enabled
+			
+		Deactivate all schedules
+			Sets all schedules to disabled
+			
+		Activate specified schedule <schedule name>
+			Sets all instances of schedules with the specified name to enabled
+			
+		Deactivate specified schedule <schedule name>
+			Sets all instances of schedules with the specified name to disabled
+			
+		Set brightness to n% <brightness 0-100>
+			Adjusts the global brightness level to the specified level. Unless you are running a fully pixel show this is unlikely to be useful as it adjusts the value of every single output channel. To dim selected channels/elements see the schedulers output processing settings.
+			
+		PressButton <button label>
+			This api is designed to allow web pages to expose the user defined buttons on their UI and is sent to the scheduler when the user presses the button. It requires that the user uniquely label their buttons.
+		
+		Restart selected schedule
+			This API stops and reloads the currently playing schedule using any newly defined schedule configuration. Play is resumed from the start of the schedule. This is useful to quickly restart a schedule after you have changed it and would generally only be called from a button on the GUI.
+			
+		Restart named schedule <schedule name>
+			This API restarts a schedule that has been stopped allowing it to run again. Normally when a schedule is stopped it enters a stopped state and cannot be restarted until after it was scheduled to end without shutting down and restarting the entire scheduler.
+			
+		Toggle mute
+			This API mutes/unmutes the audio ... remembering the volume that it was previously set to.
+		
+		Enqueue playlist step <playlist name>,<step name>
+			This API adds the named step in the named playlist to the list of queued songs. Steps will not be accepted if they are already the last song in the queue.
+			
+		Clear playlist queue
+			This API clears out the list of queued songs.
+		
+		Refresh current playlist
+			This API stops and reloads the currently playing playlist. Play is resumed from the start of the currently playing step (assuming this step still exists in the playlist - if it doesnt the playlist plays from the start). This is useful to quickly restart a playlist after you have changed it and would generally only be called from a button on the GUI.
+			
+		Run command at end of current step <command>,<parameters>
+			This API is a catchall run any other command gracefully at the end of the currently playing step.
+		
+		Bring to foreground	
+			This API forces the scheduler (and all its windows) into the foreground. Why? Good question ... I was asked for it.
+
+		Set current text <text name><text><properties>
+			This api sets the text property of a Text Playlist Item allowing you to change the text displayed. The <text name> is the unique name of a text play list item to set. It must be playing when this api is called to be accepted. The properties can be blank or a | delimted list of the following property types:
+				color
+				blendmode
+				speed
+				orientation
+				movement
+				font
+				x
+				y
+			To see the values these parameters should be set to try setting it manually and save to xschedule file and then look into the file.
+
+		Set pixels <start channel>,<blend mode>
+			This api is posted with a body which contains the Base 64 encoded data to set. Data is set starting at the start channel. The blend mode is optional. Possible blend modes are:
+				overwrite <default>
+				average
+				mask
+				unmask
+				overwriteifblack
+				max
+			Once set this data will continue to be output until it is overwritten using the same start channel. If the data size is 0 then the pixel data is removed.
+
+		Set pixel range <start channel>,<channels>,<colour>,<blend mode>
+			Sets the range of channels to the nominated colour. colours can be specified using primary colour names or #RRGGBB where RR etc is the hex value.
+			To remove a range from the set ranges pass the start channel and a channel count of 0
+
+		Clear all overlays
+			Removes all overlay channels which were set with the "Set pixels" or "Set pixel range" commands
+
+		Run process <playlist name>,<step name>,<run process name>
+			This api will run the run process specified without interupting any playlists that happen to be playing at that time. This can be used to run a script which maybe does some more complicated control of the scheduler. For example ... if you wanted to fade the volume down over a period of 3 seconds you could kick off a script that called the api to change the volume several times over the time period.
+		
+		Run event playlist step <playlistname>,<step name>
+			This api will run the specified playlist step once immediately without interrupting anything else. Data from this step will overwrite almost everything
+
+		Run event playlist step unique <playlistname>,<step name>
+			This api will run the specified playlist step once immediately without interrupting anything else. Data from this step will overwrite almost everything. If any existing items from the specified playlist are already in the event playlist list they are stopped and removed
+
+		Run event playlist step if idle <playlistname>,<step name>
+			This api will run the specified playlist step once immediately without interrupting anything else as long as there isnt already an event playing in that playlist. Data from this step will overwrite almost everything.
+
+		Run event playlist step looped <playlistname>,<step name>
+			This api will run the specified playlist step continuously immediately without interrupting anything else. Data from this step will overwrite almost everything
+
+		Run event playlist step unique looped <playlistname>,<step name>
+			This api will run the specified playlist step continuously immediately without interrupting anything else. Data from this step will overwrite almost everything. If any existing items from the specified playlist are already in the event playlist list they are stopped and removed
+
+		Run event playlist step if idle looped <playlistname>,<step name>
+			This api will run the specified playlist step continuously immediately without interrupting anything else as long as there isnt already an event playing in that playlist. Data from this step will overwrite almost everything.
+			
+		Stop event playlist <playlistname>
+			This api will stop the specified playlist if it is running as an event playlist.
+		
+		Stop event playlist if running step <playlistname>,<step name>
+			This api will stop the specified playlist if it is running as an event playlist and the specified step happens to be playing.
+
+		Set playlist as background <playlistname>
+			Sets the named playlist as the current background playlist.
+			
+		Clear background playlist
+			Stops any existing background playlist.
+
+		Close xSchedule
+			Shuts down xSchedule
+			
+		Add n Seconds To Current Step Position			
+			Advances (forwarded or backward) the position within the current step by n seconds
+
+		Start test mode <testmode>|<model>|<interval>|<foreground>|<background>
+			Puts xSchedule in test mode. Parameters are all optional
+			If model is blank all channels are tested. If model is specified only that model is tested
+			
+		Stop test mode	
+			Stops test mode and restores xSchedule to its previous mode
+
+		Change show folder <show folder>
+			Change the show folder to the named show folder (if it exists). 
+			If blank is passed the current show folder is reloaded
+
+		Set mode <mode|mode|mode>
+			Sets the test/master/remote modes of xSchedule. You can have one remote mode and many master modes. If more than one remote
+			mode is specified the last one listed wins. Modes can be:
+				Standalone
+				Test
+				Master_FPPUnicast
+				Master_FPPUnicastCSV
+				Master_FPPBroadcast
+				Master_FPPMulticast
+				Master_Artnet
+				Master_MIDI
+				Master_OSC
+				Remote_FPPCSV
+				Remote_FPP
+				Remote_Artnet
+				Remote_MIDI
+				Remote_OSC
+                Remote_SMPTE
+						
+		Fire plugin event <plugin>|<plugin parameteres>
+			Fires an event to the named plugin with the specified data
+			If the plugin name is * then the event is sent to all plugins.
+			The plugin parameters are interpreted by the plugin
+						
+        Set step position <pos>
+            Set the position in a song where pos is a number between 0 and 255
+
+        Set step position ms <pos>
+            Set the position in a song where pos is the miliisecond position
+
+		Adjust frame interval by ms <ms>
+			Adjusts the frame interval up or down by the specified ms. This overrides any animation frame rate. Minimum is 15ms. Maximum is 10,000ms. If it adjusts to zero then the override is disabled.
+		
+		Set frame interval to ms <ms>
+			Set the frame interval to the specified ms. This overrides any animation frame rate. Minimum is 15ms. Maximum is 10,000ms. If it is set to zero then the override is disabled and the sequence frame rate is used.
+
+		Start plugin <plugin menu item label>
+			Starts the plugin
+
+		Stop plugin <plugin menu item label>
+			Stops the plugin
+
+		Send command to plugin <plugin menu item label>,<command>,<pipe separated parameters>
+			Sends a command to a named plugin ... commands supported and parameters are defined by the plugin
+
+http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
+
+	This API allows the webpage to store and retrieve data between sessions. The key used should be unique to the webpage. There is no security or protection beyond the password protection to this data. There are 2 commands supported:
+	
+		store <key>	
+			This api is posted and stores the data under the key value.
+			
+		retrieve <key>
+			Retrieves the data from the key value. If the key does not exist a failure result is returned.
+
+	By default there is a key created which contains a JSON description of all available models
+			http://<host:port>/xScheduleStash?Command=retrieve&Key=GetModels
+			
+http://<host:port>/<wwwroot>/<file>
+
+	This type of request is a simple web request which will download the specified file from the web folder the user has specified in options. images, html, css, javascript files can all be stored here.
+
+APIs can also be called over web sockets by sending messages of the form
+
+{"Type":"Command","Command":"","Parameters":"","Data":"","Reference":"","Pass":""}
+{"Type":"Query","Query":"","Parameters":"","Reference":"","Pass":""}
+{"Type":"Stash","Command":"","Key":"","Data":"","Reference":"","Pass":""}
+{"Type":"Login","Credential":"","Reference":""}
+{"Type":"<pluginname>","Command":"","Parameters":"","Data":"","Reference":"","Pass":""}
+
+Pass should be blank unless the page is designed to be used by Joe Public when you have password protection on. For pages you want Joe Public to be able to acces you should have
+javascript like the following in your html or js file:
+
+var pass="!PASS!";
+
+then when you call a websocket API include the pass variable. When the page is sent to the client the !PASS! will be replaced by a value which the client must send for the API to work. This value is valid until the server is restarted.

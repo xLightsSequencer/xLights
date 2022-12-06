@@ -18,7 +18,7 @@ public:
    static bool HasShaderSupport();
    static bool HasFramebufferObjects();
 
-   static unsigned compile( const std::string& vertexSource, const std::string& fragmentSource );
+   static unsigned compile( const std::string& vertexSource, const std::string& fragmentSource, const std::string &filename );
    static std::string PrepareShaderCodeForLogging(const std::string& code);
 };
 

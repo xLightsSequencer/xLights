@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
+#include "../UtilFunctions.h"
 
 class SequenceElements;
 
@@ -20,8 +21,10 @@ class SequenceElements;
 
 #define SHADER_OFFSET_X_MIN -100
 #define SHADER_OFFSET_X_MAX 100
+
 #define SHADER_OFFSET_Y_MIN -100
 #define SHADER_OFFSET_Y_MAX 100
+
 #define SHADER_ZOOM_MIN -100
 #define SHADER_ZOOM_MAX 100
 
@@ -195,7 +198,7 @@ public:
     virtual ~ShaderEffect();
     virtual bool CanBeRandom() override { return false; }
     virtual bool AppropriateOnNodes() const override { return false; }
-    virtual void Render(Effect* effect, SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override { return false; }
     virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
     virtual void SetDefaultParameters() override;
@@ -211,6 +214,42 @@ public:
 
     static void SetBackgroundRender(bool b) { useBackgroundRender = b; }
     static bool IsBackgroundRender() { return useBackgroundRender; }
+
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Shader_Speed")
+            return SHADER_SPEED_MIN;
+        if (name == "E_VALUECURVE_Shader_Offset_X")
+            return SHADER_OFFSET_X_MIN;
+        if (name == "E_VALUECURVE_Shader_Offset_Y")
+            return SHADER_OFFSET_Y_MIN;
+        if (name == "E_VALUECURVE_Shader_Zoom")
+            return SHADER_ZOOM_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Shader_Speed")
+            return SHADER_SPEED_MAX;
+        if (name == "E_VALUECURVE_Shader_Offset_X")
+            return SHADER_OFFSET_X_MAX;
+        if (name == "E_VALUECURVE_Shader_Offset_Y")
+            return SHADER_OFFSET_Y_MAX;
+        if (name == "E_VALUECURVE_Shader_Zoom")
+            return SHADER_ZOOM_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
+
+    virtual int GetSettingVCDivisor(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_")
+            return SHADER_SPEED_DIVISOR;
+        // this tells the caller these settings cannot be scaled and min/max/divisor are unknown
+        if (StartsWith(name, "E_"))
+            return 0xFFFF;
+        return RenderableEffect::GetSettingVCDivisor(name);
+    }
 
 protected:
     bool SetGLContext(ShaderRenderCache*);

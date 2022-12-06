@@ -12,6 +12,7 @@
 
 //(*InternalHeaders(BatchRenderDialog)
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/checklst.h>
 #include <wx/choice.h>
 #include <wx/intl.h>
@@ -24,6 +25,7 @@
 #include <wx/dir.h>
 #include <wx/menu.h>
 #include <wx/config.h>
+#include "ExternalHooks.h"
 
 #include "globals.h"
 
@@ -32,6 +34,7 @@ const long BatchRenderDialog::ID_CHOICE_FILTER = wxNewId();
 const long BatchRenderDialog::ID_CHOICE_FOLDER = wxNewId();
 const long BatchRenderDialog::ID_STATICTEXT1 = wxNewId();
 const long BatchRenderDialog::ID_TEXTCTRL1 = wxNewId();
+const long BatchRenderDialog::ID_CHECKBOX1 = wxNewId();
 const long BatchRenderDialog::ID_CHECKLISTBOX_SEQUENCES = wxNewId();
 const long BatchRenderDialog::ID_BUTTON1 = wxNewId();
 const long BatchRenderDialog::ID_BUTTON2 = wxNewId();
@@ -76,6 +79,10 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Selected = new wxTextCtrl(this, ID_TEXTCTRL1, _("Text"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer2->Add(TextCtrl_Selected, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_ForceHighDefinition = new wxCheckBox(this, ID_CHECKBOX1, _("Force High Definition"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_ForceHighDefinition->SetValue(true);
+	FlexGridSizer2->Add(CheckBox_ForceHighDefinition, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	SequenceList = new wxCheckListBox(this, ID_CHECKLISTBOX_SEQUENCES, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED, wxDefaultValidator, _T("ID_CHECKLISTBOX_SEQUENCES"));
 	SequenceList->SetMinSize(wxDLG_UNIT(this,wxSize(150,200)));
@@ -147,10 +154,11 @@ wxArrayString BatchRenderDialog::GetFileList()
 void BatchRenderDialog::GetSeqList(const wxString& folder)
 {
     wxArrayString files;
-    wxDir::GetAllFiles(folder, &files, "*.x*");
+    GetAllFilesInDir(folder, files, "*.x*", wxDIR_DEFAULT);
     files.Sort();
     for (size_t x = 0; x < files.size(); x++) {
-        wxString name = files[x].SubString(folder.length(), files[x].size());
+        wxString name = files[x];
+        name = name.SubString(folder.length(), files[x].size());
         if (name[0] == '/' || name[0] == '\\') {
             name = name.SubString(1, name.size());
         }

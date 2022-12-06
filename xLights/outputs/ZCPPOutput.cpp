@@ -24,6 +24,7 @@
 #include "../UtilFunctions.h"
 #include "ControllerEthernet.h"
 #include "../OutputModelManager.h"
+#include "../ExternalHooks.h"
 
 #ifndef EXCLUDENETWORKUI
 #include "../controllers/Falcon.h"
@@ -127,7 +128,7 @@ ZCPPOutput::ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir) : IP
         fileName += ".zcpp";
         fileName = showdir + wxFileName::GetPathSeparator() + fileName;
 
-        if (wxFile::Exists(fileName)) {
+        if (FileExists(fileName)) {
             wxFile zf;
             if (zf.Open(fileName)) {
                 uint8_t tag[4];
@@ -281,7 +282,7 @@ wxXmlNode* ZCPPOutput::Save() {
 #pragma endregion
 
 #pragma region Static Functions
-void ZCPPOutput::SendSync() {
+void ZCPPOutput::SendSync(const std::string& localIP) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -302,11 +303,11 @@ void ZCPPOutput::SendSync() {
         syncdata.Sync.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
 
         wxIPV4address localaddr;
-        if (IPOutput::__localIP == "") {
+        if (localIP == "") {
             localaddr.AnyAddress();
         }
         else {
-            localaddr.Hostname(IPOutput::__localIP);
+            localaddr.Hostname(localIP);
         }
 
         if (syncdatagram != nullptr) {
@@ -643,7 +644,7 @@ bool ZCPPOutput::SetModelData(Controller* c, std::list<ZCPP_packet_t*> modelData
     fileName += ".zcpp";
     fileName = showDir + wxFileName::GetPathSeparator() + fileName;
 
-    if (_modelData.size() != modelData.size() || _extraConfig.size() != extraConfig.size() || !wxFile::Exists(fileName)) {
+    if (_modelData.size() != modelData.size() || _extraConfig.size() != extraConfig.size() || !FileExists(fileName)) {
         // different size so must be different
     }
     else {
@@ -775,11 +776,11 @@ bool ZCPPOutput::Open() {
     _packet.Data.priority = _priority;
 
     wxIPV4address localaddr;
-    if (IPOutput::__localIP == "") {
+    if (GetForceLocalIPToUse() == "") {
         localaddr.AnyAddress();
     }
     else {
-        localaddr.Hostname(IPOutput::__localIP);
+        localaddr.Hostname(GetForceLocalIPToUse());
     }
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
@@ -979,22 +980,22 @@ bool ZCPPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
 
     if (name == "SupportsVirtualStrings") {
         SetSupportsVirtualStrings(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::SupportsVirtualStrings");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::SupportsVirtualStrings");
         return true;
     }
     else if (name == "SupportsSmartRemotes") {
         SetSupportsSmartRemotes(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::SupportsSmartRemotes");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::SupportsSmartRemotes");
         return true;
     }
     else if (name == "SendDataMulticast") {
         SetMulticast(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::SendDataMulticast");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::SendDataMulticast");
         return true;
     }
     else if (name == "DontSendConfig") {
         SetDontConfigure(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::DontSendConfig");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::DontSendConfig");
         return true;
     }
 

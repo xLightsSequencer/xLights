@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00054.html" title="Check Sequence: Model in multiple views" category="Layout" level="Advanced" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Check Sequence: Model in multiple views</h1>
+        <p>Ever seen a warning like this in check sequence and wondered what it means and how to fix it?</p>
+        <code>"WARN: Model Group 'Verticals' in preview 'Unassigned' contains model 'Verical Door' which is in preview 'Default'. This will cause the 'Verical Door' model to also appear in the 'Unassigned' preview."</code>
+        <p>So I have two previews ... the default preview which is the main one I see and an unassigned preview (which you also have) which is were I keep models I dont want to show.</p>
+        <p>I have a model 'Vertical Door' which is in my default view so I can see it ... but that model is in a group which is in the unassigned preview. So when I look at my unassigned preview I can see my 'Vertical Door' ... now this is pretty harmless in this case and I can ignore it ... but i could also fix it by doing one of two things:</p>
+        <ul>
+            <li>I can move the model group 'Verticals' into the default preview ... this is probably the right thing to do.</li>
+            <li>I can move the mode 'Vertical Door' into the unassigned preview ... but then I wouldn't see it in my show ... and that aint right.</li>
+        </ul>
+        <p>This is a warning only ... there are times when making a model appear in multiple previews is useful ... and using a model group is an easy way to do it.</p>
+    </body>
+</html>

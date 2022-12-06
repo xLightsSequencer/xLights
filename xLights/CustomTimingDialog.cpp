@@ -11,8 +11,8 @@
 #include "CustomTimingDialog.h"
 
 //(*InternalHeaders(CustomTimingDialog)
-#include <wx/intl.h>
 #include <wx/button.h>
+#include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
@@ -41,7 +41,7 @@ CustomTimingDialog::CustomTimingDialog(wxWindow* parent,wxWindowID id,const wxPo
 	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Frame interval (msec):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_Interval = new wxSpinCtrl(this, ID_SPINCTRL_Interval, _T("33"), wxDefaultPosition, wxDefaultSize, 0, 15, 1000, 33, _T("ID_SPINCTRL_Interval"));
+	SpinCtrl_Interval = new wxSpinCtrl(this, ID_SPINCTRL_Interval, _T("33"), wxDefaultPosition, wxDefaultSize, 0, 10, 1000, 33, _T("ID_SPINCTRL_Interval"));
 	SpinCtrl_Interval->SetValue(_T("33"));
 	FlexGridSizer1->Add(SpinCtrl_Interval, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_FPS = new wxTextCtrl(this, ID_TEXTCTRL_FPS, _("33.30 fps"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_FPS"));

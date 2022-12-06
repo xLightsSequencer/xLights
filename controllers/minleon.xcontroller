@@ -1,6 +1,34 @@
 <Vendor Name="Minleon">
+	<Controller Name="RGB NDB">
+		<Variant Name="">
+			<SupportsUpload/>
+            <SupportsAutoLayout/>
+			<SupportsTs/>
+			<SupportsFullxLightsControl/>
+			<MaxInputUniverses>16</MaxInputUniverses>
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<UniversesMustBeSequential/>
+			<UniversesMustBeInNumericalOrder/>
+			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
+			<MinInputUniverseChannels>510</MinInputUniverseChannels>
+			<PixelProtocols>
+				<Protocol>rgb+</Protocol>
+			</PixelProtocols>
+			<SerialProtocols/>
+			<InputProtocols>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
+			</InputProtocols>
+		</Variant>
+	</Controller>
 	<Controller Name="RGB NDB Plus">
 		<Variant Name="">
+			<SupportsUpload/>
+            <SupportsAutoLayout/>
 			<SupportsPixelPortGrouping/>
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
@@ -23,6 +51,87 @@
 				<Protocol>ucs2903</Protocol>
 				<Protocol>gs820x</Protocol>
 				<Protocol>sk6812</Protocol>
+				<Protocol>rgb+</Protocol>
+				<Protocol>rgbw+</Protocol>
+				<Protocol>rgb+2</Protocol>
+			</PixelProtocols>
+			<SerialProtocols/>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
+			</InputProtocols>
+			<UniversesMustBeInNumericalOrder/>
+		</Variant>
+	</Controller>
+	<Controller Name="RGB NDB 4">
+		<Variant Name="">
+			<SupportsUpload/>
+            <SupportsAutoLayout/>
+			<SupportsPixelPortGrouping/>
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
+			<SupportsTs/>
+			<SupportsFullxLightsControl/>
+			<MaxInputUniverses>4</MaxInputUniverses>
+			<MaxPixelPort>4</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>2760</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<UniversesMustBeSequential/>
+			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
+			<MinInputUniverseChannels>510</MinInputUniverseChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>apa104</Protocol>
+				<Protocol>sm16703</Protocol>
+				<Protocol>ucs2903</Protocol>
+				<Protocol>gs820x</Protocol>
+				<Protocol>sk6812</Protocol>
+				<Protocol>rgb+</Protocol>
+				<Protocol>rgbw+</Protocol>
+				<Protocol>rgb+2</Protocol>
+			</PixelProtocols>
+			<SerialProtocols/>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
+			</InputProtocols>
+			<UniversesMustBeInNumericalOrder/>
+		</Variant>
+	</Controller>
+	<Controller Name="NDB Pro">
+		<Variant Name="">
+			<SupportsUpload/>
+            <SupportsAutoLayout/>
+            <SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
+			<SupportsTs/>
+			<SupportsFullxLightsControl/>
+			<MaxInputUniverses>16</MaxInputUniverses>
+			<MaxPixelPort>8</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>2760</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<UniversesMustBeSequential/>
+			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
+			<MinInputUniverseChannels>510</MinInputUniverseChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>apa104</Protocol>
+				<Protocol>sm16703</Protocol>
+				<Protocol>ucs2903</Protocol>
+				<Protocol>gs820x</Protocol>
+				<Protocol>sk6812</Protocol>
+				<Protocol>rm2021</Protocol>
+				<Protocol>rgb+</Protocol>
+				<Protocol>rgbw+</Protocol>
+				<Protocol>rgb+2</Protocol>
 			</PixelProtocols>
 			<SerialProtocols/>
 			<InputProtocols>

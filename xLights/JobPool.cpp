@@ -20,6 +20,7 @@
 #include <thread>
 #include <chrono>
 
+#include "../common/xlBaseApp.h"
 #include "JobPool.h"
 
 #ifdef LINUX
@@ -68,12 +69,22 @@ public:
 };
 
 static void startFunc(JobPoolWorker *jpw) {
+    try
+    {
+        xlCrashHandler::SetupCrashHandlerForNonWxThread();
+        
 #ifdef LINUX
-    XInitThreads();
+        XInitThreads();
 #endif
-    jpw->Entry();
-    delete jpw;
+        jpw->Entry();
+        delete jpw;
+    }
+    catch (...)
+    {
+        wxTheApp->OnUnhandledException();
+    }
 }
+
 JobPoolWorker::JobPoolWorker(JobPool *p)
 : pool(p), stopped(false), currentJob(nullptr), status(STARTING), thread(nullptr)
 {
@@ -209,6 +220,7 @@ void JobPoolWorker::Entry()
 
     try {
         SetThreadName(pool->threadNameBase);
+        SetThreadQOS(0);
         while ( !stopped ) {
             status = IDLE;
 
@@ -233,7 +245,7 @@ void JobPoolWorker::Entry()
     }  catch ( abi::__forced_unwind& ) {
         currentJob = nullptr;
         logger_jobpool.warn("JobPoolWorker::Entry exiting due to __forced_unwind.  %X", this);
-        pool->numThreads--;
+        --(pool->numThreads);
         status = STOPPED;
         pool->RemoveWorker(this);
         throw;
@@ -241,7 +253,7 @@ void JobPoolWorker::Entry()
     } catch ( ... ) {
         currentJob = nullptr;
         logger_base.error("JobPoolWorker::Entry exiting due to unknown exception. 0x%x", tid);
-        --pool->numThreads;
+        --(pool->numThreads);
         status = STOPPED;
         pool->RemoveWorker(this);
         wxTheApp->OnUnhandledException();
@@ -250,7 +262,7 @@ void JobPoolWorker::Entry()
     }
     currentJob = nullptr;
     logger_jobpool.debug("JobPoolWorker exiting 0x%x", tid);
-    --pool->numThreads;
+    --(pool->numThreads);
     status = STOPPED;
     pool->RemoveWorker(this);
     logger_jobpool.debug("JobPoolWorker::Entry removed.  0x%X", this);
@@ -268,13 +280,15 @@ void JobPoolWorker::ProcessJob(Job *job)
 		currentJob = job;
         
         std::string origName;
+        bool stn = false;
         if (job->SetThreadName()) {
             origName = OriginalThreadName();
             SetThreadName(job->GetName());
+            stn = true;
         }
         bool deleteWhenComplete = job->DeleteWhenComplete();
         RunInAutoReleasePool([job]() { job->Process(); });
-        if (job->SetThreadName()) {
+        if (stn) {
             SetThreadName(origName);
         }
         currentJob = nullptr;
@@ -337,13 +351,17 @@ Job *JobPool::GetNextJob() {
     std::unique_lock<std::mutex> mutLock(queueLock);
     Job *req = nullptr;
     if (queue.empty()) {
-        idleThreads++;
+        SetThreadQOS(0);
+        ++idleThreads;
         signal.wait_for(mutLock, std::chrono::milliseconds(30000));
-        idleThreads--;
+        --idleThreads;
     }
     if ( !queue.empty() ) {
         req = queue.front();
         queue.pop_front();
+        if (req) {
+            SetThreadQOS(10);
+        }
     }
     return req;
 }
@@ -352,7 +370,7 @@ void JobPool::PushJob(Job *job)
 {
 	std::unique_lock<std::mutex> locker(queueLock);
     queue.push_back(job);
-    inFlight++;
+    ++inFlight;
     
     int count = inFlight;
     count -= idleThreads;
@@ -368,7 +386,7 @@ void JobPool::PushJob(Job *job)
         }
         for (int i = 0; i < count; i++) {
             threads.push_back(new JobPoolWorker(this));
-            numThreads++;
+            ++numThreads;
         }
         UnlockThreads();
     }

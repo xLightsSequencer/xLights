@@ -51,6 +51,7 @@ PlayerFrame::PlayerFrame(wxWindow* parent, bool topmost, wxWindowID id, const wx
     //Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&PlayerFrame::OnMouseLeftUp, 0, this);
     //Connect(wxEVT_MOTION, (wxObjectEventFunction)&PlayerFrame::OnMouseMove, 0, this);
 
+    SetBackgroundColour(*wxBLACK);
     SetSize(size);
     SetPosition(pos);
     if (topmost) {

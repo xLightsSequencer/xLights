@@ -126,6 +126,7 @@ class ScheduleManager
         void SetMode(int mode, REMOTEMODE remote);
         void GetMode(int& mode, REMOTEMODE& remote) const { mode = _mode; remote = _remoteMode; }
         void ToggleMute();
+        void ToggleBrightness();
         void SetVolume(int volume);
         void AdjustVolumeBy(int volume);
         int GetVolume() const;
@@ -138,6 +139,9 @@ class ScheduleManager
         const SyncManager* GetSyncManager() const { return _syncManager.get(); }
         int GetTimerAdjustment() const { return _timerAdjustment; }
         std::string GetOurIP() const;
+        void SetForceLocalIP(const std::string& forceLocalIP);
+        std::string GetForceLocalIP() const;
+        void ForceLocalIP(const std::string& forceLocalIP);
         void SetTimerAdjustment(int timerAdjustment) { _timerAdjustment = timerAdjustment; }
         PlayList* GetPlayList(int  id) const;
         PlayList* GetBackgroundPlayList() const { return _backgroundPlayList; }

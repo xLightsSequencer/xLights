@@ -31,12 +31,12 @@ class ListenerMQTT : public ListenerBase
     std::mutex _topicLock;
 
 public:
-    ListenerMQTT(ListenerManager* _listenerManager, const std::string& ip, int port, const std::string& username = "", const std::string& password = "", const std::string& clientId = "");
+    ListenerMQTT(ListenerManager* _listenerManager, const std::string& ip, int port, const std::string& username = "", const std::string& password = "", const std::string& clientId = "", const std::string& localIP = "");
     virtual ~ListenerMQTT() {}
     virtual void Start() override;
     virtual void Stop() override;
     virtual std::string GetType() const override { return "MQTT"; }
-    virtual void StartProcess() override;
+    virtual void StartProcess(const std::string& localIP) override;
     virtual void StopProcess() override;
     virtual void Poll() override;
     std::string GetBrokerIP() const { return _ip; }

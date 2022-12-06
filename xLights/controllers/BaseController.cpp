@@ -17,8 +17,11 @@
 
 #include <curl/curl.h>
 
-#include <log4cpp/Category.hh>
+#ifdef __WXMSW__
+#include "../../xSchedule/xSMSDaemon/Curl.h"
+#endif
 
+#include <log4cpp/Category.hh>
 
 #include "BaseController.h"
 #include "Falcon.h"
@@ -31,13 +34,13 @@
 #include "SanDevices.h"
 #include "Minleon.h"
 #include "WLED.h"
-
+#include "Experience.h"
 
 #pragma region Constructors and Destructors
 BaseController::BaseController(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("") {
     if (!_fppProxy.empty()) {
         _baseUrl = "/proxy/" + _ip;
-    } 
+    }
 }
 
 #ifndef DISCOVERYONLY
@@ -51,7 +54,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
     }
     std::string vendor = controller->GetVendor();
     BaseController* bc = nullptr;
-    
+
     if (ipOrig == "") {
         ip = controller->GetResolvedIP();
         if (ip == "MULTICAST") {
@@ -60,7 +63,11 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
         }
     }
     auto proxy = controller->GetFPPProxy();
-    
+    std::string flip = "";
+    if (dynamic_cast<ControllerEthernet*>(controller) != nullptr) {
+        flip = dynamic_cast<ControllerEthernet*>(controller)->GetFirstOutput()->GetForceLocalIPToUse();
+    }
+
     if (vendor == "Falcon") {
         bc = new Falcon(ip, proxy);
     } else if (vendor == "Advatek" || vendor == "LOR") {
@@ -75,14 +82,16 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
         bc = new HinksPix(ip, proxy);
     } else if (vendor == "HolidayCoro") {
         bc = new AlphaPix(ip, proxy);
-    } else if (vendor == "FPP" || vendor == "KulpLights" || vendor == "Hanson Electronics") {
+    } else if (vendor == "FPP" || vendor == "KulpLights" || vendor == "Hanson Electronics" || vendor == "ScottNation") {
         bc = new FPP(ip, proxy, caps->GetModel());
     } else if (vendor == "Minleon") {
-        bc = new Minleon(ip, proxy);
+        bc = new Minleon(ip, proxy, flip);
+    } else if (vendor == "Experience Lights" || vendor == "Mattos Designs") {
+        bc = new Experience(ip, proxy);
     } else if (vendor == "WLED") {
         bc = new WLED(ip, proxy);
     } else {
-        logger_base.warn("Vendor not recognised ... assuming it is a FPP based vendor : %s.", (const char*)vendor.c_str());
+        logger_base.warn("Vendor not recognized ... assuming it is a FPP based vendor : %s.", (const char*)vendor.c_str());
         bc = new FPP(ip, proxy, caps->GetModel());
     }
     return bc;
@@ -92,7 +101,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
 #pragma endregion
 
 #pragma region Protected Functions
-std::string BaseController::GetURL(const std::string& url, bool logresult, const std::string& username, const std::string& password) {
+std::string BaseController::GetURL(const std::string& url, const std::string& username, const std::string& password) const{
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string res;
@@ -100,17 +109,26 @@ std::string BaseController::GetURL(const std::string& url, bool logresult, const
 
     CURL* curl = curl_easy_init();
     if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
+        auto u = std::string("http://" + baseIP + _baseUrl + url);
+        logger_base.debug("Curl GET: %s", (const char*)u.c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15);
         curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
+        //curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1);
 
         std::string response_string;
 
-        if (username != "")
+        if (!username.empty())
         {
             curl_easy_setopt(curl, CURLOPT_USERNAME, (const char*)username.c_str());
             curl_easy_setopt(curl, CURLOPT_PASSWORD, (const char*)password.c_str());
         }
+
+#ifdef __WXMSW__
+         curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, Curl::CurlDebug);
+         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
 
@@ -130,7 +148,8 @@ std::string BaseController::GetURL(const std::string& url, bool logresult, const
     return res;
 }
 
-std::string BaseController::PutURL(const std::string& url, const std::string& request, bool logresult, const std::string& username, const std::string& password, const std::string& contentType) {
+std::string BaseController::PutURL(const std::string& url, const std::string& request, const std::string& username, const std::string& password, const std::string& contentType) const
+{
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -141,7 +160,14 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
     CURL* curl = curl_easy_init();
     if (curl != nullptr) {
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
+        auto u = std::string("http://" + baseIP + _baseUrl + url);
+        logger_base.debug("Curl POST: %s", (const char*)u.c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
+
+#ifdef __WXMSW__
+        curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, Curl::CurlDebug);
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
 
         struct curl_slist* headers = NULL;
 
@@ -149,6 +175,7 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)request.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)request.c_str());
+        //curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1);
 
         if (username != "")
         {
@@ -157,6 +184,7 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
         }
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30);
+        curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
         std::string buffer = "";
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
 
@@ -166,9 +194,7 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
         if (ret == CURLE_OK) {
             return buffer;
         }
-        else {
-            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));
-        }
+        logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));
     }
 
     return "";

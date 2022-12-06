@@ -4,7 +4,7 @@
 #include "../../RenderBuffer.h"
 #include "MetalComputeUtilities.hpp"
 
-#include "MetalButterflyEffect.hpp"
+#include "MetalEffects.hpp"
 
 
 class MetalRenderUtils : public GPURenderUtils {
@@ -44,6 +44,8 @@ public:
             if (!buffer->gpuRenderData) {
                 buffer->gpuRenderData = new MetalRenderBufferComputeData(buffer, pbc);
             }
+            MetalRenderBufferComputeData *mrbcd = static_cast<MetalRenderBufferComputeData*>(buffer->gpuRenderData);
+            mrbcd->bufferResized();
         }
     }
     virtual void doWaitForRenderCompletion(RenderBuffer *c) override {
@@ -52,9 +54,27 @@ public:
             d->waitForCompletion();
         }
     }
-
-    virtual void doCopyGPUData(RenderBuffer *to, RenderBuffer *from) override {
+    virtual void doCommitRenderBuffer(RenderBuffer *c) override {
+        if (c->gpuRenderData) {
+            MetalRenderBufferComputeData *d = static_cast<MetalRenderBufferComputeData*>(c->gpuRenderData);
+            d->commit();
+        }
     }
+    virtual bool doBlur(RenderBuffer *c, int radius) override {
+        if (c->gpuRenderData) {
+            MetalRenderBufferComputeData *d = static_cast<MetalRenderBufferComputeData*>(c->gpuRenderData);
+            return d->blur(radius);
+        }
+        return false;
+    }
+    virtual bool doRotoZoom(RenderBuffer *c, RotoZoomSettings &settings) override {
+        if (c->gpuRenderData) {
+            MetalRenderBufferComputeData *d = static_cast<MetalRenderBufferComputeData*>(c->gpuRenderData);
+            return d->rotoZoom(settings);
+        }
+        return false;
+    }
+
 
     bool isEnabled = true;
 };
@@ -64,8 +84,15 @@ static MetalRenderUtils METAL_RENDER_UTILS;
 
 RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
     if (MetalComputeUtilities::INSTANCE.computeEnabled()) {
-        if (eff == EffectManager::eff_BUTTERFLY) {
+        switch (eff) {
+        case EffectManager::eff_BUTTERFLY:
             return new MetalButterflyEffect(eff);
+        case EffectManager::eff_PLASMA:
+            return new MetalPlasmaEffect(eff);
+        case EffectManager::eff_WARP:
+            return new MetalWarpEffect(eff);
+        default:
+            return nullptr;
         }
     }
     return nullptr;

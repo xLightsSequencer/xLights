@@ -26,14 +26,14 @@ HttpConnection::HttpConnection(HttpServer *server, wxSocketBase *socket) :
 	_message(NULL)
 {
 	if (!_socket->GetPeer(_address))
-		wxLogMessage(_("accepted a new connection from <unknown> (socket %d)"), socket->GetSocket());
+		wxLogMessage(_("accepted a new connection from <unknown> (socket %d)"), (int)socket->GetSocket());
 	else
-		wxLogMessage(_("accepted a new connection from %s:%u (socket %d)"), _address.IPAddress(), _address.Service(), socket->GetSocket());
+		wxLogMessage(_("accepted a new connection from %s:%u (socket %d)"), _address.IPAddress(), _address.Service(), (int)socket->GetSocket());
 }
 
 HttpConnection::~HttpConnection()
 {
-	wxLogMessage(_("connection closed (socket %d)"), _socket->GetSocket());
+    wxLogMessage(_("connection closed (socket %d)"), (int) _socket->GetSocket());
 }
 
 bool HttpConnection::HandleRequest()

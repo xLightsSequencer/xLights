@@ -21,10 +21,22 @@ class TreeModel : public MatrixModel
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return true; }
-        virtual bool SupportsWiringView() const override { return true; }
+        virtual void ExportAsCustomXModel3D() const override;
+        virtual bool SupportsExportAsCustom3D() const override
+        {
+            return true;
+        }
+        virtual bool SupportsWiringView() const override
+        {
+            return true;
+        }
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
         virtual int NodeRenderOrder() override {return 1;}
+        virtual bool SupportsLowDefinitionRender() const override
+        {
+            return false; // we need to override this as the matrix model can set it to true
+        }
 
     protected:
         virtual void AddStyleProperties(wxPropertyGridInterface *grid) override;

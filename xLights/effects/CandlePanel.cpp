@@ -13,7 +13,6 @@
 #include "CandleEffect.h"
 
 //(*InternalHeaders(CandlePanel)
-#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
@@ -74,13 +73,13 @@ CandlePanel::CandlePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer1->AddGrowableCol(0);
 	Slider_Candle_FlameAgility = new BulkEditSlider(this, IDD_SLIDER_Candle_FlameAgility, 2, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Candle_FlameAgility"));
 	FlexGridSizer1->Add(Slider_Candle_FlameAgility, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Candle_FlameAgilityVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Candle_FlameAgility, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Candle_FlameAgility"));
+	BitmapButton_Candle_FlameAgilityVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Candle_FlameAgility, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Candle_FlameAgility"));
 	FlexGridSizer1->Add(BitmapButton_Candle_FlameAgilityVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer38->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Candle_FlameAgility = new BulkEditTextCtrl(this, ID_TEXTCTRL_Candle_FlameAgility, _("2"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Candle_FlameAgility"));
 	TextCtrl_Candle_FlameAgility->SetMaxLength(2);
 	FlexGridSizer38->Add(TextCtrl_Candle_FlameAgility, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Candle_FlameAgility = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Candle_FlameAgility, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Candle_FlameAgility"));
+	BitmapButton_Candle_FlameAgility = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Candle_FlameAgility, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Candle_FlameAgility"));
 	BitmapButton_Candle_FlameAgility->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer38->Add(BitmapButton_Candle_FlameAgility, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText132 = new wxStaticText(this, ID_STATICTEXT_Candle_WindBaseline, _("Wind Baseline"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Candle_WindBaseline"));
@@ -89,13 +88,13 @@ CandlePanel::CandlePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer2->AddGrowableCol(0);
 	Slider_Candle_WindBaseline = new BulkEditSlider(this, IDD_SLIDER_Candle_WindBaseline, 30, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Candle_WindBaseline"));
 	FlexGridSizer2->Add(Slider_Candle_WindBaseline, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Candle_WindBaselineVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Candle_WindBaseline, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Candle_WindBaseline"));
+	BitmapButton_Candle_WindBaselineVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Candle_WindBaseline, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Candle_WindBaseline"));
 	FlexGridSizer2->Add(BitmapButton_Candle_WindBaselineVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer38->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Candle_WindBaseline = new BulkEditTextCtrl(this, ID_TEXTCTRL_Candle_WindBaseline, _("30"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Candle_WindBaseline"));
 	TextCtrl_Candle_WindBaseline->SetMaxLength(3);
 	FlexGridSizer38->Add(TextCtrl_Candle_WindBaseline, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Cande_WindBaseline = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Candle_WindBaseline, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Candle_WindBaseline"));
+	BitmapButton_Cande_WindBaseline = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Candle_WindBaseline, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Candle_WindBaseline"));
 	BitmapButton_Cande_WindBaseline->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer38->Add(BitmapButton_Cande_WindBaseline, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText30 = new wxStaticText(this, ID_STATICTEXT_Candle_WindVariability, _("Wind Variability"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Candle_WindVariability"));
@@ -104,13 +103,13 @@ CandlePanel::CandlePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer3->AddGrowableCol(0);
 	Slider_Candle_WindVariability = new BulkEditSlider(this, IDD_SLIDER_Candle_WindVariability, 5, 0, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Candle_WindVariability"));
 	FlexGridSizer3->Add(Slider_Candle_WindVariability, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Candle_WindVariabilityVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Candle_WindVariability, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Candle_WindVariability"));
+	BitmapButton_Candle_WindVariabilityVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Candle_WindVariability, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Candle_WindVariability"));
 	FlexGridSizer3->Add(BitmapButton_Candle_WindVariabilityVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer38->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Candle_WindVariability = new BulkEditTextCtrl(this, ID_TEXTCTRL_Candle_WindVariability, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Candle_WindVariability"));
 	TextCtrl_Candle_WindVariability->SetMaxLength(2);
 	FlexGridSizer38->Add(TextCtrl_Candle_WindVariability, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Cande_WinfVariability = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Candle_WindVariability, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Candle_WindVariability"));
+	BitmapButton_Cande_WinfVariability = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Candle_WindVariability, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Candle_WindVariability"));
 	BitmapButton_Cande_WinfVariability->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer38->Add(BitmapButton_Cande_WinfVariability, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Candle_WindCalmness, _("Wind Calmness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Candle_WindCalmness"));
@@ -119,13 +118,13 @@ CandlePanel::CandlePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer4->AddGrowableCol(0);
 	Slider_Candle_WindCalmness = new BulkEditSlider(this, IDD_SLIDER_Candle_WindCalmness, 2, 0, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Candle_WindCalmness"));
 	FlexGridSizer4->Add(Slider_Candle_WindCalmness, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Candle_WindCalmnessVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Candle_WindCalmness, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Candle_WindCalmness"));
+	BitmapButton_Candle_WindCalmnessVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Candle_WindCalmness, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Candle_WindCalmness"));
 	FlexGridSizer4->Add(BitmapButton_Candle_WindCalmnessVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer38->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Candle_WindCalmness = new BulkEditTextCtrl(this, ID_TEXTCTRL_Candle_WindCalmness, _("2"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Candle_WindCalmness"));
 	TextCtrl_Candle_WindCalmness->SetMaxLength(2);
 	FlexGridSizer38->Add(TextCtrl_Candle_WindCalmness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Candle_WindCalmness = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Candle_WindCalmness, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Candle_WindCalmness"));
+	BitmapButton_Candle_WindCalmness = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Candle_WindCalmness, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Candle_WindCalmness"));
 	BitmapButton_Candle_WindCalmness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer38->Add(BitmapButton_Candle_WindCalmness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer38->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -135,8 +134,6 @@ CandlePanel::CandlePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer38->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer38->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer38);
-	FlexGridSizer38->Fit(this);
-	FlexGridSizer38->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_Candle_FlameAgility,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Candle_FlameAgility,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnLockButtonClick);

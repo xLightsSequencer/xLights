@@ -25,6 +25,14 @@ extern "C"
 #include <string>
 
 class wxWindow;
+class wxAppProgressIndicator;
+
+#define MAX_EXPORT_BUFFER_FRAMES 20
+
+// Uncomment this to turn on avlib debug logging
+//#define VIDEOWRITE_DEBUG
+
+void my_av_log_callback(void* ptr, int level, const char* fmt, va_list vargs);
 
 class GenericVideoExporter
 {
@@ -36,10 +44,12 @@ public:
       int   height;
       int   fps;              // limited to constant-FPS input and output currently
       int   audioSampleRate;  // assumes stereo input/output
+      std::string videoCodec; 
+      int videoBitrate; 
    };
 
    // Callbacks provide the video and audio for each frame
-   typedef std::function< bool( uint8_t* /*buf*/, int/*bufSize*/, unsigned /*frameIndex*/ ) > GetVideoFrameCb;
+   typedef std::function< bool( AVFrame * ,uint8_t* /*buf*/, int/*bufSize*/, unsigned /*frameIndex*/ ) > GetVideoFrameCb;
    typedef std::function< bool( float* /*leftCh*/, float* /*rightCh*/, int /*frameSize*/ ) > GetAudioFrameCb;
 
    // Callback to allow the exporter to query the client on whether to abort the export
@@ -64,7 +74,7 @@ public:
    const Params& outputParams() const { return _outParams; }
 
 protected:
-   void initializeVideo( const AVCodec* codec );
+   bool initializeVideo( const AVCodec* codec );
    void initializeAudio( const AVCodec* codec );
    void initializeFrames();
    void initializePackets();
@@ -75,8 +85,8 @@ protected:
    void cleanup();
 
    const std::string       _path;
-   const Params            _inParams;
    const bool              _videoOnly;
+   Params                  _inParams;
    Params                  _outParams;
    int64_t                 _ptsIncrement = 0LL;
    SwsContext*             _swsContext = nullptr;
@@ -84,7 +94,7 @@ protected:
    AVCodecContext*         _videoCodecContext = nullptr;
    AVCodecContext*         _audioCodecContext = nullptr;
    AVFrame*                _colorConversionFrame = nullptr;
-   AVFrame*                _videoFrame = nullptr;
+   AVFrame*                _videoFrames[MAX_EXPORT_BUFFER_FRAMES];
    AVFrame*                _audioFrame = nullptr;
    AVPacket*               _videoPacket = nullptr;
    AVPacket*               _audioPacket = nullptr;
@@ -92,6 +102,8 @@ protected:
    GetAudioFrameCb         _getAudio = nullptr;
    QueryForCancelCb        _queryForCancel = nullptr;
    ProgressReportCb        _progressReporter = nullptr;
+   uint32_t                _curVideoFrame = 0;
+   int64_t                 _curPts = 0LL;
 };
 
 class VideoExporter : public GenericVideoExporter
@@ -101,9 +113,10 @@ public:
                    int width, int height, float scaleFactor,
                    unsigned int frameDuration, unsigned int frameCount,
                    int audioChannelCount, int audioSampleRate,
-                   const std::string& outPath );
+                  const std::string& outPath, const std::string& codec,
+                  int videoBitrate);
 
-    bool Export();
+    bool Export(wxAppProgressIndicator * appIndicator);
 
 protected:
     wxWindow * const    _parent;

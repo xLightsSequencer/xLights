@@ -34,6 +34,8 @@
 #include <wx/arrstr.h>
 #include <wx/filename.h>
 #include <list>
+#include <memory>
+#include <optional>
 #include "SequencePackage.h"
 
 class SequenceElements;
@@ -65,54 +67,48 @@ class xLightsImportModelNode : wxDataViewTreeStoreNode
 public:
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model, const wxString &strand, const wxString &node,
-        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE) : wxDataViewTreeStoreNode(parent, "XXX")
-    {
-        m_parent = parent;
-
-        _model = model;
-        _strand = strand;
-        _node = node;
-        _mapping = mapping;
-        _color = color;
-        _group = false;
-        _mappingExists = mappingExists;
-
-        m_container = false;
-    }
+        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE) : 
+        wxDataViewTreeStoreNode(parent, "XXX"),
+        m_parent(parent),
+        _model(model),
+        _strand(strand),
+        _node(node),
+        _mapping(mapping),
+        _color(color),
+        _group(false),
+        _mappingExists(mappingExists),
+        m_container(false)
+    { }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model, const wxString &strand,
-        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE) : wxDataViewTreeStoreNode(parent, "XXX")
-    {
-        m_parent = parent;
-
-        _model = model;
-        _strand = strand;
-        _node = "";
-        _mapping = mapping;
-        _color = color;
-        _group = false;
-        _mappingExists = mappingExists;
-
-        m_container = true;
-    }
+        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE) :
+        wxDataViewTreeStoreNode(parent, "XXX"),
+        m_parent(parent),
+        _model(model),
+        _strand(strand),
+        _node(wxString()),
+        _mapping(mapping),
+        _color(color),
+        _group(false),
+        _mappingExists(mappingExists),
+        m_container(true)
+    { }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model,
-        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE, const bool isGroup = false) : wxDataViewTreeStoreNode(parent, "XXX")
-    {
-        m_parent = parent;
-
-        _model = model;
-        _strand = "";
-        _node = "";
-        _mapping = mapping;
-        _color = color;
-        _group = isGroup;
-        _mappingExists = mappingExists;
-
-        m_container = !isGroup;
-    }
+        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE, const bool isGroup = false) :
+        wxDataViewTreeStoreNode(parent, "XXX"),
+        m_parent(parent),
+        _model(model),
+        _strand(wxString()),
+        _node(wxString()),
+        _mapping(mapping),
+        _color(color),
+        _group(isGroup),
+        _mappingExists(mappingExists),
+        m_container(!isGroup)
+    { }
 
     ~xLightsImportModelNode()
     {
@@ -139,7 +135,7 @@ public:
 
     bool HasMapping()
     {
-        if (_mapping != "") {
+        if (!_mapping.empty()) {
             return true;
         } else {
             for (size_t i = 0; i < m_children.size(); i++) {
@@ -169,15 +165,15 @@ public:
     {
         return m_children.Item(n);
     }
-    void Insert(xLightsImportModelNode* child, unsigned int n)  
+    void Insert(xLightsImportModelNode* child, unsigned int n)
     {
         m_children.Insert(child, n);
     }
-    void Append(xLightsImportModelNode* child) 
+    void Append(xLightsImportModelNode* child)
     {
         m_children.Add(child);
     }
-    unsigned int GetChildCount() const 
+    unsigned int GetChildCount() const
     {
         return m_children.GetCount();
     }
@@ -221,8 +217,8 @@ public:
         }
     }
 
-    virtual bool GetAttr(const wxDataViewItem &item, unsigned int col, wxDataViewItemAttr &attr) const override;
-    virtual int Compare(const wxDataViewItem& item1, const wxDataViewItem& item2, unsigned int column, bool ascending) const override;
+    bool GetAttr(const wxDataViewItem &item, unsigned int col, wxDataViewItemAttr &attr) const override;
+    int Compare(const wxDataViewItem& item1, const wxDataViewItem& item2, unsigned int column, bool ascending) const override;
 
     void SetMappingExists(const wxDataViewItem &item, bool exists);
     void Insert(xLightsImportModelNode* child, unsigned int n)
@@ -230,18 +226,13 @@ public:
         m_children.Insert(child, n);
         ItemAdded(wxDataViewItem(0), wxDataViewItem(child));
     }
-    
+
     void BulkInsert(xLightsImportModelNode* child, unsigned int n)
     {
         m_children.Insert(child, n);
         _pendingAdditions.Add(wxDataViewItem(child));
     }
-    
-    void NotifyItemsAdded(const wxDataViewItem& parent = wxDataViewItem(0)) {
-        ItemsAdded(parent, _pendingAdditions);
-        _pendingAdditions.Clear();
-    }
-    
+
     void Append(xLightsImportModelNode* child)
     {
         m_children.Add(child);
@@ -314,24 +305,36 @@ public:
     wxString _node;
     wxString _mapping;
     wxColor _color;
-    StashedMapping(wxString model, wxString strand, wxString node, wxString mapping, wxColor color)
+    StashedMapping(wxString model, wxString strand, wxString node, wxString mapping, wxColor color) :
+        _model(std::move(model)), _strand(std::move(strand)), _node(std::move(node)), _mapping(std::move(mapping)), _color(color)
+    { }
+};
+
+struct ImportChannel
+{
+    std::string name;
+    std::string type;
+    ImportChannel(std::string name_, std::string type_):
+        name(std::move(name_)), type(std::move(type_))
+    { }
+    ImportChannel(std::string name_) :
+        name(std::move(name_))
+    { }
+
+    inline bool operator==(const ImportChannel& rhs)
     {
-        _model = model;
-        _strand = strand;
-        _node = node;
-        _mapping = mapping;
-        _color = color;
+        return name == rhs.name;
     }
 };
 
 class xLightsImportChannelMapDialog: public wxDialog
 {
-    xLightsImportModelNode* TreeContainsModel(std::string model, std::string strand = "", std::string node = "");
-    wxDataViewItem FindItem(std::string model, std::string strand = "", std::string node = "");
+    xLightsImportModelNode* TreeContainsModel(std::string const& model, std::string const& strand = "", std::string const& node = "");
+    wxDataViewItem FindItem(std::string const& model, std::string const& strand = "", std::string const& node = "");
     void OnSelectionChanged(wxDataViewEvent& event);
     void OnValueChanged(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);
-    
+
     void OnDragPossible(wxDataViewEvent& event);
     void OnDragDrop(wxDataViewEvent& event);
 
@@ -343,13 +346,13 @@ class xLightsImportChannelMapDialog: public wxDialog
     void SetCCROff();
     void PopulateAvailable(bool ccr);
     void MarkUsed();
-    std::list<StashedMapping*> _stashedMappings;
-    StashedMapping* GetStashedMapping(wxString modelName, wxString strandName, wxString nodeName);
-    bool AnyStashedMappingExists(wxString modelName, wxString strandName);
+    std::list<std::unique_ptr<StashedMapping>> _stashedMappings;
+    StashedMapping* GetStashedMapping(wxString const& modelName, wxString const& strandName, wxString const& nodeName);
+    bool AnyStashedMappingExists(wxString const& modelName, wxString const& strandName);
 
     bool _dirty;
     wxFileName _filename;
-    wxString _mappingFile = "mapping";
+    wxString _mappingFile = "mapping.xmap";
     bool _allowTimingOffset;
     bool _allowTimingTrack;
     bool _allowColorChoice;
@@ -359,7 +362,7 @@ class xLightsImportChannelMapDialog: public wxDialog
     bool _allowImportBlend;
 
 	public:
-   
+
 		xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, bool allowImportBlend, wxWindowID id=wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size=wxDefaultSize);
 		virtual ~xLightsImportChannelMapDialog();
         wxDataViewItem GetNextTreeItem(const wxDataViewItem item) const;
@@ -368,6 +371,12 @@ class xLightsImportChannelMapDialog: public wxDialog
         void SetModelBlending(bool enabled);
         bool GetImportModelBlending();
         void SetXsqPkg(SequencePackage* xsqPkg);
+        [[nodiscard]] std::vector<std::string> const GetChannelNames() const;
+        [[nodiscard]] ImportChannel* GetImportChannel(std::string const& name) const;
+        void SortChannels();
+        void AddChannel(std::string const& name);
+        void LoadMappingFile(wxString const& filepath, bool hideWarnings = false);
+
         xLightsImportTreeModel *_dataModel;
 
 		//(*Declarations(xLightsImportChannelMapDialog)
@@ -403,7 +412,6 @@ class xLightsImportChannelMapDialog: public wxDialog
         xLightsFrame * xlights;
         wxDataViewCtrl* TreeListCtrl_Mapping;
 
-        std::vector<std::string> channelNames;
         std::vector<std::string> ccrNames;
         std::map<std::string, xlColor> channelColors;
         std::vector<std::string> timingTracks;
@@ -460,7 +468,7 @@ protected:
         void OnDrop(wxCommandEvent& event);
         void HandleDropAvailable(wxDataViewItem dropTarget, std::string availableModelName);
         void SetImportMediaTooltip();
-        void LoadAvailableGroups();
+        void LoadRgbEffectsFile();
         void BulkMapSubmodelsStrands(const std::string& fromModel, wxDataViewItem& toModel);
         void BulkMapNodes(const std::string& fromModel, wxDataViewItem& toModel);
         void DoAutoMap(
@@ -469,13 +477,30 @@ protected:
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> lambda_node,
             const std::string& extra1, const std::string& extra2, const std::string& extra3);
 
+
+        void LoadXMapMapping(wxString const& filename, bool hideWarnings);
+        void LoadJSONMapping(wxString const& filename, bool hideWarnings);
         void loadMapHintsFile(wxString const& filename);
+        void SaveXMapMapping(wxString const& filename);
+        void SaveJSONMapping(wxString const& filename);
         void generateMapHintsFile(wxString const& filename);
 
         static wxString AggressiveAutomap(const wxString& name);
-        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> aggressive = [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) { return AggressiveAutomap(wxString(s).Trim(true).Trim(false).Lower()) == c; };
-        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> norm = [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) { return wxString(s).Trim(true).Trim(false).Lower() == c; };
-        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> regex = [](const std::string& s, const std::string& c, const std::string& pattern, const std::string& replacement) {
+        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> aggressive = 
+            [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) 
+        {
+            return AggressiveAutomap(wxString(s).Trim(true).Trim(false).Lower()) == c;
+        };
+
+        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> norm =
+            [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) 
+        { 
+            return wxString(s).Trim(true).Trim(false).Lower() == c; 
+        };
+
+        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> regex =
+            [](const std::string& s, const std::string& c, const std::string& pattern, const std::string& replacement) 
+        {
             static wxRegEx r;
             static std::string lastRegex;
 
@@ -495,10 +520,12 @@ protected:
             return false;
         };
 
-        SequencePackage* _xsqPkg = nullptr;
-        std::vector<std::string> _availableGroups;
+        SequencePackage* _xsqPkg {nullptr};
+
+        std::vector<std::unique_ptr<ImportChannel>> importChannels;
+        std::unique_ptr<wxImageList> m_imageList;
 
 		DECLARE_EVENT_TABLE()
 
-        
+
 };

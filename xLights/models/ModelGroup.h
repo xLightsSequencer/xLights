@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <vector>
+#include <set>
 #include <string>
 
 #include "Model.h"
@@ -22,7 +23,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
     public:
 
         static bool AllModelsExist(wxXmlNode* node, const ModelManager& models);
-        static bool RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels);
+        static bool RemoveNonExistentModels(wxXmlNode* node, const std::set<std::string>& allmodels);
 
         ModelGroup(wxXmlNode *node, const ModelManager &manager, int previewW, int previewH);
         ModelGroup(wxXmlNode* node, const ModelManager& m, int w, int h, const std::string& mgname, const std::string& mname);
@@ -38,19 +39,23 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetGridSize() const;
         int GetXCentreOffset() const;
         int GetYCentreOffset() const;
+        std::string GetDefaultCamera() const;
 
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}
         const std::vector<Model *> &Models() const { return models;}
+        const std::vector<Model *> &ActiveModels() const { return activeModels;}
         Model* GetModel(std::string modelName) const;
         Model* GetFirstModel() const;
-        std::list<Model*> GetFlatModels() const;
+        std::list<Model*> GetFlatModels(bool removeDuplicates = true, bool activeOnly = true) const;
         bool ContainsModelGroup(ModelGroup* mg);
-        bool ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited);
+        bool ContainsModelGroup(ModelGroup* mg, std::set<Model*>& visited);
         bool DirectlyContainsModel(Model* m) const;
         bool DirectlyContainsModel(std::string const& m) const;
         bool ContainsModel(Model* m) const;
         bool ContainsModel(Model* m, std::list<const Model*>& visited) const;
+        bool ContainsModelOrSubmodel(Model* m) const;
+        bool ContainsModelOrSubmodel(Model* m, std::list<const Model*>& visited) const;
         bool OnlyContainsModel(const std::string& name) const;
         int GetModelCount() const { return models.size(); }
         std::string SerialiseModelGroup(const std::string& forModel) const;
@@ -59,7 +64,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+                                           std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep = false) const override;
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
 
@@ -77,6 +82,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 
         std::vector<std::string> modelNames;
         std::vector<Model *> models;
+        std::vector<Model *> activeModels;
         bool selected;
         std::string defaultBufferStyle;
 };

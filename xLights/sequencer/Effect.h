@@ -28,6 +28,8 @@ class RenderBuffer;
 class RenderCache;
 class Model;
 class RenderableEffect;
+class xLightsFrame;
+class EffectManager;
 
 #define EFFECT_NOT_SELECTED     0
 #define EFFECT_LT_SELECTED      1
@@ -41,7 +43,7 @@ class Effect
 {
     int mID = 0;
     short mEffectIndex = -1;
-    std::string *mName;
+    std::string *mName = nullptr;
     int mStartTime = 0;
     int mEndTime = 0;
     int mSelected = 0;
@@ -63,7 +65,7 @@ class Effect
     static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors, xlColorCurveVector& mCC);
 
 public:
-    Effect(EffectLayer* parent, int id, const std::string & name, const std::string &settings, const std::string &palette,
+    Effect(EffectManager* effectManager, EffectLayer* parent, int id, const std::string & name, const std::string &settings, const std::string &palette,
         int startTimeMS, int endTimeMS, int Selected, bool Protected);
     virtual ~Effect();
 
@@ -81,6 +83,7 @@ public:
     void SetEffectName(const std::string & name);
 
     wxString GetDescription() const;
+    std::string GetSetting(const std::string& id) const;
 
     int GetStartTimeMS() const { return mStartTime; }
     void SetStartTimeMS(int startTimeMS);
@@ -100,8 +103,10 @@ public:
     bool GetProtected() const { return mProtected; }
     void SetProtected(bool Protected) { mProtected = Protected; }
 
+    bool IsModelRenderDisabled() const;
+    bool IsEffectRenderDisabled() const;
     bool IsRenderDisabled() const;
-    void SetRenderDisabled(bool disabled);
+    void SetEffectRenderDisabled(bool disabled);
 
     bool IsLocked() const;
     void SetLocked(bool lock);
@@ -112,20 +117,27 @@ public:
     void IncrementChangeCount();
 
     std::string GetSettingsAsString() const;
-    void SetSettings(const std::string &settings, bool keepxsettings);
+    std::string GetSettingsAsJSON() const;
+    void SetSettings(const std::string &settings, bool keepxsettings, bool json = false);
+    bool SettingsChanged(const std::string& settings);
     void ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid);
+    bool UsesColour(const std::string& from);
+    int ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to);
     void PressButton(RenderableEffect* re, const std::string& id);
     const SettingsMap &GetSettings() const { return mSettings; }
     void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
     void FixBuffer(const Model* m);
     bool IsPersistent() const;
 
+
+
     const xlColorVector &GetPalette() const { return mColors; }
     int GetPaletteSize() const { return mColors.size(); }
     const SettingsMap &GetPaletteMap() const { return mPaletteMap; }
     std::string GetPaletteAsString() const;
+    std::string GetPaletteAsJSON() const;
     void SetPalette(const std::string& i);
-    void SetColourOnlyPalette(const std::string & i);
+    void SetColourOnlyPalette(const std::string& i, bool json = false);
     void CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const;
 
     /* Do NOT call these on any thread other than the main thread */

@@ -22,6 +22,7 @@
 #include "../xLights/outputs/ZCPPOutput.h"
 #include "../xLights/outputs/DDPOutput.h"
 #include "../xLights/outputs/ArtNetOutput.h"
+#include "../xLights/outputs/TwinklyOutput.h"
 #include "../xLights/controllers/FPP.h"
 #include "../xLights/outputs/ControllerEthernet.h"
 #include "MAC.h"
@@ -289,15 +290,20 @@ void PingWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 std::string HTTPWork::GetTitle(const std::string& page)
 {
-	wxRegEx title("<[^>]*title[^>]*>(.*)<[^>]*\\/[^>]*title[^>]*>");
-	if (title.Matches(page) && title.GetMatchCount() > 1) {
-		wxString t = title.GetMatch(page, 1);
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static wxRegEx title("<[^>]*title[^>]*>(.*)<[^>]*\\/[^>]*title[^>]*>");
+    logger_base.debug("    Scanning for title.");
+    if (title.Matches(page) && title.GetMatchCount() > 1) {
+
+        logger_base.debug("    Title matches found %u.", (uint32_t)title.GetMatchCount());
+        wxString t = title.GetMatch(page, 1);
+        logger_base.debug("    Title value extracted.");
 
 		if (t.Contains("404")) {
 			return "";
 		}
 
-		return t;
+		return t.ToStdString();
 	}
 
 	return "";
@@ -313,8 +319,16 @@ std::string HTTPWork::GetControllerTypeBasedOnPageContent(const std::string& pag
 	if (Contains(page, "ECG-PIXAD8")) return "J1Sys PIXAD8";
 	if (Contains(page, "E6804")) return "SanDevices E6804";
 	if (Contains(page, "E682")) return "SanDevices E682";
-	if (Contains(page, "E681")) return "SanDevices E681";
-	if (Contains(page, "NDB")) return "Minleon NDB";
+    if (Contains(page, "pixlite/mk3"))
+        return "Pixlite MK3";
+    if (Contains(page, "E681"))
+        return "SanDevices E681";
+    if (Contains(page, "This URI does not exist"))
+        return "Twinkly";
+    if (Contains(page, "NDBPRO"))
+        return "Minleon NDBPro";
+    if (Contains(page, "NDB"))
+        return "Minleon NDB+";
 	if (Contains(page, "WLED")) return "WLED";         // this is speculative ... I have no idea if this will work
 	if (Contains(page, "Hinkspix")) return "Hinkspix"; // this is speculative ... I have no idea if this will work
 	if (Contains(page, "Alphapix")) return "Alphapix"; // this is speculative ... I have no idea if this will work
@@ -347,16 +361,22 @@ void HTTPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			}
 
 			try {
-				std::string page = Curl::HTTPSGet(_proxy + _ip, "", "", SLOW_TIMEOUT);
+                logger_base.debug("    Getting the web page.");
+                std::string page = Curl::HTTPSGet(_proxy + _ip, "", "", SLOW_TIMEOUT);
+                logger_base.debug("    Got the web page.");
 
 				if (page != "") {
-					std::string title = GetTitle(page);
-					if (title != "") {
+                    logger_base.debug("    Getting the title.");
+                    std::string title = GetTitle(page);
+                    logger_base.debug("    Got the title.");
+                    if (title != "") {
 						results.push_back({ "Title", title });
 					}
 
-					std::string controller = GetControllerTypeBasedOnPageContent(page);
-					if (controller != "") {
+                    logger_base.debug("    Determining controller type.");
+                    std::string controller = GetControllerTypeBasedOnPageContent(page);
+                    logger_base.debug("    Got the controller type.");
+                    if (controller != "") {
 						results.push_back({ "Controller", controller });
 					}
 				}
@@ -579,7 +599,7 @@ void FalconWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 	logger_base.debug("FalconWork %s %s", (const char*)_proxy.c_str(), (const char*)_ip.c_str());
 	auto status = Curl::HTTPSGet(proxy + _ip + "/status.xml", "", "", SLOW_TIMEOUT);
 
-	if (status != "" && Contains(status, "<response>") && Contains(status, "<t1>") && Contains(status, "<p>")) {
+	if (status != "" && Contains(status, "<response>") && Contains(status, "<np>") && Contains(status, "<p>")) {
 
 		logger_base.debug("    Falcon found");
 		results.push_back({ "IP", _ip});
@@ -760,6 +780,7 @@ void DiscoverWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 	ArtNetOutput::PrepareDiscovery(discovery);
 	DDPOutput::PrepareDiscovery(discovery);
 	FPP::PrepareDiscovery(discovery);
+    TwinklyOutput::PrepareDiscovery(discovery);
 
 	discovery.Discover();
 
@@ -777,7 +798,10 @@ void DiscoverWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			results.push_back({ "Discovered", "TRUE" });
 			if (discovered->vendor != "") {
 				results.push_back({ "Vendor", discovered->vendor });
-			}
+            } else if (discovered->controller != nullptr && discovered->controller->GetProtocol() == "Twinkly") {
+                results.push_back({ "Vendor", "Twinkly" });
+                results.push_back({ "Pixels", wxString::Format("%d", discovered->controller->GetChannels()).ToStdString() });
+            }
 			if (discovered->model != "") {
 				results.push_back({ "Model", discovered->model });
 			}

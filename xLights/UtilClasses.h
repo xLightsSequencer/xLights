@@ -16,6 +16,8 @@
 
 #include <wx/filepicker.h>
 
+class EffectManager;
+
 class MapStringString: public std::map<std::string,std::string> {
 public:
     MapStringString(): std::map<std::string,std::string>() {
@@ -39,130 +41,123 @@ public:
             return def;
         }
     }
-    float GetFloat(const std::string &key, const float def = 0.0) const {
-        std::map<std::string,std::string>::const_iterator i(find(key));
+    float GetFloat(const std::string& key, const float def = 0.0) const
+    {
+        std::map<std::string, std::string>::const_iterator i(find(key));
         if (i == end() || i->second.length() == 0) {
             return def;
         }
         try {
             return stof(i->second);
-        } catch ( ... ) {
+        }
+        catch (...) {
             return def;
         }
     }
-    double GetDouble(const std::string &key, const double def = 0.0) const {
-        std::map<std::string,std::string>::const_iterator i(find(key));
+    double GetDouble(const std::string& key, const double def = 0.0) const
+    {
+        std::map<std::string, std::string>::const_iterator i(find(key));
         if (i == end() || i->second.length() == 0) {
             return def;
         }
         try {
             return stod(i->second);
-        } catch ( ... ) {
+        }
+        catch (...) {
             return def;
         }
     }
-    bool GetBool(const std::string &key, const bool def = false) const {
-        std::map<std::string,std::string>::const_iterator i(find(key));
+    bool GetBool(const std::string& key, const bool def = false) const
+    {
+        std::map<std::string, std::string>::const_iterator i(find(key));
         if (i == end()) {
             return def;
         }
         return i->second.length() >= 1 && i->second.at(0) == '1';
     }
-    const std::string &Get(const std::string &key, const std::string &def) const {
-        std::map<std::string,std::string>::const_iterator i(find(key));
+    const std::string& Get(const std::string& key, const std::string& def) const
+    {
+        std::map<std::string, std::string>::const_iterator i(find(key));
         if (i == end()) {
             return def;
         }
         return i->second;
     }
-    std::string Get(const std::string &key, const char *def) const {
-        std::map<std::string,std::string>::const_iterator i(find(key));
+
+    std::string Get(const std::string& key, const char* def) const
+    {
+        std::map<std::string, std::string>::const_iterator i(find(key));
         if (i == end()) {
             return def;
         }
         return i->second;
     }
-    bool Contains(const std::string &key) const {
+
+    bool Contains(const std::string& key) const
+    {
         std::map<std::string, std::string>::const_iterator i(find(key));
         if (i == end()) {
             return false;
         }
         return true;
     }
-    
 
-
-
-    const std::string &operator[](const char *key) const {
+    const std::string& operator[](const char* key) const
+    {
         return Get(key, EMPTY_STRING);
     }
-    std::string &operator[](const char *ckey) {
+    std::string& operator[](const char* ckey)
+    {
         std::string key(ckey);
         return std::map<std::string, std::string>::operator[](key);
     }
-    int GetInt(const char * ckey, const int def = 0) const {
+    int GetInt(const char* ckey, const int def = 0) const
+    {
         return GetInt(std::string(ckey), def);
     }
-    double GetDouble(const char *ckey, const double &def = 0.0) const {
+    double GetDouble(const char* ckey, const double& def = 0.0) const
+    {
         return GetDouble(std::string(ckey), def);
     }
-    float GetFloat(const char *ckey, const float &def = 0.0) const {
+    float GetFloat(const char* ckey, const float& def = 0.0) const
+    {
         return GetFloat(std::string(ckey), def);
     }
-    bool GetBool(const char *ckey, const bool def = false) const {
+    bool GetBool(const char* ckey, const bool def = false) const
+    {
         return GetBool(std::string(ckey), def);
     }
-    const std::string &Get(const char *ckey, const std::string &def) const {
+    const std::string& Get(const char* ckey, const std::string& def) const
+    {
         return Get(std::string(ckey), def);
     }
-    bool Contains(const char* ckey) const {
+    bool Contains(const char* ckey) const
+    {
         std::string key(ckey);
         return Contains(key);
     }
 
-    std::string Get(const char *ckey, const char *def) const {
+    std::string Get(const char* ckey, const char* def) const
+    {
         std::string key(ckey);
-        std::map<std::string,std::string>::const_iterator i(find(key));
+        std::map<std::string, std::string>::const_iterator i(find(key));
         if (i == end()) {
             return def;
         }
         return i->second;
     }
-    size_type erase(const char *ckey) {
+    size_type erase(const char* ckey)
+    {
         std::string key(ckey);
-        return std::map<std::string,std::string>::erase(key);
+        return std::map<std::string, std::string>::erase(key);
     }
-    size_type erase(const std::string &key) {
-        return std::map<std::string,std::string>::erase(key);
+    size_type erase(const std::string& key)
+    {
+        return std::map<std::string, std::string>::erase(key);
     }
 
-
-    void Parse(const std::string &str) {
-        clear();
-        std::string before,after,name,value;
-        std::string settings(str);
-        while (!settings.empty()) {
-            size_t start_pos = settings.find(',');
-            if (start_pos != std::string::npos) {
-                before = settings.substr(0, start_pos);
-                settings = settings.substr(start_pos + 1);
-            } else {
-                before = settings;
-                settings = "";
-            }
-
-            start_pos = before.find('=');
-            name = before.substr(0, start_pos);
-            value = before.substr(start_pos + 1);
-            ReplaceAll(value, "&comma;", ","); //unescape the commas
-            ReplaceAll(value, "&amp;", "&"); //unescape the amps
-
-            RemapKey(name, value);
-            if (!name.empty()) {
-                (*this)[name]=value;
-            }
-        }
-    }
+    void ParseJson(EffectManager* effectManager, const std::string& str, const std::string& effectName);
+    void Parse(EffectManager* effectManager, const std::string& str, const std::string& effectName);
 
     virtual void RemapKey(std::string &n, std::string &value) {};
     std::string AsString() const {
@@ -178,6 +173,22 @@ public:
         }
         return ret;
     }
+    [[nodiscard]]std::string AsJSON() const
+    {
+        std::string ret ;
+        for (std::map<std::string, std::string>::const_iterator it = begin(); it != end(); ++it) {
+            if (ret.length() != 0) {
+                ret += ",";
+            }
+            std::string value = it->second;
+            ReplaceAll(value, "&", "&amp;");   // need to escape the amps
+            ReplaceAll(value, ",", "&comma;"); // need to escape the commas
+            ret += "\"" + it->first + "\":\"" + value + "\"";
+        }
+        ret.insert(0,"{");
+        ret.append("}");
+        return ret;
+    }
 
 private:
 
@@ -187,6 +198,12 @@ private:
             str.replace(start_pos, from.length(), to);
             start_pos += to.length();
         }
+    }
+
+    static void Trim(std::string& s)
+    {
+        s.erase(s.begin(), std::find_if_not(s.begin(), s.end(), [](char c) { return std::isspace(c); }));
+        s.erase(std::find_if_not(s.rbegin(), s.rend(), [](char c) { return std::isspace(c); }).base(), s.end());
     }
 
     static const std::string EMPTY_STRING;

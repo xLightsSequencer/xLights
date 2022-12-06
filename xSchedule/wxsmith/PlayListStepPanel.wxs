@@ -43,6 +43,53 @@
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_EveryStep" member="yes">
 					<label>Run everything in this step in every step</label>
+					<handler function="OnCheckBox_EveryStepClick" entry="EVT_CHECKBOX" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>2</cols>
+					<growablecols>1</growablecols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+							<label></label>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_ExcludeFirstStep" member="yes">
+							<label>Exclude First Step If Only Once</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+							<label></label>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_ExcludeLastStep" member="yes">
+							<label>Exclude Last Step If Only Once</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

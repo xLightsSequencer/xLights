@@ -17,43 +17,14 @@
 #include "RenderBuffer.h"
 #include "ValueCurve.h"
 #include "RenderUtils.h"
+#include "GPURenderUtils.h"
 #include "Color.h"
-
-#define BLUR_MIN 1
-#define BLUR_MAX 15
-#define RZ_ROTATION_MIN 0
-#define RZ_ROTATION_MAX 100
-#define RZ_ZOOM_MIN 0
-#define RZ_ZOOM_MAX 30
-#define RZ_ZOOM_DIVISOR 10
-#define RZ_ROTATIONS_MIN 0
-#define RZ_ROTATIONS_MAX 200
-#define RZ_ROTATIONS_DIVISOR 10
-#define RZ_PIVOTX_MIN 0
-#define RZ_PIVOTX_MAX 100
-#define RZ_PIVOTY_MIN 0
-#define RZ_PIVOTY_MAX 100
-#define RZ_XROTATION_MIN 0
-#define RZ_XROTATION_MAX 360
-#define RZ_YROTATION_MIN 0
-#define RZ_YROTATION_MAX 360
-#define RZ_XPIVOT_MIN 0
-#define RZ_XPIVOT_MAX 100
-#define RZ_YPIVOT_MIN 0
-#define RZ_YPIVOT_MAX 100
-
-#define SB_LEFT_BOTTOM_MIN -100
-#define SB_LEFT_BOTTOM_MAX 99
-#define SB_RIGHT_TOP_MIN 1
-#define SB_RIGHT_TOP_MAX 200
-#define SB_CENTRE_MIN -100
-#define SB_CENTRE_MAX 100
 
  /**
  * \brief enumeration of the different techniques used in layering effects
  */
 
-enum MixTypes
+enum class MixTypes
 {
     Mix_Normal,  /** Layered with Alpha channel considered **/
     Mix_Effect1, /**<  Effect 1 only */
@@ -91,8 +62,6 @@ private:
     class LayerInfo {
     public:
         LayerInfo(xLightsFrame *frame) : buffer(frame) {
-            ModelBufferHt = 0;
-            ModelBufferWi = 0;
             inMaskFactor = 0;
             outMaskFactor = 0;
 			blur = 0;
@@ -116,13 +85,13 @@ private:
             valueadjust = 0;
             contrast = 0;
             fadeFactor = 0.0;
-            mixType = Mix_Normal;
+            mixType = MixTypes::Mix_Normal;
             effectMixThreshold = 0.0;
             effectMixVaries = false;
             canvas = false;
-            BufferHt = BufferWi = 0;
+            BufferHt = BufferWi = BufferOffsetX = BufferOffsetY = 0;
             persistent = false;
-            usingModelBuffers = false;
+            modelBuffers = nullptr;
             freezeAfterFrame = 10000;
             suppressUntil = 0;
             fadeInSteps = fadeOutSteps = 0;
@@ -152,8 +121,8 @@ private:
         std::string rotoZoom;
         int BufferHt;
         int BufferWi;
-        int ModelBufferHt;
-        int ModelBufferWi;
+        int BufferOffsetX;
+        int BufferOffsetY;
         ValueCurve BlurValueCurve;
         ValueCurve SparklesValueCurve;
         ValueCurve BrightnessValueCurve;
@@ -209,8 +178,10 @@ private:
         bool outTransitionReverse;
         float inMaskFactor;
         float outMaskFactor;
-        bool usingModelBuffers;
-        std::vector<std::unique_ptr<RenderBuffer>> modelBuffers;
+
+        std::vector<std::unique_ptr<RenderBuffer>> *modelBuffers = nullptr;
+        std::vector<std::unique_ptr<RenderBuffer>> shallowModelBuffers;
+        std::vector<std::unique_ptr<RenderBuffer>> deepModelBuffers;
         bool isChromaKey = false;
         xlColor chromaKeyColour = xlBLACK;
         xlColor sparklesColour = xlWHITE;
@@ -259,9 +230,10 @@ private:
     void reset(int layers, int timing, bool isNode = false);
 	void Blur(LayerInfo* layer, float offset);
     void RotoZoom(LayerInfo* layer, float offset);
-    void RotateX(LayerInfo* layer, float offset);
-    void RotateY(LayerInfo* layer, float offset);
-    void RotateZAndZoom(LayerInfo* layer, float offset);
+    void RotateX(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings);
+    void RotateY(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings);
+    void RotateZAndZoom(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings);
+    
     void GetMixedColor(int node, const std::vector<bool> & validLayers, int EffectPeriod, int saveLayer);
 
     std::string modelName;
@@ -275,7 +247,7 @@ private:
 
 public:
     static std::vector<std::string> GetMixTypes();
-    void GetMixedColor(int x, int y, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod);
+    void GetMixedColor(int x, int y, xlColor& c, const std::vector<bool>& validLayers, int EffectPeriod);
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
     xlColor GetNodeColor(size_t nodenum) const;
@@ -298,6 +270,7 @@ public:
 
     RenderBuffer &BufferForLayer(int i, int idx);
     uint32_t BufferCountForLayer(int i);
+    void UnMergeBuffersForLayer(int i);
     void MergeBuffersForLayer(int i);
 
     int GetLayerCount() const;
@@ -305,6 +278,7 @@ public:
     void InitStrandBuffer(const Model &pbc, int strand, int timing, int layers);
     void InitNodeBuffer(const Model &pbc, int strand, int node, int timing);
     void InitPerModelBuffers(const ModelGroup& model, int layer, int timing);
+    void InitPerModelBuffersDeep(const ModelGroup& model, int layer, int timing);
 
     void Clear(int which);
 
@@ -318,10 +292,11 @@ public:
     void SetLayer(int newlayer, int period, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);
 
+    
+    void HandleLayerBlurZoom(int EffectPeriod, int layer);
     void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers, int saveLayer = 0);
     void SetColors(int layer, const unsigned char *fdata);
     void GetColors(unsigned char *fdata, const std::vector<bool> &restrictRange);
-
 
     //place for GPU Renderers to attach extra data/objects it needs
     void *gpuRenderData = nullptr;

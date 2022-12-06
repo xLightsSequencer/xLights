@@ -14,6 +14,7 @@
 #include <wx/textctrl.h>
 #include <wx/spinctrl.h>
 #include <wx/choice.h>
+#include <wx/combobox.h>
 #include <wx/checkbox.h>
 #include <wx/fontpicker.h>
 #include "ValueCurveButton.h"
@@ -152,6 +153,8 @@ protected:
     bool _supportsBulkEdit;
     wxString _wildcard;
 
+    virtual void ValidateControl();
+
     public:
 
     BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, const wxString& path, const wxString& message, const wxString& wildcard, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxSL_HORIZONTAL, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxSliderNameStr);
@@ -162,6 +165,7 @@ protected:
     void OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event);
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
+    virtual bool Enable(bool enable = true) override;
 };
 
 class BulkEditTextCtrlF1 : public BulkEditTextCtrl
@@ -217,6 +221,31 @@ public:
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
 };
 
+class BulkEditComboBox : public wxComboBox
+{
+protected:
+    long ID_COMBOBOX_BULKEDIT;
+    bool _supportsBulkEdit;
+    std::vector<std::string> _defaultOptions;
+
+public:
+    BulkEditComboBox(wxWindow* parent, wxWindowID id, const wxString& value, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, int n = 0, const wxString choices[] = NULL, long style = 0, const wxValidator& validator = wxDefaultValidator, const wxString& name = wxChoiceNameStr);
+    virtual ~BulkEditComboBox()
+    {}
+    void OnRightDown(wxMouseEvent& event);
+    virtual void OnComboBoxPopup(wxCommandEvent& event);
+    void SetSupportsBulkEdit(bool supportsBulkEdit)
+    {
+        _supportsBulkEdit = supportsBulkEdit;
+    }
+    bool SupportsBulkEdit() const
+    {
+        return _supportsBulkEdit;
+    }
+    void PopulateComboBox();
+    void AppendDefault(const std::string& def);
+};
+
 class BulkEditFaceChoice : public BulkEditChoice
 {
 public:
@@ -243,7 +272,7 @@ protected:
 
 public:
 
-    BulkEditValueCurveButton(wxWindow *parent, wxWindowID id, const wxBitmap& bitmap, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxBU_AUTODRAW, const wxValidator& validator = wxDefaultValidator, const wxString& name = wxButtonNameStr);
+    BulkEditValueCurveButton(wxWindow *parent, wxWindowID id, const wxBitmapBundle& bitmap, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxBU_AUTODRAW, const wxValidator& validator = wxDefaultValidator, const wxString& name = wxButtonNameStr);
     virtual ~BulkEditValueCurveButton() {}
     void OnRightDown(wxMouseEvent& event);
     void OnValueCurvePopup(wxCommandEvent &event);

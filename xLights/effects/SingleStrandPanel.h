@@ -38,9 +38,13 @@ class SingleStrandPanel: public xlEffectPanel
 		BulkEditCheckBox* CheckBox_Chase_3dFade1;
 		BulkEditCheckBox* CheckBox_Chase_Group_All;
 		BulkEditChoice* Choice_Chase_Type1;
+		BulkEditChoice* Choice_FX_Palette;
 		BulkEditChoice* Choice_SingleStrand_Colors;
+		BulkEditChoice* Choice_SingleStrand_FX;
 		BulkEditChoice* Choice_Skips_Direction;
 		BulkEditSlider* Slider_Color_Mix1;
+		BulkEditSlider* Slider_FX_Intensity;
+		BulkEditSlider* Slider_FX_Speed;
 		BulkEditSlider* Slider_Number_Chases;
 		BulkEditSlider* Slider_Skips_Advance;
 		BulkEditSlider* Slider_Skips_BandSize;
@@ -49,10 +53,13 @@ class SingleStrandPanel: public xlEffectPanel
 		BulkEditSliderF1* Slider_Chase_Rotations;
 		BulkEditValueCurveButton* BitmapButton_Chase_Rotations;
 		BulkEditValueCurveButton* BitmapButton_Color_Mix1VC;
+		BulkEditValueCurveButton* BitmapButton_FX_IntensityVC;
+		BulkEditValueCurveButton* BitmapButton_FX_SpeedVC;
 		BulkEditValueCurveButton* BitmapButton_Number_ChasesVC;
 		wxNotebook* SingleStrandEffectType;
 		wxPanel* Panel1;
 		wxPanel* Panel2;
+		wxPanel* Panel_FX;
 		wxStaticText* StaticText101;
 		wxStaticText* StaticText105;
 		wxStaticText* StaticText106;
@@ -60,6 +67,10 @@ class SingleStrandPanel: public xlEffectPanel
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText179;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
 		wxStaticText* StaticText60;
 		wxStaticText* StaticText61;
 		wxStaticText* StaticText9;
@@ -126,6 +137,19 @@ class SingleStrandPanel: public xlEffectPanel
 		static const long ID_CHOICE_Skips_Direction;
 		static const long ID_BITMAPBUTTON_CHOICE_Skips_Direction;
 		static const long ID_PANEL21;
+		static const long ID_STATICTEXT2;
+		static const long ID_CHOICE_SingleStrand_FX;
+		static const long ID_STATICTEXT4;
+		static const long ID_CHOICE_SingleStrand_FX_Palette;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_FX_Intensity;
+		static const long ID_VALUECURVE_FX_Intensity;
+		static const long IDD_TEXTCTRL_FX_Intensity;
+		static const long ID_STATICTEXT3;
+		static const long ID_SLIDER_FX_Speed;
+		static const long ID_VALUECURVE_FX_Speed;
+		static const long IDD_TEXTCTRL_FX_Speed;
+		static const long ID_PANEL1;
 		static const long ID_NOTEBOOK_SSEFFECT_TYPE;
 		//*)
 

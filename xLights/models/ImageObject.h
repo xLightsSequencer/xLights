@@ -11,7 +11,8 @@
  **************************************************************/
 
 #include "ViewObject.h"
-#include "graphics/opengl/Image.h"
+#include "BoxedScreenLocation.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 
 class ModelPreview;
 
@@ -23,12 +24,12 @@ class ImageObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 
         virtual void InitModel() override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
 
         int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-        virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected = false) override;
+        virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
         virtual std::list<std::string> GetFileReferences() override;
         virtual bool CleanupFileLocations(xLightsFrame* frame) override;
@@ -40,7 +41,7 @@ class ImageObject : public ObjectWithScreenLocation<BoxedScreenLocation>
         std::string _imageFile;
         int width;
         int height;
-        std::map<std::string, Image*> _images;
+        std::map<std::string, xlTexture*> _images;
         int transparency;
         float brightness;
 

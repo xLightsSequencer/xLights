@@ -100,9 +100,11 @@ class EffectLayer
         void ButtUpStretchAllSelectedEffects(bool right, int lengthMS, UndoManager& undo_mgr);
         void TagAllSelectedEffects();
         int GetSelectedEffectCount(const std::string effectName);
+        std::vector<std::string> GetUsedColours(bool selectedOnly);
+        int ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to, bool selectedOnly, UndoManager& undo_mgr);
         void ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
         void ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
-        void RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::pair<int, int>>& pairs, const EffectManager& effect_manager, RangeAccumulator& range_accumulator);
+        void RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::tuple<int, int, float, int>>& dmxmappings, const EffectManager& effect_manager, RangeAccumulator& range_accumulator);
         void ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
         void UnTagAllEffects();
         void DeleteSelectedEffects(UndoManager& undo_mgr);
@@ -136,8 +138,8 @@ class EffectLayer
         void GetMaximumRangeWithRightMovement(int index, int &toLeft, int &toRight);
         std::vector<Effect*> mEffects;
         std::list<Effect*> mEffectsToDelete;
-        int mIndex;
-        Element* mParentElement;
+        int mIndex = 0;
+        Element* mParentElement = nullptr;
         std::recursive_mutex lock;
 };
 
@@ -168,7 +170,7 @@ public:
         }
     }
 private:
-    std::string *name;
+    std::string *name = nullptr;
     static const std::string NO_NAME;
 };
 

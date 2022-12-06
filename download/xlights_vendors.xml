@@ -14,6 +14,11 @@
         <maxmodels>70</maxmodels>
     </vendor>
 	<vendor>
+		<name>Custom Christmas Creations</name>
+        <link>https://cdn.shopify.com/s/files/1/0277/8490/4777/files/Vendor.xml</link>
+        <maxmodels>28</maxmodels>
+    </vendor>
+	<vendor>
 		<name>DMX Fixture Library</name>
 		<link>https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_fixtures.xml</link>
 	</vendor>

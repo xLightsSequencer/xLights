@@ -40,8 +40,8 @@ class WavePanel: public xlEffectPanel
 		BulkEditSlider* Slider_Number_Waves;
 		BulkEditSlider* Slider_Thickness_Percentage;
 		BulkEditSlider* Slider_Wave_Height;
-		BulkEditSlider* Slider_Wave_Speed;
 		BulkEditSlider* Slider_Y_Offset;
+		BulkEditSliderF2* Slider_Wave_Speed;
 		BulkEditValueCurveButton* BitmapButton_Number_WavesVC;
 		BulkEditValueCurveButton* BitmapButton_Thickness_PercentageVC;
 		BulkEditValueCurveButton* BitmapButton_Wave_HeightVC;
@@ -93,9 +93,9 @@ class WavePanel: public xlEffectPanel
 		static const long IDD_TEXTCTRL_Wave_Height;
 		static const long ID_BITMAPBUTTON_SLIDER_Wave_Height;
 		static const long ID_STATICTEXT_Wave_Speed;
-		static const long ID_SLIDER_Wave_Speed;
+		static const long IDD_SLIDER_Wave_Speed;
 		static const long ID_VALUECURVE_Wave_Speed;
-		static const long IDD_TEXTCTRL_Wave_Speed;
+		static const long ID_TEXTCTRL_Wave_Speed;
 		static const long ID_BITMAPBUTTON_SLIDER_Wave_Speed;
 		static const long ID_STATICTEXT_Wave_Direction;
 		static const long ID_CHOICE_Wave_Direction;

@@ -39,8 +39,11 @@ void IciclesModel::InitModel()
     std::vector<size_t> dropSizes;
     size_t maxH = 0;
     for (int x = 0; x < pat.size(); x++) {
-        dropSizes.push_back(wxAtoi(pat[x]));
-        maxH = std::max(maxH, dropSizes[x]);
+        int d = wxAtoi(pat[x]);
+        if (d >= 0) { // we dont handle drops of less than zero
+            dropSizes.push_back(wxAtoi(pat[x]));
+            maxH = std::max(maxH, (size_t)d);
+        }
     }
     if (dropSizes.size() == 0) {
         dropSizes.push_back(5);
@@ -117,7 +120,8 @@ void IciclesModel::InitModel()
 static const char* LEFT_RIGHT_VALUES[] = { "Green Square", "Blue Square" };
 static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
 
-void IciclesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void IciclesModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
 
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "IciclesStrings", parm1));
     p->SetAttribute("Min", 1);
@@ -150,6 +154,7 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     if ("IciclesStrings" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesStrings");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::IciclesStrings");
@@ -161,6 +166,7 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     } else if ("IciclesLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesStrings");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::IciclesStrings");
@@ -172,6 +178,7 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     } else if ("IciclesDrops" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DropPattern");
         ModelXml->AddAttribute("DropPattern", event.GetPropertyValue().GetString());
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesDrops");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesDrops");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::IciclesDrops");
@@ -180,6 +187,7 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     } else if ("IciclesStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::IciclesStart");
@@ -188,6 +196,7 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     } else if ("AlternateNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("AlternateNodes");
         ModelXml->AddAttribute("AlternateNodes", event.GetPropertyValue().GetBool() ? "true" : "false");
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::AlternateNodes");

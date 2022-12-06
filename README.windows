@@ -7,7 +7,7 @@ document describes how **developers** should set up their tool chain to build
 xLights on Windows.
 
 If you are a Windows user, installation packages are available at
-http://www.nutcracker123.com/nutcracker/releases/
+https://xlights.org/releases/
 
 xLights is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
@@ -22,18 +22,19 @@ Instructions for MS Visual Studio C++
 
 Here are the steps to compile xLights for Windows using the Visual Studio compiler.
 
-  a) Install Visual Studio 2019 ... the community edition is fine
+  a) Install Visual Studio 2022 ... the community edition is fine
+  	- Requires Windows 11 SDK build 22000
 
   b) Select a base directory to place all your souce code in. From now on this is represented as <basedir>
 
-  c) Download and build wxWidgets for Windows (currently using a patched version of 3.1.5)
+  c) Download and build wxWidgets for Windows (currently using a patched version of 3.2.0)
 
-    git clone  --recurse-submodules -b xlights_2021.31b https://github.com/xLightsSequencer/wxWidgets
+    git clone  --recurse-submodules -b xlights_2022.17b https://github.com/xLightsSequencer/wxWidgets
 
      1) Also if you have built wxWidgets before you should delete the following 2 folders
         - <basedir>\wxWidgets\build\msw\vc_mswuddll
         - <basedir>\wxWidgets\build\msw\vc_mswudll
-     2) Open the project <basedir>\wxWidgets\build\msw\vc16.sln
+     2) Open the project <basedir>\wxWidgets\build\msw\wx_vc17.sln
      3) Also if you have built wxWidgets64 before you should delete the following 2 folders (if they exist) to force
         a rebuild using new configuration
         - wxWidgets\lib\vc_x64_dll
@@ -42,7 +43,11 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
         NOTE: I have experienced issues with the use of spectre vs non spectre mitigated libraries. By default I turn spectre mitigation off which can be done in visual studio before building ... except the custom build step where the project file has to be manually added to tell it not to use it even though it doesnt need it. To do so copy the <SpectreMitigation>false</SpectreMitigation> tag under each of the PropertyGroup tags in the wx_custom_build.vcxproj file
      4) In the Windows System Properties -> Advanced -> Environment variables, create a new environment variable WXWIDGETS_ROOT with the value being the directory where wxWidgets is installed.  (example: c:\wxWidgets )
 
-   d) Now open the xlights project <basedir>\xLights\xLights\xLights.sln and build the project
+   d) Download and build xLights for Windows
+   
+       git clone  --recurse-submodules https://github.com/smeighan/xLights.git
+   
+       1) Now open the xlights project <basedir>\xLights\xLights\xLights.sln and build the project
 
 
 Windows Installer
@@ -76,9 +81,9 @@ Here are the steps to compile xLights for Windows using the MinGW compiler.
         Navigate to: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/
         Click the i686-posix-dwarf link.
 
-  b) wxWidgets for Windows (currently using a patched version of 3.1.5)
+  b) wxWidgets for Windows (currently using a patched version of 3.2.0)
 
-     git clone  --recurse-submodules -b xlights_2021.31b https://github.com/xLightsSequencer/wxWidgets
+     git clone  --recurse-submodules -b xlights_2022.17b https://github.com/xLightsSequencer/wxWidgets
 
      1) Open a command prompt
      2) cd to the build\msw directory under your wxWidgets base directory
@@ -140,9 +145,9 @@ Here are the steps to compile xLights for Windows using the MinGW 64-bit compile
         Navigate to: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/
         Click the x86_64-posix-seh link.
 
-  c) wxWidgets for Windows (currently using a patch of version 3.1.5)
+  c) wxWidgets for Windows (currently using a patch of version 3.2.0)
 
-     git clone  --recurse-submodules -b xlights_2021.31b https://github.com/xLightsSequencer/wxWidgets
+     git clone  --recurse-submodules -b xlights_2022.17b https://github.com/xLightsSequencer/wxWidgets
 
      To compile it yourself:
 

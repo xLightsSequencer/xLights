@@ -14,6 +14,7 @@
 //*)
 
 #include "AssistPanel.h"
+#include "SketchAssistPanel.h"
 #include "../../xLightsMain.h"
 #include "../../models/Model.h"
 #include "../../sequencer/Element.h"
@@ -40,12 +41,8 @@ AssistPanel::AssistPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(0);
 	ScrolledWindowAssist->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(ScrolledWindowAssist);
-	FlexGridSizer2->SetSizeHints(ScrolledWindowAssist);
 	FlexGridSizer1->Add(ScrolledWindowAssist, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 	//*)
 }
 
@@ -90,11 +87,13 @@ void AssistPanel::SetGridCanvas(xlGridCanvas* canvas)
     FlexGridSizer2->SetSizeHints(ScrolledWindowAssist);
 }
 
-void AssistPanel::AddPanel(wxPanel* panel)
+void AssistPanel::AddPanel(wxPanel* panel, std::optional<int> panelFlags /*=std::nullopt*/)
 {
+    int flags = panelFlags.value_or(wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
+
     mPanel = panel;
     FlexGridSizer2->SetCols(2);
-    FlexGridSizer2->Add(mPanel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(mPanel, 1, flags, 2);
     FlexGridSizer2->Fit(ScrolledWindowAssist);
     FlexGridSizer2->SetSizeHints(ScrolledWindowAssist);
     SetHandlers(this);
@@ -189,7 +188,7 @@ void AssistPanel::OnCharHook(wxKeyEvent& event)
 {
     if (mEffect != nullptr)
     {
-        if( mEffect->GetEffectIndex() == EffectManager::eff_PICTURES )
+        if ( mEffect->GetEffectIndex() == EffectManager::eff_PICTURES )
         {
             wxChar uc = event.GetUnicodeKey();
             switch(uc)
@@ -240,6 +239,10 @@ void AssistPanel::OnCharHook(wxKeyEvent& event)
                     event.Skip();
                     break;
             }
+        } else if (mEffect->GetEffectIndex() == EffectManager::eff_SKETCH) {
+            auto sketchAssistPanel = dynamic_cast<SketchAssistPanel *>(mPanel);
+            if (sketchAssistPanel != nullptr)
+                sketchAssistPanel->ForwardKeyEvent(event);
         }
     }
 }

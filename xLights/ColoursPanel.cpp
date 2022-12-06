@@ -14,6 +14,7 @@
 #include "xLightsMain.h"
 #include "DragColoursBitmapButton.h"
 #include "ColorPanel.h"
+#include "ExternalHooks.h"
 
 //(*InternalHeaders(ColoursPanel)
 #include <wx/intl.h>
@@ -37,7 +38,7 @@ BEGIN_EVENT_TABLE(ColoursPanel,wxPanel)
 END_EVENT_TABLE()
 
 #define ITEMSIZE 33
-#define MAX_COLOURS 200
+#define MAX_COLOURS 1024
 
 int ColoursPanel::UpdateButtons()
 {
@@ -84,34 +85,26 @@ void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
 
     int count = 0;
 
-    wxString filename;
-    bool cont = directory.GetFirst(&filename, "*.xcc", wxDIR_FILES);
-
-    while (cont)
-    {
+    wxArrayString files;
+    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.xcc");
+    for (auto &filename : files) {
         count++;
-        wxFileName fn(directory.GetNameWithSep() + filename);
-        if (fn.Exists())
-        {
+        wxFileName fn(filename);
+        if (FileExists(filename)) {
             ColorCurve cc;
             cc.LoadXCC(fn.GetFullPath());
             cc.SetId("ID_BUTTON_PaletteX");
             AddColour(cc.Serialise());
-        }
-        else
-        {
+        } else {
             logger_base.warn("ColoursPanel::ProcessColourCurveDir Unable to load " + fn.GetFullPath());
         }
-
-        cont = directory.GetNext(&filename);
     }
     logger_base.info("    Found %d.", count);
 
-    if (subdirs)
-    {
-        cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
-        while (cont)
-        {
+    if (subdirs) {
+        wxString filename;
+        bool cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        while (cont) {
             wxDir dir(directory.GetNameWithSep() + filename);
             ProcessColourCurveDir(dir, subdirs);
             cont = directory.GetNext(&filename);
@@ -126,38 +119,30 @@ void ColoursPanel::ProcessPaletteDir(wxDir& directory, bool subdirs)
 
     int count = 0;
 
-    wxString filename;
-    bool cont = directory.GetFirst(&filename, "*.xpalette", wxDIR_FILES);
-
-    while (cont)
-    {
+    wxArrayString files;
+    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.xpalette");
+    for (auto &filename : files) {
         count++;
-        wxFileName fn(directory.GetNameWithSep() + filename);
-
-        wxFile f;
-        if (f.Open(fn.GetFullPath()))
-        {
-            wxString p;
-            f.ReadAll(&p);
-            for (const auto& it : wxSplit(p, ','))
-            {
-                if (it != "") AddColour(it);
+        wxFileName fn(filename);
+        if (FileExists(fn.GetFullPath())) {
+            wxFile f;
+            if (f.Open(fn.GetFullPath())) {
+                wxString p;
+                f.ReadAll(&p);
+                for (const auto& it : wxSplit(p, ',')) {
+                    if (it != "") AddColour(it);
+                }
+            } else {
+                logger_base.warn("ColoursPanel::ProcessPaletteDir Unable to load " + fn.GetFullPath());
             }
         }
-        else
-        {
-            logger_base.warn("ColoursPanel::ProcessPaletteDir Unable to load " + fn.GetFullPath());
-        }
-
-        cont = directory.GetNext(&filename);
     }
     logger_base.info("    Found %d.", count);
 
-    if (subdirs)
-    {
-        cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
-        while (cont)
-        {
+    if (subdirs) {
+        wxString filename;
+        bool cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        while (cont) {
             wxDir dir(directory.GetNameWithSep() + filename);
             ProcessColourCurveDir(dir, subdirs);
             cont = directory.GetNext(&filename);
@@ -361,16 +346,10 @@ ColoursPanel::ColoursPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 	ScrolledWindow1 = new wxScrolledWindow(Panel_Sizer, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
 	GridSizer1 = new wxGridSizer(0, 3, 0, 0);
 	ScrolledWindow1->SetSizer(GridSizer1);
-	GridSizer1->Fit(ScrolledWindow1);
-	GridSizer1->SetSizeHints(ScrolledWindow1);
 	FlexGridSizer2->Add(ScrolledWindow1, 1, wxALL|wxEXPAND, 5);
 	Panel_Sizer->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(Panel_Sizer);
-	FlexGridSizer2->SetSizeHints(Panel_Sizer);
 	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ColoursPanel::OnResize);
 	//*)

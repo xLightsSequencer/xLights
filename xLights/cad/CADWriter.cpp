@@ -34,11 +34,11 @@ bool CADWriter::Open()
 	return true;
 }
 
-void CADWriter::WriteFirstNode(CADPoint const& loc) {
-	WriteNode(loc);
+void CADWriter::WriteFirstNode(CADPoint const& loc, uint32_t color) {
+	WriteNode(loc,color);
 }
 
-void CADWriter::WriteLastNode(CADPoint const& loc)
+void CADWriter::WriteLastNode(CADPoint const& loc, uint32_t color)
 {
-	WriteNode(loc);
+	WriteNode(loc, color);
 }

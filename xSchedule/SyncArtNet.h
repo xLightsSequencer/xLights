@@ -28,7 +28,7 @@ class SyncArtNet : public SyncBase
 
     public:
 
-        SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager);
+        SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP);
         SyncArtNet(SyncArtNet&& from) noexcept;
         virtual ~SyncArtNet();
         virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const override;

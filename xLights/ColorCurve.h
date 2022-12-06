@@ -171,7 +171,7 @@ class ColorCurve
 public:
     static std::string GetColorCurveFolder(const std::string& showFolder);
     static bool IsColorCurve(const std::string& s);
-    bool IsOk() const { return _id != ""; }
+    bool IsOk() const { return !_id.empty(); }
     void NextTimeCurve(bool supportslinear, bool supportsradial);
     void SetValidTimeCurve(bool supportslinear, bool supportsradial);
     int GetTimeCurve() const { return _timecurve; }
@@ -188,8 +188,7 @@ public:
     wxBitmap GetImage(int x, int y, bool bars);
     static wxBitmap GetSolidColourImage(int x, int y, const wxColour& c);
     void SetActive(bool a) { _active = a; }
-    bool IsActive() const
-    { return IsOk() && _active; }
+    bool IsActive() const { return _active && IsOk(); }
     void ToggleActive() { _active = !_active; }
     void SetValueAt(float offset, xlColor x);
     void DeletePoint(float offset);

@@ -400,9 +400,10 @@ void PlayList::AddSchedule(Schedule* schedule)
 {
     _schedules.push_back(schedule);
     _schedules.sort(compare_sched);
-    _changeCount++;
+    ++_changeCount;
 }
 
+// a pos of -1 will put it at the end of the list
 void PlayList::AddStep(PlayListStep* item, int pos)
 {
     std::list<PlayListStep*> newsteps;
@@ -413,15 +414,15 @@ void PlayList::AddStep(PlayListStep* item, int pos)
         int i = 0;
         {
             ReentrancyCounter rec(_reentrancyCounter);
-            for (auto it = _everySteps.begin(); it != _everySteps.end(); ++it)
+            for (const auto& it : _everySteps)
             {
                 if (i == pos)
                 {
                     newsteps.push_back(item);
                     inserted = true;
                 }
-                newsteps.push_back(*it);
-                i++;
+                newsteps.push_back(it);
+                ++i;
             }
 
             if (!inserted)
@@ -440,15 +441,15 @@ void PlayList::AddStep(PlayListStep* item, int pos)
         int i = 0;
         {
             ReentrancyCounter rec(_reentrancyCounter);
-            for (auto it = _steps.begin(); it != _steps.end(); ++it)
+            for (const auto& it : _steps)
             {
                 if (i == pos)
                 {
                     newsteps.push_back(item);
                     inserted = true;
                 }
-                newsteps.push_back(*it);
-                i++;
+                newsteps.push_back(it);
+                ++i;
             }
 
             if (!inserted)
@@ -508,7 +509,7 @@ void PlayList::RemoveStep(PlayListStep* step)
             _steps.remove(step);
         }
     }
-    _changeCount++;
+    ++_changeCount;
 }
 
 void PlayList::RemoveSchedule(Schedule* schedule)
@@ -525,7 +526,7 @@ void PlayList::RemoveSchedule(Schedule* schedule)
 
         _schedules.remove(schedule);
     }
-    _changeCount++;
+    ++_changeCount;
 }
 
 void PlayList::MoveStepBeforeStep(PlayListStep* movethis, PlayListStep* beforethis)
@@ -559,7 +560,7 @@ void PlayList::MoveStepBeforeStep(PlayListStep* movethis, PlayListStep* beforeth
         }
     }
 
-    _changeCount++;
+    ++_changeCount;
 }
 
 int PlayList::GetPos(PlayListStep* step)
@@ -573,7 +574,7 @@ int PlayList::GetPos(PlayListStep* step)
             {
                 return i;
             }
-            i++;
+            ++i;
         }
     }
 
@@ -637,7 +638,13 @@ bool PlayList::Frame(uint8_t* buffer, size_t size, bool outputframe)
 
         for (auto it : _everySteps)
         {
-            it->Frame(buffer, size, outputframe);
+            if (IsFirstStepPlaying() && it->GetEveryStepExcludeFirst()) {
+                // we dont play this step
+            } else if (IsLastStepPlaying() && it->GetEveryStepExcludeLast()) {
+                // we dont play this step
+            } else {
+                it->Frame(buffer, size, outputframe);
+            }
         }
     }
     else
@@ -722,10 +729,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
         else
         {
             _currentStep->Start(-1);
-            for (auto it: _everySteps)
-            {
-                it->Start(-1);
-            }
+            StartEveryStep(-1);
         }
     }
 }
@@ -740,10 +744,7 @@ void PlayList::Stop()
     {
         ReentrancyCounter rec(_reentrancyCounter);
         _currentStep->Stop();
-        for (auto it: _everySteps)
-        {
-            it->Stop();
-        }
+        StopEveryStep();
         _currentStep = nullptr;
     }
 }
@@ -849,7 +850,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
                 }
                 else if (it == _steps.end())
                 {
-                    logger_base.debug("We reached the end and we are not looping.");
+                    //logger_base.debug("We reached the end and we are not looping.");
                     return nullptr;
                 }
                 else
@@ -970,19 +971,13 @@ bool PlayList::JumpToPriorStep()
 
     _pauseTime = 0;
     _currentStep->Stop();
-    for (auto it: _everySteps)
-    {
-        it->Stop();
-    }
+    StopEveryStep();
     _currentStep = GetPriorStep();
 
     if (_currentStep == nullptr) return false;
 
     _currentStep->Start(-1);
-    for (auto it: _everySteps)
-    {
-        it->Start(-1);
-    }
+    StartEveryStep(-1);
 
     return success;
 }
@@ -1001,10 +996,7 @@ bool PlayList::JumpToNextStep()
     if (_currentStep == nullptr) return false;
 
     _currentStep->Stop();
-    for (auto it: _everySteps)
-    {
-        it->Stop();
-    }
+    StopEveryStep();
     bool didloop;
     _currentStep = GetNextStep(didloop);
     if (didloop) DoLoop();
@@ -1012,10 +1004,7 @@ bool PlayList::JumpToNextStep()
     if (_currentStep == nullptr) return false;
 
     _currentStep->Start(-1);
-    for (auto it: _everySteps)
-    {
-        it->Start(-1);
-    }
+    StartEveryStep(-1);
     return success;
 }
 
@@ -1029,10 +1018,7 @@ bool PlayList::MoveToNextStep(bool suppressNext)
     if (_currentStep == nullptr) return false;
 
     _currentStep->Stop();
-    for (auto it: _everySteps)
-    {
-        it->Stop();
-    }
+    StopEveryStep();
 
     if (_commandAtEndOfCurrentStep != "")
     {
@@ -1062,10 +1048,7 @@ bool PlayList::MoveToNextStep(bool suppressNext)
         }
 
         _currentStep->Start(-1);
-        for (auto it : _everySteps)
-        {
-            it->Start(-1);
-        }
+        StartEveryStep(-1);
 
         logger_base.debug("Move to next step moved to %s.", (const char*)_currentStep->GetNameNoTime().c_str());
 
@@ -1085,16 +1068,52 @@ bool PlayList::MoveToNextStep(bool suppressNext)
     return success;
 }
 
+void PlayList::RestartEveryStep()
+{
+    for (auto it : _everySteps) {
+        if (IsFirstStepPlaying() && it->GetEveryStepExcludeFirst()) {
+            // we dont play this step
+        } else if (IsLastStepPlaying() && it->GetEveryStepExcludeLast()) {
+            // we dont play this step
+        } else {
+            it->Restart();
+        }
+    }
+}
+
+void PlayList::StartEveryStep(int loops)
+{
+    for (auto it : _everySteps) {
+        if (IsFirstStepPlaying() && it->GetEveryStepExcludeFirst()) {
+            // we dont play this step
+        } else if (IsLastStepPlaying() && it->GetEveryStepExcludeLast()) {
+            // we dont play this step
+        } else {
+            it->Start(loops);
+        }
+    }
+}
+
+void PlayList::StopEveryStep()
+{
+    for (auto it : _everySteps) {
+        if (IsFirstStepPlaying() && it->GetEveryStepExcludeFirst()) {
+            // we dont play this step
+        } else if (IsLastStepPlaying() && it->GetEveryStepExcludeLast()) {
+            // we dont play this step
+        } else {
+            it->Stop();
+        }
+    }
+}
+
 void PlayList::RestartCurrentStep()
 {
     _pauseTime = 0;
     _forceNextStep = "";
     _loopStep = false;
     if (_currentStep != nullptr) _currentStep->Restart();
-    for (auto it: _everySteps)
-    {
-        it->Restart();
-    }
+    RestartEveryStep();
 }
 
 bool PlayList::JumpToStep(PlayListStep* pls)
@@ -1117,20 +1136,14 @@ bool PlayList::JumpToStep(PlayListStep* pls)
     if (_currentStep != nullptr && _currentStep == pls)
     {
         _currentStep->Restart();
-        for (auto it : _everySteps)
-        {
-            it->Restart();
-        }
+        RestartEveryStep();
         return success;
     }
 
     if (_currentStep != nullptr)
     {
         _currentStep->Stop();
-        for (auto it : _everySteps)
-        {
-            it->Stop();
-        }
+        StopEveryStep();
     }
 
     _currentStep = pls;
@@ -1140,10 +1153,7 @@ bool PlayList::JumpToStep(PlayListStep* pls)
     }
 
     _currentStep->Start(-1);
-    for (auto it : _everySteps)
-    {
-        it->Start(-1);
-    }
+    StartEveryStep(-1);
 
     return success;
 }
@@ -1228,17 +1238,17 @@ bool PlayList::SupportsRandom()
         {
             if (_steps.front()->GetId() == it->GetId() && _firstOnlyOnce)
             {
-                count--;
+                --count;
             }
             else if (_steps.back()->GetId() == it->GetId() && _lastOnlyOnce)
             {
-                count--;
+                --count;
             }
             else
             {
                 if (it->GetExcludeFromRandom())
                 {
-                    count--;
+                    --count;
                 }
             }
         }
@@ -1274,13 +1284,13 @@ PlayListStep* PlayList::GetRandomStep()
 
     {
         int actualsteps = _steps.size();
-        if (_firstOnlyOnce) actualsteps--;
-        if (_lastOnlyOnce) actualsteps--;
+        if (_firstOnlyOnce) --actualsteps;
+        if (_lastOnlyOnce) --actualsteps;
         for (const auto& it : _steps)
         {
             if (it->GetExcludeFromRandom())
             {
-                actualsteps--;
+                --actualsteps;
             }
         }
         if (actualsteps < 0) actualsteps = 0;
@@ -1309,7 +1319,7 @@ PlayListStep* PlayList::GetRandomStep()
 
                 if (eligible)
                 {
-                    i++;
+                    ++i;
                     if (i != selected)
                     {
                         ++it;
@@ -1579,6 +1589,24 @@ PlayListItemText* PlayList::GetRunningText(const std::string& name)
         }
         return ti;
     }
+}
+
+bool PlayList::IsFirstStepPlaying()
+{
+    if (_currentStep == nullptr)
+        return false;
+    if (GetFirstOnce() && _currentStep->GetId() == _steps.front()->GetId())
+        return true;
+    return false;
+}
+
+bool PlayList::IsLastStepPlaying()
+{
+    if (_currentStep == nullptr)
+        return false;
+    if (GetLastOnce() && _currentStep->GetId() == _steps.back()->GetId())
+        return true;
+    return false;
 }
 
 // Consolidate the everyday steps into the main steps list

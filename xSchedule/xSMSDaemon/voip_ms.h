@@ -15,118 +15,121 @@
 
 class Voip_ms : public SMSService
 {
-	const std::string VOIP_MS_API_URL = "https://voip.ms/api/v1/rest.php?api_username={user}&api_password={sid}&method=";
+    const std::string VOIP_MS_API_URL = "https://voip.ms/api/v1/rest.php?api_username={user}&api_password={sid}&method=";
 
-    public:
+public:
+    Voip_ms(SMSDaemonOptions* options) :
+        SMSService(options)
+    {}
 
-        Voip_ms(SMSDaemonOptions* options) : SMSService(options) {}
+    virtual bool SendSMS(const std::string& number, const std::string& message) override
+    {
+        if (number == "TEST")
+            return false;
 
-        virtual bool SendSMS(const std::string& number, const std::string& message) override
-		{
-            if (number == "TEST") return false;
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        std::string url = VOIP_MS_API_URL;
+        Replace(url, "{sid}", GetSID());
+        Replace(url, "{user}", GetUser());
+        Replace(url, "{token}", GetToken());
+        url += "sendSMS";
 
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            std::string url = VOIP_MS_API_URL;
-            Replace(url, "{sid}", GetSID());
-            Replace(url, "{user}", GetUser());
-            Replace(url, "{token}", GetToken());
-            url += "sendSMS";
+        std::vector<std::pair<std::string, std::string>> vars;
+        vars.push_back({ "did", GetPhone() });
+        vars.push_back({ "dst", number });
+        vars.push_back({ "message", message });
 
-            std::vector<Curl::Var> vars;
-            vars.push_back(Curl::Var("did", GetPhone()));
-            vars.push_back(Curl::Var("dst", number));
-            vars.push_back(Curl::Var("message", message));
+        logger_base.debug("HTTPS Get %s", (const char*)url.c_str());
+        for (const auto& it : vars) {
+            logger_base.debug("    '%s' = '%s'", (const char*)it.first.c_str(), (const char*)it.second.c_str());
+        }
+        logger_base.debug("Sending SMS response did:'%s' dst:'%s' message:'%s'", (const char*)GetPhone().c_str(), (const char*)number.c_str(), (const char*)message.c_str());
 
-            //logger_base.debug("HTTPS Post %s", (const char*)url.c_str());
-            logger_base.debug("Sending SMS response did:'%s' dst:'%s' message:'%s'", (const char*)GetPhone().c_str(), (const char*)number.c_str(), (const char*)message.c_str());
-            std::string res = Curl::HTTPSPost(url, vars);
-            logger_base.debug("%s", (const char*)res.c_str());
-            return Contains(res, "status\":\"success");
-		}
+        std::string res = Curl::HTTPSGet(url, "", "", 10, vars);
+        logger_base.debug("'%s'", (const char*)res.c_str());
+        return Contains(res, "status\":\"success");
+    }
 
-        virtual std::string GetServiceName() const override { return "Voip.ms"; }
-        virtual bool RetrieveMessages() override
-        {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    virtual std::string GetServiceName() const override
+    {
+        return "Voip.ms";
+    }
+    virtual bool RetrieveMessages() override
+    {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-            bool added = false;
+        bool added = false;
 
-            std::string url = VOIP_MS_API_URL;
-            Replace(url, "{sid}", GetSID());
-            Replace(url, "{user}", GetUser());
-            Replace(url, "{token}", GetToken());
-            url += "getSMS";
+        std::string url = VOIP_MS_API_URL;
+        Replace(url, "{sid}", GetSID());
+        Replace(url, "{user}", GetUser());
+        Replace(url, "{token}", GetToken());
+        url += "getSMS";
 
-            std::vector<Curl::Var> vars;
-            vars.push_back(Curl::Var("type", "1"));
-            vars.push_back(Curl::Var("limit", "100"));
-            vars.push_back(Curl::Var("timezone", "0"));
+        std::vector<std::pair<std::string, std::string>> vars;
+        vars.push_back({ "type", "1" });
+        vars.push_back({ "limit", "100" });
+        vars.push_back({ "timezone", "0" });
 
-            //logger_base.debug("HTTPS Post %s", (const char*)url.c_str());
-            logger_base.debug("Retrieving messages.");
-            std::string res = Curl::HTTPSPost(url, vars);
-            logger_base.debug("Result %s", (const char*)res.c_str());
+        logger_base.debug("HTTPS Get %s", (const char*)url.c_str());
+        for (const auto& it : vars) {
+            logger_base.debug("    '%s' = '%s'", (const char*)it.first.c_str(), (const char*)it.second.c_str());
+        }
+        logger_base.debug("Retrieving messages: %s", (const char*)url.c_str());
 
-            // construct the JSON root object
-            wxJSONValue  root;
+        std::string res = Curl::HTTPSGet(url, "", "", 10, vars);
+        logger_base.debug("Result '%s'", (const char*)res.c_str());
 
-            // construct a JSON parser
-            wxJSONReader reader;
+        // construct the JSON root object
+        wxJSONValue root;
 
-            // now read the JSON text and store it in the 'root' structure
-            // check for errors before retreiving values...
+        // construct a JSON parser
+        wxJSONReader reader;
 
-            // strip out unicode characters as they cause a crash
-            Replace(res, "\\u", "!!u!!");
+        // now read the JSON text and store it in the 'root' structure
+        // check for errors before retreiving values...
 
-            int numErrors = reader.Parse(res, &root);
-            if (numErrors > 0) {
-                logger_base.error("The JSON document is not well-formed: %s", (const char*)res.c_str());
-            }
-            else
-            {
-                wxJSONValue defaultValue = wxString("");
-                if (root.Get("status", defaultValue).AsString() == "success")
-                {
-                    Retrieved();
+        // strip out unicode characters as they cause a crash
+        Replace(res, "\\u", "!!u!!");
 
-                    wxJSONValue msgs = root.Get("sms", defaultValue);
+        int numErrors = reader.Parse(res, &root);
+        if (numErrors > 0) {
+            logger_base.error("The JSON document is not well-formed: %s", (const char*)res.c_str());
+        } else {
+            wxJSONValue defaultValue = wxString("");
+            if (root.Get("status", defaultValue).AsString() == "success") {
+                Retrieved();
 
-                    if (msgs.IsArray())
-                    {
-                        for (int i = 0; i < msgs.Size(); i++)
+                wxJSONValue msgs = root.Get("sms", defaultValue);
+
+                if (msgs.IsArray()) {
+                    for (int i = 0; i < msgs.Size(); i++) {
+                        wxJSONValue& m = msgs[i];
+
+                        if (m.Get("type", defaultValue).AsString() == "1") // received
                         {
-                            wxJSONValue &m = msgs[i];
+                            SMSMessage msg;
+                            wxString timestamp = m.Get("date", defaultValue).AsString();
+                            wxString::const_iterator end;
+                            msg._timestamp.ParseFormat(timestamp, "%Y-%m-%d %H:%M:%S", &end);
+                            msg._timestamp += wxTimeSpan(0, _options->GetTimezoneAdjust());
+                            wxASSERT(end == timestamp.end());
+                            msg._from = m.Get("contact", defaultValue).AsString().ToStdString();
+                            msg._rawMessage = m.Get("message", defaultValue).AsString().ToStdString();
 
-                            if (m.Get("type", defaultValue).AsString() == "1") // received
-                            {
-                                SMSMessage msg;
-                                wxString timestamp = m.Get("date", defaultValue).AsString();
-                                wxString::const_iterator end;
-                                msg._timestamp.ParseFormat(timestamp, "%Y-%m-%d %H:%M:%S", &end);
-                                msg._timestamp += wxTimeSpan(0, _options->GetTimezoneAdjust());
-                                wxASSERT(end == timestamp.end());
-                                msg._from = m.Get("contact", defaultValue).AsString().ToStdString();
-                                msg._rawMessage = m.Get("message", defaultValue).AsString().ToStdString();
-
-                                if (AddMessage(msg))
-                                {
-                                    added = true;
-                                }
+                            if (AddMessage(msg)) {
+                                added = true;
                             }
                         }
                     }
-                    else
-                    {
-                        logger_base.error("No SMS messages found: %s", (const char*)res.c_str());
-                    }
+                } else {
+                    logger_base.error("No SMS messages found: %s", (const char*)res.c_str());
                 }
-                else
-                {
-                    logger_base.error("Get SMS call failed: %s", (const char*)res.c_str());
-                }
+            } else {
+                logger_base.error("Get SMS call failed: %s", (const char*)res.c_str());
             }
-            return added;
         }
+        return added;
+    }
 };
 #endif

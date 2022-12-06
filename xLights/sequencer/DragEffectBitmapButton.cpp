@@ -15,6 +15,51 @@
 #include "../effects/RenderableEffect.h"
 #include "../RenderCommandEvent.h"
 #include "../UtilFunctions.h"
+#include "MainSequencer.h"
+#include <log4cpp/Category.hh>
+
+class EffectButtonDropSource : public wxDropSource
+{
+    xLightsFrame* _frame = nullptr;
+
+public:
+#ifdef __linux__
+    EffectButtonDropSource(xLightsFrame* frame, wxWindow* window, const wxIcon& cursorCopy = wxNullIcon, const wxIcon& cursorMove = wxNullIcon, const wxIcon& cursorStop = wxNullIcon) :
+        wxDropSource(window,
+                     cursorCopy,
+                     cursorMove,
+                     cursorStop)
+    {
+        _frame = frame;
+    }
+#else
+    EffectButtonDropSource(xLightsFrame* frame, wxWindow* window, const wxCursor& cursorCopy = wxNullCursor, const wxCursor& cursorMove = wxNullCursor, const wxCursor& cursorStop = wxNullCursor) :
+        wxDropSource(window,
+                     cursorCopy,
+                     cursorMove,
+                     cursorStop)
+    {
+        _frame = frame;
+    }
+#endif
+
+    virtual bool GiveFeedback(wxDragResult effect) override
+    {
+        EffectsGrid* eg = _frame->GetMainSequencer()->PanelEffectGrid;
+        if (eg->CanDropEffect()) {
+            eg->UpdateMousePosition(eg->GetDropStartMS());
+            return wxDropSource::GiveFeedback(effect);
+        } else {
+            eg->UpdateMousePosition(-1);
+#ifdef __WXMSW__
+            eg->SetCursor(wxCURSOR_NO_ENTRY);
+            return true;
+#else
+            return wxDropSource::GiveFeedback(effect);
+#endif
+        }
+    }
+};
 
 DragEffectBitmapButton::DragEffectBitmapButton (wxWindow *parent, wxWindowID id, const wxBitmap &bitmap, const wxPoint &pos,
                                 const wxSize &size, long style, const wxValidator &validator,
@@ -46,33 +91,12 @@ void DragEffectBitmapButton::SetEffect(RenderableEffect *eff, int sz)
 {
     mEffect = eff;
     if (eff != nullptr) {
-        const wxBitmap &bbmp = eff->GetEffectIcon(sz);
-
-        int ns = ScaleWithSystemDPI(sz);
-        int bs = bbmp.GetWidth();
-#ifdef __WXOSX__
-        int sw = bbmp.GetScaledWidth();
-        if (sz == sw || bs == ns) {
-            SetBitmap(bbmp);
-        } else
-#endif
-        if (ns != bs) {
-            const wxBitmap &bbmp2 = eff->GetEffectIcon(ns, true);
-            if (ns != bbmp2.GetScaledWidth()) {
-                wxImage img = eff->GetEffectIcon(64, true).ConvertToImage();
-                wxImage scaled = img.Scale(ns, ns, wxIMAGE_QUALITY_HIGH);
-                SetBitmap(wxBitmap(scaled));
-            } else {
-                SetBitmap(bbmp2);
-            }
-        } else {
-            SetBitmap(bbmp);
-        }
+        SetBitmap(eff->GetEffectIcon(sz));
         SetToolTip(eff->ToolTip());
     }
 }
 
-void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
+void DragEffectBitmapButton::OnMouseLeftDown(wxMouseEvent& event)
 {
     if (mEffect == nullptr) {
         return;
@@ -94,19 +118,18 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
 
 #ifdef __linux__
     wxIcon dragCursor;
-    dragCursor.CopyFromBitmap(mEffect->GetEffectIcon(16, true));
+    dragCursor.CopyFromBitmap(mEffect->GetEffectIcon().GetBitmap(wxSize(16, 16)));
 #else
-    wxCursor dragCursor(mEffect->GetEffectIcon(16, true).ConvertToImage());
+    wxCursor dragCursor(mEffect->GetEffectIcon().GetBitmapFor(this).ConvertToImage());
 #endif
 
-    wxDropSource dragSource(this,dragCursor,dragCursor,dragCursor );
+    EffectButtonDropSource dragSource((xLightsFrame*)wxTheApp->GetMainTopWindow(), this, dragCursor, dragCursor, dragCursor);
 
-    dragSource.SetData( dragData );
-    dragSource.DoDragDrop( wxDragMove );
+    dragSource.SetData(dragData);
+    dragSource.DoDragDrop(wxDragMove);
 }
 
-void DragEffectBitmapButton::SetBitmap(const wxBitmap &bpm)
+void DragEffectBitmapButton::SetBitmap(const wxBitmapBundle &bpm)
 {
     wxBitmapButton::SetBitmap(bpm);
-    wxBitmapButton::SetBitmapDisabled(bpm.ConvertToDisabled());
 }

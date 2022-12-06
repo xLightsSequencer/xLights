@@ -16,20 +16,25 @@
 
 class Mesh;
 
-class DmxSkull : public DmxModel, public DmxColorAbility
+class DmxSkull : public DmxModel
 {
     public:
         DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
         virtual ~DmxSkull();
 
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active) override;
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                      xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
+                                      const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
+                                      bool highlightFirst = false, int highlightpixel = 0,
+                                      float *boundingBox = nullptr) override;
+        virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
+        void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
+    
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
         virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
 
-        virtual bool HasColorAbility() override { return true; }
         bool Is16Bit() const { return _16bit; }
         bool IsSkulltronix() const { return is_skulltronix; }
         bool HasJaw() const { return has_jaw; }
@@ -42,24 +47,78 @@ class DmxSkull : public DmxModel, public DmxColorAbility
         void SetSkulltronix() { setup_skulltronix = true; }
 
         int GetEyeBrightnessChannel() { return eye_brightness_channel; }
-        int GetPanChannel() { return pan_servo->GetChannel(); }
-        int GetPanMinLimit() { return pan_servo->GetMinLimit(); }
-        int GetPanMaxLimit() { return pan_servo->GetMaxLimit(); }
-        int GetTiltChannel() { return tilt_servo->GetChannel(); }
-        int GetTiltMinLimit() { return tilt_servo->GetMinLimit(); }
-        int GetTiltMaxLimit() { return tilt_servo->GetMaxLimit(); }
-        int GetNodChannel() { return nod_servo->GetChannel(); }
-        int GetNodMinLimit() { return nod_servo->GetMinLimit(); }
-        int GetNodMaxLimit() { return nod_servo->GetMaxLimit(); }
-        int GetJawChannel() { return jaw_servo->GetChannel(); }
-        int GetJawMinLimit() { return jaw_servo->GetMinLimit(); }
-        int GetJawMaxLimit() { return jaw_servo->GetMaxLimit(); }
-        int GetEyeUDChannel() { return eye_ud_servo->GetChannel(); }
-        int GetEyeUDMinLimit() { return eye_ud_servo->GetMinLimit(); }
-        int GetEyeUDMaxLimit() { return eye_ud_servo->GetMaxLimit(); }
-        int GetEyeLRChannel() { return eye_lr_servo->GetChannel(); }
-        int GetEyeLRMinLimit() { return eye_lr_servo->GetMinLimit(); }
-        int GetEyeLRMaxLimit() { return eye_lr_servo->GetMaxLimit(); }
+        int GetPanChannel()
+        {
+            return pan_servo ==nullptr ? 0 : pan_servo->GetChannel();
+        }
+        int GetPanMinLimit()
+        {
+            return pan_servo == nullptr ? 0 : pan_servo->GetMinLimit();
+        }
+        int GetPanMaxLimit()
+        {
+            return pan_servo == nullptr ? 0 : pan_servo->GetMaxLimit();
+        }
+        int GetTiltChannel()
+        {
+            return tilt_servo == nullptr ? 0 : tilt_servo->GetChannel();
+        }
+        int GetTiltMinLimit()
+        {
+            return tilt_servo == nullptr ? 0 : tilt_servo->GetMinLimit();
+        }
+        int GetTiltMaxLimit()
+        {
+            return tilt_servo == nullptr ? 0 : tilt_servo->GetMaxLimit();
+        }
+        int GetNodChannel()
+        {
+            return nod_servo == nullptr ? 0 : nod_servo->GetChannel();
+        }
+        int GetNodMinLimit()
+        {
+            return nod_servo == nullptr ? 0 : nod_servo->GetMinLimit();
+        }
+        int GetNodMaxLimit()
+        {
+            return nod_servo == nullptr ? 0 : nod_servo->GetMaxLimit();
+        }
+        int GetJawChannel()
+        {
+            return jaw_servo == nullptr ? 0 : jaw_servo->GetChannel();
+        }
+        int GetJawMinLimit()
+        {
+            return jaw_servo == nullptr ? 0 : jaw_servo->GetMinLimit();
+        }
+        int GetJawMaxLimit()
+        {
+            return jaw_servo == nullptr ? 0 : jaw_servo->GetMaxLimit();
+        }
+        int GetEyeUDChannel()
+        {
+            return eye_ud_servo == nullptr ? 0 : eye_ud_servo->GetChannel();
+        }
+        int GetEyeUDMinLimit()
+        {
+            return eye_ud_servo == nullptr ? 0 : eye_ud_servo->GetMinLimit();
+        }
+        int GetEyeUDMaxLimit()
+        {
+            return eye_ud_servo == nullptr ? 0 : eye_ud_servo->GetMaxLimit();
+        }
+        int GetEyeLRChannel()
+        {
+            return eye_lr_servo == nullptr ? 0 : eye_lr_servo->GetChannel();
+        }
+        int GetEyeLRMinLimit()
+        {
+            return eye_lr_servo == nullptr ? 0 : eye_lr_servo->GetMinLimit();
+        }
+        int GetEyeLRMaxLimit()
+        {
+            return eye_lr_servo == nullptr ? 0 : eye_lr_servo->GetMaxLimit();
+        }
 
     protected:
         enum SERVO_TYPE {
@@ -72,7 +131,6 @@ class DmxSkull : public DmxModel, public DmxColorAbility
         };
 
         virtual void InitModel() override;
-        void DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2, DrawGLUtils::xl3Accumulator& va3, const xlColor* c, float& sx, float& sy, bool active, bool is_3d);
 
         void FixObjFile(wxXmlNode* node, const std::string& objfile);
         void AddServo(Servo** _servo, const std::string& name, int type, const std::string& style);
@@ -80,7 +138,8 @@ class DmxSkull : public DmxModel, public DmxColorAbility
         float GetServoPos(Servo* _servo, bool active);
 
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual std::list<std::string> CheckModelSettings() override;
 
         Mesh* head_mesh = nullptr;
         Mesh* jaw_mesh = nullptr;
@@ -99,6 +158,7 @@ class DmxSkull : public DmxModel, public DmxColorAbility
         int default_min_limit[6];
         int default_max_limit[6];
         float default_orient[6];
+        int jaw_orient;
         int pan_orient;
         int tilt_orient;
         int nod_orient;

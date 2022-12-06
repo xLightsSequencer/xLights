@@ -1,5 +1,12 @@
-
 PREFIX          = /usr
+
+# When not installing to a custom location append that location
+# to PKG_CONFIG_PATH so that pkgconfig can find the libraries installed.
+# The "if" is to add : only when there's an existing PKG_CONFIG_PATH.
+export PKG_CONFIG_PATH := $(if $(PKG_CONFIG_PATH),$(PKG_CONFIG_PATH):$(PREFIX)/lib/pkgconfig/,$(PREFIX)/lib/pkgconfig)
+
+# Make sure wx-config will be found.
+export PATH := $(PREFIX)/bin:$(PATH)
 
 # Ignore some warnings for now to make compile output cleaner
 # until the issues are cleaned up in the code.
@@ -13,14 +20,16 @@ DEL_FILE        = rm -f
 ICON_SIZES      = 16x16 32x32 64x64 128x128 256x256
 SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary xschedule.linux.properties xcapture.linux.properties  xfade.linux.properties xscanner.linux.properties xscanner.linux.properties xsmsdaemon.linux.properties remotefalcon.linux.properties
 QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.cat
+# run with `SUDO= make` when installing to a location that doesn't require root
+SUDO		= `which sudo`
 
 SUBDIRS         = xLights xSchedule xCapture xFade xScanner xSchedule/xSMSDaemon xSchedule/RemoteFalcon
 
-WXWIDGETS_TAG=xlights_2021.31b
+WXWIDGETS_TAG=xlights_2022.17b
 
 .NOTPARALLEL:
 
-all: wxwidgets31 log4cpp cbp2make linkliquid makefile subdirs
+all: wxwidgets31 log4cpp cbp2make linkliquid libxlsxwriter makefile subdirs
 
 #############################################################################
 
@@ -43,6 +52,13 @@ linkliquid:
 		fi; \
 	fi
 
+libxlsxwriter: FORCE
+	@printf "Linking libxlsxwriter\n"
+	@if test ! -e dependencies/libxlsxwriter/lib/libxlsxwriter.a; \
+		then cd dependencies/libxlsxwriter; \
+		${MAKE} -s; \
+	fi
+
 log4cpp: FORCE
 	@printf "Checking log4cpp\n"
 	@if test "`log4cpp-config --version`" != "1.1"; \
@@ -55,13 +71,13 @@ log4cpp: FORCE
 		echo Building log4cpp; \
 		${MAKE} -s; \
 		echo Installing log4cpp; \
-		`which sudo` ${MAKE} install DESTDIR=$(DESTDIR); \
+		$(SUDO) ${MAKE} install DESTDIR=$(DESTDIR); \
 		echo Completed build/install of log4cpp; \
 		fi
 
 wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
-	@if test "`wx-config --version`" != "3.1.6"; \
+	@if test "`wx-config --version`" != "3.3.0"; \
 		then if test ! -d wxWidgets-$(WXWIDGETS_TAG); \
 			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b $(WXWIDGETS_TAG) https://github.com/xLightsSequencer/wxWidgets wxWidgets-$(WXWIDGETS_TAG); \
 		fi; \
@@ -70,7 +86,7 @@ wxwidgets31: FORCE
 		echo Building wxwidgets; \
 		${MAKE} -j 4 -s; \
 		echo Installing wxwidgets; \
-		`which sudo` ${MAKE} install DESTDIR=$(DESTDIR); \
+		$(SUDO) ${MAKE} install DESTDIR=$(DESTDIR); \
 		echo Completed build/install of wxwidgets; \
         fi
 

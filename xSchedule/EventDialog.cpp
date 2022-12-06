@@ -19,6 +19,7 @@
 #include "EventPingPanel.h"
 #include "EventOSCPanel.h"
 #include "EventFPPPanel.h"
+#include "EventFPPCommandPresetPanel.h"
 #include "EventMIDIPanel.h"
 #include "EventMQTTPanel.h"
 #include "EventStatePanel.h"
@@ -31,6 +32,7 @@
 #include "events/EventData.h"
 #include "events/EventOSC.h"
 #include "events/EventFPP.h"
+#include "events/EventFPPCommandPreset.h"
 #include "events/EventMIDI.h"
 #include "events/EventMQTT.h"
 #include "events/EventState.h"
@@ -162,6 +164,7 @@ EventDialog::EventDialog(wxWindow* parent, OutputManager* outputManager, EventBa
         Choicebook_EventType->AddPage(new EventSerialPanel(Choicebook_EventType), "Serial", false);
         Choicebook_EventType->AddPage(new EventOSCPanel(Choicebook_EventType), "OSC", false);
         Choicebook_EventType->AddPage(new EventFPPPanel(Choicebook_EventType), "FPP", false);
+        Choicebook_EventType->AddPage(new EventFPPCommandPresetPanel(Choicebook_EventType), "FPPCommandPreset", false);
         Choicebook_EventType->AddPage(new EventARTNetPanel(Choicebook_EventType), "ARTNet", false);
         Choicebook_EventType->AddPage(new EventARTNetTriggerPanel(Choicebook_EventType), "ARTNet Trigger", false);
         Choicebook_EventType->AddPage(new EventPingPanel(Choicebook_EventType, outputManager), "Ping", false);
@@ -192,6 +195,10 @@ EventDialog::EventDialog(wxWindow* parent, OutputManager* outputManager, EventBa
         else if (type == "FPP")
         {
             Choicebook_EventType->AddPage(new EventFPPPanel(Choicebook_EventType), "FPP", true);
+        } 
+        else if (type == "FPPCommandPreset") 
+        {
+            Choicebook_EventType->AddPage(new EventFPPCommandPresetPanel(Choicebook_EventType), "FPPCommandPreset", true);
         }
         else if (type == "ARTNet")
         {
@@ -265,6 +272,10 @@ void EventDialog::OnButton_OkClick(wxCommandEvent& event)
         else if (type == "FPP")
         {
             _eventBase = new EventFPP();
+        } 
+        else if (type == "FPPCommandPreset") 
+        {
+            _eventBase = new EventFPPCommandPreset();
         }
         else if (type == "ARTNet")
         {
@@ -346,6 +357,12 @@ void EventDialog::OnChoicebook_EventTypePageChanged(wxChoicebookEvent& event)
         TextCtrl_P2->SetToolTip(EventFPP::GetParmToolTip());
         TextCtrl_P3->SetToolTip(EventFPP::GetParmToolTip());
     }
+    else if (type == "FPPCommandPreset")
+    {
+        TextCtrl_P1->SetToolTip(EventFPPCommandPreset::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventFPPCommandPreset::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventFPPCommandPreset::GetParmToolTip());
+    }
     else if (type == "ARTNet")
     {
         TextCtrl_P1->SetToolTip(EventARTNet::GetParmToolTip());
@@ -410,6 +427,8 @@ void EventDialog::ValidateWindow()
 {
     Command* c = xScheduleFrame::GetScheduleManager()->GetCommand(Choice_Command->GetStringSelection().ToStdString());
 
+    bool optional3 = false;
+
     if (c != nullptr)
     {
         if (c->_parms == 0)
@@ -435,6 +454,7 @@ void EventDialog::ValidateWindow()
             TextCtrl_P1->Enable(true);
             TextCtrl_P2->Enable(true);
             TextCtrl_P3->Enable(true);
+            optional3 = c->_parmtype[2] == PARMTYPE::OPTIONALSTRING;
         }
     }
 
@@ -460,7 +480,7 @@ void EventDialog::ValidateWindow()
     EventPanel* panel = (EventPanel*)Choicebook_EventType->GetPage(Choicebook_EventType->GetSelection());
     if ((TextCtrl_P1->IsEnabled() && TextCtrl_P1->GetValue().Trim().Trim(false) == "") ||
         (TextCtrl_P2->IsEnabled() && TextCtrl_P2->GetValue().Trim().Trim(false) == "") ||
-        (TextCtrl_P3->IsEnabled() && TextCtrl_P3->GetValue().Trim().Trim(false) == "") ||
+        (!optional3 && TextCtrl_P3->IsEnabled() && TextCtrl_P3->GetValue().Trim().Trim(false) == "") ||
         TextCtrl_Name->GetValue().Trim().Trim(false) == "" ||
         !panel->ValidateWindow()
     )

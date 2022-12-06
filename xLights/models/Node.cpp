@@ -139,10 +139,16 @@ void NodeClassRGBW::GetForChannels(unsigned char* buf) const
                 buf[offsets[x] + wOffset] = c[x];
             }
         }
+        buf[wIndex] = 0;
         break;
     case RGB_HANDLING_WHITE:
         if (c[0] == c[1] && c[1] == c[2]) {
             buf[wIndex] = c[0];
+        }
+        for (int x = 0; x < 3; x++) {
+            if (offsets[x] != 255) {
+                buf[offsets[x] + wOffset] = 0;
+            }
         }
         break;
     case RGB_HANDLING_ALL:
@@ -156,13 +162,16 @@ void NodeClassRGBW::GetForChannels(unsigned char* buf) const
             }
         }
         break;
-    case RGB_HANDLING_ADVANCED:
-    {
+    case RGB_HANDLING_ADVANCED: {
         uint8_t maxc = std::max(c[0], std::max(c[1], c[2]));
         if (maxc == 0) {
             buf[wIndex] = 0;
-        }
-        else {
+            for (int x = 0; x < 3; x++) {
+                if (offsets[x] != 255) {
+                    buf[offsets[x] + wOffset] = 0;
+                }
+            }
+        } else {
             uint8_t minc = std::min(c[0], std::min(c[1], c[2]));
             // find colour with 100% hue
             float multiplier = 255.0f / maxc;
@@ -173,8 +182,10 @@ void NodeClassRGBW::GetForChannels(unsigned char* buf) const
             float maxW = std::max(h0, std::max(h1, h2));
             float minW = std::min(h0, std::min(h1, h2));
             uint8_t whiteness = ((maxW + minW) / 2.0f - 127.5f) * (255.0f / 127.5f) / multiplier;
-            if (whiteness < 0) whiteness = 0;
-            else if (whiteness > minc) whiteness = minc;
+            if (whiteness < 0)
+                whiteness = 0;
+            else if (whiteness > minc)
+                whiteness = minc;
 
             buf[wIndex] = whiteness;
             for (int x = 0; x < 3; x++) {
@@ -183,14 +194,16 @@ void NodeClassRGBW::GetForChannels(unsigned char* buf) const
                 }
             }
         }
-    }
-    break;
-    default: //RGB_HANDLING_NORMAL
+    } break;
+    default: // RGB_HANDLING_NORMAL
         if (c[0] == c[1] && c[1] == c[2]) {
-            buf[0 + wOffset] = buf[1 + wOffset] = buf[2 + wOffset] = 0;
+            for (int x = 0; x < 3; x++) {
+                if (offsets[x] != 255) {
+                    buf[offsets[x] + wOffset] = 0;
+                }
+            }
             buf[wIndex] = c[0];
-        }
-        else {
+        } else {
             for (int x = 0; x < 3; x++) {
                 if (offsets[x] != 255) {
                     buf[offsets[x] + wOffset] = c[x];
@@ -207,12 +220,14 @@ void NodeClassSuperString::SetFromChannels(const unsigned char* buf)
     c[0] = 0;
     c[1] = 0;
     c[2] = 0;
-    for (int i = 0; i < _superStringColours.size(); i++)
-    {
+    for (int i = 0; i < _superStringColours.size(); i++) {
         xlColor cc = xlColor(_superStringColours[i].red * buf[i] / 255, _superStringColours[i].green * buf[i] / 255, _superStringColours[i].blue * buf[i] / 255);
-        if (c[0] < cc.red) c[0] = cc.red;
-        if (c[1] < cc.green) c[1] = cc.green;
-        if (c[2] < cc.blue) c[2] = cc.blue;
+        if (c[0] < cc.red)
+            c[0] = cc.red;
+        if (c[1] < cc.green)
+            c[1] = cc.green;
+        if (c[2] < cc.blue)
+            c[2] = cc.blue;
     }
 }
 
@@ -228,10 +243,8 @@ void NodeClassSuperString::GetForChannels(unsigned char* buf) const
 
     bool primary = r || g || b || y || w || cy || m;
     int singleColour = -1;
-    if (primary)
-    {
-        for (int i = 0; singleColour == -1 && i < _superStringColours.size(); i++)
-        {
+    if (primary) {
+        for (int i = 0; singleColour == -1 && i < _superStringColours.size(); i++) {
             xlColor cc = _superStringColours[i];
             if ((r && cc.red > 0 && cc.green == 0 && cc.blue == 0) ||
                 (g && cc.red == 0 && cc.green > 0 && cc.blue == 0) ||
@@ -239,19 +252,15 @@ void NodeClassSuperString::GetForChannels(unsigned char* buf) const
                 (w && cc.red > 0 && cc.red == cc.green && cc.red == cc.blue) ||
                 (y && cc.red > 0 && cc.red == cc.green && cc.blue == 0) ||
                 (cy && cc.green > 0 && cc.green == cc.blue && cc.red == 0) ||
-                (m && cc.red > 0 && cc.red == cc.blue && cc.green == 0)
-                )
-            {
+                (m && cc.red > 0 && cc.red == cc.blue && cc.green == 0)) {
                 singleColour = i;
             }
         }
     }
 
-    if (singleColour == -1)
-    {
-        for (int i = 0; i < _superStringColours.size(); i++)
-        {
-            //this needs work
+    if (singleColour == -1) {
+        for (int i = 0; i < _superStringColours.size(); i++) {
+            // this needs work
             xlColor cc = _superStringColours[i];
             float r = cc.red == 0 ? 1 : (float)c[0] / cc.red;
             float g = cc.green == 0 ? 1 : (float)c[1] / cc.green;
@@ -259,17 +268,11 @@ void NodeClassSuperString::GetForChannels(unsigned char* buf) const
             float in = std::min(r, std::min(g, std::min(1.0f, b)));
             buf[i] = in * 255;
         }
-    }
-    else
-    {
-        for (int i = 0; i < _superStringColours.size(); i++)
-        {
-            if (i == singleColour)
-            {
+    } else {
+        for (int i = 0; i < _superStringColours.size(); i++) {
+            if (i == singleColour) {
                 buf[i] = std::max(c[0], std::max(c[1], c[2]));
-            }
-            else
-            {
+            } else {
                 buf[i] = 0;
             }
         }

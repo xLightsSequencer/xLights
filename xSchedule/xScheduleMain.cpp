@@ -367,18 +367,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     OutputManager::SetInteractive(false);
-    _pinger = nullptr;
     __schedule = nullptr;
     _statusSetAt = wxDateTime::Now();
-    _webServer = nullptr;
-    _timerOutputFrame = false;
-    _suspendOTL = false;
     _nowebicon = wxBitmap(no_web_icon_24);
     _webicon = wxBitmap(web_icon_24);
     _slowicon = wxBitmap(slow_32);
-    _webIconDisplayed = false;
-    _slowDisplayed = false;
-    _lastSlow = 0;
 
     static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     _timer.SetLog((logger_frame.getPriority() == log4cpp::Priority::DEBUG));
@@ -692,6 +685,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxEVT_SIZE, (wxObjectEventFunction)&xScheduleFrame::OnResize);
     //*)
 
+    Brightness->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&xScheduleFrame::OnCustom_BrightnessLeftDown, 0, this);
     Connect(ID_LISTVIEW1, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnListView_RunningItemSelected);
 
     Connect(wxID_ANY, EVT_FRAMEMS, (wxObjectEventFunction)&xScheduleFrame::RateNotification);
@@ -843,7 +837,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     }
 
     if (rate == 0) rate = 50;
-    _timer.Start(rate / 2, false, "FrameTimer");
+    _useHalfFrames = rate > 1000 / 30; // slower than 30 fps
+    _timer.Start(_useHalfFrames ? rate / 2 : rate, false, "FrameTimer");
     _timerSchedule.Start(500, false, "ScheduleTimer");
 
     StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + ":" + wxString::Format("%d", __schedule->GetOptions()->GetWebServerPort()) + "   ");
@@ -876,6 +871,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     UpdateUI(true);
 
+    logger_base.debug("Loading plugins.");
     _pluginManager.Initialise(_showDir);
 
     for (auto it : _pluginManager.GetPlugins())     {
@@ -888,6 +884,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
             }
         }
     }
+    logger_base.debug("Plugins loaded.");
 }
 
 void xScheduleFrame::LoadSchedule()
@@ -1368,6 +1365,7 @@ void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
         _timer.Stop();
         LoadSchedule();
         wxASSERT(__schedule != nullptr);
+        _useHalfFrames = true;
         _timer.Start(50 / 2, false);
         _timerSchedule.Start(500, false);
         _pluginManager.Initialise(_showDir);
@@ -1496,26 +1494,43 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     static int last = -1;
+    static uint32_t shortFramesSkipped = 0;
+    static uint32_t longFrames = 0;
 
     if (__schedule == nullptr) return;
 
     static long long lastms = wxGetLocalTimeMillis().GetValue() - 25;
     long long now = wxGetLocalTimeMillis().GetValue();
-    int elapsed = (int)(now - lastms);
+    long long elapsed = (now - lastms);
+
+    logger_frame.info("Timer: Start frame elapsed %lld now %lld last %lld", elapsed, now, lastms);
 
     if (elapsed < _timer.GetInterval() / 2)
     {
         // this is premature ... maybe it is a backed up timer event ... lets skip it
-        logger_frame.warn("Timer: Frame event fire interval %dms less than 1/4 frame time %dms", elapsed, _timer.GetInterval() / 2);
+        ++shortFramesSkipped;
+        // log slow and fast frames infrequently
+        if (shortFramesSkipped % 200 == 1) {
+            logger_frame.warn("Timer: Frame event fire interval %dms less than 1/2 frame time %dms. %u events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
+        }
+        else {
+            logger_frame.debug("Timer: Frame event fire interval %dms less than 1/2 frame time %dms. %u events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
+        }
         return;
     }
 
-    logger_frame.info("Timer: Start frame %d", elapsed);
     if (elapsed > _timer.GetInterval() * 4)
     {
         if (lastms != 0 && __schedule->IsOutputToLights())
         {
-            logger_base.warn("Frame interval greater than 200%% of what it should have been [%d] %d", _timer.GetInterval() * 2, (int)(now - lastms));
+            ++longFrames;
+            // log slow and fast frames infrequently
+            if (longFrames % 200 == 1) {
+                logger_frame.warn("Timer: Frame interval greater than 200%% of what it should have been [%d] %d : So far %u", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
+            }
+            else {
+                logger_frame.debug("Timer: Frame interval greater than 200%% of what it should have been [%d] %d : So far %u", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
+            }
             _lastSlow = wxGetUTCTimeMillis();
         }
     }
@@ -1529,8 +1544,10 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     if (last != wxDateTime::Now().GetSecond() && _timerOutputFrame)
 #endif
     {
-        // This code must be commented out before release!!!
-        logger_frame.debug("    Check schedule");
+        // This log message must be commented out before release!!!
+        //logger_frame.debug("    Check schedule");
+
+        // update the UI every second
         last = wxDateTime::Now().GetSecond();
         wxCommandEvent event2(EVT_SCHEDULECHANGED);
         wxPostEvent(this, event2);
@@ -1546,6 +1563,9 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         // we took too long so next frame has to be an output frame
         _timerOutputFrame = true;
         logger_frame.debug("Timer: Frame took too long %ld > %d so next frame forced to be output", ms, _timer.GetInterval());
+    } else if (!_useHalfFrames) {
+        // every frame is an output frame
+        _timerOutputFrame = true;
     }
     else
     {
@@ -1553,7 +1573,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         _timerOutputFrame = !_timerOutputFrame;
     }
 
-    logger_frame.info("Timer: Frame time %ld", ms);
+    logger_frame.info("Timer: End Frame: Time %ld", ms);
 }
 
 void xScheduleFrame::UpdateSchedule()
@@ -1653,7 +1673,7 @@ void xScheduleFrame::UpdateSchedule()
 void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
 {
     if (__schedule->IsFPPRemoteOrMaster())     {
-        SyncFPP::Ping(__schedule->IsSlave());
+        SyncFPP::Ping(__schedule->IsSlave(), __schedule->GetForceLocalIP());
     }
     UpdateSchedule();
 }
@@ -1775,7 +1795,7 @@ void xScheduleFrame::CreateButtons()
 
     FlexGridSizer4->SetCols(5);
     int rows = bs.size() / 5;
-    if (bs.size() % 5 != 0) rows++;
+    if (bs.size() % 5 != 0) ++rows;
     FlexGridSizer4->SetRows(rows);
 
     for (auto it : bs) {
@@ -1829,6 +1849,7 @@ void xScheduleFrame::ChangeShowFolder(wxCommandEvent& event)
     _timerSchedule.Stop();
     _timer.Stop();
     LoadSchedule();
+    _useHalfFrames = true;
     _timer.Start(50 / 2, false);
     _timerSchedule.Start(500, false);
     ValidateWindow();
@@ -1923,12 +1944,6 @@ void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxGetEnv("APPDATA", &dir);
     wxString filename = dir + "/" + fileName;
 #endif
-#ifdef __WXOSX__
-    wxFileName home;
-    home.AssignHomeDir();
-    dir = home.GetFullPath();
-    wxString filename = dir + "/Library/Logs/" + fileName;
-#endif
 #ifdef __LINUX__
     wxString filename = "/tmp/" + fileName;
 #endif
@@ -1984,7 +1999,7 @@ void xScheduleFrame::OnResize(wxSizeEvent& event)
             it->GetSize(&w, &h);
 
             if ((x < lastx && y == lasty) || x + w > pw - 10) {
-                n--;
+                --n;
                 changed = true;
                 break;
             }
@@ -2133,7 +2148,7 @@ void xScheduleFrame::UpdateStatus(bool force)
                     ListView_Running->SetItem(i, 2, FormatTime(it->GetLengthMS()));
                     ListView_Running->SetItem(i, 3, it->GetFSEQTimeStamp());
                     ListView_Running->SetItemData(i, it->GetId());
-                    i++;
+                    ++i;
                 }
             }
         }
@@ -2150,11 +2165,11 @@ void xScheduleFrame::UpdateStatus(bool force)
         bool nexthighlighted = false;
 
         if (step != nullptr) {
-            for (int i = 0; i < ListView_Running->GetItemCount(); i++) {
+            for (int i = 0; i < ListView_Running->GetItemCount(); ++i) {
                 if (!currenthighlighted && ListView_Running->GetItemData(i) == step->GetId()) {
                     currenthighlighted = true;
                     ListView_Running->SetItem(i, 3, step->GetStatus());
-                    if (step->GetAudioManager() != nullptr && AudioManager::GetSDL()->IsNoAudio()) {
+                    if (step->GetAudioManager() != nullptr && AudioManager::GetSDLManager()->IsNoAudio()) {
                         ListView_Running->SetItemBackgroundColour(i, wxColor(244, 146, 155));
                         const std::string noaudio = "Audio not playing due to no audio device found.";
                         if (ListView_Running->GetToolTipText() != noaudio) ListView_Running->SetToolTip(noaudio);
@@ -2474,69 +2489,46 @@ void xScheduleFrame::OnBitmapButton_UnsavedClick(wxCommandEvent& event)
     UpdateUI();
 }
 
-void xScheduleFrame::CreateDebugReport(wxDebugReportCompress *report) {
+void xScheduleFrame::CreateDebugReport(xlCrashHandler* crashHandler)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.crit("Crash handler called.");
+    if (xScheduleFrame::GetScheduleManager() != nullptr) {
+        crashHandler->GetDebugReport().SetCompressedFileDirectory(xScheduleFrame::GetScheduleManager()->GetShowDir());
+    }
 
-    std::string cb = "Prompt user";
+    if (xScheduleFrame::GetScheduleManager() != nullptr) {
+        wxFileName fn(xScheduleFrame::GetScheduleManager()->GetShowDir(), OutputManager::GetNetworksFileName());
+        if (FileExists(fn)) {
+            crashHandler->GetDebugReport().AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
+        }
+
+        if (FileExists(wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()))) {
+            crashHandler->GetDebugReport().AddFile(wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()).GetFullPath(), ScheduleManager::GetScheduleFile());
+        }
+    }
+
+    if (xScheduleFrame::GetScheduleManager() != nullptr) {
+        xScheduleFrame::GetScheduleManager()->CheckScheduleIntegrity(false);
+    }
+
+    xlCrashHandler::SendReportOptions sendOption = xlCrashHandler::SendReportOptions::ASK_USER_TO_SEND;
+
     if (__schedule != nullptr && __schedule->GetOptions() != nullptr)
     {
-        cb = __schedule->GetOptions()->GetCrashBehaviour();
-    }
+        std::string const crashBehaviour = __schedule->GetOptions()->GetCrashBehaviour();
 
-    report->Process();
-
-    if (cb == "Silently exit after sending crash log" || (cb == "Prompt user" && wxDebugReportPreviewStd().Show(*report))) {
-        if (cb != "Silently exit after sending crash log")
+        if (crashBehaviour == "Silently exit after sending crash log")
         {
-            wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
+            sendOption = xlCrashHandler::SendReportOptions::ALWAYS_SEND;
         }
-        SendReport("crashUpload", *report);
+        else if (crashBehaviour == "Silently exit without sending crash log")
+        {
+            sendOption = xlCrashHandler::SendReportOptions::NEVER_SEND;
+        }
     }
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.crit("Exiting after creating debug report: " + report->GetCompressedFileName());
-    delete report;
-    exit(1);
-}
-
-void xScheduleFrame::SendReport(const wxString &loc, wxDebugReportCompress &report) {
-    wxHTTP http;
-    http.Connect("dankulp.com");
-
-    const char *bound = "--------------------------b29a7c2fe47b9481";
-
-    wxDateTime now = wxDateTime::Now();
-    int millis = wxGetUTCTimeMillis().GetLo() % 1000;
-    wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth()+1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
-
-    wxString fn = wxString::Format("xSchedule-%s_%s_%s_%s.zip", wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), xlights_version_string, GetBitness(), ts);
-    const char *ct = "Content-Type: application/octet-stream\n";
-    std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
-
-    wxMemoryBuffer memBuff;
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(ct, strlen(ct));
-    memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
-
-    wxFile f_in(report.GetCompressedFileName());
-    wxFileOffset fLen = f_in.Length();
-    void* tmp = memBuff.GetAppendBuf(fLen);
-    size_t iRead = f_in.Read(tmp, fLen);
-    memBuff.UngetAppendBuf(iRead);
-    f_in.Close();
-
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("--\n", 3);
-
-    http.SetMethod("POST");
-    http.SetPostBuffer("multipart/form-data; boundary=------------------------b29a7c2fe47b9481", memBuff);
-    wxInputStream * is = http.GetInputStream("/" + loc + "/index.php");
-    char buf[1024];
-    is->Read(buf, 1024);
-    //printf("%s\n", buf);
-    delete is;
-    http.Close();
+    crashHandler->ProcessCrashReport(sendOption);
 }
 
 void xScheduleFrame::OnKeyDown(wxKeyEvent& event)
@@ -2632,12 +2624,18 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
 void xScheduleFrame::CorrectTimer(int rate)
 {
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
-    if (rate == 0) rate = 50;
-    if ((rate - __schedule->GetTimerAdjustment()) / 2 != _timer.GetInterval())
+    if (rate == 0) {
+        rate = 50;
+        _useHalfFrames = true;
+    }
+    else {
+        _useHalfFrames = rate > 1000 / 30; // slower than 30 fps
+    }
+    if ((rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1) != _timer.GetInterval())
     {
-        logger_frame.debug("Timer corrected %d", (rate - __schedule->GetTimerAdjustment()) / 2);
+        logger_frame.debug("Timer corrected %d", (rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1));
 
-        _timer.Start((rate - __schedule->GetTimerAdjustment()) / 2);
+        _timer.Start((rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1));
     }
 }
 
@@ -2679,6 +2677,12 @@ void xScheduleFrame::OnBitmapButton_VolumeUpClick(wxCommandEvent& event)
 void xScheduleFrame::OnCustom_VolumeLeftDown(wxMouseEvent& event)
 {
     __schedule->ToggleMute();
+    UpdateUI();
+}
+
+void xScheduleFrame::OnCustom_BrightnessLeftDown(wxMouseEvent& event)
+{
+    __schedule->ToggleBrightness();
     UpdateUI();
 }
 
@@ -3289,7 +3293,7 @@ void xScheduleFrame::UpdateUI(bool force)
         for (auto it : pingresults) {
             // find it in the list
             int item = -1;
-            for (int i = 0; i < ListView_Ping->GetItemCount(); i++) {
+            for (int i = 0; i < ListView_Ping->GetItemCount(); ++i) {
                 if (ListView_Ping->GetItemText(i) == it->GetName()) {
                     item = i;
                     break;
@@ -3365,7 +3369,7 @@ void xScheduleFrame::UpdateUI(bool force)
             if (serial != nullptr) {
                 // find it in the list
                 int item = -1;
-                for (int i = 0; i < ListView_Ping->GetItemCount(); i++) {
+                for (int i = 0; i < ListView_Ping->GetItemCount(); ++i) {
                     if (ListView_Ping->GetItemText(i) == serial->GetName()) {
                         item = i;
                         break;
@@ -3413,7 +3417,7 @@ void xScheduleFrame::UpdateUI(bool force)
         }
 
         // remove anything in the tree which isnt in the results
-        for (int i = 0; i < ListView_Ping->GetItemCount(); i++) {
+        for (int i = 0; i < ListView_Ping->GetItemCount(); ++i) {
             bool found = false;
             for (auto it : pingresults) {
                 if (ListView_Ping->GetItemText(i) == it->GetName()) {
@@ -3433,7 +3437,7 @@ void xScheduleFrame::UpdateUI(bool force)
 
             if (!found) {
                 ListView_Ping->DeleteItem(i);
-                i--;
+                --i;
             }
         }
         ListView_Ping->Thaw();
@@ -3648,6 +3652,7 @@ void xScheduleFrame::OnMenuItem_UsexLightsFolderSelected(wxCommandEvent& event)
     _timerSchedule.Stop();
     _timer.Stop();
     LoadSchedule();
+    _useHalfFrames = true;
     _timer.Start(50 / 2, false);
     _timerSchedule.Start(500, false);
 
@@ -3657,35 +3662,30 @@ void xScheduleFrame::OnMenuItem_UsexLightsFolderSelected(wxCommandEvent& event)
 void xScheduleFrame::OnMenuItem_RemoteLatencySelected(wxCommandEvent& event)
 {
     RemoteModeConfigDialog dlg(this, __schedule->GetOptions()->GetRemoteLatency(), __schedule->GetOptions()->GetRemoteAcceptableJitter());
-    if (dlg.ShowModal() == wxID_OK)
-    {
+    if (dlg.ShowModal() == wxID_OK) {
         __schedule->GetOptions()->SetRemoteLatency(dlg.GetLatency());
         __schedule->GetOptions()->SetRemoteAcceptableJitter(dlg.GetJitter());
     }
 }
+
 void xScheduleFrame::OnButton_CloneClick(wxCommandEvent& event)
 {
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
-    if (treeitem.IsOk())
-    {
-        if (IsPlayList(treeitem))
-        {
+    if (treeitem.IsOk()) {
+        if (IsPlayList(treeitem)) {
             PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
             PlayList* newpl = new PlayList(*playlist, true);
-            wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(TreeCtrl_PlayListsSchedules->GetRootItem(), newpl->GetName(), -1, -1, new MyTreeItemData(newpl));
+            wxTreeItemId newitem = TreeCtrl_PlayListsSchedules->AppendItem(TreeCtrl_PlayListsSchedules->GetRootItem(), newpl->GetName(), -1, -1, new MyTreeItemData(newpl));
             TreeCtrl_PlayListsSchedules->Expand(newitem);
             TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
             __schedule->AddPlayList(newpl);
-        }
-        else if (IsSchedule(treeitem))
-        {
+        } else if (IsSchedule(treeitem)) {
             wxTreeItemId plid = TreeCtrl_PlayListsSchedules->GetItemParent(treeitem);
             Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-            if (plid.IsOk())
-            {
+            if (plid.IsOk()) {
                 PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(plid))->GetData();
                 Schedule* newSchedule = new Schedule(*schedule, true);
-                wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(plid, GetScheduleName(newSchedule, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(newSchedule));
+                wxTreeItemId newitem = TreeCtrl_PlayListsSchedules->AppendItem(plid, GetScheduleName(newSchedule, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(newSchedule));
                 TreeCtrl_PlayListsSchedules->Expand(plid);
                 TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
                 playlist->AddSchedule(newSchedule);

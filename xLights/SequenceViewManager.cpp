@@ -16,7 +16,7 @@
 
 #include <log4cpp/Category.hh>
 
-#define MASTER_VIEW "Master View"
+#define MASTER_VIEW_NAME "Master View"
 
 #pragma region SequenceView
 
@@ -229,9 +229,9 @@ void SequenceViewManager::Load(wxXmlNode* node, int selectedView)
 
 void SequenceViewManager::AddMasterView()
 {
-	if (GetView(MASTER_VIEW) == nullptr)
+	if (GetView(MASTER_VIEW_NAME) == nullptr)
 	{
-		_views.push_back(new SequenceView(MASTER_VIEW, _modelManager));
+		_views.push_back(new SequenceView(MASTER_VIEW_NAME, _modelManager));
 	}
 }
 
@@ -270,7 +270,7 @@ wxXmlNode* SequenceViewManager::Save() const
 
 	for (auto it = _views.begin(); it != _views.end(); ++it)
 	{
-		if ((*it)->GetName() != MASTER_VIEW)
+		if ((*it)->GetName() != MASTER_VIEW_NAME)
 		{
 			node->AddChild((*it)->Save());
 		}

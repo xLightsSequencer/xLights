@@ -99,7 +99,7 @@ void CurtainEffect::SetDefaultParameters() {
     SetCheckBoxValue(cp->CheckBox_Curtain_Repeat, false);
 }
 
-void CurtainEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void CurtainEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     int swag = GetValueCurveInt("Curtain_Swag", 3, SettingsMap, oset, CURTAIN_SWAG_MIN, CURTAIN_SWAG_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

@@ -14,6 +14,8 @@
 #include "ValueCurveButton.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
+#include "ExternalHooks.h"
+
 
 //(*InternalHeaders(ValueCurvesPanel)
 #include <wx/intl.h>
@@ -43,31 +45,25 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
     int added = 0;
     int count = 0;
 
-    wxString filename;
     auto existing = GridSizer1->GetChildren();
 
-    bool cont = directory.GetFirst(&filename, "*.xvc", wxDIR_FILES);
-
-    while (cont)
-    {
-        wxFileName fn(directory.GetNameWithSep() + filename);
+    wxArrayString files;
+    GetAllFilesInDir(directory.GetName(), files, "*.xvc");
+    for (auto &filename : files) {
+        wxFileName fn(filename);
         bool found = false;
         count++;
-        for (const auto& it : existing)
-        {
-            if (it->GetWindow()->GetLabel() == fn.GetFullPath())
-            {
+        for (const auto& it : existing) {
+            if (it->GetWindow()->GetLabel() == fn.GetFullPath()) {
                 // already there
                 found = true;
                 break;
             }
         }
-        if (!found)
-        {
+        if (!found) {
             ValueCurve vc("");
             vc.LoadXVC(fn);
-            if (vc.IsOk())
-            {
+            if (vc.IsOk()) {
                 wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
                 DragValueCurveBitmapButton* bmb = new DragValueCurveBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
                     wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
@@ -76,22 +72,17 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
                 bmb->SetValueCurve(vc.Serialise());
                 GridSizer1->Add(bmb);
                 added++;
-            }
-            else
-            {
+            } else {
                 logger_base.warn("ValueCurvesPanel::ProcessPresetDir Unable to load " + fn.GetFullPath());
             }
         }
-
-        cont = directory.GetNext(&filename);
     }
     logger_base.info("    Found %d.", count);
 
-    if (subdirs)
-    {
-        cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
-        while (cont)
-        {
+    if (subdirs) {
+        wxString filename;
+        bool cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        while (cont) {
             wxDir dir(directory.GetNameWithSep() + filename);
             added += ProcessPresetDir(dir, subdirs);
             cont = directory.GetNext(&filename);
@@ -140,7 +131,7 @@ void ValueCurvesPanel::UpdateValueCurveButtons(bool reload) {
         bmb->SetLabel("VALUECURVE_CLEAR");
         bmb->UnsetToolTip();
         bmb->SetValueCurve("VALUECURVE_CLEAR");
-        bmb->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_colorpanel_delete_xpm"))));
+        bmb->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_colorpanel_delete_xpm", wxART_BUTTON));
         added++;
     }
 
@@ -205,16 +196,10 @@ ValueCurvesPanel::ValueCurvesPanel(wxWindow* parent,wxWindowID id,const wxPoint&
 	ScrolledWindow1 = new wxScrolledWindow(Panel_Sizer, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
 	GridSizer1 = new wxGridSizer(0, 3, 0, 0);
 	ScrolledWindow1->SetSizer(GridSizer1);
-	GridSizer1->Fit(ScrolledWindow1);
-	GridSizer1->SetSizeHints(ScrolledWindow1);
 	FlexGridSizer2->Add(ScrolledWindow1, 1, wxALL|wxEXPAND, 5);
 	Panel_Sizer->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(Panel_Sizer);
-	FlexGridSizer2->SetSizeHints(Panel_Sizer);
 	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ValueCurvesPanel::OnResize);
 	//*)

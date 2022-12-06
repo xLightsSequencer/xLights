@@ -24,6 +24,7 @@
 #include "models/DMX/DmxModel.h"
 #include "models/DMX/DmxColorAbility.h"
 #include "GPURenderUtils.h"
+#include "BufferPanel.h"
 
 #include <log4cpp/Category.hh>
 #include "Parallel.h"
@@ -31,7 +32,7 @@
 template <class CTX>
 class ContextPool {
 public:
-    
+
     ContextPool(std::function<CTX* ()> alloc, std::string type = ""): allocator(alloc), _type(type) {
     }
     ~ContextPool() {
@@ -41,7 +42,7 @@ public:
             contexts.pop();
         }
     }
-    
+
     CTX *GetContext() {
         // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
         bool contextsEmpty = false;
@@ -65,7 +66,7 @@ public:
         std::unique_lock<std::mutex> locker(lock);
         contexts.push(pctx);
     }
-    
+
 private:
     std::mutex lock;
     std::queue<CTX*> contexts;
@@ -208,40 +209,39 @@ std::string RenderBuffer::GetModelName() const
     return cur_model;
 }
 
+wxString RenderBuffer::GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const
+{
+    if (xLightsFrame::CurrentSeqXmlFile == nullptr) {
+        return wxString();
+    }
+    return xLightsFrame::CurrentSeqXmlFile->GetHeaderInfo(node_type);
+}
+
 void RenderBuffer::AlphaBlend(const RenderBuffer& src)
 {
     if (src.BufferWi != BufferWi || src.BufferHt != BufferHt) return;
 
-    for (int y = 0; y < BufferHt; y++)
-    {
-        for (int x = 0; x < BufferWi; x++)
-        {
-            auto pnew = src.GetPixel(x, y);
-            auto pold = GetPixel(x, y);
-
-            if (pnew.alpha == 255 || pold == xlBLACK)
-            {
-                SetPixel(x, y, pnew);
-            }
-            else if (pnew.alpha > 0 && pnew != xlBLACK)
-            {
-                xlColor c;
-                int r = pnew.red + pold.red * (255 - pnew.alpha) / 255;
-                if (r > 255) r = 255;
-                c.red = r;
-                int g = pnew.green + pold.green * (255 - pnew.alpha) / 255;
-                if (g > 255) g = 255;
-                c.green = g;
-                int b = pnew.blue + pold.blue * (255 - pnew.alpha) / 255;
-                if (b > 255) b = 255;
-                c.blue = b;
-                int a = pnew.alpha + pold.alpha * (255 - pnew.alpha) / 255;
-                if (a > 255) a = 255;
-                c.alpha = a;
-                SetPixel(x, y, c);
-            }
+    parallel_for(0, GetPixelCount(), [&src, this](int idx) {
+        const auto &pnew = src.pixels[idx];
+        auto &pold = pixels[idx];
+        if (pnew.alpha == 255 || pold == xlBLACK) {
+            pold = pnew;
+        } else if (pnew.alpha > 0 && pnew != xlBLACK) {
+            xlColor c;
+            int r = pnew.red + pold.red * (255 - pnew.alpha) / 255;
+            if (r > 255) r = 255;
+            pold.red = r;
+            int g = pnew.green + pold.green * (255 - pnew.alpha) / 255;
+            if (g > 255) g = 255;
+            pold.green = g;
+            int b = pnew.blue + pold.blue * (255 - pnew.alpha) / 255;
+            if (b > 255) b = 255;
+            pold.blue = b;
+            int a = pnew.alpha + pold.alpha * (255 - pnew.alpha) / 255;
+            if (a > 255) a = 255;
+            pold.alpha = a;
         }
-    }
+    }, 2000);
 }
 
 inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
@@ -358,7 +358,32 @@ void DrawingContext::ResetSize(int BufferWi, int BufferHt) {
     }
 }
 
-void DrawingContext::Clear() {
+size_t DrawingContext::GetWidth() const
+{
+    if (gc != nullptr) {
+        wxDouble w = 0, h = 0;
+        gc->GetSize(&w, &h);
+        return w;
+    } else if (image != nullptr) {
+        return image->GetWidth();
+    }
+    return 0;
+}
+
+size_t DrawingContext::GetHeight() const
+{
+    if (gc != nullptr) {
+        wxDouble w = 0, h = 0;
+        gc->GetSize(&w, &h);
+        return h;
+    } else if (image != nullptr) {
+        return image->GetHeight();
+    }
+    return 0;
+}
+
+void DrawingContext::Clear()
+{
     if (dc != nullptr)
     {
         dc->SelectObject(nullBitmap);
@@ -469,7 +494,20 @@ void PathDrawingContext::SetPen(wxPen &pen) {
         gc->SetPen(pen);
 }
 
-void TextDrawingContext::SetPen(wxPen &pen) {
+void PathDrawingContext::SetBrush(wxBrush& brush)
+{
+    if (gc != nullptr)
+        gc->SetBrush(brush);
+}
+
+void PathDrawingContext::SetBrush(wxGraphicsBrush& brush)
+{
+    if (gc != nullptr)
+        gc->SetBrush(brush);
+}
+
+void TextDrawingContext::SetPen(wxPen& pen)
+{
     if (gc != nullptr) {
         gc->SetPen(pen);
     } else {
@@ -487,7 +525,13 @@ void PathDrawingContext::StrokePath(wxGraphicsPath& path)
     gc->StrokePath(path);
 }
 
-void TextDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
+void PathDrawingContext::FillPath(wxGraphicsPath& path, wxPolygonFillMode fillStyle)
+{
+    gc->FillPath(path, fillStyle);
+}
+
+void TextDrawingContext::SetFont(wxFontInfo& font, const xlColor& color)
+{
     if (gc != nullptr) {
         int style = wxFONTFLAG_NOT_ANTIALIASED;
         if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
@@ -602,8 +646,6 @@ RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
 {
     BufferHt = 0;
     BufferWi = 0;
-    ModelBufferHt = 0;
-    ModelBufferWi = 0;
     curPeriod = 0;
     curEffStartPer = 0;
     curEffEndPer = 0;
@@ -621,7 +663,7 @@ RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
 }
 
 RenderBuffer::~RenderBuffer()
-{    
+{
     if (_isCopy) Forget();
 
     //dtor
@@ -647,26 +689,29 @@ PathDrawingContext * RenderBuffer::GetPathDrawingContext()
     {
         _pathDrawingContext = PathDrawingContext::GetContext();
         _pathDrawingContext->ResetSize(BufferWi, BufferHt);
+    } else if (_pathDrawingContext->GetWidth() != BufferWi || _pathDrawingContext->GetHeight() != BufferHt) {
+        // varying subbuffers the size may have changed
+        _pathDrawingContext->ResetSize(BufferWi, BufferHt);
     }
 
-    return _pathDrawingContext; 
+    return _pathDrawingContext;
 }
 
-TextDrawingContext * RenderBuffer::GetTextDrawingContext()
+TextDrawingContext* RenderBuffer::GetTextDrawingContext()
 {
-    if (_textDrawingContext == nullptr)
-    {
+    if (_textDrawingContext == nullptr) {
         _textDrawingContext = TextDrawingContext::GetContext();
+        _textDrawingContext->ResetSize(BufferWi, BufferHt);
+    } else if (_textDrawingContext->GetWidth() != BufferWi || _textDrawingContext->GetHeight() != BufferHt) {
+        // varying subbuffers the size may have changed
         _textDrawingContext->ResetSize(BufferWi, BufferHt);
     }
 
     return _textDrawingContext;
 }
 
-void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform, bool nodeBuffer)
+void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform, bool nodeBuffer)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (_pathDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {
         _pathDrawingContext->ResetSize(newBufferWi, newBufferHt);
     }
@@ -676,20 +721,27 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
     _nodeBuffer = nodeBuffer;
     BufferHt = newBufferHt;
     BufferWi = newBufferWi;
-    ModelBufferHt = newModelBufferHt;
-    ModelBufferWi = newModelBufferWi;
-    if (ModelBufferHt * ModelBufferWi < std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi)) {
-        wxASSERT(false);
-        logger_base.warn("RenderBuffer had to be expanded for %s from %d to %d pixels", (const char *)GetModelName().c_str(), ModelBufferHt * ModelBufferWi, std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi));
-    }
-    size_t NumPixels = std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi);
+
+    size_t NumPixels = BufferHt * BufferWi;
     // This is an absurdly high number but there are circumstances right now when creating a buffer based on a zoomed in camera when these can be hit.
     //wxASSERT(NumPixels < 500000);
-    
-    pixelVector.resize(NumPixels);
-    pixels = &pixelVector[0];
-    tempbufVector.resize(NumPixels);
-    tempbuf = &tempbufVector[0];
+
+    if (NumPixels != pixelVector.size()) {
+        bool resetPtr = pixelVector.size() == 0 || pixels == &pixelVector[0];
+        bool resetTPtr = tempbufVector.size() == 0 || tempbuf == &tempbufVector[0];
+        pixelVector.resize(NumPixels);
+        tempbufVector.resize(NumPixels);
+        if (resetPtr) {
+            // If the pixels or tempbuf ptr did not point to the first element
+            // originally, then it is pointing into GPU memory and we need
+            // to keep that pointer pointing there so the data can be retreived
+            // from the GPU.
+            pixels = &pixelVector[0];
+        }
+        if (resetTPtr) {
+            tempbuf = &tempbufVector[0];
+        }
+    }
     isTransformed = (bufferTransform != "None");
 }
 
@@ -858,7 +910,6 @@ void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color, in
     Get2ColorBlend(coloridx1, coloridx2, ratio, color);
 }
 
-
 // 0,0 is lower left
 void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool useAlpha, bool dmx_ignore)
 {
@@ -866,7 +917,7 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
         SetPixelDMXModel(x, y, color);
         return;
     }
-        
+
     if (wrap) {
         while (x < 0) {
             x += BufferWi;
@@ -881,7 +932,7 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
             y -= BufferHt;
         }
     }
-    
+
     // I dont like this ... it should actually never happen
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixelVector.size())
     {
@@ -890,7 +941,7 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
         //{
             // transparent ... dont do anything
         //}
-        //else 
+        //else
         if (useAlpha && color.Alpha() != 255)
         {
             xlColor pnew = color;
@@ -1286,6 +1337,35 @@ void RenderBuffer::CopyPixelsToTempBuf() {
     memcpy(tempbuf, pixels, pixelVector.size() * 4);
 }
 
+// Gets the maximum oversized buffer size a model could have
+// Useful for models which need to track data per cell as with value curves the buffer size could
+// get as large as this during the effect
+wxPoint RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
+{
+    Model* m = frame->AllModels[cur_model];
+    if (m == nullptr) {
+        return wxPoint(-1, -1);
+    }
+    std::string bufferstyle = SettingsMap.Get("CHOICE_BufferStyle", "Default");
+    std::string transform = SettingsMap.Get("CHOICE_BufferTransform", "None");
+    std::string camera = SettingsMap.Get("CHOICE_PerPreviewCamera", "2D");
+    int w, h;
+    
+    static const std::string PER_MODEL("Per Model");
+    static const std::string DEEP("Deep");
+    if (bufferstyle.compare(0, 9, PER_MODEL) == 0) {
+        bufferstyle = bufferstyle.substr(10);
+        if (bufferstyle.compare(bufferstyle.length() - 4, 4, DEEP) == 0) {
+            bufferstyle = bufferstyle.substr(0, bufferstyle.length() - 5);
+        }
+    }
+    
+    m->GetBufferSize(bufferstyle, camera, transform, w, h);
+    float xScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
+    float yScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
+    return wxPoint(xScale * w, yScale * h);
+}
+
 float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) const {
     if (curEffEndPer == curEffStartPer) {
         return 0.0f;
@@ -1426,15 +1506,12 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     _nodeBuffer = buffer._nodeBuffer;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
-    ModelBufferHt = buffer.ModelBufferHt;
-    ModelBufferWi = buffer.ModelBufferWi;
     infoCache = buffer.infoCache;
 
     pixels = &pixelVector[0];
     _textDrawingContext = buffer._textDrawingContext;
     _pathDrawingContext = buffer._pathDrawingContext;
     gpuRenderData = nullptr;
-    GPURenderUtils::copyGPUData(this, &buffer);
 }
 
 void RenderBuffer::Forget()
@@ -1455,43 +1532,11 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
             pixels[0] = color;
             return;
         }
-        xlColor c;
         DmxModel* dmx = (DmxModel*)model_info;
         if (dmx->HasColorAbility()) {
             DmxColorAbility* dmx_color = dmx->GetColorAbility();
-
-            int white_channel = dmx_color->GetWhiteChannel();
-            if (white_channel > 0 && color.red == color.green && color.red == color.blue)
-            {
-                c.red = color.red;
-                c.green = color.red;
-                c.blue = color.red;
-                if (pixelVector.size() > white_channel - 1) pixels[white_channel - 1] = c;
-            }
-            else
-            {
-                int red_channel = dmx_color->GetRedChannel();
-                int grn_channel = dmx_color->GetGreenChannel();
-                int blu_channel = dmx_color->GetBlueChannel();
-                if (red_channel != 0) {
-                    c.red = color.red;
-                    c.green = color.red;
-                    c.blue = color.red;
-                    if (pixelVector.size() > red_channel - 1) pixels[red_channel - 1] = c;
-                }
-                if (grn_channel != 0) {
-                    c.red = color.green;
-                    c.green = color.green;
-                    c.blue = color.green;
-                    if (pixelVector.size() > grn_channel - 1) pixels[grn_channel - 1] = c;
-                }
-                if (blu_channel != 0) {
-                    c.red = color.blue;
-                    c.green = color.blue;
-                    c.blue = color.blue;
-                    if (pixelVector.size() > blu_channel - 1) pixels[blu_channel - 1] = c;
-                }
-            }
+            dmx_color->SetColorPixels(color,pixelVector);
         }
+        dmx->EnableFixedChannels(pixelVector);
     }
 }

@@ -305,8 +305,15 @@ class SMSService
                                                     auto s = msg._message;
                                                     Replace(s, "!!u!!", "\\u");
                                                     Replace(s, "!!U!!", "\\u");
+                                                    std::wstring wide;
+                                                    // This code at least on windows is not deprecated but I am not including at this time as I have not had a chance to test it
+                                                    //#ifdef __WXMSW__
+                                                    //wide.resize(s.size());
+                                                    //::MultiByteToWideChar(CP_UTF8, 0, s.c_str(), s.size(), &wide[0], wide.size());
+                                                    //#else
                                                     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-                                                    std::wstring wide = converter.from_bytes(s);
+                                                    wide = converter.from_bytes(s);
+                                                    //#endif
                                                     std::wstring w;
                                                     std::string utf;
                                                     int state = 0;
@@ -355,6 +362,7 @@ class SMSService
                                                 bool magic = false;
                                                 for (const auto& it : _options->GetMagicWords()) {
                                                     if (it->CheckMessage(msg))                                                         {
+                                                        logger_base.info("Magic Msg: %s", (const char*)msg.GetLog().c_str());
                                                         _rejectedMessages.push_back(msg);
                                                         magic = true;
                                                         break;
@@ -392,6 +400,8 @@ class SMSService
                                             logger_base.warn("Rejected Msg: Censored : %s", (const char*)msg.GetLog().c_str());
                                             _rejectedMessages.push_back(msg);
                                             SendRejectMessage(msg, _options->GetRejectMessage());
+                                        } else {
+                                            logger_base.warn("Rejected Msg: Blank : '%s'", (const char*)msg.GetLog().c_str());
                                         }
                                     }
                                 }
@@ -426,11 +436,12 @@ class SMSService
                 else
                 {
                     // we already have this message but dont log
+                    logger_base.debug("Rejected Msg: Already in list : %s", (const char*)msg.GetLog().c_str());
                 }
             }
             else
             {
-                // too old but dont log
+                logger_base.debug("Rejected Msg: Too old : %s. Age %d > Max Age %d", (const char*)msg.GetLog().c_str(), msg.GetAgeMins(), maxAgeMins);
             }
 
             return added;

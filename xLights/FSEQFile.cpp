@@ -134,7 +134,7 @@ inline uint64_t GetTime(void) {
     return now_tv.tv_sec * 1000000LL + now_tv.tv_usec;
 }
 
-inline long roundTo4(long i) {
+inline long roundTo4Internal(long i) {
     long remainder = i % 4;
     if (remainder == 0) {
         return i;
@@ -351,6 +351,15 @@ void FSEQFile::initializeFromFSEQ(const FSEQFile& fseq) {
     m_seqStepTime = fseq.m_seqStepTime;
     m_variableHeaders = fseq.m_variableHeaders;
     m_uniqueId = fseq.m_uniqueId;
+    
+    if (fseq.getVersionMajor() >= 2) {
+        const V2FSEQFile *v2 = dynamic_cast<const V2FSEQFile*>(&fseq);
+        if (!v2->m_sparseRanges.empty()) {
+            for (auto &a : v2->m_sparseRanges) {
+                m_seqChannelCount = std::max(m_seqChannelCount, (a.first + a.second));
+            }
+        }
+    }
 }
 
 
@@ -520,7 +529,7 @@ void V1FSEQFile::writeHeader() {
     }
 
     // Round to a product of 4 for better memory alignment
-    m_seqChanDataOffset = roundTo4(headerSize);
+    m_seqChanDataOffset = roundTo4Internal(headerSize);
 
     // Use m_seqChanDataOffset for buffer size to avoid additional writes or buffer allocations
     // It also comes pre-memory aligned to avoid additional padding
@@ -580,8 +589,8 @@ void V1FSEQFile::writeHeader() {
     }
 
     // Validate final write position matches expected channel data offset
-    if (roundTo4(writePos) != m_seqChanDataOffset) {
-        LogErr(VB_SEQUENCE, "Final write position (%d, roundTo4 = %d) does not match channel data offset (%d)! This means the header size failed to compute an accurate buffer size.\n", writePos, roundTo4(writePos), m_seqChanDataOffset);
+    if (roundTo4Internal(writePos) != m_seqChanDataOffset) {
+        LogErr(VB_SEQUENCE, "Final write position (%d, roundTo4 = %d) does not match channel data offset (%d)! This means the header size failed to compute an accurate buffer size.\n", writePos, roundTo4Internal(writePos), m_seqChanDataOffset);
     }
 
     // Write full header at once
@@ -1405,7 +1414,7 @@ void V2FSEQFile::writeHeader() {
     for (auto &a : m_variableHeaders) {
         m_seqChanDataOffset += a.data.size();
     }
-    m_seqChanDataOffset = roundTo4(m_seqChanDataOffset);
+    m_seqChanDataOffset = roundTo4Internal(m_seqChanDataOffset);
 
     // Use m_seqChanDataOffset for buffer size to avoid additional writes or buffer allocations
     // It also comes pre-memory aligned to avoid adding padding
@@ -1478,8 +1487,8 @@ void V2FSEQFile::writeHeader() {
     }
 
     // Validate final write position matches expected channel data offset
-    if (roundTo4(writePos) != m_seqChanDataOffset) {
-        LogErr(VB_SEQUENCE, "Final write position (%d, roundTo4 = %d) does not match channel data offset (%d)! This means the header size failed to compute an accurate buffer size.\n", writePos, roundTo4(writePos), m_seqChanDataOffset);
+    if (roundTo4Internal(writePos) != m_seqChanDataOffset) {
+        LogErr(VB_SEQUENCE, "Final write position (%d, roundTo4 = %d) does not match channel data offset (%d)! This means the header size failed to compute an accurate buffer size.\n", writePos, roundTo4Internal(writePos), m_seqChanDataOffset);
     }
 
     // Write full header at once

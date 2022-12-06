@@ -37,18 +37,20 @@ struct WLEDOutput {
     int colorOrder{ 0 };
     int protocol{ 1 };
     bool reverse{ false };
+    bool ref{ false };
     int nullPixels{ 0 }; //skip is an int in the JSON, but a checkbox in the WebUI. WLED backend looks to support multiple nulls
     uint8_t pin{ 255 };
     bool upload{ false };
 
-    WLEDOutput(int output_) : output(output_) { }
+    explicit WLEDOutput(int output_) : output(output_) { }
     void Dump() const {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("    Output %d Start %d Pixels %d Rev %s Nulls %d ColorOrder %d Protocol %d Pin %d Upload %s",
+        logger_base.debug("    Output %d Start %d Pixels %d Rev %s Ref %s Nulls %d ColorOrder %d Protocol %d Pin %d Upload %s",
             output,
             startCount,
             pixels,
             toStr(reverse),
+            toStr(ref),
             nullPixels,
             colorOrder,
             protocol,
@@ -57,7 +59,7 @@ struct WLEDOutput {
         );
     }
 
-    wxJSONValue GetJSON() {
+    wxJSONValue GetJSON() const {
         wxJSONValue portJson;
         portJson["len"] = pixels;
         portJson["start"] = startCount;
@@ -68,6 +70,7 @@ struct WLEDOutput {
         portJson["order"] = colorOrder;
         portJson["rev"] = reverse;
         portJson["skip"] = nullPixels;
+        portJson["ref"] = ref;
 
         return portJson;
     }
@@ -199,10 +202,6 @@ void WLED::UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int star
             pd->startCount = startNumber;
         }
 
-        if (pd->startCount != startNumber) {
-            pd->startCount = startNumber;
-        }
-
         if (pd->pixels != stringData->Pixels()) {
             pd->pixels = stringData->Pixels();
         }
@@ -286,11 +285,6 @@ bool WLED::SetupInput(Controller* c, wxJSONValue& jsonVal) {
     //get previous RGB Mode
     int rgbMode = jsonVal["if"]["live"]["dmx"]["mode"].AsInt();
 
-    if (controller->GetOutputCount() > 9) {
-        DisplayError(wxString::Format("Attempt to upload %d universes to WLED controller but only 9 are supported.", controller->GetOutputCount()).ToStdString());
-        return false;
-    }
-
     if (!controller->AllSameSize()) {
         DisplayError("Attempting to upload universes to the WLED controller that are not the same size.");
         return false;
@@ -324,18 +318,21 @@ bool WLED::SetupInput(Controller* c, wxJSONValue& jsonVal) {
     }
 
     jsonVal["if"]["live"]["en"] = true;
-    jsonVal["if"]["live"]["port"] = port;
 
-    if (o->GetIP() == "MULTICAST") {
-        jsonVal["if"]["live"]["mc"] = true;
-    }
+    if (_vid <= 2112080 || o->GetType() != OUTPUT_DDP) {//DDP is auto enabled after 0.13 beta 4
 
-    if (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET) {
-        jsonVal["if"]["live"]["dmx"]["uni"] = o->GetUniverse();
-        jsonVal["if"]["live"]["dmx"]["addr"] = 1;
-    }
-    else if (o->GetType() == OUTPUT_DDP) {
-        jsonVal["if"]["live"]["dmx"]["addr"] = 1;// o->GetStartChannel();
+        jsonVal["if"]["live"]["port"] = port;
+
+        if (o->GetIP() == "MULTICAST") {
+            jsonVal["if"]["live"]["mc"] = true;
+        }
+
+        if (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET) {
+            jsonVal["if"]["live"]["dmx"]["uni"] = o->GetUniverse();
+            jsonVal["if"]["live"]["dmx"]["addr"] = 1;
+        } else if (o->GetType() == OUTPUT_DDP) {
+            jsonVal["if"]["live"]["dmx"]["addr"] = 1; // o->GetStartChannel();
+        }
     }
 
     //Turn On E131/DDP Multiple RGB Mode "DM=4", TODO: Support RGBW mode "DM=6"
@@ -413,7 +410,14 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     //2105200 added per string null pixel to GUI but older builds have it in the JSON
     if (_vid < 2105110) {
         logger_base.error("Build 2105110 or newer of WLED Is Required, '%d' is Installed .", _vid);
-        DisplayError("WLED Upload Error:\nWLED 0.13 or newer is required", parent);
+        DisplayError("WLED Upload Error:\nWLED 0.13b5 or newer is required", parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
+
+    if (_vid < 2203190 && _vid > 2112080) {
+        logger_base.error("WLED Build 2112080 to 2203190 are broken, '%d' is Installed .", _vid);
+        DisplayError("WLED Upload Error:\nUpload with WLED 0.13 and 0.13.1 is broken.\n(There is a bug in the WLED 0.13/0.13.1 firmware, not xLights)\nSwitch to WLED 0.13.2, WLED 0.13 beta6 or beta5 for the upload to work correctly", parent);
         progress.Update(100, "Aborting.");
         return false;
     }

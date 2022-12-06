@@ -20,7 +20,7 @@
 
 #include <log4cpp/Category.hh>
 
-ListenerMQTT::ListenerMQTT(ListenerManager* listenerManager, const std::string& ip, int port, const std::string& username, const std::string& password, const std::string& clientId) : ListenerBase(listenerManager)
+ListenerMQTT::ListenerMQTT(ListenerManager* listenerManager, const std::string& ip, int port, const std::string& username, const std::string& password, const std::string& clientId, const std::string& localIP) : ListenerBase(listenerManager, localIP)
 {
     _ip = ip;
     _port = port;
@@ -33,7 +33,7 @@ void ListenerMQTT::Start()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("MQTT listener starting.");
-    _thread = new ListenerThread(this);
+    _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerMQTT::Stop()
@@ -53,7 +53,7 @@ void ListenerMQTT::Stop()
     }
 }
 
-void ListenerMQTT::StartProcess()
+void ListenerMQTT::StartProcess(const std::string& localIP)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -61,6 +61,11 @@ void ListenerMQTT::StartProcess()
     wxIPV4address addr;
     addr.Hostname(_ip);
     addr.Service(_port);
+
+    //int keepalive = 60;
+    //if (!_client.SetOption(SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive))) {
+    //    logger_base.error("Failed to set MQTT Socket keepalive.");
+    //}
 
     if (_client.Connect(addr, false) || _client.WaitOnConnect(0, 500))
     {

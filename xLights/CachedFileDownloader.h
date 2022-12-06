@@ -38,7 +38,7 @@ public:
     void Save(wxFile& f);
     virtual ~FileCacheItem() {}
     void Download(const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
-    bool Exists() const { return wxFile::Exists(_fileName); }
+    bool Exists() const;
     void Touch() const { if (Exists()) wxFileName(_fileName).Touch(); }
     void Delete() const;
     std::string GetFileName() const { if (Exists()) return _fileName; else return ""; }

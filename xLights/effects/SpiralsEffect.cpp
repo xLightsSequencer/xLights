@@ -65,7 +65,7 @@ bool SpiralsEffect::SupportsLinearColorCurves(const SettingsMap &SettingsMap) co
     return !SettingsMap.GetBool("E_CHECKBOX_Spirals_Blend");
 }
 
-void SpiralsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
     int PaletteRepeat = GetValueCurveInt("Spirals_Count", 1, SettingsMap, offset, SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     float Movement = GetValueCurveDouble("Spirals_Movement", 1.0, SettingsMap, offset, SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SPIRALS_MOVEMENT_DIVISOR);

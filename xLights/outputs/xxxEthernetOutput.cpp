@@ -22,7 +22,7 @@
 static const int32_t xxxCHANNELSPERPACKET = 1200;
 
 #pragma region Private Functions
-void xxxEthernetOutput::Heartbeat(int mode) {
+void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -46,11 +46,11 @@ void xxxEthernetOutput::Heartbeat(int mode) {
         if (__datagram != nullptr) return;
 
         wxIPV4address localaddr;
-        if (IPOutput::__localIP == "") {
+        if (localIP == "") {
             localaddr.AnyAddress();
         }
         else {
-            localaddr.Hostname(IPOutput::__localIP.c_str());
+            localaddr.Hostname(localIP);
         }
         __remoteAddr.Hostname("224.0.0.0");
         __remoteAddr.Service(xxx_PORT);
@@ -88,11 +88,11 @@ void xxxEthernetOutput::OpenDatagram() {
     if (_datagram != nullptr) return;
 
     wxIPV4address localaddr;
-    if (IPOutput::__localIP == "") {
+    if (GetForceLocalIPToUse() == "") {
         localaddr.AnyAddress();
     }
     else {
-        localaddr.Hostname(IPOutput::__localIP);
+        localaddr.Hostname(GetForceLocalIPToUse());
     }
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
@@ -195,14 +195,14 @@ bool xxxEthernetOutput::Open() {
     _remoteAddr.Hostname(_ip.c_str());
     _remoteAddr.Service(xxx_PORT);
 
-    Heartbeat(0);
+    Heartbeat(0, GetForceLocalIPToUse());
 
     return _ok && _datagram != nullptr;
 }
 
 void xxxEthernetOutput::Close() {
 
-    Heartbeat(9);
+    Heartbeat(9, GetForceLocalIPToUse());
     if (_datagram != nullptr) {
         delete _datagram;
         _datagram = nullptr;
@@ -251,7 +251,7 @@ void xxxEthernetOutput::EndFrame(int suppressFrames) {
                 current += xxxCHANNELSPERPACKET;
             }
             FrameOutput();
-            Heartbeat(1);
+            Heartbeat(1, GetForceLocalIPToUse());
         }
         else {
             SkipFrame();

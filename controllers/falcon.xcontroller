@@ -5,6 +5,8 @@
         <!--SupportsAutoUpload/-->
         
 		<SupportsPixelPortCommonSettings/>
+        <SupportsPixelZigZag/>
+        <MaxZigZag>512</MaxZigZag>
         
 		<SupportsFullxLightsControl/>
 
@@ -20,6 +22,7 @@
         <SupportsAutoLayout/>
         <MergeConsecutiveVirtualStrings/>
 		<SupportsRemotes/>
+        <SupportsDefaultBrightness/>
 
         <MaxInputUniverses>96</MaxInputUniverses>
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
@@ -156,6 +159,8 @@
         <SupportsUpload/>
         <SupportsInputOnlyUpload/>
 		<SupportsPixelPortCommonSettings/>
+        <SupportsPixelZigZag/>
+        <MaxZigZag>512</MaxZigZag>
 		<SupportsFullxLightsControl/>
         <SupportsMultipleSimultaneousOutputProtocols/>
         <SupportsMultipleSimultaneousInputProtocols/>
@@ -165,9 +170,10 @@
         <SupportsPixelPortEndNullPixels/>
         <MaxStartNulls>20</MaxStartNulls>
         <MaxEndNulls>20</MaxEndNulls>
-        <MaxGroup>10</MaxGroup>
+        <MaxGroup>100</MaxGroup>
         <MinGroup>1</MinGroup>
         <AllSmartRemoteTypesPerPortMustBeSame/>
+        <SupportsDefaultBrightness/>
         <MaxInputUniverses>192</MaxInputUniverses>
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
         <SerialProtocols>
@@ -191,6 +197,9 @@
 			<Protocol>ws2801</Protocol>
 			<Protocol>ws2811</Protocol>
 			<Protocol>ws2811 slow</Protocol>
+			<Protocol>dmx512p</Protocol>
+			<Protocol>dmx512p-4</Protocol>
+			<Protocol>sj1221</Protocol>
 	</PixelProtocols>
         <InputProtocols>
             <Protocol>e131</Protocol>

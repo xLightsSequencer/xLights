@@ -11,8 +11,18 @@
  **************************************************************/
 
 #include "../Model.h"
+
+#include <memory>
 class DmxColorAbility;
+class DmxPresetAbility;
 class wxFile;
+
+static const char* DMX_COLOR_TYPES_VALUES[] = {
+    "RGBW",
+    "ColorWheel",
+};
+//static wxArrayString DMX_COLOR_TYPES(2, DMX_COLOR_TYPES_VALUES);
+static wxPGChoices DMX_COLOR_TYPES(wxArrayString(2, DMX_COLOR_TYPES_VALUES));
 
 class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
@@ -20,33 +30,32 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         DmxModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~DmxModel();
 
+        static void DrawInvalid(xlGraphicsProgram* pg, ModelScreenLocation* msl, bool is_3d, bool applyTransform);
+
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
                                    int &BufferWi, int &BufferHi) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
-
-        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float& maxy, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true, bool highlightFirst = false) override;
-        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0) override;
-        virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
-
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active) = 0;
-        virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active) = 0;
+                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, bool deep = false) const override;
 
         virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override {}
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual std::string GetDimension() const override { return ""; }
 
-        virtual bool HasColorAbility() { return false; }
-        DmxColorAbility* GetColorAbility() { return color_ability; }
+        bool HasColorAbility() { return nullptr != color_ability ; }
+        DmxColorAbility* GetColorAbility() { return color_ability.get(); }
+        virtual void EnableFixedChannels(xlColorVector& pixelVector);
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
         virtual void ExportXlightsModel() override = 0;
-        virtual void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override = 0;
+        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override = 0;
         virtual int GetNumPhysicalStrings() const override { return 1; }
         virtual bool IsDMXModel() const override { return true; }
+        virtual std::list<std::string> CheckModelSettings() override;
+
+        [[nodiscard]] virtual std::vector<std::string> GenerateNodeNames() const;
 
     protected:
         virtual void InitModel() override;
@@ -57,7 +66,8 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int GetChannelValue( int channel, bool bits16);
         void SetNodeNames(const std::string& default_names, bool force = false);
 
-        DmxColorAbility* color_ability;
+        std::unique_ptr<DmxColorAbility> color_ability;
+        std::unique_ptr<DmxPresetAbility> preset_ability;
 
     private:
 };

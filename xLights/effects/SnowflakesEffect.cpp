@@ -160,7 +160,7 @@ void SnowflakesEffect::SetDefaultParameters()
     SetChoiceValue(sp->Choice_Falling, "Driving");
 }
 
-void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Count = GetValueCurveInt("Snowflakes_Count", 5, SettingsMap, oset, SNOWFLAKES_COUNT_MIN, SNOWFLAKES_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

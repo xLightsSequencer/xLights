@@ -104,18 +104,18 @@ void TimeLine::OnPopup(wxCommandEvent& event)
     }
 }
 
-void TimeLine::SetTagPosition(int tag, int position)
+void TimeLine::SetTagPosition(int tag, int position , bool flag)
 {
-    if (GetTimeLength() != -1 && position > GetTimeLength())
-    {
+    if (GetTimeLength() != -1 && position > GetTimeLength()) {
         position = GetTimeLength();
     }
 
-    if (_tagPositions[tag] != position)
-    {
+    if (_tagPositions[tag] != position) {
         _tagPositions[tag] = position;
-        Refresh(false);
-        RaiseSequenceChange();
+        if (flag) {
+            Refresh(false);
+            RaiseSequenceChange();
+        }
     }
 }
 
@@ -342,6 +342,7 @@ void TimeLine::SetSequenceEnd(int ms)
 bool TimeLine::SetPlayMarkerMS(int ms)
 {
     mCurrentPlayMarkerMS = ms;
+    int oldmCurrentPlayMarker = mCurrentPlayMarker;
     bool changed = false;
     if (ms < mStartTimeMS) {
         if (mCurrentPlayMarker != -1) {
@@ -356,8 +357,10 @@ bool TimeLine::SetPlayMarkerMS(int ms)
         mCurrentPlayMarker = i;
     }
     if (changed) {
-        wxClientDC dc(this);
-        render(dc);
+        wxRect rct(std::min(oldmCurrentPlayMarker - marker_size - 1, mCurrentPlayMarker - marker_size - 1), 0,
+                   std::max(oldmCurrentPlayMarker + marker_size + 1, mCurrentPlayMarker + marker_size + 1), GetSize().GetHeight());
+        RefreshRect(rct);
+        Update();
     }
     return changed;
 }
@@ -434,6 +437,14 @@ void TimeLine::RestorePosition()
     if (_savedPosition >= 0 && _savedPosition <= mTimeLength)
     {
         SetStartTimeMS(_savedPosition);
+        RaiseChangeTimeline();
+    }
+}
+
+void TimeLine::SetTimelinePosition(int pos)
+{
+    if (pos >= 0 && pos <= mTimeLength) {
+        SetStartTimeMS(pos);
         RaiseChangeTimeline();
     }
 }
@@ -691,7 +702,7 @@ void TimeLine::GetPositionsFromTimeRange(int startTimeMS, int endTimeMS, EFFECT_
 {
     if (startTimeMS < mStartTimeMS && endTimeMS > mEndTimeMS)
     {
-        screenMode = SCREEN_L_R_ACROSS;
+        screenMode = EFFECT_SCREEN_MODE::SCREEN_L_R_ACROSS;
         x1 = 0;
         x2 = GetSize().x;
         double majorHashs = (double)(startTimeMS - mStartTimeMS) / (double)TimePerMajorTickInMS();
@@ -701,7 +712,7 @@ void TimeLine::GetPositionsFromTimeRange(int startTimeMS, int endTimeMS, EFFECT_
     }
     else if (startTimeMS < mStartTimeMS && endTimeMS > mStartTimeMS && endTimeMS <= mEndTimeMS)
     {
-        screenMode = SCREEN_R_ON;
+        screenMode = EFFECT_SCREEN_MODE::SCREEN_R_ON;
         double majorHashs = (double)(endTimeMS - mStartTimeMS) / (double)TimePerMajorTickInMS();
         x1 = 0;
         x2 = (int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
@@ -711,7 +722,7 @@ void TimeLine::GetPositionsFromTimeRange(int startTimeMS, int endTimeMS, EFFECT_
     }
     else if (startTimeMS >= mStartTimeMS && startTimeMS < mEndTimeMS && endTimeMS > mEndTimeMS)
     {
-        screenMode = SCREEN_L_ON;
+        screenMode = EFFECT_SCREEN_MODE::SCREEN_L_ON;
         double majorHashs = (double)(startTimeMS - mStartTimeMS) / (double)TimePerMajorTickInMS();
         x1 = (int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
         x2 = GetSize().x;
@@ -721,7 +732,7 @@ void TimeLine::GetPositionsFromTimeRange(int startTimeMS, int endTimeMS, EFFECT_
     }
     else if (startTimeMS >= mStartTimeMS && endTimeMS <= mEndTimeMS)
     {
-        screenMode = SCREEN_L_R_ON;
+        screenMode = EFFECT_SCREEN_MODE::SCREEN_L_R_ON;
         double majorHashs = (double)(startTimeMS - mStartTimeMS) / (double)TimePerMajorTickInMS();
         x1 = (int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
         majorHashs = (double)(endTimeMS - mStartTimeMS) / (double)TimePerMajorTickInMS();
@@ -732,7 +743,7 @@ void TimeLine::GetPositionsFromTimeRange(int startTimeMS, int endTimeMS, EFFECT_
     else if ((startTimeMS < mStartTimeMS && endTimeMS < mStartTimeMS) ||
         (startTimeMS > mStartTimeMS && endTimeMS > mStartTimeMS))
     {
-        screenMode = SCREEN_L_R_OFF;
+        screenMode = EFFECT_SCREEN_MODE::SCREEN_L_R_OFF;
         x1 = 0;
         x2 = 0;
         x3 = x1;
@@ -908,8 +919,7 @@ void TimeLine::render( wxDC& dc ) {
     }
 
     // draw timeline selection range or point
-    if( mCurrentPlayMarkerStart >= 0 )
-    {
+    if( mCurrentPlayMarkerStart >= 0 ) {
         int left_pos = mCurrentPlayMarkerStart + 1;
         if( mCurrentPlayMarkerEnd >= 0 && mCurrentPlayMarkerStart != mCurrentPlayMarkerEnd)
         {
@@ -920,27 +930,30 @@ void TimeLine::render( wxDC& dc ) {
         }
         DrawTriangleMarkerFacingLeft(dc, left_pos, marker_size, h);
     }
-
     // draw green current play arrow
-    if( mCurrentPlayMarker >= 0 )
-    {
-        dc.SetPen(*pen_green);
+    if (mCurrentPlayMarker >= 0) {
+        wxPoint points[4];
         int play_start_mark = mCurrentPlayMarker - marker_size;
         int play_end_mark = mCurrentPlayMarker + marker_size;
-        int x1, x2, y_bottom = 0;
-        for( x1 = play_start_mark, x2 = play_end_mark; x1 <= x2; x1++, x2--, y_bottom++ )
-        {
-            dc.DrawLine(x1, y_bottom, x2+1, y_bottom);
-        }
+        points[0].x = play_start_mark;
+        points[0].y = 0;
+        points[1].x = play_end_mark + 1;
+        points[1].y = 0;
+        points[2].x = mCurrentPlayMarker;
+        points[2].y = (play_end_mark - play_start_mark) / 2 + 1;
+        points[3].x = play_start_mark;
+        points[3].y = 0;
+        
+        dc.SetPen(*pen_green);
+        dc.SetBrush(*wxGREEN_BRUSH);
+        dc.DrawPolygon(4, points);
         dc.SetPen(*pen_black);
-        dc.DrawLine(play_start_mark, 0, play_end_mark, 0);
-        dc.DrawLine(play_start_mark, 0, mCurrentPlayMarker, y_bottom);
-        dc.DrawLine(play_end_mark, 0, mCurrentPlayMarker, y_bottom);
-        dc.DrawPoint(mCurrentPlayMarker, y_bottom);
+        dc.SetBrush(wxNullBrush);
+        dc.DrawLines(4, points);
     }
 
     // Draw the selection line if not a range
-    if( mSelectedPlayMarkerStart != -1 && mSelectedPlayMarkerEnd == -1 ) {
+    if (mSelectedPlayMarkerStart != -1 && mSelectedPlayMarkerEnd == -1) {
         dc.SetPen(*pen_black);
         dc.DrawLine(mSelectedPlayMarkerStart, 0, mSelectedPlayMarkerStart, h-1);
     }

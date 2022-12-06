@@ -123,8 +123,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_LifeTime" subclass="BulkEditValueCurveButton" variable="BitmapButton_LifeTime" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -254,8 +254,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Liquid_Gravity" subclass="BulkEditValueCurveButton" variable="BitmapButton_Liquid_Gravity" member="yes">
-									<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -274,6 +274,50 @@
 							<size>30,-1d</size>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText16" member="yes">
+							<label>Gravity Angle</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer14" member="no">
+							<cols>2</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="IDD_SLIDER_Liquid_GravityAngle" subclass="BulkEditSlider" variable="Slider_Liquid_GravityAngle" member="yes">
+									<max>360</max>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Liquid_GravityAngle" subclass="BulkEditValueCurveButton" variable="BitmapButton_Liquid_GravityAngle" member="yes">
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Liquid_GravityAngle" subclass="BulkEditTextCtrl" variable="TextCtrl_Liquid_GravityAngle" member="no">
+							<value>0</value>
+							<maxlength>3</maxlength>
+							<size>30,-1d</size>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -312,8 +356,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_X1" subclass="BulkEditValueCurveButton" variable="BitmapButton_X1" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -348,8 +392,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Y1" subclass="BulkEditValueCurveButton" variable="BitmapButton_Y1" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -385,8 +429,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Direction1" subclass="BulkEditValueCurveButton" variable="BitmapButton_Direction1" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -422,8 +466,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Velocity1" subclass="BulkEditValueCurveButton" variable="BitmapButton_Velocity1" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -459,8 +503,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Flow1" subclass="BulkEditValueCurveButton" variable="BitmapButton_Flow1" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -493,8 +537,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Liquid_SourceSize1" subclass="BulkEditValueCurveButton" variable="BitmapButton_Liquid_SourceSize1" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -578,8 +622,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_X2" subclass="BulkEditValueCurveButton" variable="BitmapButton_X2" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -614,8 +658,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Y2" subclass="BulkEditValueCurveButton" variable="BitmapButton_Y2" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -650,8 +694,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Direction2" subclass="BulkEditValueCurveButton" variable="BitmapButton_Direction2" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -687,8 +731,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Velocity2" subclass="BulkEditValueCurveButton" variable="BitmapButton_Velocity2" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -724,8 +768,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Flow2" subclass="BulkEditValueCurveButton" variable="BitmapButton_Flow2" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -758,8 +802,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Liquid_SourceSize2" subclass="BulkEditValueCurveButton" variable="BitmapButton_Liquid_SourceSize2" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -845,8 +889,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_X3" subclass="BulkEditValueCurveButton" variable="BitmapButton_X3" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -879,8 +923,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Y3" subclass="BulkEditValueCurveButton" variable="BitmapButton_Y3" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -916,8 +960,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Direction3" subclass="BulkEditValueCurveButton" variable="BitmapButton_Direction3" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -953,8 +997,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Velocity3" subclass="BulkEditValueCurveButton" variable="BitmapButton_Velocity3" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -990,8 +1034,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Flow3" subclass="BulkEditValueCurveButton" variable="BitmapButton_Flow3" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1024,8 +1068,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Liquid_SourceSize3" subclass="BulkEditValueCurveButton" variable="BitmapButton_Liquid_SourceSize3" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1111,8 +1155,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_X4" subclass="BulkEditValueCurveButton" variable="BitmapButton_X4" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1147,8 +1191,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Y4" subclass="BulkEditValueCurveButton" variable="BitmapButton_Y4" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1184,8 +1228,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Direction4" subclass="BulkEditValueCurveButton" variable="BitmapButton_Direction4" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1221,8 +1265,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Velocity4" subclass="BulkEditValueCurveButton" variable="BitmapButton_Velocity4" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1258,8 +1302,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Flow4" subclass="BulkEditValueCurveButton" variable="BitmapButton_Flow4" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1292,8 +1336,8 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Liquid_SourceSize4" subclass="BulkEditValueCurveButton" variable="BitmapButton_Liquid_SourceSize4" member="yes">
-												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

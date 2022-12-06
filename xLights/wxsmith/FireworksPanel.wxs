@@ -35,10 +35,9 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Explosions" subclass="xlLockButton" variable="BitmapButton_FireworksNumberExplosions" member="yes">
-					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -68,8 +67,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Fireworks_Count" subclass="BulkEditValueCurveButton" variable="BitmapButton_Fireworks_Count" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -93,10 +92,9 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Count" subclass="xlLockButton" variable="BitmapButton_FireworksCount" member="yes">
-					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -127,8 +125,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Fireworks_Velocity" subclass="BulkEditValueCurveButton" variable="BitmapButton_Fireworks_Velocity" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -152,10 +150,9 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity" subclass="xlLockButton" variable="BitmapButton_FireworksVelocity" member="yes">
-					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -184,8 +181,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Fireworks_XVelocity" subclass="BulkEditValueCurveButton" variable="BitmapButton_Fireworks_XVelocity" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -234,8 +231,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Fireworks_YVelocity" subclass="BulkEditValueCurveButton" variable="BitmapButton_Fireworks_YVelocity" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -285,8 +282,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Fireworks_XLocation" subclass="BulkEditValueCurveButton" variable="BitmapButton_Fireworks_XLocation" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -336,8 +333,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Fireworks_YLocation" subclass="BulkEditValueCurveButton" variable="BitmapButton_Fireworks_YLocation" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -435,8 +432,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Fireworks_Fade" subclass="BulkEditValueCurveButton" variable="BitmapButton_Fireworks_Fade" member="yes">
-							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -460,10 +457,9 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Fade" subclass="xlLockButton" variable="BitmapButton_FireworksFade" member="yes">
-					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -491,10 +487,9 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Fireworks_UseMusic" subclass="xlLockButton" variable="BitmapButton_Fireworks_UseMusic" member="yes">
-					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -529,10 +524,9 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Sensitivity" subclass="xlLockButton" variable="BitmapButton_Fireworks_Sensitivity" member="yes">
-					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -560,10 +554,9 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_FIRETIMING" subclass="xlLockButton" variable="BitmapButton1" member="yes">
-					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

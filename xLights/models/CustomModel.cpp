@@ -21,7 +21,7 @@
 #include "../xLightsVersion.h"
 #include "outputs/Controller.h"
 #include "UtilFunctions.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 #include "outputs/OutputManager.h"
 #include "../ModelPreview.h"
 
@@ -44,8 +44,8 @@ static const std::string CLICK_TO_EDIT("--Click To Edit--");
 class CustomModelDialogAdapter : public wxPGEditorDialogAdapter
 {
 public:
-    CustomModelDialogAdapter(CustomModel* model)
-        : wxPGEditorDialogAdapter(), m_model(model)
+    CustomModelDialogAdapter(CustomModel* model, OutputManager* om) :
+        wxPGEditorDialogAdapter(), m_model(model), _outputManager(om)
     {
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
@@ -54,7 +54,7 @@ public:
         m_model->SaveDisplayDimensions();
         auto oldAutoSave = m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave;
         m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave = true; // because we will tamper with model we need to suspend autosave
-        CustomModelDialog dlg(propGrid);
+        CustomModelDialog dlg(propGrid, _outputManager);
         dlg.Setup(m_model);
         bool res = false;
         if (dlg.ShowModal() == wxID_OK) {
@@ -74,18 +74,19 @@ public:
         return res;
     }
 protected:
-    CustomModel* m_model;
+    CustomModel* m_model = nullptr;
+    OutputManager* _outputManager = nullptr;
 };
-
 
 class CustomModelProperty : public wxStringProperty
 {
 public:
     CustomModelProperty(CustomModel* m,
+        OutputManager* om,
         const wxString& label,
         const wxString& name,
-        const wxString& value)
-        : wxStringProperty(label, name, value), m_model(m)
+        const wxString& value) :
+        wxStringProperty(label, name, value), m_model(m), _outputManager(om)
     {
     }
     // Set editor to have button
@@ -96,17 +97,19 @@ public:
     // Set what happens on button click
     virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
     {
-        return new CustomModelDialogAdapter(m_model);
+        return new CustomModelDialogAdapter(m_model, _outputManager);
     }
 protected:
-    CustomModel* m_model;
+    CustomModel* m_model = nullptr;
+    OutputManager* _outputManager = nullptr;
 };
 
-void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid)
+void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    wxPGProperty* p = grid->Append(new CustomModelProperty(this, "Model Data", "CustomData", CLICK_TO_EDIT));
+    wxPGProperty* p = grid->Append(new CustomModelProperty(this, outputManager, "Model Data", "CustomData", CLICK_TO_EDIT));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new wxUIntProperty("Strings", "CustomModelStrings", _strings));
+
+    p = grid->Append(new wxUIntProperty("# Strings", "CustomModelStrings", _strings));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 48);
     p->SetEditor("SpinCtrl");
@@ -132,7 +135,7 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid)
             for (int x = 0; x < c; x++) {
                 nm = StartNodeAttrName(x);
                 std::string val = ModelXml->GetAttribute(nm, "").ToStdString();
-                if (val == "") {
+                if (val.empty()) {
                     val = ComputeStringStartNode(x);
                     ModelXml->DeleteAttribute(nm);
                     ModelXml->AddAttribute(nm, val);
@@ -165,6 +168,7 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         if (grid->GetPropertyByName("CustomBkgImage")->GetValue() != custom_background) {
             grid->GetPropertyByName("CustomBkgImage")->SetValue(wxVariant(custom_background));
         }
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::CustomData");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::CustomData");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomData");
@@ -173,28 +177,27 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CustomModel::OnPropertyGridChange::CustomData");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CustomModel::OnPropertyGridChange::CustomData");
         return 0;
-    }
-    else if ("CustomBkgImage" == event.GetPropertyName()) {
+    } else if ("CustomBkgImage" == event.GetPropertyName()) {
         custom_background = event.GetValue().GetString();
         ObtainAccessToURL(custom_background);
         ModelXml->DeleteAttribute("CustomBkgImage");
         ModelXml->AddAttribute("CustomBkgImage", custom_background);
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::CustomBkgImage");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomBkgImage");
         return 0;
-    }
-    else if ("CustomModelStrings" == event.GetPropertyName()) {
+    } else if ("CustomModelStrings" == event.GetPropertyName()) {
         _strings = event.GetValue().GetInteger();
         ModelXml->DeleteAttribute("CustomStrings");
         ModelXml->AddAttribute("CustomStrings", wxString::Format("%d", _strings));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         return 0;
-    }
-    else if (event.GetPropertyName() == "ModelIndividualStartNodes") {
+    } else if (event.GetPropertyName() == "ModelIndividualStartNodes") {
         bool hasIndiv = event.GetValue().GetBool();
         for (int x = 0; x < _strings; x++) {
             wxString nm = StartNodeAttrName(x);
@@ -206,6 +209,7 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
                 ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
             }
         }
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
@@ -213,8 +217,7 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
         return 0;
-    }
-    else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.String")) {
+    } else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.String")) {
 
         wxString s = event.GetPropertyName().substr(strlen("ModelIndividualStartNodes.String"));
         int string = wxAtoi(s);
@@ -228,6 +231,7 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         ModelXml->DeleteAttribute(nm);
         ModelXml->AddAttribute(nm, wxString::Format("%d", value));
 
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
@@ -251,54 +255,6 @@ std::tuple<int, int, int> FindNode(int node, const std::vector<std::vector<std::
     }
     wxASSERT(false);
     return { -1,-1,-1 };
-}
-
-std::vector<std::vector<std::vector<int>>> ParseCustomModel(const wxString& data, int width, int height, int depth)
-{
-    std::vector<std::vector<std::vector<int>>> res;
-
-    wxASSERT(width > 0);
-    wxASSERT(height > 0);
-    wxASSERT(depth > 0);
-
-    if (data == "") {
-        for (int l = 0; l < depth; l++) {
-            std::vector<std::vector<int>> ll;
-            for (int r = 0; r < height; r++) {
-                std::vector<int> rr;
-                for (int c = 0; c < width; c++) {
-                    rr.push_back(-1);
-                }
-                ll.push_back(rr);
-            }
-            res.push_back(ll);
-        }
-    }
-    else {
-        wxArrayString layers = wxSplit(data, '|');
-        for (auto l : layers) {
-            std::vector<std::vector<int>> ll;
-            wxArrayString rows = wxSplit(l, ';');
-            for (auto r : rows) {
-                std::vector<int> rr;
-                wxArrayString columns = wxSplit(r, ',');
-                for (auto c : columns) {
-                    if (c == "") rr.push_back(-1);
-                    else rr.push_back(wxAtoi(c));
-                }
-                while (rr.size() < width) rr.push_back(-1);
-                ll.push_back(rr);
-            }
-            // this should not happen but I have seen situations where it does ... so pad out the model to the right size
-            while (ll.size() < height) {
-                std::vector<int> rr;
-                while (rr.size() < width) rr.push_back(-1);
-                ll.push_back(rr);
-            }
-            res.push_back(ll);
-        }
-    }
-    return res;
 }
 
 int CustomModel::GetStrandLength(int strand) const
@@ -335,7 +291,9 @@ void CustomModel::InitModel()
     if (_depth < 1) _depth = 1;
 
     screenLocation.SetRenderSize(parm1, parm2, _depth);
-    screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D
+    if (_depth > 1) {
+        screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D
+    }
 }
 
 void CustomModel::SetCustomWidth(long w)
@@ -395,7 +353,7 @@ void CustomModel::SetCustomLightness(long lightness)
 bool CustomModel::CleanupFileLocations(xLightsFrame* frame)
 {
     bool rc = false;
-    if (wxFile::Exists(custom_background)) {
+    if (FileExists(custom_background)) {
         if (!frame->IsInShowFolder(custom_background)) {
             custom_background = frame->MoveToShowFolder(custom_background, wxString(wxFileName::GetPathSeparator()) + "Images");
             ModelXml->DeleteAttribute("CustomBkgImage");
@@ -408,10 +366,21 @@ bool CustomModel::CleanupFileLocations(xLightsFrame* frame)
     return Model::CleanupFileLocations(frame) || rc;
 }
 
+bool CustomModel::IsAllNodesUnique() const
+{
+    if (Nodes.size() == 0)
+        return false; // this is a special case where i want to treat it like it is not unique
+    for (const auto& n : Nodes) {
+        if (n->Coords.size() > 1)
+            return false;
+    }
+    return true;
+}
+
 std::list<std::string> CustomModel::GetFileReferences()
 {
     std::list<std::string> res;
-    if (wxFile::Exists(custom_background)) {
+    if (FileExists(custom_background)) {
         res.push_back(custom_background);
     }
     return res;
@@ -459,21 +428,6 @@ int CustomModel::NodesPerString() const
     }
     else {
         return nodes * ts;
-    }
-}
-
-inline void split(std::string frag, char splitBy, std::vector<std::string>& tokens)
-{
-    // Loop infinitely - break is internal.
-    while (true) {
-        size_t splitAt = frag.find(splitBy);
-        // If we didn't find a new split point...
-        if (splitAt == std::string::npos) {
-            tokens.push_back(frag);
-            break;
-        }
-        tokens.push_back(frag.substr(0, splitAt));
-        frag.erase(0, splitAt + 1);
     }
 }
 
@@ -572,7 +526,7 @@ void CustomModel::GetBufferSize(const std::string& type, const std::string& came
     AdjustForTransform(transform, BufferWi, BufferHi);
 }
 
-void CustomModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi) const
+void CustomModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep) const
 {
     int width = parm1;
     int height = parm2;
@@ -611,9 +565,6 @@ void CustomModel::InitRenderBufferNodes(const std::string& type, const std::stri
     }
 
     GetBufferSize(type, camera, transform, BufferWi, BufferHi);
-
-    auto locations = ParseCustomModel(ModelXml->GetAttribute("CustomModel"), width, height, depth);
-
     if (type == "Stacked X Horizontally") {
         for (auto n = 0; n < Nodes.size(); n++) {
             auto loc = FindNode(n, locations);
@@ -710,7 +661,7 @@ int CustomModel::GetCustomMaxChannel(const std::string& customModel) const
     std::string token;
 
     while (std::getline(ss, token, ',')) {
-        if (token != "") {
+        if (!token.empty()) {
             try {
                 maxval = std::max(std::stoi(token), maxval);
             }
@@ -722,10 +673,11 @@ int CustomModel::GetCustomMaxChannel(const std::string& customModel) const
     return maxval;
 }
 
-void CustomModel::InitCustomMatrix(const std::string& customModel)
-{
-    float width = 1.0;
-    float height = 1.0;
+void CustomModel::InitCustomMatrix(const std::string& customModel) {
+    locations.clear();
+    
+    uint32_t width = 1;
+    uint32_t height = 1;
     std::vector<int> nodemap;
 
     int32_t firstStartChan = 999999999;
@@ -741,35 +693,39 @@ void CustomModel::InitCustomMatrix(const std::string& customModel)
     rows.reserve(100);
     cols.reserve(100);
 
-    split(customModel, '|', layers);
+    Split(customModel, '|', layers);
     float depth = layers.size();
     int layer = 0;
 
     for (auto lv : layers) {
+        locations.emplace_back(std::vector<std::vector<int>>());
+        
         rows.clear();
-        split(lv, ';', rows);
+        Split(lv, ';', rows);
         height = rows.size();
+        locations.back().resize(height);
 
         int row = 0;
         for (auto rv : rows) {
             cols.clear();
-            split(rv, ',', cols);
+            Split(rv, ',', cols);
             if (cols.size() > width) width = cols.size();
             int col = 0;
+            locations.back()[row].resize(width, -1);
             for (auto value : cols) {
                 while (value.length() > 0 && value[0] == ' ') {
                     value = value.substr(1);
                 }
                 long idx = -1;
-                if (value != "") {
+                if (!value.empty()) {
                     try {
                         idx = std::stoi(value);
-                    }
-                    catch (...) {
+                    } catch (...) {
                         // not a number, treat as 0
                     }
                 }
                 if (idx > 0) {
+                    locations.back()[row][col] = idx;
                     // increase nodemap size if necessary
                     if (idx > nodemap.size()) {
                         nodemap.resize(idx, -1);
@@ -786,25 +742,24 @@ void CustomModel::InitCustomMatrix(const std::string& customModel)
                             cpn = GetChanCountPerNode();
                         }
                         Nodes.back()->ActChan = firstStartChan + idx * cpn;
-                        if (idx < nodeNames.size() && nodeNames[idx] != "") {
+                        if (idx < nodeNames.size() && !nodeNames[idx].empty()) {
                             Nodes.back()->SetName(nodeNames[idx]);
                         }
                         else {
                             Nodes.back()->SetName("Node " + std::to_string(idx + 1));
                         }
 
-                        Nodes.back()->AddBufCoord(layer * width + col, height - row - 1);
+                        Nodes.back()->AddBufCoord(layer * ((float)width) + col, ((float)height) - row - 1);
                         auto& c = Nodes[nodemap[idx]]->Coords.back();
-                        c.screenX = (float)col - width / 2.0f;
-                        c.screenY = height - (float)row - 1.0f - height / 2.0f;
+                        c.screenX = (float)col - ((float)width) / 2.0f;
+                        c.screenY = ((float)height) - (float)row - 1.0f - ((float)height) / 2.0f;
                         c.screenZ = depth - (float)layer - 1.0f - depth / 2.0f;
-                    }
-                    else {
+                    } else {
                         // mapped - so add a coord to existing node
-                        Nodes[nodemap[idx]]->AddBufCoord(layer * width + col, height - row - 1);
+                        Nodes[nodemap[idx]]->AddBufCoord(layer * ((float)width) + col, ((float)height) - row - 1);
                         auto& c = Nodes[nodemap[idx]]->Coords.back();
-                        c.screenX = (float)col - width / 2.0f;
-                        c.screenY = height - (float)row - 1.0f - height / 2.0f;
+                        c.screenX = (float)col - ((float)width) / 2.0f;
+                        c.screenY = ((float)height) - (float)row - 1.0f - ((float)height) / 2.0f;
                         c.screenZ = depth - (float)layer - 1.0f - depth / 2.0f;
                     }
                 }
@@ -815,6 +770,13 @@ void CustomModel::InitCustomMatrix(const std::string& customModel)
         layer++;
     }
 
+    for (auto &lyr : locations) {
+        lyr.resize(height);
+        for (auto &rw : lyr) {
+            rw.resize(width, -1);
+        }
+    }
+    
     for (int x = 0; x < Nodes.size(); x++) {
         for (int y = x + 1; y < Nodes.size(); y++) {
             if (Nodes[y]->StringNum < Nodes[x]->StringNum) {
@@ -823,7 +785,7 @@ void CustomModel::InitCustomMatrix(const std::string& customModel)
         }
     }
     for (int x = 0; x < Nodes.size(); x++) {
-        if (Nodes[x]->GetName() == "") {
+        if (Nodes[x]->GetName().empty()) {
             Nodes[x]->SetName(GetNodeName(Nodes[x]->StringNum));
         }
     }
@@ -853,11 +815,19 @@ int CustomModel::GetCustomNodeStringNumber(int node) const
         return 1;
     }
 
+    wxString nm = StartNodeAttrName(0);
+    bool hasIndiv = ModelXml->HasAttribute(nm);
+
     int stringStart = -1;
     int string = -1;
     for (int i = 0; i < _strings; i++) {
-        wxString nm = StartNodeAttrName(i);
-        int startNode = wxAtoi(ModelXml->GetAttribute(nm, "1"));
+        int startNode = 1;
+        if (hasIndiv) {
+            nm = StartNodeAttrName(i);
+            startNode = wxAtoi(ModelXml->GetAttribute(nm, "1"));
+        } else {
+            startNode = wxAtoi(ComputeStringStartNode(i));
+        }
         if (node >= startNode && startNode >= stringStart) {
             string = i;
             stringStart = startNode;
@@ -886,10 +856,12 @@ std::list<std::string> CustomModel::CheckModelSettings()
         res.push_back(wxString::Format("    ERR: Custom model '%s' has no nodes defined.", GetName()));
     }
 
-    if (parm1 > PERFORMANCE_IMPACT_SIZE || parm2 > PERFORMANCE_IMPACT_SIZE || _depth > PERFORMANCE_IMPACT_SIZE) {
-        float pop = ((float)GetNodeCount() * 100) / (float)(parm1 * parm2);
-        if (pop < 10.0) { // allow models which have more than 1 in 10 cells used as these likely need to be that large
-            res.push_back(wxString::Format("    WARN: Custom model '%s' dimensions are really large (%ld x %ld x %d : Nodes %u => %0.2f%%). This may impact xLights render performance.", GetName(), parm1, parm2, _depth, GetNodeCount(), pop).ToStdString());
+    if (!xLightsFrame::IsCheckSequenceOptionDisabled("CustomSizeCheck")) {
+        if (parm1 > PERFORMANCE_IMPACT_SIZE || parm2 > PERFORMANCE_IMPACT_SIZE || _depth > PERFORMANCE_IMPACT_SIZE) {
+            float pop = ((float)GetNodeCount() * 100) / (float)(parm1 * parm2);
+            if (pop < 10.0) { // allow models which have more than 1 in 10 cells used as these likely need to be that large
+                res.push_back(wxString::Format("    WARN: Custom model '%s' dimensions are really large (%ld x %ld x %d : Nodes %u => %0.2f%%). This may impact xLights render performance.", GetName(), parm1, parm2, _depth, GetNodeCount(), pop).ToStdString());
+            }
         }
     }
 
@@ -1106,81 +1078,74 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     return html;
 }
 
-void CustomModel::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
-    if (!wxString(filename).Lower().EndsWith("xmodel"))
-    {
-        return ImportLORModel(filename, xlights, min_x, max_x, min_y, max_y);
-    }
+void CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "custommodel") {
+        wxString name = root->GetAttribute("name");
+        wxString cm = root->GetAttribute("CustomModel");
+        wxString p1 = root->GetAttribute("parm1");
+        wxString p2 = root->GetAttribute("parm2");
+        wxString d = root->GetAttribute("Depth", "1");
+        wxString st = root->GetAttribute("StringType", "RGB Nodes");
+        wxString ps = root->GetAttribute("PixelSize", "2");
+        wxString t = root->GetAttribute("Transparency", "0");
+        wxString mb = root->GetAttribute("ModelBrightness", "0");
+        wxString a = root->GetAttribute("Antialias", "1");
+        wxString sn = root->GetAttribute("StrandNames");
+        wxString nn = root->GetAttribute("NodeNames");
+        wxString v = root->GetAttribute("SourceVersion");
+        wxString pc = root->GetAttribute("PixelCount");
+        wxString pt = root->GetAttribute("PixelType");
+        wxString psp = root->GetAttribute("PixelSpacing");
 
-    wxXmlDocument doc(filename);
+        // generally xmodels dont have these ... but there are some cases where we do where it would point to a shadow model ... in those cases we want to bring it in
+        wxString smf = root->GetAttribute("ShadowModelFor");
+        wxString sc = root->GetAttribute("StartChannel");
 
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
+        // Add any model version conversion logic here
+        // Source version will be the program version that created the custom model
 
-        if (root->GetName() == "custommodel")
-        {
-            wxString name = root->GetAttribute("name");
-            wxString cm = root->GetAttribute("CustomModel");
-            wxString p1 = root->GetAttribute("parm1");
-            wxString p2 = root->GetAttribute("parm2");
-            wxString d = root->GetAttribute("Depth", "1");
-            wxString st = root->GetAttribute("StringType", "RGB Nodes");
-            wxString ps = root->GetAttribute("PixelSize", "2");
-            wxString t = root->GetAttribute("Transparency", "0");
-            wxString mb = root->GetAttribute("ModelBrightness");
-            wxString a = root->GetAttribute("Antialias","1");
-            wxString sn = root->GetAttribute("StrandNames");
-            wxString nn = root->GetAttribute("NodeNames");
-            wxString v = root->GetAttribute("SourceVersion");
-            wxString pc = root->GetAttribute("PixelCount");
-            wxString pt = root->GetAttribute("PixelType");
-            wxString psp = root->GetAttribute("PixelSpacing");
-
-            // Add any model version conversion logic here
-            // Source version will be the program version that created the custom model
-
-            SetProperty("CustomModel", cm);
-            SetProperty("parm1", p1);
-            SetProperty("parm2", p2);
-            SetProperty("Depth", d);
-            SetProperty("StringType", st);
-            SetProperty("PixelSize", ps);
-            SetProperty("Transparency", t);
-            SetProperty("ModelBrightness", mb);
-            SetProperty("Antialias", a);
-            SetProperty("StrandNames", sn);
-            SetProperty("NodeNames", nn);
-            SetProperty("PixelCount", pc);
-            SetProperty("PixelType", pt);
-            SetProperty("PixelSpacing", psp);
-            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-            SetProperty("name", newname, true);
-
-            ImportSuperStringColours(root);
-            ImportModelChildren(root, xlights, newname);
-
-            GetModelScreenLocation().SetMWidth(max_x - min_x);
-            GetModelScreenLocation().SetMHeight(max_y - min_y);
-
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportXlightsModel");
+        SetProperty("CustomModel", cm);
+        SetProperty("parm1", p1);
+        SetProperty("parm2", p2);
+        SetProperty("Depth", d);
+        SetProperty("StringType", st);
+        SetProperty("PixelSize", ps);
+        SetProperty("Transparency", t);
+        SetProperty("ModelBrightness", mb);
+        SetProperty("Antialias", a);
+        SetProperty("StrandNames", sn);
+        SetProperty("NodeNames", nn);
+        SetProperty("PixelCount", pc);
+        SetProperty("PixelType", pt);
+        SetProperty("PixelSpacing", psp);
+        if (smf != "") {
+            SetProperty("ShadowModelFor", smf);
         }
-        else
-        {
-            DisplayError("Failure loading custom model file.");
+        if (sc != "") {
+            SetControllerName("Use Start Channel");
+            SetProperty("StartChannel", sc);
         }
-    }
-    else
-    {
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        SetProperty("name", newname, true);
+
+        ImportSuperStringColours(root);
+
+        GetModelScreenLocation().SetMWidth(max_x - min_x);
+        GetModelScreenLocation().SetMHeight(max_y - min_y);
+
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
+
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportXlightsModel");
+    } else {
         DisplayError("Failure loading custom model file.");
     }
 }
 
 bool point_compare(const wxPoint first, const wxPoint second)
 {
-    if (first.x == second.x)
-    {
+    if (first.x == second.x) {
         return first.y < second.y;
     }
 
@@ -1192,54 +1157,40 @@ void RemoveDuplicatePixels(std::list<std::list<wxPoint>>& chs)
     std::list<wxPoint> flat;
     std::list<wxPoint> duplicates;
 
-    for (const auto& ch : chs)
-    {
-        for (const auto& it : ch)
-        {
+    for (const auto& ch : chs) {
+        for (const auto& it : ch) {
             flat.push_back(wxPoint(it.x, it.y));
         }
     }
 
     flat.sort(point_compare);
 
-    for (auto it = flat.begin(); it != flat.end(); ++it)
-    {
+    for (auto it = flat.begin(); it != flat.end(); ++it) {
         auto it2 = it;
         ++it2;
 
-        if (it2 != flat.end())
-        {
-            if (it->x == it2->x && it->y == it2->y && 
-                (duplicates.size() == 0 || duplicates.back().x != it->x || duplicates.back().y != it->y))
-            {
+        if (it2 != flat.end()) {
+            if (it->x == it2->x && it->y == it2->y &&
+                (duplicates.size() == 0 || duplicates.back().x != it->x || duplicates.back().y != it->y)) {
                 duplicates.push_back(*it);
             }
         }
     }
 
-    for (const auto& d : duplicates)
-    {
+    for (const auto& d : duplicates) {
         bool first = true;
 
-        for (auto ch = chs.begin(); ch != chs.end(); ++ch)
-        {
+        for (auto ch = chs.begin(); ch != chs.end(); ++ch) {
             auto it = ch->begin();
-            while (it != ch->end())
-            {
-                if (it->x == d.x && it->y == d.y)
-                {
-                    if (first)
-                    {
+            while (it != ch->end()) {
+                if (it->x == d.x && it->y == d.y) {
+                    if (first) {
                         first = false;
                         ++it;
-                    }
-                    else
-                    {
+                    } else {
                         ch->erase(it++);
                     }
-                }
-                else
-                {
+                } else {
                     ++it;
                 }
             }
@@ -1251,27 +1202,24 @@ bool HasDuplicates(float divisor, std::list<std::list<wxPoint>> chs)
 {
     std::list<wxPoint> scaled;
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Checking for duplicates at scale %f.", divisor);
 
-    for (const auto& ch : chs)
-    {
-        for (const auto& it : ch)
-        {
+    for (const auto& ch : chs) {
+        for (const auto& it : ch) {
             scaled.push_back(wxPoint((float)it.x * divisor, (float)it.y * divisor));
         }
     }
 
     scaled.sort(point_compare);
 
-    for (auto it = scaled.begin(); it != scaled.end(); ++it)
-    {
+    for (auto it = scaled.begin(); it != scaled.end(); ++it) {
         auto it2 = it;
         ++it2;
 
-        if (it2 != scaled.end())
-        {
-            if (it->x == it2->x && it->y == it2->y) return true;
+        if (it2 != scaled.end()) {
+            if (it->x == it2->x && it->y == it2->y)
+                return true;
         }
     }
 
@@ -1280,34 +1228,25 @@ bool HasDuplicates(float divisor, std::list<std::list<wxPoint>> chs)
 
 void CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxXmlDocument doc(filename);
 
-    if (doc.IsOk())
-    {
-        logger_base.debug("Loading LOR model %s.", (const char *)filename.c_str());
+    if (doc.IsOk()) {
+        logger_base.debug("Loading LOR model %s.", (const char*)filename.c_str());
 
         wxXmlNode* root = doc.GetRoot();
 
         std::list<std::list<wxPoint>> chs;
 
-        for (wxXmlNode* n1 = root->GetChildren(); n1 != nullptr; n1 = n1->GetNext())
-        {
-            if (n1->GetName() == "DrawObjects")
-            {
-                for (wxXmlNode* n2 = n1->GetChildren(); n2 != nullptr; n2 = n2->GetNext())
-                {
-                    if (n2->GetName() == "DrawObject")
-                    {
-                        for (wxXmlNode* n3 = n2->GetChildren(); n3 != nullptr; n3 = n3->GetNext())
-                        {
-                            if (n3->GetName() == "DrawPoints")
-                            {
+        for (wxXmlNode* n1 = root->GetChildren(); n1 != nullptr; n1 = n1->GetNext()) {
+            if (n1->GetName() == "DrawObjects") {
+                for (wxXmlNode* n2 = n1->GetChildren(); n2 != nullptr; n2 = n2->GetNext()) {
+                    if (n2->GetName() == "DrawObject") {
+                        for (wxXmlNode* n3 = n2->GetChildren(); n3 != nullptr; n3 = n3->GetNext()) {
+                            if (n3->GetName() == "DrawPoints") {
                                 std::list<wxPoint> points;
-                                for (wxXmlNode* n4 = n3->GetChildren(); n4 != nullptr; n4 = n4->GetNext())
-                                {
-                                    if (n4->GetName() == "DrawPoint")
-                                    {
+                                for (wxXmlNode* n4 = n3->GetChildren(); n4 != nullptr; n4 = n4->GetNext()) {
+                                    if (n4->GetName() == "DrawPoint") {
                                         points.push_back(wxPoint(wxAtoi(n4->GetAttribute("X", "-5")) / 5, wxAtoi(n4->GetAttribute("Y", "-1")) / 5));
                                     }
                                 }
@@ -1326,8 +1265,7 @@ void CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::ImportLORModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportLORModel");
 
-        if (chs.size() == 0)
-        {
+        if (chs.size() == 0) {
             logger_base.error("No model data found.");
             wxMessageBox("Unable to import model data.");
             return;
@@ -1338,27 +1276,25 @@ void CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         int miny = 999999999;
         int maxy = -1;
 
-        for (auto ch = chs.begin(); ch != chs.end(); ++ch)
-        {
-            for (auto it = ch->begin(); it != ch->end(); ++it)
-            {
-                if (it->x >= 0)
-                {
-                    if (it->x < minx) minx = it->x;
-                    if (it->x > maxx) maxx = it->x;
+        for (auto ch = chs.begin(); ch != chs.end(); ++ch) {
+            for (auto it = ch->begin(); it != ch->end(); ++it) {
+                if (it->x >= 0) {
+                    if (it->x < minx)
+                        minx = it->x;
+                    if (it->x > maxx)
+                        maxx = it->x;
                 }
-                if (it->y >= 0)
-                {
-                    if (it->y < miny) miny = it->y;
-                    if (it->y > maxy) maxy = it->y;
+                if (it->y >= 0) {
+                    if (it->y < miny)
+                        miny = it->y;
+                    if (it->y > maxy)
+                        maxy = it->y;
                 }
             }
         }
 
-        for (auto ch = chs.begin(); ch != chs.end(); ++ch)
-        {
-            for (auto it = ch->begin(); it != ch->end(); ++it)
-            {
+        for (auto ch = chs.begin(); ch != chs.end(); ++ch) {
+            for (auto it = ch->begin(); it != ch->end(); ++it) {
                 it->x = (it->x - minx);
                 it->y = (it->y - miny);
             }
@@ -1368,78 +1304,72 @@ void CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         maxy -= miny;
 
         float divisor = 0.1f;
-        if (HasDuplicates(1.0, chs))
-        {
+        if (HasDuplicates(1.0, chs)) {
             DisplayWarning("This model is not going to import correctly as one or more pixels overlap.");
 
             RemoveDuplicatePixels(chs);
         }
 
-        while (HasDuplicates(divisor, chs))
-            {
-                divisor += 0.1f;
+        while (HasDuplicates(divisor, chs)) {
+            divisor += 0.1f;
 
-                if (divisor >= 1.0f) break;
-            }
+            if (divisor >= 1.0f)
+                break;
+        }
 
-            divisor -= 0.1f + 0.01f;
+        divisor -= 0.1f + 0.01f;
 
-            while (HasDuplicates(divisor, chs))
-            {
-                divisor += 0.01f;
+        while (HasDuplicates(divisor, chs)) {
+            divisor += 0.01f;
 
-                if (divisor >= 1.0f) break;
-            }
+            if (divisor >= 1.0f)
+                break;
+        }
 
         maxx = ((float)maxx * divisor) + 1;
         maxy = ((float)maxy * divisor) + 1;
 
-        logger_base.debug("Divisor chosen %f. Model dimensions %d,%d", divisor, maxx+1, maxy+1);
+        logger_base.debug("Divisor chosen %f. Model dimensions %d,%d", divisor, maxx + 1, maxy + 1);
 
         SetProperty("parm1", wxString::Format("%i", maxx));
         SetProperty("parm2", wxString::Format("%i", maxy));
 
-        int* data = (int*)malloc(maxx *  maxy * sizeof(int));
-        memset(data, 0x00, maxx *  maxy * sizeof(int));
+        int* data = (int*)malloc(maxx * maxy * sizeof(int));
+        memset(data, 0x00, maxx * maxy * sizeof(int));
 
         int c = 1;
 
-        for (auto ch = chs.begin(); ch != chs.end(); ++ch)
-        {
-            for (auto it = ch->begin(); it != ch->end(); ++it)
-            {
+        for (auto ch = chs.begin(); ch != chs.end(); ++ch) {
+            for (auto it = ch->begin(); it != ch->end(); ++it) {
                 int x = (float)it->x * divisor;
                 int y = (float)it->y * divisor;
 
                 wxASSERT(x >= 0 && x < maxx);
                 wxASSERT(y >= 0 && y < maxy);
 
-                data[y*maxx + x] = c;
+                data[y * maxx + x] = c;
             }
             c++;
         }
 
         std::string cm = "";
-        for (int y = 0; y < maxy; ++y)
-        {
-            for (int x = 0; x < maxx; ++x)
-            {
-                if (data[y * maxx + x] != 0)
-                {
+        for (int y = 0; y < maxy; ++y) {
+            for (int x = 0; x < maxx; ++x) {
+                if (data[y * maxx + x] != 0) {
                     cm += wxString::Format("%i", data[y * maxx + x]);
                 }
-                if (x != maxx - 1) cm += ",";
+                if (x != maxx - 1)
+                    cm += ",";
             }
 
-            if (y != maxy - 1) cm += ";";
+            if (y != maxy - 1)
+                cm += ";";
         }
         free(data);
 
         SetProperty("CustomModel", cm);
         logger_base.debug("Model import done.");
-    }
-    else
-    {
+    } else {
         DisplayError("Failure loading LOR model file.");
     }
 }
@@ -1449,18 +1379,20 @@ void CustomModel::ExportXlightsModel()
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
     wxFile f(filename);
-    //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    //    bool isnew = !FileExists(filename);
+    if (!f.Create(filename, true) || !f.IsOpened())
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString cm = ModelXml->GetAttribute("CustomModel");
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString d = ModelXml->GetAttribute("Depth");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency","0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
@@ -1485,24 +1417,22 @@ void CustomModel::ExportXlightsModel()
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString face = SerialiseFace();
-    if (face != "")
-    {
+    if (face != "") {
         f.Write(face);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     wxString groups = SerialiseGroups();
     if (groups != "") {
         f.Write(groups);
     }
+    ExportDimensions(f);
     f.Write("</custommodel>");
     f.Close();
 }
@@ -1511,21 +1441,19 @@ void CustomModel::ExportXlightsModel()
 // order ... this helps us name the strings correctly
 int CustomModel::MapPhysicalStringToLogicalString(int string) const
 {
-    if (_strings == 1) return string;
+    if (_strings == 1)
+        return string;
 
     // FIXME
-    // This is not very efficient ... n^2 algorithm ... but given most people will have a small 
-    // number of strings and it is super simple and only used on controller upload i am hoping 
+    // This is not very efficient ... n^2 algorithm ... but given most people will have a small
+    // number of strings and it is super simple and only used on controller upload i am hoping
     // to get away with it
 
     std::vector<int> stringOrder;
-    for (int curr = 0; curr < _strings; curr++)
-    {
+    for (int curr = 0; curr < _strings; curr++) {
         int count = 0;
-        for (int s = 0; s < _strings; s++)
-        {
-            if (stringStartChan[s] < stringStartChan[curr] && s != curr)
-            {
+        for (int s = 0; s < _strings; s++) {
+            if (stringStartChan[s] < stringStartChan[curr] && s != curr) {
                 count++;
             }
         }
@@ -1534,15 +1462,50 @@ int CustomModel::MapPhysicalStringToLogicalString(int string) const
     return stringOrder[string];
 }
 
-int CustomModel::GetNumPhysicalStrings() const 
-{ 
+int CustomModel::GetNumPhysicalStrings() const
+{
     int ts = GetSmartTs();
     if (ts <= 1) {
         return _strings;
-    }
-    else {
+    } else {
         int strings = _strings / ts;
-        if (strings == 0) strings = 1;
+        if (strings == 0)
+            strings = 1;
         return strings;
     }
+}
+
+bool CustomModel::ChangeStringCount(long count, std::string& message)
+{
+    if (count == _strings) {
+        return true;
+    }
+
+    ModelXml->DeleteAttribute("CustomStrings");
+    ModelXml->AddAttribute("CustomStrings", wxString::Format("%d", count));
+
+    if (count != 1) {    
+        wxString nm = StartNodeAttrName(0);
+        bool hasIndiv = ModelXml->HasAttribute(nm);
+
+        for (int x = 0; x < count; x++) {
+            wxString nm = StartNodeAttrName(x);
+            ModelXml->DeleteAttribute(nm);
+        }
+        if (hasIndiv) {
+            for (int x = 0; x < count; x++) {
+                wxString nm = StartNodeAttrName(x);
+                ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
+            }
+        }
+    }
+
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::ChangeStringCount::MatrixStringCount");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::ChangeStringCount::MatrixStringCount");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::ChangeStringCount::MatrixStringCount");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "MatrixModel::ChangeStringCount::MatrixStringCount");
+    AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MatrixModel::ChangeStringCount::MatrixStringCount");
+    AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "MatrixModel::ChangeStringCount::MatrixStringCount");
+    AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "MatrixModel::ChangeStringCount::MatrixStringCount");
+    return true;
 }

@@ -103,7 +103,7 @@ private:
     LayoutPanel* layoutPanel;
     ViewObjectManager& mViewObjects;
     wxTreeListCtrl* TreeListViewObjects;
-    wxImageList* m_imageList;
+    wxVector<wxBitmapBundle> m_imageList;
     wxTreeListItem mSelectedGroup;
     ViewObject* mSelectedObject;
 

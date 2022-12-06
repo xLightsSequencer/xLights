@@ -24,6 +24,7 @@
 #include "sequencer/SequenceElements.h"
 #include "MusicXML.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 
 //(*IdInit(NoteImportDialog)
 const long NoteImportDialog::ID_STATICTEXT1 = wxNewId();
@@ -203,7 +204,7 @@ void NoteImportDialog::AudacityExtraValidateWindow()
         wxString file = TextCtrl_Piano_File->GetValue();
         wxTextFile f(file);
 
-        if (file != "" && wxFile::Exists(file))
+        if (file != "" && FileExists(file))
         {
             if (f.Open())
             {
@@ -263,7 +264,7 @@ void NoteImportDialog::MIDIExtraValidateWindow()
     {
         wxString file = TextCtrl_Piano_File->GetValue();
         MidiFile midifile;
-        if (file == "" || !wxFile::Exists(file) || midifile.read(file) == 0)
+        if (file == "" || !FileExists(file) || midifile.read(file) == 0)
         {
             // invalid midi file
             TextCtrl_Piano_File->SetBackgroundColour(*wxRED);
@@ -310,7 +311,7 @@ void NoteImportDialog::MusicXMLExtraValidateWindow()
 
         MusicXML musicxml(file.ToStdString());
 
-        if (file == "" || !wxFile::Exists(file) || !musicxml.IsOk())
+        if (file == "" || !FileExists(file) || !musicxml.IsOk())
         {
             // invalid music XML file
             TextCtrl_Piano_File->SetBackgroundColour(*wxRED);
@@ -408,7 +409,7 @@ void NoteImportDialog::ValidateWindow()
     }
 
     wxString file = TextCtrl_Piano_File->GetValue();
-    if (file == "" || wxFile::Exists(file))
+    if (file == "" || FileExists(file))
     {
         TextCtrl_Piano_File->SetBackgroundColour(*wxWHITE);
     }

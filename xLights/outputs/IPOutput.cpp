@@ -29,8 +29,6 @@
 
 #include <log4cpp/Category.hh>
 
-std::string IPOutput::__localIP = "";
-
 #pragma region Private Functions
 void IPOutput::Save(wxXmlNode* node) {
 

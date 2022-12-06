@@ -40,7 +40,7 @@ const long SelectPanel::ID_COLOURPICKERCTRL_SELECT = wxNewId();
 const long SelectPanel::ID_SLIDER_COLOR_SENSITIVITY = wxNewId();
 const long SelectPanel::ID_BUTTON_SELECT_ALL_COLOR = wxNewId();
 const long SelectPanel::ID_STATICTEXT4 = wxNewId();
-const long SelectPanel::ID_LISTBOX_SELECT_EFFECTS = wxNewId();
+const long SelectPanel::ID_LISTCTRL_Select_Effects = wxNewId();
 const long SelectPanel::ID_BUTTON_SELECT_EFFECT_ALL = wxNewId();
 const long SelectPanel::ID_BUTTON_SELECT_REFRESH = wxNewId();
 //*)
@@ -104,8 +104,8 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	FlexGridSizer1->Add(Button_Select_All_Color, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Effects\nby Time:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ListBox_Select_Effects = new wxListBox(this, ID_LISTBOX_SELECT_EFFECTS, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX_SELECT_EFFECTS"));
-	FlexGridSizer1->Add(ListBox_Select_Effects, 1, wxALL|wxEXPAND, 5);
+	ListCtrl_Select_Effects = new wxListCtrl(this, ID_LISTCTRL_Select_Effects, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING, wxDefaultValidator, _T("ID_LISTCTRL_Select_Effects"));
+	FlexGridSizer1->Add(ListCtrl_Select_Effects, 1, wxALL|wxEXPAND, 5);
 	Button_Select_Effect_All = new wxButton(this, ID_BUTTON_SELECT_EFFECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_EFFECT_ALL"));
 	FlexGridSizer1->Add(Button_Select_Effect_All, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -125,13 +125,16 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	Connect(ID_COLOURPICKERCTRL_SELECT,wxEVT_COMMAND_COLOURPICKER_CHANGED,(wxObjectEventFunction)&SelectPanel::OnColourPickerCtrlSelectColourChanged);
 	Connect(ID_SLIDER_COLOR_SENSITIVITY,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&SelectPanel::OnSliderColorSensitivityCmdSliderUpdated);
 	Connect(ID_BUTTON_SELECT_ALL_COLOR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_All_ColorClick);
-	Connect(ID_LISTBOX_SELECT_EFFECTS,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&SelectPanel::OnListBox_Select_EffectsSelect);
+	Connect(ID_LISTCTRL_Select_Effects,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&SelectPanel::OnListCtrl_Select_EffectsItemSelect);
+	Connect(ID_LISTCTRL_Select_Effects,wxEVT_COMMAND_LIST_ITEM_DESELECTED,(wxObjectEventFunction)&SelectPanel::OnListCtrl_Select_EffectsItemDeselect);
 	Connect(ID_BUTTON_SELECT_EFFECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_Effect_AllClick);
 	Connect(ID_BUTTON_SELECT_REFRESH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_RefreshClick);
 	//*)
 
     mSequenceElements = elements;
     mainSequencer = sequencer;
+
+    ListCtrl_Select_Effects->AppendColumn("", wxLIST_FORMAT_LEFT, 1000);
 }
 
 SelectPanel::~SelectPanel()
@@ -191,7 +194,9 @@ void SelectPanel::populateModelsList(const std::string& effectType)
 
 void SelectPanel::populateEffectsList()
 {
-    ListBox_Select_Effects->Clear();
+    ListCtrl_Select_Effects->ClearAll();
+    ListCtrl_Select_Effects->AppendColumn("", wxLIST_FORMAT_LEFT, 1000);
+
     wxArrayInt modelsSelected;
     ListBox_Select_Models->GetSelections(modelsSelected);
 
@@ -217,7 +222,8 @@ void SelectPanel::populateEffectsList()
                 std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, starttime, endtime);
                 for (Effect* eff : effs) {
                     if (ContainsColor(eff)) {
-                        ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
+                        ListCtrl_Select_Effects->InsertItem(ListCtrl_Select_Effects->GetItemCount(), wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname));
+                        ListCtrl_Select_Effects->SetItemPtrData(ListCtrl_Select_Effects->GetItemCount() - 1, (wxUIntPtr)eff);
                     }
                 }
             }
@@ -233,7 +239,8 @@ void SelectPanel::populateEffectsList()
                                 std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, starttime, endtime);
                                 for (Effect* eff : effs) {
                                     if (ContainsColor(eff)) {
-                                        ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname), (void*)eff);
+                                        ListCtrl_Select_Effects->InsertItem(ListCtrl_Select_Effects->GetItemCount() , wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname));
+                                        ListCtrl_Select_Effects->SetItemPtrData(ListCtrl_Select_Effects->GetItemCount() - 1, (wxUIntPtr)eff);
                                     }
                                 }
                             }
@@ -243,8 +250,8 @@ void SelectPanel::populateEffectsList()
             }
         }
 
-        if (ListBox_Select_Effects->GetCount() == 1) {
-            ListBox_Select_Effects->SetSelection(0);
+        if (ListCtrl_Select_Effects->GetItemCount() == 1) {
+            ListCtrl_Select_Effects->SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
             SelectEffects();
         }
     }
@@ -253,14 +260,18 @@ void SelectPanel::populateEffectsList()
 void SelectPanel::SelectEffects()
 {
     wxArrayInt effectsSelected;
-    ListBox_Select_Effects->GetSelections(effectsSelected);
+    for (uint32_t i = 0; i < ListCtrl_Select_Effects->GetItemCount(); ++i) {
+        if (ListCtrl_Select_Effects->GetItemState(i, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED) {
+            effectsSelected.Add(i);
+        }
+    }
 
     if (effectsSelected.size() != 0) {
         bool first = true;
         mSequenceElements->UnSelectAllEffects();
 
         for (auto value : effectsSelected) {
-            Effect* eff = (Effect*)ListBox_Select_Effects->GetClientData(value);
+            Effect* eff = (Effect*)ListCtrl_Select_Effects->GetItemData(value);
             if (eff != nullptr) {
                 eff->SetSelected(EFFECT_SELECTED);
                 if (first) {
@@ -271,11 +282,6 @@ void SelectPanel::SelectEffects()
         }
         mainSequencer->PanelEffectGrid->Refresh();
     }
-}
-
-void SelectPanel::OnListBox_Select_EffectsSelect(wxCommandEvent& event)
-{
-    SelectEffects();
 }
 
 void SelectPanel::OnButton_Select_RefreshClick(wxCommandEvent& event)
@@ -304,8 +310,8 @@ void SelectPanel::OnButton_Select_Model_AllClick(wxCommandEvent& event)
 
 void SelectPanel::OnButton_Select_Effect_AllClick(wxCommandEvent& event)
 {
-    for (size_t i = 0; i < ListBox_Select_Effects->GetCount(); ++i) {
-        ListBox_Select_Effects->SetSelection(i);
+    for (size_t i = 0; i < ListCtrl_Select_Effects->GetItemCount(); ++i) {
+        ListCtrl_Select_Effects->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
     }
     SelectEffects();
 }
@@ -358,7 +364,8 @@ void SelectPanel::GetEffectTypes()
 void SelectPanel::ClearData()
 {
     ComboBox_Select_Effect->Clear();
-    ListBox_Select_Effects->Clear();
+    ListCtrl_Select_Effects->ClearAll();
+    ListCtrl_Select_Effects->AppendColumn("", wxLIST_FORMAT_LEFT, 1000);
     ListBox_Select_Models->Clear();
 }
 
@@ -403,4 +410,16 @@ void SelectPanel::OnButton_Select_All_ColorClick(wxCommandEvent& event)
 {
     ColourPickerCtrlSelect->SetColour(*wxBLACK);
     SliderColorSensitivity->SetValue(255);
+}
+
+void SelectPanel::OnListCtrl_Select_EffectsItemSelect(wxListEvent& event)
+{
+    SelectEffects();
+    ListCtrl_Select_Effects->SetFocus();
+}
+
+void SelectPanel::OnListCtrl_Select_EffectsItemDeselect(wxListEvent& event)
+{
+    SelectEffects();
+    ListCtrl_Select_Effects->SetFocus();
 }

@@ -14,6 +14,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../UtilFunctions.h"
 
 #include "../../include/wave-16.xpm"
 #include "../../include/wave-24.xpm"
@@ -34,7 +35,32 @@ xlEffectPanel *WaveEffect::CreatePanel(wxWindow *parent) {
     return new WavePanel(parent);
 }
 
+bool WaveEffect::needToAdjustSettings(const std::string& version)
+{
+    return IsVersionOlder("2022.06", version);
+}
 
+void WaveEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
+    SettingsMap& settings = effect->GetSettings();
+
+    if (IsVersionOlder("2022.06", version)) {
+        // speed was changed from an integer to a float with 2 decimal places so the value must be multiplied by 100 to be the same as it was
+        std::string speed = settings.Get("E_SLIDER_Wave_Speed", "");
+        if (speed != "") {
+            settings.erase("E_SLIDER_Wave_Speed");
+            settings["E_TEXTCTRL_Wave_Speed"] = wxString::Format("%d", wxAtoi(speed));
+        } else {
+            speed = settings.Get("E_VALUECURVE_Wave_Speed", "");
+            if (Contains(speed, "Active=TRUE")) {
+                // its a value curve
+                ValueCurve vc(speed);
+                vc.ConvertDivider(1, 100);
+                settings["E_VALUECURVE_Wave_Speed"] = vc.Serialise();
+            }
+        }
+    }
+}
 
 #define WAVETYPE_SINE  0
 #define WAVETYPE_TRIANGLE  1
@@ -95,7 +121,7 @@ void WaveEffect::SetDefaultParameters() {
     SetSliderValue(wp->Slider_Number_Waves, 900);
     SetSliderValue(wp->Slider_Thickness_Percentage, 5);
     SetSliderValue(wp->Slider_Wave_Height, 50);
-    SetSliderValue(wp->Slider_Wave_Speed, 10);
+    SetSliderValue(wp->Slider_Wave_Speed, 1000);
     SetSliderValue(wp->Slider_Y_Offset, 0);
     SetChoiceValue(wp->Choice_Wave_Direction, "Right to Left");
     wp->BitmapButton_Number_WavesVC->SetActive(false);
@@ -105,7 +131,7 @@ void WaveEffect::SetDefaultParameters() {
     wp->BitmapButton_Wave_YOffsetVC->SetActive(false);
 }
 
-void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 
@@ -116,7 +142,7 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     int NumberWaves = GetValueCurveInt("Number_Waves", 1, SettingsMap, oset, WAVE_NUMBER_MIN, WAVE_NUMBER_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int ThicknessWave = GetValueCurveInt("Thickness_Percentage", 5, SettingsMap, oset, WAVE_THICKNESS_MIN, WAVE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int WaveHeight = GetValueCurveInt("Wave_Height", 50, SettingsMap, oset, WAVE_HEIGHT_MIN, WAVE_HEIGHT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int wspeed = GetValueCurveInt("Wave_Speed", 10, SettingsMap, oset, WAVE_SPEED_MIN, WAVE_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float wspeed = GetValueCurveDouble("Wave_Speed", 10.0, SettingsMap, oset, WAVE_SPEED_MIN, WAVE_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), WAVE_SPEED_DIVISOR);
     int yoffset = GetValueCurveInt("Wave_YOffset", 0, SettingsMap, oset, WAVE_YOFFSET_MIN, WAVE_YOFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     bool WaveDirection = "Left to Right" == SettingsMap["CHOICE_Wave_Direction"] ? true : false;
@@ -142,7 +168,7 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     if (NumberWaves == 0) {
         NumberWaves = 1;
     }
-    int state = (buffer.curPeriod - buffer.curEffStartPer) * wspeed * buffer.frameTimeInMs / 50;
+    float state = (float)(buffer.curPeriod - buffer.curEffStartPer) * wspeed * ((float)buffer.frameTimeInMs / 50.0);
 
     double yc = buffer.BufferHt / 2.0;
     double r = yc;
@@ -150,12 +176,10 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         r -= state / 4;
         //        if (r < 100./ThicknessWave) r = 100./ThicknessWave; //turn into straight line; don't completely disappear
         if (r < 0) r = 0; //turn into straight line; don't completely disappear
-    }
-    else if (WaveType == WAVETYPE_IVYFRACTAL) //generate branches at start of effect
-    {
-        if (!buffer.needToInit || (WaveBuffer0.size() != NumberWaves * buffer.BufferWi)) {
+    } else if (WaveType == WAVETYPE_IVYFRACTAL) { //generate branches at start of effect
+        if (buffer.needToInit || (WaveBuffer0.size() != NumberWaves * buffer.BufferWi)) {
             r = 0;
-            debug(10, "regen wave path, state %d", state);
+            debug(10, "regen wave path, state %0.1f", state);
             int delay = 0;
             int delta = 0; //next branch length, angle
             WaveBuffer0.resize(NumberWaves * buffer.BufferWi);
@@ -170,6 +194,7 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                     delay = 2 + (rand() % 3);
                 }
             }
+            buffer.needToInit = false;
         }
     }
     double degree_per_x = NumberWaves / buffer.BufferWi;
@@ -218,30 +243,25 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
             int amp = buffer.BufferHt * WaveHeight / 100;
 
             int xx = x;
-            if (WaveDirection)
-            {
+            if (WaveDirection) {
                 xx = buffer.BufferWi - x - 1;
             }
 
-            if (amp == 0)
-            {
+            if (amp == 0) {
                 ystart = 0;
-            }
-            else
-            {
+            } else {
                 ystart = (buffer.BufferHt - amp) / 2 + abs((int)((state / 10 + xx) * waves) % (int)(2 * amp) - amp);
             }
             if (ystart > buffer.BufferHt - 1) ystart = buffer.BufferHt - 1;
-        }
-        else if (WaveType == WAVETYPE_IVYFRACTAL) {
-            int eff_x = (WaveDirection ? x : buffer.BufferWi - x - 1) + buffer.BufferWi * (state / 2 / buffer.BufferWi); //effective x before wrap
+        } else if (WaveType == WAVETYPE_IVYFRACTAL) {
+            int istate = std::round(state);
+            int eff_x = (WaveDirection ? x : buffer.BufferWi - x - 1) + buffer.BufferWi * (istate / 2 / buffer.BufferWi); //effective x before wrap
             if (eff_x >= NumberWaves * buffer.BufferWi) break;
             if (!WaveDirection) eff_x = NumberWaves * buffer.BufferWi - eff_x - 1;
-            bool ok = WaveDirection ? (eff_x <= state / 2) : (eff_x >= NumberWaves * buffer.BufferWi - state / 2 - 1); //ivy "grows"
+            bool ok = WaveDirection ? (eff_x <= istate / 2) : (eff_x >= NumberWaves * buffer.BufferWi - istate / 2 - 1); //ivy "grows"
             if (!ok) continue;
             ystart = WaveBuffer0[eff_x] / 2;
-        }
-        else {
+        } else {
             ystart = (int)(r*(WaveHeight / 100.0) * sinrad + yc);
         }
 
@@ -278,16 +298,13 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
             //if (x < 2) debug(10, "wave out: x %d, y %d..%d", x, y1, y2);
 
             if (WaveType == WAVETYPE_SQUARE) { // Square Wave
-                if (signbit(sinrad) != signbit(sinradMinus1))
-                {
+                if (signbit(sinrad) != signbit(sinradMinus1)) {
                     y1 = yc - yc * (WaveHeight / 100.0);
                     y2 = yc + yc * (WaveHeight / 100.0);
-                }
-                else if (sinrad > 0.0) {
+                } else if (sinrad > 0.0) {
                     y1 = yc + 1 + yc * (WaveHeight / 100.0) * ((100.0 - ThicknessWave) / 100.0);
                     y2 = yc + yc * (WaveHeight / 100.0);
-                }
-                else {
+                } else {
                     y1 = yc - yc * (WaveHeight / 100.0);
                     y2 = yc - yc * (WaveHeight / 100.0) * ((100.0 - ThicknessWave) / 100.0);
                 }
@@ -297,8 +314,7 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 if (y1 > buffer.BufferHt - 1) y1 = buffer.BufferHt - 1;
                 if (y2 > buffer.BufferHt) y2 = buffer.BufferHt;
 
-                if (y2 <= y1)
-                {
+                if (y2 <= y1) {
                     y2 = y1 + 1;
                 }
             }
@@ -313,13 +329,11 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 if (FillColor <= 0) { //default to this if no selection -DJ
                     buffer.SetPixel(x, adjustedY, hsv0);  // fill with color 2
                     //       hsv.hue=(double)(BufferHt-y)/deltay;
-                }
-                else if (FillColor == 1) {
+                } else if (FillColor == 1) {
 
                     hsv.hue = (double)(y - y1) / deltay;
                     buffer.SetPixel(x, adjustedY, hsv); // rainbow
-                }
-                else if (FillColor == 2) {
+                } else if (FillColor == 2) {
                     hsv.hue = (double)(y - y1) / deltay;
                     buffer.GetMultiColorBlend(hsv.hue, false, color);
                     buffer.SetPixel(x, adjustedY, color); // palete fill
@@ -331,8 +345,7 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 if (y1mirror < y2mirror) {
                     y1 = y1mirror;
                     y2 = y2mirror;
-                }
-                else {
+                } else {
                     y2 = y1mirror;
                     y1 = y2mirror;
                 }
@@ -341,13 +354,11 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                     int adjustedY = y + roundedWaveYOffset;
                     if (FillColor <= 0) { //default to this if no selection -DJ
                         buffer.SetPixel(x, adjustedY, hsv0);  // fill with color 2
-                    }
-                    else if (FillColor == 1) {
+                    } else if (FillColor == 1) {
 
                         hsv.hue = (double)(y - y1) / deltay;
                         buffer.SetPixel(x, adjustedY, hsv); // rainbow
-                    }
-                    else if (FillColor == 2) {
+                    } else if (FillColor == 2) {
                         hsv.hue = (double)(y - y1) / deltay;
                         buffer.GetMultiColorBlend(hsv.hue, false, color);
                         buffer.SetPixel(x, adjustedY, color); // palete fill

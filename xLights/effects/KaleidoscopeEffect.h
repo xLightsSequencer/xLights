@@ -39,10 +39,36 @@ class KaleidoscopeEffect : public RenderableEffect
         KaleidoscopeEffect(int id);
         virtual ~KaleidoscopeEffect();
         virtual bool CanBeRandom() override {return false;}
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return false; }
         virtual void SetDefaultParameters() override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
+
+        virtual double GetSettingVCMin(const std::string& name) const override
+        {
+            if (name == "E_VALUECURVE_Kaleidoscope_X")
+                return KALEIDOSCOPE_X_MIN;
+            if (name == "E_VALUECURVE_Kaleidoscope_Y")
+                return KALEIDOSCOPE_Y_MIN;
+            if (name == "E_VALUECURVE_Kaleidoscope_Size")
+                return KALEIDOSCOPE_SIZE_MIN;
+            if (name == "E_VALUECURVE_Kaleidoscope_Rotation")
+                return KALEIDOSCOPE_ROTATION_MIN;
+            return RenderableEffect::GetSettingVCMin(name);
+        }
+
+        virtual double GetSettingVCMax(const std::string& name) const override
+        {
+            if (name == "E_VALUECURVE_Kaleidoscope_X")
+                return KALEIDOSCOPE_X_MAX;
+            if (name == "E_VALUECURVE_Kaleidoscope_Y")
+                return KALEIDOSCOPE_Y_MAX;
+            if (name == "E_VALUECURVE_Kaleidoscope_Size")
+                return KALEIDOSCOPE_SIZE_MAX;
+            if (name == "E_VALUECURVE_Kaleidoscope_Rotation")
+                return KALEIDOSCOPE_ROTATION_MAX;
+            return RenderableEffect::GetSettingVCMax(name);
+        }
 
     protected:
         virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;

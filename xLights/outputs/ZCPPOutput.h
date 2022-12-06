@@ -60,7 +60,7 @@ public:
     #pragma endregion 
     
     #pragma region Static Functions
-    static void SendSync();
+    static void SendSync(const std::string& localIP);
 
     static void InitialiseExtraConfigPacket(ZCPP_packet_t* packet, int seq, uint8_t priority);
     static void InitialiseModelDataPacket(ZCPP_packet_t* packet, int seq, uint8_t priority, const std::string& description);

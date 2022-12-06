@@ -156,8 +156,7 @@ public:
         Refresh();
     }
 public:
-    void render()
-    {
+    void render() override {
         if(!IsShownOnScreen()) return;
         if(!mIsInitialized) {
             PrepareCanvas();
@@ -168,15 +167,16 @@ public:
             return;
         }
         ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
-
+        
         float fs = translateToBacking(fontSize);
-        if (newFontSize != fontSize) {
+        if (newFontSize != fontSize || backedFontSize != fs) {
             if (fontTexture) {
                 delete fontTexture;
                 fontTexture = nullptr;
             }
             fontSize = newFontSize;
             fs = translateToBacking(fontSize);
+            backedFontSize = fs;
             const xlFontInfo &fi = xlFontInfo::FindFont((int)fs);
             fontTexture = ctx->createTextureForFont(fi);
         }
@@ -214,6 +214,7 @@ private:
     std::string _selected;
 
     int fontSize = 0;
+    int backedFontSize = 0;
     int newFontSize = 14;
 };
 
@@ -222,7 +223,7 @@ EVT_PAINT(TimeDisplayControl::Paint)
 EVT_SYS_COLOUR_CHANGED(TimeDisplayControl::OnSysColourChanged)
 END_EVENT_TABLE()
 
-MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id,const wxPoint& pos,const wxSize& size)
+MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("                Creating main sequencer");
@@ -274,8 +275,6 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     ScrollBarEffectsHorizontal->SetScrollbar(0, 1, 100, 1);
     FlexGridSizer1->Add(ScrollBarEffectsHorizontal, 1, wxALL|wxEXPAND, 0);
     SetSizer(FlexGridSizer1);
-    FlexGridSizer1->Fit(this);
-    FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_TOP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
@@ -553,7 +552,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "APPLYSETTING") {
                 SettingsMap newSetting = SettingsMap();
-                newSetting.Parse(binding->GetEffectString());
+                newSetting.Parse(nullptr, binding->GetEffectString(), "");
 
                 // Apply setting on the UI
                 mSequenceElements->GetXLightsFrame()->SetEffectControls(newSetting);
@@ -1032,12 +1031,12 @@ void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchB
             ToggleHousePreview();
         },
                                                  "Toggle House Preview",
-                                                 wxArtProvider::GetBitmap("xlART_HOUSE_PREVIEW")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_HOUSE_PREVIEW", wxART_TOOLBAR)));
         pvitems.push_back(new ButtonTouchBarItem([this]() {
             ToggleModelPreview();
         },
                                                  "Toggle Model Preview",
-                                                 wxArtProvider::GetBitmap("xlART_MODEL_PREVIEW")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_MODEL_PREVIEW", wxART_TOOLBAR)));
         items.push_back(new GroupTouchBarItem("Previews", pvitems));
         
         
@@ -1045,19 +1044,19 @@ void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchB
         
         pbitems.push_back(new ButtonTouchBarItem([this]() { TouchPlayControl("Play"); },
                                                  "Play",
-                                                 wxArtProvider::GetBitmap("xlART_PLAY")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_PLAY", wxART_TOOLBAR)));
         pbitems.push_back(new ButtonTouchBarItem([this]() { TouchPlayControl("Pause"); },
                                                  "Pause",
-                                                 wxArtProvider::GetBitmap("xlART_PAUSE")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_PAUSE", wxART_TOOLBAR)));
         pbitems.push_back(new ButtonTouchBarItem([this]() { TouchPlayControl("Stop"); },
                                                  "Stop",
-                                                 wxArtProvider::GetBitmap("xlART_STOP")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_STOP", wxART_TOOLBAR)));
         pbitems.push_back(new ButtonTouchBarItem([this]() { TouchPlayControl("Back"); },
                                                  "Backward",
-                                                 wxArtProvider::GetBitmap("xlART_BACKWARD")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_BACKWARD", wxART_TOOLBAR)));
         pbitems.push_back(new ButtonTouchBarItem([this]() { TouchPlayControl("Forward"); },
                                                  "Forward",
-                                                 wxArtProvider::GetBitmap("xlART_FORWARD")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_FORWARD", wxART_TOOLBAR)));
         
         items.push_back(new GroupTouchBarItem("Playback Controls", pbitems));
         
@@ -1067,12 +1066,12 @@ void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchB
             PanelTimeLine->ZoomIn();
         },
                                                  "Zoom In",
-                                                 wxArtProvider::GetBitmap("xlART_ZOOM_IN")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_ZOOM_IN", wxART_TOOLBAR)));
         zitems.push_back(new ButtonTouchBarItem([this]() {
             PanelTimeLine->ZoomOut();
         },
                                                  "Zoom Out",
-                                                 wxArtProvider::GetBitmap("xlART_ZOOM_OUT")));
+                                                 wxArtProvider::GetBitmapBundle("xlART_ZOOM_OUT", wxART_TOOLBAR)));
         items.push_back(new GroupTouchBarItem("Zoom", zitems));
         
 
@@ -1083,8 +1082,6 @@ void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchB
         items.push_back(colorsButton);
         
         for (auto it = effectManager.begin(); it != effectManager.end(); ++it) {
-            wxBitmap ico = (*it)->GetEffectIcon(16, false);
-            
             wxButton *b = new wxButton(touchBarSupport.GetControlParent(), wxID_ANY,
                                        "",
                                        wxDefaultPosition,
@@ -1092,7 +1089,7 @@ void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchB
                                        0,
                                        wxDefaultValidator,
                                        (*it)->Name());
-            b->SetBitmap(ico);
+            b->SetBitmap((*it)->GetEffectIcon());
             b->Connect(wxEVT_BUTTON, (wxObjectEventFunction)&MainSequencer::TouchButtonEvent, nullptr, this);
             
             items.push_back(new wxControlTouchBarItem(b));
@@ -1251,7 +1248,14 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                                     logger_base.crit("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
                                 }
 
+                                if (te_start->GetEndTimeMS() == te_start->GetStartTimeMS()) {
+                                    logger_base.crit("MainSequencer::GetSelectedEffectsData start effect start and end time is the same ... this is going to crash.");
+                                }
                                 int start_pct = ((ef->GetStartTimeMS() - te_start->GetStartTimeMS()) * 100) / (te_start->GetEndTimeMS() - te_start->GetStartTimeMS());
+
+                                if (te_end->GetEndTimeMS() == te_end->GetStartTimeMS()) {
+                                    logger_base.crit("MainSequencer::GetSelectedEffectsData end effect start and end time is the same ... this is going to crash.");
+                                }
                                 int end_pct = ((ef->GetEndTimeMS() - te_end->GetStartTimeMS()) * 100) / (te_end->GetEndTimeMS() - te_end->GetStartTimeMS());
                                 int start_index;
                                 int end_index;
@@ -1459,9 +1463,9 @@ void MainSequencer::ApplyButtonPressToSelected(const std::string& effectName, co
     return PanelEffectGrid->ApplyButtonPressToSelected(effectName, id);
 }
 
-void MainSequencer::RemapSelectedDMXEffectValues(const std::vector<std::pair<int, int>>& pairs)
+void MainSequencer::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int>>& dmxmappings)
 {
-    return PanelEffectGrid->RemapSelectedDMXEffectValues(pairs);
+    return PanelEffectGrid->RemapSelectedDMXEffectValues(dmxmappings);
 }
 
 void MainSequencer::ConvertSelectedEffectsTo(const std::string& effectName)
@@ -1512,6 +1516,11 @@ int MainSequencer::GetElementLayerCount(std::string elementName, std::list<int>*
 std::list<Effect*> MainSequencer::GetElementLayerEffects(std::string elementName, int layer)
 {
     return mSequenceElements->GetElementLayerEffects(elementName, layer);
+}
+
+std::list<std::string> MainSequencer::GetUniqueEffectPropertyValues(const std::string& id)
+{
+    return mSequenceElements->GetUniqueEffectPropertyValues(id);
 }
 
 std::list<std::string> MainSequencer::GetAllEffectDescriptions()
@@ -1822,6 +1831,33 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
         ScrollBarEffectsHorizontal->Enable();
     }
     ScrollBarEffectsHorizontal->Refresh();
+}
+
+void MainSequencer::SetEffectDuration(const std::string& effectType, const uint32_t durationMS)
+{
+    // find the selected effect
+    auto eff = GetSelectedEffect();
+    if (eff != nullptr) {
+        // check it matches the effect type
+        if (eff->GetEffectName() == effectType) {
+            auto start = eff->GetStartTimeMS();
+            if (start < PanelTimeLine->GetSequenceEnd()) {
+                // get the end of the sequence
+                uint32_t seqLeft = PanelTimeLine->GetSequenceEnd() - start;
+                // get its start time
+                // get the next effect after that effect
+                uint32_t nextEffectTime = 0xFFFFFFFF;
+                auto nextEff = eff->GetParentEffectLayer()->GetEffectAfterTime(eff->GetEndTimeMS());
+                if (nextEff != nullptr) {
+                    nextEffectTime = nextEff->GetStartTimeMS() - start;
+                }
+                // set the effect duration to the minimum of (video length, space up until next effect, space up until sequence end)
+                uint32_t duration = TimeLine::RoundToMultipleOfPeriod(std::min(durationMS, std::min(nextEffectTime, seqLeft)), PanelTimeLine->GetFrameMS());
+                eff->SetEndTimeMS(start + duration);
+                PanelEffectGrid->ForceRefresh(); // update the display of effects
+            }
+        }
+    }
 }
 
 void MainSequencer::TagAllSelectedEffects()

@@ -46,7 +46,7 @@ PlayListItemRunCommand::PlayListItemRunCommand() : PlayListItem()
     _parm3 = "";
 }
 
-PlayListItem* PlayListItemRunCommand::Copy() const
+PlayListItem* PlayListItemRunCommand::Copy(const bool isClone) const
 {
     PlayListItemRunCommand* res = new PlayListItemRunCommand();
     res->_command = _command;
@@ -54,7 +54,7 @@ PlayListItem* PlayListItemRunCommand::Copy() const
     res->_parm2 = _parm2;
     res->_parm3 = _parm3;
     res->_started = false;
-    PlayListItem::Copy(res);
+    PlayListItem::Copy(res, isClone);
 
     return res;
 }

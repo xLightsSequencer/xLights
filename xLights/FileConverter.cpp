@@ -33,6 +33,7 @@
     #define string_format wxString::Format
 #endif
 #include "xLightsVersion.h"
+#include "ExternalHooks.h"
 #include <log4cpp/Category.hh>
 
 static const int MAX_READ_BLOCK_SIZE = 4096 * 1024;
@@ -1082,13 +1083,12 @@ bool FileConverter::LoadVixenProfile(ConvertParameters& params, const wxString& 
     wxFileName fn;
     fn.AssignDir(params.xLightsFrm->CurrentDir);
     fn.SetFullName(ProfileName + ".pro");
-    if (!fn.FileExists()) {
+    if (!FileExists(fn)) {
         fn.AssignDir(wxFileName::FileName(params.inp_filename).GetPath());
         fn.SetFullName(ProfileName + ".pro");
     }
 
-    if (!fn.FileExists())
-    {
+    if (!FileExists(fn)) {
         params.ConversionError(wxString("Unable to find Vixen profile: ") + fn.GetFullPath() + wxString("\n\nMake sure a copy is in your xLights directory"));
         return false;
     }
@@ -1626,6 +1626,7 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
     const wxUint8 fType = params.xLightsFrm->_fseqVersion;
     int vMajor = 2;
     int clevel = 2;
+    bool allowSparse = false;
     FSEQFile::CompressionType ctype = FSEQFile::CompressionType::zstd;
     switch (fType) {
         case 1:
@@ -1637,6 +1638,9 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
         case 4:
             ctype = FSEQFile::CompressionType::zlib;
             clevel = 1;
+            break;
+        case 5:
+            allowSparse = true;
             break;
         default:
             break;
@@ -1673,6 +1677,14 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
     header.data.resize(len);
     strcpy((char *)&header.data[0], ver.c_str());
     file->addVariableHeader(header);
+    
+    if (vMajor >= 2 && allowSparse && !params.ranges.empty()) {
+        for (auto &r : params.ranges) {
+            V2FSEQFile* v2file = (V2FSEQFile*)file;
+            v2file->m_sparseRanges.push_back(r);
+            logger_conversion.info("Sparse range - Start: %d  End: %d   Size: %d\n", r.first + 1, (r.first + r.second), r.second);
+        }
+    }
 
     file->writeHeader();
     size_t size = params.seq_data.NumFrames();

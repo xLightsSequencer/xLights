@@ -66,9 +66,18 @@ public:
     virtual std::list<wxPoint> GetPoints(int rotation, wxPoint position) const = 0;
     void Rotate();
     virtual wxColor GetColour() const;
-    virtual void MoveDown() { _position.y--; }
-    virtual void MoveLeft() { _position.x--; }
-    virtual void MoveRight() { _position.x++; }
+    virtual void MoveDown()
+    {
+        --(_position.y);
+    }
+    virtual void MoveLeft()
+    {
+        --(_position.x);
+    }
+    virtual void MoveRight()
+    {
+        ++(_position.x);
+    }
     virtual int GetType() const = 0;
     static XyzzyPiece* CreatePiece();
     int GetX() const { return _position.x; }
