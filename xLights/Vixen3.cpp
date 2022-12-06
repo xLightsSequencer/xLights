@@ -55,6 +55,16 @@ std::string VixenEffect::GetPalette() const
         if (palette[i].size() == 1) {
             res += "C_BUTTON_Palette" + n + "=#" + wxString::Format("%02x%02x%02x",
                     palette[i][0].color.Red(), palette[i][0].color.Green(), palette[i][0].color.Blue());
+            res += ",C_CHECKBOX_Palette" + n + "=1";
+        // Break buttefly gradient into individual colors
+        } else if (type == "ButterflyData") {
+            for (int ii = 0; ii < palette[i].size(); ii++) {
+                wxString nn = wxString::Format("%d", ii + 1);
+                if (res != "")
+                    res += ",";
+                res += "C_BUTTON_Palette" + nn + "=#" + wxString::Format("%02x%02x%02x", palette[i][ii].color.Red(), palette[i][ii].color.Green(), palette[i][ii].color.Blue());
+                res += ",C_CHECKBOX_Palette" + nn + "=1";
+            }
         } else {
             res += "C_BUTTON_Palette" + n + "=Active=TRUE|Id=ID_BUTTON_Palette" + n + "|Values=";
             for (int ii = 0; ii < palette[i].size(); ii++) {
@@ -63,9 +73,9 @@ std::string VixenEffect::GetPalette() const
                 if (ii != palette[i].size() - 1)
                     res += ";";
             }
-            res += "|";
+            res += "|,C_CHECKBOX_Palette" + n + "=1";
         }
-        res += ",C_CHECKBOX_Palette" + n + "=1";
+
     }
 
     // More than two points for the Vixen level curve, generate a custom brightness value curve
@@ -105,7 +115,7 @@ std::string VixenEffect::GetSettings() const
         else if (s == "Alternate Right") dir = "Alternate Left";
 
         if (settings.at("TargetPositioning") == "Strings") {
-            if (settings.at("Orienation") == "Vertical") {
+            if (settings.at("Orientation") == "Vertical") {
                 res = "B_CHOICE_BufferStyle=Horizontal Per Model/Strand,";
             } else {
                 res = "B_CHOICE_BufferStyle=Vertical Per Model/Strand,";
@@ -119,10 +129,11 @@ std::string VixenEffect::GetSettings() const
                ",E_TEXTCTRL_Bars_Cycles=" + settings.at("Speed");
     }
     else if (type == "ButterflyData") {
-        res = "E_Butterfly_Chunks=" + settings.at("BackgroundChunks") +
-              ",E_Butterfly_Skip=" + settings.at("BackgroundSkips") +
+        res = "E_SLIDER_Butterfly_Chunks=" + settings.at("BackgroundChunks") +
+              ",E_SLIDER_Butterfly_Skip=" + settings.at("BackgroundSkips") +
               ",E_SLIDER_Butterfly_Style=" + wxString(settings.at("ButterflyType")).AfterFirst('e').ToStdString() +
-              ",E_CHOICE_Butterfly_Direction=" + (settings.at("Direction") == "Forward" ? "0" : "1");
+              ",E_CHOICE_Butterfly_Direction=" + (settings.at("Direction") == "Forward" ? "0" : "1") +
+              ",E_CHOICE_Butterfly_Colors=" + (settings.at("ColorScheme") == "Gradient" ? "Palette" : "Rainbow");
     }
     else if (type == "ChaseData") {}
     else if (type == "CirclesData") {}
@@ -797,7 +808,9 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                 e->type = es->second->GetAttribute("i:type").AfterFirst(':').ToStdString();
                 for (auto n = es->second->GetChildren(); n != nullptr; n = n->GetNext())
                 {
-                    if (n->GetName().StartsWith("d2p1:") && n->GetChildren() != nullptr) {
+                    if (n->GetName() == "TargetPositioning" && n->GetChildren() != nullptr) {
+                        e->settings[n->GetName().ToStdString()] = n->GetChildren()->GetContent().ToStdString();
+                    } else if (n->GetName().StartsWith("d2p1:") && n->GetChildren() != nullptr) {
                         auto nm = n->GetName().AfterFirst(':');
                         if (nm == "NutcrackerData") {
                             for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
@@ -809,6 +822,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             e->settings[nm.ToStdString()] = n->GetChildren()->GetContent().ToStdString();
                         }
 
+                        // Color for SetLevel
                         if (nm == "color") {
                             int r = 0;
                             int g = 0;
@@ -828,12 +842,45 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             e->palette.push_back({ VixenColor(wxColor(r, g, b), 0) });
                         }
 
-                        // Single color gradient
-                        else if (nm == "ColorGradient") {
+                        // Colors for the following:
+                        // ColorGradient:      Chase Pulse Spin Twinkle Wipe
+                        // Gradient:           ColorWash Border Butterfly Curtain Shockwave
+                        // Head/Fill:          Morph
+                        // MeterColorGradient: VetricalMeter VUMeter Waveform
+                        else if (nm == "ColorGradient" || nm == "Gradient" || nm == "HeadColor" || nm == "FillColor" || nm == "MeterColorGradient") {
                             for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
                                 auto nm2 = nn->GetName().AfterFirst(':');
                                 if (nm2 == "_colors") {
                                     e->palette.push_back(ProcessColorData(nn));
+                                }
+                            }
+                        } 
+                        
+                        // Colors for the following:
+                        // Colors:                                   Strobe Picture
+                        // Colors->ColorGradient:                    Bars Balls Circles Garland Life Liquid Meteors Plasma Snowstorm Spiral Spirograph Wave
+                        // Colors->GradientLevelPair->ColorGradient: Alternating Dissolve Pinwheel
+                        // GradientColors->ColorGradient:            Countdown
+                        // ColorGradients->ColorGradient:            Fireworks
+                        else if (nm == "Colors" || nm == "GradientColors" || nm == "ColorGradients") {
+                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                auto nm2 = nn->GetName().AfterFirst(':');
+                                if (nm2 == "_colors") {
+                                    e->palette.push_back(ProcessColorData(nn));
+                                } else if (nm2 == "ColorGradient" || "GradientLevelPair") { 
+                                    for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
+                                        auto nm3 = nnn->GetName().AfterFirst(':');
+                                        if (nm3 == "_colors") {
+                                            e->palette.push_back(ProcessColorData(nnn));
+                                        } else if (nm3 == "ColorGradient") {
+                                            for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
+                                                auto nm4 = nnnn->GetName().AfterFirst(':');
+                                                if (nm4 == "_colors") {
+                                                    e->palette.push_back(ProcessColorData(nnnn));
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         } 
