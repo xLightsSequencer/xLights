@@ -262,7 +262,7 @@ public:
 
             logger_curl.info("HEADER START ----------");
             for (const auto& it : customHeaders) {
-                auto s = wxString::Format("%s: %s", it.first, it.second);
+                std::string s = it.first + ": " + it.second;
                 headerlist = curl_slist_append(headerlist, s.c_str());
                 logger_curl.info("    %s", (const char*)s.c_str());
             }
@@ -299,6 +299,9 @@ public:
             //#endif
 
             CURLcode res = curl_easy_perform(curl);
+            if (responseCode) {
+                curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, responseCode);
+            }
             curl_easy_cleanup(curl);
             if (headerlist != nullptr) {
                 curl_slist_free_all(headerlist);
@@ -307,10 +310,6 @@ public:
                 logger_curl.debug("RESPONSE START ------");
                 logger_curl.debug("%s", (const char*)buffer.c_str());
                 logger_curl.debug("RESPONSE END ------");
-
-                if (responseCode) {
-                    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, responseCode);
-                }
                 return buffer;
             } else {
                 logger_curl.error("Curl post failed: %d", res);

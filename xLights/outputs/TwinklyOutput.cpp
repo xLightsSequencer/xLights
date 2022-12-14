@@ -270,7 +270,7 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
 
 logger_base.debug("A");
 
-    std::vector<std::pair<std::string, std::string>> customHeaders = {};
+    std::vector<std::pair<std::string, std::string>> customHeaders;
     if (!m_token.empty()) {
         // assign authentication token if present
         customHeaders.push_back(std::pair("X-Auth-Token", m_token));
