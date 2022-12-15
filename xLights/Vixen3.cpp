@@ -152,8 +152,7 @@ std::string VixenEffect::GetSettings() const
                   ",E_TEXTCTRL_Eff_On_End=" + wxString::Format("%d", wxRound(levelCurve[1].y));
         }
     }
-    else if (type == "TwinkleData")
-    {
+    else if (type == "TwinkleData") {
         res = "E_SLIDER_Twinkle_Steps=" + settings.at("AveragePulseTime") +
               ",E_SLIDER_Twinkle_Count=" + settings.at("AverageCoverage");
     }
@@ -162,15 +161,58 @@ std::string VixenEffect::GetSettings() const
     else if (type == "SpiralData") {}
     else if (type == "SpirographData") {}
     else if (type == "TextData") {}
-    else if (type == "WipeData") {}
-    else if (type == "NutcrackerModuleData") {
-        // TODO: Add color support
-        // knowncolor indexes - https://docs.microsoft.com/en-us/dotnet/api/system.drawing.knowncolor?view=net-6.0
-        // When 0, color is ARGB in decimal
+    else if (type == "WipeData") {
+        auto d = settings.at("Direction");
+        auto r = settings.at("ReverseDirection");
+        std::string chase = "From Middle";
+        std::string transform = "";
 
+        if (d == "Vertical") {
+            chase = "Left-Right";
+            if (r == "true")
+                transform = "Rotate CC 90";
+            else
+                transform = "Rotate CW 90";
+        } else if (d == "Horizontal") {
+            if (r == "true")
+                chase = "Right-Left";
+            else
+                chase = "Left-Right";
+        } else {
+            chase = "From Middle";
+        }
+        
+        res = "E_CHOICE_Chase_Type1=" + chase;
+        if (transform != "")
+            res = res + ",B_CHOICE_BufferTransform=" + transform;
+                
+        if (settings.at("WipeMovement") == "Count")
+            res = res + ",E_TEXTCTRL_Chase_Rotations=" + settings.at("PassCount");
+    }
+    else if (type == "NutcrackerModuleData") {
         std::string nc = settings.at("CurrentEffect");
         std::string fit = BoolToIntStr(settings.at("FitToTime"));  // Not sure this can be mapped
         int speed = wxAtoi(settings.at("Speed")); // Max of 20
+
+        // TODO: Add color support
+        // knowncolor indexes - https://docs.microsoft.com/en-us/dotnet/api/system.drawing.knowncolor?view=net-6.0
+        // When 0, color is ARGB in decimal
+        //for (auto active = settings.at("Palette")->GetChildren()
+
+/*
+    if (nm == "NutcrackerData")
+        {
+            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                auto nm2 = nn->GetName().AfterFirst(':');
+                if (nn->GetChildren() != nullptr)
+                    e->settings[nm2.ToStdString()] = nn->GetChildren()->GetContent().ToStdString();
+            }
+        }
+        else
+        {
+            e->settings[nm.ToStdString()] = n->GetChildren()->GetContent().ToStdString();
+        }
+*/
 
         // V3 Nutcracker wasn't spatially aware so switch render style
         if (settings.at("StringOrienation") == "Vertical") {
@@ -310,7 +352,7 @@ std::string VixenEffect::GetSettings() const
             res += ",E_CHECKBOX_Twinkle_Strobe=1" + BoolToIntStr(settings.at("Twinkles_Strobe")) +
                    ",E_CHOICE_Twinkle_Style=Old Render Method" +
                    ",E_SLIDER_Twinkle_Count=" + settings.at("Twinkles_Count") +
-                   ",E_SLIDER_Twinkle_Steps+" + settings.at("Twinkles_Steps");
+                   ",E_SLIDER_Twinkle_Steps=" + settings.at("Twinkles_Steps");
         }
     }
 
@@ -351,7 +393,6 @@ std::string VixenEffect::GetXLightsType() const
         return "Morph";
     }
     if (type == "NutcrackerModuleData") {
-        logger_base.warn("Vixen3: Nutcracker color import not supported.");
         auto nc = settings.at("CurrentEffect");
         if (nc == "ColorWash") nc = "Color Wash";
         else if (nc == "Movie") nc = "Video";
@@ -392,7 +433,7 @@ std::string VixenEffect::GetXLightsType() const
     if (type == "VideoData") return "Video";
     if (type == "VUMeterData") return "VU Meter";
     if (type == "WaveData") return "Wave";
-    if (type == "WipeData") return "Color Wash";
+    if (type == "WipeData") return "Single Strand";
 
     logger_base.warn("Vixen3: Unknown effect %s ... inserting an off effect.", (const char*)type.c_str());
 
@@ -803,9 +844,12 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
         for (auto e = it->second.begin(); e != it->second.end(); ++e)
         {
             auto es = effectSettings.find(e->effectSettingsId);
-
             if (es != effectSettings.end())
             {
+                wxString colorHandling;
+                std::vector<std::vector<VixenColor>> palleteStatic;
+                std::vector<std::vector<VixenColor>> palleteDefault;
+                
                 e->type = es->second->GetAttribute("i:type").AfterFirst(':').ToStdString();
                 for (auto n = es->second->GetChildren(); n != nullptr; n = n->GetNext())
                 {
@@ -813,11 +857,52 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                         e->settings[n->GetName().ToStdString()] = n->GetChildren()->GetContent().ToStdString();
                     } else if (n->GetName().StartsWith("d2p1:") && n->GetChildren() != nullptr) {
                         auto nm = n->GetName().AfterFirst(':');
+                        
                         if (nm == "NutcrackerData") {
                             for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
                                 auto nm2 = nn->GetName().AfterFirst(':');
-                                if (nn->GetChildren() != nullptr)
-                                    e->settings[nm2.ToStdString()] = nn->GetChildren()->GetContent().ToStdString();
+                                if (nn->GetChildren() != nullptr) {
+                                    // Process color palette
+                                    if (nm2 == "Palette") {
+                                        std::vector<int> knownColor;
+                                        for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
+                                            auto nm3 = nnn->GetName().AfterFirst(':');
+                                            if (nnn->GetChildren() != nullptr) {
+                                                if (nm3 == "_colors") {
+                                                    for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
+                                                        auto nm4 = nnnn->GetName().AfterFirst(':');
+                                                        if (nm4 == "Color") {
+                                                            for (auto nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext()) {
+                                                                auto nm5 = nnnnn->GetName().AfterFirst(':');
+                                                                if (nm5 == "knownColor") {
+                                                                    // Finally, got the color
+                                                                    knownColor.push_back(wxAtoi(nnnnn->GetChildren()->GetContent()));
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                } else if (nm3 == "_colorsActive") {
+                                                    auto index = 0;
+                                                    for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
+                                                        auto nm4 = nnnn->GetName().AfterFirst(':');
+                                                        if (nm4 == "boolean") {
+                                                            if (nnnn->GetChildren()->GetContent() == "true") {
+                                                                uint32_t argb = VixenEffect::KNOWN_COLOR[knownColor.at(index)];
+                                                                char r = (argb & 0x00FF0000) >> 16;
+                                                                char g = (argb & 0x0000FF00) >> 8;
+                                                                char b = (argb & 0x000000FF);
+                                                                palleteDefault.push_back({ VixenColor(wxColor(r, g, b), 0) });
+                                                            }
+                                                        }
+                                                        index++;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        e->settings[nm2.ToStdString()] = nn->GetChildren()->GetContent().ToStdString();
+                                    }
+                                }
                             }
                         } else {
                             e->settings[nm.ToStdString()] = n->GetChildren()->GetContent().ToStdString();
@@ -840,7 +925,14 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                     b = 255.0 * wxAtof(nn->GetChildren()->GetContent());
                                 }
                             }
-                            e->palette.push_back({ VixenColor(wxColor(r, g, b), 0) });
+                            palleteDefault.push_back({ VixenColor(wxColor(r, g, b), 0) });
+                        }
+
+                        // ColorHandling known values:
+                        // - StaticColor
+                        // - GradientThroughWHoleEffect
+                        else if (nm == "ColorHandling") {
+                            colorHandling = n->GetChildren()->GetContent();
                         }
 
                         // Colors for the following:
@@ -852,7 +944,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
                                 auto nm2 = nn->GetName().AfterFirst(':');
                                 if (nm2 == "_colors") {
-                                    e->palette.push_back(ProcessColorData(nn));
+                                    palleteDefault.push_back(ProcessColorData(nn));
                                 }
                             }
                         } 
@@ -867,17 +959,17 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
                                 auto nm2 = nn->GetName().AfterFirst(':');
                                 if (nm2 == "_colors") {
-                                    e->palette.push_back(ProcessColorData(nn));
+                                    palleteDefault.push_back(ProcessColorData(nn));
                                 } else if (nm2 == "ColorGradient" || "GradientLevelPair") { 
                                     for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
                                         auto nm3 = nnn->GetName().AfterFirst(':');
                                         if (nm3 == "_colors") {
-                                            e->palette.push_back(ProcessColorData(nnn));
+                                            palleteDefault.push_back(ProcessColorData(nnn));
                                         } else if (nm3 == "ColorGradient") {
                                             for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
                                                 auto nm4 = nnnn->GetName().AfterFirst(':');
                                                 if (nm4 == "_colors") {
-                                                    e->palette.push_back(ProcessColorData(nnnn));
+                                                    palleteDefault.push_back(ProcessColorData(nnnn));
                                                 }
                                             }
                                         }
@@ -885,6 +977,22 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                 }
                             }
                         } 
+
+                        // Colors for the following:
+                        // Twinkle
+                        else if (nm == "StaticColor") {
+                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                auto nm2 = nn->GetName().AfterFirst(':');
+                                if (nm2 == "value") {
+                                    unsigned long argb;
+                                    nn->GetChildren()->GetContent().ToULong(&argb);
+                                    char r = (argb & 0x00FF0000) >> 16;
+                                    char g = (argb & 0x0000FF00) >> 8;
+                                    char b = (argb & 0x000000FF);
+                                    palleteStatic.push_back({ VixenColor(wxColor(r, g, b), 0) });
+                                }
+                            }
+                        }
 
                         // Brightness curve
                         else if (nm == "LevelCurve") {
@@ -911,6 +1019,11 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             }
                         }
                     }
+                }
+                if (colorHandling == "StaticColor") {
+                    e->palette = palleteStatic;
+                } else {
+                    e->palette = palleteDefault;
                 }
             }
         }
