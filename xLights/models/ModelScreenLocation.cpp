@@ -267,10 +267,15 @@ float ModelScreenLocation::GetAxisRadius(float zoom, int scale) const
 
 float ModelScreenLocation::GetRectHandleWidth(float zoom, int scale) const
 {
-    static float RECT_HANDLE_WIDTH = 6.0f;
+    // When RECT_HANDLE_WIDTH was set to 6.0 the model handle could never draw smaller than that
+    // when zoomed in and zoom is less than 1.0.  By setting this to 0.5 and then multiplying the
+    // scale by 12.0 later allows the handle size to still be 6.0 when zoom is 1.0 but lets it go
+    // smaller than 6.0 when zoomed in
+    static float RECT_HANDLE_WIDTH = 0.5f;
     float rs = scale;
     rs /= 2.0;
     rs += 1.0;
+    rs *= 12.0;
     return std::max(RECT_HANDLE_WIDTH, RECT_HANDLE_WIDTH * zoom * rs);
 }
 
