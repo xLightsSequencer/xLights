@@ -6757,7 +6757,7 @@ int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n,
 
     int effects = 0;
     wxString type = "Node";
-    wxString name = wxString::Format("%sStrand %d/Node %d", e->GetFullName(), e->GetStrand()+1, n);
+    wxString name = wxString::Format("%s/%s", e->GetFullName(), m->GetNodeName(n, true));
 
     for (int k = 0; k < nl->GetEffectCount(); k++)
     {
@@ -6825,7 +6825,6 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
         Model* m = AllModels.GetModel(e->GetModelName());
 
         wxString type = "Unknown";
-        wxString subname = "";
         switch (e->GetType())
         {
         case     ElementType::ELEMENT_TYPE_MODEL:
@@ -6843,7 +6842,6 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
             break;
         case ElementType::ELEMENT_TYPE_STRAND:
             type = "Strand";
-            subname = wxString::Format("Strand %d", dynamic_cast<StrandElement*>(e)->GetStrand() + 1);
             break;
         case ElementType::ELEMENT_TYPE_TIMING:
             type = "Timing";
@@ -6900,7 +6898,7 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
                     (duration % 60000) / 1000,
                     duration % 1000,
                     sm.Contains("X_Effect_Description") ? sm["X_Effect_Description"] : "",
-                    (const char *)(e->GetFullName() + subname).c_str(),
+                    (const char *)(e->GetFullName()).c_str(),
                     type,
                     fs
                 ));
@@ -6960,7 +6958,7 @@ void xLightsFrame::ExportEffects(wxString const& filename)
             }
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
                 StrandElement *se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
-                int node = 1;
+                int node = 0;
                 for (size_t n = 0; n < se->GetNodeLayerCount(); n++)
                 {
                     NodeLayer* nl = se->GetNodeLayer(n);
