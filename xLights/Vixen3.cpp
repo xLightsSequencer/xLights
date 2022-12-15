@@ -161,6 +161,10 @@ std::string VixenEffect::GetSettings() const
     else if (type == "SpiralData") {}
     else if (type == "SpirographData") {}
     else if (type == "TextData") {}
+    else if (type == "VUMeterData") {
+        res = "E_CHOICE_VUMeter_Type=On";
+    }
+
     else if (type == "WipeData") {
         auto d = settings.at("Direction");
         auto r = settings.at("ReverseDirection");
@@ -193,26 +197,6 @@ std::string VixenEffect::GetSettings() const
         std::string nc = settings.at("CurrentEffect");
         std::string fit = BoolToIntStr(settings.at("FitToTime"));  // Not sure this can be mapped
         int speed = wxAtoi(settings.at("Speed")); // Max of 20
-
-        // TODO: Add color support
-        // knowncolor indexes - https://docs.microsoft.com/en-us/dotnet/api/system.drawing.knowncolor?view=net-6.0
-        // When 0, color is ARGB in decimal
-        //for (auto active = settings.at("Palette")->GetChildren()
-
-/*
-    if (nm == "NutcrackerData")
-        {
-            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-                auto nm2 = nn->GetName().AfterFirst(':');
-                if (nn->GetChildren() != nullptr)
-                    e->settings[nm2.ToStdString()] = nn->GetChildren()->GetContent().ToStdString();
-            }
-        }
-        else
-        {
-            e->settings[nm.ToStdString()] = n->GetChildren()->GetContent().ToStdString();
-        }
-*/
 
         // V3 Nutcracker wasn't spatially aware so switch render style
         if (settings.at("StringOrienation") == "Vertical") {
