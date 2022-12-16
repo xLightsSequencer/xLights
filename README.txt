@@ -11,6 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.25 December 16, 2022
+   -- enh (Shelby) Bunch of Vixen 3 import enhancements to aid migration from Vixen 3
+   -- enh (scott)  Add date modified to Batch Render dialog
+   -- enh (scott)  Save size/position of Batch Render dialog
+   -- enh (scott)  Add ESP32-AE+ variants
+   -- enh (keith)  Increase maximum size of background images to 4K
+   -- bug (dkulp)  Fix crash in GPU renderer if too many commands are submitted at once
+   -- bug (keith)  Fix second and subsequent strings on multi string models which are shadowed not showing the visual cue that they are shadowed
+   -- bug (gil)    Fix model handle size with low zoom settings
+   -- bug (scott)  Use Node Name and Strand names on effect export
+   -- bug (keith)  Fix Visualizer printing dark when OS is in Dark mode
+   -- bug (dkulp)  Fix crash with twinkly export on macOS
 2022.24 December 1, 2022
    -- enh (keith)  SubModel creation - allow user to press space when a cell is the active cell to "double click" on the cell
    -- enh (keith)  Improve some face/state effect render times
