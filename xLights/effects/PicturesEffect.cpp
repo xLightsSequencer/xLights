@@ -626,7 +626,9 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                         delete gifImage;
                         gifImage = nullptr;
                     }
-                    gifImage = new GIFImage(NewPictureName.ToStdString(), suppressGIFBackground);
+                    if (gifImage == nullptr) {
+                        gifImage = new GIFImage(NewPictureName.ToStdString(), suppressGIFBackground);
+                    }
 
                     if (!gifImage->IsOk()) {
                         delete gifImage;
