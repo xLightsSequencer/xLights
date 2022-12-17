@@ -1506,7 +1506,6 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     _nodeBuffer = buffer._nodeBuffer;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
-    infoCache = buffer.infoCache;
 
     pixels = &pixelVector[0];
     _textDrawingContext = buffer._textDrawingContext;
@@ -1517,7 +1516,6 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
 void RenderBuffer::Forget()
 {
     // Forget some stuff as this is a fake render buffer and we dont want it destroyed
-    infoCache.clear();
     _textDrawingContext = nullptr;
     _pathDrawingContext = nullptr;
 }

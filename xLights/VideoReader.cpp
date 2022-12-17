@@ -337,7 +337,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
     if (_codecContext != nullptr) {
         CleanupVideoToolbox(_codecContext, hwDecoderCache);
         hwDecoderCache = nullptr;
-        avcodec_close(_codecContext);
+        avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
     }
 
@@ -592,7 +592,7 @@ VideoReader::~VideoReader()
         //logger_base.debug("Releasing codecContext.");
         CleanupVideoToolbox(_codecContext, hwDecoderCache);
         hwDecoderCache = nullptr;
-        avcodec_close(_codecContext);
+        avcodec_free_context(&_codecContext);
 		_codecContext = nullptr;
 	}
 	if (_formatContext != nullptr) {
