@@ -3393,6 +3393,8 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
 
     if (mSequenceElements == nullptr) return;
 
+    xlights->AbortRender();
+
     int new_time = -1;
 
     // Snap to timing marks logic

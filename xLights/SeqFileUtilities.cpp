@@ -1112,26 +1112,29 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
             Replace(settings, ",X_Effect_Locked=True", "");
 
             // if we are mapping the effect onto a group and it is a per preview render buffer then use the goups default camera
-            Model* m = target->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->GetModel(target->GetParentElement()->GetModelName());
-            if (m != nullptr) {
-                auto mg = dynamic_cast<const ModelGroup*>(m);
-                if (mg != nullptr) {
-                    // so is it a per preview render buffer
-                    auto rb = ef->GetSettings()["B_CHOICE_BufferStyle"];
-                    if (BufferPanel::CanRenderBufferUseCamera(rb)) {
-                        if (Contains(settings, "B_CHOICE_PerPreviewCamera")) {
-                            Replace(settings, ",B_CHOICE_PerPreviewCamera=" + ef->GetSettings()["B_CHOICE_PerPreviewCamera"],
-                                    ",B_CHOICE_PerPreviewCamera=" + mg->GetDefaultCamera());
-                        }
-                        else {
-                            settings += ",B_CHOICE_PerPreviewCamera=" + mg->GetDefaultCamera();
+            if (!target->IsTimingLayer()) {
+                Model* m = target->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->GetModel(target->GetParentElement()->GetModelName());
+                if (m != nullptr) {
+                    auto mg = dynamic_cast<const ModelGroup*>(m);
+                    if (mg != nullptr) {
+                        // so is it a per preview render buffer
+                        auto rb = ef->GetSettings()["B_CHOICE_BufferStyle"];
+                        if (BufferPanel::CanRenderBufferUseCamera(rb)) {
+                            if (Contains(settings, "B_CHOICE_PerPreviewCamera")) {
+                                Replace(settings, ",B_CHOICE_PerPreviewCamera=" + ef->GetSettings()["B_CHOICE_PerPreviewCamera"],
+                                        ",B_CHOICE_PerPreviewCamera=" + mg->GetDefaultCamera());
+                            }
+                            else {
+                                settings += ",B_CHOICE_PerPreviewCamera=" + mg->GetDefaultCamera();
+                            }
                         }
                     }
                 }
-            }
-            else {
-                // cant see why this would happen
-                wxASSERT(false);
+                else {
+                    // cant see why this would happen
+                    // gjones - I found this happening when importing a sequence along with timing layers...added code to skip timing layers to          avoid this assert in the debugger.
+                    wxASSERT(false);
+                }
             }
 
             target->AddEffect(0, ef->GetEffectName(), settings, ef->GetPaletteAsString(),

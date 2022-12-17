@@ -305,6 +305,12 @@ int EffectLayer::GetEffectCount() const
     return mEffects.size();
 }
 
+bool EffectLayer::IsTimingLayer()
+{
+    TimingElement* te = dynamic_cast<TimingElement*>(GetParentElement());
+    return !(te == nullptr);
+}
+
 bool EffectLayer::IsFixedTimingLayer()
 {
     TimingElement* te = dynamic_cast<TimingElement*>(GetParentElement());
