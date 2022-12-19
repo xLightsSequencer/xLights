@@ -140,6 +140,12 @@
     <ClCompile Include="..\xLights\outputs\TwinklyOutput.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
+    <ClCompile Include="..\xLights\utils\ip_utils.cpp">
+      <Filter>xLights\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\utils\string_utils.cpp">
+      <Filter>xLights\utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
@@ -297,6 +303,12 @@
     <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h">
       <Filter>xLights</Filter>
     </ClInclude>
+    <ClInclude Include="..\xLights\utils\ip_utils.h">
+      <Filter>xLights\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\utils\string_utils.h">
+      <Filter>xLights\utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -304,6 +316,9 @@
   <ItemGroup>
     <Filter Include="xLights">
       <UniqueIdentifier>{e9e82e91-3b73-475f-a615-dde1bfd25a35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="xLights\utils">
+      <UniqueIdentifier>{6fe02f76-2195-47f9-bf7d-2459342dd5f6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

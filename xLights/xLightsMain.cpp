@@ -106,6 +106,7 @@
 #include "ColourReplaceDialog.h"
 #include "ModelRemap.h"
 #include "RestoreBackupDialog.h"
+#include "utils/ip_utils.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -5295,7 +5296,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     for (const auto& c : _outputManager.GetControllers()) {
         auto eth = c;
         if (eth->GetIP() != "" && eth->GetIP() != "MULTICAST") {
-            if (!IsIPValidOrHostname(eth->GetIP())) {
+            if (!ip_utils::IsIPValidOrHostname(eth->GetIP())) {
                 wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' does not look valid.",
                     (const char*)eth->GetIP().c_str(),
                     (const char*)eth->GetName().c_str());

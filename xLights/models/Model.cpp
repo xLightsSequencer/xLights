@@ -49,6 +49,7 @@
 #include "../ExternalHooks.h"
 #include "CustomModel.h"
 #include "RulerObject.h"
+#include "../utils/ip_utils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -2630,7 +2631,7 @@ bool Model::IsValidStartChannelString() const
         {
             wxString ip = parts[0].substr(1);
             Output* o = modelManager.GetOutputManager()->GetOutput(wxAtoi(parts[1]), ip.ToStdString());
-            if (IsIPValidOrHostname(ip.ToStdString()) && o != nullptr &&
+            if (ip_utils::IsIPValidOrHostname(ip.ToStdString()) && o != nullptr &&
                 (parts[2].Trim(true).Trim(false).IsNumber() && wxAtol(parts[2]) > 0 && !parts[2].Contains('.')))
             {
                 return true;

@@ -28,6 +28,7 @@
 #include "OPCOutput.h"
 #include "../controllers/ControllerCaps.h"
 #include "../models/ModelManager.h"
+#include "utils/ip_utils.h"
 
 #ifndef EXCLUDENETWORKUI
 #include "../xLightsMain.h"
@@ -147,10 +148,10 @@ wxXmlNode* ControllerEthernet::Save() {
 #pragma region Getters and Setters
 void ControllerEthernet::SetIP(const std::string& ip) {
 
-    auto const& iip = CleanupIP(ip);
+    auto const& iip = ip_utils::CleanupIP(ip);
     if (_ip != iip) {
         _ip = iip;
-        _resolvedIp = ResolveIP(_ip);
+        _resolvedIp = ip_utils::ResolveIP(_ip);
         _dirty = true;
         if (_outputManager != nullptr) _outputManager->UpdateUnmanaged();
 
@@ -1270,7 +1271,7 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
                 }
             }
 
-            if (!IsIPValidOrHostname(GetIP())) {
+            if (!ip_utils::IsIPValidOrHostname(GetIP())) {
                 err = true;
             }
 
@@ -1282,7 +1283,7 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
             }
         }
         else {
-            if (!IsIPValidOrHostname(GetIP())) {
+            if (!ip_utils::IsIPValidOrHostname(GetIP())) {
                 p->SetBackgroundColour(*wxRED);
             }
             else {

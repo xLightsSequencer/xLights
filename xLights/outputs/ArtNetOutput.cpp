@@ -17,6 +17,7 @@
 #include "ControllerEthernet.h"
 #include "../OutputModelManager.h"
 #include "../SpecialOptions.h"
+#include "../utils/ip_utils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -293,7 +294,7 @@ bool ArtNetOutput::Open() {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!_enabled) return true;
-    if (!IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
 
     _ok = IPOutput::Open();
 

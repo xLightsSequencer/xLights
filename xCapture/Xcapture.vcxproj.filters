@@ -11,6 +11,12 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\common\xlBaseApp.cpp" />
+    <ClCompile Include="..\xLights\utils\ip_utils.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\utils\string_utils.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
@@ -26,8 +32,19 @@
     <ClInclude Include="..\common\xlBaseApp.h" />
     <ClInclude Include="..\common\xlStackWalker.h" />
     <ClInclude Include="..\xLights\ExternalHooks.h" />
+    <ClInclude Include="..\xLights\utils\ip_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\utils\string_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="utils">
+      <UniqueIdentifier>{d23f56fa-54bd-4676-b7e8-bb38fe3bd311}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

@@ -56,6 +56,7 @@
 #include "../xLights/outputs/IPOutput.h"
 #include "PlayList/PlayListItemOSC.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/ip_utils.h"
 #include "ConfigureMIDITimecodeDialog.h"
 #include "City.h"
 #include "events/ListenerManager.h"
@@ -3602,7 +3603,7 @@ void xScheduleFrame::OnListView_PingItemActivated(wxListEvent& event)
     auto p = _pinger->GetPingerByIndex(event.GetIndex());
     if (p != nullptr) {
         auto ip = p->GetIP();
-        if (IsIPValidOrHostname(ip)) {
+        if (ip_utils::IsIPValidOrHostname(ip)) {
             ::wxLaunchDefaultBrowser("http://" + ip);
         }
     }

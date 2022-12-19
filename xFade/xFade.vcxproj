@@ -185,6 +185,8 @@
     <ClCompile Include="..\common\xlBaseApp.cpp" />
     <ClCompile Include="..\xLights\IPEntryDialog.cpp" />
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
+    <ClCompile Include="..\xLights\utils\ip_utils.cpp" />
+    <ClCompile Include="..\xLights\utils\string_utils.cpp" />
     <ClCompile Include="..\xLights\xLightsTimer.cpp" />
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
@@ -212,6 +214,8 @@
     <ClInclude Include="..\common\xlStackWalker.h" />
     <ClInclude Include="..\xLights\ExternalHooks.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
+    <ClInclude Include="..\xLights\utils\ip_utils.h" />
+    <ClInclude Include="..\xLights\utils\string_utils.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />
     <ClInclude Include="..\xLights\xLightsVersion.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h" />

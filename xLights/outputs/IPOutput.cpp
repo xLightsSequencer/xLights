@@ -24,8 +24,8 @@
 #include <icmpapi.h>
 #endif
 
-#include "../UtilFunctions.h"
 #include "../xSchedule/xSMSDaemon/Curl.h"
+#include "utils/ip_utils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -45,7 +45,7 @@ void IPOutput::Save(wxXmlNode* node) {
 IPOutput::IPOutput(wxXmlNode* node) : Output(node) {
 
     _ip = node->GetAttribute("ComPort", "").ToStdString();
-    _resolvedIp = ResolveIP(_ip);
+    _resolvedIp = ip_utils::ResolveIP(_ip);
     _universe = wxAtoi(node->GetAttribute("BaudRate", "1"));
 }
 
@@ -124,7 +124,7 @@ Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy
 void IPOutput::SetIP(const std::string& ip) {
 
     Output::SetIP(ip);
-    _resolvedIp = ResolveIP(_ip);
+    _resolvedIp = ip_utils::ResolveIP(_ip);
 }
 #pragma endregion 
 

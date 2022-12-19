@@ -20,6 +20,7 @@
 #include "ExternalHooks.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
+#include "utils/ip_utils.h"
 
 #include <log4cpp/Category.hh>
 #include "../xSchedule/wxJSON/jsonreader.h"
@@ -1307,7 +1308,7 @@ void FPPConnectDialog::SequenceListPopup(wxTreeListEvent& event)
 void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
 {
     wxTextEntryDialog dlg(this, "Find FPP Instance", "Enter IP address or hostname for FPP Instance");
-    if (dlg.ShowModal() == wxID_OK && IsIPValidOrHostname(dlg.GetValue().ToStdString())) {
+    if (dlg.ShowModal() == wxID_OK && ip_utils::IsIPValidOrHostname(dlg.GetValue().ToStdString())) {
         std::string ipAd = dlg.GetValue().ToStdString();
         int curSize = instances.size();
 

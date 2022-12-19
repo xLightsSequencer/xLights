@@ -104,7 +104,6 @@
     <ClCompile Include="tmGridCell.cpp" />
     <ClCompile Include="TopEffectsPanel.cpp" />
     <ClCompile Include="UpdaterDialog.cpp" />
-    <ClCompile Include="UtilFunctions.cpp" />
     <ClCompile Include="ValueCurve.cpp" />
     <ClCompile Include="ValueCurveButton.cpp" />
     <ClCompile Include="ValueCurveDialog.cpp" />
@@ -1007,6 +1006,15 @@
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="BulkEditComboDialog.cpp" />
+    <ClCompile Include="utils\string_utils.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="UtilFunctions.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\ip_utils.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1098,7 +1106,6 @@
     <ClInclude Include="TopEffectsPanel.h" />
     <ClInclude Include="UpdaterDialog.h" />
     <ClInclude Include="UtilClasses.h" />
-    <ClInclude Include="UtilFunctions.h" />
     <ClInclude Include="ValueCurve.h" />
     <ClInclude Include="ValueCurveButton.h" />
     <ClInclude Include="ValueCurveDialog.h" />
@@ -2021,6 +2028,15 @@
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="BulkEditComboDialog.h" />
+    <ClInclude Include="utils\string_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="UtilFunctions.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\ip_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2058,6 +2074,9 @@
     </Filter>
     <Filter Include="common">
       <UniqueIdentifier>{d66f2316-0042-426b-8102-445d990406d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{c1416434-1c5e-4d35-9335-0e5286dca853}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

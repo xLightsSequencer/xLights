@@ -19,6 +19,7 @@
 #include "../Control.h"
 #include <wx/protocol/http.h>
 #include "../../xLights/UtilFunctions.h"
+#include "../xLights/utils/ip_utils.h"
 #include "../xSMSDaemon/Curl.h"
 
 class FPPEventThread : public wxThread
@@ -47,7 +48,7 @@ public:
 
         logger_base.debug("PlayListFPPEvent in thread.");
 
-        if (IsIPValidOrHostname(_ip) && _ip != "255.255.255.255") {
+        if (ip_utils::IsIPValidOrHostname(_ip) && _ip != "255.255.255.255") {
 #ifdef EXTREME_FPPEVENT_LOGGING
             logger_base.debug("   Getting URL");
 #endif

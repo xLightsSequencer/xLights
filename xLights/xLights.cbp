@@ -1298,6 +1298,10 @@
 		<Unit filename="preferences/ViewSettingsPanel.cpp" />
 		<Unit filename="preferences/ViewSettingsPanel.h" />
 		<Unit filename="preferences/xLightsPreferences.cpp" />
+		<Unit filename="utils/ip_utils.cpp" />
+		<Unit filename="utils/ip_utils.h" />
+		<Unit filename="utils/string_utils.cpp" />
+		<Unit filename="utils/string_utils.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="MinGW_Debug" />

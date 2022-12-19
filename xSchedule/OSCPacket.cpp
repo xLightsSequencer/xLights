@@ -10,6 +10,7 @@
 
 #include "OSCPacket.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/ip_utils.h"
 #include "ScheduleOptions.h"
 #include <wx/sckaddr.h>
 #include "../xLights/outputs/IPOutput.h"
@@ -358,7 +359,7 @@ void OSCPacket::Send(const std::string& ip, int port, const std::string& localIP
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!IsIPValidOrHostname(ip))
+    if (!ip_utils::IsIPValidOrHostname(ip))
     {
         logger_base.warn("OSCPacket send failed due to invalid IP address %s.", (const char *)ip.c_str());
         return;

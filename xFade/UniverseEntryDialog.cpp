@@ -1,5 +1,5 @@
 #include "UniverseEntryDialog.h"
-#include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/ip_utils.h"
 
 //(*InternalHeaders(UniverseEntryDialog)
 #include <wx/intl.h>
@@ -153,7 +153,7 @@ void UniverseEntryDialog::ValidateWindow()
         SpinCtrl_End->SetRange(1, 64000);
 	}
 
-    if (IsIPValid(TextCtrl_IPAddress->GetValue().ToStdString()))
+    if (ip_utils::IsIPValid(TextCtrl_IPAddress->GetValue().ToStdString()))
     {
         Button_Ok->Enable();
     }

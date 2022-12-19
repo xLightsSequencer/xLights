@@ -12,6 +12,7 @@
 #include "E131Output.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
+#include "utils\ip_utils.h"
 
 #include <wx/xml/xml.h>
 #include <wx/process.h>
@@ -290,7 +291,7 @@ bool E131Output::Open() {
 
     if (!_enabled) return true;
     if (_ip == "") return false;
-    if (_ip != "MULTICAST" && !IsIPValid(_resolvedIp)) return false;
+    if (_ip != "MULTICAST" && !ip_utils::IsIPValid(_resolvedIp)) return false;
 
     _ok = IPOutput::Open();
     if (_fppProxyOutput) {

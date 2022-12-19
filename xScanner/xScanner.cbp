@@ -342,6 +342,10 @@
 		<Unit filename="../xLights/outputs/xxxEthernetOutput.h" />
 		<Unit filename="../xLights/outputs/xxxSerialOutput.cpp" />
 		<Unit filename="../xLights/outputs/xxxSerialOutput.h" />
+		<Unit filename="../xLights/utils/ip_utils.cpp" />
+		<Unit filename="../xLights/utils/ip_utils.h" />
+		<Unit filename="../xLights/utils/string_utils.cpp" />
+		<Unit filename="../xLights/utils/string_utils.h" />
 		<Unit filename="../xLights/xLightsVersion.cpp" />
 		<Unit filename="../xLights/xLightsVersion.h" />
 		<Unit filename="../xSchedule/wxJSON/json_defs.h" />

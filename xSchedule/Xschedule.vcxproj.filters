@@ -568,6 +568,12 @@
     <ClCompile Include="..\xLights\outputs\TwinklyOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="..\xLights\utils\ip_utils.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\utils\string_utils.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\xlBaseApp.h" />
@@ -1130,6 +1136,12 @@
     <ClInclude Include="..\xLights\outputs\TwinklyOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
+    <ClInclude Include="..\xLights\utils\ip_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\utils\string_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">
@@ -1143,6 +1155,9 @@
     </Filter>
     <Filter Include="OutputProcessing">
       <UniqueIdentifier>{925bab2a-bd63-40c9-9b2f-189d1d09eb5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{6bff158a-7d76-452d-b175-d2a609b83f19}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

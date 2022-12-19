@@ -303,6 +303,7 @@
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
+    <ClCompile Include="utils\ip_utils.cpp" />
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="KeyBindingEditDialog.cpp" />
     <ClCompile Include="LayerSelectDialog.cpp" />
@@ -615,6 +616,7 @@
     <ClCompile Include="SplashDialog.cpp" />
     <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
+    <ClCompile Include="utils\string_utils.cpp" />
     <ClCompile Include="SubBufferPanel.cpp" />
     <ClCompile Include="SubModelGenerateDialog.cpp" />
     <ClCompile Include="SubModelsDialog.cpp" />
@@ -779,6 +781,7 @@
     <ClInclude Include="graphics\xlMesh.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
+    <ClInclude Include="utils\ip_utils.h" />
     <ClInclude Include="LayoutUtils.h" />
     <ClInclude Include="LORPreview.h" />
     <ClInclude Include="JukeboxPanel.h" />
@@ -1093,6 +1096,7 @@
     <ClInclude Include="SplashDialog.h" />
     <ClInclude Include="StartChannelDialog.h" />
     <ClInclude Include="StrandNodeNamesDialog.h" />
+    <ClInclude Include="utils\string_utils.h" />
     <ClInclude Include="SubBufferPanel.h" />
     <ClInclude Include="SubModelGenerateDialog.h" />
     <ClInclude Include="SubModelsDialog.h" />
