@@ -1261,15 +1261,29 @@ bool IsIPValidOrHostname(const std::string& ip, bool iponly)
         return true;
     }
 
-    if (iponly) {
-        return false;
+    if (ip == "") return false;
+
+    bool hasChar = false;
+    bool hasDot = false;
+    //hostnames need at least one char in it if fully qualified
+    //if not fully qualified (no .), then the hostname only COULD be just numeric
+    for (size_t y = 0; y < ip.length(); y++) {
+        char x = ip[y];
+        if ((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || x == '-') {
+            hasChar = true;
+        }
+        if (x == '.') {
+            hasDot = true;
+        }
     }
-
-    static wxRegEx regxIPOrHostAddr(R"(^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$)");
-
-    wxString ips = wxString(ip).Trim(false).Trim(true);
-    if (regxIPOrHostAddr.Matches(ips)) {
-        return true;
+    if (hasChar || (!hasDot && !hasChar)) {
+        if (iponly) return true;
+        wxIPV4address addr;
+        addr.Hostname(ip);
+        wxString ipAddr = addr.IPAddress();
+        if (ipAddr != "0.0.0.0") {
+            return true;
+        }
     }
     
     return false;
