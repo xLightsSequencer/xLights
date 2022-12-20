@@ -12,7 +12,7 @@
 #include "E131Output.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
-#include "utils\ip_utils.h"
+#include "../utils/ip_utils.h"
 
 #include <wx/xml/xml.h>
 #include <wx/process.h>

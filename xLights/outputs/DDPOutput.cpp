@@ -20,7 +20,7 @@
 #include "../UtilFunctions.h"
 #include "../OutputModelManager.h"
 #include "ControllerEthernet.h"
-#include "utils/ip_utils.h"
+#include "../utils/ip_utils.h"
 
 #include <log4cpp/Category.hh>
 

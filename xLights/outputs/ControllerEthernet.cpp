@@ -28,7 +28,7 @@
 #include "OPCOutput.h"
 #include "../controllers/ControllerCaps.h"
 #include "../models/ModelManager.h"
-#include "utils/ip_utils.h"
+#include "../utils/ip_utils.h"
 
 #ifndef EXCLUDENETWORKUI
 #include "../xLightsMain.h"
