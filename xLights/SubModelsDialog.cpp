@@ -725,6 +725,8 @@ void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
         wxString token = tokenizer.GetNextToken();
         int index = GetSubModelInfoIndex(token);
         if (firstindex == -1) firstindex = index - 1;
+        // unselect it
+        ListCtrl_SubModels->SetItemState(index, 0, wxLIST_STATE_SELECTED);
         ListCtrl_SubModels->DeleteItem(index);
         RemoveSubModelFromList(token);
     }
