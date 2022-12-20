@@ -9,7 +9,7 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-
+#include <algorithm>
 #include <string>
 #include <vector>
 
