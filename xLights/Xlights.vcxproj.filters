@@ -1015,6 +1015,7 @@
     <ClCompile Include="utils\ip_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="DuplicateDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2037,6 +2038,7 @@
     <ClInclude Include="utils\ip_utils.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="DuplicateDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

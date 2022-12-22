@@ -260,6 +260,7 @@
     <ClCompile Include="DissolveTransitionPattern.cpp" />
     <ClCompile Include="DragColoursBitmapButton.cpp" />
     <ClCompile Include="DragValueCurveBitmapButton.cpp" />
+    <ClCompile Include="DuplicateDialog.cpp" />
     <ClCompile Include="effects\assist\SketchAssistPanel.cpp" />
     <ClCompile Include="effects\FX.cpp" />
     <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
@@ -740,6 +741,7 @@
     <ClInclude Include="DissolveTransitionPattern.h" />
     <ClInclude Include="DragColoursBitmapButton.h" />
     <ClInclude Include="DragValueCurveBitmapButton.h" />
+    <ClInclude Include="DuplicateDialog.h" />
     <ClInclude Include="effects\assist\AssistPanel.h" />
     <ClInclude Include="effects\assist\PicturesAssistPanel.h" />
     <ClInclude Include="effects\assist\SketchAssistPanel.h" />
