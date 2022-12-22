@@ -112,7 +112,7 @@ mkdir build_scripts\msw\RemoteFalcon
 copy xSchedule\RemoteFalcon\x64\Release\*.pdb build_scripts\msw\RemoteFalcon
 
 cd xLights
-msbuild.exe -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x64"
+msbuild.exe -restore -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 
 %cwd%\prepmap x64\Release\xLights.map ..\bin64\xLights.map
