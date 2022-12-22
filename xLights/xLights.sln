@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Xlights", "Xlights.vcxproj"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4E0E91CB-DE37-41E1-9D2F-49DA813841E7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Xlights-Test", "..\xLights-Test\Xlights-Test.vcxproj", "{F6E38B1E-E34C-428D-B081-5719BDDCE385}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xLights-Test", "..\xLights-Test\Xlights-Test.vcxproj", "{F6E38B1E-E34C-428D-B081-5719BDDCE385}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,17 +42,13 @@ Global
 		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Debug with Boost|x86.ActiveCfg = Debug|Win32
 		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Debug with Boost|x86.Build.0 = Debug|Win32
 		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Debug|x64.ActiveCfg = Debug|x64
-		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Debug|x64.Build.0 = Debug|x64
 		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Debug|x86.ActiveCfg = Debug|Win32
-		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Debug|x86.Build.0 = Debug|Win32
 		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Release with Boost|x64.ActiveCfg = Release|x64
 		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Release with Boost|x64.Build.0 = Release|x64
 		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Release with Boost|x86.ActiveCfg = Release|Win32
 		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Release with Boost|x86.Build.0 = Release|Win32
 		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Release|x64.ActiveCfg = Release|x64
-		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Release|x64.Build.0 = Release|x64
 		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Release|x86.ActiveCfg = Release|Win32
-		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
