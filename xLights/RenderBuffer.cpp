@@ -1506,6 +1506,7 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     _nodeBuffer = buffer._nodeBuffer;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
+    cur_model = buffer.cur_model;
 
     pixels = &pixelVector[0];
     _textDrawingContext = buffer._textDrawingContext;

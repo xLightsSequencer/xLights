@@ -2114,6 +2114,8 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                                 newBuffer = new RenderBuffer(*rb);
                                 oldBuffer = rb;
                                 rb = newBuffer;
+                                rb->needToInit = oldBuffer->needToInit;
+                                rb->infoCache = oldBuffer->infoCache;
                             }
 
                             wxStopWatch sw;
@@ -2136,7 +2138,11 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                             if (suppress && oldBuffer != nullptr) {
                                 oldBuffer->needToInit = rb->needToInit;
                                 oldBuffer->infoCache = rb->infoCache;
+                                rb->infoCache.clear();
                                 delete newBuffer;
+                                rb = oldBuffer;
+                                newBuffer = nullptr;
+                                oldBuffer = nullptr;
                             }
                         }
                         });
