@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2022.26 December 29, 2022
+   -- enh (scott)  Added ability to duplicate or "tile" an effect
+   -- bug (dkulp)  macOS - Fix some issues in SubModel dialog where everythingn will grey out after deleting a submodel
+   -- bug (dkulp)  Fix some crashes if supress frames is used at the beginning of an effect
+   -- bug (dkulp)  Fix memory leak with GIF images
+   -- bug (gil)    Fix mutex deadlock and fix hitting wxassert in the debugger when importing sequences with timing tracks
+   -- bug (dkulp)  Fix memory leak in faces effect with images on Matrices
+   -- bug (dkulp)  Fix memory leak in video reader
+   -- bug (dkulp)  Fix memory leak in MusicEffect
 2022.25 December 16, 2022
    -- enh (Shelby) Bunch of Vixen 3 import enhancements to aid migration from Vixen 3
    -- enh (scott)  Add date modified to Batch Render dialog
