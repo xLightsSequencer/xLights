@@ -290,33 +290,42 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             }
             ControllerEthernet* controller = dd->controller;
 
-            wxJSONReader reader;
-            wxJSONValue val;
-            reader.Parse(wxString(&response[10]), &val);
-            if (val.HasMember("status")) {
-                std::string name = "";
-                if (val["status"].HasMember("man")) {
-                    name = val["status"]["man"].AsString().ToStdString();
-                    dd->SetVendor(name);
-                }
-                if (val["status"].HasMember("mod")) {
-                    if (name != "") {
-                        name += "-";
-                    }
-                    name += val["status"]["mod"].AsString().ToStdString();
-                    dd->SetModel(val["status"]["mod"].AsString().ToStdString());
-                }
-                if (val["status"].HasMember("ver")) {
-                    if (name != "") {
-                        name += "-";
-                    }
-                    name += val["status"]["ver"].AsString().ToStdString();
-                    dd->version = val["status"]["ver"].AsString().ToStdString();
-                }
-                dd->description = name;
-                controller->SetDescription(name);
+            if (controller == nullptr){
+                logger_base.warn("Unsupported DDP controller");
             }
-
+            else {
+                wxJSONReader reader;
+                wxJSONValue val;
+                reader.Parse(wxString(&response[10]), &val);
+                if (val.HasMember("status")) {
+                    std::string name = "";
+                    if (val["status"].HasMember("man")) {
+                        name =
+                                val["status"]["man"].AsString().ToStdString();
+                        dd->SetVendor(name);
+                    }
+                    if (val["status"].HasMember("mod")) {
+                        if (name != "") {
+                            name += "-";
+                        }
+                        name +=
+                                val["status"]["mod"].AsString().ToStdString();
+                        dd->SetModel(
+                                val["status"]["mod"].AsString().ToStdString());
+                    }
+                    if (val["status"].HasMember("ver")) {
+                        if (name != "") {
+                            name += "-";
+                        }
+                        name +=
+                                val["status"]["ver"].AsString().ToStdString();
+                        dd->version =
+                                val["status"]["ver"].AsString().ToStdString();
+                    }
+                    dd->description = name;
+                    controller->SetDescription(name);
+                }
+            }
             uint8_t packet[DDP_DISCOVERPACKET_LEN];
             memset(&packet, 0x00, sizeof(packet));
             packet[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_QUERY;
@@ -344,21 +353,33 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             }
             ControllerEthernet* controller = dd->controller;
 
-            wxJSONReader reader;
-            wxJSONValue val;
-            reader.Parse(wxString(&response[10]), &val);
+            if (controller == nullptr){
+                logger_base.warn("Unsupported DDP controller");
+            }
+            else {
+                wxJSONReader reader;
+                wxJSONValue val;
+                reader.Parse(wxString(&response[10]), &val);
 
-            if (val.HasMember("config") && val["config"].HasMember("ports")) {
-                int channels = 0;
-                auto ports = val["config"]["ports"].AsArray();
-                for (int i = 0; i < ports->Count(); i++) {
-                    auto ts = wxAtoi(val["config"]["ports"][i]["ts"].AsString()) + 1;
-                    auto l = wxAtoi(val["config"]["ports"][i]["l"].AsString());
-                    channels += ts * l * 3;
+                if (val.HasMember("config")
+                        && val["config"].HasMember("ports")) {
+                    int channels = 0;
+                    auto ports = val["config"]["ports"].AsArray();
+                    for (int i = 0; i < ports->Count(); i++) {
+                        auto ts =
+                                wxAtoi(
+                                        val["config"]["ports"][i]["ts"].AsString())
+                                        + 1;
+                        auto l =
+                                wxAtoi(
+                                        val["config"]["ports"][i]["l"].AsString());
+                        channels += ts * l * 3;
+                    }
+                    controller->GetOutputs().front()->SetChannels(
+                            channels);
+                } else {
+                    controller->GetOutputs().front()->SetChannels(512);
                 }
-                controller->GetOutputs().front()->SetChannels(channels);
-            } else {
-                controller->GetOutputs().front()->SetChannels(512);
             }
         } else {
             // non discovery response packet
