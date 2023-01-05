@@ -33,7 +33,7 @@ template <class CTX>
 class ContextPool {
 public:
 
-    ContextPool(std::function<CTX* ()> alloc, std::string type = ""): allocator(alloc), _type(type) {
+    ContextPool(std::function<CTX*()> alloc, std::string type = ""): allocator(alloc), _type(type) {
     }
     ~ContextPool() {
         while (!contexts.empty()) {
@@ -42,7 +42,11 @@ public:
             contexts.pop();
         }
     }
-
+    void PreAlloc(int num) {
+        for (int x = 0; x < num; x++) {
+            ReleaseContext(allocator());
+        }
+    }
     CTX *GetContext() {
         // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
         bool contextsEmpty = false;
@@ -70,7 +74,7 @@ public:
 private:
     std::mutex lock;
     std::queue<CTX*> contexts;
-    std::function<CTX* ()> allocator;
+    std::function<CTX*()> allocator;
     std::string _type;
 };
 
@@ -80,41 +84,17 @@ static ContextPool<PathDrawingContext> *PATH_CONTEXT_POOL = nullptr;
 void DrawingContext::Initialize(wxWindow *parent) {
     if (TEXT_CONTEXT_POOL == nullptr) {
         TEXT_CONTEXT_POOL = new ContextPool<TextDrawingContext>([parent]() {
-            if (wxThread::IsMain()) {
-                return new TextDrawingContext(10, 10 ,false);
-            } else {
-                std::mutex mtx;
-                std::condition_variable signal;
-                std::unique_lock<std::mutex> lck(mtx);
-                TextDrawingContext *tdc;
-                parent->CallAfter([&mtx, &signal, &tdc]() {
-                    std::unique_lock<std::mutex> lck(mtx);
-                    tdc = new TextDrawingContext(10, 10 ,false);
-                    signal.notify_all();
-                });
-                signal.wait(lck);
-                return tdc;
-            }
+            // atomic reference counting, can create this on background thread
+            return new TextDrawingContext(10, 10 ,false);
         });
+        //TEXT_CONTEXT_POOL->PreAlloc(10);
     }
     if (PATH_CONTEXT_POOL == nullptr) {
         PATH_CONTEXT_POOL = new ContextPool<PathDrawingContext>([parent]() {
-            if (wxThread::IsMain()) {
-                return new PathDrawingContext(10, 10 ,false);
-            } else {
-                std::mutex mtx;
-                std::condition_variable signal;
-                std::unique_lock<std::mutex> lck(mtx);
-                PathDrawingContext *tdc;
-                parent->CallAfter([&mtx, &signal, &tdc]() {
-                    std::unique_lock<std::mutex> lck(mtx);
-                    tdc = new PathDrawingContext(10, 10 ,false);
-                    signal.notify_all();
-                });
-                signal.wait(lck);
-                return tdc;
-            }
+            // atomic reference counting, can create this on background thread
+            return new PathDrawingContext(10, 10 ,false);
         });
+        //PATH_CONTEXT_POOL->PreAlloc(5);
     }
 }
 

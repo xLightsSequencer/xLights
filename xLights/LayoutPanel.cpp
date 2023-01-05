@@ -3651,8 +3651,8 @@ void LayoutPanel::OnPreviewMotion3D(Motion3DEvent &event) {
     int smSize = selectedTreeSubModels.size();
     if (selectedBaseObject != nullptr && gSize == 0 && smSize == 0 && !event.ControlDown() && !event.RawControlDown()) {
         int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
+        if (!xlights->AbortRender()) return;
         CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, std::to_string(active_handle));
-        xlights->AbortRender();
 
         float scale = modelPreview->translateToBacking(1.0) * 20.0 * modelPreview->GetZoom(); //20 pixels at max speed, default zoom
         if (!modelPreview->Is3D()) {
@@ -3972,6 +3972,8 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Mouse down moving handle");
             Model* m = dynamic_cast<Model*>(selectedBaseObject);
             if (selectedBaseObject != nullptr && (_newModel == selectedBaseObject || xlights->AllModels.IsModelValid(m))) {
+                if (!xlights->AbortRender()) return;
+
                 int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
 
                 int selectedModelCnt = ModelsSelectedCount();
@@ -3985,7 +3987,6 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 }
                 // this is designed to pretend the control and shift keys are down when creating models to
                 // make them scale from the desired handle depending on model type
-                xlights->AbortRender();
                 auto pos = selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() || creating_model, event.ControlDown() || (creating_model && z_scale), event.GetX(), event.GetY(), false, z_scale);
                 xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
                 //SetupPropGrid(selectedBaseObject);
@@ -4279,10 +4280,10 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     }
 
     if (m_moving_handle) {
+        if (!xlights->AbortRender()) return;
         if (m != _newModel) {
             CreateUndoPoint("SingleModel", m->name, std::to_string(m_over_handle));
         }
-        xlights->AbortRender();
         auto pos = m->MoveHandle(modelPreview, m_over_handle, event.ShiftDown(), event.GetX(), event.GetY());
         xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f", pos.x, pos.y));
 
@@ -5140,7 +5141,7 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
 
-    xlights->AbortRender();
+    if (!xlights->AbortRender()) return;
 
     std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
