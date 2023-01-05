@@ -1,0 +1,52 @@
+<Vendor Name="DynamicPixels">
+    <AbstractVariant Name="BaseDynamicPixelsSettings">
+        <SupportsPixelPortCommonSettings/>
+        <SupportsUpload/>
+        <SupportsInputOnlyUpload/>
+        <MaxInputUniverses>1000</MaxInputUniverses>
+        <InputProtocols>
+            <Protocol>e131</Protocol>
+            <Protocol>artnet</Protocol>
+            <Protocol>ddp</Protocol>
+        </InputProtocols>
+        <SupportsMultipleSimultaneousInputProtocols/>
+        <SupportsAutoUpload/>
+        <SupportsFullxLightsControl/>
+        <SupportsDefaultBrightness/>
+        <SupportsDefaultGamma/>
+        <PreferredInputProtocol>DDP</PreferredInputProtocol>
+    </AbstractVariant>
+	    <AbstractVariant Name="FPPStringDPIPiHat" Base="DynamicPixels:BaseDynamicPixelsSettings">
+        <MaxSerialPortChannels>512</MaxSerialPortChannels>
+        <MaxPixelPortChannels>4200</MaxPixelPortChannels>
+        <SupportsVirtualStrings/>
+        <SupportsAutoLayout/>
+        <SupportsPixelPortEndNullPixels/>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+        </PixelProtocols>
+        <SerialProtocols>
+            <Protocol>DMX-Pro</Protocol>
+            <Protocol>DMX-Open</Protocol>
+            <Protocol>GenericSerial</Protocol>
+            <Protocol>LOR</Protocol>
+            <Protocol>Pixelnet-Lynx</Protocol>
+            <Protocol>Pixelnet-Open</Protocol>
+            <Protocol>Renard</Protocol>
+        </SerialProtocols>
+        <fppStringFileName>co-pixelStrings</fppStringFileName>
+        <fppStringDriverType>DPIPixels</fppStringDriverType>
+    </AbstractVariant>
+	<Controller Name="DynamicPixels D24">
+		<Variant Name="D24 v0.1" ID="DynamicPixels-D24v0.1" Base="DynamicPixels:FPPStringDPIPiHat">
+		    <MaxPixelPort>24</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <SupportsLEDPanelMatrix/>
+		</Variant>
+			<Variant Name="D24 v0.3" ID="DynamicPixels-D24" Base="DynamicPixels:FPPStringDPIPiHat">
+		    <MaxPixelPort>24</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <SupportsLEDPanelMatrix/>
+		</Variant>
+	</Controller>
+</Vendor>
