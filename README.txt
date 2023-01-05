@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.01 January 05, 2022
+   -- enh (dkulp)  Speed up aborting of rendering so UI tasks can complete quicker
+   -- bug (dkulp)  Fix Aborted rendering not marking ranges as "Dirty" so they render properly later
+   -- bug (dkulp)  Fix some crashes with resizing/moving effects and timing marks
+   -- enh (dkulp)  Update to latest wxWidgets+patches so Scott can play with Dark Mode on Windows
 2022.26 December 29, 2022
    -- enh (scott)  Added ability to duplicate or "tile" an effect
    -- bug (dkulp)  macOS - Fix some issues in SubModel dialog where everythingn will grey out after deleting a submodel
