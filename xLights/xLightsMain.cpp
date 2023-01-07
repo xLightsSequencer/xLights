@@ -1544,8 +1544,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     } else if (config->Read(_("MediaDir"), &md)) {
         wxArrayString entries = wxSplit(md, '|', '\0');
         for (auto & d : entries) {
-            ObtainAccessToURL(d.ToStdString());
-            mediaDirectories.push_back(d.ToStdString());
+            std::string dstd = d.ToStdString();
+            ObtainAccessToURL(dstd);
+            if (std::find(mediaDirectories.begin(), mediaDirectories.end(), dstd) == mediaDirectories.end()) {
+                mediaDirectories.push_back(dstd);
+            }
         }
     }
     SetFixFileDirectories(mediaDirectories);
@@ -4278,12 +4281,14 @@ void xLightsFrame::SetMediaFolders(const std::list<std::string>& folders)
     mediaDirectories.clear();
     for (auto const& dir : folders) {
         ObtainAccessToURL(dir);
-        mediaDirectories.push_back(dir);
-        logger_base.debug("Adding Media directory: %s.", (const char*)dir.c_str());
-        if (setting != "") {
-            setting += "|";
-        }
-        setting += dir;
+        if (std::find(mediaDirectories.begin(), mediaDirectories.end(), dir) == mediaDirectories.end()) {
+            mediaDirectories.push_back(dir);
+            logger_base.debug("Adding Media directory: %s.", (const char*)dir.c_str());
+            if (setting != "") {
+                setting += "|";
+            }
+            setting += dir;
+        }        
     }
     config->Write(_("MediaDir"), setting);
     SetFixFileDirectories(mediaDirectories);

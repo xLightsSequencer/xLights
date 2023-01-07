@@ -257,6 +257,7 @@ bool SequenceFileSettingsPanel::TransferDataToWindow() {
 
 
     folder = frame->GetShowDirectory();
+    MediaDirectoryList->Clear();
     for (auto &a : frame->GetMediaFolders()) {
         if (a != folder) {
             MediaDirectoryList->Append(a);
