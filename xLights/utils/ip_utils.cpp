@@ -41,35 +41,24 @@ namespace ip_utils
 
     bool IsIPValidOrHostname(const std::string& ip, bool iponly)
     {
+        //check if "ip" is a valid IP address
         if (IsIPValid(ip)) {
             return true;
         }
 
-        if (ip == "") return false;
+        if (iponly) {
+            return false;
+        }
 
-        bool hasChar = false;
-        bool hasDot = false;
-        //hostnames need at least one char in it if fully qualified
-        //if not fully qualified (no .), then the hostname only COULD be just numeric
-        for (size_t y = 0; y < ip.length(); y++) {
-            char x = ip[y];
-            if ((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || x == '-') {
-                hasChar = true;
-            }
-            if (x == '.') {
-                hasDot = true;
-            }
+        //hosts only, IP address should have already passed above
+        static wxRegEx hostAddr(R"(^([a-zA-Z0-9]+)(\.?)([a-zA-Z0-9]{2,})$)");
+
+        wxString ips = wxString(ip).Trim(false).Trim(true);
+        if (hostAddr.Matches(ips)) {
+            return true;
         }
-        if (hasChar || (!hasDot && !hasChar)) {
-            if (iponly) return true;
-            wxIPV4address addr;
-            addr.Hostname(ip);
-            wxString ipAddr = addr.IPAddress();
-            if (ipAddr != "0.0.0.0") {
-                return true;
-            }
-        }
-    
+
+        //IP address should fall throught to this false if not valid host too
         return false;
     }
 
