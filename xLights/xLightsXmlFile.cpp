@@ -42,8 +42,8 @@
 const wxString xLightsXmlFile::ERASE_MODE = "<rendered: erase-mode>";
 const wxString xLightsXmlFile::CANVAS_MODE = "<rendered: canvas-mode>";
 
-xLightsXmlFile::xLightsXmlFile(const wxFileName& filename)
-    : wxFileName(filename),
+xLightsXmlFile::xLightsXmlFile(const wxFileName& filename, uint32_t frameMS) :
+    wxFileName(filename),
     version_string(wxEmptyString),
     seq_duration(30.0),
     media_file(wxEmptyString),
@@ -56,7 +56,11 @@ xLightsXmlFile::xLightsXmlFile(const wxFileName& filename)
     sequence_loaded(false),
     audio(nullptr)
 {
-    for (int i = 0; i < static_cast<int>(HEADER_INFO_TYPES::NUM_TYPES); ++i) {
+    if (frameMS != 0) {
+        seq_timing = wxString::Format("%d ms", frameMS);
+    }
+
+    for (size_t i = 0; i < static_cast<size_t>(HEADER_INFO_TYPES::NUM_TYPES); ++i) {
         header_info.push_back("");
     }
     CreateNew();

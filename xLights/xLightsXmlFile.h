@@ -38,10 +38,8 @@ class xLightsXmlFile : public wxFileName
 {
 public:
     // xLightsXmlFile();
-    xLightsXmlFile(const wxFileName& filename);
+    xLightsXmlFile(const wxFileName& filename, uint32_t frameMS = 0);
     virtual ~xLightsXmlFile();
-
-
 
     const wxString HEADER_STRINGS[static_cast<int>(HEADER_INFO_TYPES::NUM_TYPES)] = {
         "author",

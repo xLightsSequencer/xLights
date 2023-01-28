@@ -105,7 +105,7 @@ private:
     SketchCanvasPathState m_pathState = Undefined;
     bool m_pathClosed = false;
 
-    ISketchCanvasParent* const m_sketchCanvasParent;
+    ISketchCanvasParent* const m_sketchCanvasParent = nullptr;
     std::unique_ptr<wxBitmap> m_bgBitmap;
     int m_wheelRotation = 0;
     wxPoint2DDouble m_zoomPoint;
