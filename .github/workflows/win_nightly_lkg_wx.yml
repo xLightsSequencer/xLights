@@ -1,4 +1,4 @@
-name: Windows Nightly
+name: Windows Nightly LKG WX
 
 on:
   schedule:
@@ -27,11 +27,11 @@ jobs:
       
     - name: generate nightly version number
       working-directory: build_scripts\msw
-      run: python WriteNightlyVersionFiles.py  
+      run: python WriteNightlyVersionFiles.py
      
     - name: Download wxWidgets
       run: 
-        git clone --depth=1 --shallow-submodules  --recurse-submodules -b master https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2022.17b https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
 
     - name: Build wxWidgets
       working-directory: ..\wxWidgets\

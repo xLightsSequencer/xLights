@@ -93,7 +93,7 @@ void xLightsFrame::AddAllModelsToSequence()
     _sequenceElements.AddMissingModelsToSequence(models_to_add);
 }
 
-void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS)
+void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, uint32_t frameMS, const std::string& defView)
 {
     // close any open sequences
     if (!CloseSequence()) {
@@ -103,7 +103,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS)
     // assign global xml file object
     wxFileName xml_file;
     xml_file.SetPath(CurrentDir);
-    CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
+    CurrentSeqXmlFile = new xLightsXmlFile(xml_file, frameMS);
 
     if (_modelBlendDefaultOff) {
         CurrentSeqXmlFile->setSupportsModelBlending(false);
@@ -180,7 +180,10 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS)
 
     OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
     displayElementsPanel->Initialize();
-    const std::string view = setting_dlg.GetView();
+    std::string view = setting_dlg.GetView();
+    if (defView != "" && (defView == "All Models" || defView == "Empty" || displayElementsPanel->HasView(defView))) {
+        view = defView;
+    }
     if (view == "All Models") {
         AddAllModelsToSequence();
         displayElementsPanel->SelectView("Master View");

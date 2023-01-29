@@ -202,6 +202,8 @@ SketchEffectSketch& SketchAssistPanel::GetSketch()
 
 int SketchAssistPanel::GetSelectedPathIndex()
 {
+    if (m_pathsListBox == nullptr)
+        return 0;
     return m_pathsListBox->GetSelection();
 }
 
