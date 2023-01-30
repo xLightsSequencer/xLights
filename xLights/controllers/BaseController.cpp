@@ -18,7 +18,7 @@
 #include <curl/curl.h>
 
 #ifdef __WXMSW__
-#include "../../xSchedule/xSMSDaemon/Curl.h"
+#include "../utils/Curl.h"
 #endif
 
 #include <log4cpp/Category.hh>

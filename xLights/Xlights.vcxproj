@@ -305,6 +305,7 @@
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
     <ClCompile Include="utils\ip_utils.cpp" />
+    <ClCompile Include="utils\Curl.cpp" />
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="KeyBindingEditDialog.cpp" />
     <ClCompile Include="LayerSelectDialog.cpp" />
@@ -693,7 +694,6 @@
     <ClInclude Include="..\xSchedule\md5.h" />
     <ClInclude Include="..\xSchedule\wxHTTPServer\sha1.h" />
     <ClInclude Include="..\xSchedule\wxHTTPServer\wxhttpserver.h" />
-    <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
     <ClInclude Include="AboutDialog.h" />
     <ClInclude Include="AlignmentDialog.h" />
     <ClInclude Include="automation\automation.h" />
@@ -784,6 +784,7 @@
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
     <ClInclude Include="utils\ip_utils.h" />
+    <ClInclude Include="utils\Curl.h" />
     <ClInclude Include="LayoutUtils.h" />
     <ClInclude Include="LORPreview.h" />
     <ClInclude Include="JukeboxPanel.h" />

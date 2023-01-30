@@ -32,7 +32,7 @@
 #include "../xSchedule/wxJSON/json_defs.h"
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonval.h"
-#include "../xSchedule/xSMSDaemon/Curl.h"
+#include "utils/Curl.h"
 
 #include <mutex>
 #include <string_view>

@@ -21,7 +21,7 @@
 #include "ControllerCaps.h"
 #include "../Discovery.h"
 #include "../xSchedule/wxJSON/jsonreader.h"
-#include "../../xSchedule/xSMSDaemon/Curl.h"
+#include "../utils/Curl.h"
 
 #include <log4cpp/Category.hh>
 

@@ -13,7 +13,7 @@
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 #include "../xSchedule/wxJSON/jsonreader.h"
-#include "../../xSchedule/xSMSDaemon/Curl.h"
+#include "../utils/Curl.h"
 #include <log4cpp/Category.hh>
 #include <wx/base64.h>
 #include <wx/protocol/http.h>

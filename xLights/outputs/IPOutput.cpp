@@ -24,7 +24,7 @@
 #include <icmpapi.h>
 #endif
 
-#include "../xSchedule/xSMSDaemon/Curl.h"
+#include "utils/Curl.h"
 #include "utils/ip_utils.h"
 
 #include <log4cpp/Category.hh>

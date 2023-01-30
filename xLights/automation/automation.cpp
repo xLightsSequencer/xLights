@@ -17,7 +17,7 @@
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include "../../xSchedule/wxJSON/jsonreader.h"
-#include "../../xSchedule/xSMSDaemon/Curl.h"
+#include "../utils/Curl.h"
 #include <wx/sckaddr.h>
 
 
