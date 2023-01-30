@@ -152,6 +152,7 @@ namespace
         "uniform vec2 RENDERSIZE;\n"
         "uniform vec2 XL_OFFSET;\n"
         "uniform float XL_ZOOM;\n"
+        "uniform float XL_DURATION;\n"
         "in vec2 vpos;\n"
         "in vec2 tpos;\n"
         "out vec2 texCoord;\n"
@@ -1138,6 +1139,9 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     if (!si->SetUniform1f("XL_ZOOM", zoom)) {
         logger_base.warn("Unable to bind to XL_ZOOM");
     }
+    if (!si->SetUniform1f("XL_DURATION", (GLfloat)((buffer.GetEndTimeMS() - buffer.GetStartTimeMS()) / 1000.0))) {
+            logger_base.warn("Unable to bind to XL_DURATION");
+    }
     if (!si->SetUniform1f("TIME", (GLfloat)(_timeMS) / 1000.0)) {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime()) {
             logger_base.warn("Unable to bind to TIME\n%s", (const char*)_shaderConfig->GetCode().c_str());
@@ -1417,6 +1421,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
 
         // we ignore these as xlights provides these settings
         if (name == "XL_OFFSET") continue;
+        if (name == "XL_DURATION") continue;
         if (name == "XL_ZOOM") continue;
 
         wxString type = inputs[i]["TYPE"].AsString();
@@ -1597,6 +1602,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     "uniform int FRAMEINDEX;\n"
     "uniform vec2 XL_OFFSET;\n"
     "uniform float XL_ZOOM;\n"
+    "uniform float XL_DURATION;\n"
     "uniform sampler2D texSampler;\n\n"
     "// THESE ARE THE PRE ZOOM AND OFFSET COORDS\n"
     "in vec2 orig_FragNormCoord;\n"
