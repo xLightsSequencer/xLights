@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "Curl.h"
+#include "utils/Curl.h"
 
 #include <wx/wx.h>
 
