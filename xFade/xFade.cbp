@@ -266,6 +266,8 @@
 		<Unit filename="../xLights/IPEntryDialog.h" />
 		<Unit filename="../xLights/UtilFunctions.cpp" />
 		<Unit filename="../xLights/UtilFunctions.h" />
+        <Unit filename="../xLights/utils/Curl.cpp" />
+        <Unit filename="../xLights/utils/Curl.h" />
 		<Unit filename="../xLights/utils/ip_utils.cpp" />
 		<Unit filename="../xLights/utils/ip_utils.h" />
 		<Unit filename="../xLights/utils/string_utils.cpp" />
