@@ -10,7 +10,7 @@
 
 #define ZERO 0
 
-#include "../xSMSDaemon/Curl.h"
+#include "utils/Curl.h"
 
 //(*InternalHeaders(RemoteFalconFrame)
 #include <wx/intl.h>
