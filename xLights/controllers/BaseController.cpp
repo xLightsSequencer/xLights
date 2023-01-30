@@ -53,6 +53,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
         return nullptr;
     }
     std::string vendor = controller->GetVendor();
+    std::string model = controller->GetModel();
     BaseController* bc = nullptr;
 
     if (ipOrig == "") {
@@ -84,6 +85,12 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
         bc = new AlphaPix(ip, proxy);
     } else if (vendor == "FPP" || vendor == "KulpLights" || vendor == "Hanson Electronics" || vendor == "ScottNation") {
         bc = new FPP(ip, proxy, caps->GetModel());
+    } else if (vendor == "DynamicPixels") {
+        if (model == "D-WT32-8PORT") {
+            bc = new WLED(ip, proxy);
+        } else {
+            bc = new FPP(ip, proxy, caps->GetModel());
+        }
     } else if (vendor == "Minleon") {
         bc = new Minleon(ip, proxy, flip);
     } else if (vendor == "Experience Lights" || vendor == "Mattos Designs") {

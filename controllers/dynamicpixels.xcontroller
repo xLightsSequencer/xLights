@@ -49,4 +49,48 @@
             <SupportsLEDPanelMatrix/>
 		</Variant>
 	</Controller>
+		<AbstractVariant Name="BaseWLEDSettings">
+        <!--SupportsPixelPortCommonSettings/-->
+        <SupportsPixelPortDirection/>
+        <SupportsPixelPortColourOrder/>
+        <SupportsPixelPortNullPixels/>
+        <SupportsUpload/>
+        <MaxInputUniverses>9</MaxInputUniverses>
+        <MaxSerialPortChannels>0</MaxSerialPortChannels>
+        <MaxPixelPortChannels>2400</MaxPixelPortChannels>
+        <AllInputUniversesMustBeSameSize/>
+        <UniversesMustBeSequential/>
+        <SupportsAutoLayout/>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+            <Protocol>tm18xx</Protocol>
+            <Protocol>ws2801</Protocol>
+            <Protocol>lpd8806</Protocol>
+            <Protocol>apa102</Protocol>
+        </PixelProtocols>
+        <SerialProtocols/>
+        <InputProtocols>
+            <Protocol>e131</Protocol>
+            <Protocol>ddp</Protocol>
+            <Protocol>artnet</Protocol>
+        </InputProtocols>
+    </AbstractVariant>
+    <AbstractVariant Name="ESP32WLEDSettings" Base="WLED:BaseWLEDSettings">
+        <MaxInputUniverses>24</MaxInputUniverses>
+        <MaxPixelPortChannels>3000</MaxPixelPortChannels>
+    </AbstractVariant>
+    <Controller Name="D-WT32-8PORT">
+        <Variant Name="D-WT32-8PORT-v1" Base="WLED:ESP32WLEDSettings">
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>12</Port1>
+            <Port2>4</Port2>
+            <Port3>14</Port3>
+            <Port4>2</Port4>
+            <Port5>15</Port5>
+            <Port6>5</Port6>
+            <Port7>17</Port7>
+            <Port8>32</Port8>
+        </Variant>
+    </Controller>
 </Vendor>
