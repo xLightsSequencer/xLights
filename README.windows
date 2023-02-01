@@ -25,7 +25,7 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
   a) Install Visual Studio 2022 ... the community edition is fine
   	- Requires Windows 11 SDK build 22000
 
-  b) Select a base directory to place all your souce code in. From now on this is represented as <basedir>
+  b) Select a base directory to place all your source code in. From now on this is represented as <basedir>
 
   c) Download and build wxWidgets for Windows (currently using a patched version of 3.2.0)
 
@@ -50,14 +50,14 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
             cd <basedir>
             git clone  --recurse-submodules https://github.com/<youruser>/xLights.git
    
-          NOTE: If you get an during this operation about certificates while getting log4cpp-codegit, follow these instructions:
+          NOTE: If you get an error or warning during this operation about certificates while getting log4cpp-codegit, follow these instructions:
 		        a) Edit <basedir>\xLights\.gitmodules and remove the section <[submodule "dependencies/log4cpp-codegit"]> and its indented lines
 				b) Edit <basedir>\xLights\.git\config  and remove the section <[submodule "dependencies/log4cpp-codegit"]> and its indented lines
 				c) Run the command: git rm --cached dependencies/log4cpp-codegit
 				d) Run the command: git submodule update --init
 				e) Be sure not to submit these files in any PRs.
    
-       3) Open the xlights project <basedir>\xLights\xLights\xLights.sln and build the project in x64 Debug mode
+       3) Open the xLights project <basedir>\xLights\xLights\xLights.sln and build the project in x64 Debug mode
        4) Once built, copy the contents of these two folders (in the order below!):
             <basedir>\xLights\bin
             <basedir>\xLights\bin64
