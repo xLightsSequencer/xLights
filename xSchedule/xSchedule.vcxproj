@@ -200,6 +200,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\xLights5\xLights\utils\Curl.cpp" />
     <ClCompile Include="..\common\xlBaseApp.cpp" />
     <ClCompile Include="..\xLights\AudioManager.cpp" />
     <ClCompile Include="..\xLights\controllers\BaseController.cpp" />
@@ -451,6 +452,7 @@
     <ClCompile Include="Xyzzy.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\xLights5\xLights\utils\Curl.h" />
     <ClInclude Include="..\common\xlBaseApp.h" />
     <ClInclude Include="..\common\xlStackWalker.h" />
     <ClInclude Include="..\xLights\AudioManager.h" />
