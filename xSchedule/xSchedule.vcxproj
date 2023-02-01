@@ -200,7 +200,6 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\xLights5\xLights\utils\Curl.cpp" />
     <ClCompile Include="..\common\xlBaseApp.cpp" />
     <ClCompile Include="..\xLights\AudioManager.cpp" />
     <ClCompile Include="..\xLights\controllers\BaseController.cpp" />
@@ -246,6 +245,7 @@
     <ClCompile Include="..\xLights\SequenceData.cpp" />
     <ClCompile Include="..\xLights\TraceLog.cpp" />
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
+    <ClCompile Include="..\xLights\utils\Curl.cpp" />
     <ClCompile Include="..\xLights\utils\ip_utils.cpp" />
     <ClCompile Include="..\xLights\utils\string_utils.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\Files.cpp" />
@@ -452,7 +452,6 @@
     <ClCompile Include="Xyzzy.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\xLights5\xLights\utils\Curl.h" />
     <ClInclude Include="..\common\xlBaseApp.h" />
     <ClInclude Include="..\common\xlStackWalker.h" />
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -498,6 +497,7 @@
     <ClInclude Include="..\xLights\SpecialOptions.h" />
     <ClInclude Include="..\xLights\TraceLog.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
+    <ClInclude Include="..\xLights\utils\Curl.h" />
     <ClInclude Include="..\xLights\utils\ip_utils.h" />
     <ClInclude Include="..\xLights\utils\string_utils.h" />
     <ClInclude Include="..\xLights\VideoReader.h" />
@@ -689,7 +689,6 @@
     <ClInclude Include="xScheduleMain.h" />
     <ClInclude Include="MatrixDialog.h" />
     <ClInclude Include="xSchedulePlugin.h" />
-    <ClInclude Include="xSMSDaemon\Curl.h" />
     <ClInclude Include="Xyzzy.h" />
   </ItemGroup>
   <ItemGroup>
