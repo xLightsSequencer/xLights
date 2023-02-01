@@ -1,5 +1,5 @@
 set cwd=%CD%
-
+echo %1
 IF NOT EXIST "C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\amd64" GOTO Preview
 set PATH=C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\amd64;%PATH%
 Echo VS Professional Detected
@@ -42,7 +42,7 @@ mkdir build_scripts\msw\xlDo
 copy xlDo\x64\Release\*.pdb build_scripts\msw\xlDo
 
 cd xFade
-msbuild.exe -m:10 xFade.sln -p:Configuration="Release" -p:Platform="x64"
+msbuild.exe -m:10 xFade.sln -p:Configuration="Release" -p:Platform="x64" /p:DefineConstants=%1
 if %ERRORLEVEL% NEQ 0 goto error
 
 %cwd%\prepmap x64\Release\xFade.map ..\bin64\xFade.map
@@ -53,7 +53,7 @@ mkdir build_scripts\msw\xFade
 copy xFade\x64\Release\*.pdb build_scripts\msw\xFade
 
 cd xCapture
-msbuild.exe -m:10 xCapture.sln -p:Configuration="Release" -p:Platform="x64"
+msbuild.exe -m:10 xCapture.sln -p:Configuration="Release" -p:Platform="x64" /p:DefineConstants=%1
 if %ERRORLEVEL% NEQ 0 goto error
 
 %cwd%\prepmap x64\Release\xCapture.map ..\bin64\xCapture.map
@@ -64,7 +64,7 @@ mkdir build_scripts\msw\xCapture
 copy xCapture\x64\Release\*.pdb build_scripts\msw\xCapture
 
 cd xScanner
-msbuild.exe -m:10 xScanner.sln -p:Configuration="Release" -p:Platform="x64"
+msbuild.exe -m:10 xScanner.sln -p:Configuration="Release" -p:Platform="x64" /p:DefineConstants=%1
 if %ERRORLEVEL% NEQ 0 goto error
 
 %cwd%\prepmap x64\Release\xScanner.map ..\bin64\xScanner.map
@@ -75,7 +75,7 @@ mkdir build_scripts\msw\xScanner
 copy xScanner\x64\Release\*.pdb build_scripts\msw\xScanner
 
 cd xSchedule
-msbuild.exe -m:10 xSchedule.sln -p:Configuration="Release" -p:Platform="x64" /p:DefineConstants="SKIP_SMPTE"
+msbuild.exe -m:10 xSchedule.sln -p:Configuration="Release" -p:Platform="x64" /p:DefineConstants="SKIP_SMPTE;%1"
 if %ERRORLEVEL% NEQ 0 goto error
 
 %cwd%\prepmap x64\Release\xSchedule.map ..\bin64\xSchedule.map
@@ -112,7 +112,7 @@ mkdir build_scripts\msw\RemoteFalcon
 copy xSchedule\RemoteFalcon\x64\Release\*.pdb build_scripts\msw\RemoteFalcon
 
 cd xLights
-msbuild.exe -restore -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x64"
+msbuild.exe -restore -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x64" /p:DefineConstants=%1
 if %ERRORLEVEL% NEQ 0 goto error
 
 %cwd%\prepmap x64\Release\xLights.map ..\bin64\xLights.map

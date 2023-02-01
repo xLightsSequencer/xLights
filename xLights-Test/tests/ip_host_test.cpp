@@ -37,9 +37,9 @@ TEST_F(IP_Host_Tests, Host_Valid) {
 
 TEST_F(IP_Host_Tests, Host_Invalid) {
     //need to fix
-    //EXPECT_FALSE(ip_utils::IsIPValidOrHostname("testing testing"));
-    //EXPECT_FALSE(ip_utils::IsIPValidOrHostname("-fpp.local"));
-    //EXPECT_FALSE(ip_utils::IsIPValidOrHostname("fpp.local-"));
-    //EXPECT_FALSE(ip_utils::IsIPValidOrHostname("fpptest.l"));
-    //EXPECT_FALSE(ip_utils::IsIPValidOrHostname(".local"));
+    EXPECT_FALSE(ip_utils::IsIPValidOrHostname("testing testing"));
+    EXPECT_FALSE(ip_utils::IsIPValidOrHostname("-fpp.local"));
+    EXPECT_FALSE(ip_utils::IsIPValidOrHostname("fpp.local-"));
+    EXPECT_FALSE(ip_utils::IsIPValidOrHostname("fpptest.l"));
+    EXPECT_FALSE(ip_utils::IsIPValidOrHostname(".local"));
 }
