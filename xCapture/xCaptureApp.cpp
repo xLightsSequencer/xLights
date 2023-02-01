@@ -263,7 +263,7 @@ bool xCaptureApp::OnInit()
     logger_base.info("******* OnInit: xCapture started.");
 
     DumpConfig();
-#ifdef _MSC_VER
+#ifdef __WXMSW__
     MSWEnableDarkMode();
 #endif
     static const wxCmdLineEntryDesc cmdLineDesc[] =

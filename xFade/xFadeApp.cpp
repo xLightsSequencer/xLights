@@ -267,7 +267,7 @@ bool xFadeApp::OnInit()
     logger_base.info("******* OnInit: xFade started.");
 
     DumpConfig();
-#ifdef _MSC_VER
+#ifdef __WXMSW__
     MSWEnableDarkMode();
 #endif
     static const wxCmdLineEntryDesc cmdLineDesc[] =
