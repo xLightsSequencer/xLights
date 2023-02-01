@@ -11,7 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (scott)  Add "dark mode" builds for Windows
+2023.02 February 01, 2023
+   -- enh (scott)  Add "dark mode" for Windows
    -- enh (lutz)   Add Effect Duration to the variables available to shaders
    -- enh (dkulp)  Allow xcontroller variants to specify which "ConfigDriver" they need.  Not based soley on vendor.
    -- enh (keith)  Fix #3687 add optional frameMS and view parameters to xlDo newsequence
@@ -25,7 +26,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (dkulp)  Fix duplication of media dirs if flip back/forth of tabs in preferences panel
    -- bug (dkulp)  Fix DDP packet data type to match spec
    -- bug (dkulp)  Prevent visualizer from opening up if Output to lights is on (prevents some crashes)
-2023.01 January 05, 2022
+2023.01 January 05, 2023
    -- enh (dkulp)  Speed up aborting of rendering so UI tasks can complete quicker
    -- bug (dkulp)  Fix Aborted rendering not marking ranges as "Dirty" so they render properly later
    -- bug (dkulp)  Fix some crashes with resizing/moving effects and timing marks
