@@ -19,6 +19,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix crash when dropping sketch effect
    -- bug (scott)  Hopefully fix IP/Host Validation
    -- bug (dkulp)  Fix duplication of media dirs if flip back/forth of tabs in preferences panel
+   -- bug (dkulp)  Fix DDP packet data type to match spec
 2023.01 January 05, 2022
    -- enh (dkulp)  Speed up aborting of rendering so UI tasks can complete quicker
    -- bug (dkulp)  Fix Aborted rendering not marking ranges as "Dirty" so they render properly later

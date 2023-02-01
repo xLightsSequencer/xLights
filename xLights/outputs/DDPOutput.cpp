@@ -416,7 +416,7 @@ bool DDPOutput::Open() {
 
     memset(_data, 0x00, sizeof(_data));
 
-    _data[2] = 1;
+    _data[2] = 0;
     _data[3] = DDP_ID_DISPLAY;
     _sequenceNum = 1;
 
