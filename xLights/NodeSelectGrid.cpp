@@ -210,17 +210,15 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString& title, Model* m, 
 {
     unselectColor = wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT);
     unselectBackColor = wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX);
-#if !defined(__WXMSW__) || defined(_MSC_DARK) // windows in dark mode on wxWidgets does not darken the grid ... at least not yet
+
     if (wxSystemSettings::GetAppearance().IsDark()) {
         selectColor = *wxBLACK;
         selectBackColor = *wxLIGHT_GREY;
     } else {
-#endif
         selectColor = *wxWHITE;
         selectBackColor = wxColour("grey");
-#if !defined(__WXMSW__) || defined(_MSC_DARK) 
     }
-#endif
+
 
     //(*Initialize(NodeSelectGrid)
     wxBoxSizer* BoxSizer1;

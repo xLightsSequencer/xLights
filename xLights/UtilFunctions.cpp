@@ -1430,29 +1430,21 @@ void DumpBinary(uint8_t* buffer, size_t sz)
 
 wxColor CyanOrBlue()
 {
-#if !defined(__WXMSW__) || defined(_MSC_DARK) 
     if (wxSystemSettings::GetAppearance().IsDark()) {
         // In Dark Mode blue is hard to read
         return *wxCYAN;
     } else {
-#endif
         return *wxBLUE;
-#if !defined(__WXMSW__) || defined(_MSC_DARK) 
     }
-#endif
 }
 wxColor LightOrMediumGrey()
 {
-#if !defined(__WXMSW__) || defined(_MSC_DARK) 
     if (wxSystemSettings::GetAppearance().IsDark()) {
         static const wxColor medGray(128, 128, 128);
         return medGray;
     } else {
-#endif
         return *wxLIGHT_GREY;
-#if !defined(__WXMSW__) || defined(_MSC_DARK) 
     }
-#endif
 }
 void CleanupIpAddress(wxString& IpAddr)
 {

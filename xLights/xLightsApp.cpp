@@ -435,7 +435,7 @@ bool xLightsApp::OnInit()
     InitialiseLogging(false);
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: XLights started.");
-#ifdef _MSC_DARK
+#ifdef _MSC_VER
     MSWEnableDarkMode();
 #endif
 #if wxUSE_GLCANVAS_EGL
