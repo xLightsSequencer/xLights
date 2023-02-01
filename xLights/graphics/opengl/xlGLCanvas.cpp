@@ -532,6 +532,13 @@ void xlGLCanvas::SetCurrentGLContext()
             LOG_GL_ERRORV(cache = Create11Cache());
             if (cache != nullptr) _ver = 1;
         }
+        static bool hasWarned = false;
+        if (_ver == 1 && !hasWarned) {
+            hasWarned = true;
+            wxMessageBox("OpenGL 1.x/2.x are known to have issues with xLights and will soon be removed.  Please update your video drivers.",
+                         "OpenGL Version",
+                          wxICON_INFORMATION | wxCENTER | wxOK);
+        }
         if (cache == nullptr) {
             _ver = 0;
             logger_opengl.error("All attempts at cache creation have failed.");

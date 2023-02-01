@@ -20,7 +20,7 @@
 #include <wx/protocol/http.h>
 #include "../../xLights/UtilFunctions.h"
 #include "../xLights/utils/ip_utils.h"
-#include "../xSMSDaemon/Curl.h"
+#include "utils/Curl.h"
 
 class FPPEventThread : public wxThread
 {

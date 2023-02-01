@@ -1015,6 +1015,9 @@
     <ClCompile Include="utils\ip_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="utils\Curl.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
     <ClCompile Include="DuplicateDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -1297,7 +1300,6 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
-    <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
     <ClInclude Include="ShaderDownloadDialog.h" />
     <ClInclude Include="outputs\ZCPP.h">
       <Filter>Outputs</Filter>
@@ -2036,6 +2038,9 @@
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="utils\ip_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\Curl.h">
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="DuplicateDialog.h" />

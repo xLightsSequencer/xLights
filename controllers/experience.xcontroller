@@ -33,6 +33,7 @@
 		<SmartRemoteTypes>
 			<Type>falcon_v2</Type>
 		</SmartRemoteTypes>
+        <ConfigDriver>Experience</ConfigDriver>
 	</AbstractVariant>
 	<Controller Name="Genius Pixel 8">
 		<Variant Name="" Base="Experience Lights:BaseExperienceSettings">

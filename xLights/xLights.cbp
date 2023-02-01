@@ -458,7 +458,6 @@
 		<Unit filename="../xSchedule/wxJSON/jsonval.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.h" />
-		<Unit filename="../xSchedule/xSMSDaemon/Curl.h" />
 		<Unit filename="AboutDialog.cpp" />
 		<Unit filename="AboutDialog.h" />
 		<Unit filename="AlignmentDialog.cpp" />
@@ -1300,10 +1299,6 @@
 		<Unit filename="preferences/ViewSettingsPanel.cpp" />
 		<Unit filename="preferences/ViewSettingsPanel.h" />
 		<Unit filename="preferences/xLightsPreferences.cpp" />
-		<Unit filename="utils/ip_utils.cpp" />
-		<Unit filename="utils/ip_utils.h" />
-		<Unit filename="utils/string_utils.cpp" />
-		<Unit filename="utils/string_utils.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="MinGW_Debug" />
@@ -1347,6 +1342,12 @@
 		<Unit filename="support/VectorMath.h" />
 		<Unit filename="tmGridCell.cpp" />
 		<Unit filename="tmGridCell.h" />
+		<Unit filename="utils/Curl.cpp" />
+		<Unit filename="utils/Curl.h" />
+		<Unit filename="utils/ip_utils.cpp" />
+		<Unit filename="utils/ip_utils.h" />
+		<Unit filename="utils/string_utils.cpp" />
+		<Unit filename="utils/string_utils.h" />
 		<Unit filename="vamp-hostsdk/Files.cpp" />
 		<Unit filename="vamp-hostsdk/Files.h" />
 		<Unit filename="vamp-hostsdk/Plugin.h" />

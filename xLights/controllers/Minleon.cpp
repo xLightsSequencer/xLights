@@ -16,7 +16,7 @@
 #include <wx/xml/xml.h>
 #include <wx/progdlg.h>
 
-#include "../xSchedule/xSMSDaemon/Curl.h"
+#include "../utils/Curl.h"
 
 #include "../models/Model.h"
 #include "../outputs/OutputManager.h"

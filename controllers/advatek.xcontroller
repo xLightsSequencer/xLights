@@ -53,6 +53,7 @@
             <Protocol>e131</Protocol>
             <Protocol>artnet</Protocol>
         </InputProtocols>
+        <ConfigDriver>PixLite16</ConfigDriver>
     </AbstractVariant>
     <Controller Name="PixLite E4-S Mk3">
 		<Variant Name="Normal" Base="Advatek:PLMK3">
@@ -134,6 +135,7 @@
             <Protocol>e131</Protocol>
             <Protocol>artnet</Protocol>
         </InputProtocols>
+        <ConfigDriver>PixLite16</ConfigDriver>
     </AbstractVariant>
 	<Controller Name="PixLite 4">
 		<Variant Name="Normal" Base="Advatek:PLMK1">
@@ -192,6 +194,7 @@
             <Protocol>e131</Protocol>
             <Protocol>artnet</Protocol>
         </InputProtocols>
+        <ConfigDriver>PixLite16</ConfigDriver>
     </AbstractVariant>
 	<Controller Name="PixLite 4 MkII">
 		<Variant Name="Normal" Base="Advatek:PLMK2">

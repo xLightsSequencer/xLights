@@ -44,6 +44,7 @@
             <Protocol>ucs2903</Protocol>
             <Protocol>tm1814a</Protocol>
         </PixelProtocols>
+        <ConfigDriver>Falcon</ConfigDriver>
     </AbstractVariant>
     <AbstractVariant Name="BaseFalconV2Settings" Base="Falcon:BaseFalconSettings">
         <MaxPixelPortChannels>2040</MaxPixelPortChannels>

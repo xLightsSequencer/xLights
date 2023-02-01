@@ -21,7 +21,7 @@
 #ifndef DISCOVERONLY
 #include "../models/Model.h"
 #include "../models/ModelManager.h"
-#include "../../xSchedule/xSMSDaemon/Curl.h"
+#include "../utils/Curl.h"
 #include "ControllerUploadData.h"
 #endif
 

@@ -10,7 +10,7 @@
 
 #define ZERO 0
 
-#include "Curl.h"
+#include "utils/Curl.h"
 
 //(*InternalHeaders(xSMSDaemonFrame)
 #include <wx/intl.h>

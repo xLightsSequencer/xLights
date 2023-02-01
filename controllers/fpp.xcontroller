@@ -23,6 +23,7 @@
             <InputProtocols>
                 <Protocol>ddp-input</Protocol>
             </InputProtocols>
+            <ConfigDriver>FPP</ConfigDriver>
         </Variant>
     </Controller>
     <AbstractVariant Name="BaseFPPSettings">
@@ -43,6 +44,7 @@
         <SupportsDefaultBrightness/>
         <SupportsDefaultGamma/>
         <PreferredInputProtocol>DDP</PreferredInputProtocol>
+        <ConfigDriver>FPP</ConfigDriver>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCape" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
@@ -152,15 +154,15 @@
             <SupportsAutoLayout/>
             <PixelProtocols>
             </PixelProtocols>
-        <SerialProtocols>
-            <Protocol>DMX-Pro</Protocol>
-            <Protocol>DMX-Open</Protocol>
-            <Protocol>GenericSerial</Protocol>
-            <Protocol>LOR</Protocol>
-            <Protocol>Pixelnet-Lynx</Protocol>
-            <Protocol>Pixelnet-Open</Protocol>
-            <Protocol>Renard</Protocol>
-        </SerialProtocols>
+            <SerialProtocols>
+                <Protocol>DMX-Pro</Protocol>
+                <Protocol>DMX-Open</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet-Lynx</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
+            </SerialProtocols>
         </Variant>
     </Controller>
     <Controller Name="Virtual Matrix">
@@ -174,15 +176,15 @@
             <SupportsAutoLayout/>
             <PixelProtocols>
             </PixelProtocols>
-        <SerialProtocols>
-            <Protocol>DMX-Pro</Protocol>
-            <Protocol>DMX-Open</Protocol>
-            <Protocol>GenericSerial</Protocol>
-            <Protocol>LOR</Protocol>
-            <Protocol>Pixelnet-Lynx</Protocol>
-            <Protocol>Pixelnet-Open</Protocol>
-            <Protocol>Renard</Protocol>
-        </SerialProtocols>
+            <SerialProtocols>
+                <Protocol>DMX-Pro</Protocol>
+                <Protocol>DMX-Open</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet-Lynx</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
+            </SerialProtocols>
         </Variant>
     </Controller>
     <Controller Name="Pi4 Virtual Matrix">
@@ -197,15 +199,15 @@
             <SupportsAutoLayout/>
             <PixelProtocols>
             </PixelProtocols>
-        <SerialProtocols>
-            <Protocol>DMX-Pro</Protocol>
-            <Protocol>DMX-Open</Protocol>
-            <Protocol>GenericSerial</Protocol>
-            <Protocol>LOR</Protocol>
-            <Protocol>Pixelnet-Lynx</Protocol>
-            <Protocol>Pixelnet-Open</Protocol>
-            <Protocol>Renard</Protocol>
-        </SerialProtocols>
+            <SerialProtocols>
+                <Protocol>DMX-Pro</Protocol>
+                <Protocol>DMX-Open</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet-Lynx</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
+            </SerialProtocols>
         </Variant>
     </Controller>
     <Controller Name="Pi Hat">
@@ -398,6 +400,7 @@
             </InputProtocols>
             <PlayerOnly/>
             <PreferredInputProtocol>Player Only</PreferredInputProtocol>
+            <ConfigDriver>FPP</ConfigDriver>
         </Variant>
     </Controller>
     <Controller Name="FPP Video Playing Remote Only">
@@ -415,6 +418,7 @@
             </InputProtocols>
             <PlayerOnly/>
             <PreferredInputProtocol>Player Only</PreferredInputProtocol>
+            <ConfigDriver>FPP</ConfigDriver>
         </Variant>
     </Controller>
 </Vendor>
