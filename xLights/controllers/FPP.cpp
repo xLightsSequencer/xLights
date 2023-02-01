@@ -570,6 +570,14 @@ bool FPP::IsDrive() {
 }
 
 bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min) const{
+    static bool hasWarned = false;
+    if (majorVersion < 6 && !hasWarned) {
+        hasWarned = true;
+        wxMessageBox("Uploading configuration and/or sequences to FPP instances less than FPP 6.x will soon be removed.  Please update FPP to the latest version.",
+                     "FPP Version Deprecated",
+                     wxICON_INFORMATION | wxCENTER | wxOK);
+    }
+    
     if (majorVersion < maj) {
         return false;
     }
