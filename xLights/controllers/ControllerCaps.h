@@ -132,6 +132,9 @@ public:
     std::vector<std::string> GetSmartRemoteTypes() const;
 
     std::string GetCustomPropertyByPath(const std::string path, const std::string& def = "") const;
+    
+    
+    std::string GetConfigDriver() const;
 
     void Dump() const;
     #pragma endregion

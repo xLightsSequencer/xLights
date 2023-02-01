@@ -23,6 +23,7 @@
 				<Protocol>artnet</Protocol>
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
+            <ConfigDriver>Minleon</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="RGB NDB Plus">
@@ -62,6 +63,7 @@
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<UniversesMustBeInNumericalOrder/>
+            <ConfigDriver>Minleon</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="RGB NDB 4">
@@ -101,6 +103,7 @@
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<UniversesMustBeInNumericalOrder/>
+            <ConfigDriver>Minleon</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="NDB Pro">
@@ -140,6 +143,7 @@
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<UniversesMustBeInNumericalOrder/>
+            <ConfigDriver>Minleon</ConfigDriver>
 		</Variant>
 	</Controller>
 </Vendor>

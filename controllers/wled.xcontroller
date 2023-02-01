@@ -24,6 +24,7 @@
             <Protocol>ddp</Protocol>
             <Protocol>artnet</Protocol>
         </InputProtocols>
+        <ConfigDriver>WLED</ConfigDriver>
     </AbstractVariant>
     <AbstractVariant Name="ESP32WLEDSettings" Base="WLED:BaseWLEDSettings">
         <MaxInputUniverses>24</MaxInputUniverses>

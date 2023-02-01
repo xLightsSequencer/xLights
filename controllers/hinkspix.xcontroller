@@ -31,6 +31,7 @@
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>HinksPix</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="PRO">
@@ -71,6 +72,7 @@
 				<Type>hinkspix_16ac</Type>
 			</SmartRemoteTypes>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>HinksPix</ConfigDriver>
 		</Variant>
 	</Controller>
 </Vendor>
