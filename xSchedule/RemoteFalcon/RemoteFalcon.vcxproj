@@ -186,6 +186,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\common\xlBaseApp.cpp" />
     <ClCompile Include="..\..\xLights\UtilFunctions.cpp" />
+    <ClCompile Include="..\..\xLights\utils\Curl.cpp" />
     <ClCompile Include="..\..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="..\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\wxJSON\jsonval.cpp" />
@@ -201,11 +202,11 @@
     <ClInclude Include="..\..\common\xlStackWalker.h" />
     <ClInclude Include="..\..\xLights\ExternalHooks.h" />
     <ClInclude Include="..\..\xLights\SpecialOptions.h" />
+    <ClInclude Include="..\..\xLights\utils\Curl.h" />
     <ClInclude Include="..\..\xLights\xLightsVersion.h" />
     <ClInclude Include="..\wxJSON\jsonreader.h" />
     <ClInclude Include="..\wxJSON\jsonval.h" />
     <ClInclude Include="..\wxJSON\json_defs.h" />
-    <ClInclude Include="..\xSMSDaemon\Curl.h" />
     <ClInclude Include="RemoteFalconOptions.h" />
     <ClInclude Include="RemoteFalconSettingsDialog.h" />
     <ClInclude Include="RemoteFalcon.h" />
