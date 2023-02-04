@@ -658,6 +658,9 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         Sizer1->Hide(FlexGridSizer_Blend_Mode, true);
     }
 
+    m_imageList = std::make_unique<wxImageList>(16, 16, true);
+    LayoutUtils::CreateImageList(m_imageList.get(), m_iconIndexMap);
+    ListCtrl_Available->SetImageList(m_imageList.get(), wxIMAGE_LIST_SMALL);
     PopulateAvailable(false);
 
     _dataModel = new xLightsImportTreeModel();
@@ -688,11 +691,6 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     if (_allowColorChoice) {
         TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Color", new ColorRenderer(), 2, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
     }
-
-    m_imageList = std::make_unique<wxImageList>(16, 16, true);
-    LayoutUtils::CreateImageList(m_imageList.get());
-
-    ListCtrl_Available->SetImageList(m_imageList.get(), wxIMAGE_LIST_SMALL);
 
     TreeListCtrl_Mapping->SetMinSize(wxSize(0, 300));
     SizerMap->Add(TreeListCtrl_Mapping, 1, wxALL | wxEXPAND, 5);
@@ -775,7 +773,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
             ListCtrl_Available->InsertItem(j, m->name);
             ListCtrl_Available->SetItemData(j, j);
             if (!m->type.empty()) {
-                ListCtrl_Available->SetItemColumnImage(j, 0, LayoutUtils::GetModelTreeIcon(m->type, LayoutUtils::GroupMode::Regular));
+                ListCtrl_Available->SetItemColumnImage(j, 0, m_iconIndexMap[LayoutUtils::GetModelTreeIcon(m->type, LayoutUtils::GroupMode::Regular)]);
             } else {
                 ListCtrl_Available->SetItemColumnImage(j, 0, -1);
             }
