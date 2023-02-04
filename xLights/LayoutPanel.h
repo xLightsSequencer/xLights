@@ -494,7 +494,6 @@ class LayoutPanel: public wxPanel
         int previewBackgroundBrightness = 100;
         int previewBackgroundAlpha = 100;
         wxPanel* main_sequencer = nullptr;
-        wxVector<wxBitmapBundle> m_imageList;
 
         bool editing_models = true;
         bool is_3d = false;

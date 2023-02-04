@@ -523,7 +523,6 @@ protected:
         SequencePackage* _xsqPkg {nullptr};
 
         std::vector<std::unique_ptr<ImportChannel>> importChannels;
-        std::unique_ptr<wxImageList> m_imageList;
 
 		DECLARE_EVENT_TABLE()
 

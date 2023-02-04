@@ -51,8 +51,6 @@ namespace LayoutUtils
         
     };
 
-    void CreateImageList(wxVector<wxBitmapBundle> & imageList);
-    void CreateImageList(wxImageList* imageList);
+    wxVector<wxBitmapBundle>& getGlobalImageList();
     int GetModelTreeIcon(std::string const& type, GroupMode mode);
-
 };

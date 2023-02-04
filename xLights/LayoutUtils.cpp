@@ -18,58 +18,38 @@
 
 namespace LayoutUtils
 {
-    void CreateImageList(wxVector<wxBitmapBundle> & imageList)
+    wxVector<wxBitmapBundle>& getGlobalImageList()
     {
-        imageList.push_back(wxArtProvider::GetBitmapBundle("wxART_NORMAL_FILE", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_GROUP_CLOSED", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_GROUP_OPEN", wxART_LIST));
-        imageList.push_back(BitmapCache::GetModelGroupIcon());
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_ARCH_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CANE_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CIRCLE_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CHANNELBLOCK_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CUBE_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CUSTOM_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_DMX_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_ICICLE_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_IMAGE_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_LINE_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_MATRIX_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_POLY_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SPHERE_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SPINNER_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_STAR_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SUBMODEL_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_TREE_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_WINDOW_ICON", wxART_LIST));
-        imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_WREATH_ICON", wxART_LIST));
-    }
+        static wxVector<wxBitmapBundle> imageList;
+        static bool loaded = false;
+        if (!loaded) {
+            loaded = true;
 
-    void CreateImageList(wxImageList* imageList)
-    {
-        imageList->Add(wxArtProvider::GetIcon("wxART_NORMAL_FILE", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_GROUP_CLOSED", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_GROUP_OPEN", wxART_LIST));
-        imageList->Add(BitmapCache::GetModelGroupIcon().GetIcon(wxDefaultSize));
-        imageList->Add(wxArtProvider::GetIcon("xlART_ARCH_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_CANE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_CIRCLE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_CHANNELBLOCK_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_CUBE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_CUSTOM_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_DMX_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_ICICLE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_IMAGE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_LINE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_MATRIX_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_POLY_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_SPHERE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_SPINNER_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_STAR_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_SUBMODEL_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_TREE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_WINDOW_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_WREATH_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("wxART_NORMAL_FILE", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_GROUP_CLOSED", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_GROUP_OPEN", wxART_LIST));
+            imageList.push_back(BitmapCache::GetModelGroupIcon());
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_ARCH_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CANE_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CIRCLE_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CHANNELBLOCK_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CUBE_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_CUSTOM_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_DMX_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_ICICLE_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_IMAGE_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_LINE_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_MATRIX_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_POLY_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SPHERE_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SPINNER_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_STAR_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_SUBMODEL_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_TREE_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_WINDOW_ICON", wxART_LIST));
+            imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_WREATH_ICON", wxART_LIST));
+        }
+        return imageList;
     }
 
     int GetModelTreeIcon(std::string const& type, GroupMode mode)

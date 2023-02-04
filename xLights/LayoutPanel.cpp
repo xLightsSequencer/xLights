@@ -448,7 +448,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
                                         // Default style
                                         wxPG_DEFAULT_STYLE);
     propertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
-    LayoutUtils::CreateImageList(m_imageList);
 
     wxFlexGridSizer* FlexGridSizerModels = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizerModels->AddGrowableCol(0);
@@ -596,7 +595,7 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
         tree = new wxTreeListCtrl(panel, ID_TREELISTVIEW_MODELS,
                                   wxDefaultPosition, wxDefaultSize,
                                   style, "ID_TREELISTVIEW_MODELS");
-    tree->SetImages(m_imageList);
+    tree->SetImages(LayoutUtils::getGlobalImageList());
 
     tree->AppendColumn(MODELCOLNAME,
                        wxCOL_WIDTH_AUTOSIZE,

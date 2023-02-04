@@ -689,10 +689,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Color", new ColorRenderer(), 2, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
     }
 
-    m_imageList = std::make_unique<wxImageList>(16, 16, true);
-    LayoutUtils::CreateImageList(m_imageList.get());
-
-    ListCtrl_Available->SetImageList(m_imageList.get(), wxIMAGE_LIST_SMALL);
+    ListCtrl_Available->SetSmallImages(LayoutUtils::getGlobalImageList());
 
     TreeListCtrl_Mapping->SetMinSize(wxSize(0, 300));
     SizerMap->Add(TreeListCtrl_Mapping, 1, wxALL | wxEXPAND, 5);
