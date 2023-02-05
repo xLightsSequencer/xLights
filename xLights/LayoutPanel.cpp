@@ -2735,6 +2735,7 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
     SaveEffects();
     if (xlights->IsControllersAndLayoutTabSaveLinked()) {
         xlights->SaveNetworksFile();
+        xlights->UpdateLayoutSave(); // SaveEffects tried to do this, but if the saves are linked it is marked dirty til nets are saved.
     }
 }
 
