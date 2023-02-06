@@ -1906,6 +1906,9 @@ void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)
             }
         }
     } else {
+        if (_outputManager.IsOutputting()) {
+            return;
+        }
         if (controller != nullptr) {
             int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
             if (usingip == 1 && controller->CanVisualise()) {

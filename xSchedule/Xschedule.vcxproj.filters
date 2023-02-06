@@ -574,6 +574,9 @@
     <ClCompile Include="..\xLights\utils\string_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="..\xLights\utils\Curl.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\xlBaseApp.h" />
@@ -1072,7 +1075,6 @@
     <ClInclude Include="events\ListenerCSVFPP.h">
       <Filter>Events</Filter>
     </ClInclude>
-    <ClInclude Include="xSMSDaemon\Curl.h" />
     <ClInclude Include="..\xLights\SpecialOptions.h" />
     <ClInclude Include="..\xLights\TraceLog.h" />
     <ClInclude Include="..\xLights\outputs\xxxEthernetOutput.h" />
@@ -1140,6 +1142,9 @@
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\utils\string_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\utils\Curl.h">
       <Filter>utils</Filter>
     </ClInclude>
   </ItemGroup>

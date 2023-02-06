@@ -82,6 +82,10 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 	Connect(ID_BUTTON_EXPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerSettingsPanel::OnButtonExportClick);
 	Connect(ID_BUTTON_RESET,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerSettingsPanel::OnButton_ResetClick);
 	//*)
+
+    #ifdef _MSC_VER
+    MSWDisableComposited();
+    #endif
     
     AddButtonsToDialog();
     FlexGridSizer1->Fit(this);

@@ -95,6 +95,10 @@ BackupSettingsPanel::BackupSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWi
 	Connect(ID_DIRPICKERCTRL1,wxEVT_COMMAND_DIRPICKER_CHANGED,(wxObjectEventFunction)&BackupSettingsPanel::OnDirPickerCtrl_BackupDirChanged);
 	Connect(ID_DIRPICKERCTRL2,wxEVT_COMMAND_DIRPICKER_CHANGED,(wxObjectEventFunction)&BackupSettingsPanel::OnDirPickerCtrl_AltBackupDirChanged);
 	//*)
+
+    #ifdef _MSC_VER
+    MSWDisableComposited();
+    #endif
 }
 
 BackupSettingsPanel::~BackupSettingsPanel()

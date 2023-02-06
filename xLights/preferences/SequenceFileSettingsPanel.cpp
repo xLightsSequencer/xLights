@@ -163,6 +163,9 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
+    #ifdef _MSC_VER
+    MSWDisableComposited();
+    #endif
 }
 
 SequenceFileSettingsPanel::~SequenceFileSettingsPanel()

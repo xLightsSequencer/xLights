@@ -184,6 +184,10 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
         ShaderCheckbox->Hide();
     }
 #endif
+
+    #ifdef _MSC_VER
+    MSWDisableComposited();
+    #endif
 }
 
 OtherSettingsPanel::~OtherSettingsPanel()

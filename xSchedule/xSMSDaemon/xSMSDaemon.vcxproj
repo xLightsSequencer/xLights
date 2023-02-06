@@ -186,6 +186,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\common\xlBaseApp.cpp" />
     <ClCompile Include="..\..\xLights\UtilFunctions.cpp" />
+    <ClCompile Include="..\..\xLights\utils\Curl.cpp" />
     <ClCompile Include="..\..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="..\CommandManager.cpp" />
     <ClCompile Include="..\wxJSON\jsonreader.cpp" />
@@ -204,13 +205,13 @@
     <ClInclude Include="..\..\common\xlBaseApp.h" />
     <ClInclude Include="..\..\common\xlStackWalker.h" />
     <ClInclude Include="..\..\xLights\ExternalHooks.h" />
+    <ClInclude Include="..\..\xLights\utils\Curl.h" />
     <ClInclude Include="..\..\xLights\xLightsVersion.h" />
     <ClInclude Include="..\CommandManager.h" />
     <ClInclude Include="..\wxJSON\jsonreader.h" />
     <ClInclude Include="..\wxJSON\jsonval.h" />
     <ClInclude Include="..\wxJSON\json_defs.h" />
     <ClInclude Include="Bandwidth.h" />
-    <ClInclude Include="Curl.h" />
     <ClInclude Include="MagicWord.h" />
     <ClInclude Include="MagicWordDialog.h" />
     <ClInclude Include="MagicWordsDialog.h" />

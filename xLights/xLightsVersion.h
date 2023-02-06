@@ -15,7 +15,7 @@
 #if __has_include("xlights_build_version.h")
 #include "xlights_build_version.h"
 #else
-static const wxString xlights_version_string  = "2023.01";
+static const wxString xlights_version_string  = "2023.02";
 #endif
 #ifdef DEBUG
 static const wxString xlights_qualifier       = " DEBUG";

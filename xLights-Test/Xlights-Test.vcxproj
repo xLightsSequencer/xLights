@@ -44,6 +44,9 @@
     <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\include;..\xLights;$(IncludePath)</IncludePath>
     <LibraryPath>$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\lib\windows;..\xLights\x64\Release;..\dependencies\lua\src;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\xLights-Test\tests\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
