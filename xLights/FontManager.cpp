@@ -39,7 +39,7 @@ int xlFont::GetCharWidth(int ascii)
 void xlFont::GatherInfo()
 {
     int index = 0;
-    for( int i = 0; i < 128; i++ )
+    for( int i = 0; i < XL_FONT_WIDTHS; i++ )
     {
         widths[i] = char_width;
     }
