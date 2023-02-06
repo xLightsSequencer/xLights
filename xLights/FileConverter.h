@@ -53,6 +53,7 @@ public:
     ConvertDialog* convertDialog = nullptr;
     ConvertLogDialog* convertLogDialog = nullptr;
     std::vector<std::pair<uint32_t, uint32_t>> ranges;
+    SequenceElements *elements = nullptr;
 
     void SetStatusText(wxString msg);
     void ConversionError(wxString msg);

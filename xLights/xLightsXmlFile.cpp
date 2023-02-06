@@ -328,7 +328,7 @@ void xLightsXmlFile::AddDisplayElement(const wxString& name, const wxString& typ
     }
 }
 
-void xLightsXmlFile::AddTimingDisplayElement(const wxString& name, const wxString& visible, const wxString& active)
+void xLightsXmlFile::AddTimingDisplayElement(const wxString& name, const wxString& visible, const wxString& active, const wxString &subType)
 {
     wxXmlNode* root = seqDocument.GetRoot();
 
@@ -360,6 +360,9 @@ void xLightsXmlFile::AddTimingDisplayElement(const wxString& name, const wxStrin
             child->AddAttribute("visible", visible);
             child->AddAttribute("type", "timing");
             child->AddAttribute("name", name);
+            if (subType != "") {
+                child->AddAttribute("subType", subType);
+            }
             timing_list.push_back(name);
             break;
         }
@@ -2698,7 +2701,8 @@ void xLightsXmlFile::Save(SequenceElements& seq_elements)
         display_element_node->AddAttribute("type", element->GetType() == ElementType::ELEMENT_TYPE_TIMING ? "timing" : "model");
         display_element_node->AddAttribute("name", element->GetName());
         if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
-            display_element_node->AddAttribute("visible", string_format("%d", dynamic_cast<TimingElement*>(element)->GetMasterVisible()));
+            TimingElement *te = dynamic_cast<TimingElement*>(element);
+            display_element_node->AddAttribute("visible", string_format("%d", te->GetMasterVisible()));
         } else {
             display_element_node->AddAttribute("visible", string_format("%d", element->GetVisible()));
         }
@@ -2712,6 +2716,9 @@ void xLightsXmlFile::Save(SequenceElements& seq_elements)
             TimingElement* tm = dynamic_cast<TimingElement*>(element);
             display_element_node->AddAttribute("views", tm->GetViews());
             display_element_node->AddAttribute("active", string_format("%d", tm->GetActive()));
+            if (tm->GetSubType() != "") {
+                display_element_node->AddAttribute("subType", tm->GetSubType());
+            }
             if (tm->GetFixedTiming()) {
                 element_effects_node->AddAttribute("fixed", string_format("%d", tm->GetFixedTiming()));
                 AddChildXmlNode(element_effects_node, "EffectLayer");
@@ -2908,13 +2915,13 @@ void xLightsXmlFile::AddNewTimingSection(const std::string & filename, xLightsFr
         }
     }
 }
-void xLightsXmlFile::AddNewTimingSection(const std::string & interval_name, xLightsFrame* xLightsParent)
+void xLightsXmlFile::AddNewTimingSection(const std::string & interval_name, xLightsFrame* xLightsParent, const std::string& subType)
 {
-    AddTimingDisplayElement( interval_name, "1", "0" );
+    AddTimingDisplayElement( interval_name, "1", "0", subType);
 
     if( sequence_loaded )
     {
-        xLightsParent->AddTimingElement(interval_name);
+        xLightsParent->AddTimingElement(interval_name, subType);
     }
 
     wxXmlNode * node = AddElement( interval_name, "timing" );

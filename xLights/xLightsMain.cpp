@@ -2209,7 +2209,6 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
     dlg.MainSizer->SetSizeHints(&dlg);
 
     if (IsFromAppStore()) {
-        dlg.PrivacyHyperlinkCtrl->SetURL("http://kulplights.com/xlights/privacy_policy.html");
         dlg.EULAHyperlinkCtrl->SetLabel("End User License Agreement");
         dlg.EULAHyperlinkCtrl->SetURL("http://kulplights.com/xlights/eula.html");
         dlg.EULAHyperlinkCtrl->Show();

@@ -37,11 +37,13 @@ NewTimingDialog::NewTimingDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Select New Timing Interval:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_New_Fixed_Timing = new wxChoice(this, ID_CHOICE_New_Fixed_Timing, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_New_Fixed_Timing"));
+	Choice_New_Fixed_Timing->Append(_("Empty"));
 	Choice_New_Fixed_Timing->Append(_("25ms"));
 	Choice_New_Fixed_Timing->SetSelection( Choice_New_Fixed_Timing->Append(_("50ms")) );
 	Choice_New_Fixed_Timing->Append(_("100ms"));
 	Choice_New_Fixed_Timing->Append(_("Metronome"));
-	Choice_New_Fixed_Timing->Append(_("Empty"));
+	Choice_New_Fixed_Timing->Append(_("FPP Commands"));
+	Choice_New_Fixed_Timing->Append(_("FPP Effects"));
 	FlexGridSizer1->Add(Choice_New_Fixed_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
@@ -49,7 +51,6 @@ NewTimingDialog::NewTimingDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	StdDialogButtonSizer1->Realize();
 	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
     StdDialogButtonSizer1->GetAffirmativeButton()->SetDefault();

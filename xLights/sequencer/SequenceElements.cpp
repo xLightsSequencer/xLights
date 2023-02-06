@@ -171,8 +171,7 @@ static Element* CreateElement(SequenceElements *se, const std::string &name, con
         te->SetActive(active);
         te->SetMasterVisible(visible);
         el->SetVisible(te->GetMasterVisible());
-    }
-    else {
+    } else {
         ModelElement *me = new ModelElement(se, name, selected);
         if (xframe != nullptr) {
             Model *model = xframe->GetModel(name);
@@ -785,6 +784,9 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                     if (type == STR_TIMING) {
                         std::string views = element->GetAttribute("views", "").ToStdString();
                         dynamic_cast<TimingElement*>(elem)->SetViews(views);
+                        
+                        std::string subType = element->GetAttribute("subType", "").ToStdString();
+                        dynamic_cast<TimingElement*>(elem)->SetSubType(subType);
                     }
                 }
             }

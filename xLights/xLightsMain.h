@@ -1425,7 +1425,7 @@ public:
 
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() { return _sequenceElements; }
-    TimingElement* AddTimingElement(const std::string& name);
+    TimingElement* AddTimingElement(const std::string& name, const std::string &subType = "");
     void DeleteTimingElement(const std::string& name);
     void RenameTimingElement(const std::string& old_name, const std::string& new_name);
     void ImportTimingElement();
