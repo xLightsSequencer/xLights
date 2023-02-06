@@ -25,6 +25,7 @@ class ConvertLogDialog;
 class OutputManager;
 class wxArrayInt;
 class wxArrayString;
+class SequenceElements;
 
 class ConvertParameters
 {
