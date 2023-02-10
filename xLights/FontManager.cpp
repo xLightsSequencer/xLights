@@ -39,7 +39,7 @@ int xlFont::GetCharWidth(int ascii)
 void xlFont::GatherInfo()
 {
     int index = 0;
-    for( int i = 0; i < 128; i++ )
+    for( int i = 0; i < XL_FONT_WIDTHS; i++ )
     {
         widths[i] = char_width;
     }
@@ -83,6 +83,8 @@ void FontManager::init()
 {
     if( !initialized )
     {
+        bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_5_5x5_thin_system));
+        bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_5_5x5_full_system));
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_6_5x6_thin_system));
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_6_5x6_thin_vertical_system));
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_6_6x6_thin_system));
@@ -119,6 +121,8 @@ wxArrayString FontManager::get_font_names()
 {
     if( names.size() == 0 )
     {
+        names.Add("5-5x5 Thin");
+        names.Add("5-5x5 Mono");
         names.Add("6-5x6 Thin");
         names.Add("6-5x6 Thin Vertical");
         names.Add("6-6x6 Thin");
