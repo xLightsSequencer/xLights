@@ -28,17 +28,18 @@ public:
     enum class LOOKUPTYPE { LTDESCRIPTION,
                  LTMLT,
                  LTDISABLED };
-    int _number;
-    std::string _description;
+    int _number = -1;
+    std::string _description = "";
     LOOKUPTYPE _type;
-    std::string _element;
-    std::string _tooltip;
-    int _layer;
-    int _time;
+    std::string _element = "";
+    std::string _tooltip = "";
+    int _layer = -1;
+    int _time = -1;
+    bool _loop = true;
 
     ButtonControl(int i);
-    ButtonControl(int i, std::string description, std::string tooltip);
-    ButtonControl(int i, std::string element, int layer, int time, std::string tooltip);
+    ButtonControl(int i, std::string description, std::string tooltip, bool loop);
+    ButtonControl(int i, std::string element, int layer, int time, std::string tooltip, bool loop);
     virtual ~ButtonControl() {}
     ButtonControl(wxXmlNode* n);
     wxXmlNode* Save();

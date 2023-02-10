@@ -238,6 +238,15 @@ EffectLayer* EffectsGrid::FindOpenLayer(Element* elem, int startTimeMS, int endT
     return layer;
 }
 
+void EffectsGrid::PlayLoopedEffect(Effect* eff, bool loop = false)
+{
+    ((MainSequencer*)mParent)->PanelWaveForm->SetSelectedInterval(eff->GetStartTimeMS(), eff->GetEndTimeMS());
+    Draw();
+
+    wxCommandEvent playEvent(loop ? EVT_SEQUENCE_REPLAY_SECTION : EVT_PLAY_SEQUENCE);
+    wxPostEvent(mParent, playEvent);
+}
+
 void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
 {
     int update_time = -1;
@@ -304,14 +313,14 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
                 }
             }
         } else {
-            // we have double clicked on an effect - highlight that part of the waveform
-            ((MainSequencer*)mParent)->PanelWaveForm->SetSelectedInterval(selectedEffect->GetStartTimeMS(), selectedEffect->GetEndTimeMS());
-            Draw();
             // and play it play mode is active
             if (mTimingPlayOnDClick) {
-                wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
-                wxPostEvent(mParent, playEvent);
+                PlayLoopedEffect(selectedEffect);
             } else {
+                // we have double clicked on an effect - highlight that part of the waveform
+                ((MainSequencer*)mParent)->PanelWaveForm->SetSelectedInterval(selectedEffect->GetStartTimeMS(), selectedEffect->GetEndTimeMS());
+                Draw();
+
                 if (update_time > -1) {
                     UpdateTimePosition(update_time);
                 }
