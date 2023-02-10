@@ -1,12 +1,12 @@
 /*
-        Automatic generated header by:
+	Automatic generated header by:
 
-        wxInclude by Kim De Deyn, use --help for more information.
-        Version 1.0, compiled at Sep 12 2007 17:26:17
+		wxInclude by Kim De Deyn, use --help for more information.
+		Version 1.0, compiled at Sep 12 2007 17:26:17
 
-        Header: xLightsFontImages
-        Macros: yes
-        Const: yes
+	Header: xLightsFontImages
+	Macros: yes
+	Const: yes
 */
 
 #ifndef _WXINCLUDE_XLIGHTSFONTIMAGES_H_
