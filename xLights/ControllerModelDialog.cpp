@@ -561,7 +561,7 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
                 std::transform(types.begin(), types.end(), std::back_inserter(choices),
                                [](auto const& str) { return str; });
                 int selection{ -1 };
-                if (nullptr != GetUDPort()->GetModels().front()) {
+                if (GetUDPort()->GetModels().size() != 0 && nullptr != GetUDPort()->GetModels().front()) {
                     selection = choices.Index(GetUDPort()->GetModels().front()->GetSmartRemoteType());
                 }
                 wxSingleChoiceDialog dlg(parent, "Port Smart Remote Type", "Smart Remote Type", choices);
