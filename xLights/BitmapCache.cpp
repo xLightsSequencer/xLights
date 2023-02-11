@@ -125,6 +125,8 @@
 #include "../include/xLights-128.xpm"
 #include "../include/splashimage.h"
 
+#include "../include/fpp_icon.h"
+
 #include "wx/artprov.h"
 
 
@@ -597,6 +599,9 @@ wxBitmapBundle BitmapCache::GetPapgayoXIcon() {
 
 wxBitmapBundle BitmapCache::GetModelGroupIcon() {
     return CreateBitmapBundleFromXPMs(16, "ModelGroup", {model_16, model_64, model_64, model_64, model_64});
+}
+wxBitmapBundle BitmapCache::GetFPPIcon() {
+    return wxBitmapBundle::FromSVG((const char*)fpp_app_icon_svg, wxSize(16, 16));
 }
 
 const wxImage &BitmapCache::GetCornerIcon(int position, int size) {

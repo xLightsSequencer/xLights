@@ -120,6 +120,7 @@ public:
     void InsertEffectLayerAbove();
     void InsertEffectLayerBelow();
     void ToggleExpandElement(RowHeading* rowHeading);
+    void PlayLoopedEffect(Effect* eff, bool loop);
 
     void DeleteSelectedEffects();
     void SetEffectsDescription();

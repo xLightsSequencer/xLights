@@ -23,6 +23,8 @@ public:
     
     static wxBitmapBundle GetLockIcon(bool locked);
     static const wxImage &GetCornerIcon(int position, int size);
+    
+    static wxBitmapBundle GetFPPIcon();
 };
 
 

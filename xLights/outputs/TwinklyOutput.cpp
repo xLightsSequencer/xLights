@@ -268,20 +268,14 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
         bod = wxString(body);
     }
 
-logger_base.debug("A");
-
     std::vector<std::pair<std::string, std::string>> customHeaders;
     if (!m_token.empty()) {
         // assign authentication token if present
         customHeaders.push_back(std::pair("X-Auth-Token", m_token));
     }
 
-logger_base.debug("B");
-
     int responseCode;
     std::string httpResponse = Curl::HTTPSPost("http://" + _ip + path, bod, "", "", "JSON", HTTP_TIMEOUT, customHeaders, &responseCode);
-
-logger_base.debug("C");
 
     if (responseCode != 200) {
         logger_base.error("Twinkly: Error %d : %s", responseCode, (const char*)httpResponse.c_str());
@@ -289,8 +283,6 @@ logger_base.debug("C");
 
     wxJSONReader reader;
     wxString str(httpResponse);
-
-logger_base.debug("D");
 
     if (reader.Parse(str, &result)) {
         logger_base.debug("DX");
@@ -303,15 +295,11 @@ logger_base.debug("D");
         return false;
     }
 
-logger_base.debug("E");
-
     int32_t code;
     if (!result.Get("code", wxJSONValue(0)).AsInt32(code) || code != 1000) {
         logger_base.error("Twinkly: Server returned: " + std::to_string(code));
         return false;
     }
-
-logger_base.debug("F");
 
     return true;
 }

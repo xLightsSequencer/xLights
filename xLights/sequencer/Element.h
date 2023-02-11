@@ -156,6 +156,9 @@ public:
     virtual ~TimingElement();
     
     virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_TIMING; }
+    
+    const std::string &GetSubType() const { return subType; }
+    void SetSubType(const std::string &st) { subType = st; }
 
     int GetFixedTiming() const { return mFixed; }
     void SetFixedTiming(int fixed) { mFixed = fixed; }
@@ -180,6 +183,7 @@ private:
     bool mActive = true;
     std::string mViews;
     bool _masterVisible = false;
+    std::string subType = "";
 };
 
 class SubModelElement : public Element {

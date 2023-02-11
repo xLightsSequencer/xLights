@@ -117,6 +117,9 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     papagayo_icon = BitmapCache::GetPapgayoIcon();
     papagayox_icon = BitmapCache::GetPapgayoXIcon();
     model_group_icon = BitmapCache::GetModelGroupIcon();
+    fppCommand_icon = BitmapCache::GetFPPIcon();
+    fppEffect_icon = BitmapCache::GetFPPIcon();
+    
     mCanPaste = false;
 
     wxConfigBase* config = wxConfigBase::Get();
@@ -445,19 +448,22 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
                     mnuLayer.AppendSeparator();
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS, "Import Lyrics");
-                    mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES, "Breakdown Phrases");
-                    if (element->GetEffectLayerCount() > 1) {
-                        mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_WORDS, "Breakdown Words");
-                    }
-                    if (element->GetEffectLayerCount() == 2) {
-                        mnuLayer.Append(ID_ROW_MNU_REMOVE_TIMING_WORDS, "Remove Words");
-                    }
-                    else if (element->GetEffectLayerCount() == 3) {
-                        if (ri->layerIndex == 2) {
-                            mnuLayer.Append(ID_ROW_MNU_REMOVE_TIMING_PHONEMES, "Remove Phonemes");
+                    TimingElement *te = dynamic_cast<TimingElement*>(element);
+                    if (te->GetSubType() == "") {
+                        mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES, "Breakdown Phrases");
+                        if (element->GetEffectLayerCount() > 1) {
+                            mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_WORDS, "Breakdown Words");
                         }
-                        else {
-                            mnuLayer.Append(ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES, "Remove Words and Phonemes");
+                        if (element->GetEffectLayerCount() == 2) {
+                            mnuLayer.Append(ID_ROW_MNU_REMOVE_TIMING_WORDS, "Remove Words");
+                        }
+                        else if (element->GetEffectLayerCount() == 3) {
+                            if (ri->layerIndex == 2) {
+                                mnuLayer.Append(ID_ROW_MNU_REMOVE_TIMING_PHONEMES, "Remove Phonemes");
+                            }
+                            else {
+                                mnuLayer.Append(ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES, "Remove Words and Phonemes");
+                            }
                         }
                     }
                     mnuLayer.AppendSeparator();
@@ -648,10 +654,39 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     if (name != "") {
                         timing_added = true;
                     }
+                } else if (selected_timing == "FPP Commands" || selected_timing == "FPP Effects") {
+                    bool first = true;
+                    wxString subType = selected_timing;
+                    wxTextEntryDialog te(this, "Enter a name for the " + selected_timing + " track", wxGetTextFromUserPromptStr, selected_timing);
+                    OptimiseDialogPosition(&te);
+                    while (first || xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || selected_timing == "") {
+                        first = false;
+
+                        auto base = selected_timing;
+
+                        int suffix = 2;
+                        while (xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame())) {
+                            selected_timing = wxString::Format("%s_%d", base, suffix++);
+                        }
+
+                        te.SetValue(selected_timing);
+                        if (te.ShowModal() == wxID_OK) {
+                            selected_timing = te.GetValue();
+                            selected_timing = RemoveUnsafeXmlChars(selected_timing);
+                        } else {
+                            selected_timing = "";
+                            break;
+                        }
+                    }
+
+                    if (selected_timing != "") {
+                        xml_file->AddNewTimingSection(selected_timing, mSequenceElements->GetXLightsFrame(), subType);
+                        timing_added = true;
+                    }
+
                 } else if (selected_timing == "Empty") {
                     bool first = true;
                     wxTextEntryDialog te(this, "Enter a name for the timing track", wxGetTextFromUserPromptStr, selected_timing);
-
                     OptimiseDialogPosition(&te);
                     while (first || xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || selected_timing == "") {
                         first = false;
@@ -1570,8 +1605,9 @@ void RowHeading::render( wxPaintEvent& event )
             }
         } else if (rowInfo->element->GetType()== ElementType::ELEMENT_TYPE_TIMING) {
             if (rowInfo->layerIndex == 0) {
+                TimingElement *ti = dynamic_cast<TimingElement*>(rowInfo->element);
                 dc.SetPen(*wxBLACK_PEN);
-                if(dynamic_cast<TimingElement*>(rowInfo->element)->GetActive()) {
+                if (ti->GetActive()) {
                     dc.SetBrush(*wxWHITE_BRUSH);
                     dc.DrawCircle(7,startY + DEFAULT_ROW_HEADING_HEIGHT/2,5);
 
@@ -1583,7 +1619,12 @@ void RowHeading::render( wxPaintEvent& event )
                 }
                 dc.SetPen(penOutline);
                 dc.SetBrush(brush2);
-                if (rowInfo->element->GetEffectLayerCount() == 2) {
+                
+                if (ti->GetSubType() == "FPP Commands") {
+                    dc.DrawBitmap(fppCommand_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
+                } else if (ti->GetSubType() == "FPP Effects") {
+                    dc.DrawBitmap(fppEffect_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
+                } else if (rowInfo->element->GetEffectLayerCount() == 2) {
                     dc.DrawBitmap(papagayox_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
                 } else if (rowInfo->element->GetEffectLayerCount() > 2) {
                     dc.DrawBitmap(papagayo_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);

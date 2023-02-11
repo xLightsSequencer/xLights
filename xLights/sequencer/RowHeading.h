@@ -68,6 +68,8 @@ private:
 
     wxBitmapBundle papagayo_icon;
     wxBitmapBundle papagayox_icon;
+    wxBitmapBundle fppCommand_icon;
+    wxBitmapBundle fppEffect_icon;
     wxBitmapBundle model_group_icon;
 
     int mSelectedRow = -1;

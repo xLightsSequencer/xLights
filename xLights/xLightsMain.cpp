@@ -1779,7 +1779,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 #ifndef NDEBUG
     logger_base.debug("xLights Crash Menu item not removed.");
 #ifdef _MSC_VER
-    Notebook1->SetBackgroundColour(*wxGREEN);
+    if (wxSystemSettings::GetAppearance().IsDark()) {
+        Notebook1->SetBackgroundColour(wxColour(0x006000));
+    } else {
+        Notebook1->SetBackgroundColour(*wxGREEN);
+    }
 #endif
 #else
     // only keep the crash option if the special option is set
@@ -2209,7 +2213,6 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
     dlg.MainSizer->SetSizeHints(&dlg);
 
     if (IsFromAppStore()) {
-        dlg.PrivacyHyperlinkCtrl->SetURL("http://kulplights.com/xlights/privacy_policy.html");
         dlg.EULAHyperlinkCtrl->SetLabel("End User License Agreement");
         dlg.EULAHyperlinkCtrl->SetURL("http://kulplights.com/xlights/eula.html");
         dlg.EULAHyperlinkCtrl->Show();

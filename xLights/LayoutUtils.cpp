@@ -8,6 +8,8 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <map>
+
 #include "LayoutUtils.h"
 #include "UtilFunctions.h"
 
@@ -45,31 +47,31 @@ namespace LayoutUtils
         imageList.push_back(wxArtProvider::GetBitmapBundle("xlART_WREATH_ICON", wxART_LIST));
     }
 
-    void CreateImageList(wxImageList* imageList)
+    void CreateImageList(wxImageList* imageList, std::map<int, int> &idxs)
     {
-        imageList->Add(wxArtProvider::GetIcon("wxART_NORMAL_FILE", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_GROUP_CLOSED", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_GROUP_OPEN", wxART_LIST));
-        imageList->Add(BitmapCache::GetModelGroupIcon().GetIcon(wxDefaultSize));
-        imageList->Add(wxArtProvider::GetIcon("xlART_ARCH_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_CANE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_CIRCLE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_CHANNELBLOCK_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_CUBE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_CUSTOM_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_DMX_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_ICICLE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_IMAGE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_LINE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_MATRIX_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_POLY_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_SPHERE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_SPINNER_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_STAR_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_SUBMODEL_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_TREE_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_WINDOW_ICON", wxART_LIST));
-        imageList->Add(wxArtProvider::GetIcon("xlART_WREATH_ICON", wxART_LIST));
+        idxs[Icon_File] = imageList->Add(wxArtProvider::GetIcon("wxART_NORMAL_FILE", wxART_LIST));
+        idxs[Icon_FolderClosed] = imageList->Add(wxArtProvider::GetIcon("xlART_GROUP_CLOSED", wxART_LIST));
+        idxs[Icon_FolderOpened] = imageList->Add(wxArtProvider::GetIcon("xlART_GROUP_OPEN", wxART_LIST));
+        idxs[Icon_Group] = imageList->Add(BitmapCache::GetModelGroupIcon().GetIcon(wxDefaultSize));
+        idxs[Icon_Arches] = imageList->Add(wxArtProvider::GetIcon("xlART_ARCH_ICON", wxART_LIST));
+        idxs[Icon_CandyCane] = imageList->Add(wxArtProvider::GetIcon("xlART_CANE_ICON", wxART_LIST));
+        idxs[Icon_Circle] = imageList->Add(wxArtProvider::GetIcon("xlART_CIRCLE_ICON", wxART_LIST));
+        idxs[Icon_ChannelBlock] = imageList->Add(wxArtProvider::GetIcon("xlART_CHANNELBLOCK_ICON", wxART_LIST));
+        idxs[Icon_Cube] = imageList->Add(wxArtProvider::GetIcon("xlART_CUBE_ICON", wxART_LIST));
+        idxs[Icon_Custom] = imageList->Add(wxArtProvider::GetIcon("xlART_CUSTOM_ICON", wxART_LIST));
+        idxs[Icon_Dmx] = imageList->Add(wxArtProvider::GetIcon("xlART_DMX_ICON", wxART_LIST));
+        idxs[Icon_Icicle] = imageList->Add(wxArtProvider::GetIcon("xlART_ICICLE_ICON", wxART_LIST));
+        idxs[Icon_Image] = imageList->Add(wxArtProvider::GetIcon("xlART_IMAGE_ICON", wxART_LIST));
+        idxs[Icon_Line] = imageList->Add(wxArtProvider::GetIcon("xlART_LINE_ICON", wxART_LIST));
+        idxs[Icon_Matrix] = imageList->Add(wxArtProvider::GetIcon("xlART_MATRIX_ICON", wxART_LIST));
+        idxs[Icon_Poly] = imageList->Add(wxArtProvider::GetIcon("xlART_POLY_ICON", wxART_LIST));
+        idxs[Icon_Sphere] = imageList->Add(wxArtProvider::GetIcon("xlART_SPHERE_ICON", wxART_LIST));
+        idxs[Icon_Spinner] = imageList->Add(wxArtProvider::GetIcon("xlART_SPINNER_ICON", wxART_LIST));
+        idxs[Icon_Star] = imageList->Add(wxArtProvider::GetIcon("xlART_STAR_ICON", wxART_LIST));
+        idxs[Icon_SubModel] = imageList->Add(wxArtProvider::GetIcon("xlART_SUBMODEL_ICON", wxART_LIST));
+        idxs[Icon_Tree] = imageList->Add(wxArtProvider::GetIcon("xlART_TREE_ICON", wxART_LIST));
+        idxs[Icon_Window] = imageList->Add(wxArtProvider::GetIcon("xlART_WINDOW_ICON", wxART_LIST));
+        idxs[Icon_Wreath] = imageList->Add(wxArtProvider::GetIcon("xlART_WREATH_ICON", wxART_LIST));
     }
 
     int GetModelTreeIcon(std::string const& type, GroupMode mode)
