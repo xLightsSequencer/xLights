@@ -147,8 +147,8 @@
     <Controller Name="LED Panels">
         <Variant Name="" ID="LED Panels" Base="FPP:BaseFPPSettings">
             <MaxPixelPort>0</MaxPixelPort>
-            <MaxSerialPort>0</MaxSerialPort>
-            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxSerialPort>1</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>0</MaxPixelPortChannels>
             <SupportsLEDPanelMatrix/>
             <SupportsAutoLayout/>
@@ -168,8 +168,8 @@
     <Controller Name="Virtual Matrix">
         <Variant Name="" ID="Virtual Matrix" Base="FPP:BaseFPPSettings">
             <MaxPixelPort>0</MaxPixelPort>
-            <MaxSerialPort>0</MaxSerialPort>
-            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxSerialPort>1</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>0</MaxPixelPortChannels>
             <SupportsVirtualMatrix/>
             <SupportsLEDPanelMatrix/>
@@ -190,8 +190,8 @@
     <Controller Name="Pi4 Virtual Matrix">
         <Variant Name="" ID="Pi4 Virtual Matrix" Base="FPP:BaseFPPSettings">
             <MaxPixelPort>0</MaxPixelPort>
-            <MaxSerialPort>0</MaxSerialPort>
-            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxSerialPort>1</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>0</MaxPixelPortChannels>
             <SupportsVirtualMatrix/>
             <MaxVirtualMatrixPorts>2</MaxVirtualMatrixPorts>
