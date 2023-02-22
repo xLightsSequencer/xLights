@@ -862,7 +862,7 @@ bool FPP::uploadFileV7(const std::string &filename,
     std::string dir = d;
     if (dir == "music") {
         // xLights treats all media as music so for now we'll upload to uploads and call move to have
-        // fpp sort out where it goes
+        // fpp sort out where it goes.
         dir = "uploads";
         callMove = true;
     }
@@ -923,7 +923,7 @@ bool FPP::uploadFileV7(const std::string &filename,
             
             uint64_t read = in.Read(&data[0], remaining);
             if (read != remaining) {
-                printf("Error reading file\n");
+                messages.push_back("ERROR Uploading file: " + filename + "     Could not read source file.");
             }
             std::string contentSizeHeader = "Content-Length: " + std::to_string(remaining);
             headers = curl_slist_append(headers, contentSizeHeader.c_str());
