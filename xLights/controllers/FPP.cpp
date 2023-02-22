@@ -716,8 +716,13 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
 
     std::string fullUrl = ipAddress + "/jqupload.php";
     bool usingJqUpload = true;
+    bool usingMove = true;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
         fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
+        usingJqUpload = false;
+        usingMove = false;
+    } else if (IsVersionAtLeast(7, 0)) {
+        fullUrl = ipAddress + "/api/file/uploads/" + URLEncode(filename);
         usingJqUpload = false;
     }
     if (!_fppProxy.empty()) {
@@ -800,7 +805,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     if (i == CURLE_OK) {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         if (response_code == 200) {
-            if (usingJqUpload) {
+            if (usingMove) {
                 std::string val;
                 if (!GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename + ext), val)) {
                     logger_base.warn("Error trying to rename file.");
@@ -823,9 +828,145 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     return data.cancelled | cancelled;
 }
 
+
+struct V7ProgressStruct {
+    wxProgressDialog *progress;
+    size_t length;
+
+    size_t offset = 0;
+    int lastPct = 0;
+};
+int progress_callback(void *clientp,
+                      curl_off_t dltotal,
+                      curl_off_t dlnow,
+                      curl_off_t ultotal,
+                      curl_off_t ulnow) {
+    V7ProgressStruct *p = (V7ProgressStruct*)clientp;
+    if (p->progress) {
+        size_t start = p->offset;
+        start += ulnow;
+        start *= 1000;
+        start /= p->length;
+        if (p->lastPct != start) {
+            p->progress->Update(p->lastPct);
+            p->lastPct = start;
+        }
+    }
+    return 0;
+}
+bool FPP::uploadFileV7(const std::string &filename,
+                       const std::string &file,
+                       const std::string &d) {
+    bool cancelled = false;
+    bool callMove = false;
+    std::string dir = d;
+    if (dir == "music") {
+        // xLights treats all media as music so for now we'll upload to uploads and call move to have
+        // fpp sort out where it goes
+        dir = "uploads";
+        callMove = true;
+    }
+    
+    wxFile in;
+    in.Open(file);
+    if (in.IsOpened()) {
+        constexpr uint64_t BLOCK_SIZE = 64*1024*1024;
+        uint64_t filesize = in.Length();
+        std::vector<uint8_t> data(BLOCK_SIZE);
+        
+        uint64_t offset = 0;
+        std::string fullUrl = ipAddress + "/api/file/" + dir;
+        if (!_fppProxy.empty()) {
+            fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+        } else {
+            fullUrl = "http://" + fullUrl;
+        }
+        std::string fileSizeHeader = "Upload-Length: " + std::to_string(filesize);
+        std::string fileNameHeader = "Upload-Name: " + filename;
+        std::string progressTitle = "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress;
+        if (progressDialog != nullptr) {
+            progressDialog->SetTitle("FPP Upload");
+            cancelled |= !progressDialog->Update(0, progressTitle);
+        }
+        V7ProgressStruct progress;
+        progress.progress = progressDialog;
+        progress.length = filesize;
+        while (offset < filesize && !cancelled) {
+            setupCurl();
+            //if we cannot upload it in 5 minutes, we have serious issues
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
+            curlInputBuffer.clear();
+            char error[1024];
+
+            curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
+            curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
+            if (username != "") {
+                curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
+                curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
+                curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
+            }
+            struct curl_slist *headers = nullptr;
+            headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
+            headers = curl_slist_append(headers, "X-Requested-With: FPPConnect");
+
+            std::string offsetHeader = "Upload-Offset: " + std::to_string(offset);
+            headers = curl_slist_append(headers, offsetHeader.c_str());
+            headers = curl_slist_append(headers, fileSizeHeader.c_str());
+            headers = curl_slist_append(headers, fileNameHeader.c_str());
+            headers = curl_slist_append(headers, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
+
+            uint64_t remaining = filesize - offset;
+            if (remaining > BLOCK_SIZE) {
+                remaining = BLOCK_SIZE;
+            }
+            progress.offset = offset;
+            
+            uint64_t read = in.Read(&data[0], remaining);
+            if (read != remaining) {
+                printf("Error reading file\n");
+            }
+            std::string contentSizeHeader = "Content-Length: " + std::to_string(remaining);
+            headers = curl_slist_append(headers, contentSizeHeader.c_str());
+            curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)remaining);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, &data[0]);
+            curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
+            curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &progress);
+            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, (long)0);
+            
+            int i = curl_easy_perform(curl);
+            long response_code = 0;
+            if (i == CURLE_OK) {
+                curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+            }
+            if (response_code != 200) {
+                messages.push_back("ERROR Uploading file: " + filename + "     Could not upload file.");
+                offset = filesize - remaining;
+            }
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(headers);
+            curl = nullptr;
+
+            offset += remaining;
+            if (progressDialog) {
+                uint64_t pct = (offset * 1000) / filesize;
+                cancelled |= !progressDialog->Update(pct, progressTitle);
+            }
+        }
+    }
+    if (callMove) {
+        std::string val;
+        if (!GetURLAsString("/api/file/move/" + URLEncode(filename), val)) {
+            messages.push_back("ERROR Uploading file: " + filename + "     Could not move file to proper directory.");
+        }
+    }
+    return cancelled;
+}
+
 bool FPP::copyFile(const std::string &filename,
-                           const std::string &file,
-                           const std::string &dir) {
+                   const std::string &file,
+                   const std::string &dir) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
@@ -880,11 +1021,15 @@ bool FPP::copyFile(const std::string &filename,
     }
     return cancelled;
 }
+
 bool FPP::uploadOrCopyFile(const std::string &filename,
-                                   const std::string &file,
-                                   const std::string &dir) {
+                           const std::string &file,
+                           const std::string &dir) {
     if (IsDrive()) {
         return copyFile(filename, file, dir);
+    }
+    if (IsVersionAtLeast(7, 0)) {
+        return uploadFileV7(filename, file, dir);
     }
     return uploadFile(filename, file);
 }
