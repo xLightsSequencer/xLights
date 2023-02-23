@@ -979,6 +979,7 @@ void SubModelsDialog::OnListCtrl_SubModelsItemRClick(wxListEvent& event)
             mnu.AppendSeparator();
             mnu.Append(SUBMODEL_DIALOG_JOIN, "Join");
         }
+        // MOC - Split?
 
         mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SubModelsDialog::OnListPopup, nullptr, this);
         PopupMenu(&mnu);
@@ -2051,6 +2052,7 @@ void SubModelsDialog::OnPreviewLeftUp(wxMouseEvent& event)
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
 
+        // MOC TODO: Ctrl down
         SelectAllInBoundingRect(event.ShiftDown());
         m_creating_bound_rect = false;
 
