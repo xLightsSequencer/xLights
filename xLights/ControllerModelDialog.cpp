@@ -136,6 +136,64 @@ wxColour __modelSREText;
 wxColour __modelSRFText;
 wxPen __backgroundPen;
 wxBrush __backgroundBrush;
+
+void SetColours(bool printing)
+{
+    __invalidBrush.SetColour(__lightRed);
+    __serialPortOutlinePen.SetColour(*wxGREEN);
+    __modelOutlinePen.SetColour(__grey);
+    __modelOutlineLastDroppedPen.SetColour(__magenta);
+    __modelOutlineLastDroppedPen.SetWidth(3);
+
+    if (!printing && wxSystemSettings::GetAppearance().IsDark()) {
+        __modelOutlinePen.SetColour(__grey);
+        __dropTargetBrush.SetColour(*wxBLUE);
+        __dropTargetPen.SetColour(*wxBLUE);
+        __pixelPortOutlinePen.SetColour(*wxCYAN);
+        __vmPortOutlinePen.SetColour(__lightBlue);
+        __lpmPortOutlinePen.SetColour(__lightBlue);
+
+        __modelSRNoneBrush.SetColour(__darkGrey);
+        __modelSRABrush.SetColour(__darkGreen);
+        __modelSRBBrush.SetColour(__darkPurple);
+        __modelSRCBrush.SetColour(__darkOrange);
+        __modelSRDBrush.SetColour(__darkAqua);
+        __modelSREBrush.SetColour(__darkPink);
+        __modelSRFBrush.SetColour(__darkYellow);
+        __backgroundPen.SetColour(__charcoal);
+        __backgroundBrush.SetColour(__charcoal);
+        __modelSRAText = __lightGreen;
+        __modelSRBText = __lightPurple;
+        __modelSRCText = __lightOrange;
+        __modelSRDText = __lightAqua;
+        __modelSREText = __lightRed;
+        __modelSRFText = __lightYellow;
+        __textForeground = __lightGrey;
+    } else {
+        __modelOutlinePen.SetColour(__grey);
+        __dropTargetBrush.SetColour(__lightBlue);
+        __dropTargetPen.SetColour(__lightBlue);
+        __pixelPortOutlinePen.SetColour(*wxRED);
+        __modelSRNoneBrush.SetColour(*wxWHITE);
+        __vmPortOutlinePen.SetColour(*wxBLUE);
+        __lpmPortOutlinePen.SetColour(*wxBLUE);
+        __modelSRABrush.SetColour(__lightGreen);
+        __modelSRBBrush.SetColour(__lightPurple);
+        __modelSRCBrush.SetColour(__lightOrange);
+        __modelSRDBrush.SetColour(__lightAqua);
+        __modelSREBrush.SetColour(__lightPink);
+        __modelSRFBrush.SetColour(__lightYellow);
+        __backgroundPen.SetColour(*wxWHITE);
+        __backgroundBrush.SetColour(*wxWHITE);
+        __modelSRAText = *wxBLACK;
+        __modelSRBText = *wxBLACK;
+        __modelSRCText = *wxBLACK;
+        __modelSRDText = *wxBLACK;
+        __modelSREText = *wxBLACK;
+        __modelSRFText = *wxBLACK;
+        __textForeground = *wxBLACK;
+    }
+}
 #pragma endregion
 
 #pragma region Object Classes
@@ -159,9 +217,8 @@ protected:
     UDController* _cud = nullptr;
     ControllerCaps* _caps = nullptr;
     HITLOCATION _over = HITLOCATION::NONE;
-    int _style;
-    bool _invalid;
-
+    int _style = 0;
+    bool _invalid = false;
 
 public:
 
@@ -173,7 +230,6 @@ public:
         _size = size;
         _scale = scale;
         _invalid = false;
-        SetColors();
     }
     void SetLocationY(int y)
     {
@@ -212,62 +268,6 @@ public:
         dc.SetClippingRegion(pt, size);
         dc.DrawText(text, pt);
         dc.DestroyClippingRegion();
-    }
-    void SetColors() {
-        __invalidBrush.SetColour(__lightRed);
-        __serialPortOutlinePen.SetColour(*wxGREEN);
-        __modelOutlinePen.SetColour(__grey);
-        __modelOutlineLastDroppedPen.SetColour(__magenta);
-        __modelOutlineLastDroppedPen.SetWidth(3);
-
-        if (wxSystemSettings::GetAppearance().IsDark()) {
-            __modelOutlinePen.SetColour(__grey);
-            __dropTargetBrush.SetColour(*wxBLUE);
-            __dropTargetPen.SetColour(*wxBLUE);
-            __pixelPortOutlinePen.SetColour(*wxCYAN);
-            __vmPortOutlinePen.SetColour(__lightBlue);
-            __lpmPortOutlinePen.SetColour(__lightBlue);
-
-            __modelSRNoneBrush.SetColour(__darkGrey);
-            __modelSRABrush.SetColour(__darkGreen);
-            __modelSRBBrush.SetColour(__darkPurple);
-            __modelSRCBrush.SetColour(__darkOrange);
-            __modelSRDBrush.SetColour(__darkAqua);
-            __modelSREBrush.SetColour(__darkPink);
-            __modelSRFBrush.SetColour(__darkYellow);
-            __backgroundPen.SetColour(__charcoal);
-            __backgroundBrush.SetColour(__charcoal);
-            __modelSRAText = __lightGreen;
-            __modelSRBText = __lightPurple;
-            __modelSRCText = __lightOrange;
-            __modelSRDText = __lightAqua;
-            __modelSREText = __lightRed;
-            __modelSRFText = __lightYellow;
-            __textForeground = __lightGrey;
-        } else {
-            __modelOutlinePen.SetColour(__grey);
-            __dropTargetBrush.SetColour(__lightBlue);
-            __dropTargetPen.SetColour(__lightBlue);
-            __pixelPortOutlinePen.SetColour(*wxRED);
-            __modelSRNoneBrush.SetColour(*wxWHITE);
-            __vmPortOutlinePen.SetColour(*wxBLUE);
-            __lpmPortOutlinePen.SetColour(*wxBLUE);
-            __modelSRABrush.SetColour(__lightGreen);
-            __modelSRBBrush.SetColour(__lightPurple);
-            __modelSRCBrush.SetColour(__lightOrange);
-            __modelSRDBrush.SetColour(__lightAqua);
-            __modelSREBrush.SetColour(__lightPink);
-            __modelSRFBrush.SetColour(__lightYellow);
-            __backgroundPen.SetColour(*wxWHITE);
-            __backgroundBrush.SetColour(*wxWHITE);
-            __modelSRAText = *wxBLACK;
-            __modelSRBText = *wxBLACK;
-            __modelSRCText = *wxBLACK;
-            __modelSRDText = *wxBLACK;
-            __modelSREText = *wxBLACK;
-            __modelSRFText = *wxBLACK;
-            __textForeground = *wxBLACK;
-        }
     }
 };
 
@@ -348,7 +348,6 @@ int GetPort() const { return _port; }
 virtual std::string GetType() const override { return "PORT"; }
 virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped) override
 {
-
     auto origBrush = dc.GetBrush();
     auto origPen = dc.GetPen();
     auto origText = dc.GetTextForeground();
@@ -561,7 +560,14 @@ virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
                 auto types = _caps->GetSmartRemoteTypes();
                 std::transform(types.begin(), types.end(), std::back_inserter(choices),
                                [](auto const& str) { return str; });
+                int selection{ -1 };
+                if (GetUDPort()->GetModels().size() != 0 && nullptr != GetUDPort()->GetModels().front()) {
+                    selection = choices.Index(GetUDPort()->GetModels().front()->GetSmartRemoteType());
+                }
                 wxSingleChoiceDialog dlg(parent, "Port Smart Remote Type", "Smart Remote Type", choices);
+                if (selection >= 0 && selection < choices.size()) {
+                    dlg.SetSelection(selection);
+                }
                 if (dlg.ShowModal() == wxID_OK) {
                     for (const auto& it : GetUDPort()->GetModels()) {
                         it->GetModel()->SetSmartRemoteType(choices[dlg.GetSelection()]);
@@ -598,8 +604,13 @@ public:
         if (name != displayName) {
             _string = wxAtoi(AfterLast(displayName, '-')) -1;
         }
+        auto cmn = displayName.substr(0, displayName.find("-str-"));
         if (GetModel() != nullptr) {
             _isShadow = GetModel()->GetShadowModelFor() != "" || GetModel()->GetModelManager().IsModelShadowing(GetModel());
+        } else if (cmn != "" && (*mm)[cmn] != nullptr)
+            {
+            auto m = (*mm)[cmn];
+            _isShadow = m->GetShadowModelFor() != "" || mm->IsModelShadowing(m);
         }
     }
 
@@ -1247,6 +1258,8 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     Connect(ID_SCROLLBAR3, wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollChanged);
     //*)
 
+    ::SetColours(false);
+
     PanelController->SetBackgroundStyle(wxBG_STYLE_PAINT);
     PanelModels->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
@@ -1651,6 +1664,8 @@ void ControllerModelDialog::PrintScreen()
 
 wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width, int height, wxString const& pageName) {
 
+    ::SetColours(true);
+
     wxBitmap bitmap;
 
 	float maxx = width * 1.1;
@@ -1687,12 +1702,18 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
         }
     }
 
+    ::SetColours(false);
+
     return bitmap;
 }
 
 void ControllerModelDialog::SaveCSV() {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _controller->GetShortDescription(), wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    wxString cleanName = _controller->GetShortDescription();
+    cleanName.Replace(".", "_");
+    cleanName += ".csv";
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, cleanName, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (filename.IsEmpty()) return;
 

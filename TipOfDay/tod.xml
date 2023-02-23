@@ -54,4 +54,8 @@
    <tip url="00052.html" title="Logs" category="General" level="Expert" exclude=""/>
    <tip url="00053.html" title="Free Videos for effects" category="Sequencing" level="Intermediate" exclude=""/>
    <tip url="00054.html" title="Check Sequence: Model in multiple views" category="Layout" level="Advanced" exclude=""/>
+   <tip url="moc001.html" title="Adding Labels To Timing Tracks" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="moc002.html" title="Wiring View Surprise" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="moc003.html" title="Put Only Face Outlines In House/Yard/All Group" category="Layout" level="Beginner" exclude=""/>
+   <tip url="moc004.html" title="Don't Let Effect Import Mapping Be A Drag" category="Sequencer" level="Beginner" exclude=""/>
 </tipofday>

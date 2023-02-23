@@ -38,10 +38,8 @@ class xLightsXmlFile : public wxFileName
 {
 public:
     // xLightsXmlFile();
-    xLightsXmlFile(const wxFileName& filename);
+    xLightsXmlFile(const wxFileName& filename, uint32_t frameMS = 0);
     virtual ~xLightsXmlFile();
-
-
 
     const wxString HEADER_STRINGS[static_cast<int>(HEADER_INFO_TYPES::NUM_TYPES)] = {
         "author",
@@ -115,10 +113,7 @@ public:
     void SetMediaFile(const wxString& ShowDir, const wxString& filename, bool overwrite_tags);
     void ClearMediaFile();
 
-    wxString const& GetHeaderInfo(HEADER_INFO_TYPES node_type) const
-    {
-        return header_info[static_cast<int>(node_type)];
-    }
+    wxString GetHeaderInfo(HEADER_INFO_TYPES node_type) const;
     void SetHeaderInfo(HEADER_INFO_TYPES node_type, const wxString& node_value);
 
     wxString GetImageDir(wxWindow* parent);
@@ -133,7 +128,7 @@ public:
         return sequence_loaded;
     }
 
-    void AddNewTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent);
+    void AddNewTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent, const std::string& subType = "");
     void AddNewTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent, std::vector<int>& starts,
                              std::vector<int>& ends, std::vector<std::string>& labels);
     void AddFixedTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent);
@@ -231,7 +226,7 @@ private:
     bool LoadV3Sequence();
     bool Save();
     bool SaveCopy() const;
-    void AddTimingDisplayElement(const wxString& name, const wxString& visible, const wxString& active);
+    void AddTimingDisplayElement(const wxString& name, const wxString& visible, const wxString& active, const wxString &subType = "");
     void AddDisplayElement(const wxString& name, const wxString& type, const wxString& visible, const wxString& collapsed, const wxString& active, const wxString& renderDisabled);
     wxXmlNode* AddElement(const wxString& name, const wxString& type);
     int AddColorPalette(StringIntMap& paletteCache, const wxString& palette);

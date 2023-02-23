@@ -22,6 +22,7 @@ const long LinkJukeboxButtonDialog::ID_STATICTEXT1 = wxNewId();
 const long LinkJukeboxButtonDialog::ID_TEXTCTRL1 = wxNewId();
 const long LinkJukeboxButtonDialog::ID_STATICTEXT6 = wxNewId();
 const long LinkJukeboxButtonDialog::ID_TEXTCTRL2 = wxNewId();
+const long LinkJukeboxButtonDialog::ID_CHECKBOX1 = wxNewId();
 const long LinkJukeboxButtonDialog::ID_RADIOBUTTON2 = wxNewId();
 const long LinkJukeboxButtonDialog::ID_STATICTEXT2 = wxNewId();
 const long LinkJukeboxButtonDialog::ID_CHOICE1 = wxNewId();
@@ -185,6 +186,10 @@ LinkJukeboxButtonDialog::LinkJukeboxButtonDialog(wxWindow* parent, int button, B
 	FlexGridSizer2->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Tooltip = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
 	FlexGridSizer2->Add(TextCtrl_Tooltip, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_LoopEffect = new wxCheckBox(this, ID_CHECKBOX1, _("Loop effect playback"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_LoopEffect->SetValue(true);
+	FlexGridSizer2->Add(CheckBox_LoopEffect, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	RadioButton_MLT = new wxRadioButton(this, ID_RADIOBUTTON2, _("Model/Layer/Time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
 	FlexGridSizer1->Add(RadioButton_MLT, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -243,6 +248,7 @@ LinkJukeboxButtonDialog::LinkJukeboxButtonDialog(wxWindow* parent, int button, B
 
     if (buttonControl != nullptr)
     {
+        CheckBox_LoopEffect->SetValue(buttonControl->_loop);
         TextCtrl_Tooltip->SetValue(buttonControl->_tooltip);
         if (buttonControl->_type == ButtonControl::LOOKUPTYPE::LTDESCRIPTION)
         {

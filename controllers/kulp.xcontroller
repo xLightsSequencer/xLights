@@ -105,6 +105,15 @@
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
     </Controller>
+    <Controller Name="K128D-B">
+        <Variant Name="" ID="K128D-B" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>128</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+            <fppStringDriverType>BBShiftString</fppStringDriverType>
+        </Variant>
+    </Controller>
     <Controller Name="K8-B">
         <Variant Name="No Expansion" ID="K8-B" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>20</MaxPixelPort>

@@ -26,17 +26,45 @@
 
 class FillEffect : public RenderableEffect
 {
-    public:
-        FillEffect(int id);
-        virtual ~FillEffect();
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool needToAdjustSettings(const std::string &version) override;
-        virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
-        virtual void SetDefaultParameters() override;
-        virtual bool CanRenderPartialTimeInterval() const override { return true; }
+public:
+    FillEffect(int id);
+    virtual ~FillEffect();
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual bool needToAdjustSettings(const std::string& version) override;
+    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
+    virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
+    virtual void SetDefaultParameters() override;
+    virtual bool CanRenderPartialTimeInterval() const override
+    {
+        return true;
+    }
 
-    protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
-    private:
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Fill_Position")
+            return FILL_POSITION_MIN;
+        if (name == "E_VALUECURVE_Fill_Band_Size")
+            return FILL_BANDSIZE_MIN;
+        if (name == "E_VALUECURVE_Fill_Skip_Size")
+            return FILL_SKIPSIZE_MIN;
+        if (name == "E_VALUECURVE_Fill_Offset")
+            return FILL_OFFSET_MIN;
+
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Fill_Position")
+            return FILL_POSITION_MAX;
+        if (name == "E_VALUECURVE_Fill_Band_Size")
+            return FILL_BANDSIZE_MAX;
+        if (name == "E_VALUECURVE_Fill_Skip_Size")
+            return FILL_SKIPSIZE_MAX;
+        if (name == "E_VALUECURVE_Fill_Offset")
+            return FILL_OFFSET_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
+
+protected:
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

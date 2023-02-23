@@ -17,37 +17,8 @@
 #include "RenderBuffer.h"
 #include "ValueCurve.h"
 #include "RenderUtils.h"
+#include "GPURenderUtils.h"
 #include "Color.h"
-
-#define BLUR_MIN 1
-#define BLUR_MAX 15
-#define RZ_ROTATION_MIN 0
-#define RZ_ROTATION_MAX 100
-#define RZ_ZOOM_MIN 0
-#define RZ_ZOOM_MAX 30
-#define RZ_ZOOM_DIVISOR 10
-#define RZ_ROTATIONS_MIN 0
-#define RZ_ROTATIONS_MAX 200
-#define RZ_ROTATIONS_DIVISOR 10
-#define RZ_PIVOTX_MIN 0
-#define RZ_PIVOTX_MAX 100
-#define RZ_PIVOTY_MIN 0
-#define RZ_PIVOTY_MAX 100
-#define RZ_XROTATION_MIN 0
-#define RZ_XROTATION_MAX 360
-#define RZ_YROTATION_MIN 0
-#define RZ_YROTATION_MAX 360
-#define RZ_XPIVOT_MIN 0
-#define RZ_XPIVOT_MAX 100
-#define RZ_YPIVOT_MIN 0
-#define RZ_YPIVOT_MAX 100
-
-#define SB_LEFT_BOTTOM_MIN -100
-#define SB_LEFT_BOTTOM_MAX 99
-#define SB_RIGHT_TOP_MIN 1
-#define SB_RIGHT_TOP_MAX 200
-#define SB_CENTRE_MIN -100
-#define SB_CENTRE_MAX 100
 
  /**
  * \brief enumeration of the different techniques used in layering effects
@@ -259,9 +230,10 @@ private:
     void reset(int layers, int timing, bool isNode = false);
 	void Blur(LayerInfo* layer, float offset);
     void RotoZoom(LayerInfo* layer, float offset);
-    void RotateX(LayerInfo* layer, float offset);
-    void RotateY(LayerInfo* layer, float offset);
-    void RotateZAndZoom(LayerInfo* layer, float offset);
+    void RotateX(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings);
+    void RotateY(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings);
+    void RotateZAndZoom(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings);
+    
     void GetMixedColor(int node, const std::vector<bool> & validLayers, int EffectPeriod, int saveLayer);
 
     std::string modelName;
@@ -275,7 +247,7 @@ private:
 
 public:
     static std::vector<std::string> GetMixTypes();
-    void GetMixedColor(int x, int y, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod);
+    void GetMixedColor(int x, int y, xlColor& c, const std::vector<bool>& validLayers, int EffectPeriod);
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
     xlColor GetNodeColor(size_t nodenum) const;

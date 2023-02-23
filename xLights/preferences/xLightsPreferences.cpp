@@ -21,6 +21,7 @@
 #include "RandomEffectsSettingsPanel.h"
 #include "ColorManagerSettingsPanel.h"
 #include "OtherSettingsPanel.h"
+#include "CheckSequenceSettingsPanel.h"
 
 #include "grid_icon.xpm"
 #include "settings_panel_icon.xpm"
@@ -66,23 +67,35 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
         mPreferencesEditor.reset(new wxPreferencesEditor("Preferences"));
         std::function<wxWindow*(wxWindow*)> f = [this] (wxWindow *p) { return (wxWindow*)(new BackupSettingsPanel(p, this));};
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Backup", wxArtProvider::GetBitmap(wxART_HARDDISK, wxART_BUTTON, wxSize(64, 64)), f));
+
         f = [this] (wxWindow *p) { return (wxWindow*)(new ViewSettingsPanel(p, this));};
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("View", wxArtProvider::GetBitmap(wxART_FULL_SCREEN, wxART_BUTTON, wxSize(64, 64)), f));
+
         f = [this] (wxWindow *p) { return (wxWindow*)(new EffectsGridSettingsPanel(p, this));};
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Effects Grid", gridIcon, f));
+
         f = [this] (wxWindow *p) { return (wxWindow*)(new SequenceFileSettingsPanel(p, this));};
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Sequences", wxArtProvider::GetBitmap("xlART_SETTINGS", wxART_BUTTON, wxSize(64, 64)), f));
+
         f = [this] (wxWindow *p) { return (wxWindow*)(new OutputSettingsPanel(p, this));};
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Output", wxArtProvider::GetBitmap("xlART_OUTPUT_LIGHTS_ON", wxART_BUTTON, wxSize(64, 64)), f));
+
+        f = [this](wxWindow* p) { return (wxWindow*)(new CheckSequenceSettingsPanel(p, this)); };
+        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Check Sequence", wxArtProvider::GetBitmap("xlART_SETTINGS", wxART_BUTTON, wxSize(64, 64)), f));
+
         f = [this] (wxWindow *p) { return (wxWindow*)(new RandomEffectsSettingsPanel(p, this));};
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Random Effects", wxArtProvider::GetBitmap("xlART_DICE_ICON", wxART_BUTTON, wxSize(64, 64)), f));
+
         f = [this] (wxWindow *p) { return (wxWindow*)(new ColorManagerSettingsPanel(p, this));};
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Colors", wxArtProvider::GetBitmap("xlART_RENDER_ALL", wxART_BUTTON, wxSize(64, 64)), f));
+
         f = [this] (wxWindow *p) { return (wxWindow*)(new OtherSettingsPanel(p, this));};
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Other", settingIcon, f));
     }
 
     mPreferencesEditor->Show(this);
+
+    ResizeMainSequencer(); // just in case row height has changed
 
     if (ld != _lowDefinitionRender) {
         // just in case the user changes the low resolution renderer

@@ -45,7 +45,7 @@
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1d</border>
 									<option>1</option>
 								</object>
@@ -93,7 +93,7 @@
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -119,7 +119,7 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Fan_Start_Radius" subclass="BulkEditSlider" variable="Slider_Fan_Start_Radius" member="yes">
 										<value>1</value>
-										<max>500</max>
+										<max>2500</max>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
@@ -138,8 +138,8 @@
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Start_Radius" subclass="BulkEditTextCtrl" variable="TextCtrl_Fan_Start_Radius" member="no">
 										<value>1</value>
-										<maxlength>3</maxlength>
-										<size>20,-1d</size>
+										<maxlength>4</maxlength>
+										<size>30,-1d</size>
 										<style>wxTE_CENTRE</style>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -190,7 +190,7 @@
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -216,7 +216,7 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Fan_End_Radius" subclass="BulkEditSlider" variable="Slider_Fan_End_Radius" member="yes">
 										<value>10</value>
-										<max>500</max>
+										<max>2500</max>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
@@ -235,11 +235,11 @@
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_End_Radius" subclass="BulkEditTextCtrl" variable="TextCtrl_Fan_End_Radius" member="no">
 										<value>10</value>
-										<maxlength>3</maxlength>
+										<maxlength>4</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -288,7 +288,7 @@
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>

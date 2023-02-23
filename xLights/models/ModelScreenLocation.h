@@ -281,7 +281,7 @@ protected:
     float rotatez = 0.0f;
     mutable glm::mat4 ModelMatrix;
     mutable glm::mat4 TranslateMatrix;
-    mutable glm::quat rotate_quat;
+    mutable glm::quat rotate_quat = glm::quat(1.0, glm::vec3(0.0));
     mutable glm::vec3 aabb_min = glm::vec3(0.0f);
     mutable glm::vec3 aabb_max = glm::vec3(0.0f);
 

@@ -64,9 +64,9 @@ void DmxServo::Clear()
     static_images.clear();
 }
 
-void DmxServo::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxServo::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     wxPGProperty* p = grid->Append(new wxUIntProperty("Num Servos", "NumServos", (int)num_servos));
     p->SetAttribute("Min", 1);
@@ -381,6 +381,14 @@ void DmxServo::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ct
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(Nodes);
+    if (boundingBox) {
+        boundingBox[0] = -0.5;
+        boundingBox[1] = -0.5;
+        boundingBox[2] = -0.5;
+        boundingBox[3] = 0.5;
+        boundingBox[4] = 0.5;
+        boundingBox[5] = 0.5;
+    }
 
     xlGraphicsProgram* program = transparentProgram;
     program->addStep([=](xlGraphicsContext* ctx) {

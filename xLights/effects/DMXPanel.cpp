@@ -727,11 +727,11 @@ void DMXPanel::OnButtonRemapClick(wxCommandEvent& event)
     RemapDMXChannelsDialog dlg(this);
     if (dlg.ShowModal() == wxID_OK)
     {
-        std::vector<int> sliders(40);
-        std::vector<std::string> curves(40);
+        std::vector<int> sliders(DMX_CHANNELS);
+        std::vector<std::string> curves(DMX_CHANNELS);
 
         // save the current values
-        for (int i = 0; i < 40; i++)
+        for (int i = 0; i < DMX_CHANNELS; i++)
         {
             wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i+1);
             wxSlider* slider = (wxSlider*)(this->FindWindowByName(slider_ctrl));
@@ -743,12 +743,12 @@ void DMXPanel::OnButtonRemapClick(wxCommandEvent& event)
             curves[i] = curve->GetValue()->Serialise();
         }
 
-        for (int i = 0; i < 40; i++)
+        for (int i = 0; i < DMX_CHANNELS; i++)
         {
-            if (dlg.Grid1->GetCellValue(i, 0) != dlg.Grid1->GetCellValue(i, 1))
+            if (dlg.DoMapping(i))
             {
                 int from = i;
-                int to = wxAtoi(dlg.Grid1->GetCellValue(i, 1).AfterLast(' '));
+                int to = dlg.GetToChannel(i);
                 wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", to);
                 wxSlider* slider = (wxSlider*)(this->FindWindowByName(slider_ctrl));
                 wxASSERT(slider != nullptr);
@@ -759,9 +759,14 @@ void DMXPanel::OnButtonRemapClick(wxCommandEvent& event)
                 wxTextCtrl* text = (wxTextCtrl*)(this->FindWindowByName(text_ctrl));
                 wxASSERT(text != nullptr);
 
-                text->SetValue(wxString::Format("%d", sliders[from]));
-                slider->SetValue(sliders[from]);
+                double scale {dlg.GetChanScale(i)};
+                int offset {dlg.GetChanOffset(i)};
+                int new_value = ((double)sliders[from] * scale) + offset;
+
+                text->SetValue(wxString::Format("%d", new_value));
+                slider->SetValue(new_value);
                 curve->GetValue()->Deserialise(curves[from]);
+                curve->GetValue()->ScaleAndOffsetValues(scale, offset);
                 wxCommandEvent vcevent;
                 vcevent.SetEventObject(curve);
                 OnVCChanged(vcevent);
@@ -796,19 +801,19 @@ void DMXPanel::OnChoicePopup(wxCommandEvent& event)
     RemapDMXChannelsDialog dlg(this);
     if (dlg.ShowModal() == wxID_OK)
     {
-        std::vector<std::pair<int, int>> fromto;
+        std::vector<std::tuple<int, int, float, int>> dmxmappings;
 
-        for (int i = 0; i < 40; i++)
+        for (int i = 0; i < DMX_CHANNELS; i++)
         {
-            if (dlg.Grid1->GetCellValue(i, 0) != dlg.Grid1->GetCellValue(i, 1))
+            if (dlg.DoMapping(i))
             {
-                fromto.push_back({ i + 1,wxAtoi(dlg.Grid1->GetCellValue(i, 1).AfterLast(' ')) });
+                dmxmappings.push_back(std::make_tuple( i + 1,dlg.GetToChannel(i), dlg.GetChanScale(i), dlg.GetChanOffset(i) ));
             }
         }
 
-        if (fromto.size() > 0)
+        if (dmxmappings.size() > 0)
         {
-            xLightsApp::GetFrame()->GetMainSequencer()->RemapSelectedDMXEffectValues(fromto);
+            xLightsApp::GetFrame()->GetMainSequencer()->RemapSelectedDMXEffectValues(dmxmappings);
             // unselect and select effect to update the panel
             auto effect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
             if (effect != nullptr)
@@ -828,7 +833,7 @@ void DMXPanel::ValidateWindow()
 		vc = true;
 	}
 
-	for (int i = 0; i < 40 && !vc; i++)
+	for (int i = 0; i < DMX_CHANNELS && !vc; i++)
     {
         wxString vc_ctrl = wxString::Format("ID_VALUECURVE_DMX%d", i+1);
         ValueCurveButton* curve = (ValueCurveButton*)(this->FindWindowByName(vc_ctrl));
@@ -865,7 +870,7 @@ std::list<Model*> DMXPanel::GetActiveModels()
 						if (model->GetDisplayAs() == "ModelGroup") {
 							auto mg = dynamic_cast<ModelGroup*>(model);
 							if (mg != nullptr) {
-								for (const auto& it : mg->GetFlatModels()) {
+								for (const auto& it : mg->GetFlatModels(true, false)) {
 									if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {
 										res.push_back(it);
 									}
@@ -919,7 +924,7 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 	n->AddAttribute("CustomColors", "1");
 	n->AddAttribute("Name", stateName);
 	n->AddAttribute("Type", "SingleNode");
-	for (uint32_t i = 0; i < 40; i++) {
+	for (uint32_t i = 0; i < DMX_CHANNELS; i++) {
 		if (i < maxChannels) {
 			auto attr = wxString::Format("s%d-Name", i + 1);
 			n->AddAttribute(attr, stateName);
@@ -965,7 +970,7 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 
 void DMXPanel::OnButton_Load_StateClick(wxCommandEvent& event)
 {
-    uint32_t maxChannels{40};
+    uint32_t maxChannels{DMX_CHANNELS};
 
     auto models = GetActiveModels();
     if (models.size() < 1) {

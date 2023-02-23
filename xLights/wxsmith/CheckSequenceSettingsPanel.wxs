@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="CheckSequenceSettingsPanel">
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+					<label>Disabling check sequence checks can reduce clutter in your check sequence results&#x0A;but can also mask causes of issues such as incorrect pixels lighting up or slow rendering.&#x0A;&#x0A;Please ensure you understand what the check sequence options do before deciding&#x0A;to disable them on someone&apos;s advice.</label>
+				</object>
+				<col>0</col>
+				<row>0</row>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_DupUniv" member="yes">
+					<label>Disable checks on duplicate use of universe/id across controllers.</label>
+					<help>If you are using unicast and not using #universe:startchannel addressing then this check can be disabled.</help>
+					<handler function="OnCheckBox_DupUnivClick" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>1</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_NonContigChOnPort" member="yes">
+					<label>Disable checks for non-contiguous channels on controller ports.</label>
+					<help>If you only use controllers that support virtual strings then this check can be safely disabled.</help>
+					<handler function="OnCheckBox_NonContigChOnPortClick" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>2</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_PreviewGroup" member="yes">
+					<label>Disable checks for groups containing models from different previews.</label>
+					<help>Adding models to groups from different previews can make them appear in other views with no obvious reason why they do.</help>
+					<handler function="OnCheckBox_PreviewGroupClick" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>3</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_DupNodeMG" member="yes">
+					<label>Disable checks for duplicate nodes in model groups.</label>
+					<help>Duplicate nodes in model groups can lead to pixels lighting during effects at unexpected times.</help>
+					<handler function="OnCheckBox_DupNodeMGClick" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>4</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_TransTime" member="yes">
+					<label>Disable transition time checking.</label>
+					<help>Transition times that overlap or extend beyond the duration of the effect can lead to unexpected amounts of dimming.</help>
+					<handler function="OnCheckBox_TransTimeClick" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>5</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX6" variable="CheckBox_CustomSizeCheck" member="yes">
+					<label>Disable custom model size checking.</label>
+					<help>Large custom models with largely empty cells generate significant rendering overhead. You may want to consider shrinking the custom model dimensions if this can done without too significantly adversely affecting appearance.</help>
+					<handler function="OnCheckBox_CustomSizeCheckClick" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>6</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

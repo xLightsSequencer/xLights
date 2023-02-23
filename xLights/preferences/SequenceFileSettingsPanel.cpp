@@ -163,6 +163,9 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
+    #ifdef _MSC_VER
+    MSWDisableComposited();
+    #endif
 }
 
 SequenceFileSettingsPanel::~SequenceFileSettingsPanel()
@@ -257,6 +260,7 @@ bool SequenceFileSettingsPanel::TransferDataToWindow() {
 
 
     folder = frame->GetShowDirectory();
+    MediaDirectoryList->Clear();
     for (auto &a : frame->GetMediaFolders()) {
         if (a != folder) {
             MediaDirectoryList->Append(a);

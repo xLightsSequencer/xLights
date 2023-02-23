@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "Curl.h"
+#include "utils/Curl.h"
 
 #include <wx/wx.h>
 

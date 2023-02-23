@@ -27,6 +27,7 @@
 #include "../xLights/xLightsVersion.h"
 #include "../xLights/outputs/ControllerEthernet.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/ip_utils.h"
 #include "../xLights/controllers/BaseController.h"
 
 #include "../xLights/automation/automation.h"
@@ -740,7 +741,7 @@ void xScannerFrame::OnMenuItemScanSelected(wxCommandEvent& event)
 void xScannerFrame::OnTreeItemActivated(wxTreeListEvent& event)
 {
     auto iptxt = _tree->GetItemText(event.GetItem()).BeforeFirst(' ');
-    if (::IsIPValid(iptxt)) {
+    if (ip_utils::IsIPValid(iptxt)) {
         ::wxLaunchDefaultBrowser(iptxt);
     }
 }
@@ -751,7 +752,7 @@ void xScannerFrame::OnTreeRClick(wxTreeListEvent& event)
     wxMenu mnuLayer;
     mnuLayer.Append(ID_MNU_RESCAN, "Rescan");
     mnuLayer.Append(ID_MNU_EXPORT, "Export to CSV");
-    if (::IsIPValid(_tree->GetItemText(_item,0))) {
+    if (ip_utils::IsIPValid(_tree->GetItemText(_item,0))) {
         mnuLayer.Append(ID_MNU_ADDTOXLIGHTS, "Import to xLights");
     }
     mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScannerFrame::OnPopup, nullptr, this);

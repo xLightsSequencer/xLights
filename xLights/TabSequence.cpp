@@ -132,6 +132,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
             DisplayError("Unable to load RGB effects file ... creating a default one.", this);
             CreateDefaultEffectsXml();
         }
+        wxXmlDoctype dt("");
+        EffectsXml.SetDoctype(dt);
     }
 
     wxXmlNode* root = EffectsXml.GetRoot();
@@ -536,51 +538,46 @@ void xLightsFrame::LoadPerspectivesMenu(wxXmlNode* perspectivesNode)
     int menuCount = MenuItemPerspectives->GetMenuItemCount();
     int first = menuCount - 1;
     wxMenuItem* current_menuitem = MenuItemPerspectives->FindItemByPosition(first);
-    while (current_menuitem != nullptr && !current_menuitem->IsSeparator())
-    {
+    while (current_menuitem != nullptr && !current_menuitem->IsSeparator()) {
         first--;
         current_menuitem = MenuItemPerspectives->FindItemByPosition(first);
     }
     first++;
-    current_menuitem =  first < menuCount ? MenuItemPerspectives->FindItemByPosition(first) : nullptr;
+    current_menuitem = first < menuCount ? MenuItemPerspectives->FindItemByPosition(first) : nullptr;
     while (current_menuitem != nullptr) {
         MenuItemPerspectives->Delete(current_menuitem);
         menuCount--;
         current_menuitem = first < menuCount ? MenuItemPerspectives->FindItemByPosition(first) : nullptr;
     }
 
-
     int pCount = 0;
 
-    for(wxXmlNode* p=perspectivesNode->GetChildren(); p != nullptr; p=p->GetNext() )
-    {
-        if (p->GetName() == "perspective")
-        {
-            wxString name=p->GetAttribute("name");
-            if (!name.IsEmpty())
-            {
+    for (wxXmlNode* p = perspectivesNode->GetChildren(); p != nullptr; p = p->GetNext()) {
+        if (p->GetName() == "perspective") {
+            wxString name = p->GetAttribute("name");
+            if (!name.IsEmpty()) {
                 int id = wxNewId();
-                MenuItemPerspectives->AppendRadioItem(id,name);
+                MenuItemPerspectives->AppendRadioItem(id, name);
                 if (mCurrentPerpective != nullptr && (name == mCurrentPerpective->GetAttribute("name")))
-                  MenuItemPerspectives->Check(id,true);
+                    MenuItemPerspectives->Check(id, true);
                 PerspectiveId pmenu;
-                pmenu.id=id;
-                pmenu.p=p;
+                pmenu.id = id;
+                pmenu.p = p;
                 perspectives[pCount] = pmenu;
-                Connect(id, wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadPerspectiveSelected);
+                Connect(id, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadPerspectiveSelected);
                 pCount++;
-                if (pCount>=10) { return; }
+                if (pCount >= 10) {
+                    return;
+                }
             }
         }
     }
-
-
 }
 
 void xLightsFrame::OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event)
 {
     Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
-    for (int i=0;i<10;i++) {
+    for (size_t i = 0; i < 10; ++i) {
         if (perspectives[i].id == event.GetId()) {
             DoLoadPerspective(perspectives[i].p);
             return;
@@ -590,82 +587,73 @@ void xLightsFrame::OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event)
 
 void xLightsFrame::SaveModelsFile()
 {
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string filename = CurrentDir.ToStdString() + "/xScheduleData/GetModels.dat";
 
-    if (!wxDir::Exists(CurrentDir + "/xScheduleData"))
-    {
+    if (!wxDir::Exists(CurrentDir + "/xScheduleData")) {
         logger_base.debug("Creating xScheduleData folder.");
         wxDir sd(CurrentDir);
         sd.Make(CurrentDir + "/xScheduleData");
     }
 
-    logger_base.debug("Creating models JSON file: %s.", (const char *)filename.c_str());
+    logger_base.debug("Creating models JSON file: %s.", (const char*)filename.c_str());
 
     wxFile modelsJSON;
-    if (!modelsJSON.Create(filename, true) || !modelsJSON.IsOpened())
-    {
-        logger_base.error("Unable to create file: %s.", (const char *)filename.c_str());
+    if (!modelsJSON.Create(filename, true) || !modelsJSON.IsOpened()) {
+        logger_base.error("Unable to create file: %s.", (const char*)filename.c_str());
         return;
     }
 
     modelsJSON.Write("{\"models\":[");
 
     bool first = true;
-    for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
-    {
+    for (auto m = AllModels.begin(); m != AllModels.end(); ++m) {
         Model* model = m->second;
-        if (model->GetDisplayAs() == "ModelGroup")
-        {
+        if (model->GetDisplayAs() == "ModelGroup") {
             // Dont export model groups ... they arent useful
 
-            //if (!first)
+            // if (!first)
             //{
-            //    modelsJSON.Write(",");
-            //}
-            //first = false;
+            //     modelsJSON.Write(",");
+            // }
+            // first = false;
 
-            //ModelGroup* mg = static_cast<ModelGroup*>(model);
-            //modelsJSON.Write("{\"name\":\"" + mg->name +
-            //    "\",\"type\":\"" + mg->GetDisplayAs() +
-            //    "\",\"startchannel\":\"" + wxString::Format("%i", mg->NodeStartChannel(0) + 1) +
-            //    "\",\"channels\":\"" + wxString::Format("%i", mg->GetChanCount()) +
-            //    "\",\"stringtype\":\"\"}");
-        }
-        else if (model->GetDisplayAs() == "SubModel")
-        {
+            // ModelGroup* mg = static_cast<ModelGroup*>(model);
+            // modelsJSON.Write("{\"name\":\"" + mg->name +
+            //     "\",\"type\":\"" + mg->GetDisplayAs() +
+            //     "\",\"startchannel\":\"" + wxString::Format("%i", mg->NodeStartChannel(0) + 1) +
+            //     "\",\"channels\":\"" + wxString::Format("%i", mg->GetChanCount()) +
+            //     "\",\"stringtype\":\"\"}");
+        } else if (model->GetDisplayAs() == "SubModel") {
             // Dont export SubModels ... they arent useful
 
-            //if (!first)
+            // if (!first)
             //{
-            //    modelsJSON.Write(",");
-            //}
-            //first = false;
+            //     modelsJSON.Write(",");
+            // }
+            // first = false;
 
-            //SubModel* sm = static_cast<SubModel*>(model);
-            //int ch = sm->GetNumberFromChannelString(sm->ModelStartChannel);
-            //modelsJSON.Write("{\"name\":\"" + sm->name +
-            //    "\",\"type\":\"" + sm->GetDisplayAs() +
-            //    "\",\"startchannel\":\"" + wxString::Format("%i", ch) +
-            //    "\",\"channels\":\"" + wxString::Format("%i", sm->GetChanCount()) +
-            //    "\",\"stringtype\":\"" + sm->GetStringType() + "\"}");
-        }
-        else
-        {
-            if (!first)
-            {
+            // SubModel* sm = static_cast<SubModel*>(model);
+            // int ch = sm->GetNumberFromChannelString(sm->ModelStartChannel);
+            // modelsJSON.Write("{\"name\":\"" + sm->name +
+            //     "\",\"type\":\"" + sm->GetDisplayAs() +
+            //     "\",\"startchannel\":\"" + wxString::Format("%i", ch) +
+            //     "\",\"channels\":\"" + wxString::Format("%i", sm->GetChanCount()) +
+            //     "\",\"stringtype\":\"" + sm->GetStringType() + "\"}");
+        } else {
+            if (!first) {
                 modelsJSON.Write(",");
             }
             first = false;
 
             long ch = model->GetNumberFromChannelString(model->ModelStartChannel);
-            modelsJSON.Write("{\"name\":\""+model->name+
-                              "\",\"type\":\""+model->GetDisplayAs()+
-                              "\",\"startchannel\":\""+wxString::Format("%ld", (long)ch)+
-                              "\",\"channels\":\""+ wxString::Format("%ld", (long)model->GetChanCount()) +
-                              "\",\"stringtype\":\""+ model->GetStringType() +"\"}");
+            modelsJSON.Write("{\"name\":\"" + model->name +
+                             "\",\"type\":\"" + model->GetDisplayAs() +
+                             "\",\"startchannel\":\"" + wxString::Format("%ld", (long)ch) +
+                             "\",\"channels\":\"" + wxString::Format("%ld", (long)model->GetChanCount()) +
+                             "\",\"stringtype\":\"" + model->GetStringType() + "\"}");
         }
     }
 
@@ -677,38 +665,32 @@ void xLightsFrame::SaveModelsFile()
 // returns true on success
 bool xLightsFrame::SaveEffectsFile(bool backup)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // dont save if currently saving
     std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
-    if (!lock.owns_lock()) return false;
+    if (!lock.owns_lock())
+        return false;
 
-	// Make sure the views are up to date before we save it
-	_sequenceViewManager.Save(&EffectsXml);
+    // Make sure the views are up to date before we save it
+    _sequenceViewManager.Save(&EffectsXml);
 
-	color_mgr.Save(&EffectsXml);
+    color_mgr.Save(&EffectsXml);
 
-	viewpoint_mgr.Save(&EffectsXml);
+    viewpoint_mgr.Save(&EffectsXml);
 
     wxFileName effectsFile;
-    effectsFile.AssignDir( CurrentDir );
-    if (backup)
-    {
+    effectsFile.AssignDir(CurrentDir);
+    if (backup) {
         effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE_BACKUP));
-    }
-    else
-    {
+    } else {
         effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
     }
 
-    if (!EffectsXml.Save( effectsFile.GetFullPath() ))
-    {
-        if (backup)
-        {
+    if (!EffectsXml.Save(effectsFile.GetFullPath())) {
+        if (backup) {
             logger_base.warn("Unable to save backup of RGB effects file");
-        }
-        else
-        {
+        } else {
             DisplayError("Unable to save RGB effects file", this);
         }
         return false;
@@ -731,6 +713,8 @@ void xLightsFrame::CreateDefaultEffectsXml()
 {
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xrgb" );
     EffectsXml.SetRoot( root );
+    wxXmlDoctype dt("");
+    EffectsXml.SetDoctype(dt);
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
     UpdateControllerSave();
@@ -742,36 +726,28 @@ bool xLightsFrame::EnsureSequenceElementsAreOrderedCorrectly(const std::string M
 {
     ModelElement* elementToCheck = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(ModelName));
 
-    if (elementToCheck != nullptr)
-    {
+    if (elementToCheck != nullptr) {
         // Check if they are already right and in the right order
         bool identical = true;
-        if (elementToCheck->GetSubModelCount() == submodelOrder.size())
-        {
-            for (int  i = 0; i < elementToCheck->GetSubModelCount(); i++)
-            {
-                if (elementToCheck->GetSubModel(i)->GetName() != submodelOrder[i])
-                {
+        if (elementToCheck->GetSubModelCount() == submodelOrder.size()) {
+            for (int i = 0; i < elementToCheck->GetSubModelCount(); i++) {
+                if (elementToCheck->GetSubModel(i)->GetName() != submodelOrder[i]) {
                     identical = false;
                     break;
                 }
             }
-        }
-        else
-        {
+        } else {
             identical = false;
         }
 
-        if (identical)
-        {
+        if (identical) {
             // no changes we can exit
             return false;
         }
 
         // Grab the existing elements
         std::list<SubModelElement*> oldList;
-        for (int i = 0; i < elementToCheck->GetSubModelCount(); i++)
-        {
+        for (int i = 0; i < elementToCheck->GetSubModelCount(); i++) {
             oldList.push_back(elementToCheck->GetSubModel(i));
         }
 
@@ -779,13 +755,10 @@ bool xLightsFrame::EnsureSequenceElementsAreOrderedCorrectly(const std::string M
         elementToCheck->RemoveAllSubModels();
 
         // Now add them back in the right order
-        for (auto msm = submodelOrder.begin(); msm != submodelOrder.end(); ++msm)
-        {
+        for (auto msm = submodelOrder.begin(); msm != submodelOrder.end(); ++msm) {
             bool found = false;
-            for (auto it = oldList.begin(); it != oldList.end(); ++it)
-            {
-                if ((*it)->GetName() == *msm)
-                {
+            for (auto it = oldList.begin(); it != oldList.end(); ++it) {
+                if ((*it)->GetName() == *msm) {
                     elementToCheck->AddSubModel(*it);
                     oldList.erase(it);
                     found = true;
@@ -793,16 +766,14 @@ bool xLightsFrame::EnsureSequenceElementsAreOrderedCorrectly(const std::string M
                 }
             }
 
-            if (!found)
-            {
+            if (!found) {
                 // add the submodel as it didnt previously exist
                 elementToCheck->GetSubModel(*msm, true);
             }
         }
 
         // delete any that are no longer there
-        for (auto it = oldList.begin(); it != oldList.end(); ++it)
-        {
+        for (auto it = oldList.begin(); it != oldList.end(); ++it) {
             delete *it;
         }
 
@@ -814,7 +785,7 @@ bool xLightsFrame::EnsureSequenceElementsAreOrderedCorrectly(const std::string M
 
 bool xLightsFrame::RenameModel(const std::string OldName, const std::string& NewName)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool internalsChanged = false;
 
     if (OldName == NewName) {
@@ -822,20 +793,16 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
     }
     AbortRender();
 
-    logger_base.debug("Renaming model '%s' to '%s'.", (const char*)OldName.c_str(), (const char *)NewName.c_str());
+    logger_base.debug("Renaming model '%s' to '%s'.", (const char*)OldName.c_str(), (const char*)NewName.c_str());
 
     Element* elem_to_rename = _sequenceElements.GetElement(OldName);
-    if (elem_to_rename != nullptr)
-    {
+    if (elem_to_rename != nullptr) {
         elem_to_rename->SetName(NewName);
     }
 
-    if (std::find(OldName.begin(), OldName.end(), '/') != OldName.end())
-    {
+    if (std::find(OldName.begin(), OldName.end(), '/') != OldName.end()) {
         internalsChanged = AllModels.RenameSubModel(OldName, NewName);
-    }
-    else
-    {
+    } else {
         internalsChanged = AllModels.Rename(OldName, NewName);
     }
 
@@ -855,14 +822,13 @@ void xLightsFrame::RenameModelInViews(const std::string old_name, const std::str
 
 void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)
 {
-    if (cb->GetChoiceCtrl()->GetStringSelection() == PageName) return; // no need to change
+    if (cb->GetChoiceCtrl()->GetStringSelection() == PageName)
+        return; // no need to change
 
     RenderableEffect* reff = effectManager.GetEffect(PageName.ToStdString());
     if (reff != nullptr) {
-        for (size_t i = 0; i < cb->GetPageCount(); i++)
-        {
-            if (cb->GetPageText(i) == reff->ToolTip())
-            {
+        for (size_t i = 0; i < cb->GetPageCount(); i++) {
+            if (cb->GetPageText(i) == reff->ToolTip()) {
                 cb->ChangeSelection(i);
                 return;
             }
@@ -872,18 +838,17 @@ void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)
 
 bool xLightsFrame::RenameObject(const std::string OldName, const std::string& NewName)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool internalsChanged = false;
 
     if (OldName == NewName) {
         return false;
     }
 
-    logger_base.debug("Renaming object '%s' to '%s'.", (const char*)OldName.c_str(), (const char *)NewName.c_str());
+    logger_base.debug("Renaming object '%s' to '%s'.", (const char*)OldName.c_str(), (const char*)NewName.c_str());
 
     Element* elem_to_rename = _sequenceElements.GetElement(OldName);
-    if (elem_to_rename != nullptr)
-    {
+    if (elem_to_rename != nullptr) {
         elem_to_rename->SetName(NewName);
     }
 
@@ -900,12 +865,13 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
     SaveSequence();
 }
 
-static std::string chooseNewName(xLightsFrame *parent, std::vector<std::string> &names,
-                                 const std::string &msg, const std::string curval) {
+static std::string chooseNewName(xLightsFrame* parent, std::vector<std::string>& names,
+                                 const std::string& msg, const std::string curval)
+{
     wxTextEntryDialog dialog(parent, _("Enter new name"), msg, curval);
     int DlgResult;
     do {
-        DlgResult=dialog.ShowModal();
+        DlgResult = dialog.ShowModal();
         if (DlgResult == wxID_OK) {
             // validate inputs
             std::string NewName = dialog.GetValue().Trim(true).Trim(false);
@@ -913,16 +879,16 @@ static std::string chooseNewName(xLightsFrame *parent, std::vector<std::string> 
                 return NewName;
             }
         }
-    }
-    while (DlgResult == wxID_OK);
+    } while (DlgResult == wxID_OK);
     return curval;
 }
 
-static void AddModelsToPreview(ModelGroup *grp, std::vector<Model *> &PreviewModels) {
+static void AddModelsToPreview(ModelGroup* grp, std::vector<Model*>& PreviewModels)
+{
     for (auto it2 = grp->Models().begin(); it2 != grp->Models().end(); ++it2) {
-        Model *model = dynamic_cast<Model*>(*it2);
-        ModelGroup *g2 = dynamic_cast<ModelGroup*>(*it2);
-        SubModel *sm = dynamic_cast<SubModel*>(*it2);
+        Model* model = dynamic_cast<Model*>(*it2);
+        ModelGroup* g2 = dynamic_cast<ModelGroup*>(*it2);
+        SubModel* sm = dynamic_cast<SubModel*>(*it2);
 
         if (sm != nullptr) {
             model = sm->GetParent();
@@ -1345,6 +1311,8 @@ void xLightsFrame::SaveSequence()
         // Remove the old xml file as we are about to save it as an xsq
         wxRemoveFile(CurrentSeqXmlFile->GetFullPath());
         CurrentSeqXmlFile->SetExt("xsq");
+    } else if (CurrentSeqXmlFile->GetExt().Lower() == "xbkp") {
+        CurrentSeqXmlFile->SetExt("xsq");
     }
     SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xsq."));
     logger_base.info("Saving XSQ file.");
@@ -1433,10 +1401,10 @@ void xLightsFrame::SaveSequence()
 
 void xLightsFrame::SetSequenceTiming(int timingMS)
 {
-    if (CurrentSeqXmlFile == nullptr) return;
+    if (CurrentSeqXmlFile == nullptr)
+        return;
 
-    if (_seqData.FrameTime() != timingMS)
-    {
+    if (_seqData.FrameTime() != timingMS) {
         AbortRender();
         _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
     }
@@ -1509,6 +1477,7 @@ void xLightsFrame::RenderAll()
     ProgressBar->Show();
     GaugeSizer->Layout();
     SetStatusText(_("Rendering all layers"));
+    SuspendAutoSave(true); // no need to auto save during render all
     logger_base.debug("Rendering all.");
     logger_base.debug("Model blending: %s", CurrentSeqXmlFile->supportsModelBlending() ? "On" : "Off");
     RenderIseqData(true, nullptr); // render ISEQ layers below the Nutcracker layer
@@ -1525,6 +1494,7 @@ void xLightsFrame::RenderAll()
         wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"), elapsedTime);
         CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
         mRendering = false;
+        SuspendAutoSave(false);
         EnableSequenceControls(true);
         ProgressBar->Hide();
         _appProgress->SetValue(0);
@@ -1677,8 +1647,7 @@ void xLightsFrame::VCChanged(wxCommandEvent& event)
 void xLightsFrame::ColourChanged(wxCommandEvent& event)
 {
     _coloursPanel->Freeze();
-    if (event.GetInt() == -1)
-    {
+    if (event.GetInt() == -1) {
         _coloursPanel->UpdateColourButtons(true, this);
     }
     enableAllChildControls(_coloursPanel, true); // enable and disable otherwise if anything has been added while disabled wont be disabled.

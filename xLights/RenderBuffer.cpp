@@ -24,6 +24,7 @@
 #include "models/DMX/DmxModel.h"
 #include "models/DMX/DmxColorAbility.h"
 #include "GPURenderUtils.h"
+#include "BufferPanel.h"
 
 #include <log4cpp/Category.hh>
 #include "Parallel.h"
@@ -32,7 +33,7 @@ template <class CTX>
 class ContextPool {
 public:
 
-    ContextPool(std::function<CTX* ()> alloc, std::string type = ""): allocator(alloc), _type(type) {
+    ContextPool(std::function<CTX*()> alloc, std::string type = ""): allocator(alloc), _type(type) {
     }
     ~ContextPool() {
         while (!contexts.empty()) {
@@ -41,7 +42,11 @@ public:
             contexts.pop();
         }
     }
-
+    void PreAlloc(int num) {
+        for (int x = 0; x < num; x++) {
+            ReleaseContext(allocator());
+        }
+    }
     CTX *GetContext() {
         // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
         bool contextsEmpty = false;
@@ -69,7 +74,7 @@ public:
 private:
     std::mutex lock;
     std::queue<CTX*> contexts;
-    std::function<CTX* ()> allocator;
+    std::function<CTX*()> allocator;
     std::string _type;
 };
 
@@ -79,41 +84,17 @@ static ContextPool<PathDrawingContext> *PATH_CONTEXT_POOL = nullptr;
 void DrawingContext::Initialize(wxWindow *parent) {
     if (TEXT_CONTEXT_POOL == nullptr) {
         TEXT_CONTEXT_POOL = new ContextPool<TextDrawingContext>([parent]() {
-            if (wxThread::IsMain()) {
-                return new TextDrawingContext(10, 10 ,false);
-            } else {
-                std::mutex mtx;
-                std::condition_variable signal;
-                std::unique_lock<std::mutex> lck(mtx);
-                TextDrawingContext *tdc;
-                parent->CallAfter([&mtx, &signal, &tdc]() {
-                    std::unique_lock<std::mutex> lck(mtx);
-                    tdc = new TextDrawingContext(10, 10 ,false);
-                    signal.notify_all();
-                });
-                signal.wait(lck);
-                return tdc;
-            }
+            // atomic reference counting, can create this on background thread
+            return new TextDrawingContext(10, 10 ,false);
         });
+        //TEXT_CONTEXT_POOL->PreAlloc(10);
     }
     if (PATH_CONTEXT_POOL == nullptr) {
         PATH_CONTEXT_POOL = new ContextPool<PathDrawingContext>([parent]() {
-            if (wxThread::IsMain()) {
-                return new PathDrawingContext(10, 10 ,false);
-            } else {
-                std::mutex mtx;
-                std::condition_variable signal;
-                std::unique_lock<std::mutex> lck(mtx);
-                PathDrawingContext *tdc;
-                parent->CallAfter([&mtx, &signal, &tdc]() {
-                    std::unique_lock<std::mutex> lck(mtx);
-                    tdc = new PathDrawingContext(10, 10 ,false);
-                    signal.notify_all();
-                });
-                signal.wait(lck);
-                return tdc;
-            }
+            // atomic reference counting, can create this on background thread
+            return new PathDrawingContext(10, 10 ,false);
         });
+        //PATH_CONTEXT_POOL->PreAlloc(5);
     }
 }
 
@@ -357,7 +338,32 @@ void DrawingContext::ResetSize(int BufferWi, int BufferHt) {
     }
 }
 
-void DrawingContext::Clear() {
+size_t DrawingContext::GetWidth() const
+{
+    if (gc != nullptr) {
+        wxDouble w = 0, h = 0;
+        gc->GetSize(&w, &h);
+        return w;
+    } else if (image != nullptr) {
+        return image->GetWidth();
+    }
+    return 0;
+}
+
+size_t DrawingContext::GetHeight() const
+{
+    if (gc != nullptr) {
+        wxDouble w = 0, h = 0;
+        gc->GetSize(&w, &h);
+        return h;
+    } else if (image != nullptr) {
+        return image->GetHeight();
+    }
+    return 0;
+}
+
+void DrawingContext::Clear()
+{
     if (dc != nullptr)
     {
         dc->SelectObject(nullBitmap);
@@ -468,7 +474,20 @@ void PathDrawingContext::SetPen(wxPen &pen) {
         gc->SetPen(pen);
 }
 
-void TextDrawingContext::SetPen(wxPen &pen) {
+void PathDrawingContext::SetBrush(wxBrush& brush)
+{
+    if (gc != nullptr)
+        gc->SetBrush(brush);
+}
+
+void PathDrawingContext::SetBrush(wxGraphicsBrush& brush)
+{
+    if (gc != nullptr)
+        gc->SetBrush(brush);
+}
+
+void TextDrawingContext::SetPen(wxPen& pen)
+{
     if (gc != nullptr) {
         gc->SetPen(pen);
     } else {
@@ -486,7 +505,13 @@ void PathDrawingContext::StrokePath(wxGraphicsPath& path)
     gc->StrokePath(path);
 }
 
-void TextDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
+void PathDrawingContext::FillPath(wxGraphicsPath& path, wxPolygonFillMode fillStyle)
+{
+    gc->FillPath(path, fillStyle);
+}
+
+void TextDrawingContext::SetFont(wxFontInfo& font, const xlColor& color)
+{
     if (gc != nullptr) {
         int style = wxFONTFLAG_NOT_ANTIALIASED;
         if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
@@ -644,16 +669,21 @@ PathDrawingContext * RenderBuffer::GetPathDrawingContext()
     {
         _pathDrawingContext = PathDrawingContext::GetContext();
         _pathDrawingContext->ResetSize(BufferWi, BufferHt);
+    } else if (_pathDrawingContext->GetWidth() != BufferWi || _pathDrawingContext->GetHeight() != BufferHt) {
+        // varying subbuffers the size may have changed
+        _pathDrawingContext->ResetSize(BufferWi, BufferHt);
     }
 
     return _pathDrawingContext;
 }
 
-TextDrawingContext * RenderBuffer::GetTextDrawingContext()
+TextDrawingContext* RenderBuffer::GetTextDrawingContext()
 {
-    if (_textDrawingContext == nullptr)
-    {
+    if (_textDrawingContext == nullptr) {
         _textDrawingContext = TextDrawingContext::GetContext();
+        _textDrawingContext->ResetSize(BufferWi, BufferHt);
+    } else if (_textDrawingContext->GetWidth() != BufferWi || _textDrawingContext->GetHeight() != BufferHt) {
+        // varying subbuffers the size may have changed
         _textDrawingContext->ResetSize(BufferWi, BufferHt);
     }
 
@@ -678,6 +708,7 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
 
     if (NumPixels != pixelVector.size()) {
         bool resetPtr = pixelVector.size() == 0 || pixels == &pixelVector[0];
+        bool resetTPtr = tempbufVector.size() == 0 || tempbuf == &tempbufVector[0];
         pixelVector.resize(NumPixels);
         tempbufVector.resize(NumPixels);
         if (resetPtr) {
@@ -686,6 +717,8 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
             // to keep that pointer pointing there so the data can be retreived
             // from the GPU.
             pixels = &pixelVector[0];
+        }
+        if (resetTPtr) {
             tempbuf = &tempbufVector[0];
         }
     }
@@ -1284,6 +1317,35 @@ void RenderBuffer::CopyPixelsToTempBuf() {
     memcpy(tempbuf, pixels, pixelVector.size() * 4);
 }
 
+// Gets the maximum oversized buffer size a model could have
+// Useful for models which need to track data per cell as with value curves the buffer size could
+// get as large as this during the effect
+wxPoint RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
+{
+    Model* m = frame->AllModels[cur_model];
+    if (m == nullptr) {
+        return wxPoint(-1, -1);
+    }
+    std::string bufferstyle = SettingsMap.Get("CHOICE_BufferStyle", "Default");
+    std::string transform = SettingsMap.Get("CHOICE_BufferTransform", "None");
+    std::string camera = SettingsMap.Get("CHOICE_PerPreviewCamera", "2D");
+    int w, h;
+    
+    static const std::string PER_MODEL("Per Model");
+    static const std::string DEEP("Deep");
+    if (bufferstyle.compare(0, 9, PER_MODEL) == 0) {
+        bufferstyle = bufferstyle.substr(10);
+        if (bufferstyle.compare(bufferstyle.length() - 4, 4, DEEP) == 0) {
+            bufferstyle = bufferstyle.substr(0, bufferstyle.length() - 5);
+        }
+    }
+    
+    m->GetBufferSize(bufferstyle, camera, transform, w, h);
+    float xScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
+    float yScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
+    return wxPoint(xScale * w, yScale * h);
+}
+
 float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) const {
     if (curEffEndPer == curEffStartPer) {
         return 0.0f;
@@ -1424,7 +1486,7 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     _nodeBuffer = buffer._nodeBuffer;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
-    infoCache = buffer.infoCache;
+    cur_model = buffer.cur_model;
 
     pixels = &pixelVector[0];
     _textDrawingContext = buffer._textDrawingContext;
@@ -1435,7 +1497,6 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
 void RenderBuffer::Forget()
 {
     // Forget some stuff as this is a fake render buffer and we dont want it destroyed
-    infoCache.clear();
     _textDrawingContext = nullptr;
     _pathDrawingContext = nullptr;
 }

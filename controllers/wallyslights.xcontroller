@@ -7,4 +7,10 @@
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
     </Controller>
+    <Controller Name="WB48">
+        <Variant Name="" ID="WB48" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+        </Variant>
+    </Controller>
 </Vendor>

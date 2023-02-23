@@ -400,9 +400,10 @@ void PlayList::AddSchedule(Schedule* schedule)
 {
     _schedules.push_back(schedule);
     _schedules.sort(compare_sched);
-    _changeCount++;
+    ++_changeCount;
 }
 
+// a pos of -1 will put it at the end of the list
 void PlayList::AddStep(PlayListStep* item, int pos)
 {
     std::list<PlayListStep*> newsteps;
@@ -421,7 +422,7 @@ void PlayList::AddStep(PlayListStep* item, int pos)
                     inserted = true;
                 }
                 newsteps.push_back(it);
-                i++;
+                ++i;
             }
 
             if (!inserted)
@@ -448,7 +449,7 @@ void PlayList::AddStep(PlayListStep* item, int pos)
                     inserted = true;
                 }
                 newsteps.push_back(it);
-                i++;
+                ++i;
             }
 
             if (!inserted)
@@ -508,7 +509,7 @@ void PlayList::RemoveStep(PlayListStep* step)
             _steps.remove(step);
         }
     }
-    _changeCount++;
+    ++_changeCount;
 }
 
 void PlayList::RemoveSchedule(Schedule* schedule)
@@ -525,7 +526,7 @@ void PlayList::RemoveSchedule(Schedule* schedule)
 
         _schedules.remove(schedule);
     }
-    _changeCount++;
+    ++_changeCount;
 }
 
 void PlayList::MoveStepBeforeStep(PlayListStep* movethis, PlayListStep* beforethis)
@@ -559,7 +560,7 @@ void PlayList::MoveStepBeforeStep(PlayListStep* movethis, PlayListStep* beforeth
         }
     }
 
-    _changeCount++;
+    ++_changeCount;
 }
 
 int PlayList::GetPos(PlayListStep* step)
@@ -573,7 +574,7 @@ int PlayList::GetPos(PlayListStep* step)
             {
                 return i;
             }
-            i++;
+            ++i;
         }
     }
 
@@ -1237,17 +1238,17 @@ bool PlayList::SupportsRandom()
         {
             if (_steps.front()->GetId() == it->GetId() && _firstOnlyOnce)
             {
-                count--;
+                --count;
             }
             else if (_steps.back()->GetId() == it->GetId() && _lastOnlyOnce)
             {
-                count--;
+                --count;
             }
             else
             {
                 if (it->GetExcludeFromRandom())
                 {
-                    count--;
+                    --count;
                 }
             }
         }
@@ -1283,13 +1284,13 @@ PlayListStep* PlayList::GetRandomStep()
 
     {
         int actualsteps = _steps.size();
-        if (_firstOnlyOnce) actualsteps--;
-        if (_lastOnlyOnce) actualsteps--;
+        if (_firstOnlyOnce) --actualsteps;
+        if (_lastOnlyOnce) --actualsteps;
         for (const auto& it : _steps)
         {
             if (it->GetExcludeFromRandom())
             {
-                actualsteps--;
+                --actualsteps;
             }
         }
         if (actualsteps < 0) actualsteps = 0;
@@ -1318,7 +1319,7 @@ PlayListStep* PlayList::GetRandomStep()
 
                 if (eligible)
                 {
-                    i++;
+                    ++i;
                     if (i != selected)
                     {
                         ++it;

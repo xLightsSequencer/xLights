@@ -16,6 +16,7 @@
 
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
+#include "../utils/ip_utils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -185,7 +186,7 @@ std::string xxxEthernetOutput::GetExport() const {
 bool xxxEthernetOutput::Open() {
 
     if (!_enabled) return true;
-    if (!IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
 
     _ok = IPOutput::Open();
 

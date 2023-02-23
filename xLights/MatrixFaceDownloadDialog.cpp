@@ -81,7 +81,7 @@ public:
     MFace(wxXmlNode* n)
     {
         // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        
+
         _width = -1;
 		_height = -1;
 		_minwidth = -1;
@@ -324,6 +324,7 @@ private:
 //(*IdInit(MatrixFaceDownloadDialog)
 const long MatrixFaceDownloadDialog::ID_TREECTRL1 = wxNewId();
 const long MatrixFaceDownloadDialog::ID_CHECKBOX1 = wxNewId();
+const long MatrixFaceDownloadDialog::ID_SEARCHCTRL_FACES = wxNewId();
 const long MatrixFaceDownloadDialog::ID_PANEL3 = wxNewId();
 const long MatrixFaceDownloadDialog::ID_STATICBITMAP1 = wxNewId();
 const long MatrixFaceDownloadDialog::ID_TEXTCTRL1 = wxNewId();
@@ -343,9 +344,9 @@ MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent, wxWindowID 
     _height = -1;
 
 	//(*Initialize(MatrixFaceDownloadDialog)
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 
 	Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	SetClientSize(wxSize(800,600));
@@ -355,7 +356,6 @@ MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent, wxWindowID 
 	FlexGridSizer1->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
 	SplitterWindow1->SetMinSize(wxSize(10,10));
-	SplitterWindow1->SetMinimumPaneSize(10);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel3 = new wxPanel(SplitterWindow1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -365,7 +365,9 @@ MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent, wxWindowID 
 	FlexGridSizer2->Add(TreeCtrl_Navigator, 1, wxALL|wxEXPAND, 5);
 	CheckBox_FilterUnsuitable = new wxCheckBox(Panel3, ID_CHECKBOX1, _("Filter Unsuitable Faces"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_FilterUnsuitable->SetValue(true);
-	FlexGridSizer2->Add(CheckBox_FilterUnsuitable, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(CheckBox_FilterUnsuitable, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SearchCtrlFaces = new wxSearchCtrl(Panel3, ID_SEARCHCTRL_FACES, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SEARCHCTRL_FACES"));
+	FlexGridSizer2->Add(SearchCtrlFaces, 1, wxALL|wxEXPAND, 5);
 	Panel3->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(Panel3);
 	FlexGridSizer2->SetSizeHints(Panel3);
@@ -373,7 +375,7 @@ MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent, wxWindowID 
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(0);
-	StaticBitmap_FaceImage = new wxStaticBitmap(Panel1, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(256,128), wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
+	StaticBitmap_FaceImage = new wxStaticBitmap(Panel1, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(256,128), 0, _T("ID_STATICBITMAP1"));
 	StaticBitmap_FaceImage->SetMinSize(wxSize(256,128));
 	FlexGridSizer3->Add(StaticBitmap_FaceImage, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_FaceDetails = new wxTextCtrl(Panel1, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(-1,170), wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
@@ -392,6 +394,8 @@ MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent, wxWindowID 
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_ACTIVATED,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnTreeCtrl_NavigatorItemActivated);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnTreeCtrl_NavigatorSelectionChanged);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnCheckBox_FilterUnsuitableClick);
+	Connect(ID_SEARCHCTRL_FACES,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnSearchCtrlFacesTextEnter);
+	Connect(ID_SEARCHCTRL_FACES,wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnSearchCtrlFacesSearchClicked);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnButton_InsertFaceClick);
 	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnClose);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnResize);
@@ -747,4 +751,76 @@ void MatrixFaceDownloadDialog::OnCheckBox_FilterUnsuitableClick(wxCommandEvent& 
 {
     LoadTree();
     ValidateWindow();
+}
+
+void MatrixFaceDownloadDialog::OnSearchCtrlFacesSearchClicked(wxCommandEvent& event)
+{
+    wxString const searchFor = SearchCtrlFaces->GetValue().Lower();
+
+    // cant search if tree is empty
+    if (TreeCtrl_Navigator->GetChildrenCount(TreeCtrl_Navigator->GetRootItem()) == 0) {
+        wxBell();
+        return;
+    }
+
+    wxTreeItemId current = TreeCtrl_Navigator->GetSelection();
+    if (!current.IsOk() ) {
+        current = TreeCtrl_Navigator->GetRootItem();
+    }
+
+    wxTreeItemId start = current;
+    if (current.IsOk()) {
+        do {
+            // if this node has children got to the first child
+            if (TreeCtrl_Navigator->GetChildrenCount(current, false) > 0) {
+                wxTreeItemIdValue cookie;
+                current = TreeCtrl_Navigator->GetFirstChild(current, cookie);
+            } else {
+                // no child ... so go to the sibling
+                auto sibling = TreeCtrl_Navigator->GetNextSibling(current);
+                if (sibling.IsOk()) {
+                    current = sibling;
+                } else {
+                    // no sibling so we need to move up until a sibling exists and then get the next one.
+                    for (;;) {
+                        auto parent = TreeCtrl_Navigator->GetItemParent(current);
+                        if (parent == TreeCtrl_Navigator->GetRootItem()) {
+                            current = parent;
+                            break;
+                        } else if (parent.IsOk()) {
+                            sibling = TreeCtrl_Navigator->GetNextSibling(parent);
+                            if (sibling.IsOk()) {
+                                current = sibling;
+                                break;
+                            } else {
+                                current = parent;
+                                if (current == TreeCtrl_Navigator->GetRootItem()) {
+                                    break;
+                                }
+                            }
+                        } else {
+                            wxBell();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(SearchCtrlFaces->GetValue().Lower())) {
+                TreeCtrl_Navigator->SelectItem(current);
+                TreeCtrl_Navigator->EnsureVisible(current);
+                if (current == start) {
+                    wxBell();
+                }
+                return;
+            }
+
+        } while (current != start);
+        wxBell();
+    }
+}
+
+void MatrixFaceDownloadDialog::OnSearchCtrlFacesTextEnter(wxCommandEvent& event)
+{
+
 }

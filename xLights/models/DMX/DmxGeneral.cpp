@@ -33,9 +33,9 @@ DmxGeneral::~DmxGeneral()
     //dtor
 }
 
-void DmxGeneral::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxGeneral::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     if (nullptr != color_ability) {
         color_ability->AddColorTypeProperties(grid);
@@ -265,6 +265,14 @@ void DmxGeneral::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* 
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(Nodes);
+    if (boundingBox) {
+        boundingBox[0] = -0.5;
+        boundingBox[1] = -0.5;
+        boundingBox[2] = -0.5;
+        boundingBox[3] = 0.5;
+        boundingBox[4] = 0.5;
+        boundingBox[5] = 0.5;
+    }
 
     sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();

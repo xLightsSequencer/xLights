@@ -51,6 +51,7 @@ const long ModelStateDialog::ID_BUTTON1 = wxNewId();
 const long ModelStateDialog::ID_GRID_COROSTATES = wxNewId();
 const long ModelStateDialog::ID_PANEL2 = wxNewId();
 const long ModelStateDialog::ID_CHECKBOX2 = wxNewId();
+const long ModelStateDialog::ID_CHECKBOX3 = wxNewId();
 const long ModelStateDialog::ID_BUTTON2 = wxNewId();
 const long ModelStateDialog::ID_GRID3 = wxNewId();
 const long ModelStateDialog::ID_PANEL6 = wxNewId();
@@ -59,6 +60,7 @@ const long ModelStateDialog::ID_PANEL5 = wxNewId();
 const long ModelStateDialog::ID_PANEL_PREVIEW = wxNewId();
 const long ModelStateDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
+const long ModelStateDialog::ID_TIMER1 = wxNewId();
 
 const long ModelStateDialog::STATE_DIALOG_IMPORT_SUB = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_IMPORT_MODEL = wxNewId();
@@ -96,8 +98,8 @@ enum {
 #endif
 
 
-ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size):
-    mPointSize(PIXEL_SIZE_ON_DIALOGS)
+ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size):
+    mPointSize(PIXEL_SIZE_ON_DIALOGS), _outputManager(outputManager)
 {
 	//(*Initialize(ModelStateDialog)
 	wxButton* AddButton;
@@ -178,7 +180,9 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	CustomColorNodeRanges = new wxCheckBox(NodeRangePanel, ID_CHECKBOX2, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CustomColorNodeRanges->SetValue(false);
 	FlexGridSizer6->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_OutputToLights = new wxCheckBox(NodeRangePanel, ID_CHECKBOX3, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+	CheckBox_OutputToLights->SetValue(false);
+	FlexGridSizer6->Add(CheckBox_OutputToLights, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_7Seg = new wxButton(NodeRangePanel, ID_BUTTON2, _("7 Segment Display"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer6->Add(Button_7Seg, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
@@ -234,6 +238,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_GRID_COROSTATES,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellChange);
 	Connect(ID_GRID_COROSTATES,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellSelect);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnCustomColorCheckboxClick);
+	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnCheckBox_OutputToLightsClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButton_7SegmentClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellLeftClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellRightClick);
@@ -269,12 +274,21 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
     EnableCloseButton(false);
 
     ValidateWindow();
+
+    _oldOutputToLights = _outputManager->IsOutputting();
+    if (_oldOutputToLights) {
+        _outputManager->StopOutput();
+    }
 }
 
 ModelStateDialog::~ModelStateDialog()
 {
     //(*Destroy(ModelStateDialog)
     //*)
+    StopOutputToLights();
+    if (_oldOutputToLights) {
+        _outputManager->StartOutput();
+    }
 }
 
 void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>>& finfo)
@@ -444,7 +458,7 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             NameChoice->SetStringSelection(n);
             NameChoice->Enable();
             DeleteButton->Enable();
- 
+
             // set the default type of state based on model type
             if (model->GetDisplayAs() == "Custom") {
                 CustomModel* cm = dynamic_cast<CustomModel*>(model);
@@ -575,44 +589,46 @@ xlColor ModelStateDialog::GetRowColor(wxGrid* grid, int const row, bool const pr
 }
 
 void ModelStateDialog::SelectRow(wxGrid* grid, int const r) {
+
+    _selected.clear();
     ClearNodeColor(model);
 
     if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
         if (r == -1) {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
                 xlColor const c = GetRowColor(grid, i, false, CustomColorSingleNode->IsChecked());
-                SetSingleNodeColor(grid, i, c);
+                SetSingleNodeColor(grid, i, c, true);
             }
         } else {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
                 xlColor const c = GetRowColor(grid, i, r != i, CustomColorSingleNode->IsChecked());
-                SetSingleNodeColor(grid, i, c );
+                SetSingleNodeColor(grid, i, c, false);
             }
             // redo the selected row to ensure it is white
             xlColor const cc = GetRowColor(grid, r, false, CustomColorNodeRanges->IsChecked());
-            SetSingleNodeColor(grid, r, cc);
+            SetSingleNodeColor(grid, r, cc, true);
         }
     } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
         if (r == -1) {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
                 xlColor const c = GetRowColor(grid, i, false, CustomColorNodeRanges->IsChecked());
-                SetNodeColor(grid, i, c);
+                SetNodeColor(grid, i, c, true);
             }
         } else {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
                 xlColor const c = GetRowColor(grid, i, r != i, CustomColorNodeRanges->IsChecked());
-                SetNodeColor(grid, i, c );
+                SetNodeColor(grid, i, c, false);
             }
             // redo the selected row to ensure it is white
             xlColor const cc = GetRowColor(grid, r, false, CustomColorNodeRanges->IsChecked());
-            SetNodeColor(grid, r, cc);
+            SetNodeColor(grid, r, cc, true);
         }
     }
     grid->Refresh();
     model->DisplayEffectOnWindow(modelPreview, mPointSize);
 }
 
-void ModelStateDialog::SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c) {
+void ModelStateDialog::SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c, bool highlight) {
     wxString v = grid->GetCellValue(row, CHANNEL_COL);
     wxStringTokenizer wtkz(v, ",");
     while (wtkz.HasMoreTokens()) {
@@ -621,17 +637,24 @@ void ModelStateDialog::SetSingleNodeColor(wxGrid* grid, const int row, xlColor c
             wxString ns = model->GetNodeName(n, true);
             if (ns == valstr) {
                 model->SetNodeColor(n, c);
+                if (highlight) _selected.push_back(n);
             }
         }
     }
 }
 
-bool ModelStateDialog::SetNodeColor(wxGrid* grid, int const row, xlColor const& c) {
+bool ModelStateDialog::SetNodeColor(wxGrid* grid, int const row, xlColor const& c, bool highlight) {
 
     wxString v = grid->GetCellValue(row, CHANNEL_COL);
     if (v.empty()) {
         return false;
     }
+
+    xlColor cc(c);
+    if (model->modelDimmingCurve) {
+        model->modelDimmingCurve->apply(cc);
+    }
+
     bool found = false;
     wxStringTokenizer wtkz(v, ",");
     while (wtkz.HasMoreTokens()) {
@@ -651,7 +674,8 @@ bool ModelStateDialog::SetNodeColor(wxGrid* grid, int const row, xlColor const& 
         int n = start2;
         while (!done) {
             if (n >= 0 && n < (int)model->GetNodeCount()) {
-                model->SetNodeColor(n, c);
+                model->SetNodeColor(n, cc);
+                if (highlight) _selected.push_back(n);
                 found = true;
             }
             if (start2 > end2) {
@@ -704,14 +728,18 @@ void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
     if (event.GetCol() == CHANNEL_COL) {
         const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         const wxString title = name + " - " + NodeRangeGrid->GetCellValue(event.GetRow(), NAME_COL);
-        NodeSelectGrid dialog(true, title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
+        bool wasOutputting = StopOutputToLights();
+        { // we need to scope the dialog
+            NodeSelectGrid dialog(true, title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), _outputManager, this);
 
-        if (dialog.ShowModal() == wxID_OK)
-        {
-            NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
-            GetValue(NodeRangeGrid, event.GetRow(), event.GetCol(), stateData[name]);
-            dialog.Close();
+            if (dialog.ShowModal() == wxID_OK) {
+                NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
+                GetValue(NodeRangeGrid, event.GetRow(), event.GetCol(), stateData[name]);
+                dialog.Close();
+            }
         }
+        if (wasOutputting)
+            StartOutputToLights();
     }
     else if (event.GetCol() == COLOUR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
@@ -791,14 +819,18 @@ void ModelStateDialog::OnNodeRangeGridLabelLeftDClick(wxGridEvent& event)
 {
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     const wxString title = name + " - " + NodeRangeGrid->GetCellValue(event.GetRow(), NAME_COL);
-    NodeSelectGrid dialog(true, title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
+    bool wasOutputting = StopOutputToLights();
+    { // we need to scope the dialog
+        NodeSelectGrid dialog(true, title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), _outputManager, this);
 
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
-        GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, stateData[name]);
-        dialog.Close();
+        if (dialog.ShowModal() == wxID_OK) {
+            NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
+            GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, stateData[name]);
+            dialog.Close();
+        }
     }
+    if (wasOutputting)
+        StartOutputToLights();
 }
 
 void ModelStateDialog::OnSingleNodeGridLabelLeftClick(wxGridEvent& event) {
@@ -1518,4 +1550,56 @@ void ModelStateDialog::ReverseStateNodes()
     ReverseNodes(stateData[name], max);
     SelectStateModel(name);
     ClearNodeColor(model);
+}
+
+void ModelStateDialog::OnTimer1Trigger(wxTimerEvent& event)
+{
+    wxASSERT(_outputManager->IsOutputting());
+    _outputManager->StartFrame(0);
+    for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
+        auto ch = model->NodeStartChannel(n);
+        if (std::find(begin(_selected), end(_selected), n) != end(_selected)) {
+            for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
+                _outputManager->SetOneChannel(ch++, 30);
+            }
+        } else {
+            for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
+                _outputManager->SetOneChannel(ch++, 0);
+            }
+        }
+    }
+    _outputManager->EndFrame();
+}
+
+void ModelStateDialog::StartOutputToLights()
+{
+    if (!timer1.IsRunning()) {
+        _outputManager->StartOutput();
+        timer1.SetOwner(this, ID_TIMER1);
+        Connect(ID_TIMER1, wxEVT_TIMER, (wxObjectEventFunction)&ModelStateDialog::OnTimer1Trigger);
+        timer1.Start(50, false);
+    }
+}
+
+bool ModelStateDialog::StopOutputToLights()
+{
+    if (timer1.IsRunning()) {
+        timer1.Stop();
+        _outputManager->StartFrame(0);
+        _outputManager->AllOff();
+        _outputManager->EndFrame();
+        _outputManager->StopOutput();
+        return true;
+    }
+    return false;
+}
+
+void ModelStateDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
+{
+    if (CheckBox_OutputToLights->IsChecked()) {
+        StartOutputToLights();
+    }
+    else {
+        StopOutputToLights();
+    }
 }

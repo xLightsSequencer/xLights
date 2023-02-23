@@ -351,7 +351,7 @@ void DumpUsed(const std::vector<std::vector<bool>>& current, int width, int heig
     }
 }
 
-void KaleidoscopeEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
+void KaleidoscopeEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     float progress = buffer.GetEffectTimeIntervalPosition(1.f);

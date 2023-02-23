@@ -18,7 +18,7 @@
 #include <wx/msgdlg.h>
 #include <wx/generic/textdlgg.h>
 #include "../xLights/outputs/IPOutput.h"
-#include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/ip_utils.h"
 
 //(*IdInit(FPPRemotesDialog)
 const long FPPRemotesDialog::ID_LISTBOX1 = wxNewId();
@@ -139,7 +139,7 @@ void FPPRemotesDialog::EditItem(int item)
     wxTextEntryDialog dlg(this, "Remote IP Address", "IP Address", ip);
     if (dlg.ShowModal() == wxID_OK)
     {
-        if (!IsIPValidOrHostname(dlg.GetValue().ToStdString()))
+        if (!ip_utils::IsIPValidOrHostname(dlg.GetValue().ToStdString()))
         {
             wxMessageBox("Illegal ip address " + dlg.GetValue());
         }

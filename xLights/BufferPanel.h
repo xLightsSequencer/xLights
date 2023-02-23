@@ -28,6 +28,47 @@
 #include "BulkEditControls.h"
 #include "effects/EffectPanelUtils.h"
 
+#define BLUR_MIN 1
+#define BLUR_MAX 15
+
+#define RZ_ROTATION_MIN 0
+#define RZ_ROTATION_MAX 100
+
+#define RZ_ZOOM_MIN 0
+#define RZ_ZOOM_MAX 30
+#define RZ_ZOOM_DIVISOR 10
+
+#define RZ_ROTATIONS_MIN 0
+#define RZ_ROTATIONS_MAX 200
+#define RZ_ROTATIONS_DIVISOR 10
+
+#define RZ_PIVOTX_MIN 0
+#define RZ_PIVOTX_MAX 100
+
+#define RZ_PIVOTY_MIN 0
+#define RZ_PIVOTY_MAX 100
+
+#define RZ_XROTATION_MIN 0
+#define RZ_XROTATION_MAX 360
+
+#define RZ_YROTATION_MIN 0
+#define RZ_YROTATION_MAX 360
+
+#define RZ_XPIVOT_MIN 0
+#define RZ_XPIVOT_MAX 100
+
+#define RZ_YPIVOT_MIN 0
+#define RZ_YPIVOT_MAX 100
+
+#define SB_LEFT_BOTTOM_MIN (-100)
+#define SB_LEFT_BOTTOM_MAX 99
+
+#define SB_RIGHT_TOP_MIN 1
+#define SB_RIGHT_TOP_MAX 200
+
+#define SB_CENTRE_MIN (-100)
+#define SB_CENTRE_MAX 100
+
 class Model;
 class SubBufferPanel;
 
@@ -38,10 +79,86 @@ public:
 		BufferPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~BufferPanel();
 
+		static bool CanRenderBufferUseCamera(const std::string& rb);
+
         wxString GetBufferString();
         void SetDefaultControls(const Model *model, bool optionbased = false);
         void UpdateBufferStyles(const Model* model);
+        void UpdateCamera(const Model* model);
         void ValidateWindow();
+
+		static double GetSettingVCMin(const std::string& name)
+        {
+            if (name == "B_VALUECURVE_Blur")
+                return BLUR_MIN;
+            if (name == "B_VALUECURVE_Rotation")
+                return RZ_ROTATION_MIN;
+            if (name == "B_VALUECURVE_Zoom")
+                return RZ_ZOOM_MIN;
+            if (name == "B_VALUECURVE_Rotations")
+                return RZ_ROTATIONS_MIN;
+            if (name == "B_VALUECURVE_PivotPointX")
+                return RZ_PIVOTX_MIN;
+            if (name == "B_VALUECURVE_PivotPointY")
+                return RZ_PIVOTY_MIN;
+            if (name == "B_VALUECURVE_XRotation")
+                return RZ_XROTATION_MIN;
+            if (name == "B_VALUECURVE_YRotation")
+                return RZ_YROTATION_MIN;
+            if (name == "B_VALUECURVE_XPivot")
+                return RZ_XPIVOT_MIN;
+            if (name == "B_VALUECURVE_YPivot")
+                return RZ_YPIVOT_MIN;
+            //if (name == "B_VALUECURVE_")
+            //    return SB_LEFT_BOTTOM_MIN;
+            //if (name == "B_VALUECURVE_")
+            //    return SB_RIGHT_TOP_MIN;
+            //if (name == "B_VALUECURVE_")
+            //    return SB_CENTRE_MIN;
+            wxASSERT(false);
+            return 0;
+        }
+
+        static double GetSettingVCMax(const std::string& name)
+        {
+            if (name == "B_VALUECURVE_Blur")
+                return BLUR_MAX;
+            if (name == "B_VALUECURVE_Rotation")
+                return RZ_ROTATION_MAX;
+            if (name == "B_VALUECURVE_Zoom")
+                return RZ_ZOOM_MAX;
+            if (name == "B_VALUECURVE_Rotations")
+                return RZ_ROTATIONS_MAX;
+            if (name == "B_VALUECURVE_PivotPointX")
+                return RZ_PIVOTX_MAX;
+            if (name == "B_VALUECURVE_PivotPointY")
+                return RZ_PIVOTY_MAX;
+            if (name == "B_VALUECURVE_XRotation")
+                return RZ_XROTATION_MAX;
+            if (name == "B_VALUECURVE_YRotation")
+                return RZ_YROTATION_MAX;
+            if (name == "B_VALUECURVE_XPivot")
+                return RZ_XPIVOT_MAX;
+            if (name == "B_VALUECURVE_YPivot")
+                return RZ_YPIVOT_MAX;
+            //if (name == "B_VALUECURVE_")
+            //    return SB_LEFT_BOTTOM_MAX;
+            //if (name == "B_VALUECURVE_")
+            //    return SB_RIGHT_TOP_MAX;
+            //if (name == "B_VALUECURVE_")
+            //    return SB_CENTRE_MAX;
+            wxASSERT(false);
+            return 100;
+        }
+
+		static int GetSettingVCDivisor(const std::string& name)
+        {
+            if (name == "B_VALUECURVE_")
+                return RZ_ZOOM_DIVISOR;
+            if (name == "B_VALUECURVE_")
+                return RZ_ROTATIONS_DIVISOR;
+            return 1;
+        }
 
 		//(*Declarations(BufferPanel)
 		BulkEditCheckBox* CheckBox_OverlayBkg;
@@ -115,7 +232,9 @@ public:
 		xlLockButton* BitmapButton_ZoomQuality;
 		//*)
 
-        SubBufferPanel *subBufferPanel;
+        SubBufferPanel *subBufferPanel = nullptr;
+        std::string _defaultCamera = "2D";
+
 	protected:
 
 		//(*Identifiers(BufferPanel)

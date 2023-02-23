@@ -8,6 +8,7 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#if !defined(SKIP_SMPTE)
 #include "ListenerSMPTE.h"
 #include "ListenerManager.h"
 #include "../xScheduleMain.h"
@@ -147,3 +148,4 @@ void ListenerSMPTE::DoSync(int mode, int hours, int mins, int secs, int frames)
 
     _listenerManager->Sync("", ms, GetType());
 }
+#endif

@@ -32,17 +32,60 @@
 
 class ShockwaveEffect : public RenderableEffect
 {
-    public:
-        ShockwaveEffect(int id);
-        virtual ~ShockwaveEffect();
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                         xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) override;
-        virtual void SetDefaultParameters() override;
-        virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) const override { return true; }
-        virtual bool CanRenderPartialTimeInterval() const override { return true; }
-        virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
+public:
+    ShockwaveEffect(int id);
+    virtual ~ShockwaveEffect();
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual int DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2,
+                                     xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps) override;
+    virtual void SetDefaultParameters() override;
+    virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const override
+    {
+        return true;
+    }
+    virtual bool CanRenderPartialTimeInterval() const override
+    {
+        return true;
+    }
+    virtual bool SupportsRenderCache(const SettingsMap& settings) const override
+    {
+        return true;
+    }
 
-    protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Shockwave_CenterX")
+            return SHOCKWAVE_X_MIN;
+        if (name == "E_VALUECURVE_Shockwave_CenterY")
+            return SHOCKWAVE_Y_MIN;
+        if (name == "E_VALUECURVE_Shockwave_Start_Width")
+            return SHOCKWAVE_STARTWIDTH_MIN;
+        if (name == "E_VALUECURVE_Shockwave_End_Width")
+            return SHOCKWAVE_ENDWIDTH_MIN;
+        if (name == "E_VALUECURVE_Shockwave_Start_Radius")
+            return SHOCKWAVE_STARTRADIUS_MIN;
+        if (name == "E_VALUECURVE_Shockwave_End_Radius")
+            return SHOCKWAVE_ENDRADIUS_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
+
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Shockwave_CenterX")
+            return SHOCKWAVE_X_MAX;
+        if (name == "E_VALUECURVE_Shockwave_CenterY")
+            return SHOCKWAVE_Y_MAX;
+        if (name == "E_VALUECURVE_Shockwave_Start_Width")
+            return SHOCKWAVE_STARTWIDTH_MAX;
+        if (name == "E_VALUECURVE_Shockwave_End_Width")
+            return SHOCKWAVE_ENDWIDTH_MAX;
+        if (name == "E_VALUECURVE_Shockwave_Start_Radius")
+            return SHOCKWAVE_STARTRADIUS_MAX;
+        if (name == "E_VALUECURVE_Shockwave_End_Radius")
+            return SHOCKWAVE_ENDRADIUS_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
+
+protected:
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

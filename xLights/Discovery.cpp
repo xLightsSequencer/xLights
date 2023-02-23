@@ -231,17 +231,17 @@ Discovery::Discovery(wxWindow* frame, OutputManager* outputManager) : _frame(fra
 }
 
 Discovery::~Discovery() {
-    for (size_t x = 0; x < curls.size(); x++) {
+    for (size_t x = 0; x < curls.size(); ++x) {
         if (curls[x]) {
             curl_multi_remove_handle(curlMulti, curls[x]);
             delete curls[x];
             curls[x] = nullptr;
-            numCurls--;
+            --numCurls;
         }
     }
     curl_multi_cleanup(curlMulti);
     
-    for (size_t x = 0; x < results.size(); x++) {
+    for (size_t x = 0; x < results.size(); ++x) {
         delete results[x];
     }
     for (auto &dg : datagrams) {
@@ -540,7 +540,7 @@ void Discovery::Discover() {
                                 curl_multi_remove_handle(curlMulti, curls[x]->curl);
                                 delete curls[x];
                                 curls[x] = nullptr;
-                                numCurls--;
+                                --numCurls;
                             }
                         }
                     }

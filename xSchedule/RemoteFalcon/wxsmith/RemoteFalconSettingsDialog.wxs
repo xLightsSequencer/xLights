@@ -100,6 +100,20 @@
 						<border>2</border>
 						<option>1</option>
 					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_SendPlayingEffect" member="yes">
+							<label>Send first playing effect as playing song</label>
+							<handler function="OnCheckBox_SendPlayingEffectClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
 							<label>Effect mode:</label>
@@ -146,6 +160,28 @@
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText5" member="yes">
+							<label>Message Level:</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE3" variable="Choice_MessageLevel" member="yes">
+							<content>
+								<item>Error</item>
+								<item>Warn</item>
+								<item>Info</item>
+								<item>Debug</item>
+							</content>
+							<selection>1</selection>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>

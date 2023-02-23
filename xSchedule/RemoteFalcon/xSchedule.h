@@ -11,7 +11,7 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "../xSMSDaemon/Curl.h"
+#include "utils/Curl.h"
 #include "RemoteFalconApp.h"
 #include "../wxJSON/jsonreader.h"
 #include "RemoteFalconOptions.h"
@@ -98,5 +98,25 @@ public:
             return Action("Run event playlist step if idle", playlist + "," + step);
         }
         return "";
+    }
+    static std::list<std::string> GetPlayingEffects()
+    {
+        std::list<std::string> res;
+        auto json = Action("getplayingeffects");
+
+        if (json != "") {
+            wxJSONReader reader;
+            wxJSONValue val;
+            reader.Parse(json, &val);
+
+            if (!val.IsNull()) {
+                for (int i = 0; i < val["playingeffects"].AsArray()->Count(); i++) {
+                    auto pl = val["playingeffects"][i];
+                    res.push_back(pl["name"].AsString());
+                }
+            }
+        }
+
+        return res;
     }
 };

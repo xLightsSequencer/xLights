@@ -11,12 +11,12 @@
  **************************************************************/
 
  //(*Headers(BulkEditFontPickerDialog)
-#include <wx/button.h>
-#include <wx/dialog.h>
-#include <wx/fontpicker.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-//*)
+ #include <wx/button.h>
+ #include <wx/dialog.h>
+ #include <wx/fontpicker.h>
+ #include <wx/sizer.h>
+ #include <wx/stattext.h>
+ //*)
 
 class BulkEditFontPickerDialog: public wxDialog
 {

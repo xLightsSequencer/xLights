@@ -29,6 +29,7 @@
 #include "LayoutGroup.h"
 #include "ControllerModelDialog.h"
 #include "ExternalHooks.h"
+#include "utils/ip_utils.h"
 
 #include "controllers/FPP.h"
 #include "controllers/Falcon.h"
@@ -1790,7 +1791,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
             }
         } else if (name == "IP") {
             // This fixes up any start channels dependent on the controller IP
-            if (IsIPValid(oldIP) && IsIPValid(controller->GetIP()) && _outputManager.GetControllers(oldIP).size() == 0) {
+            if (ip_utils::IsIPValid(oldIP) && ip_utils::IsIPValid(controller->GetIP()) && _outputManager.GetControllers(oldIP).size() == 0) {
                 AllModels.ReplaceIPInStartChannels(oldIP, controller->GetIP());
             }
         }
@@ -1905,6 +1906,9 @@ void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)
             }
         }
     } else {
+        if (_outputManager.IsOutputting()) {
+            return;
+        }
         if (controller != nullptr) {
             int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
             if (usingip == 1 && controller->CanVisualise()) {
@@ -2259,11 +2263,14 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
     message.clear();
     bool res = false;
 
+    SetStatusText(message);
+
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (controller == nullptr) return res;
 
     auto caps = GetControllerCaps(controller->GetName());
     if (caps != nullptr) {
+        SetStatusText("Uploading inputs to controller.");
         caps->Dump();
         if (caps->SupportsInputOnlyUpload()) {
             auto vendor = controller->GetVendor();
@@ -2321,11 +2328,14 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
     message.clear();
     bool res = false;
 
+    SetStatusText(message);
+
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (controller == nullptr) return res;
 
     auto caps = GetControllerCaps(controller->GetName());
     if (caps != nullptr) {
+        SetStatusText("Uploading outputs to controller.");
         caps->Dump();
         if (caps->SupportsUpload()) {
             auto vendor = controller->GetVendor();

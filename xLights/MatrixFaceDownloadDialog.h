@@ -11,15 +11,16 @@
  **************************************************************/
 
 //(*Headers(MatrixFaceDownloadDialog)
-#include <wx/treectrl.h>
-#include <wx/sizer.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/splitter.h>
-#include <wx/panel.h>
-#include <wx/statbmp.h>
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/splitter.h>
+#include <wx/srchctrl.h>
+#include <wx/statbmp.h>
+#include <wx/textctrl.h>
+#include <wx/treectrl.h>
 //*)
 
 #include <wx/xml/xml.h>
@@ -62,13 +63,14 @@ class MatrixFaceDownloadDialog: public wxDialog
 
 		//(*Declarations(MatrixFaceDownloadDialog)
 		wxButton* Button_InsertFace;
-		wxTreeCtrl* TreeCtrl_Navigator;
+		wxCheckBox* CheckBox_FilterUnsuitable;
 		wxPanel* Panel1;
 		wxPanel* Panel3;
-		wxTextCtrl* TextCtrl_FaceDetails;
+		wxSearchCtrl* SearchCtrlFaces;
 		wxSplitterWindow* SplitterWindow1;
 		wxStaticBitmap* StaticBitmap_FaceImage;
-		wxCheckBox* CheckBox_FilterUnsuitable;
+		wxTextCtrl* TextCtrl_FaceDetails;
+		wxTreeCtrl* TreeCtrl_Navigator;
 		//*)
 
 	protected:
@@ -76,6 +78,7 @@ class MatrixFaceDownloadDialog: public wxDialog
 		//(*Identifiers(MatrixFaceDownloadDialog)
 		static const long ID_TREECTRL1;
 		static const long ID_CHECKBOX1;
+		static const long ID_SEARCHCTRL_FACES;
 		static const long ID_PANEL3;
 		static const long ID_STATICBITMAP1;
 		static const long ID_TEXTCTRL1;
@@ -93,6 +96,8 @@ class MatrixFaceDownloadDialog: public wxDialog
 		void OnResize(wxSizeEvent& event);
 		void OnButton_InsertFaceClick(wxCommandEvent& event);
 		void OnCheckBox_FilterUnsuitableClick(wxCommandEvent& event);
+		void OnSearchCtrlFacesSearchClicked(wxCommandEvent& event);
+		void OnSearchCtrlFacesTextEnter(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

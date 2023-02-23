@@ -18,7 +18,7 @@ class SnowstormEffect : public RenderableEffect
         SnowstormEffect(int id);
         virtual ~SnowstormEffect();
         virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool AppropriateOnNodes() const override { return false; }
 protected:
         virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;

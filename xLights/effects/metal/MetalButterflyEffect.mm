@@ -40,7 +40,7 @@ public:
             }
             id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
             if (computeEncoder == nil) {
-                commandBuffer = nil;
+                rbcd->abortCommandBuffer();
                 return false;
             }
             [computeEncoder setLabel:@"ButterflyEffect"];
@@ -53,7 +53,7 @@ public:
             id<MTLBuffer> bufferResult = rbcd->getPixelBuffer();
             if (bufferResult == nil) {
                 computeEncoder = nil;
-                commandBuffer = nil;
+                rbcd->abortCommandBuffer();
                 return false;
             }
 
@@ -85,7 +85,7 @@ MetalButterflyEffect::~MetalButterflyEffect() {
 }
 
 
-void MetalButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void MetalButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
     int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
 

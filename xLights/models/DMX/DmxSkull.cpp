@@ -242,9 +242,9 @@ protected:
     int m_tp;
 };
 
-void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     wxPGProperty* p = grid->Append(new SkullPopupDialogProperty(this, "Skull Config", "SkullConfig", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
@@ -621,7 +621,14 @@ void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ct
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(1, 1, 1);
-
+    if (boundingBox) {
+        boundingBox[0] = -0.5;
+        boundingBox[1] = -0.5;
+        boundingBox[2] = -0.5;
+        boundingBox[3] = 0.5;
+        boundingBox[4] = 0.5;
+        boundingBox[5] = 0.5;
+    }
     sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {

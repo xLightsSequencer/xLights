@@ -172,6 +172,7 @@ void VideoEffect::SetDefaultParameters()
     vp->BitmapButton_Video_CropRightVC->SetActive(false);
     vp->BitmapButton_Video_CropTopVC->SetActive(false);
     vp->BitmapButton_Video_CropBottomVC->SetActive(false);
+    vp->BitmapButton_Video_Speed->SetActive(false);
     SetCheckBoxValue(vp->CheckBox_Video_AspectRatio, false);
     SetChoiceValue(vp->Choice_Video_DurationTreatment, "Normal");
 }
@@ -201,7 +202,7 @@ bool VideoEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Setting
     return rc;
 }
 
-void VideoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void VideoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
 
     int cl = GetValueCurveInt("Video_CropLeft", 0, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -348,6 +349,9 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                 {
                     logger_base.warn("VideoEffect: Video %s was read as 0 length.", (const char *)filename.c_str());
                 }
+
+                // read the first frame ... if i dont it thinks the first frame i read is the first frame
+                _videoreader->GetNextFrame(0);
 
                 VideoPanel *fp = static_cast<VideoPanel*>(panel);
                 if (fp != nullptr)

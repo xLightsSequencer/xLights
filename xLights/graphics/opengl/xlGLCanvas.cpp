@@ -41,7 +41,7 @@ static wxGLAttributes GetAttributes(int &zdepth, bool only2d) {
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     
     wxGLAttributes atts;
-    for (int x = only2d ? 5 : 0; x < 6; x++) {
+    for (size_t x = only2d ? 5 : 0; x < 6; ++x) {
         atts.Reset();
         atts.PlatformDefaults()
             .RGBA()
@@ -60,7 +60,7 @@ static wxGLAttributes GetAttributes(int &zdepth, bool only2d) {
     }
     logger_opengl.debug("Could not find an attribs thats working with MnRGBA\n");
     // didn't find a display, try without MinRGBA
-    for (int x = only2d ? 5 : 0; x < 6; x++) {
+    for (size_t x = only2d ? 5 : 0; x < 6; ++x) {
         atts.Reset();
         atts.PlatformDefaults()
             .RGBA()
@@ -453,7 +453,7 @@ wxImage* xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
         unsigned char* dst = buf;
         for (int y = dstSize.GetHeight() - 1; y >= 0; --y) {
             const unsigned char* src = tmpBuf + 4 * width * y;
-            for (int x = 0; x < dstSize.GetWidth(); ++x, src += 4, dst += 3) {
+            for (size_t x = 0; x < dstSize.GetWidth(); ++x, src += 4, dst += 3) {
                 dst[0] = src[0];
                 dst[1] = src[1];
                 dst[2] = src[2];
@@ -531,6 +531,13 @@ void xlGLCanvas::SetCurrentGLContext()
             logger_opengl.info("Try creating 1.1 Cache for %s", (const char*)_name.c_str());
             LOG_GL_ERRORV(cache = Create11Cache());
             if (cache != nullptr) _ver = 1;
+        }
+        static bool hasWarned = false;
+        if (_ver == 1 && !hasWarned) {
+            hasWarned = true;
+            wxMessageBox("OpenGL 1.x/2.x are known to have issues with xLights and will soon be removed.  Please update your video drivers.",
+                         "OpenGL Version",
+                          wxICON_INFORMATION | wxCENTER | wxOK);
         }
         if (cache == nullptr) {
             _ver = 0;
@@ -842,7 +849,7 @@ public:
         // data can change via SetVertex and then flushed to push the
         // new data to the graphics card
         virtual void Finalize(bool mayChangeVertices, bool mayChangeColors) override {
-            for (int x = 0; x < colorIndexes.size(); x++) {
+            for (size_t x = 0; x < colorIndexes.size(); ++x) {
                 vac.SetVertex(x, colors[colorIndexes[x]]);
             }
             vac.Finalize(mayChangeVertices, mayChangeColors);
@@ -861,7 +868,7 @@ public:
             vac.FlushRange(start, len);
         }
         virtual void FlushColors(uint32_t start, uint32_t len) override {
-            for (int x = 0; x < getCount(); x++) {
+            for (size_t x = 0; x < getCount(); ++x) {
                 int idx = colorIndexes[x];
                 if (idx >= start && (idx < (start + len))) {
                     vac.SetVertex(x, colors[idx]);
@@ -967,7 +974,7 @@ public:
             mesh = DrawGLUtils::createMesh();
             for (auto &s : objects.GetShapes()) {
                 if (!s.mesh.indices.empty()) {
-                    for (int idx = 0; idx < s.mesh.material_ids.size(); idx++) {
+                    for (int idx = 0; idx < s.mesh.material_ids.size(); ++idx) {
                         float vert[3][3];
                         float norms[3][3];
                         float tc[3][2];
@@ -981,7 +988,7 @@ public:
                             }
                             c = this->materials[s.mesh.material_ids[idx]].color;
                         }
-                        for (int x = 0; x < 3; x++) {
+                        for (size_t x = 0; x < 3; ++x) {
                             tinyobj::index_t vi = s.mesh.indices[idx*3 + x];
 
                             auto& objVerts = objects.GetAttrib().vertices;
@@ -1024,9 +1031,9 @@ public:
                     }
                 }
                 if (!s.lines.indices.empty()) {
-                    for (int idx = 0 ; idx < s.lines.indices.size(); idx += 2) {
+                    for (size_t idx = 0 ; idx + 1 < s.lines.indices.size(); idx += 2) {
                         float vert[2][3];
-                        for (int x = 0; x < 2; x++) {
+                        for (size_t x = 0; x < 2; ++x) {
                             tinyobj::index_t vi = s.lines.indices[idx + x];
                             vert[x][0] = objects.GetAttrib().vertices[vi.vertex_index * 3];
                             vert[x][1] = objects.GetAttrib().vertices[vi.vertex_index * 3 + 1];
@@ -1216,7 +1223,7 @@ bool xlGLCanvas::getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int
     }
     for (int y = h - 1; y >= 0; --y) {
         const unsigned char *src = tmpBuf + 4 * w * y;
-        for (int x = 0; x < w; ++x, src += 4, dst += 3) {
+        for (size_t x = 0; x < w; ++x, src += 4, dst += 3) {
             dst[0] = src[0];
             dst[1] = src[1];
             dst[2] = src[2];

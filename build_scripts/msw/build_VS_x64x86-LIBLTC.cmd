@@ -18,23 +18,29 @@ cd ..
 cd ..
 cd ..
 
-git clone --recurse-submodules -b xlights_2022.13 https://github.com/xLightsSequencer/wxWidgets wxWidgets
-
-cd wxWidgets
-msbuild.exe /m .\build\msw\wx_vc17.sln /p:Configuration="Debug" /p:Platform="x64"
+cd libltc
+cd libltc
+msbuild.exe -m:10 libltc.sln -p:Configuration="Release" -p:Platform="x64"
+copy x64\release\libltc.lib ..\..\xlights\lib\windows64
 if %ERRORLEVEL% NEQ 0 goto error
 
-
-msbuild.exe /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
+msbuild.exe -m:10 libltc.sln -p:Configuration="Release" -p:Platform="x86"
+copy release\libltc.lib ..\..\xlights\lib\windows
 if %ERRORLEVEL% NEQ 0 goto error
 
+msbuild.exe -m:10 libltc.sln -p:Configuration="Debug" -p:Platform="x64"
+copy x64\debug\libltcd.lib ..\..\xlights\lib\windows64
+if %ERRORLEVEL% NEQ 0 goto error
 
+msbuild.exe -m:10 libltc.sln -p:Configuration="Debug" -p:Platform="x86"
+copy debug\libltcd.lib ..\..\xlights\lib\windows
+if %ERRORLEVEL% NEQ 0 goto error
 
 goto exit
 
 :error
 
-@echo Error compiling wxWidgets x64
+@echo Error compiling LibLTC
 pause
 exit 1
 

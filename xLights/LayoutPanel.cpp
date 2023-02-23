@@ -137,6 +137,7 @@ const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_LOCK = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_UNLOCK = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTASCUSTOM = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTASCUSTOM3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_CREATEGROUP = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_WIRINGVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ASPECTRATIO = wxNewId();
@@ -191,6 +192,7 @@ const long LayoutPanel::ID_MNU_MAKEALLSCNOTOVERLAPPING = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_TO_EXISTING_GROUPS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETE_ACTIVE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_RENAME_ACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELETEPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDCURVE = wxNewId();
@@ -274,7 +276,7 @@ class NewModelBitmapButton : public wxBitmapButton
 public:
 
     NewModelBitmapButton(wxWindow *parent, const wxBitmapBundle &bmp, const wxBitmapBundle& bmpDis, const wxBitmapBundle& pBmp, const std::string &type)
-        : wxBitmapButton(parent, wxID_ANY, bmp), state(0), bitmap(bmp), bitmapDisabled(bmpDis), pressedBitmap(pBmp), modelType(type) {
+        : wxBitmapButton(parent, wxID_ANY, bmp), bitmap(bmp), bitmapDisabled(bmpDis), pressedBitmap(pBmp), modelType(type) {
         SetToolTip("Create new " + type);
     }
     virtual ~NewModelBitmapButton() {}
@@ -303,7 +305,7 @@ public:
 protected:
 private:
     const std::string modelType;
-    unsigned int state;
+    uint32_t state = 0;
     wxBitmapBundle bitmap;
     wxBitmapBundle bitmapDisabled;
     wxBitmapBundle pressedBitmap;
@@ -712,20 +714,28 @@ std::string LayoutPanel::GetCurrentPreview() const
     return ChoiceLayoutGroups->GetStringSelection().ToStdString();
 }
 
-NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
-    wxImage image(data);
-    wxImage disImg = image.ConvertToDisabled();
-    wxImage presImg = image.ConvertToDisabled(128);
+#ifdef __WXMSW__
+// On windows wxIMAGE_QUALITY_HIGH results in blank rescaled images
+#define RESCALE_MODEL_BUTTON_QUALITY wxIMAGE_QUALITY_BICUBIC 
+#else
+#define RESCALE_MODEL_BUTTON_QUALITY wxIMAGE_QUALITY_HIGH
+#endif
 
-    wxImage img24 = image.Scale(24, 24, wxIMAGE_QUALITY_HIGH);
-    wxImage disImg24 = disImg.Scale(24, 24, wxIMAGE_QUALITY_HIGH);
-    wxImage presImg24 = presImg.Scale(24, 24, wxIMAGE_QUALITY_HIGH);
+NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
+
+    wxImage image(data);
+    wxImage disImage = image.ConvertToDisabled();
+    wxImage presImage = image.ConvertToDisabled(128);
+
+    wxImage img24 = image.Scale(24, 24, RESCALE_MODEL_BUTTON_QUALITY);
+    wxImage disImg24 = disImage.Scale(24, 24, RESCALE_MODEL_BUTTON_QUALITY);
+    wxImage presImg24 = presImage.Scale(24, 24, RESCALE_MODEL_BUTTON_QUALITY);
 
     wxBitmapBundle bmp = wxBitmapBundle::FromBitmaps(img24, image);
-    wxBitmapBundle bmpDisabled = wxBitmapBundle::FromBitmaps(disImg24, disImg);
-    wxBitmapBundle presBmp = wxBitmapBundle::FromBitmaps(presImg24, presImg);
+    wxBitmapBundle disBmp = wxBitmapBundle::FromBitmaps(disImg24, disImage);
+    wxBitmapBundle presBmp = wxBitmapBundle::FromBitmaps(presImg24, presImage);
 
-    NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, bmp, bmpDisabled, presBmp, type);
+    NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, bmp, disBmp, presBmp, type);
     ToolSizer->Add(button, 1, wxALL, 0);
     buttons.push_back(button);
     Connect(button->GetId(), wxEVT_BUTTON, (wxObjectEventFunction)&LayoutPanel::OnNewModelTypeButtonClicked);
@@ -1723,7 +1733,7 @@ void LayoutPanel::BulkEditControllerConnection(int id)
 
         for (Model* model: modelsToEdit) {
             if (model != nullptr) {
-                dlg.Get(model->GetControllerConnection());
+                dlg.Get(model->GetControllerConnection(), model->GetNumPhysicalStrings());
             }
         }
 
@@ -2231,15 +2241,15 @@ public:
     }
     
     void setImage(const wxImage &img) {
-#if wxRELEASE_NUMBER < 7
+#if (wxRELEASE_NUMBER > 6) || (wxMINOR_VERSION >= 2)
+        m_image = img;
+#else
         if (img.IsOk()) {
             m_pImage = new wxImage(img);
         } else {
             delete m_pImage;
             m_pImage = nullptr;
         }
-#else
-        m_image = img;
 #endif
     }
 
@@ -2337,11 +2347,11 @@ void LayoutPanel::showBackgroundProperties()
     if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
         wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
         prop->SetAttribute("Min", 0);
-        prop->SetAttribute("Max", 4096);
+        prop->SetAttribute("Max", 16384);
         prop->SetEditor("SpinCtrl");
         prop = propertyEditor->Append(new wxUIntProperty("Height", "BkgSizeHeight", modelPreview->GetVirtualCanvasHeight()));
         prop->SetAttribute("Min", 0);
-        prop->SetAttribute("Max", 4096);
+        prop->SetAttribute("Max", 16384);
         prop->SetEditor("SpinCtrl");
     }
     wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Brightness", "BkgBrightness", previewBackgroundBrightness));
@@ -2725,6 +2735,7 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
     SaveEffects();
     if (xlights->IsControllersAndLayoutTabSaveLinked()) {
         xlights->SaveNetworksFile();
+        xlights->UpdateLayoutSave(); // SaveEffects tried to do this, but if the saves are linked it is marked dirty til nets are saved.
     }
 }
 
@@ -3641,8 +3652,8 @@ void LayoutPanel::OnPreviewMotion3D(Motion3DEvent &event) {
     int smSize = selectedTreeSubModels.size();
     if (selectedBaseObject != nullptr && gSize == 0 && smSize == 0 && !event.ControlDown() && !event.RawControlDown()) {
         int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
+        if (!xlights->AbortRender()) return;
         CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, std::to_string(active_handle));
-        xlights->AbortRender();
 
         float scale = modelPreview->translateToBacking(1.0) * 20.0 * modelPreview->GetZoom(); //20 pixels at max speed, default zoom
         if (!modelPreview->Is3D()) {
@@ -3830,14 +3841,42 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
                 delta_y *= modelPreview->GetZoom() * 2.0f;
                 delta_z *= modelPreview->GetZoom() * 2.0f;
                 modelPreview->SetPan(delta_x, delta_y, delta_z);
-            }
-            else {
-                float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
-                float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+            } else {
                 if (event.ShiftDown()) {
-                    modelPreview->SetPan(delta_x, delta_y, 0.0f);
-                }
-                else {
+                    float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+                    float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+
+                    // account for grid rotation
+                    float angleX = glm::radians(modelPreview->GetCameraRotationX());
+                    float angleY = glm::radians(modelPreview->GetCameraRotationY());
+                    float delta_x = 0.0f;
+                    float delta_y = 0.0f;
+                    float delta_z = 0.0f;
+                    bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
+                    bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
+                    bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
+                    if( top_view ) {
+                        delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
+                        delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
+                    } else if( bottom_view ) {
+                        delta_x = new_x * std::cos(angleY) + new_y * std::sin(angleY);
+                        delta_z = -new_y * std::cos(angleY) + new_x * std::sin(angleY);
+                    } else {
+                        delta_x = new_x * std::cos(angleY);
+                        delta_y = new_y;
+                        delta_z = new_x * std::sin(angleY);
+                        if( upside_down_view ) {
+                            delta_y *= -1.0f;
+                        }
+                    }
+                    delta_x *= modelPreview->GetZoom() * 2.0f;
+                    delta_y *= modelPreview->GetZoom() * 2.0f;
+                    delta_z *= modelPreview->GetZoom() * 2.0f;
+                    modelPreview->SetPan(delta_x, delta_y, delta_z);
+                } else {
+                    float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+                    float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+
                     modelPreview->SetCameraView(delta_x, delta_y, false);
                     modelPreview->SetCameraView(0, 0, true);
                 }
@@ -3934,6 +3973,8 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Mouse down moving handle");
             Model* m = dynamic_cast<Model*>(selectedBaseObject);
             if (selectedBaseObject != nullptr && (_newModel == selectedBaseObject || xlights->AllModels.IsModelValid(m))) {
+                if (!xlights->AbortRender()) return;
+
                 int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
 
                 int selectedModelCnt = ModelsSelectedCount();
@@ -3947,7 +3988,6 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 }
                 // this is designed to pretend the control and shift keys are down when creating models to
                 // make them scale from the desired handle depending on model type
-                xlights->AbortRender();
                 auto pos = selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() || creating_model, event.ControlDown() || (creating_model && z_scale), event.GetX(), event.GetY(), false, z_scale);
                 xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
                 //SetupPropGrid(selectedBaseObject);
@@ -4241,10 +4281,10 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     }
 
     if (m_moving_handle) {
+        if (!xlights->AbortRender()) return;
         if (m != _newModel) {
             CreateUndoPoint("SingleModel", m->name, std::to_string(m_over_handle));
         }
-        xlights->AbortRender();
         auto pos = m->MoveHandle(modelPreview, m_over_handle, event.ShiftDown(), event.GetX(), event.GetY());
         xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f", pos.x, pos.y));
 
@@ -4355,6 +4395,9 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         if (model->SupportsExportAsCustom())
         {
             menu.Append(ID_PREVIEW_MODEL_EXPORTASCUSTOM, "Export as Custom xLights Model");
+        }
+        if (model->SupportsExportAsCustom3D()) {
+            menu.Append(ID_PREVIEW_MODEL_EXPORTASCUSTOM3D, "Export as 3D Custom xLights Model");
         }
         if (model->SupportsXlightsModel())
         {
@@ -4486,6 +4529,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             mnu.AppendSeparator();
         }
         mnu.Append(ID_PREVIEW_DELETE_ACTIVE,"Delete this Preview");
+        mnu.Append(ID_PREVIEW_RENAME_ACTIVE, "Rename this Preview");
     }
 
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
@@ -4545,83 +4589,57 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     modelPreview->SetFocus();
 }
 
-void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
+void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
 {
-    if (event.GetId() == ID_PREVIEW_RESET)
-    {
+    if (event.GetId() == ID_PREVIEW_RESET) {
         modelPreview->Reset();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_RESET");
-    }
-    else if (event.GetId() == ID_PREVIEW_REPLACEMODEL)
-    {
+    } else if (event.GetId() == ID_PREVIEW_REPLACEMODEL) {
         ReplaceModel();
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_TOP)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_TOP) {
+        if (editing_models) {
             PreviewModelAlignTops();
         } else {
             objects_panel->PreviewObjectAlignTops();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_SAVE_LAYOUT_IMAGE)
-    {
+    } else if (event.GetId() == ID_PREVIEW_SAVE_LAYOUT_IMAGE) {
         PreviewSaveImage();
-    }
-    else if (event.GetId() == ID_PREVIEW_PRINT_LAYOUT_IMAGE)
-    {
+    } else if (event.GetId() == ID_PREVIEW_PRINT_LAYOUT_IMAGE) {
         PreviewPrintImage();
-    }
-    else if (event.GetId() == ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS)
-    {
+    } else if (event.GetId() == ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS) {
         ImportModelsFromRGBEffects();
-    }
-    else if (event.GetId() == ID_PREVIEW_IMPORT_MODELS_FROM_LORS5)
-    {
+    } else if (event.GetId() == ID_PREVIEW_IMPORT_MODELS_FROM_LORS5) {
         ImportModelsFromLORS5();
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM) {
+        if (editing_models) {
             PreviewModelAlignBottoms();
         } else {
             objects_panel->PreviewObjectAlignBottoms();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_GROUND)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_GROUND) {
+        if (editing_models) {
             PreviewModelAlignWithGround();
         } else {
             objects_panel->PreviewObjectAlignWithGround();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERSTARTNULLNODES ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERENDNULLNODES ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTE ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERPROTOCOL ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT||
-        event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE
-        )
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERSTARTNULLNODES ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERENDNULLNODES ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTE ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERPROTOCOL ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT ||
+               event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE) {
         BulkEditControllerConnection(event.GetId());
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNAME)
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNAME) {
         BulkEditControllerName();
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_SETACTIVE)
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_SETACTIVE) {
         BulkEditActive(true);
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_SETINACTIVE)
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_SETINACTIVE) {
         BulkEditActive(false);
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_TAGCOLOUR) {
         BulkEditTagColour();
@@ -4633,155 +4651,117 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         BulkEditTransparency();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_BLACKTRANSPARENCY) {
         BulkEditBlackTranparency();
-    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW)
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW) {
         BulkEditControllerPreview();
-    }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_DIMMINGCURVES)
-    {
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_DIMMINGCURVES) {
         BulkEditDimmingCurves();
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_LEFT)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_LEFT) {
+        if (editing_models) {
             PreviewModelAlignLeft();
         } else {
             objects_panel->PreviewObjectAlignLeft();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_RIGHT)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_RIGHT) {
+        if (editing_models) {
             PreviewModelAlignRight();
         } else {
             objects_panel->PreviewObjectAlignRight();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_FRONT)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_FRONT) {
+        if (editing_models) {
             PreviewModelAlignFronts();
         } else {
             objects_panel->PreviewObjectAlignFronts();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_BACK)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_BACK) {
+        if (editing_models) {
             PreviewModelAlignBacks();
         } else {
             objects_panel->PreviewObjectAlignBacks();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_H_CENTER)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_H_CENTER) {
+        if (editing_models) {
             PreviewModelAlignHCenter();
         } else {
             objects_panel->PreviewObjectAlignHCenter();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_ALIGN_V_CENTER)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_V_CENTER) {
+        if (editing_models) {
             PreviewModelAlignVCenter();
         } else {
             objects_panel->PreviewObjectAlignVCenter();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_H_DISTRIBUTE)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_H_DISTRIBUTE) {
+        if (editing_models) {
             PreviewModelHDistribute();
         } else {
             objects_panel->PreviewObjectHDistribute();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_V_DISTRIBUTE)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_V_DISTRIBUTE) {
+        if (editing_models) {
             PreviewModelVDistribute();
         } else {
             objects_panel->PreviewObjectVDistribute();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEWIDTH)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEWIDTH) {
+        if (editing_models) {
             PreviewModelResize(true, false);
         } else {
             objects_panel->PreviewObjectResize(true, false);
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEHEIGHT)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEHEIGHT) {
+        if (editing_models) {
             PreviewModelResize(false, true);
         } else {
             objects_panel->PreviewObjectResize(false, true);
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_RESIZE_SAMESIZE)
-    {
-        if(editing_models ) {
+    } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMESIZE) {
+        if (editing_models) {
             PreviewModelResize(true, true);
         } else {
             objects_panel->PreviewObjectResize(true, true);
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT) {
         ShowNodeLayout();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_LOCK)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_LOCK) {
         LockSelectedModels(true);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_LOCK");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_LOCK");
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_UNLOCK)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_UNLOCK) {
         LockSelectedModels(false);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
-        if (md == nullptr) return;
+        if (md == nullptr)
+            return;
         md->ExportAsCustomXModel();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_CREATEGROUP)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM3D) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
+        md->ExportAsCustomXModel3D();
+    } else if (event.GetId() == ID_PREVIEW_MODEL_CREATEGROUP) {
         CreateModelGroupFromSelected();
-    }
-    else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUPS)
-    {
+    } else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUPS) {
         AddSelectedToExistingGroups();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW) {
         ShowWiring();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_CAD_EXPORT)
-    {
+    } else if (event.GetId() == ID_PREVIEW_MODEL_CAD_EXPORT) {
         ExportModelAsCAD();
-    }
-    else if (event.GetId() == ID_PREVIEW_LAYOUT_DXF_EXPORT)
-    {
+    } else if (event.GetId() == ID_PREVIEW_LAYOUT_DXF_EXPORT) {
         ExportLayoutDXF();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO)
-    {
-        Model* md=dynamic_cast<Model*>(selectedBaseObject);
-        if( md == nullptr ) return;
+    } else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
         int screen_wi = md->GetBaseObjectScreenLocation().GetMWidth();
         int screen_ht = md->GetBaseObjectScreenLocation().GetMHeight();
         float render_ht = md->GetBaseObjectScreenLocation().GetRenderHt();
         float render_wi = md->GetBaseObjectScreenLocation().GetRenderWi();
         float ht_ratio = render_ht / (float)screen_ht;
         float wi_ratio = render_wi / (float)screen_wi;
-        if( ht_ratio > wi_ratio) {
+        if (ht_ratio > wi_ratio) {
             render_wi = render_wi / ht_ratio;
             md->GetBaseObjectScreenLocation().SetMWidth((int)render_wi);
         } else {
@@ -4792,81 +4772,71 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO", nullptr, nullptr, GetSelectedModelName());
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL)
-    {
-        Model* md=dynamic_cast<Model*>(selectedBaseObject);
-        if( md == nullptr ) return;
+    } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
         md->ExportXlightsModel();
-    }
-    else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE)
-    {
+    } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT)
-    {
-        Model* md=dynamic_cast<Model*>(selectedBaseObject);
-        if( md == nullptr ) return;
+    } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {
+        RenameCurrentPreview();
+    } else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
         int handle = md->GetSelectedSegment();
-        CreateUndoPoint("SingleModel", md->name, std::to_string(handle+0x8000));
+        CreateUndoPoint("SingleModel", md->name, std::to_string(handle + 0x8000));
         md->InsertHandle(handle, modelPreview->GetCameraZoomForHandles(), modelPreview->GetHandleScale());
         md->UpdateXmlWithScale();
         md->InitModel();
-        //SetupPropGrid(md);
+        // SetupPropGrid(md);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDPOINT");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDPOINT");
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_DELETEPOINT)
-    {
-        Model* md=dynamic_cast<Model*>(selectedBaseObject);
-        if( md == nullptr ) return;
+    } else if (event.GetId() == ID_PREVIEW_MODEL_DELETEPOINT) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
         int selected_handle = md->GetSelectedHandle();
-        if( (selected_handle != -1) && (md->GetNumHandles() > 2) )
-        {
-            CreateUndoPoint("SingleModel", md->name, std::to_string(selected_handle+0x4000));
+        if ((selected_handle != -1) && (md->GetNumHandles() > 2)) {
+            CreateUndoPoint("SingleModel", md->name, std::to_string(selected_handle + 0x4000));
             md->DeleteHandle(selected_handle);
             md->SelectHandle(-1);
             md->GetModelScreenLocation().SelectSegment(-1);
             md->UpdateXmlWithScale();
             md->InitModel();
-            //SetupPropGrid(md);
+            // SetupPropGrid(md);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELETEPOINT");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELETEPOINT");
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_ADDCURVE)
-    {
-        Model* md=dynamic_cast<Model*>(selectedBaseObject);
-        if( md == nullptr ) return;
+    } else if (event.GetId() == ID_PREVIEW_MODEL_ADDCURVE) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
         int seg = md->GetSelectedSegment();
-        CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x2000));
+        CreateUndoPoint("SingleModel", md->name, std::to_string(seg + 0x2000));
         md->SetCurve(seg, true);
         md->UpdateXmlWithScale();
         md->InitModel();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDCURVE");
-    }
-    else if (event.GetId() == ID_PREVIEW_MODEL_DELCURVE)
-    {
-        Model* md=dynamic_cast<Model*>(selectedBaseObject);
-        if( md == nullptr ) return;
+    } else if (event.GetId() == ID_PREVIEW_MODEL_DELCURVE) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
         int seg = md->GetSelectedSegment();
-        CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x1000));
+        CreateUndoPoint("SingleModel", md->name, std::to_string(seg + 0x1000));
         md->SetCurve(seg, false);
         md->UpdateXmlWithScale();
         md->InitModel();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELCURVE");
-    }
-    else if (event.GetId() == ID_PREVIEW_VIEWPOINT_DEFAULT) {
+    } else if (event.GetId() == ID_PREVIEW_VIEWPOINT_DEFAULT) {
         modelPreview->SaveDefaultCameraPosition();
-    }
-    else if (event.GetId() == ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE) {
+    } else if (event.GetId() == ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE) {
         modelPreview->RestoreDefaultCameraPosition();
-    }
-    else if (event.GetId() == ID_PREVIEW_SAVE_VIEWPOINT)
-    {
+    } else if (event.GetId() == ID_PREVIEW_SAVE_VIEWPOINT) {
         modelPreview->SaveCurrentCameraPosition();
         SetDirtyHiLight(true);
-    } else if (event.GetId() == ID_PREVIEW_FLIP_HORIZONTAL) {        
+    } else if (event.GetId() == ID_PREVIEW_FLIP_HORIZONTAL) {
         if (editing_models) {
             PreviewModelFlipH();
         } else {
@@ -4878,36 +4848,26 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         } else {
             objects_panel->PreviewObjectFlipV();
         }
-    }    
-    else if (is_3d) {
+    } else if (is_3d) {
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
-            {
-                if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId())
-                {
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId()) {
                     modelPreview->SetCamera3D(i);
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::3dCamera");
                     break;
-                }
-                else if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetDeleteMenuId())
-                {
+                } else if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetDeleteMenuId()) {
                     xlights->viewpoint_mgr.DeleteCamera3D(i);
                 }
             }
         }
-    }
-    else {
+    } else {
         if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
-            {
-                if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId())
-                {
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId()) {
                     modelPreview->SetCamera2D(i);
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::2dCamera");
                     break;
-                }
-                else if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetDeleteMenuId())
-                {
+                } else if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetDeleteMenuId()) {
                     xlights->viewpoint_mgr.DeleteCamera2D(i);
                 }
             }
@@ -4944,7 +4904,7 @@ void LayoutPanel::EditSubmodels()
     if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel")
         return;
 
-    SubModelsDialog dlg(this);
+    SubModelsDialog dlg(this, &xlights->_outputManager);
     dlg.Setup(md);
     if (dlg.ShowModal() == wxID_OK) {
         dlg.Save();
@@ -4965,7 +4925,7 @@ void LayoutPanel::EditFaces()
     if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel")
         return;
 
-    ModelFaceDialog dlg(this);
+    ModelFaceDialog dlg(this, &xlights->_outputManager);
     dlg.SetFaceInfo(md, md->faceInfo);
     if (dlg.ShowModal() == wxID_OK) {
         md->faceInfo.clear();
@@ -4981,7 +4941,7 @@ void LayoutPanel::EditStates()
     if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel")
         return;
 
-    ModelStateDialog dlg(this);
+    ModelStateDialog dlg(this, &xlights->_outputManager);
     dlg.SetStateInfo(md, md->stateInfo);
     if (dlg.ShowModal() == wxID_OK) {
         md->stateInfo.clear();
@@ -5000,7 +4960,7 @@ void LayoutPanel::EditModelData()
     md->SaveDisplayDimensions();
     auto oldAutoSave = md->GetModelManager().GetXLightsFrame()->_suspendAutoSave;
     md->GetModelManager().GetXLightsFrame()->_suspendAutoSave = true; // because we will tamper with model we need to suspend autosave
-    CustomModelDialog dlg(this);
+    CustomModelDialog dlg(this, &xlights->_outputManager);
     dlg.Setup(md);
     if (dlg.ShowModal() == wxID_OK) {
         dlg.Save(md);
@@ -5182,7 +5142,7 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
 
-    xlights->AbortRender();
+    if (!xlights->AbortRender()) return;
 
     std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
@@ -5701,6 +5661,7 @@ void LayoutPanel::SetTreeSubModelSelected(Model* model, bool isPrimary) {
 }
 
 void LayoutPanel::CheckModelForOverlaps(Model* model) {
+    // this is the channel range of the clicked on model
     int mStart = model->GetNumberFromChannelString(model->ModelStartChannel);
     int mEnd = model->GetLastChannel();
 
@@ -5711,20 +5672,13 @@ void LayoutPanel::CheckModelForOverlaps(Model* model) {
             ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
             Model *mm = data != nullptr ? data->GetModel() : nullptr;
             if (mm != nullptr && mm != selectedBaseObject) {
+                // this is the channel range of the model we are checking
                 int startChan = mm->GetNumberFromChannelString(mm->ModelStartChannel);
                 int endChan = mm->GetLastChannel();
-                if ((startChan >= mStart) && (endChan <= mEnd)) {
-                    mm->Overlapping = true;
-                }
-                else if ((startChan >= mStart) && (startChan <= mEnd)) {
-                    mm->Overlapping = true;
-                }
-                else if ((endChan >= mStart) && (endChan <= mEnd)) {
-                    mm->Overlapping = true;
-                }
-                else {
-                    mm->Overlapping = false;
-                }
+
+                mm->Overlapping = ((mStart <= startChan && mEnd >= startChan) ||
+                                   (mStart <= endChan && mEnd >= endChan) ||
+                                   (mStart >= startChan && mEnd <= endChan));
             }
         }
     }
@@ -6507,6 +6461,7 @@ void LayoutPanel::DeleteSelectedModels() {
             // we suspend deferred work because if the delete model pops a dialog then the ASAP work gets done prematurely
             xlights->GetOutputModelManager()->SuspendDeferredWork(true);
             xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
+            xlights->AbortRender(); // stop any rendering as deleting models from under the renderer will crash xlights
 
             CreateUndoPoint("All", wxJoin(modelsToDelete, ','));
 
@@ -6551,6 +6506,8 @@ void LayoutPanel::DeleteSelectedGroups()
 		CreateUndoPoint("All", wxJoin(groupsToDelete, ','));
 
 		xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
+        xlights->AbortRender(); // stop rendering as deleting groups while rendering is not good
+
 		for (const auto& it : groupsToDelete) {
 			xlights->AllModels.Delete(it.ToStdString());
 		}
@@ -6586,6 +6543,8 @@ void LayoutPanel::ReplaceModel()
     if (dlg.ShowModal() == wxID_OK)
     {
         xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
+        xlights->AbortRender(); // we dont want to be rendering when we do this
+
         Model* replaceModel = nullptr;
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
@@ -6618,6 +6577,18 @@ void LayoutPanel::ReplaceModel()
                 modelToReplaceItWith->SetSmartRemoteType(replaceModel->GetSmartRemoteType());
                 modelToReplaceItWith->SetSRMaxCascade(replaceModel->GetSRMaxCascade());
                 modelToReplaceItWith->SetSRCascadeOnPort(replaceModel->GetSRCascadeOnPort());
+            }
+        }
+
+        if (replaceModel->GetNumSubModels() > 0 ) {
+            if (wxMessageBox("Merge The Submodels", "Merge The Submodels", wxYES_NO) == wxYES) {
+                for (int i = 0; i < replaceModel->GetNumSubModels(); ++i) {
+                    auto name{ replaceModel->GetSubModel(i)->Name() };
+                    if (modelToReplaceItWith->GetSubModel(name) != nullptr) {
+                        continue;
+                    }
+                    modelToReplaceItWith->AddSubmodel(replaceModel->GetSubModel(i)->GetModelXml());
+                }
             }
         }
 
@@ -7115,6 +7086,11 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         if (md == nullptr)
             return;
         md->ExportAsCustomXModel();
+    } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM3D) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md == nullptr)
+            return;
+        md->ExportAsCustomXModel3D();
     } else if (event.GetId() == ID_PREVIEW_MODEL_CREATEGROUP) {
         CreateModelGroupFromSelected();
     } else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUPS) {
@@ -7151,6 +7127,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         md->ExportXlightsModel();
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
+    } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {
+        RenameCurrentPreview();
     } else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
@@ -7333,6 +7311,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
                     ++it;
                     if (mg->GetModelCount() == 0) {
                         xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
+                        xlights->AbortRender();
+
                         xlights->AllModels.Delete(mg->GetName());
                         deleted = true;
                     }
@@ -7865,7 +7845,7 @@ int LayoutPanel::GetBackgroundAlphaForSelectedPreview()
 
 void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
     ChoiceLayoutGroups->SetSelection(0);
-    for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++) {
+    for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); ++i) {
         if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
             ChoiceLayoutGroups->SetSelection(i);
             break;
@@ -7890,7 +7870,7 @@ void LayoutPanel::DeleteCurrentPreview() {
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DeleteCurrentPreview");
 
-        for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++) {
+        for (size_t i = 0; i < ChoiceLayoutGroups->GetCount(); ++i) {
             if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
                 ChoiceLayoutGroups->Delete(i);
                 break;
@@ -7917,6 +7897,64 @@ void LayoutPanel::DeleteCurrentPreview() {
         modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::DeleteCurrentPreview");
     }
+}
+
+void LayoutPanel::RenameCurrentPreview()
+{
+    wxTextEntryDialog dlg(this, "Change preview name", "Enter the new preview name:", currentLayoutGroup);
+    do {
+        if (dlg.ShowModal() == wxCANCEL)
+            return;
+    } while (::Lower(currentLayoutGroup) != ::Lower(dlg.GetValue()) && GetLayoutGroup(dlg.GetValue().ToStdString()) != nullptr);
+
+    for (const auto& it : xlights->AllModels) {
+        Model* model = it.second;
+        if (model->GetLayoutGroup() == currentLayoutGroup) {
+            model->SetLayoutGroup(dlg.GetValue());
+        }
+    }
+
+    wxXmlNode* node = nullptr;
+    for (wxXmlNode* n = xlights->LayoutGroupsNode->GetChildren(); n != nullptr; n = n->GetNext()) {
+        if (n->GetAttribute("name") == currentLayoutGroup) {
+            n->DeleteAttribute("name");
+            n->AddAttribute("name", dlg.GetValue());
+            node = n;
+            break;
+        }
+    }
+
+    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
+        if ((*it)->GetName() == currentLayoutGroup) {
+            (*it)->SetName(dlg.GetValue());
+            break;
+        }
+    }
+
+     for (size_t i = 0; i < ChoiceLayoutGroups->GetCount(); ++i) {
+        if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
+            ChoiceLayoutGroups->SetString(i, dlg.GetValue());
+            break;
+        }
+    }
+
+    currentLayoutGroup = dlg.GetValue();
+
+    SetCurrentLayoutGroup(currentLayoutGroup);
+    SwitchChoiceToCurrentLayoutGroup();
+    xlights->SetStoredLayoutGroup(currentLayoutGroup);
+    UpdateModelList(true);
+
+    modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
+    modelPreview->SetDisplay2DGrid(xlights->GetDisplay2DGrid(), xlights->GetDisplay2DGridSpacing());
+    modelPreview->SetDisplay2DCenter0(xlights->GetDisplay2DCenter0());
+    modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
+    modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
+    modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::RenameCurrentPreview");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::RenameCurrentPreview");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::RenameCurrentPreview");
 }
 
 void LayoutPanel::ShowPropGrid(bool show) {
@@ -8069,14 +8107,15 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     if (selectedTreeModels.size() == 1 && selectedTreeSubModels.size() == 0 && selectedTreeGroups.size() == 0) {
         ModelTreeData* data = (ModelTreeData*)TreeListViewModels->GetItemData(selectedTreeModels[0]);
         Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
-
-        if (!model->CouldComputeStartChannel || !model->IsValidStartChannelString()) {
-            mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Valid");
-            foundInvalid = true;
-        }
-        if (xlights->AllModels.IsModelOverlapping(model)) {
-            foundOverlapping = true;
-            mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Not Overlapping");
+        if (model) {
+            if (!model->CouldComputeStartChannel || !model->IsValidStartChannelString()) {
+                mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Valid");
+                foundInvalid = true;
+            }
+            if (xlights->AllModels.IsModelOverlapping(model)) {
+                foundOverlapping = true;
+                mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Not Overlapping");
+            }
         }
     }
 
@@ -8567,6 +8606,15 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         }
         else if (type == "MODEL_ALIGN_CENTER_HORIZ") {
             PreviewModelAlignHCenter();
+        } 
+        else if (type == "MODEL_ALIGN_BACKS") {
+            PreviewModelAlignBacks();
+        } 
+        else if (type == "MODEL_ALIGN_FRONTS") {
+            PreviewModelAlignFronts();
+        } 
+        else if (type == "MODEL_ALIGN_GROUND") {
+            PreviewModelAlignWithGround();
         }
         else if (type == "MODEL_DISTRIBUTE_HORIZ") {
             PreviewModelHDistribute();

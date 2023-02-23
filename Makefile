@@ -25,7 +25,7 @@ SUDO		= `which sudo`
 
 SUBDIRS         = xLights xSchedule xCapture xFade xScanner xSchedule/xSMSDaemon xSchedule/RemoteFalcon
 
-WXWIDGETS_TAG=xlights_2022.13
+WXWIDGETS_TAG=xlights_2023.02
 
 .NOTPARALLEL:
 
@@ -77,12 +77,12 @@ log4cpp: FORCE
 
 wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
-	@if test "`wx-config --version`" != "3.1.7"; \
+	@if test "`wx-config --version`" != "3.3.0"; \
 		then if test ! -d wxWidgets-$(WXWIDGETS_TAG); \
 			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b $(WXWIDGETS_TAG) https://github.com/xLightsSequencer/wxWidgets wxWidgets-$(WXWIDGETS_TAG); \
 		fi; \
 		cd wxWidgets-$(WXWIDGETS_TAG); \
-		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-gtktest --disable-sdltest --with-gtk=3 --disable-glcanvasegl --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
+		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-gtktest --disable-sdltest --with-gtk=3 --disable-glcanvasegl --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
 		echo Building wxwidgets; \
 		${MAKE} -j 4 -s; \
 		echo Installing wxwidgets; \

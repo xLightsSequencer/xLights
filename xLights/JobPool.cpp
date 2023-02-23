@@ -220,6 +220,7 @@ void JobPoolWorker::Entry()
 
     try {
         SetThreadName(pool->threadNameBase);
+        SetThreadQOS(0);
         while ( !stopped ) {
             status = IDLE;
 
@@ -228,9 +229,7 @@ void JobPoolWorker::Entry()
                 logger_jobpool.debug("JobPoolWorker::Entry processing job.   %X", this);
                 status = RUNNING_JOB;
                 // Call user's implementation for processing request
-                SetThreadQOS(10);
                 ProcessJob(job);
-                SetThreadQOS(0);
                 logger_jobpool.debug("JobPoolWorker::Entry processed job.  %X", this);
                 status = IDLE;
                 --pool->inFlight;
@@ -246,7 +245,7 @@ void JobPoolWorker::Entry()
     }  catch ( abi::__forced_unwind& ) {
         currentJob = nullptr;
         logger_jobpool.warn("JobPoolWorker::Entry exiting due to __forced_unwind.  %X", this);
-        pool->numThreads--;
+        --(pool->numThreads);
         status = STOPPED;
         pool->RemoveWorker(this);
         throw;
@@ -254,7 +253,7 @@ void JobPoolWorker::Entry()
     } catch ( ... ) {
         currentJob = nullptr;
         logger_base.error("JobPoolWorker::Entry exiting due to unknown exception. 0x%x", tid);
-        --pool->numThreads;
+        --(pool->numThreads);
         status = STOPPED;
         pool->RemoveWorker(this);
         wxTheApp->OnUnhandledException();
@@ -263,7 +262,7 @@ void JobPoolWorker::Entry()
     }
     currentJob = nullptr;
     logger_jobpool.debug("JobPoolWorker exiting 0x%x", tid);
-    --pool->numThreads;
+    --(pool->numThreads);
     status = STOPPED;
     pool->RemoveWorker(this);
     logger_jobpool.debug("JobPoolWorker::Entry removed.  0x%X", this);
@@ -352,13 +351,17 @@ Job *JobPool::GetNextJob() {
     std::unique_lock<std::mutex> mutLock(queueLock);
     Job *req = nullptr;
     if (queue.empty()) {
-        idleThreads++;
+        SetThreadQOS(0);
+        ++idleThreads;
         signal.wait_for(mutLock, std::chrono::milliseconds(30000));
-        idleThreads--;
+        --idleThreads;
     }
     if ( !queue.empty() ) {
         req = queue.front();
         queue.pop_front();
+        if (req) {
+            SetThreadQOS(10);
+        }
     }
     return req;
 }
@@ -367,7 +370,7 @@ void JobPool::PushJob(Job *job)
 {
 	std::unique_lock<std::mutex> locker(queueLock);
     queue.push_back(job);
-    inFlight++;
+    ++inFlight;
     
     int count = inFlight;
     count -= idleThreads;
@@ -383,7 +386,7 @@ void JobPool::PushJob(Job *job)
         }
         for (int i = 0; i < count; i++) {
             threads.push_back(new JobPoolWorker(this));
-            numThreads++;
+            ++numThreads;
         }
         UnlockThreads();
     }

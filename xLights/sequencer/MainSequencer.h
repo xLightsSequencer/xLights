@@ -36,7 +36,7 @@ class MainSequencer: public wxPanel
 {
 	public:
 
-		MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~MainSequencer();
 		void SetSequenceElements(SequenceElements* elements);
         void UpdateEffectGridVerticalScrollBar();
@@ -59,7 +59,7 @@ class MainSequencer: public wxPanel
         void ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
         std::list<std::string> GetUniqueEffectPropertyValues(const std::string& id);
         void ApplyButtonPressToSelected(const std::string& effectName, const std::string id);
-        void RemapSelectedDMXEffectValues(const std::vector<std::pair<int, int>>& pairs);
+        void RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int>>& dmxmappings);
         void ConvertSelectedEffectsTo(const std::string& effectName);
         Effect* SelectEffectUsingDescription(std::string description);
         Effect* SelectEffectUsingElementLayerTime(std::string element, int layer, int time);
@@ -73,6 +73,7 @@ class MainSequencer: public wxPanel
         bool HandleSequencerKeyBinding(wxKeyEvent& event);
         void ScrollToRow(int row);
         void UpdateEffectGridHorizontalScrollBar();
+        void SetEffectDuration(const std::string& effectType, const uint32_t durationMS);
 
         void Cut();
         void Copy();

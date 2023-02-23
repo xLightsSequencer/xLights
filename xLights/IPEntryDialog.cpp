@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "IPEntryDialog.h"
-#include "UtilFunctions.h"
+#include "utils/ip_utils.h"
 
 //(*InternalHeaders(IPEntryDialog)
 #include <wx/intl.h>
@@ -96,7 +96,7 @@ void IPEntryDialog::ValidateWindow()
     {
         Button_Ok->Enable();
     }
-    else if (IsIPValidOrHostname(TextCtrl_IPAddress->GetValue().ToStdString()))
+    else if (ip_utils::IsIPValidOrHostname(TextCtrl_IPAddress->GetValue().ToStdString()))
     {
         wxIPV4address localaddr;
         localaddr.Hostname(TextCtrl_IPAddress->GetValue());

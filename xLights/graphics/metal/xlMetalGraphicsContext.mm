@@ -29,7 +29,7 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
         buffer = [c->getMTLCommandQueue() commandBuffer];
         
         std::string n2 = c->getName() + " CommandBuffer";
-        NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+        NSString *n = [NSString stringWithUTF8String:n2.c_str()];
         [buffer setLabel:n];
         
         MTLRenderPassDescriptor *renderPass = [[MTLRenderPassDescriptor alloc] init];
@@ -65,7 +65,7 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
         
         encoder = [buffer renderCommandEncoderWithDescriptor:renderPass];
         n2 = c->getName() + " Encoder";
-        n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+        n = [NSString stringWithUTF8String:n2.c_str()];
         [encoder setLabel:n];
         
         if (c->RequiresDepthBuffer()) {
@@ -218,7 +218,7 @@ public:
             if (!buffer) {
                 buffer = [device newBufferWithBytes:&vertices[0] length:(sizeof(simd_float3) * count) options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [buffer setLabel:n];
                 if (mayChange) {
                     bufferVertices = (simd_float3 *)buffer.contents;
@@ -230,7 +230,7 @@ public:
             if (!buffer) {
                 buffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [buffer setLabel:n];
                 bufferVertices = (simd_float3 *)buffer.contents;
                 bufferCount = count;
@@ -371,7 +371,7 @@ public:
             if (!vbuffer) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
                 if (mayChangeVertices) {
                     bufferVertices = (simd_float3 *)vbuffer.contents;
@@ -382,7 +382,7 @@ public:
             if (vbuffer == nil) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
                 bufferVertices = (simd_float3 *)vbuffer.contents;
                 bufferCount = count;
@@ -397,7 +397,7 @@ public:
             if (!cbuffer) {
                 cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Colors";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [cbuffer setLabel:n];
                 if (mayChangeColors) {
                     bufferColors = (simd_uchar4 *)cbuffer.contents;
@@ -408,7 +408,7 @@ public:
             if (cbuffer == nil) {
                 cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Colors";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [cbuffer setLabel:n];
                 bufferColors = (simd_uchar4 *)cbuffer.contents;
                 bufferCount = count;
@@ -587,7 +587,7 @@ public:
             if (!vbuffer) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
                 if (mayChangeVertices) {
                     bufferVertices = (IndexedColorVertex *)vbuffer.contents;
@@ -599,7 +599,7 @@ public:
             if (vbuffer == nil) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
                 bufferVertices = (IndexedColorVertex *)vbuffer.contents;
                 vbufferCount = count;
@@ -615,7 +615,7 @@ public:
                 //cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeManaged];
                 cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeShared];
                 std::string n2 = name + " Colors";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [cbuffer setLabel:n];
                 if (mayChangeColors) {
                     bufferColors = (simd_uchar4 *)cbuffer.contents;
@@ -627,7 +627,7 @@ public:
             if (cbuffer == nil) {
                 cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeShared];
                 std::string n2 = name + " Colors";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [cbuffer setLabel:n];
                 bufferColors = (simd_uchar4 *)cbuffer.contents;
                 cbufferCount = count;
@@ -754,7 +754,7 @@ public:
             if (!vbuffer) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
                 if (mayChangeVertices) {
                     bufferVertices = (simd_float3 *)vbuffer.contents;
@@ -765,7 +765,7 @@ public:
             if (vbuffer == nil) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
                 bufferVertices = (simd_float3 *)vbuffer.contents;
                 bufferCount = count;
@@ -780,7 +780,7 @@ public:
             if (!tbuffer) {
                 tbuffer = [device newBufferWithBytes:&tvertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Texture Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [tbuffer setLabel:n];
                 if (mayChangeTextures) {
                     bufferTexture = (simd_float2 *)tbuffer.contents;
@@ -791,7 +791,7 @@ public:
             if (tbuffer == nil) {
                 tbuffer = [device newBufferWithBytes:&tvertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Texture Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [tbuffer setLabel:n];
                 bufferTexture = (simd_float2 *)tbuffer.contents;
                 bufferCount = count;
@@ -886,7 +886,7 @@ public:
             texture = srcTexture;
             
             std::string n2 = name + " Texture";
-            NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+            NSString *n = [NSString stringWithUTF8String:n2.c_str()];
             [texture setLabel:n];
 
             textureSize = MTLSizeMake(w, h, 1);
@@ -958,7 +958,7 @@ public:
             description.storageMode = MTLStorageModePrivate;
             id <MTLTexture> privateTexture = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
             std::string n2 = name + " Texture";
-            NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+            NSString *n = [NSString stringWithUTF8String:n2.c_str()];
             [privateTexture setLabel:n];
 
             // Encode a blit pass to copy data from the source texture to the private texture.
@@ -1272,7 +1272,7 @@ public:
         }
 
         std::string n2 = name + " Vertices";
-        NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+        NSString *n = [NSString stringWithUTF8String:n2.c_str()];
         [vbuffer setLabel:n];
         sz = indexes.size() * sizeof(uint32_t);
         if (sz == 0) {
@@ -1281,7 +1281,7 @@ public:
             ibuffer = [wxMetalCanvas::getMTLDevice() newBufferWithBytes:&indexes[0] length:sz options:MTLResourceStorageModeManaged];
         }
         n2 = name + " Indexes";
-        n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+        n = [NSString stringWithUTF8String:n2.c_str()];
         [ibuffer setLabel:n];
     }
 
@@ -1312,7 +1312,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
 
 
     std::string n2 = xlm->GetName() + " Solids";
-    NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+    NSString *n = [NSString stringWithUTF8String:n2.c_str()];
     [encoder pushDebugGroup:n];
 
     [encoder setVertexBuffer:xlm->vbuffer offset:0 atIndex:BufferIndexMeshPositions];
@@ -1363,7 +1363,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
         }
     }
     if (!lastIsSolid) {
-        lastIsSolid = true;
+        //lastIsSolid = true;
         [encoder setRenderPipelineState:solidPS];
     }
     if (xlm->linesCount) {
@@ -1398,7 +1398,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshTransparents(xlMesh *mesh, in
     id<MTLRenderPipelineState> solidPS = canvas->getPipelineState("meshSolidProgram", "meshVertexShader", "meshSolidFragmentShader", blending);
 
     std::string n2 = xlm->GetName() + " Transparents";
-    NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+    NSString *n = [NSString stringWithUTF8String:n2.c_str()];
     [encoder pushDebugGroup:n];
     [encoder setVertexBuffer:xlm->vbuffer offset:0 atIndex:BufferIndexMeshPositions];
     frameData.brightness = brightness;
@@ -1458,7 +1458,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshWireframe(xlMesh *mesh, int b
     }
     setPipelineState("meshWireframeProgram", "meshWireframeVertexShader", "meshSolidFragmentShader");
     std::string n2 = m->GetName() + " Wireframe";
-    NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+    NSString *n = [NSString stringWithUTF8String:n2.c_str()];
     [encoder pushDebugGroup:n];
 
     [encoder setVertexBuffer:m->vbuffer offset:0 atIndex:BufferIndexMeshPositions];
@@ -1875,7 +1875,7 @@ bool xlMetalGraphicsContext::setPipelineState(const std::string &name, const cha
 
 
 xlGraphicsContext* xlMetalGraphicsContext::pushDebugContext(const std::string &label) {
-    NSString *n = [NSString stringWithCString:label.c_str() encoding:[NSString defaultCStringEncoding]];
+    NSString *n = [NSString stringWithUTF8String:label.c_str()];
     [encoder pushDebugGroup:n];
     return this;
 }

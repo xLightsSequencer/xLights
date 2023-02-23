@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../ButterflyEffect.h"
+#include "../PlasmaEffect.h"
 #include "../WarpEffect.h"
 
 
@@ -12,7 +13,7 @@ public:
     virtual ~MetalButterflyEffect();
 
 
-    virtual void Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) override;
+    virtual void Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) override;
 
 
 private:
@@ -28,9 +29,25 @@ public:
     virtual ~MetalWarpEffect();
 
 
-    virtual void Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) override;
+    virtual void Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) override;
 
 
 private:
     MetalWarpEffectData *data;
+};
+
+
+class MetalPlasmaEffectData;
+
+class MetalPlasmaEffect : public PlasmaEffect {
+public:
+    MetalPlasmaEffect(int i);
+    virtual ~MetalPlasmaEffect();
+
+
+    virtual void Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) override;
+
+
+private:
+    MetalPlasmaEffectData *data;
 };

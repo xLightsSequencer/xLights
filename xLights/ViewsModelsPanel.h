@@ -51,21 +51,21 @@ public:
 
 class ViewsModelsPanel : public wxPanel
 {
-    wxChoice* _mainViewsChoice;
-    xLightsFrame* _xlFrame;
-    SequenceData* _seqData;
-    SequenceElements* _sequenceElements;
-    wxXmlNode* _models;
-    wxXmlNode* _views;
-    wxXmlNode* _modelGroups;
-    int _numViews;
-    int _numModels;
-    int _numNonModels;
-    SequenceViewManager* _sequenceViewManager;
-    wxImageList* _imageList;
-    bool _dragRowModel;
-    bool _dragRowNonModel;
+    wxChoice* _mainViewsChoice = nullptr;
+    xLightsFrame* _xlFrame = nullptr;
+    SequenceData* _seqData = nullptr;
+    SequenceElements* _sequenceElements = nullptr;
+    wxXmlNode* _models = nullptr;
+    wxXmlNode* _views = nullptr;
+    wxXmlNode* _modelGroups = nullptr;
+    SequenceViewManager* _sequenceViewManager = nullptr;
+    wxImageList* _imageList = nullptr;
+    int _numViews = 0;
+    int _numModels = 0;
+    int _numNonModels = 0;
     int _sortOrder = 0;
+    bool _dragRowModel = false;
+    bool _dragRowNonModel = false;
     std::list<std::string> _undo;
 
     void PopulateViews();
@@ -132,6 +132,7 @@ public:
     void Clear();
     void SetViewChoice(wxChoice* choice);
     void SelectView(const std::string& view);
+    bool HasView(const std::string& view);
     void SetSequenceElementsModelsViews(SequenceData* seqData, SequenceElements* sequenceElements, wxXmlNode* modelsNode, wxXmlNode* modelGroupsNode, SequenceViewManager* sequenceViewManager);
     void OnViewSelect(wxCommandEvent& event);
     void OnListCtrlItemCheck(wxCommandEvent& event);

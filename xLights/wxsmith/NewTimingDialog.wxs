@@ -16,13 +16,15 @@
 			<object class="sizeritem">
 				<object class="wxChoice" name="ID_CHOICE_New_Fixed_Timing" variable="Choice_New_Fixed_Timing" member="yes">
 					<content>
+						<item>Empty</item>
 						<item>25ms</item>
 						<item>50ms</item>
 						<item>100ms</item>
 						<item>Metronome</item>
-						<item>Empty</item>
+						<item>FPP Commands</item>
+						<item>FPP Effects</item>
 					</content>
-					<selection>1</selection>
+					<selection>2</selection>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>

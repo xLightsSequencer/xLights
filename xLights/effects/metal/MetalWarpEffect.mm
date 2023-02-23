@@ -102,7 +102,7 @@ public:
             
             id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
             if (computeEncoder == nil) {
-                commandBuffer = nil;
+                rbcd->abortCommandBuffer();
                 return false;
             }
             [computeEncoder setLabel:@"WarpEffect"];
@@ -153,7 +153,7 @@ static inline double interpolate( double x, double loIn, double loOut, double hi
       : ( (loOut + hiOut) / 2 );
 }
 
-void MetalWarpEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void MetalWarpEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
     std::string warpType = SettingsMap.Get( "CHOICE_Warp_Type", "water drops" );
     WarpEffect::WarpType Style = mapWarpType(warpType);

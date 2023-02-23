@@ -27,6 +27,7 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual int GetStrandLength(int strand) const override;
         virtual int MapToNodeIndex(int strand, int node) const override;
+        virtual int GetMappedStrand(int strand) const override;
 
         int GetStarSize(int starLayer) const {
             return GetLayerSize(starLayer);
@@ -38,7 +39,7 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, bool deep = false) const override;
     
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
         virtual bool ModelSupportsLayerSizes() const override { return true; }

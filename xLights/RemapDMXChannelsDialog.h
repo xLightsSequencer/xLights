@@ -34,6 +34,11 @@ class RemapDMXChannelsDialog: public wxDialog
 		wxScrolledWindow* ScrolledWindow1;
 		//*)
 
+		bool DoMapping(int idx);
+		double GetChanScale(int idx);
+		int GetChanOffset(int idx);
+		int GetToChannel(int idx);
+
 	protected:
 
 		//(*Identifiers(RemapDMXChannelsDialog)
@@ -46,6 +51,8 @@ class RemapDMXChannelsDialog: public wxDialog
 		//*)
 
 	private:
+
+		enum DMXMappingColumns { From, To, Scale, Offset };
 
 		//(*Handlers(RemapDMXChannelsDialog)
 		void OnButton_OkClick(wxCommandEvent& event);

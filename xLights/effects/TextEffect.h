@@ -25,13 +25,13 @@ public:
     TextEffect(int id);
     virtual ~TextEffect();
     virtual void SetDefaultParameters() override;
-    virtual void Render(Effect* effect, SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual void SetPanelStatus(Model* cls) override;
 #ifdef LINUX
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override { return false; };
 #endif
     virtual bool CanBeRandom() override { return false; }
-    virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
+    virtual bool SupportsRenderCache(const SettingsMap& settings) const override;
 
     virtual bool needToAdjustSettings(const std::string& version) override { return true; }
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;

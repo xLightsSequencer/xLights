@@ -164,7 +164,7 @@ void MeteorsEffect::SetDefaultParameters() {
 
 // ColorScheme: 0=rainbow, 1=range, 2=palette
 // MeteorsEffect: 0=down, 1=up, 2=left, 3=right, 4=implode, 5=explode
-void MeteorsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Count = GetValueCurveInt("Meteors_Count", 10, SettingsMap, oset, METEORS_COUNT_MIN, METEORS_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

@@ -12,11 +12,13 @@ public:
         VariableHeader(const VariableHeader& cp) : data(cp.data) {
             code[0] = cp.code[0];
             code[1] = cp.code[1];
+            extendedData = cp.extendedData;
         }
         ~VariableHeader() {}
 
         uint8_t code[2];
         std::vector<uint8_t> data;
+        bool extendedData = false;
     };
 
 
@@ -176,13 +178,12 @@ public:
     virtual uint32_t getMaxChannel() const override;
 
     virtual void enableMinorVersionFeatures(uint8_t ver) override {
+        m_seqVersionMinor = ver;
         if (ver == 0) {
             m_allowExtendedBlocks = false;
-            m_seqVersionMinor = 0;
         }
         if (ver >= 1) {
             m_allowExtendedBlocks = true;
-            m_seqVersionMinor = 1;
         }
     }
 

@@ -8,6 +8,10 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#ifdef _DEBUG
+//#define VISUALSTUDIO_MEMORYLEAKDETECTION
+#endif
+
 //(*AppHeaders
 #include "xLightsMain.h"
 #include <wx/image.h>
@@ -47,21 +51,21 @@
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-    #pragma comment(lib, "wxbase31ud.lib")
-    #pragma comment(lib, "wxbase31ud_net.lib")
-    #pragma comment(lib, "wxmsw31ud_core.lib")
+    #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "ud.lib")
+    #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "ud_net.lib")
+    #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "ud_core.lib")
     #pragma comment(lib, "wxscintillad.lib")
     #pragma comment(lib, "wxregexud.lib")
-    #pragma comment(lib, "wxbase31ud_xml.lib")
+    #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "ud_xml.lib")
     #pragma comment(lib, "wxtiffd.lib")
     #pragma comment(lib, "wxjpegd.lib")
     #pragma comment(lib, "wxpngd.lib")
-    #pragma comment(lib, "wxmsw31ud_aui.lib")
-    #pragma comment(lib, "wxmsw31ud_gl.lib")
+    #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "ud_aui.lib")
+    #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "ud_gl.lib")
     #pragma comment(lib, "wxzlibd.lib")
-    #pragma comment(lib, "wxmsw31ud_qa.lib")
-    #pragma comment(lib, "wxmsw31ud_html.lib")
-    #pragma comment(lib, "wxmsw31ud_propgrid.lib")
+    #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "ud_qa.lib")
+    #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "ud_html.lib")
+    #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "ud_propgrid.lib")
     #pragma comment(lib, "wxexpatd.lib")
     #pragma comment(lib, "log4cppLIBd.lib")
     #pragma comment(lib, "msvcprtd.lib")
@@ -69,21 +73,21 @@
     #pragma comment(lib, "libzstdd_static_VS.lib")
     #pragma comment(lib, "xlsxwriterd.lib")
 #else
-    #pragma comment(lib, "wxbase31u.lib")
-    #pragma comment(lib, "wxbase31u_net.lib")
-    #pragma comment(lib, "wxmsw31u_core.lib")
+    #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "u.lib")
+    #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "u_net.lib")
+    #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "u_core.lib")
     #pragma comment(lib, "wxscintilla.lib")
     #pragma comment(lib, "wxregexu.lib")
-    #pragma comment(lib, "wxbase31u_xml.lib")
+    #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "u_xml.lib")
     #pragma comment(lib, "wxtiff.lib")
     #pragma comment(lib, "wxjpeg.lib")
     #pragma comment(lib, "wxpng.lib")
-    #pragma comment(lib, "wxmsw31u_aui.lib")
-    #pragma comment(lib, "wxmsw31u_gl.lib")
+    #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "u_aui.lib")
+    #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "u_gl.lib")
     #pragma comment(lib, "wxzlib.lib")
-    #pragma comment(lib, "wxmsw31u_qa.lib")
-    #pragma comment(lib, "wxmsw31u_html.lib")
-    #pragma comment(lib, "wxmsw31u_propgrid.lib")
+    #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "u_qa.lib")
+    #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "u_html.lib")
+    #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "u_propgrid.lib")
     #pragma comment(lib, "wxexpat.lib")
     #pragma comment(lib, "log4cppLIB.lib")
     #pragma comment(lib, "msvcprt.lib")
@@ -403,11 +407,12 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
     }
     
     if (__frame) {
-        __frame->CallAfter([showDir, fileName] {
-            if (showDir != "" && showDir != __frame->showDirectory) {
+        xLightsFrame* frame = __frame;
+        frame->CallAfter([showDir, fileName, frame] {
+            if (showDir != "" && showDir != frame->showDirectory) {
                 wxString nsd = showDir;
                 if (!ObtainAccessToURL(nsd)) {
-                    wxDirDialog dlg(__frame, "Select Show Directory", nsd,  wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+                    wxDirDialog dlg(frame, "Select Show Directory", nsd,  wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
                     if (dlg.ShowModal() == wxID_OK) {
                         nsd = dlg.GetPath();
                     }
@@ -415,9 +420,9 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
                         return;
                     }
                 }
-                __frame->SetDir(nsd, false);
+                frame->SetDir(nsd, false);
             }
-            __frame->OpenSequence(fileName, nullptr);
+            frame->OpenSequence(fileName, nullptr);
         });
     } else {
         logger_base.info("       No xLightsFrame");
@@ -430,7 +435,9 @@ bool xLightsApp::OnInit()
     InitialiseLogging(false);
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: XLights started.");
-
+#ifdef __WXMSW__
+    MSWEnableDarkMode();
+#endif
 #if wxUSE_GLCANVAS_EGL
     // this is only needed if using the EGL canvas as it's necessary to initialize the
     // GL attributes and pixel formats.  Likely a bug in the EGL implementation,
@@ -450,7 +457,7 @@ bool xLightsApp::OnInit()
 	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
 #ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 #endif
 

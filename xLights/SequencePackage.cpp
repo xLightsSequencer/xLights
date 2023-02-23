@@ -34,15 +34,18 @@ SeqPkgImportOptions::SeqPkgImportOptions() {};
 
 SeqPkgImportOptions::~SeqPkgImportOptions() {};
 
-void SeqPkgImportOptions::SetImportActive(bool active) {
+void SeqPkgImportOptions::SetImportActive(bool active)
+{
     _importActive = active;
 }
 
-bool SeqPkgImportOptions::IsImportActive() const {
+bool SeqPkgImportOptions::IsImportActive() const
+{
     return _importActive;
 }
 
-void SeqPkgImportOptions::SetDir(MediaTargetDir dirType, const std::string &dirPath, bool saveAsDefault) {
+void SeqPkgImportOptions::SetDir(MediaTargetDir dirType, const std::string& dirPath, bool saveAsDefault)
+{
     _mediaDirs[dirType] = dirPath;
 
     if (saveAsDefault) {
@@ -50,11 +53,13 @@ void SeqPkgImportOptions::SetDir(MediaTargetDir dirType, const std::string &dirP
     }
 }
 
-std::string SeqPkgImportOptions::GetDir(MediaTargetDir dirType) {
+std::string SeqPkgImportOptions::GetDir(MediaTargetDir dirType)
+{
     return _mediaDirs[dirType];
 }
 
-void SeqPkgImportOptions::RestoreDefaults() {
+void SeqPkgImportOptions::RestoreDefaults()
+{
     _mediaDirs.clear();
 
     for (const auto& dir : _defaultDirs) {
@@ -62,7 +67,8 @@ void SeqPkgImportOptions::RestoreDefaults() {
     }
 }
 
-SequencePackage::SequencePackage(const wxFileName& fileName, xLightsFrame* xlights) {
+SequencePackage::SequencePackage(const wxFileName& fileName, xLightsFrame* xlights)
+{
     _xlights = xlights;
 
     if (fileName.GetExt() == "zip" || fileName.GetExt() == "piz") {
@@ -74,14 +80,16 @@ SequencePackage::SequencePackage(const wxFileName& fileName, xLightsFrame* xligh
     }
 }
 
-SequencePackage::~SequencePackage() {
+SequencePackage::~SequencePackage()
+{
     // cleanup extracted files
     if (!_xsqOnly && _tempDir.Exists()) {
         wxDir::Remove(_tempDir.GetFullPath(), wxPATH_RMDIR_RECURSIVE);
     }
 }
 
-void SequencePackage::InitDefaultImportOptions() {
+void SequencePackage::InitDefaultImportOptions()
+{
     // Set default target media directories based on a few assumptions. User
     // can still change these in the Mapping Dialog to whatever they would like.
 
@@ -90,7 +98,6 @@ void SequencePackage::InitDefaultImportOptions() {
     // always default faces/shaders to default download folder as they tend to be reused
     _importOptions.SetDir(MediaTargetDir::FACES_DIR, wxString::Format("%s%c%s", showFolder, PATH_SEP, SUBFLD_FACES), true);
     _importOptions.SetDir(MediaTargetDir::SHADERS_DIR, wxString::Format("%s%c%s", showFolder, PATH_SEP, SUBFLD_SHADERS), true);
-
 
     wxFileName targetXsq(_xlights->GetSeqXmlFileName());
     wxString targetDir = targetXsq.GetPath();
@@ -112,8 +119,9 @@ void SequencePackage::InitDefaultImportOptions() {
     _importOptions.SetDir(MediaTargetDir::VIDEOS_DIR, wxString::Format("%s%c%s", mediaBaseFolder, PATH_SEP, SUBFLD_VIDEOS), true);
 }
 
-void SequencePackage::Extract() {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+void SequencePackage::Extract()
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_xsqOnly) {
         return;
@@ -165,16 +173,21 @@ void SequencePackage::Extract() {
         }
 
 #ifdef __WXMSW__
-        //folder with spaces at begin and end breaks temp folder paths
+        // folder with spaces at begin and end breaks temp folder paths
         fnEntry.Replace(" " + wxString(wxFileName::GetPathSeparator()), wxFileName::GetPathSeparator());
         fnEntry.Replace(wxString(wxFileName::GetPathSeparator()) + " ", wxFileName::GetPathSeparator());
-
-
 #endif
+
         wxFileName fnOutput;
         upZe->IsDir() ? fnOutput.AssignDir(fnEntry) : fnOutput.Assign(fnEntry);
 
         logger_base.debug("   Extracting %s to %s.", (const char*)fnEntry.c_str(), (const char*)fnOutput.GetFullPath().c_str());
+
+#ifdef __WXMSW__
+        if (fnOutput.GetFullPath().length() > MAX_PATH) {
+            logger_base.warn("Target filename longer than %d chars (%d). This will likely fail. %s.", MAX_PATH, (int)fnOutput.GetFullPath().length(), (const char*) fnOutput.GetFullPath().c_str());
+        }
+#endif
 
         // Create output dir in temp if needed
         if (!wxDirExists(fnOutput.GetPath())) {
@@ -183,25 +196,21 @@ void SequencePackage::Extract() {
 
         // handle file output
         if (!upZe->IsDir()) {
-
             if (!zis.CanRead()) {
-                logger_base.error("Could not read file from package '%s'", (const char *)upZe->GetName().c_str());
-            }
-            else {
+                logger_base.error("Could not read file from package '%s'", (const char*)upZe->GetName().c_str());
+            } else {
                 wxFileOutputStream fos(fnOutput.GetFullPath());
 
                 if (!fos.IsOk()) {
-                    logger_base.error("Could not create sequence file at '%s'", (const char *)fnOutput.GetFullName().c_str());
-                }
-                else {
+                    logger_base.error("Could not create sequence file at '%s'", (const char*)fnOutput.GetFullName().c_str());
+                } else {
                     zis.Read(fos);
                     wxString ext = fnOutput.GetExt();
 
                     if (ext == "xsq") {
                         _xsqFile = fnOutput;
                         _xsqName = fnOutput.GetName();
-                    }
-                    else if (ext == "xml") {
+                    } else if (ext == "xml") {
                         if (fnOutput.GetName() == "xlights_rgbeffects") {
                             wxXmlDocument rgbEffects;
                             if (rgbEffects.Load(fnOutput.GetFullPath())) {
@@ -209,11 +218,9 @@ void SequencePackage::Extract() {
                                 _pkgRoot = fnOutput.GetPath();
                                 _hasRGBEffects = true;
                             }
-                        }
-                        else if (fnOutput.GetName() == "xlights_networks") {
+                        } else if (fnOutput.GetName() == "xlights_networks") {
                             _xlNetworks = fnOutput;
-                        }
-                        else {
+                        } else {
                             wxXmlDocument doc;
                             if (doc.Load(fnOutput.GetFullPath())) {
                                 if (doc.GetRoot()->GetName() == "xsequence") {
@@ -222,8 +229,7 @@ void SequencePackage::Extract() {
                                 }
                             }
                         }
-                    }
-                    else {
+                    } else {
                         // assume other files are media for effects, images/videos/gediators/shaders/faces/etc
                         _media[fnOutput.GetFullName()] = fnOutput;
                     }
@@ -264,43 +270,52 @@ void SequencePackage::FindRGBEffectsFile()
     }
 }
 
-bool SequencePackage::IsValid() const {
+bool SequencePackage::IsValid() const
+{
     if (_xsqOnly) {
         return _xsqFile.IsOk() && FileExists(_xsqFile);
     } else {
-        return  _xsqFile.IsOk() && FileExists(_xsqFile) && _rgbEffects.IsOk();
+        return _xsqFile.IsOk() && FileExists(_xsqFile) && _rgbEffects.IsOk();
     }
 }
 
-bool SequencePackage::IsPkg() {
+bool SequencePackage::IsPkg()
+{
     return !_xsqOnly;
 }
 
-bool SequencePackage::HasRGBEffects() const {
+bool SequencePackage::HasRGBEffects() const
+{
     return _hasRGBEffects;
 }
 
-bool SequencePackage::HasMedia() const {
+bool SequencePackage::HasMedia() const
+{
     return _media.size() > 0;
 }
 
-bool SequencePackage::HasMissingMedia() const {
+bool SequencePackage::HasMissingMedia() const
+{
     return _missingMedia.size() > 0;
 }
 
-wxFileName& SequencePackage::GetXsqFile() {
+wxFileName& SequencePackage::GetXsqFile()
+{
     return _xsqFile;
 }
 
-wxXmlDocument& SequencePackage::GetRgbEffectsFile() {
+wxXmlDocument& SequencePackage::GetRgbEffectsFile()
+{
     return _rgbEffects;
 }
 
-bool SequencePackage::ModelsChanged() const {
+bool SequencePackage::ModelsChanged() const
+{
     return _modelsChanged;
 }
 
-SeqPkgImportOptions* SequencePackage::GetImportOptions() {
+SeqPkgImportOptions* SequencePackage::GetImportOptions()
+{
     if (!_xsqOnly) {
         return &_importOptions;
     } else {
@@ -308,12 +323,14 @@ SeqPkgImportOptions* SequencePackage::GetImportOptions() {
     }
 }
 
-std::list<std::string> SequencePackage::GetMissingMedia() {
+std::list<std::string> SequencePackage::GetMissingMedia()
+{
     _missingMedia.unique();
     return _missingMedia;
 }
 
-std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer *target) {
+std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer* target)
+{
     auto settings = mappedEffect->GetSettings();
     wxString effName = mappedEffect->GetEffectName();
 
@@ -336,6 +353,12 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
         wxString faceName = settings["E_CHOICE_Faces_FaceDefinition"];
         if (faceName != wxEmptyString) {
             ImportFaceInfo(mappedEffect, target, faceName);
+        }
+    } else if (effName == "Shape") {
+        wxString shapePath = settings["E_FILEPICKERCTRL_SVG"];
+        if (!shapePath.empty()) {
+            settingEffectFile = "E_FILEPICKERCTRL_SVG";
+            targetMediaFolder = _importOptions.GetDir(MediaTargetDir::IMAGES_DIR);
         }
     }
 
@@ -360,15 +383,16 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
             wxString newSetting = copiedAsset.GetFullPath().ToStdString();
             settings[settingEffectFile] = newSetting;
         } else {
-            if (picFilePath != "") _missingMedia.push_back(picFilePath.GetFullName().ToStdString());
+            if (picFilePath != "")
+                _missingMedia.push_back(picFilePath.GetFullName().ToStdString());
         }
     }
 
     return settings.AsString();
 }
 
-void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, const std::string& faceName) {
-
+void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, const std::string& faceName)
+{
     auto targetModelName = target->GetParentElement()->GetModelName();
     auto srcModelName = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetModelName();
     Model* targetModel = _xlights->AllModels[targetModelName];
@@ -434,7 +458,6 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, 
                                         } else {
                                             _missingMedia.push_back(fileToCopy.GetFullName().ToStdString());
                                         }
-
                                     }
                                 } else {
                                     newFaceInfo->AddAttribute(attrName, attrValue);
@@ -454,7 +477,8 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, 
     }
 }
 
-wxFileName SequencePackage::CopyMediaToTarget(const std::string& targetFolder, const wxFileName& mediaToCopy) {
+wxFileName SequencePackage::CopyMediaToTarget(const std::string& targetFolder, const wxFileName& mediaToCopy)
+{
     wxFileName targetFile = wxString::Format("%s%c%s", targetFolder, PATH_SEP, mediaToCopy.GetFullName());
 
     // Only import if file doesn't alrady exist in target folder
@@ -470,4 +494,3 @@ wxFileName SequencePackage::CopyMediaToTarget(const std::string& targetFolder, c
 
     return targetFile;
 }
-

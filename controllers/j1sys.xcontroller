@@ -23,6 +23,7 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>J1Sys</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="P12D">
@@ -51,6 +52,7 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>J1Sys</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="P12R">
@@ -76,6 +78,7 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>J1Sys</ConfigDriver>
 		</Variant>
 		<Variant Name="3.4+">
             <SupportsAutoLayout/>
@@ -99,6 +102,7 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>J1Sys</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="P12S">
@@ -127,6 +131,7 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>J1Sys</ConfigDriver>
 		</Variant>
 	</Controller>
 </Vendor>

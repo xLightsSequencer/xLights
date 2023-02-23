@@ -64,7 +64,7 @@ Model* ModelGroup::GetFirstModel() const
 }
 
 // Gets a list of models in the group flattening out any groups and optionally removing any duplicates - submodels will be included if they are in the groups
-std::list<Model*> ModelGroup::GetFlatModels(bool removeDuplicates) const
+std::list<Model*> ModelGroup::GetFlatModels(bool removeDuplicates, bool activeOnly) const
 {
     std::list<Model*> res;
 
@@ -74,14 +74,18 @@ std::list<Model*> ModelGroup::GetFlatModels(bool removeDuplicates) const
             if (m->GetDisplayAs() == "ModelGroup") {
                 auto mg = dynamic_cast<ModelGroup*>(m);
                 if (mg != nullptr) {
-                    for (const auto& it : mg->GetFlatModels(removeDuplicates)) {
+                    for (const auto& it : mg->GetFlatModels(removeDuplicates, activeOnly)) {
                         if (!removeDuplicates || (std::find(begin(res), end(res), it) == end(res))) {
-                            res.push_back(it);
+                            if (!activeOnly || m->IsActive()) {
+                                res.push_back(it);
+                            }
                         }
                     }
                 }
             } else if (!removeDuplicates || (std::find(begin(res), end(res), m) == end(res))) {
-                res.push_back(m);
+                if (!activeOnly || m->IsActive()) {
+                    res.push_back(m);
+                }
             }
         }
     }
@@ -160,9 +164,34 @@ bool ModelGroup::DirectlyContainsModel(Model* m) const
     return false;
 }
 
-bool ModelGroup::DirectlyContainsModel(std::string const& m ) const
+bool ModelGroup::DirectlyContainsModel(std::string const& m) const
 {
     return std::find(modelNames.begin(), modelNames.end(), m) != modelNames.end();
+}
+
+bool ModelGroup::ContainsModelOrSubmodel(Model* m) const
+{
+    wxASSERT(m->GetDisplayAs() != "ModelGroup");
+
+    std::list<const Model*> visited;
+    visited.push_back(this);
+
+    bool found = false;
+    for (auto it = models.begin(); !found && it != models.end(); ++it) {
+        if ((*it)->GetDisplayAs() == "ModelGroup") {
+            if (std::find(visited.begin(), visited.end(), *it) == visited.end()) {
+                found |= dynamic_cast<ModelGroup*>(*it)->ContainsModelOrSubmodel(m, visited);
+            } else {
+                // already seen this group so dont follow
+            }
+        } else {
+            if (StartsWith((*it)->GetFullName(), m->GetName())) {
+                found = true;
+            }
+        }
+    }
+
+    return found;
 }
 
 bool ModelGroup::ContainsModel(Model* m) const
@@ -221,6 +250,31 @@ bool ModelGroup::ContainsModel(Model* m, std::list<const Model*>& visited) const
         {
             if (m == it)
             {
+                found = true;
+                break;
+            }
+        }
+    }
+
+    return found;
+}
+
+bool ModelGroup::ContainsModelOrSubmodel(Model* m, std::list<const Model*>& visited) const
+{
+    visited.push_back(this);
+
+    bool found = false;
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() == "ModelGroup") {
+            if (std::find(visited.begin(), visited.end(), it) == visited.end()) {
+                found |= dynamic_cast<ModelGroup*>(it)->ContainsModelOrSubmodel(m, visited);
+                if (found)
+                    break;
+            } else {
+                // already seen this group so dont follow
+            }
+        } else {
+            if (StartsWith(it->GetFullName(), m->GetName())) {
                 found = true;
                 break;
             }
@@ -388,7 +442,7 @@ void LoadRenderBufferNodes(Model *m, const std::string &type, const std::string 
     {
         ModelGroup *g = dynamic_cast<ModelGroup*>(m);
         if (g != nullptr) {
-            for (const auto& it : g->Models()) {
+            for (const auto& it : g->ActiveModels()) {
                 LoadRenderBufferNodes(it, type, camera, newNodes, bufferWi, bufferHi);
             }
         }
@@ -415,6 +469,11 @@ int ModelGroup::GetXCentreOffset() const
 int ModelGroup::GetYCentreOffset() const
 {
     return wxAtoi(ModelXml->GetAttribute("YCentreOffset", "0"));
+}
+
+std::string ModelGroup::GetDefaultCamera() const
+{
+    return ModelXml->GetAttribute("DefaultCamera", "2D");
 }
 
 bool ModelGroup::Reset(bool zeroBased) {
@@ -444,15 +503,20 @@ bool ModelGroup::Reset(bool zeroBased) {
     }
     Nodes.clear();
     models.clear();
+    activeModels.clear();
     modelNames.clear();
     changeCount = 0;
     auto mn = Split(ModelXml->GetAttribute("models").ToStdString(), ',', true);
     int nc = 0;
+    bool didnotexist = false;
     for (int x = 0; x < mn.size(); x++) {
         Model *c = modelManager.GetModel(mn[x]);
         if (c != nullptr) {
             modelNames.push_back(c->GetFullName());
             models.push_back(c);
+            if (c->IsActive()) {
+                activeModels.push_back(c);
+            }
             changeCount += c->GetChangeCount();
             nc += c->GetNodeCount();
         }
@@ -462,10 +526,14 @@ bool ModelGroup::Reset(bool zeroBased) {
         }
         else
         {
-            // model does not exist yet ... but it may soon
-            return false;
+            // model does not exist yet ... but it may soon ... so dont forget the model
+            modelNames.push_back(mn[x]);
+            didnotexist = true;
         }
     }
+
+    if (didnotexist)
+        return false;
 
     if (nc) {
         Nodes.reserve(nc);
@@ -613,6 +681,7 @@ bool ModelGroup::Reset(bool zeroBased) {
 void ModelGroup::ResetModels()
 {
     models.clear();
+    activeModels.clear();
     std::string modelString = ModelXml->GetAttribute("models");
     std::vector<std::string> mn;
     Split(modelString, ',', mn, true);
@@ -623,6 +692,9 @@ void ModelGroup::ResetModels()
                 static_cast<ModelGroup*>(c)->ResetModels();
             }
             models.push_back(c);
+            if (c->IsActive()) {
+                activeModels.push_back(c);
+            }
         }
     }
 }
@@ -835,7 +907,7 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &camera,
             totWid += m->GetDefaultBufferWi();
             totHi += m->GetDefaultBufferHt();
             maxStrandLen = std::max(maxStrandLen, bh);
-        } else if (m != nullptr) {
+        } else if (m != nullptr && m->IsActive()) {
             models++;
             strands += m->GetNumStrands();
             total += m->GetNodeCount();
@@ -962,7 +1034,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
     if (type == HORIZ_PER_MODEL) {
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
-            if (m != nullptr) {
+            if (m != nullptr && m->IsActive()) {
                 int start = Nodes.size();
                 int x, y;
                 m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
@@ -986,7 +1058,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         int modelX = 0;
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
-            if (m != nullptr) {
+            if (m != nullptr && m->IsActive()) {
                 int start = Nodes.size();
                 int x, y;
                 m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
@@ -1008,7 +1080,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         int modelY = 0;
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
-            if (m != nullptr) {
+            if (m != nullptr && m->IsActive()) {
                 int start = Nodes.size();
                 int x, y;
                 m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
@@ -1037,7 +1109,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
             int modBufferWi = BufferWi / numOfModels;
             for (const auto& it : modelNames) {
                 Model* m = modelManager[it];
-                if (m != nullptr) {
+                if (m != nullptr && m->IsActive()) {
                     int start = Nodes.size();
                     int x, y;
                     m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
@@ -1065,7 +1137,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
             int modBufferHt = BufferHt / numOfModels;
             for (const auto& it : modelNames) {
                 Model* m = modelManager[it];
-                if (m != nullptr) {
+                if (m != nullptr && m->IsActive()) {
                     int start = Nodes.size();
                     int x, y;
                     m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
@@ -1084,7 +1156,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
     } else if (type == VERT_PER_MODEL) {
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
-            if (m != nullptr) {
+            if (m != nullptr && m->IsActive()) {
                 int start = Nodes.size();
                 int x, y;
                 m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
@@ -1109,7 +1181,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         BufferHt = 1;
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
-            if (m != nullptr) {
+            if (m != nullptr && m->IsActive()) {
                 int start = Nodes.size();
                 int x = 0;
                 int y = 0;
@@ -1183,7 +1255,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
                 } else {
                     curS += bh;
                 }
-            } else if (m != nullptr) {
+            } else if (m != nullptr && m->IsActive()) {
                 int bw, bh;
                 bw = bh = 0;
                 m->InitRenderBufferNodes(horiz ? "Horizontal Per Strand" : "Vertical Per Strand", "2D", "None", Nodes, bw, bh);
@@ -1202,7 +1274,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
                     curS += bh;
                 }
             }
-            if (m != nullptr) {
+            if (m != nullptr && m->IsActive()) {
                 int endBM = Nodes.size();
                 if ((endBM - startBM) != m->GetNodeCount()) {
                     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1217,9 +1289,10 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         BufferHt = 1;
         BufferWi = 0;
         if (deep) {
-            for (const auto& it : GetFlatModels(false)) {
+            for (const auto& it : GetFlatModels(false, true)) {
                 Model* m = it;
                 wxASSERT(m != nullptr);
+                if (!m->IsActive()) continue;
                 int start = Nodes.size();
                 int x, y;
                 m->InitRenderBufferNodes("Single Line", "2D", "None", Nodes, x, y);
@@ -1235,7 +1308,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         } else {
             for (const auto& it : modelNames) {
                 Model* m = modelManager[it];
-                if (m != nullptr) {
+                if (m != nullptr && m->IsActive()) {
                     int start = Nodes.size();
                     int x, y;
                     m->InitRenderBufferNodes("Single Line", "2D", "None", Nodes, x, y);
@@ -1261,7 +1334,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         GetBufferSize(type, "2D", "None", BufferWi, BufferHt);
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
-            if (m != nullptr) {
+            if (m != nullptr && m->IsActive()) {
                 int start = Nodes.size();
                 int bw, bh;
                 m->InitRenderBufferNodes("Default", "2D", "None", Nodes, bw, bh);

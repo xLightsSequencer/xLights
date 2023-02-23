@@ -20,6 +20,7 @@
 #include "BulkEditSliderDialog.h"
 #include "BulkEditFontPickerDialog.h"
 #include "BulkEditColourPickerDialog.h"
+#include "BulkEditComboDialog.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
@@ -87,25 +88,49 @@ BulkEditFilePickerCtrl::BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, 
     Connect(wxEVT_COMMAND_FILEPICKER_CHANGED, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged);
     this->GetTextCtrl()->Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnFilePickerCtrl_TextLoseFocus, nullptr, this);
     this->GetTextCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnRightDown, nullptr, this);
+    ValidateControl();
+}
+
+void BulkEditFilePickerCtrl::ValidateControl()
+{
+    if (!IsEnabled()) {
+        if (GetToolTipText() != "") { // we do this because setting tooltips seems slow
+            SetToolTip("");
+        }
+        GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+    } else {
+        auto file = GetFileName().GetFullPath();
+        if (file.Contains(',')) {
+            GetTextCtrl()->SetBackgroundColour(*wxYELLOW);
+            SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
+        } else if (!FileExists(file)) {
+            GetTextCtrl()->SetBackgroundColour(*wxRED);
+            SetToolTip("File " + file + " does not exist.");
+        } else {
+            if (GetToolTipText() != "") { // we do this because setting tooltips seems slow
+                SetToolTip("");
+            }
+            GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
+    }
 }
 
 void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event)
 {
-    auto file = GetFileName().GetFullPath();
-    if (file.Contains(',')) {
-        wxMessageBox("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.", "File name problem", 5L, GetParent());
-    }
+    ValidateControl();
     event.Skip();
+}
+
+bool BulkEditFilePickerCtrl::Enable(bool enable)
+{
+    bool rc = wxFilePickerCtrl::Enable(enable);
+    ValidateControl();
+    return rc;
 }
 
 void BulkEditFilePickerCtrl::OnFilePickerCtrl_TextLoseFocus(wxFocusEvent& event)
 {
-    auto file = GetFileName().GetFullPath();
-    if (file.Contains(',')) {
-        wxMessageBox("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.", "File name problem", 5L, GetParent());
-    } else if (file != "" && !wxFile::Exists(file)) {
-        wxMessageBox("File " + file + " does not exist.", "File name problem", 5L, GetParent());
-    }
+    ValidateControl();
     event.Skip();
 }
 
@@ -807,27 +832,25 @@ void BulkEditComboBox::OnComboBoxPopup(wxCommandEvent& event)
 
         PopulateComboBox();
 
-        int sel = -1;
         auto value = wxString::Format("%0.02f", wxAtof(GetValue()));
 
         wxArrayString choices;
         for (size_t i = 0; i < GetCount(); i++) {
             choices.push_back(GetString(i));
-            if (GetString(i) == value)
-                sel = i;
         }
 
-        wxSingleChoiceDialog dlg(GetParent(), "", label, choices);
-        if (sel >= 0 && sel < choices.size()) {
-            dlg.SetSelection(sel);
-        }
+        BulkEditComboDialog dlg(GetParent(), value, label, choices);
         OptimiseDialogPosition(&dlg);
 
         if (dlg.ShowModal() == wxID_OK) {
-            SetSelection(dlg.GetSelection());
+
+            std::string value = dlg.GetValue();
+
+            // as a new item may have been added we need to update our options
+            PopulateComboBox();
+            SetValue(value);
 
             std::string id = GetName().ToStdString();
-            std::string value = GetString(dlg.GetSelection());
             id = FixIdForPanel(GetPanelName(GetParent()), id);
 
             if (GetPanelName(GetParent()) == "Effect") {

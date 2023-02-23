@@ -12,7 +12,7 @@
 #include "ScheduleOptions.h"
 #include "../xLights/outputs/IPOutput.h"
 #include "OSCPacket.h"
-#include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/ip_utils.h"
 
 //(*InternalHeaders(ConfigureOSC)
 #include <wx/intl.h>
@@ -246,7 +246,7 @@ void ConfigureOSC::ValidateWindow()
     }
 
     if (!IsValidPath() ||
-        (!CheckBox_ServerBroadcast->GetValue() && !IsIPValid(TextCtrl_ServerIP->GetValue().ToStdString())))
+        (!CheckBox_ServerBroadcast->GetValue() && !ip_utils::IsIPValid(TextCtrl_ServerIP->GetValue().ToStdString())))
     {
         Button_ok->Enable(false);
     }

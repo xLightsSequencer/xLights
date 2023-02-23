@@ -8,7 +8,7 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "../xSchedule/xSMSDaemon/Curl.h"
+#include "utils/Curl.h"
 #include "CachedFileDownloader.h"
 #include "ExternalHooks.h"
 

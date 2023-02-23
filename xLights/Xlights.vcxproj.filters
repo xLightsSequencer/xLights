@@ -104,7 +104,6 @@
     <ClCompile Include="tmGridCell.cpp" />
     <ClCompile Include="TopEffectsPanel.cpp" />
     <ClCompile Include="UpdaterDialog.cpp" />
-    <ClCompile Include="UtilFunctions.cpp" />
     <ClCompile Include="ValueCurve.cpp" />
     <ClCompile Include="ValueCurveButton.cpp" />
     <ClCompile Include="ValueCurveDialog.cpp" />
@@ -996,6 +995,30 @@
     <ClCompile Include="ModelRemap.cpp" />
     <ClCompile Include="RestoreBackupDialog.cpp" />
     <ClCompile Include="LayoutUtils.cpp" />
+    <ClCompile Include="preferences\CheckSequenceSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="UtilClasses.cpp" />
+    <ClCompile Include="automation\PythonRunner.cpp">
+      <Filter>automation</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\Experience.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="BulkEditComboDialog.cpp" />
+    <ClCompile Include="utils\string_utils.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="UtilFunctions.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\ip_utils.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\Curl.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="DuplicateDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1087,7 +1110,6 @@
     <ClInclude Include="TopEffectsPanel.h" />
     <ClInclude Include="UpdaterDialog.h" />
     <ClInclude Include="UtilClasses.h" />
-    <ClInclude Include="UtilFunctions.h" />
     <ClInclude Include="ValueCurve.h" />
     <ClInclude Include="ValueCurveButton.h" />
     <ClInclude Include="ValueCurveDialog.h" />
@@ -1278,7 +1300,6 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
-    <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
     <ClInclude Include="ShaderDownloadDialog.h" />
     <ClInclude Include="outputs\ZCPP.h">
       <Filter>Outputs</Filter>
@@ -2000,6 +2021,29 @@
     <ClInclude Include="ModelRemap.h" />
     <ClInclude Include="RestoreBackupDialog.h" />
     <ClInclude Include="LayoutUtils.h" />
+    <ClInclude Include="preferences\CheckSequenceSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="automation\PythonRunner.h">
+      <Filter>automation</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\Experience.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="BulkEditComboDialog.h" />
+    <ClInclude Include="utils\string_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="UtilFunctions.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\ip_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\Curl.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="DuplicateDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2037,6 +2081,9 @@
     </Filter>
     <Filter Include="common">
       <UniqueIdentifier>{d66f2316-0042-426b-8102-445d990406d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{c1416434-1c5e-4d35-9335-0e5286dca853}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

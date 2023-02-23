@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 class PixelBufferClass;
 class RenderBuffer;
 
@@ -47,7 +49,33 @@ public:
         }
         return false;
     };
+    
+    
+    class RotoZoomSettings {
+    public:
+        RotoZoomSettings() {}
+        
+        std::string rotationorder;
 
+        float offset = 0.0;        
+        float xrotation;
+        int xpivot;
+        float yrotation;
+        int ypivot;
+        
+        float zrotation;
+        float zoom;
+        float zoomquality;
+        int pivotpointx;
+        int pivotpointy;
+    };
+    
+    static bool RotoZoom(RenderBuffer *buffer, RotoZoomSettings &settings) {
+        if (INSTANCE) {
+            return INSTANCE->doRotoZoom(buffer, settings);
+        }
+        return false;
+    };
 protected:
     GPURenderUtils() { INSTANCE = this; }
     virtual ~GPURenderUtils() { INSTANCE = nullptr; };
@@ -60,6 +88,8 @@ protected:
     virtual void doWaitForRenderCompletion(RenderBuffer *buffer) = 0;
 
     virtual bool doBlur(RenderBuffer *buffer, int radius) = 0;
+    virtual bool doRotoZoom(RenderBuffer *buffer, RotoZoomSettings &settings) = 0;
+
 
     static GPURenderUtils *INSTANCE;
 };

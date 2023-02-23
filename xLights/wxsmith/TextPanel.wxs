@@ -46,7 +46,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_Text_File" variable="FilePickerCtrl1" member="yes">
+									<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_Text_File" subclass="xlTextFilePickerCtrl" variable="FilePickerCtrl1" member="yes">
 										<message>Select a text file</message>
 										<wildcard>*.txt</wildcard>
 										<handler function="OnFilePickerCtrl1FileChanged" entry="EVT_FILEPICKER_CHANGED" />

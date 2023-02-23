@@ -20,7 +20,7 @@
 
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
-#include "../xSchedule/xSMSDaemon/Curl.h"
+#include "utils/Curl.h"
 #include "CachedFileDownloader.h"
 
 #include <log4cpp/Category.hh>

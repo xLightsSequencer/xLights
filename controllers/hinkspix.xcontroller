@@ -31,6 +31,7 @@
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>HinksPix</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="PRO">
@@ -40,11 +41,12 @@
 			<SupportsPixelPortNullPixels/>
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
-            <SupportsUniversePerString/>
+			<SupportsUniversePerString/>
+			<DMXAfterPixels/>
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>16</SupportsSmartRemotes>
 			<SupportsUpload/>
-			<MaxInputUniverses>144</MaxInputUniverses>
+			<MaxInputUniverses>402</MaxInputUniverses>
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
@@ -64,12 +66,13 @@
 				<Protocol>artnet</Protocol>
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
-            <SmartRemoteTypes>
-                <Type>hinkspix_4</Type>
-                <Type>hinkspix_16</Type>
-                <Type>hinkspix_16ac</Type>
-            </SmartRemoteTypes>
+			<SmartRemoteTypes>
+				<Type>hinkspix_4</Type>
+				<Type>hinkspix_16</Type>
+				<Type>hinkspix_16ac</Type>
+			</SmartRemoteTypes>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>HinksPix</ConfigDriver>
 		</Variant>
 	</Controller>
 </Vendor>

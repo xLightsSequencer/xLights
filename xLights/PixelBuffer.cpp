@@ -16,6 +16,7 @@
 #include "models/ModelGroup.h"
 #include "UtilClasses.h"
 #include "AudioManager.h"
+#include "BufferPanel.h"
 #include "xLightsMain.h"
 #include <log4cpp/Category.hh>
 
@@ -964,7 +965,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
 
 void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, int timing)
 {
-    for (const auto& it : model.Models()) {
+    for (const auto& it : model.ActiveModels()) {
         Model* m = it;
         wxASSERT(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame);
@@ -978,7 +979,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
 
 void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int layer, int timing)
 {
-    for (const auto& it : model.GetFlatModels(false)) {
+    for (const auto& it : model.GetFlatModels(false, true)) {
         Model* m = it;
         wxASSERT(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame);
@@ -1305,7 +1306,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         if (bg == xlBLACK) {
             bg = fg;
         } else if (fg != xlBLACK) {
-            bg.Set( (fg.Red()+bg.Red())/2, (fg.Green()+bg.Green())/2, (fg.Blue()+bg.Blue())/2 );
+            bg.Set((fg.Red() + bg.Red()) / 2, (fg.Green() + bg.Green()) / 2, (fg.Blue() + bg.Blue()) / 2, (fg.alpha + bg.alpha) / 2);
         }
         break;
     case MixTypes::Mix_BottomTop:
@@ -1342,7 +1343,8 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
             int r = bg.red - fg.red;
             int g = bg.green - fg.green;
             int b = bg.blue - fg.blue;
-            if (r < 0) r = 0;
+            if (r < 0)
+                r = 0;
             if (g < 0) g = 0;
             if (b < 0) b = 0;
             bg.Set(r, g, b);
@@ -1351,25 +1353,28 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
 
     case MixTypes::Mix_Min:
         {
-            int r = std::min(fg.red, bg.red);
-            int g = std::min(fg.green, bg.green);
-            int b = std::min(fg.blue, bg.blue);
+            float alpha = (float)fg.alpha / 255.0;
+            int r = std::min(fg.red, bg.red) * alpha;
+            int g = std::min(fg.green, bg.green) * alpha;
+            int b = std::min(fg.blue, bg.blue) * alpha;
             bg.Set(r, g, b);
         }
         break;
     case MixTypes::Mix_Max:
         {
-            int r = std::max(fg.red, bg.red);
-            int g = std::max(fg.green, bg.green);
-            int b = std::max(fg.blue, bg.blue);
+            float alpha = (float)fg.alpha / 255.0;
+            int r = std::max(fg.red, bg.red) * alpha;
+            int g = std::max(fg.green, bg.green) * alpha;
+            int b = std::max(fg.blue, bg.blue) * alpha;
             bg.Set(r, g, b);
         }
         break;
     case MixTypes::Mix_AsBrightness:
         {
-        int r = fg.red * bg.red / 255;
-        int g = fg.green *  bg.green / 255;
-        int b = fg.blue * bg.blue / 255;
+        float alpha = (float)fg.alpha / 255.0;
+        int r = fg.red * bg.red / 255 * alpha;
+        int g = fg.green * bg.green / 255 * alpha;
+        int b = fg.blue * bg.blue / 255 * alpha;
         bg.Set(r, g, b);
     }
         break;
@@ -2412,7 +2417,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                 inf->modelBuffers = &inf->deepModelBuffers;
                 const ModelGroup* gp = dynamic_cast<const ModelGroup*>(model);
                 if (gp != nullptr) {
-                    std::list<Model*> flat_models = gp->GetFlatModels(false);
+                    std::list<Model*> flat_models = gp->GetFlatModels(false, true);
                     std::list<Model*>::iterator it_m = flat_models.begin();
                     for (const auto& it : inf->deepModelBuffers) {
                         std::string ntype = "Default"; // type.substr(10, type.length() - 10);
@@ -2438,7 +2443,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                         std::string ntype = type.substr(10, type.length() - 10);
                         int bw, bh;
                         it->Nodes.clear();
-                        gp->Models()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
+                        gp->ActiveModels()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
                         if (bw == 0)
                             bw = 1; // zero sized buffers are a problem
                         if (bh == 0)
@@ -2567,7 +2572,7 @@ void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
     layers[layer]->buffer.SetState(period, resetState, modelName);
     if (layers[layer]->modelBuffers == &layers[layer]->deepModelBuffers) {
         const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
-        std::list<Model*> flat_models = grp->GetFlatModels(false);
+        std::list<Model*> flat_models = grp->GetFlatModels(false, true);
         std::list<Model*>::iterator it_m = flat_models.begin();
         for (auto it = layers[layer]->modelBuffers->begin(); it != layers[layer]->modelBuffers->end(); ++it, it_m++) {
             if (frame->AllModels[(*it_m)->Name()] == nullptr) {
@@ -2580,10 +2585,10 @@ void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
         int cnt = 0;
         const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
         for (auto it = layers[layer]->modelBuffers->begin(); it != layers[layer]->modelBuffers->end(); ++it, cnt++) {
-            if (frame->AllModels[grp->Models()[cnt]->Name()] == nullptr) {
-                (*it)->SetState(period, resetState, grp->Models()[cnt]->GetFullName());
+            if (frame->AllModels[grp->ActiveModels()[cnt]->Name()] == nullptr) {
+                (*it)->SetState(period, resetState, grp->ActiveModels()[cnt]->GetFullName());
             } else {
-                (*it)->SetState(period, resetState, grp->Models()[cnt]->Name());
+                (*it)->SetState(period, resetState, grp->ActiveModels()[cnt]->Name());
             }
         }
     }
@@ -2710,146 +2715,104 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 
 }
 
-void PixelBufferClass::RotateX(LayerInfo* layer, float offset)
+void PixelBufferClass::RotateX(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings)
 {
     // Now do the rotation around a point on the x axis
 
-    float xrotation = layer->xrotation;
-    if (layer->XRotationValueCurve.IsActive()) {
-        xrotation = layer->XRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-    }
-
+    float xrotation = settings.xrotation;
     if (xrotation != 0 && xrotation != 360) {
-        GPURenderUtils::waitForRenderCompletion(&layer->buffer);
-        int xpivot = layer->xpivot;
-        if (layer->XPivotValueCurve.IsActive()) {
-            xpivot = layer->XPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-        }
+        GPURenderUtils::waitForRenderCompletion(&buffer);
+        int xpivot = settings.xpivot;
 
-        RenderBuffer orig(layer->buffer);
-        layer->buffer.Clear();
+        RenderBuffer orig(buffer);
+        buffer.Clear();
 
         float sine = sin((xrotation + 90) * M_PI / 180);
-        float pivot = xpivot * layer->buffer.BufferWi / 100;
+        float pivot = xpivot * buffer.BufferWi / 100;
 
-        for (int x = pivot; x < layer->buffer.BufferWi; ++x) {
+        for (int x = pivot; x < buffer.BufferWi; ++x) {
             float tox = sine * (x - pivot) + pivot;
-            for (int y = 0; y < layer->buffer.BufferHt; ++y) {
-                layer->buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+            for (int y = 0; y < buffer.BufferHt; ++y) {
+                buffer.SetPixel(tox, y, orig.GetPixel(x, y));
             }
         }
 
         for (int x = pivot - 1; x >= 0; --x) {
             float tox = -1 * sine * (pivot - x) + pivot;
-            for (int y = 0; y < layer->buffer.BufferHt; ++y) {
-                layer->buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+            for (int y = 0; y < buffer.BufferHt; ++y) {
+                buffer.SetPixel(tox, y, orig.GetPixel(x, y));
             }
         }
     }
 }
 
-void PixelBufferClass::RotateY(LayerInfo* layer, float offset)
+void PixelBufferClass::RotateY(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings)
 {
     // Now do the rotation around a point on the y axis
-    float yrotation = layer->yrotation;
-    if (layer->YRotationValueCurve.IsActive()) {
-        yrotation = layer->YRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-    }
-
+    float yrotation = settings.yrotation;
     if (yrotation != 0 && yrotation != 360) {
-        GPURenderUtils::waitForRenderCompletion(&layer->buffer);
+        GPURenderUtils::waitForRenderCompletion(&buffer);
 
-        int ypivot = layer->ypivot;
-        if (layer->YPivotValueCurve.IsActive()) {
-            ypivot = layer->YPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-        }
-
-        RenderBuffer orig(layer->buffer);
-        layer->buffer.Clear();
+        int ypivot = settings.ypivot;
+        RenderBuffer orig(buffer);
+        buffer.Clear();
 
         float sine = sin((yrotation + 90) * M_PI / 180);
-        float pivot = ypivot * layer->buffer.BufferHt / 100;
+        float pivot = ypivot * buffer.BufferHt / 100;
 
-        for (int y = pivot; y < layer->buffer.BufferHt; ++y) {
+        for (int y = pivot; y < buffer.BufferHt; ++y) {
             float toy = sine * (y - pivot) + pivot;
-            for (int x = 0; x < layer->buffer.BufferWi; ++x) {
-                layer->buffer.SetPixel(x, toy, orig.GetPixel(x, y));
+            for (int x = 0; x < buffer.BufferWi; ++x) {
+                buffer.SetPixel(x, toy, orig.GetPixel(x, y));
             }
         }
 
         for (int y = pivot - 1; y >= 0; --y) {
             float toy = -1 * sine * (pivot - y) + pivot;
-            for (int x = 0; x < layer->buffer.BufferWi; ++x) {
-                layer->buffer.SetPixel(x, toy, orig.GetPixel(x, y));
+            for (int x = 0; x < buffer.BufferWi; ++x) {
+                buffer.SetPixel(x, toy, orig.GetPixel(x, y));
             }
         }
     }
 }
 
-void PixelBufferClass::RotateZAndZoom(LayerInfo* layer, float offset)
+void PixelBufferClass::RotateZAndZoom(RenderBuffer &buffer, GPURenderUtils::RotoZoomSettings &settings)
 {
     // Do the Z axis rotate and zoom first
-    float zoom = layer->zoom;
-    if (layer->ZoomValueCurve.IsActive()) {
-        zoom = layer->ZoomValueCurve.GetOutputValueAtDivided(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-    }
-    float rotations = layer->rotations;
-    float rotationoffset = offset;
-    float offsetperrotation = 1.0f;
-    if (layer->RotationsValueCurve.IsActive()) {
-        rotations = layer->RotationsValueCurve.GetOutputValueAtDivided(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-    }
-    if (rotations > 0) {
-        offsetperrotation = 1.0f / rotations;
-    }
-    while (rotationoffset > offsetperrotation) {
-        rotationoffset -= offsetperrotation;
-    }
-    rotationoffset *= rotations;
-    float rotation = (float)layer->rotation / 100.0;
-    if (rotations > 0) {
-        if (layer->RotationValueCurve.IsActive()) {
-            rotation = layer->RotationValueCurve.GetValueAt(rotationoffset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-        }
-    }
+    float zoom = settings.zoom;
+    float rotation = settings.zrotation;
 
     if (rotation != 0.0 || zoom != 1.0) {
-        GPURenderUtils::waitForRenderCompletion(&layer->buffer);
+        GPURenderUtils::waitForRenderCompletion(&buffer);
 
         static const float PI_2 = 6.283185307f;
         xlColor c;
-        RenderBuffer orig(layer->buffer);
-        int q = layer->zoomquality;
-        int cx = layer->pivotpointx;
-        if (layer->PivotPointXValueCurve.IsActive()) {
-            cx = layer->PivotPointXValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-        }
-        int cy = layer->pivotpointy;
-        if (layer->PivotPointYValueCurve.IsActive()) {
-            cy = layer->PivotPointYValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
-        }
+        RenderBuffer orig(buffer);
+        int q = settings.zoomquality;
+        int cx = settings.pivotpointx;
+        int cy = settings.pivotpointy;
         float inc = 1.0 / (float)q;
 
         float angle = PI_2 * -rotation;
-        float xoff = (cx * layer->buffer.BufferWi) / 100.0;
-        float yoff = (cy * layer->BufferHt) / 100.0;
+        float xoff = (cx * buffer.BufferWi) / 100.0;
+        float yoff = (cy * buffer.BufferHt) / 100.0;
         float anglecos = cos(-angle);
         float anglesin = sin(-angle);
 
-        layer->buffer.Clear();
-        for (int x = 0; x < layer->BufferWi; x++) {
+        buffer.Clear();
+        for (int x = 0; x < buffer.BufferWi; x++) {
             for (int i = 0; i < q; i++) {
-                for (int y = 0; y < layer->BufferHt; y++) {
+                for (int y = 0; y < buffer.BufferHt; y++) {
                     orig.GetPixel(x, y, c);
                     for (int j = 0; j < q; j++) {
                         float xx = (float)x + ((float)i * inc) - xoff;
                         float yy = (float)y + ((float)j * inc) - yoff;
                         float u = xoff + anglecos * xx * zoom + anglesin * yy * zoom;
-                        if (u >= 0 && u < layer->BufferWi) {
+                        if (u >= 0 && u < buffer.BufferWi) {
                             float v = yoff + -anglesin * xx * zoom + anglecos * yy * zoom;
 
-                            if (v >= 0 && v < layer->BufferHt) {
-                                layer->buffer.SetPixel(u, v, c);
+                            if (v >= 0 && v < buffer.BufferHt) {
+                                buffer.SetPixel(u, v, c);
                             }
                         }
                     }
@@ -2863,17 +2826,79 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
 {
     if (std::isinf(offset)) offset = 1.0;
 
-    for (auto &c : layer->rotationorder) {
-        switch(c) {
-        case 'X':
-            RotateX(layer, offset);
-            break;
-        case 'Y':
-            RotateY(layer, offset);
-            break;
-        case 'Z':
-            RotateZAndZoom(layer, offset);
-            break;
+    GPURenderUtils::RotoZoomSettings settings;
+    settings.offset = offset;
+    settings.rotationorder = layer->rotationorder;
+    
+    settings.xrotation = layer->xrotation;
+    if (layer->XRotationValueCurve.IsActive()) {
+        settings.xrotation = layer->XRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+    }
+    if (settings.xrotation != 0 && settings.xrotation != 360) {
+        GPURenderUtils::waitForRenderCompletion(&layer->buffer);
+        settings.xpivot = layer->xpivot;
+        if (layer->XPivotValueCurve.IsActive()) {
+            settings.xpivot = layer->XPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+        }
+    }
+    settings.yrotation = layer->yrotation;
+    if (layer->YRotationValueCurve.IsActive()) {
+        settings.yrotation = layer->YRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+    }
+    if (settings.yrotation != 0 && settings.yrotation != 360) {
+        settings.ypivot = layer->ypivot;
+        if (layer->YPivotValueCurve.IsActive()) {
+            settings.ypivot = layer->YPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+        }
+    }
+    
+    settings.zoom = layer->zoom;
+    if (layer->ZoomValueCurve.IsActive()) {
+        settings.zoom = layer->ZoomValueCurve.GetOutputValueAtDivided(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+    }
+    float rotations = layer->rotations;
+    if (layer->RotationsValueCurve.IsActive()) {
+        rotations = layer->RotationsValueCurve.GetOutputValueAtDivided(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+    }
+
+    float rotationoffset = offset;
+    float offsetperrotation = 1.0f;
+    if (rotations > 0) {
+        offsetperrotation = 1.0f / rotations;
+    }
+    while (rotationoffset > offsetperrotation) {
+        rotationoffset -= offsetperrotation;
+    }
+    rotationoffset *= rotations;
+    settings.zrotation = (float)layer->rotation / 100.0;
+    if (rotations > 0) {
+        if (layer->RotationValueCurve.IsActive()) {
+            settings.zrotation = layer->RotationValueCurve.GetValueAt(rotationoffset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+        }
+    }
+    settings.zoomquality = layer->zoomquality;
+    settings.pivotpointx = layer->pivotpointx;
+    if (layer->PivotPointXValueCurve.IsActive()) {
+        settings.pivotpointx = layer->PivotPointXValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+    }
+    settings.pivotpointy = layer->pivotpointy;
+    if (layer->PivotPointYValueCurve.IsActive()) {
+        settings.pivotpointy = layer->PivotPointYValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
+    }
+    
+    if (!GPURenderUtils::RotoZoom(&layer->buffer, settings)) {
+        for (auto &c : layer->rotationorder) {
+            switch(c) {
+            case 'X':
+                RotateX(layer->buffer, settings);
+                break;
+            case 'Y':
+                RotateY(layer->buffer, settings);
+                break;
+            case 'Z':
+                RotateZAndZoom(layer->buffer, settings);
+                break;
+            }
         }
     }
 }

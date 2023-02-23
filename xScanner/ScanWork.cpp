@@ -11,7 +11,7 @@
 #include "../xLights/Parallel.h"
 #include "xScannerMain.h"
 #include "xScannerApp.h"
-#include "../xSchedule/xSMSDaemon/Curl.h"
+#include "../xLights/utils/Curl.h"
 #include "../xLights/UtilFunctions.h"
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xLights/controllers/Falcon.h"

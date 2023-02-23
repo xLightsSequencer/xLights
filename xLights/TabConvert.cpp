@@ -1428,7 +1428,7 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename, bool allowSparse)
                                    &mediaFilename, // media filename
                                    nullptr,
                                    filename);
-
+    write_params.elements = &_sequenceElements;
     if (allowSparse) {
         std::map<uint32_t, uint32_t> ranges;
         int numElements = _sequenceElements.GetElementCount();

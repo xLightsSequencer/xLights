@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <wx/filename.h>
+#include <wx/timer.h>
 
 //(*Headers(ModelFaceDialog)
 #include <wx/button.h>
@@ -37,6 +38,7 @@ class ModelPreview;
 class FaceGrid;
 class xLightsFrame;
 class ModelManager;
+class OutputManager;
 
 class ModelFaceDialog : public wxDialog
 {
@@ -51,15 +53,18 @@ class ModelFaceDialog : public wxDialog
     int GetRowForPhoneme(const std::string phoneme) const;
     void TryToFindPath(wxString& filename) const;
     void ValidateMatrixGrid(int r, int c) const;
+    void StartOutputToLights();
+    bool StopOutputToLights();
 
-public:
-    ModelFaceDialog(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+        public:
+    ModelFaceDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~ModelFaceDialog();
 
     //(*Declarations(ModelFaceDialog)
     wxButton* ButtonImport;
     wxButton* Button_DownloadImages;
     wxButton* DeleteButton;
+    wxCheckBox* CheckBox_OutputToLights;
     wxCheckBox* CustomColorNodeRanges;
     wxCheckBox* CustomColorSingleNode;
     wxChoice* MatrixImagePlacementChoice;
@@ -102,6 +107,7 @@ protected:
     static const long ID_PANEL2;
     static const long ID_PANEL8;
     static const long ID_CHECKBOX2;
+    static const long ID_CHECKBOX3;
     static const long ID_GRID3;
     static const long ID_PANEL6;
     static const long ID_PANEL7;
@@ -114,6 +120,7 @@ protected:
     static const long ID_PANEL1;
     static const long ID_SPLITTERWINDOW1;
     //*)
+    static const long ID_TIMER1;
 
 private:
     //(*Handlers(ModelFaceDialog)
@@ -141,6 +148,7 @@ private:
     void OnNodeRangeGridLabelLeftDClick(wxGridEvent& event);
     void OnButtonImportClick(wxCommandEvent& event);
     void OnMatrixModelsGridLabelLeftDClick(wxGridEvent& event);
+    void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
     //*)
 
     void OnAddBtnPopup(wxCommandEvent& event);
@@ -149,9 +157,14 @@ private:
     void OnPreviewLeftDown(wxMouseEvent& event);
     void OnPreviewLeftDClick(wxMouseEvent& event);
     void OnPreviewMouseMove(wxMouseEvent& event);
+    void OnTimer1Trigger(wxTimerEvent& event);
 
     DECLARE_EVENT_TABLE()
 
+    wxTimer timer1;
+    bool _oldOutputToLights = false;
+    OutputManager* _outputManager = nullptr;
+    std::vector<uint32_t> _selected;
     bool m_creating_bound_rect = false;
     int m_bound_start_x = 0;
     int m_bound_start_y = 0;

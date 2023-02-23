@@ -35,6 +35,8 @@
 #include "xLightsMain.h"
 #include "controllers/ControllerUploadData.h"
 #include "controllers/ControllerCaps.h"
+#include "ModelPreview.h"
+#include "support/VectorMath.h"
 
 #pragma region ChannelTracker
 bool CompareRange(const wxLongLong& a, const wxLongLong& b)
@@ -945,7 +947,7 @@ public:
     }
     virtual std::string GetType() const override
     {
-        return "Port";
+        return "SR";
     }
     std::list<ModelTestItem*> GetModels() const
     {
@@ -966,6 +968,7 @@ class CPR_PortTestItem : public TestItemBase
     bool _channelsAvailable = false;
     std::list<CPR_SRTestItem*> _remotes;
     std::string _portName;
+    uint16_t _port = 0xFFFF;
 
     CPR_SRTestItem* GetSmartRemote(char srl, UDControllerPort* pud, ModelManager& modelManager, bool channelsAvailable)
     {
@@ -1017,6 +1020,7 @@ public:
 
         _absoluteStartChannel = pud->GetStartChannel();
         _absoluteEndChannel = pud->GetEndChannel();
+        _port = pud->GetPort();
 
         for (const auto& it : pud->GetModels()) {
             int nodes = it->Channels() / it->GetChannelsPerPixel();
@@ -1044,6 +1048,10 @@ public:
     std::list<CPR_SRTestItem*> GetRemotes() const
     {
         return _remotes;
+    }
+    uint16_t GetPort() const
+    {
+        return _port;
     }
 };
 
@@ -1126,6 +1134,7 @@ const long PixelTestDialog::ID_MNU_TEST_SELECTALL = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_DESELECTALL = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_SELECTN = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_DESELECTN = wxNewId();
+const long PixelTestDialog::ID_MNU_TEST_NUMBER = wxNewId();
 
 //(*IdInit(PixelTestDialog)
 const long PixelTestDialog::ID_BUTTON_Load = wxNewId();
@@ -1133,6 +1142,10 @@ const long PixelTestDialog::ID_BUTTON_Save = wxNewId();
 const long PixelTestDialog::ID_PANEL3 = wxNewId();
 const long PixelTestDialog::ID_PANEL6 = wxNewId();
 const long PixelTestDialog::ID_PANEL7 = wxNewId();
+const long PixelTestDialog::ID_STATICTEXT8 = wxNewId();
+const long PixelTestDialog::ID_CHOICE1 = wxNewId();
+const long PixelTestDialog::ID_PANEL11 = wxNewId();
+const long PixelTestDialog::ID_PANEL5 = wxNewId();
 const long PixelTestDialog::ID_PANEL4 = wxNewId();
 const long PixelTestDialog::ID_NOTEBOOK1 = wxNewId();
 const long PixelTestDialog::ID_PANEL1 = wxNewId();
@@ -1201,7 +1214,8 @@ END_EVENT_TABLE()
 
 // Constructor
 
-PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id)
+PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id) :
+    mPointSize(PIXEL_SIZE_ON_DIALOGS)
 {
     _lastModel = nullptr;
     _outputManager = outputManager;
@@ -1220,9 +1234,12 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     wxFlexGridSizer* FlexGridSizer12;
     wxFlexGridSizer* FlexGridSizer13;
     wxFlexGridSizer* FlexGridSizer14;
+    wxFlexGridSizer* FlexGridSizer15;
+    wxFlexGridSizer* FlexGridSizer16;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
+    wxFlexGridSizer* FlexGridSizer44;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer6;
@@ -1271,6 +1288,32 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     Panel_Models->SetSizer(FlexGridSizer_Models);
     FlexGridSizer_Models->Fit(Panel_Models);
     FlexGridSizer_Models->SetSizeHints(Panel_Models);
+    Panel_Model = new wxPanel(Notebook1, ID_PANEL5, wxPoint(210,20), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
+    FlexGridSizer15 = new wxFlexGridSizer(2, 1, 0, 0);
+    FlexGridSizer15->AddGrowableCol(0);
+    FlexGridSizer15->AddGrowableRow(1);
+    FlexGridSizer16 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer16->AddGrowableCol(1);
+    StaticText7 = new wxStaticText(Panel_Model, ID_STATICTEXT8, _("Model:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+    FlexGridSizer16->Add(StaticText7, 1, wxALL|wxEXPAND, 5);
+    Choice_VisualModel = new wxChoice(Panel_Model, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+    FlexGridSizer16->Add(Choice_VisualModel, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer15->Add(FlexGridSizer16, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer44 = new wxFlexGridSizer(1, 1, 0, 0);
+    FlexGridSizer44->AddGrowableCol(0);
+    FlexGridSizer44->AddGrowableRow(0);
+    Panel_VisualModel = new wxPanel(Panel_Model, ID_PANEL11, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL11"));
+    FlexGridSizer_VisualModelSizer = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer_VisualModelSizer->AddGrowableCol(0);
+    FlexGridSizer_VisualModelSizer->AddGrowableRow(0);
+    Panel_VisualModel->SetSizer(FlexGridSizer_VisualModelSizer);
+    FlexGridSizer_VisualModelSizer->Fit(Panel_VisualModel);
+    FlexGridSizer_VisualModelSizer->SetSizeHints(Panel_VisualModel);
+    FlexGridSizer44->Add(Panel_VisualModel, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer15->Add(FlexGridSizer44, 1, wxALL|wxEXPAND, 5);
+    Panel_Model->SetSizer(FlexGridSizer15);
+    FlexGridSizer15->Fit(Panel_Model);
+    FlexGridSizer15->SetSizeHints(Panel_Model);
     Panel_Controllers = new wxPanel(Notebook1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
     FlexGridSizer_Controllers = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer_Controllers->AddGrowableCol(0);
@@ -1281,6 +1324,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     Notebook1->AddPage(Panel_Outputs, _("Outputs"), false);
     Notebook1->AddPage(Panel_ModelGroups, _("Model Groups"), false);
     Notebook1->AddPage(Panel_Models, _("Models"), false);
+    Notebook1->AddPage(Panel_Model, _("Model"), false);
     Notebook1->AddPage(Panel_Controllers, _("Controllers"), false);
     FlexGridSizer2->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
     Panel1->SetSizer(FlexGridSizer2);
@@ -1465,6 +1509,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
 
     Connect(ID_BUTTON_Load,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnButton_LoadClick);
     Connect(ID_BUTTON_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnButton_SaveClick);
+    Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PixelTestDialog::OnChoice_VisualModelSelect);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&PixelTestDialog::OnNotebook1PageChanged);
     Connect(ID_CHECKBOX_OutputToLights,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnCheckBox_OutputToLightsClick);
     Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnCheckBox_SuppressUnusedOutputsClick);
@@ -1525,6 +1570,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
 
     PopulateOutputTree(_outputManager);
     PopulateModelTree(_modelManager);
+    PopulateVisualModelTree(_modelManager);
     PopulateModelGroupTree(_modelManager);
     PopulateControllerTree(_outputManager, _modelManager);
     DeactivateNotClickableModels(TreeListCtrl_Outputs);
@@ -1812,6 +1858,222 @@ void PixelTestDialog::PopulateControllerTree(OutputManager* outputManager, Model
 }
 #pragma endregion
 
+#pragma region VisualModelTab
+void PixelTestDialog::PopulateVisualModelTree(ModelManager* modelManager)
+{
+    _modelPreview = new ModelPreview(Panel_VisualModel);
+    _modelPreview->SetMinSize(wxSize(150, 150));
+    FlexGridSizer_VisualModelSizer->Add(_modelPreview, 1, wxALL | wxEXPAND, 0);
+    FlexGridSizer_VisualModelSizer->Fit(Panel_VisualModel);
+    FlexGridSizer_VisualModelSizer->SetSizeHints(Panel_VisualModel);
+
+    _modelPreview->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&PixelTestDialog::OnPreviewLeftDown, nullptr, this);
+    _modelPreview->Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&PixelTestDialog::OnPreviewLeftUp, nullptr, this);
+    _modelPreview->Connect(wxEVT_MOTION, (wxObjectEventFunction)&PixelTestDialog::OnPreviewMouseMove, nullptr, this);
+    _modelPreview->Connect(wxEVT_LEAVE_WINDOW, (wxObjectEventFunction)&PixelTestDialog::OnPreviewMouseLeave, nullptr, this);
+    _modelPreview->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&PixelTestDialog::OnPreviewLeftDClick, nullptr, this);
+
+    std::list<std::string> modelNames;
+    for (const auto& it : *_modelManager) {
+        Model* m = it.second;
+
+        if (m->GetDisplayAs() != "ModelGroup") {
+            modelNames.push_back(m->GetName());
+        }
+    }
+    modelNames.sort(stdlistNumberAwareStringCompare);
+
+    Choice_VisualModel->Clear();
+    for (const auto& it : modelNames) {
+        Choice_VisualModel->AppendString(it);
+    }
+    if (Choice_VisualModel->GetCount() > 0) {
+        Choice_VisualModel->SetSelection(0);
+        SelectVisualModel(modelNames.front());
+    }
+}
+
+void PixelTestDialog::SelectVisualModel(const std::string& model)
+{
+    Model* m = _modelManager->GetModel(model);
+    _modelPreview->SetModel(m);
+
+    UpdateVisualModelFromTracker();
+    RenderModel();
+}
+
+void PixelTestDialog::UpdateVisualModelFromTracker()
+{
+    Model* m = _modelManager->GetModel(Choice_VisualModel->GetStringSelection());
+
+    if (m != nullptr) {
+        xlColor c(xlDARK_GREY);
+        xlColor cc(xlWHITE);
+        int nn = m->GetNodeCount();
+        for (int node = 0; node < nn; node++) {
+            auto n = m->GetNode(node);
+            bool on = false;
+            if (n != nullptr) {
+                for (uint8_t c = 0; c < m->GetChanCountPerNode() && !on; ++c) {
+                    on = on || _channelTracker.IsChannelOn(n->ActChan + c + 1);
+                }
+            }
+            if (on) {
+                m->SetNodeColor(node, cc);
+            } else {
+                m->SetNodeColor(node, c);
+            }
+        }
+    }
+}
+
+void PixelTestDialog::OnPreviewLeftUp(wxMouseEvent& event)
+{
+    if (m_creating_bound_rect) {
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_end_x = ray_origin.x;
+        m_bound_end_y = ray_origin.y;
+
+        m_creating_bound_rect = false;
+        SelectAllInBoundingRect(event.ShiftDown());
+
+        _modelPreview->ReleaseMouse();
+    }
+}
+
+void PixelTestDialog::OnPreviewMouseLeave(wxMouseEvent& event)
+{
+    RenderModel();
+}
+
+void PixelTestDialog::OnPreviewLeftDown(wxMouseEvent& event)
+{
+    m_creating_bound_rect = true;
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+    m_bound_start_x = ray_origin.x;
+    m_bound_start_y = ray_origin.y;
+    m_bound_end_x = m_bound_start_x;
+    m_bound_end_y = m_bound_start_y;
+
+    // Capture the mouse; this will keep it selecting even if the
+    //  user temporarily leaves the preview area...
+    _modelPreview->CaptureMouse();
+}
+
+void PixelTestDialog::OnPreviewLeftDClick(wxMouseEvent& event)
+{
+    Model* model = _modelManager->GetModel(Choice_VisualModel->GetStringSelection());
+    if (model != nullptr) {
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        int x = ray_origin.x;
+        int y = ray_origin.y;
+
+        auto stNode = model->GetNodeNear(_modelPreview, wxPoint(x, y), false);
+        if (stNode.IsEmpty())
+            return;
+
+        auto node = wxAtoi(stNode) - 1;
+        auto n = model->GetNode(node);
+
+        if (n != nullptr) {
+            bool on = false;
+            for (uint8_t c = 0; c < model->GetChanCountPerNode() && !on; ++c) {
+                on = on || _channelTracker.IsChannelOn(n->ActChan + c + 1);
+            }
+
+            if (on) {
+                _channelTracker.RemoveRange(n->ActChan + 1, n->ActChan + model->GetChanCountPerNode());
+            }
+            else {
+                _channelTracker.AddRange(n->ActChan + 1, n->ActChan + model->GetChanCountPerNode());
+            }
+            UpdateVisualModelFromTracker();
+            RenderModel();
+            _checkChannelList = true;
+        }
+    }
+}
+
+void PixelTestDialog::OnPreviewMouseMove(wxMouseEvent& event)
+{
+    event.ResumePropagation(1);
+    event.Skip();
+    if (m_creating_bound_rect) {
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_end_x = ray_origin.x;
+        m_bound_end_y = ray_origin.y;
+        RenderModel();
+    }
+}
+
+void PixelTestDialog::RenderModel()
+{
+    if (_modelPreview == nullptr || !_modelPreview->StartDrawing(mPointSize))
+        return;
+
+    Model* model = _modelManager->GetModel(Choice_VisualModel->GetStringSelection());
+    if (model != nullptr) {
+        if (m_creating_bound_rect) {
+            _modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
+        }
+        model->DisplayEffectOnWindow(_modelPreview, mPointSize);
+        _modelPreview->EndDrawing();
+    }
+}
+
+void PixelTestDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
+{
+    // Trim the mouse location to the preview area
+    //   (It can go outside this area if the button is down and the mouse
+    //    has been captured.)
+    x = std::max(x, 0);
+    y = std::max(y, 0);
+    x = std::min(x, _modelPreview->getWidth());
+    y = std::min(y, _modelPreview->getHeight());
+
+    VectorMath::ScreenPosToWorldRay(
+        x, _modelPreview->getHeight() - y,
+        _modelPreview->getWidth(), _modelPreview->getHeight(),
+        _modelPreview->GetProjViewMatrix(),
+        ray_origin,
+        ray_direction);
+}
+
+void PixelTestDialog::SelectAllInBoundingRect(bool shiftDwn)
+{
+    Model* model = _modelManager->GetModel(Choice_VisualModel->GetStringSelection());
+    if (model != nullptr) {
+        std::vector<wxRealPoint> pts;
+        std::vector<int> nodes = model->GetNodesInBoundingBox(_modelPreview, wxPoint(m_bound_start_x, m_bound_start_y), wxPoint(m_bound_end_x, m_bound_end_y));
+        if (nodes.size() == 0)
+            return;
+
+        for (auto const& n : nodes) {
+            auto nn = model->GetNode(n-1);
+            if (nn != nullptr) {
+                if (shiftDwn) {
+                    _channelTracker.RemoveRange(nn->ActChan + 1, nn->ActChan + model->GetChanCountPerNode());
+                } else {
+                    _channelTracker.AddRange(nn->ActChan + 1, nn->ActChan + model->GetChanCountPerNode());
+                }
+            }
+        }
+
+        UpdateVisualModelFromTracker();
+        RenderModel();
+        _checkChannelList = true;
+    }
+}
+#pragma endregion
+
 #pragma region ModelTab
 void PixelTestDialog::PopulateModelTree(ModelManager* modelManager)
 {
@@ -2041,6 +2303,8 @@ void PixelTestDialog::OnContextMenu(wxTreeListEvent& event)
     mnuContext.Append(ID_MNU_TEST_DESELECTALL, "Deselect All");
     mnuContext.Append(ID_MNU_TEST_SELECTN, "Select Many");
     mnuContext.Append(ID_MNU_TEST_DESELECTN, "Deselect Many");
+    if (_rcTree == TreeListCtrl_Controllers)
+        mnuContext.Append(ID_MNU_TEST_NUMBER, "Number");
 
     mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&PixelTestDialog::OnListPopup, nullptr, this);
     PopupMenu(&mnuContext);
@@ -2144,6 +2408,155 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
 
                     selected = tree->GetNextSibling(selected);
                     count--;
+                }
+            }
+        }
+    } else if (id == ID_MNU_TEST_NUMBER) {
+        if (selected.IsOk()) {
+            TestItemBase* tc = (TestItemBase*)tree->GetItemData(selected);
+
+            if (tc->IsClickable()) {
+                if (tc->GetType() == "Controller") {
+                    // controller
+                    for (auto p = tree->GetFirstChild(selected); p != nullptr; p = tree->GetNextSibling(p)) {
+                        tc = (TestItemBase*)tree->GetItemData(p);
+                        uint16_t port = ((CPR_PortTestItem*)tc)->GetPort();
+                        uint16_t pixel = 0;
+                        for (auto srporm = tree->GetFirstChild(p); srporm != nullptr; srporm = tree->GetNextSibling(srporm)) {
+                            tc = (TestItemBase*)tree->GetItemData(srporm);
+                            if (tc->GetType() == "SR") {
+                                for (auto m = tree->GetFirstChild(srporm); m != nullptr; m = tree->GetNextSibling(m)) {
+                                    for (auto px = tree->GetFirstChild(m); px != nullptr; px = tree->GetNextSibling(px)) {
+                                        tc = (TestItemBase*)tree->GetItemData(px);
+                                        if (tc != nullptr) {
+                                            if (pixel < port) {
+                                                tree->CheckItem(px, wxCHK_CHECKED);
+                                                _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                                RollUpAll(tree, px);
+                                            } else {
+                                                tree->CheckItem(px, wxCHK_UNCHECKED);
+                                                _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                                RollUpAll(tree, px);
+                                            }
+                                            ++pixel;
+                                        } else {
+                                            ModelTestItem* tm = (ModelTestItem*)tree->GetItemData(m);
+                                            if (pixel < port) {
+                                                tree->CheckItem(px, wxCHK_CHECKED);
+                                                auto ep = std::min(tm->GetLastChannel(), tm->GetFirstChannel() + (port - pixel) * tm->GetChannelsPerNode() - 1);
+                                                _channelTracker.AddRange(tm->GetFirstChannel(), ep);
+                                                if (ep != tm->GetLastChannel()) {
+                                                    _channelTracker.RemoveRange(ep + 1, tm->GetLastChannel());
+                                                }
+                                                pixel += (ep - tm->GetFirstChannel() + 1) / tm->GetChannelsPerNode();
+                                                RollUpAll(tree, px);
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                for (auto px = tree->GetFirstChild(srporm); px != nullptr; px = tree->GetNextSibling(px)) {
+                                    tc = (TestItemBase*)tree->GetItemData(px);
+                                    if (tc != nullptr) {
+                                        if (pixel < port) {
+                                            tree->CheckItem(px, wxCHK_CHECKED);
+                                            _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                            RollUpAll(tree, px);
+                                        } else {
+                                            tree->CheckItem(px, wxCHK_UNCHECKED);
+                                            _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                            RollUpAll(tree, px);
+                                        }
+                                        ++pixel;
+                                    } else {
+                                        ModelTestItem* tm = (ModelTestItem*)tree->GetItemData(srporm);
+                                        if (pixel < port) {
+                                            tree->CheckItem(px, wxCHK_CHECKED);
+                                            auto ep = std::min(tm->GetLastChannel(), tm->GetFirstChannel() + (port - pixel) * tm->GetChannelsPerNode() - 1);
+                                            _channelTracker.AddRange(tm->GetFirstChannel(), ep);
+                                            if (ep != tm->GetLastChannel()) {
+                                                _channelTracker.RemoveRange(ep + 1, tm->GetLastChannel());
+                                            }
+                                            pixel += (ep - tm->GetFirstChannel() + 1) / tm->GetChannelsPerNode();
+                                            RollUpAll(tree, px);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // port / Node
+                    // move up to the port
+                    while (tc != nullptr && tc->GetType() != "Port") {
+                        selected = tree->GetItemParent(selected);
+                        tc = (TestItemBase*)tree->GetItemData(selected);
+                    }
+                    uint16_t port = ((CPR_PortTestItem*)tc)->GetPort();
+                    uint16_t pixel = 0;
+
+                    for (auto srporm = tree->GetFirstChild(selected); srporm != nullptr; srporm = tree->GetNextSibling(srporm)) {
+                        tc = (TestItemBase*)tree->GetItemData(srporm);
+                        if (tc->GetType() == "SR") {
+                            for (auto m = tree->GetFirstChild(srporm); m != nullptr; m = tree->GetNextSibling(m)) {
+                                for (auto px = tree->GetFirstChild(m); px != nullptr; px = tree->GetNextSibling(px)) {
+                                    tc = (TestItemBase*)tree->GetItemData(px);
+                                    if (tc != nullptr) {
+                                        if (pixel < port) {
+                                            tree->CheckItem(px, wxCHK_CHECKED);
+                                            _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                            RollUpAll(tree, px);
+                                        } else {
+                                            tree->CheckItem(px, wxCHK_UNCHECKED);
+                                            _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                            RollUpAll(tree, px);
+                                        }
+                                        ++pixel;
+                                    } else {
+                                        ModelTestItem* tm = (ModelTestItem*)tree->GetItemData(m);
+                                        if (pixel < port) {
+                                            tree->CheckItem(px, wxCHK_CHECKED);
+                                            auto ep = std::min(tm->GetLastChannel(), tm->GetFirstChannel() + (port - pixel) * tm->GetChannelsPerNode() - 1);
+                                            _channelTracker.AddRange(tm->GetFirstChannel(), ep);
+                                            if (ep != tm->GetLastChannel()) {
+                                                _channelTracker.RemoveRange(ep + 1, tm->GetLastChannel());
+                                            }
+                                            pixel += (ep - tm->GetFirstChannel() + 1) / tm->GetChannelsPerNode();
+                                            RollUpAll(tree, px);
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            for (auto px = tree->GetFirstChild(srporm); px != nullptr; px = tree->GetNextSibling(px)) {
+                                tc = (TestItemBase*)tree->GetItemData(px);
+                                if (tc != nullptr) {
+                                    if (pixel < port) {
+                                        tree->CheckItem(px, wxCHK_CHECKED);
+                                        _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                        RollUpAll(tree, px);
+                                    } else {
+                                        tree->CheckItem(px, wxCHK_UNCHECKED);
+                                        _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                        RollUpAll(tree, px);
+                                    }
+                                    ++pixel;
+                                } else {
+                                    ModelTestItem* tm = (ModelTestItem*)tree->GetItemData(srporm);
+                                    if (pixel < port) {
+                                        tree->CheckItem(px, wxCHK_CHECKED);
+                                        auto ep = std::min(tm->GetLastChannel(), tm->GetFirstChannel() + (port - pixel) * tm->GetChannelsPerNode() - 1);
+                                        _channelTracker.AddRange(tm->GetFirstChannel(), ep);
+                                        if (ep != tm->GetLastChannel()) {
+                                            _channelTracker.RemoveRange(ep + 1, tm->GetLastChannel());
+                                        }
+                                        pixel += (ep - tm->GetFirstChannel() + 1) / tm->GetChannelsPerNode();
+                                        RollUpAll(tree, px);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -2574,7 +2987,7 @@ void PixelTestDialog::OnTimer(long curtime)
     static int LastBgIntensity, LastFgIntensity, LastBgColor[3], LastFgColor[3], *ShimColor, ShimIntensity;
     static int LastSequenceSpeed;
     static int LastTwinkleRatio;
-    static int LastAutomatedTest;
+    //static int LastAutomatedTest;
     static long NextSequenceStart = -1;
     static TestFunctions LastFunc = PixelTestDialog::TestFunctions::OFF;
     static unsigned int interval, rgbCycle, TestSeqIdx;
@@ -2625,7 +3038,7 @@ void PixelTestDialog::OnTimer(long curtime)
         LastSequenceSpeed = -1;
         LastBgIntensity = -1;
         LastFgIntensity = -1;
-        LastAutomatedTest = -1;
+        //LastAutomatedTest = -1;
         LastTwinkleRatio = -1;
         for (i = 0; i < 3; i++) {
             LastBgColor[i] = -1;
@@ -3217,10 +3630,22 @@ void PixelTestDialog::SetSuspend(bool suspend)
 void PixelTestDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
 {
     // need to go through all items in the tree on the selected page and update them based on channels
-    wxTreeListCtrl* tree = event.GetSelection() == 0 ? TreeListCtrl_Outputs : event.GetSelection() == 1 ? TreeListCtrl_ModelGroups : TreeListCtrl_Models;
-    SetCheckBoxItemFromTracker(tree, tree->GetRootItem(), wxCheckBoxState::wxCHK_UNCHECKED);
+    wxTreeListCtrl* tree = (event.GetSelection() == 0 ? TreeListCtrl_Outputs : (event.GetSelection() == 1 ? TreeListCtrl_ModelGroups : (event.GetSelection() == 2 ? TreeListCtrl_Models : (event.GetSelection() == 4 ? TreeListCtrl_Controllers : nullptr))));
+    if (tree != nullptr) {
+        SetCheckBoxItemFromTracker(tree, tree->GetRootItem(), wxCheckBoxState::wxCHK_UNCHECKED);
+    }
+    else
+    {
+        UpdateVisualModelFromTracker();
+        RenderModel();
+    }
 }
 
 void PixelTestDialog::OnCheckBox_Tag50thClick(wxCommandEvent& event)
 {
+}
+
+void PixelTestDialog::OnChoice_VisualModelSelect(wxCommandEvent& event)
+{
+    SelectVisualModel(Choice_VisualModel->GetStringSelection().ToStdString());
 }

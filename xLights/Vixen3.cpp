@@ -35,16 +35,58 @@ wxColour ConvertXYZToColour(double x, double y, double z)
                    );
 }
 
+std::string BoolToIntStr (std::string str)
+{
+    if (str == "true")
+        return "1";
+    else
+        return "0";
+}
+
 std::string VixenEffect::GetPalette() const
 {
     std::string res;
 
-    for (int i = 0; i < colours.size(); i++) {
+    for (int i = 0; i < palette.size(); i++) {
         wxString n = wxString::Format("%d", i + 1);
 
-        if (res != "") res += ",";
-        res += "C_BUTTON_Palette" + n + "=#" + wxString::Format("%02x%02x%02x", colours[i].Red(), colours[i].Green(), colours[i].Blue());
-        res += ",C_CHECKBOX_Palette" + n + "=1";
+        if (res != "")
+            res += ",";
+
+        if (palette[i].size() == 1) {
+            res += "C_BUTTON_Palette" + n + "=#" + wxString::Format("%02x%02x%02x",
+                    palette[i][0].color.Red(), palette[i][0].color.Green(), palette[i][0].color.Blue());
+            res += ",C_CHECKBOX_Palette" + n + "=1";
+        // Break buttefly gradient into individual colors
+        } else if (type == "ButterflyData") {
+            for (int ii = 0; ii < palette[i].size(); ii++) {
+                wxString nn = wxString::Format("%d", ii + 1);
+                if (res != "")
+                    res += ",";
+                res += "C_BUTTON_Palette" + nn + "=#" + wxString::Format("%02x%02x%02x", palette[i][ii].color.Red(), palette[i][ii].color.Green(), palette[i][ii].color.Blue());
+                res += ",C_CHECKBOX_Palette" + nn + "=1";
+            }
+        } else {
+            res += "C_BUTTON_Palette" + n + "=Active=TRUE|Id=ID_BUTTON_Palette" + n + "|Values=";
+            for (int ii = 0; ii < palette[i].size(); ii++) {
+                res += wxString::Format("x=%.3f^c=#%02x%02x%02x",
+                       palette[i][ii].position, palette[i][ii].color.Red(), palette[i][ii].color.Green(), palette[i][ii].color.Blue());
+                if (ii != palette[i].size() - 1)
+                    res += ";";
+            }
+            res += "|,C_CHECKBOX_Palette" + n + "=1";
+        }
+
+    }
+
+    // More than two points for the Vixen level curve, generate a custom brightness value curve
+    if (type == "PulseData" && levelCurve.size() > 2) {
+        res += ",C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Custom|Min=0.00|Max=400.00|RV=TRUE|Values=";
+        for (int i = 0; i < levelCurve.size(); i++) {
+            res += wxString::Format("%.2f:", levelCurve[i].x / 100) + wxString::Format("%.2f", levelCurve[i].y / 100 / 4);
+            if (i != levelCurve.size() - 1)
+                res += ";";
+        }
     }
 
     return res;
@@ -53,40 +95,250 @@ std::string VixenEffect::GetPalette() const
 std::string VixenEffect::GetSettings() const
 {
     std::string res;
-
-    if (type == "PlasmaData")
-    {
+    if (type == "AlternatingData") {
+        res = "B_CHOICE_BufferStyle=Single Line,E_SLIDER_Marquee_Band_Size=" + settings.at("GroupLevel");       
     }
-    else if (type == "TwinkleData")
-    {
-        res = "E_SLIDER_Twinkle_Steps=" + settings.at("AveragePulseTime");
-    }
-    else if (type == "PulseData") {}
-    else if (type == "Data") {}
-    else if (type == "SetLevelData") {}
-    else if (type == "WipeData") {}
-    else if (type == "AlternatingData") {}
     else if (type == "AudioData") {}
-    else if (type == "MeteorsData") {}
-    else if (type == "GarlandsData") {}
-    else if (type == "PictureData") {}
-    else if (type == "SpiralData") {}
-    else if (type == "PinWheelData") {}
+    else if (type == "BarsData") {
+        // Up/Down and Left/Right are backwards in V3
+        auto s = settings.at("Direction");
+        std::string dir = "down";
+        if (s == "Moves Down") dir = "up";
+        else if (s == "Expands") dir = "expand";
+        else if (s == "Compresses") dir = "compress";
+        else if (s == "Moves Left") dir = "Right";
+        else if (s == "Moves Right") dir = "Left";
+        else if (s == "Horizontal Expand") dir = "H-expand";
+        else if (s == "Horizontal Compress") dir = "H-compress";
+        else if (s == "Alternate Up") dir = "Alternate Down";
+        else if (s == "Alternate Down") dir = "Alternate Up";
+        else if (s == "Alternate Left") dir = "Alternate Right";
+        else if (s == "Alternate Right") dir = "Alternate Left";
+
+        if (settings.at("TargetPositioning") == "Strings") {
+            if (settings.at("Orientation") == "Vertical") {
+                res = "B_CHOICE_BufferStyle=Horizontal Per Model/Strand,";
+            } else {
+                res = "B_CHOICE_BufferStyle=Vertical Per Model/Strand,";
+            }
+        }
+
+        res += "E_CHECKBOX_Bars_3D=" + settings.at("Show3D") +
+               ",E_CHECKBOX_Bars_Highlight=" + settings.at("Highlight") +
+               ",E_CHOICE_Bars_Direction=" + dir +
+               ",E_SLIDER_Bars_BarCount=" + wxString::Format("%d", std::min(wxAtoi(settings.at("Repeat")), 5)) +
+               ",E_TEXTCTRL_Bars_Cycles=" + settings.at("Speed");
+    }
+    else if (type == "ButterflyData") {
+        res = "E_SLIDER_Butterfly_Chunks=" + settings.at("BackgroundChunks") +
+              ",E_SLIDER_Butterfly_Skip=" + settings.at("BackgroundSkips") +
+              ",E_SLIDER_Butterfly_Style=" + wxString(settings.at("ButterflyType")).AfterFirst('e').ToStdString() +
+              ",E_CHOICE_Butterfly_Direction=" + (settings.at("Direction") == "Forward" ? "0" : "1") +
+              ",E_CHOICE_Butterfly_Colors=" + (settings.at("ColorScheme") == "Gradient" ? "Palette" : "Rainbow");
+    }
     else if (type == "ChaseData") {}
     else if (type == "CirclesData") {}
-    else if (type == "BarsData") {}
-    else if (type == "TextData") {}
-    else if (type == "SpirographData") {}
+    else if (type == "Data") {}
     else if (type == "FireData") {}
-    else if (type == "NutcrackerModuleData") {}
-    else if (type == "ButterflyData")
-    {
-        res = "E_Butterfly_Chunks=" + settings.at("BackgroundChunks") +
-            ",E_Butterfly_Skip=" + settings.at("BackgroundSkips") +
-            ",E_SLIDER_Butterfly_Style=" + wxString(settings.at("ButterflyType")).AfterFirst('e').ToStdString() +
-            ",E_CHOICE_Butterfly_Direction=" + (settings.at("Direction") == "Forward" ? "0" : "1");
+    else if (type == "GarlandsData") {}
+    else if (type == "MeteorsData") {}
+    else if (type == "PictureData") {}
+    else if (type == "PinWheelData") {}
+    else if (type == "PlasmaData") {}
+    else if (type == "PulseData") {
+        // Only two points, set them as start and end intensity.  If more than two, a brightness curve will be generated
+        if (levelCurve.size() == 2) {
+            res = "E_TEXTCTRL_Eff_On_Start=" + wxString::Format("%d", wxRound(levelCurve[0].y)) +
+                  ",E_TEXTCTRL_Eff_On_End=" + wxString::Format("%d", wxRound(levelCurve[1].y));
+        }
     }
-    else if (type == "SpinData") {}
+    else if (type == "TwinkleData") {
+        res = "E_SLIDER_Twinkle_Steps=" + settings.at("AveragePulseTime") +
+              ",E_SLIDER_Twinkle_Count=" + settings.at("AverageCoverage");
+    }
+    else if (type == "SetLevelData") {}
+    else if (type == "SpinData") {}  
+    else if (type == "SpiralData") {}
+    else if (type == "SpirographData") {}
+    else if (type == "TextData") {}
+    else if (type == "VUMeterData") {
+        res = "E_CHOICE_VUMeter_Type=On";
+    }
+
+    else if (type == "WipeData") {
+        auto d = settings.at("Direction");
+        auto r = settings.at("ReverseDirection");
+        std::string chase = "From Middle";
+        std::string transform = "";
+
+        if (d == "Vertical") {
+            chase = "Left-Right";
+            if (r == "true")
+                transform = "Rotate CC 90";
+            else
+                transform = "Rotate CW 90";
+        } else if (d == "Horizontal") {
+            if (r == "true")
+                chase = "Right-Left";
+            else
+                chase = "Left-Right";
+        } else {
+            chase = "From Middle";
+        }
+        
+        res = "E_CHOICE_Chase_Type1=" + chase;
+        if (transform != "")
+            res = res + ",B_CHOICE_BufferTransform=" + transform;
+                
+        if (settings.at("WipeMovement") == "Count")
+            res = res + ",E_TEXTCTRL_Chase_Rotations=" + settings.at("PassCount");
+    }
+    else if (type == "NutcrackerModuleData") {
+        std::string nc = settings.at("CurrentEffect");
+        std::string fit = BoolToIntStr(settings.at("FitToTime"));  // Not sure this can be mapped
+        int speed = wxAtoi(settings.at("Speed")); // Max of 20
+
+        // V3 Nutcracker wasn't spatially aware so switch render style
+        if (settings.at("StringOrienation") == "Vertical") {
+            res = "B_CHOICE_BufferStyle=Horizontal Per Model/Strand";
+        } else {
+            res = "B_CHOICE_BufferStyle=Vertical Per Model/Strand";
+        }
+
+        if (nc == "Bars") {
+            int i = wxAtoi(settings.at("Bars_Direction"));
+            std::string dir = "up";
+            if (i == 1) dir = "down";
+            else if (i == 2) dir = "expand";
+            else if (i == 3) dir = "compress";
+            else if (i == 4) dir = "Left";
+            else if (i == 5) dir = "Right";
+            else if (i == 6) dir = "H-expand";
+            else if (i == 7) dir = "H-compress";
+            else if (i == 8) dir = "Alternate Up";
+            else if (i == 9) dir = "Alternate Down";
+            else if (i == 10) dir = "Alternate Left";
+            else if (i == 11) dir = "Alternate Right";
+            res += ",E_CHECKBOX_Bars_3D=" + BoolToIntStr(settings.at("Bars_3D")) +
+                   ",E_CHECKBOX_Bars_Highlight=" + BoolToIntStr(settings.at("Bars_Highlight")) +
+                   ",E_CHOICE_Bars_Direction=" + dir +
+                   ",E_TEXTCTRL_Bars_BarCount=" + settings.at("Bars_PaletteRepeat");
+        } else if (nc == "Butterfly") {
+            res += ",E_Butterfly_Chunks=" + settings.at("Butterfly_BkgrdChunks") +
+                   ",E_Butterfly_Skip=" + settings.at("Butterfly_BkgrdSkip") +
+                   ",E_SLIDER_Butterfly_Speed=" + wxString::Format("%d", speed * 5); // max 100
+                   ",E_SLIDER_Butterfly_Style=" + settings.at("Butterfly_Style") +
+                   ",E_CHOICE_Butterfly_Direction=" + settings.at("Butterfly_Direction") +
+                   ",E_CHOICE_Butterfly_Colors=" + (settings.at("Butterfly_Colors") == "0" ? "Rainbow" : "Palette");
+        } else if (nc == "ColorWash") {
+            res += ",E_TEXTCTRL_ColorWash_Cycles=" + settings.at("ColorWash_Count") +
+                   ",E_CHECKBOX_ColorWash_HFade=" + BoolToIntStr(settings.at("ColorWash_FadeHorizontal")) +
+                   ",E_CHECKBOX_ColorWash_VFade=" + BoolToIntStr(settings.at("ColorWash_FadeVertical"));
+        } else if (nc == "Curtain") {
+            int i = wxAtoi(settings.at("Curtain_Edge"));
+            std::string edge = "left";
+            if (i == 1) edge = "center";
+            else if (i == 2) edge = "right";
+            else if (i == 3) edge = "bottom";
+            else if (i == 4) edge = "middle";
+            else if (i == 5) edge = "top";
+
+            i = wxAtoi(settings.at("Curtain_Effect"));
+            std::string effect = "open";
+            if (i == 1) effect = "close";
+            else if (i == 2) effect = "open then close";
+            else if (i == 3) effect = "close then open";
+            res += ",E_CHECKBOX_Curtain_Repeat=" + BoolToIntStr(settings.at("Curtain_Repeat")) +
+                   ",E_CHOICE_Curtain_Edge=" + edge +
+                   ",E_CHOICE_Curtain_Effect=" + effect +
+                   ",E_SLIDER_Curtain_Swag=" + settings.at("Curtain_SwagWidth");
+        } else if (nc == "Fire") {
+            res += ",E_SLIDER_Fire_Height=" + settings.at("Fire_Height") +
+                   ",E_SLIDER_Fire_HueShift=" + settings.at("Fire_Hue");
+        } else if (nc == "Fireworks") {
+            res += ",E_SLIDER_Fireworks_Count=" + settings.at("Fireworks_Particles") +
+                   ",E_SLIDER_Fireworks_Explosions=" + wxString::Format("%d", (wxAtoi(settings.at("Fireworks_Explosions")) / 2)) +
+                   ",E_SLIDER_Fireworks_Fade=" + settings.at("Fireworks_Fade") +
+                   ",E_SLIDER_Fireworks_Velocity=" + settings.at("Fireworks_Fade");
+        } else if (nc == "Garlands") {
+            res += ",E_SLIDER_Garlands_Spacing=" + settings.at("Garland_Spacing") +
+                   ",E_SLIDER_Garlands_Type=" + settings.at("Garland_Type");
+        } else if (nc == "Glediator") {
+            res += ",E_FILEPICKERCTRL_Glediator_Filename=" + settings.at("Glediator_Filename");
+        } else if (nc == "Life") {
+            res += ",E_SLIDER_Life_Count=" + settings.at("Life_CellsToStart") +
+                   ",E_SLIDER_Life_Seed=" + settings.at("Life_Type") +
+                   ",E_SLIDER_Life_Speed=" + wxString::Format("%d", wxRound(speed * 1.5)); // max 30
+        } else if (nc == "Meteors") {
+            int i = wxAtoi(settings.at("Meteor_Colors"));
+            std::string colors = "Rainbow";
+            if (i == 1) colors = "Range";
+            else if (i == 2) colors = "Palette";
+            res += ",E_CHOICE_Meteors_Type=" + colors +
+                   ",E_SLIDER_Meteors_Count=" + settings.at("Meteor_Count") +
+                   ",E_SLIDER_Meteors_Length=" + settings.at("Meteor_TrailLength") +
+                   ",E_SLIDER_Meteors_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+        } else if (nc == "Movie") {
+            res += ",E_FILEPICKERCTRL_Video_Filename=" + settings.at("Movie_DataPath");
+        } else if (nc == "Picture") {
+            int i = wxAtoi(settings.at("Picture_Direction"));
+            std::string dir = "left";
+            if (i == 1) dir = "right";
+            else if (i == 2) dir = "up";
+            else if (i == 3) dir = "down";
+            else if (i == 4) dir = "none";
+            else if (i == 5) dir = "up-left";
+            else if (i == 6) dir = "down-left";
+            else if (i == 7) dir = "up-right";
+            else if (i == 8) dir = "down-right";
+            else if (i == 9) dir = "peekaboo";
+            else if (i == 10) dir = "peekaboo 90";
+            else if (i == 11) dir = "peekaboo 180";
+            else if (i == 12) dir = "peekaboo 270";
+            else if (i == 13) dir = "wiggle";
+            res += ",E_CHOICE_Pictures_Direction=" + dir + 
+                   ",E_FILEPICKER_Pictures_Filename=" + settings.at("Picture_FileName") +
+                   ",E_TEXTCTRL_Pictures_Speed=" + settings.at("Picture_GifSpeed");
+        } else if (nc == "PictureTile") {
+            res += ",E_FILEPICKER_Pictures_Filename=" + settings.at("PictureTile_FileName");
+        } else if (nc == "Snowflakes") {
+            res += ",E_SLIDER_Snowflakes_Count=" + wxString::Format("%d", wxAtoi(settings.at("Snowflakes_Max")) * 5) + // max 20 in V3 / 100 in xLights
+                   ",E_SLIDER_Snowflakes_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)) + // max 50
+                   ",E_SLIDER_Snowflakes_Type=" + settings.at("Snowflakes_Type");
+        } else if (nc == "Snowstorm") {
+            res += ",E_SLIDER_Snowstorm_Count=" + settings.at("Snowstorm_MaxFlakes") +
+                   ",E_SLIDER_Snowstorm_Length=" + settings.at("Snowstorm_TrailLength") +
+                   ",E_SLIDER_Snowstorm_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+        } else if (nc == "Spirals") {
+            res += ",E_CHECKBOX_Spirals_3D=" + BoolToIntStr(settings.at("Spirals_3D")) +
+                   ",E_CHECKBOX_Spirals_Blend=" + BoolToIntStr(settings.at("Spirals_Blend")) +
+                   ",E_SLIDER_Spirals_Thickness=" + settings.at("Spirals_Thickness");
+        } else if (nc == "Spirograph") {
+            res += ",E_SLIDER_Spirograph_R=" + settings.at("Spirograph_ROuter") +
+                   ",E_SLIDER_Spirograph_d=" + settings.at("Spirograph_Distance") +
+                   ",E_SLIDER_Spirograph_r=" + settings.at("Spirograph_RInner") +
+                   ",E_TEXTCTRL_Spirograph_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+        } else if (nc == "Text") {
+            int i = wxAtoi(settings.at("Picture_Direction"));
+            std::string dir = "left";
+            if (i == 1) dir = "right";
+            else if (i == 2) dir = "up";
+            else if (i == 3) dir = "down";
+            else if (i == 4) dir = "none";
+            res += ",E_CHECKBOX_TextToCenter=" + BoolToIntStr(settings.at("Text_CenterStop")) +
+                   ",E_CHOICE_Text_Dir=" + dir +
+                   ",E_TEXTCTRL_Text=" + settings.at("Text_Line1") + "\n" + settings.at("Text_Line2") + "\n" + settings.at("Text_Line3") + "\n" + settings.at("Text_Line4") +
+                   ",E_TEXTCTRL_Text_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+        } else if (nc == "Tree") {
+            res += ",E_SLIDER_Tree_Branches=" + settings.at("Tree_Branches") +
+                   ",E_SLIDER_Tree_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+        } else if (nc == "Twinkles") {
+            res += ",E_CHECKBOX_Twinkle_Strobe=1" + BoolToIntStr(settings.at("Twinkles_Strobe")) +
+                   ",E_CHOICE_Twinkle_Style=Old Render Method" +
+                   ",E_SLIDER_Twinkle_Count=" + settings.at("Twinkles_Count") +
+                   ",E_SLIDER_Twinkle_Steps=" + settings.at("Twinkles_Steps");
+        }
+    }
 
     return res;
 }
@@ -96,63 +348,76 @@ std::string VixenEffect::GetXLightsType() const
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (type == "AlternatingData") return "Marquee";
-    if (type == "CandleData") return "Candle";
-    if (type == "ChaseData") return "Single Strand";
-    if (type == "DissolveData")
-    {
-        logger_base.warn("Vixen3: Unable to convert DissolveData effect ... inserting an off effect.");
-        return "Off"; // not sure what to do with this
-    }
-    if (type == "LipSyncData") return "Faces";
-    if (type == "PulseData") return "On";
-    if (type == "SetLevelData") return "On";
-    if (type == "SpinData")
-    {
-        logger_base.warn("Vixen3: Unable to convert SpinData effect ... inserting an Pinwheel effect.");
-        return "Pinwheel";
-    }
-    if (type == "StrobeData") return "Strobe";
-    if (type == "TwinkleData") return "Twinkle";
-    if (type == "WipeData") return "Color Wash";
     if (type == "BarsData") return "Bars";
     if (type == "BorderData") return "Marquee";
     if (type == "ButterflyData") return "Butterfly";
+    if (type == "CandleData") return "Candle";
+    if (type == "ChaseData") return "Single Strand";
     if (type == "CirclesData") return "Circles";
     if (type == "ColorWashData") return "Color Wash";
     if (type == "CurtainData") return "Curtain";
+    if (type == "Data") {
+        logger_base.warn("Vixen3: Unable to convert Data effect ... inserting an On effect.");
+        return "On"; // this should go to timing
+    }
+    if (type == "DissolveData") {
+        logger_base.warn("Vixen3: Unable to convert DissolveData effect ... inserting an off effect.");
+        return "Off"; // not sure what to do with this
+    }
     if (type == "FireData") return "Fire";
     if (type == "FireworksData") return "Fireworks";
     if (type == "GarlandsData") return "Garlands";
     if (type == "GlediatorData") return "Glediator";
     if (type == "LifeData") return "Life";
+    if (type == "LipSyncData") return "Faces";
     if (type == "LiquidData") return "Liquid";
     if (type == "MeteorsData") return "Meteors";
+    if (type == "MorphData") {
+        logger_base.warn("Vixen3: Morph color import not supported.");
+        return "Morph";
+    }
+    if (type == "NutcrackerModuleData") {
+        auto nc = settings.at("CurrentEffect");
+        if (nc == "ColorWash") nc = "Color Wash";
+        else if (nc == "Movie") nc = "Video";
+        else if (nc == "Picture") nc = "Pictures";
+        else if (nc == "PictureTile") nc = "Pictures";
+        else if (nc == "Twinkles") nc = "Twinkle";
+        return nc;
+    }
+
     if (type == "PictureData") return "Pictures";
     if (type == "PinWheelData") return "Pinwheel";
     if (type == "PlasmaData") return "Plasma";
-    if (type == "ShapesData") return "Shape";
+    if (type == "PulseData") return "On";
+    if (type == "SetLevelData") return "On";
+    if (type == "ShapesData") {
+        logger_base.warn("Vixen3: Shapes color import not supported.");
+        return "Shape";
+    }
     if (type == "ShockwaveData") return "Shockwave";
-    if (type == "SnowflakesData") return "Snowflakes";
+    if (type == "SnowflakesData") {
+        logger_base.warn("Vixen3: Snowflakes color import not supported.");
+        return "Snowflakes";
+    }
     if (type == "SnowStormData") return "Snowstorm";
+    if (type == "SpinData") {
+        logger_base.warn("Vixen3: Unable to convert SpinData effect ... inserting an Pinwheel effect.");
+        return "Pinwheel";
+    }
     if (type == "SpiralData") return "Spirals";
     if (type == "SpirographData") return "Spirograph";
+    if (type == "StrobeData") return "Strobe";
     if (type == "TextData") return "Text";
-    if (type == "TreeData") return "Tree";
+    if (type == "TreeData") {
+        logger_base.warn("Vixen3: Tree color import not supported.");
+        return "Tree";
+    }
+    if (type == "TwinkleData") return "Twinkle";
     if (type == "VideoData") return "Video";
     if (type == "VUMeterData") return "VU Meter";
     if (type == "WaveData") return "Wave";
-    
-    if (type == "Data")
-    {
-        logger_base.warn("Vixen3: Unable to convert Data effect ... inserting an On effect.");
-        return "On"; // this should go to timing
-    }
-    if (type == "NutcrackerModuleData")
-    {
-        logger_base.warn("Vixen3: Unable to convert NutcrackerModuleData effect ... inserting an off effect.");
-        return "Off"; // not sure what to do with this
-    }
-    
+    if (type == "WipeData") return "Single Strand";
 
     logger_base.warn("Vixen3: Unknown effect %s ... inserting an off effect.", (const char*)type.c_str());
 
@@ -563,15 +828,71 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
         for (auto e = it->second.begin(); e != it->second.end(); ++e)
         {
             auto es = effectSettings.find(e->effectSettingsId);
-
             if (es != effectSettings.end())
             {
+                wxString colorHandling;
+                std::vector<std::vector<VixenColor>> palleteStatic;
+                std::vector<std::vector<VixenColor>> palleteDefault;
+                
                 e->type = es->second->GetAttribute("i:type").AfterFirst(':').ToStdString();
                 for (auto n = es->second->GetChildren(); n != nullptr; n = n->GetNext())
                 {
-                    if (n->GetName().StartsWith("d2p1:") && n->GetChildren() != nullptr) {
+                    if (n->GetName() == "TargetPositioning" && n->GetChildren() != nullptr) {
+                        e->settings[n->GetName().ToStdString()] = n->GetChildren()->GetContent().ToStdString();
+                    } else if (n->GetName().StartsWith("d2p1:") && n->GetChildren() != nullptr) {
                         auto nm = n->GetName().AfterFirst(':');
-                        e->settings[nm.ToStdString()] = n->GetChildren()->GetContent().ToStdString();
+                        
+                        if (nm == "NutcrackerData") {
+                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                auto nm2 = nn->GetName().AfterFirst(':');
+                                if (nn->GetChildren() != nullptr) {
+                                    // Process color palette
+                                    if (nm2 == "Palette") {
+                                        std::vector<int> knownColor;
+                                        for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
+                                            auto nm3 = nnn->GetName().AfterFirst(':');
+                                            if (nnn->GetChildren() != nullptr) {
+                                                if (nm3 == "_colors") {
+                                                    for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
+                                                        auto nm4 = nnnn->GetName().AfterFirst(':');
+                                                        if (nm4 == "Color") {
+                                                            for (auto nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext()) {
+                                                                auto nm5 = nnnnn->GetName().AfterFirst(':');
+                                                                if (nm5 == "knownColor") {
+                                                                    // Finally, got the color
+                                                                    knownColor.push_back(wxAtoi(nnnnn->GetChildren()->GetContent()));
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                } else if (nm3 == "_colorsActive") {
+                                                    auto index = 0;
+                                                    for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
+                                                        auto nm4 = nnnn->GetName().AfterFirst(':');
+                                                        if (nm4 == "boolean") {
+                                                            if (nnnn->GetChildren()->GetContent() == "true") {
+                                                                uint32_t argb = VixenEffect::KNOWN_COLOR[knownColor.at(index)];
+                                                                char r = (argb & 0x00FF0000) >> 16;
+                                                                char g = (argb & 0x0000FF00) >> 8;
+                                                                char b = (argb & 0x000000FF);
+                                                                palleteDefault.push_back({ VixenColor(wxColor(r, g, b), 0) });
+                                                            }
+                                                        }
+                                                        index++;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        e->settings[nm2.ToStdString()] = nn->GetChildren()->GetContent().ToStdString();
+                                    }
+                                }
+                            }
+                        } else {
+                            e->settings[nm.ToStdString()] = n->GetChildren()->GetContent().ToStdString();
+                        }
+
+                        // Color for SetLevel
                         if (nm == "color") {
                             int r = 0;
                             int g = 0;
@@ -588,55 +909,146 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                     b = 255.0 * wxAtof(nn->GetChildren()->GetContent());
                                 }
                             }
-                            e->colours.push_back(wxColor(r, g, b));
+                            palleteDefault.push_back({ VixenColor(wxColor(r, g, b), 0) });
                         }
-                        else if (nm == "ColorGradient") {
+
+                        // ColorHandling known values:
+                        // - StaticColor
+                        // - GradientThroughWHoleEffect
+                        else if (nm == "ColorHandling") {
+                            colorHandling = n->GetChildren()->GetContent();
+                        }
+
+                        // Colors for the following:
+                        // ColorGradient:      Chase Pulse Spin Twinkle Wipe
+                        // Gradient:           ColorWash Border Butterfly Curtain Shockwave
+                        // Head/Fill:          Morph
+                        // MeterColorGradient: VetricalMeter VUMeter Waveform
+                        else if (nm == "ColorGradient" || nm == "Gradient" || nm == "HeadColor" || nm == "FillColor" || nm == "MeterColorGradient") {
                             for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
                                 auto nm2 = nn->GetName().AfterFirst(':');
                                 if (nm2 == "_colors") {
-                                    std::vector<wxColour> gradCol;
+                                    palleteDefault.push_back(ProcessColorData(nn));
+                                }
+                            }
+                        } 
+                        
+                        // Colors for the following:
+                        // Colors:                                   Strobe Picture
+                        // Colors->ColorGradient:                    Bars Balls Circles Garland Life Liquid Meteors Plasma Snowstorm Spiral Spirograph Wave
+                        // Colors->GradientLevelPair->ColorGradient: Alternating Dissolve Pinwheel
+                        // GradientColors->ColorGradient:            Countdown
+                        // ColorGradients->ColorGradient:            Fireworks
+                        else if (nm == "Colors" || nm == "GradientColors" || nm == "ColorGradients") {
+                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                auto nm2 = nn->GetName().AfterFirst(':');
+                                if (nm2 == "_colors") {
+                                    palleteDefault.push_back(ProcessColorData(nn));
+                                } else if (nm2 == "ColorGradient" || "GradientLevelPair") { 
                                     for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
                                         auto nm3 = nnn->GetName().AfterFirst(':');
-                                        if (nm3 == "ColorPoint") {
+                                        if (nm3 == "_colors") {
+                                            palleteDefault.push_back(ProcessColorData(nnn));
+                                        } else if (nm3 == "ColorGradient") {
                                             for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
                                                 auto nm4 = nnnn->GetName().AfterFirst(':');
-                                                if (nm4 == "_color") {
-                                                    int x = 0;
-                                                    int y = 0;
-                                                    int z = 0;
-                                                    for (auto nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext()) {
-                                                        auto nm5 = nnnnn->GetName().AfterFirst(':');
-                                                        if (nm5 == "_x") {
-                                                            x = wxAtof(nnnnn->GetChildren()->GetContent());
-                                                        }
-                                                        else if (nm5 == "_y") {
-                                                            y = wxAtof(nnnnn->GetChildren()->GetContent());
-                                                        }
-                                                        else if (nm5 == "_z") {
-                                                            z = wxAtof(nnnnn->GetChildren()->GetContent());
-                                                        }
-                                                    }
-                                                    gradCol.push_back(ConvertXYZToColour(x, y, z));
+                                                if (nm4 == "_colors") {
+                                                    palleteDefault.push_back(ProcessColorData(nnnn));
                                                 }
                                             }
                                         }
                                     }
-                                    if (gradCol.size() == 1) {
-                                        e->colours.push_back(gradCol[0]);
-                                    }
-                                    else if (gradCol.size() > 1) {
-                                        // TODO we dont handle gradients yet so just push back the first colour
+                                }
+                            }
+                        } 
 
-                                        e->colours.push_back(gradCol[0]);
+                        // Colors for the following:
+                        // Twinkle
+                        else if (nm == "StaticColor") {
+                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                auto nm2 = nn->GetName().AfterFirst(':');
+                                if (nm2 == "value") {
+                                    unsigned long argb;
+                                    nn->GetChildren()->GetContent().ToULong(&argb);
+                                    char r = (argb & 0x00FF0000) >> 16;
+                                    char g = (argb & 0x0000FF00) >> 8;
+                                    char b = (argb & 0x000000FF);
+                                    palleteStatic.push_back({ VixenColor(wxColor(r, g, b), 0) });
+                                }
+                            }
+                        }
+
+                        // Brightness curve
+                        else if (nm == "LevelCurve") {
+                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                                auto nm2 = nn->GetName().AfterFirst(':');
+                                if (nm2 == "Points") {
+                                    for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
+                                        auto nm3 = nnn->GetName().AfterFirst(':');
+                                        if (nm3 == "PointPair") {
+                                            double x = 0;
+                                            double y = 0;
+                                            for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
+                                                auto nm4 = nnnn->GetName();
+                                                if (nm4 == "X") {
+                                                    x = wxAtoi(nnnn->GetChildren()->GetContent());
+                                                } else if (nm4 == "Y") {
+                                                    y = wxAtoi(nnnn->GetChildren()->GetContent());
+                                                }
+                                            }
+                                            e->levelCurve.push_back(wxRealPoint(x, y));
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
+                if (colorHandling == "StaticColor") {
+                    e->palette = palleteStatic;
+                } else {
+                    e->palette = palleteDefault;
+                }
             }
         }
     }
+}
+
+std::vector<VixenColor> Vixen3::ProcessColorData(wxXmlNode* n)
+{
+    std::vector<VixenColor> vColor;
+
+    for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+        auto nm3 = nn->GetName().AfterFirst(':');
+        if (nm3 == "ColorPoint") {
+            double x = 0;
+            double y = 0;
+            double z = 0;
+            double position = 0;
+
+            for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
+                auto nm4 = nnn->GetName().AfterFirst(':');
+                if (nm4 == "_color") {
+                    for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
+                        auto nm5 = nnnn->GetName().AfterFirst(':');
+                        if (nm5 == "_x") {
+                            x = wxAtof(nnnn->GetChildren()->GetContent());
+                        } else if (nm5 == "_y") {
+                            y = wxAtof(nnnn->GetChildren()->GetContent());
+                        } else if (nm5 == "_z") {
+                            z = wxAtof(nnnn->GetChildren()->GetContent());
+                        }
+                    }
+                } else if (nm4 == "_position") {
+                    position = wxAtof(nnn->GetChildren()->GetContent());
+                }
+            }
+            vColor.push_back(VixenColor(ConvertXYZToColour(x, y, z), position));
+        }
+    }
+
+    std::sort(vColor.begin(), vColor.end());
+    return (vColor);
 }
 
 std::list<std::string> Vixen3::GetModelsWithEffects() const

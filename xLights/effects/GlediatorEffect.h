@@ -58,7 +58,7 @@ class GlediatorEffect : public RenderableEffect
         virtual bool CanBeRandom() override {return false;}
         virtual void SetSequenceElements(SequenceElements *els) override;
         virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
         virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap &SettingsMap) const override;

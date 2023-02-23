@@ -58,7 +58,7 @@ cd ..
 
 cd xLights
 rem del Release\Xlights.ipdb
-msbuild.exe -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x86" -p:PreferredToolArchitecture="x64"
+msbuild.exe -restore -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x86" -p:PreferredToolArchitecture="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 

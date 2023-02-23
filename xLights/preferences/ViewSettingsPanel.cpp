@@ -119,6 +119,9 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 #ifdef XL_DRAWING_WITH_METAL
     StaticBoxSizer1->Show(false);
 #endif
+    #ifdef _MSC_VER
+    MSWDisableComposited();
+    #endif
 }
 
 ViewSettingsPanel::~ViewSettingsPanel()

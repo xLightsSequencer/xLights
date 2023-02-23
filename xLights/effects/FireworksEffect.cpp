@@ -333,7 +333,7 @@ std::pair<int,int> FireworksEffect::GetFireworkLocation(int width, int height, i
     return { startX, startY };
 }
 
-void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
 
     int numberOfExplosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", 16);

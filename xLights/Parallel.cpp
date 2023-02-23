@@ -29,7 +29,18 @@ int ParallelJobPool::calcSteps(int minStep, int total) {
         int calcSteps = total / minStep;
         if (calcSteps > ParallelJobPool::maxSize()) {
             calcSteps = ParallelJobPool::maxSize();
-        } else if (calcSteps < 1) {
+            int i = inFlight;
+            // LOTS of things using the parallel pool to a point where
+            // the queue is long and we're wasting time/locks managing the queue.
+            // In that case, we split into larger blocks.  Still in parallel,
+            // but fewer so the existing queue can be reduced
+            if (i > (maxNumThreads * 4)) {
+                calcSteps = 2;
+            } else if (i > (maxNumThreads * 2)) {
+                calcSteps /= 2;
+            }
+        }
+        if (calcSteps < 1) {
             calcSteps = 1;
         }
         return calcSteps;
@@ -85,7 +96,7 @@ public:
 
 void parallel_for(int min, int max, std::function<void(int)>&& func, int minStep, ParallelJobPool *pool) {
     int calcSteps = pool->calcSteps(minStep, max - min);
-    if (calcSteps == 1) {
+    if (calcSteps <= 1) {
         for (int x = min; x < max; x++) {
             func(x);
         }

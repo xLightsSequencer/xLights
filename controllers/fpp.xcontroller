@@ -23,10 +23,13 @@
             <InputProtocols>
                 <Protocol>ddp-input</Protocol>
             </InputProtocols>
+            <ConfigDriver>FPP</ConfigDriver>
         </Variant>
     </Controller>
     <AbstractVariant Name="BaseFPPSettings">
         <SupportsPixelPortCommonSettings/>
+        <SupportsPixelZigZag/>
+        <MaxZigZag>600</MaxZigZag>
         <SupportsUpload/>
         <SupportsInputOnlyUpload/>
         <MaxInputUniverses>1000</MaxInputUniverses>
@@ -41,6 +44,7 @@
         <SupportsDefaultBrightness/>
         <SupportsDefaultGamma/>
         <PreferredInputProtocol>DDP</PreferredInputProtocol>
+        <ConfigDriver>FPP</ConfigDriver>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCape" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
@@ -143,22 +147,29 @@
     <Controller Name="LED Panels">
         <Variant Name="" ID="LED Panels" Base="FPP:BaseFPPSettings">
             <MaxPixelPort>0</MaxPixelPort>
-            <MaxSerialPort>0</MaxSerialPort>
-            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxSerialPort>1</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>0</MaxPixelPortChannels>
             <SupportsLEDPanelMatrix/>
             <SupportsAutoLayout/>
             <PixelProtocols>
             </PixelProtocols>
             <SerialProtocols>
+                <Protocol>DMX-Pro</Protocol>
+                <Protocol>DMX-Open</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet-Lynx</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
             </SerialProtocols>
         </Variant>
     </Controller>
     <Controller Name="Virtual Matrix">
         <Variant Name="" ID="Virtual Matrix" Base="FPP:BaseFPPSettings">
             <MaxPixelPort>0</MaxPixelPort>
-            <MaxSerialPort>0</MaxSerialPort>
-            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxSerialPort>1</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>0</MaxPixelPortChannels>
             <SupportsVirtualMatrix/>
             <SupportsLEDPanelMatrix/>
@@ -166,14 +177,21 @@
             <PixelProtocols>
             </PixelProtocols>
             <SerialProtocols>
+                <Protocol>DMX-Pro</Protocol>
+                <Protocol>DMX-Open</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet-Lynx</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
             </SerialProtocols>
         </Variant>
     </Controller>
     <Controller Name="Pi4 Virtual Matrix">
         <Variant Name="" ID="Pi4 Virtual Matrix" Base="FPP:BaseFPPSettings">
             <MaxPixelPort>0</MaxPixelPort>
-            <MaxSerialPort>0</MaxSerialPort>
-            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxSerialPort>1</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>0</MaxPixelPortChannels>
             <SupportsVirtualMatrix/>
             <MaxVirtualMatrixPorts>2</MaxVirtualMatrixPorts>
@@ -182,6 +200,13 @@
             <PixelProtocols>
             </PixelProtocols>
             <SerialProtocols>
+                <Protocol>DMX-Pro</Protocol>
+                <Protocol>DMX-Open</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet-Lynx</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
             </SerialProtocols>
         </Variant>
     </Controller>
@@ -358,6 +383,42 @@
             <fpp8>40,4</fpp8>
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
+    <Controller Name="FPP Player Only">
+        <Variant Name="" ID="SP">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxPixelPortChannels>0</MaxPixelPortChannels>
+            <PixelProtocols>
+            </PixelProtocols>
+            <SerialProtocols>
+            </SerialProtocols>
+            <InputProtocols>
+                <Protocol>player only</Protocol>
+            </InputProtocols>
+            <PlayerOnly/>
+            <PreferredInputProtocol>Player Only</PreferredInputProtocol>
+            <ConfigDriver>FPP</ConfigDriver>
+        </Variant>
+    </Controller>
+    <Controller Name="FPP Video Playing Remote Only">
+        <Variant Name="" ID="MP">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>0</MaxSerialPortChannels>
+            <MaxPixelPortChannels>0</MaxPixelPortChannels>
+            <PixelProtocols>
+            </PixelProtocols>
+            <SerialProtocols>
+            </SerialProtocols>
+            <InputProtocols>
+                <Protocol>player only</Protocol>
+            </InputProtocols>
+            <PlayerOnly/>
+            <PreferredInputProtocol>Player Only</PreferredInputProtocol>
+            <ConfigDriver>FPP</ConfigDriver>
         </Variant>
     </Controller>
 </Vendor>

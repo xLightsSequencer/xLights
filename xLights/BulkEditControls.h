@@ -153,6 +153,8 @@ protected:
     bool _supportsBulkEdit;
     wxString _wildcard;
 
+    virtual void ValidateControl();
+
     public:
 
     BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, const wxString& path, const wxString& message, const wxString& wildcard, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxSL_HORIZONTAL, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxSliderNameStr);
@@ -163,6 +165,7 @@ protected:
     void OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event);
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
+    virtual bool Enable(bool enable = true) override;
 };
 
 class BulkEditTextCtrlF1 : public BulkEditTextCtrl

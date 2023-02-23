@@ -12,6 +12,7 @@
 
 //(*Headers(LinkJukeboxButtonDialog)
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/radiobut.h>
@@ -38,6 +39,7 @@ class LinkJukeboxButtonDialog: public wxDialog
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
 		wxButton* Button_Unlink;
+		wxCheckBox* CheckBox_LoopEffect;
 		wxChoice* Choice_Description;
 		wxChoice* Choice_Layer;
 		wxChoice* Choice_Model;
@@ -61,6 +63,7 @@ class LinkJukeboxButtonDialog: public wxDialog
 		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT6;
 		static const long ID_TEXTCTRL2;
+		static const long ID_CHECKBOX1;
 		static const long ID_RADIOBUTTON2;
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE1;

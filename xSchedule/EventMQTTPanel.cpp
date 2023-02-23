@@ -11,7 +11,7 @@
 #include "EventMQTTPanel.h"
 #include "EventDialog.h"
 #include "events/EventMQTT.h"
-#include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/ip_utils.h"
 
 //(*InternalHeaders(EventMQTTPanel)
 #include <wx/intl.h>
@@ -89,7 +89,7 @@ EventMQTTPanel::~EventMQTTPanel()
 
 bool EventMQTTPanel::ValidateWindow()
 {
-    return (TextCtrl_ClientId->GetValue() != "" && IsIPValid(TextCtrl_IP->GetValue()) && TextCtrl_Path->GetValue().Trim().Trim(false) != "" && TextCtrl_Path->GetValue()[0] != '/');
+    return (TextCtrl_ClientId->GetValue() != "" && ip_utils::IsIPValid(TextCtrl_IP->GetValue()) && TextCtrl_Path->GetValue().Trim().Trim(false) != "" && TextCtrl_Path->GetValue()[0] != '/');
 }
 
 void EventMQTTPanel::Save(EventBase* event)

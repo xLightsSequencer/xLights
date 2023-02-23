@@ -29,6 +29,7 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>SanDevices</ConfigDriver>
 		</Variant>
 		<Variant Name="5.x Firmware">
 			<SupportsPixelPortBrightness/>
@@ -60,6 +61,7 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>SanDevices</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="E682">
@@ -95,6 +97,7 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>SanDevices</ConfigDriver>
 		</Variant>
 		<Variant Name="5.x Firmware">
 			<SupportsPixelPortBrightness/>
@@ -129,6 +132,7 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>SanDevices</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="E680">
@@ -156,6 +160,7 @@
 			<InputProtocols>
 				<Protocol>e131</Protocol>
 			</InputProtocols>
+            <ConfigDriver>SanDevices</ConfigDriver>
 		</Variant>
 	</Controller>
 </Vendor>

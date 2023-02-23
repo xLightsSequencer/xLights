@@ -59,7 +59,7 @@ void OffEffect::SetDefaultParameters() {
     p->CheckBox_Transparent->SetValue(false);
 }
 
-void OffEffect::Render(Effect* effect, SettingsMap& settings, RenderBuffer& buffer)
+void OffEffect::Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
     // dont change any pixels at all if we are transparent
     if (settings.GetBool("CHECKBOX_Off_Transparent", false)) return;

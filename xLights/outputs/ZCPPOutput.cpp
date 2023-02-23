@@ -25,6 +25,7 @@
 #include "ControllerEthernet.h"
 #include "../OutputModelManager.h"
 #include "../ExternalHooks.h"
+#include "../utils/ip_utils.h"
 
 #ifndef EXCLUDENETWORKUI
 #include "../controllers/Falcon.h"
@@ -761,7 +762,7 @@ bool ZCPPOutput::Open() {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_enabled) return true;
-    if (!IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
 
     _lastSecond = -1;
 

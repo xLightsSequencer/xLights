@@ -41,7 +41,7 @@ public:
     virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
     virtual void ExportXlightsModel() override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual int OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
@@ -68,8 +68,27 @@ protected:
         return wxString::Format(wxT("Seg%d"), idx + 1).ToStdString();
     }
     void SetSegsCollapsed(bool collapsed);
-    virtual void DistributeLightsAcrossCurveSegment(int lights, int segment, size_t& idx, std::vector<xlPolyPoint>& pPos,
-        std::vector<int>& dropSizes, unsigned int& drop_index, float& mheight, int& xx, int maxH);
+    
+    void DistributeLightsEvenly( const std::vector<xlPolyPoint>& pPos,
+                                 const std::vector<int>&         dropSizes,
+                                 const float&                    mheight,
+                                 const int                       maxH,
+                                 const int                       numLights );
+
+    void DistributeLightsAcrossIndivSegments( const std::vector<xlPolyPoint>& pPos,
+                                              const std::vector<int>&         dropSizes,
+                                              const float&                    mheight,
+                                              const int                       maxH );
+
+    void DistributeLightsAcrossSegment( const int                       segment,
+                                              size_t&                   idx,
+                                        const std::vector<xlPolyPoint>& pPos,
+                                        const std::vector<int>&         dropSizes,
+                                              unsigned int&             drop_index,
+                                        const float&                    mheight,
+                                              int&                      xpos,
+                                        const int                       maxH,
+                                        const bool                      isCurve );
 
     static std::string StartNodeAttrName(int idx)
     {
@@ -78,9 +97,17 @@ protected:
     std::string ComputeStringStartNode(int x) const;
     int GetCustomNodeStringNumber(int node) const;
 
+    static std::string CornerAttrName(int idx)
+    {
+        return wxString::Format(wxT("Corner%d"), idx + 1).ToStdString();
+    }
+
     float total_length = 0.0f;
     int num_segments = 0;
     std::vector<int> polyLineSizes;
+    std::vector<float> polyLeadOffset;
+    std::vector<float> polyTrailOffset;
+    std::vector<float> polyGapSize;
     bool hasIndivSeg = false;
     bool segs_collapsed = true;
     void NormalizePointData();

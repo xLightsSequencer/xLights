@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <algorithm>
+#include <map>
 
 void Replace(std::string& str,
     const std::string& oldStr,
@@ -14,7 +15,7 @@ void Replace(std::string& str,
     }
 }
 
-std::string PrepareLine(const std::string& line)
+std::string PrepareLine(const std::string& line, const std::map<std::string, std::string>& map)
 {
     std::string res = line;
 
@@ -40,6 +41,13 @@ std::string PrepareLine(const std::string& line)
         res = res.substr(0, hash);
     }
 
+    // now go through the phonemes replacing any in the map
+    for (const auto& it : map) {
+        while (res.find(it.first) != std::string::npos) {
+            res = res.replace(res.find(it.first), it.first.size(), it.second);
+        }
+    }
+
     // leading and trailing spaces on the line are removed
     res.erase(res.begin(), std::find_if(res.begin(), res.end(), [](unsigned char ch) {
         return !std::isspace(ch);
@@ -61,6 +69,7 @@ int main()
     std::ifstream fReadme("README", std::ifstream::in);
     std::ifstream fVP("cmudict.vp", std::ifstream::in);
     std::ifstream fDict("cmudict.dict", std::ifstream::in);
+    std::ifstream fMap("map", std::ifstream::in);
 
     if (!fReadme.is_open()) {
         printf("README file not found.\n");
@@ -77,6 +86,24 @@ int main()
         ok = false;
     }
 
+    if (!fMap.is_open()) {
+        printf("map file not found.\n");
+        ok = false;
+    }
+
+    std::string line;
+    std::map<std::string, std::string> map;
+    while (std::getline(fMap, line)) {
+        if (line.find("==>") != std::string::npos) {
+            std::string from = " " + line.substr(0, line.find("==>")) + " ";
+            std::string to = " " + line.substr(line.find("==>") + 3) + " ";
+            if (to == "  ")
+                to = " ";
+            map[from] = to;
+        }
+    }
+    fMap.close();
+
     std::ofstream fSD("standard_dictionary", std::ofstream::out);
 
     if (!fSD.is_open()) {
@@ -88,7 +115,6 @@ int main()
 
     printf("Input files are there and output file can be created.\n");
 
-    std::string line;
     while (std::getline(fReadme, line)) {
         line = ";;; # " + line + "\n";
         fSD.write(line.c_str(), line.size());
@@ -100,7 +126,7 @@ int main()
     std::list<std::string> lines;
 
     while (std::getline(fVP, line)) {
-        line = PrepareLine(line);
+        line = PrepareLine(line, map);
         if (line != "") lines.push_back(line);
     }
     fVP.close();
@@ -108,7 +134,7 @@ int main()
     printf("Punctuation file read.\n");
 
     while (std::getline(fDict, line)) {
-        line = PrepareLine(line);
+        line = PrepareLine(line, map);
         if (line != "") lines.push_back(line);
     }
     fVP.close();

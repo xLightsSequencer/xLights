@@ -75,8 +75,8 @@ void DmxPresetAbility::AddProperties(wxPropertyGridInterface* grid) const
         sp->SetAttribute("Max", 255);
         sp->SetEditor("SpinCtrl");
 
-        sp = grid->AppendIn(p, new wxStringProperty(wxString::Format("Preset %d Description", 1 + index),
-                                                  wxString::Format("DmxPresetDesc%d", index), pre.Description));
+        grid->AppendIn(p, new wxStringProperty(wxString::Format("Preset %d Description", 1 + index),
+                                               wxString::Format("DmxPresetDesc%d", index), pre.Description));
 
         ++index;
     }

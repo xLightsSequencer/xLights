@@ -6,6 +6,7 @@
 		<size>778,368</size>
 		<id_arg>0</id_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
+		<handler function="OnInit" entry="EVT_INIT_DIALOG" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -19,9 +20,18 @@
 						<object class="wxPanel" name="ID_PANEL4" variable="Panel2" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 								<cols>1</cols>
-								<rows>3</rows>
+								<rows>5</rows>
 								<growablecols>0</growablecols>
-								<growablerows>1</growablerows>
+								<growablerows>2</growablerows>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_OutputToLights" member="yes">
+										<label>Output to Lights</label>
+										<handler function="OnCheckBox_OutputToLightsClick" entry="EVT_CHECKBOX" />
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 										<label>SubModels:</label>
@@ -32,7 +42,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxListCtrl" name="ID_LISTCTRL_SUB_MODELS" variable="ListCtrl_SubModels" member="yes">
-										<size>164,201</size>
+										<size>200,133</size>
 										<style>wxLC_REPORT</style>
 										<handler function="OnListCtrl_SubModelsBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 										<handler function="OnListCtrl_SubModelsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
@@ -42,6 +52,15 @@
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSearchCtrl" name="ID_SEARCHCTRL1" variable="SearchCtrl1" member="yes">
+										<handler function="OnButton_SearchClick" entry="EVT_TEXT_ENTER" />
+										<handler function="OnButton_SearchClick" entry="EVT_SEARCHCTRL_SEARCH_BTN" />
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
 								</object>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
@@ -200,7 +219,7 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxGrid" name="ID_GRID1" variable="NodesGrid" member="yes">
+																	<object class="wxGrid" name="ID_GRID1" subclass="StretchGrid" variable="NodesGrid" member="yes">
 																		<cols>1</cols>
 																		<rows>5</rows>
 																		<labelrowheight>18</labelrowheight>
@@ -212,8 +231,10 @@
 																			<item>Strand   1</item>
 																		</rowlabels>
 																		<style>wxVSCROLL</style>
+																		<handler function="OnNodesGridCellRightClick" entry="EVT_CMD_GRID_CELL_RIGHT_CLICK" />
 																		<handler function="OnNodesGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
 																		<handler function="OnNodesGridLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
+																		<handler function="OnNodesGridCellRightClick" entry="EVT_CMD_GRID_LABEL_RIGHT_CLICK" />
 																		<handler function="OnNodesGridLabelLeftDClick" entry="EVT_CMD_GRID_LABEL_LEFT_DCLICK" />
 																		<handler function="OnNodesGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 																	</object>

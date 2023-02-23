@@ -9,13 +9,17 @@
  **************************************************************/
 
 #include "VideoPanel.h"
+#include "VideoEffect.h"
 #include "EffectPanelUtils.h"
 #include "UtilFunctions.h"
 #include "../ExternalHooks.h"
+#include "../xLightsMain.h"
+#include "../xLightsApp.h"
 
 //(*InternalHeaders(VideoPanel)
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
+#include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/filepicker.h>
@@ -36,6 +40,7 @@ const long VideoPanel::IDD_SLIDER_Video_Starttime = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Video_Starttime = wxNewId();
 const long VideoPanel::ID_STATICTEXT1 = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Duration = wxNewId();
+const long VideoPanel::ID_BUTTON1 = wxNewId();
 const long VideoPanel::ID_STATICTEXT_Video_DurationTreatment = wxNewId();
 const long VideoPanel::ID_CHOICE_Video_DurationTreatment = wxNewId();
 const long VideoPanel::ID_STATICTEXT2 = wxNewId();
@@ -118,6 +123,9 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl2 = new wxTextCtrl(this, ID_TEXTCTRL_Duration, _("0:00:00.000"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Duration"));
 	TextCtrl2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT));
 	FlexGridSizer5->Add(TextCtrl2, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_MatchVideoDuration = new wxButton(this, ID_BUTTON1, _("Match Effect To Video Duration"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer5->Add(Button_MatchVideoDuration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Video_DurationTreatment, _("Duration Treatment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Video_DurationTreatment"));
 	FlexGridSizer5->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Video_DurationTreatment = new BulkEditChoice(this, ID_CHOICE_Video_DurationTreatment, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Video_DurationTreatment"));
@@ -206,8 +214,11 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxEXPAND, 2);
 	FlexGridSizer42->Add(FlexGridSizer3, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
+	FlexGridSizer42->Fit(this);
+	FlexGridSizer42->SetSizeHints(this);
 
 	Connect(ID_FILEPICKERCTRL_Video_Filename,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&VideoPanel::OnFilePicker_Video_FilenameFileChanged);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnButton_MatchVideoDurationClick);
 	Connect(ID_CHOICE_Video_DurationTreatment,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&VideoPanel::OnChoice_Video_DurationTreatmentSelect);
 	Connect(ID_VALUECURVE_Video_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnVCButtonClick);
 	Connect(ID_CHECKBOX_SynchroniseWithAudio,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&VideoPanel::OnCheckBox_SynchroniseWithAudioClick);
@@ -325,4 +336,18 @@ void VideoPanel::ValidateWindow()
 void VideoPanel::OnChoice_Video_DurationTreatmentSelect(wxCommandEvent& event)
 {
     ValidateWindow();
+}
+
+void VideoPanel::OnButton_MatchVideoDurationClick(wxCommandEvent& event)
+{
+    // This can't actually be done here ... we need to grab the video duration then send it in a message to the frame window who can then apply it to the currently selected video effect
+    wxCommandEvent e(EVT_SET_EFFECT_DURATION);
+    wxFileName fn = FilePicker_Video_Filename->GetFileName();
+    ObtainAccessToURL(fn.GetFullPath().ToStdString());
+    auto duration = videoTimeCache[fn.GetFullPath().ToStdString()];
+    if (duration > 0) {
+        e.SetString("Video");
+        e.SetInt(duration);
+        wxPostEvent(wxTheApp->GetTopWindow(), e);
+    }
 }

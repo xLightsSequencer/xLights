@@ -117,7 +117,16 @@ static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
     c->ProcessWindowEvent(evt);
 }
 
-void TextEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
+bool TextEffect::SupportsRenderCache(const SettingsMap& settings) const
+{
+    // we dont want to use render cache if text is coming from a file as the file might have changed
+    if (ToWXString(settings["TEXTCTRL_Text"]) == "" && FileExists(settings["FILEPICKERCTRL_Text_File"]))
+        return false;
+    return true;
+}
+
+void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
     SettingsMap &settings = effect->GetSettings();
     if (IsVersionOlder("2016.46", version) || RenderableEffect::needToAdjustSettings(version))
     {
@@ -467,7 +476,7 @@ static int TextEffectsIndex(const wxString &st) {
     return 0;
 }
 
-void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     // determine if we are rendering an xLights Font
     wxString xl_font = SettingsMap.Get("CHOICE_Text_Font", "Use OS Fonts");
@@ -481,7 +490,7 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     wxString filename = SettingsMap["FILEPICKERCTRL_Text_File"];
     wxString lyricTrack = SettingsMap["CHOICE_Text_LyricTrack"];
 
-    if (text == "")
+    if (text.IsEmpty())
     {
         if (FileExists(filename))
         {
@@ -494,9 +503,9 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 text += f.GetNextLine() + "\n";
                 i++;
             }
-            if (text != "")
+            if (!text.IsEmpty())
             {
-                while (text.Last() == '\n')
+                while (!text.IsEmpty() && text.Last() == '\n' )
                 {
                     text = text.BeforeLast('\n');
                 }
@@ -505,7 +514,7 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         }
         else
         {
-            if (lyricTrack != "")
+            if (!lyricTrack.IsEmpty())
             {
                 Element* t = nullptr;
                 for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
@@ -552,7 +561,7 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         text = FlipWord(SettingsMap, text, buffer);
     }
 
-    if (text != "") {
+    if (!text.IsEmpty()) {
 
         int starty = wxAtoi(SettingsMap.Get("SLIDER_Text_YStart", "0"));
         int startx = wxAtoi(SettingsMap.Get("SLIDER_Text_XStart", "0"));
@@ -1401,6 +1410,15 @@ void TextEffect::ReplaceVaribles(wxString& msg, RenderBuffer& buffer) const
     msg.Replace("${COMMENT}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::COMMENT));
     msg.Replace("${URL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::URL));
     msg.Replace("${WEBSITE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::WEBSITE));
+
+    if (msg.Contains("${UPPER}")) {
+        msg.Replace("${UPPER}", "");
+        msg = msg.Upper();
+    }
+    if (msg.Contains("${LOWER}")) {
+        msg.Replace("${LOWER}", "");
+        msg = msg.Lower();
+    }
 }
 
 std::vector<std::string> TextEffect::WordSplit(const std::string& text) const

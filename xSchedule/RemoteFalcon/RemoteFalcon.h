@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "../xSMSDaemon/Curl.h"
+#include "utils/Curl.h"
 
 #include <wx/wx.h>
 

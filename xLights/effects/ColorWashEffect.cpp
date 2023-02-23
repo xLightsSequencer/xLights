@@ -8,9 +8,6 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/checkbox.h>
-#include <wx/notebook.h>
-
 #include "ColorWashEffect.h"
 #include "ColorWashPanel.h"
 #include "../sequencer/Effect.h"
@@ -24,6 +21,7 @@
 
 static const std::string CHECKBOX_ColorWash_HFade("CHECKBOX_ColorWash_HFade");
 static const std::string CHECKBOX_ColorWash_VFade("CHECKBOX_ColorWash_VFade");
+static const std::string CHECKBOX_ColorWash_ReverseFades("CHECKBOX_ColorWash_ReverseFades");
 static const std::string TEXTCTRL_ColorWash_Cycles("TEXTCTRL_ColorWash_Cycles");
 static const std::string CHECKBOX_ColorWash_Shimmer("CHECKBOX_ColorWash_Shimmer");
 static const std::string CHECKBOX_ColorWash_CircularPalette("CHECKBOX_ColorWash_CircularPalette");
@@ -63,6 +61,7 @@ void ColorWashEffect::SetDefaultParameters() {
     p->CyclesTextCtrl->SetValue("1.0");
     SetCheckBoxValue(p->HFadeCheckBox, false);
     SetCheckBoxValue(p->VFadeCheckBox, false);
+    SetCheckBoxValue(p->ReverseFadesCheckBox, false);
     SetCheckBoxValue(p->ShimmerCheckBox, false);
     SetCheckBoxValue(p->CircularPaletteCheckBox, false);
     p->BitmapButton_ColorWash_CyclesVC->SetActive(false);
@@ -90,6 +89,9 @@ wxString ColorWashEffect::GetEffectString() {
     if (p->HFadeCheckBox->GetValue()) {
         ret << "E_CHECKBOX_ColorWash_HFade=1,";
     }
+    if (p->ReverseFadesCheckBox->GetValue()) {
+        ret << "E_CHECKBOX_ColorWash_ReverseFades=1,";
+    }
     if (p->ShimmerCheckBox->GetValue()) {
         ret << "E_CHECKBOX_ColorWash_Shimmer=1,";
     }
@@ -98,8 +100,6 @@ wxString ColorWashEffect::GetEffectString() {
     }
     return ret.str();
 }
-
-
 
 xlEffectPanel *ColorWashEffect::CreatePanel(wxWindow *parent) {
     return new ColorWashPanel(parent);
@@ -131,6 +131,7 @@ void ColorWashEffect::adjustSettings(const std::string &version, Effect *effect,
     effect->GetSettings().erase("E_SLIDER_ColorWash_Y1");
     effect->GetSettings().erase("E_SLIDER_ColorWash_Y2");
 }
+
 void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect) {
     SettingsMap &settingsMap = effect->GetSettings();
     if (settingsMap.Get("E_CHECKBOX_ColorWash_HFade", "") == "0") {
@@ -138,6 +139,9 @@ void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect)
     }
     if (settingsMap.Get("E_CHECKBOX_ColorWash_VFade", "") == "0") {
         settingsMap.erase("E_CHECKBOX_ColorWash_VFade");
+    }
+    if (settingsMap.Get("E_CHECKBOX_ColorWashColorWash_ReverseFades", "") == "0") {
+        settingsMap.erase("E_CHECKBOX_ColorWash_ColorWash_ReverseFades");
     }
     if (settingsMap.Get("E_CHECKBOX_ColorWash_Shimmer", "") == "0") {
         settingsMap.erase("E_CHECKBOX_ColorWash_Shimmer");
@@ -151,13 +155,14 @@ void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect)
     RenderableEffect::RemoveDefaults(version, effect);
 }
 
-void ColorWashEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     float cycles = GetValueCurveDouble("ColorWash_Cycles", 1.0, SettingsMap, oset, COLOURWASH_CYCLES_MIN, COLOURWASH_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    bool HorizFade = SettingsMap.GetBool(CHECKBOX_ColorWash_HFade);
+    bool HorizFade = SettingsMap.GetBool(CHECKBOX_ColorWash_HFade);;
     bool VertFade = SettingsMap.GetBool(CHECKBOX_ColorWash_VFade);
+    bool reverseFades = SettingsMap.GetBool(CHECKBOX_ColorWash_ReverseFades);
     bool shimmer = SettingsMap.GetBool(CHECKBOX_ColorWash_Shimmer);
     bool circularPalette = SettingsMap.GetBool(CHECKBOX_ColorWash_CircularPalette);
 
@@ -167,44 +172,67 @@ void ColorWashEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     double position = buffer.GetEffectTimeIntervalPosition(cycles);
     buffer.GetMultiColorBlend(position, circularPalette, color);
 
-    int startX = 0;
-    int startY = 0;
+    const int StartX = 0;
+    const int StartY = 0;
     int endX = buffer.BufferWi - 1;
     int endY = buffer.BufferHt - 1;
 
     int tot = buffer.curPeriod - buffer.curEffStartPer;
     if (!shimmer || (tot % 2) == 0) {
-        double HalfHt=double(endY - startY)/2.0;
-        double HalfWi=double(endX - startX)/2.0;
+        double HalfHt=double(endY - StartY)/2.0;
+        double HalfWi=double(endX - StartX)/2.0;
 
         orig = color;
         HSVValue hsvOrig = color.asHSV();
         xlColor color2 = color;
-        for (int x = startX; x <= endX; x++)
+        for (int x = StartX; x <= endX; x++)
         {
             HSVValue hsv = hsvOrig;
             if (HorizFade) {
-                if (buffer.allowAlpha) {
-                    color.alpha = (double)orig.alpha*(1.0-std::abs(HalfWi-x-startX)/HalfWi);
+                if (reverseFades) {
+                    double mult = std::abs(HalfWi - x - StartX) / HalfWi;
+                    if (buffer.allowAlpha) {
+                        color.alpha = (double)orig.alpha * mult;
+                    } else {
+                        hsv.value *= mult;
+                        color = hsv;
+                    }
                 } else {
-                    hsv.value*=1.0-std::abs(HalfWi-x-startX)/HalfWi;
-                    color = hsv;
+                    double mult = 1.0 - std::abs(HalfWi - x - StartX) / HalfWi;
+                    if (buffer.allowAlpha) {
+                        color.alpha = (double)orig.alpha * mult;
+                    } else {
+                        hsv.value *= mult;
+                        color = hsv;
+                    }
                 }
             }
             else
             {
                 color.alpha = orig.alpha;
             }
-
+ 
             color2.alpha = color.alpha;
-            for (y=startY; y<=endY; y++) {
+            for (y=StartY; y<=endY; y++) {
                 if (VertFade) {
-                    if (buffer.allowAlpha) {
-                        color.alpha = (double)color2.alpha*(1.0-std::abs(HalfHt-(y-startY))/HalfHt);
+                    if (reverseFades) {
+                        double mult = std::abs(HalfHt - (y - StartY)) / HalfHt;
+                        if (buffer.allowAlpha) {
+                            color.alpha = (double)color2.alpha * mult;
+                        } else {
+                            HSVValue hsv2 = hsv;
+                            hsv2.value *= mult;
+                            color = hsv2;
+                        }
                     } else {
-                        HSVValue hsv2 = hsv;
-                        hsv2.value*=1.0-std::abs(HalfHt-(y-startY))/HalfHt;
-                        color = hsv2;
+                        double mult = 1.0 - std::abs(HalfHt - (y - StartY)) / HalfHt;
+                        if (buffer.allowAlpha) {
+                            color.alpha = (double)color2.alpha * mult;
+                        } else {
+                            HSVValue hsv2 = hsv;
+                            hsv2.value *= mult;
+                            color = hsv2;
+                        }
                     }
                 }
                 buffer.SetPixel(x, y, color);
@@ -226,8 +254,8 @@ void ColorWashEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
                                    orig, xlBLACK);
     } else {
         effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);
-        int midX = (startX + endX) / 2;
-        int midY = (startY + endY) / 2;
+        int midX = (StartX + endX) / 2;
+        int midY = (StartY + endY) / 2;
         buffer.CopyPixelsToDisplayListX(effect, midY, midX, midX);
     }
 }

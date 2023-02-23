@@ -68,6 +68,8 @@ namespace RenderType
         TIMING_EVENT_TIMED_SWEEP2,
         TIMING_EVENT_ALTERNATE_TIMED_SWEEP,
         TIMING_EVENT_ALTERNATE_TIMED_SWEEP2,
+        TIMING_EVENT_CHASE_FROM_MIDDLE,
+        TIMING_EVENT_CHASE_TO_MIDDLE,
         LEVEL_JUMP,
         LEVEL_JUMP100,
         NOTE_LEVEL_JUMP,
@@ -146,15 +148,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
 
     wxString timing = settings.Get("E_CHOICE_VUMeter_TimingTrack", "");
 
-    if (type == "Timing Event Spike" ||
-        type == "Timing Event Sweep" ||
-        type == "Timing Event Bar" ||
-        type == "Timing Event Random Bar" ||
-        type == "Timing Event Bars" ||
-        type == "Timing Event Color" ||
-        type == "Timing Event Pulse" ||
-        type == "Timing Event Jump 100" ||
-        type == "Timing Event Jump")
+    if (type.StartsWith("Timing Event") )
     {
         if (timing == "")
         {
@@ -259,7 +253,7 @@ void VUMeterEffect::RenameTimingTrack(std::string oldname, std::string newname, 
     }
 }
 
-void VUMeterEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
         effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
@@ -332,6 +326,12 @@ int VUMeterEffect::DecodeType(const std::string& type)
     }
     else if (type == "Timing Event Alternate Timed Sweep 2") {
         return RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2;
+    }
+    else if (type == "Timing Event Timed Chase From Middle") {
+        return RenderType::TIMING_EVENT_CHASE_FROM_MIDDLE;
+    } 
+    else if (type == "Timing Event Timed Chase To Middle") {
+        return RenderType::TIMING_EVENT_CHASE_TO_MIDDLE;
     }
     else if (type == "On") {
         return RenderType::ON;
@@ -605,6 +605,10 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
         case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP:
         case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2:
             RenderTimingEventTimedSweepFrame(buffer, usebars, nType, timingtrack, _nCount);
+            break;
+        case RenderType::TIMING_EVENT_CHASE_TO_MIDDLE:
+        case RenderType::TIMING_EVENT_CHASE_FROM_MIDDLE:
+            RenderTimingEventTimedChaseFrame(buffer, usebars, nType, timingtrack, _nCount);
             break;
         case RenderType::TIMING_EVENT_SPIKE:
 		case RenderType::TIMING_EVENT_SWEEP:
@@ -1283,6 +1287,41 @@ void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int u
             else
             {
                 buffer.SetPixel(x + startX, y, color1);
+            }
+        }
+    }
+}
+
+void VUMeterEffect::RenderTimingEventTimedChaseFrame(RenderBuffer& buffer, int usebars, int nType, std::string timingtrack, int& nCount)
+{
+    Effect* timing = GetCurrentTiming(buffer, timingtrack);
+
+    if (timing == nullptr)
+        return;
+
+    if (buffer.curPeriod * buffer.frameTimeInMs == timing->GetStartTimeMS()) {
+        nCount++;
+    }
+
+    // we have a timing mark
+    double lengthOfTiming = timing->GetEndTimeMS() - timing->GetStartTimeMS();
+    double lengthOfTimingFrames = lengthOfTiming / buffer.frameTimeInMs;
+    double distanceToTravel = buffer.BufferWi + ( 2 * usebars);
+
+    double perFrameDistance = distanceToTravel / lengthOfTimingFrames;
+    double posInTiming = (buffer.curPeriod * buffer.frameTimeInMs - timing->GetStartTimeMS()) / buffer.frameTimeInMs;
+    int startX = perFrameDistance * posInTiming;
+
+    for (int x = 0; x < usebars; x++) {
+        xlColor color1;
+        buffer.GetMultiColorBlend((double)x / usebars, false, color1);
+        for (int y = 0; y < buffer.BufferHt; y++) {           
+            if (nType == RenderType::TIMING_EVENT_CHASE_FROM_MIDDLE) {  
+                buffer.SetPixel(std::round(buffer.BufferWi / 2) - (x + startX), y, color1);
+                buffer.SetPixel(std::round(buffer.BufferWi / 2) + (x + startX), y, color1);
+            } else {
+                buffer.SetPixel(buffer.BufferWi - (x + startX) - 1, y, color1);
+                buffer.SetPixel((x + startX), y, color1);
             }
         }
     }
