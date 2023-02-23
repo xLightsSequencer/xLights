@@ -5531,7 +5531,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                     }
                 }
             }
-            if (cache->vica->getCount() > startVertex) {
+            if (int(cache->vica->getCount()) > startVertex) {
                 int count = cache->vica->getCount();
                 cache->program->addStep([=](xlGraphicsContext* ctx) {
                     if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {

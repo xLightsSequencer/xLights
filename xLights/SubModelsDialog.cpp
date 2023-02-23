@@ -100,6 +100,7 @@ const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_HOR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_VER = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REVERSE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_JOIN = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SPLIT = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SORT_BY_NAME = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_DUPLICATE = wxNewId();
 
@@ -863,6 +864,8 @@ void SubModelsDialog::OnListPopup(wxCommandEvent& event)
         JoinSelectedModels();
     } else if (event.GetId() == SUBMODEL_DIALOG_SORT_BY_NAME) {
         SortSubModelsByName();
+    } else if (event.GetId() == SUBMODEL_DIALOG_SPLIT) {
+        SplitSelectedSubmodel();
     }
 }
 
@@ -979,7 +982,10 @@ void SubModelsDialog::OnListCtrl_SubModelsItemRClick(wxListEvent& event)
             mnu.AppendSeparator();
             mnu.Append(SUBMODEL_DIALOG_JOIN, "Join");
         }
-        // MOC - Split?
+        if (ListCtrl_SubModels->GetSelectedItemCount() == 1) {
+            mnu.AppendSeparator();
+            mnu.Append(SUBMODEL_DIALOG_SPLIT, "Split");
+        }
 
         mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SubModelsDialog::OnListPopup, nullptr, this);
         PopupMenu(&mnu);
@@ -2935,8 +2941,8 @@ void SubModelsDialog::FlipHorizontal()
 
     for (auto a : _subModels) {
         if (a->isRanges) {
-            for (auto & stand : a->strands) {
-                stand = ReverseRow(stand);
+            for (auto & strand : a->strands) {
+                strand = ReverseRow(strand);
             }
         }
     }
@@ -3066,8 +3072,8 @@ void SubModelsDialog::JoinSelectedModels()
         }
         new_sm->vertical = old_sm->vertical;
 
-        for (auto const& stand : old_sm->strands) {
-            new_sm->strands.push_back(stand);
+        for (auto const& strand : old_sm->strands) {
+            new_sm->strands.push_back(strand);
         }
     }
 
@@ -3077,6 +3083,52 @@ void SubModelsDialog::JoinSelectedModels()
     ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)new_sm);
     ValidateWindow();
     Select(name);
+
+    Panel3->SetFocus();
+    TextCtrl_Name->SetFocus();
+    TextCtrl_Name->SelectAll();
+}
+
+void SubModelsDialog::SplitSelectedSubmodel()
+{
+    wxString names = GetSelectedNames();
+    wxStringTokenizer tokenizer(names, ",");
+
+    wxString name = "";
+    SubModelInfo* old_sm = nullptr;
+    while (tokenizer.HasMoreTokens()) {
+        wxString token = tokenizer.GetNextToken();
+        int index = GetSubModelInfoIndex(token);
+        if (index == -1) {
+            continue;
+        }
+        old_sm = _subModels.at(index);
+        if (old_sm == nullptr) {
+            continue;
+        }
+        if (!old_sm->isRanges) {
+            continue;
+        }
+        name = token;
+    }
+    if (name.empty())
+        return; // Something wrong, didn't get one submodel
+
+    int idx = 1;
+    for (auto const& strand : old_sm->strands) {
+        wxString newname = wxString::Format("%s-%02d", name, idx);
+        ++idx;
+        SubModelInfo* new_sm = new SubModelInfo(newname);
+        new_sm->isRanges = true;
+        new_sm->vertical = old_sm->vertical;
+        new_sm->strands.push_back(strand);
+        _subModels.push_back(new_sm);
+        long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), new_sm->name);
+        ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)new_sm);
+    }
+
+    ValidateWindow();
+    Select(name); // Keep old one selected... the other option would be seect all new ones
 
     Panel3->SetFocus();
     TextCtrl_Name->SetFocus();
