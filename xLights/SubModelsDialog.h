@@ -333,8 +333,8 @@ private:
 
     void RenderModel();
     void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
-    void SelectAllInBoundingRect(bool shiftdwn);
-    void RemoveNodes();
+    void SelectAllInBoundingRect(bool shiftdwn, bool cdwn);
+    void RemoveNodes(bool elide);
 
     void OnTextCtrl_NameText_KillFocus(wxFocusEvent& event);
     void OnSubbufferSize(wxSizeEvent& event);

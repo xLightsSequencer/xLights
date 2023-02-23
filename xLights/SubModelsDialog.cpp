@@ -2053,7 +2053,7 @@ void SubModelsDialog::OnPreviewLeftUp(wxMouseEvent& event)
         m_bound_end_y = ray_origin.y;
 
         // MOC TODO: Ctrl down
-        SelectAllInBoundingRect(event.ShiftDown());
+        SelectAllInBoundingRect(event.ShiftDown(), event.ControlDown());
         m_creating_bound_rect = false;
 
         modelPreview->ReleaseMouse();
@@ -2174,10 +2174,10 @@ void SubModelsDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm:
     );
 }
 
-void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn)
+void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
 {
     if (shiftDwn) {
-        RemoveNodes();
+        RemoveNodes(ctrlDown);
         return;
     }
     wxString name = GetSelectedName();
@@ -2226,7 +2226,7 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn)
     ValidateWindow();
 }
 
-void SubModelsDialog::RemoveNodes()
+void SubModelsDialog::RemoveNodes(bool elide)
 {
     wxString name = GetSelectedName();
     if (name == "") {
@@ -2250,10 +2250,21 @@ void SubModelsDialog::RemoveNodes()
 
     for (auto const& newNode : nodes) {
         wxString stNode = wxString::Format("%d", newNode);
-        for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
-            if (*it == stNode) {
-                oldNodeArrray.erase(it);
-                break;
+        if (elide) {
+            // We're going to replace the last one with space (in case it was duplicated)
+            for (auto it = oldNodeArrray.rbegin(); it != oldNodeArrray.rend(); ++it) {
+                if (*it == stNode) {
+                    *it = "";
+                    break;
+                }
+            }            
+        } else {
+            for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
+                if (*it == stNode) {
+                    oldNodeArrray.erase(it);
+                    // Note that this only erases once, in case it somehow got added multiple times...
+                    break;
+                }
             }
         }
     }

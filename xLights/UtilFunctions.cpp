@@ -1476,8 +1476,31 @@ wxString CompressNodes(const wxString& nodes)
     int last = -1;
     auto as = wxSplit(s, ',');
 
+    bool first = true; // There is no difference between empty row and row with one blank pixel (shrug)
+
     for (const auto& i : as)
     {
+        if (i.empty()) {
+            // Flush out start/last if any
+            if (start != -1) {
+                if (res != "") {
+                    res += ",";
+                }
+                if (last != start) {
+                    res += wxString::Format("%d-%d", start, last);                    
+                } else {
+                    res += wxString::Format("%d", start);                
+                }
+            }
+            // Add separator and an empty
+            if (!first) {
+                res += ",";
+            }
+            first = false;
+            start = last = -1;
+            dir = 0;
+            continue;
+        }
         if (start == -1)
         {
             start = wxAtoi(i);
@@ -1521,13 +1544,14 @@ wxString CompressNodes(const wxString& nodes)
                 last = j;
             }
         }
+        first = false;
     }
 
     if (start == -1)
     {
         // nothing to do
     }
-    if (start == last)
+    else if (start == last)
     {
         if (res != "") res += ",";
         res += wxString::Format("%d", start);
