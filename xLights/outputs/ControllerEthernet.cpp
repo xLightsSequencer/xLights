@@ -178,30 +178,40 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
         if (_type == OUTPUT_ZCPP) {
             auto zo = new ZCPPOutput();
             _outputs.push_back(zo);
-            zo->SetId(oldoutputs.front()->GetUniverse());
+            if (oldoutputs.size() != 0) {
+                zo->SetId(oldoutputs.front()->GetUniverse());
+            }
             SetId(zo->GetId());
         }
         else if (_type == OUTPUT_DDP) {
             auto ddpo = new DDPOutput();
             _outputs.push_back(ddpo);
-            if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+
+            if (oldoutputs.size() != 0) {
+                if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+                    ddpo->SetId(_outputManager->UniqueId());
+                } else {
+                    ddpo->SetId(oldoutputs.front()->GetUniverse());
+                }
+            } else if (_outputManager != nullptr) {
                 ddpo->SetId(_outputManager->UniqueId());
-            }
-            else {
-                ddpo->SetId(oldoutputs.front()->GetUniverse());
             }
             SetId(ddpo->GetId());
         } else if (_type == OUTPUT_TWINKLY) {
             auto to = new TwinklyOutput();
             _outputs.push_back(to);
-            if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+            if (oldoutputs.size() != 0) {
+                if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+                    to->SetId(_outputManager->UniqueId());
+                } else {
+                    to->SetId(oldoutputs.front()->GetUniverse());
+                }
+            } else if (_outputManager != nullptr) {
                 to->SetId(_outputManager->UniqueId());
-            } else {
-                to->SetId(oldoutputs.front()->GetUniverse());
             }
             SetId(to->GetId());
         }
-        if (_outputs.size() > 0) {
+        if (_outputs.size() > 0 && oldoutputs.size() != 0) {
             _outputs.front()->SetChannels(totchannels);
             _outputs.front()->SetFPPProxyIP(oldoutputs.front()->GetFPPProxyIP());
             _outputs.front()->SetIP(oldoutputs.front()->GetIP());
@@ -240,11 +250,13 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
             int left = universes * CONVERT_CHANNELS_PER_UNIVERSE;
 
             int u = 0;
-            if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
-                u = _outputManager->UniqueId() - 1;
-            }
-            else {
-                u = oldoutputs.front()->GetUniverse() - 1;
+
+            if (oldoutputs.size() != 0) {
+                if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+                    u = _outputManager->UniqueId() - 1;
+                } else {
+                    u = oldoutputs.front()->GetUniverse() - 1;
+                }
             }
 
             for (int i = 0; i < universes; i++) {
@@ -263,7 +275,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                 else if (_type == OUTPUT_OPC) {
                     _outputs.push_back(new OPCOutput());
                 }
-                if (_outputs.size() > 0) {
+                if (_outputs.size() > 0 && oldoutputs.size() != 0) {
                     _outputs.back()->SetChannels(left > CONVERT_CHANNELS_PER_UNIVERSE ? CONVERT_CHANNELS_PER_UNIVERSE : left);
                     left -= _outputs.back()->GetChannels();
                     _outputs.back()->SetIP(oldoutputs.front()->GetIP());

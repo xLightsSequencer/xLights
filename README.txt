@@ -11,6 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.03 February 22, 2023
+   -- enh (dkulp)  Add ability to create "FPP Command Preset" and "FPP Effects" timing tracks and save that in fseq files (FPP 7)
+   -- enh (dkulp)  Add FPPConnect upload of fseq/media to FPP7
+   -- enh (keith)  Change jukebox to play the sequence looped for the effect duration rather than just selecting the effect
+   -- enh (merryoncherry) New 5x5 Font for text effect
+   -- bug (merryoncherry) Fix icons for Import Effects panel not matching model
+   -- bug (merryoncherry) Fix save icon remaining pink if saving linked network/models
+   -- bug (keith)  Overlap checks does not always identify model
+   -- bug (scott)  Fix crash when switching from player
+   -- bug (scott)  Allow Serial Outputs On Virtual Matrix
+   -- bug (keith)  Fix crash when setting smart remote type on a port with no models.
+   -- bug (scott)  Fix F##v4 upload
 2023.02 February 01, 2023
    -- enh (scott)  Add "dark mode" for Windows
    -- enh (lutz)   Add Effect Duration to the variables available to shaders
