@@ -104,6 +104,10 @@ const long SubModelsDialog::SUBMODEL_DIALOG_SPLIT = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SORT_BY_NAME = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_DUPLICATE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_DUPLICATE = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB = wxNewId();
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
 	//(*EventTable(SubModelsDialog)
@@ -955,16 +959,21 @@ void SubModelsDialog::OnNodesGridLabelLeftClick(wxGridEvent& event)
 
 void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
 {
+    wxMenu mnu;
     if (event.GetRow() != -1) {
         //NodesGrid->GoToCell(event.GetRow(), 0);
-        wxMenu mnu;
 
         mnu.Append(SUBMODEL_DIALOG_REMOVE_DUPLICATE, "Remove Duplicates");
         mnu.Append(SUBMODEL_DIALOG_ELIDE_DUPLICATE, "Elide Duplicates");
-
-        mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridPopup, nullptr, this);
-        PopupMenu(&mnu);
+        mnu.AppendSeparator();
     }
+    mnu.Append(SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR, "Remove Duplicates All Left->Right");
+    mnu.Append(SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB, "Remove Duplicates All Top->Bottom");
+    mnu.Append(SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR, "Elide Duplicates All Left->Right");
+    mnu.Append(SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB, "Elide Duplicates All Top->Bottom");
+
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridPopup, nullptr, this);
+    PopupMenu(&mnu);
 }
 
 void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
@@ -974,6 +983,18 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
     }
     if (event.GetId() == SUBMODEL_DIALOG_ELIDE_DUPLICATE) {
         RemoveDuplicates(true);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR) {
+        RemoveAllDuplicates(true, false);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB) {
+        RemoveAllDuplicates(false, false);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR) {
+        RemoveAllDuplicates(true, true);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB) {
+        RemoveAllDuplicates(false, true);
     }
 }
 
@@ -2063,7 +2084,6 @@ void SubModelsDialog::OnPreviewLeftUp(wxMouseEvent& event)
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
 
-        // MOC TODO: Ctrl down
         SelectAllInBoundingRect(event.ShiftDown(), event.ControlDown());
         m_creating_bound_rect = false;
 
@@ -3060,6 +3080,89 @@ void SubModelsDialog::RemoveDuplicates(bool elide)
     Select(GetSelectedName());
 
     NodesGrid->SetGridCursor(row, 0);
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::RemoveAllDuplicates(bool leftright, bool elide)
+{
+    wxString name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    int row = NodesGrid->GetGridCursorRow();
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm)
+        return;
+
+    // Copy and expand data
+    std::vector<wxArrayString> data;
+    size_t mlen = 0;
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        data.push_back(wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ','));
+        mlen = std::max(mlen, data.back().size());
+    }
+
+    std::set<wxString> seen;
+    if (leftright) {
+        for (unsigned c = 0; c < mlen; ++c) {
+            for (unsigned r = 0; r < data.size(); ++r) {
+                if (data[r].size() <= c)
+                    continue; // Not applicable to row
+                if (data[r][c] == "")
+                    continue;
+                if (seen.count(data[r][c])) {
+                    if (elide) {
+                        data[r][c] = "";
+                    } else {
+                        data[r][c] = "x"; // Deal with this later
+                    }
+                } else {
+                    seen.insert(data[r][c]);
+                }
+            }
+        }
+    } else {
+        for (unsigned r = 0; r < data.size(); ++r) {
+            for (unsigned c = 0; c < data[r].size(); ++c) {
+                if (data[r][c] == "")
+                    continue;
+                if (seen.count(data[r][c])) {
+                    if (elide) {
+                        data[r][c] = "";
+                    } else {
+                        data[r][c] = "x"; // Deal with this later
+                    }
+                } else {
+                    seen.insert(data[r][c]);
+                }
+            }
+        }
+    
+    }
+
+    // Write back
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        for (auto it = data[i].begin(); it != data[i].end();) {
+            if (*it == "x") {
+                it = data[i].erase(it);
+            } else {
+                ++it;
+            }
+        }
+        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(data[i], ','));
+    }
+
+    // Update UI
+    Select(GetSelectedName());
+
+    if (row >= 0) {
+        NodesGrid->SetGridCursor(row, 0);
+    }
     Panel3->SetFocus();
     NodesGrid->SetFocus();
 
