@@ -100,6 +100,7 @@ const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_HOR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_VER = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REVERSE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_JOIN = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_JOIN_SS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SPLIT = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SORT_BY_NAME = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_DUPLICATE = wxNewId();
@@ -866,10 +867,15 @@ void SubModelsDialog::OnExportBtnPopup(wxCommandEvent& event)
 void SubModelsDialog::OnListPopup(wxCommandEvent& event)
 {
     if (event.GetId() == SUBMODEL_DIALOG_JOIN) {
-        JoinSelectedModels();
-    } else if (event.GetId() == SUBMODEL_DIALOG_SORT_BY_NAME) {
+        JoinSelectedModels(false);
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_JOIN_SS) {
+        JoinSelectedModels(true);
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_SORT_BY_NAME) {
         SortSubModelsByName();
-    } else if (event.GetId() == SUBMODEL_DIALOG_SPLIT) {
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_SPLIT) {
         SplitSelectedSubmodel();
     }
 }
@@ -1007,6 +1013,7 @@ void SubModelsDialog::OnListCtrl_SubModelsItemRClick(wxListEvent& event)
         if (ListCtrl_SubModels->GetSelectedItemCount() > 1) {
             mnu.AppendSeparator();
             mnu.Append(SUBMODEL_DIALOG_JOIN, "Join");
+            mnu.Append(SUBMODEL_DIALOG_JOIN_SS, "Join Single Strand");
         }
         if (ListCtrl_SubModels->GetSelectedItemCount() == 1) {
             mnu.AppendSeparator();
@@ -3169,7 +3176,7 @@ void SubModelsDialog::RemoveAllDuplicates(bool leftright, bool elide)
     ValidateWindow();
 }
 
-void SubModelsDialog::JoinSelectedModels()
+void SubModelsDialog::JoinSelectedModels(bool singlestrand)
 {
     wxString name = GenerateSubModelName("SubModel-1");
 
@@ -3195,7 +3202,11 @@ void SubModelsDialog::JoinSelectedModels()
         new_sm->vertical = old_sm->vertical;
 
         for (auto const& strand : old_sm->strands) {
-            new_sm->strands.push_back(strand);
+            if (!singlestrand || new_sm->strands.empty()) {
+                new_sm->strands.push_back(strand);
+            } else {
+                new_sm->strands[0] = new_sm->strands[0] + "," + strand; 
+            }
         }
     }
 

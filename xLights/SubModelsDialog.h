@@ -227,6 +227,7 @@ protected:
     static const long SUBMODEL_DIALOG_FLIP_VER;
     static const long SUBMODEL_DIALOG_REVERSE;
     static const long SUBMODEL_DIALOG_JOIN;
+    static const long SUBMODEL_DIALOG_JOIN_SS;
     static const long SUBMODEL_DIALOG_SPLIT;
     static const long SUBMODEL_DIALOG_SORT_BY_NAME;
     static const long SUBMODEL_DIALOG_REMOVE_DUPLICATE;
@@ -282,7 +283,7 @@ protected:
     void ExportSubModelAsxModel(wxString const& filename, const std::string& name);
     void ExportSubmodelToOtherModels();
 
-    void JoinSelectedModels();
+    void JoinSelectedModels(bool singlestrand);
     void SplitSelectedSubmodel();
     void SortSubModelsByName();
 
