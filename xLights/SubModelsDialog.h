@@ -236,6 +236,7 @@ protected:
     static const long SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB;
     static const long SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR;
     static const long SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB;
+    static const long SUBMODEL_DIALOG_SYMMETRIZE;
 
     void SaveXML(Model* m);
     wxString GetSelectedName() const;
@@ -286,6 +287,7 @@ protected:
     void JoinSelectedModels(bool singlestrand);
     void SplitSelectedSubmodel();
     void SortSubModelsByName();
+    void Symmetrize();
 
 private:
 

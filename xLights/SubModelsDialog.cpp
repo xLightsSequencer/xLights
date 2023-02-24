@@ -26,10 +26,11 @@
  //*)
 
 #include <wx/dnd.h>
-#include <wx/msgdlg.h>
 #include <wx/menu.h>
-#include <wx/tokenzr.h>
+#include <wx/mimetype.h>
+#include <wx/msgdlg.h>
 #include <wx/numdlg.h>
+#include <wx/tokenzr.h>
 
 #include "SubModelsDialog.h"
 #include "models/Model.h"
@@ -109,6 +110,7 @@ const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SYMMETRIZE = wxNewId();
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
 	//(*EventTable(SubModelsDialog)
@@ -978,6 +980,9 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.Append(SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR, "Elide Duplicates All Left->Right");
     mnu.Append(SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB, "Elide Duplicates All Top->Bottom");
 
+    mnu.AppendSeparator();
+    mnu.Append(SUBMODEL_DIALOG_SYMMETRIZE, "Symmetrize (Rotational)");
+    
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridPopup, nullptr, this);
     PopupMenu(&mnu);
 }
@@ -1001,6 +1006,9 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
     }
     if (event.GetId() == SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB) {
         RemoveAllDuplicates(false, true);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_SYMMETRIZE) {
+        Symmetrize();
     }
 }
 
@@ -2210,6 +2218,72 @@ void SubModelsDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm:
         ray_origin,
         ray_direction
     );
+}
+
+static void LogAndWrite(wxFile& f, const std::string& msg)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("CheckSequence: " + msg);
+    if (f.IsOpened()) {
+        f.Write(msg + "\r\n");
+    }
+}
+
+void SubModelsDialog::Symmetrize()
+{
+    wxNumberEntryDialog dlg(this, "Degree of Symmetry", "", "Select Degree of Rotational Symmetry", 8, 2, 100);
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
+    int dos = dlg.GetValue();
+
+    wxFile f;
+    wxString filename = wxFileName::CreateTempFileName("xLightsSymmetrize") + ".txt";
+
+    bool writeToFile = true;
+    bool displayInEditor = true;
+
+    if (writeToFile || displayInEditor) {
+        f.Open(filename, wxFile::write);
+        if (!f.IsOpened()) {
+            DisplayError("Unable to create results file for Check Sequence. Aborted.", this);
+            return;
+        }
+    }
+
+    LogAndWrite(f, wxString::Format("Symmetrize DoS: %d", dos));
+
+    // TODO:
+    //  Calculate point xys
+    //  Calculate centroid
+    //  Calculate locations in new space
+    //  Build list that need matched, and match list
+    //  For each of numerous search radii, calculate list per grid cell
+    //   Any meeting degree of symmetry, collect a set from different trips around
+    //  If match list is empty, quit
+    // Use match list to make new strands
+
+    // Save / Display results log
+    if (f.IsOpened()) {
+        f.Close();
+
+        if (displayInEditor) {
+            wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+            if (ft != nullptr) {
+                wxString command = ft->GetOpenCommand(filename);
+
+                if (command == "") {
+                    DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
+                } else {
+                    wxUnsetEnv("LD_PRELOAD");
+                    wxExecute(command);
+                }
+                delete ft;
+            } else {
+                DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
+            }
+        }
+    }
 }
 
 void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)

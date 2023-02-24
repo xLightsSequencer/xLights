@@ -416,6 +416,8 @@ public:
 
 
     virtual int NodeRenderOrder() { return 0; }
+    float GetPreviewDimScale(ModelPreview* preview, int& w, int& h);
+    void GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordStruct& it2, int w, int h, float scale);
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip);
     std::vector<int> GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end);
     bool IsMultiCoordsPerNode() const;
