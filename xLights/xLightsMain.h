@@ -118,6 +118,7 @@ class ControllerEthernet;
 class HttpServer;
 class HttpConnection;
 class HttpRequest;
+class wxTaskBarIcon;
 
 // max number of most recently used show directories on the File menu
 #define MRUD_LENGTH 4
@@ -189,6 +190,7 @@ wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SETEFFECTCHOICE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIPOFDAY_READY, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SET_EFFECT_DURATION, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights/FPP Sequences(*.fseq)|*.fseq|xLights Imports(*.iseq)|*.iseq";
@@ -1072,6 +1074,7 @@ public:
     int _videoExportBitrate;
 
     std::unique_ptr< wxAppProgressIndicator> _appProgress;
+    std::unique_ptr< wxTaskBarIcon > _taskBarIcon;
 
     HttpServer* _automationServer = nullptr;
     int _xFadePort = 0;
@@ -1422,7 +1425,7 @@ public:
 
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() { return _sequenceElements; }
-    TimingElement* AddTimingElement(const std::string& name);
+    TimingElement* AddTimingElement(const std::string& name, const std::string &subType = "");
     void DeleteTimingElement(const std::string& name);
     void RenameTimingElement(const std::string& old_name, const std::string& new_name);
     void ImportTimingElement();
@@ -1488,11 +1491,11 @@ public:
     wxXmlNode* LayoutGroupsNode = nullptr;
     wxXmlNode* ViewObjectsNode = nullptr;
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
-    void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
+    void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog);
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();
-    void NewSequence(const std::string& media = "", uint32_t durationMS = 0);
+    void NewSequence(const std::string& media = "", uint32_t durationMS = 0, uint32_t frameMS = 0, const std::string& defView = "");
     void SaveAsSequence();
     void SaveAsSequence(const std::string& filename);
     void SetPasteByCell();
@@ -1711,6 +1714,7 @@ private:
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
     void SetEffectChoice(wxCommandEvent& event);
     void TipOfDayReady(wxCommandEvent& event);
+    void SetEffectDuration(wxCommandEvent& event);
 
     bool isRandom_(wxControl* ctl, const char*debug);
     void SetSyncUniverse(int syncUniverse);

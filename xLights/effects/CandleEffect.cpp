@@ -65,6 +65,7 @@ class CandleRenderCache : public EffectRenderCache
 {
 public:
     std::map<int, CandleState*> _states;
+    int maxWid;
 
     CandleRenderCache(){};
     virtual ~CandleRenderCache()
@@ -180,9 +181,13 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         buffer.needToInit = false;
 
         if (perNode) {
-            for (size_t x = 0; x < buffer.BufferWi; ++x) {
-                for (size_t y = 0; y < buffer.BufferHt; ++y) {
-                    size_t index = y * buffer.BufferWi + x;
+            wxPoint maxBuffer = buffer.GetMaxBuffer(SettingsMap);
+            int maxMWi = maxBuffer.x == -1 ? buffer.BufferWi : maxBuffer.x;
+            int maxMHt = maxBuffer.y == -1 ? buffer.BufferHt : maxBuffer.y;
+            cache->maxWid = maxMWi;
+            for (size_t x = 0; x < maxMWi; ++x) {
+                for (size_t y = 0; y < maxMHt; ++y) {
+                    size_t index = y * maxMWi + x;
                     InitialiseState(index, states);
                 }
             }
@@ -192,9 +197,10 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     }
 
     if (perNode) {
-        parallel_for(0, buffer.BufferHt, [&buffer, &states, windVariability, flameAgility, windCalmness, windBaseline, this](int y) {
+        int maxW = cache->maxWid;
+        parallel_for(0, buffer.BufferHt, [&buffer, &states, maxW, windVariability, flameAgility, windCalmness, windBaseline, this](int y) {
             for (size_t x = 0; x < buffer.BufferWi; x++) {
-                size_t index = y * buffer.BufferWi + x;
+                size_t index = y * maxW + x;
                 if (index >= states.size()) {
                     // this should never happen
                     wxASSERT(false);

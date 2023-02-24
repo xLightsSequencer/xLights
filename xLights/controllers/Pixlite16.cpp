@@ -21,9 +21,11 @@
 #include "ControllerCaps.h"
 #include "../Discovery.h"
 #include "../xSchedule/wxJSON/jsonreader.h"
-#include "../../xSchedule/xSMSDaemon/Curl.h"
+#include "../utils/Curl.h"
 
 #include <log4cpp/Category.hh>
+
+#define PIXLITE_PORT 49150
 
 #pragma region Encode and Decode
 int Pixlite16::DecodeStringPortProtocol(const std::string& protocol)
@@ -515,6 +517,158 @@ bool Pixlite16::ParseV6Config(uint8_t* data, Pixlite16::Config& config)
     return true;
 }
 
+bool Pixlite16::ParseV8Config(uint8_t* data, Pixlite16::Config& config)
+{
+    int pos = 13;
+    char buffer[256];
+    memcpy(config._mac, &data[pos], sizeof(config._mac));
+    pos += 6;
+
+    config._modelNameLen = data[pos++];
+    memset(buffer, 0x00, sizeof(buffer));
+    memcpy(buffer, &data[pos], config._modelNameLen);
+    config._modelName = std::string(buffer);
+    pos += config._modelNameLen;
+
+    config._hwRevision = data[pos++];
+    memcpy(config._minAssistantVer, &data[pos], sizeof(config._minAssistantVer));
+    pos += sizeof(config._minAssistantVer);
+
+    config._firmwareVersionLen = data[pos++];
+    memset(buffer, 0x00, sizeof(buffer));
+    memcpy(buffer, &data[pos + 1], config._firmwareVersionLen);
+    config._firmwareVersion = std::string(buffer);
+    pos += config._firmwareVersionLen;
+
+    config._brand = data[pos++];
+
+    memcpy(config._currentIP, &data[pos], sizeof(config._currentIP));
+    pos += sizeof(config._currentIP);
+
+    memcpy(config._currentSubnetMask, &data[pos], sizeof(config._currentSubnetMask));
+    pos += sizeof(config._currentSubnetMask);
+
+    config._dhcp = data[pos++];
+
+    memcpy(config._staticIP, &data[pos], sizeof(config._staticIP));
+    pos += sizeof(config._staticIP);
+
+    memcpy(config._staticSubnetMask, &data[pos], sizeof(config._staticSubnetMask));
+    pos += sizeof(config._staticSubnetMask);
+
+    config._protocol = data[pos++];
+    config._holdLastFrame = data[pos++];
+    config._simpleConfig = data[pos++];
+    config._maxPixelsPerOutput = Read16(data, pos);
+    config._numOutputs = data[pos++];
+    config._realOutputs = config._numOutputs;
+    config._outputPixels.resize(config._numOutputs);
+    config._outputUniverse.resize(config._numOutputs);
+    config._outputStartChannel.resize(config._numOutputs);
+    config._outputNullPixels.resize(config._numOutputs);
+    config._outputZigZag.resize(config._numOutputs);
+    config._outputReverse.resize(config._numOutputs);
+    config._outputColourOrder.resize(config._numOutputs);
+    config._outputGrouping.resize(config._numOutputs);
+    config._outputBrightness.resize(config._numOutputs);
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputPixels[i] = Read16(data, pos);
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputUniverse[i] = Read16(data, pos);
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputStartChannel[i] = Read16(data, pos);
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputNullPixels[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputZigZag[i] = Read16(data, pos);
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputReverse[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputColourOrder[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputGrouping[i] = Read16(data, pos);
+    }
+    for (int i = 0; i < config._numOutputs; i++) {
+        config._outputBrightness[i] = data[pos++];
+    }
+
+    config._numDMX = data[pos++];
+    config._protocolsOnDMX = data[pos++];
+    config._realDMX = config._numDMX;
+    config._dmxOn.resize(config._numDMX);
+    config._dmxUniverse.resize(config._numDMX);
+    for (int i = 0; i < config._numDMX; i++) {
+        config._dmxOn[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numDMX; i++) {
+        config._dmxUniverse[i] = Read16(data, pos);
+    }
+
+    config._numDrivers = data[pos++];
+    config._driverNameLen = data[pos++];
+    config._driverType.resize(config._numDrivers);
+    config._driverSpeed.resize(config._numDrivers);
+    config._driverExpandable.resize(config._numDrivers);
+    config._driverName.resize(config._numDrivers);
+    for (int i = 0; i < config._numDrivers; i++) {
+        config._driverType[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numDrivers; i++) {
+        config._driverSpeed[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numDrivers; i++) {
+        config._driverExpandable[i] = data[pos++];
+    }
+    for (int i = 0; i < config._numDrivers; i++) {
+        memset(buffer, 0x00, sizeof(buffer));
+        memcpy(buffer, &data[pos], config._driverNameLen);
+        pos += config._driverNameLen;
+        config._driverName[i] = std::string(buffer);
+    }
+
+    config._currentDriver = data[pos++];
+    config._currentDriverType = data[pos++];
+    config._currentDriverSpeed = data[pos++];
+    config._currentDriverExpanded = data[pos++];
+    config._gamma.resize(4);
+    for (int i = 0; i < config._gamma.size(); i++) {
+        config._gamma[i] = data[pos++];
+    }
+
+    config._nicknameLen = 40;
+    memset(buffer, 0x00, sizeof(buffer));
+    memcpy(buffer, &data[pos], config._nicknameLen);
+    pos += config._nicknameLen;
+    config._nickname = std::string(buffer);
+
+    config._temperature = Read16(data, pos);
+    config._maxTargetTemp = data[pos++];
+
+    config._numBanks = data[pos++];
+    config._bankVoltage.resize(config._numBanks);
+    for (int i = 0; i < config._numBanks; i++) {
+        config._bankVoltage[i] = Read16(data, pos);
+    }
+
+    config._testMode = data[pos++];
+
+    config._testParameters.resize(4);
+    for (int i = 0; i < config._testParameters.size(); i++) {
+        config._testParameters[i] = data[pos++];
+    }
+    config._testOutputNum = data[pos++];
+    config._testPixelNum = Read16(data, pos);
+
+    return true;
+}
+
 int Pixlite16::PrepareV4Config(uint8_t* data) const
 {
     int pos = 0;
@@ -540,10 +694,17 @@ int Pixlite16::PrepareV4Config(uint8_t* data) const
         mn = "PixLite" + _config._modelName.substr(6);
     }
 
-    WriteString(data, pos, _config._modelNameLen, mn);
+    WriteString(data, pos, 20, mn);
     data[pos++] = _config._dhcp;
-    WriteString(data, pos, _config._nicknameLen, _config._nickname);
-    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputPixels[i]); }
+    WriteString(data, pos, 40, _config._nickname);
+
+    bool expanded = _config._forceExpanded;
+    for (int i = 0; i < _config._numOutputs; i++) {
+        Write16(data, pos, _config._outputPixels[i]);
+        if (i >= _config._numOutputs / 2 && _config._outputPixels[i] > 0) {
+            expanded = true;
+        }
+    }
     data[pos++] = _config._protocol;
     pos++; // unused
     pos++; // unused
@@ -576,7 +737,7 @@ int Pixlite16::PrepareV4Config(uint8_t* data) const
     for (int i = 0; i < _config._numOutputs; i++) { data[pos++] = _config._outputBrightness[i]; }
     data[pos++] = _config._holdLastFrame;
     data[pos++] = _config._maxTargetTemp;
-    data[pos++] = _config._currentDriverExpanded;
+    data[pos++] = expanded ? 1 : 0;
     data[pos++] = _config._currentDriverType;
 
     return pos;
@@ -608,7 +769,14 @@ int Pixlite16::PrepareV5Config(uint8_t* data) const
     data[pos++] = _config._protocol;
     data[pos++] = _config._holdLastFrame;
     data[pos++] = 0; // We always do complex config : _config._simpleConfig;
-    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputPixels[i]); }
+
+    bool expanded = _config._forceExpanded;
+    for (int i = 0; i < _config._numOutputs; i++) {
+        Write16(data, pos, _config._outputPixels[i]);
+        if (i >= _config._numOutputs / 2 && _config._outputPixels[i] > 0) {
+            expanded = true;
+        }
+    }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputUniverse[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputStartChannel[i]); }
     for (int i = 0; i < _config._numOutputs; i++) { data[pos++] = _config._outputNullPixels[i]; }
@@ -622,9 +790,9 @@ int Pixlite16::PrepareV5Config(uint8_t* data) const
     data[pos++] = _config._currentDriver;
     data[pos++] = _config._currentDriverType;
     data[pos++] = _config._currentDriverSpeed;
-    data[pos++] = _config._currentDriverExpanded;
+    data[pos++] = expanded ? 1 : 0;
     for (auto g : _config._gamma) { data[pos++] = g; }
-    WriteString(data, pos, _config._nicknameLen, _config._nickname);
+    WriteString(data, pos, 40, _config._nickname);
     data[pos++] = _config._maxTargetTemp;
 
     return pos;
@@ -633,6 +801,60 @@ int Pixlite16::PrepareV5Config(uint8_t* data) const
 int Pixlite16::PrepareV6Config(uint8_t* data) const
 {
 
+    int pos = 0;
+
+    data[pos++] = 'A';
+    data[pos++] = 'd';
+    data[pos++] = 'v';
+    data[pos++] = 'a';
+    data[pos++] = 't';
+    data[pos++] = 'e';
+    data[pos++] = 'c';
+    data[pos++] = 'h';
+    data[pos++] = 0x00;
+    Write16(data, pos, 5);
+    data[pos++] = 0x06;
+
+    memcpy(&data[pos], _config._mac, sizeof(_config._mac));
+    pos += sizeof(_config._mac);
+    data[pos++] = _config._dhcp;
+    memcpy(&data[pos], _config._staticIP, sizeof(_config._staticIP));
+    pos += sizeof(_config._staticIP);
+    memcpy(&data[pos], _config._staticSubnetMask, sizeof(_config._staticSubnetMask));
+    pos += sizeof(_config._staticSubnetMask);
+    data[pos++] = _config._protocol;
+    data[pos++] = _config._holdLastFrame;
+    data[pos++] = 0; // documentation is incorrect - 0 is advanced : _config._simpleConfig;
+    bool expanded = _config._forceExpanded;
+    for (int i = 0; i < _config._numOutputs; i++) {
+        Write16(data, pos, _config._outputPixels[i]);
+        if (i >= _config._numOutputs / 2 && _config._outputPixels[i] > 0) {
+            expanded = true;
+        }
+    }
+    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputUniverse[i]); }
+    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputStartChannel[i]); }
+    for (int i = 0; i < _config._numOutputs; i++) { data[pos++] = _config._outputNullPixels[i]; }
+    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputZigZag[i]); }
+    for (int i = 0; i < _config._numOutputs; i++) { data[pos++] = _config._outputReverse[i]; }
+    for (int i = 0; i < _config._numOutputs; i++) { data[pos++] = _config._outputColourOrder[i]; }
+    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputGrouping[i]); }
+    for (int i = 0; i < _config._numOutputs; i++) { data[pos++] = _config._outputBrightness[i]; }
+    for (int i = 0; i < _config._numDMX; i++) { data[pos++] = _config._dmxOn[i]; }
+    for (int i = 0; i < _config._numDMX; i++) { Write16(data, pos, _config._dmxUniverse[i]); }
+    data[pos++] = _config._currentDriver;
+    data[pos++] = _config._currentDriverType;
+    data[pos++] = _config._currentDriverSpeed;
+    data[pos++] = expanded ? 1 : 0;
+    for (auto g : _config._gamma) { data[pos++] = g; }
+    WriteString(data, pos, 40, _config._nickname);
+    data[pos++] = _config._maxTargetTemp;
+
+    return pos;
+}
+
+int Pixlite16::PrepareV8Config(uint8_t* data) const
+{
     int pos = 0;
 
     data[pos++] = 'A';
@@ -656,27 +878,71 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const
     pos += sizeof(_config._staticSubnetMask);
     data[pos++] = _config._protocol;
     data[pos++] = _config._holdLastFrame;
-    data[pos++] = 1; // We always do complex config : _config._simpleConfig;
-    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputPixels[i]); }
-    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputUniverse[i]); }
-    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputStartChannel[i]); }
-    for (int i = 0; i < _config._numOutputs; i++) { data[pos++] = _config._outputNullPixels[i]; }
-    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputZigZag[i]); }
-    for (int i = 0; i < _config._numOutputs; i++) { data[pos++] = _config._outputReverse[i]; }
-    for (int i = 0; i < _config._numOutputs; i++) { data[pos++] = _config._outputColourOrder[i]; }
-    for (int i = 0; i < _config._numOutputs; i++) { Write16(data, pos, _config._outputGrouping[i]); }
-    for (int i = 0; i < _config._numOutputs; i++) { data[pos++] = _config._outputBrightness[i]; }
-    for (int i = 0; i < _config._numDMX; i++) { data[pos++] = _config._dmxOn[i]; }
-    for (int i = 0; i < _config._numDMX; i++) { Write16(data, pos, _config._dmxUniverse[i]); }
+    data[pos++] = 0; // documentation is incorrect - 0 is advanced : _config._simpleConfig;
+    bool expanded = _config._forceExpanded;
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
+        Write16(data, pos, _config._outputPixels[i]);
+        if (i >= _config._numOutputs / 2 && _config._outputPixels[i] > 0) {
+            expanded = true;
+        }
+    }
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
+        Write16(data, pos, _config._outputUniverse[i]);
+    }
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
+        Write16(data, pos, _config._outputStartChannel[i]);
+    }
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
+        data[pos++] = _config._outputNullPixels[i];
+    }
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
+        Write16(data, pos, _config._outputZigZag[i]);
+    }
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
+        data[pos++] = _config._outputReverse[i];
+    }
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
+        data[pos++] = _config._outputColourOrder[i];
+    }
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
+        Write16(data, pos, _config._outputGrouping[i]);
+    }
+    for (size_t i = 0; i < _config._numOutputs; ++i) {
+        data[pos++] = _config._outputBrightness[i];
+    }
+    for (size_t i = 0; i < _config._numDMX; ++i) {
+        data[pos++] = _config._dmxOn[i];
+    }
+    for (size_t i = 0; i < _config._numDMX; ++i) {
+        Write16(data, pos, _config._dmxUniverse[i]);
+    }
     data[pos++] = _config._currentDriver;
     data[pos++] = _config._currentDriverType;
     data[pos++] = _config._currentDriverSpeed;
-    data[pos++] = _config._currentDriverExpanded;
-    for (auto g : _config._gamma) { data[pos++] = g; }
-    WriteString(data, pos, _config._nicknameLen, _config._nickname);
+    data[pos++] = expanded ? 1 : 0;
+    for (auto g : _config._gamma) {
+        data[pos++] = g;
+    }
+    WriteString(data, pos, 40, _config._nickname);
     data[pos++] = _config._maxTargetTemp;
 
     return pos;
+}
+
+void Pixlite16::CreateDiscovery(uint8_t* buffer)
+{
+    buffer[0] = 'A';
+    buffer[1] = 'd';
+    buffer[2] = 'v';
+    buffer[3] = 'a';
+    buffer[4] = 't';
+    buffer[5] = 'e';
+    buffer[6] = 'c';
+    buffer[7] = 'h';
+    buffer[8] = 0x00;
+    buffer[9] = 0x00;
+    buffer[10] = 0x01;
+    buffer[11] = 0x06;
 }
 
 bool Pixlite16::GetConfig()
@@ -690,9 +956,9 @@ bool Pixlite16::GetConfig()
     // broadcast packet to find all of them
     wxIPV4address localAddr;
     localAddr.AnyAddress();
-    localAddr.Service(49150);
+    localAddr.Service(PIXLITE_PORT);
 
-    auto discovery = new wxDatagramSocket(localAddr, wxSOCKET_NOWAIT);
+    auto discovery = new wxDatagramSocket(localAddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
 
     if (discovery == nullptr) {
         logger_base.error("Error initialising PixLite/PixCon datagram.");
@@ -706,33 +972,34 @@ bool Pixlite16::GetConfig()
         delete discovery;
     }
     else {
+        discovery->SetTimeout(1);
+        discovery->Notify(false);
+
         wxIPV4address remoteAddr;
         remoteAddr.Hostname(_ip);
-        remoteAddr.Service(49150);
+        remoteAddr.Service(PIXLITE_PORT);
 
-        wxByte discoveryData[12];
-        discoveryData[0] = 'A';
-        discoveryData[1] = 'd';
-        discoveryData[2] = 'v';
-        discoveryData[3] = 'a';
-        discoveryData[4] = 't';
-        discoveryData[5] = 'e';
-        discoveryData[6] = 'c';
-        discoveryData[7] = 'h';
-        discoveryData[8] = 0x00;
-        discoveryData[9] = 0x00;
-        discoveryData[10] = 0x01;
-        discoveryData[11] = 0x06;
+        uint8_t discoveryData[12];
+        Pixlite16::CreateDiscovery(discoveryData);
+        logger_base.debug("Sending discovery to pixlite: %s:%d.", (const char*)_ip.c_str(), PIXLITE_PORT);
         discovery->SendTo(remoteAddr, discoveryData, sizeof(discoveryData));
 
         if (discovery->Error()) {
             logger_base.error("PixLite/PixCon error sending to %s => %d : %s.", (const char*)_ip.c_str(), discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
         }
         else {
-            wxMilliSleep(500);
+            uint32_t count = 0;
+            #define SLP_TIME 100
+            while (count < 5000 && !discovery->IsData()) {
+                wxMilliSleep(SLP_TIME);
+                count += SLP_TIME;
+            }
+            
+            if (!discovery->IsData()) {
+                logger_base.warn("No discovery responses.");
+            }
 
             // look through responses for one that matches my ip
-
             while (discovery->IsData()) {
                 uint8_t data[1500];
                 memset(data, 0x00, sizeof(data));
@@ -740,17 +1007,34 @@ bool Pixlite16::GetConfig()
                 discovery->RecvFrom(pixliteAddr, data, sizeof(data));
 
                 if (!discovery->Error() && data[10] == 0x02) {
+                    logger_base.debug("   Discover response from %s.", (const char *)pixliteAddr.IPAddress().c_str());
                     bool connected = false;
                     _config._protocolVersion = data[11];
+                    logger_base.debug("   Protocol version %d.", _config._protocolVersion);
                     switch (_config._protocolVersion) {
                     case 4:
                         connected = ParseV4Config(data, _config);
+                        if (!connected) {
+                            logger_base.error("   Failed to parse v4 config packet.");
+                        }
                         break;
                     case 5:
                         connected = ParseV5Config(data, _config);
+                        if (!connected) {
+                            logger_base.error("   Failed to parse v5 config packet.");
+                        }
                         break;
                     case 6:
                         connected = ParseV6Config(data, _config);
+                        if (!connected) {
+                            logger_base.error("   Failed to parse v6 config packet.");
+                        }
+                        break;
+                    case 8:
+                        connected = ParseV8Config(data, _config);
+                        if (!connected) {
+                            logger_base.error("   Failed to parse v8 config packet.");
+                        }
                         break;
                     default:
                         logger_base.error("Unsupported Pixlite protocol version: %d.", _config._protocolVersion);
@@ -777,9 +1061,9 @@ bool Pixlite16::GetConfig()
                     logger_base.error("Error reading PixLite/PixCon response => %d : %s.", discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
                 }
             }
-            discovery->Close();
-            delete discovery;
         }
+        discovery->Close();
+        delete discovery;
     }
 
     return res;
@@ -881,21 +1165,11 @@ bool Pixlite16::GetMK3Config()
 void Pixlite16::PrepareDiscovery(Discovery& discovery)
 {
     uint8_t discoveryData[12];
-    discoveryData[0] = 'A';
-    discoveryData[1] = 'd';
-    discoveryData[2] = 'v';
-    discoveryData[3] = 'a';
-    discoveryData[4] = 't';
-    discoveryData[5] = 'e';
-    discoveryData[6] = 'c';
-    discoveryData[7] = 'h';
-    discoveryData[8] = 0x00;
-    discoveryData[9] = 0x00;
-    discoveryData[10] = 0x01;
-    discoveryData[11] = 0x06;
+    Pixlite16::CreateDiscovery(discoveryData);
 
-    discovery.AddBroadcast(49150, [&discovery](wxDatagramSocket* socket, uint8_t* data, int len) {
+    discovery.AddBroadcast(PIXLITE_PORT, [&discovery](wxDatagramSocket* socket, uint8_t* data, int len) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.error("    Advatech discovery packet type : %d.", data[10]);
         if (data[10] == 0x02) {
             Pixlite16::Config it;
             memset(&it, 0x00, sizeof(it));
@@ -910,6 +1184,9 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
                 break;
             case 6:
                 connected = ParseV6Config(data, it);
+                break;
+            case 8:
+                connected = ParseV8Config(data, it);
                 break;
             default:
                 logger_base.error("Unsupported protocol : %d.", it._protocolVersion);
@@ -959,7 +1236,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
             }
         }
         });
-    discovery.SendBroadcastData(49150, discoveryData, sizeof(discoveryData));
+    discovery.SendBroadcastData(PIXLITE_PORT, discoveryData, sizeof(discoveryData));
 
     // MK3 Discovery
     uint8_t discoveryDataMK3[34]; // assumes we exclude no MAC Addresses
@@ -1052,10 +1329,14 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     std::string request = "{\"req\":\"configChange\",\"id\":1,\"params\":{\"action\":\"save\",\"config\":{";
 
+    bool expanded = _config._forceExpanded;
     int pp = 0;
     for (uint8_t i = 0; i < _config._outputPixels.size(); ++i) {
         if (_config._outputPixels[i] > 0) {
             pp = i + 1;
+            if (i >= _config._numOutputs / 2 && _config._outputPixels[i] > 0) {
+                expanded = true;
+            }
         };
     }
     pp = pp <= _config._numOutputs / 2 ? _config._numOutputs / 2 : _config._numOutputs;
@@ -1068,7 +1349,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
     if (Mk3FrequencyForProtocol(_config._protocolName) != 0) {
         request += wxString::Format("\"freq\":%d,", Mk3FrequencyForProtocol(_config._protocolName));
     }
-    request += wxString::Format("\"expand\":%s,", pp == _config._numOutputs ? "true" : "false");
+    request += wxString::Format("\"expand\":%s,", expanded ? "true" : "false");
     request += "\"inFormat\":\"8Bit\",\"pixsSpanUni\":true},";
 
     // pix port
@@ -1226,7 +1507,7 @@ bool Pixlite16::SendConfig(bool logresult) const
     // broadcast packet to find all of them
     wxIPV4address localAddr;
     localAddr.AnyAddress();
-    localAddr.Service(49150);
+    localAddr.Service(PIXLITE_PORT);
 
     auto config = new wxDatagramSocket(localAddr, wxSOCKET_NOWAIT);
 
@@ -1248,7 +1529,7 @@ bool Pixlite16::SendConfig(bool logresult) const
     logger_base.debug("PixLite/PixCon sending config to %s.", (const char*)_ip.c_str());
     wxIPV4address toAddr;
     toAddr.Hostname(_ip);
-    toAddr.Service(49150);
+    toAddr.Service(PIXLITE_PORT);
 
     uint8_t data[1500];
     memset(data, 0x00, sizeof(data));
@@ -1262,7 +1543,10 @@ bool Pixlite16::SendConfig(bool logresult) const
         size = PrepareV5Config(data);
         break;
     case 6:
-        size = PrepareV6Config(data);
+        size = PrepareV8Config(data); // Yeah this is weird but they seem to prefer the V8 packet
+        break;
+    case 8:
+        size = PrepareV8Config(data);
         break;
     default:
         logger_base.error("Unsupported protocol : %d.", _protocolVersion);
@@ -1339,6 +1623,7 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "")
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _connected = false;
+    logger_base.debug("Requesting pixlite configuration.");
     if (GetConfig()) {
         logger_base.debug("*** Success connecting to PixLite/PixCon controller on %s.", (const char*)_ip.c_str());
         _protocolVersion = _config._protocolVersion;
@@ -1347,6 +1632,7 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "")
         _connected = true;
     }
     else {
+        logger_base.debug("Requesting pixlite MK3 configuration.");
         if (GetMK3Config()) {
            _model = _config._modelName;
            _version = _config._firmwareVersion;
@@ -1465,6 +1751,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 _config._outputGrouping[pp - 1] = std::max(1, port->GetFirstModel()->GetGroupCount(1));
                 _config._outputBrightness[pp - 1] = port->GetFirstModel()->GetBrightness(100);
                 _config._outputColourOrder[pp - 1] = EncodeColourOrder(port->GetFirstModel()->GetColourOrder("RGB"));
+                _config._outputZigZag[pp - 1] = port->GetFirstModel()->GetZigZag(0);
                 if (port->GetFirstModel()->GetDirection("Forward") == "Reverse") {
                     _config._outputReverse[pp - 1] = 1;
                 }
@@ -1491,6 +1778,11 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 }
             }
         }
+    }
+
+    auto caps = ControllerCaps::GetControllerConfig(controller);
+    if (caps != nullptr) {
+        _config._forceExpanded = Lower(caps->GetCustomPropertyByPath("ForceExpanded", "false")) == "true";
     }
 
     if (success) {

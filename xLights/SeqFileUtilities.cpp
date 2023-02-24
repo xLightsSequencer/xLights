@@ -41,6 +41,7 @@
 #include "sequencer/MainSequencer.h"
 #include "SelectPanel.h"
 #include "SearchPanel.h"
+#include "BufferPanel.h"
 
 #include "effects/SpiralsEffect.h"
 #include "effects/ButterflyEffect.h"
@@ -92,7 +93,7 @@ void xLightsFrame::AddAllModelsToSequence()
     _sequenceElements.AddMissingModelsToSequence(models_to_add);
 }
 
-void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS)
+void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, uint32_t frameMS, const std::string& defView)
 {
     // close any open sequences
     if (!CloseSequence()) {
@@ -102,7 +103,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS)
     // assign global xml file object
     wxFileName xml_file;
     xml_file.SetPath(CurrentDir);
-    CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
+    CurrentSeqXmlFile = new xLightsXmlFile(xml_file, frameMS);
 
     if (_modelBlendDefaultOff) {
         CurrentSeqXmlFile->setSupportsModelBlending(false);
@@ -179,7 +180,10 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS)
 
     OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
     displayElementsPanel->Initialize();
-    const std::string view = setting_dlg.GetView();
+    std::string view = setting_dlg.GetView();
+    if (defView != "" && (defView == "All Models" || defView == "Empty" || displayElementsPanel->HasView(defView))) {
+        view = defView;
+    }
     if (view == "All Models") {
         AddAllModelsToSequence();
         displayElementsPanel->SelectView("Master View");
@@ -210,7 +214,7 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
     PanelSequencer->SetLabel("XLIGHTS_SEQUENCER_TAB:" + sequence);
 }
 
-void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog* plog)
+void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -285,7 +289,11 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             xml_file.SetExt("xsq");
             // maybe the filename has not changed
             if (!FileExists(xml_file)) {
-                xml_file.SetExt("xml");
+                // xsq not found ... maybe it is xbkp
+                xml_file.SetExt("xbkp");
+                if (!FileExists(xml_file)) {
+                    xml_file.SetExt("xml");
+                }
             }
         }
         wxFileName media_file;
@@ -1105,6 +1113,33 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
             
             // remove lock if it is there
             Replace(settings, ",X_Effect_Locked=True", "");
+
+            // if we are mapping the effect onto a group and it is a per preview render buffer then use the goups default camera
+            if (!target->IsTimingLayer()) {
+                Model* m = target->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->GetModel(target->GetParentElement()->GetModelName());
+                if (m != nullptr) {
+                    auto mg = dynamic_cast<const ModelGroup*>(m);
+                    if (mg != nullptr) {
+                        // so is it a per preview render buffer
+                        auto rb = ef->GetSettings()["B_CHOICE_BufferStyle"];
+                        if (BufferPanel::CanRenderBufferUseCamera(rb)) {
+                            if (Contains(settings, "B_CHOICE_PerPreviewCamera")) {
+                                Replace(settings, ",B_CHOICE_PerPreviewCamera=" + ef->GetSettings()["B_CHOICE_PerPreviewCamera"],
+                                        ",B_CHOICE_PerPreviewCamera=" + mg->GetDefaultCamera());
+                            }
+                            else {
+                                settings += ",B_CHOICE_PerPreviewCamera=" + mg->GetDefaultCamera();
+                            }
+                        }
+                    }
+                }
+                else {
+                    // cant see why this would happen
+                    // gjones - I found this happening when importing a sequence along with timing layers...added code to skip timing layers to          avoid this assert in the debugger.
+                    wxASSERT(false);
+                }
+            }
+
             target->AddEffect(0, ef->GetEffectName(), settings, ef->GetPaletteAsString(),
                 ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
         }
@@ -1299,20 +1334,18 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
         }
         else if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             TimingElement* tel = dynamic_cast<TimingElement*>(e);
-            if (tel->GetFixedTiming() == 0) {
-                bool hasEffects = false;
-                for (size_t n = 0; n < tel->GetEffectLayerCount(); ++n) {
-                    hasEffects |= tel->GetEffectLayer(n)->GetEffectCount() > 0;
-                }
-                if (hasEffects) {
-                    timingTrackNames.push_back(tel->GetName());
-                    timingTracks[tel->GetName()] = tel;
-
-                    // we want to know which timing tracks exist so we can preselect the ones which are not already present
-                    // a timing track is only considered to exist if it has at least one timing mark
-                    timingTrackAlreadyExists[tel->GetName()] = (_sequenceElements.GetTimingElement(tel->GetName()) != nullptr && _sequenceElements.GetTimingElement(tel->GetName())->HasEffects());
-                }
+            bool hasEffects = false;
+            for (size_t n = 0; n < tel->GetEffectLayerCount(); ++n) {
+                hasEffects |= tel->GetEffectLayer(n)->GetEffectCount() > 0;
             }
+            if (hasEffects) {
+                timingTrackNames.push_back(tel->GetName());
+                timingTracks[tel->GetName()] = tel;
+
+                // we want to know which timing tracks exist so we can preselect the ones which are not already present
+                // a timing track is only considered to exist if it has at least one timing mark
+                timingTrackAlreadyExists[tel->GetName()] = (_sequenceElements.GetTimingElement(tel->GetName()) != nullptr && _sequenceElements.GetTimingElement(tel->GetName())->HasEffects());
+            }            
         }
     }
 
@@ -4761,35 +4794,48 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
     return true;
 }
 
-void MapVixen3(const EffectManager& effect_manager, int i, EffectLayer* layer, const Vixen3& vixen, const wxString& model, bool left, long offset, int frameMS, bool eraseExisting)
+void MapVixen3(Element* model, const Vixen3& vixen, const wxString& modelName, long offset, int frameMS, bool eraseExisting)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (eraseExisting) layer->DeleteAllEffects();
+    if (eraseExisting) {
+        for (const auto& it : model->GetEffectLayers()) {
+            it->DeleteAllEffects();
+        }
+    }
 
-    auto effects = vixen.GetEffects(model.ToStdString());
+    auto effects = vixen.GetEffects(modelName.ToStdString());
 
     for (const auto& it : effects)
     {
         long s = Vixen3::ConvertTiming(it.start + offset, frameMS);
         long e = Vixen3::ConvertTiming(it.end + offset, frameMS);
+            
+        // Vixen can have multiple effects in one time slot so add layers as needed
+        EffectLayer* layer = nullptr;
+        for (const auto& it : model->GetEffectLayers()) {
+            if (!it->HasEffectsInTimeRange(s, e)) {
+                layer = it;
+                break;
+            }
+        }
 
-        if (!layer->HasEffectsInTimeRange(s, e))
+        if (layer == nullptr)
+            layer = model->AddEffectLayer();
+
+        // now we need to create the effect
+        std::string newpalette = it.GetPalette();
+        std::string newsettings = it.GetSettings();
+        std::string type = it.GetXLightsType();
+        if (type != "")
         {
-            // now we need to create the effect
-            std::string newpalette = it.GetPalette();
-            std::string newsettings = it.GetSettings();
-            std::string type = it.GetXLightsType();
-            if (type != "")
+            if (layer->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(type) < 0)
             {
-                if (layer->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(type) < 0)
-                {
-                    logger_base.debug("Vixen 3 import %s -> %s is not a valid effect.", (const char*)it.type.c_str(), (const char*)type.c_str());
-                }
-                else
-                {
-                    layer->AddEffect(0, type, newsettings, newpalette, s, e, false, false);
-                }
+                logger_base.debug("Vixen 3 import %s -> %s is not a valid effect.", (const char*)it.type.c_str(), (const char*)type.c_str());
+            }
+            else
+            {
+                layer->AddEffect(0, type, newsettings, newpalette, s, e, false, false);
             }
         }
     }
@@ -4799,11 +4845,9 @@ void MapVixen3Effects(const EffectManager& effectManager, Element* model, const 
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    // TODO need to handle multiple layers
-    int layer = 0;
-    logger_base.debug("Creating effects on model %s layer %d from %s",
-        (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
-    MapVixen3(effectManager, 0, model->GetEffectLayer(layer), vixen, mapping, true, offset, frameMS, eraseExisting);
+    logger_base.debug("Creating effects on model %s from %s",
+        (const char *)model->GetFullName().c_str(), (const char *)mapping.c_str());
+    MapVixen3(model, vixen, mapping, offset, frameMS, eraseExisting);
 }
 
 bool xLightsFrame::ImportVixen3(const wxFileName &filename)
@@ -4957,7 +5001,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                         if (stre != nullptr) {
                             NodeLayer *nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
-                                MapVixen3(effectManager, 0, nl, vixen, ns->_mapping, true, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
+                                MapVixen3(model, vixen, ns->_mapping, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
                             }
                         }
                     }

@@ -158,6 +158,15 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_OutputToLights" member="yes">
+							<label>Output to Lights</label>
+							<handler function="OnCheckBox_OutputToLightsClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxBoxSizer" variable="BoxSizer1" member="no">
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON_NODE_SELECT_OK" variable="ButtonNodeSelectOK" member="yes">

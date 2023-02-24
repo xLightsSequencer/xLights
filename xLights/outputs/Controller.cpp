@@ -73,7 +73,11 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
     ControllerNameVendorMap("SanDevices", "E6804 Firmware 4", "SanDevices", "E6804", "4.x Firmware"),
     ControllerNameVendorMap("SanDevices", "E6804 Firmware 5", "SanDevices", "E6804", "5.x Firmware"),
     ControllerNameVendorMap("SanDevices", "E682 Firmware 4", "SanDevices", "E682", "4.x Firmware"),
-    ControllerNameVendorMap("SanDevices", "E682 Firmware 5", "SanDevices", "E682", "5.x Firmware")
+    ControllerNameVendorMap("SanDevices", "E682 Firmware 5", "SanDevices", "E682", "5.x Firmware"),
+
+    ControllerNameVendorMap("Experience Lights", "Genius Pixel 16 Controller", "Experience Lights", "Genius Pixel 16"),
+    ControllerNameVendorMap("Experience Lights", "Genius Pixel 8 Controller", "Experience Lights", "Genius Pixel 8"),
+    ControllerNameVendorMap("Experience Lights", "Genius Long Range Controller", "Experience Lights", "Genius Long Range")
 };
 
 #pragma region Constructors and Destructors
@@ -506,9 +510,10 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
                 }
             }
             if (models.GetCount() > 0) {
-                propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
+                p = propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
 
                 if (_model != "") {
+                    p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
                     int v = -1;
                     wxPGChoices versions;
                     std::list<std::string> variants = ControllerCaps::GetVariants(GetType(), _vendor, _model);
@@ -525,6 +530,9 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
                         }
                         propertyGrid->Append(new wxEnumProperty("Variant", "Variant", versions, v));
                     }
+                }
+                else {
+                    p->SetBackgroundColour(*wxRED);
                 }
             }
         }
@@ -676,20 +684,24 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         auto const vendors = ControllerCaps::GetVendors(GetType());
         auto it = begin(vendors);
         std::advance(it, event.GetValue().GetLong());
-        SetVendor(*it);
+        if (event.GetValue().GetLong() >= 0 && it != end(vendors)) {
+            SetVendor(*it);
 
-        auto models = ControllerCaps::GetModels(GetType(), *it);
-        if (models.size() == 2) {
-            SetModel(models.back());
-            auto variants = ControllerCaps::GetVariants(GetType(), *it, models.front());
-            if (variants.size() == 2) {
-                SetVariant(variants.back());
-            }
-            else {
+            auto models = ControllerCaps::GetModels(GetType(), *it);
+            if (models.size() == 2) {
+                SetModel(models.back());
+                auto variants = ControllerCaps::GetVariants(GetType(), *it, models.front());
+                if (variants.size() == 2) {
+                    SetVariant(variants.back());
+                } else {
+                    SetVariant("");
+                }
+            } else {
+                SetModel("");
                 SetVariant("");
             }
-        }
-        else {
+        } else {
+            SetVendor("");
             SetModel("");
             SetVariant("");
         }

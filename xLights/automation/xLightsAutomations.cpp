@@ -195,7 +195,13 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             media = "";
         auto duration = wxAtoi(params["durationSecs"]) * 1000;
 
-        NewSequence(media, duration);
+        uint32_t frameMS = wxAtoi(params["frameMS"]); // this will be 0 if "null" so ok
+
+        std::string view = params["view"];
+        if (view == "null")
+            view = "";
+
+        NewSequence(media, duration, frameMS, view);
         EnableSequenceControls(true);
         return sendResponse("Sequence created.", "msg", 200, false);
     } else if (cmd == "saveSequence") {

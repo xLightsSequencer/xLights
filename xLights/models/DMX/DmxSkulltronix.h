@@ -28,7 +28,7 @@ class DmxSkulltronix : public DmxModel, public DmxPanTiltAbility
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
         void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
 
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
         int GetEyeBrightnessChannel() {return eye_brightness_channel;}

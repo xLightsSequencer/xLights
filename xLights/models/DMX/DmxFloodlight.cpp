@@ -31,9 +31,10 @@ DmxFloodlight::~DmxFloodlight()
     //dtor
 }
 
-void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid) {
+void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
 
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
     if (nullptr != color_ability) {
         color_ability->AddColorTypeProperties(grid);
     }

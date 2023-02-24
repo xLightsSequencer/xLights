@@ -35,6 +35,8 @@ const long RemoteFalconSettingsDialog::ID_STATICTEXT2 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_SPINCTRL1 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_STATICTEXT3 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_CHECKLISTBOX1 = wxNewId();
+const long RemoteFalconSettingsDialog::ID_STATICTEXT6 = wxNewId();
+const long RemoteFalconSettingsDialog::ID_CHOICE3 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_BUTTON1 = wxNewId();
 const long RemoteFalconSettingsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -91,7 +93,7 @@ RemoteFalconSettingsDialog::RemoteFalconSettingsDialog(wxWindow* parent, RemoteF
 	CheckBox_PlayAsOverlay = new wxCheckBox(this, ID_CHECKBOX4, _("Play as an overlay effect"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	CheckBox_PlayAsOverlay->SetValue(false);
 	FlexGridSizer3->Add(CheckBox_PlayAsOverlay, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_SendPlayingEffect = new wxCheckBox(this, ID_CHECKBOX5, _("Send first playing effect as playing song"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
 	CheckBox_SendPlayingEffect->SetValue(false);
 	FlexGridSizer3->Add(CheckBox_SendPlayingEffect, 1, wxALL|wxEXPAND, 2);
@@ -108,6 +110,14 @@ RemoteFalconSettingsDialog::RemoteFalconSettingsDialog(wxWindow* parent, RemoteF
 	FlexGridSizer3->Add(StaticText3, 1, wxALL|wxEXPAND, 5);
 	CheckListBox_Playlists = new wxCheckListBox(this, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
 	FlexGridSizer3->Add(CheckListBox_Playlists, 1, wxALL|wxEXPAND, 2);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT6, _("Message Level:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	FlexGridSizer3->Add(StaticText5, 1, wxALL|wxEXPAND, 5);
+	Choice_MessageLevel = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
+	Choice_MessageLevel->Append(_("Error"));
+	Choice_MessageLevel->SetSelection( Choice_MessageLevel->Append(_("Warn")) );
+	Choice_MessageLevel->Append(_("Info"));
+	Choice_MessageLevel->Append(_("Debug"));
+	FlexGridSizer3->Add(Choice_MessageLevel, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -157,8 +167,12 @@ RemoteFalconSettingsDialog::RemoteFalconSettingsDialog(wxWindow* parent, RemoteF
     CheckBox_PlayAsOverlay->SetValue(options->IsEffectPlaylist());
     CheckBox_SendPlayingEffect->SetValue(options->IsSendPlayingEffect());
     Choice_OverlayEffectMode->SetSelection((int)options->GetEffectMode());
+    Choice_MessageLevel->SetSelection((int)options->GetMessageLevel());
 
 	ValidateWindow();
+
+	Layout();
+    Fit();
 }
 
 RemoteFalconSettingsDialog::~RemoteFalconSettingsDialog()
@@ -207,6 +221,7 @@ void RemoteFalconSettingsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetEffectPlaylist(CheckBox_PlayAsOverlay->IsChecked());
     _options->SetSendPlayignEffect(CheckBox_SendPlayingEffect->IsChecked());
     _options->SetEffectMode((EFFECT_MODE)Choice_OverlayEffectMode->GetSelection());
+    _options->SetMessageLevel((MESSAGE_LEVEL)Choice_MessageLevel->GetSelection());
 
 	wxArrayInt checked;
 	CheckListBox_Playlists->GetCheckedItems(checked);

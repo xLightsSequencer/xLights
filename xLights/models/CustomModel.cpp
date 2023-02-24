@@ -44,8 +44,8 @@ static const std::string CLICK_TO_EDIT("--Click To Edit--");
 class CustomModelDialogAdapter : public wxPGEditorDialogAdapter
 {
 public:
-    CustomModelDialogAdapter(CustomModel* model)
-        : wxPGEditorDialogAdapter(), m_model(model)
+    CustomModelDialogAdapter(CustomModel* model, OutputManager* om) :
+        wxPGEditorDialogAdapter(), m_model(model), _outputManager(om)
     {
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
@@ -54,7 +54,7 @@ public:
         m_model->SaveDisplayDimensions();
         auto oldAutoSave = m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave;
         m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave = true; // because we will tamper with model we need to suspend autosave
-        CustomModelDialog dlg(propGrid);
+        CustomModelDialog dlg(propGrid, _outputManager);
         dlg.Setup(m_model);
         bool res = false;
         if (dlg.ShowModal() == wxID_OK) {
@@ -74,18 +74,19 @@ public:
         return res;
     }
 protected:
-    CustomModel* m_model;
+    CustomModel* m_model = nullptr;
+    OutputManager* _outputManager = nullptr;
 };
-
 
 class CustomModelProperty : public wxStringProperty
 {
 public:
     CustomModelProperty(CustomModel* m,
+        OutputManager* om,
         const wxString& label,
         const wxString& name,
-        const wxString& value)
-        : wxStringProperty(label, name, value), m_model(m)
+        const wxString& value) :
+        wxStringProperty(label, name, value), m_model(m), _outputManager(om)
     {
     }
     // Set editor to have button
@@ -96,18 +97,19 @@ public:
     // Set what happens on button click
     virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
     {
-        return new CustomModelDialogAdapter(m_model);
+        return new CustomModelDialogAdapter(m_model, _outputManager);
     }
 protected:
-    CustomModel* m_model;
+    CustomModel* m_model = nullptr;
+    OutputManager* _outputManager = nullptr;
 };
 
-void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid)
+void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    wxPGProperty* p = grid->Append(new CustomModelProperty(this, "Model Data", "CustomData", CLICK_TO_EDIT));
+    wxPGProperty* p = grid->Append(new CustomModelProperty(this, outputManager, "Model Data", "CustomData", CLICK_TO_EDIT));
     grid->LimitPropertyEditing(p);
 
-    p = grid->Append(new wxUIntProperty("Strings", "CustomModelStrings", _strings));
+    p = grid->Append(new wxUIntProperty("# Strings", "CustomModelStrings", _strings));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 48);
     p->SetEditor("SpinCtrl");
@@ -166,6 +168,7 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         if (grid->GetPropertyByName("CustomBkgImage")->GetValue() != custom_background) {
             grid->GetPropertyByName("CustomBkgImage")->SetValue(wxVariant(custom_background));
         }
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::CustomData");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::CustomData");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomData");
@@ -174,28 +177,27 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CustomModel::OnPropertyGridChange::CustomData");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CustomModel::OnPropertyGridChange::CustomData");
         return 0;
-    }
-    else if ("CustomBkgImage" == event.GetPropertyName()) {
+    } else if ("CustomBkgImage" == event.GetPropertyName()) {
         custom_background = event.GetValue().GetString();
         ObtainAccessToURL(custom_background);
         ModelXml->DeleteAttribute("CustomBkgImage");
         ModelXml->AddAttribute("CustomBkgImage", custom_background);
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::CustomBkgImage");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomBkgImage");
         return 0;
-    }
-    else if ("CustomModelStrings" == event.GetPropertyName()) {
+    } else if ("CustomModelStrings" == event.GetPropertyName()) {
         _strings = event.GetValue().GetInteger();
         ModelXml->DeleteAttribute("CustomStrings");
         ModelXml->AddAttribute("CustomStrings", wxString::Format("%d", _strings));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         return 0;
-    }
-    else if (event.GetPropertyName() == "ModelIndividualStartNodes") {
+    } else if (event.GetPropertyName() == "ModelIndividualStartNodes") {
         bool hasIndiv = event.GetValue().GetBool();
         for (int x = 0; x < _strings; x++) {
             wxString nm = StartNodeAttrName(x);
@@ -207,6 +209,7 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
                 ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
             }
         }
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
@@ -214,8 +217,7 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
         return 0;
-    }
-    else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.String")) {
+    } else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.String")) {
 
         wxString s = event.GetPropertyName().substr(strlen("ModelIndividualStartNodes.String"));
         int string = wxAtoi(s);
@@ -229,6 +231,7 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         ModelXml->DeleteAttribute(nm);
         ModelXml->AddAttribute(nm, wxString::Format("%d", value));
 
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");

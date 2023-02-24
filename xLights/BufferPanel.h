@@ -60,13 +60,13 @@
 #define RZ_YPIVOT_MIN 0
 #define RZ_YPIVOT_MAX 100
 
-#define SB_LEFT_BOTTOM_MIN -100
+#define SB_LEFT_BOTTOM_MIN (-100)
 #define SB_LEFT_BOTTOM_MAX 99
 
 #define SB_RIGHT_TOP_MIN 1
 #define SB_RIGHT_TOP_MAX 200
 
-#define SB_CENTRE_MIN -100
+#define SB_CENTRE_MIN (-100)
 #define SB_CENTRE_MAX 100
 
 class Model;
@@ -79,9 +79,12 @@ public:
 		BufferPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~BufferPanel();
 
+		static bool CanRenderBufferUseCamera(const std::string& rb);
+
         wxString GetBufferString();
         void SetDefaultControls(const Model *model, bool optionbased = false);
         void UpdateBufferStyles(const Model* model);
+        void UpdateCamera(const Model* model);
         void ValidateWindow();
 
 		static double GetSettingVCMin(const std::string& name)
@@ -229,7 +232,9 @@ public:
 		xlLockButton* BitmapButton_ZoomQuality;
 		//*)
 
-        SubBufferPanel *subBufferPanel;
+        SubBufferPanel *subBufferPanel = nullptr;
+        std::string _defaultCamera = "2D";
+
 	protected:
 
 		//(*Identifiers(BufferPanel)

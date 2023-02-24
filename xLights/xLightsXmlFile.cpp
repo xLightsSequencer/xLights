@@ -42,8 +42,8 @@
 const wxString xLightsXmlFile::ERASE_MODE = "<rendered: erase-mode>";
 const wxString xLightsXmlFile::CANVAS_MODE = "<rendered: canvas-mode>";
 
-xLightsXmlFile::xLightsXmlFile(const wxFileName& filename)
-    : wxFileName(filename),
+xLightsXmlFile::xLightsXmlFile(const wxFileName& filename, uint32_t frameMS) :
+    wxFileName(filename),
     version_string(wxEmptyString),
     seq_duration(30.0),
     media_file(wxEmptyString),
@@ -56,7 +56,11 @@ xLightsXmlFile::xLightsXmlFile(const wxFileName& filename)
     sequence_loaded(false),
     audio(nullptr)
 {
-    for (int i = 0; i < static_cast<int>(HEADER_INFO_TYPES::NUM_TYPES); ++i) {
+    if (frameMS != 0) {
+        seq_timing = wxString::Format("%d ms", frameMS);
+    }
+
+    for (size_t i = 0; i < static_cast<size_t>(HEADER_INFO_TYPES::NUM_TYPES); ++i) {
         header_info.push_back("");
     }
     CreateNew();
@@ -198,7 +202,7 @@ void xLightsXmlFile::SetSequenceTiming(const wxString& timing)
 
     // looking to work out if this is why i have seen a crash in this function
     if (root == nullptr) {
-        logger_base.crit("SetSequenceTiming is about to crash because sequence XML document has not root. Strange!");
+        logger_base.crit("SetSequenceTiming is about to crash because sequence XML document has no root. Strange!");
     }
 
     for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
@@ -324,7 +328,7 @@ void xLightsXmlFile::AddDisplayElement(const wxString& name, const wxString& typ
     }
 }
 
-void xLightsXmlFile::AddTimingDisplayElement(const wxString& name, const wxString& visible, const wxString& active)
+void xLightsXmlFile::AddTimingDisplayElement(const wxString& name, const wxString& visible, const wxString& active, const wxString &subType)
 {
     wxXmlNode* root = seqDocument.GetRoot();
 
@@ -356,6 +360,9 @@ void xLightsXmlFile::AddTimingDisplayElement(const wxString& name, const wxStrin
             child->AddAttribute("visible", visible);
             child->AddAttribute("type", "timing");
             child->AddAttribute("name", name);
+            if (subType != "") {
+                child->AddAttribute("subType", subType);
+            }
             timing_list.push_back(name);
             break;
         }
@@ -2694,7 +2701,8 @@ void xLightsXmlFile::Save(SequenceElements& seq_elements)
         display_element_node->AddAttribute("type", element->GetType() == ElementType::ELEMENT_TYPE_TIMING ? "timing" : "model");
         display_element_node->AddAttribute("name", element->GetName());
         if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
-            display_element_node->AddAttribute("visible", string_format("%d", dynamic_cast<TimingElement*>(element)->GetMasterVisible()));
+            TimingElement *te = dynamic_cast<TimingElement*>(element);
+            display_element_node->AddAttribute("visible", string_format("%d", te->GetMasterVisible()));
         } else {
             display_element_node->AddAttribute("visible", string_format("%d", element->GetVisible()));
         }
@@ -2708,6 +2716,9 @@ void xLightsXmlFile::Save(SequenceElements& seq_elements)
             TimingElement* tm = dynamic_cast<TimingElement*>(element);
             display_element_node->AddAttribute("views", tm->GetViews());
             display_element_node->AddAttribute("active", string_format("%d", tm->GetActive()));
+            if (tm->GetSubType() != "") {
+                display_element_node->AddAttribute("subType", tm->GetSubType());
+            }
             if (tm->GetFixedTiming()) {
                 element_effects_node->AddAttribute("fixed", string_format("%d", tm->GetFixedTiming()));
                 AddChildXmlNode(element_effects_node, "EffectLayer");
@@ -2904,13 +2915,13 @@ void xLightsXmlFile::AddNewTimingSection(const std::string & filename, xLightsFr
         }
     }
 }
-void xLightsXmlFile::AddNewTimingSection(const std::string & interval_name, xLightsFrame* xLightsParent)
+void xLightsXmlFile::AddNewTimingSection(const std::string & interval_name, xLightsFrame* xLightsParent, const std::string& subType)
 {
-    AddTimingDisplayElement( interval_name, "1", "0" );
+    AddTimingDisplayElement( interval_name, "1", "0", subType);
 
     if( sequence_loaded )
     {
-        xLightsParent->AddTimingElement(interval_name);
+        xLightsParent->AddTimingElement(interval_name, subType);
     }
 
     wxXmlNode * node = AddElement( interval_name, "timing" );

@@ -132,6 +132,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
             DisplayError("Unable to load RGB effects file ... creating a default one.", this);
             CreateDefaultEffectsXml();
         }
+        wxXmlDoctype dt("");
+        EffectsXml.SetDoctype(dt);
     }
 
     wxXmlNode* root = EffectsXml.GetRoot();
@@ -711,6 +713,8 @@ void xLightsFrame::CreateDefaultEffectsXml()
 {
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xrgb" );
     EffectsXml.SetRoot( root );
+    wxXmlDoctype dt("");
+    EffectsXml.SetDoctype(dt);
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
     UpdateControllerSave();
@@ -1306,6 +1310,8 @@ void xLightsFrame::SaveSequence()
     if (CurrentSeqXmlFile->GetExt().Lower() == "xml") {
         // Remove the old xml file as we are about to save it as an xsq
         wxRemoveFile(CurrentSeqXmlFile->GetFullPath());
+        CurrentSeqXmlFile->SetExt("xsq");
+    } else if (CurrentSeqXmlFile->GetExt().Lower() == "xbkp") {
         CurrentSeqXmlFile->SetExt("xsq");
     }
     SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xsq."));

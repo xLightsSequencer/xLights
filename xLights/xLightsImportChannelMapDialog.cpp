@@ -658,11 +658,32 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         Sizer1->Hide(FlexGridSizer_Blend_Mode, true);
     }
 
+    m_imageList = std::make_unique<wxImageList>(16, 16, true);
+    LayoutUtils::CreateImageList(m_imageList.get(), m_iconIndexMap);
+    ListCtrl_Available->SetImageList(m_imageList.get(), wxIMAGE_LIST_SMALL);
     PopulateAvailable(false);
 
     _dataModel = new xLightsImportTreeModel();
+    //fill in the datamodel prior to sticking it in the tree
+    int ms = 0;
+    for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
+        if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            Element* e = mSequenceElements->GetElement(i);
 
+            Model *m = xlights->GetModel(e->GetName());
+            if (m != nullptr) {
+                AddModel(m, ms);
+            }
+        }
+
+    }
+#ifndef __WXMSW__
+    if (_dataModel->GetChildCount() != 0) {
+        _dataModel->Resort();
+    }
+#endif
     TreeListCtrl_Mapping = new wxDataViewCtrl(Panel1, ID_TREELISTCTRL1, wxDefaultPosition, wxDefaultSize, wxDV_HORIZ_RULES | wxDV_VERT_RULES | wxDV_MULTIPLE, wxDefaultValidator);
+    TreeListCtrl_Mapping->Freeze();
     TreeListCtrl_Mapping->AssociateModel(_dataModel);
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE));
     TreeListCtrl_Mapping->GetColumn(0)->SetSortOrder(true);
@@ -670,11 +691,6 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     if (_allowColorChoice) {
         TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Color", new ColorRenderer(), 2, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
     }
-
-    m_imageList = std::make_unique<wxImageList>(16, 16, true);
-    LayoutUtils::CreateImageList(m_imageList.get());
-
-    ListCtrl_Available->SetImageList(m_imageList.get(), wxIMAGE_LIST_SMALL);
 
     TreeListCtrl_Mapping->SetMinSize(wxSize(0, 300));
     SizerMap->Add(TreeListCtrl_Mapping, 1, wxALL | wxEXPAND, 5);
@@ -700,24 +716,6 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     TreeListCtrl_Mapping->SetDropTarget(mdt);
 #endif
     TreeListCtrl_Mapping->SetIndent(8);
-    TreeListCtrl_Mapping->Freeze();
-
-    int ms = 0;
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
-        if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-            Element* e = mSequenceElements->GetElement(i);
-
-            Model *m = xlights->GetModel(e->GetName());
-            if (m != nullptr) {
-                AddModel(m, ms);
-            }
-        }
-
-    }
-
-    // Notify Tree Ctrl to update after all models have been added. This is a big
-    // performance improvement for large layouts.
-    _dataModel->NotifyItemsAdded();
     TreeListCtrl_Mapping->GetColumn(0)->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     TreeListCtrl_Mapping->Thaw();
     TreeListCtrl_Mapping->Refresh();
@@ -725,10 +723,12 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     if (_dataModel->GetChildCount() == 0) {
         DisplayError("No models to import to. Add some models to the rows of the effects grid.");
         return false;
-    } else {
+    }
+#ifdef __WXMSW__
+    else {
         _dataModel->Resort();
     }
-
+#endif
     return true;
 }
 
@@ -773,7 +773,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
             ListCtrl_Available->InsertItem(j, m->name);
             ListCtrl_Available->SetItemData(j, j);
             if (!m->type.empty()) {
-                ListCtrl_Available->SetItemColumnImage(j, 0, LayoutUtils::GetModelTreeIcon(m->type, LayoutUtils::GroupMode::Regular));
+                ListCtrl_Available->SetItemColumnImage(j, 0, m_iconIndexMap[LayoutUtils::GetModelTreeIcon(m->type, LayoutUtils::GroupMode::Regular)]);
             } else {
                 ListCtrl_Available->SetItemColumnImage(j, 0, -1);
             }
@@ -1050,15 +1050,15 @@ void xLightsImportChannelMapDialog::LoadMappingFile(wxString const& filepath, bo
     {
         LoadJSONMapping(filepath, hideWarnings);
     }
-    else if (ext == "xmap")
+    else// if (ext == "xmap")
     {
         LoadXMapMapping(filepath, hideWarnings);
     }
-    else
-    {
-        logger_base.error("Invalid Mapping file type %s.", (const char*)ext.c_str());
-        return;
-    }
+    //else
+    //{
+    //    logger_base.error("Invalid Mapping file type %s.", (const char*)ext.c_str());
+    //    return;
+    //}
 
     _dirty = false;
 
@@ -1234,7 +1234,11 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
 
     wxFileInputStream input(filename);
     wxTextInputStream text(input, "\t");
-    text.ReadLine(); // map by strand ... ignore this
+    wxString const firstLine = text.ReadLine(); // map by strand ... ignore this
+    if (firstLine.Contains("{")) {
+        LoadJSONMapping(filename, hideWarnings);
+        return;
+    }
     int count = wxAtoi(text.ReadLine());
     for (int x = 0; x < count; x++) {
         std::string mn = text.ReadLine().ToStdString();
@@ -1330,7 +1334,7 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
 
 void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
 {
-    wxFileDialog dlg(this, "Save mapping", wxEmptyString, _mappingFile, "Text Maping (*.xmap)|*.xmap|JSON Mapping Files (*.xjmap)|*.xjmap|xMapHint (*.xmaphint)|*.xmaphint|All Files (*.)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxFileDialog dlg(this, "Save mapping", wxEmptyString, _mappingFile, "Text Maping (*.xmap)|*.xmap|JSON Mapping Files (*.xjmap)|*.xjmap|xMapHint (*.xmaphint)|*.xmaphint", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (dlg.ShowModal() == wxID_OK) {
         if (dlg.GetPath().Lower().EndsWith(".xmaphint")) {
             generateMapHintsFile(dlg.GetPath());
@@ -2072,7 +2076,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
             }
         } else {
             //used
-            ListCtrl_Available->SetItemTextColour(i, *wxLIGHT_GREY);
+            ListCtrl_Available->SetItemTextColour(i, LightOrMediumGrey());
         }
     }
     ListCtrl_Available->Thaw();

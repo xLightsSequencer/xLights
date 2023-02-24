@@ -64,9 +64,9 @@ void DmxServo::Clear()
     static_images.clear();
 }
 
-void DmxServo::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxServo::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     wxPGProperty* p = grid->Append(new wxUIntProperty("Num Servos", "NumServos", (int)num_servos));
     p->SetAttribute("Min", 1);

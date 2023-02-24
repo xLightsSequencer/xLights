@@ -200,8 +200,11 @@ std::list<std::string> ControllerCaps::GetModels(const std::string& type, const 
                 if (type == CONTROLLER_ETHERNET && it3->SupportsEthernetInputProtols()) {
                     models.push_back(it.first);
                     break;
+                } else if (type == CONTROLLER_SERIAL && it3->SupportsSerialInputProtols()) {
+                    models.push_back(it.first);
+                    break;
                 }
-                else if (type == CONTROLLER_SERIAL && it3->SupportsSerialInputProtols()) {
+                else if (type == CONTROLLER_ETHERNET && it3->IsPlayerOnly()) {
                     models.push_back(it.first);
                     break;
                 }
@@ -425,9 +428,15 @@ bool ControllerCaps::SupportsPixelPortColourOrder() const {
 bool ControllerCaps::SupportsEthernetInputProtols() const
 {
     for (const auto& it : GetInputProtocols()) {
-        if (it == "e131" || it == "artnet" || it == "kinet" || it == "zcpp" || it == "ddp" || it == "opc" || it == "xxx ethernet") return true;
+        if (it == "e131" || it == "artnet" || it == "kinet" || it == "zcpp" || it == "ddp" || it == "opc" || it == "xxx ethernet" || it == "twinkly")
+            return true;
     }
     return false;
+}
+
+bool ControllerCaps::IsPlayerOnly() const
+{
+    return DoesXmlNodeExist(_config, "PlayerOnly");
 }
 
 bool ControllerCaps::SupportsSerialInputProtols() const
@@ -648,6 +657,12 @@ std::string ControllerCaps::GetPreferredInputProtocol() const
 {
     return GetXmlNodeContent(_config, "PreferredInputProtocol", "");
 }
+
+std::string ControllerCaps::GetConfigDriver() const
+{
+    return GetXmlNodeContent(_config, "ConfigDriver", "");
+}
+
 
 std::vector<std::string> ControllerCaps::GetSmartRemoteTypes() const {
     if (!SupportsSmartRemotes()) {

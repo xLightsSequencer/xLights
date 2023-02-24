@@ -21,7 +21,8 @@
 				<Protocol>ddp</Protocol>
 				<Protocol>zcpp</Protocol>
 			</InputProtocols>
-		</Variant>	
+            <ConfigDriver>ESPixelStick</ConfigDriver>
+		</Variant>
 	</Controller>
     <Controller Name="ESPixelStick-4.x">
         <Variant Name="ESP8266" ID="ESP8266">
@@ -44,15 +45,16 @@
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
             </PixelProtocols>
+            <SerialProtocols>
                 <Protocol>dmx</Protocol>
                 <Protocol>renard</Protocol>
-            <SerialProtocols>
             </SerialProtocols>
             <InputProtocols>
                 <Protocol>e131</Protocol>
                 <Protocol>ddp</Protocol>
                 <Protocol>artnet</Protocol>
             </InputProtocols>
+            <ConfigDriver>ESPixelStick</ConfigDriver>
         </Variant>
         <Variant Name="ESP32" ID="ESP32">
             <SupportsPixelPortCommonSettings/>
@@ -74,15 +76,16 @@
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
             </PixelProtocols>
+            <SerialProtocols>
                 <Protocol>dmx</Protocol>
                 <Protocol>renard</Protocol>
-            <SerialProtocols>
             </SerialProtocols>
             <InputProtocols>
                 <Protocol>e131</Protocol>
                 <Protocol>ddp</Protocol>
                 <Protocol>artnet</Protocol>
             </InputProtocols>
+            <ConfigDriver>ESPixelStick</ConfigDriver>
         </Variant>
     </Controller>
 </Vendor>

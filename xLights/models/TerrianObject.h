@@ -26,7 +26,7 @@ public:
 
     virtual void InitModel() override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
 
     int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;

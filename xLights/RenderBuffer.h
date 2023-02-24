@@ -79,6 +79,8 @@ public:
     static void CleanUp();
 
     void ResetSize(int BufferWi, int BufferHt);
+    size_t GetWidth() const;
+    size_t GetHeight() const;
     virtual void Clear();
     virtual wxImage *FlushAndGetImage();
     virtual bool AllowAlphaChannel() { return true;};
@@ -526,6 +528,7 @@ public:
     xlColor *GetTempBuf() { return tempbuf; }
     void CopyTempBufToPixels();
     void CopyPixelsToTempBuf();
+    wxPoint GetMaxBuffer(const SettingsMap& SettingsMap) const;
 
     PaletteClass palette;
     bool _nodeBuffer = false;

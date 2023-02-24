@@ -29,6 +29,7 @@
 #include "LayoutGroup.h"
 #include "ControllerModelDialog.h"
 #include "ExternalHooks.h"
+#include "utils/ip_utils.h"
 
 #include "controllers/FPP.h"
 #include "controllers/Falcon.h"
@@ -1790,7 +1791,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
             }
         } else if (name == "IP") {
             // This fixes up any start channels dependent on the controller IP
-            if (IsIPValid(oldIP) && IsIPValid(controller->GetIP()) && _outputManager.GetControllers(oldIP).size() == 0) {
+            if (ip_utils::IsIPValid(oldIP) && ip_utils::IsIPValid(controller->GetIP()) && _outputManager.GetControllers(oldIP).size() == 0) {
                 AllModels.ReplaceIPInStartChannels(oldIP, controller->GetIP());
             }
         }
@@ -1905,6 +1906,9 @@ void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)
             }
         }
     } else {
+        if (_outputManager.IsOutputting()) {
+            return;
+        }
         if (controller != nullptr) {
             int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
             if (usingip == 1 && controller->CanVisualise()) {

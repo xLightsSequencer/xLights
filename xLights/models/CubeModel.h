@@ -23,7 +23,6 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;
         virtual int GetNumPhysicalStrings() const override;
         virtual bool SupportsXlightsModel() override { return true; }
-        virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return false; }
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
@@ -33,12 +32,20 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int GetStrandLength(int strand) const override { return _strandLength; }
         virtual int GetNumStrands() const override { return _strands; };
         virtual int MapToNodeIndex(int strand, int node) const override;
-        virtual void ExportAsCustomXModel() const override;
+        virtual void ExportAsCustomXModel3D() const override;
+        virtual bool SupportsExportAsCustom3D() const override
+        {
+            return true;
+        }
+        virtual bool SupportsExportAsCustom() const override
+        {
+            return false;
+        }
         virtual int NodesPerString() const override;
 
         virtual std::string ChannelLayoutHtml(OutputManager * outputManager) override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     protected:

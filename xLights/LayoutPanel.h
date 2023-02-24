@@ -148,6 +148,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_LOCK;
         static const long ID_PREVIEW_MODEL_UNLOCK;
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM;
+        static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM3D;
         static const long ID_PREVIEW_MODEL_CREATEGROUP;
         static const long ID_PREVIEW_MODEL_WIRINGVIEW;
         static const long ID_PREVIEW_MODEL_ASPECTRATIO;

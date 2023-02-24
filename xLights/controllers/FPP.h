@@ -161,6 +161,9 @@ private:
                           const std::string &dir);
     bool uploadFile(const std::string &filename,
                     const std::string &file);
+    bool uploadFileV7(const std::string &filename,
+                      const std::string &file,
+                      const std::string &dir);
     bool copyFile(const std::string &filename,
                   const std::string &file,
                   const std::string &dir);
@@ -182,7 +185,7 @@ private:
     std::string baseSeqName;
     FSEQFile *outputFile = nullptr;
 
-    void setupCurl();
+    void setupCurl(int timeout = 30000);
     CURL *curl = nullptr;
     std::string curlInputBuffer;
     

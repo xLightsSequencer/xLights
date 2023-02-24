@@ -12,6 +12,7 @@
 #include "UniverseEntryDialog.h"
 #include "FadeExcludeDialog.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/ip_utils.h"
 #include "../xLights/IPEntryDialog.h"
 
 //(*IdInit(SettingsDialog)
@@ -246,8 +247,8 @@ void SettingsDialog::ValidateWindow()
     }
 
     if ((!CheckBox_ArtNET->GetValue() && !CheckBox_E131->GetValue()) ||
-        !IsIPValid(TextCtrl_LeftIP->GetValue()) ||
-        !IsIPValid(TextCtrl_RightIP->GetValue()))
+        !ip_utils::IsIPValid(TextCtrl_LeftIP->GetValue()) ||
+        !ip_utils::IsIPValid(TextCtrl_RightIP->GetValue()))
     {
         Button_Ok->Disable();
     }

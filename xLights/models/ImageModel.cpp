@@ -81,7 +81,8 @@ void ImageModel::InitRenderBufferNodes(const std::string &type, const std::strin
     newNodes.push_back(NodeBaseClassPtr(node));
 }
 
-void ImageModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void ImageModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
 	wxPGProperty *p = grid->Append(new wxImageFileProperty("Image",
                                              "Image",
                                              _imageFile));
@@ -153,6 +154,7 @@ void ImageModel::DisableUnusedProperties(wxPropertyGridInterface *grid)
 
 int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
 
+    IncrementChangeCount();
     if ("Image" == event.GetPropertyName()) {
         for (auto it = _images.begin(); it != _images.end(); ++it) {
             delete it->second;
@@ -173,9 +175,9 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
             delete it->second;
         }
         _images.clear();
-        IncrementChangeCount();
         ModelXml->DeleteAttribute("WhiteAsAlpha");
         ModelXml->AddAttribute("WhiteAsAlpha", _whiteAsAlpha ? "True" : "False");
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
@@ -184,6 +186,7 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         _offBrightness = event.GetValue().GetInteger();
         ModelXml->DeleteAttribute("OffBrightness");
         ModelXml->AddAttribute("OffBrightness", wxString::Format("%d", _offBrightness));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::OffBrightness");

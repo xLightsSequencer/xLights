@@ -31,7 +31,7 @@
 #include "ExternalHooks.h"
 #include <log4cpp/Category.hh>
 
-#include "../xSchedule/xSMSDaemon/Curl.h"
+#include "utils/Curl.h"
 #undef min
 #undef max
 

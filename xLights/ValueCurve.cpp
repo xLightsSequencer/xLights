@@ -1754,9 +1754,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         if (__audioManager != nullptr && _values.size() == 0) {
             float min = (GetParameter1() - _min) / (_max - _min);
             float max = (GetParameter2() - _min) / (_max - _min);
-            int step = (endMS - startMS) / VC_X_POINTS;
             int frameMS = __audioManager->GetFrameInterval();
-            if (step < frameMS) step = frameMS;
             int fadeFrames = GetParameter4();
             float yperFrame = (max - min) / fadeFrames;
             float perPoint = vcSortablePoint::perPoint();
@@ -1987,6 +1985,8 @@ void ValueCurve::DeletePoint(float offset)
 
 void ValueCurve::RemoveExcessCustomPoints()
 {
+    if (_values.size() < 3)
+        return;
     // go through list and remove middle points where 3 in a row have the same value
     auto it1 = _values.begin();
     auto it2 = it1;
@@ -2050,7 +2050,7 @@ float ValueCurve::GetParameter1_100() const
     return (GetParameter1() - _min) * 100 / range;
 }
 
-float ValueCurve::FindMinPointLessThan(float point)
+float ValueCurve::FindMinPointLessThan(float point) const
 {
     float res = 0.0;
 
@@ -2065,7 +2065,7 @@ float ValueCurve::FindMinPointLessThan(float point)
     return vcSortablePoint::Normalise(res);
 }
 
-float ValueCurve::FindMaxPointGreaterThan(float point)
+float ValueCurve::FindMaxPointGreaterThan(float point) const
 {
     float res = 1.0;
 
@@ -2081,17 +2081,35 @@ float ValueCurve::FindMaxPointGreaterThan(float point)
     return vcSortablePoint::Normalise(res);
 }
 
-bool ValueCurve::NearCustomPoint(float x, float y)
+bool ValueCurve::NearCustomPoint(float x, float y) const
 {
-    for (auto it = _values.begin(); it != _values.end(); ++it)
-    {
-        if (it->IsNear(x, y))
-        {
+    for (const auto& it : _values) {
+        if (it.IsNear(x, y)) {
             return true;
         }
     }
 
     return false;
+}
+
+float ValueCurve::GetPointAt(float x) const
+{
+    for (const auto& it : _values) {
+        if (it.x == x)
+            return it.y;
+    }
+
+    return 0.0;
+}
+
+void ValueCurve::SetPointAt(float x, float y)
+{
+    for (auto& it : _values) {
+        if (it.x == x) {
+            it.y = y;
+            return;
+        }
+    }
 }
 
 wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)

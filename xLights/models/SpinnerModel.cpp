@@ -153,7 +153,7 @@ int SpinnerModel::EncodeStartLocation()
     }
 }
 
-void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) {
     
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "SpinnerStringCount", parm1));
     p->SetAttribute("Min", 1);
@@ -202,6 +202,7 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         //AdjustStringProperties(grid, parm1);
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::SpinnerStringCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::SpinnerStringCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::SpinnerStringCount");
@@ -213,6 +214,7 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     } else if ("SpinnerArmNodeCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::SpinnerArmNodeCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::SpinnerArmNodeCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::SpinnerArmNodeCount");
@@ -223,6 +225,7 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     } else if ("FoldCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::FoldCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::FoldCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::FoldCount");
@@ -233,6 +236,7 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     } else if ("Hollow" == event.GetPropertyName()) {
          ModelXml->DeleteAttribute("Hollow");
          ModelXml->AddAttribute("Hollow", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
          AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::StartAngle");
          AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::StartAngle");
          AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::StartAngle");
@@ -242,6 +246,7 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     else if ("StartAngle" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("StartAngle");
         ModelXml->AddAttribute("StartAngle", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::Hollow");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::Hollow");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::Hollow");
@@ -250,6 +255,7 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     } else if ("Arc" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Arc");
         ModelXml->AddAttribute("Arc", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::Arc");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::Arc");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::Arc");
@@ -258,6 +264,7 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     } else if ("ZigZag" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("ZigZag");
         ModelXml->AddAttribute("ZigZag", event.GetPropertyValue().GetBool() ? "true" : "false");
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::ZigZag");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::ZigZag");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::ZigZag");
@@ -273,6 +280,7 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
         ModelXml->AddAttribute("Alternate", alternate ? "true" : "false");
         ModelXml->DeleteAttribute("ZigZag");
         ModelXml->AddAttribute("ZigZag",zigzag ? "true" : "false");
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::MatrixStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::MatrixStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::MatrixStart");

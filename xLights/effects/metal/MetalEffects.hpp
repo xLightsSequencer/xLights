@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../ButterflyEffect.h"
+#include "../PlasmaEffect.h"
 #include "../WarpEffect.h"
 
 
@@ -33,4 +34,20 @@ public:
 
 private:
     MetalWarpEffectData *data;
+};
+
+
+class MetalPlasmaEffectData;
+
+class MetalPlasmaEffect : public PlasmaEffect {
+public:
+    MetalPlasmaEffect(int i);
+    virtual ~MetalPlasmaEffect();
+
+
+    virtual void Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) override;
+
+
+private:
+    MetalPlasmaEffectData *data;
 };

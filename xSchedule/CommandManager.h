@@ -46,7 +46,7 @@ class Command
     bool IsUIOnly() const { return _uiOnly; }
     std::string GetParametersTip() const;
     void SetCommand(std::string command) { _command = command; _commandLower = wxString(_command).Lower(); }
-    size_t GetMandatoryParametersCount() const;
+    std::tuple<size_t,size_t> GetMandatoryParametersCount() const;
 };
 
 class CommandManager

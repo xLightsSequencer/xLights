@@ -40,7 +40,7 @@ public:
             }
             id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
             if (computeEncoder == nil) {
-                commandBuffer = nil;
+                rbcd->abortCommandBuffer();
                 return false;
             }
             [computeEncoder setLabel:@"ButterflyEffect"];
@@ -53,7 +53,7 @@ public:
             id<MTLBuffer> bufferResult = rbcd->getPixelBuffer();
             if (bufferResult == nil) {
                 computeEncoder = nil;
-                commandBuffer = nil;
+                rbcd->abortCommandBuffer();
                 return false;
             }
 

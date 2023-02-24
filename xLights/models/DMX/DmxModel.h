@@ -38,7 +38,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, bool deep = false) const override;
 
         virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override {}
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual std::string GetDimension() const override { return ""; }

@@ -349,16 +349,16 @@ void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std:
     }
 }
 
-std::string ModelManager::SerialiseModelGroupsForModel(const std::string& name) const
+std::string ModelManager::SerialiseModelGroupsForModel(Model* m) const
 {
     wxArrayString allGroups;
     wxArrayString onlyGroups;
     for (const auto& it : models) {
         if (it.second->GetDisplayAs() == "ModelGroup"){
-            if (dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(name)) {
+            if (dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(m->Name())) {
                 onlyGroups.Add(it.first);
                 allGroups.Add(it.first);
-            } else if (dynamic_cast<ModelGroup*>(it.second)->DirectlyContainsModel(name)) {
+            } else if (dynamic_cast<ModelGroup*>(it.second)->ContainsModelOrSubmodel(m)) {
                 allGroups.Add(it.first);
             }
         }
@@ -382,7 +382,7 @@ std::string ModelManager::SerialiseModelGroupsForModel(const std::string& name) 
 
     for (const auto& it : models) {
         if (onlyGroups.Index(it.first) != wxNOT_FOUND) {
-            res += dynamic_cast<ModelGroup*>(it.second)->SerialiseModelGroup(name);
+            res += dynamic_cast<ModelGroup*>(it.second)->SerialiseModelGroup(m->Name());
         }
     }
 
@@ -422,7 +422,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                         auto mgmn = wxString(it);
                         mgmn = mname + "/" + mgmn.AfterFirst('/');
                         std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
-                        if (Contains(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
+                        if (ContainsBetweenCommas(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
                             std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
                             !mmg->DirectlyContainsModel(mgmn)) {
                             mmg->AddModel(mgmn);
@@ -431,7 +431,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                         }
                     }
                     else {
-                        if (Contains(grpModels, it) && std::find(mmnmn.begin(), mmnmn.end(), mname) == mmnmn.end() &&
+                        if (ContainsBetweenCommas(grpModels, it) && std::find(mmnmn.begin(), mmnmn.end(), mname) == mmnmn.end() &&
                             std::find(prevousNames.begin(), prevousNames.end(), mname) == prevousNames.end() &&
                             !mmg->DirectlyContainsModel(mname)) {
                             mmg->AddModel(mname);
@@ -1591,6 +1591,27 @@ std::vector<std::string> ModelManager::GetGroupsContainingModel(Model* model) co
             else {
                 for (const auto& sm : model->GetSubModels()) {
                     if (mg->ContainsModel(sm)) {
+                        res.push_back(it.first);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return res;
+}
+
+std::vector<std::string> ModelManager::GetGroupsContainingModelOrSubmodel(Model* model) const
+{
+    std::vector<std::string> res;
+    for (const auto& it : *this) {
+        if (it.second->GetDisplayAs() == "ModelGroup") {
+            auto mg = dynamic_cast<ModelGroup*>(it.second);
+            if (mg->ContainsModelOrSubmodel(model)) {
+                res.push_back(it.first);
+            } else {
+                for (const auto& sm : model->GetSubModels()) {
+                    if (mg->ContainsModelOrSubmodel(sm)) {
                         res.push_back(it.first);
                         break;
                     }

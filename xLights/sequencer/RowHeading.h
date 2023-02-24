@@ -46,7 +46,6 @@ public:
 protected:
 private:
     DECLARE_EVENT_TABLE()
-    void Draw();
     void render(wxPaintEvent& event);
     void mouseLeftDown(wxMouseEvent& event);
     void mouseLeftUp(wxMouseEvent& event);
@@ -69,6 +68,8 @@ private:
 
     wxBitmapBundle papagayo_icon;
     wxBitmapBundle papagayox_icon;
+    wxBitmapBundle fppCommand_icon;
+    wxBitmapBundle fppEffect_icon;
     wxBitmapBundle model_group_icon;
 
     int mSelectedRow = -1;
@@ -104,6 +105,7 @@ private:
     static const long ID_ROW_MNU_COPY_MODEL;
     static const long ID_ROW_MNU_PASTE_ROW;
     static const long ID_ROW_MNU_PASTE_MODEL;
+    static const long ID_ROW_MNU_RENDERENABLE_ALL;
     static const long ID_ROW_MNU_RENDERENABLE_MODEL;
     static const long ID_ROW_MNU_RENDERDISABLE_MODEL;
     static const long ID_ROW_MNU_DELETE_ROW_EFFECTS;

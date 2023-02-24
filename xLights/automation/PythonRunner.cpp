@@ -20,12 +20,16 @@
 
 #include <cmath>
 
+#if __has_include("Python.h") && __has_include(<pybind11/pybind11.h>)
 #include <pybind11/embed.h>
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
 using namespace py::literals;
+#define PYTHON_RUNNER
+#pragma message("Compiling with pybind11")
+#endif
 
 PythonRunner::PythonRunner(xLightsFrame* frame) :
     _frame(frame)
@@ -98,7 +102,8 @@ std::list<std::string> PythonRunner::PromptSequences() const
 }
 
 bool PythonRunner::Run_Script(wxString const& filepath, std::function<void (std::string const& msg)> SendResponse)
-{ 
+{
+    #if defined(PYTHON_RUNNER)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string const user_scripts_folder = GetUserScriptFolder();
@@ -126,6 +131,7 @@ bool PythonRunner::Run_Script(wxString const& filepath, std::function<void (std:
         wxMessageBox(e.what(), "Error", wxOK);
         return false;
     }
+    #endif
     return true;
 }
 
@@ -146,11 +152,13 @@ wxString PythonRunner::CommandtoString(std::string const& cmd, const pybind11::d
 {
     wxJSONValue cmds;
     cmds["cmd"] = cmd;
+#if defined(PYTHON_RUNNER)
     for (auto item : dict) {
 
         wxString key = std::string(py::str(item.first));
         wxString value =  std::string(py::str(item.second));
         cmds[key] = value;
     }
+#endif
     return JSONtoString(cmds);
 }

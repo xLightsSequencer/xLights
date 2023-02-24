@@ -44,6 +44,8 @@ public:
         return RenderableEffect::GetSettingVCMax(name);
     }
 
+    static int GetPlasmaColorScheme(const std::string &ColorSchemeStr);
+
 protected:
     virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

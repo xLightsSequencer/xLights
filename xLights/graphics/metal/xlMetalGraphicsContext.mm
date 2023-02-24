@@ -1363,7 +1363,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
         }
     }
     if (!lastIsSolid) {
-        lastIsSolid = true;
+        //lastIsSolid = true;
         [encoder setRenderPipelineState:solidPS];
     }
     if (xlm->linesCount) {

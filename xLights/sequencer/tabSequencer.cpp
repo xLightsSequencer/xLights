@@ -1259,6 +1259,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
         // need to do this otherwise they dont update when we drop the model
         bufferPanel->UpdateBufferStyles(AllModels[el->GetParentElement()->GetModelName()]);
+        bufferPanel->UpdateCamera(AllModels[el->GetParentElement()->GetModelName()]);
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
             DoStopSequence();
@@ -2688,14 +2689,22 @@ void xLightsFrame::SetEffectChoice(wxCommandEvent& event)
 
 void xLightsFrame::TipOfDayReady(wxCommandEvent& event)
 {
-    // at this point if we are downloading tip of day content then the tip of day content is downloaded and ready to go
+    // only show tip of the day if show directory is set
+    if (CurrentDir != "") {
+        // at this point if we are downloading tip of day content then the tip of day content is downloaded and ready to go
 #ifdef __WXMSW__
-    _tod.SetTODXMLFile(event.GetString());
-    _tod.DoTipOfDay(false);
+        _tod.SetTODXMLFile(event.GetString());
+        _tod.DoTipOfDay(false);
 #else
-    _tod->SetTODXMLFile(event.GetString());
-    _tod->DoTipOfDay(false);
+        _tod->SetTODXMLFile(event.GetString());
+        _tod->DoTipOfDay(false);
 #endif
+    }
+}
+
+void xLightsFrame::SetEffectDuration(wxCommandEvent& event)
+{
+    mainSequencer->SetEffectDuration(event.GetString(), event.GetInt());
 }
 
 void xLightsFrame::ApplyLast(wxCommandEvent& event)
@@ -3131,7 +3140,7 @@ void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
     UpdateViewMenu();
 }
 
-TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
+TimingElement* xLightsFrame::AddTimingElement(const std::string& name, const std::string &subType)
 {
     std::string n = RemoveUnsafeXmlChars(name);
     int nn = 1;
@@ -3146,6 +3155,7 @@ TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
     int timingCount = _sequenceElements.GetNumberOfTimingElements();
     std::string type = "timing";
     TimingElement* e = dynamic_cast<TimingElement*>(_sequenceElements.AddElement(timingCount, n, type, true, false, true, false, false));
+    e->SetSubType(subType);
     e->AddEffectLayer();
     _sequenceElements.AddTimingToCurrentView(n);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);

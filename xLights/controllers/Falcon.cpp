@@ -21,7 +21,7 @@
 #ifndef DISCOVERONLY
 #include "../models/Model.h"
 #include "../models/ModelManager.h"
-#include "../../xSchedule/xSMSDaemon/Curl.h"
+#include "../utils/Curl.h"
 #include "ControllerUploadData.h"
 #endif
 
@@ -2340,6 +2340,15 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
         wxXmlNode* node = xml.GetRoot();
         if (node != nullptr) {
             cm = wxAtoi(node->GetAttribute("m", "-1"));
+        }
+
+        // the m parameter in strings.xml is not reliable ... so get the home page and search for "<input type="hidden" name="m" id="m"  value="64" />"
+        std::string status = GetURL("/");
+        if (status != "") {
+            static wxRegEx mregex("(id=\"m\" +value=\")([0-9]+)\"", wxRE_ADVANCED);
+            if (mregex.Matches(wxString(status))) {
+                cm = wxAtoi(mregex.GetMatch(wxString(status), 2).ToStdString());
+            }
         }
     }
 

@@ -330,21 +330,20 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
         return true;
     }
 
-    //Joes code allows 6 universe settings uploaded at a time
-    //loop though and submit every 6
-    int numberOfCalls;
-    if (_numberOfUniverses <= 65) {
-        numberOfCalls = 11;
-    } else {
-        numberOfCalls = 25;
-    }
+    // Joes code allows 6 universe settings uploaded at a time
+    //  loop though and submit every 6
+    //
+    //  EasyLights 16 max is 65 universes
+    //  HinksPix Pro prev v111 firmware is 145 universes
+    //  HinksPix Pro v111 firmware is 402 universes
+    int numberOfCalls = std::ceil(_numberOfUniverses / UN_PER);
 
     int index = 1;
     int num_of_unv = 0;
 
     for (int j = 0; j < numberOfCalls; j++) {
         wxString requestString = wxString::Format("DATA: {\"CMD\":\"E131\",\"BLK\":\"%d\",\"LIST\":[", j);
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < UN_PER; i++) {
             auto inpUn = std::find_if(inputUniverses.begin(), inputUniverses.end(), [index](auto const& inp) { return inp.index == index; });
             if (inpUn != inputUniverses.end()) {
                 if (i != 0) {
@@ -430,20 +429,14 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
         if (type != 1) {
 
             //Joes code allows 6 universe settings uploaded at a time
-            //loop though and submit every 6
-            int numberOfCalls;
-            if (maxUnv <= 65) {
-                numberOfCalls = 11;
-            }
-            else {
-                numberOfCalls = 25;
-            }
-
+            // loop though and submit every 6
+            // EasyLights 16 max is 65 universes
+            int numberOfCalls = std::ceil(maxUnv / UN_PER);
             int index = 1;
 
             for (int j = 0; j < numberOfCalls; j++) {
                 wxString requestString = wxString::Format("ROWCNT=16:ROW=%d:", j);
-                for (int i = 0; i < 6; i++) {
+                for (int i = 0; i < UN_PER; i++) {
                     auto inpUn = std::find_if(inputUniverses.begin(), inputUniverses.end(), [index](auto const& inp) { return inp.index == index; });
                     if (inpUn != inputUniverses.end()) {
                         if (i != 0) {
@@ -730,22 +723,32 @@ void HinksPix::CalculateSmartRecievers(UDControllerPort* stringData) {
                 auto smartOut = std::find_if(_smartOutputs[expansionBoard][bank].begin(), _smartOutputs[expansionBoard][bank].end(), [id](auto const& so) {
                     return so.id == id;
                 });
-                if (smartOut != _smartOutputs[expansionBoard][bank].end()) {
+                if (smartOut != _smartOutputs[expansionBoard][bank].end()) {//if sr exists update start pixel count
                     smartOut->portStartPixel[subPort] = start_pixels;
-                } else {
-                    auto& smartPort = _smartOutputs[expansionBoard][bank].emplace_back(id);
-                    smartPort.portStartPixel[subPort] = start_pixels;
-                    if (it->GetSmartRemoteType().find("16ac") != std::string::npos) {
-                        smartPort.type = 2;
-                        smartPort.portStartPixel = { 0, 0, 0, 0 };
-                        smartPort.portStartPixel[subPort] = start_pixels;
-                    }
-                    else if (it->GetSmartRemoteType().find("16") != std::string::npos && ((id % 4) == 0)) {
+                } else {//if sr doesnt exists, add it
+                    if (it->GetSmartRemoteType().find("16") != std::string::npos && 
+                        it->GetSmartRemoteType().find("16ac") == std::string::npos) { //add 16 port
+                        //add all four remotes, starting at the first id 0,4,8,12
+                        int id16 = (id / 4) * 4;
+                        auto& smartPort = _smartOutputs[expansionBoard][bank].emplace_back(id16);
                         smartPort.type = 1;
-                        //fluff the Receivers
-                        _smartOutputs[expansionBoard][bank].emplace_back(id + 1);
-                        _smartOutputs[expansionBoard][bank].emplace_back(id + 2);
-                        _smartOutputs[expansionBoard][bank].emplace_back(id + 3);
+                        // fluff the Receivers
+                        _smartOutputs[expansionBoard][bank].emplace_back(id16 + 1);
+                        _smartOutputs[expansionBoard][bank].emplace_back(id16 + 2);
+                        _smartOutputs[expansionBoard][bank].emplace_back(id16 + 3);
+                        //get real sm 0,1,2,3, etc
+                        auto smartOut16 = std::find_if(_smartOutputs[expansionBoard][bank].begin(), _smartOutputs[expansionBoard][bank].end(), [id](auto const& so) {
+                            return so.id == id;
+                        });
+                        if (smartOut16 != _smartOutputs[expansionBoard][bank].end()) {//should always be true. we just added it
+                            smartOut16->portStartPixel[subPort] = start_pixels;
+                        }
+                    } else {//add four port or 16ac
+                        auto& smartPort = _smartOutputs[expansionBoard][bank].emplace_back(id);
+                        smartPort.portStartPixel[subPort] = start_pixels;
+                        if (it->GetSmartRemoteType().find("16ac") != std::string::npos) {
+                            smartPort.type = 2;
+                        }
                     }
                 }
             }

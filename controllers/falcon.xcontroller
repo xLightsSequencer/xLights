@@ -44,6 +44,7 @@
             <Protocol>ucs2903</Protocol>
             <Protocol>tm1814a</Protocol>
         </PixelProtocols>
+        <ConfigDriver>Falcon</ConfigDriver>
     </AbstractVariant>
     <AbstractVariant Name="BaseFalconV2Settings" Base="Falcon:BaseFalconSettings">
         <MaxPixelPortChannels>2040</MaxPixelPortChannels>
@@ -200,7 +201,7 @@
 			<Protocol>dmx512p</Protocol>
 			<Protocol>dmx512p-4</Protocol>
 			<Protocol>sj1221</Protocol>
-	</PixelProtocols>
+		</PixelProtocols>
         <InputProtocols>
             <Protocol>e131</Protocol>
             <Protocol>artnet</Protocol>
@@ -210,6 +211,7 @@
         <SmartRemoteTypes>
             <Type>falcon_v2</Type>
         </SmartRemoteTypes>
+        <ConfigDriver>Falcon</ConfigDriver>
     </AbstractVariant>
 	<Controller Name="F16V4">
 		<Variant Name="16 Local Ports" Base="Falcon:BaseV4FalconSettings">

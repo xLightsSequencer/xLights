@@ -49,6 +49,7 @@ void PinwheelEffect::SetDefaultParameters() {
     pp->BitmapButton_Pinwheel_SpeedVC->SetActive(false);
     pp->BitmapButton_Pinwheel_ThicknessVC->SetActive(false);
     pp->BitmapButton_Pinwheel_TwistVC->SetActive(false);
+    pp->BitmapButton_Pinwheel_OffsetVC->SetActive(false);
 
     SetChoiceValue(pp->Choice_Pinwheel_3D, "none");
     SetChoiceValue(pp->Choice_Pinwheel_Style, "New Render Method");
@@ -60,6 +61,7 @@ void PinwheelEffect::SetDefaultParameters() {
     SetSliderValue(pp->Slider_Pinwheel_Thickness, 0);
     SetSliderValue(pp->Slider_Pinwheel_Twist, 0);
     SetSliderValue(pp->Slider_Pinwheel_Speed, 10);
+    SetSliderValue(pp->Slider_Pinwheel_Offset, 0);
 
     SetCheckBoxValue(pp->CheckBox_Pinwheel_Rotation, true);
 }

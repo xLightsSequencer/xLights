@@ -263,7 +263,9 @@ bool xCaptureApp::OnInit()
     logger_base.info("******* OnInit: xCapture started.");
 
     DumpConfig();
-
+#ifdef __WXMSW__
+    MSWEnableDarkMode();
+#endif
     static const wxCmdLineEntryDesc cmdLineDesc[] =
     {
         { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters", wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },

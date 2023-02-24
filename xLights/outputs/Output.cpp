@@ -33,6 +33,7 @@
 #include "GenericSerialOutput.h"
 #include "../UtilFunctions.h"
 #include "OutputManager.h"
+#include "../utils/ip_utils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -179,7 +180,7 @@ int Output::GetBaudRate() const {
 }
 
 void Output::SetIP(const std::string& ip) {
-    auto i = CleanupIP(ip);
+    auto i = ip_utils::CleanupIP(ip);
     if (i != _ip) {
         _ip = i;
         _resolvedIp = _ip;
@@ -240,7 +241,7 @@ bool Output::Open() {
         if (proxy != "") {
             _fppProxyOutput = new DDPOutput();
             _fppProxyOutput->_ip = proxy;
-            _fppProxyOutput->_resolvedIp = ResolveIP(proxy);
+            _fppProxyOutput->_resolvedIp = ip_utils::ResolveIP(proxy);
             _fppProxyOutput->_startChannel = _startChannel;
             _fppProxyOutput->_channels = GetEndChannel() - _startChannel + 1;
             _fppProxyOutput->Open();

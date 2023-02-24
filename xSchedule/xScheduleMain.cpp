@@ -56,6 +56,7 @@
 #include "../xLights/outputs/IPOutput.h"
 #include "PlayList/PlayListItemOSC.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/ip_utils.h"
 #include "ConfigureMIDITimecodeDialog.h"
 #include "City.h"
 #include "events/ListenerManager.h"
@@ -1944,12 +1945,6 @@ void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxGetEnv("APPDATA", &dir);
     wxString filename = dir + "/" + fileName;
 #endif
-#ifdef __WXOSX__
-    wxFileName home;
-    home.AssignHomeDir();
-    dir = home.GetFullPath();
-    wxString filename = dir + "/Library/Logs/" + fileName;
-#endif
 #ifdef __LINUX__
     wxString filename = "/tmp/" + fileName;
 #endif
@@ -3608,7 +3603,7 @@ void xScheduleFrame::OnListView_PingItemActivated(wxListEvent& event)
     auto p = _pinger->GetPingerByIndex(event.GetIndex());
     if (p != nullptr) {
         auto ip = p->GetIP();
-        if (IsIPValidOrHostname(ip)) {
+        if (ip_utils::IsIPValidOrHostname(ip)) {
             ::wxLaunchDefaultBrowser("http://" + ip);
         }
     }

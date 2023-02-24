@@ -41,6 +41,7 @@ const long ScriptsDialog::ID_TEXTCTRL_LOG = wxNewId();
 //*)
 
 const long ScriptsDialog::ID_MCU_VIEWSCRIPT = wxNewId();
+const long ScriptsDialog::ID_MCU_VIEWSCRIPTFOLDER = wxNewId();
 
 BEGIN_EVENT_TABLE(ScriptsDialog, wxDialog)
 	//(*EventTable(ScriptsDialog)
@@ -121,6 +122,7 @@ void ScriptsDialog::OnListRClick(wxContextMenuEvent& event)
 {
     wxMenu mnu;
     mnu.Append(ID_MCU_VIEWSCRIPT, "View Script");
+    mnu.Append(ID_MCU_VIEWSCRIPTFOLDER, "Open Folder");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&ScriptsDialog::OnPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -152,6 +154,12 @@ void ScriptsDialog::OnPopup(wxCommandEvent& event)
         } else {
             logger_base.warn("Unable to open script as no program can open the file %s.", (const char*)filePath.c_str());
         }
+    }else if (event.GetId() == ID_MCU_VIEWSCRIPTFOLDER) {
+        int sel = ListBoxScripts->GetSelection();
+        if (sel == wxNOT_FOUND) {
+            return;
+        }
+        wxLaunchDefaultApplication(wxPathOnly(_scripts.at(sel)));
     }
 }
 
@@ -190,7 +198,7 @@ void ScriptsDialog::ProcessScriptDir(wxString const& dir)
     wxDir directory;
     directory.Open(dir);
 
-    
+
     wxArrayString files;
     GetAllFilesInDir(dir, files, "*.lua");
     for (auto & file : files) {

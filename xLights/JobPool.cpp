@@ -220,6 +220,7 @@ void JobPoolWorker::Entry()
 
     try {
         SetThreadName(pool->threadNameBase);
+        SetThreadQOS(0);
         while ( !stopped ) {
             status = IDLE;
 
@@ -228,9 +229,7 @@ void JobPoolWorker::Entry()
                 logger_jobpool.debug("JobPoolWorker::Entry processing job.   %X", this);
                 status = RUNNING_JOB;
                 // Call user's implementation for processing request
-                SetThreadQOS(10);
                 ProcessJob(job);
-                SetThreadQOS(0);
                 logger_jobpool.debug("JobPoolWorker::Entry processed job.  %X", this);
                 status = IDLE;
                 --pool->inFlight;
@@ -352,6 +351,7 @@ Job *JobPool::GetNextJob() {
     std::unique_lock<std::mutex> mutLock(queueLock);
     Job *req = nullptr;
     if (queue.empty()) {
+        SetThreadQOS(0);
         ++idleThreads;
         signal.wait_for(mutLock, std::chrono::milliseconds(30000));
         --idleThreads;
@@ -359,6 +359,9 @@ Job *JobPool::GetNextJob() {
     if ( !queue.empty() ) {
         req = queue.front();
         queue.pop_front();
+        if (req) {
+            SetThreadQOS(10);
+        }
     }
     return req;
 }

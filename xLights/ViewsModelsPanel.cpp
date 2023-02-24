@@ -231,23 +231,11 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
 
     Connect(wxID_ANY, EVT_VMDROP, (wxObjectEventFunction)&ViewsModelsPanel::OnDrop);
 
-
     GridBagSizer1->AddGrowableCol(0, 2);
     GridBagSizer1->AddGrowableCol(2, 1);
     GridBagSizer1->AddGrowableRow(3);
 
-
     ListCtrlViews->SetImages((char**)eye_16, (char**)eye_16_gray);
-
-    _numViews = 0;
-    _numModels = 0;
-    _numNonModels = 0;
-    _sequenceElements = nullptr;
-    _mainViewsChoice = nullptr;
-    _seqData = nullptr;
-    _modelGroups = nullptr;
-    _models = nullptr;
-    _sequenceViewManager = nullptr;
 
     ListCtrlModels->SetImages((char**)eye_16, (char**)eye_16_gray);
     ListCtrlModels->AddImage((char**)timing_16);
@@ -1020,6 +1008,11 @@ void ViewsModelsPanel::OnListCtrlItemCheck(wxCommandEvent& event)
     // Update Grid
     _xlFrame->DoForceSequencerRefresh();
     ValidateWindow();
+}
+
+bool ViewsModelsPanel::HasView(const std::string& view)
+{
+    return GetViewIndex(view) >= 0;
 }
 
 void ViewsModelsPanel::SelectView(const std::string& view)

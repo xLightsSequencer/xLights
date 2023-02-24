@@ -14,7 +14,7 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/combobox.h>
-#include <wx/listbox.h>
+#include <wx/listctrl.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -42,7 +42,7 @@ class SearchPanel: public wxPanel
 		wxButton* Button_Search_Find;
 		wxCheckBox* CheckBox_Search_Regex;
 		wxComboBox* ComboBox_Search_Model;
-		wxListBox* ListBoxResults;
+		wxListCtrl* ListCtrl_Results;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxTextCtrl* TextCtrlSearch;
@@ -57,7 +57,7 @@ class SearchPanel: public wxPanel
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL_SEARCH;
 		static const long ID_BUTTON_SEARCH_FIND;
-		static const long ID_LISTBOX_RESULTS;
+		static const long ID_LISTCTRL_Results;
 		static const long ID_BUTTON_SELECT_ALL;
 		//*)
 
@@ -80,6 +80,10 @@ class SearchPanel: public wxPanel
 		void OnButtonSelectAllClick(wxCommandEvent& event);
 		void OnTextCtrlSearchTextEnter(wxCommandEvent& event);
 		void OnListBoxResultsSelect(wxCommandEvent& event);
+		void OnListCtrl_ResultsItemSelect(wxListEvent& event);
+		void OnListCtrl_ResultsItemActivated(wxListEvent& event);
+		void OnListCtrl_ResultsItemFocused(wxListEvent& event);
+		void OnListCtrl_ResultsItemDeselect(wxListEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -22,6 +22,7 @@
 #include <wx/textctrl.h>
 //*)
 
+#include <wx/timer.h>
 #include <wx/wx.h>
 #include <wx/grid.h>
 #include <wx/renderer.h>
@@ -33,15 +34,19 @@ class Model;
 class DrawGrid;
 class DrawGridEvent;
 class wxModelGridCellRenderer;
+class OutputManager;
 
 class NodeSelectGrid: public wxDialog
 {
 	void SetGridSizeForFont(const wxFont& font);
+    void StartOutputToLights();
+    bool StopOutputToLights();
+    void SelectNode(bool select, int row, int col, int node, bool addRemove = false);
 
 	public:
 
-		NodeSelectGrid(bool multiline, const wxString &title, Model *m, const std::vector<wxString> &rows, wxWindow* parent,wxWindowID id=wxID_ANY);
-        NodeSelectGrid(bool multiline, const wxString &title, Model *m, const wxString &row, wxWindow* parent, wxWindowID id = wxID_ANY);
+		NodeSelectGrid(bool multiline, const wxString &title, Model *m, const std::vector<wxString> &rows, OutputManager* om, wxWindow* parent,wxWindowID id=wxID_ANY);
+        NodeSelectGrid(bool multiline, const wxString &title, Model *m, const wxString &row, OutputManager* om, wxWindow* parent, wxWindowID id = wxID_ANY);
 
 		virtual ~NodeSelectGrid();
 
@@ -58,6 +63,7 @@ class NodeSelectGrid: public wxDialog
 		wxButton* ButtonZoomMinus;
 		wxButton* ButtonZoomPlus;
 		wxCheckBox* CheckBox_OrderedSelection;
+		wxCheckBox* CheckBox_OutputToLights;
 		wxSlider* SliderImgBrightness;
 		wxTextCtrl* TextCtrl_Nodes;
 		//*)
@@ -83,15 +89,20 @@ class NodeSelectGrid: public wxDialog
 		static const long ID_FILEPICKERCTRL1;
 		static const long ID_SLIDER_IMG_BRIGHTNESS;
 		static const long ID_BITMAPBUTTON1;
+		static const long ID_CHECKBOX2;
 		static const long ID_BUTTON_NODE_SELECT_OK;
 		static const long ID_BUTTON_NODE_SELECT_CANCEL;
 		static const long ID_GRID_NODES;
 		static const long ID_TEXTCTRL1;
 		//*)
+        static const long ID_TIMER1;
 
-        wxImage* bkg_image;
-        wxModelGridCellRenderer* renderer;
-        bool bkgrd_active;
+	    wxTimer timer1;
+        OutputManager* _outputManager = nullptr;
+        std::vector<uint32_t> _selected;
+        wxImage* bkg_image = nullptr;
+        wxModelGridCellRenderer* renderer = nullptr;
+        bool bkgrd_active = true;
 
 	private:
 
@@ -113,9 +124,11 @@ class NodeSelectGrid: public wxDialog
 		void OnCheckBox_OrderedSelectionClick(wxCommandEvent& event);
 		void OnTextCtrl_NodesText(wxCommandEvent& event);
 		void OnButtonInvertSelectClick(wxCommandEvent& event);
+		void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
 		//*)
 
 		void OnResize(wxSizeEvent& event);
+        void OnTimer1Trigger(wxTimerEvent& event);
 
         void OnCut(wxCommandEvent& event);
         void OnCopy(wxCommandEvent& event);
@@ -143,7 +156,7 @@ class NodeSelectGrid: public wxDialog
 		void GetMinMaxNode(long& min, long& max);
 		void Find();
 
-        Model *model;
+        Model *model = nullptr;
 
         wxColour selectColor;
         wxColour unselectColor;

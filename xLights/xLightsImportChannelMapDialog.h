@@ -233,11 +233,6 @@ public:
         _pendingAdditions.Add(wxDataViewItem(child));
     }
 
-    void NotifyItemsAdded(const wxDataViewItem& parent = wxDataViewItem(0)) {
-        ItemsAdded(parent, _pendingAdditions);
-        _pendingAdditions.Clear();
-    }
-
     void Append(xLightsImportModelNode* child)
     {
         m_children.Add(child);
@@ -357,7 +352,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 
     bool _dirty;
     wxFileName _filename;
-    wxString _mappingFile = "mapping";
+    wxString _mappingFile = "mapping.xmap";
     bool _allowTimingOffset;
     bool _allowTimingTrack;
     bool _allowColorChoice;
@@ -529,6 +524,7 @@ protected:
 
         std::vector<std::unique_ptr<ImportChannel>> importChannels;
         std::unique_ptr<wxImageList> m_imageList;
+        std::map<int, int> m_iconIndexMap; // Order in list->one we got
 
 		DECLARE_EVENT_TABLE()
 

@@ -48,6 +48,7 @@ public:
         return true;
     }
 
+    void clearBackgroundBitmap();
     void setBackgroundBitmap(std::unique_ptr<wxBitmap> bm);
     void UpdatePathState(SketchCanvasPathState state);
     void ResetHandlesState(SketchCanvasPathState pathState = Undefined);
@@ -104,7 +105,7 @@ private:
     SketchCanvasPathState m_pathState = Undefined;
     bool m_pathClosed = false;
 
-    ISketchCanvasParent* const m_sketchCanvasParent;
+    ISketchCanvasParent* const m_sketchCanvasParent = nullptr;
     std::unique_ptr<wxBitmap> m_bgBitmap;
     int m_wheelRotation = 0;
     wxPoint2DDouble m_zoomPoint;

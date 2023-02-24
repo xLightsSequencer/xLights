@@ -66,10 +66,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxListBox" name="ID_LISTBOX_RESULTS" variable="ListBoxResults" member="yes">
-					<default>-1</default>
-					<style>wxLB_EXTENDED|wxLB_SORT</style>
-					<handler function="OnListBoxResultsSelect" entry="EVT_LISTBOX" />
+				<object class="wxListCtrl" name="ID_LISTCTRL_Results" variable="ListCtrl_Results" member="yes">
+					<style>wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING</style>
+					<handler function="OnListCtrl_ResultsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+					<handler function="OnListCtrl_ResultsItemDeselect" entry="EVT_LIST_ITEM_DESELECTED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

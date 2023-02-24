@@ -203,7 +203,7 @@ static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userp) {
     return dt->readData(ptr, buffer_size);
 }
 
-void FPP::setupCurl() {
+void FPP::setupCurl(int timeout) {
     if (curl == nullptr) {
         curl = curl_easy_init();
     }
@@ -212,7 +212,7 @@ void FPP::setupCurl() {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curlInputBuffer);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, defaultConnectTimeout);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 30000);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout);
     curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
 }
 
@@ -499,6 +499,7 @@ void FPP::parseControllerType(wxJSONValue& val) {
         if (val["channelOutputs"][x]["enabled"].AsInt()) {
             if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X"||
                 val["channelOutputs"][x]["type"].AsString() == "BBB48String" ||
+                val["channelOutputs"][x]["type"].AsString() == "BBShiftString" ||
                 val["channelOutputs"][x]["type"].AsString() == "DPIPixels") {
                 pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
             } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
@@ -569,6 +570,14 @@ bool FPP::IsDrive() {
 }
 
 bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min) const{
+    static bool hasWarned = false;
+    if (majorVersion < 6 && !hasWarned) {
+        hasWarned = true;
+        wxMessageBox("Uploading configuration and/or sequences to FPP instances less than FPP 6.x will soon be removed.  Please update FPP to the latest version.",
+                     "FPP Version Deprecated",
+                     wxICON_INFORMATION | wxCENTER | wxOK);
+    }
+    
     if (majorVersion < maj) {
         return false;
     }
@@ -707,8 +716,13 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
 
     std::string fullUrl = ipAddress + "/jqupload.php";
     bool usingJqUpload = true;
+    bool usingMove = true;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
         fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
+        usingJqUpload = false;
+        usingMove = false;
+    } else if (IsVersionAtLeast(7, 0)) {
+        fullUrl = ipAddress + "/api/file/uploads/" + URLEncode(filename);
         usingJqUpload = false;
     }
     if (!_fppProxy.empty()) {
@@ -791,7 +805,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     if (i == CURLE_OK) {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         if (response_code == 200) {
-            if (usingJqUpload) {
+            if (usingMove) {
                 std::string val;
                 if (!GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename + ext), val)) {
                     logger_base.warn("Error trying to rename file.");
@@ -814,9 +828,145 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     return data.cancelled | cancelled;
 }
 
+
+struct V7ProgressStruct {
+    wxProgressDialog *progress;
+    size_t length;
+
+    size_t offset = 0;
+    int lastPct = 0;
+};
+int progress_callback(void *clientp,
+                      curl_off_t dltotal,
+                      curl_off_t dlnow,
+                      curl_off_t ultotal,
+                      curl_off_t ulnow) {
+    V7ProgressStruct *p = (V7ProgressStruct*)clientp;
+    if (p->progress) {
+        size_t start = p->offset;
+        start += ulnow;
+        start *= 1000;
+        start /= p->length;
+        if (p->lastPct != start) {
+            p->progress->Update(p->lastPct);
+            p->lastPct = start;
+        }
+    }
+    return 0;
+}
+bool FPP::uploadFileV7(const std::string &filename,
+                       const std::string &file,
+                       const std::string &d) {
+    bool cancelled = false;
+    bool callMove = false;
+    std::string dir = d;
+    if (dir == "music") {
+        // xLights treats all media as music so for now we'll upload to uploads and call move to have
+        // fpp sort out where it goes.
+        dir = "uploads";
+        callMove = true;
+    }
+    
+    wxFile in;
+    in.Open(file);
+    if (in.IsOpened()) {
+        constexpr uint64_t BLOCK_SIZE = 64*1024*1024;
+        uint64_t filesize = in.Length();
+        std::vector<uint8_t> data(BLOCK_SIZE);
+        
+        uint64_t offset = 0;
+        std::string fullUrl = ipAddress + "/api/file/" + dir;
+        if (!_fppProxy.empty()) {
+            fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+        } else {
+            fullUrl = "http://" + fullUrl;
+        }
+        std::string fileSizeHeader = "Upload-Length: " + std::to_string(filesize);
+        std::string fileNameHeader = "Upload-Name: " + filename;
+        std::string progressTitle = "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress;
+        if (progressDialog != nullptr) {
+            progressDialog->SetTitle("FPP Upload");
+            cancelled |= !progressDialog->Update(0, progressTitle);
+        }
+        V7ProgressStruct progress;
+        progress.progress = progressDialog;
+        progress.length = filesize;
+        while (offset < filesize && !cancelled) {
+            setupCurl();
+            //if we cannot upload it in 5 minutes, we have serious issues
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
+            curlInputBuffer.clear();
+            char error[1024];
+
+            curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
+            curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
+            if (username != "") {
+                curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
+                curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
+                curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
+            }
+            struct curl_slist *headers = nullptr;
+            headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
+            headers = curl_slist_append(headers, "X-Requested-With: FPPConnect");
+
+            std::string offsetHeader = "Upload-Offset: " + std::to_string(offset);
+            headers = curl_slist_append(headers, offsetHeader.c_str());
+            headers = curl_slist_append(headers, fileSizeHeader.c_str());
+            headers = curl_slist_append(headers, fileNameHeader.c_str());
+            headers = curl_slist_append(headers, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
+
+            uint64_t remaining = filesize - offset;
+            if (remaining > BLOCK_SIZE) {
+                remaining = BLOCK_SIZE;
+            }
+            progress.offset = offset;
+            
+            uint64_t read = in.Read(&data[0], remaining);
+            if (read != remaining) {
+                messages.push_back("ERROR Uploading file: " + filename + "     Could not read source file.");
+            }
+            std::string contentSizeHeader = "Content-Length: " + std::to_string(remaining);
+            headers = curl_slist_append(headers, contentSizeHeader.c_str());
+            curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)remaining);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, &data[0]);
+            curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
+            curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &progress);
+            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, (long)0);
+            
+            int i = curl_easy_perform(curl);
+            long response_code = 0;
+            if (i == CURLE_OK) {
+                curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+            }
+            if (response_code != 200) {
+                messages.push_back("ERROR Uploading file: " + filename + "     Could not upload file.");
+                offset = filesize - remaining;
+            }
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(headers);
+            curl = nullptr;
+
+            offset += remaining;
+            if (progressDialog) {
+                uint64_t pct = (offset * 1000) / filesize;
+                cancelled |= !progressDialog->Update(pct, progressTitle);
+            }
+        }
+    }
+    if (callMove) {
+        std::string val;
+        if (!GetURLAsString("/api/file/move/" + URLEncode(filename), val)) {
+            messages.push_back("ERROR Uploading file: " + filename + "     Could not move file to proper directory.");
+        }
+    }
+    return cancelled;
+}
+
 bool FPP::copyFile(const std::string &filename,
-                           const std::string &file,
-                           const std::string &dir) {
+                   const std::string &file,
+                   const std::string &dir) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
@@ -871,11 +1021,15 @@ bool FPP::copyFile(const std::string &filename,
     }
     return cancelled;
 }
+
 bool FPP::uploadOrCopyFile(const std::string &filename,
-                                   const std::string &file,
-                                   const std::string &dir) {
+                           const std::string &file,
+                           const std::string &dir) {
     if (IsDrive()) {
         return copyFile(filename, file, dir);
+    }
+    if (IsVersionAtLeast(7, 0)) {
+        return uploadFileV7(filename, file, dir);
     }
     return uploadFile(filename, file);
 }
@@ -1347,21 +1501,28 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
         if (GetURLAsJSON("/api/models", ogModelJSON)) {
             auto ogModels = ogModelJSON.AsArray();
             for (size_t i = 0; i < ogModels->Count(); i++) {
-                if (!ogModels->Item(i).HasMember("Name") || !ogModels->Item(i).HasMember("StartChannel")) {
+                if (!ogModels->Item(i).HasMember("Name") ) {
                     continue;
                 }
-                if (!ogModels->Item(i).Item(i)["Name"].IsString() || !ogModels->Item(i).Item(i)["StartChannel"].IsInt32()) {
+                if (!ogModels->Item(i)["Name"].IsString()) {
                     continue;
                 }
                 auto ogName = ogModels->Item(i)["Name"].AsString();
-                auto ogStartChan = ogModels->Item(i)["StartChannel"].AsInt32();
-                auto wasAutoCreated = false;
-                if (ogModels->Item(i).HasMember("autoCreated") && ogModels->Item(i).Item(i)["autoCreated"].IsBool()) {
-                    wasAutoCreated = ogModels->Item(i)["autoCreated"].AsBool();
+
+                if (ogModels->Item(i).HasMember("autoCreated") && ogModels->Item(i)["autoCreated"].IsBool()) {
+                    auto wasAutoCreated = ogModels->Item(i)["autoCreated"].AsBool();
+                    if (wasAutoCreated) {
+                        continue;
+                    }
                 }
-                if (ogStartChan < startChan || ogStartChan > endChannel || wasAutoCreated) {
-                    continue;
+
+                if (ogModels->Item(i).HasMember("StartChannel") && ogModels->Item(i)["StartChannel"].IsInt32()) {
+                    auto ogStartChan = ogModels->Item(i)["StartChannel"].AsInt32();
+                    if (ogStartChan < startChan || ogStartChan > endChannel ) {
+                        continue;
+                    }
                 }
+                
                 if (std::find(names.cbegin(), names.cend(), ogName) != names.end()) { // only add if name doesn't exist
                     continue;
                 }
@@ -1642,7 +1803,7 @@ bool FPP::SetInputUniverses(Controller* controller, wxWindow* parentWin) {
         }
     }
 
-    parentWin = parent;
+    parent = parentWin;
 
     return (AuthenticateAndUpdateVersions() && !SetInputUniversesBridge(controller));
 }
@@ -1667,8 +1828,8 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
     UploadPixelOutputs(allmodels, outputManager, controller);
     UploadSerialOutputs(allmodels, outputManager, controller);
     SetInputUniversesBridge(controller);
-
-    if (majorVersion >= 4) {
+    
+    if (majorVersion >= 4 && majorVersion < 6) {
         controller->SetRuntimeProperty("FPPMode", curMode);
         if (restartNeeded || curMode != "bridge") {
             Restart("bridge");
@@ -2321,14 +2482,11 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
                              Controller* controller) {
     int maxString = 1;
-    int maxdmx = 0;
-
     auto rules = ControllerCaps::GetControllerConfig(controller);
     if (rules == nullptr) {
         return false;
     }
 
-    maxdmx = rules->GetMaxSerialPort();
     maxString = rules->GetMaxPixelPort();
     if (maxString == 0) {
         return false;
@@ -2627,7 +2785,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     for (int sp = 1; sp <= cud.GetMaxSerialPort(); sp++) {
         if (cud.HasSerialPort(sp)) {
             UDControllerPort* port = cud.GetControllerSerialPort(sp);
-            isDMX &= ((port->GetProtocol() == "DMX") || (port->GetProtocol() == "dmx"));
+            isDMX &= ((port->GetProtocol() == "DMX") || (port->GetProtocol() == "dmx") || (port->GetProtocol() == "DMX-Open"));
 
             //int dmxOffset = 1;
             //UDControllerPortModel* m = port->GetFirstModel();
@@ -2711,8 +2869,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         bbbDmxData["enabled"] = 1;
         bbbDmxData["startChannel"] = 1;
         bbbDmxData["type"] = wxString("BBBSerial");
-        bbbDmxData["subType"] = wxString("DMX");
-        bbbDmxData["device"] = wxString(pixelControllerType);
+        bbbDmxData["subType"] = isDMX ? wxString("DMX") : wxString("PixelNet") ;
+        bbbDmxData["device"] = wxString(rules->GetID());
+        bbbDmxData["pinoutVersion"] = pinout;
         root["channelOutputs"].Append(bbbDmxData);
     } else {
         wxJSONValue otherOrigRoot = otherDmxData;
@@ -2849,7 +3008,14 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
             inst->pixelControllerType = "ESP32";
         }
         SetControllerType(inst);
-    } else if (inst->typeId >= 0x80 && inst->typeId <= 0xCF) {
+    } else if (inst->typeId >= 0xA0 && inst->typeId <= 0xAF) {
+        //Experence Lights
+        if (inst->controller->GetProtocol() != OUTPUT_DDP) {
+            inst->controller->SetProtocol(OUTPUT_DDP);
+        }
+        inst->pixelControllerType = inst->platformModel;
+        SetControllerType(inst);
+    } else if (inst->typeId >= 0x80 && inst->typeId <= 0x8F) {
         //falcon range
         if (created) {
             inst->controller->SetProtocol(OUTPUT_E131);
@@ -3059,10 +3225,13 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
         if (val["channelOutputs"][x]["enabled"].AsInt()) {
             if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X"||
                 val["channelOutputs"][x]["type"].AsString() == "BBB48String" ||
+                val["channelOutputs"][x]["type"].AsString() == "BBShiftString" ||
                 val["channelOutputs"][x]["type"].AsString() == "DPIPixels") {
                 inst->pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
             } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
-                inst->pixelControllerType = LEDPANELS;
+                if (inst->pixelControllerType.empty()) {
+                    inst->pixelControllerType = LEDPANELS;
+                }
                 int pw = val["channelOutputs"][x]["panelWidth"].AsInt();
                 int ph = val["channelOutputs"][x]["panelHeight"].AsInt();
                 int nw = 0; int nh = 0;
@@ -3085,7 +3254,9 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
                 inst->panelSize.append("x");
                 inst->panelSize.append(std::to_string(ph * nh));
             } else if (val["channelOutputs"][x]["type"].AsString() == "VirtualMatrix") {
-                inst->pixelControllerType = "Virtual Matrix";
+                if (inst->pixelControllerType.empty()) {
+                    inst->pixelControllerType = "Virtual Matrix";
+                }
             }
         }
     }
@@ -3157,7 +3328,6 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
             baseIp = inst->proxy;
             baseUrl = "/proxy/" + inst->ip;
         }
-        std::string fullAddress = baseUrl + "/fppjson.php?command=getChannelOutputs&file=" + file;
         discovery.AddCurl(baseIp, baseUrl + "/fppjson.php?command=getChannelOutputs&file=" + file,
                           [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
             if (rc == 200) {
@@ -3187,7 +3357,6 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
                 }
                 return true;
             });
-            fullAddress = baseUrl + "/api/proxies";
         }
     }
 }

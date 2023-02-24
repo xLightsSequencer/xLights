@@ -4,7 +4,7 @@
 #include "SerialOutput.h"
 
 #pragma region GenericSerial Constants
-#define GENERICSERIAL_MAX_CHANNELS 4096
+#define GENERICSERIAL_MAX_CHANNELS 8192
 #pragma endregion GenericSerial Constants
 
 class GenericSerialOutput : public SerialOutput

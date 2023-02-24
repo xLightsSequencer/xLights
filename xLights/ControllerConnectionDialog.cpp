@@ -524,7 +524,7 @@ void ControllerConnectionDialog::Set(Model* m) {
     }
 }
 
-void ControllerConnectionDialog::Get(wxXmlNode* node) {
+void ControllerConnectionDialog::Get(wxXmlNode* node, int strings) {
     if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION ||
         _type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT) {
         _protocol = Choice_Protocol->GetStringSelection().ToStdString();
@@ -533,7 +533,7 @@ void ControllerConnectionDialog::Get(wxXmlNode* node) {
         node->DeleteAttribute("Port");
         node->AddAttribute("Port", wxString::Format("%d", SpinCtrl_Port->GetValue()));
         if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTIONINCREMENT) {
-            SpinCtrl_Port->SetValue(SpinCtrl_Port->GetValue() + 1);
+            SpinCtrl_Port->SetValue(SpinCtrl_Port->GetValue() + strings);
         }
     }
 

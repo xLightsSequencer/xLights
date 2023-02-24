@@ -39,8 +39,6 @@ xlEffectPanel *ButterflyEffect::CreatePanel(wxWindow *parent) {
     return new ButterflyPanel(parent);
 }
 
-
-
 /*
  01) x*y^3-y*x^3
  (02) (x^2+3*y^2)*e^(-x^2-y^2)

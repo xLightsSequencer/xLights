@@ -31,6 +31,7 @@
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>HinksPix</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="PRO">
@@ -45,7 +46,7 @@
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>16</SupportsSmartRemotes>
 			<SupportsUpload/>
-			<MaxInputUniverses>144</MaxInputUniverses>
+			<MaxInputUniverses>402</MaxInputUniverses>
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
@@ -71,6 +72,7 @@
 				<Type>hinkspix_16ac</Type>
 			</SmartRemoteTypes>
 			<SupportsMultipleSimultaneousOutputProtocols/>
+            <ConfigDriver>HinksPix</ConfigDriver>
 		</Variant>
 	</Controller>
 </Vendor>

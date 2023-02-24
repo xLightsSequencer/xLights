@@ -32,6 +32,8 @@ GET /newSequence
     Needs two query params:
     duration=  Time in seconds
     media= Media filename
+    frameMS= frame time in MS (typically 25 or 50 or 0) optional
+    view= view to use for mast view ("Empty", "All Models" or a valid view name) optional
 
 GET /saveSequence
     seq=  Sequence name to save as, don't specify to use current name
@@ -95,11 +97,13 @@ Response
     {"res":200, "msg": "xLights closed."}
 
 New Sequence    
-    {"cmd":"newSequence", "force":"true|false", "mediaFile":"media filename", "durationSecs":30}
+    {"cmd":"newSequence", "force":"true|false", "mediaFile":"media filename", "durationSecs":30, "frameMS":50, "view":"All Models"}
     
     If force is not true then this command will fail if there is a sequence already open
     If mediaFile is blank then durationSecs is the length of the animation opened
     If mediaFile is not blank then sequence is created for the audio
+    If frameMS is blank or not present then 50ms is used
+    If view is blank or not present then All Models is used
 Response
     {"res":200, "msg": "Sequence created."}
 

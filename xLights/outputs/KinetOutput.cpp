@@ -15,6 +15,7 @@
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 #include "ControllerEthernet.h"
+#include "../utils/ip_utils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -182,7 +183,7 @@ std::string KinetOutput::GetExport() const {
 #pragma region Start and Stop
 bool KinetOutput::Open() {
     if (!_enabled) return true;
-    if (!IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
 
     _ok = IPOutput::Open();
 

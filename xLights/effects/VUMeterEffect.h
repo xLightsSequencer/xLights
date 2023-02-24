@@ -64,6 +64,7 @@ protected:
     void RenderWaveformFrame(RenderBuffer& buffer, int bars, int yoffset, int gain, bool frameDetail);
     void RenderTimingEventFrame(RenderBuffer& buffer, int bars, int type, std::string timingtrack, std::list<int>& timingmarks);
     void RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int bars, int type, std::string timingtrack, int& nCount);
+    void RenderTimingEventTimedChaseFrame(RenderBuffer& buffer, int usebars, int nType, std::string timingtrack, int& nCount);
     void RenderOnFrame(RenderBuffer& buffer, int gain);
     void RenderOnColourFrame(RenderBuffer& buffer, int gain);
     void RenderPulseFrame(RenderBuffer& buffer, int fadeframes, std::string timingtrack, int& lasttimingmark);

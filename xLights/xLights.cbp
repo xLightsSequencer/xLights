@@ -458,7 +458,6 @@
 		<Unit filename="../xSchedule/wxJSON/jsonval.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.h" />
-		<Unit filename="../xSchedule/xSMSDaemon/Curl.h" />
 		<Unit filename="AboutDialog.cpp" />
 		<Unit filename="AboutDialog.h" />
 		<Unit filename="AlignmentDialog.cpp" />
@@ -474,6 +473,8 @@
 		<Unit filename="BufferSizeDialog.h" />
 		<Unit filename="BulkEditColourPickerDialog.cpp" />
 		<Unit filename="BulkEditColourPickerDialog.h" />
+		<Unit filename="BulkEditComboDialog.cpp" />
+		<Unit filename="BulkEditComboDialog.h" />
 		<Unit filename="BulkEditControls.cpp" />
 		<Unit filename="BulkEditControls.h" />
 		<Unit filename="BulkEditFontPickerDialog.cpp" />
@@ -528,6 +529,8 @@
 		<Unit filename="DragColoursBitmapButton.h" />
 		<Unit filename="DragValueCurveBitmapButton.cpp" />
 		<Unit filename="DragValueCurveBitmapButton.h" />
+		<Unit filename="DuplicateDialog.cpp" />
+		<Unit filename="DuplicateDialog.h" />
 		<Unit filename="EffectAssist.cpp" />
 		<Unit filename="EffectAssist.h" />
 		<Unit filename="EffectIconPanel.cpp" />
@@ -807,6 +810,8 @@
 		<Unit filename="controllers/ControllerUploadData.h" />
 		<Unit filename="controllers/ESPixelStick.cpp" />
 		<Unit filename="controllers/ESPixelStick.h" />
+		<Unit filename="controllers/Experience.cpp" />
+		<Unit filename="controllers/Experience.h" />
 		<Unit filename="controllers/FPP.cpp" />
 		<Unit filename="controllers/FPP.h" />
 		<Unit filename="controllers/FPPConnectDialog.cpp" />
@@ -1341,6 +1346,12 @@
 		<Unit filename="support/VectorMath.h" />
 		<Unit filename="tmGridCell.cpp" />
 		<Unit filename="tmGridCell.h" />
+		<Unit filename="utils/Curl.cpp" />
+		<Unit filename="utils/Curl.h" />
+		<Unit filename="utils/ip_utils.cpp" />
+		<Unit filename="utils/ip_utils.h" />
+		<Unit filename="utils/string_utils.cpp" />
+		<Unit filename="utils/string_utils.h" />
 		<Unit filename="vamp-hostsdk/Files.cpp" />
 		<Unit filename="vamp-hostsdk/Files.h" />
 		<Unit filename="vamp-hostsdk/Plugin.h" />
@@ -1388,13 +1399,14 @@
 		<Unit filename="wxsmith/BufferPanel.wxs" />
 		<Unit filename="wxsmith/BufferSizeDialog.wxs" />
 		<Unit filename="wxsmith/BulkEditColourPickerDialog.wxs" />
+		<Unit filename="wxsmith/BulkEditComboDialog.wxs" />
 		<Unit filename="wxsmith/BulkEditFontPickerDialog.wxs" />
 		<Unit filename="wxsmith/BulkEditSliderDialog.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
 		<Unit filename="wxsmith/CandlePanel.wxs" />
 		<Unit filename="wxsmith/CharMapDialog.wxs" />
-		<Unit filename="wxsmith/CheckboxSelectDialog.wxs" />
 		<Unit filename="wxsmith/CheckSequenceSettingsPanel.wxs" />
+		<Unit filename="wxsmith/CheckboxSelectDialog.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
 		<Unit filename="wxsmith/ColorManagerDialog.wxs" />
@@ -1411,6 +1423,7 @@
 		<Unit filename="wxsmith/CustomModelDialog.wxs" />
 		<Unit filename="wxsmith/CustomTimingDialog.wxs" />
 		<Unit filename="wxsmith/DMXPanel.wxs" />
+		<Unit filename="wxsmith/DuplicateDialog.wxs" />
 		<Unit filename="wxsmith/EffectAssist.wxs" />
 		<Unit filename="wxsmith/EffectIconPanel.wxs" />
 		<Unit filename="wxsmith/EffectTimingDialog.wxs" />
@@ -1681,7 +1694,7 @@
 					<wxPanel wxs="wxsmith/ButterflyPanel.wxs" src="effects/ButterflyPanel.cpp" hdr="effects/ButterflyPanel.h" fwddecl="1" i18n="1" name="ButterflyPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CandlePanel.wxs" src="effects/CandlePanel.cpp" hdr="effects/CandlePanel.h" fwddecl="1" i18n="1" name="CandlePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CirclesPanel.wxs" src="effects/CirclesPanel.cpp" hdr="effects/CirclesPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ColorWashPanel.wxs" src="effects/ColorWashPanel.cpp" hdr="effects/ColorWashPanel.h" fwddecl="1" i18n="1" name="ColorWashPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ColorWashPanel.wxs" src="effects/ColorWashPanel.cpp" hdr="effects/ColorWashPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CurtainPanel.wxs" src="effects/CurtainPanel.cpp" hdr="effects/CurtainPanel.h" fwddecl="1" i18n="1" name="CurtainPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/DMXPanel.wxs" src="effects/DMXPanel.cpp" hdr="effects/DMXPanel.h" fwddecl="1" i18n="1" name="DMXPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/DMXPathPanel.wxs" src="effects/DMXPathPanel.cpp" hdr="effects/DMXPathPanel.h" fwddecl="1" i18n="1" name="DMXPathPanel" language="CPP" />
@@ -1758,6 +1771,8 @@
 					<wxDialog wxs="wxsmith/TipOfTheDayDialog.wxs" src="TipOfTheDayDialog.cpp" hdr="TipOfTheDayDialog.h" fwddecl="0" i18n="1" name="TipOfTheDayDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelRemap.wxs" src="ModelRemap.cpp" hdr="ModelRemap.h" fwddecl="0" i18n="1" name="ModelRemap" language="CPP" />
 					<wxDialog wxs="wxsmith/RestoreBackupDialog.wxs" src="RestoreBackupDialog.cpp" hdr="RestoreBackupDialog.h" fwddecl="0" i18n="1" name="RestoreBackupDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BulkEditComboDialog.wxs" src="BulkEditComboDialog.cpp" hdr="BulkEditComboDialog.h" fwddecl="0" i18n="1" name="BulkEditComboDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/DuplicateDialog.wxs" src="DuplicateDialog.cpp" hdr="DuplicateDialog.h" fwddecl="0" i18n="1" name="DuplicateDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

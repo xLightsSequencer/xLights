@@ -242,9 +242,9 @@ protected:
     int m_tp;
 };
 
-void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     wxPGProperty* p = grid->Append(new SkullPopupDialogProperty(this, "Skull Config", "SkullConfig", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);

@@ -174,10 +174,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxListBox" name="ID_LISTBOX_SELECT_EFFECTS" variable="ListBox_Select_Effects" member="yes">
-					<default>-1</default>
-					<style>wxLB_EXTENDED|wxLB_SORT</style>
-					<handler function="OnListBox_Select_EffectsSelect" entry="EVT_LISTBOX" />
+				<object class="wxListCtrl" name="ID_LISTCTRL_Select_Effects" variable="ListCtrl_Select_Effects" member="yes">
+					<style>wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING</style>
+					<handler function="OnListCtrl_Select_EffectsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+					<handler function="OnListCtrl_Select_EffectsItemDeselect" entry="EVT_LIST_ITEM_DESELECTED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

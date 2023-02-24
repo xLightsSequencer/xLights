@@ -118,7 +118,6 @@ bool TerrianScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
         program->addStep([=](xlGraphicsContext *ctx) {
             ctx->drawTriangles(va, startVert, endVert - startVert);
         });
-        startVert = endVert;
     }
 
     xlColor Box3dColor = xlWHITE;

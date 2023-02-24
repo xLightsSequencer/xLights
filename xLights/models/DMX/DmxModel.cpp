@@ -63,7 +63,7 @@ void DmxModel::InitRenderBufferNodes(const std::string& type, const std::string&
     }
 }
 
-void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
     wxPGProperty* p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", parm1));
     p->SetAttribute("Min", 1);
@@ -119,12 +119,15 @@ void DmxModel::UpdateChannelCount(int num_channels, bool do_work)
 
 int DmxModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
+    IncrementChangeCount();
     if ("DmxChannelCount" == event.GetPropertyName()) {
+        IncrementChangeCount();
         UpdateChannelCount((int)event.GetPropertyValue().GetLong(), true);
         return 0;
     }
 
     if (nullptr != preset_ability && preset_ability->OnPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        IncrementChangeCount();
         return 0;
     }
 

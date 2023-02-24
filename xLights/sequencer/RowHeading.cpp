@@ -83,6 +83,7 @@ const long RowHeading::ID_ROW_MNU_SELECT_MODEL_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SELECT_TIMING_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_MODEL_CONVERTTOPERMODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_ROW_CONVERTTOPERMODEL = wxNewId();
+const long RowHeading::ID_ROW_MNU_RENDERENABLE_ALL = wxNewId();
 
 // Timing Track popup menu
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
@@ -116,6 +117,9 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     papagayo_icon = BitmapCache::GetPapgayoIcon();
     papagayox_icon = BitmapCache::GetPapgayoXIcon();
     model_group_icon = BitmapCache::GetModelGroupIcon();
+    fppCommand_icon = BitmapCache::GetFPPIcon();
+    fppEffect_icon = BitmapCache::GetFPPIcon();
+    
     mCanPaste = false;
 
     wxConfigBase* config = wxConfigBase::Get();
@@ -138,6 +142,10 @@ void RowHeading::ProcessTooltip(wxMouseEvent& event)
                 layers = wxString::Format(" [%d]", (int)e->GetEffectLayerCount());
             }
 
+            // wxClientDC is going to be deprecated and removed as it cannot draw onto the
+            // screen from all ports (example: wayland).  However, it can be used
+            // at this point to query text metrics until they can introduce a replacement.
+            // https://github.com/wxWidgets/wxWidgets/issues/12486
             wxClientDC dc(this);
             wxSize size = dc.GetTextExtent(e->GetName() + layers);
 
@@ -378,6 +386,19 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 } else {
                     modelMenu->Append(ID_ROW_MNU_RENDERDISABLE_MODEL, "Disable Render");
                 }
+
+                bool modelDisabled = false;
+                for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
+                    auto e = mSequenceElements->GetElement(i);
+                    if (e->IsRenderDisabled()) {
+                        modelDisabled = true;
+                        break;
+                    }
+                }
+                if (modelDisabled) {
+                    modelMenu->Append(ID_ROW_MNU_RENDERENABLE_ALL, "Enable Render On All Models");
+                } 
+
                 modelMenu->Append(ID_ROW_MNU_PLAY_MODEL, "Play");
                 modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
                 modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
@@ -427,19 +448,22 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
                     mnuLayer.AppendSeparator();
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS, "Import Lyrics");
-                    mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES, "Breakdown Phrases");
-                    if (element->GetEffectLayerCount() > 1) {
-                        mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_WORDS, "Breakdown Words");
-                    }
-                    if (element->GetEffectLayerCount() == 2) {
-                        mnuLayer.Append(ID_ROW_MNU_REMOVE_TIMING_WORDS, "Remove Words");
-                    }
-                    else if (element->GetEffectLayerCount() == 3) {
-                        if (ri->layerIndex == 2) {
-                            mnuLayer.Append(ID_ROW_MNU_REMOVE_TIMING_PHONEMES, "Remove Phonemes");
+                    TimingElement *te = dynamic_cast<TimingElement*>(element);
+                    if (te->GetSubType() == "") {
+                        mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES, "Breakdown Phrases");
+                        if (element->GetEffectLayerCount() > 1) {
+                            mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_WORDS, "Breakdown Words");
                         }
-                        else {
-                            mnuLayer.Append(ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES, "Remove Words and Phonemes");
+                        if (element->GetEffectLayerCount() == 2) {
+                            mnuLayer.Append(ID_ROW_MNU_REMOVE_TIMING_WORDS, "Remove Words");
+                        }
+                        else if (element->GetEffectLayerCount() == 3) {
+                            if (ri->layerIndex == 2) {
+                                mnuLayer.Append(ID_ROW_MNU_REMOVE_TIMING_PHONEMES, "Remove Phonemes");
+                            }
+                            else {
+                                mnuLayer.Append(ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES, "Remove Words and Phonemes");
+                            }
                         }
                     }
                     mnuLayer.AppendSeparator();
@@ -455,7 +479,8 @@ void RowHeading::rightClick( wxMouseEvent& event)
         mnuLayer.AppendSeparator();
         mnuLayer.Append(ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS, "Edit Display Elements");
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
-        Draw();
+        Refresh(false);
+        Update();
         PopupMenu(&mnuLayer);
     }
 }
@@ -629,10 +654,39 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     if (name != "") {
                         timing_added = true;
                     }
+                } else if (selected_timing == "FPP Commands" || selected_timing == "FPP Effects") {
+                    bool first = true;
+                    wxString subType = selected_timing;
+                    wxTextEntryDialog te(this, "Enter a name for the " + selected_timing + " track", wxGetTextFromUserPromptStr, selected_timing);
+                    OptimiseDialogPosition(&te);
+                    while (first || xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || selected_timing == "") {
+                        first = false;
+
+                        auto base = selected_timing;
+
+                        int suffix = 2;
+                        while (xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame())) {
+                            selected_timing = wxString::Format("%s_%d", base, suffix++);
+                        }
+
+                        te.SetValue(selected_timing);
+                        if (te.ShowModal() == wxID_OK) {
+                            selected_timing = te.GetValue();
+                            selected_timing = RemoveUnsafeXmlChars(selected_timing);
+                        } else {
+                            selected_timing = "";
+                            break;
+                        }
+                    }
+
+                    if (selected_timing != "") {
+                        xml_file->AddNewTimingSection(selected_timing, mSequenceElements->GetXLightsFrame(), subType);
+                        timing_added = true;
+                    }
+
                 } else if (selected_timing == "Empty") {
                     bool first = true;
                     wxTextEntryDialog te(this, "Enter a name for the timing track", wxGetTextFromUserPromptStr, selected_timing);
-
                     OptimiseDialogPosition(&te);
                     while (first || xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || selected_timing == "") {
                         first = false;
@@ -843,6 +897,15 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxPostEvent(GetParent(), eventForceRefresh);
     } else if (id == ID_ROW_MNU_RENDERENABLE_MODEL) {
         element->SetRenderDisabled(false);
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    } else if (id == ID_ROW_MNU_RENDERENABLE_ALL) {
+        for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
+            auto e = mSequenceElements->GetElement(i);
+            if (e->IsRenderDisabled()) {
+                e->SetRenderDisabled(false);
+            }
+        }
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
     } else if (id == ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS) {
@@ -1313,15 +1376,6 @@ int RowHeading::GetMaxRows()
     return max;
 }
 
-void RowHeading::render( wxPaintEvent& event )
-{
-#ifdef __LINUX__
-    if(!IsShownOnScreen()) return;
-#endif
-    wxPaintDC dc(this);
-    Draw();
-}
-
 static float ComputeRHFontSize() {
     // DEFAULT_ROW_HEADING_HEIGHT is either 16, 22, 30, 38, or 54
     // default size is appropriate for "22", scale others appropriately.
@@ -1350,10 +1404,13 @@ static void SetFontPixelSize(wxFont &font, float f) {
 }
 #endif
 
-
-void RowHeading::Draw()
+void RowHeading::render( wxPaintEvent& event )
 {
-    wxClientDC dc(this);
+#ifdef __LINUX__
+    if(!IsShownOnScreen()) return;
+#endif
+    wxPaintDC dc(this);
+
     wxCoord w,h;
     dc.GetSize(&w,&h);
     xlColor rowHeaderCol = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER);
@@ -1548,8 +1605,9 @@ void RowHeading::Draw()
             }
         } else if (rowInfo->element->GetType()== ElementType::ELEMENT_TYPE_TIMING) {
             if (rowInfo->layerIndex == 0) {
+                TimingElement *ti = dynamic_cast<TimingElement*>(rowInfo->element);
                 dc.SetPen(*wxBLACK_PEN);
-                if(dynamic_cast<TimingElement*>(rowInfo->element)->GetActive()) {
+                if (ti->GetActive()) {
                     dc.SetBrush(*wxWHITE_BRUSH);
                     dc.DrawCircle(7,startY + DEFAULT_ROW_HEADING_HEIGHT/2,5);
 
@@ -1561,7 +1619,12 @@ void RowHeading::Draw()
                 }
                 dc.SetPen(penOutline);
                 dc.SetBrush(brush2);
-                if (rowInfo->element->GetEffectLayerCount() == 2) {
+                
+                if (ti->GetSubType() == "FPP Commands") {
+                    dc.DrawBitmap(fppCommand_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
+                } else if (ti->GetSubType() == "FPP Effects") {
+                    dc.DrawBitmap(fppEffect_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
+                } else if (rowInfo->element->GetEffectLayerCount() == 2) {
                     dc.DrawBitmap(papagayox_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
                 } else if (rowInfo->element->GetEffectLayerCount() > 2) {
                     dc.DrawBitmap(papagayo_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);

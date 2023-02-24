@@ -31,6 +31,8 @@
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
+    <DefineConstants>
+    </DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -39,6 +41,8 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
+    <DefineConstants>
+    </DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -47,6 +51,8 @@
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <DefineConstants>
+    </DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -56,6 +62,8 @@
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <DefineConstants>
+    </DefineConstants>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -82,8 +90,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;..\include\ffmpeg-5\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.2.2\</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\lib\windows;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64;..\dependencies\lua\src</LibraryPath>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;..\include\ffmpeg-5\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.2.2\;..\dependencies\pybind11\include;$(Python_ROOT_DIR)\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\lib\windows;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -93,8 +101,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include\ffmpeg-5\include;..\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\include\sol2-3.2.2\;..\dependencies\lua\src</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\dependencies\lua\src</LibraryPath>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include\ffmpeg-5\include;..\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\include\sol2-3.2.2\;..\dependencies\lua\src;..\dependencies\pybind11\include;$(Python_ROOT_DIR)\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnabled>false</VcpkgEnabled>
@@ -105,7 +113,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);IGNORE_VENDORS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);IGNORE_VENDORS;$(DefineConstants);</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -113,6 +121,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateMapFile>false</GenerateMapFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -121,7 +130,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG; __WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX"</AdditionalOptions>
@@ -131,6 +140,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <GenerateMapFile>false</GenerateMapFile>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>xLightsApp64.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -145,7 +155,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -154,9 +164,10 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <Profile>true</Profile>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <GenerateMapFile>true</GenerateMapFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -166,19 +177,23 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" %(AdditionalOptions)</AdditionalOptions>
       <ExceptionHandling>Async</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <Profile>true</Profile>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <GenerateMapFile>true</GenerateMapFile>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>xLightsApp64.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -209,9 +224,11 @@
     <ClCompile Include="AlignmentDialog.cpp" />
     <ClCompile Include="automation\automation.cpp" />
     <ClCompile Include="automation\LuaRunner.cpp" />
+    <ClCompile Include="automation\PythonRunner.cpp" />
     <ClCompile Include="automation\xLightsAutomations.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditColourPickerDialog.cpp" />
+    <ClCompile Include="BulkEditComboDialog.cpp" />
     <ClCompile Include="BulkEditControls.cpp" />
     <ClCompile Include="BulkEditFontPickerDialog.cpp" />
     <ClCompile Include="BulkEditSliderDialog.cpp" />
@@ -233,6 +250,7 @@
     <ClCompile Include="controllers\ControllerCaps.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="controllers\ESPixelStick.cpp" />
+    <ClCompile Include="controllers\Experience.cpp" />
     <ClCompile Include="controllers\Falcon.cpp" />
     <ClCompile Include="controllers\FPP.cpp" />
     <ClCompile Include="controllers\FPPConnectDialog.cpp" />
@@ -250,6 +268,7 @@
     <ClCompile Include="DissolveTransitionPattern.cpp" />
     <ClCompile Include="DragColoursBitmapButton.cpp" />
     <ClCompile Include="DragValueCurveBitmapButton.cpp" />
+    <ClCompile Include="DuplicateDialog.cpp" />
     <ClCompile Include="effects\assist\SketchAssistPanel.cpp" />
     <ClCompile Include="effects\DMXPathEffect.cpp" />
     <ClCompile Include="effects\DMXPathPanel.cpp" />
@@ -295,6 +314,8 @@
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
+    <ClCompile Include="utils\ip_utils.cpp" />
+    <ClCompile Include="utils\Curl.cpp" />
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="KeyBindingEditDialog.cpp" />
     <ClCompile Include="LayerSelectDialog.cpp" />
@@ -607,6 +628,7 @@
     <ClCompile Include="SplashDialog.cpp" />
     <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
+    <ClCompile Include="utils\string_utils.cpp" />
     <ClCompile Include="SubBufferPanel.cpp" />
     <ClCompile Include="SubModelGenerateDialog.cpp" />
     <ClCompile Include="SubModelsDialog.cpp" />
@@ -682,13 +704,14 @@
     <ClInclude Include="..\xSchedule\md5.h" />
     <ClInclude Include="..\xSchedule\wxHTTPServer\sha1.h" />
     <ClInclude Include="..\xSchedule\wxHTTPServer\wxhttpserver.h" />
-    <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
     <ClInclude Include="AboutDialog.h" />
     <ClInclude Include="AlignmentDialog.h" />
     <ClInclude Include="automation\automation.h" />
     <ClInclude Include="automation\LuaRunner.h" />
+    <ClInclude Include="automation\PythonRunner.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditColourPickerDialog.h" />
+    <ClInclude Include="BulkEditComboDialog.h" />
     <ClInclude Include="BulkEditControls.h" />
     <ClInclude Include="BulkEditFontPickerDialog.h" />
     <ClInclude Include="BulkEditSliderDialog.h" />
@@ -711,6 +734,7 @@
     <ClInclude Include="controllers\ControllerCaps.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
     <ClInclude Include="controllers\ESPixelStick.h" />
+    <ClInclude Include="controllers\Experience.h" />
     <ClInclude Include="controllers\Falcon.h" />
     <ClInclude Include="controllers\FPP.h" />
     <ClInclude Include="controllers\FPPConnectDialog.h" />
@@ -727,6 +751,7 @@
     <ClInclude Include="DissolveTransitionPattern.h" />
     <ClInclude Include="DragColoursBitmapButton.h" />
     <ClInclude Include="DragValueCurveBitmapButton.h" />
+    <ClInclude Include="DuplicateDialog.h" />
     <ClInclude Include="effects\assist\AssistPanel.h" />
     <ClInclude Include="effects\assist\PicturesAssistPanel.h" />
     <ClInclude Include="effects\assist\SketchAssistPanel.h" />
@@ -770,6 +795,8 @@
     <ClInclude Include="graphics\xlMesh.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
+    <ClInclude Include="utils\ip_utils.h" />
+    <ClInclude Include="utils\Curl.h" />
     <ClInclude Include="LayoutUtils.h" />
     <ClInclude Include="LORPreview.h" />
     <ClInclude Include="JukeboxPanel.h" />
@@ -1084,6 +1111,7 @@
     <ClInclude Include="SplashDialog.h" />
     <ClInclude Include="StartChannelDialog.h" />
     <ClInclude Include="StrandNodeNamesDialog.h" />
+    <ClInclude Include="utils\string_utils.h" />
     <ClInclude Include="SubBufferPanel.h" />
     <ClInclude Include="SubModelGenerateDialog.h" />
     <ClInclude Include="SubModelsDialog.h" />

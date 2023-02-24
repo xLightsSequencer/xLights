@@ -19,7 +19,8 @@
 #include "../effects/EffectManager.h"
 #include "../effects/RenderableEffect.h"
 #include "Element.h"
-#include "xLightsMain.h"
+#include "../xLightsMain.h"
+#include "../xLightsApp.h"
 
 #include <log4cpp/Category.hh>
 #include "effects/DMXEffect.h"
@@ -78,12 +79,13 @@ Effect* EffectLayer::GetEffect(int index) const
         return nullptr;
     }
 }
+
 Effect* EffectLayer::GetEffectByTime(int timeMS) {
     std::unique_lock<std::recursive_mutex> locker(lock);
-    for(std::vector<Effect*>::iterator i = mEffects.begin(); i != mEffects.end(); i++) {
-        if (timeMS >= (*i)->GetStartTimeMS() &&
-            timeMS <= (*i)->GetEndTimeMS()) {
-            return (*i);
+    for(const auto& it : mEffects) {
+        if (timeMS >= it->GetStartTimeMS() &&
+            timeMS <= it->GetEndTimeMS()) {
+            return it;
         }
     }
     return nullptr;
@@ -192,6 +194,14 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
     std::string name(n);
+    EffectManager* em = nullptr;
+    if (GetParentElement() != nullptr)
+    {
+        em = &(GetParentElement()->GetSequenceElements()->GetEffectManager());
+    } else {
+        em = &(xLightsApp::GetFrame()->GetEffectManager());
+    }
+    wxASSERT(em != nullptr);
 
     // really dont want to add effects which look invalid - some imports result in this
     if (startTimeMS > endTimeMS) return nullptr;
@@ -200,7 +210,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
         if (name == "") {
             name = "Off";
         }
-        if ((GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name) == -1) &&
+        if ((em->GetEffectIndex(name) == -1) &&
             (name != "Random"))
         {
             log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -222,7 +232,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     // make sure they dont hang over the left side
     if (startTimeMS < 0) startTimeMS = 0;
 
-    Effect* e = new Effect(&GetParentElement()->GetSequenceElements()->GetEffectManager(), this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
+    Effect* e = new Effect(em, this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
     wxASSERT(e != nullptr);
     mEffects.push_back(e);
     if (!suppress_sort)
@@ -293,6 +303,12 @@ int EffectLayer::GetMinimumStartTimeMS(int index, bool allow_collapse, int min_p
 int EffectLayer::GetEffectCount() const
 {
     return mEffects.size();
+}
+
+bool EffectLayer::IsTimingLayer()
+{
+    TimingElement* te = dynamic_cast<TimingElement*>(GetParentElement());
+    return !(te == nullptr);
 }
 
 bool EffectLayer::IsFixedTimingLayer()

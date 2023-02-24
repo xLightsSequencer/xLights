@@ -555,6 +555,7 @@ void SeqSettingsDialog::RemoveWizard()
 
 void SeqSettingsDialog::WizardPage1()
 {
+    BitmapButton_quick_start = nullptr;
     Panel_Wizard = new wxPanel(Notebook_Seq_Settings, ID_PANEL_Wizard, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Wizard"));
     Notebook_Seq_Settings->InsertPage(0, Panel_Wizard, _("Wizard"), true);
     GridBagSizerWizard = new wxGridBagSizer(0, 1);
@@ -576,6 +577,7 @@ void SeqSettingsDialog::WizardPage1()
 
 void SeqSettingsDialog::WizardPage2()
 {
+    BitmapButton_quick_start = nullptr;
     GridBagSizerWizard->Clear(true);
     GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridSizerWizButtons = new wxGridSizer(0, 1, 10, 0);
@@ -605,6 +607,7 @@ void SeqSettingsDialog::WizardPage2()
 
 void SeqSettingsDialog::WizardPage3()
 {
+    BitmapButton_quick_start = nullptr;
     GridBagSizerWizard->Clear(true);
     GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridSizerWizButtons = new wxGridSizer(0, 1, 5, 10);
@@ -653,6 +656,7 @@ void SeqSettingsDialog::WizardPage3()
 
 void SeqSettingsDialog::WizardPage4()
 {
+    BitmapButton_quick_start = nullptr;
     GridBagSizerWizard->Clear(true);
     GridBagSizerWizard->Add(493,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     wxStaticText* StaticText_Page3Optional = new wxStaticText(Panel_Wizard, wxID_ANY, _("Import Data (Optional):"), wxDefaultPosition, wxDefaultSize, 0, _T(""));
@@ -696,6 +700,7 @@ void SeqSettingsDialog::WizardPage4()
 
 void SeqSettingsDialog::WizardPage5()
 {
+    BitmapButton_quick_start = nullptr;
     GridBagSizerWizard->Clear(true);
     GridBagSizerWizard->Add(493,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     wxStaticText* StaticText_Page3Optional = new wxStaticText(Panel_Wizard, wxID_ANY, _("Other Optional Tasks:"), wxDefaultPosition, wxDefaultSize, 0, _T(""));

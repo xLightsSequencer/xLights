@@ -20,6 +20,7 @@
 #include "ExternalHooks.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
+#include "utils/ip_utils.h"
 
 #include <log4cpp/Category.hh>
 #include "../xSchedule/wxJSON/jsonreader.h"
@@ -609,12 +610,14 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
 
             xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
 
-            std::string fseqName = frame->GetFseqDirectory() + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
+            // if fpp dir and show dir match then start with the fseq in the current dir ... only if that does not exist take the one from the show dir
+            // this is consistent with the code in SaveSequence
+            std::string fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
+            if (frame->GetFseqDirectory() != frame->GetShowDirectory() || !FileExists(fseqName)) {
+                fseqName = frame->GetFseqDirectory() + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
+            }
             if (isSequence) {
                 //need to check for existence of fseq
-                if (!FileExists(fseqName)) {
-                    fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
-                }
                 if (!FileExists(fseqName)) {
                     isSequence = false;
                 }
@@ -784,7 +787,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     for (const auto& inst : instances) {
         inst->progressDialog = &prgs;
         inst->parent = this;
-        // not in discovery so we can increate the timeouts to make sure things get transferred
+        // not in discovery so we can increase the timeouts to make sure things get transferred
         inst->defaultConnectTimeout = 5000;
         inst->messages.clear();
         std::string rowStr = std::to_string(row);
@@ -1305,7 +1308,7 @@ void FPPConnectDialog::SequenceListPopup(wxTreeListEvent& event)
 void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
 {
     wxTextEntryDialog dlg(this, "Find FPP Instance", "Enter IP address or hostname for FPP Instance");
-    if (dlg.ShowModal() == wxID_OK && IsIPValidOrHostname(dlg.GetValue().ToStdString())) {
+    if (dlg.ShowModal() == wxID_OK && ip_utils::IsIPValidOrHostname(dlg.GetValue().ToStdString())) {
         std::string ipAd = dlg.GetValue().ToStdString();
         int curSize = instances.size();
 

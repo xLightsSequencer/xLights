@@ -33,8 +33,8 @@ protected:
     #pragma endregion
 
     #pragma region Protected Functions
-    std::string GetURL(const std::string& url, const std::string& username = "", const std::string& password = "");
-    std::string PutURL(const std::string& url, const std::string& request, const std::string& username = "", const std::string& password = "", const std::string& contentType = "x-www-form-urlencoded");
+    std::string GetURL(const std::string& url, const std::string& username = "", const std::string& password = "") const;
+    std::string PutURL(const std::string& url, const std::string& request, const std::string& username = "", const std::string& password = "", const std::string& contentType = "x-www-form-urlencoded") const;
     #pragma endregion
 
 public:

@@ -42,6 +42,7 @@
 #include "PixelBuffer.h"
 #include "../VideoReader.h"
 #include "../FindDataPanel.h"
+#include "../DuplicateDialog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -94,6 +95,7 @@ const long EffectsGrid::ID_GRID_MNU_ALIGN_MATCH_DURATION = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_START_TIMES_SHIFT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_END_TIMES_SHIFT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_SPLIT_EFFECT = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_DUPLICATE_EFFECT = wxNewId();
 
 int findDataEffect::GetStrand() const
 {
@@ -236,6 +238,15 @@ EffectLayer* EffectsGrid::FindOpenLayer(Element* elem, int startTimeMS, int endT
     return layer;
 }
 
+void EffectsGrid::PlayLoopedEffect(Effect* eff, bool loop = false)
+{
+    ((MainSequencer*)mParent)->PanelWaveForm->SetSelectedInterval(eff->GetStartTimeMS(), eff->GetEndTimeMS());
+    Draw();
+
+    wxCommandEvent playEvent(loop ? EVT_SEQUENCE_REPLAY_SECTION : EVT_PLAY_SEQUENCE);
+    wxPostEvent(mParent, playEvent);
+}
+
 void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
 {
     int update_time = -1;
@@ -302,14 +313,14 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
                 }
             }
         } else {
-            // we have double clicked on an effect - highlight that part of the waveform
-            ((MainSequencer*)mParent)->PanelWaveForm->SetSelectedInterval(selectedEffect->GetStartTimeMS(), selectedEffect->GetEndTimeMS());
-            Draw();
             // and play it play mode is active
             if (mTimingPlayOnDClick) {
-                wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
-                wxPostEvent(mParent, playEvent);
+                PlayLoopedEffect(selectedEffect);
             } else {
+                // we have double clicked on an effect - highlight that part of the waveform
+                ((MainSequencer*)mParent)->PanelWaveForm->SetSelectedInterval(selectedEffect->GetStartTimeMS(), selectedEffect->GetEndTimeMS());
+                Draw();
+
                 if (update_time > -1) {
                     UpdateTimePosition(update_time);
                 }
@@ -364,6 +375,11 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         if (mSelectedEffect == nullptr || MultipleEffectsSelected() || (mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS() <= mSequenceElements->GetFrameMS()))
         {
             menu_split->Enable(false);
+        }
+
+        wxMenuItem* menu_duplicate = mnuLayer.Append(ID_GRID_MNU_DUPLICATE_EFFECT, "Duplicate");
+        if (mSelectedEffect == nullptr || (mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS() <= mSequenceElements->GetFrameMS())) {
+            menu_duplicate->Enable(false);
         }
 
         // Undo
@@ -750,7 +766,10 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
                 mSelectedEffect->SetSelected(EFFECT_SELECTED);
             }
         }
-    }    
+    } else if (id == ID_GRID_MNU_DUPLICATE_EFFECT) {
+        logger_base.debug("OnGridPopup - DUPLICATE_EFFECT");
+        DuplicateSelectedEffects();
+    }
     else if (id == ID_GRID_MNU_PRESETS)
     {
         logger_base.debug("OnGridPopup - PRESETS");
@@ -3392,6 +3411,8 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
 {
 
     if (mSequenceElements == nullptr) return;
+
+    if (!xlights->AbortRender()) return;
 
     int new_time = -1;
 
@@ -6717,4 +6738,31 @@ void EffectsGrid::PasteModelEffects(int row_number, bool allLayers)
     ((MainSequencer*)mParent)->Paste(true);
     mPartialCellSelected = true;
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
+
+}
+
+void EffectsGrid::DuplicateSelectedEffects()
+{
+    DuplicateDialog dialog(mParent);
+
+    if (dialog.ShowModal() == wxID_OK) {
+         if (mSelectedEffect != nullptr) {
+            long start = mSelectedEffect->GetStartTimeMS();
+            long end = mSelectedEffect->GetEndTimeMS();
+            long length = end - start;
+
+            auto el = mSelectedEffect->GetParentEffectLayer();
+            long newstart = end;
+            for (int i = 0; i < dialog.GetCount(); ++i) {
+                newstart += (dialog.GetGap() * length);
+                newstart = mTimeline->RoundToMultipleOfPeriod(newstart, mSequenceElements->GetFrequency());
+                long newEnd = mTimeline->RoundToMultipleOfPeriod(newstart + length, mSequenceElements->GetFrequency());
+                if (!el->HasEffectsInTimeRange(newstart, newEnd)) {
+                    Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newEnd, EFFECT_SELECTED, false);
+                    mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
+                }                
+                newstart = newEnd;
+            }            
+        }
+    }
 }

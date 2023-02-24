@@ -10,6 +10,8 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+
+#if !defined(SKIP_SMPTE)
 #include "ListenerBase.h"
 #include "../libltc/ltc.h"
 #include <string>
@@ -36,3 +38,7 @@ class ListenerSMPTE : public ListenerBase
         virtual void StopProcess() override;
         virtual void Poll() override;
 };
+
+#else
+#pragma message("Skipping SMPTE")
+#endif

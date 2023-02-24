@@ -15,6 +15,7 @@
 #include <wx/clrpicker.h>
 #include <wx/combobox.h>
 #include <wx/listbox.h>
+#include <wx/listctrl.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
@@ -44,8 +45,8 @@ class SelectPanel: public wxPanel
 		wxButton* Button_Select_Refresh;
 		wxColourPickerCtrl* ColourPickerCtrlSelect;
 		wxComboBox* ComboBox_Select_Effect;
-		wxListBox* ListBox_Select_Effects;
 		wxListBox* ListBox_Select_Models;
+		wxListCtrl* ListCtrl_Select_Effects;
 		wxSlider* SliderColorSensitivity;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
@@ -77,7 +78,7 @@ class SelectPanel: public wxPanel
 		static const long ID_SLIDER_COLOR_SENSITIVITY;
 		static const long ID_BUTTON_SELECT_ALL_COLOR;
 		static const long ID_STATICTEXT4;
-		static const long ID_LISTBOX_SELECT_EFFECTS;
+		static const long ID_LISTCTRL_Select_Effects;
 		static const long ID_BUTTON_SELECT_EFFECT_ALL;
 		static const long ID_BUTTON_SELECT_REFRESH;
 		//*)
@@ -112,6 +113,8 @@ class SelectPanel: public wxPanel
 		void OnColourPickerCtrlSelectColourChanged(wxColourPickerEvent& event);
 		void OnSliderColorSensitivityCmdSliderUpdated(wxScrollEvent& event);
 		void OnButton_Select_All_ColorClick(wxCommandEvent& event);
+		void OnListCtrl_Select_EffectsItemSelect(wxListEvent& event);
+		void OnListCtrl_Select_EffectsItemDeselect(wxListEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

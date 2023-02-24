@@ -91,7 +91,7 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
                                                        wxDefaultPosition, wxDefaultSize,
                                                        wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL,
                                                        wxDefaultValidator, "ID_FILEPICKER_SketchBackground");
-    FilePicker_SketchBackground->GetTextCtrl()->SetEditable(false);
+    //FilePicker_SketchBackground->GetTextCtrl()->SetEditable(false);
 
     auto opacityLabel = new wxStaticText(this, wxID_ANY, "Opacity:");
     Slider_SketchBackgroundOpacity = new wxSlider(this, ID_SLIDER_SketchBackgroundOpacity, 0x30, 0x00, 0xff,

@@ -39,19 +39,23 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetGridSize() const;
         int GetXCentreOffset() const;
         int GetYCentreOffset() const;
+        std::string GetDefaultCamera() const;
 
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}
         const std::vector<Model *> &Models() const { return models;}
+        const std::vector<Model *> &ActiveModels() const { return activeModels;}
         Model* GetModel(std::string modelName) const;
         Model* GetFirstModel() const;
-        std::list<Model*> GetFlatModels(bool removeDuplicates = true) const;
+        std::list<Model*> GetFlatModels(bool removeDuplicates = true, bool activeOnly = true) const;
         bool ContainsModelGroup(ModelGroup* mg);
         bool ContainsModelGroup(ModelGroup* mg, std::set<Model*>& visited);
         bool DirectlyContainsModel(Model* m) const;
         bool DirectlyContainsModel(std::string const& m) const;
         bool ContainsModel(Model* m) const;
         bool ContainsModel(Model* m, std::list<const Model*>& visited) const;
+        bool ContainsModelOrSubmodel(Model* m) const;
+        bool ContainsModelOrSubmodel(Model* m, std::list<const Model*>& visited) const;
         bool OnlyContainsModel(const std::string& name) const;
         int GetModelCount() const { return models.size(); }
         std::string SerialiseModelGroup(const std::string& forModel) const;
@@ -78,6 +82,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 
         std::vector<std::string> modelNames;
         std::vector<Model *> models;
+        std::vector<Model *> activeModels;
         bool selected;
         std::string defaultBufferStyle;
 };

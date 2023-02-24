@@ -19,7 +19,7 @@ class DmxGeneral : public DmxModel
         DmxGeneral(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~DmxGeneral();
 
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
 

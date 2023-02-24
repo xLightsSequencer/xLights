@@ -72,7 +72,11 @@ public:
     std::string GetControllerFPPProxy() const { return _fppProxy; }
     virtual std::string GetFPPProxy() const override;
 
-    bool IsFPPProxyable() const { return _type == OUTPUT_E131 || _type == OUTPUT_DDP; }
+    bool IsFPPProxyable() const
+    {
+        // player only is proxyable because the web UI is
+        return _type == OUTPUT_E131 || _type == OUTPUT_DDP || _type == OUTPUT_TWINKLY || _type == OUTPUT_PLAYER_ONLY;
+    }
 
     void SetManaged(bool managed) { if (_managed != managed) { _managed = managed; _dirty = true; } }
 
@@ -111,7 +115,14 @@ public:
 
     virtual bool CanTempDisable() const override { return true; }
 
-    virtual bool SupportsAutoSize() const override { return _managed && IsAutoLayout(); }
+    virtual bool SupportsAutoSize() const override
+    {
+        return _managed && IsAutoLayout() && GetProtocol() != OUTPUT_PLAYER_ONLY;
+    }
+    virtual bool SupportsSuppressDuplicateFrames() const override
+    {
+        return GetProtocol() != OUTPUT_PLAYER_ONLY;
+    }
     virtual bool SupportsFullxLightsControl() const override;
     virtual bool SupportsDefaultBrightness() const override;
     virtual bool SupportsDefaultGamma() const override;

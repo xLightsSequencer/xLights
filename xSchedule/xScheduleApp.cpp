@@ -50,7 +50,11 @@
 #pragma comment(lib, "portmidid.lib")
 #pragma comment(lib, "msvcprtd.lib")
 #pragma comment(lib, "libzstdd_static_VS.lib")
+
+#if !defined(SKIP_SMPTE)
 #pragma comment(lib, "libltcd.lib")
+#endif
+
 #else
 #pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u.lib")
 #pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u_net.lib")
@@ -69,7 +73,9 @@
 //#pragma comment(lib, "log4cpp.lib")
 #pragma comment(lib, "portmidi.lib")
 #pragma comment(lib, "msvcprt.lib")
+#if !defined(SKIP_SMPTE)
 #pragma comment(lib, "libltc.lib")
+#endif
 #endif
 #pragma comment(lib, "libcurl.dll.a")
 #pragma comment(lib, "z.lib")
@@ -202,19 +208,6 @@ void InitialiseLogging(bool fromMain)
 #ifdef __WXMSW__
         std::string initFileName = "xschedule.windows.properties";
 #endif
-#ifdef __WXOSX__
-        std::string initFileName = "xschedule.mac.properties";
-        std::string resourceName = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/xschedule.mac.properties";
-        if (!wxFile::Exists(initFileName)) {
-            if (fromMain) {
-                return;
-            } else if (wxFile::Exists(resourceName)) {
-                initFileName = resourceName;
-            }
-        }
-        loggingInitialised = true;
-
-#endif
 #ifdef __LINUX__
         std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xschedule.linux.properties";
         if (!wxFile::Exists(initFileName)) {
@@ -266,7 +259,7 @@ void InitialiseLogging(bool fromMain)
                     if (it->isNoticeEnabled()) levels += "NOTICE ";
                     if (it->isWarnEnabled()) levels += "WARN ";
 
-                    logger_base.info("    %s : %s", (const char*)it->getName().c_str(), (const char*)levels.c_str());
+                    logger_base.info("    %s : %s", it->getName().c_str(), levels.c_str());
                     if (apps != "")
                     {
                         logger_base.info("         " + apps);
@@ -325,8 +318,8 @@ bool xScheduleApp::OnInit()
 #ifdef __WXMSW__
     logger_base.debug("xSchedule module handle 0x%llx", ::GetModuleHandle(nullptr));
     logger_base.debug("xSchedule wxTheApp 0x%llx", wxTheApp);
+    MSWEnableDarkMode();
 #endif
-
     DumpConfig();
 
     static const wxCmdLineEntryDesc cmdLineDesc[] =

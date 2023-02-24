@@ -242,6 +242,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer31->Add(BitmapButton_VUMeter_YOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
+	FlexGridSizer42->Fit(this);
+	FlexGridSizer42->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_SLIDER_VUMeter_Bars,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	Connect(ID_CHOICE_VUMeter_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&VUMeterPanel::OnChoice_VUMeter_TypeSelect);
@@ -296,6 +298,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
     Choice_VUMeter_Type->Append(_("Timing Event Timed Sweep 2"));
     Choice_VUMeter_Type->Append(_("Timing Event Alternate Timed Sweep"));
     Choice_VUMeter_Type->Append(_("Timing Event Alternate Timed Sweep 2"));
+    Choice_VUMeter_Type->Append(_("Timing Event Timed Chase From Middle"));
+    Choice_VUMeter_Type->Append(_("Timing Event Timed Chase To Middle"));
     Choice_VUMeter_Type->Append(_("Timing Event Color"));
     Choice_VUMeter_Type->Append(_("Timing Event Jump"));
     Choice_VUMeter_Type->Append(_("Timing Event Jump 100"));
@@ -388,6 +392,8 @@ void VUMeterPanel::ValidateWindow()
         type == "Timing Event Timed Sweep 2" ||
         type == "Timing Event Alternate Timed Sweep" ||
         type == "Timing Event Alternate Timed Sweep 2" ||
+        type == "Timing Event Timed Chase To Middle" ||
+        type == "Timing Event Timed Chase From Middle" ||
         type == "Pulse" ||
         type == "Timing Event Color" ||
         type == "Timing Event Pulse" ||

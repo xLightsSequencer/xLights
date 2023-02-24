@@ -32,6 +32,7 @@
 #include <wx/wfstream.h>
 #include <wx/version.h>
 #include <wx/tooltip.h>
+#include <wx/taskbar.h>
 
 #include <cctype>
 #include <cstring>
@@ -105,6 +106,7 @@
 #include "ColourReplaceDialog.h"
 #include "ModelRemap.h"
 #include "RestoreBackupDialog.h"
+#include "utils/ip_utils.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -391,6 +393,7 @@ wxDEFINE_EVENT(EVT_PLAYJUKEBOXITEM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SETEFFECTCHOICE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TIPOFDAY_READY, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SET_EFFECT_DURATION, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
@@ -447,6 +450,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_COLOUR_CHANGED, xLightsFrame::ColourChanged)
     EVT_COMMAND(wxID_ANY, EVT_SETEFFECTCHOICE, xLightsFrame::SetEffectChoice)
     EVT_COMMAND(wxID_ANY, EVT_TIPOFDAY_READY, xLightsFrame::TipOfDayReady)
+    EVT_COMMAND(wxID_ANY, EVT_SET_EFFECT_DURATION, xLightsFrame::SetEffectDuration)
     EVT_SYS_COLOUR_CHANGED(xLightsFrame::OnSysColourChanged)
 END_EVENT_TABLE()
 
@@ -485,6 +489,34 @@ inline wxBitmapBundle GetOtherBitmapBundle(const wxString &id)  {
 inline wxBitmapBundle GetButtonBitmapBundle(const wxString &id)  {
     return wxArtProvider::GetBitmapBundle(id, wxART_BUTTON);
 }
+
+#ifdef __WXOSX__
+const long NEWINSTANCE_ID = wxNewId();
+
+class xlMacDockIcon : public wxTaskBarIcon {
+public:
+    xlMacDockIcon(xLightsFrame*f) : wxTaskBarIcon(wxTBI_DOCK), _frame(f) {
+    }
+    
+    
+    virtual wxMenu *CreatePopupMenu() override {
+        wxMenu *menu = new wxMenu;
+        menu->Append(NEWINSTANCE_ID, "Open New Instance");
+        return menu;
+    }
+
+    void OnMenuOpenNewInstance(wxCommandEvent&e) {
+        _frame->OnMenuItem_File_NewXLightsInstance(e);
+    }
+    
+    xLightsFrame *_frame;
+    wxDECLARE_EVENT_TABLE();
+};
+
+wxBEGIN_EVENT_TABLE(xlMacDockIcon, wxTaskBarIcon)
+    EVT_MENU(NEWINSTANCE_ID, xlMacDockIcon::OnMenuOpenNewInstance)
+wxEND_EVENT_TABLE()
+#endif
 
 xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     _sequenceElements(this),
@@ -1235,12 +1267,36 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
 
-    #ifdef __WXMSW__
-    _tod.PrepTipOfDay(this);
-    #else
-    _tod = new TipOfTheDayDialog("", this);
-    _tod->PrepTipOfDay(this);
-    #endif
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config == nullptr) {
+        logger_base.error("Null config ... this wont end well.");
+    }
+
+    wxString dir;
+    dir.clear();
+    bool ok = true;
+    bool showDirFromCommandLine = false;
+    if (!xLightsApp::showDir.IsNull()) {
+        wxString t;
+        config->Read("LastDir", &t);
+
+        if (t != xLightsApp::showDir) {
+            showDirFromCommandLine = true;
+        }
+        dir = xLightsApp::showDir;
+    } else {
+        ok = config->Read("LastDir", &dir);
+    }
+    logger_base.debug("Show directory %s.", (const char*)dir.c_str());
+
+    if (dir != "") {
+#ifdef __WXMSW__
+        _tod.PrepTipOfDay(this);
+#else
+        _tod = new TipOfTheDayDialog("", this);
+        _tod->PrepTipOfDay(this);
+#endif
+    }
 
     Connect(wxEVT_HELP, (wxObjectEventFunction)&xLightsFrame::OnHelp);
     Notebook1->Connect(wxEVT_HELP, (wxObjectEventFunction) & xLightsFrame::OnHelp, 0, this);
@@ -1280,6 +1336,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     _appProgress = std::make_unique<wxAppProgressIndicator>(this);
     _appProgress->SetRange(100);
     _appProgress->Reset();
+    
 
     AddEffectToolbarButtons(effectManager, EffectsToolBar);
     wxSize sz = EffectsToolBar->GetSize();
@@ -1371,10 +1428,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
     modelsChangeCount = 0;
 
-    wxConfigBase* config = wxConfigBase::Get();
-    if (config == nullptr) {
-        logger_base.error("Null config ... this wont end well.");
-    }
     logger_base.debug("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor %s.",
         (const char *)config->GetAppName().c_str(),
         (const char *)config->GetPath().c_str(),
@@ -1461,14 +1514,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     _scrollTimer.Connect(wxEVT_TIMER, wxTimerEventHandler(xLightsFrame::OnListItemScrollTimerControllers), nullptr, this);
 
     // get list of most recently used directories
-    wxString dir;
+    wxString dirmru;
     for (int i = 0; i < MRUD_LENGTH; i++) {
         wxString mru_name = wxString::Format("mru%d",i);
-        dir.clear();
-        if (config->Read(mru_name, &dir)) {
-            if (!dir.IsEmpty()) {
-                int idx = mruDirectories.Index(dir);
-                if (idx == wxNOT_FOUND) mruDirectories.Add(dir);
+        dirmru.clear();
+        if (config->Read(mru_name, &dirmru)) {
+            if (!dirmru.IsEmpty()) {
+                int idx = mruDirectories.Index(dirmru);
+                if (idx == wxNOT_FOUND) mruDirectories.Add(dirmru);
             }
         }
         mrud_MenuItem[i] = nullptr;
@@ -1481,23 +1534,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 
     logger_base.debug("xLightsFrame constructor loading config.");
 
-    dir.clear();
-    bool ok = true;
-    bool showDirFromCommandLine = false;
-    if (!xLightsApp::showDir.IsNull()) {
-        wxString t;
-        config->Read("LastDir", &t);
-
-        if (t != xLightsApp::showDir) {
-            showDirFromCommandLine = true;
-        }
-        dir = xLightsApp::showDir;
-    }
-    else {
-        ok = config->Read("LastDir", &dir);
-    }
-    logger_base.debug("Show directory %s.", (const char *)dir.c_str());
-
     wxString md;
 
     if (!xLightsApp::mediaDir.IsNull()) {
@@ -1507,9 +1543,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
         mediaDirectories.push_back(md);
     } else if (config->Read(_("MediaDir"), &md)) {
         wxArrayString entries = wxSplit(md, '|', '\0');
-        for (auto & dir : entries) {
-            ObtainAccessToURL(dir.ToStdString());
-            mediaDirectories.push_back(dir.ToStdString());
+        for (auto & d : entries) {
+            std::string dstd = d.ToStdString();
+            ObtainAccessToURL(dstd);
+            if (std::find(mediaDirectories.begin(), mediaDirectories.end(), dstd) == mediaDirectories.end()) {
+                mediaDirectories.push_back(dstd);
+            }
         }
     }
     SetFixFileDirectories(mediaDirectories);
@@ -1740,7 +1779,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 #ifndef NDEBUG
     logger_base.debug("xLights Crash Menu item not removed.");
 #ifdef _MSC_VER
-    Notebook1->SetBackgroundColour(*wxGREEN);
+    if (wxSystemSettings::GetAppearance().IsDark()) {
+        Notebook1->SetBackgroundColour(wxColour(0x006000));
+    } else {
+        Notebook1->SetBackgroundColour(*wxGREEN);
+    }
 #endif
 #else
     // only keep the crash option if the special option is set
@@ -1842,6 +1885,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     bool gpuRendering = false;
     config->Read(_("xLightsGPURendering"), &gpuRendering, false);
     GPURenderUtils::SetEnabled(gpuRendering);
+    
+    _taskBarIcon = std::make_unique<xlMacDockIcon>(this);
 #else
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
@@ -2085,6 +2130,19 @@ void xLightsFrame::DoPostStartupCommands() {
 #endif
         if (_userEmail == "") CollectUserEmail();
         if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
+        
+#ifdef __WXMSW__
+        int verMaj = -1;
+        int verMin = -1;
+        wxOperatingSystemId o = wxGetOsVersion(&verMaj, &verMin);
+        static bool hasWarned = false;
+        if (verMaj < 8 && !hasWarned) {
+            hasWarned = true;
+            wxMessageBox("Windows 7 has known issues rendering some effects.  Support for Windows 7 may be removed entirely soon.",
+                         "Windows Version",
+                          wxICON_INFORMATION | wxCENTER | wxOK);
+        }
+#endif
     }
 }
 
@@ -2155,7 +2213,6 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
     dlg.MainSizer->SetSizeHints(&dlg);
 
     if (IsFromAppStore()) {
-        dlg.PrivacyHyperlinkCtrl->SetURL("http://kulplights.com/xlights/privacy_policy.html");
         dlg.EULAHyperlinkCtrl->SetLabel("End User License Agreement");
         dlg.EULAHyperlinkCtrl->SetURL("http://kulplights.com/xlights/eula.html");
         dlg.EULAHyperlinkCtrl->Show();
@@ -4061,10 +4118,13 @@ void xLightsFrame::SaveWorking()
     wxString fn = CurrentSeqXmlFile->GetFullName();
     wxString tmp;
 
+    wxFileName fnp(fn);
     if (fn == "") {
         tmp = p + "/" + "__.xbkp";
-    } else {
-        wxFileName fnp(fn);
+    } else if (CountChar(fnp.GetName(), '_') == fnp.GetName().size()) {
+        tmp = p + "/" + fnp.GetName() + "_.xbkp";
+    }
+    else {
         tmp = p + "/" + fnp.GetName() + ".xbkp";
     }
     wxFileName ftmp(tmp);
@@ -4237,12 +4297,14 @@ void xLightsFrame::SetMediaFolders(const std::list<std::string>& folders)
     mediaDirectories.clear();
     for (auto const& dir : folders) {
         ObtainAccessToURL(dir);
-        mediaDirectories.push_back(dir);
-        logger_base.debug("Adding Media directory: %s.", (const char*)dir.c_str());
-        if (setting != "") {
-            setting += "|";
-        }
-        setting += dir;
+        if (std::find(mediaDirectories.begin(), mediaDirectories.end(), dir) == mediaDirectories.end()) {
+            mediaDirectories.push_back(dir);
+            logger_base.debug("Adding Media directory: %s.", (const char*)dir.c_str());
+            if (setting != "") {
+                setting += "|";
+            }
+            setting += dir;
+        }        
     }
     config->Write(_("MediaDir"), setting);
     SetFixFileDirectories(mediaDirectories);
@@ -5255,7 +5317,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     for (const auto& c : _outputManager.GetControllers()) {
         auto eth = c;
         if (eth->GetIP() != "" && eth->GetIP() != "MULTICAST") {
-            if (!IsIPValidOrHostname(eth->GetIP())) {
+            if (!ip_utils::IsIPValidOrHostname(eth->GetIP())) {
                 wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' does not look valid.",
                     (const char*)eth->GetIP().c_str(),
                     (const char*)eth->GetName().c_str());
@@ -6123,8 +6185,6 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         if (errcount + warncount == errcountsave + warncountsave) {
             LogAndWrite(f, "    No problems found");
         }
-        errcountsave = errcount;
-        warncountsave = warncount;
 
         if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
             LogAndWrite(f, "");
@@ -6719,7 +6779,7 @@ int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n,
 
     int effects = 0;
     wxString type = "Node";
-    wxString name = wxString::Format("%sStrand %d/Node %d", e->GetFullName(), e->GetStrand()+1, n);
+    wxString name = wxString::Format("%s/%s", e->GetFullName(), m->GetNodeName(n, true));
 
     for (int k = 0; k < nl->GetEffectCount(); k++)
     {
@@ -6787,7 +6847,6 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
         Model* m = AllModels.GetModel(e->GetModelName());
 
         wxString type = "Unknown";
-        wxString subname = "";
         switch (e->GetType())
         {
         case     ElementType::ELEMENT_TYPE_MODEL:
@@ -6805,7 +6864,6 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
             break;
         case ElementType::ELEMENT_TYPE_STRAND:
             type = "Strand";
-            subname = wxString::Format("Strand %d", dynamic_cast<StrandElement*>(e)->GetStrand() + 1);
             break;
         case ElementType::ELEMENT_TYPE_TIMING:
             type = "Timing";
@@ -6862,7 +6920,7 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
                     (duration % 60000) / 1000,
                     duration % 1000,
                     sm.Contains("X_Effect_Description") ? sm["X_Effect_Description"] : "",
-                    (const char *)(e->GetFullName() + subname).c_str(),
+                    (const char *)(e->GetFullName()).c_str(),
                     type,
                     fs
                 ));
@@ -6922,7 +6980,7 @@ void xLightsFrame::ExportEffects(wxString const& filename)
             }
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
                 StrandElement *se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
-                int node = 1;
+                int node = 0;
                 for (size_t n = 0; n < se->GetNodeLayerCount(); n++)
                 {
                     NodeLayer* nl = se->GetNodeLayer(n);
@@ -7323,6 +7381,12 @@ void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
     if (Notebook1->GetSelection() != LAYOUTTAB)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
+
+    if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
+        if (wxMessageBox("Open sequence has not been saved. If you plan on uploading it to FPP then it needs to be saved. Do you want to save it now?", "Save Sequence", wxYES_NO | wxCENTRE, this) == wxYES) {
+            SaveSequence();
+        }
+    }
 
     FPPConnectDialog dlg(this, &_outputManager);
 

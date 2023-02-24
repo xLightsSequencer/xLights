@@ -42,11 +42,13 @@ class JobPool
     std::deque<Job*> queue;
     std::atomic_int numThreads;
     std::atomic_int idleThreads;
-    std::atomic_int inFlight;
     std::string threadNameBase;
 
+protected:
+    std::atomic_int inFlight;
     int maxNumThreads;
     int minNumThreads;
+    
 public:
     JobPool(const std::string &threadNameBase);
     virtual ~JobPool();

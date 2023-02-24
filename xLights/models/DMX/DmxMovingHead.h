@@ -21,7 +21,7 @@ class DmxMovingHead : public DmxModel, public DmxPanTiltAbility, public DmxShutt
         DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~DmxMovingHead();
 
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
         virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,

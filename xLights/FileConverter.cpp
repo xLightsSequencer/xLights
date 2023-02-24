@@ -1653,7 +1653,9 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
     }
     size_t stepSize = roundTo4(params.seq_data.NumChannels());
     wxUint16 stepTime = params.seq_data.FrameTime();
-
+    if (vMajor == 2) {
+        file->enableMinorVersionFeatures(2);
+    }
     file->setChannelCount(stepSize);
     file->setStepTime(stepTime);
     file->setNumFrames(params.seq_data.NumFrames());
@@ -1685,6 +1687,66 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
             logger_conversion.info("Sparse range - Start: %d  End: %d   Size: %d\n", r.first + 1, (r.first + r.second), r.second);
         }
     }
+    if (vMajor == 2 && params.elements) {
+        for (int x = 0; x < params.elements->GetNumberOfTimingElements(); x++) {
+            TimingElement *te = params.elements->GetTimingElement(x);
+            if (te->GetSubType() == "FPP Commands" || te->GetSubType() == "FPP Effects") {
+                std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> commands;
+                for (int l = 0; l < te->GetEffectLayerCount(); l++) {
+                    EffectLayer *layer = te->GetEffectLayer(l);
+                    for (auto & eff : layer->GetAllEffects()) {
+                        commands[eff->GetEffectName()].push_back(std::make_pair(eff->GetStartTimeMS(), eff->GetEndTimeMS()));
+                    }
+                }
+                int totalLen = 3; // 1 byte ver, 2 byte count
+                std::string fppInstances = ""; // null terminated list of hosts these apply to. (not yet used)
+                totalLen += fppInstances.size() + 1;
+                for (auto &a : commands) {
+                    totalLen += a.first.length() + 1 + 4; // null plus count
+                    totalLen += a.second.size() * 8;
+                }
+                FSEQFile::VariableHeader commandHeader;
+                commandHeader.extendedData = true;
+                commandHeader.code[0] = 'F';
+                if (te->GetSubType() == "FPP Effects") {
+                    commandHeader.code[1] = 'E';
+                } else {
+                    commandHeader.code[1] = 'C';
+                }
+                commandHeader.data.resize(totalLen);
+                uint8_t *data = &commandHeader.data[0];
+                data[0] = 1; //version flag
+                uint32_t *t2 = (uint32_t*)&data[1];
+                *t2 = (uint32_t)commands.size();
+                strcpy((char *)&data[5], fppInstances.c_str());
+                data += 6 + fppInstances.size();
+                for (auto &a : commands) {
+                    std::string c = a.first;
+                    uint32_t count = a.second.size();
+
+                    strcpy((char*)data, c.c_str());
+                    data += c.length() + 1;
+                    uint32_t *t = (uint32_t*)data;
+                    *t = count;
+                    data += 4;
+                    ++t;
+                    for (int x = 0; x < count; x++) {
+                        uint32_t sframe = a.second[x].first;
+                        uint32_t eframe = a.second[x].second;
+                        sframe /= stepTime;
+                        eframe /= stepTime;
+                        *t = sframe;
+                        ++t;
+                        *t = eframe;
+                        ++t;
+                    }
+                    data += count * 8;
+                }
+                file->addVariableHeader(commandHeader);
+            }
+        }
+    }
+    
 
     file->writeHeader();
     size_t size = params.seq_data.NumFrames();

@@ -15,7 +15,7 @@
 #include <wx/string.h>
 //*)
 
-#include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/ip_utils.h"
 
 //(*IdInit(ExtraIPDialog)
 const long ExtraIPDialog::ID_STATICTEXT1 = wxNewId();
@@ -102,7 +102,7 @@ void ExtraIPDialog::ValidateWindow()
 {
     std::string ip = TextCtrl_Ip->GetValue().ToStdString();
 
-    if (IsIPValid(ip))
+    if (ip_utils::IsIPValid(ip))
     {
         bool clash = false;
         for (auto it = _extraIPs->begin(); it != _extraIPs->end(); ++it)

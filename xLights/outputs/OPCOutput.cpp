@@ -12,6 +12,7 @@
 #include "OPCOutput.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
+#include "../utils/ip_utils.h"
 
 #include <wx/xml/xml.h>
 #include <wx/process.h>
@@ -167,7 +168,7 @@ bool OPCOutput::Open() {
 
     if (!_enabled) return true;
     if (_ip == "") return false;
-    if (!IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
 
     _ok = IPOutput::Open();
     //if (_fppProxyOutput) {

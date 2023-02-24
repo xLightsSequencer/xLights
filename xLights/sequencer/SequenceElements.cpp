@@ -171,8 +171,7 @@ static Element* CreateElement(SequenceElements *se, const std::string &name, con
         te->SetActive(active);
         te->SetMasterVisible(visible);
         el->SetVisible(te->GetMasterVisible());
-    }
-    else {
+    } else {
         ModelElement *me = new ModelElement(se, name, selected);
         if (xframe != nullptr) {
             Model *model = xframe->GetModel(name);
@@ -664,53 +663,60 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
             double endTime;
             effect->GetAttribute(STR_ENDTIME).ToDouble(&endTime);
             endTime = TimeLine::RoundToMultipleOfPeriod(endTime, mFrequency);
-            // Protected
-            bool bProtected = effect->GetAttribute(STR_PROTECTED) == '1' ? true : false;
-            if (type != STR_TIMING) {
-                // Name
-                effectName = effect->GetAttribute(STR_NAME);
-                // ID
-                id = wxAtoi(effect->GetAttribute(STR_ID, STR_ZERO));
-                if (effect->GetAttribute(STR_REF) != STR_EMPTY) {
-                    int ref = wxAtoi(effect->GetAttribute(STR_REF));
-                    if (ref >= effectStrings.size()) {
-                        logger_base.warn("Effect string not found for effect %s between %d and %d. Settings ignored.", (const char*)effectName.c_str(), (int)startTime, (int)endTime);
-                        settings = "";
-                    }
-                    else {
-                        settings = effectStrings[ref];
-                    }
-                }
-                else {
-                    settings = ToStdString(effect->GetNodeContent());
-                }
 
-                if (settings.find("E_FILEPICKER_Pictures_Filename") != std::string::npos) {
-                    settings = FixEffectFileParameter("E_FILEPICKER_Pictures_Filename", settings, "");
-                }
-                else if (settings.find("E_FILEPICKER_Glediator_Filename") != std::string::npos) {
-                    settings = FixEffectFileParameter("E_FILEPICKER_Glediator_Filename", settings, "");
-                }
+            if (startTime >= endTime) {
+                // effects should not have negative or zero duration ... if they do we drop them
+                logger_base.warn("Effect dropped as its start time was greater than or equal to its end time : '%s' : %s Layer %d Start %d End %d.", 
+                    (const char*)effect->GetAttribute(STR_NAME).c_str(), 
+                    (const char*)effectLayer->GetParentElement()->GetName().c_str(), 
+                    effectLayer->GetLayerNumber(), 
+                    (int)(startTime / 1000), 
+                    (int)(endTime / 1000));
+            } else
+            {
+                // Protected
+                bool bProtected = effect->GetAttribute(STR_PROTECTED) == '1' ? true : false;
+                if (type != STR_TIMING) {
+                    // Name
+                    effectName = effect->GetAttribute(STR_NAME);
+                    // ID
+                    id = wxAtoi(effect->GetAttribute(STR_ID, STR_ZERO));
+                    if (effect->GetAttribute(STR_REF) != STR_EMPTY) {
+                        int ref = wxAtoi(effect->GetAttribute(STR_REF));
+                        if (ref >= effectStrings.size()) {
+                            logger_base.warn("Effect string not found for effect %s between %d and %d. Settings ignored.", (const char*)effectName.c_str(), (int)startTime, (int)endTime);
+                            settings = "";
+                        } else {
+                            settings = effectStrings[ref];
+                        }
+                    } else {
+                        settings = ToStdString(effect->GetNodeContent());
+                    }
 
-                wxString tmp;
-                if (effect->GetAttribute(STR_PALETTE, &tmp)) {
-                    tmp.ToLong(&palette);
+                    if (settings.find("E_FILEPICKER_Pictures_Filename") != std::string::npos) {
+                        settings = FixEffectFileParameter("E_FILEPICKER_Pictures_Filename", settings, "");
+                    } else if (settings.find("E_FILEPICKER_Glediator_Filename") != std::string::npos) {
+                        settings = FixEffectFileParameter("E_FILEPICKER_Glediator_Filename", settings, "");
+                    }
+
+                    wxString tmp;
+                    if (effect->GetAttribute(STR_PALETTE, &tmp)) {
+                        tmp.ToLong(&palette);
+                    }
+                } else {
+                    // store timing labels in name attribute
+                    effectName = UnXmlSafe(effect->GetAttribute(STR_LABEL));
                 }
-            }
-            else {
-                // store timing labels in name attribute
-                effectName = UnXmlSafe(effect->GetAttribute(STR_LABEL));
-            }
-            std::string pal = STR_EMPTY;
-            if (palette != -1) {
-                pal = colorPalettes[palette];
-            }
-            if (effectName != "Random") { // we dont load random effects ... they should not be there
-                effectLayer->AddEffect(id, effectName, settings, pal,
-                                       startTime, endTime, EFFECT_NOT_SELECTED, bProtected);
-            }
-            else {
-                logger_base.warn("Random effect not loaded on element %s layer %d (%0.02f-%0.02f)", (const char*)effectLayer->GetParentElement()->GetName().c_str(), effectLayer->GetLayerNumber(), startTime / 1000, endTime / 1000);
+                std::string pal = STR_EMPTY;
+                if (palette != -1) {
+                    pal = colorPalettes[palette];
+                }
+                if (effectName != "Random") { // we dont load random effects ... they should not be there
+                    effectLayer->AddEffect(id, effectName, settings, pal,
+                                           startTime, endTime, EFFECT_NOT_SELECTED, bProtected);
+                } else {
+                    logger_base.warn("Random effect not loaded on element %s layer %d (%0.02f-%0.02f)", (const char*)effectLayer->GetParentElement()->GetName().c_str(), effectLayer->GetLayerNumber(), startTime / 1000, endTime / 1000);
+                }
             }
         }
         else if (effect->GetName() == STR_NODE && effectLayerNode->GetName() == STR_STRAND) {
@@ -778,6 +784,9 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                     if (type == STR_TIMING) {
                         std::string views = element->GetAttribute("views", "").ToStdString();
                         dynamic_cast<TimingElement*>(elem)->SetViews(views);
+                        
+                        std::string subType = element->GetAttribute("subType", "").ToStdString();
+                        dynamic_cast<TimingElement*>(elem)->SetSubType(subType);
                     }
                 }
             }

@@ -41,7 +41,8 @@ const std::vector<std::string> &ChannelBlockModel::GetBufferStyles() const {
     return LINE_BUFFER_STYLES;
 }
 
-void ChannelBlockModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void ChannelBlockModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Channels", "ChannelBlockCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 64);
@@ -69,6 +70,7 @@ int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPro
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         //AdjustChannelProperties(grid, event.GetPropertyValue().GetLong());
         //AdjustStringProperties(grid, event.GetPropertyValue().GetLong());
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
@@ -78,14 +80,13 @@ int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPro
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
         return 0;
-    }
-    else if (event.GetPropertyName().StartsWith("ChannelProperties."))
-    {
+    } else if (event.GetPropertyName().StartsWith("ChannelProperties.")) {
         wxColor c;
         c << event.GetProperty()->GetValue();
         xlColor xc = c;
         ModelXml->DeleteAttribute(event.GetPropertyName());
         ModelXml->AddAttribute(event.GetPropertyName(), xc);
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");

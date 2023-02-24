@@ -29,7 +29,7 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual std::list<std::string> CheckModelSettings() override;
         virtual bool SupportsLowDefinitionRender() const override

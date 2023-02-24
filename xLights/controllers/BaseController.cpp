@@ -18,7 +18,7 @@
 #include <curl/curl.h>
 
 #ifdef __WXMSW__
-#include "../../xSchedule/xSMSDaemon/Curl.h"
+#include "../utils/Curl.h"
 #endif
 
 #include <log4cpp/Category.hh>
@@ -34,6 +34,7 @@
 #include "SanDevices.h"
 #include "Minleon.h"
 #include "WLED.h"
+#include "Experience.h"
 
 #pragma region Constructors and Destructors
 BaseController::BaseController(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("") {
@@ -66,26 +67,30 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
     if (dynamic_cast<ControllerEthernet*>(controller) != nullptr) {
         flip = dynamic_cast<ControllerEthernet*>(controller)->GetFirstOutput()->GetForceLocalIPToUse();
     }
-
-    if (vendor == "Falcon") {
+    
+    
+    std::string driver = caps->GetConfigDriver();
+    if (driver == "Falcon") {
         bc = new Falcon(ip, proxy);
-    } else if (vendor == "Advatek" || vendor == "LOR") {
+    } else if (driver == "Pixlite16") {
         bc = new Pixlite16(ip);
-    } else if (vendor == "ESPixelStick") {
+    } else if (driver == "ESPixelStick") {
         bc = new ESPixelStick(ip);
-    } else if (vendor == "J1Sys") {
+    } else if (driver == "J1Sys") {
         bc = new J1Sys(ip, proxy);
-    } else if (vendor == "SanDevices") {
+    } else if (driver == "SanDevices") {
         bc = new SanDevices(ip, proxy);
-    } else if (vendor == "HinksPix") {
+    } else if (driver == "HinksPix") {
         bc = new HinksPix(ip, proxy);
-    } else if (vendor == "HolidayCoro") {
+    } else if (driver == "AlphaPix") {
         bc = new AlphaPix(ip, proxy);
-    } else if (vendor == "FPP" || vendor == "KulpLights" || vendor == "Hanson Electronics" || vendor == "ScottNation") {
+    } else if (driver == "FPP") {
         bc = new FPP(ip, proxy, caps->GetModel());
-    } else if (vendor == "Minleon") {
+    } else if (driver == "Minleon") {
         bc = new Minleon(ip, proxy, flip);
-    } else if (vendor == "WLED") {
+    } else if (driver == "Experience") {
+        bc = new Experience(ip, proxy);
+    } else if (driver == "WLED") {
         bc = new WLED(ip, proxy);
     } else {
         logger_base.warn("Vendor not recognized ... assuming it is a FPP based vendor : %s.", (const char*)vendor.c_str());
@@ -98,7 +103,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
 #pragma endregion
 
 #pragma region Protected Functions
-std::string BaseController::GetURL(const std::string& url, const std::string& username, const std::string& password) {
+std::string BaseController::GetURL(const std::string& url, const std::string& username, const std::string& password) const{
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string res;
@@ -145,7 +150,8 @@ std::string BaseController::GetURL(const std::string& url, const std::string& us
     return res;
 }
 
-std::string BaseController::PutURL(const std::string& url, const std::string& request, const std::string& username, const std::string& password, const std::string& contentType) {
+std::string BaseController::PutURL(const std::string& url, const std::string& request, const std::string& username, const std::string& password, const std::string& contentType) const
+{
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
