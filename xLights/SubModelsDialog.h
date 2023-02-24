@@ -230,6 +230,7 @@ protected:
     static const long SUBMODEL_DIALOG_SPLIT;
     static const long SUBMODEL_DIALOG_SORT_BY_NAME;
     static const long SUBMODEL_DIALOG_REMOVE_DUPLICATE;
+    static const long SUBMODEL_DIALOG_ELIDE_DUPLICATE;
 
     void SaveXML(Model* m);
     wxString GetSelectedName() const;
@@ -259,7 +260,7 @@ protected:
     void FlipHorizontal();
     void FlipVertical();
     void Reverse();
-    void RemoveDuplicates();
+    void RemoveDuplicates(bool elide);
 
     void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
     void DisplayRange(const wxString &range);

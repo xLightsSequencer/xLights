@@ -103,6 +103,7 @@ const long SubModelsDialog::SUBMODEL_DIALOG_JOIN = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SPLIT = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SORT_BY_NAME = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_DUPLICATE = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_DUPLICATE = wxNewId();
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
 	//(*EventTable(SubModelsDialog)
@@ -959,6 +960,7 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
         wxMenu mnu;
 
         mnu.Append(SUBMODEL_DIALOG_REMOVE_DUPLICATE, "Remove Duplicates");
+        mnu.Append(SUBMODEL_DIALOG_ELIDE_DUPLICATE, "Elide Duplicates");
 
         mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridPopup, nullptr, this);
         PopupMenu(&mnu);
@@ -968,7 +970,10 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
 void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
 {
     if (event.GetId() == SUBMODEL_DIALOG_REMOVE_DUPLICATE) {
-        RemoveDuplicates();
+        RemoveDuplicates(false);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_ELIDE_DUPLICATE) {
+        RemoveDuplicates(true);
     }
 }
 
@@ -3017,7 +3022,7 @@ void SubModelsDialog::Reverse()
     TextCtrl_Name->SelectAll();
 }
 
-void SubModelsDialog::RemoveDuplicates()
+void SubModelsDialog::RemoveDuplicates(bool elide)
 {
     wxString name = GetSelectedName();
     if (name.empty()) {
@@ -3029,15 +3034,29 @@ void SubModelsDialog::RemoveDuplicates()
     int row = NodesGrid->GetGridCursorRow();
     wxString oldnodes = ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
 
-    auto oldNodeArrray = wxSplit(oldnodes, ',');
-    //remove duplicated
-    auto end = oldNodeArrray.end();
-    for (auto it = oldNodeArrray.begin(); it != end; ++it) {
-        end = std::remove(it + 1, end, *it);
-    }
-    oldNodeArrray.erase(end, oldNodeArrray.end());
+    auto oldNodeArray = wxSplit(oldnodes, ',');
 
-    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ','));
+    if (elide) {
+        std::set<wxString> seen;
+        for (auto it = oldNodeArray.begin(); it != oldNodeArray.end(); ++it) {
+            if (it->empty())
+                continue;
+            if (seen.count(*it)) {
+                *it = "";
+                continue;
+            }
+            seen.insert(*it);
+        }
+    } else {
+        // remove duplicated
+        auto end = oldNodeArray.end();
+        for (auto it = oldNodeArray.begin(); it != end; ++it) {
+            end = std::remove(it + 1, end, *it);
+        }
+        oldNodeArray.erase(end, oldNodeArray.end());
+    }
+
+    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArray, ','));
     Select(GetSelectedName());
 
     NodesGrid->SetGridCursor(row, 0);
