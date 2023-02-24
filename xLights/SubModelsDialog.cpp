@@ -2231,6 +2231,19 @@ static void LogAndWrite(wxFile& f, const std::string& msg)
 
 void SubModelsDialog::Symmetrize()
 {
+    // Validate that we have something to work on
+    wxString mname = GetSelectedName();
+    if (mname.empty()) {
+        return;
+    }
+
+    int row = NodesGrid->GetGridCursorRow();
+
+    SubModelInfo* sm = GetSubModelInfo(mname);
+    if (!sm)
+        return;
+
+    // Get user input
     wxNumberEntryDialog dlg(this, "Degree of Symmetry", "", "Select Degree of Rotational Symmetry", 8, 2, 100);
     if (dlg.ShowModal() != wxID_OK) {
         return;
@@ -2246,22 +2259,137 @@ void SubModelsDialog::Symmetrize()
     if (writeToFile || displayInEditor) {
         f.Open(filename, wxFile::write);
         if (!f.IsOpened()) {
-            DisplayError("Unable to create results file for Check Sequence. Aborted.", this);
+            DisplayError("Unable to create results file for Symmetrize. Aborted.", this);
             return;
         }
     }
 
+    int w, h;
+    modelPreview->GetSize(&w, &h);
+
+    LogAndWrite(f, wxString::Format("Processing model: %s", mname.c_str()));
     LogAndWrite(f, wxString::Format("Symmetrize DoS: %d", dos));
+    LogAndWrite(f, wxString::Format("Model Dimensions (based on screen): %dx%d", w, h));
+    
+    //  Calculate point xys
+    std::map<int, std::pair<float, float>> coords;
+    if (!model->GetScreenLocations(modelPreview, coords)) {
+        DisplayError("Model doesn't have precisely one location per node");
+        return;
+    }
+    LogAndWrite(f, wxString::Format("Number of nodes: %d", int(coords.size())));
+
+    //  Calculate centroid
+    float cx = 0, cy = 0;
+    for (const auto& x : coords) {
+        cx += x.second.first;
+        cy += x.second.second;
+    }
+    cx /= float(coords.size());
+    cy /= float(coords.size());
+    LogAndWrite(f, wxString::Format("Centroid: %f, %f", cx, cy));
+
+    //  Calculate locations in new space
+    std::map<int, std::pair<float, float>> fcoords;
+    std::map<int, float> fturns;
+    for (const auto& p : coords) {
+        float dx = p.second.first - cx;
+        float dy = p.second.second - cy;
+        if (dx == 0 && dy == 0) {
+            fcoords[p.first] = std::make_pair(cx, cy);
+            fturns[p.first] = 0;
+            continue;
+        }
+        float rad = sqrtf(dx * dx + dy * dy);
+        float ang = atan2f(dy, dx);
+        if (ang <= 0) {
+            ang += float(2 * PI);
+        }
+        ang *= float(dos);
+        fcoords[p.first] = std::make_pair(rad * cosf(ang), rad * sinf(ang));
+        float turn = float(ang / (2 * PI)); // Which trip around?  We want one from each trip.
+        if (turn >= dos)
+            turn -= dos;
+        fturns[p.first] = turn;
+    }
+    LogAndWrite(f, wxString::Format("Transformed nodes: %d", int(fcoords.size())));
+
+    //  Build list that need matched, and match list
+    std::set<int> nodesNeedMatch;
+    std::set<int, std::vector<int>> matchIDToNodeSet; // vector index is relative turn #
+    std::set<int, int> nodeToMatchIDs;
+
+    // Copy and expand data
+    int origStrands = sm->strands.size();
+    size_t mlen = 0;
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        auto x = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
+        for (auto n : x) {
+            if (n == "")
+                continue;
+            nodesNeedMatch.insert(wxAtoi(n));
+        }
+    }
+
+
+    int radius = 0;
+    //  For each of numerous search radii, calculate list per grid cell
+    //  We will stop if all nodes have matches
+    while (!nodesNeedMatch.empty()) {
+        std::vector<std::vector<std::vector<int>>> bins; // [x][y][which]
+        for (int x = 0; x < w; ++x) {
+            bins.push_back(std::vector<std::vector<int>>());
+            for (int y = 0; y < w; ++y) {
+                bins[x].push_back(std::vector<int>());
+            }
+        }
+
+        // Sanity
+        ++radius;
+        if (radius > 20 && !nodesNeedMatch.empty()) {
+            LogAndWrite(f, wxString::Format("Maximum search radius hit: %d", radius));
+            break;
+        }
+
+        wxSafeYield();
+    }
+
+    bool fail = false;
+    // Report any trouble
+    if (!nodesNeedMatch.empty()) {
+        LogAndWrite(f, "Note the following nodes could not be matched.  Ensure that zoom in/out is reasonable, that the model is centered, and that the point locations are clean.");
+        for (auto x : nodesNeedMatch) {
+            LogAndWrite(f, wxString::Format("  Node %d", x));
+        }
+        fail = true;
+    }
 
     // TODO:
-    //  Calculate point xys
-    //  Calculate centroid
-    //  Calculate locations in new space
-    //  Build list that need matched, and match list
-    //  For each of numerous search radii, calculate list per grid cell
-    //   Any meeting degree of symmetry, collect a set from different trips around
-    //  If match list is empty, quit
     // Use match list to make new strands
+    /*
+    // Write back
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        for (auto it = data[i].begin(); it != data[i].end();) {
+            if (*it == "x") {
+                it = data[i].erase(it);
+            } else {
+                ++it;
+            }
+        }
+        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(data[i], ','));
+    }
+    */
+
+    // Update UI
+    Select(GetSelectedName());
+
+    if (row >= 0) {
+        NodesGrid->SetGridCursor(row, 0);
+    }
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
 
     // Save / Display results log
     if (f.IsOpened()) {
@@ -2273,16 +2401,20 @@ void SubModelsDialog::Symmetrize()
                 wxString command = ft->GetOpenCommand(filename);
 
                 if (command == "") {
-                    DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
+                    DisplayError(wxString::Format("Unable to show xLights Symmetrize results '%s'. See your log for the content.", filename).ToStdString(), this);
                 } else {
                     wxUnsetEnv("LD_PRELOAD");
                     wxExecute(command);
                 }
                 delete ft;
             } else {
-                DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
+                DisplayError(wxString::Format("Unable to show xLights Symmetrize results '%s'. See your log for the content.", filename).ToStdString(), this);
             }
         }
+    }
+
+    if (fail) {
+        DisplayError("Symmetrize encountered errors.  See log for details.", this);
     }
 }
 

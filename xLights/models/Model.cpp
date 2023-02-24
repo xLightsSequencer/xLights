@@ -5319,6 +5319,26 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip)
     return "";
 }
 
+bool Model::GetScreenLocations(ModelPreview* preview, std::map<int, std::pair<float, float>>& coords)
+{
+    int w, h;
+    float scale = GetPreviewDimScale(preview, w, h);
+
+    int i = 1;
+    for (const auto& it : Nodes) {
+        auto c = it.get()->Coords;
+        if (c.size() != 1)
+            return false;
+        for (const auto& it2 : c) {
+            float sx, sy;
+            GetScreenLocation(sx, sy, it2, w, h, scale);
+            coords[i] = std::make_pair(sx, sy);
+        }
+        ++i;
+    }
+    return true;
+}
+
 std::vector<int> Model::GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end)
 {
     int w, h;
