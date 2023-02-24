@@ -2289,6 +2289,17 @@ void SubModelsDialog::Symmetrize()
     cy /= float(coords.size());
     LogAndWrite(f, wxString::Format("Centroid: %f, %f", cx, cy));
 
+    //  Calculate radius / centroid another way
+    float nx = cx, ny = cy, xx = cx, xy = cy;
+    for (const auto& x : coords) {
+        nx = std::min(nx, x.second.first);
+        xx = std::max(xx, x.second.first);
+        ny = std::min(ny, x.second.second);
+        xy = std::max(xy, x.second.second);
+    }
+    LogAndWrite(f, wxString::Format("Ranges x:%.1f-%.1f, y:%1f-%1f", nx, xx, ny, xy));
+    LogAndWrite(f, wxString::Format("Center by extremity: %f, %f", (nx+xx)/2, (ny+xy)/2));
+
     //  Calculate locations in new space
     std::map<int, std::pair<float, float>> fcoords;
     std::map<int, float> fturns;
@@ -2306,7 +2317,7 @@ void SubModelsDialog::Symmetrize()
             ang += float(2 * PI);
         }
         ang *= float(dos);
-        fcoords[p.first] = std::make_pair(rad * cosf(ang), rad * sinf(ang));
+        fcoords[p.first] = std::make_pair(rad * cosf(ang) + cx, rad * sinf(ang) + cy);
         float turn = float(ang / (2 * PI)); // Which trip around?  We want one from each trip.
         if (turn >= dos)
             turn -= dos;
@@ -2316,8 +2327,8 @@ void SubModelsDialog::Symmetrize()
 
     //  Build list that need matched, and match list
     std::set<int> nodesNeedMatch;
-    std::set<int, std::vector<int>> matchIDToNodeSet; // vector index is relative turn #
-    std::set<int, int> nodeToMatchIDs;
+    std::map<int, std::vector<int>> matchIDToNodeSet; // vector index is relative turn #
+    std::map<int, int> nodeToMatchIDs;
 
     // Copy and expand data
     int origStrands = sm->strands.size();
@@ -2339,8 +2350,79 @@ void SubModelsDialog::Symmetrize()
         std::vector<std::vector<std::vector<int>>> bins; // [x][y][which]
         for (int x = 0; x < w; ++x) {
             bins.push_back(std::vector<std::vector<int>>());
-            for (int y = 0; y < w; ++y) {
+            for (int y = 0; y < h; ++y) {
                 bins[x].push_back(std::vector<int>());
+            }
+        }
+
+        // Append to lists
+        for (const auto& pt : fcoords) {
+            if (nodeToMatchIDs.count(pt.first))
+                continue; // Already matched
+
+            int cx = int(pt.second.first);
+            int cy = int(pt.second.second);
+            for (int x = cx - radius; x <= cx + radius; ++x) {
+                if (x < 0 || x >= w)
+                    continue;
+                for (int y = cy - radius; y <= cy + radius; ++y) {
+                    if (y < 0 || y >= h)
+                        continue;
+                    bins[x][y].push_back(pt.first);
+                }
+            }
+        }
+
+        // See if any lists are ready
+        for (int x = 0; x < w; ++x) {
+            for (int y = 0; y < h; ++y) {
+                if (int(bins[x][y].size()) < dos)
+                    continue; // Quick test without looking at bins closely, not enough here
+                std::vector<std::pair<float, int>> matches;
+                for (int pt : bins[x][y]) {
+                    if (nodeToMatchIDs.count(pt) != 0)
+                        continue;  // Already matched this pass
+                    matches.push_back(std::make_pair(fturns[pt], pt));
+                }
+                if (matches.size() < dos)
+                    continue;
+                std::sort(matches.begin(), matches.end()); // Sort CCW
+
+                // Try to pick
+                float tgt = matches[0].first;
+                int found = 0;
+                for (unsigned j = 0; j < matches.size(); ++j) {
+                    if (matches[j].first >= tgt - .2 && matches[j].first <= tgt + .2) {
+                        ++found;
+                        tgt += 1;
+                    }
+                    if (found == dos)
+                        break;
+                }
+                if (found != dos)
+                    continue; // On closer inspection, nope
+                
+                // OK, repeat that process and record it
+                std::vector<int> matched;
+                tgt = matches[0].first;
+                int mid = matchIDToNodeSet.size();
+                for (unsigned j = 0; j < matches.size(); ++j) {
+                    if (matches[j].first >= tgt - .2 && matches[j].first <= tgt + .2) {
+                        ++found;
+                        tgt += 1;
+                        matched.push_back(matches[j].second);
+                        nodeToMatchIDs[matches[j].second] = mid;
+                        nodesNeedMatch.erase(matches[j].second);
+                    }
+                    if (found == dos)
+                        break;
+                }
+                matchIDToNodeSet[mid] = matched;
+
+                LogAndWrite(f, wxString::Format("Found Match for %d at radius %d", matched[0], radius));
+                for (auto n : matched) {
+                    LogAndWrite(f, wxString::Format("    Member %d", n));
+                }
             }
         }
 
