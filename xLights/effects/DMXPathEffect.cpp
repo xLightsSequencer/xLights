@@ -68,14 +68,14 @@ void DMXPathEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     auto endTm = buffer.GetEndTimeMS();
     auto length = endTm - startTm;
     std::string type_Str = SettingsMap["CHOICE_DMXPath_Type"];
-    auto width = SettingsMap.GetInt("SLIDER_DMXPath_Width", 30);
-    auto heigth = SettingsMap.GetInt("SLIDER_DMXPath_Height", 30);
-    auto x_offset = SettingsMap.GetInt("SLIDER_DMXPath_X_Offset", 0);
-    auto y_offset = SettingsMap.GetInt("SLIDER_DMXPath_Y_Offset", 0);
+    auto width = SettingsMap.GetInt("SLIDER_DMXPath_Width", 100);
+    auto height = SettingsMap.GetInt("SLIDER_DMXPath_Height", 100);
+    auto x_offset = SettingsMap.GetInt("SLIDER_DMXPath_X_Off", 0);
+    auto y_offset = SettingsMap.GetInt("SLIDER_DMXPath_Y_Off", 0);
+    auto distance = SettingsMap.GetInt("SLIDER_DMXPath_Dist", 0);
 
     int rotation = GetValueCurveInt("DMXPath_Rotation", 0, SettingsMap, eff_pos, DMXPATH_ROTATION_MIN, DMXPATH_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int pan = GetValueCurveInt("DMXPath_Pan", 0, SettingsMap, eff_pos, DMXPATH_PAN_MIN, DMXPATH_PAN_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int tilt = GetValueCurveInt("DMXPath_Tilt", 0, SettingsMap, eff_pos, DMXPATH_TILT_MIN, DMXPATH_TILT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+
 
     if (buffer.cur_model == "") {
         return;
@@ -119,17 +119,16 @@ void DMXPathEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     auto pathType = DecodeType(type_Str);
 
     if (pathType != DMXPathType::Custom) {
-        auto [x, y] = renderPath(pathType, eff_pos, length, heigth, width, x_offset, y_offset, rotation);
+        auto [x, y] = RenderPath(pathType, eff_pos, length, height, width, x_offset, y_offset, rotation);
+
+        auto path_Hypotenuse = CalcHypotenuse(x, y);
+        auto rotation = CalcTheta(y, path_Hypotenuse);
+
+        auto distance_Hypotenuse = CalcHypotenuse(path_Hypotenuse, distance);
+        auto tilt = CalcTheta(distance, distance_Hypotenuse);
 
         if (panChan != -1) {
-            SetDMXColorPixel(panChan, ScaleToDMX(x, panDegrees), buffer);
-        }
-        if (tiltChan != -1) {
-            SetDMXColorPixel(tiltChan, ScaleToDMX(y, tiltDegrees), buffer);
-        }
-    } else {
-        if (panChan != -1) {
-            SetDMXColorPixel(panChan, ScaleToDMX(pan, panDegrees), buffer);
+            SetDMXColorPixel(panChan, ScaleToDMX(rotation, panDegrees), buffer);
         }
         if (tiltChan != -1) {
             SetDMXColorPixel(tiltChan, ScaleToDMX(tilt, tiltDegrees), buffer);
@@ -161,12 +160,12 @@ void DMXPathEffect::SetPanelStatus(Model *cls) {
     p->Refresh();
 }
 
-std::pair<int, int> DMXPathEffect::renderPath(DMXPathType effectType, double eff_pos,long length, int height, int width, int x_off, int y_off, int rot)
+std::pair<int, int> DMXPathEffect::RenderPath(DMXPathType effectType, double eff_pos,long length, int height, int width, int x_off, int y_off, int rot)
 {
     float position = 360.0 * (eff_pos);
 
 
-    auto [x, y] = calcLocation(effectType, position);
+    auto [x, y] = CalcLocation(effectType, position);
 
     x = width * x;
     y = height * y;
@@ -183,7 +182,7 @@ std::pair<int, int> DMXPathEffect::renderPath(DMXPathType effectType, double eff
     return {xx,yy};
 }
 
-std::pair<float, float> DMXPathEffect::calcLocation(DMXPathType effectType, float degpos)
+std::pair<float, float> DMXPathEffect::CalcLocation(DMXPathType effectType, float degpos)
 {
     float x;
     float y;
@@ -237,7 +236,7 @@ std::pair<float, float> DMXPathEffect::calcLocation(DMXPathType effectType, floa
 }
 
 
-int DMXPathEffect::ScaleToDMX(int value, int degresOfMovement) const
+int DMXPathEffect::ScaleToDMX(float value, int degresOfMovement) const
 {
     int MinMax = degresOfMovement / 2;
     value = std::min(MinMax, value);
@@ -245,7 +244,7 @@ int DMXPathEffect::ScaleToDMX(int value, int degresOfMovement) const
     return (double(value + MinMax) / degresOfMovement) * 255.0;
 }
 
-DMXPathType DMXPathEffect::DecodeType(const std::string& shape) const
+DMXPathType DMXPathEffect::DecodeType(const std::string& shape)
 {
     if (shape == "Circle") {
         return DMXPathType::Circle;
@@ -263,4 +262,16 @@ DMXPathType DMXPathEffect::DecodeType(const std::string& shape) const
         return DMXPathType::Custom;
     }
     return DMXPathType::Unknown;
+}
+
+float DMXPathEffect::CalcHypotenuse(float a, float b) const
+{
+    return sqrt( pow(a, 2) +  pow(b, 2));
+}
+
+float DMXPathEffect::CalcTheta(float opposite ,float hypoteneuse) const
+{
+    auto rad = asin(opposite/hypoteneuse);
+
+    return (180.0 * rad) / M_PI;
 }

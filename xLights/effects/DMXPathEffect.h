@@ -12,12 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define DMXPATH_PAN_MIN -180
-#define DMXPATH_PAN_MAX 180
-
-#define DMXPATH_TILT_MIN -180
-#define DMXPATH_TILT_MAX 180
-
 #define DMXPATH_ROTATION_MIN 0
 #define DMXPATH_ROTATION_MAX 360
 
@@ -45,10 +39,6 @@ public:
 
     virtual double GetSettingVCMin(const std::string& name) const override
     {
-        if (name == "E_VALUECURVE_DMXPath_Pan")
-            return DMXPATH_PAN_MIN;
-        if (name == "E_VALUECURVE_DMXPath_Tilt")
-            return DMXPATH_TILT_MIN;
         if (name == "E_VALUECURVE_DMXPath_Rotation")
             return DMXPATH_ROTATION_MAX;
         return RenderableEffect::GetSettingVCMin(name);
@@ -56,23 +46,23 @@ public:
 
     virtual double GetSettingVCMax(const std::string& name) const override
     {
-        if (name == "E_VALUECURVE_DMXPath_Pan")
-            return DMXPATH_PAN_MAX;
-        if (name == "E_VALUECURVE_DMXPath_Tilt")
-            return DMXPATH_TILT_MAX;
         if (name == "E_VALUECURVE_DMXPath_Rotation")
             return DMXPATH_ROTATION_MIN;
         return RenderableEffect::GetSettingVCMax(name);
     }
 
+    static std::pair<int, int> RenderPath(DMXPathType effectType, double eff_pos, long length, int height, int width, int x_off, int y_off, int rot);
+    static DMXPathType DecodeType(const std::string& shape); 
+    static std::pair<float, float> CalcLocation(DMXPathType effectType, float degpos);
+
 protected:
     xlEffectPanel *CreatePanel(wxWindow *parent) override;
 private:
-    void SetDMXColorPixel(int chan, uint8_t value, RenderBuffer &buffer);
-    std::pair<int, int> renderPath(DMXPathType effectType, double eff_pos, long length, int height, int width, int x_off, int y_off, int rot);
-    std::pair<float, float> calcLocation(DMXPathType effectType, float degpos);
-    DMXPathType DecodeType(const std::string& shape) const; 
+    void SetDMXColorPixel(int chan, uint8_t value, RenderBuffer &buffer);    
 
-    int ScaleToDMX(int value, int degresOfMovement) const;
+    int ScaleToDMX(float value, int degresOfMovement) const;
+
+    float CalcHypotenuse(float a, float b) const;    
+    float CalcTheta(float opposite ,float hypoteneuse) const;
 };
 

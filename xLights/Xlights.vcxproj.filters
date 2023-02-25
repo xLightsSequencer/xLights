@@ -33,11 +33,7 @@
     <ClCompile Include="EffectIconPanel.cpp" />
     <ClCompile Include="EffectListDialog.cpp" />
     <ClCompile Include="EffectsPanel.cpp" />
-    <ClCompile Include="effects\assist\AssistPanel.cpp" />
     <ClCompile Include="effects\assist\PicturesAssistPanel.cpp" />
-    <ClCompile Include="effects\assist\xlGridCanvasEmpty.cpp" />
-    <ClCompile Include="effects\assist\xlGridCanvasMorph.cpp" />
-    <ClCompile Include="effects\assist\xlGridCanvasPictures.cpp" />
     <ClCompile Include="effects\EffectManager.cpp" />
     <ClCompile Include="effects\EffectPanelUtils.cpp" />
     <ClCompile Include="EffectTreeDialog.cpp" />
@@ -976,10 +972,6 @@
     <ClCompile Include="effects\SketchEffectDrawing.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
-    <ClCompile Include="effects\assist\SketchAssistPanel.cpp" />
-    <ClCompile Include="effects\assist\SketchCanvasPanel.cpp">
-      <Filter>Effects</Filter>
-    </ClCompile>
     <ClCompile Include="outputs\TwinklyOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -994,6 +986,38 @@
     </ClCompile>
     <ClCompile Include="effects\DMXPathPanel.cpp">
       <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="automation\PythonRunner.cpp" />
+    <ClCompile Include="BulkEditComboDialog.cpp" />
+    <ClCompile Include="controllers\Experience.cpp" />
+    <ClCompile Include="DuplicateDialog.cpp" />
+    <ClCompile Include="utils\ip_utils.cpp" />
+    <ClCompile Include="utils\Curl.cpp" />
+    <ClCompile Include="LayoutUtils.cpp" />
+    <ClCompile Include="ModelRemap.cpp" />
+    <ClCompile Include="models\DMX\DmxPresetAbility.cpp" />
+    <ClCompile Include="preferences\CheckSequenceSettingsPanel.cpp" />
+    <ClCompile Include="RestoreBackupDialog.cpp" />
+    <ClCompile Include="utils\string_utils.cpp" />
+    <ClCompile Include="TipOfTheDayDialog.cpp" />
+    <ClCompile Include="UtilClasses.cpp" />
+    <ClCompile Include="effects\assist\AssistPanel.cpp">
+      <Filter>Effects\assist</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\assist\xlGridCanvasEmpty.cpp">
+      <Filter>Effects\assist</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\assist\xlGridCanvasMorph.cpp">
+      <Filter>Effects\assist</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\assist\xlGridCanvasPictures.cpp">
+      <Filter>Effects\assist</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\assist\SketchAssistPanel.cpp">
+      <Filter>Effects\assist</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\assist\SketchCanvasPanel.cpp">
+      <Filter>Effects\assist</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1144,11 +1168,7 @@
     <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="DissolveTransitionPattern.h" />
     <ClInclude Include="OpenGLShaders.h" />
-    <ClInclude Include="effects\assist\AssistPanel.h" />
     <ClInclude Include="effects\assist\PicturesAssistPanel.h" />
-    <ClInclude Include="effects\assist\xlGridCanvasEmpty.h" />
-    <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
-    <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
     <ClInclude Include="xlLockButton.h" />
     <ClInclude Include="support\VectorMath.h" />
     <ClInclude Include="ViewpointDialog.h" />
@@ -1277,7 +1297,6 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
-    <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
     <ClInclude Include="ShaderDownloadDialog.h" />
     <ClInclude Include="outputs\ZCPP.h">
       <Filter>Outputs</Filter>
@@ -1979,10 +1998,6 @@
     <ClInclude Include="effects\SketchEffectDrawing.h">
       <Filter>Effects</Filter>
     </ClInclude>
-    <ClInclude Include="effects\assist\SketchAssistPanel.h" />
-    <ClInclude Include="effects\assist\SketchCanvasPanel.h">
-      <Filter>Effects</Filter>
-    </ClInclude>
     <ClInclude Include="outputs\TwinklyOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
@@ -1997,6 +2012,46 @@
     </ClInclude>
     <ClInclude Include="effects\DMXPathPanel.h">
       <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="automation\PythonRunner.h" />
+    <ClInclude Include="BulkEditComboDialog.h" />
+    <ClInclude Include="controllers\Experience.h" />
+    <ClInclude Include="DuplicateDialog.h" />
+    <ClInclude Include="utils\ip_utils.h" />
+    <ClInclude Include="utils\Curl.h" />
+    <ClInclude Include="LayoutUtils.h" />
+    <ClInclude Include="ModelRemap.h" />
+    <ClInclude Include="models\DMX\DmxPresetAbility.h" />
+    <ClInclude Include="preferences\CheckSequenceSettingsPanel.h" />
+    <ClInclude Include="RestoreBackupDialog.h" />
+    <ClInclude Include="utils\string_utils.h" />
+    <ClInclude Include="TipOfTheDayDialog.h" />
+    <ClInclude Include="effects\assist\AssistPanel.h">
+      <Filter>Effects\assist</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\assist\xlGridCanvasDMXPath.h">
+      <Filter>Effects\assist</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\assist\xlGridCanvasEmpty.h">
+      <Filter>Effects\assist</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\assist\xlGridCanvasMorph.h">
+      <Filter>Effects\assist</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\assist\xlGridCanvasPictures.h">
+      <Filter>Effects\assist</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\assist\SketchAssistPanel.h">
+      <Filter>Effects\assist</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\assist\SketchCanvasPanel.h">
+      <Filter>Effects\assist</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\assist\DMXPathAssistPanel.h">
+      <Filter>Effects\assist</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\assist\DMXPathCanvasPanel.h">
+      <Filter>Effects\assist</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2035,6 +2090,9 @@
     </Filter>
     <Filter Include="common">
       <UniqueIdentifier>{d66f2316-0042-426b-8102-445d990406d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\assist">
+      <UniqueIdentifier>{9edfcfb1-6f47-4559-86f8-4c53fe74c88b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
