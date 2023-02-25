@@ -2303,7 +2303,13 @@ void SubModelsDialog::Symmetrize()
         xy = std::max(xy, x.second.second);
     }
     LogAndWrite(f, wxString::Format("Ranges x:%.1f-%.1f, y:%1f-%1f", nx, xx, ny, xy));
-    LogAndWrite(f, wxString::Format("Center by extremity: %f, %f", (nx+xx)/2, (ny+xy)/2));
+    float clx = (nx + xx) / 2;
+    float cly = (ny + xy) / 2;
+    LogAndWrite(f, wxString::Format("Center by extremity: %f, %f", clx, cly));
+    if (false) {
+        cx = clx;
+        cy = cly;
+    }
 
     // And another
     std::sort(xsv.begin(), xsv.end());
@@ -2317,6 +2323,29 @@ void SubModelsDialog::Symmetrize()
         mcy = (ysv[ysv.size() / 2] + ysv[ysv.size() / 2 + 1]) / 2;
     }
     LogAndWrite(f, wxString::Format("Center by median: %f, %f", mcx, mcy));
+
+    float dlx = xx - nx;
+    float dly = xy - ny;
+    if (dlx > 0 && dly > 0) {
+        float aspectx = dlx / std::max(dlx, dly);
+        float aspecty = dly / std::max(dlx, dly);
+
+        LogAndWrite(f, wxString::Format("Aspect ratio: %f / %f", aspectx, aspecty));
+
+        if (aspectx < .98 || aspecty < .98) {
+            wxArrayString chs;
+            chs.push_back("Yes");
+            chs.push_back("No");
+            wxSingleChoiceDialog dlg(this, "Squarify aspect ratio?", "Aspect Ratio", chs);
+            dlg.ShowModal();
+            if (dlg.GetStringSelection() == "Yes") {
+                for (auto &pt : coords) {
+                    pt.second.first = (pt.second.first - cx) * aspecty + cx;
+                    pt.second.second = (pt.second.second - cy) * aspectx + cy;
+                }
+            }
+        }
+    }
 
     //  Calculate locations in new space
     std::map<int, std::pair<float, float>> fcoords1, fcoords2;
