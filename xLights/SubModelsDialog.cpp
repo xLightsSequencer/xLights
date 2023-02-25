@@ -2319,13 +2319,13 @@ void SubModelsDialog::Symmetrize()
     LogAndWrite(f, wxString::Format("Center by median: %f, %f", mcx, mcy));
 
     //  Calculate locations in new space
-    std::map<int, std::pair<float, float>> fcoords;
+    std::map<int, std::pair<float, float>> fcoords1, fcoords2;
     std::map<int, float> fturns;
     for (const auto& p : coords) {
         float dx = p.second.first - cx;
         float dy = p.second.second - cy;
         if (dx == 0 && dy == 0) {
-            fcoords[p.first] = std::make_pair(cx, cy);
+            fcoords1[p.first] = std::make_pair(cx, cy);
             fturns[p.first] = 0;
             continue;
         }
@@ -2335,13 +2335,19 @@ void SubModelsDialog::Symmetrize()
             ang += float(2 * PI);
         }
         ang *= float(dos);
-        fcoords[p.first] = std::make_pair(rad * cosf(ang) + cx, rad * sinf(ang) + cy);
         float turn = float(ang / (2 * PI)); // Which trip around?  We want one from each trip.
         if (turn >= dos)
             turn -= dos;
         fturns[p.first] = turn;
+        while (ang >= 2 * PI)
+            ang -= float(2 * PI);
+        ang /= float(dos);
+        fcoords1[p.first] = std::make_pair(rad * cosf(ang) + cx, rad * sinf(ang) + cy);
+        if (ang < PI / dos / 2)
+            ang += 2 * PI / dos;
+            fcoords2[p.first] = std::make_pair(rad * cosf(ang) + cx, rad * sinf(ang) + cy);
     }
-    LogAndWrite(f, wxString::Format("Transformed nodes: %d", int(fcoords.size())));
+    LogAndWrite(f, wxString::Format("Transformed nodes: %d", int(fcoords1.size())));
 
     //  Build list that need matched, and match list
     std::set<int> nodesNeedMatch;
@@ -2360,7 +2366,6 @@ void SubModelsDialog::Symmetrize()
         }
     }
 
-
     int radius = 0;
     //  For each of numerous search radii, calculate list per grid cell
     //  We will stop if all nodes have matches
@@ -2374,16 +2379,33 @@ void SubModelsDialog::Symmetrize()
         }
 
         // Append to lists
-        for (const auto& pt : fcoords) {
+        for (const auto& pt : fcoords1) {
             if (nodeToMatchIDs.count(pt.first))
                 continue; // Already matched
 
-            int cx = int(pt.second.first);
-            int cy = int(pt.second.second);
-            for (int x = cx - radius; x <= cx + radius; ++x) {
+            int bx = int(pt.second.first);
+            int by = int(pt.second.second);
+            for (int x = bx - radius; x <= bx + radius; ++x) {
                 if (x < 0 || x >= w)
                     continue;
-                for (int y = cy - radius; y <= cy + radius; ++y) {
+                for (int y = by - radius; y <= by + radius; ++y) {
+                    if (y < 0 || y >= h)
+                        continue;
+                    bins[x][y].push_back(pt.first);
+                }
+            }
+        }
+        // Add redundant copy of some - should check if already in bin?
+        for (const auto& pt : fcoords2) {
+            if (nodeToMatchIDs.count(pt.first))
+                continue; // Already matched
+
+            int bx = int(pt.second.first);
+            int by = int(pt.second.second);
+            for (int x = bx - radius; x <= bx + radius; ++x) {
+                if (x < 0 || x >= w)
+                    continue;
+                for (int y = by - radius; y <= by + radius; ++y) {
                     if (y < 0 || y >= h)
                         continue;
                     bins[x][y].push_back(pt.first);
