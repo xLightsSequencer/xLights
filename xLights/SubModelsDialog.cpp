@@ -2280,10 +2280,15 @@ void SubModelsDialog::Symmetrize()
     LogAndWrite(f, wxString::Format("Number of nodes: %d", int(coords.size())));
 
     //  Calculate centroid
+    if (coords.empty())
+        return;
     float cx = 0, cy = 0;
+    std::vector<float> xsv, ysv;
     for (const auto& x : coords) {
         cx += x.second.first;
         cy += x.second.second;
+        xsv.push_back(x.second.first);
+        ysv.push_back(x.second.second);
     }
     cx /= float(coords.size());
     cy /= float(coords.size());
@@ -2299,6 +2304,19 @@ void SubModelsDialog::Symmetrize()
     }
     LogAndWrite(f, wxString::Format("Ranges x:%.1f-%.1f, y:%1f-%1f", nx, xx, ny, xy));
     LogAndWrite(f, wxString::Format("Center by extremity: %f, %f", (nx+xx)/2, (ny+xy)/2));
+
+    // And another
+    std::sort(xsv.begin(), xsv.end());
+    std::sort(ysv.begin(), ysv.end());
+    float mcx, mcy;
+    if (xsv.size() % 2 == 1) {
+        mcx = xsv[xsv.size() / 2];
+        mcy = ysv[ysv.size() / 2];
+    } else {
+        mcx = (xsv[xsv.size() / 2] + xsv[xsv.size() / 2 + 1]) / 2;
+        mcy = (ysv[ysv.size() / 2] + ysv[ysv.size() / 2 + 1]) / 2;
+    }
+    LogAndWrite(f, wxString::Format("Center by median: %f, %f", mcx, mcy));
 
     //  Calculate locations in new space
     std::map<int, std::pair<float, float>> fcoords;
@@ -2392,7 +2410,7 @@ void SubModelsDialog::Symmetrize()
                 float tgt = matches[0].first;
                 int found = 0;
                 for (unsigned j = 0; j < matches.size(); ++j) {
-                    if (matches[j].first >= tgt - .2 && matches[j].first <= tgt + .2) {
+                    if (matches[j].first >= tgt - .5 && matches[j].first <= tgt + .5) {
                         ++found;
                         tgt += 1;
                     }
@@ -2407,7 +2425,7 @@ void SubModelsDialog::Symmetrize()
                 tgt = matches[0].first;
                 int mid = matchIDToNodeSet.size();
                 for (unsigned j = 0; j < matches.size(); ++j) {
-                    if (matches[j].first >= tgt - .2 && matches[j].first <= tgt + .2) {
+                    if (matches[j].first >= tgt - .5 && matches[j].first <= tgt + .5) {
                         ++found;
                         tgt += 1;
                         matched.push_back(matches[j].second);
@@ -2446,21 +2464,35 @@ void SubModelsDialog::Symmetrize()
         fail = true;
     }
 
-    // TODO:
     // Use match list to make new strands
-    /*
-    // Write back
-    for (unsigned i = 0; i < sm->strands.size(); ++i) {
-        for (auto it = data[i].begin(); it != data[i].end();) {
-            if (*it == "x") {
-                it = data[i].erase(it);
-            } else {
-                ++it;
+    for (int t = 1; !fail && t < dos; ++t) {
+        for (int sn = 0; sn<origStrands; ++sn) {
+            bool first = true;
+            //auto x = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - sn]), ',');
+            auto x = wxSplit(ExpandNodes(sm->strands[sn]), ',');
+            wxString str;
+            for (auto n : x) {
+                if (first) {
+                    first = false;
+                } else {
+                    str += ",";
+                }
+                if (n == "")
+                    continue;
+                int nn = wxAtoi(n);
+                // Find it
+                auto& matchs = matchIDToNodeSet[nodeToMatchIDs[nn]];
+                for (int ii = 0; ii < dos; ++ii) {
+                    if (matchs[ii] == nn) {
+                        int mapn = matchs[(ii + t) % dos];
+                        str += wxString::Format("%d", mapn);
+                        break;
+                    }
+                }
             }
+            sm->strands.push_back(CompressNodes(str));
         }
-        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(data[i], ','));
     }
-    */
 
     // Update UI
     Select(GetSelectedName());
