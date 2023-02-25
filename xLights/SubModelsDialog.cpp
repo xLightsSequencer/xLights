@@ -2357,6 +2357,18 @@ void SubModelsDialog::Symmetrize()
         }
     }
 
+    bool handleCenterNode = false;
+    if (coords.size() % dos == 1) {
+        wxArrayString chs;
+        chs.push_back("Yes");
+        chs.push_back("No");
+        wxSingleChoiceDialog dlg(this, "Shoud a center node be identified?", "Center Node", chs);
+        dlg.ShowModal();
+        if (dlg.GetStringSelection() == "Yes") {
+            handleCenterNode = true;
+        }
+    }
+
     //  Calculate locations in new space
     std::map<int, std::pair<float, float>> fcoords1, fcoords2;
     std::map<int, float> fturns;
@@ -2403,6 +2415,27 @@ void SubModelsDialog::Symmetrize()
                 continue;
             nodesNeedMatch.insert(wxAtoi(n));
         }
+    }
+
+    // Handle the business of a center node, if any
+    if (handleCenterNode) {
+        bool first = true;
+        float ndst = 0;
+        int nnode = -1;
+        for (const auto & pt : coords) {
+            float dx = pt.second.first - cx;
+            float dy = pt.second.second - cy;
+            float dst = dx * dx + dy * dy;
+            if (first || dst < ndst) {
+                ndst = dst;
+                nnode = pt.first;
+            }
+            first = false;
+        }
+
+        nodesNeedMatch.erase(nnode);
+        nodeToMatchIDs[nnode] = matchIDToNodeSet.size();
+        matchIDToNodeSet[nodeToMatchIDs[nnode]] = std::vector<int>(dos, nnode);
     }
 
     int radius = 0;
