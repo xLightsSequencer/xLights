@@ -110,6 +110,8 @@ const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_EVEN_ROWS = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SYMMETRIZE = wxNewId();
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
@@ -979,6 +981,8 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.Append(SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB, "Remove Duplicates All Top->Bottom");
     mnu.Append(SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR, "Elide Duplicates All Left->Right");
     mnu.Append(SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB, "Elide Duplicates All Top->Bottom");
+    mnu.Append(SUBMODEL_DIALOG_EVEN_ROWS, "Uniform Row Length");
+    mnu.Append(SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS, "Pivot Rows / Columns");
 
     mnu.AppendSeparator();
     mnu.Append(SUBMODEL_DIALOG_SYMMETRIZE, "Symmetrize (Rotational)");
@@ -1006,6 +1010,12 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
     }
     if (event.GetId() == SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB) {
         RemoveAllDuplicates(false, true);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_EVEN_ROWS) {
+        MakeRowsUniform();
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS) {
+        PivotRowsColumns();
     }
     if (event.GetId() == SUBMODEL_DIALOG_SYMMETRIZE) {
         Symmetrize();
@@ -3541,6 +3551,106 @@ void SubModelsDialog::RemoveAllDuplicates(bool leftright, bool elide)
     if (row >= 0) {
         NodesGrid->SetGridCursor(row, 0);
     }
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::MakeRowsUniform()
+{
+    wxString name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    int row = NodesGrid->GetGridCursorRow();
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm)
+        return;
+
+    // Copy and expand data
+    std::vector<wxArrayString> data;
+    size_t mlen = 0; // longest length of any row
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        data.push_back(wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ','));
+        mlen = std::max(mlen, data.back().size());
+    }
+
+    // Write back
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        wxArrayString ndata;
+
+        int dlt = 2 * (data[i].size());
+        int D = dlt - int(mlen);
+        int c = 0;
+        for (unsigned s = 0; s < mlen; ++s) {
+            if (D > 0) {
+                ndata.push_back(data[i][c]);
+                ++c;
+                D -= int(2 * mlen);
+            } else {
+                ndata.push_back("");
+            }
+            D += dlt;
+        }
+
+        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(ndata, ','));
+    }
+
+    // Update UI
+    Select(GetSelectedName());
+
+    if (row >= 0) {
+        NodesGrid->SetGridCursor(row, 0);
+    }
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::PivotRowsColumns()
+{
+    wxString name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm)
+        return;
+
+    // Copy and expand data
+    std::vector<wxArrayString> data;
+    size_t mlen = 0; // max len
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        data.push_back(wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ','));
+        mlen = std::max(mlen, data.back().size());
+    }
+
+    // Build pivot model
+    std::vector<wxArrayString> ndata;
+    for (unsigned i = 0; i < mlen; ++i) {
+        ndata.push_back(wxArrayString());
+        for (size_t j = 0; j < data.size(); ++j) {
+            wxString s = "";
+            if (data[j].size() > i)
+                s = data[j][i];
+            ndata[i].push_back(s);
+        }
+    }
+
+    // Write back
+    sm->strands.clear();
+    for (int i = int(mlen-1); i >= 0; --i) {
+        sm->strands.push_back(CompressNodes(wxJoin(ndata[i], ',')));
+    }
+
+    // Update UI
+    Select(GetSelectedName());
+
     Panel3->SetFocus();
     NodesGrid->SetFocus();
 

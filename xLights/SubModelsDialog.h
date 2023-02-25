@@ -236,6 +236,8 @@ protected:
     static const long SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB;
     static const long SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR;
     static const long SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB;
+    static const long SUBMODEL_DIALOG_EVEN_ROWS;
+    static const long SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS;
     static const long SUBMODEL_DIALOG_SYMMETRIZE;
 
     void SaveXML(Model* m);
@@ -268,6 +270,8 @@ protected:
     void Reverse();
     void RemoveDuplicates(bool elide);
     void RemoveAllDuplicates(bool leftright, bool elide);
+    void MakeRowsUniform();
+    void PivotRowsColumns();
 
     void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
     void DisplayRange(const wxString &range);
