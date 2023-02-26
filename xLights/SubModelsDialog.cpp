@@ -1828,6 +1828,7 @@ void SubModelsDialog::OrderPoints(bool wholesub)
             return;        
         }
 
+        float fdlt = 0.02f;
         if (choices[1] == "Start From Up") {
             angle = float(PI / 2);
         } else if (choices[1] == "Start From Down") {
@@ -1854,6 +1855,7 @@ void SubModelsDialog::OrderPoints(bool wholesub)
             DisplayError(wxString::Format("Unexpected circumferential start %s", choices[1]), this);
             return;
         }
+        angle += ccw_outside ? -fdlt : fdlt;
     } else {
         DisplayError(wxString::Format("Unexpected mode %s", choices[0]), this);
         return;
