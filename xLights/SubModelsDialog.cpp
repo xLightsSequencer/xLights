@@ -2306,11 +2306,15 @@ void SubModelsDialog::Symmetrize()
 
     //  Calculate radius / centroid another way
     float nx = cx, ny = cy, xx = cx, xy = cy;
+    float varx = 0, vary = 0;
     for (const auto& x : coords) {
         nx = std::min(nx, x.second.first);
         xx = std::max(xx, x.second.first);
         ny = std::min(ny, x.second.second);
         xy = std::max(xy, x.second.second);
+
+        varx += (x.second.first - cx) * (x.second.first - cx);
+        vary += (x.second.second - cy) * (x.second.second - cy);
     }
     LogAndWrite(f, wxString::Format("Ranges x:%.1f-%.1f, y:%1f-%1f", nx, xx, ny, xy));
     float clx = (nx + xx) / 2;
@@ -2340,7 +2344,15 @@ void SubModelsDialog::Symmetrize()
         float aspectx = dlx / std::max(dlx, dly);
         float aspecty = dly / std::max(dlx, dly);
 
-        LogAndWrite(f, wxString::Format("Aspect ratio: %f / %f", aspectx, aspecty));
+        LogAndWrite(f, wxString::Format("Aspect ratio by extremity: %f / %f", aspectx, aspecty));
+
+        if (true) {
+            // Variance-based aspect ratio
+            float mvar = std::max(varx, vary);
+            aspectx = sqrtf(varx / mvar);
+            aspecty = sqrtf(vary / mvar);
+            LogAndWrite(f, wxString::Format("Aspect Ratio by variance: %f / %f", aspectx, aspecty));
+        }
 
         if (aspectx < .98 || aspecty < .98) {
             wxArrayString chs;
