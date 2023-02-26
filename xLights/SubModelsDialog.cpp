@@ -106,6 +106,7 @@ const long SubModelsDialog::SUBMODEL_DIALOG_SPLIT = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SORT_BY_NAME = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_DUPLICATE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_DUPLICATE = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SORT_POINTS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR = wxNewId();
@@ -113,6 +114,7 @@ const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EVEN_ROWS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SYMMETRIZE = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SORT_POINTS_ALL = wxNewId();
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
 	//(*EventTable(SubModelsDialog)
@@ -975,6 +977,7 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
 
         mnu.Append(SUBMODEL_DIALOG_REMOVE_DUPLICATE, "Remove Duplicates");
         mnu.Append(SUBMODEL_DIALOG_ELIDE_DUPLICATE, "Elide Duplicates");
+        mnu.Append(SUBMODEL_DIALOG_SORT_POINTS, "Sort Strand Points...");
         mnu.AppendSeparator();
     }
     mnu.Append(SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR, "Remove Duplicates All Left->Right");
@@ -983,6 +986,7 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.Append(SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB, "Elide Duplicates All Top->Bottom");
     mnu.Append(SUBMODEL_DIALOG_EVEN_ROWS, "Uniform Row Length");
     mnu.Append(SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS, "Pivot Rows / Columns");
+    mnu.Append(SUBMODEL_DIALOG_SORT_POINTS_ALL, "Sort Points All Strands...");
 
     mnu.AppendSeparator();
     mnu.Append(SUBMODEL_DIALOG_SYMMETRIZE, "Symmetrize (Rotational)");
@@ -1019,6 +1023,12 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
     }
     if (event.GetId() == SUBMODEL_DIALOG_SYMMETRIZE) {
         Symmetrize();
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS) {
+        OrderPoints(false);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS_ALL) {
+        OrderPoints(true);
     }
 }
 
@@ -2636,6 +2646,150 @@ void SubModelsDialog::Symmetrize()
     if (fail) {
         DisplayError("Symmetrize encountered errors.  See log for details.", this);
     }
+}
+
+static wxString OrderPointsI(std::map<int, std::pair<float, float>> & coords, const wxString &instr, std::pair<float, float> centroid, bool radial, float startangle, bool ccw_outside)
+{
+    wxArrayString inp = wxSplit(ExpandNodes(instr), ',');
+
+    std::vector<std::pair<int, int>> nodeAndBlanksBefore;
+    int blanks = 0;
+    for (const auto &x : inp) {
+        if (x == "") {
+            ++blanks;
+        } else {
+            nodeAndBlanksBefore.push_back(std::make_pair(wxAtoi(x), blanks));
+            blanks = 0;
+        }
+    }
+
+    if (radial) {
+        std::sort(nodeAndBlanksBefore.begin(), nodeAndBlanksBefore.end(),
+                  [&coords, &centroid, startangle, ccw_outside](const std::pair<int, int>& l, const std::pair<int, int>& r) {
+                      auto cl = coords[l.first];
+                      auto cr = coords[r.first];
+
+                      float dxl = cl.first - centroid.first;
+                      float dyl = cl.second - centroid.second;
+                      float dxr = cr.first - centroid.first;
+                      float dyr = cr.second - centroid.second;
+
+                      float dl = dxl * dxl + dyl * dyl;
+                      float dr = dxr * dxr + dyr * dyr;
+
+                      // Hum, we could use dot product along angle, instead of distance...
+
+                      return ccw_outside ? (dl > dr) : (dl < dr);
+                  });
+    } else {
+        std::sort(nodeAndBlanksBefore.begin(), nodeAndBlanksBefore.end(),
+                  [&coords, &centroid, startangle, ccw_outside](const auto& l, const auto& r) {
+                      auto cl = coords[l.first];
+                      auto cr = coords[r.first];
+
+                      float angl = atan2(cl.second - centroid.second, cl.first - centroid.first);
+                      float angr = atan2(cr.second - centroid.second, cr.first - centroid.first);
+                      angl -= startangle;
+                      angr -= startangle;
+                      while (angl < 0)
+                          angl += float(2 * PI);
+                      while (angr < 0)
+                          angr += float(2 * PI);
+
+                      return ccw_outside ? (angl < angr) : (angl > angr);
+                  });
+    }
+
+    if (nodeAndBlanksBefore.empty())
+        return instr; // All Empty
+    nodeAndBlanksBefore[0].second += blanks;
+
+    wxString res;
+    for (const auto& x : nodeAndBlanksBefore) {
+        for (int i = 0; i < x.second; ++i)
+            res += ",";
+        res += wxString::Format("%d,", x.first);
+    }
+
+    return CompressNodes(res.substr(0, res.size()-1));
+}
+
+void SubModelsDialog::OrderPoints(bool wholesub)
+{
+    // Collect up selection
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm->isRanges)
+        return;
+    if (sm->strands.empty())
+        return;
+
+    int row = NodesGrid->GetGridCursorRow();
+    if (row < 0 && !wholesub)
+        return;
+
+    // Gather the coordinates
+    std::map<int, std::pair<float, float>> coords;
+    if (!model->GetScreenLocations(modelPreview, coords)) {
+        DisplayError("Model doesn't have precisely one location per node");
+        return;
+    }
+
+    // Gather centroids
+    float wcx = 0, wcy = 0, smcx = 0, smcy = 0;
+    std::set<int> smpts;
+    for (int crow = 0; crow < int(sm->strands.size()); ++crow) {
+        auto arr = wxSplit(ExpandNodes(sm->strands[crow]), ',');
+        for (auto& x : arr) {
+            if (x.empty())
+                continue;
+            smpts.insert(wxAtoi(x));
+        }
+    }
+    if (smpts.empty())
+        return;
+    for (const auto& pt : coords) {
+        wcx += pt.second.first;
+        wcy += pt.second.second;
+        if (smpts.count(pt.first)) {
+            smcx += pt.second.first;
+            smcy += pt.second.second;
+        }
+    }
+    wcx /= coords.size();
+    wcy /= coords.size();
+    smcx /= smpts.size();
+    smcy /= smpts.size();
+
+    // Gather the user's requested action
+    std::pair<float, float> ctr = std::make_pair(wcx, wcy);
+    bool radial = false;
+    float angle = 0;
+    bool ccw_outside = false;
+
+    // Perform the work
+    int minr = 0;
+    int maxr = sm->strands.size() - 1;
+    if (!wholesub) {
+        minr = maxr = row;
+    }
+    for (int crow = minr; crow <= maxr; ++crow) {
+        auto strand = ExpandNodes(sm->strands[sm->strands.size() - 1 - crow]);
+        strand = OrderPointsI(coords, strand, ctr, radial, angle, ccw_outside);
+        sm->strands[sm->strands.size() - 1 - crow] = strand;
+    }
+
+    // Update UI
+    Select(GetSelectedName());
+    NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+    SelectRow(row >= 0 ? row : 0);
+    ValidateWindow();
 }
 
 void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
