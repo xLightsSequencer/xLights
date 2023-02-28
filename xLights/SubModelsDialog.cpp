@@ -1563,6 +1563,10 @@ void SubModelsDialog::Symmetrize()
     // Save / Display results log
     if (f.IsOpened()) {
         f.Close();
+    }
+
+    if (fail) {
+        DisplayError("Symmetrize encountered errors.  See log for details.", this);
 
         if (displayInEditor) {
             wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
@@ -1580,10 +1584,6 @@ void SubModelsDialog::Symmetrize()
                 DisplayError(wxString::Format("Unable to show xLights Symmetrize results '%s'. See your log for the content.", filename).ToStdString(), this);
             }
         }
-    }
-
-    if (fail) {
-        DisplayError("Symmetrize encountered errors.  See log for details.", this);
     }
 }
 
