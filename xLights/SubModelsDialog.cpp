@@ -115,6 +115,7 @@ const long SubModelsDialog::SUBMODEL_DIALOG_EVEN_ROWS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SYMMETRIZE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SORT_POINTS_ALL = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_COMBINE_STRANDS = wxNewId();
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
 	//(*EventTable(SubModelsDialog)
@@ -977,7 +978,7 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
 
         mnu.Append(SUBMODEL_DIALOG_REMOVE_DUPLICATE, "Remove Duplicates");
         mnu.Append(SUBMODEL_DIALOG_ELIDE_DUPLICATE, "Elide Duplicates");
-        mnu.Append(SUBMODEL_DIALOG_SORT_POINTS, "Sort Strand Points...");
+        mnu.Append(SUBMODEL_DIALOG_SORT_POINTS, "Sort Strand Points Geometrically...");
         mnu.AppendSeparator();
     }
     mnu.Append(SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR, "Remove Duplicates All Left->Right");
@@ -986,10 +987,11 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.Append(SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB, "Elide Duplicates All Top->Bottom");
     mnu.Append(SUBMODEL_DIALOG_EVEN_ROWS, "Uniform Row Length");
     mnu.Append(SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS, "Pivot Rows / Columns");
-    mnu.Append(SUBMODEL_DIALOG_SORT_POINTS_ALL, "Sort Points All Strands...");
+    mnu.Append(SUBMODEL_DIALOG_SORT_POINTS_ALL, "Geometrically Sort Points All Strands...");
 
     mnu.AppendSeparator();
     mnu.Append(SUBMODEL_DIALOG_SYMMETRIZE, "Symmetrize (Rotational)");
+    mnu.Append(SUBMODEL_DIALOG_COMBINE_STRANDS, "Combine Strands");
     
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -1029,6 +1031,9 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
     }
     if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS_ALL) {
         OrderPoints(true);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_COMBINE_STRANDS) {
+        CombineStrands();
     }
 }
 
@@ -4025,6 +4030,39 @@ void SubModelsDialog::PivotRowsColumns()
     for (int i = int(mlen-1); i >= 0; --i) {
         sm->strands.push_back(CompressNodes(wxJoin(ndata[i], ',')));
     }
+
+    // Update UI
+    Select(GetSelectedName());
+
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::CombineStrands()
+{
+    wxString name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm)
+        return;
+
+    // Copy, expand, and concatenate data
+    wxString res = "";
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        if (i != 0) {
+            res += ",";
+        }
+        res += ExpandNodes(sm->strands[sm->strands.size() - 1 - i]);
+    }
+
+    // Write back
+    sm->strands.clear();
+    sm->strands.push_back(CompressNodes(res));
 
     // Update UI
     Select(GetSelectedName());

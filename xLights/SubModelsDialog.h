@@ -241,6 +241,7 @@ protected:
     static const long SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS;
     static const long SUBMODEL_DIALOG_SYMMETRIZE;
     static const long SUBMODEL_DIALOG_SORT_POINTS_ALL;
+    static const long SUBMODEL_DIALOG_COMBINE_STRANDS;
 
     void SaveXML(Model* m);
     wxString GetSelectedName() const;
@@ -274,6 +275,7 @@ protected:
     void RemoveAllDuplicates(bool leftright, bool elide);
     void MakeRowsUniform();
     void PivotRowsColumns();
+    void CombineStrands();
     void OrderPoints(bool wholemodel);
 
     void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
