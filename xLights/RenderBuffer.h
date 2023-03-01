@@ -455,7 +455,7 @@ public:
 
     int GetNodeCount() const { return Nodes.size();}
     void SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore = false);
-    void CopyNodeColorsToPixels(std::vector<bool> &done);
+    void CopyNodeColorsToPixels(std::vector<uint8_t> &done);
 
     void CopyPixel(int srcx, int srcy, int destx, int desty);
     void ProcessPixel(int x, int y, const xlColor &color, bool wrap_x = false, bool wrap_y = false);
