@@ -2218,7 +2218,7 @@ public:
                     const wxImage *img)
         : wxImageFileProperty(label, name, ""), lastFileName(value)
     {
-
+        SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*");
         SetValueFromString(value);
         if (img != nullptr) {
             setImage(*img);
@@ -2342,7 +2342,7 @@ void LayoutPanel::showBackgroundProperties()
         "BkgImage",
         previewBackgroundFile,
         background));
-    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*");
+
     propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", previewBackgroundScaled))->SetAttribute("UseCheckbox", 1);
     if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
         wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
