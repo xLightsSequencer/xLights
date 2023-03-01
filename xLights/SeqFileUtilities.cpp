@@ -1334,20 +1334,18 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
         }
         else if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             TimingElement* tel = dynamic_cast<TimingElement*>(e);
-            if (tel->GetFixedTiming() == 0) {
-                bool hasEffects = false;
-                for (size_t n = 0; n < tel->GetEffectLayerCount(); ++n) {
-                    hasEffects |= tel->GetEffectLayer(n)->GetEffectCount() > 0;
-                }
-                if (hasEffects) {
-                    timingTrackNames.push_back(tel->GetName());
-                    timingTracks[tel->GetName()] = tel;
-
-                    // we want to know which timing tracks exist so we can preselect the ones which are not already present
-                    // a timing track is only considered to exist if it has at least one timing mark
-                    timingTrackAlreadyExists[tel->GetName()] = (_sequenceElements.GetTimingElement(tel->GetName()) != nullptr && _sequenceElements.GetTimingElement(tel->GetName())->HasEffects());
-                }
+            bool hasEffects = false;
+            for (size_t n = 0; n < tel->GetEffectLayerCount(); ++n) {
+                hasEffects |= tel->GetEffectLayer(n)->GetEffectCount() > 0;
             }
+            if (hasEffects) {
+                timingTrackNames.push_back(tel->GetName());
+                timingTracks[tel->GetName()] = tel;
+
+                // we want to know which timing tracks exist so we can preselect the ones which are not already present
+                // a timing track is only considered to exist if it has at least one timing mark
+                timingTrackAlreadyExists[tel->GetName()] = (_sequenceElements.GetTimingElement(tel->GetName()) != nullptr && _sequenceElements.GetTimingElement(tel->GetName())->HasEffects());
+            }            
         }
     }
 
