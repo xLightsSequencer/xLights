@@ -1485,9 +1485,9 @@ wxString CompressNodes(const wxString& nodes)
             // Flush out start/last if any
             if (start != -1) {
                 if (last != start) {
-                    res += wxString::Format("%d-%d,", start, last);                    
+                    res += wxString::Format("%d-%d,", start, last);
                 } else {
-                    res += wxString::Format("%d,", start);                
+                    res += wxString::Format("%d,", start);
                 }
             }
             // Add empty and separator

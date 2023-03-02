@@ -1019,6 +1019,9 @@
       <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="DuplicateDialog.cpp" />
+    <ClCompile Include="models\DMX\DmxColorAbilityCMY.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2044,6 +2047,9 @@
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="DuplicateDialog.h" />
+    <ClInclude Include="models\DMX\DmxColorAbilityCMY.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

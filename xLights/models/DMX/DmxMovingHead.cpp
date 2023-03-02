@@ -19,6 +19,7 @@
 
 #include "DmxMovingHead.h"
 #include "DmxColorAbilityRGB.h"
+#include "DmxColorAbilityCMY.h"
 #include "DmxColorAbilityWheel.h"
 #include "DmxPresetAbility.h"
 #include "../ModelScreenLocation.h"
@@ -219,8 +220,11 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
 
         if (color_type == 0) {
             color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
-        } else {
+        } else  if (color_type == 1) {
             color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+        }
+        else {
+            color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
@@ -250,8 +254,11 @@ void DmxMovingHead::InitModel() {
     int color_type = wxAtoi(ModelXml->GetAttribute("DmxColorType", "0"));
     if (color_type == 0) {
         color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
-    }else {
+    }else if (color_type == 1) {
         color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+    }
+    else {
+        color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
     }
 
     pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "0"));
@@ -1170,8 +1177,11 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         int color_type = wxAtoi(dct);
         if (color_type == 0) {
             color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
-        } else {
+        } else if (color_type == 1) {
             color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+        }
+        else {
+            color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
         }
         color_ability->ImportParameters(root, this);
 
@@ -1212,5 +1222,10 @@ std::vector<std::string> DmxMovingHead::GenerateNodeNames() const
     if (0 != tilt_channel && tilt_channel < names.size()) {
         names[tilt_channel - 1] = "Tilt";
     }
+
+    if (nullptr != color_ability) {
+        color_ability->SetNodeNames(names);
+    }
+
     return names;
 }
