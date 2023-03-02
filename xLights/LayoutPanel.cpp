@@ -2338,7 +2338,7 @@ void LayoutPanel::showBackgroundProperties()
             background = new wxImage(backgroundFile);
         }
     }
-    wxPGProperty* p = propertyEditor->Append(new xlImageProperty("Background Image",
+    wxPGProperty* prop = propertyEditor->Append(new xlImageProperty("Background Image",
         "BkgImage",
         previewBackgroundFile,
         background));
@@ -2354,7 +2354,7 @@ void LayoutPanel::showBackgroundProperties()
         prop->SetAttribute("Max", 16384);
         prop->SetEditor("SpinCtrl");
     }
-    wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Brightness", "BkgBrightness", previewBackgroundBrightness));
+    prop = propertyEditor->Append(new wxUIntProperty("Brightness", "BkgBrightness", previewBackgroundBrightness));
     prop->SetAttribute("Min", 0);
     prop->SetAttribute("Max", 100);
     prop->SetEditor("SpinCtrl");
