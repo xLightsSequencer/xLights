@@ -1113,6 +1113,8 @@
 		<Unit filename="models/DMX/DmxColorAbility.h" />
 		<Unit filename="models/DMX/DmxColorAbilityRGB.cpp" />
 		<Unit filename="models/DMX/DmxColorAbilityRGB.h" />
+		<Unit filename="models/DMX/DmxColorAbilityCMY.cpp" />
+		<Unit filename="models/DMX/DmxColorAbilityCMY.h" />
 		<Unit filename="models/DMX/DmxColorAbilityWheel.cpp" />
 		<Unit filename="models/DMX/DmxColorAbilityWheel.h" />
 		<Unit filename="models/DMX/DmxFloodArea.cpp" />

@@ -23,6 +23,7 @@
 #include "DmxModel.h"
 #include "DmxColorAbility.h"
 #include "DmxColorAbilityRGB.h"
+#include "DmxColorAbilityCMY.h"
 #include "DmxColorAbilityWheel.h"
 #include "DmxPresetAbility.h"
 #include "../ModelScreenLocation.h"
