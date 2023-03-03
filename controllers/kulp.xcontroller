@@ -149,6 +149,20 @@
             <SupportsVirtualMatrix/>
             <SupportsLEDPanelMatrix/>
             <SupportsAutoLayout/>
+            <fpp>1</fpp>
+            <fpp1>21,-1</fpp1>
+        </Variant>
+        <Variant Name="w/Expansion" ID="K8-Pi" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>36</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+            <SupportsVirtualMatrix/>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+            <NumberOfBanks>2</NumberOfBanks>
+            <BankSize>16</BankSize>
+            <fpp>1</fpp>
+            <fpp1>21,16</fpp1>
         </Variant>
     </Controller>
     <Controller Name="K8-PB">
