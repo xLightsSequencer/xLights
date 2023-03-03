@@ -383,11 +383,16 @@ void TextEffect::SetPanelStatus(Model* cls)
 //countdown = !to date!%fmt: put delimiter + target date + same delimiter + format string with %x markers in it (described down below)
 
 std::mutex FONT_MAP_LOCK;
+FontMapLock::FontMapLock() :
+    lk(FONT_MAP_LOCK)
+{}
+FontMapLock::~FontMapLock() {}
+
 std::map<std::string, wxFontInfo> FONT_MAP;
 
 void SetFont(TextDrawingContext *dc, const std::string& FontString, const xlColor &color) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::unique_lock<std::mutex> locker(FONT_MAP_LOCK);
+    FontMapLock locker;
     if (FONT_MAP.find(FontString) == FONT_MAP.end()) {
         if (!FontString.empty())
         {

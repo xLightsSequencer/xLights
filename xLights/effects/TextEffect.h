@@ -13,11 +13,26 @@
 #include "RenderableEffect.h"
 
 #include <vector>
+#include <mutex>
 
 class wxString;
 class TextDrawingContext;
 class FontManager;
 class wxImage;
+
+// MoC - March 2023
+// The wx font map is not thread safe in some cases, effects using
+//   it from background threads need to mutex each other (and ideally
+//   the event loop thread but meh.  This is not the best place (WX
+//   would be a better place), but this is better than no place.
+class FontMapLock
+{
+    std::unique_lock<std::mutex> lk;
+
+public:
+    FontMapLock();
+    ~FontMapLock();
+};
 
 class TextEffect : public RenderableEffect
 {

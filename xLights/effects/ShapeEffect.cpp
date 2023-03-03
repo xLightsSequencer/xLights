@@ -10,6 +10,7 @@
 
 #include "ShapeEffect.h"
 #include "ShapePanel.h"
+#include "TextEffect.h" // FontMapLock
 
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
@@ -452,8 +453,9 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         _sinceLastTriggered = 0;
 
         if (Object_To_Draw == RENDER_SHAPE_EMOJI) {
+            FontMapLock locker;
             wxFont ff(font);
-            ff.SetNativeFontInfoUserDesc(font);
+            ff.SetNativeFontInfoUserDesc(font); // This needs FontMapLock above
 
             _font = wxFontInfo(wxSize(0, 12));
             wxString face = ff.GetFaceName();
