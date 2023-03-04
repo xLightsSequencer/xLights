@@ -22,7 +22,6 @@
 						<item>Line</item>
 						<item>Leaf</item>
 						<item>Eight</item>
-						<item>Custom</item>
 					</content>
 					<selection>0</selection>
 					<handler function="OnChoice_DMXPath_TypeSelect" entry="EVT_CHOICE" />
@@ -57,8 +56,8 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxSlider" name="ID_SLIDER_DMXPath_Width" subclass="BulkEditSlider" variable="Slider_DMXPath_Width" member="yes">
-					<value>100</value>
-					<max>200</max>
+					<value>30</value>
+					<max>180</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
@@ -66,7 +65,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_DMXPath_Width" subclass="BulkEditTextCtrl" variable="TextCtrl_DMXPath_Width" member="no">
-					<value>100</value>
+					<value>30</value>
 					<maxlength>3</maxlength>
 					<size>25,-1d</size>
 				</object>
@@ -95,8 +94,8 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxSlider" name="ID_SLIDER_DMXPath_Height" subclass="BulkEditSlider" variable="Slider_DMXPath_Height" member="yes">
-					<value>100</value>
-					<max>200</max>
+					<value>30</value>
+					<max>180</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
@@ -104,7 +103,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_DMXPath_Height" subclass="BulkEditTextCtrl" variable="TextCtrl_DMXPath_Height" member="no">
-					<value>100</value>
+					<value>30</value>
 					<maxlength>3</maxlength>
 					<size>25,-1d</size>
 				</object>
@@ -132,7 +131,8 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxSlider" name="ID_SLIDER_DMXPath_X_Off" subclass="BulkEditSlider" variable="Slider_DMXPath_X_Off" member="yes">
-					<min>-100</min>
+					<min>-180</min>
+					<max>180</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
@@ -153,6 +153,7 @@
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>1</border>
@@ -168,7 +169,8 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxSlider" name="ID_SLIDER_DMXPath_Y_Off" subclass="BulkEditSlider" variable="Slider_DMXPath_Y_Off" member="yes">
-					<min>-100</min>
+					<min>-180</min>
+					<max>180</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
@@ -189,47 +191,10 @@
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>1</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText5" member="yes">
-					<label>Distance</label>
-				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_DMXPath_Dist" subclass="BulkEditSlider" variable="Slider_DMXPath_Dist" member="yes">
-					<value>100</value>
-					<min>1</min>
-					<max>200</max>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_DMXPath_Dist" subclass="BulkEditTextCtrl" variable="TextCtrl_DMXPath_Dist" member="no">
-					<value>100</value>
-					<maxlength>3</maxlength>
-					<size>25,-1d</size>
-				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_DMXPath_Dist" subclass="xlLockButton" variable="BitmapButton_DMXPathY_Dist" member="yes">
-					<size>14,14</size>
-					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -286,14 +251,6 @@
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxButton" name="ID_BUTTON_DMXPath_2D" variable="Button_DMXPath_2D" member="yes">
-					<label>2D Path</label>
-				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>

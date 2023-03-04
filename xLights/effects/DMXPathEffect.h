@@ -22,7 +22,6 @@ enum class DMXPathType {
     Line,
     Leaf,
     Eight,
-    Custom,
     Unknown
 };
 
@@ -51,7 +50,7 @@ public:
         return RenderableEffect::GetSettingVCMax(name);
     }
 
-    static std::pair<int, int> RenderPath(DMXPathType effectType, double eff_pos, long length, int height, int width, int x_off, int y_off, int rot);
+    static std::pair<int, int> RenderPath(DMXPathType effectType, double eff_pos, int height, int width, int x_off, int y_off, int rot);
     static DMXPathType DecodeType(const std::string& shape); 
     static std::pair<float, float> CalcLocation(DMXPathType effectType, float degpos);
 
@@ -60,9 +59,7 @@ protected:
 private:
     void SetDMXColorPixel(int chan, uint8_t value, RenderBuffer &buffer);    
 
-    int ScaleToDMX(float value, int degresOfMovement) const;
+    int ScaleToDMX(float value, float degresOfMovement) const;
 
-    float CalcHypotenuse(float a, float b) const;    
-    float CalcTheta(float opposite ,float hypoteneuse) const;
 };
 

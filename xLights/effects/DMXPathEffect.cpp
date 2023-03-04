@@ -76,7 +76,6 @@ void DMXPathEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
 
     int rotation = GetValueCurveInt("DMXPath_Rotation", 0, SettingsMap, eff_pos, DMXPATH_ROTATION_MIN, DMXPATH_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-
     if (buffer.cur_model == "") {
         return;
     }
@@ -118,22 +117,15 @@ void DMXPathEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
 
     auto pathType = DecodeType(type_Str);
 
-    if (pathType != DMXPathType::Custom) {
-        auto [x, y] = RenderPath(pathType, eff_pos, length, height, width, x_offset, y_offset, rotation);
+    auto [x, y] = RenderPath(pathType, eff_pos, height, width, x_offset, y_offset, rotation);
 
-        auto path_Hypotenuse = CalcHypotenuse(x, y);
-        auto rotation = CalcTheta(y, path_Hypotenuse);
-
-        auto distance_Hypotenuse = CalcHypotenuse(path_Hypotenuse, distance);
-        auto tilt = CalcTheta(distance, distance_Hypotenuse);
-
-        if (panChan != -1) {
-            SetDMXColorPixel(panChan, ScaleToDMX(rotation, panDegrees), buffer);
-        }
-        if (tiltChan != -1) {
-            SetDMXColorPixel(tiltChan, ScaleToDMX(tilt, tiltDegrees), buffer);
-        }
+    if (panChan != -1) {
+        SetDMXColorPixel(panChan, ScaleToDMX(x, panDegrees), buffer);
     }
+    if (tiltChan != -1) {
+        SetDMXColorPixel(tiltChan, ScaleToDMX(y, tiltDegrees), buffer);
+    }
+   
 }
 
 void DMXPathEffect::SetPanelStatus(Model *cls) {
@@ -160,7 +152,7 @@ void DMXPathEffect::SetPanelStatus(Model *cls) {
     p->Refresh();
 }
 
-std::pair<int, int> DMXPathEffect::RenderPath(DMXPathType effectType, double eff_pos,long length, int height, int width, int x_off, int y_off, int rot)
+std::pair<int, int> DMXPathEffect::RenderPath(DMXPathType effectType, double eff_pos, int height, int width, int x_off, int y_off, int rot)
 {
     float position = 360.0 * (eff_pos);
 
@@ -236,12 +228,12 @@ std::pair<float, float> DMXPathEffect::CalcLocation(DMXPathType effectType, floa
 }
 
 
-int DMXPathEffect::ScaleToDMX(float value, int degresOfMovement) const
+int DMXPathEffect::ScaleToDMX(float value, float degresOfMovement) const
 {
-    int MinMax = degresOfMovement / 2;
+    float MinMax = degresOfMovement / 2.0F;
     value = std::min(MinMax, value);
     value = std::max(-MinMax, value);
-    return (double(value + MinMax) / degresOfMovement) * 255.0;
+    return (double(value + MinMax) / degresOfMovement) * 255.0F;
 }
 
 DMXPathType DMXPathEffect::DecodeType(const std::string& shape)
@@ -258,20 +250,6 @@ DMXPathType DMXPathEffect::DecodeType(const std::string& shape)
         return DMXPathType::Leaf;
     } else if (shape == "Eight") {
         return DMXPathType::Eight;
-    } else if (shape == "Custom") {
-        return DMXPathType::Custom;
-    }
+    } 
     return DMXPathType::Unknown;
-}
-
-float DMXPathEffect::CalcHypotenuse(float a, float b) const
-{
-    return sqrt( pow(a, 2) +  pow(b, 2));
-}
-
-float DMXPathEffect::CalcTheta(float opposite ,float hypoteneuse) const
-{
-    auto rad = asin(opposite/hypoteneuse);
-
-    return (180.0 * rad) / M_PI;
 }

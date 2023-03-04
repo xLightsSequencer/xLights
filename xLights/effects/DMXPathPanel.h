@@ -13,7 +13,6 @@
  //(*Headers(DMXPathPanel)
  #include <wx/panel.h>
  class wxBitmapButton;
- class wxButton;
  class wxChoice;
  class wxFlexGridSizer;
  class wxSlider;
@@ -36,7 +35,6 @@ class DMXPathPanel: public xlEffectPanel
 
 		//(*Declarations(DMXPathPanel)
 		BulkEditChoice* Choice_DMXPath_Type;
-		BulkEditSlider* Slider_DMXPath_Dist;
 		BulkEditSlider* Slider_DMXPath_Height;
 		BulkEditSlider* Slider_DMXPath_Rotation;
 		BulkEditSlider* Slider_DMXPath_Width;
@@ -44,20 +42,17 @@ class DMXPathPanel: public xlEffectPanel
 		BulkEditSlider* Slider_DMXPath_Y_Off;
 		BulkEditTextCtrl* TextCtrl_DMXPath_Rotation;
 		BulkEditValueCurveButton* BitmapButton_DMXPath_RotationVC;
-		wxButton* Button_DMXPath_2D;
 		wxFlexGridSizer* FlexGridSizer_Main;
 		wxStaticText* StaticText178;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
-		wxStaticText* StaticText5;
 		wxStaticText* StaticText8;
 		xlLockButton* BitmapButton_DMXPathHeight;
 		xlLockButton* BitmapButton_DMXPathType;
 		xlLockButton* BitmapButton_DMXPathWidth;
 		xlLockButton* BitmapButton_DMXPathX_Off;
-		xlLockButton* BitmapButton_DMXPathY_Dist;
 		xlLockButton* BitmapButton_DMXPathY_Off;
 		xlLockButton* BitmapButton_DMXPath_Rotation;
 		//*)
@@ -84,16 +79,11 @@ class DMXPathPanel: public xlEffectPanel
 		static const long ID_SLIDER_DMXPath_Y_Off;
 		static const long IDD_TEXTCTRL_DMXPath_Y_Off;
 		static const long ID_BITMAPBUTTON_SLIDER_DMXPath_Y_Off;
-		static const long ID_STATICTEXT2;
-		static const long ID_SLIDER_DMXPath_Dist;
-		static const long IDD_TEXTCTRL_DMXPath_Dist;
-		static const long ID_BITMAPBUTTON_SLIDER_DMXPath_Dist;
 		static const long ID_STATICTEXT_DMXPath_Rotation;
 		static const long ID_SLIDER_DMXPath_Rotation;
 		static const long ID_VALUECURVE_DMXPath_Rotation;
 		static const long IDD_TEXTCTRL_DMXPath_Rotation;
 		static const long ID_BITMAPBUTTON_SLIDER_DMXPath_Rotation;
-		static const long ID_BUTTON_DMXPath_2D;
 		//*)
 
 	public:
@@ -101,6 +91,8 @@ class DMXPathPanel: public xlEffectPanel
 		//(*Handlers(DMXPathPanel)
 		void OnChoice_DMXPath_TypeSelect(wxCommandEvent& event);
 		void OnButton_DMXPath_2DClick(wxCommandEvent& event);
+		void OnBitmapButton_DMXPath_PanClick(wxCommandEvent& event);
+		void OnBitmapButton_DMXPath_TiltClick(wxCommandEvent& event);
 		//*)
 
 

@@ -11,7 +11,6 @@
  //(*InternalHeaders(DMXPathPanel)
  #include <wx/bitmap.h>
  #include <wx/bmpbuttn.h>
- #include <wx/button.h>
  #include <wx/choice.h>
  #include <wx/image.h>
  #include <wx/intl.h>
@@ -57,16 +56,11 @@ const long DMXPathPanel::ID_STATICTEXT_DMXPath_Y = wxNewId();
 const long DMXPathPanel::ID_SLIDER_DMXPath_Y_Off = wxNewId();
 const long DMXPathPanel::IDD_TEXTCTRL_DMXPath_Y_Off = wxNewId();
 const long DMXPathPanel::ID_BITMAPBUTTON_SLIDER_DMXPath_Y_Off = wxNewId();
-const long DMXPathPanel::ID_STATICTEXT2 = wxNewId();
-const long DMXPathPanel::ID_SLIDER_DMXPath_Dist = wxNewId();
-const long DMXPathPanel::IDD_TEXTCTRL_DMXPath_Dist = wxNewId();
-const long DMXPathPanel::ID_BITMAPBUTTON_SLIDER_DMXPath_Dist = wxNewId();
 const long DMXPathPanel::ID_STATICTEXT_DMXPath_Rotation = wxNewId();
 const long DMXPathPanel::ID_SLIDER_DMXPath_Rotation = wxNewId();
 const long DMXPathPanel::ID_VALUECURVE_DMXPath_Rotation = wxNewId();
 const long DMXPathPanel::IDD_TEXTCTRL_DMXPath_Rotation = wxNewId();
 const long DMXPathPanel::ID_BITMAPBUTTON_SLIDER_DMXPath_Rotation = wxNewId();
-const long DMXPathPanel::ID_BUTTON_DMXPath_2D = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(DMXPathPanel,wxPanel)
@@ -77,7 +71,6 @@ END_EVENT_TABLE()
 DMXPathPanel::DMXPathPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(DMXPathPanel)
-	BulkEditTextCtrl* TextCtrl_DMXPath_Dist;
 	BulkEditTextCtrl* TextCtrl_DMXPath_Height;
 	BulkEditTextCtrl* TextCtrl_DMXPath_Width;
 	BulkEditTextCtrl* TextCtrl_DMXPath_X_Off;
@@ -96,7 +89,6 @@ DMXPathPanel::DMXPathPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_DMXPath_Type->Append(_("Line"));
 	Choice_DMXPath_Type->Append(_("Leaf"));
 	Choice_DMXPath_Type->Append(_("Eight"));
-	Choice_DMXPath_Type->Append(_("Custom"));
 	FlexGridSizer_Main->Add(Choice_DMXPath_Type, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer_Main->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_DMXPathType = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_DMXPath_Type, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_DMXPath_Type"));
@@ -104,9 +96,9 @@ DMXPathPanel::DMXPathPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer_Main->Add(BitmapButton_DMXPathType, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText178 = new wxStaticText(this, ID_STATICTEXT_DMXPath_Width, _("Width"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_DMXPath_Width"));
 	FlexGridSizer_Main->Add(StaticText178, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_DMXPath_Width = new BulkEditSlider(this, ID_SLIDER_DMXPath_Width, 100, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMXPath_Width"));
+	Slider_DMXPath_Width = new BulkEditSlider(this, ID_SLIDER_DMXPath_Width, 30, 0, 180, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMXPath_Width"));
 	FlexGridSizer_Main->Add(Slider_DMXPath_Width, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_DMXPath_Width = new BulkEditTextCtrl(this, IDD_TEXTCTRL_DMXPath_Width, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_DMXPath_Width"));
+	TextCtrl_DMXPath_Width = new BulkEditTextCtrl(this, IDD_TEXTCTRL_DMXPath_Width, _("30"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_DMXPath_Width"));
 	TextCtrl_DMXPath_Width->SetMaxLength(3);
 	FlexGridSizer_Main->Add(TextCtrl_DMXPath_Width, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_DMXPathWidth = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_DMXPath_Width, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_DMXPath_Width"));
@@ -114,9 +106,9 @@ DMXPathPanel::DMXPathPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer_Main->Add(BitmapButton_DMXPathWidth, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT_DMXPath_Height, _("Height"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_DMXPath_Height"));
 	FlexGridSizer_Main->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_DMXPath_Height = new BulkEditSlider(this, ID_SLIDER_DMXPath_Height, 100, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMXPath_Height"));
+	Slider_DMXPath_Height = new BulkEditSlider(this, ID_SLIDER_DMXPath_Height, 30, 0, 180, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMXPath_Height"));
 	FlexGridSizer_Main->Add(Slider_DMXPath_Height, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_DMXPath_Height = new BulkEditTextCtrl(this, IDD_TEXTCTRL_DMXPath_Height, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_DMXPath_Height"));
+	TextCtrl_DMXPath_Height = new BulkEditTextCtrl(this, IDD_TEXTCTRL_DMXPath_Height, _("30"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_DMXPath_Height"));
 	TextCtrl_DMXPath_Height->SetMaxLength(3);
 	FlexGridSizer_Main->Add(TextCtrl_DMXPath_Height, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_DMXPathHeight = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_DMXPath_Height, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_DMXPath_Height"));
@@ -124,7 +116,7 @@ DMXPathPanel::DMXPathPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer_Main->Add(BitmapButton_DMXPathHeight, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT_DMXPath_X, _("X Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_DMXPath_X"));
 	FlexGridSizer_Main->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_DMXPath_X_Off = new BulkEditSlider(this, ID_SLIDER_DMXPath_X_Off, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMXPath_X_Off"));
+	Slider_DMXPath_X_Off = new BulkEditSlider(this, ID_SLIDER_DMXPath_X_Off, 0, -180, 180, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMXPath_X_Off"));
 	FlexGridSizer_Main->Add(Slider_DMXPath_X_Off, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_DMXPath_X_Off = new BulkEditTextCtrl(this, IDD_TEXTCTRL_DMXPath_X_Off, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_DMXPath_X_Off"));
 	TextCtrl_DMXPath_X_Off->SetMaxLength(3);
@@ -134,7 +126,7 @@ DMXPathPanel::DMXPathPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer_Main->Add(BitmapButton_DMXPathX_Off, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT_DMXPath_Y, _("Y Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_DMXPath_Y"));
 	FlexGridSizer_Main->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_DMXPath_Y_Off = new BulkEditSlider(this, ID_SLIDER_DMXPath_Y_Off, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMXPath_Y_Off"));
+	Slider_DMXPath_Y_Off = new BulkEditSlider(this, ID_SLIDER_DMXPath_Y_Off, 0, -180, 180, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMXPath_Y_Off"));
 	FlexGridSizer_Main->Add(Slider_DMXPath_Y_Off, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_DMXPath_Y_Off = new BulkEditTextCtrl(this, IDD_TEXTCTRL_DMXPath_Y_Off, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_DMXPath_Y_Off"));
 	TextCtrl_DMXPath_Y_Off->SetMaxLength(3);
@@ -142,16 +134,6 @@ DMXPathPanel::DMXPathPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_DMXPathY_Off = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_DMXPath_Y_Off, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_DMXPath_Y_Off"));
 	BitmapButton_DMXPathY_Off->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer_Main->Add(BitmapButton_DMXPathY_Off, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	StaticText5 = new wxStaticText(this, ID_STATICTEXT2, _("Distance"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-	FlexGridSizer_Main->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_DMXPath_Dist = new BulkEditSlider(this, ID_SLIDER_DMXPath_Dist, 100, 1, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMXPath_Dist"));
-	FlexGridSizer_Main->Add(Slider_DMXPath_Dist, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_DMXPath_Dist = new BulkEditTextCtrl(this, IDD_TEXTCTRL_DMXPath_Dist, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_DMXPath_Dist"));
-	TextCtrl_DMXPath_Dist->SetMaxLength(3);
-	FlexGridSizer_Main->Add(TextCtrl_DMXPath_Dist, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_DMXPathY_Dist = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_DMXPath_Dist, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_DMXPath_Dist"));
-	BitmapButton_DMXPathY_Dist->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer_Main->Add(BitmapButton_DMXPathY_Dist, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT_DMXPath_Rotation, _("Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_DMXPath_Rotation"));
 	FlexGridSizer_Main->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -168,8 +150,6 @@ DMXPathPanel::DMXPathPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_DMXPath_Rotation->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer_Main->Add(BitmapButton_DMXPath_Rotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer_Main->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_DMXPath_2D = new wxButton(this, ID_BUTTON_DMXPath_2D, _("2D Path"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DMXPath_2D"));
-	FlexGridSizer_Main->Add(Button_DMXPath_2D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer_Main);
 	FlexGridSizer_Main->Fit(this);
 	FlexGridSizer_Main->SetSizeHints(this);
@@ -177,6 +157,8 @@ DMXPathPanel::DMXPathPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_CHOICE_DMXPath_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&DMXPathPanel::OnChoice_DMXPath_TypeSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_DMXPath_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPathPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_DMXPath_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPathPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_DMXPath_X_Off,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPathPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_DMXPath_Y_Off,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPathPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_DMXPath_Rotation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPathPanel::OnVCButtonClick);
 	//*)
 
@@ -207,12 +189,6 @@ void DMXPathPanel::ValidateWindow()
         BitmapButton_DMXPath_Rotation->Enable();
     }
 
-	if (Choice_DMXPath_Type->GetStringSelection() == "Custom") {
-        Button_DMXPath_2D->Enable();
-    } else {
-
-        Button_DMXPath_2D->Disable();
-    }
 }
 
 void DMXPathPanel::OnChoice_DMXPath_TypeSelect(wxCommandEvent& event)
