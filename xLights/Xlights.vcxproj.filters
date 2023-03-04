@@ -1019,6 +1019,12 @@
     <ClCompile Include="effects\assist\SketchCanvasPanel.cpp">
       <Filter>Effects\assist</Filter>
     </ClCompile>
+    <ClCompile Include="effects\assist\DMXPathAssistPanel.cpp">
+      <Filter>Effects\assist</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\assist\DMXPathCanvasPanel.cpp">
+      <Filter>Effects\assist</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2027,9 +2033,6 @@
     <ClInclude Include="utils\string_utils.h" />
     <ClInclude Include="TipOfTheDayDialog.h" />
     <ClInclude Include="effects\assist\AssistPanel.h">
-      <Filter>Effects\assist</Filter>
-    </ClInclude>
-    <ClInclude Include="effects\assist\xlGridCanvasDMXPath.h">
       <Filter>Effects\assist</Filter>
     </ClInclude>
     <ClInclude Include="effects\assist\xlGridCanvasEmpty.h">

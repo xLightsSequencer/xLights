@@ -16,6 +16,8 @@
 #include "../models/Model.h"
 #include "../models/ModelGroup.h"
 #include "../models/DMX/DmxMovingHead.h"
+#include "assist/AssistPanel.h"
+#include "assist/DMXPathAssistPanel.h"
 
 #include "../../include/dmxpath-16.xpm"
 #include "../../include/dmxpath-24.xpm"
@@ -252,4 +254,18 @@ DMXPathType DMXPathEffect::DecodeType(const std::string& shape)
         return DMXPathType::Eight;
     } 
     return DMXPathType::Unknown;
+}
+
+AssistPanel* DMXPathEffect::GetAssistPanel(wxWindow* parent, xLightsFrame* /*xl_frame*/)
+{
+
+    AssistPanel* assistPanel = new AssistPanel(parent);
+
+    auto dmxAssistPanel = new DMXPathAssistPanel(assistPanel->GetCanvasParent());
+    // sketchAssistPanel->SetxLightsFrame(xl_frame);
+    assistPanel->AddPanel(dmxAssistPanel, wxALL | wxEXPAND);
+
+    m_dmxAssistPanel = dmxAssistPanel;
+    
+    return assistPanel;
 }

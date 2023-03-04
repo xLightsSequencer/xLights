@@ -15,6 +15,8 @@
 #define DMXPATH_ROTATION_MIN 0
 #define DMXPATH_ROTATION_MAX 360
 
+class DMXPathAssistPanel;
+
 enum class DMXPathType {
     Circle,
     Square,
@@ -54,12 +56,21 @@ public:
     static DMXPathType DecodeType(const std::string& shape); 
     static std::pair<float, float> CalcLocation(DMXPathType effectType, float degpos);
 
+    AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) override;
+    bool HasAssistPanel() override
+    {
+        return true;
+    }
+
 protected:
     xlEffectPanel *CreatePanel(wxWindow *parent) override;
 private:
     void SetDMXColorPixel(int chan, uint8_t value, RenderBuffer &buffer);    
 
     int ScaleToDMX(float value, float degresOfMovement) const;
+
+
+    DMXPathAssistPanel* m_dmxAssistPanel = nullptr;
 
 };
 
