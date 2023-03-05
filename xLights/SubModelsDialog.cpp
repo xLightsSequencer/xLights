@@ -116,6 +116,10 @@ const long SubModelsDialog::SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SYMMETRIZE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SORT_POINTS_ALL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_COMBINE_STRANDS = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_EXPAND_STRANDS_ALL = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_BLANKS_AS_ZERO = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_BLANKS_AS_EMPTY = wxNewId();
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
 	//(*EventTable(SubModelsDialog)
@@ -993,6 +997,12 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.Append(SUBMODEL_DIALOG_SYMMETRIZE, "Symmetrize (Rotational)");
     mnu.Append(SUBMODEL_DIALOG_COMBINE_STRANDS, "Combine Strands");
     
+    mnu.AppendSeparator();
+    mnu.Append(SUBMODEL_DIALOG_EXPAND_STRANDS_ALL, "Expand All Strands");
+    mnu.Append(SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL, "Compress All Strands");
+    mnu.Append(SUBMODEL_DIALOG_BLANKS_AS_ZERO, "Convert Blanks To Zeros");
+    mnu.Append(SUBMODEL_DIALOG_BLANKS_AS_EMPTY, "Convert Zeros To Empty");
+
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridPopup, nullptr, this);
     PopupMenu(&mnu);
 }
@@ -1034,6 +1044,32 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
     }
     if (event.GetId() == SUBMODEL_DIALOG_COMBINE_STRANDS) {
         CombineStrands();
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_EXPAND_STRANDS_ALL) {
+        processAllStrands([](wxString str) { return ExpandNodes(str); });
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL) {
+        processAllStrands([](wxString str) { return CompressNodes(str); });
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_ZERO) {
+        processAllStrands([](wxString str) {
+            auto ns = wxSplit(str, ',');
+            for (auto i = ns.begin(); i != ns.end(); ++i) {
+                if (*i == "")
+                    *i = "0";
+            }
+            return wxJoin(ns, ',');
+        });
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_EMPTY) {
+        processAllStrands([](wxString str) {
+            auto ns = wxSplit(str, ',');
+            for (auto i = ns.begin(); i != ns.end(); ++i) {
+                if (*i == "0")
+                    *i = "";
+            }
+            return wxJoin(ns, ',');
+        });
     }
 }
 
@@ -1590,6 +1626,36 @@ void SubModelsDialog::Symmetrize()
             }
         }
     }
+}
+
+void SubModelsDialog::processAllStrands(wxString (*func)(wxString))
+{
+    wxString name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    int row = NodesGrid->GetGridCursorRow();
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm)
+        return;
+
+    // Process all rows
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        sm->strands[sm->strands.size() - 1 - i] = func(sm->strands[sm->strands.size() - 1 - i]);
+    }
+
+    // Update UI
+    Select(name);
+
+    if (row >= 0) {
+        NodesGrid->SetGridCursor(row, 0);
+    }
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
 }
 
 static wxString OrderPointsI(std::map<int, std::pair<float, float>>& coords, const wxString& instr, std::pair<float, float> centroid, bool radial, float startangle, bool ccw_outside)

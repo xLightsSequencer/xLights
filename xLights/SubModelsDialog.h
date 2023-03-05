@@ -242,6 +242,10 @@ protected:
     static const long SUBMODEL_DIALOG_SYMMETRIZE;
     static const long SUBMODEL_DIALOG_SORT_POINTS_ALL;
     static const long SUBMODEL_DIALOG_COMBINE_STRANDS;
+    static const long SUBMODEL_DIALOG_EXPAND_STRANDS_ALL;
+    static const long SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL;
+    static const long SUBMODEL_DIALOG_BLANKS_AS_ZERO;
+    static const long SUBMODEL_DIALOG_BLANKS_AS_EMPTY;
 
     void SaveXML(Model* m);
     wxString GetSelectedName() const;
@@ -297,6 +301,8 @@ protected:
     void SplitSelectedSubmodel();
     void SortSubModelsByName();
     void Symmetrize();
+
+    void processAllStrands(wxString (*func)(wxString));
 
 private:
 
