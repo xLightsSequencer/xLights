@@ -1413,7 +1413,7 @@ void SubModelsDialog::Symmetrize()
     for (unsigned i = 0; i < sm->strands.size(); ++i) {
         auto x = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
         for (auto n : x) {
-            if (n == "")
+            if (n == "" || n == "0")
                 continue;
             nodesNeedMatch.insert(wxAtoi(n));
         }
@@ -1573,7 +1573,7 @@ void SubModelsDialog::Symmetrize()
                 } else {
                     str += ",";
                 }
-                if (n == "")
+                if (n == "" || n == "0")
                     continue;
                 int nn = wxAtoi(n);
                 // Find it
@@ -1665,7 +1665,7 @@ static wxString OrderPointsI(std::map<int, std::pair<float, float>>& coords, con
     std::vector<std::pair<int, int>> nodeAndBlanksBefore;
     int blanks = 0;
     for (const auto& x : inp) {
-        if (x == "") {
+        if (x == "" || x == "0") {
             ++blanks;
         } else {
             nodeAndBlanksBefore.push_back(std::make_pair(wxAtoi(x), blanks));
@@ -1755,7 +1755,7 @@ void SubModelsDialog::OrderPoints(bool wholesub)
     for (int crow = 0; crow < int(sm->strands.size()); ++crow) {
         auto arr = wxSplit(ExpandNodes(sm->strands[crow]), ',');
         for (auto& x : arr) {
-            if (x.empty())
+            if (x.empty() || x == "0")
                 continue;
             smpts.insert(wxAtoi(x));
         }
@@ -1946,7 +1946,7 @@ void SubModelsDialog::OrderPoints(bool wholesub)
         int scnt = 0;
         auto srr = wxSplit(strand, ',');
         for (auto s : srr) {
-            if (s.empty())
+            if (s.empty() || s == "0")
                 continue;
             ++scnt;
             int pt = wxAtoi(s);
@@ -3896,7 +3896,7 @@ void SubModelsDialog::RemoveDuplicates(bool elide)
     if (elide) {
         std::set<wxString> seen;
         for (auto it = oldNodeArray.begin(); it != oldNodeArray.end(); ++it) {
-            if (it->empty())
+            if (it->empty() || *it == "0")
                 continue;
             if (seen.count(*it)) {
                 *it = "";
@@ -3950,7 +3950,7 @@ void SubModelsDialog::RemoveAllDuplicates(bool leftright, bool elide)
             for (unsigned r = 0; r < data.size(); ++r) {
                 if (data[r].size() <= c)
                     continue; // Not applicable to row
-                if (data[r][c] == "")
+                if (data[r][c] == "" || data[r][c] == "0")
                     continue;
                 if (seen.count(data[r][c])) {
                     if (elide) {
@@ -3966,7 +3966,7 @@ void SubModelsDialog::RemoveAllDuplicates(bool leftright, bool elide)
     } else {
         for (unsigned r = 0; r < data.size(); ++r) {
             for (unsigned c = 0; c < data[r].size(); ++c) {
-                if (data[r][c] == "")
+                if (data[r][c] == "" || data[r][c] == "0")
                     continue;
                 if (seen.count(data[r][c])) {
                     if (elide) {
