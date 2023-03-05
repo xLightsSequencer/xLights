@@ -145,7 +145,13 @@ void InitialiseLogging(bool fromMain)
             }
         }
         loggingInitialised = true;
-
+        //make sure the default logging location is actually created
+        std::string ld = std::getenv("HOME");
+        ld += "/Library/Logs/";
+        wxDir logDir(ld);
+        if (!wxDir::Exists(ld)) {
+            wxDir::Make(ld);
+        }
 #endif
 #ifdef __LINUX__
         std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xlights.linux.properties";
