@@ -453,20 +453,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         _sinceLastTriggered = 0;
 
         if (Object_To_Draw == RENDER_SHAPE_EMOJI) {
-            FontMapLock locker;
-            wxFont ff(font);
-            ff.SetNativeFontInfoUserDesc(font); // This needs FontMapLock above
-
-            _font = wxFontInfo(wxSize(0, 12));
-            wxString face = ff.GetFaceName();
-            if (face == WIN_NATIVE_EMOJI_FONT || face == OSX_NATIVE_EMOJI_FONT || face == LINUX_NATIVE_EMOJI_FONT) {
-                _font.FaceName(NATIVE_EMOJI_FONT);
-            } else {
-                _font.FaceName(face);
-            }
-            _font.Light();
-            _font.AntiAliased(false);
-            _font.Encoding(ff.GetEncoding());
+            _font = TextDrawingContext::GetShapeFont(font);
         } else if (Object_To_Draw == RENDER_SHAPE_SVG) {
             cache->InitialiseSVG(svgFilename);
         }

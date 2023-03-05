@@ -127,6 +127,18 @@ public:
 private:
 };
 
+constexpr char WIN_NATIVE_EMOJI_FONT[] = "Segoe UI Emoji";
+constexpr char OSX_NATIVE_EMOJI_FONT[] = "Apple Color Emoji";
+constexpr char LINUX_NATIVE_EMOJI_FONT[] = "Noto Color Emoji";
+
+#ifdef __WXMSW__
+constexpr char NATIVE_EMOJI_FONT[] = "Segoe UI Emoji";
+#elif defined(__WXOSX__)
+constexpr char NATIVE_EMOJI_FONT[] = "Apple Color Emoji";
+#else
+constexpr char NATIVE_EMOJI_FONT[] = "Noto Color Emoji";
+#endif
+
 class TextDrawingContext : public DrawingContext {
 public:
     TextDrawingContext(int BufferWi, int BufferHt, bool allowShared);
@@ -135,12 +147,15 @@ public:
     static TextDrawingContext* GetContext();
     static void ReleaseContext(TextDrawingContext* pdc);
 
+    static const wxFontInfo& GetTextFont(const std::string& fnt);
+    static const wxFontInfo& GetShapeFont(const std::string& fnt);
+
     virtual void Clear() override;
     virtual bool AllowAlphaChannel() override;
 
     void SetPen(wxPen& pen);
 
-    void SetFont(wxFontInfo &font, const xlColor &color);
+    void SetFont(const wxFontInfo &font, const xlColor &color);
     void DrawText(const wxString &msg, int x, int y, double rotation);
     void DrawText(const wxString &msg, int x, int y);
     void GetTextExtent(const wxString &msg, double *width, double *height);

@@ -11,6 +11,7 @@
 #include "ShapePanel.h"
 #include "EffectPanelUtils.h"
 #include "ShapeEffect.h"
+#include "RenderBuffer.h"
 #include "../CharMapDialog.h"
 
 //(*InternalHeaders(ShapePanel)

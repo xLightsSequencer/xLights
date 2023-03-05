@@ -382,50 +382,9 @@ void TextEffect::SetPanelStatus(Model* cls)
 //countdown == any of the "to date" options: put "Sat, 18 Dec 1999 00:48:30 +0100" in the text line
 //countdown = !to date!%fmt: put delimiter + target date + same delimiter + format string with %x markers in it (described down below)
 
-std::mutex FONT_MAP_LOCK;
-FontMapLock::FontMapLock() :
-    lk(FONT_MAP_LOCK)
-{}
-FontMapLock::~FontMapLock() {}
-
-std::map<std::string, wxFontInfo> FONT_MAP;
-
 void SetFont(TextDrawingContext *dc, const std::string& FontString, const xlColor &color) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    FontMapLock locker;
-    if (FONT_MAP.find(FontString) == FONT_MAP.end()) {
-        if (!FontString.empty())
-        {
-            logger_base.debug("Loading font %s.", (const char *)FontString.c_str());
-            wxFont font(FontString);
-            font.SetNativeFontInfoUserDesc(FontString);
-
-            //we want "Arial 8" to be 8 pixels high and not depend on the System DPI
-            wxFontInfo info(wxSize(0, font.GetPointSize()));
-            info.FaceName(font.GetFaceName());
-            if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
-                info.Bold();
-            } else if (font.GetWeight() == wxFONTWEIGHT_LIGHT) {
-                info.Light();
-            }
-            if (font.GetUnderlined()) {
-                info.Underlined();
-            }
-            if (font.GetStrikethrough()) {
-                info.Strikethrough();
-            }
-            info.AntiAliased(false);
-            info.Encoding(font.GetEncoding());
-            FONT_MAP[FontString] = info;
-            logger_base.debug("    Added to font map.");
-        } else {
-            wxFontInfo info(wxSize(0, 12));
-            info.AntiAliased(false);
-            FONT_MAP[FontString] = info;
-        }
-
-    }
-    dc->SetFont(FONT_MAP[FontString], color);
+    const wxFontInfo& fnt = TextDrawingContext::GetTextFont(FontString);
+    dc->SetFont(fnt, color);
 }
 
 enum TextDirection {
