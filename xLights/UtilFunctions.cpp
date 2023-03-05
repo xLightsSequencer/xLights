@@ -1481,7 +1481,7 @@ wxString CompressNodes(const wxString& nodes)
 
     for (const auto& i : as)
     {
-        if (i.empty()) {
+        if (i.empty() || i == "0") {
             // Flush out start/last if any
             if (start != -1) {
                 if (last != start) {
@@ -1491,7 +1491,7 @@ wxString CompressNodes(const wxString& nodes)
                 }
             }
             // Add empty and separator
-            res += ",";
+            res += i+",";
             start = last = -1;
             dir = 0;
             continue;
