@@ -13,7 +13,6 @@
 #include "RenderableEffect.h"
 
 #include <vector>
-#include <mutex>
 
 class wxString;
 class TextDrawingContext;
