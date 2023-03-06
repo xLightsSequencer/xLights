@@ -192,6 +192,13 @@ static int progressFunction(void* bar,
             if (pos > dlg->GetRange())
                 pos = 0;
         }
+
+        // if the client data has been set to 1 then we must not hit the top range
+        if ((int)dlg->GetClientData() == 1 && pos == dlg->GetRange())
+        {
+            pos = dlg->GetRange() - 1;
+        }
+
         dlg->Update(pos);
     }
 
@@ -501,12 +508,25 @@ int Curl::CurlDebug(CURL* handle, curl_infotype type, char* data, size_t size, v
     return 0;
 }
 
-bool Curl::HTTPSGetFile(const std::string& s, const std::string& filename, const std::string& user, const std::string& password, int timeout, wxProgressDialog* prog)
+bool Curl::HTTPSGetFile(const std::string& s, const std::string& filename, const std::string& user, const std::string& password, int timeout, wxProgressDialog* prog, bool keepProgress)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 #ifdef _DEBUG
     logger_base.debug("%s", (const char*)s.c_str());
 #endif
+
+    void* ocd = nullptr;
+    
+    if (prog != nullptr) {
+        ocd = prog->GetClientData();
+        if (keepProgress) {
+            prog->SetClientData((wxClientData*)1);
+        }
+        else
+        {
+            prog->SetClientData((wxClientData*)0);
+        }
+    }
 
     bool res = true;
 
@@ -586,6 +606,11 @@ bool Curl::HTTPSGetFile(const std::string& s, const std::string& filename, const
         logger_base.error("HTTPSGetFile: Failure to create file %s.", (const char*)filename.c_str());
         res = false;
     }
+
+    if (prog != nullptr) {
+        prog->SetClientData((wxClientData*)ocd);
+    }
+
     return res;
 }
 
