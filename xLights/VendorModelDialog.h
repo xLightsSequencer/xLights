@@ -48,7 +48,7 @@ class VendorModelDialog: public wxDialog
     wxImage _modelImage;
     static CachedFileDownloader _cache;
 
-    wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high) const;
+    wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const;
     bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
     void AddHierachy(wxTreeItemId v, MVendor* vendor, std::list<MVendorCategory*> categories);
     void AddModels(wxTreeItemId v, MVendor* vendor, std::string categoryId);

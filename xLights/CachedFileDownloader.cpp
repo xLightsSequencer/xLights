@@ -31,11 +31,11 @@ FileCacheItem::FileCacheItem(wxXmlNode* n)
     _cacheFor = (CACHEFOR)wxAtoi(n->GetAttribute("CacheFor", "0"));
 }
 
-FileCacheItem::FileCacheItem(wxURI url, CACHEFOR cacheFor, const wxString& forceType, wxProgressDialog* prog, int low, int high)
+FileCacheItem::FileCacheItem(wxURI url, CACHEFOR cacheFor, const wxString& forceType, wxProgressDialog* prog, int low, int high, bool keepProgress)
 {
     _url = url;
     _cacheFor = cacheFor;
-    Download(forceType, prog, low, high);
+    Download(forceType, prog, low, high, keepProgress);
 }
 
 void FileCacheItem::Save(wxFile& f)
@@ -46,9 +46,9 @@ void FileCacheItem::Save(wxFile& f)
         "\"/>\n");
 }
 
-void FileCacheItem::Download(const wxString& forceType, wxProgressDialog* prog, int low, int high)
+void FileCacheItem::Download(const wxString& forceType, wxProgressDialog* prog, int low, int high, bool keepProgress)
 {
-    _fileName = DownloadURLToTemp(_url, forceType, prog, low, high);
+    _fileName = DownloadURLToTemp(_url, forceType, prog, low, high, keepProgress);
 }
 
 void FileCacheItem::Delete() const
@@ -70,15 +70,15 @@ bool FileCacheItem::operator==(const wxURI& url) const
 }
 
 // A major constraint of this function is that it does not support https
-bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename, wxProgressDialog* prog, int low, int high)
+bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename, wxProgressDialog* prog, int low, int high, bool keepProgress)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     logger_base.debug("Making request to '%s' -> %s.", (const char*)url.BuildURI().c_str(), (const char*)filename.GetFullPath().c_str());
-    return Curl::HTTPSGetFile(url.BuildURI().ToStdString(), filename.GetFullPath().ToStdString(), "", "", 600, prog);
+    return Curl::HTTPSGetFile(url.BuildURI().ToStdString(), filename.GetFullPath().ToStdString(), "", "", 600, prog, keepProgress);
 }
 
-std::string FileCacheItem::DownloadURLToTemp(wxURI url, const wxString& forceType, wxProgressDialog* prog, int low, int high)
+std::string FileCacheItem::DownloadURLToTemp(wxURI url, const wxString& forceType, wxProgressDialog* prog, int low, int high, bool keepProgress)
 {
     wxString type = url.GetPath().AfterLast('.');
     if (type.Contains('/')) type = "";
@@ -100,7 +100,7 @@ std::string FileCacheItem::DownloadURLToTemp(wxURI url, const wxString& forceTyp
         filename = fn + "." + type;
     }
 
-    if (DownloadURL(url, filename, prog, low, high)) {
+    if (DownloadURL(url, filename, prog, low, high, keepProgress)) {
         return filename.ToStdString();
     }
 
@@ -317,7 +317,7 @@ int CachedFileDownloader::size() {
     return _cacheItems.size();
 }
 
-std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor, const wxString& forceType, wxProgressDialog* prog, int low, int high)
+std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor, const wxString& forceType, wxProgressDialog* prog, int low, int high, bool keepProgress)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -331,13 +331,13 @@ std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor, const wx
     if (fci == nullptr)
     {
         logger_base.debug("File Cache downloading file %s.", (const char *)url.BuildURI().c_str());
-        fci = new FileCacheItem(url, cacheFor, forceType, prog, low, high);
+        fci = new FileCacheItem(url, cacheFor, forceType, prog, low, high, keepProgress);
         _cacheItems.push_back(fci);
     }
     else if (!fci->Exists())
     {
         logger_base.debug("File Cache re-downloading file %s.", (const char *)url.BuildURI().c_str());
-        fci->Download(forceType, prog, low, high);
+        fci->Download(forceType, prog, low, high, keepProgress);
     }
 
     if (fci->GetFileName() == "")

@@ -3506,6 +3506,7 @@ void LayoutPanel::FinalizeModel()
             {
                 prog = new wxProgressDialog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
                 prog->Show();
+                prog->CenterOnParent();
             }
             auto oldNewModel = _newModel;
             auto oldam = modelPreview->GetAdditionalModel();
