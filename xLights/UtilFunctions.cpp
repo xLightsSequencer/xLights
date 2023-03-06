@@ -526,7 +526,10 @@ std::string UnXmlSafe(const wxString &res)
         r2.Replace("&amp;", "&");
         return r2.ToStdString();
     }
-    return res.ToStdString();
+    // MoC - ToStdString is not as const as it claims, and mutates a temp
+    //   structure in the string in a non-threadsafe way.  UnXmlSafe is
+    //   sometimes called by multiple threads against the same string, so copy it.
+    return res.Clone().ToStdString();
 }
 
 std::string XmlSafe(const std::string& s)
