@@ -194,7 +194,9 @@ static int progressFunction(void* bar,
         }
 
         // if the client data has been set to 1 then we must not hit the top range
-        if ((int)dlg->GetClientData() == 1 && pos == dlg->GetRange())
+        void *cd = dlg->GetClientData();
+        size_t cdi = (size_t)cd;
+        if (cdi == 1 && pos == dlg->GetRange())
         {
             pos = dlg->GetRange() - 1;
         }
