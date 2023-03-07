@@ -16,6 +16,7 @@
 #define DMXPATH_ROTATION_MAX 360
 
 class DMXPathAssistPanel;
+class DMXPathPanel;
 
 enum class DMXPathType {
     Circle,
@@ -69,7 +70,7 @@ private:
 
     int ScaleToDMX(float value, float degresOfMovement) const;
 
-
+    DMXPathPanel* m_panel = nullptr;
     DMXPathAssistPanel* m_dmxAssistPanel = nullptr;
 
 };

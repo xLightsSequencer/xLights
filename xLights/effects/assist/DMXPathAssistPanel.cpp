@@ -26,14 +26,13 @@ DMXPathAssistPanel::DMXPathAssistPanel(wxWindow* parent, wxWindowID id /*wxID_AN
    //(*Initialize(DMXPathAssistPanel)
    wxFlexGridSizer* FlexGridSizerMain;
 
-   Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
    FlexGridSizerMain = new wxFlexGridSizer(1, 1, 0, 0);
    SetSizer(FlexGridSizerMain);
    FlexGridSizerMain->Fit(this);
    FlexGridSizerMain->SetSizeHints(this);
    //*)
 
-    m_dmxPathCanvasPanel = new DMXPathCanvasPanel( parent, wxID_ANY, wxDefaultPosition, wxSize(400, 300));
+    m_dmxPathCanvasPanel = new DMXPathCanvasPanel(this, wxID_ANY, wxDefaultPosition, wxSize(400, 300));
     FlexGridSizerMain->Add(m_dmxPathCanvasPanel, 1, wxALL | wxEXPAND);
    
 }

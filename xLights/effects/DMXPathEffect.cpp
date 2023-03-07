@@ -39,7 +39,8 @@ DMXPathEffect::~DMXPathEffect()
 }
 
 xlEffectPanel *DMXPathEffect::CreatePanel(wxWindow *parent) {
-    return new DMXPathPanel(parent);
+    m_panel = new DMXPathPanel(parent);
+    return m_panel;
 }
 
 static int GetPct(wxString val)
@@ -258,6 +259,8 @@ DMXPathType DMXPathEffect::DecodeType(const std::string& shape)
 
 AssistPanel* DMXPathEffect::GetAssistPanel(wxWindow* parent, xLightsFrame* /*xl_frame*/)
 {
+    if (m_panel == nullptr)
+      return nullptr;
 
     AssistPanel* assistPanel = new AssistPanel(parent);
 
