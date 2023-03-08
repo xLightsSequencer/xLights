@@ -71,11 +71,15 @@ void DMXPathEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     auto endTm = buffer.GetEndTimeMS();
     auto length = endTm - startTm;
     std::string type_Str = SettingsMap["CHOICE_DMXPath_Type"];
-    auto width = SettingsMap.GetInt("SLIDER_DMXPath_Width", 100);
-    auto height = SettingsMap.GetInt("SLIDER_DMXPath_Height", 100);
+    auto width = SettingsMap.GetInt("SLIDER_DMXPath_Width", 30);
+    auto height = SettingsMap.GetInt("SLIDER_DMXPath_Height", 30);
     auto x_offset = SettingsMap.GetInt("SLIDER_DMXPath_X_Off", 0);
     auto y_offset = SettingsMap.GetInt("SLIDER_DMXPath_Y_Off", 0);
     auto distance = SettingsMap.GetInt("SLIDER_DMXPath_Dist", 0);
+
+    if(nullptr != m_dmxAssistPanel) {
+        m_dmxAssistPanel->SetEffectDef(effect);
+    }
 
     int rotation = GetValueCurveInt("DMXPath_Rotation", 0, SettingsMap, eff_pos, DMXPATH_ROTATION_MIN, DMXPATH_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 

@@ -14,6 +14,8 @@
 #include <wx/image.h>
 #include <wx/panel.h>
 
+
+
 class wxButton;
 class wxListBox;
 
@@ -33,9 +35,20 @@ public:
 	//(*Identifiers(DMXPathAssistPanel)
 	//*)
 
+    void SetEffectDef(Effect* effect)
+    {
+        mEffect = effect;
+        if (nullptr != m_dmxPathCanvasPanel) {
+            m_dmxPathCanvasPanel->SetEffectDef(effect);
+            m_dmxPathCanvasPanel->Refresh();
+        }
+        
+    }
+
 	private:
 
     DMXPathCanvasPanel* m_dmxPathCanvasPanel = nullptr;
+    Effect* mEffect{nullptr};
 
 	//(*Handlers(DMXPathAssistPanel)
 

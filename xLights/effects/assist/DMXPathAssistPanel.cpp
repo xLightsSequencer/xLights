@@ -32,7 +32,7 @@ DMXPathAssistPanel::DMXPathAssistPanel(wxWindow* parent, wxWindowID id /*wxID_AN
    FlexGridSizerMain->SetSizeHints(this);
    //*)
 
-    m_dmxPathCanvasPanel = new DMXPathCanvasPanel(this, wxID_ANY, wxDefaultPosition, wxSize(400, 300));
+    m_dmxPathCanvasPanel = new DMXPathCanvasPanel(mEffect, this, wxID_ANY, wxDefaultPosition, wxSize(400, 300));
     FlexGridSizerMain->Add(m_dmxPathCanvasPanel, 1, wxALL | wxEXPAND);
    
 }
