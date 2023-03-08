@@ -316,6 +316,7 @@ private:
     void OnInit(wxInitDialogEvent& event);
     void OnNodesGridCellRightClick(wxGridEvent& event);
     void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
+    void OnCancel(wxCloseEvent& event);
     //*)
 
     void OnPreviewLeftUp(wxMouseEvent& event);
