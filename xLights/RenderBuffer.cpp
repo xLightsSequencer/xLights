@@ -189,10 +189,10 @@ std::string RenderBuffer::GetModelName() const
     return cur_model;
 }
 
-wxString RenderBuffer::GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const
+const wxString &RenderBuffer::GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const
 {
     if (xLightsFrame::CurrentSeqXmlFile == nullptr) {
-        return wxString();
+        return xlEMPTY_WXSTRING;
     }
     return xLightsFrame::CurrentSeqXmlFile->GetHeaderInfo(node_type);
 }

@@ -45,7 +45,7 @@ bool DeleteDirectory(std::string directory);
 bool IsEmailValid(const std::string& email);
 bool IsVersionOlder(const std::string &compare, const std::string &version);
 std::string JSONSafe(const std::string& s);
-std::string UnXmlSafe(const wxString &s);
+std::string UnXmlSafe(const std::string &s);
 std::string XmlSafe(const std::string& s);
 std::string RemoveUnsafeXmlChars(const std::string& s);
 std::string EscapeCSV(const std::string& s);

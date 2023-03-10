@@ -36,7 +36,14 @@
 #include "TraceLog.h"
 using namespace TraceLog;
 
-const std::string Job::EMPTY_STRING = "";
+
+std::string Job::GetStatus() {
+    return xlEMPTY_STRING;
+}
+const std::string Job::GetName() const {
+    return xlEMPTY_STRING;
+}
+
 
 class JobPoolWorker
 {
