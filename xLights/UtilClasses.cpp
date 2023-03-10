@@ -2,10 +2,6 @@
 #include "effects/RenderableEffect.h"
 #include "effects/EffectManager.h"
 
-
-const std::string xlEMPTY_STRING = "";
-const wxString xlEMPTY_WXSTRING = "";
-
 void MapStringString::ParseJson(EffectManager* effectManager, const std::string& str, const std::string& effectName)
 {
     clear();

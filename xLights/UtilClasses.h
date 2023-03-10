@@ -15,11 +15,9 @@
 #include <algorithm>
 
 #include <wx/filepicker.h>
+#include "UtilFunctions.h"
 
 class EffectManager;
-
-extern const std::string xlEMPTY_STRING;
-extern const wxString xlEMPTY_WXSTRING;
 
 
 class MapStringString: public std::map<std::string,std::string> {

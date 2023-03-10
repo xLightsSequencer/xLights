@@ -64,6 +64,8 @@
 #endif
 
 
+const std::string xlEMPTY_STRING = "";
+const wxString xlEMPTY_WXSTRING = "";
 
 void DisplayError(const std::string& err, wxWindow* win)
 {
