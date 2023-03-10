@@ -32,6 +32,7 @@
 
 #include "ExternalHooks.h"
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 #include "TraceLog.h"
 using namespace TraceLog;
