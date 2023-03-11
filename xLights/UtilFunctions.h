@@ -31,9 +31,6 @@
 #define INTROUNDUPDIV(a, b) (((a) + (b) - 1) / (b))
 constexpr double PI = 3.141592653589793238463;
 
-extern const std::string xlEMPTY_STRING;
-extern const wxString xlEMPTY_WXSTRING;
-
 // Consolidated set of utility functions
 void CleanupIpAddress(wxString& IpAddr);
 void DisplayError(const std::string& err, wxWindow* win = nullptr);

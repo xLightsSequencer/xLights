@@ -64,9 +64,6 @@
 #endif
 
 
-const std::string xlEMPTY_STRING = "";
-const wxString xlEMPTY_WXSTRING = "";
-
 void DisplayError(const std::string& err, wxWindow* win)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

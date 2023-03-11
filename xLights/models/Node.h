@@ -17,7 +17,7 @@
 #include <algorithm>
 
 #include "../Color.h"
-#include "../UtilFunctions.h"
+#include "../utils/string_utils.h"
 
 #define NODE_RGB_CHAN_CNT           3
 #define NODE_RGBW_CHAN_CNT          4
