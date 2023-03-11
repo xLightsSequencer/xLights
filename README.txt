@@ -11,6 +11,20 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.04 March 11, 2023
+   -- enh (keith)  Add "Build a Light Show" vendor to prop downloads
+   -- enh (dkulp)  Add new K64D-B and K8-Pi controllers
+   -- enh (keith)  Add CMY support to DMX moving heads
+   -- enh (keith)  Add ability to zoom to the selection in the sequencer tab
+   -- change (keith) Default ArtNet universes to 510 channels when discovered
+   -- bug (keith)  Audio does not stop when jukebox stops
+   -- bug (merryoncherry) Fix some threading issues with Text/Shape effects on Windows
+   -- bug (dkulp)  In some cases, the logs on MacOS could not be created.
+   -- bug (merryoncherry/dkulp) Fix some bad rendering with Warp effects
+   -- bug (merryoncherry) Fix bugs with compress/expand of node ranges in SubModel node selection
+   -- bug (merryoncherry) ValueCurves for Ripple Rotation were not working
+   -- bug (MrPierreB) Metronome timing tracks were not available for import
+   -- bug (scott)  Fix background image crash on Windows
 2023.03 February 22, 2023
    -- enh (dkulp)  Add ability to create "FPP Command Preset" and "FPP Effects" timing tracks and save that in fseq files (FPP 7)
    -- enh (dkulp)  Add FPPConnect upload of fseq/media to FPP7
