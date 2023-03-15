@@ -318,6 +318,7 @@ private:
     void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
     //*)
 
+    void OnCancel(wxCloseEvent& event);
     void OnPreviewLeftUp(wxMouseEvent& event);
     void OnPreviewMouseLeave(wxMouseEvent& event);
     void OnPreviewLeftDown(wxMouseEvent& event);
