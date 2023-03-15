@@ -2,6 +2,7 @@
 <wxsmith>
 	<object class="wxFrame" name="xScheduleFrame">
 		<title>xSchedule</title>
+		<size>696,233</size>
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
@@ -12,10 +13,10 @@
 				<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
 					<style>wxBORDER_RAISED|wxTAB_TRAVERSAL</style>
 					<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
-						<cols>11</cols>
+						<cols>13</cols>
 						<object class="sizeritem">
 							<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButton_OutputToLights" member="yes">
-								<size>32,32</size>
+								<size>16,16d</size>
 								<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 								<handler function="OnBitmapButton_OutputToLightsClick" entry="EVT_BUTTON" />
 							</object>
@@ -25,7 +26,7 @@
 						</object>
 						<object class="sizeritem">
 							<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="BitmapButton_Playing" member="yes">
-								<size>32,32</size>
+								<size>16,16d</size>
 								<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 								<handler function="OnBitmapButton_PlayingClick" entry="EVT_BUTTON" />
 							</object>
@@ -35,7 +36,7 @@
 						</object>
 						<object class="sizeritem">
 							<object class="wxBitmapButton" name="ID_BITMAPBUTTON6" variable="BitmapButton_IsScheduled" member="yes">
-								<size>32,32</size>
+								<size>16,16d</size>
 								<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 								<handler function="OnBitmapButton_IsScheduledClick" entry="EVT_BUTTON" />
 							</object>
@@ -45,7 +46,7 @@
 						</object>
 						<object class="sizeritem">
 							<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" variable="BitmapButton_Random" member="yes">
-								<size>32,32</size>
+								<size>16,16d</size>
 								<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 								<handler function="OnBitmapButton_RandomClick" entry="EVT_BUTTON" />
 							</object>
@@ -55,7 +56,7 @@
 						</object>
 						<object class="sizeritem">
 							<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="BitmapButton_PLLoop" member="yes">
-								<size>32,32</size>
+								<size>16,16d</size>
 								<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 								<handler function="OnBitmapButton_PLLoopClick" entry="EVT_BUTTON" />
 							</object>
@@ -65,7 +66,7 @@
 						</object>
 						<object class="sizeritem">
 							<object class="wxBitmapButton" name="ID_BITMAPBUTTON5" variable="BitmapButton_StepLoop" member="yes">
-								<size>32,32</size>
+								<size>16,16d</size>
 								<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 								<handler function="OnBitmapButton_StepLoopClick" entry="EVT_BUTTON" />
 							</object>
@@ -75,11 +76,21 @@
 						</object>
 						<object class="sizeritem">
 							<object class="wxBitmapButton" name="ID_BITMAPBUTTON7" variable="BitmapButton_Unsaved" member="yes">
-								<size>32,32</size>
+								<size>16,16d</size>
 								<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 								<handler function="OnBitmapButton_UnsavedClick" entry="EVT_BUTTON" />
 							</object>
-							<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<flag>wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxBitmapButton" name="ID_BITMAPBUTTON10" variable="BitmapButton_BrightnessDown" member="yes">
+								<size>16,16d</size>
+								<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+								<handler function="OnBitmapButton_BrightnessDownClick" entry="EVT_BUTTON" />
+							</object>
+							<flag>wxTOP|wxBOTTOM|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 							<border>5</border>
 							<option>1</option>
 						</object>
@@ -87,19 +98,29 @@
 							<object class="Custom" name="ID_CUSTOM1" subclass="BrightnessControl" variable="Brightness" member="yes">
 								<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
 								<style>ZERO</style>
-								<size>32,32</size>
+								<size>16,16d</size>
 							</object>
 							<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 							<border>5</border>
 							<option>1</option>
 						</object>
 						<object class="sizeritem">
+							<object class="wxBitmapButton" name="ID_BITMAPBUTTON11" variable="BitmapButton_BrightnessUp" member="yes">
+								<size>16,16d</size>
+								<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+								<handler function="OnBitmapButton_BrightnessUpClick" entry="EVT_BUTTON" />
+							</object>
+							<flag>wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
 							<object class="wxBitmapButton" name="ID_BITMAPBUTTON8" variable="BitmapButton_VolumeDown" member="yes">
-								<size>32,32</size>
+								<size>16,16d</size>
 								<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 								<handler function="OnBitmapButton_VolumeDownClick" entry="EVT_BUTTON" />
 							</object>
-							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<flag>wxTOP|wxBOTTOM|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 							<border>5</border>
 							<option>1</option>
 						</object>
@@ -107,7 +128,7 @@
 							<object class="Custom" name="ID_CUSTOM2" subclass="VolumeDisplay" variable="Custom_Volume" member="yes">
 								<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
 								<style>ZERO</style>
-								<size>32,32</size>
+								<size>16,16d</size>
 								<handler function="OnCustom_VolumeLeftDown" entry="EVT_LEFT_DOWN" />
 							</object>
 							<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -116,11 +137,11 @@
 						</object>
 						<object class="sizeritem">
 							<object class="wxBitmapButton" name="ID_BITMAPBUTTON9" variable="BitmapButton_VolumeUp" member="yes">
-								<size>32,32</size>
+								<size>16,16d</size>
 								<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 								<handler function="OnBitmapButton_VolumeUpClick" entry="EVT_BUTTON" />
 							</object>
-							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<flag>wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 							<border>5</border>
 							<option>1</option>
 						</object>
