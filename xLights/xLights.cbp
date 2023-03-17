@@ -1061,6 +1061,8 @@
 		<Unit filename="effects/WavePanel.h" />
 		<Unit filename="effects/assist/AssistPanel.cpp" />
 		<Unit filename="effects/assist/AssistPanel.h" />
+		<Unit filename="effects/assist/DMXPathAssistPanel.cpp" />
+		<Unit filename="effects/assist/DMXPathAssistPanel.h" />
 		<Unit filename="effects/assist/DMXPathCanvasPanel.cpp" />
 		<Unit filename="effects/assist/DMXPathCanvasPanel.h" />
 		<Unit filename="effects/assist/PicturesAssistPanel.cpp" />
@@ -1766,7 +1768,6 @@
 					<wxPanel wxs="wxsmith/RandomEffectsSettingsPanel.wxs" src="preferences/RandomEffectsSettingsPanel.cpp" hdr="preferences/RandomEffectsSettingsPanel.h" fwddecl="1" i18n="1" name="RandomEffectsSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ColorManagerSettingsPanel.wxs" src="preferences/ColorManagerSettingsPanel.cpp" hdr="preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SearchPanel.wxs" src="SearchPanel.cpp" hdr="SearchPanel.h" fwddecl="0" i18n="1" name="SearchPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/DMXPathAssistPanel.wxs" src="effects/assist/DMXPathAssistPanel.cpp" hdr="effects/assist/DMXPathAssistPanel.h" fwddecl="0" i18n="1" name="DMXPathAssistPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditColourPickerDialog.wxs" src="BulkEditColourPickerDialog.cpp" hdr="BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
