@@ -90,9 +90,6 @@ class DMXPathPanel: public xlEffectPanel
 
 		//(*Handlers(DMXPathPanel)
 		void OnChoice_DMXPath_TypeSelect(wxCommandEvent& event);
-		void OnButton_DMXPath_2DClick(wxCommandEvent& event);
-		void OnBitmapButton_DMXPath_PanClick(wxCommandEvent& event);
-		void OnBitmapButton_DMXPath_TiltClick(wxCommandEvent& event);
 		//*)
 
 

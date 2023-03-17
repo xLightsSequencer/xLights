@@ -165,7 +165,7 @@ DMXPathPanel::DMXPathPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&DMXPathPanel::OnVCChanged, 0, this);
 	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&DMXPathPanel::OnValidateWindow, 0, this);
 
-    BitmapButton_DMXPath_RotationVC->SetLimits(DMXPATH_ROTATION_MIN, DMXPATH_ROTATION_MIN);
+    BitmapButton_DMXPath_RotationVC->SetLimits(DMXPATH_ROTATION_MIN, DMXPATH_ROTATION_MAX);
     SetName("ID_PANEL_DMX");
 
 	ValidateWindow();
@@ -183,10 +183,12 @@ void DMXPathPanel::ValidateWindow()
         Slider_DMXPath_Rotation->Disable();
         TextCtrl_DMXPath_Rotation->Disable();
         BitmapButton_DMXPath_Rotation->Disable();
+		BitmapButton_DMXPath_RotationVC->Disable();
     } else {
         Slider_DMXPath_Rotation->Enable();
         TextCtrl_DMXPath_Rotation->Enable();
         BitmapButton_DMXPath_Rotation->Enable();
+		BitmapButton_DMXPath_RotationVC->Enable();
     }
 
 }
@@ -194,9 +196,4 @@ void DMXPathPanel::ValidateWindow()
 void DMXPathPanel::OnChoice_DMXPath_TypeSelect(wxCommandEvent& event)
 {
     ValidateWindow();
-}
-
-void DMXPathPanel::OnButton_DMXPath_2DClick(wxCommandEvent& event)
-{
-
 }

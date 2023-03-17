@@ -18,6 +18,8 @@
 class DMXPathAssistPanel;
 class DMXPathPanel;
 
+#include <memory>
+
 enum class DMXPathType {
     Circle,
     Square,
@@ -71,7 +73,7 @@ private:
     int ScaleToDMX(float value, float degresOfMovement) const;
 
     DMXPathPanel* m_panel = nullptr;
-    DMXPathAssistPanel* m_dmxAssistPanel = nullptr;
+    DMXPathAssistPanel* m_dmxAssistPanel {nullptr};
 
 };
 
