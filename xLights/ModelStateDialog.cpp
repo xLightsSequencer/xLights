@@ -63,6 +63,7 @@ const long ModelStateDialog::ID_SPLITTERWINDOW1 = wxNewId();
 const long ModelStateDialog::ID_TIMER1 = wxNewId();
 
 const long ModelStateDialog::STATE_DIALOG_IMPORT_SUB = wxNewId();
+const long ModelStateDialog::STATE_DIALOG_COPY_STATES = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_IMPORT_MODEL = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_IMPORT_FILE = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_COPY = wxNewId();
@@ -806,6 +807,7 @@ void ModelStateDialog::OnNodeRangeGridCellRightClick(wxGridEvent& event)
     wxMenu mnu;
 
     mnu.Append(STATE_DIALOG_IMPORT_SUB, "Import SubModel");
+    mnu.Append(STATE_DIALOG_COPY_STATES, "Copy States");
 
     mnu.Bind(wxEVT_COMMAND_MENU_SELECTED, [gridevent = event, this](wxCommandEvent & rightClkEvent) mutable {
         OnGridPopup(rightClkEvent.GetId(), gridevent);
@@ -983,9 +985,10 @@ void ModelStateDialog::ValidateWindow()
 
 void ModelStateDialog::OnGridPopup(const int rightEventID, wxGridEvent& gridEvent)
 {
-    if (rightEventID == STATE_DIALOG_IMPORT_SUB)
-    {
+    if (rightEventID == STATE_DIALOG_IMPORT_SUB) {
         ImportSubmodel(gridEvent);
+    } else if (rightEventID == STATE_DIALOG_COPY_STATES) {
+        CopyStates(gridEvent);
     }
 }
 
@@ -1228,6 +1231,60 @@ wxArrayString ModelStateDialog::getModelList(ModelManager * modelManager)
         choices.Add(m->Name());
     }
     return choices;
+}
+
+void ModelStateDialog::CopyStates(wxGridEvent& event)
+{
+    std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    wxArrayString choices;
+
+    for (auto [k, v] : stateData) {
+        if (v["Type"] != stateData[name]["Type"]) {
+            continue;
+        }
+        choices.push_back(ToWXString(k));
+    }
+
+    if (choices.empty()) {
+        DisplayError("No State Definitions Found.");
+        return;
+    }
+
+    wxMultiChoiceDialog dlg(GetParent(), "", "Select States", choices);
+    if (dlg.ShowModal() == wxID_OK) {
+        wxArrayString allNodes;
+        int stateIdx { 1 };
+        for (auto const& idx : dlg.GetSelections()) {
+            auto sd = stateData[choices.at(idx)];
+            for (int x = 1; x <= 200; x++) {
+                std::string pname = "s" + std::to_string(x);
+                if (sd.find(pname) != end(sd) || sd.find(pname + "-Name") != end(sd) || sd.find(pname + "-Color") != end(sd)) {
+                    auto val = sd[pname];
+                    if (val.empty()) {
+                        continue;
+                    }
+
+                    auto n = sd[pname + "-Name"];
+                    if (n.empty()) {
+                        continue;
+                    }
+                    auto c = sd[pname + "-Color"];
+
+                    if ("1" != stateData[name]["CustomColors"]) {
+                        c = "";
+                    }
+                    
+                    std::string newname = "s" + std::to_string(stateIdx);
+                    stateData[name].insert({ newname, val });
+                    stateData[name].insert({ newname + "-Name", n });
+                    stateData[name].insert({ newname + "-Color", c });
+                    ++stateIdx;
+                } 
+            }
+        }
+        SelectStateModel(name);
+        ValidateWindow();
+    }
 }
 
 void ModelStateDialog::OnPreviewLeftUp(wxMouseEvent& event)
