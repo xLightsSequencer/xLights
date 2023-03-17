@@ -792,6 +792,12 @@ void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr, 
     }
 }
 
+std::string DecodeAVError(int err)
+{
+    char buffer[AV_ERROR_MAX_STRING_SIZE];
+    return std::string(av_make_error_string(buffer, sizeof(buffer), err));
+}
+
 void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans, unsigned int startFrame, unsigned int endFrame,
                                        SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, bool compressed)
 {
@@ -843,9 +849,9 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         av_dict_set(&av_opts, "brand", "mp42", 0);
         av_dict_set(&av_opts, "movflags", "+disable_chpl+write_colr", 0);
     }
-    avformat_alloc_output_context2(&oc, nullptr, EndsWith(filename, ".avi") ? "avi" : "mp4", filename);
-    if (oc == nullptr) {
-        logger_base.warn("   Could not create output context.");
+    int ret = avformat_alloc_output_context2(&oc, nullptr, EndsWith(filename, ".avi") ? "avi" : "mp4", filename);
+    if (ret < 0 || oc == nullptr) {
+        logger_base.warn("   Could not create output context. %d", AVERROR(ret));
         return;
     }
 
@@ -922,7 +928,7 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         codecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
     }
 
-    int ret = avcodec_open2(codecContext, nullptr, nullptr);
+    ret = avcodec_open2(codecContext, nullptr, nullptr);
     if (ret < 0) {
         logger_base.error("   Cannot open codec context %d.", ret);
         return;
@@ -1025,7 +1031,7 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         AVPacket* pkt = av_packet_alloc();
         ret = ::avcodec_send_frame(codecContext, frame);
         if (ret < 0) {
-            logger_base.error("   Error encoding frame %d.", ret);
+            logger_base.error("   Error encoding frame : %d %s.", ret, (const char*)DecodeAVError(ret).c_str());
             return;
         }
 
