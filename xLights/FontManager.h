@@ -53,22 +53,6 @@ class FontManager
         static xlFont* get_font(wxString font_name);
         static int get_length(xlFont* font, wxString& text);
 
-        enum XLIGHTS_FONTS {
-            FNT_6_5x6_THIN_SYSTEM,
-            FNT_6_5x6_THIN_VERTICAL_SYSTEM,
-            FNT_6_6x6_THIN_SYSTEM,
-            FNT_6_6x6_THIN_VERTICAL_SYSTEM,
-            FNT_8_8x8_THIN_SYSTEM,
-            FNT_8_8x8_THIN_VERTICAL_SYSTEM,
-            FNT_10_12x12_BOLD_SYSTEM,
-            FNT_10_12x12_BOLD_VERTICAL_SYSTEM,
-            FNT_10_12x12_THIN_SYSTEM,
-            FNT_10_12x12_THIN_VERTICAL_SYSTEM,
-            FNT_12_15x15_BOLD_SYSTEM,
-            FNT_12_15x15_BOLD_VERTICAL_SYSTEM,
-            NUM_XL_FONTS
-        };
-
     protected:
 
     private:

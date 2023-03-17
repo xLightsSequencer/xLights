@@ -217,12 +217,14 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 
 	Connect(ID_VALUECURVE_Ripple_XC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Ripple_YC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_Ripple_Rotation, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&RipplePanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&RipplePanel::OnValidateWindow, 0, this);
 
 	BitmapButton_Ripple_XCVC->GetValue()->SetLimits(RIPPLE_XC_MIN, RIPPLE_XC_MAX);
 	BitmapButton_Ripple_YCVC->GetValue()->SetLimits(RIPPLE_YC_MIN, RIPPLE_YC_MAX);
+    BitmapButton_Ripple_RotationVC->GetValue()->SetLimits(RIPPLE_ROTATION_MIN, RIPPLE_ROTATION_MAX);
 	BitmapButton_Ripple_CyclesVC->GetValue()->SetLimits(RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX);
     BitmapButton_Ripple_CyclesVC->GetValue()->SetDivisor(10);
     BitmapButton_Ripple_ThicknessVC->GetValue()->SetLimits(RIPPLE_THICKNESS_MIN, RIPPLE_THICKNESS_MAX);

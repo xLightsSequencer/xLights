@@ -86,8 +86,6 @@ private:
     std::unordered_map<std::string, std::string> data;
 } Remaps;
 
-const std::string MapStringString::EMPTY_STRING;
-
 void SettingsMap::RemapChangedSettingKey(std::string &n,  std::string &value)
 {
     Remaps.map(n);

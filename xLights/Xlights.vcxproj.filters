@@ -1025,6 +1025,9 @@
     <ClCompile Include="effects\assist\DMXPathCanvasPanel.cpp">
       <Filter>Effects\assist</Filter>
     </ClCompile>
+    <ClCompile Include="models\DMX\DmxColorAbilityCMY.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2055,6 +2058,9 @@
     </ClInclude>
     <ClInclude Include="effects\assist\DMXPathCanvasPanel.h">
       <Filter>Effects\assist</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxColorAbilityCMY.h">
+      <Filter>Models\DMX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

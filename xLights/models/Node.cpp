@@ -37,11 +37,6 @@ const std::string NodeBaseClass::BRGW("BRGW");
 const std::string NodeBaseClass::BGRW("BGRW");
 
 
-
-
-const std::string NodeBaseClass::EMPTY_STR("");
-
-
 const std::string &NodeBaseClass::GetNodeType() const {
     switch (offsets[0]) {
         case 0:

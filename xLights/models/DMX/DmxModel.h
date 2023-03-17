@@ -20,9 +20,10 @@ class wxFile;
 static const char* DMX_COLOR_TYPES_VALUES[] = {
     "RGBW",
     "ColorWheel",
+    "CMYW"
 };
-//static wxArrayString DMX_COLOR_TYPES(2, DMX_COLOR_TYPES_VALUES);
-static wxPGChoices DMX_COLOR_TYPES(wxArrayString(2, DMX_COLOR_TYPES_VALUES));
+//static wxArrayString DMX_COLOR_TYPES(3, DMX_COLOR_TYPES_VALUES);
+static wxPGChoices DMX_COLOR_TYPES(wxArrayString(3, DMX_COLOR_TYPES_VALUES));
 
 class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {

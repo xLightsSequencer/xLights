@@ -44,19 +44,6 @@
 #define SHAPE_DIRECTION_MIN 0
 #define SHAPE_DIRECTION_MAX 359
 
-constexpr char WIN_NATIVE_EMOJI_FONT[] = "Segoe UI Emoji";
-constexpr char OSX_NATIVE_EMOJI_FONT[] = "Apple Color Emoji";
-constexpr char LINUX_NATIVE_EMOJI_FONT[] = "Noto Color Emoji";
-
-
-#ifdef __WXMSW__
-constexpr char NATIVE_EMOJI_FONT[] = "Segoe UI Emoji";
-#elif defined(__WXOSX__)
-constexpr char NATIVE_EMOJI_FONT[] = "Apple Color Emoji";
-#else
-constexpr char NATIVE_EMOJI_FONT[] = "Noto Color Emoji";
-#endif
-
 class ShapeRenderCache;
 
 class ShapeEffect : public RenderableEffect

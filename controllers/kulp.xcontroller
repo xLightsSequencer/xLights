@@ -105,6 +105,15 @@
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
     </Controller>
+    <Controller Name="K64D-B">
+        <Variant Name="" ID="K64D-B" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>64</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+            <fppStringDriverType>BBShiftString</fppStringDriverType>
+        </Variant>
+    </Controller>
     <Controller Name="K128D-B">
         <Variant Name="" ID="K128D-B" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>128</MaxPixelPort>
@@ -130,6 +139,30 @@
             <fpp1>21,16</fpp1>
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
+    <Controller Name="K8-Pi">
+        <Variant Name="No Expansion" ID="K8-Pi" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>20</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+            <SupportsVirtualMatrix/>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+            <fpp>1</fpp>
+            <fpp1>21,-1</fpp1>
+        </Variant>
+        <Variant Name="w/Expansion" ID="K8-Pi" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>36</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+            <SupportsVirtualMatrix/>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+            <NumberOfBanks>2</NumberOfBanks>
+            <BankSize>16</BankSize>
+            <fpp>1</fpp>
+            <fpp1>21,16</fpp1>
         </Variant>
     </Controller>
     <Controller Name="K8-PB">
