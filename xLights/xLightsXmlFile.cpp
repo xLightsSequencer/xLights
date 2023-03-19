@@ -42,6 +42,18 @@
 const wxString xLightsXmlFile::ERASE_MODE = "<rendered: erase-mode>";
 const wxString xLightsXmlFile::CANVAS_MODE = "<rendered: canvas-mode>";
 
+
+const std::array<std::string, (int)HEADER_INFO_TYPES::NUM_TYPES> HEADER_STRINGS = {
+    "author",
+    "author-email",
+    "author-website",
+    "song",
+    "artist",
+    "album",
+    "MusicURL",
+    "comment"
+};
+
 xLightsXmlFile::xLightsXmlFile(const wxFileName& filename, uint32_t frameMS) :
     wxFileName(filename),
     version_string(wxEmptyString),
@@ -59,17 +71,12 @@ xLightsXmlFile::xLightsXmlFile(const wxFileName& filename, uint32_t frameMS) :
     if (frameMS != 0) {
         seq_timing = wxString::Format("%d ms", frameMS);
     }
-
-    for (size_t i = 0; i < static_cast<size_t>(HEADER_INFO_TYPES::NUM_TYPES); ++i) {
-        header_info.push_back("");
-    }
     CreateNew();
 }
 
 xLightsXmlFile::~xLightsXmlFile()
 {
     models.Clear();
-    header_info.Clear();
     timing_list.Clear();
     if (audio != nullptr) {
         ValueCurve::SetAudio(nullptr);
@@ -669,9 +676,9 @@ void xLightsXmlFile::SetNodeContent(wxXmlNode* node, const wxString& content)
     }
 }
 
-wxString xLightsXmlFile::GetHeaderInfo(HEADER_INFO_TYPES node_type) const
+const wxString& xLightsXmlFile::GetHeaderInfo(HEADER_INFO_TYPES node_type) const
 {
-    return UnXmlSafe(header_info[static_cast<int>(node_type)]);
+    return header_info[static_cast<int>(node_type)];
 }
 
 void xLightsXmlFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const wxString& node_value)
@@ -684,7 +691,7 @@ void xLightsXmlFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const wxString& 
             for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
                 if (element->GetName() == HEADER_STRINGS[static_cast<int>(name_name)]) {
                     SetNodeContent(element, clean_node_value);
-                    header_info[static_cast<int>(name_name)] = clean_node_value;
+                    header_info[static_cast<int>(name_name)] = node_value;
                 }
             }
         }

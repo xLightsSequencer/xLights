@@ -90,6 +90,9 @@ void ButtonControl::SelectEffect(MainSequencer* sequencer)
 
         if (e != nullptr) {
             sequencer->PanelEffectGrid->PlayLoopedEffect(e, _loop);
+        } else {
+            wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+            wxPostEvent(sequencer->PanelEffectGrid->GetSequenceElements()->GetXLightsFrame(), playEvent);
         }
     }
 }
@@ -192,11 +195,12 @@ void JukeboxPanel::PlayItem(int item)
         _buttons[item]->SelectEffect(xLightsApp::GetFrame()->GetMainSequencer());
     } else {
         xLightsApp::GetFrame()->GetMainSequencer()->UnselectAllEffects();
-        xLightsApp::GetFrame()->SetPlayStatus(PLAY_TYPE_STOPPED);
         xLightsApp::GetFrame()->UnselectEffect();
+        xLightsApp::GetFrame()->GetOutputManager()->AllOff();
 
         // turn all the lights off in case we are outputting to lights
-        xLightsApp::GetFrame()->GetOutputManager()->AllOff();
+        wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+        wxPostEvent(xLightsApp::GetFrame(), playEvent);
     }
 }
 

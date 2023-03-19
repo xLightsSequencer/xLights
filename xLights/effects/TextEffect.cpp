@@ -382,45 +382,9 @@ void TextEffect::SetPanelStatus(Model* cls)
 //countdown == any of the "to date" options: put "Sat, 18 Dec 1999 00:48:30 +0100" in the text line
 //countdown = !to date!%fmt: put delimiter + target date + same delimiter + format string with %x markers in it (described down below)
 
-std::mutex FONT_MAP_LOCK;
-std::map<std::string, wxFontInfo> FONT_MAP;
-
 void SetFont(TextDrawingContext *dc, const std::string& FontString, const xlColor &color) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::unique_lock<std::mutex> locker(FONT_MAP_LOCK);
-    if (FONT_MAP.find(FontString) == FONT_MAP.end()) {
-        if (!FontString.empty())
-        {
-            logger_base.debug("Loading font %s.", (const char *)FontString.c_str());
-            wxFont font(FontString);
-            font.SetNativeFontInfoUserDesc(FontString);
-
-            //we want "Arial 8" to be 8 pixels high and not depend on the System DPI
-            wxFontInfo info(wxSize(0, font.GetPointSize()));
-            info.FaceName(font.GetFaceName());
-            if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
-                info.Bold();
-            } else if (font.GetWeight() == wxFONTWEIGHT_LIGHT) {
-                info.Light();
-            }
-            if (font.GetUnderlined()) {
-                info.Underlined();
-            }
-            if (font.GetStrikethrough()) {
-                info.Strikethrough();
-            }
-            info.AntiAliased(false);
-            info.Encoding(font.GetEncoding());
-            FONT_MAP[FontString] = info;
-            logger_base.debug("    Added to font map.");
-        } else {
-            wxFontInfo info(wxSize(0, 12));
-            info.AntiAliased(false);
-            FONT_MAP[FontString] = info;
-        }
-
-    }
-    dc->SetFont(FONT_MAP[FontString], color);
+    const wxFontInfo& fnt = TextDrawingContext::GetTextFont(FontString);
+    dc->SetFont(fnt, color);
 }
 
 enum TextDirection {
@@ -1395,21 +1359,28 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
     }
 }
 
+#define msgReplace(a, b, c) \
+    do                      \
+    {                    \
+       if (a.Contains(b)) { \
+           a.Replace(b, (c)); \
+       } \
+    } while (0)
 
 void TextEffect::ReplaceVaribles(wxString& msg, RenderBuffer& buffer) const
 {
-    msg.Replace("${TITLE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
-    msg.Replace("${SONG}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
-    msg.Replace("${ARTIST}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ARTIST));
-    msg.Replace("${ALBUM}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ALBUM));
+    msgReplace(msg, "${TITLE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
+    msgReplace(msg, "${SONG}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
+    msgReplace(msg, "${ARTIST}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ARTIST));
+    msgReplace(msg, "${ALBUM}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ALBUM));
     if (buffer.GetMedia() != nullptr) {
-        msg.Replace("${FILENAME}", buffer.GetMedia()->FileName());
+        msgReplace(msg, "${FILENAME}", buffer.GetMedia()->FileName());
     }
-    msg.Replace("${AUTHOR}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR));
-    msg.Replace("${AUTHOREMAIL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR_EMAIL));
-    msg.Replace("${COMMENT}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::COMMENT));
-    msg.Replace("${URL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::URL));
-    msg.Replace("${WEBSITE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::WEBSITE));
+    msgReplace(msg, "${AUTHOR}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR));
+    msgReplace(msg, "${AUTHOREMAIL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR_EMAIL));
+    msgReplace(msg, "${COMMENT}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::COMMENT));
+    msgReplace(msg, "${URL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::URL));
+    msgReplace(msg, "${WEBSITE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::WEBSITE));
 
     if (msg.Contains("${UPPER}")) {
         msg.Replace("${UPPER}", "");

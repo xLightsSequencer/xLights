@@ -189,10 +189,10 @@ std::string RenderBuffer::GetModelName() const
     return cur_model;
 }
 
-wxString RenderBuffer::GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const
+const wxString &RenderBuffer::GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const
 {
     if (xLightsFrame::CurrentSeqXmlFile == nullptr) {
-        return wxString();
+        return xlEMPTY_WXSTRING;
     }
     return xLightsFrame::CurrentSeqXmlFile->GetHeaderInfo(node_type);
 }
@@ -302,6 +302,37 @@ PathDrawingContext::PathDrawingContext(int BufferWi, int BufferHt, bool allowSha
     : DrawingContext(BufferWi, BufferHt, allowShared, true) {}
 
 PathDrawingContext::~PathDrawingContext() {}
+
+// MoC - March 2023
+// The wx font map is not thread safe in some cases, effects using
+//   it from background threads need to mutex each other (and ideally
+//   the event loop thread but meh.  This is not the best place (WX
+//   would be a better place), but this is better than no place.
+//
+// The first step here was centralizing the access methods, putting a
+//   lock around them then became possible.  
+//   Per dkulp, we could, in the future, pre-populate the cache from the
+//   main thread, or we could use CallAfter or similar to do the font
+//   lookup on the main thread, which may be incrementally better than
+//   just a lock shared between background threads.
+std::mutex FONT_MAP_LOCK;
+
+std::map<std::string, wxFontInfo> FONT_MAP_TXT;
+std::map<std::string, wxFontInfo> FONT_MAP_SHP;
+
+class FontMapLock
+{
+    std::unique_lock<std::mutex> lk;
+
+public:
+    FontMapLock() :
+        lk(FONT_MAP_LOCK)
+    {}
+
+    ~FontMapLock()
+    {}
+};
+
 
 TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowShared)
 #ifdef __WXMSW__
@@ -510,7 +541,7 @@ void PathDrawingContext::FillPath(wxGraphicsPath& path, wxPolygonFillMode fillSt
     gc->FillPath(path, fillStyle);
 }
 
-void TextDrawingContext::SetFont(wxFontInfo& font, const xlColor& color)
+void TextDrawingContext::SetFont(const wxFontInfo& font, const xlColor& color)
 {
     if (gc != nullptr) {
         int style = wxFONTFLAG_NOT_ANTIALIASED;
@@ -536,7 +567,8 @@ void TextDrawingContext::SetFont(wxFontInfo& font, const xlColor& color)
         if (style != fontStyle
             || font.GetPixelSize().y != fontSize
             || font.GetFaceName() != fontName
-            || color != fontColor) {
+            || color != fontColor)
+        {
             this->font = gc->CreateFont(font.GetPixelSize().y, font.GetFaceName(), style, color.asWxColor());
 
 #ifdef __WXMSW__
@@ -574,13 +606,76 @@ void TextDrawingContext::SetFont(wxFontInfo& font, const xlColor& color)
          lf.lfQuality,
          lf.lfPitchAndFamily,
          lf.lfFaceName);*/
-        wxString s = f.GetNativeFontInfoDesc();
-        s.Replace(";2;",";3;",false);
-        f.SetNativeFontInfo(s);
+        {
+            FontMapLock lk;
+            wxString s = f.GetNativeFontInfoDesc();
+            s.Replace(";2;", ";3;", false);
+            f.SetNativeFontInfo(s);
+        }
     #endif
         dc->SetFont(f);
         dc->SetTextForeground(color.asWxColor());
     }
+}
+
+const wxFontInfo& TextDrawingContext::GetTextFont(const std::string& FontString)
+{
+    FontMapLock locker;
+
+    if (FONT_MAP_TXT.find(FontString) == FONT_MAP_TXT.end()) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        if (!FontString.empty()) {
+            logger_base.debug("Loading font %s.", (const char*)FontString.c_str());
+            wxFont font(FontString);
+            font.SetNativeFontInfoUserDesc(FontString);
+
+            // we want "Arial 8" to be 8 pixels high and not depend on the System DPI
+            wxFontInfo info(wxSize(0, font.GetPointSize()));
+            info.FaceName(font.GetFaceName());
+            if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
+                info.Bold();
+            } else if (font.GetWeight() == wxFONTWEIGHT_LIGHT) {
+                info.Light();
+            }
+            if (font.GetUnderlined()) {
+                info.Underlined();
+            }
+            if (font.GetStrikethrough()) {
+                info.Strikethrough();
+            }
+            info.AntiAliased(false);
+            info.Encoding(font.GetEncoding());
+            FONT_MAP_TXT[FontString] = info;
+            logger_base.debug("    Added to font map.");
+        } else {
+            wxFontInfo info(wxSize(0, 12));
+            info.AntiAliased(false);
+            FONT_MAP_TXT[FontString] = info;
+        }
+    }
+    return FONT_MAP_TXT[FontString];
+}
+
+const wxFontInfo& TextDrawingContext::GetShapeFont(const std::string& font)
+{
+    FontMapLock locker;
+    if (FONT_MAP_SHP.find(font) == FONT_MAP_SHP.end()) {
+        wxFont ff(font);
+        ff.SetNativeFontInfoUserDesc(font); // This needs FontMapLock above
+
+        wxFontInfo _font = wxFontInfo(wxSize(0, 12));
+        wxString face = ff.GetFaceName();
+        if (face == WIN_NATIVE_EMOJI_FONT || face == OSX_NATIVE_EMOJI_FONT || face == LINUX_NATIVE_EMOJI_FONT) {
+            _font.FaceName(NATIVE_EMOJI_FONT);
+        } else {
+            _font.FaceName(face);
+        }
+        _font.Light();
+        _font.AntiAliased(false);
+        _font.Encoding(ff.GetEncoding());
+        FONT_MAP_SHP[font] = _font;
+    }
+    return FONT_MAP_SHP[font];
 }
 
 void TextDrawingContext::DrawText(const wxString &msg, int x, int y, double rotation) {

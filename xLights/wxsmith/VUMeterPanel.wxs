@@ -40,7 +40,7 @@
 							<value>20</value>
 							<size>20,-1d</size>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -127,6 +127,33 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText16" member="yes">
+							<label>Filter Label</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Filter" variable="TextCtrl_Filter" member="yes" />
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_Regex" variable="CheckBox_Regex" member="yes">
+							<label>Regex</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT_VUMeter_Sensitivity" variable="StaticText6" member="yes">
 							<label>Sensitivity</label>
 						</object>
@@ -157,7 +184,7 @@
 							<value>70</value>
 							<size>20,-1d</size>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -212,7 +239,7 @@
 							<value>0</value>
 							<size>20,-1d</size>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -338,7 +365,7 @@
 							<style>wxTE_PROCESS_ENTER</style>
 							<handler function="OnTextCtrl_VUMeter_StartNoteText" entry="EVT_TEXT" />
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -378,7 +405,7 @@
 							<style>wxTE_PROCESS_ENTER</style>
 							<handler function="OnTextCtrl_VUMeter_StartNoteText" entry="EVT_TEXT" />
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -446,7 +473,7 @@
 							<value>0</value>
 							<size>20,-1d</size>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -501,7 +528,7 @@
 							<value>0</value>
 							<size>20,-1d</size>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>

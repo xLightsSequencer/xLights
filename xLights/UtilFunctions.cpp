@@ -27,12 +27,13 @@
 #include "xLightsVersion.h"
 #include "ExternalHooks.h"
 
-//#include "string_utils.h"
 
 #include "../xSchedule/wxJSON/json_defs.h"
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonval.h"
+
 #include "utils/Curl.h"
+#include "utils/string_utils.h"
 
 #include <mutex>
 #include <string_view>
@@ -61,7 +62,6 @@
 #elif defined (__GCC__) // GCC
 #define thread_local __thread
 #endif
-
 
 
 void DisplayError(const std::string& err, wxWindow* win)
@@ -510,23 +510,23 @@ wxString FixEffectFileParameter(const wxString& paramname, const wxString& param
     return rc;
 }
 
-std::string UnXmlSafe(const wxString &res)
+std::string UnXmlSafe(const std::string &res)
 {
-    if (res.Contains('&')) {
-        wxString r2(res);
-        for (int i = 0; i< 32; ++i)
-        {
-            wxString ss = wxString::Format("&#%d;", i);
-            r2.Replace(ss, wxString::Format("%c", i));
+    if (Contains(res, "&")) {
+        std::string r2(res);
+        for (int i = 0; i< 32; ++i) {
+            std::string ss = "&#" + std::to_string(i);
+            char buf[2] = {(char)i, 0};
+            Replace(r2, ss, buf);
         }
-        r2.Replace("&lt;", "<");
-        r2.Replace("&gt;", ">");
-        r2.Replace("&apos;", "'");
-        r2.Replace("&quot;", "\"");
-        r2.Replace("&amp;", "&");
-        return r2.ToStdString();
+        Replace(r2, "&lt;", "<");
+        Replace(r2, "&gt;", ">");
+        Replace(r2, "&apos;", "'");
+        Replace(r2, "&quot;", "\"");
+        Replace(r2, "&amp;", "&");
+        return r2;
     }
-    return res.ToStdString();
+    return res;
 }
 
 std::string XmlSafe(const std::string& s)
