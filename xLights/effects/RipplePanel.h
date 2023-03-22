@@ -34,6 +34,7 @@ class RipplePanel: public xlEffectPanel
 
 		//(*Declarations(RipplePanel)
 		BulkEditCheckBox* CheckBox_Ripple3D;
+		BulkEditCheckBox* CheckBox_RippleSolid;
 		BulkEditChoice* Choice_Ripple_Movement;
 		BulkEditChoice* Choice_Ripple_Object_To_Draw;
 		BulkEditSlider* Slider_Ripple_Points;
@@ -51,7 +52,6 @@ class RipplePanel: public xlEffectPanel
 		BulkEditValueCurveButton* BitmapButton_Ripple_ThicknessVC;
 		BulkEditValueCurveButton* BitmapButton_Ripple_XCVC;
 		BulkEditValueCurveButton* BitmapButton_Ripple_YCVC;
-		wxCheckBox* CheckBox_RippleSolid;
 		wxStaticText* StaticText176;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;

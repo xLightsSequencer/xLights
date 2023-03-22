@@ -83,7 +83,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	wxFlexGridSizer* FlexGridSizer57;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer60;
-	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer61;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(536,607), wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer57 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -206,14 +206,14 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer57->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer6 = new wxFlexGridSizer(0, 4, 0, 0);
-	CheckBox_RippleSolid = new wxCheckBox(this, ID_CHECKBOX_RippleSolid, _("Solid"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_RippleSolid"));
+	FlexGridSizer61 = new wxFlexGridSizer(0, 4, 0, 0);
+	CheckBox_RippleSolid = new BulkEditCheckBox(this, ID_CHECKBOX_RippleSolid, _("Solid"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_RippleSolid"));
 	CheckBox_RippleSolid->SetValue(false);
-	FlexGridSizer6->Add(CheckBox_RippleSolid, 1, wxALL, 5);
+	FlexGridSizer61->Add(CheckBox_RippleSolid, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_RippleSolid = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_RippleSolid, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_RippleSolid"));
 	BitmapButton_RippleSolid->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer6->Add(BitmapButton_RippleSolid, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer57->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer61->Add(BitmapButton_RippleSolid, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer57->Add(FlexGridSizer61, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer57->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer57->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer57);

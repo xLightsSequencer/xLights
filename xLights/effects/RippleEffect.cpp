@@ -70,6 +70,7 @@ void RippleEffect::SetDefaultParameters()
     SetSliderValue(rp->Slider_Ripple_Rotation, 0);
 
     SetCheckBoxValue(rp->CheckBox_Ripple3D, false);
+    SetCheckBoxValue(rp->CheckBox_RippleSolid, false);
 }
 
 void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
@@ -79,6 +80,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     const std::string& MovementStr = SettingsMap["CHOICE_Ripple_Movement"];
     int Ripple_Thickness = GetValueCurveInt("Ripple_Thickness", 3, SettingsMap, oset, RIPPLE_THICKNESS_MIN, RIPPLE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool CheckBox_Ripple3D = SettingsMap.GetBool("CHECKBOX_Ripple3D", false);
+    bool CheckBox_RippleSolid = SettingsMap.GetBool("CHECKBOX_RippleSolid", false);
     float cycles = GetValueCurveDouble("Ripple_Cycles", 1.0, SettingsMap, oset, RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
     int points = SettingsMap.GetInt("SLIDER_RIPPLE_POINTS", 5);
     int rotation = GetValueCurveInt("Ripple_Rotation", 0, SettingsMap, oset, RIPPLE_ROTATION_MIN, RIPPLE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -160,7 +162,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         int x2 = xc + radiusX;
         int y1 = yc - radiusY;
         int y2 = yc + radiusY;
-        Drawsquare(buffer, Movement, x1, x2, y1, y2, Ripple_Thickness, CheckBox_Ripple3D, hsv);
+        Drawsquare(buffer, Movement, x1, x2, y1, y2, Ripple_Thickness, CheckBox_Ripple3D, hsv, CheckBox_RippleSolid);
     } break;
     case RENDER_RIPPLE_CIRCLE:
         Drawcircle(buffer, Movement, xc, yc, radius, hsv, Ripple_Thickness, CheckBox_Ripple3D);
@@ -234,7 +236,7 @@ void RippleEffect::Drawtriangle(RenderBuffer& buffer, int Movement, int xc, int 
     }
 }
 
-void RippleEffect::Drawsquare(RenderBuffer& buffer, int Movement, int x1, int x2, int y1, int y2, int Ripple_Thickness, int CheckBox_Ripple3D, HSVValue& hsv)
+void RippleEffect::Drawsquare(RenderBuffer& buffer, int Movement, int x1, int x2, int y1, int y2, int Ripple_Thickness, int CheckBox_Ripple3D, HSVValue& hsv, int CheckBox_RippleSolid)
 {
     xlColor color(hsv);
 
@@ -248,23 +250,39 @@ void RippleEffect::Drawsquare(RenderBuffer& buffer, int Movement, int x1, int x2
             }
         }
         if (Movement == MOVEMENT_EXPLODE) {
-            for (int y = y1 + i; y <= y2 - i; y++) {
-                buffer.SetPixel(x1 + i, y, color); // Turn pixel
-                buffer.SetPixel(x2 - i, y, color); // Turn pixel
-            }
-            for (int x = x1 + i; x <= x2 - i; x++) {
-                buffer.SetPixel(x, y1 + i, color); // Turn pixel
-                buffer.SetPixel(x, y2 - i, color); // Turn pixel
+            if (CheckBox_RippleSolid) {
+                for (int y = y1 + i; y <= y2 - i; y++) {
+                    for (int x = x1 + i; x <= x2 - i; x++) {
+                        buffer.SetPixel(x, y, color);
+                    }
+                }
+            } else {
+                for (int y = y1 + i; y <= y2 - i; y++) {
+                    buffer.SetPixel(x1 + i, y, color); // Turn pixel
+                    buffer.SetPixel(x2 - i, y, color); // Turn pixel
+                }
+                for (int x = x1 + i; x <= x2 - i; x++) {
+                    buffer.SetPixel(x, y1 + i, color); // Turn pixel
+                    buffer.SetPixel(x, y2 - i, color); // Turn pixel
+                }
             }
         }
         if (Movement == MOVEMENT_IMPLODE) {
-            for (int y = y2 + i; y >= y1 - i; y--) {
-                buffer.SetPixel(x1 - i, y, color); // Turn pixel
-                buffer.SetPixel(x2 + i, y, color); // Turn pixel
-            }
-            for (int x = x2 + i; x >= x1 - i; x--) {
-                buffer.SetPixel(x, y1 - i, color); // Turn pixel
-                buffer.SetPixel(x, y2 + i, color); // Turn pixel
+            if (CheckBox_RippleSolid) {
+                for (int y = y2 + i; y >= y1 - i; y--) {
+                    for (int x = x2 + i; x >= x1 - i; x--) {
+                        buffer.SetPixel(x, y, color);
+                    }
+                }            
+            } else {
+                for (int y = y2 + i; y >= y1 - i; y--) {
+                    buffer.SetPixel(x1 - i, y, color); // Turn pixel
+                    buffer.SetPixel(x2 + i, y, color); // Turn pixel
+                }
+                for (int x = x2 + i; x >= x1 - i; x--) {
+                    buffer.SetPixel(x, y1 - i, color); // Turn pixel
+                    buffer.SetPixel(x, y2 + i, color); // Turn pixel
+                }
             }
         }
     }
