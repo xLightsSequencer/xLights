@@ -51,6 +51,7 @@ class RipplePanel: public xlEffectPanel
 		BulkEditValueCurveButton* BitmapButton_Ripple_ThicknessVC;
 		BulkEditValueCurveButton* BitmapButton_Ripple_XCVC;
 		BulkEditValueCurveButton* BitmapButton_Ripple_YCVC;
+		wxCheckBox* CheckBox_RippleSolid;
 		wxStaticText* StaticText176;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
@@ -60,6 +61,7 @@ class RipplePanel: public xlEffectPanel
 		wxStaticText* StaticText72;
 		wxStaticText* StaticText_Ripple_Rotation;
 		xlLockButton* BitmapButton_Ripple3D;
+		xlLockButton* BitmapButton_RippleSolid;
 		xlLockButton* BitmapButton_RippleThickness;
 		xlLockButton* BitmapButton_Ripple_Movement;
 		xlLockButton* BitmapButton_Ripple_Object_To_Draw;
@@ -104,6 +106,8 @@ class RipplePanel: public xlEffectPanel
 		static const long IDD_TEXTCTRL_Ripple_YC;
 		static const long ID_CHECKBOX_Ripple3D;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Ripple3D;
+		static const long ID_CHECKBOX_RippleSolid;
+		static const long ID_BITMAPBUTTON_CHECKBOX_RippleSolid;
 		//*)
 
 	public:
