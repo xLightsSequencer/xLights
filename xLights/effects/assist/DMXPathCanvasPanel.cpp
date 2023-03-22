@@ -4,6 +4,7 @@
 #include <wx/graphics.h>
 
 #include "../DMXPathEffect.h"
+#include "../../UtilClasses.h"
 
 #include <wx/gdicmn.h>
 
@@ -22,16 +23,18 @@ DMXPathCanvasPanel::DMXPathCanvasPanel(wxWindow* parent, wxWindowID id /*=wxID_A
 
 void DMXPathCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
 {
-    if (mSettings.empty()) {
+    // hmm... not sure why mSettings can seemingly be emptied out during execution of this method
+    auto settings = mSettings;
+    if (settings.empty())
         return;
-    }
-    std::string type_Str = mSettings["CHOICE_DMXPath_Type"];
-    auto width = mSettings.GetInt("SLIDER_DMXPath_Width", 30);
-    auto height = mSettings.GetInt("SLIDER_DMXPath_Height", 30);
-    auto x_offset = mSettings.GetInt("SLIDER_DMXPath_X_Off", 0);
-    auto y_offset = mSettings.GetInt("SLIDER_DMXPath_Y_Off", 0);
+ 
+    std::string type_Str = settings["CHOICE_DMXPath_Type"];
+    auto width = settings.GetInt("SLIDER_DMXPath_Width", 30);
+    auto height = settings.GetInt("SLIDER_DMXPath_Height", 30);
+    auto x_offset = settings.GetInt("SLIDER_DMXPath_X_Off", 0);
+    auto y_offset = settings.GetInt("SLIDER_DMXPath_Y_Off", 0);
 
-    auto rotation = mSettings.GetInt("SLIDER_DMXPath_Rotation", 0);
+    auto rotation = settings.GetInt("SLIDER_DMXPath_Rotation", 0);
     auto pathType = DMXPathEffect::DecodeType(type_Str);
     
     wxAutoBufferedPaintDC pdc(this);

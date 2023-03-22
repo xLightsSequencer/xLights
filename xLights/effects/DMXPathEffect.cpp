@@ -78,7 +78,8 @@ void DMXPathEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     auto distance = SettingsMap.GetInt("SLIDER_DMXPath_Dist", 0);
 
     if(nullptr != m_dmxAssistPanel && nullptr != effect ) {
-        m_dmxAssistPanel->SetSettingDef(SettingsMap);
+        if (!m_dmxAssistPanel->IsBeingDeleted() )
+            m_dmxAssistPanel->SetSettingDef(SettingsMap);
     }
 
     int rotation = GetValueCurveInt("DMXPath_Rotation", 0, SettingsMap, eff_pos, DMXPATH_ROTATION_MIN, DMXPATH_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
