@@ -663,17 +663,26 @@ void ModelPreview::Render()
     const std::vector<Model*>& models = GetModels();
     if (!models.empty()) {
         bool isModelSelected = false;
+        std::map<int32_t, Model*> sortedModels;
         for (auto& m : models) {
             if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
                 if (m->Selected || m->GroupSelected) {
                     isModelSelected = true;
-                    break;
                 }
+                auto p = ProjViewMatrix * glm::vec4(m->GetHcenterPos(), m->GetVcenterPos(), m->GetDcenterPos(), 1);
+                int z = p.z;
+                sortedModels[z] = m;
             } else {
                 wxASSERT(false); // why did we get here
             }
         }
-        RenderModels(models, isModelSelected, _showFirstPixel);
+        std::vector<Model*> smodels;
+        smodels.reserve(models.size());
+        for (auto iter = sortedModels.rbegin(); iter != sortedModels.rend(); ++iter) {
+            //create a new vector sorted order, drawing from back to front
+            smodels.push_back(iter->second);
+        }
+        RenderModels(smodels, isModelSelected, _showFirstPixel);
     }
 
     // draw all the view objects
