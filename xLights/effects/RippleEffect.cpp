@@ -174,7 +174,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         Drawtriangle(buffer, Movement, xc, yc, side, hsv, Ripple_Thickness, CheckBox_Ripple3D);
         break;
     case RENDER_RIPPLE_POLYGON:
-        Drawpolygon(buffer, Movement, xc, yc, radius, points, hsv, Ripple_Thickness, CheckBox_Ripple3D, rotation);
+        Drawpolygon(buffer, Movement, xc, yc, radius, points, hsv, Ripple_Thickness, CheckBox_Ripple3D, CheckBox_RippleSolid, rotation);
         break;
     case RENDER_RIPPLE_HEART:
         Drawheart(buffer, Movement, xc, yc, radius, hsv, Ripple_Thickness, CheckBox_Ripple3D);
@@ -198,6 +198,29 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         wxASSERT(false);
         break;
     }
+}
+
+void RippleEffect::FillRegion(RenderBuffer& buffer, const std::vector<std::pair<int, int>>& oldpoints, const std::vector<std::pair<int, int>>& newpoints, const xlColor& color)
+{
+    if (oldpoints.empty())
+        return;
+    if (newpoints.size() != oldpoints.size())
+        return;
+
+    std::vector<std::pair<int, int>> quad(4);
+    for (size_t i = 0; i < newpoints.size() - 1; ++i) {
+        quad[0] = oldpoints[i];
+        quad[1] = oldpoints[i + 1];
+        quad[2] = newpoints[i + 1];
+        quad[3] = newpoints[i];
+
+        buffer.FillConvexPoly(quad, color);
+    }
+    quad[0] = oldpoints[oldpoints.size() - 1];
+    quad[1] = oldpoints[0];
+    quad[2] = newpoints[0];
+    quad[3] = newpoints[oldpoints.size() - 1];
+    buffer.FillConvexPoly(quad, color);
 }
 
 void RippleEffect::Drawtriangle(RenderBuffer& buffer, int Movement, int xc, int yc, double side, HSVValue& hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
@@ -230,6 +253,7 @@ void RippleEffect::Drawtriangle(RenderBuffer& buffer, int Movement, int xc, int 
                 color = hsv;
             }
         }
+
         buffer.DrawLine(xtop, ytop, xleft, yleft, color);
         buffer.DrawLine(xtop, ytop, xright, yright, color);
         buffer.DrawLine(xleft, yleft, xright, yright, color);
@@ -389,7 +413,7 @@ void RippleEffect::Drawstar(RenderBuffer& buffer, int Movement, int xc, int yc, 
     }
 }
 
-void RippleEffect::Drawpolygon(RenderBuffer& buffer, int Movement, int xc, int yc, double radius, int points, HSVValue& hsv, int Ripple_Thickness, int CheckBox_Ripple3D, float rotation)
+void RippleEffect::Drawpolygon(RenderBuffer& buffer, int Movement, int xc, int yc, double radius, int points, HSVValue& hsv, int Ripple_Thickness, int CheckBox_Ripple3D, int CheckBox_Solid, float rotation)
 {
     double increment = 360.0 / points;
 
@@ -401,6 +425,8 @@ void RippleEffect::Drawpolygon(RenderBuffer& buffer, int Movement, int xc, int y
         rotation += 22.5;
 
     xlColor color(hsv);
+
+    std::vector<std::pair<int, int>> oldpts, newpts;
 
     for (double i = 0; i < Ripple_Thickness; i += .5) {
         if (CheckBox_Ripple3D) {
@@ -418,22 +444,36 @@ void RippleEffect::Drawpolygon(RenderBuffer& buffer, int Movement, int xc, int y
         }
 
         if (radius >= 0) {
-            for (double degrees = 0.0; degrees < 361.0; degrees += increment) // 361 because it allows for small rounding errors
-            {
-                if (degrees > 360.0)
-                    degrees = 360.0;
-                double radian = (rotation + degrees) * M_PI / 180.0;
-                int x1 = std::round(radius * cos(radian)) + xc;
-                int y1 = std::round(radius * sin(radian)) + yc;
+            if (CheckBox_Solid) {
+                oldpts = newpts;
+                newpts.clear();
 
-                radian = (rotation + degrees + increment) * M_PI / 180.0;
-                int x2 = std::round(radius * cos(radian)) + xc;
-                int y2 = std::round(radius * sin(radian)) + yc;
+                for (double degrees = 0.0; degrees < 359.5; degrees += increment) // 359 because it allows for small rounding errors
+                {
+                    double radian = (rotation + degrees) * M_PI / 180.0;
+                    int x1 = std::round(radius * cos(radian)) + xc;
+                    int y1 = std::round(radius * sin(radian)) + yc;
+                    newpts.push_back(std::make_pair(x1, y1));
+                }            
+                FillRegion(buffer, oldpts, newpts, color);
+            } else {
+                for (double degrees = 0.0; degrees < 361.0; degrees += increment) // 361 because it allows for small rounding errors
+                {
+                    if (degrees > 360.0)
+                        degrees = 360.0;
+                    double radian = (rotation + degrees) * M_PI / 180.0;
+                    int x1 = std::round(radius * cos(radian)) + xc;
+                    int y1 = std::round(radius * sin(radian)) + yc;
 
-                buffer.DrawLine(x1, y1, x2, y2, color);
+                    radian = (rotation + degrees + increment) * M_PI / 180.0;
+                    int x2 = std::round(radius * cos(radian)) + xc;
+                    int y2 = std::round(radius * sin(radian)) + yc;
 
-                if (degrees == 360.0)
-                    degrees = 361.0;
+                    buffer.DrawLine(x1, y1, x2, y2, color);
+
+                    if (degrees == 360.0)
+                        degrees = 361.0;
+                }
             }
         } else {
             break;

@@ -1255,6 +1255,138 @@ void RenderBuffer::DrawThickLine( const int x0_, const int y0_, const int x1_, c
   }
 }
 
+typedef std::pair<int, int> HLine;
+
+static void ScanEdge(int x1, int y1, int x2, int y2, int setx, bool skip, std::vector<HLine> &lines, int &eidx)
+{
+  int dx = x2 - x1;
+  int dy = y2 - y1;
+  if (dy <= 0)
+    return;
+  double invs = (double)dx / (double)dy;
+
+  int idx = eidx;
+
+  for (int y = y1 + (skip ? 1 : 0); y<y2; ++y, ++idx) {
+    if (setx)
+        lines[idx].first = x1 + (int)(ceil((y - y1) * invs));
+    else
+        lines[idx].second = x1 + (int)(ceil((y - y1) * invs));
+  }
+  eidx = idx;
+}
+
+void RenderBuffer::FillConvexPoly(const std::vector<std::pair<int, int>>& poly, const xlColor& color)
+{
+    // Loosely based on Michael Abrash's Graphics Programming Black Book (TGPBB)
+    // Feels very low tech compared to what should be here, but high tech compared to the
+    //    rest of the stuff that actually is here (shrug)
+    if (poly.size() < 3)
+       return;
+    int miny, maxy, minx, maxx;
+    minx = maxx = poly[0].second;
+    miny = maxy = poly[0].second;
+    int minidxl = 0, maxidx = 0;
+
+    // Find the top and bottom
+    for (size_t i = 1; i < poly.size(); ++i) {
+        if (poly[i].second < miny) {
+            minidxl = i;
+            miny = poly[i].second;
+        }
+        if (poly[i].second > maxy) {
+            maxidx = i;
+            maxy = poly[i].second;
+        }
+        minx = std::min(minx, poly[i].first);
+        maxx = std::max(maxx, poly[i].first);
+    }
+
+    // Empty? Off Screen?
+    if (miny == maxy)
+       return;
+    if (minx >= this->BufferWi || maxx <= 0)
+        return;
+    if (miny >= this->BufferHt || maxy <= 0)
+       return;
+
+    int minidxr = minidxl;
+    while (poly[minidxr].second == miny)
+       minidxr = (minidxr + 1) % poly.size();
+    minidxr = (minidxr + poly.size() - 1) % poly.size();
+
+    while (poly[minidxl].second == miny)
+       minidxl = (minidxl + poly.size() - 1) % poly.size();
+    minidxl = (minidxl + 1) % poly.size();
+
+    int ledir = -1;
+    bool tif = (poly[minidxl].first != poly[minidxr].first);
+    if (tif) {
+       if (poly[minidxl].first > poly[minidxr].first) {
+            ledir = 1;
+            std::swap(minidxl, minidxr);
+       }
+    } else {
+       int nidx = minidxr;
+       nidx = (nidx + 1) % poly.size();
+       int pidx = minidxl;
+       pidx = (pidx + poly.size() - 1) % poly.size();
+       int dxn = poly[nidx].first - poly[minidxl].first;
+       int dyn = poly[nidx].second - poly[minidxl].second;
+       int dxp = poly[pidx].first - poly[minidxl].first;
+       int dyp = poly[pidx].second - poly[minidxl].second;
+       if (((long long)dxn * dyp - (long long)dyn * dxp) < 0L) {
+            ledir = 1;
+            std::swap(minidxl, minidxr);
+       }
+    }
+
+    int wheight = maxy - miny - 1 + (tif ? 1 : 0);
+    if (wheight <= 0)
+       return;
+    int ystart = miny + 1 - (tif ? 1 : 0);
+
+    std::vector<HLine> hlines(wheight);
+
+    int edgept = 0;
+    int cidx = minidxl, pidx = minidxl;
+    bool skip = tif ? 0 : 1;
+
+    /* Scan convert each line in the left edge from top to bottom */
+    do {
+       cidx = (cidx + poly.size() + ledir) % poly.size();
+
+
+       ScanEdge(poly[pidx].first, poly[pidx].second,
+                poly[cidx].first, poly[cidx].second,
+                true, skip, hlines, edgept);
+       pidx = cidx;
+       skip = false;
+    } while (cidx != maxidx);
+
+    edgept = 0;
+    pidx = cidx = minidxr;
+
+    skip = tif ? 0 : 1;
+    /* Scan convert the right edge, top to bottom. X coordinates are
+       adjusted 1 to the left, effectively causing scan conversion of
+       the nearest points to the left of but not exactly on the edge */
+    do {
+       cidx = (cidx + poly.size() - ledir) % poly.size();
+       ScanEdge(poly[pidx].first - 1, poly[pidx].second,
+                poly[cidx].first - 1, poly[cidx].second,
+                false, skip, hlines, edgept);
+       pidx = cidx;
+       skip = false;
+    } while (cidx != maxidx);
+
+    // Draw the line list representing the scan converted polygon
+    for (int y = ystart, en = 0; y < int(ystart + hlines.size()); ++y, ++en) {
+       for (int x = hlines[en].first; x <= hlines[en].second; ++x)
+            SetPixel(x, y, color, false);
+    }
+}
+
 void RenderBuffer::DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap)
 {
     HSVValue hsv(rgb);
