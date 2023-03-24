@@ -156,6 +156,10 @@ private:
     int PostJSONToURLAsFormData(const std::string& url, const std::string &extra, const wxJSONValue& val);
     int PostToURL(const std::string& url, const std::string &val, const std::string &contentType = "application/octet-stream");
     int PostToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType = "application/octet-stream");
+    int PutToURL(const std::string& url, const std::string &val, const std::string &contentType = "application/octet-stream");
+    int PutToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType = "application/octet-stream");
+    int TransferToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType, bool isPost);
+
     bool uploadOrCopyFile(const std::string &filename,
                           const std::string &file,
                           const std::string &dir);
