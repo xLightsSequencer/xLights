@@ -200,7 +200,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     }
 }
 
-void RippleEffect::FillRegion(RenderBuffer& buffer, const std::vector<std::pair<int, int>>& oldpoints, const std::vector<std::pair<int, int>>& newpoints, const xlColor& color)
+static void FillRegion(RenderBuffer& buffer, const std::vector<std::pair<int, int>>& oldpoints, const std::vector<std::pair<int, int>>& newpoints, const xlColor& color, bool close = true)
 {
     if (oldpoints.empty())
         return;
@@ -216,12 +216,90 @@ void RippleEffect::FillRegion(RenderBuffer& buffer, const std::vector<std::pair<
 
         buffer.FillConvexPoly(quad, color);
     }
-    quad[0] = oldpoints[oldpoints.size() - 1];
-    quad[1] = oldpoints[0];
-    quad[2] = newpoints[0];
-    quad[3] = newpoints[oldpoints.size() - 1];
-    buffer.FillConvexPoly(quad, color);
+
+    if (close) {
+        quad[0] = oldpoints[oldpoints.size() - 1];
+        quad[1] = oldpoints[0];
+        quad[2] = newpoints[0];
+        quad[3] = newpoints[oldpoints.size() - 1];
+        buffer.FillConvexPoly(quad, color);
+    }
 }
+
+// It is somewhat redundant with 3-sided polygon isn't it?
+//  Especially now that it is equilateral
+void getTrianglePoints(std::vector<std::pair<double, double>>& tpts)
+{
+    tpts.resize(3);
+    #define ROOT3DIV3 0.577350269
+    #define SIN30 0.5
+    #define COS30 0.866025404
+
+    tpts[0] = std::make_pair(0, 1);
+    tpts[1] = std::make_pair(-COS30, -SIN30);
+    tpts[2] = std::make_pair(COS30, SIN30);
+}
+
+// Now see, the square becomes a rectangle later, if desired
+// It is somewhat redundant with 4-side polygon isn't it...
+void getSquarePoints(std::vector<std::pair<double, double>>& spts)
+{
+    spts.resize(4);
+    spts[0] = std::make_pair( 1,  1);
+    spts[1] = std::make_pair( 1, -1);
+    spts[0] = std::make_pair(-1, -1);
+    spts[0] = std::make_pair(-1,  1);
+}
+
+// Get polygon points; someone else applies that
+void getPolygonPoints(std::vector<std::pair<double, double>>& ppts, int points)
+{
+    double rotation = 0;
+    if (points % 2 != 0)
+        rotation += 90;
+    if (points == 4)
+        rotation += 45;
+    if (points == 8)
+        rotation += 22.5;
+
+    double increment = 360.0 / points;
+    ppts.resize(points);
+
+    for (int i = 0; i<points; ++i, rotation += increment)
+    {
+        double radian = (rotation) * M_PI / 180.0;
+        ppts[i] = std::make_pair(cos(radian), sin(radian));
+    }
+}
+
+// OK can we just admit it is a polygon with a lot of points?
+void getCirclePoints(std::vector<std::pair<double, double>>& ppts)
+{
+    getPolygonPoints(ppts, 100);
+}
+
+void getCrossPoints(std::vector<std::pair<double, double>>& ppts)
+{
+    const wxPoint points[] = { wxPoint(2, 0),
+                            wxPoint(2, 6),
+                            wxPoint(0, 6),
+                            wxPoint(0, 7),
+                            wxPoint(2, 7),
+                            wxPoint(2, 10),
+                            wxPoint(3, 10), 
+                            wxPoint(3, 7),
+                            wxPoint(5, 7),
+                            wxPoint(5, 6),
+                            wxPoint(3, 6),
+                            wxPoint(3, 0)};
+    ppts.clear();
+    for (const auto &pt : points) {
+        ppts.push_back(std::make_pair((pt.x - 2.5) / 7.0, (pt.y - 6.5) / 10));
+    }
+}
+
+// TODO: Get heart points, get candy cane points, star, snowflake, tree, present
+//   AND THEN the logic for doing something with it.
 
 void RippleEffect::Drawtriangle(RenderBuffer& buffer, int Movement, int xc, int yc, double side, HSVValue& hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
 {
@@ -229,10 +307,6 @@ void RippleEffect::Drawtriangle(RenderBuffer& buffer, int Movement, int xc, int 
         return;
 
     xlColor color(hsv);
-
-#define ROOT3DIV3 0.577350269
-#define SIN30 0.5
-#define COS30 0.866025404
 
     for (int i = 0; i < Ripple_Thickness; i++) {
         double radius = (side + i) * ROOT3DIV3;
@@ -242,7 +316,7 @@ void RippleEffect::Drawtriangle(RenderBuffer& buffer, int Movement, int xc, int 
         double xleft = xc - radius * COS30;
         double yleft = yc - radius * SIN30;
 
-        double xright = xleft + side + i;
+        double xright = xleft + side + i; // This is kinda weird
         double yright = yleft;
 
         if (CheckBox_Ripple3D) {
@@ -454,7 +528,7 @@ void RippleEffect::Drawpolygon(RenderBuffer& buffer, int Movement, int xc, int y
                     int x1 = std::round(radius * cos(radian)) + xc;
                     int y1 = std::round(radius * sin(radian)) + yc;
                     newpts.push_back(std::make_pair(x1, y1));
-                }            
+                }
                 FillRegion(buffer, oldpts, newpts, color);
             } else {
                 for (double degrees = 0.0; degrees < 361.0; degrees += increment) // 361 because it allows for small rounding errors

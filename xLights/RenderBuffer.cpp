@@ -1276,15 +1276,28 @@ static void ScanEdge(int x1, int y1, int x2, int y2, int setx, bool skip, std::v
   eidx = idx;
 }
 
-void RenderBuffer::FillConvexPoly(const std::vector<std::pair<int, int>>& poly, const xlColor& color)
+void RenderBuffer::FillConvexPoly(const std::vector<std::pair<int, int>>& opoly, const xlColor& color)
 {
+    if (opoly.empty())
+        return;
+    std::vector<std::pair<int, int>> poly;
+    poly.push_back(opoly[0]);
+    for (size_t i = 1; i < opoly.size(); ++i) {
+        if (opoly[i] != opoly[i - 1]) {
+            poly.push_back(opoly[i]);
+        }
+    }
+    if (poly[0] == poly[poly.size() - 1]) {
+        poly.pop_back();
+    }
+
     // Loosely based on Michael Abrash's Graphics Programming Black Book (TGPBB)
     // Feels very low tech compared to what should be here, but high tech compared to the
     //    rest of the stuff that actually is here (shrug)
     if (poly.size() < 3)
        return;
     int miny, maxy, minx, maxx;
-    minx = maxx = poly[0].second;
+    minx = maxx = poly[0].first;
     miny = maxy = poly[0].second;
     int minidxl = 0, maxidx = 0;
 
@@ -1355,8 +1368,6 @@ void RenderBuffer::FillConvexPoly(const std::vector<std::pair<int, int>>& poly, 
     /* Scan convert each line in the left edge from top to bottom */
     do {
        cidx = (cidx + poly.size() + ledir) % poly.size();
-
-
        ScanEdge(poly[pidx].first, poly[pidx].second,
                 poly[cidx].first, poly[cidx].second,
                 true, skip, hlines, edgept);
@@ -1382,7 +1393,11 @@ void RenderBuffer::FillConvexPoly(const std::vector<std::pair<int, int>>& poly, 
 
     // Draw the line list representing the scan converted polygon
     for (int y = ystart, en = 0; y < int(ystart + hlines.size()); ++y, ++en) {
-       for (int x = hlines[en].first; x <= hlines[en].second; ++x)
+       if (y < 0 || y >= BufferHt)
+            continue;
+       int sx = std::max(0, hlines[en].first);
+       int ex = std::min(hlines[en].second, BufferWi - 1);
+       for (int x = sx; x <= ex; ++x)
             SetPixel(x, y, color, false);
     }
 }
