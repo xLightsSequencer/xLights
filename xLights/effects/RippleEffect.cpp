@@ -70,7 +70,7 @@ void RippleEffect::SetDefaultParameters()
     SetSliderValue(rp->Slider_Ripple_Rotation, 0);
 
     SetCheckBoxValue(rp->CheckBox_Ripple3D, false);
-    SetCheckBoxValue(rp->CheckBox_RippleSolid, false);
+    SetChoiceValue(rp->Choice_Ripple_Draw_Style, "Old");
 }
 
 void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
@@ -80,7 +80,8 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     const std::string& MovementStr = SettingsMap["CHOICE_Ripple_Movement"];
     int Ripple_Thickness = GetValueCurveInt("Ripple_Thickness", 3, SettingsMap, oset, RIPPLE_THICKNESS_MIN, RIPPLE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool CheckBox_Ripple3D = SettingsMap.GetBool("CHECKBOX_Ripple3D", false);
-    bool CheckBox_RippleSolid = SettingsMap.GetBool("CHECKBOX_RippleSolid", false);
+    bool CheckBox_RippleSolid = false;
+     // TODO SettingsMap.GetBool("CHECKBOX_RippleSolid", false);
     float cycles = GetValueCurveDouble("Ripple_Cycles", 1.0, SettingsMap, oset, RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
     int points = SettingsMap.GetInt("SLIDER_RIPPLE_POINTS", 5);
     int rotation = GetValueCurveInt("Ripple_Rotation", 0, SettingsMap, oset, RIPPLE_ROTATION_MIN, RIPPLE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

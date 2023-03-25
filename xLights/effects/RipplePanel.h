@@ -34,7 +34,7 @@ class RipplePanel: public xlEffectPanel
 
 		//(*Declarations(RipplePanel)
 		BulkEditCheckBox* CheckBox_Ripple3D;
-		BulkEditCheckBox* CheckBox_RippleSolid;
+		BulkEditChoice* Choice_Ripple_Draw_Style;
 		BulkEditChoice* Choice_Ripple_Movement;
 		BulkEditChoice* Choice_Ripple_Object_To_Draw;
 		BulkEditSlider* Slider_Ripple_Points;
@@ -56,13 +56,14 @@ class RipplePanel: public xlEffectPanel
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
+		wxStaticText* StaticText5;
 		wxStaticText* StaticText69;
 		wxStaticText* StaticText70;
 		wxStaticText* StaticText72;
 		wxStaticText* StaticText_Ripple_Rotation;
 		xlLockButton* BitmapButton_Ripple3D;
-		xlLockButton* BitmapButton_RippleSolid;
 		xlLockButton* BitmapButton_RippleThickness;
+		xlLockButton* BitmapButton_Ripple_Draw_Style;
 		xlLockButton* BitmapButton_Ripple_Movement;
 		xlLockButton* BitmapButton_Ripple_Object_To_Draw;
 		xlLockButton* BitmapButton_Ripple_Points;
@@ -104,16 +105,18 @@ class RipplePanel: public xlEffectPanel
 		static const long ID_SLIDER_Ripple_YC;
 		static const long ID_VALUECURVE_Ripple_YC;
 		static const long IDD_TEXTCTRL_Ripple_YC;
+		static const long ID_STATICTEXT_Ripple_Draw_Style;
+		static const long ID_CHOICE_Ripple_Draw_Style;
+		static const long ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style;
 		static const long ID_CHECKBOX_Ripple3D;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Ripple3D;
-		static const long ID_CHECKBOX_RippleSolid;
-		static const long ID_BITMAPBUTTON_CHECKBOX_RippleSolid;
 		//*)
 
 	public:
 
 		//(*Handlers(RipplePanel)
 		void OnChoice_Ripple_Object_To_DrawSelect(wxCommandEvent& event);
+		void OnChoice_Ripple_Draw_StyleSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

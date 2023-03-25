@@ -60,10 +60,11 @@ const long RipplePanel::ID_STATICTEXT3 = wxNewId();
 const long RipplePanel::ID_SLIDER_Ripple_YC = wxNewId();
 const long RipplePanel::ID_VALUECURVE_Ripple_YC = wxNewId();
 const long RipplePanel::IDD_TEXTCTRL_Ripple_YC = wxNewId();
+const long RipplePanel::ID_STATICTEXT_Ripple_Draw_Style = wxNewId();
+const long RipplePanel::ID_CHOICE_Ripple_Draw_Style = wxNewId();
+const long RipplePanel::ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style = wxNewId();
 const long RipplePanel::ID_CHECKBOX_Ripple3D = wxNewId();
 const long RipplePanel::ID_BITMAPBUTTON_CHECKBOX_Ripple3D = wxNewId();
-const long RipplePanel::ID_CHECKBOX_RippleSolid = wxNewId();
-const long RipplePanel::ID_BITMAPBUTTON_CHECKBOX_RippleSolid = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(RipplePanel,wxPanel)
@@ -83,7 +84,6 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	wxFlexGridSizer* FlexGridSizer57;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer60;
-	wxFlexGridSizer* FlexGridSizer61;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(536,607), wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer57 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -194,6 +194,30 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl_Ripple_YC->SetMaxLength(3);
 	FlexGridSizer57->Add(TextCtrl_Ripple_YC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT_Ripple_Draw_Style, _("Draw Style"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Draw_Style"));
+	FlexGridSizer57->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Ripple_Draw_Style = new BulkEditChoice(this, ID_CHOICE_Ripple_Draw_Style, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Ripple_Draw_Style"));
+	Choice_Ripple_Draw_Style->Append(_("Old"));
+	Choice_Ripple_Draw_Style->Append(_("Lines Inward"));
+	Choice_Ripple_Draw_Style->Append(_("Lines Outward"));
+	Choice_Ripple_Draw_Style->Append(_("Lines Both"));
+	Choice_Ripple_Draw_Style->Append(_("Lines Inward Ripple"));
+	Choice_Ripple_Draw_Style->Append(_("Lines Outward Ripple"));
+	Choice_Ripple_Draw_Style->Append(_("Lines Both Ripple"));
+	Choice_Ripple_Draw_Style->Append(_("Solid Inward"));
+	Choice_Ripple_Draw_Style->Append(_("Solid Outward"));
+	Choice_Ripple_Draw_Style->Append(_("Solid Both"));
+	Choice_Ripple_Draw_Style->Append(_("Solid Inward Ripple"));
+	Choice_Ripple_Draw_Style->Append(_("Solid Outward Ripple"));
+	Choice_Ripple_Draw_Style->Append(_("Solid Both Ripple"));
+	Choice_Ripple_Draw_Style->Append(_("Highlight Inward Ripple"));
+	Choice_Ripple_Draw_Style->Append(_("Highlight Outward Ripple"));
+	Choice_Ripple_Draw_Style->Append(_("Highlight Both Ripple"));
+	FlexGridSizer57->Add(Choice_Ripple_Draw_Style, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Ripple_Draw_Style = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style"));
+	BitmapButton_Ripple_Draw_Style->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+	FlexGridSizer57->Add(BitmapButton_Ripple_Draw_Style, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer60 = new wxFlexGridSizer(0, 4, 0, 0);
 	CheckBox_Ripple3D = new BulkEditCheckBox(this, ID_CHECKBOX_Ripple3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Ripple3D"));
@@ -205,23 +229,11 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(FlexGridSizer60, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer57->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer61 = new wxFlexGridSizer(0, 4, 0, 0);
-	CheckBox_RippleSolid = new BulkEditCheckBox(this, ID_CHECKBOX_RippleSolid, _("Solid"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_RippleSolid"));
-	CheckBox_RippleSolid->SetValue(false);
-	FlexGridSizer61->Add(CheckBox_RippleSolid, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_RippleSolid = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_RippleSolid, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_RippleSolid"));
-	BitmapButton_RippleSolid->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer61->Add(BitmapButton_RippleSolid, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer57->Add(FlexGridSizer61, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer57->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer57->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer57);
 	SetSizer(FlexGridSizer57);
 	Layout();
 
 	Connect(ID_CHOICE_Ripple_Object_To_Draw,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&RipplePanel::OnChoice_Ripple_Object_To_DrawSelect);
-	Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Object_To_Draw,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Movement,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Ripple_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
@@ -229,6 +241,9 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_BITMAPBUTTON_SLIDER_RIPPLE_POINTS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_RIPPLE");
+
+	Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Object_To_Draw, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 
 	Connect(ID_VALUECURVE_Ripple_XC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Ripple_YC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
@@ -282,4 +297,9 @@ void RipplePanel::ValidateWindow()
 		TextCtrl_Ripple_Rotation->Disable();
         BitmapButton_Ripple_RotationVC->Disable();
     }
+}
+
+void RipplePanel::OnChoice_Ripple_Draw_StyleSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
 }
