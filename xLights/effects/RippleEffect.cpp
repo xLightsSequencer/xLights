@@ -228,31 +228,31 @@ static void FillRegion(RenderBuffer& buffer, const std::vector<std::pair<int, in
 
 // It is somewhat redundant with 3-sided polygon isn't it?
 //  Especially now that it is equilateral
-void getTrianglePoints(std::vector<std::pair<double, double>>& tpts)
+static void getTrianglePoints(std::vector<std::pair<double, double>>& tpts)
 {
     tpts.resize(3);
     #define ROOT3DIV3 0.577350269
     #define SIN30 0.5
     #define COS30 0.866025404
 
-    tpts[0] = std::make_pair(0, 1);
-    tpts[1] = std::make_pair(-COS30, -SIN30);
-    tpts[2] = std::make_pair(COS30, SIN30);
+    tpts[0] = { 0, 1 };
+    tpts[1] = { -COS30, -SIN30 };
+    tpts[2] = { COS30, SIN30 };
 }
 
 // Now see, the square becomes a rectangle later, if desired
 // It is somewhat redundant with 4-side polygon isn't it...
-void getSquarePoints(std::vector<std::pair<double, double>>& spts)
+static void getSquarePoints(std::vector<std::pair<double, double>>& spts)
 {
     spts.resize(4);
-    spts[0] = std::make_pair( 1,  1);
-    spts[1] = std::make_pair( 1, -1);
-    spts[0] = std::make_pair(-1, -1);
-    spts[0] = std::make_pair(-1,  1);
+    spts[0] = {  1,  1 };
+    spts[1] = {  1, -1 };
+    spts[0] = { -1, -1 };
+    spts[0] = { -1,  1 };
 }
 
 // Get polygon points; someone else applies that
-void getPolygonPoints(std::vector<std::pair<double, double>>& ppts, int points)
+static void getPolygonPoints(std::vector<std::pair<double, double>>& ppts, int points)
 {
     double rotation = 0;
     if (points % 2 != 0)
@@ -268,17 +268,17 @@ void getPolygonPoints(std::vector<std::pair<double, double>>& ppts, int points)
     for (int i = 0; i<points; ++i, rotation += increment)
     {
         double radian = (rotation) * M_PI / 180.0;
-        ppts[i] = std::make_pair(cos(radian), sin(radian));
+        ppts[i] = { cos(radian), sin(radian) };
     }
 }
 
 // OK can we just admit it is a polygon with a lot of points?
-void getCirclePoints(std::vector<std::pair<double, double>>& ppts)
+static void getCirclePoints(std::vector<std::pair<double, double>>& ppts)
 {
     getPolygonPoints(ppts, 100);
 }
 
-void getCrossPoints(std::vector<std::pair<double, double>>& ppts)
+static void getCrossPoints(std::vector<std::pair<double, double>>& ppts)
 {
     const wxPoint points[] = { wxPoint(2, 0),
                             wxPoint(2, 6),
@@ -294,12 +294,157 @@ void getCrossPoints(std::vector<std::pair<double, double>>& ppts)
                             wxPoint(3, 0)};
     ppts.clear();
     for (const auto &pt : points) {
-        ppts.push_back(std::make_pair((pt.x - 2.5) / 7.0, (pt.y - 6.5) / 10));
+        ppts.push_back({ (pt.x - 2.5) / 7.0, (pt.y - 6.5) / 10 });
     }
 }
 
-// TODO: Get heart points, get candy cane points, star, snowflake, tree, present
+static void getTreePoints(std::vector<std::pair<double, double>>& ppts)
+{
+    const wxPoint points[] = {
+        wxPoint(3, 3),
+        wxPoint(3, 0),
+        wxPoint(5, 0),
+        wxPoint(5, 3),
+        wxPoint(0, 3),
+        wxPoint(2, 6),
+        wxPoint(1, 6),
+        wxPoint(3, 9),
+        wxPoint(2, 9),
+        wxPoint(4, 11),
+        wxPoint(6, 9),
+        wxPoint(5, 9),
+        wxPoint(7, 6),
+        wxPoint(6,6),
+        wxPoint(8,3)
+    };
+    ppts.clear();
+    for (const auto& pt : points) {
+        ppts.push_back({ (pt.x - 4.0) / 11.0, (pt.y - 4.0) / 11.0 });
+    }
+}
+
+static void getPresentPoints(std::vector<std::pair<double, double>>& ppts)
+{
+    const wxPoint points[] = {
+        wxPoint(5, 9),
+        wxPoint(2, 11),
+        wxPoint(2, 9),
+        wxPoint(5, 9),
+        wxPoint(8, 11),
+        wxPoint(5, 9),
+        wxPoint(0, 9),
+        wxPoint(0, 0),
+        wxPoint(10, 0),
+        wxPoint(10, 9),
+        wxPoint(5, 9),
+        wxPoint(5, 0)
+    };
+
+    for (const auto& pt : points) {
+        ppts.push_back({ (pt.x - 5.0) / 7.0, (pt.y - 5.5) / 10.0 });
+    }
+}
+
+static void getHeartPoints(std::vector<std::pair<double, double>>& pts)
+{
+    std::vector<std::pair<double, double>> rpts;
+
+    double xincr = 1.0 / 64;
+    for (double x = -2.0; x <= 2.0; x += xincr) {
+        double y1 = std::sqrt(1.0 - (std::abs(x) - 1.0) * (std::abs(x) - 1.0));
+        double y2 = std::acos(1.0 - std::abs(x)) - M_PI;
+
+        double xx1 = std::round(x / 2.0);
+        double yy1 = (y1) / 2.0;
+        double yy2 = (y2) / 2.0;
+
+        pts.push_back({ xx1, yy1 });
+        rpts.push_back({ xx1, yy2 });
+    }
+
+    while (!rpts.empty()) {
+        pts.push_back(rpts.back());
+        rpts.pop_back();
+    }
+}
+
+static void getCanePoints(std::vector<std::pair<double, double>>& pts)
+{
+    // the stick
+    double ys1 = 1.0 / 6;
+    double ys2 = -1.0 / 2;
+    double xs = 1.0 / 2;
+    pts.clear();
+    pts.push_back({ xs, ys2 });
+    pts.push_back({ xs, ys1 });
+
+    // The hook
+    for (double degrees = 0.0; degrees < 180; degrees += 1.0) {
+        double radian = degrees * (M_PI / 180.0);
+        pts.push_back({cos(radian)/3, sin(radian)/3 + ys1 });
+    }
+    // MoC: The candy cane is a bit smaller than other things, and squat, so it is tempting to increase height a bit
+}
+
+static void getStarPoints(std::vector<std::pair<double, double>>& pts, int npts)
+{
+    double offsetangle = 90 - 360 / npts; // May as well be 90.  We just want a point that is up.
+
+    double InnerRadius = 1.0 / 2.618034; // divide by golden ratio squared
+
+    double increment = 360.0 / npts;
+
+    double deg = offsetangle;
+    for (int i = 0; i<npts; deg += increment, ++i) {
+        double radian = (deg) * (M_PI / 180.0);
+        double xouter = cos(radian);
+        double youter = sin(radian);
+
+        radian = (deg + increment / 2.0) * (M_PI / 180.0);
+        double xinner = InnerRadius * cos(radian);
+        double yinner = InnerRadius * sin(radian);
+
+        pts.push_back({ xouter, youter });
+        pts.push_back({ xinner, yinner });
+    }
+}
+
+static void getSnowflakePoints(std::vector<std::pair<double, double>>& pts, int npts)
+{
+    // The original is not, really, all that good for our purpose as it has no width.  Considering what to do instead.
+    npts *= 2;
+
+    double increment = 360.0 / npts;
+    pts.resize(npts * 3);
+
+    double rotation = 0; // The original always has spoke horizontal, don't like it, set rotation to 90
+
+    for (int i = 0; i < npts; ++i, rotation += increment) {
+        double delta = increment / 20;
+        double inrad = .05;
+
+        double r1 = (rotation - delta) * M_PI / 180.0;
+        double r2 = (rotation + delta) * M_PI / 180.0;
+        double r3 = (rotation + increment / 2) * M_PI / 180.0;
+
+        pts[i * 3 + 0] = { cos(r1), sin(r1) };
+        pts[i * 3 + 1] = { cos(r2), sin(r2) };
+        pts[i * 3 + 2] = { inrad*cos(r3), inrad * sin(r3) };
+    }
+}
+
+// TODO:
 //   AND THEN the logic for doing something with it.
+//     Like shockwave - fade in and out?
+//     Acceleration, R1 & R2 explict, width1, width2?
+//   Shape has:
+//     Growth
+//     Direction, velocity, SVG
+//     Thickness?  firing with timing or music?
+//   AND THEN the colors
+//     Temporally, radially, or outward
+//   AND THEN debug the abrash routine or switch to the brush routine
+//   AND THEN svg
 
 void RippleEffect::Drawtriangle(RenderBuffer& buffer, int Movement, int xc, int yc, double side, HSVValue& hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
 {
@@ -527,7 +672,7 @@ void RippleEffect::Drawpolygon(RenderBuffer& buffer, int Movement, int xc, int y
                     double radian = (rotation + degrees) * M_PI / 180.0;
                     int x1 = std::round(radius * cos(radian)) + xc;
                     int y1 = std::round(radius * sin(radian)) + yc;
-                    newpts.push_back(std::make_pair(x1, y1));
+                    newpts.push_back({ x1, y1 });
                 }
                 FillRegion(buffer, oldpts, newpts, color);
             } else {
