@@ -49,6 +49,7 @@ xlEffectPanel *RippleEffect::CreatePanel(wxWindow *parent) {
 
 #define MOVEMENT_EXPLODE    0
 #define MOVEMENT_IMPLODE    1
+#define MOVEMENT_NONE       2
 
 void RippleEffect::SetDefaultParameters()
 {
@@ -170,7 +171,7 @@ static void getTreePoints(dpointvec& ppts)
     };
     ppts.clear();
     for (const auto& pt : points) {
-        ppts.push_back({ (pt.x - 4.0) / 11.0, (pt.y - 4.0) / 11.0 });
+        ppts.push_back({ (pt.x - 4.0) / 11.0, (pt.y - 5.5) / 11.0 });
     }
 }
 
@@ -321,18 +322,29 @@ static void FillRegion(RenderBuffer& buffer, ipointvec& oldpoints, const ipointv
     }
 }
 
-static ipointvec ScaleShape(const dpointvec& in, double sx, double sy, double cx, double cy)
+static ipointvec ScaleShape(const dpointvec& in, double sx, double sy, double cx, double cy, double rotation, bool round=false)
 {
     ipointvec rv;
+    double angle_rad = rotation * M_PI / 180.0;
+
     for (const auto& p : in) {
-        rv.push_back({ p.first * sx + cx, p.second * sy + cy });
+        double x = p.first * sx;
+        double y = p.second * sy;
+        double rx = x * cos(angle_rad) - y * sin(angle_rad);
+        double ry = x * sin(angle_rad) + y * cos(angle_rad);
+
+        if (round) {
+            rv.push_back({ std::round(rx + cx), std::round(ry + cy) });
+        } else {
+            rv.push_back({ rx + cx, ry + cy });
+        }
     }
     return rv;
 }
 
 static void drawRippleNew(
     RenderBuffer& buffer, const dpointvec& points, bool closedShape,
-    double time, double xcc, double ycc, bool implode, bool nonsquare,
+    double time, double xcc, double ycc, double rotation, bool implode, bool nonsquare,
     int thickness, bool doInside, bool doOutside,
     bool fade, bool lines, bool fill, bool ripple)
 {
@@ -378,25 +390,73 @@ static void drawRippleNew(
     }
 
     // OK time to draw!
-    ipointvec oldptsouter, oldptsinner;
+    if (fill) {
+        ipointvec oldptsouter, oldptsinner;
+        for (int i = thickness * 2 - 1; i >= 0; --i) {
+            double strength = (thickness * 2.0 - i) / (thickness * 2.0); // Used for 3D/fade
+            double delta = ripple ? ((i * i + 1) * 0.25 * pxw) : (i * 0.5 * pxw);
 
-    for (int i = thickness * 2 - 1; i >= 0; --i)
-    {
-        double strength = (thickness * 2.0 - i) / (thickness * 2.0); // Used for 3D/fade
-        double delta = ripple ? (i * 0.5 * pxw) : ((i * i + 1) * 0.25 * pxw);
+            xlColor fadeColor(hsv);
+            if (buffer.allowAlpha) {
+                fadeColor.alpha = 255.0 * strength;
+            } else {
+                HSVValue hsvc = hsv;
+                hsvc.value *= strength;
+                fadeColor = hsv;
+            }
 
-        if (doInside && brX - delta > 0 && brY - delta > 0) {
-        
+            if (doInside && brX - delta > 0 && brY - delta > 0) {
+                ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation, true);
+                if (!oldptsinner.empty()) {
+                    FillRegion(buffer, oldptsinner, ishp, fade ? fadeColor : xlColor(hsv), closedShape);
+                }
+                oldptsinner = ishp;
+            } else if (doInside) {
+                oldptsinner = {};
+                for (const auto& p : points)
+                    oldptsinner.push_back({ 0, 0 });
+            }
+            if (doOutside && brX + delta > 0 && brY + delta > 0) {
+                ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation, true);
+                if (!oldptsouter.empty()) {
+                    FillRegion(buffer, oldptsouter, oshp, fade ? fadeColor : xlColor(hsv), closedShape);
+                }
+                oldptsouter = oshp;
+            }
         }
-        if (doOutside && brX + delta > 0 && brY + delta > 0) {
+        if (oldptsinner.size() > 0 && oldptsouter.size() > 0) {
+            FillRegion(buffer, oldptsinner, oldptsouter, xlColor(hsv), closedShape);
         }
+    }
+    if (lines) {
+        for (int i = thickness * 2 - 1; i >= 0; --i) {
+            double strength = (thickness * 2.0 - i) / (thickness * 2.0); // Used for 3D/fade
+            double delta = ripple ? ((i * i + 1) * 0.25 * pxw) : (i * 0.5 * pxw);
 
+            xlColor fadeColor(hsv);
+            if (buffer.allowAlpha) {
+                fadeColor.alpha = 255.0 * strength;
+            } else {
+                HSVValue hsvc = hsv;
+                hsvc.value *= strength;
+                fadeColor = hsv;
+            }
 
-        // Draw the main shape
-        if (brX > 0 && brY > 0) {
-            ipointvec mshp = ScaleShape(points, brX, brY, xc, yc);
-            DrawShape(buffer, mshp, hsv, closedShape);
+            if (doInside && brX - delta > 0 && brY - delta > 0) {
+                ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation);
+                DrawShape(buffer, ishp, (fade && !fill) ? fadeColor : xlColor(hsv), closedShape);
+            }
+            if (doOutside && brX + delta > 0 && brY + delta > 0) {
+                ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation);
+                DrawShape(buffer, oshp, (fade && !fill) ? fadeColor : xlColor(hsv), closedShape);
+            }
         }
+    }
+
+    // Draw the main shape
+    if (brX > 0 && brY > 0) {
+        ipointvec mshp = ScaleShape(points, brX, brY, xc, yc, rotation);
+        DrawShape(buffer, mshp, hsv, closedShape);
     }
 }
 
@@ -413,7 +473,7 @@ static void drawRippleNew(
 //   AND THEN debug the abrash routine or switch to the brush routine
 //      Rounding probably makes it non-convex... Prep for that.
 //   AND THEN implode/explode - it really just should have a value curve shouldn't it?
-//        I'd say "None" and then you can add your own 
+//        I'd say "None" and then you can add your own scale
 //        Velocity and direction?
 //   AND THEN svg
 //   AND THEN the UI knobs checkover
@@ -479,7 +539,14 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         getCirclePoints(shapePts);
         Object_To_Draw = RENDER_RIPPLE_CIRCLE;
     }
-    int Movement = "Explode" == MovementStr ? MOVEMENT_EXPLODE : MOVEMENT_IMPLODE;
+
+    int Movement = MOVEMENT_NONE;
+    if (MovementStr == "Explode") {
+        Movement = MOVEMENT_EXPLODE;
+    }
+    if (MovementStr == "Implode") {
+        Movement = MOVEMENT_IMPLODE;
+    }
 
     bool drawNew = false;
     bool interiorDirection = false;
@@ -519,7 +586,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
     if (drawNew)
     {
-        drawRippleNew(buffer, shapePts, closeShape, position, xcc, ycc, Movement == MOVEMENT_IMPLODE,
+        drawRippleNew(buffer, shapePts, closeShape, position, xcc, ycc, rotation, Movement == MOVEMENT_IMPLODE,
                       !uniformAspectRatio, Ripple_Thickness, interiorDirection, exteriorDirection,
                  CheckBox_Ripple3D, drawLines, drawFill, rippleSpaced);
         return;

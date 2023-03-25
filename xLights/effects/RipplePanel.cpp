@@ -244,6 +244,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 
 	Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Object_To_Draw, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+    Connect(ID_CHOICE_Ripple_Draw_Style, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&RipplePanel::OnChoice_Ripple_Draw_StyleSelect);
 
 	Connect(ID_VALUECURVE_Ripple_XC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Ripple_YC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
@@ -296,6 +297,12 @@ void RipplePanel::ValidateWindow()
 		Slider_Ripple_Rotation->Disable();
 		TextCtrl_Ripple_Rotation->Disable();
         BitmapButton_Ripple_RotationVC->Disable();
+    }
+    if (Choice_Ripple_Draw_Style->GetStringSelection() != "Old") {
+        BitmapButton_Ripple_Rotation->Enable();
+        Slider_Ripple_Rotation->Enable();
+        TextCtrl_Ripple_Rotation->Enable();
+        BitmapButton_Ripple_RotationVC->Enable();
     }
 }
 
