@@ -89,7 +89,7 @@ static void getTrianglePoints(dpointvec& tpts)
 
     tpts[0] = { 0, 1 };
     tpts[1] = { -COS30, -SIN30 };
-    tpts[2] = { COS30, SIN30 };
+    tpts[2] = { COS30, -SIN30 };
 }
 
 // Now see, the square becomes a rectangle later, if desired
@@ -99,8 +99,8 @@ static void getSquarePoints(dpointvec& spts)
     spts.resize(4);
     spts[0] = { 1, 1 };
     spts[1] = { 1, -1 };
-    spts[0] = { -1, -1 };
-    spts[0] = { -1, 1 };
+    spts[2] = { -1, -1 };
+    spts[3] = { -1, 1 };
 }
 
 // Get polygon points; someone else applies that
@@ -182,6 +182,7 @@ static void getPresentPoints(dpointvec& ppts)
         wxPoint(2, 9),
         wxPoint(5, 9),
         wxPoint(8, 11),
+        wxPoint(8, 9),
         wxPoint(5, 9),
         wxPoint(0, 9),
         wxPoint(0, 0),
@@ -200,14 +201,14 @@ static void getHeartPoints(dpointvec& pts)
 {
     dpointvec rpts;
 
-    double xincr = 1.0 / 64;
+    double xincr = 1.0 / 64.0;
     for (double x = -2.0; x <= 2.0; x += xincr) {
         double y1 = std::sqrt(1.0 - (std::abs(x) - 1.0) * (std::abs(x) - 1.0));
         double y2 = std::acos(1.0 - std::abs(x)) - M_PI;
 
-        double xx1 = std::round(x / 2.0);
-        double yy1 = (y1) / 2.0;
-        double yy2 = (y2) / 2.0;
+        double xx1 = x / 2.0;
+        double yy1 = y1 / 2.0;
+        double yy2 = y2 / 2.0;
 
         pts.push_back({ xx1, yy1 });
         rpts.push_back({ xx1, yy2 });
@@ -224,7 +225,7 @@ static void getCanePoints(dpointvec& pts)
     // the stick
     double ys1 = 1.0 / 6;
     double ys2 = -1.0 / 2;
-    double xs = 1.0 / 2;
+    double xs = 1.0 / 3;
     pts.clear();
     pts.push_back({ xs, ys2 });
     pts.push_back({ xs, ys1 });
@@ -518,6 +519,9 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
     if (drawNew)
     {
+        drawRippleNew(buffer, shapePts, closeShape, position, xcc, ycc, Movement == MOVEMENT_IMPLODE,
+                      !uniformAspectRatio, Ripple_Thickness, interiorDirection, exteriorDirection,
+                 CheckBox_Ripple3D, drawLines, drawFill, rippleSpaced);
         return;
     }
 
