@@ -123,7 +123,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Scale" subclass="BulkEditTextCtrl" variable="TextCtrl_Ripple_Scale" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Scale" subclass="BulkEditTextCtrl" variable="TextCtrl_Ripple_Scale" member="yes">
 					<value>100</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
@@ -233,7 +233,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Spacing" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Ripple_Spacing" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Spacing" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Ripple_Spacing" member="yes">
 					<value>1.0</value>
 					<maxlength>4</maxlength>
 					<size>20,-1d</size>

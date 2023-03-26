@@ -51,8 +51,10 @@ class RipplePanel: public xlEffectPanel
 		BulkEditTextCtrl* TextCtrl_Ripple_Direction;
 		BulkEditTextCtrl* TextCtrl_Ripple_Points;
 		BulkEditTextCtrl* TextCtrl_Ripple_Rotation;
+		BulkEditTextCtrl* TextCtrl_Ripple_Scale;
 		BulkEditTextCtrl* TextCtrl_Ripple_XC;
 		BulkEditTextCtrl* TextCtrl_Ripple_YC;
+		BulkEditTextCtrlF1* TextCtrl_Ripple_Spacing;
 		BulkEditTextCtrlF1* TextCtrl_Ripple_Twist;
 		BulkEditTextCtrlF1* TextCtrl_Ripple_Velocity;
 		BulkEditValueCurveButton* BitmapButton_Ripple_CyclesVC;

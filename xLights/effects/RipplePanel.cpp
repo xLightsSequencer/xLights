@@ -101,9 +101,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(RipplePanel)
 	BulkEditTextCtrl* TextCtrl33;
-	BulkEditTextCtrl* TextCtrl_Ripple_Scale;
 	BulkEditTextCtrlF1* TextCtrl34;
-	BulkEditTextCtrlF1* TextCtrl_Ripple_Spacing;
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
@@ -426,31 +424,56 @@ void RipplePanel::ValidateWindow()
         Slider_Ripple_Rotation->Enable();
         TextCtrl_Ripple_Rotation->Enable();
         BitmapButton_Ripple_RotationVC->Enable();
-    } else {
-        BitmapButton_Ripple_Scale->Enable();
+
+	    BitmapButton_Ripple_Scale->Enable();
         Slider_Ripple_Scale->Enable();
-        //TextCtrl_Ripple_Scale->Enable();
+        TextCtrl_Ripple_Scale->Enable();
         BitmapButton_Ripple_ScaleVC->Enable();
 
-	    BitmapButton_Ripple_Spacing->Enable();
+        BitmapButton_Ripple_Spacing->Enable();
         Slider_Ripple_Spacing->Enable();
-        //TextCtrl_Ripple_Spacing->Enable();
+        TextCtrl_Ripple_Spacing->Enable();
         BitmapButton_Ripple_SpacingVC->Enable();
 
-	    BitmapButton_Ripple_Twist->Enable();
+        BitmapButton_Ripple_Twist->Enable();
         Slider_Ripple_Twist->Enable();
         TextCtrl_Ripple_Twist->Enable();
         BitmapButton_Ripple_TwistVC->Enable();
 
-		BitmapButton_Ripple_Direction->Enable();
+        BitmapButton_Ripple_Direction->Enable();
         Slider_Ripple_Direction->Enable();
         TextCtrl_Ripple_Direction->Enable();
         BitmapButton_Ripple_DirectionVC->Enable();
 
-	    BitmapButton_Ripple_Velocity->Enable();
+        BitmapButton_Ripple_Velocity->Enable();
         Slider_Ripple_Velocity->Enable();
         TextCtrl_Ripple_Velocity->Enable();
         BitmapButton_Ripple_VelocityVC->Enable();
+    } else {
+        BitmapButton_Ripple_Scale->Disable();
+        Slider_Ripple_Scale->Disable();
+        TextCtrl_Ripple_Scale->Disable();
+        BitmapButton_Ripple_ScaleVC->Disable();
+
+	    BitmapButton_Ripple_Spacing->Disable();
+        Slider_Ripple_Spacing->Disable();
+        TextCtrl_Ripple_Spacing->Disable();
+        BitmapButton_Ripple_SpacingVC->Disable();
+
+	    BitmapButton_Ripple_Twist->Disable();
+        Slider_Ripple_Twist->Disable();
+        TextCtrl_Ripple_Twist->Disable();
+        BitmapButton_Ripple_TwistVC->Disable();
+
+		BitmapButton_Ripple_Direction->Disable();
+        Slider_Ripple_Direction->Disable();
+        TextCtrl_Ripple_Direction->Disable();
+        BitmapButton_Ripple_DirectionVC->Disable();
+
+	    BitmapButton_Ripple_Velocity->Disable();
+        Slider_Ripple_Velocity->Disable();
+        TextCtrl_Ripple_Velocity->Disable();
+        BitmapButton_Ripple_VelocityVC->Disable();
     }
 }
 
