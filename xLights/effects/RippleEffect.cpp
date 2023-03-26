@@ -296,6 +296,43 @@ static void DrawShape(RenderBuffer &buffer, ipointvec &points, const xlColor &co
     }
 }
 
+static bool isConvex(const ipointvec& q)
+{
+    double cross = 0;
+    for (int i = 0; i < 4; i++) {
+        double x1 = q[(i + 1) % 4].first - q[i].first;
+        double y1 = q[(i + 1) % 4].second - q[i].second;
+        double x2 = q[(i + 2) % 4].first - q[(i + 1) % 4].first;
+        double y2 = q[(i + 2) % 4].second - q[(i + 1) % 4].second;
+        double cross_product = x1 * y2 - y1 * x2;
+
+        if (i == 0) {
+            cross = cross_product;
+        } else if (cross_product * cross < 0) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static void FillSusQuad(RenderBuffer &buffer, const ipointvec& q, const xlColor &c)
+{
+    if (isConvex(q)) {
+        buffer.FillConvexPoly(q, c);
+        return;
+    }
+    // Hum the non-complex quad could be split in just the right place, which would be better.
+    ipointvec tri1 = { q[0], q[1], q[2] };
+    ipointvec tri2 = { q[0], q[1], q[3] };
+    ipointvec tri3 = { q[0], q[2], q[3] };
+    ipointvec tri4 = { q[1], q[2], q[3] };
+    buffer.FillConvexPoly(tri1, c);
+    buffer.FillConvexPoly(tri2, c);
+    buffer.FillConvexPoly(tri3, c);
+    buffer.FillConvexPoly(tri4, c);
+}
+
 static void FillRegion(RenderBuffer& buffer, ipointvec& oldpoints, const ipointvec& newpoints, const xlColor& color, bool close = true)
 {
     if (oldpoints.empty())
@@ -310,7 +347,7 @@ static void FillRegion(RenderBuffer& buffer, ipointvec& oldpoints, const ipointv
         quad[2] = newpoints[i + 1];
         quad[3] = newpoints[i];
 
-        buffer.FillConvexPoly(quad, color);
+        FillSusQuad(buffer, quad, color);
     }
 
     if (close) {
@@ -318,7 +355,8 @@ static void FillRegion(RenderBuffer& buffer, ipointvec& oldpoints, const ipointv
         quad[1] = oldpoints[0];
         quad[2] = newpoints[0];
         quad[3] = newpoints[oldpoints.size() - 1];
-        buffer.FillConvexPoly(quad, color);
+
+        FillSusQuad(buffer, quad, color);
     }
 }
 
@@ -344,7 +382,7 @@ static ipointvec ScaleShape(const dpointvec& in, double sx, double sy, double cx
 
 static void drawRippleNew(
     RenderBuffer& buffer, const dpointvec& points, bool closedShape,
-    double time, double xcc, double ycc, double rotation, bool implode, bool nonsquare,
+    double time, double xcc, double ycc, double rotation, int mvmt, bool nonsquare,
     int thickness, bool doInside, bool doOutside,
     bool fade, bool lines, bool fill, bool ripple)
 {
@@ -379,9 +417,11 @@ static void drawRippleNew(
     buffer.palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
 
     // Radius
-    double baseRadius = time;
-    if (implode)
-        baseRadius = 1 - baseRadius;
+    double baseRadius = 1;
+    if (mvmt == MOVEMENT_EXPLODE)
+        baseRadius = time;
+    if (mvmt == MOVEMENT_IMPLODE)
+        baseRadius = 1 - time;
     double brX = baseRadius * maxRadius;
     double brY = baseRadius * maxRadius;
     if (nonsquare) {
@@ -412,9 +452,8 @@ static void drawRippleNew(
                 }
                 oldptsinner = ishp;
             } else if (doInside) {
-                oldptsinner = {};
-                for (const auto& p : points)
-                    oldptsinner.push_back({ 0, 0 });
+                ipointvec ishp = ScaleShape(points, 0, 0, xc, yc, rotation, true);
+                oldptsinner = ishp;
             }
             if (doOutside && brX + delta > 0 && brY + delta > 0) {
                 ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation, true);
@@ -586,7 +625,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
     if (drawNew)
     {
-        drawRippleNew(buffer, shapePts, closeShape, position, xcc, ycc, rotation, Movement == MOVEMENT_IMPLODE,
+        drawRippleNew(buffer, shapePts, closeShape, position, xcc, ycc, rotation, Movement,
                       !uniformAspectRatio, Ripple_Thickness, interiorDirection, exteriorDirection,
                  CheckBox_Ripple3D, drawLines, drawFill, rippleSpaced);
         return;

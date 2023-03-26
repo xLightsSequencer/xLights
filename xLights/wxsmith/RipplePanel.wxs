@@ -64,6 +64,7 @@
 					<content>
 						<item>Explode</item>
 						<item>Implode</item>
+						<item>None</item>
 					</content>
 					<selection>0</selection>
 				</object>

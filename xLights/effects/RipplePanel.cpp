@@ -112,7 +112,8 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Ripple_Movement = new BulkEditChoice(this, ID_CHOICE_Ripple_Movement, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Ripple_Movement"));
 	Choice_Ripple_Movement->SetSelection( Choice_Ripple_Movement->Append(_("Explode")) );
 	Choice_Ripple_Movement->Append(_("Implode"));
-	FlexGridSizer57->Add(Choice_Ripple_Movement, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Ripple_Movement->Append(_("None"));
+    FlexGridSizer57->Add(Choice_Ripple_Movement, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Ripple_Movement = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Ripple_Movement, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Ripple_Movement"));
 	BitmapButton_Ripple_Movement->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
@@ -242,9 +243,11 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	//*)
     SetName("ID_PANEL_RIPPLE");
 
+	Connect(ID_BITMAPBUTTON_CHECKBOX_Ripple3D, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Object_To_Draw, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
     Connect(ID_CHOICE_Ripple_Draw_Style, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&RipplePanel::OnChoice_Ripple_Draw_StyleSelect);
+    Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Rotation, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 
 	Connect(ID_VALUECURVE_Ripple_XC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Ripple_YC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
