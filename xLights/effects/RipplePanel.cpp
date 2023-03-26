@@ -431,6 +431,26 @@ void RipplePanel::ValidateWindow()
         Slider_Ripple_Scale->Enable();
         //TextCtrl_Ripple_Scale->Enable();
         BitmapButton_Ripple_ScaleVC->Enable();
+
+	    BitmapButton_Ripple_Spacing->Enable();
+        Slider_Ripple_Spacing->Enable();
+        //TextCtrl_Ripple_Spacing->Enable();
+        BitmapButton_Ripple_SpacingVC->Enable();
+
+	    BitmapButton_Ripple_Twist->Enable();
+        Slider_Ripple_Twist->Enable();
+        TextCtrl_Ripple_Twist->Enable();
+        BitmapButton_Ripple_TwistVC->Enable();
+
+		BitmapButton_Ripple_Direction->Enable();
+        Slider_Ripple_Direction->Enable();
+        TextCtrl_Ripple_Direction->Enable();
+        BitmapButton_Ripple_DirectionVC->Enable();
+
+	    BitmapButton_Ripple_Velocity->Enable();
+        Slider_Ripple_Velocity->Enable();
+        TextCtrl_Ripple_Velocity->Enable();
+        BitmapButton_Ripple_VelocityVC->Enable();
     }
 }
 
