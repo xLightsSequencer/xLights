@@ -110,7 +110,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON7" subclass="BulkEditValueCurveButton" variable="BitmapButton7" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Scale" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_ScaleVC" member="yes">
 							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
@@ -167,7 +167,6 @@
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Thickness" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_ThicknessVC" member="yes">
 							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -175,7 +174,6 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -212,16 +210,17 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER1" subclass="BulkEditSliderF1" variable="Slider1" member="yes">
-							<value>10</value>
-							<max>300</max>
+						<object class="wxSlider" name="ID_SLIDER_Ripple_Spacing" subclass="BulkEditSliderF1" variable="Slider_Ripple_Spacing" member="yes">
+							<value>1</value>
+							<min>1</min>
+							<max>10</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" subclass="BulkEditValueCurveButton" variable="BitmapButton2" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Spacing" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_SpacingVC" member="yes">
 							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
@@ -286,7 +285,6 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -409,16 +407,16 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER4" subclass="BulkEditSlider" variable="Slider4" member="yes">
-							<value>3</value>
-							<min>1</min>
+						<object class="wxSlider" name="ID_SLIDER_Ripple_Twist" subclass="BulkEditSliderF1" variable="Slider_Ripple_Twist" member="yes">
+							<min>-10</min>
+							<max>10</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON8" subclass="BulkEditValueCurveButton" variable="BitmapButton8" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Twist" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_TwistVC" member="yes">
 							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
@@ -559,16 +557,15 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER2" subclass="BulkEditSlider" variable="Slider2" member="yes">
-							<value>3</value>
-							<min>1</min>
+						<object class="wxSlider" name="ID_SLIDER_Ripple_Velocity" subclass="BulkEditSliderF1" variable="Slider_Ripple_Velocity" member="yes">
+							<max>10</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON9" subclass="BulkEditValueCurveButton" variable="BitmapButton9" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Velocity" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_VelocityVC" member="yes">
 							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
@@ -613,16 +610,16 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER3" subclass="BulkEditSlider" variable="Slider3" member="yes">
-							<value>3</value>
-							<min>1</min>
+						<object class="wxSlider" name="ID_SLIDER_Ripple_Direction" subclass="BulkEditSlider" variable="Slider_Ripple_Direction" member="yes">
+							<min>-360</min>
+							<max>360</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON10" subclass="BulkEditValueCurveButton" variable="BitmapButton10" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Direction" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_DirectionVC" member="yes">
 							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
