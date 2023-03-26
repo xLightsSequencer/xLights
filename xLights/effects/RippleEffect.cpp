@@ -451,13 +451,14 @@ static dpointvec ScaleShapeD(const dpointvec& in, double sx, double sy, double c
 
 static void drawRippleNew(
     RenderBuffer& buffer, const dpointvec& points, bool closedShape,
-    double time, double xcc, double ycc, double rotation, int mvmt, bool nonsquare,
+    double time, double xcc, double ycc, double srotation, int mvmt, bool nonsquare,
     int thickness, bool doInside, bool doOutside,
-    bool fade, bool lines, bool fill, bool ripple)
+    bool fade, bool lines, bool fill, bool ripple,
+    double scale, double spacing, double twist, double vel, double veldir)
 {
     // Center point
-    double xc = buffer.BufferWi / 2.0 + xcc * (buffer.BufferWi / 2.0) / 100.0;
-    double yc = buffer.BufferHt / 2.0 + ycc * (buffer.BufferHt / 2.0) / 100.0;
+    double sxc = buffer.BufferWi / 2.0 + xcc * (buffer.BufferWi / 2.0) / 100.0;
+    double syc = buffer.BufferHt / 2.0 + ycc * (buffer.BufferHt / 2.0) / 100.0;
 
     // Scaling for x and y directions - the original depended on whether it is on center...
     //  and it isn't exactly true.  We may want a scale factor or something...
@@ -474,6 +475,9 @@ static void drawRippleNew(
     double pxw = 1.0;
     pxw = std::max(pxw, buffer.BufferWi * 0.005);
     pxw = std::max(pxw, buffer.BufferHt * 0.005);
+
+    vel *= pxw;
+    spacing *= pxw;
 
     // Color calculations
     HSVValue hsv;
@@ -498,14 +502,21 @@ static void drawRippleNew(
         brX = baseRadius * maxRadiusX;
         brY = baseRadius * maxRadiusY;
     }
+    baseRadius *= scale;
+    brX *= scale;
+    brY *= scale;
 
     // OK time to draw!
     if (fill) {
         ipointvec oldptsouter, oldptsinner;
         dpointvec oldedgeouter, oldedgeinner;
         for (int i = thickness * 2 - 1; i >= 0; --i) {
+            double xc = sxc + (vel * sin(veldir / 180 * M_PI) * i);
+            double yc = syc - (vel * cos(veldir / 180 * M_PI) * i);
+            double rotation = srotation + twist * i;
             double strength = (thickness * 2.0 - i) / (thickness * 2.0); // Used for 3D/fade
             double delta = ripple ? ((i * i + 1) * 0.25 * pxw) : (i * 0.5 * pxw);
+            delta *= spacing;
 
             xlColor fadeColor(fhsv);
             if (buffer.allowAlpha) {
@@ -557,8 +568,12 @@ static void drawRippleNew(
     }
     if (lines && !fill) {
         for (int i = thickness * 2 - 1; i >= 0; --i) {
+            double xc = sxc + (vel * sin(veldir / 180 * M_PI) * i);
+            double yc = syc - (vel * cos(veldir / 180 * M_PI) * i);
+            double rotation = srotation + twist * i;
             double strength = (thickness * 2.0 - i) / (thickness * 2.0); // Used for 3D/fade
             double delta = ripple ? ((i * i + 1) * 0.25 * pxw) : (i * 0.5 * pxw);
+            delta *= spacing;
 
             xlColor fadeColor(lhsv);
             if (buffer.allowAlpha) {
@@ -583,10 +598,10 @@ static void drawRippleNew(
     // Draw the main shape
     if (brX > 0 && brY > 0) {
         if (fill) {
-            dpointvec mshp = ScaleShapeD(points, brX, brY, xc, yc, rotation);
+            dpointvec mshp = ScaleShapeD(points, brX, brY, sxc, syc, srotation);
             DrawShapeD(buffer, mshp, hsv, closedShape, true);        
         } else {
-            ipointvec mshp = ScaleShape(points, brX, brY, xc, yc, rotation);
+            ipointvec mshp = ScaleShape(points, brX, brY, sxc, syc, srotation);
             DrawShape(buffer, mshp, hsv, closedShape);
         }
     }
@@ -594,13 +609,13 @@ static void drawRippleNew(
 
 // TODO:
 //   BUG: There is a slight bug with the inside fill I feel?
-//   ENH: There is the matter of colors (radial; this is easy)
-//   ENH: There is the matter of colors (around; this is a matter of breaking long segments up)
-//   ENH: Slider for the scale - 0-400%; A VC on that covers R1/R2/acceleration of shockwave
-//   ENH: Line Spacing as a separate slider?
-//   ENH: Direction & Velocity & twist
-//   ENH: SVG
-//   IMP: Wonder about the meaning of thickness - is it # of rings or is it the total - total may be easier
+// 3 ENH: There is the matter of colors (radial; this is easy)
+// 4 ENH: There is the matter of colors (around; this is a matter of breaking long segments up)
+// 1 ENH: Slider for the scale - 0-400%; A VC on that covers R1/R2/acceleration of shockwave
+// 1 ENH: Line Spacing as a separate slider?
+// 1 ENH: Direction & Velocity & twist
+// 2 ENH: SVG
+// 2 IMP: Wonder about the meaning of thickness - is it # of rings or is it the total - total may be easier
 
 void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
@@ -615,6 +630,11 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     int rotation = GetValueCurveInt("Ripple_Rotation", 0, SettingsMap, oset, RIPPLE_ROTATION_MIN, RIPPLE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int xcc = GetValueCurveInt("Ripple_XC", 0, SettingsMap, oset, RIPPLE_XC_MIN, RIPPLE_XC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int ycc = GetValueCurveInt("Ripple_YC", 0, SettingsMap, oset, RIPPLE_YC_MIN, RIPPLE_YC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    double scale = GetValueCurveDouble("Ripple_Scale", 100, SettingsMap, oset, RIPPLE_SCALE_MIN, RIPPLE_SCALE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
+    double spacing = GetValueCurveDouble("Ripple_Spacing", 1, SettingsMap, oset, RIPPLE_SPACING_MIN, RIPPLE_SPACING_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    double twist = GetValueCurveDouble("Ripple_Twist", 0, SettingsMap, oset, RIPPLE_TWIST_MIN, RIPPLE_TWIST_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    double vel = GetValueCurveDouble("Ripple_Velocity", 0, SettingsMap, oset, RIPPLE_VELOCITY_MIN, RIPPLE_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    double veldir = GetValueCurveDouble("Ripple_Direction", 0, SettingsMap, oset, RIPPLE_DIRECTION_MIN, RIPPLE_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     double position = buffer.GetEffectTimeIntervalPosition(cycles); // how far are we into the effect; value is 0.0 to 1.0
 
@@ -712,7 +732,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     {
         drawRippleNew(buffer, shapePts, closeShape, position, xcc, ycc, rotation, Movement,
                       !uniformAspectRatio, Ripple_Thickness, interiorDirection, exteriorDirection,
-                 CheckBox_Ripple3D, drawLines, drawFill, rippleSpaced);
+                 CheckBox_Ripple3D, drawLines, drawFill, rippleSpaced, scale, spacing, twist, vel, veldir);
         return;
     }
 
