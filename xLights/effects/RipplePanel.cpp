@@ -182,7 +182,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer6->AddGrowableCol(0);
-	Slider_Ripple_Spacing = new BulkEditSliderF1(this, ID_SLIDER_Ripple_Spacing, 1, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Ripple_Spacing"));
+	Slider_Ripple_Spacing = new BulkEditSliderF1(this, ID_SLIDER_Ripple_Spacing, 10, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Ripple_Spacing"));
 	FlexGridSizer6->Add(Slider_Ripple_Spacing, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Ripple_SpacingVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Ripple_Spacing, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Ripple_Spacing"));
 	FlexGridSizer6->Add(BitmapButton_Ripple_SpacingVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -235,7 +235,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer7->AddGrowableCol(0);
-	Slider_Ripple_Twist = new BulkEditSliderF1(this, ID_SLIDER_Ripple_Twist, 0, -10, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Ripple_Twist"));
+	Slider_Ripple_Twist = new BulkEditSliderF1(this, ID_SLIDER_Ripple_Twist, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Ripple_Twist"));
 	FlexGridSizer7->Add(Slider_Ripple_Twist, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Ripple_TwistVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Ripple_Twist, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Ripple_Twist"));
 	FlexGridSizer7->Add(BitmapButton_Ripple_TwistVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -276,7 +276,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer9->AddGrowableCol(0);
-	Slider_Ripple_Velocity = new BulkEditSliderF1(this, ID_SLIDER_Ripple_Velocity, 0, 0, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Ripple_Velocity"));
+	Slider_Ripple_Velocity = new BulkEditSliderF1(this, ID_SLIDER_Ripple_Velocity, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Ripple_Velocity"));
 	FlexGridSizer9->Add(Slider_Ripple_Velocity, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Ripple_VelocityVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Ripple_Velocity, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Ripple_Velocity"));
 	FlexGridSizer9->Add(BitmapButton_Ripple_VelocityVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -343,14 +343,14 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 
 	Connect(ID_CHOICE_Ripple_Object_To_Draw,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&RipplePanel::OnChoice_Ripple_Object_To_DrawSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Movement,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
-    Connect(ID_VALUECURVE_Ripple_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Ripple_Cycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_RIPPLE_POINTS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_RIPPLE");
 
-	Connect(ID_BITMAPBUTTON_CHECKBOX_Ripple3D, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+	Connect(ID_VALUECURVE_Ripple_Thickness, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Ripple3D, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Object_To_Draw, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
     Connect(ID_CHOICE_Ripple_Draw_Style, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&RipplePanel::OnChoice_Ripple_Draw_StyleSelect);

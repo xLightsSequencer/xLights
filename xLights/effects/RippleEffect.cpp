@@ -608,12 +608,11 @@ static void drawRippleNew(
 }
 
 // TODO:
-//   BUG: There is a slight bug with the inside fill I feel?
-// 3 ENH: There is the matter of colors (radial; this is easy)
+// * BUG: There is a slight bug with the inside fill I feel?  It also crashed.  Try split collinear.
+// * BUG: The value curves are not doing what I want them to do... they are dividing by 10 or something.
+// * BUG: Value curves not clearing
+    // 3 ENH: There is the matter of colors (radial; this is easy)
 // 4 ENH: There is the matter of colors (around; this is a matter of breaking long segments up)
-// 1 ENH: Slider for the scale - 0-400%; A VC on that covers R1/R2/acceleration of shockwave
-// 1 ENH: Line Spacing as a separate slider?
-// 1 ENH: Direction & Velocity & twist
 // 2 ENH: SVG
 // 2 IMP: Wonder about the meaning of thickness - is it # of rings or is it the total - total may be easier
 
@@ -631,9 +630,9 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     int xcc = GetValueCurveInt("Ripple_XC", 0, SettingsMap, oset, RIPPLE_XC_MIN, RIPPLE_XC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int ycc = GetValueCurveInt("Ripple_YC", 0, SettingsMap, oset, RIPPLE_YC_MIN, RIPPLE_YC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     double scale = GetValueCurveDouble("Ripple_Scale", 100, SettingsMap, oset, RIPPLE_SCALE_MIN, RIPPLE_SCALE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
-    double spacing = GetValueCurveDouble("Ripple_Spacing", 1, SettingsMap, oset, RIPPLE_SPACING_MIN, RIPPLE_SPACING_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    double twist = GetValueCurveDouble("Ripple_Twist", 0, SettingsMap, oset, RIPPLE_TWIST_MIN, RIPPLE_TWIST_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    double vel = GetValueCurveDouble("Ripple_Velocity", 0, SettingsMap, oset, RIPPLE_VELOCITY_MIN, RIPPLE_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    double spacing = GetValueCurveDouble("Ripple_Spacing", 1.0, SettingsMap, oset, RIPPLE_SPACING_MIN, RIPPLE_SPACING_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
+    double twist = GetValueCurveDouble("Ripple_Twist", 0, SettingsMap, oset, RIPPLE_TWIST_MIN, RIPPLE_TWIST_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
+    double vel = GetValueCurveDouble("Ripple_Velocity", 0, SettingsMap, oset, RIPPLE_VELOCITY_MIN, RIPPLE_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
     double veldir = GetValueCurveDouble("Ripple_Direction", 0, SettingsMap, oset, RIPPLE_DIRECTION_MIN, RIPPLE_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     double position = buffer.GetEffectTimeIntervalPosition(cycles); // how far are we into the effect; value is 0.0 to 1.0
