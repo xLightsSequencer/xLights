@@ -341,6 +341,39 @@ static void FillSusQuad(RenderBuffer &buffer, const ipointvec& q, const xlColor 
     buffer.FillConvexPoly(tri4, c);
 }
 
+static void DrawLine(RenderBuffer& buffer, const dpoint& p1, const dpoint& p2, const xlColor &c)
+{
+    ipointvec q(4);
+    if (abs(p1.second - p2.second) > abs(p1.first - p2.first)) {
+        // More vertical travel
+        if (round(p1.first + .5) != round(p1.first)) {
+            q[0] = { round(p1.first), round(p1.second) };
+            q[1] = { round(p1.first) + 1, round(p1.second) };
+            q[2] = { round(p2.first) + 1, round(p2.second) };
+            q[3] = { round(p2.first), round(p2.second) };
+        } else {
+            q[0] = { round(p1.first) - 1, round(p1.second) };
+            q[1] = { round(p1.first), round(p1.second) };
+            q[2] = { round(p2.first), round(p2.second) };
+            q[3] = { round(p2.first) - 1, round(p2.second) };        
+        }
+    } else {
+        // More horizontal travel
+        if (round(p1.second + .5) != round(p1.second)) {
+            q[0] = { round(p1.first), round(p1.second) };
+            q[1] = { round(p1.first), round(p1.second) + 1 };
+            q[2] = { round(p2.first), round(p2.second) + 1 };
+            q[3] = { round(p2.first), round(p2.second) };
+        } else {
+            q[0] = { round(p1.first), round(p1.second) - 1};
+            q[1] = { round(p1.first), round(p1.second) };
+            q[2] = { round(p2.first), round(p2.second) };
+            q[3] = { round(p2.first), round(p2.second) - 1};
+        }
+    }
+    buffer.FillConvexPoly(q, c);
+}
+
 static void FillRegion(RenderBuffer& buffer, ipointvec& oldpoints, const ipointvec& newpoints, const xlColor& color, bool close = true)
 {
     if (oldpoints.empty())
@@ -384,6 +417,22 @@ static ipointvec ScaleShape(const dpointvec& in, double sx, double sy, double cx
         } else {
             rv.push_back({ rx + cx, ry + cy });
         }
+    }
+    return rv;
+}
+
+static dpointvec ScaleShapeD(const dpointvec& in, double sx, double sy, double cx, double cy, double rotation)
+{
+    dpointvec rv;
+    double angle_rad = rotation * M_PI / 180.0;
+
+    for (const auto& p : in) {
+        double x = p.first * sx;
+        double y = p.second * sy;
+        double rx = x * cos(angle_rad) - y * sin(angle_rad);
+        double ry = x * sin(angle_rad) + y * cos(angle_rad);
+
+        rv.push_back({ rx + cx, ry + cy });
     }
     return rv;
 }
