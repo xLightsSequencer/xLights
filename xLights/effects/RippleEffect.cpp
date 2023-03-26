@@ -333,7 +333,7 @@ static void FillSusQuad(RenderBuffer &buffer, const ipointvec& q, const xlColor 
     buffer.FillConvexPoly(tri4, c);
 }
 
-static void DrawLine(RenderBuffer& buffer, const dpoint& p1, const dpoint& p2, const xlColor &c)
+static void DrawLine(RenderBuffer& buffer, const dpoint& p1, const dpoint& p2, const xlColor &c, bool thick = false)
 {
     ipointvec q(4);
     if (abs(p1.second - p2.second) > abs(p1.first - p2.first)) {
@@ -370,15 +370,19 @@ static void DrawLine(RenderBuffer& buffer, const dpoint& p1, const dpoint& p2, c
         }
     }
     buffer.FillConvexPoly(q, c);
+    if (thick) {
+        buffer.SetPixel(round(p1.first), round(p1.second), c);
+        buffer.SetPixel(round(p2.first), round(p2.second), c);
+    }
 }
 
-static void DrawShapeD(RenderBuffer& buffer, dpointvec& points, const xlColor& color, bool close)
+static void DrawShapeD(RenderBuffer& buffer, dpointvec& points, const xlColor& color, bool close, bool thick)
 {
     for (size_t i = 0; i < points.size() - 1; ++i) {
-        DrawLine(buffer, { points[i].first, points[i].second }, { points[i + 1].first, points[i + 1].second }, color);
+        DrawLine(buffer, { points[i].first, points[i].second }, { points[i + 1].first, points[i + 1].second }, color, thick);
     }
     if (close) {
-        DrawLine(buffer, { points[points.size() - 1].first, points[points.size() - 1].second }, { points[0].first, points[0].second }, color);
+        DrawLine(buffer, { points[points.size() - 1].first, points[points.size() - 1].second }, { points[0].first, points[0].second }, color, thick);
     }
 }
 
@@ -537,27 +541,16 @@ static void drawRippleNew(
             }
 
             if (oldedgeinner.size()) {
-                DrawShapeD(buffer, oldedgeinner, lhsv, closedShape);
+                DrawShapeD(buffer, oldedgeinner, lhsv, closedShape, false);
             }
             if (oldedgeouter.size()) {
-                DrawShapeD(buffer, oldedgeouter, lhsv, closedShape);
+                DrawShapeD(buffer, oldedgeouter, lhsv, closedShape, false);
             }
 
             oldedgeouter = nxtedgeouter;
             oldedgeinner = nxtedgeinner;
         }
-#if 0
-        if (doInside && !doOutside && brX + .5 > 0 && brY + .5 > 0)
-        {
-            oldptsouter = ScaleShape(points, brX + .5, brY + .5, xc, yc, rotation, true);
-        }
-        if (doOutside && !doInside && brX - .5 > 0 && brY - .5 > 0) {
-            oldptsinner = ScaleShape(points, brX - .5, brY - .5, xc, yc, rotation, true);
-        }
-        else if (doOutside && !doInside) {
-            oldptsinner = ScaleShape(points, 0,0, xc, yc, rotation, true);
-        }
-#endif
+
         if (oldptsinner.size() > 0 && oldptsouter.size() > 0) {
             FillRegion(buffer, oldptsinner, oldptsouter, xlColor(fhsv), closedShape);
         }
@@ -591,7 +584,7 @@ static void drawRippleNew(
     if (brX > 0 && brY > 0) {
         if (fill) {
             dpointvec mshp = ScaleShapeD(points, brX, brY, xc, yc, rotation);
-            DrawShapeD(buffer, mshp, hsv, closedShape);        
+            DrawShapeD(buffer, mshp, hsv, closedShape, true);        
         } else {
             ipointvec mshp = ScaleShape(points, brX, brY, xc, yc, rotation);
             DrawShape(buffer, mshp, hsv, closedShape);
@@ -600,9 +593,7 @@ static void drawRippleNew(
 }
 
 // TODO:
-// * IMP: It would seem a better way to mix the lines and highlights is in order...
 //   BUG: There is a slight bug with the inside fill I feel?
-//   BUG: There is a slight discrepancy between the line and the filled one.  Replace the line code?
 //   ENH: There is the matter of colors (radial; this is easy)
 //   ENH: There is the matter of colors (around; this is a matter of breaking long segments up)
 //   ENH: Slider for the scale - 0-400%; A VC on that covers R1/R2/acceleration of shockwave
