@@ -286,21 +286,13 @@ static void getSnowflakePoints(dpointvec& pts, int npts)
     }
 }
 
-static void DrawShape(RenderBuffer &buffer, ipointvec &points, const xlColor &color, bool close, bool thick = false)
+static void DrawShape(RenderBuffer &buffer, ipointvec &points, const xlColor &color, bool close)
 {
     for (size_t i = 0; i < points.size() - 1; ++i) {
-        if (thick) {
-            buffer.DrawThickLine(points[i].first, points[i].second, points[i + 1].first, points[i + 1].second, color, 2);
-        } else {
-            buffer.DrawLine(points[i].first, points[i].second, points[i + 1].first, points[i + 1].second, color);
-        }
+        buffer.DrawLine(points[i].first, points[i].second, points[i + 1].first, points[i + 1].second, color);
     }
     if (close) {
-        if (thick) {
-            buffer.DrawThickLine(points[points.size() - 1].first, points[points.size() - 1].second, points[0].first, points[0].second, color, 2);
-        } else {
-            buffer.DrawLine(points[points.size() - 1].first, points[points.size() - 1].second, points[0].first, points[0].second, color);
-        }
+        buffer.DrawLine(points[points.size() - 1].first, points[points.size() - 1].second, points[0].first, points[0].second, color);
     }
 }
 
@@ -349,29 +341,45 @@ static void DrawLine(RenderBuffer& buffer, const dpoint& p1, const dpoint& p2, c
         if (round(p1.first + .5) != round(p1.first)) {
             q[0] = { round(p1.first), round(p1.second) };
             q[1] = { round(p1.first) + 1, round(p1.second) };
-            q[2] = { round(p2.first) + 1, round(p2.second) };
-            q[3] = { round(p2.first), round(p2.second) };
         } else {
             q[0] = { round(p1.first) - 1, round(p1.second) };
             q[1] = { round(p1.first), round(p1.second) };
+        }
+        if (round(p2.first + .5) != round(p2.first)) {
+            q[2] = { round(p2.first) + 1, round(p2.second) };
+            q[3] = { round(p2.first), round(p2.second) };
+        } else {
             q[2] = { round(p2.first), round(p2.second) };
-            q[3] = { round(p2.first) - 1, round(p2.second) };        
+            q[3] = { round(p2.first) - 1, round(p2.second) };
         }
     } else {
         // More horizontal travel
         if (round(p1.second + .5) != round(p1.second)) {
             q[0] = { round(p1.first), round(p1.second) };
             q[1] = { round(p1.first), round(p1.second) + 1 };
-            q[2] = { round(p2.first), round(p2.second) + 1 };
-            q[3] = { round(p2.first), round(p2.second) };
         } else {
             q[0] = { round(p1.first), round(p1.second) - 1};
             q[1] = { round(p1.first), round(p1.second) };
+        }
+        if (round(p2.second + .5) != round(p2.second)) {
+            q[2] = { round(p2.first), round(p2.second) + 1 };
+            q[3] = { round(p2.first), round(p2.second) };
+        } else {
             q[2] = { round(p2.first), round(p2.second) };
-            q[3] = { round(p2.first), round(p2.second) - 1};
+            q[3] = { round(p2.first), round(p2.second) - 1 };
         }
     }
     buffer.FillConvexPoly(q, c);
+}
+
+static void DrawShapeD(RenderBuffer& buffer, dpointvec& points, const xlColor& color, bool close)
+{
+    for (size_t i = 0; i < points.size() - 1; ++i) {
+        DrawLine(buffer, { points[i].first, points[i].second }, { points[i + 1].first, points[i + 1].second }, color);
+    }
+    if (close) {
+        DrawLine(buffer, { points[points.size() - 1].first, points[points.size() - 1].second }, { points[0].first, points[0].second }, color);
+    }
 }
 
 static void FillRegion(RenderBuffer& buffer, ipointvec& oldpoints, const ipointvec& newpoints, const xlColor& color, bool close = true)
@@ -490,6 +498,7 @@ static void drawRippleNew(
     // OK time to draw!
     if (fill) {
         ipointvec oldptsouter, oldptsinner;
+        dpointvec oldedgeouter, oldedgeinner;
         for (int i = thickness * 2 - 1; i >= 0; --i) {
             double strength = (thickness * 2.0 - i) / (thickness * 2.0); // Used for 3D/fade
             double delta = ripple ? ((i * i + 1) * 0.25 * pxw) : (i * 0.5 * pxw);
@@ -503,12 +512,16 @@ static void drawRippleNew(
                 fadeColor = hsvc;
             }
 
+            dpointvec nxtedgeouter, nxtedgeinner;
             if (doInside && brX - delta > 0 && brY - delta > 0) {
                 ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation, true);
                 if (!oldptsinner.empty()) {
                     FillRegion(buffer, oldptsinner, ishp, fade ? fadeColor : xlColor(fhsv), closedShape);
                 }
                 oldptsinner = ishp;
+                if (lines) {
+                    nxtedgeinner = ScaleShapeD(points, brX - delta, brY - delta, xc, yc, rotation);
+                }
             } else if (doInside) {
                 oldptsinner = ScaleShape(points, 0, 0, xc, yc, rotation, true);
             }
@@ -518,8 +531,22 @@ static void drawRippleNew(
                     FillRegion(buffer, oldptsouter, oshp, fade ? fadeColor : xlColor(fhsv), closedShape);
                 }
                 oldptsouter = oshp;
+                if (lines) {
+                    nxtedgeouter = ScaleShapeD(points, brX + delta, brY + delta, xc, yc, rotation);
+                }
             }
+
+            if (oldedgeinner.size()) {
+                DrawShapeD(buffer, oldedgeinner, lhsv, closedShape);
+            }
+            if (oldedgeouter.size()) {
+                DrawShapeD(buffer, oldedgeouter, lhsv, closedShape);
+            }
+
+            oldedgeouter = nxtedgeouter;
+            oldedgeinner = nxtedgeinner;
         }
+#if 0
         if (doInside && !doOutside && brX + .5 > 0 && brY + .5 > 0)
         {
             oldptsouter = ScaleShape(points, brX + .5, brY + .5, xc, yc, rotation, true);
@@ -530,11 +557,12 @@ static void drawRippleNew(
         else if (doOutside && !doInside) {
             oldptsinner = ScaleShape(points, 0,0, xc, yc, rotation, true);
         }
+#endif
         if (oldptsinner.size() > 0 && oldptsouter.size() > 0) {
             FillRegion(buffer, oldptsinner, oldptsouter, xlColor(fhsv), closedShape);
         }
     }
-    if (lines) {
+    if (lines && !fill) {
         for (int i = thickness * 2 - 1; i >= 0; --i) {
             double strength = (thickness * 2.0 - i) / (thickness * 2.0); // Used for 3D/fade
             double delta = ripple ? ((i * i + 1) * 0.25 * pxw) : (i * 0.5 * pxw);
@@ -550,19 +578,24 @@ static void drawRippleNew(
 
             if (doInside && brX - delta > 0 && brY - delta > 0) {
                 ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation);
-                DrawShape(buffer, ishp, (fade && !fill) ? fadeColor : xlColor(lhsv), closedShape);
+                DrawShape(buffer, ishp, (fade) ? fadeColor : xlColor(lhsv), closedShape);
             }
             if (doOutside && brX + delta > 0 && brY + delta > 0) {
                 ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation);
-                DrawShape(buffer, oshp, (fade && !fill) ? fadeColor : xlColor(lhsv), closedShape);
+                DrawShape(buffer, oshp, (fade) ? fadeColor : xlColor(lhsv), closedShape);
             }
         }
     }
 
     // Draw the main shape
     if (brX > 0 && brY > 0) {
-        ipointvec mshp = ScaleShape(points, brX, brY, xc, yc, rotation);
-        DrawShape(buffer, mshp, hsv, closedShape);
+        if (fill) {
+            dpointvec mshp = ScaleShapeD(points, brX, brY, xc, yc, rotation);
+            DrawShapeD(buffer, mshp, hsv, closedShape);        
+        } else {
+            ipointvec mshp = ScaleShape(points, brX, brY, xc, yc, rotation);
+            DrawShape(buffer, mshp, hsv, closedShape);
+        }
     }
 }
 
