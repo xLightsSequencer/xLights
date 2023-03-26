@@ -212,7 +212,7 @@
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_Ripple_Spacing" subclass="BulkEditSliderF1" variable="Slider_Ripple_Spacing" member="yes">
 							<value>10</value>
-							<min>1</min>
+							<min>10</min>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
