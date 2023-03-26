@@ -211,8 +211,8 @@ static void getHeartPoints(dpointvec& pts)
         double yy1 = y1 / 2.0;
         double yy2 = y2 / 2.0;
 
-        pts.push_back({ xx1, yy1 });
-        rpts.push_back({ xx1, yy2 });
+        pts.push_back({ xx1, yy1+.2 });
+        rpts.push_back({ xx1, yy2+.2 });
     }
 
     while (!rpts.empty()) {
@@ -286,13 +286,21 @@ static void getSnowflakePoints(dpointvec& pts, int npts)
     }
 }
 
-static void DrawShape(RenderBuffer &buffer, ipointvec &points, const xlColor &color, bool close)
+static void DrawShape(RenderBuffer &buffer, ipointvec &points, const xlColor &color, bool close, bool thick = false)
 {
     for (size_t i = 0; i < points.size() - 1; ++i) {
-        buffer.DrawLine(points[i].first, points[i].second, points[i + 1].first, points[i + 1].second, color);
+        if (thick) {
+            buffer.DrawThickLine(points[i].first, points[i].second, points[i + 1].first, points[i + 1].second, color, 2);
+        } else {
+            buffer.DrawLine(points[i].first, points[i].second, points[i + 1].first, points[i + 1].second, color);
+        }
     }
     if (close) {
-        buffer.DrawLine(points[points.size()-1].first, points[points.size()-1].second, points[0].first, points[0].second, color);    
+        if (thick) {
+            buffer.DrawThickLine(points[points.size() - 1].first, points[points.size() - 1].second, points[0].first, points[0].second, color, 2);
+        } else {
+            buffer.DrawLine(points[points.size() - 1].first, points[points.size() - 1].second, points[0].first, points[0].second, color);
+        }
     }
 }
 
@@ -407,14 +415,15 @@ static void drawRippleNew(
     pxw = std::max(pxw, buffer.BufferHt * 0.005);
 
     // Color calculations
-    // TODO: we are going to be amazingly better than this some day :-D
-    int ColorIdx;
     HSVValue hsv;
     size_t colorcnt = buffer.GetColorCount();
-    ColorIdx = int(time * colorcnt);
-    if (ColorIdx == colorcnt)
-        ColorIdx--; // ColorIdx goes from 0-3 when colorcnt goes from 1-4. Make sure that is true
-    buffer.palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
+    buffer.palette.GetHSV(0, hsv); // Now go and get the hsv value for this ColorIdx
+    HSVValue lhsv = hsv;
+    if (colorcnt > 1)
+        buffer.palette.GetHSV(1, lhsv);
+    HSVValue fhsv = lhsv;
+    if (colorcnt > 2)
+        buffer.palette.GetHSV(2, fhsv);
 
     // Radius
     double baseRadius = 1;
@@ -436,35 +445,44 @@ static void drawRippleNew(
             double strength = (thickness * 2.0 - i) / (thickness * 2.0); // Used for 3D/fade
             double delta = ripple ? ((i * i + 1) * 0.25 * pxw) : (i * 0.5 * pxw);
 
-            xlColor fadeColor(hsv);
+            xlColor fadeColor(fhsv);
             if (buffer.allowAlpha) {
                 fadeColor.alpha = 255.0 * strength;
             } else {
-                HSVValue hsvc = hsv;
+                HSVValue hsvc = fhsv;
                 hsvc.value *= strength;
-                fadeColor = hsv;
+                fadeColor = hsvc;
             }
 
             if (doInside && brX - delta > 0 && brY - delta > 0) {
                 ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation, true);
                 if (!oldptsinner.empty()) {
-                    FillRegion(buffer, oldptsinner, ishp, fade ? fadeColor : xlColor(hsv), closedShape);
+                    FillRegion(buffer, oldptsinner, ishp, fade ? fadeColor : xlColor(fhsv), closedShape);
                 }
                 oldptsinner = ishp;
             } else if (doInside) {
-                ipointvec ishp = ScaleShape(points, 0, 0, xc, yc, rotation, true);
-                oldptsinner = ishp;
+                oldptsinner = ScaleShape(points, 0, 0, xc, yc, rotation, true);
             }
             if (doOutside && brX + delta > 0 && brY + delta > 0) {
                 ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation, true);
                 if (!oldptsouter.empty()) {
-                    FillRegion(buffer, oldptsouter, oshp, fade ? fadeColor : xlColor(hsv), closedShape);
+                    FillRegion(buffer, oldptsouter, oshp, fade ? fadeColor : xlColor(fhsv), closedShape);
                 }
                 oldptsouter = oshp;
             }
         }
+        if (doInside && !doOutside && brX + .5 > 0 && brY + .5 > 0)
+        {
+            oldptsouter = ScaleShape(points, brX + .5, brY + .5, xc, yc, rotation, true);
+        }
+        if (doOutside && !doInside && brX - .5 > 0 && brY - .5 > 0) {
+            oldptsinner = ScaleShape(points, brX - .5, brY - .5, xc, yc, rotation, true);
+        }
+        else if (doOutside && !doInside) {
+            oldptsinner = ScaleShape(points, 0,0, xc, yc, rotation, true);
+        }
         if (oldptsinner.size() > 0 && oldptsouter.size() > 0) {
-            FillRegion(buffer, oldptsinner, oldptsouter, xlColor(hsv), closedShape);
+            FillRegion(buffer, oldptsinner, oldptsouter, xlColor(fhsv), closedShape);
         }
     }
     if (lines) {
@@ -472,22 +490,22 @@ static void drawRippleNew(
             double strength = (thickness * 2.0 - i) / (thickness * 2.0); // Used for 3D/fade
             double delta = ripple ? ((i * i + 1) * 0.25 * pxw) : (i * 0.5 * pxw);
 
-            xlColor fadeColor(hsv);
+            xlColor fadeColor(lhsv);
             if (buffer.allowAlpha) {
                 fadeColor.alpha = 255.0 * strength;
             } else {
-                HSVValue hsvc = hsv;
+                HSVValue hsvc = lhsv;
                 hsvc.value *= strength;
-                fadeColor = hsv;
+                fadeColor = hsvc;
             }
 
             if (doInside && brX - delta > 0 && brY - delta > 0) {
                 ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation);
-                DrawShape(buffer, ishp, (fade && !fill) ? fadeColor : xlColor(hsv), closedShape);
+                DrawShape(buffer, ishp, (fade && !fill) ? fadeColor : xlColor(lhsv), closedShape);
             }
             if (doOutside && brX + delta > 0 && brY + delta > 0) {
                 ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation);
-                DrawShape(buffer, oshp, (fade && !fill) ? fadeColor : xlColor(hsv), closedShape);
+                DrawShape(buffer, oshp, (fade && !fill) ? fadeColor : xlColor(lhsv), closedShape);
             }
         }
     }
@@ -500,22 +518,16 @@ static void drawRippleNew(
 }
 
 // TODO:
-//   AND THEN the logic for doing something with it.
-//     Like shockwave - fade in and out?
-//     Acceleration, R1 & R2 explict, width1, width2?
-//   Shape has:
-//     Growth
-//     Direction, velocity, SVG
-//     Thickness?  firing with timing or music?
-//   AND THEN the colors
-//     Temporally, radially, or outward
-//   AND THEN debug the abrash routine or switch to the brush routine
-//      Rounding probably makes it non-convex... Prep for that.
-//   AND THEN implode/explode - it really just should have a value curve shouldn't it?
-//        I'd say "None" and then you can add your own scale
-//        Velocity and direction?
-//   AND THEN svg
-//   AND THEN the UI knobs checkover
+// * IMP: It would seem a better way to mix the lines and highlights is in order...
+//   BUG: There is a slight bug with the inside fill I feel?
+//   BUG: There is a slight discrepancy between the line and the filled one.  Replace the line code?
+//   ENH: There is the matter of colors (radial; this is easy)
+//   ENH: There is the matter of colors (around; this is a matter of breaking long segments up)
+//   ENH: Slider for the scale - 0-400%; A VC on that covers R1/R2/acceleration of shockwave
+//   ENH: Line Spacing as a separate slider?
+//   ENH: Direction & Velocity & twist
+//   ENH: SVG
+//   IMP: Wonder about the meaning of thickness - is it # of rings or is it the total - total may be easier
 
 void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
@@ -524,7 +536,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     const std::string& MovementStr = SettingsMap["CHOICE_Ripple_Movement"];
     int Ripple_Thickness = GetValueCurveInt("Ripple_Thickness", 3, SettingsMap, oset, RIPPLE_THICKNESS_MIN, RIPPLE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool CheckBox_Ripple3D = SettingsMap.GetBool("CHECKBOX_Ripple3D", false);
-    const std::string& StyleStr = SettingsMap["CHOICE_Ripple_Draw_Style"];
+    const std::string& StyleStr = SettingsMap.Get("CHOICE_Ripple_Draw_Style", "Old");
     float cycles = GetValueCurveDouble("Ripple_Cycles", 1.0, SettingsMap, oset, RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
     int points = SettingsMap.GetInt("SLIDER_RIPPLE_POINTS", 5);
     int rotation = GetValueCurveInt("Ripple_Rotation", 0, SettingsMap, oset, RIPPLE_ROTATION_MIN, RIPPLE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

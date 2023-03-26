@@ -29,6 +29,18 @@
 #define RIPPLE_YC_MIN -100
 #define RIPPLE_YC_MAX 100
 
+#define RIPPLE_SCALE_MIN 0
+#define RIPPLE_SCALE_MAX 500
+
+#define RIPPLE_VELOCITY_MIN 0
+#define RIPPLE_VELOCITY_MAX 10
+
+#define RIPPLE_DIRECTION_MIN 0
+#define RIPPLE_DIRECTION_MAX 360
+
+#define RIPPLE_TWIST_MIN -100
+#define RIPPLE_TWIST_MAX 100
+
 class RippleEffect : public RenderableEffect
 {
 public:
@@ -43,6 +55,12 @@ public:
     virtual bool CanRenderPartialTimeInterval() const override
     {
         return true;
+    }
+
+    virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const
+    {
+        std::string ds = SettingsMap.Get("CHOICE_Ripple_Draw_Style", "Old");
+        return ds != "Old";
     }
 
     virtual double GetSettingVCMin(const std::string& name) const override
