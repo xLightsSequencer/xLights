@@ -346,9 +346,9 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_CHOICE_Ripple_Object_To_Draw,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&RipplePanel::OnChoice_Ripple_Object_To_DrawSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Movement,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
     Connect(ID_VALUECURVE_Ripple_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
-    Connect(ID_VALUECURVE_Ripple_Cycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_RIPPLE_POINTS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+	Connect(ID_VALUECURVE_Ripple_Cycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_RIPPLE_POINTS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_RIPPLE");
 
@@ -357,6 +357,17 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
     Connect(ID_CHOICE_Ripple_Draw_Style, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&RipplePanel::OnChoice_Ripple_Draw_StyleSelect);
     Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Rotation, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+
+    Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Scale, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+    Connect(ID_VALUECURVE_Ripple_Scale, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Spacing, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+    Connect(ID_VALUECURVE_Ripple_Spacing, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Velocity, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+    Connect(ID_VALUECURVE_Ripple_Velocity, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Direction, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+    Connect(ID_VALUECURVE_Ripple_Direction, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Twist, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+    Connect(ID_VALUECURVE_Ripple_Twist, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 
 	Connect(ID_VALUECURVE_Ripple_XC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Ripple_YC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
@@ -415,6 +426,11 @@ void RipplePanel::ValidateWindow()
         Slider_Ripple_Rotation->Enable();
         TextCtrl_Ripple_Rotation->Enable();
         BitmapButton_Ripple_RotationVC->Enable();
+    } else {
+        BitmapButton_Ripple_Scale->Enable();
+        Slider_Ripple_Scale->Enable();
+        //TextCtrl_Ripple_Scale->Enable();
+        BitmapButton_Ripple_ScaleVC->Enable();
     }
 }
 
