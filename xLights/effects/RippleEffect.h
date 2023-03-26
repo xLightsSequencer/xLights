@@ -29,6 +29,9 @@
 #define RIPPLE_YC_MIN -100
 #define RIPPLE_YC_MAX 100
 
+#define RIPPLE_SPACING_MIN 1
+#define RIPPLE_SPACING_MAX 100
+
 #define RIPPLE_SCALE_MIN 0
 #define RIPPLE_SCALE_MAX 500
 
@@ -59,8 +62,10 @@ public:
 
     virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const
     {
-        std::string ds = SettingsMap.Get("CHOICE_Ripple_Draw_Style", "Old");
-        return ds != "Old";
+        return true;
+        // Not sure this updates dynamically as one would want
+        //std::string ds = SettingsMap.Get("CHOICE_Ripple_Draw_Style", "Old");
+        //return ds != "Old";
     }
 
     virtual double GetSettingVCMin(const std::string& name) const override
@@ -75,6 +80,16 @@ public:
             return RIPPLE_XC_MIN;
         if (name == "E_VALUECURVE_Ripple_YC")
             return RIPPLE_YC_MIN;
+        if (name == "E_VALUECURVE_Ripple_Spacing")
+            return RIPPLE_SPACING_MIN;
+        if (name == "E_VALUECURVE_Ripple_Scale")
+            return RIPPLE_SCALE_MIN;
+        if (name == "E_VALUECURVE_Ripple_Velocity")
+            return RIPPLE_VELOCITY_MIN;
+        if (name == "E_VALUECURVE_Ripple_Direction")
+            return RIPPLE_DIRECTION_MIN;
+        if (name == "E_VALUECURVE_Ripple_Twist")
+            return RIPPLE_TWIST_MIN;
         return RenderableEffect::GetSettingVCMin(name);
     }
 
@@ -90,6 +105,16 @@ public:
             return RIPPLE_XC_MAX;
         if (name == "E_VALUECURVE_Ripple_YC")
             return RIPPLE_YC_MAX;
+        if (name == "E_VALUECURVE_Ripple_Spacing")
+            return RIPPLE_SPACING_MAX;
+        if (name == "E_VALUECURVE_Ripple_Scale")
+            return RIPPLE_SCALE_MAX;
+        if (name == "E_VALUECURVE_Ripple_Velocity")
+            return RIPPLE_VELOCITY_MAX;
+        if (name == "E_VALUECURVE_Ripple_Direction")
+            return RIPPLE_DIRECTION_MAX;
+        if (name == "E_VALUECURVE_Ripple_Twist")
+            return RIPPLE_TWIST_MAX;
         return RenderableEffect::GetSettingVCMax(name);
     }
 
