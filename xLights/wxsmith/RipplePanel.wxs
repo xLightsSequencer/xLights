@@ -213,7 +213,7 @@
 						<object class="wxSlider" name="IDD_SLIDER_Ripple_Spacing" subclass="BulkEditSliderF1" variable="Slider_Ripple_Spacing" member="yes">
 							<value>10</value>
 							<min>10</min>
-							<max>200</max>
+							<max>400</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -408,8 +408,8 @@
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Ripple_Twist" subclass="BulkEditSliderF1" variable="Slider_Ripple_Twist" member="yes">
-							<min>-200</min>
-							<max>200</max>
+							<min>-450</min>
+							<max>450</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>

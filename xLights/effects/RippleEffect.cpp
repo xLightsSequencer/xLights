@@ -322,7 +322,7 @@ static bool isConvex(const ipointvec& q)
 
         if (i == 0) {
             cross = cross_product;
-        } else if (cross_product * cross < 0) {
+        } else if (cross_product * cross <= 0) {
             return false;
         }
     }
@@ -524,11 +524,11 @@ static void drawRippleNew(
     if (fill) {
         ipointvec oldptsouter, oldptsinner;
         dpointvec oldedgeouter, oldedgeinner;
-        for (int i = thickness * 2 - 1; i >= 0; --i) {
+        for (int i = thickness; i >= 0; --i) {
             double xc = sxc + (vel * sin(veldir / 180 * M_PI) * i);
             double yc = syc - (vel * cos(veldir / 180 * M_PI) * i);
             double rotation = srotation + twist * i;
-            double strength = (thickness * 2.0 - i) / (thickness * 2.0); // Used for 3D/fade
+            double strength = (double(thickness) + 1 - i) / (thickness + 1); // Used for 3D/fade
             double delta = ripple ? ((i * i + 1) * 0.25 * pxw) : (i * 0.5 * pxw);
             delta *= spacing;
 
@@ -581,11 +581,11 @@ static void drawRippleNew(
         }
     }
     if (lines && !fill) {
-        for (int i = thickness * 2 - 1; i >= 0; --i) {
+        for (int i = thickness; i >= 0; --i) {
             double xc = sxc + (vel * sin(veldir / 180 * M_PI) * i);
             double yc = syc - (vel * cos(veldir / 180 * M_PI) * i);
             double rotation = srotation + twist * i;
-            double strength = (thickness * 2.0 - i) / (thickness * 2.0); // Used for 3D/fade
+            double strength = (double(thickness) + 1 - i) / (thickness + 1); // Used for 3D/fade
             double delta = ripple ? ((i * i + 1) * 0.25 * pxw) : (i * 0.5 * pxw);
             delta *= spacing;
 
