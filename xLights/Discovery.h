@@ -26,6 +26,7 @@ class wxDatagramSocket;
 
 class OutputManager;
 class Discovery;
+class BonjourData;
 
 
 class WXDLLIMPEXP_CORE xlPasswordEntryDialog : public wxPasswordEntryDialog
@@ -114,6 +115,9 @@ public:
     // various protocols that use broadcast or multicast requests
     void AddBroadcast(int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>&& callback);
     void AddMulticast(const std::string &mcAddr, int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>&& callback);
+    
+    // bonjour discovery (on platforms that support it)
+    void AddBonjour(const std::string &serviceName, std::function<void(const std::string &ipAddress)>&& callback);
 
     void SendBroadcastData(int port, uint8_t *buffer, int len);
     void SendData(int port, const std::string &host, uint8_t *buffer, int len);
@@ -169,7 +173,6 @@ private:
         void Init(const std::string &mc, int port);
     };
     
-    
     OutputManager *_outputManager;
     wxWindow *_frame;
     
@@ -177,6 +180,8 @@ private:
     std::vector<CurlData *> curls;
     int numCurls = 0;
     std::list<DatagramData *> datagrams;
-    
+    std::list<BonjourData *> bonjours;
+
     std::vector<DiscoveredData*> results;
+    
 };

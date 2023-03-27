@@ -3534,6 +3534,18 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
         // go ahead and send a unicast ping as well
         discovery.SendData(FPP_CTRL_PORT, a, buffer, 207);
     }
+    discovery.AddBonjour("_fppd._udp", [&](const std::string &ip) {
+        discovery.AddCurl(ip, "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
+            if (rc == 200) {
+                ProcessFPPSystems(discovery, buffer);
+            }
+            return true;
+        });
+        discovery.AddCurl(ip, "/api/system/info", [&discovery, ip](int rc, const std::string &buffer, const std::string &err) {
+            ProcessFPPSysinfo(discovery, ip, "", buffer);
+            return true;
+        });
+    });
 }
 
 bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
