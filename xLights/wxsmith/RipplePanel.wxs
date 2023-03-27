@@ -355,6 +355,7 @@
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_Ripple_Rotation" subclass="BulkEditSlider" variable="Slider_Ripple_Rotation" member="yes">
+							<min>-360</min>
 							<max>360</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

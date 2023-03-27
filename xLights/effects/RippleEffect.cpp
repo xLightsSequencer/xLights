@@ -238,8 +238,8 @@ static void getHeartPoints(dpointvec& pts)
 static void getCanePoints(dpointvec& pts)
 {
     // the stick
-    double ys1 = 1.0 / 6;
-    double ys2 = -1.0 / 2;
+    double ys1 = 1.0 / 3;
+    double ys2 = -2.0 / 3;
     double xs = 1.0 / 3;
     pts.clear();
     pts.push_back({ xs, ys2 });
@@ -250,7 +250,6 @@ static void getCanePoints(dpointvec& pts)
         double radian = degrees * (M_PI / 180.0);
         pts.push_back({ cos(radian) / 3, sin(radian) / 3 + ys1 });
     }
-    // MoC: The candy cane is a bit smaller than other things, and squat, so it is tempting to increase height a bit
 }
 
 static void getStarPoints(dpointvec& pts, int npts)
@@ -486,11 +485,20 @@ static void drawRippleNew(
     }
 
     // Base unit for width - a pixel, or .5% whichever is more sensible at the time
+    //  Location things - x, y, are already percentages - that scales
+    //  Radius/scale is a percentage also
+    //  Rotation things are scale invariant (rotation, direction, twist)
+    //  Cycles is a temporal count, that's not related to scaling
+    //  Thickness is a number, that's invariant
+    //  Velocity may as well be in percent
+    // This means the width of things is pixels
+    // The last thing expressed in pixels, then, is spacing.  Why is spacing expressed as pixels?  Why not have it be %?
+    //   With this formula, they are percentages for resolutions over 200,
+    //     but are pixels for resolutions below 200. Why?
     double pxw = 1.0;
     pxw = std::max(pxw, buffer.BufferWi * 0.005);
     pxw = std::max(pxw, buffer.BufferHt * 0.005);
 
-    vel *= pxw;
     spacing *= pxw;
 
     // Color calculations
@@ -526,6 +534,7 @@ static void drawRippleNew(
     baseRadius *= scale;
     brX *= scale;
     brY *= scale;
+    vel *= maxRadius / 100; // vel was %
 
     // OK time to draw!
     if (fill) {
