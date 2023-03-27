@@ -318,6 +318,9 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Ripple_Draw_Style->Append(_("Solid Inward Ripple"));
 	Choice_Ripple_Draw_Style->Append(_("Solid Outward Ripple"));
 	Choice_Ripple_Draw_Style->Append(_("Solid Both Ripple"));
+	Choice_Ripple_Draw_Style->Append(_("Highlight Inward"));
+	Choice_Ripple_Draw_Style->Append(_("Highlight Outward"));
+	Choice_Ripple_Draw_Style->Append(_("Highlight Both"));
 	Choice_Ripple_Draw_Style->Append(_("Highlight Inward Ripple"));
 	Choice_Ripple_Draw_Style->Append(_("Highlight Outward Ripple"));
 	Choice_Ripple_Draw_Style->Append(_("Highlight Both Ripple"));
