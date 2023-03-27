@@ -374,12 +374,20 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&RipplePanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&RipplePanel::OnValidateWindow, 0, this);
 
-	BitmapButton_Ripple_XCVC->GetValue()->SetLimits(RIPPLE_XC_MIN, RIPPLE_XC_MAX);
-	BitmapButton_Ripple_YCVC->GetValue()->SetLimits(RIPPLE_YC_MIN, RIPPLE_YC_MAX);
-    BitmapButton_Ripple_RotationVC->GetValue()->SetLimits(RIPPLE_ROTATION_MIN, RIPPLE_ROTATION_MAX);
-	BitmapButton_Ripple_CyclesVC->GetValue()->SetLimits(RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX);
-    BitmapButton_Ripple_CyclesVC->GetValue()->SetDivisor(10);
-    BitmapButton_Ripple_ThicknessVC->GetValue()->SetLimits(RIPPLE_THICKNESS_MIN, RIPPLE_THICKNESS_MAX);
+	BitmapButton_Ripple_XCVC->SetLimits(RIPPLE_XC_MIN, RIPPLE_XC_MAX);
+	BitmapButton_Ripple_YCVC->SetLimits(RIPPLE_YC_MIN, RIPPLE_YC_MAX);
+    BitmapButton_Ripple_RotationVC->SetLimits(RIPPLE_ROTATION_MIN, RIPPLE_ROTATION_MAX);
+	BitmapButton_Ripple_CyclesVC->SetLimits(RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX);
+    BitmapButton_Ripple_CyclesVC->GetValue()->SetDivisor(RIPPLE_CYCLES_DIVISOR);
+    BitmapButton_Ripple_ThicknessVC->SetLimits(RIPPLE_THICKNESS_MIN, RIPPLE_THICKNESS_MAX);
+    BitmapButton_Ripple_ScaleVC->SetLimits(RIPPLE_SCALE_MIN, RIPPLE_SCALE_MAX);
+    BitmapButton_Ripple_SpacingVC->SetLimits(RIPPLE_SPACING_MIN, RIPPLE_SPACING_MAX);
+    BitmapButton_Ripple_SpacingVC->GetValue()->SetDivisor(RIPPLE_SPACING_DIVISOR);
+    BitmapButton_Ripple_TwistVC->SetLimits(RIPPLE_TWIST_MIN, RIPPLE_TWIST_MAX);
+    BitmapButton_Ripple_TwistVC->GetValue()->SetDivisor(RIPPLE_TWIST_DIVISOR);
+    BitmapButton_Ripple_VelocityVC->SetLimits(RIPPLE_VELOCITY_MIN, RIPPLE_VELOCITY_MAX);
+    BitmapButton_Ripple_VelocityVC->GetValue()->SetDivisor(RIPPLE_VELOCITY_DIVISOR);
+    BitmapButton_Ripple_DirectionVC->SetLimits(RIPPLE_DIRECTION_MIN, RIPPLE_DIRECTION_MAX);
 
     ValidateWindow();
 }
@@ -419,62 +427,40 @@ void RipplePanel::ValidateWindow()
 		TextCtrl_Ripple_Rotation->Disable();
         BitmapButton_Ripple_RotationVC->Disable();
     }
+    bool newFeatures = false;
     if (Choice_Ripple_Draw_Style->GetStringSelection() != "Old") {
         BitmapButton_Ripple_Rotation->Enable();
         Slider_Ripple_Rotation->Enable();
         TextCtrl_Ripple_Rotation->Enable();
         BitmapButton_Ripple_RotationVC->Enable();
 
-	    BitmapButton_Ripple_Scale->Enable();
-        Slider_Ripple_Scale->Enable();
-        TextCtrl_Ripple_Scale->Enable();
-        BitmapButton_Ripple_ScaleVC->Enable();
-
-        BitmapButton_Ripple_Spacing->Enable();
-        Slider_Ripple_Spacing->Enable();
-        TextCtrl_Ripple_Spacing->Enable();
-        BitmapButton_Ripple_SpacingVC->Enable();
-
-        BitmapButton_Ripple_Twist->Enable();
-        Slider_Ripple_Twist->Enable();
-        TextCtrl_Ripple_Twist->Enable();
-        BitmapButton_Ripple_TwistVC->Enable();
-
-        BitmapButton_Ripple_Direction->Enable();
-        Slider_Ripple_Direction->Enable();
-        TextCtrl_Ripple_Direction->Enable();
-        BitmapButton_Ripple_DirectionVC->Enable();
-
-        BitmapButton_Ripple_Velocity->Enable();
-        Slider_Ripple_Velocity->Enable();
-        TextCtrl_Ripple_Velocity->Enable();
-        BitmapButton_Ripple_VelocityVC->Enable();
-    } else {
-        BitmapButton_Ripple_Scale->Disable();
-        Slider_Ripple_Scale->Disable();
-        TextCtrl_Ripple_Scale->Disable();
-        BitmapButton_Ripple_ScaleVC->Disable();
-
-	    BitmapButton_Ripple_Spacing->Disable();
-        Slider_Ripple_Spacing->Disable();
-        TextCtrl_Ripple_Spacing->Disable();
-        BitmapButton_Ripple_SpacingVC->Disable();
-
-	    BitmapButton_Ripple_Twist->Disable();
-        Slider_Ripple_Twist->Disable();
-        TextCtrl_Ripple_Twist->Disable();
-        BitmapButton_Ripple_TwistVC->Disable();
-
-		BitmapButton_Ripple_Direction->Disable();
-        Slider_Ripple_Direction->Disable();
-        TextCtrl_Ripple_Direction->Disable();
-        BitmapButton_Ripple_DirectionVC->Disable();
-
-	    BitmapButton_Ripple_Velocity->Disable();
-        Slider_Ripple_Velocity->Disable();
-        TextCtrl_Ripple_Velocity->Disable();
-        BitmapButton_Ripple_VelocityVC->Disable();
+        newFeatures = true;
     }
+
+	BitmapButton_Ripple_Scale->Enable(newFeatures);
+    Slider_Ripple_Scale->Enable(newFeatures);
+    TextCtrl_Ripple_Scale->Enable(newFeatures);
+    BitmapButton_Ripple_ScaleVC->Enable(newFeatures);
+
+    BitmapButton_Ripple_Spacing->Enable(newFeatures);
+    Slider_Ripple_Spacing->Enable(newFeatures);
+    TextCtrl_Ripple_Spacing->Enable(newFeatures);
+    BitmapButton_Ripple_SpacingVC->Enable(newFeatures);
+
+    BitmapButton_Ripple_Twist->Enable(newFeatures);
+    Slider_Ripple_Twist->Enable(newFeatures);
+    TextCtrl_Ripple_Twist->Enable(newFeatures);
+    BitmapButton_Ripple_TwistVC->Enable(newFeatures);
+
+    BitmapButton_Ripple_Direction->Enable(newFeatures);
+    Slider_Ripple_Direction->Enable(newFeatures);
+    TextCtrl_Ripple_Direction->Enable(newFeatures);
+    BitmapButton_Ripple_DirectionVC->Enable(newFeatures);
+
+    BitmapButton_Ripple_Velocity->Enable(newFeatures);
+    Slider_Ripple_Velocity->Enable(newFeatures);
+    TextCtrl_Ripple_Velocity->Enable(newFeatures);
+    BitmapButton_Ripple_VelocityVC->Enable(newFeatures);
 }
 
 void RipplePanel::OnChoice_Ripple_Draw_StyleSelect(wxCommandEvent& event)

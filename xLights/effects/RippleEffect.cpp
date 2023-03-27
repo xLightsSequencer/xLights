@@ -61,6 +61,14 @@ void RippleEffect::SetDefaultParameters()
     rp->BitmapButton_Ripple_CyclesVC->SetActive(false);
     rp->BitmapButton_Ripple_ThicknessVC->SetActive(false);
     rp->BitmapButton_Ripple_RotationVC->SetActive(false);
+    rp->BitmapButton_Ripple_XCVC->SetActive(false);
+    rp->BitmapButton_Ripple_YCVC->SetActive(false);
+
+    rp->BitmapButton_Ripple_SpacingVC->SetActive(false);
+    rp->BitmapButton_Ripple_ScaleVC->SetActive(false);
+    rp->BitmapButton_Ripple_TwistVC->SetActive(false);
+    rp->BitmapButton_Ripple_VelocityVC->SetActive(false);
+    rp->BitmapButton_Ripple_DirectionVC->SetActive(false);
 
     SetChoiceValue(rp->Choice_Ripple_Object_To_Draw, "Circle");
     SetChoiceValue(rp->Choice_Ripple_Movement, "Explode");
@@ -69,6 +77,12 @@ void RippleEffect::SetDefaultParameters()
     SetSliderValue(rp->Slider_Ripple_Cycles, 10);
     SetSliderValue(rp->Slider_Ripple_Points, 5);
     SetSliderValue(rp->Slider_Ripple_Rotation, 0);
+
+    SetSliderValue(rp->Slider_Ripple_Scale, 100);
+    SetSliderValue(rp->Slider_Ripple_Direction, 0);
+    SetSliderValue(rp->Slider_Ripple_Velocity, 0);
+    SetSliderValue(rp->Slider_Ripple_Twist, 0);
+    SetSliderValue(rp->Slider_Ripple_Spacing, 10);
 
     SetCheckBoxValue(rp->CheckBox_Ripple3D, false);
     SetChoiceValue(rp->Choice_Ripple_Draw_Style, "Old");
@@ -624,15 +638,15 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     int Ripple_Thickness = GetValueCurveInt("Ripple_Thickness", 3, SettingsMap, oset, RIPPLE_THICKNESS_MIN, RIPPLE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool CheckBox_Ripple3D = SettingsMap.GetBool("CHECKBOX_Ripple3D", false);
     const std::string& StyleStr = SettingsMap.Get("CHOICE_Ripple_Draw_Style", "Old");
-    float cycles = GetValueCurveDouble("Ripple_Cycles", 1.0, SettingsMap, oset, RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
+    float cycles = GetValueCurveDouble("Ripple_Cycles", 1.0, SettingsMap, oset, RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_CYCLES_DIVISOR);
     int points = SettingsMap.GetInt("SLIDER_RIPPLE_POINTS", 5);
     int rotation = GetValueCurveInt("Ripple_Rotation", 0, SettingsMap, oset, RIPPLE_ROTATION_MIN, RIPPLE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int xcc = GetValueCurveInt("Ripple_XC", 0, SettingsMap, oset, RIPPLE_XC_MIN, RIPPLE_XC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int ycc = GetValueCurveInt("Ripple_YC", 0, SettingsMap, oset, RIPPLE_YC_MIN, RIPPLE_YC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     double scale = GetValueCurveDouble("Ripple_Scale", 100, SettingsMap, oset, RIPPLE_SCALE_MIN, RIPPLE_SCALE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
-    double spacing = GetValueCurveDouble("Ripple_Spacing", 1.0, SettingsMap, oset, RIPPLE_SPACING_MIN, RIPPLE_SPACING_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
-    double twist = GetValueCurveDouble("Ripple_Twist", 0, SettingsMap, oset, RIPPLE_TWIST_MIN, RIPPLE_TWIST_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
-    double vel = GetValueCurveDouble("Ripple_Velocity", 0, SettingsMap, oset, RIPPLE_VELOCITY_MIN, RIPPLE_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
+    double spacing = GetValueCurveDouble("Ripple_Spacing", 1.0, SettingsMap, oset, RIPPLE_SPACING_MIN, RIPPLE_SPACING_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_SPACING_DIVISOR);
+    double twist = GetValueCurveDouble("Ripple_Twist", 0, SettingsMap, oset, RIPPLE_TWIST_MIN, RIPPLE_TWIST_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_TWIST_DIVISOR);
+    double vel = GetValueCurveDouble("Ripple_Velocity", 0, SettingsMap, oset, RIPPLE_VELOCITY_MIN, RIPPLE_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_VELOCITY_DIVISOR);
     double veldir = GetValueCurveDouble("Ripple_Direction", 0, SettingsMap, oset, RIPPLE_DIRECTION_MIN, RIPPLE_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     double position = buffer.GetEffectTimeIntervalPosition(cycles); // how far are we into the effect; value is 0.0 to 1.0

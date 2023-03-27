@@ -16,6 +16,7 @@
 
 #define RIPPLE_CYCLES_MIN 0
 #define RIPPLE_CYCLES_MAX 300
+#define RIPPLE_CYCLES_DIVISOR 10
 
 #define RIPPLE_THICKNESS_MIN 1
 #define RIPPLE_THICKNESS_MAX 100
@@ -31,18 +32,21 @@
 
 #define RIPPLE_SPACING_MIN 1
 #define RIPPLE_SPACING_MAX 100
+#define RIPPLE_SPACING_DIVISOR 10
 
 #define RIPPLE_SCALE_MIN 0
 #define RIPPLE_SCALE_MAX 500
 
 #define RIPPLE_VELOCITY_MIN 0
 #define RIPPLE_VELOCITY_MAX 100
+#define RIPPLE_VELOCITY_DIVISOR 10
 
 #define RIPPLE_DIRECTION_MIN -360
 #define RIPPLE_DIRECTION_MAX 360
 
 #define RIPPLE_TWIST_MIN -100
 #define RIPPLE_TWIST_MAX 100
+#define RIPPLE_TWIST_DIVISOR 10
 
 class RippleEffect : public RenderableEffect
 {
@@ -116,6 +120,19 @@ public:
         if (name == "E_VALUECURVE_Ripple_Twist")
             return RIPPLE_TWIST_MAX;
         return RenderableEffect::GetSettingVCMax(name);
+    }
+
+    virtual int GetSettingVCDivisor(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Ripple_Cycles")
+            return RIPPLE_CYCLES_DIVISOR;
+        if (name == "E_VALUECURVE_Ripple_Spacing")
+            return RIPPLE_SPACING_DIVISOR;
+        if (name == "E_VALUECURVE_Ripple_Twist")
+            return RIPPLE_TWIST_DIVISOR;
+        if (name == "E_VALUECURVE_Ripple_Velocity")
+            return RIPPLE_VELOCITY_DIVISOR;
+        return RenderableEffect::GetSettingVCDivisor(name);
     }
 
 protected:
