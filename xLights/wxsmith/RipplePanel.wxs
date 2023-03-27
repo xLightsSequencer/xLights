@@ -210,9 +210,10 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Ripple_Spacing" subclass="BulkEditSliderF1" variable="Slider_Ripple_Spacing" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Ripple_Spacing" subclass="BulkEditSliderF1" variable="Slider_Ripple_Spacing" member="yes">
 							<value>10</value>
 							<min>10</min>
+							<max>200</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -232,7 +233,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Spacing" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Ripple_Spacing" member="yes">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Ripple_Spacing" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Ripple_Spacing" member="yes">
 					<value>1.0</value>
 					<maxlength>4</maxlength>
 					<size>20,-1d</size>
@@ -406,8 +407,8 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Ripple_Twist" subclass="BulkEditSliderF1" variable="Slider_Ripple_Twist" member="yes">
-							<min>-100</min>
+						<object class="wxSlider" name="IDD_SLIDER_Ripple_Twist" subclass="BulkEditSliderF1" variable="Slider_Ripple_Twist" member="yes">
+							<min>-200</min>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -427,7 +428,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Twist" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Ripple_Twist" member="yes">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Ripple_Twist" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Ripple_Twist" member="yes">
 					<value>0.0</value>
 					<maxlength>4</maxlength>
 					<size>20,-1d</size>
@@ -555,7 +556,9 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Ripple_Velocity" subclass="BulkEditSliderF1" variable="Slider_Ripple_Velocity" member="yes" />
+						<object class="wxSlider" name="IDD_SLIDER_Ripple_Velocity" subclass="BulkEditSliderF1" variable="Slider_Ripple_Velocity" member="yes">
+							<max>300</max>
+						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
@@ -574,7 +577,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Velocity" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Ripple_Velocity" member="yes">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Ripple_Velocity" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Ripple_Velocity" member="yes">
 					<value>0.0</value>
 					<maxlength>4</maxlength>
 					<size>20,-1d</size>

@@ -115,9 +115,9 @@ class RipplePanel: public xlEffectPanel
 		static const long IDD_TEXTCTRL_Ripple_Thickness;
 		static const long ID_BITMAPBUTTON_SLIDER_Ripple_Thickness;
 		static const long ID_STATICTEXT4;
-		static const long ID_SLIDER_Ripple_Spacing;
+		static const long IDD_SLIDER_Ripple_Spacing;
 		static const long ID_VALUECURVE_Ripple_Spacing;
-		static const long IDD_TEXTCTRL_Ripple_Spacing;
+		static const long ID_TEXTCTRL_Ripple_Spacing;
 		static const long ID_BITMAPBUTTON_SLIDER_Ripple_Spacing;
 		static const long ID_STATICTEXT_Ripple_Cycles;
 		static const long IDD_SLIDER_Ripple_Cycles;
@@ -133,9 +133,9 @@ class RipplePanel: public xlEffectPanel
 		static const long IDD_TEXTCTRL_Ripple_Rotation;
 		static const long ID_BITMAPBUTTON_SLIDER_Ripple_Rotation;
 		static const long ID_STATICTEXT5;
-		static const long ID_SLIDER_Ripple_Twist;
+		static const long IDD_SLIDER_Ripple_Twist;
 		static const long ID_VALUECURVE_Ripple_Twist;
-		static const long IDD_TEXTCTRL_Ripple_Twist;
+		static const long ID_TEXTCTRL_Ripple_Twist;
 		static const long ID_BITMAPBUTTON_SLIDER_Ripple_Twist;
 		static const long ID_STATICTEXT2;
 		static const long ID_SLIDER_Ripple_XC;
@@ -146,9 +146,9 @@ class RipplePanel: public xlEffectPanel
 		static const long ID_VALUECURVE_Ripple_YC;
 		static const long IDD_TEXTCTRL_Ripple_YC;
 		static const long ID_STATICTEXT7;
-		static const long ID_SLIDER_Ripple_Velocity;
+		static const long IDD_SLIDER_Ripple_Velocity;
 		static const long ID_VALUECURVE_Ripple_Velocity;
-		static const long IDD_TEXTCTRL_Ripple_Velocity;
+		static const long ID_TEXTCTRL_Ripple_Velocity;
 		static const long ID_BITMAPBUTTON_SLIDER_Ripple_Velocity;
 		static const long ID_STATICTEXT8;
 		static const long ID_SLIDER_Ripple_Direction;
