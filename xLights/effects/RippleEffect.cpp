@@ -494,15 +494,22 @@ static void drawRippleNew(
     spacing *= pxw;
 
     // Color calculations
+    int cidxShp = 0;
     HSVValue hsv;
     size_t colorcnt = buffer.GetColorCount();
     buffer.palette.GetHSV(0, hsv); // Now go and get the hsv value for this ColorIdx
     HSVValue lhsv = hsv;
-    if (colorcnt > 1)
+    int cidxLines = cidxShp;
+    if (colorcnt > 1) {
         buffer.palette.GetHSV(1, lhsv);
+        cidxLines = 1;
+    }
     HSVValue fhsv = lhsv;
-    if (colorcnt > 2)
+    int cidxFill = cidxLines;
+    if (colorcnt > 2) {
         buffer.palette.GetHSV(2, fhsv);
+        cidxFill = 2;
+    }
 
     // Radius
     double baseRadius = 1;
@@ -529,23 +536,33 @@ static void drawRippleNew(
             double yc = syc - (vel * cos(veldir / 180 * M_PI) * i);
             double rotation = srotation + twist * i;
             double strength = (double(thickness) + 1 - i) / (thickness + 1); // Used for 3D/fade
-            double delta = ripple ? ((i * i + 1) * 0.25 * pxw) : (i * 0.5 * pxw);
+            double delta = ripple ? ((i * i + 1) * 0.25) : (i * 0.5);
             delta *= spacing;
 
             xlColor fadeColor(fhsv);
+            if (buffer.palette.IsSpatial(cidxFill)) {
+                buffer.palette.GetSpatialColor(cidxFill, 0, 0, 0, i, 0, thickness, fadeColor);
+            }
+
+            xlColor lineColor(lhsv);
+            if (buffer.palette.IsSpatial(cidxLines)) {
+                buffer.palette.GetSpatialColor(cidxLines, 0, 0, 0, i, 0, thickness, lineColor);
+            }
+
+            xlColor fadeColor3D = fadeColor;
             if (buffer.allowAlpha) {
-                fadeColor.alpha = 255.0 * strength;
+                fadeColor3D.alpha = 255.0 * strength;
             } else {
-                HSVValue hsvc = fhsv;
+                HSVValue hsvc = fadeColor;
                 hsvc.value *= strength;
-                fadeColor = hsvc;
+                fadeColor3D = hsvc;
             }
 
             dpointvec nxtedgeouter, nxtedgeinner;
             if (doInside && brX - delta > 0 && brY - delta > 0) {
                 ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation, true);
                 if (!oldptsinner.empty()) {
-                    FillRegion(buffer, oldptsinner, ishp, fade ? fadeColor : xlColor(fhsv), closedShape);
+                    FillRegion(buffer, oldptsinner, ishp, fade ? fadeColor3D : fadeColor, closedShape);
                 }
                 oldptsinner = ishp;
                 if (lines) {
@@ -557,7 +574,7 @@ static void drawRippleNew(
             if (doOutside && brX + delta > 0 && brY + delta > 0) {
                 ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation, true);
                 if (!oldptsouter.empty()) {
-                    FillRegion(buffer, oldptsouter, oshp, fade ? fadeColor : xlColor(fhsv), closedShape);
+                    FillRegion(buffer, oldptsouter, oshp, fade ? fadeColor3D : fadeColor, closedShape);
                 }
                 oldptsouter = oshp;
                 if (lines) {
@@ -566,10 +583,10 @@ static void drawRippleNew(
             }
 
             if (oldedgeinner.size()) {
-                DrawShapeD(buffer, oldedgeinner, lhsv, closedShape, false);
+                DrawShapeD(buffer, oldedgeinner, lineColor, closedShape, false);
             }
             if (oldedgeouter.size()) {
-                DrawShapeD(buffer, oldedgeouter, lhsv, closedShape, false);
+                DrawShapeD(buffer, oldedgeouter, lineColor, closedShape, false);
             }
 
             oldedgeouter = nxtedgeouter;
@@ -586,25 +603,31 @@ static void drawRippleNew(
             double yc = syc - (vel * cos(veldir / 180 * M_PI) * i);
             double rotation = srotation + twist * i;
             double strength = (double(thickness) + 1 - i) / (thickness + 1); // Used for 3D/fade
-            double delta = ripple ? ((i * i + 1) * 0.25 * pxw) : (i * 0.5 * pxw);
+            double delta = ripple ? ((i * i + 1) * 0.25) : (i * 0.5);
             delta *= spacing;
 
-            xlColor fadeColor(lhsv);
+            xlColor lineColor(lhsv);
+            if (buffer.palette.IsSpatial(cidxLines)) {
+                buffer.palette.GetSpatialColor(cidxLines, 0, 0, 0, i, 0, thickness, lineColor);
+            }
+
+            xlColor fadeColor3D = lineColor;
+
             if (buffer.allowAlpha) {
-                fadeColor.alpha = 255.0 * strength;
+                fadeColor3D.alpha = 255.0 * strength;
             } else {
                 HSVValue hsvc = lhsv;
                 hsvc.value *= strength;
-                fadeColor = hsvc;
+                fadeColor3D = hsvc;
             }
 
             if (doInside && brX - delta > 0 && brY - delta > 0) {
                 ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation);
-                DrawShape(buffer, ishp, (fade) ? fadeColor : xlColor(lhsv), closedShape);
+                DrawShape(buffer, ishp, (fade) ? fadeColor3D : lineColor, closedShape);
             }
             if (doOutside && brX + delta > 0 && brY + delta > 0) {
                 ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation);
-                DrawShape(buffer, oshp, (fade) ? fadeColor : xlColor(lhsv), closedShape);
+                DrawShape(buffer, oshp, (fade) ? fadeColor3D : lineColor, closedShape);
             }
         }
     }
@@ -622,13 +645,8 @@ static void drawRippleNew(
 }
 
 // TODO:
-// * BUG: There is a slight bug with the inside fill I feel?  It also crashed.  Try split collinear.
-// * BUG: The value curves are not doing what I want them to do... they are dividing by 10 or something.
-// * BUG: Value curves not clearing
-    // 3 ENH: There is the matter of colors (radial; this is easy)
 // 4 ENH: There is the matter of colors (around; this is a matter of breaking long segments up)
 // 2 ENH: SVG
-// 2 IMP: Wonder about the meaning of thickness - is it # of rings or is it the total - total may be easier
 
 void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
