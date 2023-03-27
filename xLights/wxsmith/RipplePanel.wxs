@@ -409,6 +409,7 @@
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Ripple_Twist" subclass="BulkEditSliderF1" variable="Slider_Ripple_Twist" member="yes">
 							<min>-200</min>
+							<max>200</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>

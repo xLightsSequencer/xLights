@@ -235,7 +235,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer7->AddGrowableCol(0);
-	Slider_Ripple_Twist = new BulkEditSliderF1(this, IDD_SLIDER_Ripple_Twist, 0, -200, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Ripple_Twist"));
+	Slider_Ripple_Twist = new BulkEditSliderF1(this, IDD_SLIDER_Ripple_Twist, 0, -200, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Ripple_Twist"));
 	FlexGridSizer7->Add(Slider_Ripple_Twist, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Ripple_TwistVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Ripple_Twist, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Ripple_Twist"));
 	FlexGridSizer7->Add(BitmapButton_Ripple_TwistVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
