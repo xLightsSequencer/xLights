@@ -28,6 +28,7 @@
 						<item>Snow Flake</item>
 						<item>Crucifix</item>
 						<item>Present</item>
+						<item>SVG</item>
 					</content>
 					<selection>0</selection>
 					<handler function="OnChoice_Ripple_Object_To_DrawSelect" entry="EVT_CHOICE" />
@@ -48,6 +49,33 @@
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText_SVG" member="no">
+					<label>SVG</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_SVG" subclass="BulkEditFilePickerCtrl" variable="FilePickerCtrl_SVG" member="yes">
+					<message></message>
+					<wildcard>*.svg</wildcard>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -139,12 +167,66 @@
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText_Outline" member="no">
+					<label>Outline</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER1_Ripple_Outline" subclass="BulkEditSliderF1" variable="Slider_Ripple_Outline" member="yes">
+							<value>10</value>
+							<max>50</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Ripple_OutlineVC" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_OutlineVC" member="yes">
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Ripple_Outline" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Ripple_Outline" member="yes">
+					<value>1.0</value>
+					<maxlength>4</maxlength>
+					<size>20,-1d</size>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Ripple_Outline" subclass="xlLockButton" variable="BitmapButton_Ripple_Outline" member="yes">
+					<size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT_Ripple_Thickness" variable="StaticText72" member="yes">
-					<label>Thickness</label>
+					<label>Ripples</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -191,7 +273,6 @@
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>1</border>
@@ -249,7 +330,7 @@
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>1</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -338,7 +419,7 @@
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>1</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -446,7 +527,7 @@
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>1</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -595,7 +676,7 @@
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>1</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -649,7 +730,7 @@
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>1</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -700,7 +781,7 @@
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>1</border>
 				<option>1</option>
 			</object>
 			<object class="spacer">

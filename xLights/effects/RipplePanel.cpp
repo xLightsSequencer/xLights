@@ -17,6 +17,7 @@
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
+#include <wx/filepicker.h>
 #include <wx/image.h>
 #include <wx/intl.h>
 #include <wx/settings.h>
@@ -31,6 +32,7 @@
 const long RipplePanel::ID_STATICTEXT_Ripple_Object_To_Draw = wxNewId();
 const long RipplePanel::ID_CHOICE_Ripple_Object_To_Draw = wxNewId();
 const long RipplePanel::ID_BITMAPBUTTON_CHOICE_Ripple_Object_To_Draw = wxNewId();
+const long RipplePanel::ID_FILEPICKERCTRL_SVG = wxNewId();
 const long RipplePanel::ID_STATICTEXT_Ripple_Movement = wxNewId();
 const long RipplePanel::ID_CHOICE_Ripple_Movement = wxNewId();
 const long RipplePanel::ID_BITMAPBUTTON_CHOICE_Ripple_Movement = wxNewId();
@@ -39,6 +41,10 @@ const long RipplePanel::ID_SLIDER_Ripple_Scale = wxNewId();
 const long RipplePanel::ID_VALUECURVE_Ripple_Scale = wxNewId();
 const long RipplePanel::IDD_TEXTCTRL_Ripple_Scale = wxNewId();
 const long RipplePanel::ID_BITMAPBUTTON_SLIDER_Ripple_Scale = wxNewId();
+const long RipplePanel::IDD_SLIDER1_Ripple_Outline = wxNewId();
+const long RipplePanel::ID_BITMAPBUTTON_Ripple_OutlineVC = wxNewId();
+const long RipplePanel::ID_TEXTCTRL_Ripple_Outline = wxNewId();
+const long RipplePanel::ID_BITMAPBUTTON_Ripple_Outline = wxNewId();
 const long RipplePanel::ID_STATICTEXT_Ripple_Thickness = wxNewId();
 const long RipplePanel::ID_SLIDER_Ripple_Thickness = wxNewId();
 const long RipplePanel::ID_VALUECURVE_Ripple_Thickness = wxNewId();
@@ -103,6 +109,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	BulkEditTextCtrl* TextCtrl33;
 	BulkEditTextCtrlF1* TextCtrl34;
 	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -114,6 +121,8 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
 	wxFlexGridSizer* FlexGridSizer9;
+	wxStaticText* StaticText_Outline;
+	wxStaticText* StaticText_SVG;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(536,607), wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer57 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -132,11 +141,18 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Ripple_Object_To_Draw->Append(_("Snow Flake"));
 	Choice_Ripple_Object_To_Draw->Append(_("Crucifix"));
 	Choice_Ripple_Object_To_Draw->Append(_("Present"));
+	Choice_Ripple_Object_To_Draw->Append(_("SVG"));
 	FlexGridSizer57->Add(Choice_Ripple_Object_To_Draw, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Ripple_Object_To_Draw = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Ripple_Object_To_Draw, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Ripple_Object_To_Draw"));
 	BitmapButton_Ripple_Object_To_Draw->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer57->Add(BitmapButton_Ripple_Object_To_Draw, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer57->Add(BitmapButton_Ripple_Object_To_Draw, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
+	StaticText_SVG = new wxStaticText(this, wxID_ANY, _("SVG"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer57->Add(StaticText_SVG, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FilePickerCtrl_SVG = new BulkEditFilePickerCtrl(this, ID_FILEPICKERCTRL_SVG, wxEmptyString, wxEmptyString, _T("*.svg"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_SVG"));
+	FlexGridSizer57->Add(FilePickerCtrl_SVG, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText70 = new wxStaticText(this, ID_STATICTEXT_Ripple_Movement, _("Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Movement"));
 	FlexGridSizer57->Add(StaticText70, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Ripple_Movement = new BulkEditChoice(this, ID_CHOICE_Ripple_Movement, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Ripple_Movement"));
@@ -162,8 +178,23 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(TextCtrl_Ripple_Scale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Ripple_Scale = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Ripple_Scale, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Ripple_Scale"));
 	BitmapButton_Ripple_Scale->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer57->Add(BitmapButton_Ripple_Scale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText72 = new wxStaticText(this, ID_STATICTEXT_Ripple_Thickness, _("Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Thickness"));
+	FlexGridSizer57->Add(BitmapButton_Ripple_Scale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	StaticText_Outline = new wxStaticText(this, wxID_ANY, _("Outline"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer57->Add(StaticText_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer11 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer11->AddGrowableCol(0);
+	Slider_Ripple_Outline = new BulkEditSliderF1(this, IDD_SLIDER1_Ripple_Outline, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER1_Ripple_Outline"));
+	FlexGridSizer11->Add(Slider_Ripple_Outline, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Ripple_OutlineVC = new BulkEditValueCurveButton(this, ID_BITMAPBUTTON_Ripple_OutlineVC, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_Ripple_OutlineVC"));
+	FlexGridSizer11->Add(BitmapButton_Ripple_OutlineVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer57->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 0);
+	TextCtrl_Ripple_Outline = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Ripple_Outline, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Ripple_Outline"));
+	TextCtrl_Ripple_Outline->SetMaxLength(4);
+	FlexGridSizer57->Add(TextCtrl_Ripple_Outline, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Ripple_Outline = new xlLockButton(this, ID_BITMAPBUTTON_Ripple_Outline, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_Ripple_Outline"));
+	BitmapButton_Ripple_Outline->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+	FlexGridSizer57->Add(BitmapButton_Ripple_Outline, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	StaticText72 = new wxStaticText(this, ID_STATICTEXT_Ripple_Thickness, _("Ripples"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Thickness"));
 	FlexGridSizer57->Add(StaticText72, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
@@ -192,7 +223,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(TextCtrl_Ripple_Spacing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Ripple_Spacing = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Ripple_Spacing, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Ripple_Spacing"));
 	BitmapButton_Ripple_Spacing->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer57->Add(BitmapButton_Ripple_Spacing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer57->Add(BitmapButton_Ripple_Spacing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText176 = new wxStaticText(this, ID_STATICTEXT_Ripple_Cycles, _("Cycle Count"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Cycles"));
 	FlexGridSizer57->Add(StaticText176, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -215,7 +246,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(TextCtrl_Ripple_Points, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Ripple_Points = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_RIPPLE_POINTS, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_RIPPLE_POINTS"));
 	BitmapButton_Ripple_Points->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer57->Add(BitmapButton_Ripple_Points, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer57->Add(BitmapButton_Ripple_Points, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText_Ripple_Rotation = new wxStaticText(this, ID_STATICTEXT_Ripple_Rotation, _("Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Rotation"));
 	FlexGridSizer57->Add(StaticText_Ripple_Rotation, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -245,7 +276,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(TextCtrl_Ripple_Twist, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Ripple_Twist = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Ripple_Twist, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Ripple_Twist"));
 	BitmapButton_Ripple_Twist->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer57->Add(BitmapButton_Ripple_Twist, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer57->Add(BitmapButton_Ripple_Twist, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("X Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer57->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -286,7 +317,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(TextCtrl_Ripple_Velocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Ripple_Velocity = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Ripple_Velocity, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Ripple_Velocity"));
 	BitmapButton_Ripple_Velocity->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer57->Add(BitmapButton_Ripple_Velocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer57->Add(BitmapButton_Ripple_Velocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT8, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer57->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -301,7 +332,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(TextCtrl_Ripple_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Ripple_Direction = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Ripple_Direction, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Ripple_Direction"));
 	BitmapButton_Ripple_Direction->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer57->Add(BitmapButton_Ripple_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer57->Add(BitmapButton_Ripple_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT_Ripple_Draw_Style, _("Draw Style"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Draw_Style"));
 	FlexGridSizer57->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Ripple_Draw_Style = new BulkEditChoice(this, ID_CHOICE_Ripple_Draw_Style, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Ripple_Draw_Style"));
@@ -328,7 +359,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Ripple_Draw_Style = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style"));
 	BitmapButton_Ripple_Draw_Style->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer57->Add(BitmapButton_Ripple_Draw_Style, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer57->Add(BitmapButton_Ripple_Draw_Style, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer60 = new wxFlexGridSizer(0, 4, 0, 0);
 	CheckBox_Ripple3D = new BulkEditCheckBox(this, ID_CHECKBOX_Ripple3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Ripple3D"));

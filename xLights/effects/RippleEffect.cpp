@@ -654,6 +654,8 @@ static void drawRippleNew(
 }
 
 // TODO:
+// 1 IMP: Scaling for spacing
+// 3 ENH: Thickness of center shape?
 // 4 ENH: There is the matter of colors (around; this is a matter of breaking long segments up)
 // 2 ENH: SVG
 

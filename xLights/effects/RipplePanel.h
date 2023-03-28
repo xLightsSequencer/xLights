@@ -15,6 +15,7 @@
 class wxBitmapButton;
 class wxCheckBox;
 class wxChoice;
+class wxFilePickerCtrl;
 class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
@@ -37,6 +38,7 @@ class RipplePanel: public xlEffectPanel
 		BulkEditChoice* Choice_Ripple_Draw_Style;
 		BulkEditChoice* Choice_Ripple_Movement;
 		BulkEditChoice* Choice_Ripple_Object_To_Draw;
+		BulkEditFilePickerCtrl* FilePickerCtrl_SVG;
 		BulkEditSlider* Slider_Ripple_Direction;
 		BulkEditSlider* Slider_Ripple_Points;
 		BulkEditSlider* Slider_Ripple_Rotation;
@@ -45,6 +47,7 @@ class RipplePanel: public xlEffectPanel
 		BulkEditSlider* Slider_Ripple_XC;
 		BulkEditSlider* Slider_Ripple_YC;
 		BulkEditSliderF1* Slider_Ripple_Cycles;
+		BulkEditSliderF1* Slider_Ripple_Outline;
 		BulkEditSliderF1* Slider_Ripple_Spacing;
 		BulkEditSliderF1* Slider_Ripple_Twist;
 		BulkEditSliderF1* Slider_Ripple_Velocity;
@@ -54,11 +57,13 @@ class RipplePanel: public xlEffectPanel
 		BulkEditTextCtrl* TextCtrl_Ripple_Scale;
 		BulkEditTextCtrl* TextCtrl_Ripple_XC;
 		BulkEditTextCtrl* TextCtrl_Ripple_YC;
+		BulkEditTextCtrlF1* TextCtrl_Ripple_Outline;
 		BulkEditTextCtrlF1* TextCtrl_Ripple_Spacing;
 		BulkEditTextCtrlF1* TextCtrl_Ripple_Twist;
 		BulkEditTextCtrlF1* TextCtrl_Ripple_Velocity;
 		BulkEditValueCurveButton* BitmapButton_Ripple_CyclesVC;
 		BulkEditValueCurveButton* BitmapButton_Ripple_DirectionVC;
+		BulkEditValueCurveButton* BitmapButton_Ripple_OutlineVC;
 		BulkEditValueCurveButton* BitmapButton_Ripple_RotationVC;
 		BulkEditValueCurveButton* BitmapButton_Ripple_ScaleVC;
 		BulkEditValueCurveButton* BitmapButton_Ripple_SpacingVC;
@@ -87,6 +92,7 @@ class RipplePanel: public xlEffectPanel
 		xlLockButton* BitmapButton_Ripple_Draw_Style;
 		xlLockButton* BitmapButton_Ripple_Movement;
 		xlLockButton* BitmapButton_Ripple_Object_To_Draw;
+		xlLockButton* BitmapButton_Ripple_Outline;
 		xlLockButton* BitmapButton_Ripple_Points;
 		xlLockButton* BitmapButton_Ripple_Rotation;
 		xlLockButton* BitmapButton_Ripple_Scale;
@@ -101,6 +107,7 @@ class RipplePanel: public xlEffectPanel
 		static const long ID_STATICTEXT_Ripple_Object_To_Draw;
 		static const long ID_CHOICE_Ripple_Object_To_Draw;
 		static const long ID_BITMAPBUTTON_CHOICE_Ripple_Object_To_Draw;
+		static const long ID_FILEPICKERCTRL_SVG;
 		static const long ID_STATICTEXT_Ripple_Movement;
 		static const long ID_CHOICE_Ripple_Movement;
 		static const long ID_BITMAPBUTTON_CHOICE_Ripple_Movement;
@@ -109,6 +116,10 @@ class RipplePanel: public xlEffectPanel
 		static const long ID_VALUECURVE_Ripple_Scale;
 		static const long IDD_TEXTCTRL_Ripple_Scale;
 		static const long ID_BITMAPBUTTON_SLIDER_Ripple_Scale;
+		static const long IDD_SLIDER1_Ripple_Outline;
+		static const long ID_BITMAPBUTTON_Ripple_OutlineVC;
+		static const long ID_TEXTCTRL_Ripple_Outline;
+		static const long ID_BITMAPBUTTON_Ripple_Outline;
 		static const long ID_STATICTEXT_Ripple_Thickness;
 		static const long ID_SLIDER_Ripple_Thickness;
 		static const long ID_VALUECURVE_Ripple_Thickness;
