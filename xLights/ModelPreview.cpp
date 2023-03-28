@@ -670,7 +670,7 @@ void ModelPreview::Render()
                     isModelSelected = true;
                 }
                 auto p = ProjViewMatrix * glm::vec4(m->GetHcenterPos(), m->GetVcenterPos(), m->GetDcenterPos(), 1);
-                int z = p.z;
+                int z = std::round(p.z * 100);
                 sortedModels[z].push_back(m);
             } else {
                 wxASSERT(false); // why did we get here
