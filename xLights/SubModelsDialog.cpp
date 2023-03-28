@@ -105,12 +105,12 @@ const long SubModelsDialog::SUBMODEL_DIALOG_JOIN_SS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SPLIT = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SORT_BY_NAME = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_DUPLICATE = wxNewId();
-const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_DUPLICATE = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SUPPRESS_DUPLICATE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SORT_POINTS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB = wxNewId();
-const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR = wxNewId();
-const long SubModelsDialog::SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EVEN_ROWS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SYMMETRIZE = wxNewId();
@@ -991,14 +991,14 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
         //NodesGrid->GoToCell(event.GetRow(), 0);
 
         mnu.Append(SUBMODEL_DIALOG_REMOVE_DUPLICATE, "Remove Duplicates");
-        mnu.Append(SUBMODEL_DIALOG_ELIDE_DUPLICATE, "Elide Duplicates");
+        mnu.Append(SUBMODEL_DIALOG_SUPPRESS_DUPLICATE, "Suppress Duplicates");
         mnu.Append(SUBMODEL_DIALOG_SORT_POINTS, "Sort Strand Points Geometrically...");
         mnu.AppendSeparator();
     }
     mnu.Append(SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR, "Remove Duplicates All Left->Right");
     mnu.Append(SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB, "Remove Duplicates All Top->Bottom");
-    mnu.Append(SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR, "Elide Duplicates All Left->Right");
-    mnu.Append(SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB, "Elide Duplicates All Top->Bottom");
+    mnu.Append(SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR, "Suppress Duplicates All Left->Right");
+    mnu.Append(SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB, "Suppress Duplicates All Top->Bottom");
     mnu.Append(SUBMODEL_DIALOG_EVEN_ROWS, "Uniform Row Length");
     mnu.Append(SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS, "Pivot Rows / Columns");
     mnu.Append(SUBMODEL_DIALOG_SORT_POINTS_ALL, "Geometrically Sort Points All Strands...");
@@ -1022,7 +1022,7 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
     if (event.GetId() == SUBMODEL_DIALOG_REMOVE_DUPLICATE) {
         RemoveDuplicates(false);
     }
-    if (event.GetId() == SUBMODEL_DIALOG_ELIDE_DUPLICATE) {
+    if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_DUPLICATE) {
         RemoveDuplicates(true);
     }
     if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR) {
@@ -1031,10 +1031,10 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
     if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB) {
         RemoveAllDuplicates(false, false);
     }
-    if (event.GetId() == SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR) {
+    if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR) {
         RemoveAllDuplicates(true, true);
     }
-    if (event.GetId() == SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB) {
+    if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB) {
         RemoveAllDuplicates(false, true);
     }
     if (event.GetId() == SUBMODEL_DIALOG_EVEN_ROWS) {
@@ -3104,7 +3104,7 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
     ValidateWindow();
 }
 
-void SubModelsDialog::RemoveNodes(bool elide)
+void SubModelsDialog::RemoveNodes(bool suppress)
 {
     wxString name = GetSelectedName();
     if (name == "") {
@@ -3128,7 +3128,7 @@ void SubModelsDialog::RemoveNodes(bool elide)
 
     for (auto const& newNode : nodes) {
         wxString stNode = wxString::Format("%d", newNode);
-        if (elide) {
+        if (suppress) {
             // We're going to replace the last one with space (in case it was duplicated)
             for (auto it = oldNodeArrray.rbegin(); it != oldNodeArrray.rend(); ++it) {
                 if (*it == stNode) {
@@ -3889,7 +3889,7 @@ void SubModelsDialog::Reverse()
     TextCtrl_Name->SelectAll();
 }
 
-void SubModelsDialog::RemoveDuplicates(bool elide)
+void SubModelsDialog::RemoveDuplicates(bool suppress)
 {
     wxString name = GetSelectedName();
     if (name.empty()) {
@@ -3903,7 +3903,7 @@ void SubModelsDialog::RemoveDuplicates(bool elide)
 
     auto oldNodeArray = wxSplit(oldnodes, ',');
 
-    if (elide) {
+    if (suppress) {
         std::set<wxString> seen;
         for (auto it = oldNodeArray.begin(); it != oldNodeArray.end(); ++it) {
             if (it->empty() || *it == "0")
@@ -3933,7 +3933,7 @@ void SubModelsDialog::RemoveDuplicates(bool elide)
     ValidateWindow();
 }
 
-void SubModelsDialog::RemoveAllDuplicates(bool leftright, bool elide)
+void SubModelsDialog::RemoveAllDuplicates(bool leftright, bool suppress)
 {
     wxString name = GetSelectedName();
     if (name.empty()) {
@@ -3963,7 +3963,7 @@ void SubModelsDialog::RemoveAllDuplicates(bool leftright, bool elide)
                 if (data[r][c] == "" || data[r][c] == "0")
                     continue;
                 if (seen.count(data[r][c])) {
-                    if (elide) {
+                    if (suppress) {
                         data[r][c] = "";
                     } else {
                         data[r][c] = "x"; // Deal with this later
@@ -3979,7 +3979,7 @@ void SubModelsDialog::RemoveAllDuplicates(bool leftright, bool elide)
                 if (data[r][c] == "" || data[r][c] == "0")
                     continue;
                 if (seen.count(data[r][c])) {
-                    if (elide) {
+                    if (suppress) {
                         data[r][c] = "";
                     } else {
                         data[r][c] = "x"; // Deal with this later

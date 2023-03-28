@@ -231,12 +231,12 @@ protected:
     static const long SUBMODEL_DIALOG_SPLIT;
     static const long SUBMODEL_DIALOG_SORT_BY_NAME;
     static const long SUBMODEL_DIALOG_REMOVE_DUPLICATE;
-    static const long SUBMODEL_DIALOG_ELIDE_DUPLICATE;
+    static const long SUBMODEL_DIALOG_SUPPRESS_DUPLICATE;
     static const long SUBMODEL_DIALOG_SORT_POINTS;
     static const long SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR;
     static const long SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB;
-    static const long SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_LR;
-    static const long SUBMODEL_DIALOG_ELIDE_ALL_DUPLICATE_TB;
+    static const long SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR;
+    static const long SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB;
     static const long SUBMODEL_DIALOG_EVEN_ROWS;
     static const long SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS;
     static const long SUBMODEL_DIALOG_SYMMETRIZE;
@@ -275,8 +275,8 @@ protected:
     void FlipHorizontal();
     void FlipVertical();
     void Reverse();
-    void RemoveDuplicates(bool elide);
-    void RemoveAllDuplicates(bool leftright, bool elide);
+    void RemoveDuplicates(bool suppress);
+    void RemoveAllDuplicates(bool leftright, bool suppress);
     void MakeRowsUniform();
     void PivotRowsColumns();
     void CombineStrands();
@@ -361,7 +361,7 @@ private:
     void RenderModel();
     void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
     void SelectAllInBoundingRect(bool shiftdwn, bool cdwn);
-    void RemoveNodes(bool elide);
+    void RemoveNodes(bool suppress);
 
     void OnTextCtrl_NameText_KillFocus(wxFocusEvent& event);
     void OnSubbufferSize(wxSizeEvent& event);
