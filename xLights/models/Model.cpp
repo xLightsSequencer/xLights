@@ -5253,13 +5253,38 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
     }
 }
 
-wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip)
+float Model::GetPreviewDimScale(ModelPreview* preview, int& w, int& h)
 {
-    int w, h;
     preview->GetSize(&w, &h);
     float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
     float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
     float scale = scaleY < scaleX ? scaleY : scaleX;
+
+    return scale;
+}
+
+void Model::GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordStruct& it2, int w, int h, float scale)
+{
+    sx = it2.screenX;
+    sy = it2.screenY;
+
+    if (!GetModelScreenLocation().IsCenterBased()) {
+        sx -= GetModelScreenLocation().RenderWi / 2.0;
+        sy *= GetModelScreenLocation().GetVScaleFactor();
+        if (GetModelScreenLocation().GetVScaleFactor() < 0) {
+            sy += GetModelScreenLocation().RenderHt / 2.0;
+        } else {
+            sy -= GetModelScreenLocation().RenderHt / 2.0;
+        }
+    }
+    sy = ((sy * scale) + (h / 2));
+    sx = (sx * scale) + (w / 2);
+}
+
+wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip)
+{
+    int w, h;
+    float scale = GetPreviewDimScale(preview, w, h);
 
     float pointScale = scale;
     if (pointScale > 2.5) {
@@ -5281,21 +5306,8 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip)
     for (const auto& it : Nodes) {
         auto c = it.get()->Coords;
         for (const auto& it2 : c) {
-            float sx = it2.screenX;
-            float sy = it2.screenY;
-
-            if (!GetModelScreenLocation().IsCenterBased()) {
-                sx -= GetModelScreenLocation().RenderWi / 2.0;
-                sy *= GetModelScreenLocation().GetVScaleFactor();
-                if (GetModelScreenLocation().GetVScaleFactor() < 0) {
-                    sy += GetModelScreenLocation().RenderHt / 2.0;
-                }
-                else {
-                    sy -= GetModelScreenLocation().RenderHt / 2.0;
-                }
-            }
-            sy = ((sy * scale) + (h / 2));
-            sx = (sx * scale) + (w / 2);
+            float sx, sy;
+            GetScreenLocation(sx, sy, it2, w, h, scale);
 
             if (sx >= (px - pointScale) && sx <= (px + pointScale) &&
                 sy >= (py - pointScale) && sy <= (py + pointScale)) {
@@ -5307,13 +5319,30 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip)
     return "";
 }
 
+bool Model::GetScreenLocations(ModelPreview* preview, std::map<int, std::pair<float, float>>& coords)
+{
+    int w, h;
+    float scale = GetPreviewDimScale(preview, w, h);
+
+    int i = 1;
+    for (const auto& it : Nodes) {
+        auto c = it.get()->Coords;
+        if (c.size() != 1)
+            return false;
+        for (const auto& it2 : c) {
+            float sx, sy;
+            GetScreenLocation(sx, sy, it2, w, h, scale);
+            coords[i] = std::make_pair(sx, sy);
+        }
+        ++i;
+    }
+    return true;
+}
+
 std::vector<int> Model::GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end)
 {
     int w, h;
-    preview->GetSize(&w, &h);
-    float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
-    float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
-    float scale = scaleY < scaleX ? scaleY : scaleX;
+    float scale = GetPreviewDimScale(preview, w, h);
 
     std::vector<int> nodes;
 
@@ -5338,24 +5367,12 @@ std::vector<int> Model::GetNodesInBoundingBox(ModelPreview* preview, wxPoint sta
     for (const auto& it : Nodes) {
         auto c = it.get()->Coords;
         for (const auto& it2 : c) {
-            float sx = it2.screenX;
-            float sy = it2.screenY;
-
-            if (!GetModelScreenLocation().IsCenterBased()) {
-                sx -= GetModelScreenLocation().RenderWi / 2.0;
-                sy *= GetModelScreenLocation().GetVScaleFactor();
-                if (GetModelScreenLocation().GetVScaleFactor() < 0) {
-                    sy += GetModelScreenLocation().RenderHt / 2.0;
-                }
-                else {
-                    sy -= GetModelScreenLocation().RenderHt / 2.0;
-                }
-            }
-            sy = ((sy * scale) + (h / 2));
-            sx = (sx * scale) + (w / 2);
+            float sx, sy;
+            GetScreenLocation(sx, sy, it2, w, h, scale);
 
             if (sx >= startpx && sx <= endpx &&
-                sy >= startpy && sy <= endpy) {
+                sy >= startpy && sy <= endpy)
+            {
                 nodes.push_back(i);
             }
         }
@@ -5394,7 +5411,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
         }
 
         int w, h;
-        preview->GetSize(&w, &h);
+        float scale = GetPreviewDimScale(preview, w, h);
 
         size_t NodeCount = Nodes.size();
         bool created = false;
@@ -5402,9 +5419,6 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
         int renderWi = GetModelScreenLocation().RenderWi;
         int renderHi = GetModelScreenLocation().RenderHt;
 
-        float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
-        float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
-        float scale = scaleY < scaleX ? scaleY : scaleX;
         float ml, mb;
         GetMinScreenXY(ml, mb);
         ml += GetModelScreenLocation().RenderWi / 2;
@@ -5502,7 +5516,8 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                         if (cache->vica->getCount() && (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE ||
                                                         lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH ||
                                                         Nodes[n]->model->_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE ||
-                                                        Nodes[n]->model->_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH)) {
+                                                        Nodes[n]->model->_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH))
+                        {
                             int count = cache->vica->getCount();
                             cache->program->addStep([=](xlGraphicsContext* ctx) {
                                 if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
@@ -5531,7 +5546,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                     }
                 }
             }
-            if (cache->vica->getCount() > startVertex) {
+            if (int(cache->vica->getCount()) > startVertex) {
                 int count = cache->vica->getCount();
                 cache->program->addStep([=](xlGraphicsContext* ctx) {
                     if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
