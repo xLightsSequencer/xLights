@@ -213,7 +213,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer6->AddGrowableCol(0);
-	Slider_Ripple_Spacing = new BulkEditSliderF1(this, IDD_SLIDER_Ripple_Spacing, 10, 10, 400, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Ripple_Spacing"));
+	Slider_Ripple_Spacing = new BulkEditSliderF1(this, IDD_SLIDER_Ripple_Spacing, 10, 1, 400, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Ripple_Spacing"));
 	FlexGridSizer6->Add(Slider_Ripple_Spacing, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Ripple_SpacingVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Ripple_Spacing, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Ripple_Spacing"));
 	FlexGridSizer6->Add(BitmapButton_Ripple_SpacingVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);

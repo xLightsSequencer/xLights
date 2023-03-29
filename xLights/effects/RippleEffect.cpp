@@ -660,6 +660,8 @@ static void drawRippleNew(
         maxRadius = maxRadiusY;
     }
 
+    // Everything is in percent - 1% is 1 pixel on a 100x100 matrix
+    //   We are using 1/10 pixel precision on the sliders, so this is a pixel on 1000.
     // Base unit for width - a pixel, or .5% whichever is more sensible at the time
     //  Location things - x, y, are already percentages - that scales
     //  Radius/scale is a percentage also
@@ -667,15 +669,7 @@ static void drawRippleNew(
     //  Cycles is a temporal count, that's not related to scaling
     //  Thickness is a number, that's invariant
     //  Velocity may as well be in percent
-    // This means the width of things is pixels
-    // The last thing expressed in pixels, then, is spacing.  Why is spacing expressed as pixels?  Why not have it be %?
-    //   With this formula, they are percentages for resolutions over 200,
-    //     but are pixels for resolutions below 200. Why?
-    double pxw = 1.0;
-    pxw = std::max(pxw, buffer.BufferWi * 0.005);
-    pxw = std::max(pxw, buffer.BufferHt * 0.005);
-
-    spacing *= pxw;
+    //  This means the width of things is pixels
 
     // Color calculations
     int cidxShp = 0;
@@ -711,6 +705,7 @@ static void drawRippleNew(
     brX *= scale;
     brY *= scale;
     vel *= maxRadius / 100; // vel was %
+    spacing *= maxRadius / 100; // Spacing in %
 
     // OK time to draw!
     if (fill) {
