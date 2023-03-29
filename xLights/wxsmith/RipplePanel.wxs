@@ -65,7 +65,7 @@
 					<message>Choose a SIMPLE svg file</message>
 					<wildcard>*.svg</wildcard>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

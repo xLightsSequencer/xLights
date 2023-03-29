@@ -452,6 +452,8 @@ void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc,
 
 static void DrawShape(RenderBuffer &buffer, ipointvec &points, const xlColor &color, bool close)
 {
+    if (points.empty())
+        return;
     for (size_t i = 0; i < points.size() - 1; ++i) {
         buffer.DrawLine(points[i].first, points[i].second, points[i + 1].first, points[i + 1].second, color);
     }
@@ -542,6 +544,9 @@ static void DrawLine(RenderBuffer& buffer, const dpoint& p1, const dpoint& p2, c
 
 static void DrawShapeD(RenderBuffer& buffer, dpointvec& points, const xlColor& color, bool close, bool thick)
 {
+    if (points.empty())
+        return;
+
     for (size_t i = 0; i < points.size() - 1; ++i) {
         DrawLine(buffer, { points[i].first, points[i].second }, { points[i + 1].first, points[i + 1].second }, color, thick);
     }
@@ -638,7 +643,7 @@ static void drawRippleNew(
     double time, double xcc, double ycc, double srotation, int mvmt, bool nonsquare,
     int thickness, bool doInside, bool doOutside,
     bool fade, bool lines, bool fill, bool ripple,
-    double scale, double spacing, double twist, double vel, double veldir)
+    double scale, double outline, double spacing, double twist, double vel, double veldir)
 {
     // Center point
     double sxc = buffer.BufferWi / 2.0 + xcc * (buffer.BufferWi / 2.0) / 100.0;
@@ -822,12 +827,14 @@ static void drawRippleNew(
     bool closedShape = shapes.shapes[0].closedShape;
     const dpointvec& points = shapes.shapes[0].points;
     if (brX > 0 && brY > 0) {
-        if (fill) {
-            dpointvec mshp = ScaleShapeD(points, brX, brY, sxc, syc, srotation);
-            DrawShapeD(buffer, mshp, hsv, closedShape, true);        
-        } else {
-            ipointvec mshp = ScaleShape(points, brX, brY, sxc, syc, srotation);
-            DrawShape(buffer, mshp, hsv, closedShape);
+        if (outline > 0) {
+            if (fill) {
+                dpointvec mshp = ScaleShapeD(points, brX, brY, sxc, syc, srotation);
+                DrawShapeD(buffer, mshp, hsv, closedShape, true);
+            } else {
+                ipointvec mshp = ScaleShape(points, brX, brY, sxc, syc, srotation);
+                DrawShape(buffer, mshp, hsv, closedShape);
+            }
         }
     }
 }
@@ -1011,7 +1018,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     {
         drawRippleNew(buffer, shapes, position, xcc, ycc, rotation, Movement,
                       !uniformAspectRatio, Ripple_Thickness, interiorDirection, exteriorDirection,
-                 CheckBox_Ripple3D, drawLines, drawFill, rippleSpaced, scale, spacing, twist, vel, veldir);
+                 CheckBox_Ripple3D, drawLines, drawFill, rippleSpaced, scale, outline, spacing, twist, vel, veldir);
         return;
     }
 
