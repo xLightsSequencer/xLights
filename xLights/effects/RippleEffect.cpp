@@ -16,7 +16,9 @@
 #include "../UtilClasses.h"
 #include "../ExternalHooks.h"
 #include "../models/Model.h"
-#include "../xLightsMain.h" 
+#include "../xLightsMain.h"
+
+#include "nanosvg/src/nanosvg.h"
 
 #include "../../include/ripple-16.xpm"
 #include "../../include/ripple-24.xpm"
@@ -48,6 +50,7 @@ xlEffectPanel *RippleEffect::CreatePanel(wxWindow *parent) {
 #define RENDER_RIPPLE_SNOWFLAKE  8
 #define RENDER_RIPPLE_CRUCIFIX   9
 #define RENDER_RIPPLE_PRESENT    10
+#define RENDER_RIPPLE_SVG        11
 
 #define MOVEMENT_EXPLODE    0
 #define MOVEMENT_IMPLODE    1
@@ -304,6 +307,148 @@ static void getSnowflakePoints(dpointvec& pts, int npts)
         pts[i * 3 + 2] = { inrad * cos(r3), inrad * sin(r3) };
     }
 }
+
+#if 0
+inline uint8_t GetSVGRed(uint32_t colour)
+{
+    return (colour);
+}
+
+inline uint8_t GetSVGGreen(uint32_t colour)
+{
+    return (colour >> 8);
+}
+
+inline uint8_t GetSVGBlue(uint32_t colour)
+{
+    return (colour >> 16);
+}
+
+inline uint8_t GetSVGAlpha(uint32_t colour)
+{
+    return (colour >> 24);
+}
+
+inline uint32_t GetSVGExAlpha(uint32_t colour)
+{
+    return (colour & 0xFFFFFF);
+}
+
+inline uint32_t GetSVGColour(xlColor c)
+{
+    return (((uint32_t)c.alpha) << 24) +
+           (((uint32_t)c.blue) << 16) +
+           (((uint32_t)c.green) << 8) +
+           c.red;
+}
+
+void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const
+{
+    auto image = cache->GetImage();
+    if (image == nullptr) {
+        for (size_t x = 0; x < buffer.BufferWi; ++ x) {
+            for (size_t y = 0; y < buffer.BufferHt; ++y) {
+                buffer.SetPixel(x, y, xlRED);
+            }
+        }
+    } else {
+        auto context = buffer.GetPathDrawingContext();
+        context->Clear();
+
+        wxPoint2DDouble centre((float)xc, (float)yc);
+        wxPoint2DDouble imageCentre((float)image->width / 2.0, (float)image->height / 2.0);
+
+        for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
+
+            if (GetSVGExAlpha(shape->fill.color) != 0) {
+                if (shape->fill.type == 0) {
+                    context->SetBrush(wxNullBrush);
+                }
+                else if (shape->fill.type == 1) {
+                    wxColor bc(GetSVGRed(shape->fill.color), GetSVGGreen(shape->fill.color), GetSVGBlue(shape->fill.color), /*shape->opacity * */ GetSVGAlpha(shape->fill.color) * color.alpha / 255);
+                    wxBrush brush(bc, wxBrushStyle::wxBRUSHSTYLE_SOLID);
+                    context->SetBrush(brush);
+                } else {
+                    // these are gradients and I know they are not right
+                    if (shape->fill.gradient->nstops == 2) {
+                        wxColor c1(GetSVGRed(shape->fill.gradient->stops[0].color), GetSVGGreen(shape->fill.gradient->stops[0].color), GetSVGBlue(shape->fill.gradient->stops[0].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[0].color) * color.alpha / 255);
+                        wxColor c2(GetSVGRed(shape->fill.gradient->stops[1].color), GetSVGGreen(shape->fill.gradient->stops[1].color), GetSVGBlue(shape->fill.gradient->stops[1].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[1].color) * color.alpha / 255);
+                        wxGraphicsBrush brush = context->CreateLinearGradientBrush(0, buffer.BufferHt, 0, 0, c1, c2);
+                        context->SetBrush(brush);
+                    } else {
+                        wxGraphicsGradientStops stops;
+                        for (size_t i = 0; i < shape->fill.gradient->nstops; ++i) {
+                            wxColor sc(GetSVGRed(shape->fill.gradient->stops[i].color), GetSVGGreen(shape->fill.gradient->stops[i].color), GetSVGBlue(shape->fill.gradient->stops[i].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[i].color) * color.alpha / 255);
+                            if (i == 0) {
+                                stops.SetStartColour(sc);
+                            } else if (i == shape->fill.gradient->nstops - 1) {
+                                stops.SetEndColour(sc);
+                            } else {
+                                stops.Add(sc, 1.0 - shape->fill.gradient->stops[i].offset);
+                            }
+                        }
+                        wxGraphicsBrush brush = context->CreateLinearGradientBrush(0, buffer.BufferHt, 0, 0, stops);
+                        context->SetBrush(brush);
+                    }
+                }
+            }
+
+            if (shape->stroke.type == 0) {
+                context->SetPen(wxNullPen);
+            } else if (shape->stroke.type == 1) {
+                wxColor pc(GetSVGRed(shape->stroke.color), GetSVGGreen(shape->stroke.color), GetSVGBlue(shape->stroke.color), /*shape->opacity * */ GetSVGAlpha(shape->stroke.color) * color.alpha / 255);
+                wxPen pen(pc, thickness);
+                context->SetPen(pen);
+            } else {
+                // we dont fo gradient lines yet
+            }
+
+            for (NSVGpath* path = shape->paths; path != nullptr; path = path->next) {
+                wxGraphicsPath cpath = context->CreatePath();
+                for (int i = 0; i < path->npts - 1; i += 3) {
+                    float* p = &path->pts[i * 2];
+                    auto ih = image->height;
+                    wxPoint2DDouble start = ScaleMovePoint(wxPoint2DDouble(p[0], ih - p[1]), imageCentre, centre, cache->_svgScaleBase, radius);
+                    wxPoint2DDouble cp1 = ScaleMovePoint(wxPoint2DDouble(p[2], ih - p[3]), imageCentre, centre, cache->_svgScaleBase, radius);
+                    wxPoint2DDouble cp2 = ScaleMovePoint(wxPoint2DDouble(p[4], ih - p[5]), imageCentre, centre, cache->_svgScaleBase, radius);
+                    wxPoint2DDouble end = ScaleMovePoint(wxPoint2DDouble(p[6], ih - p[7]), imageCentre, centre, cache->_svgScaleBase, radius);
+
+                    if (i == 0) cpath.MoveToPoint(start);
+
+                    if (areCollinear(start, cp1, end, 0.001f) && areCollinear(start, cp2, end, 0.001f)) { // check if its a straight line
+                        cpath.AddLineToPoint(end);
+                    } else if (areSame(end.m_x, cp2.m_x, 0.001f) && areSame(end.m_y, cp2.m_y, 0.001f)) { // check if control points2 is the end
+                        cpath.AddQuadCurveToPoint(cp1.m_x, cp1.m_y, end.m_x, end.m_y);
+                    } else {
+                        cpath.AddCurveToPoint(cp1.m_x, cp1.m_y, cp2.m_x, cp2.m_y, end.m_x, end.m_y);
+                    }
+                }
+                if (path->closed) {
+                    cpath.CloseSubpath();
+                    context->FillPath(cpath, wxPolygonFillMode::wxODDEVEN_RULE);
+                } 
+                context->StrokePath(cpath);
+            }
+        }
+
+        wxImage* image = buffer.GetPathDrawingContext()->FlushAndGetImage();
+        bool hasAlpha = image->HasAlpha();
+
+        xlColor cc;
+        for (int y = 0; y < buffer.BufferHt; ++y) {
+            for (int x = 0; x < buffer.BufferWi; ++x) {
+                if (hasAlpha) {
+                    cc = xlColor(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), image->GetAlpha(x, y));
+                    cc = cc.AlphaBlend(buffer.GetPixel(x, y));
+                } else {
+                    cc.Set(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), 255);
+                }
+                buffer.SetPixel(x, y, cc);
+            }
+        }
+    }
+}
+#endif
 
 static void DrawShape(RenderBuffer &buffer, ipointvec &points, const xlColor &color, bool close)
 {
@@ -659,6 +804,40 @@ static void drawRippleNew(
     }
 }
 
+class RippleRenderCache : public EffectRenderCache
+{
+public:
+    RippleRenderCache()
+    {
+    }
+    virtual ~RippleRenderCache()
+    {
+        if (_svgImage != nullptr) {
+            nsvgDelete(_svgImage);
+            _svgImage = nullptr;
+        }
+    }
+
+    NSVGimage* _svgImage = nullptr;
+    std::string _svgFilename;
+    double _svgScaleBase = 1.0f;
+
+    void InitialiseSVG(const std::string filename)
+    {
+        _svgFilename = filename;
+        _svgImage = nsvgParseFromFile(_svgFilename.c_str(), "px", 96);
+        if (_svgImage != nullptr) {
+            auto max = std::max(_svgImage->height, _svgImage->width);
+            _svgScaleBase = 1.0 / max;
+        }
+    }
+
+    NSVGimage* GetImage()
+    {
+        return _svgImage;
+    }
+};
+
 // TODO:
 // 1 IMP: Scaling for spacing
 // 3 ENH: Thickness of center shape?
@@ -669,6 +848,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
     const std::string& Object_To_DrawStr = SettingsMap["CHOICE_Ripple_Object_To_Draw"];
+    std::string svgFilename = SettingsMap["FILEPICKERCTRL_SVG"];
     const std::string& MovementStr = SettingsMap["CHOICE_Ripple_Movement"];
     int Ripple_Thickness = GetValueCurveInt("Ripple_Thickness", 3, SettingsMap, oset, RIPPLE_THICKNESS_MIN, RIPPLE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool CheckBox_Ripple3D = SettingsMap.GetBool("CHECKBOX_Ripple3D", false);
@@ -685,6 +865,12 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     double vel = GetValueCurveDouble("Ripple_Velocity", 0, SettingsMap, oset, RIPPLE_VELOCITY_MIN, RIPPLE_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_VELOCITY_DIVISOR);
     double veldir = GetValueCurveDouble("Ripple_Direction", 0, SettingsMap, oset, RIPPLE_DIRECTION_MIN, RIPPLE_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
+    RippleRenderCache* cache = (RippleRenderCache*)buffer.infoCache[id];
+    if (cache == nullptr) {
+        cache = new RippleRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+
     double position = buffer.GetEffectTimeIntervalPosition(cycles); // how far are we into the effect; value is 0.0 to 1.0
 
     int Object_To_Draw;
@@ -692,7 +878,9 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     bool closeShape = true;
     bool uniformAspectRatio = true;
 
-    if (Object_To_DrawStr == "Circle") {
+    if (Object_To_DrawStr == "SVG" && StyleStr != "Old") {
+        Object_To_Draw = RENDER_RIPPLE_SVG;
+    } else if (Object_To_DrawStr == "Circle") {
         getCirclePoints(shapePts);
         Object_To_Draw = RENDER_RIPPLE_CIRCLE;
     } else if (Object_To_DrawStr == "Square") {
@@ -774,6 +962,14 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         if (swords.size() > 2) {
             // Assume it says "Ripple"
             rippleSpaced = true;
+        }
+    }
+
+    if (buffer.needToInit) {
+        buffer.needToInit = false;
+
+        if (Object_To_Draw == RENDER_RIPPLE_SVG) {
+            cache->InitialiseSVG(svgFilename);
         }
     }
 
@@ -1401,10 +1597,10 @@ std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& sett
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_SVG", "");
 
         if (svgFilename == "" || !FileExists(svgFilename)) {
-            res.push_back(wxString::Format("    ERR: Shape effect cant find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    ERR: Ripple effect can't find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         } else {
             if (!IsFileInShowDir(xLightsFrame::CurrentDir, svgFilename)) {
-                res.push_back(wxString::Format("    WARN: Shape effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                res.push_back(wxString::Format("    WARN: Ripple effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
             }
         }
     }
