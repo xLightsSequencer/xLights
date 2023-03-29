@@ -62,7 +62,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_SVG" subclass="BulkEditFilePickerCtrl" variable="FilePickerCtrl_SVG" member="yes">
-					<message></message>
+					<message>Choose a SIMPLE svg file</message>
 					<wildcard>*.svg</wildcard>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -185,7 +185,6 @@
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Ripple_Outline" subclass="BulkEditSliderF1" variable="Slider_Ripple_Outline" member="yes">
 							<value>10</value>
-							<max>50</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
