@@ -613,8 +613,28 @@ static dpointvec ScaleShapeD(const dpointvec& in, double sx, double sy, double c
     return rv;
 }
 
+struct RippleShape
+{
+    dpointvec points;
+    bool closedShape = false;
+    HSVValue defColor = xlWHITE;
+    RippleShape() {}
+    RippleShape(const dpointvec& vec, bool closed) :
+        points(vec), closedShape(closed)
+    {}
+};
+struct RippleShapes
+{
+    std::vector<RippleShape> shapes;
+    RippleShapes() {}
+    RippleShapes(const dpointvec& vec, bool closed)
+    {
+        shapes.push_back(RippleShape(vec, closed));
+    }
+};
+
 static void drawRippleNew(
-    RenderBuffer& buffer, const dpointvec& points, bool closedShape,
+    RenderBuffer& buffer, const RippleShapes& shapes,
     double time, double xcc, double ycc, double srotation, int mvmt, bool nonsquare,
     int thickness, bool doInside, bool doOutside,
     bool fade, bool lines, bool fill, bool ripple,
@@ -718,6 +738,8 @@ static void drawRippleNew(
                 fadeColor3D = hsvc;
             }
 
+            const dpointvec& points = shapes.shapes[0].points;
+            bool closedShape = shapes.shapes[0].closedShape;
             dpointvec nxtedgeouter, nxtedgeinner;
             if (doInside && brX - delta > 0 && brY - delta > 0) {
                 ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation, true);
@@ -753,6 +775,7 @@ static void drawRippleNew(
             oldedgeinner = nxtedgeinner;
         }
 
+        bool closedShape = shapes.shapes[0].closedShape;
         if (oldptsinner.size() > 0 && oldptsouter.size() > 0) {
             FillRegion(buffer, oldptsinner, oldptsouter, xlColor(fhsv), closedShape);
         }
@@ -781,6 +804,9 @@ static void drawRippleNew(
                 fadeColor3D = hsvc;
             }
 
+            const dpointvec& points = shapes.shapes[0].points;
+            bool closedShape = shapes.shapes[0].closedShape;
+
             if (doInside && brX - delta > 0 && brY - delta > 0) {
                 ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation);
                 DrawShape(buffer, ishp, (fade) ? fadeColor3D : lineColor, closedShape);
@@ -793,6 +819,8 @@ static void drawRippleNew(
     }
 
     // Draw the main shape
+    bool closedShape = shapes.shapes[0].closedShape;
+    const dpointvec& points = shapes.shapes[0].points;
     if (brX > 0 && brY > 0) {
         if (fill) {
             dpointvec mshp = ScaleShapeD(points, brX, brY, sxc, syc, srotation);
@@ -878,6 +906,8 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     bool closeShape = true;
     bool uniformAspectRatio = true;
 
+    RippleShapes shapes;
+
     if (Object_To_DrawStr == "SVG" && StyleStr != "Old") {
         Object_To_Draw = RENDER_RIPPLE_SVG;
     } else if (Object_To_DrawStr == "Circle") {
@@ -919,6 +949,10 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     } else {
         getCirclePoints(shapePts);
         Object_To_Draw = RENDER_RIPPLE_CIRCLE;
+    }
+    if (shapes.shapes.empty()) {
+        // Build from shapePts, closed
+        shapes = RippleShapes(shapePts, closeShape);
     }
 
     int Movement = MOVEMENT_NONE;
@@ -975,7 +1009,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
     if (drawNew)
     {
-        drawRippleNew(buffer, shapePts, closeShape, position, xcc, ycc, rotation, Movement,
+        drawRippleNew(buffer, shapes, position, xcc, ycc, rotation, Movement,
                       !uniformAspectRatio, Ripple_Thickness, interiorDirection, exteriorDirection,
                  CheckBox_Ripple3D, drawLines, drawFill, rippleSpaced, scale, spacing, twist, vel, veldir);
         return;
