@@ -14,7 +14,9 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
-
+#include "../ExternalHooks.h"
+#include "../models/Model.h"
+#include "../xLightsMain.h" 
 
 #include "../../include/ripple-16.xpm"
 #include "../../include/ripple-24.xpm"
@@ -69,6 +71,7 @@ void RippleEffect::SetDefaultParameters()
     rp->BitmapButton_Ripple_TwistVC->SetActive(false);
     rp->BitmapButton_Ripple_VelocityVC->SetActive(false);
     rp->BitmapButton_Ripple_DirectionVC->SetActive(false);
+    rp->BitmapButton_Ripple_OutlineVC->SetActive(false);
 
     SetChoiceValue(rp->Choice_Ripple_Object_To_Draw, "Circle");
     SetChoiceValue(rp->Choice_Ripple_Movement, "Explode");
@@ -83,6 +86,9 @@ void RippleEffect::SetDefaultParameters()
     SetSliderValue(rp->Slider_Ripple_Velocity, 0);
     SetSliderValue(rp->Slider_Ripple_Twist, 0);
     SetSliderValue(rp->Slider_Ripple_Spacing, 10);
+    SetSliderValue(rp->Slider_Ripple_Outline, 10);
+
+    rp->FilePickerCtrl_SVG->SetFileName(wxFileName(""));
 
     SetCheckBoxValue(rp->CheckBox_Ripple3D, false);
     SetChoiceValue(rp->Choice_Ripple_Draw_Style, "Old");
@@ -674,6 +680,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     int ycc = GetValueCurveInt("Ripple_YC", 0, SettingsMap, oset, RIPPLE_YC_MIN, RIPPLE_YC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     double scale = GetValueCurveDouble("Ripple_Scale", 100, SettingsMap, oset, RIPPLE_SCALE_MIN, RIPPLE_SCALE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
     double spacing = GetValueCurveDouble("Ripple_Spacing", 1.0, SettingsMap, oset, RIPPLE_SPACING_MIN, RIPPLE_SPACING_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_SPACING_DIVISOR);
+    double outline = GetValueCurveDouble("Ripple_Outline", 1.0, SettingsMap, oset, RIPPLE_OUTLINE_MIN, RIPPLE_OUTLINE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_OUTLINE_DIVISOR);
     double twist = GetValueCurveDouble("Ripple_Twist", 0, SettingsMap, oset, RIPPLE_TWIST_MIN, RIPPLE_TWIST_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_TWIST_DIVISOR);
     double vel = GetValueCurveDouble("Ripple_Velocity", 0, SettingsMap, oset, RIPPLE_VELOCITY_MIN, RIPPLE_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_VELOCITY_DIVISOR);
     double veldir = GetValueCurveDouble("Ripple_Direction", 0, SettingsMap, oset, RIPPLE_DIRECTION_MIN, RIPPLE_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -1376,3 +1383,45 @@ void RippleEffect::Drawcandycane(RenderBuffer& buffer, int Movement, int xc, int
     }
 }
 
+std::list<std::string> RippleEffect::GetFileReferences(Model* model, const SettingsMap& SettingsMap) const
+{
+    std::list<std::string> res;
+    if (SettingsMap["E_FILEPICKERCTRL_SVG"] != "") {
+        res.push_back(SettingsMap["E_FILEPICKERCTRL_SVG"]);
+    }
+    return res;
+}
+
+std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
+{
+    std::list<std::string> res;
+
+    std::string object = settings["E_CHOICE_Ripple_Object_To_Draw"];
+    if (object == "SVG") {
+        auto svgFilename = settings.Get("E_FILEPICKERCTRL_SVG", "");
+
+        if (svgFilename == "" || !FileExists(svgFilename)) {
+            res.push_back(wxString::Format("    ERR: Shape effect cant find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        } else {
+            if (!IsFileInShowDir(xLightsFrame::CurrentDir, svgFilename)) {
+                res.push_back(wxString::Format("    WARN: Shape effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            }
+        }
+    }
+
+    return res;
+}
+
+bool RippleEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
+{
+    bool rc = false;
+    wxString file = SettingsMap["E_FILEPICKERCTRL_SVG"];
+    if (FileExists(file)) {
+        if (!frame->IsInShowFolder(file)) {
+            SettingsMap["E_FILEPICKERCTRL_SVG"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+            rc = true;
+        }
+    }
+
+    return rc;
+}

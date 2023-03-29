@@ -588,7 +588,8 @@ void ShapePanel::ValidateWindow()
     }
 
     if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Snowflake" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji") {
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji")
+    {
         Slider_Shape_Thickness->Disable();
         TextCtrl_Shape_Thickness->Disable();
     } else {
@@ -606,7 +607,8 @@ void ShapePanel::ValidateWindow()
 		Choice_Shape_ObjectToDraw->GetStringSelection() == "Candy Cane" ||
         Choice_Shape_ObjectToDraw->GetStringSelection() == "SVG" ||
         Choice_Shape_ObjectToDraw->GetStringSelection() == "Random" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Circle" ) {
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Circle" )
+    {
 		Slider_Shape_Rotation->Disable();
 		TextCtrl_Shape_Rotation->Disable();
 		BitmapButton_Shape_RotationVC->Disable();

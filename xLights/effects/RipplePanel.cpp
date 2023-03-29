@@ -41,10 +41,10 @@ const long RipplePanel::ID_SLIDER_Ripple_Scale = wxNewId();
 const long RipplePanel::ID_VALUECURVE_Ripple_Scale = wxNewId();
 const long RipplePanel::IDD_TEXTCTRL_Ripple_Scale = wxNewId();
 const long RipplePanel::ID_BITMAPBUTTON_SLIDER_Ripple_Scale = wxNewId();
-const long RipplePanel::IDD_SLIDER1_Ripple_Outline = wxNewId();
-const long RipplePanel::ID_BITMAPBUTTON_Ripple_OutlineVC = wxNewId();
+const long RipplePanel::IDD_SLIDER_Ripple_Outline = wxNewId();
+const long RipplePanel::ID_VALUECURVE_Ripple_Outline = wxNewId();
 const long RipplePanel::ID_TEXTCTRL_Ripple_Outline = wxNewId();
-const long RipplePanel::ID_BITMAPBUTTON_Ripple_Outline = wxNewId();
+const long RipplePanel::ID_BITMAPBUTTON_SLIDER_Ripple_Outline = wxNewId();
 const long RipplePanel::ID_STATICTEXT_Ripple_Thickness = wxNewId();
 const long RipplePanel::ID_SLIDER_Ripple_Thickness = wxNewId();
 const long RipplePanel::ID_VALUECURVE_Ripple_Thickness = wxNewId();
@@ -183,15 +183,15 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(StaticText_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer11->AddGrowableCol(0);
-	Slider_Ripple_Outline = new BulkEditSliderF1(this, IDD_SLIDER1_Ripple_Outline, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER1_Ripple_Outline"));
+	Slider_Ripple_Outline = new BulkEditSliderF1(this, IDD_SLIDER_Ripple_Outline, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Ripple_Outline"));
 	FlexGridSizer11->Add(Slider_Ripple_Outline, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Ripple_OutlineVC = new BulkEditValueCurveButton(this, ID_BITMAPBUTTON_Ripple_OutlineVC, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_Ripple_OutlineVC"));
+	BitmapButton_Ripple_OutlineVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Ripple_Outline, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Ripple_Outline"));
 	FlexGridSizer11->Add(BitmapButton_Ripple_OutlineVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer57->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Ripple_Outline = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Ripple_Outline, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Ripple_Outline"));
 	TextCtrl_Ripple_Outline->SetMaxLength(4);
 	FlexGridSizer57->Add(TextCtrl_Ripple_Outline, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Ripple_Outline = new xlLockButton(this, ID_BITMAPBUTTON_Ripple_Outline, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_Ripple_Outline"));
+	BitmapButton_Ripple_Outline = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Ripple_Outline, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Ripple_Outline"));
 	BitmapButton_Ripple_Outline->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer57->Add(BitmapButton_Ripple_Outline, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText72 = new wxStaticText(this, ID_STATICTEXT_Ripple_Thickness, _("Ripples"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Thickness"));
@@ -400,6 +400,8 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_VALUECURVE_Ripple_Direction, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Twist, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
     Connect(ID_VALUECURVE_Ripple_Twist, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Outline, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+    Connect(ID_VALUECURVE_Ripple_Outline, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 
 	Connect(ID_VALUECURVE_Ripple_XC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Ripple_YC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
@@ -417,6 +419,8 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
     BitmapButton_Ripple_ScaleVC->SetLimits(RIPPLE_SCALE_MIN, RIPPLE_SCALE_MAX);
     BitmapButton_Ripple_SpacingVC->SetLimits(RIPPLE_SPACING_MIN, RIPPLE_SPACING_MAX);
     BitmapButton_Ripple_SpacingVC->GetValue()->SetDivisor(RIPPLE_SPACING_DIVISOR);
+    BitmapButton_Ripple_OutlineVC->SetLimits(RIPPLE_OUTLINE_MIN, RIPPLE_OUTLINE_MAX);
+    BitmapButton_Ripple_OutlineVC->GetValue()->SetDivisor(RIPPLE_OUTLINE_DIVISOR);
     BitmapButton_Ripple_TwistVC->SetLimits(RIPPLE_TWIST_MIN, RIPPLE_TWIST_MAX);
     BitmapButton_Ripple_TwistVC->GetValue()->SetDivisor(RIPPLE_TWIST_DIVISOR);
     BitmapButton_Ripple_VelocityVC->SetLimits(RIPPLE_VELOCITY_MIN, RIPPLE_VELOCITY_MAX);
@@ -461,6 +465,7 @@ void RipplePanel::ValidateWindow()
 		TextCtrl_Ripple_Rotation->Disable();
         BitmapButton_Ripple_RotationVC->Disable();
     }
+
     bool newFeatures = false;
     if (Choice_Ripple_Draw_Style->GetStringSelection() != "Old") {
         BitmapButton_Ripple_Rotation->Enable();
@@ -469,6 +474,17 @@ void RipplePanel::ValidateWindow()
         BitmapButton_Ripple_RotationVC->Enable();
 
         newFeatures = true;
+    }
+
+	if (!newFeatures && Choice_Ripple_Object_To_Draw->GetStringSelection() == "SVG") {
+        Choice_Ripple_Object_To_Draw->SetStringSelection("Circle");
+    }
+
+	if (newFeatures && Choice_Ripple_Object_To_Draw->GetStringSelection() == "SVG") {
+        FilePickerCtrl_SVG->Enable();
+    } else {
+        FilePickerCtrl_SVG->Enable(false);
+        FilePickerCtrl_SVG->SetFileName(wxFileName(""));
     }
 
 	BitmapButton_Ripple_Scale->Enable(newFeatures);
@@ -495,6 +511,11 @@ void RipplePanel::ValidateWindow()
     Slider_Ripple_Velocity->Enable(newFeatures);
     TextCtrl_Ripple_Velocity->Enable(newFeatures);
     BitmapButton_Ripple_VelocityVC->Enable(newFeatures);
+
+	BitmapButton_Ripple_Outline->Enable(newFeatures);
+    Slider_Ripple_Outline->Enable(newFeatures);
+    TextCtrl_Ripple_Outline->Enable(newFeatures);
+    BitmapButton_Ripple_OutlineVC->Enable(newFeatures);
 }
 
 void RipplePanel::OnChoice_Ripple_Draw_StyleSelect(wxCommandEvent& event)

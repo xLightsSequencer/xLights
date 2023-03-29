@@ -116,10 +116,10 @@ class RipplePanel: public xlEffectPanel
 		static const long ID_VALUECURVE_Ripple_Scale;
 		static const long IDD_TEXTCTRL_Ripple_Scale;
 		static const long ID_BITMAPBUTTON_SLIDER_Ripple_Scale;
-		static const long IDD_SLIDER1_Ripple_Outline;
-		static const long ID_BITMAPBUTTON_Ripple_OutlineVC;
+		static const long IDD_SLIDER_Ripple_Outline;
+		static const long ID_VALUECURVE_Ripple_Outline;
 		static const long ID_TEXTCTRL_Ripple_Outline;
-		static const long ID_BITMAPBUTTON_Ripple_Outline;
+		static const long ID_BITMAPBUTTON_SLIDER_Ripple_Outline;
 		static const long ID_STATICTEXT_Ripple_Thickness;
 		static const long ID_SLIDER_Ripple_Thickness;
 		static const long ID_VALUECURVE_Ripple_Thickness;
