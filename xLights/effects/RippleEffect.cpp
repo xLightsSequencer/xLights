@@ -662,26 +662,22 @@ static void drawRippleNew(
 
     // Everything is in percent - 1% is 1 pixel on a 100x100 matrix
     //   We are using 1/10 pixel precision on the sliders, so this is a pixel on 1000.
-    // Base unit for width - a pixel, or .5% whichever is more sensible at the time
     //  Location things - x, y, are already percentages - that scales
     //  Radius/scale is a percentage also
     //  Rotation things are scale invariant (rotation, direction, twist)
     //  Cycles is a temporal count, that's not related to scaling
-    //  Thickness is a number, that's invariant
+    //  Thickness is a number of ripples, that's invariant
     //  Velocity may as well be in percent
-    //  This means the width of things is pixels
+    //  The width of things is now also in percent, but we always draw a line so at least one pixel wide
 
-    // Color calculations
-    int cidxShp = 0;
-    HSVValue hsv;
+    // Color calculations TODO cut
     size_t colorcnt = buffer.GetColorCount();
-    buffer.palette.GetHSV(0, hsv); // Now go and get the hsv value for this ColorIdx
-    HSVValue lhsv = hsv;
-    int cidxLines = cidxShp;
+    int cidxLines = 0;
     if (colorcnt > 1) {
-        buffer.palette.GetHSV(1, lhsv);
         cidxLines = 1;
     }
+    HSVValue lhsv;
+    buffer.palette.GetHSV(cidxLines, lhsv);
     HSVValue fhsv = lhsv;
     int cidxFill = cidxLines;
     if (colorcnt > 2) {
@@ -706,6 +702,7 @@ static void drawRippleNew(
     brY *= scale;
     vel *= maxRadius / 100; // vel was %
     spacing *= maxRadius / 100; // Spacing in %
+    outline *= maxRadius / 100; // Outline in %
 
     // OK time to draw!
     if (fill) {
@@ -819,16 +816,33 @@ static void drawRippleNew(
     }
 
     // Draw the main shape
-    bool closedShape = shapes.shapes[0].closedShape;
-    const dpointvec& points = shapes.shapes[0].points;
-    if (brX > 0 && brY > 0) {
-        if (outline > 0) {
-            if (fill) {
-                dpointvec mshp = ScaleShapeD(points, brX, brY, sxc, syc, srotation);
-                DrawShapeD(buffer, mshp, hsv, closedShape, true);
-            } else {
-                ipointvec mshp = ScaleShape(points, brX, brY, sxc, syc, srotation);
-                DrawShape(buffer, mshp, hsv, closedShape);
+    for (size_t i = 0; i < shapes.shapes.size(); ++i) {
+        bool closedShape = shapes.shapes[i].closedShape;
+        const dpointvec& points = shapes.shapes[i].points;
+
+        int cidxShp = 0;
+        HSVValue hsvs;
+        if (cidxShp < colorcnt) {
+            buffer.palette.GetHSV(cidxShp, hsvs); // Now go and get the hsv value for this ColorIdx
+        } else {
+            hsvs = shapes.shapes[i].defColor;
+        }
+
+        if (brX+outline/2 > 0 && brY+outline/2 > 0) {
+            if (outline > 0) {
+                if (outline > 1) {
+                    // Asked for a thicker shape
+                    ipointvec inner = ScaleShape(points, std::max(brX - outline, 0.0), std::max(brY - outline, 0.0), sxc, syc, srotation, true);
+                    ipointvec outer = ScaleShape(points, std::max(brX + outline, 0.0), std::max(brY + outline, 0.0), sxc, syc, srotation, true);
+                    FillRegion(buffer, inner, outer, hsvs, closedShape);
+                }
+                if (fill) {
+                    dpointvec mshp = ScaleShapeD(points, brX, brY, sxc, syc, srotation);
+                    DrawShapeD(buffer, mshp, hsvs, closedShape, true);
+                } else {
+                    ipointvec mshp = ScaleShape(points, brX, brY, sxc, syc, srotation);
+                    DrawShape(buffer, mshp, hsvs, closedShape);
+                }
             }
         }
     }
@@ -869,8 +883,6 @@ public:
 };
 
 // TODO:
-// 1 IMP: Scaling for spacing
-// 3 ENH: Thickness of center shape?
 // 4 ENH: There is the matter of colors (around; this is a matter of breaking long segments up)
 // 2 ENH: SVG
 
