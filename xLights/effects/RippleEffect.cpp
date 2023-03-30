@@ -708,10 +708,12 @@ static void drawRippleNew(
     spacing *= maxRadius / 100; // Spacing in %
     outline *= maxRadius / 100; // Outline in %
 
+    size_t nShapes = shapes.shapes.size();
+
     // OK time to draw!
     if (fill) {
-        ipointvec oldptsouter, oldptsinner;
-        dpointvec oldedgeouter, oldedgeinner;
+        std::vector<ipointvec> oldptsouter(nShapes), oldptsinner(nShapes);
+        std::vector<dpointvec> oldedgeouter(nShapes), oldedgeinner(nShapes);
         for (int i = thickness; i >= 0; --i) {
             double xc = sxc + (vel * sin(veldir / 180 * M_PI) * i);
             double yc = syc - (vel * cos(veldir / 180 * M_PI) * i);
@@ -720,101 +722,130 @@ static void drawRippleNew(
             double delta = ripple ? ((i * i + 1) * 0.25) : (i * 0.5);
             delta *= spacing;
 
-            xlColor fadeColor(fhsv);
-            if (buffer.palette.IsSpatial(cidxFill)) {
-                buffer.palette.GetSpatialColor(cidxFill, 0, 0, 0, i, 0, thickness, fadeColor);
-            }
-
-            xlColor lineColor(lhsv);
-            if (buffer.palette.IsSpatial(cidxLines)) {
-                buffer.palette.GetSpatialColor(cidxLines, 0, 0, 0, i, 0, thickness, lineColor);
-            }
-
-            xlColor fadeColor3D = fadeColor;
-            if (buffer.allowAlpha) {
-                fadeColor3D.alpha = 255.0 * strength;
-            } else {
-                HSVValue hsvc = fadeColor;
-                hsvc.value *= strength;
-                fadeColor3D = hsvc;
-            }
-
-            const dpointvec& points = shapes.shapes[0].points;
-            bool closedShape = shapes.shapes[0].closedShape;
-            dpointvec nxtedgeouter, nxtedgeinner;
-            if (doInside && brX - delta > 0 && brY - delta > 0) {
-                ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation, true);
-                if (!oldptsinner.empty()) {
-                    FillRegion(buffer, oldptsinner, ishp, fade ? fadeColor3D : fadeColor, closedShape);
+            std::vector<dpointvec> nxtedgeouter(nShapes), nxtedgeinner(nShapes);
+            for (size_t sn = 0; sn < nShapes; ++sn) {
+                const dpointvec& points = shapes.shapes[sn].points;
+                bool closedShape = shapes.shapes[sn].closedShape;
+                xlColor fadeColor(fhsv);
+                if (cidxFill >= buffer.palette.ExplicitSize()) {
+                    fadeColor = shapes.shapes[sn].defColor;
+                } else {
+                    if (buffer.palette.IsSpatial(cidxFill)) {
+                        buffer.palette.GetSpatialColor(cidxFill, 0, 0, 0, i, 0, thickness, fadeColor);
+                    }
                 }
-                oldptsinner = ishp;
-                if (lines) {
-                    nxtedgeinner = ScaleShapeD(points, brX - delta, brY - delta, xc, yc, rotation);
-                }
-            } else if (doInside) {
-                oldptsinner = ScaleShape(points, 0, 0, xc, yc, rotation, true);
-            }
-            if (doOutside && brX + delta > 0 && brY + delta > 0) {
-                ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation, true);
-                if (!oldptsouter.empty()) {
-                    FillRegion(buffer, oldptsouter, oshp, fade ? fadeColor3D : fadeColor, closedShape);
-                }
-                oldptsouter = oshp;
-                if (lines) {
-                    nxtedgeouter = ScaleShapeD(points, brX + delta, brY + delta, xc, yc, rotation);
-                }
-            }
 
-            if (oldedgeinner.size()) {
-                DrawShapeD(buffer, oldedgeinner, lineColor, closedShape, false);
-            }
-            if (oldedgeouter.size()) {
-                DrawShapeD(buffer, oldedgeouter, lineColor, closedShape, false);
-            }
+                xlColor lineColor(lhsv);
+                if (cidxLines >= buffer.palette.ExplicitSize())
+                {
+                    lineColor = shapes.shapes[sn].defColor;
+                } else {
+                    if (buffer.palette.IsSpatial(cidxLines)) {
+                        buffer.palette.GetSpatialColor(cidxLines, 0, 0, 0, i, 0, thickness, lineColor);
+                    }
+                }
 
-            oldedgeouter = nxtedgeouter;
-            oldedgeinner = nxtedgeinner;
+                xlColor fadeColor3D = fadeColor;
+                if (buffer.allowAlpha) {
+                    fadeColor3D.alpha = 255.0 * strength;
+                } else {
+                    HSVValue hsvc = fadeColor;
+                    hsvc.value *= strength;
+                    fadeColor3D = hsvc;
+                }
+
+                if (doInside && brX - delta > 0 && brY - delta > 0) {
+                    ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation, true);
+                    if (!oldptsinner.empty()) {
+                        FillRegion(buffer, oldptsinner[sn], ishp, fade ? fadeColor3D : fadeColor, closedShape);
+                    }
+                    oldptsinner[sn] = ishp;
+                    if (lines) {
+                        nxtedgeinner[sn] = ScaleShapeD(points, brX - delta, brY - delta, xc, yc, rotation);
+                    }
+                } else if (doInside) {
+                    oldptsinner[sn] = ScaleShape(points, 0, 0, xc, yc, rotation, true);
+                }
+                if (doOutside && brX + delta > 0 && brY + delta > 0) {
+                    ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation, true);
+                    if (!oldptsouter[sn].empty()) {
+                        FillRegion(buffer, oldptsouter[sn], oshp, fade ? fadeColor3D : fadeColor, closedShape);
+                    }
+                    oldptsouter[sn] = oshp;
+                    if (lines) {
+                        nxtedgeouter[sn] = ScaleShapeD(points, brX + delta, brY + delta, xc, yc, rotation);
+                    }
+                }
+
+                if (oldedgeinner.size()) {
+                    DrawShapeD(buffer, oldedgeinner[sn], lineColor, closedShape, false);
+                }
+                if (oldedgeouter.size()) {
+                    DrawShapeD(buffer, oldedgeouter[sn], lineColor, closedShape, false);
+                }
+                
+                oldedgeouter = nxtedgeouter;
+                oldedgeinner = nxtedgeinner;
+            }
         }
 
-        bool closedShape = shapes.shapes[0].closedShape;
-        if (oldptsinner.size() > 0 && oldptsouter.size() > 0) {
-            FillRegion(buffer, oldptsinner, oldptsouter, xlColor(fhsv), closedShape);
+        // Make sure no gaps between inside fill and outside, if both active
+        for (size_t sn = 0; sn < nShapes; ++sn) {
+            if (oldptsinner[sn].size() > 0 && oldptsouter[sn].size() > 0) {
+                bool closedShape = shapes.shapes[sn].closedShape;
+                xlColor fadeColor(fhsv);
+                if (cidxFill >= buffer.palette.ExplicitSize()) {
+                    fadeColor = shapes.shapes[sn].defColor;
+                } else {
+                    if (buffer.palette.IsSpatial(cidxFill)) {
+                        buffer.palette.GetSpatialColor(cidxFill, 0, 0, 0, 0, 0, thickness, fadeColor);
+                    }
+                }
+
+                FillRegion(buffer, oldptsinner[sn], oldptsouter[sn], fadeColor, closedShape);
+            }
         }
     }
     if (lines && !fill) {
         for (int i = thickness; i >= 0; --i) {
-            double xc = sxc + (vel * sin(veldir / 180 * M_PI) * i);
-            double yc = syc - (vel * cos(veldir / 180 * M_PI) * i);
-            double rotation = srotation + twist * i;
-            double strength = (double(thickness) + 1 - i) / (thickness + 1); // Used for 3D/fade
-            double delta = ripple ? ((i * i + 1) * 0.25) : (i * 0.5);
-            delta *= spacing;
+            for (size_t sn = 0; sn < nShapes; ++sn) {
+                double xc = sxc + (vel * sin(veldir / 180 * M_PI) * i);
+                double yc = syc - (vel * cos(veldir / 180 * M_PI) * i);
+                double rotation = srotation + twist * i;
+                double strength = (double(thickness) + 1 - i) / (thickness + 1); // Used for 3D/fade
+                double delta = ripple ? ((i * i + 1) * 0.25) : (i * 0.5);
+                delta *= spacing;
 
-            xlColor lineColor(lhsv);
-            if (buffer.palette.IsSpatial(cidxLines)) {
-                buffer.palette.GetSpatialColor(cidxLines, 0, 0, 0, i, 0, thickness, lineColor);
-            }
+                xlColor lineColor(lhsv);
+                if (cidxLines >= buffer.palette.ExplicitSize()) {
+                    lineColor = shapes.shapes[sn].defColor;
+                } else {
+                    if (buffer.palette.IsSpatial(cidxLines)) {
+                        buffer.palette.GetSpatialColor(cidxLines, 0, 0, 0, i, 0, thickness, lineColor);
+                    }
+                }
 
-            xlColor fadeColor3D = lineColor;
+                xlColor fadeColor3D = lineColor;
 
-            if (buffer.allowAlpha) {
-                fadeColor3D.alpha = 255.0 * strength;
-            } else {
-                HSVValue hsvc = lhsv;
-                hsvc.value *= strength;
-                fadeColor3D = hsvc;
-            }
+                if (buffer.allowAlpha) {
+                    fadeColor3D.alpha = 255.0 * strength;
+                } else {
+                    HSVValue hsvc = lineColor;
+                    hsvc.value *= strength;
+                    fadeColor3D = hsvc;
+                }
 
-            const dpointvec& points = shapes.shapes[0].points;
-            bool closedShape = shapes.shapes[0].closedShape;
+                const dpointvec& points = shapes.shapes[sn].points;
+                bool closedShape = shapes.shapes[sn].closedShape;
 
-            if (doInside && brX - delta > 0 && brY - delta > 0) {
-                ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation);
-                DrawShape(buffer, ishp, (fade) ? fadeColor3D : lineColor, closedShape);
-            }
-            if (doOutside && brX + delta > 0 && brY + delta > 0) {
-                ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation);
-                DrawShape(buffer, oshp, (fade) ? fadeColor3D : lineColor, closedShape);
+                if (doInside && brX - delta > 0 && brY - delta > 0) {
+                    ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation);
+                    DrawShape(buffer, ishp, (fade) ? fadeColor3D : lineColor, closedShape);
+                }
+                if (doOutside && brX + delta > 0 && brY + delta > 0) {
+                    ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation);
+                    DrawShape(buffer, oshp, (fade) ? fadeColor3D : lineColor, closedShape);
+                }
             }
         }
     }
@@ -887,8 +918,10 @@ public:
 };
 
 // TODO:
+// 1 BUG: There is a color (actual shape) that is going temporal instead of spatial
+// 2 BUG: There is something not touching the inside shape again
+// 3 BUG: There is highlight line not occurring for the shapes past the first
 // 4 ENH: There is the matter of colors (around; this is a matter of breaking long segments up)
-// 2 ENH: SVG
 
 void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
