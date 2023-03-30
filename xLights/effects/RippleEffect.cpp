@@ -308,7 +308,27 @@ static void getSnowflakePoints(dpointvec& pts, int npts)
     }
 }
 
-#if 0
+struct RippleShape {
+    dpointvec points;
+    bool closedShape = false;
+    HSVValue defColor = xlWHITE;
+    RippleShape()
+    {}
+    RippleShape(const dpointvec& vec, bool closed) :
+        points(vec), closedShape(closed)
+    {}
+};
+struct RippleShapes {
+    std::vector<RippleShape> shapes;
+    RippleShapes()
+    {}
+    RippleShapes(const dpointvec& vec, bool closed)
+    {
+        shapes.push_back(RippleShape(vec, closed));
+    }
+};
+
+
 inline uint8_t GetSVGRed(uint32_t colour)
 {
     return (colour);
@@ -334,30 +354,16 @@ inline uint32_t GetSVGExAlpha(uint32_t colour)
     return (colour & 0xFFFFFF);
 }
 
-inline uint32_t GetSVGColour(xlColor c)
+inline dpoint ScalePoint(double x, double y, double cx, double cy, double sf)
 {
-    return (((uint32_t)c.alpha) << 24) +
-           (((uint32_t)c.blue) << 16) +
-           (((uint32_t)c.green) << 8) +
-           c.red;
+    return { (x - cx) * sf, (y - cy) * sf };
 }
+
+
+#if 0
 
 void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const
 {
-    auto image = cache->GetImage();
-    if (image == nullptr) {
-        for (size_t x = 0; x < buffer.BufferWi; ++ x) {
-            for (size_t y = 0; y < buffer.BufferHt; ++y) {
-                buffer.SetPixel(x, y, xlRED);
-            }
-        }
-    } else {
-        auto context = buffer.GetPathDrawingContext();
-        context->Clear();
-
-        wxPoint2DDouble centre((float)xc, (float)yc);
-        wxPoint2DDouble imageCentre((float)image->width / 2.0, (float)image->height / 2.0);
-
         for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
 
             if (GetSVGExAlpha(shape->fill.color) != 0) {
@@ -430,25 +436,110 @@ void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc,
                 context->StrokePath(cpath);
             }
         }
-
-        wxImage* image = buffer.GetPathDrawingContext()->FlushAndGetImage();
-        bool hasAlpha = image->HasAlpha();
-
-        xlColor cc;
-        for (int y = 0; y < buffer.BufferHt; ++y) {
-            for (int x = 0; x < buffer.BufferWi; ++x) {
-                if (hasAlpha) {
-                    cc = xlColor(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), image->GetAlpha(x, y));
-                    cc = cc.AlphaBlend(buffer.GetPixel(x, y));
-                } else {
-                    cc.Set(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), 255);
-                }
-                buffer.SetPixel(x, y, cc);
-            }
-        }
     }
 }
 #endif
+
+static void buildSVG(RippleShapes &shapes, NSVGimage *image)
+{
+    if (!image)
+        return;
+
+    shapes.shapes.clear();
+
+    auto max = std::max(image->height, image->width);
+    double sf = 2.0 / max;
+    double cx = image->width / 2.0;
+    double cy = image->height / 2.0;
+    double ih = image->height;
+
+    for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
+        // We are not attempting to do a faithful rendition of the SVG file.
+        // We are only trying to use the general shape as an outline, but in the event of
+        //   no color information being provided, we are also going to try to sniff out
+        //   a default color also.
+        xlColor defColor = xlWHITE;
+#if 0
+        if (GetSVGExAlpha(shape->fill.color) != 0) {
+            if (shape->fill.type == 0) {
+                context->SetBrush(wxNullBrush);
+            } else if (shape->fill.type == 1) {
+                wxColor bc(GetSVGRed(shape->fill.color), GetSVGGreen(shape->fill.color), GetSVGBlue(shape->fill.color), /*shape->opacity * */ GetSVGAlpha(shape->fill.color) * color.alpha / 255);
+                wxBrush brush(bc, wxBrushStyle::wxBRUSHSTYLE_SOLID);
+                context->SetBrush(brush);
+            } else {
+                // these are gradients and I know they are not right
+                if (shape->fill.gradient->nstops == 2) {
+                    wxColor c1(GetSVGRed(shape->fill.gradient->stops[0].color), GetSVGGreen(shape->fill.gradient->stops[0].color), GetSVGBlue(shape->fill.gradient->stops[0].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[0].color) * color.alpha / 255);
+                    wxColor c2(GetSVGRed(shape->fill.gradient->stops[1].color), GetSVGGreen(shape->fill.gradient->stops[1].color), GetSVGBlue(shape->fill.gradient->stops[1].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[1].color) * color.alpha / 255);
+                    wxGraphicsBrush brush = context->CreateLinearGradientBrush(0, buffer.BufferHt, 0, 0, c1, c2);
+                    context->SetBrush(brush);
+                } else {
+                    wxGraphicsGradientStops stops;
+                    for (size_t i = 0; i < shape->fill.gradient->nstops; ++i) {
+                        wxColor sc(GetSVGRed(shape->fill.gradient->stops[i].color), GetSVGGreen(shape->fill.gradient->stops[i].color), GetSVGBlue(shape->fill.gradient->stops[i].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[i].color) * color.alpha / 255);
+                        if (i == 0) {
+                            stops.SetStartColour(sc);
+                        } else if (i == shape->fill.gradient->nstops - 1) {
+                            stops.SetEndColour(sc);
+                        } else {
+                            stops.Add(sc, 1.0 - shape->fill.gradient->stops[i].offset);
+                        }
+                    }
+                    wxGraphicsBrush brush = context->CreateLinearGradientBrush(0, buffer.BufferHt, 0, 0, stops);
+                    context->SetBrush(brush);
+                }
+            }
+        }
+#endif
+#if 0
+        // Another possible way to get a color
+        if (shape->stroke.type == 0) {
+            context->SetPen(wxNullPen);
+        } else if (shape->stroke.type == 1) {
+            wxColor pc(GetSVGRed(shape->stroke.color), GetSVGGreen(shape->stroke.color), GetSVGBlue(shape->stroke.color), /*shape->opacity * */ GetSVGAlpha(shape->stroke.color) * color.alpha / 255);
+            wxPen pen(pc, thickness);
+            context->SetPen(pen);
+        } else {
+            // we dont fo gradient lines yet
+        }
+#endif
+
+        for (NSVGpath* path = shape->paths; path != nullptr; path = path->next) {
+            dpointvec pts;
+            bool closedShape = false;
+
+            for (int i = 0; i < path->npts - 1; i += 3) {
+                float* p = &path->pts[i * 2];
+
+                dpoint start = ScalePoint(p[0], ih - p[1], cx, cy, sf);
+                dpoint cp1 =   ScalePoint(p[2], ih - p[3], cx, cy, sf);
+                dpoint cp2 =   ScalePoint(p[4], ih - p[5], cx, cy, sf);
+                dpoint end =   ScalePoint(p[6], ih - p[7], cx, cy, sf);
+                if (i == 0) 
+                    pts.push_back(start);
+#if 0
+                // TODO: We may add quads, splines later
+                if (areCollinear(start, cp1, end, 0.001f) && areCollinear(start, cp2, end, 0.001f)) { // check if its a straight line
+                    cpath.AddLineToPoint(end);
+                } else if (areSame(end.m_x, cp2.m_x, 0.001f) && areSame(end.m_y, cp2.m_y, 0.001f)) { // check if control points2 is the end
+                    cpath.AddQuadCurveToPoint(cp1.m_x, cp1.m_y, end.m_x, end.m_y);
+                } else {
+                    cpath.AddCurveToPoint(cp1.m_x, cp1.m_y, cp2.m_x, cp2.m_y, end.m_x, end.m_y);
+                }
+#else
+                pts.push_back(end);
+#endif
+            }
+            if (path->closed) {
+                closedShape = true;
+            }
+            RippleShape s(pts, closedShape);
+            s.defColor = defColor;
+            shapes.shapes.push_back(s);
+        }
+    }
+}
 
 static void DrawShape(RenderBuffer &buffer, ipointvec &points, const xlColor &color, bool close)
 {
@@ -617,26 +708,6 @@ static dpointvec ScaleShapeD(const dpointvec& in, double sx, double sy, double c
     }
     return rv;
 }
-
-struct RippleShape
-{
-    dpointvec points;
-    bool closedShape = false;
-    HSVValue defColor = xlWHITE;
-    RippleShape() {}
-    RippleShape(const dpointvec& vec, bool closed) :
-        points(vec), closedShape(closed)
-    {}
-};
-struct RippleShapes
-{
-    std::vector<RippleShape> shapes;
-    RippleShapes() {}
-    RippleShapes(const dpointvec& vec, bool closed)
-    {
-        shapes.push_back(RippleShape(vec, closed));
-    }
-};
 
 static void drawRippleNew(
     RenderBuffer& buffer, const RippleShapes& shapes,
@@ -828,7 +899,7 @@ static void drawRippleNew(
             hsvs = shapes.shapes[i].defColor;
         }
 
-        if (brX+outline/2 > 0 && brY+outline/2 > 0) {
+        if (brX+outline > 0 && brY+outline > 0) {
             if (outline > 0) {
                 if (outline > 1) {
                     // Asked for a thicker shape
@@ -924,6 +995,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
     if (Object_To_DrawStr == "SVG" && StyleStr != "Old") {
         Object_To_Draw = RENDER_RIPPLE_SVG;
+        getCirclePoints(shapePts); // In case of invalid SVG
     } else if (Object_To_DrawStr == "Circle") {
         getCirclePoints(shapePts);
         Object_To_Draw = RENDER_RIPPLE_CIRCLE;
@@ -1019,6 +1091,10 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         if (Object_To_Draw == RENDER_RIPPLE_SVG) {
             cache->InitialiseSVG(svgFilename);
         }
+    }
+
+    if (Object_To_Draw == RENDER_RIPPLE_SVG) {
+        buildSVG(shapes, cache->GetImage());
     }
 
     if (drawNew)
