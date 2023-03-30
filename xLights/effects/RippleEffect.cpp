@@ -328,7 +328,6 @@ struct RippleShapes {
     }
 };
 
-
 inline uint8_t GetSVGRed(uint32_t colour)
 {
     return (colour);
@@ -359,86 +358,27 @@ inline dpoint ScalePoint(double x, double y, double cx, double cy, double sf)
     return { (x - cx) * sf, (y - cy) * sf };
 }
 
-
-#if 0
-
-void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const
+static bool areSame(double ax, double ay, double bx, double by, double eps)
 {
-        for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
-
-            if (GetSVGExAlpha(shape->fill.color) != 0) {
-                if (shape->fill.type == 0) {
-                    context->SetBrush(wxNullBrush);
-                }
-                else if (shape->fill.type == 1) {
-                    wxColor bc(GetSVGRed(shape->fill.color), GetSVGGreen(shape->fill.color), GetSVGBlue(shape->fill.color), /*shape->opacity * */ GetSVGAlpha(shape->fill.color) * color.alpha / 255);
-                    wxBrush brush(bc, wxBrushStyle::wxBRUSHSTYLE_SOLID);
-                    context->SetBrush(brush);
-                } else {
-                    // these are gradients and I know they are not right
-                    if (shape->fill.gradient->nstops == 2) {
-                        wxColor c1(GetSVGRed(shape->fill.gradient->stops[0].color), GetSVGGreen(shape->fill.gradient->stops[0].color), GetSVGBlue(shape->fill.gradient->stops[0].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[0].color) * color.alpha / 255);
-                        wxColor c2(GetSVGRed(shape->fill.gradient->stops[1].color), GetSVGGreen(shape->fill.gradient->stops[1].color), GetSVGBlue(shape->fill.gradient->stops[1].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[1].color) * color.alpha / 255);
-                        wxGraphicsBrush brush = context->CreateLinearGradientBrush(0, buffer.BufferHt, 0, 0, c1, c2);
-                        context->SetBrush(brush);
-                    } else {
-                        wxGraphicsGradientStops stops;
-                        for (size_t i = 0; i < shape->fill.gradient->nstops; ++i) {
-                            wxColor sc(GetSVGRed(shape->fill.gradient->stops[i].color), GetSVGGreen(shape->fill.gradient->stops[i].color), GetSVGBlue(shape->fill.gradient->stops[i].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[i].color) * color.alpha / 255);
-                            if (i == 0) {
-                                stops.SetStartColour(sc);
-                            } else if (i == shape->fill.gradient->nstops - 1) {
-                                stops.SetEndColour(sc);
-                            } else {
-                                stops.Add(sc, 1.0 - shape->fill.gradient->stops[i].offset);
-                            }
-                        }
-                        wxGraphicsBrush brush = context->CreateLinearGradientBrush(0, buffer.BufferHt, 0, 0, stops);
-                        context->SetBrush(brush);
-                    }
-                }
-            }
-
-            if (shape->stroke.type == 0) {
-                context->SetPen(wxNullPen);
-            } else if (shape->stroke.type == 1) {
-                wxColor pc(GetSVGRed(shape->stroke.color), GetSVGGreen(shape->stroke.color), GetSVGBlue(shape->stroke.color), /*shape->opacity * */ GetSVGAlpha(shape->stroke.color) * color.alpha / 255);
-                wxPen pen(pc, thickness);
-                context->SetPen(pen);
-            } else {
-                // we dont fo gradient lines yet
-            }
-
-            for (NSVGpath* path = shape->paths; path != nullptr; path = path->next) {
-                wxGraphicsPath cpath = context->CreatePath();
-                for (int i = 0; i < path->npts - 1; i += 3) {
-                    float* p = &path->pts[i * 2];
-                    auto ih = image->height;
-                    wxPoint2DDouble start = ScaleMovePoint(wxPoint2DDouble(p[0], ih - p[1]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    wxPoint2DDouble cp1 = ScaleMovePoint(wxPoint2DDouble(p[2], ih - p[3]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    wxPoint2DDouble cp2 = ScaleMovePoint(wxPoint2DDouble(p[4], ih - p[5]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    wxPoint2DDouble end = ScaleMovePoint(wxPoint2DDouble(p[6], ih - p[7]), imageCentre, centre, cache->_svgScaleBase, radius);
-
-                    if (i == 0) cpath.MoveToPoint(start);
-
-                    if (areCollinear(start, cp1, end, 0.001f) && areCollinear(start, cp2, end, 0.001f)) { // check if its a straight line
-                        cpath.AddLineToPoint(end);
-                    } else if (areSame(end.m_x, cp2.m_x, 0.001f) && areSame(end.m_y, cp2.m_y, 0.001f)) { // check if control points2 is the end
-                        cpath.AddQuadCurveToPoint(cp1.m_x, cp1.m_y, end.m_x, end.m_y);
-                    } else {
-                        cpath.AddCurveToPoint(cp1.m_x, cp1.m_y, cp2.m_x, cp2.m_y, end.m_x, end.m_y);
-                    }
-                }
-                if (path->closed) {
-                    cpath.CloseSubpath();
-                    context->FillPath(cpath, wxPolygonFillMode::wxODDEVEN_RULE);
-                } 
-                context->StrokePath(cpath);
-            }
-        }
-    }
+    return (ax - bx) * (ax - bx) + (ay - by) * (ay - by) < eps * eps;
 }
-#endif
+
+static bool areCollinear(double a_x, double a_y, double b_x, double b_y, double c_x, double c_y, double eps)
+{
+    // use cross product to determine if point are in a strait line
+    auto test = (b_x - a_x) * (c_y - a_y) - (b_y - a_y) * (c_x - a_x);
+    return std::abs(test) < eps;
+}
+
+static double getLength(double a_x, double a_y, double b_x, double b_y, double c_x, double c_y, double d_x, double d_y)
+{
+    double sl = sqrt((d_x - a_x) * (d_x - a_x) + (d_y - a_y) * (d_y - a_y));
+    double fl = sqrt((b_x - a_x) * (b_x - a_x) + (b_y - a_y) * (b_y - a_y)) +
+                sqrt((c_x - b_x) * (c_x - b_x) + (c_y - b_y) * (c_y - b_y)) +
+                sqrt((d_x - c_x) * (d_x - c_x) + (d_y - c_y) * (d_y - c_y));
+
+    return sl + (fl - sl) / 2; // Approximately
+}
 
 static void buildSVG(RippleShapes &shapes, NSVGimage *image)
 {
@@ -459,55 +399,22 @@ static void buildSVG(RippleShapes &shapes, NSVGimage *image)
         //   no color information being provided, we are also going to try to sniff out
         //   a default color also.
         xlColor defColor = xlWHITE;
-#if 0
+
+        // Some ways to get very simple default colors
         if (GetSVGExAlpha(shape->fill.color) != 0) {
-            if (shape->fill.type == 0) {
-                context->SetBrush(wxNullBrush);
-            } else if (shape->fill.type == 1) {
-                wxColor bc(GetSVGRed(shape->fill.color), GetSVGGreen(shape->fill.color), GetSVGBlue(shape->fill.color), /*shape->opacity * */ GetSVGAlpha(shape->fill.color) * color.alpha / 255);
-                wxBrush brush(bc, wxBrushStyle::wxBRUSHSTYLE_SOLID);
-                context->SetBrush(brush);
-            } else {
-                // these are gradients and I know they are not right
-                if (shape->fill.gradient->nstops == 2) {
-                    wxColor c1(GetSVGRed(shape->fill.gradient->stops[0].color), GetSVGGreen(shape->fill.gradient->stops[0].color), GetSVGBlue(shape->fill.gradient->stops[0].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[0].color) * color.alpha / 255);
-                    wxColor c2(GetSVGRed(shape->fill.gradient->stops[1].color), GetSVGGreen(shape->fill.gradient->stops[1].color), GetSVGBlue(shape->fill.gradient->stops[1].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[1].color) * color.alpha / 255);
-                    wxGraphicsBrush brush = context->CreateLinearGradientBrush(0, buffer.BufferHt, 0, 0, c1, c2);
-                    context->SetBrush(brush);
-                } else {
-                    wxGraphicsGradientStops stops;
-                    for (size_t i = 0; i < shape->fill.gradient->nstops; ++i) {
-                        wxColor sc(GetSVGRed(shape->fill.gradient->stops[i].color), GetSVGGreen(shape->fill.gradient->stops[i].color), GetSVGBlue(shape->fill.gradient->stops[i].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[i].color) * color.alpha / 255);
-                        if (i == 0) {
-                            stops.SetStartColour(sc);
-                        } else if (i == shape->fill.gradient->nstops - 1) {
-                            stops.SetEndColour(sc);
-                        } else {
-                            stops.Add(sc, 1.0 - shape->fill.gradient->stops[i].offset);
-                        }
-                    }
-                    wxGraphicsBrush brush = context->CreateLinearGradientBrush(0, buffer.BufferHt, 0, 0, stops);
-                    context->SetBrush(brush);
-                }
+            if(shape->fill.type == 1)
+            {
+                defColor = xlColor(GetSVGRed(shape->fill.color), GetSVGGreen(shape->fill.color), GetSVGBlue(shape->fill.color));
             }
         }
-#endif
-#if 0
-        // Another possible way to get a color
-        if (shape->stroke.type == 0) {
-            context->SetPen(wxNullPen);
-        } else if (shape->stroke.type == 1) {
-            wxColor pc(GetSVGRed(shape->stroke.color), GetSVGGreen(shape->stroke.color), GetSVGBlue(shape->stroke.color), /*shape->opacity * */ GetSVGAlpha(shape->stroke.color) * color.alpha / 255);
-            wxPen pen(pc, thickness);
-            context->SetPen(pen);
-        } else {
-            // we dont fo gradient lines yet
+        if (shape->stroke.type == 1) {
+            defColor = xlColor(GetSVGRed(shape->stroke.color), GetSVGGreen(shape->stroke.color), GetSVGBlue(shape->stroke.color));
         }
-#endif
 
         for (NSVGpath* path = shape->paths; path != nullptr; path = path->next) {
             dpointvec pts;
             bool closedShape = false;
+            xlColor sdefColor = defColor;
 
             for (int i = 0; i < path->npts - 1; i += 3) {
                 float* p = &path->pts[i * 2];
@@ -518,24 +425,50 @@ static void buildSVG(RippleShapes &shapes, NSVGimage *image)
                 dpoint end =   ScalePoint(p[6], ih - p[7], cx, cy, sf);
                 if (i == 0) 
                     pts.push_back(start);
-#if 0
-                // TODO: We may add quads, splines later
-                if (areCollinear(start, cp1, end, 0.001f) && areCollinear(start, cp2, end, 0.001f)) { // check if its a straight line
-                    cpath.AddLineToPoint(end);
-                } else if (areSame(end.m_x, cp2.m_x, 0.001f) && areSame(end.m_y, cp2.m_y, 0.001f)) { // check if control points2 is the end
-                    cpath.AddQuadCurveToPoint(cp1.m_x, cp1.m_y, end.m_x, end.m_y);
-                } else {
-                    cpath.AddCurveToPoint(cp1.m_x, cp1.m_y, cp2.m_x, cp2.m_y, end.m_x, end.m_y);
+
+                // Break up anything long and not straight
+                double seglen = getLength(start.first, start.second, cp1.first, cp1.second, cp2.first, cp2.second, end.first, end.second);
+                if (seglen > .005 &&
+                    (!areCollinear(start.first, start.second, cp1.first, cp1.second, end.first, end.second, .01) ||
+                     !areCollinear(start.first, start.second, cp2.first, cp2.second, end.first, end.second, .01)))
+                {
+                    int nBreaks = (seglen / .005);
+                    if (areSame(end.first, end.second, cp2.first, cp2.second, .0002)) {
+                        for (int i = 1; i <= nBreaks; ++i) {
+                            double t = double(i) / nBreaks + 1; // We hit end later
+                            // 1(1-t)^2 2(1-t)t 1(t^2)
+                            double px = (1 - t) * (1 - t) * start.first +
+                                        2.0 * t * (1 - t) * cp1.first +
+                                        t * t * end.first;
+                            double py = (1 - t) * (1 - t) * start.second +
+                                        2.0 * t * (1 - t) * cp1.second +
+                                        t * t * end.second;
+                            pts.push_back({ px, py });
+                        }
+                    } else {
+                        for (int sd = 1; sd <= nBreaks; ++sd) {
+                            double t = double(sd) / (nBreaks + 1.0); // We hit end later
+                            // 1(1-t)^3 3(1-t)^2t 3(1-t)t^2 1(t^3)
+                            double px = (1 - t) * (1 - t) * (1 - t) * start.first +
+                                        3.0 * t * (1 - t) * (1 - t) * cp1.first +
+                                        3.0 * t * t * (1 - t) * cp2.first +
+                                        t * t * t * end.first;
+                            double py = (1 - t) * (1 - t) * (1 - t) * start.second +
+                                        3.0 * t * (1 - t) * (1 - t) * cp1.second +
+                                        3.0 * t * t * (1 - t) * cp2.second +
+                                        t * t * t * end.second;
+                            pts.push_back({ px, py });
+                        }
+                    }
                 }
-#else
                 pts.push_back(end);
-#endif
+
             }
             if (path->closed) {
                 closedShape = true;
             }
             RippleShape s(pts, closedShape);
-            s.defColor = defColor;
+            s.defColor = sdefColor;
             shapes.shapes.push_back(s);
         }
     }
@@ -742,7 +675,7 @@ static void drawRippleNew(
     //  The width of things is now also in percent, but we always draw a line so at least one pixel wide
 
     // Color calculations TODO cut
-    size_t colorcnt = buffer.GetColorCount();
+    size_t colorcnt = buffer.palette.ExplicitSize();
     int cidxLines = 0;
     if (colorcnt > 1) {
         cidxLines = 1;

@@ -212,6 +212,11 @@ public:
         return std::max(1, (int)color.size());
     }
 
+    size_t ExplicitSize() const
+    {
+        return color.size();
+    }
+
     const ColorCurve& GetColorCurve(size_t idx) const
     {
         if (idx >= cc.size()) {
