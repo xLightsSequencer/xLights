@@ -856,9 +856,13 @@ static void drawRippleNew(
         const dpointvec& points = shapes.shapes[i].points;
 
         int cidxShp = 0;
-        HSVValue hsvs;
+        xlColor hsvs;
         if (cidxShp < colorcnt) {
-            buffer.palette.GetHSV(cidxShp, hsvs); // Now go and get the hsv value for this ColorIdx
+            if (buffer.palette.IsSpatial(cidxShp)) {
+                buffer.palette.GetSpatialColor(cidxShp, 0, 0, 0, 0, 0, thickness, hsvs);
+            } else {
+                buffer.palette.GetColor(cidxShp, hsvs); // Now go and get the hsv value for this ColorIdx
+            }
         } else {
             hsvs = shapes.shapes[i].defColor;
         }
@@ -918,7 +922,6 @@ public:
 };
 
 // TODO:
-// 1 BUG: There is a color (actual shape) that is going temporal instead of spatial
 // 2 BUG: There is something not touching the inside shape again
 // 3 BUG: There is highlight line not occurring for the shapes past the first
 // 4 ENH: There is the matter of colors (around; this is a matter of breaking long segments up)
