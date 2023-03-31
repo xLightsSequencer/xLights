@@ -104,6 +104,9 @@ class RipplePanel: public xlEffectPanel
 	protected:
 
 		//(*Identifiers(RipplePanel)
+		static const long ID_STATICTEXT_Ripple_Draw_Style;
+		static const long ID_CHOICE_Ripple_Draw_Style;
+		static const long ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style;
 		static const long ID_STATICTEXT_Ripple_Object_To_Draw;
 		static const long ID_CHOICE_Ripple_Object_To_Draw;
 		static const long ID_BITMAPBUTTON_CHOICE_Ripple_Object_To_Draw;
@@ -166,9 +169,6 @@ class RipplePanel: public xlEffectPanel
 		static const long ID_VALUECURVE_Ripple_Direction;
 		static const long IDD_TEXTCTRL_Ripple_Direction;
 		static const long ID_BITMAPBUTTON_SLIDER_Ripple_Direction;
-		static const long ID_STATICTEXT_Ripple_Draw_Style;
-		static const long ID_CHOICE_Ripple_Draw_Style;
-		static const long ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style;
 		static const long ID_CHECKBOX_Ripple3D;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Ripple3D;
 		//*)

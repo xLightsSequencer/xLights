@@ -7,6 +7,58 @@
 			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT_Ripple_Draw_Style" variable="StaticText5" member="yes">
+					<label>Draw Style</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE_Ripple_Draw_Style" subclass="BulkEditChoice" variable="Choice_Ripple_Draw_Style" member="yes">
+					<content>
+						<item>Old</item>
+						<item>Lines Inward</item>
+						<item>Lines Outward</item>
+						<item>Lines Both</item>
+						<item>Lines Inward Ripple</item>
+						<item>Lines Outward Ripple</item>
+						<item>Lines Both Ripple</item>
+						<item>Solid Inward</item>
+						<item>Solid Outward</item>
+						<item>Solid Both</item>
+						<item>Solid Inward Ripple</item>
+						<item>Solid Outward Ripple</item>
+						<item>Solid Both Ripple</item>
+						<item>Highlight Inward</item>
+						<item>Highlight Outward</item>
+						<item>Highlight Both</item>
+						<item>Highlight Inward Ripple</item>
+						<item>Highlight Outward Ripple</item>
+						<item>Highlight Both Ripple</item>
+					</content>
+					<selection>0</selection>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style" subclass="xlLockButton" variable="BitmapButton_Ripple_Draw_Style" member="yes">
+					<size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT_Ripple_Object_To_Draw" variable="StaticText69" member="yes">
 					<label>Object</label>
 				</object>
@@ -157,7 +209,7 @@
 					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -210,7 +262,7 @@
 					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -319,7 +371,7 @@
 					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -407,7 +459,7 @@
 					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -516,7 +568,7 @@
 					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -651,7 +703,7 @@
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 				</object>
@@ -665,7 +717,7 @@
 					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -719,62 +771,11 @@
 					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Ripple_Direction" subclass="xlLockButton" variable="BitmapButton_Ripple_Direction" member="yes">
-					<size>14,14</size>
-					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
-					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>1</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT_Ripple_Draw_Style" variable="StaticText5" member="yes">
-					<label>Draw Style</label>
-				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Ripple_Draw_Style" subclass="BulkEditChoice" variable="Choice_Ripple_Draw_Style" member="yes">
-					<content>
-						<item>Old</item>
-						<item>Lines Inward</item>
-						<item>Lines Outward</item>
-						<item>Lines Both</item>
-						<item>Lines Inward Ripple</item>
-						<item>Lines Outward Ripple</item>
-						<item>Lines Both Ripple</item>
-						<item>Solid Inward</item>
-						<item>Solid Outward</item>
-						<item>Solid Both</item>
-						<item>Solid Inward Ripple</item>
-						<item>Solid Outward Ripple</item>
-						<item>Solid Both Ripple</item>
-						<item>Highlight Inward</item>
-						<item>Highlight Outward</item>
-						<item>Highlight Both</item>
-						<item>Highlight Inward Ripple</item>
-						<item>Highlight Outward Ripple</item>
-						<item>Highlight Both Ripple</item>
-					</content>
-				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style" subclass="xlLockButton" variable="BitmapButton_Ripple_Draw_Style" member="yes">
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
