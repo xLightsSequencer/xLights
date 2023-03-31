@@ -428,11 +428,11 @@ static void buildSVG(RippleShapes &shapes, NSVGimage *image)
 
                 // Break up anything long and not straight
                 double seglen = getLength(start.first, start.second, cp1.first, cp1.second, cp2.first, cp2.second, end.first, end.second);
-                if (seglen > .005 &&
-                    (!areCollinear(start.first, start.second, cp1.first, cp1.second, end.first, end.second, .01) ||
-                     !areCollinear(start.first, start.second, cp2.first, cp2.second, end.first, end.second, .01)))
+                if (seglen > .001 &&
+                    (!areCollinear(start.first, start.second, cp1.first, cp1.second, end.first, end.second, .001) ||
+                     !areCollinear(start.first, start.second, cp2.first, cp2.second, end.first, end.second, .001)))
                 {
-                    int nBreaks = (seglen / .005);
+                    int nBreaks = (seglen / .001);
                     if (areSame(end.first, end.second, cp2.first, cp2.second, .0002)) {
                         for (int i = 1; i <= nBreaks; ++i) {
                             double t = double(i) / nBreaks + 1; // We hit end later
