@@ -127,7 +127,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(536,607), wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer57 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer57->AddGrowableCol(1);
-	StaticText69 = new wxStaticText(this, ID_STATICTEXT_Ripple_Object_To_Draw, _("Object to Draw"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Object_To_Draw"));
+	StaticText69 = new wxStaticText(this, ID_STATICTEXT_Ripple_Object_To_Draw, _("Object"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Object_To_Draw"));
 	FlexGridSizer57->Add(StaticText69, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Ripple_Object_To_Draw = new BulkEditChoice(this, ID_CHOICE_Ripple_Object_To_Draw, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Ripple_Object_To_Draw"));
 	Choice_Ripple_Object_To_Draw->SetSelection( Choice_Ripple_Object_To_Draw->Append(_("Circle")) );
@@ -224,7 +224,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_Ripple_Spacing = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Ripple_Spacing, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Ripple_Spacing"));
 	BitmapButton_Ripple_Spacing->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer57->Add(BitmapButton_Ripple_Spacing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	StaticText176 = new wxStaticText(this, ID_STATICTEXT_Ripple_Cycles, _("Cycle Count"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Cycles"));
+	StaticText176 = new wxStaticText(this, ID_STATICTEXT_Ripple_Cycles, _("Cycle Cnt"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Cycles"));
 	FlexGridSizer57->Add(StaticText176, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
