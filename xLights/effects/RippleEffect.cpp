@@ -777,15 +777,15 @@ static void drawRippleNew(
                     }
                 }
 
-                if (oldedgeinner.size()) {
+                if (oldedgeinner[sn].size()) {
                     DrawShapeD(buffer, oldedgeinner[sn], lineColor, closedShape, false);
                 }
-                if (oldedgeouter.size()) {
+                if (oldedgeouter[sn].size()) {
                     DrawShapeD(buffer, oldedgeouter[sn], lineColor, closedShape, false);
                 }
                 
-                oldedgeouter = nxtedgeouter;
-                oldedgeinner = nxtedgeinner;
+                oldedgeouter[sn] = nxtedgeouter[sn];
+                oldedgeinner[sn] = nxtedgeinner[sn];
             }
         }
 
@@ -875,6 +875,7 @@ static void drawRippleNew(
                     ipointvec outer = ScaleShape(points, std::max(brX + outline, 0.0), std::max(brY + outline, 0.0), sxc, syc, srotation, true);
                     FillRegion(buffer, inner, outer, hsvs, closedShape);
                 }
+                // Default line drawn always
                 if (fill) {
                     dpointvec mshp = ScaleShapeD(points, brX, brY, sxc, syc, srotation);
                     DrawShapeD(buffer, mshp, hsvs, closedShape, true);
@@ -923,7 +924,6 @@ public:
 
 // TODO:
 // 2 BUG: There is something not touching the inside shape again
-// 3 BUG: There is highlight line not occurring for the shapes past the first
 // 4 ENH: There is the matter of colors (around; this is a matter of breaking long segments up)
 
 void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
