@@ -719,7 +719,7 @@ static void drawRippleNew(
             double yc = syc - (vel * cos(veldir / 180 * M_PI) * i);
             double rotation = srotation + twist * i;
             double strength = (double(thickness) + 1 - i) / (thickness + 1); // Used for 3D/fade
-            double delta = ripple ? ((i * i + 1) * 0.25) : (i * 0.5);
+            double delta = ripple ? (i * (i + 1) * 0.25) : (i * 0.5);
             delta *= spacing;
 
             std::vector<dpointvec> nxtedgeouter(nShapes), nxtedgeinner(nShapes);
@@ -813,7 +813,7 @@ static void drawRippleNew(
                 double yc = syc - (vel * cos(veldir / 180 * M_PI) * i);
                 double rotation = srotation + twist * i;
                 double strength = (double(thickness) + 1 - i) / (thickness + 1); // Used for 3D/fade
-                double delta = ripple ? ((i * i + 1) * 0.25) : (i * 0.5);
+                double delta = ripple ? (i * (i + 1) * 0.25) : (i * 0.5);
                 delta *= spacing;
 
                 xlColor lineColor(lhsv);
@@ -923,7 +923,6 @@ public:
 };
 
 // TODO:
-// 2 BUG: There is something not touching the inside shape again
 // 4 ENH: There is the matter of colors (around; this is a matter of breaking long segments up)
 
 void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
