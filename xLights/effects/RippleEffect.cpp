@@ -1713,3 +1713,29 @@ bool RippleEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& Settin
 
     return rc;
 }
+
+bool RippleEffect::needToAdjustSettings(const std::string& version)
+{
+    return IsVersionOlder("2023.06", version) || RenderableEffect::needToAdjustSettings(version);
+}
+
+void RippleEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
+    SettingsMap& settings = effect->GetSettings();
+
+    wxString rr = settings.Get("E_VALUECURVE_Ripple_Rotation", "");
+    if (rr.Contains("Active=TRUE")) {
+        // For some reason, the current VC code will expand the values through the whole range
+        //   and will have already done so by the time it reaches here... 
+        // It's already too late to get the original min/max.  A ramp from 0 - 360 is now already -360 - 360.
+        ValueCurve vc(rr);
+        vc.SetLimits(RIPPLE_ROTATION_MIN, RIPPLE_ROTATION_MAX);
+        vc.UnconvertChangedScale(0, 360);
+        settings["E_VALUECURVE_Ripple_Rotation"] = vc.Serialise();
+    }
+
+    // also give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+}

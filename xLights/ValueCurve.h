@@ -136,7 +136,8 @@ public:
     void SetType(std::string type);
     void FixChangedScale(float oldmin, float oldmax, int divisor);
     void UnFixChangedScale(float newmin, float newmax);
-    void ConvertChangedScale(float newmin, float newmax);
+    void ConvertChangedScale(float newmin, float newmax); // MoC - This is a suspicious routine called from a suspicous place
+    void UnconvertChangedScale(float oldmin, float oldmax); // Try to reverse the routine above, called explicitly where it did damage
     float GetMax() const { wxASSERT(_max != MAXVOIDF); return _max; }
     float GetMin() const { wxASSERT(_min != MINVOIDF); return _min; }
     int GetDivisor() const { wxASSERT(_divisor != MAXVOID); return (int)_divisor; }
