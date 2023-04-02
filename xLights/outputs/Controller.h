@@ -258,6 +258,25 @@ public:
 
     virtual std::string GetSortName() const { return GetName(); }
     virtual std::string GetExport() const = 0;
+    
+    virtual std::string GetJSONData() const
+    {
+        std::string json = "{\"name\":\"" + JSONSafe(GetName()) + "\"" +
+                ",\"desc\":\"" + JSONSafe(GetDescription()) + "\"" +
+                ",\"type\":\"" + JSONSafe(GetType()) + "\"" +
+                ",\"vendor\":\"" + JSONSafe(GetVendor()) + "\"" +
+                ",\"model\":\"" + JSONSafe(GetModel()) + "\"" +
+                ",\"variant\":\"" + JSONSafe(GetVariant()) + "\"" +
+                ",\"protocol\":\"" + GetProtocol() + "\"" +
+                ",\"id\":" + std::to_string(GetId()) +
+                ",\"startchannel\":" + std::to_string(GetStartChannel()) +
+                ",\"channels\":" + std::to_string(GetChannels()) +
+                ",\"managed\":" + toStr(IsManaged()) +
+                ",\"active\":" + toStr(IsActive())+
+                ",\"ip\":\"" + JSONSafe(GetIP()) + "\"}";
+        
+        return json;
+    }
 
     #pragma endregion
 

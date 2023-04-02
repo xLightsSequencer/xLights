@@ -1082,6 +1082,44 @@ std::vector<std::string> UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS 
 
     return columns;
 }
+
+std::string UDControllerPort::ExportAsJSON() const
+{
+    std::string json = "{\"port\":" + std::to_string(_port) + ",\"startchannel\":" + std::to_string(GetStartChannel()) +
+    ",\"universe\":" + std::to_string(GetUniverse()) + ",\"universestartchannel\":" + std::to_string(GetUniverseStartChannel()) +
+    ",\"channels\":" + std::to_string(Channels());
+
+    if (Channels() != 0 && _type != "Serial") {
+        json += ",\"pixels\":";
+        json += std::to_string( INTROUNDUPDIV(Channels(), GetChannelsPerPixel(GetProtocol())));
+    }
+    
+    json += ",\"models\":[";
+    bool first {true};
+    for (const auto& it : GetModels()) {
+        if(!first) json += ",";
+        json += "{\"name\":\"" + JSONSafe(it->GetName()) + "\"";
+        if (it->GetSmartRemote() > 0) {
+            json += ",\"smartremote\":\"" + std::to_string(it->GetSmartRemoteLetter()) + "\"";
+        }
+        json += ",\"description\":\"";
+        auto desp = it->GetModel()->description;
+        json += JSONSafe(desp);
+        json += "\"";
+        json += ",\"startchannel\":" + std::to_string(it->GetStartChannel());
+        json += ",\"universe\":" + std::to_string(it->GetUniverse());
+        json +=  ",\"universestartchannel\":" + std::to_string(it->GetUniverseStartChannel());
+        json += ",\"channels\":" + std::to_string(it->Channels());
+        
+        if (_type != "Serial") {
+            json += ",\"pixels\":" + std::to_string(it->Channels() / it->GetChannelsPerPixel());
+        }
+        json += "}";
+        first = false;
+    }
+    json += "]}";
+    return json;
+}
 #pragma endregion
 
 #pragma endregion
@@ -1858,6 +1896,32 @@ std::vector<std::vector<std::string>> UDController::ExportAsCSV(ExportSettings::
 
     lines.insert(lines.begin(), header);
     return lines;
+}
+
+std::string UDController::ExportAsJSON()
+{
+    std::string json = "{\"pixelports\": [" ;
+    for (int i = 1; i <= GetMaxPixelPort(); i++) {
+        if(i != 1) json += ",";
+        json += GetControllerPixelPort(i)->ExportAsJSON();
+    }
+    json += "], \"serialports\": [" ;
+    for (int i = 1; i <= GetMaxSerialPort(); i++) {
+        if(i != 1) json += ",";
+        json += GetControllerSerialPort(i)->ExportAsJSON();
+    }
+    json += "], \"virtualmatrixports\": [" ;
+    for (auto &vm : _virtualMatrixPorts) {
+        if(vm.first != 1) json += ",";
+        json += vm.second->ExportAsJSON();
+    }
+    json += "], \"ledpanelmatrixports\": [" ;
+    for (auto &vm : _ledPanelMatrixPorts) {
+        if(vm.first != 1) json += ",";
+        json += vm.second->ExportAsJSON();
+    }
+    json += "]}" ;
+    return json;
 }
 
 Output* UDController::GetFirstOutput() const {
