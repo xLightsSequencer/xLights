@@ -19,7 +19,7 @@
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
-
+#include "../UtilFunctions.h"
 #include "Output.h"
 
 class wxXmlNode;
