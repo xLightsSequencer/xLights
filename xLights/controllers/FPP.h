@@ -42,6 +42,7 @@ class FPP : public BaseController
     std::string model;
     uint32_t majorVersion = 0;
     uint32_t minorVersion = 0;
+    uint32_t patchVersion = 0;
     std::string ranges;
     std::string mode;
     std::string pixelControllerType;
@@ -75,7 +76,7 @@ class FPP : public BaseController
     bool IsMultiSyncEnabled();
     bool IsDDPInputEnabled();
 
-    bool IsVersionAtLeast(uint32_t maj, uint32_t min) const;
+    bool IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch = 0) const;
     bool IsDrive();
 
 #ifndef DISCOVERYONLY
@@ -171,6 +172,7 @@ private:
     bool copyFile(const std::string &filename,
                   const std::string &file,
                   const std::string &dir);
+    bool callMoveFile(const std::string &filename);
 
     bool parseSysInfo(wxJSONValue& v);
     void parseControllerType(wxJSONValue& v);

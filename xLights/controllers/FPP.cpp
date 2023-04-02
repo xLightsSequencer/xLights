@@ -70,7 +70,7 @@ using namespace TraceLog;
 static const std::string LEDPANELS("LED Panels");
 
 FPP::FPP(const std::string& ad) :
-    BaseController(ad, ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr), fppType(FPP_TYPE::FPP) {
+    BaseController(ad, ""), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr), fppType(FPP_TYPE::FPP) {
     wxIPV4address address;
     if (address.Hostname(ad)) {
         hostName = ad;
@@ -83,7 +83,7 @@ FPP::FPP(const std::string& ad) :
 
 
 FPP::FPP(const std::string& ip, const std::string& proxy, const std::string& model) :
-    BaseController(ip, proxy), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), fppType(FPP_TYPE::FPP) {
+    BaseController(ip, proxy), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), fppType(FPP_TYPE::FPP) {
     ipAddress = ip;
     pixelControllerType = model;
     wxIPV4address address;
@@ -96,7 +96,7 @@ FPP::FPP(const std::string& ip, const std::string& proxy, const std::string& mod
 }
 
 FPP::FPP(const FPP &c)
-    : majorVersion(c.majorVersion), minorVersion(c.minorVersion), outputFile(nullptr), parent(nullptr), curl(nullptr),
+    : majorVersion(c.majorVersion), minorVersion(c.minorVersion), patchVersion(c.patchVersion), outputFile(nullptr), parent(nullptr), curl(nullptr),
     hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
     model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password), fppType(c.fppType) {
 
@@ -433,6 +433,9 @@ bool FPP::parseSysInfo(wxJSONValue& val) {
         } else {
             minorVersion = wxAtoi(fullVersion.substr(2));
         }
+        if (fullVersion.size() > 3 && (fullVersion[3] == '-' || fullVersion[3] == '.')) {
+            patchVersion = wxAtoi(fullVersion.substr(4));
+        }
     }
     if (val.HasMember("channelRanges")) {
         std::string r = val["channelRanges"].AsString().ToStdString();
@@ -581,7 +584,7 @@ bool FPP::IsDrive() {
     return ipAddress.find("/") != std::string::npos || ipAddress.find("\\") != std::string::npos;
 }
 
-bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min) const{
+bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch) const{
     static bool hasWarned = false;
     if (majorVersion < 6 && !hasWarned) {
         hasWarned = true;
@@ -596,7 +599,13 @@ bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min) const{
     if (majorVersion > maj) {
         return true;
     }
-    return minorVersion >= min;
+    if (minorVersion < min) {
+        return false;
+    }
+    if (minorVersion >= min) {
+        return true;
+    }
+    return patch >= patchVersion;
 }
 
 static wxString URLEncode(const wxString &value)
@@ -822,8 +831,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         if (response_code == 200) {
             if (usingMove) {
-                std::string val;
-                if (!GetURLAsString("/api/file/move/" + URLEncode(filename + ext), val)) {
+                if (!callMoveFile(filename + ext)) {
                     logger_base.warn("Error trying to rename file.");
                 } else {
                     logger_base.debug("Renaming done.");
@@ -844,6 +852,14 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     return data.cancelled | cancelled;
 }
 
+bool FPP::callMoveFile(const std::string &filename) {
+    std::string val;
+    if (IsVersionAtLeast(6, 3, 2)) {
+        return GetURLAsString("/api/file/move/" + URLEncode(filename), val);
+    }
+    //api/file/move is broken on older versions of FPP (doesn't decode filename properly), use fppxml
+    return GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename), val);
+}
 
 struct V7ProgressStruct {
     wxProgressDialog *progress;
@@ -972,8 +988,7 @@ bool FPP::uploadFileV7(const std::string &filename,
         }
     }
     if (callMove) {
-        std::string val;
-        if (!GetURLAsString("/api/file/move/" + URLEncode(filename), val)) {
+        if (!callMoveFile(filename)) {
             messages.push_back("ERROR Uploading file: " + filename + "     Could not move file to proper directory.");
         }
     }
@@ -3077,6 +3092,9 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         inst.ip = address;
         if (!system["version"].IsNull()) {
             inst.version = system["version"].AsString();
+            if (inst.version.size() > 3 && (inst.version[3] == '-' || inst.version[3] == '.')) {
+                inst.patchVersion = wxAtoi(inst.version.substr(4));
+            }
         }
         if (system["minorVersion"].IsInt()) {
             inst.minorVersion = system["minorVersion"].AsInt();
@@ -3108,6 +3126,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 found->version = inst.version;
                 found->majorVersion = inst.majorVersion;
                 found->minorVersion = inst.minorVersion;
+                found->patchVersion = inst.patchVersion;
                 found->description = inst.description;
                 found->ranges = inst.ranges;
                 found->mode = inst.mode;
@@ -3143,6 +3162,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
             found->version = inst.version;
             found->majorVersion = inst.majorVersion;
             found->minorVersion = inst.minorVersion;
+            found->patchVersion = inst.patchVersion;
             found->description = inst.description;
             found->ranges = inst.ranges;
             found->mode = inst.mode;
@@ -3306,6 +3326,9 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
                 inst->minorVersion = wxAtoi(inst->version.substr(4)) + 1000;
             } else {
                 inst->minorVersion = wxAtoi(inst->version.substr(2));
+            }
+            if (inst->version.size() > 3 && (inst->version[3] == '-' || inst->version[3] == '.')) {
+                inst->patchVersion = wxAtoi(inst->version.substr(4));
             }
         }
         if (val.HasMember("channelRanges")) {
@@ -3619,6 +3642,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 fpp->model = res->platformModel;
                 fpp->majorVersion = res->majorVersion;
                 fpp->minorVersion = res->minorVersion;
+                fpp->patchVersion = res->patchVersion;
                 fpp->fullVersion = res->version;
                 fpp->ranges = res->ranges;
                 fpp->mode = res->mode;
@@ -3649,6 +3673,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 setIfEmpty(fpp->controllerVariant, res->variant);
 
                 setIfEmpty(fpp->minorVersion, res->minorVersion);
+                setIfEmpty(fpp->patchVersion, res->patchVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
                 TypeIDtoControllerType(res->typeId, fpp);
             }

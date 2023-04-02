@@ -86,6 +86,7 @@ public:
     std::string version;
     int minorVersion = 0;
     int majorVersion = 0;
+    int patchVersion = 0;
     int typeId = 0;
     std::string uuid;
     
