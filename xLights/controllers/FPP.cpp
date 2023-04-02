@@ -621,7 +621,7 @@ static wxString URLEncode(const wxString &value)
             ret.Append( cChar );
         } else {
             switch( cChar ) {
-                case wxT(' '):  ret.Append('+'); break;
+                case wxT(' '):  ret.Append("%20"); break;
                 case wxT('\n'): ret.Append("%0D%0A"); break;
                 case wxT('.'):  ret.Append('.'); break;
                 case wxT('\"'):  ret.Append("%22"); break;
