@@ -602,10 +602,10 @@ bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch) const{
     if (minorVersion < min) {
         return false;
     }
-    if (minorVersion >= min) {
+    if (minorVersion > min) {
         return true;
     }
-    return patch >= patchVersion;
+    return patchVersion >= patch;
 }
 
 static wxString URLEncode(const wxString &value)
@@ -746,7 +746,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
         fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
         usingJqUpload = false;
         usingMove = false;
-    } else if (IsVersionAtLeast(7, 0)) {
+    } else if (IsVersionAtLeast(6, 3, 3)) {
         fullUrl = ipAddress + "/api/file/uploads/" + URLEncode(filename);
         usingJqUpload = false;
     }
@@ -1059,7 +1059,7 @@ bool FPP::uploadOrCopyFile(const std::string &filename,
     if (IsDrive()) {
         return copyFile(filename, file, dir);
     }
-    if (IsVersionAtLeast(7, 0)) {
+    if (IsVersionAtLeast(6, 3, 2)) {
         return uploadFileV7(filename, file, dir);
     }
     return uploadFile(filename, file);
