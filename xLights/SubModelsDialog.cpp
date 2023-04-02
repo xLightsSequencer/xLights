@@ -1321,10 +1321,6 @@ void SubModelsDialog::Symmetrize()
     float clx = (nx + xx) / 2;
     float cly = (ny + xy) / 2;
     LogAndWrite(f, wxString::Format("Center by extremity: %f, %f", clx, cly));
-    if (false) {
-        cx = clx;
-        cy = cly;
-    }
 
     // And another
     std::sort(xsv.begin(), xsv.end());
@@ -1420,7 +1416,6 @@ void SubModelsDialog::Symmetrize()
 
     // Copy and expand data
     int origStrands = sm->strands.size();
-    size_t mlen = 0;
     for (unsigned i = 0; i < sm->strands.size(); ++i) {
         auto x = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
         for (auto n : x) {
