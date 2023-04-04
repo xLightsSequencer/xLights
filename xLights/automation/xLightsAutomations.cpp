@@ -844,10 +844,11 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         models = "[" + models + "]";
         return sendResponse(models, "models", 200, true);
-    } else if (cmd == "getControllerNames") {
+    } else if (cmd == "getControllers") {
         std::string controllers;
-        for (const auto& it : _outputManager.GetControllerNames()) {
-            controllers += "\"" + JSONSafe(it) + "\",";
+        for (const auto& it : _outputManager.GetControllers()) {
+            std::string json = it->GetJSONData() + ",";
+            controllers += json;
         }
         if (!controllers.empty()) {
             controllers.pop_back();//remove last comma
@@ -866,6 +867,16 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         ipAddresses = "[" + ipAddresses + "]";
         return sendResponse(ipAddresses, "controllers", 200, true);
+    } else if (cmd == "getControllerPortMap") {
+        auto ip = params["ip"];
+        auto controller = _outputManager.GetControllerWithIP(ip);
+        if (controller == nullptr) {
+            return "{\"res\":504,\"msg\":\"Controller not found.\"}";
+        }
+        
+        UDController cud(controller, &_outputManager, &AllModels, false);
+        auto json = cud.ExportAsJSON();
+        return sendResponse(json, "controllerportmap", 200, true);
     } else if (cmd == "getEffectIDs") {
         if (CurrentSeqXmlFile == nullptr) {
             return sendResponse("Sequence not open.", "msg", 503, false);
@@ -992,7 +1003,8 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         
         std::string response = "{\"msg\":\"Imported XLights Sequence.\",\"worked\":\"true\"}";
         return sendResponse(response, "", 200, true);
-       
+    } else if (cmd == "getShowFolder") {
+        return sendResponse(JSONSafe(showDirectory), "folder", 200, false);
     }
 
     return false;

@@ -2388,7 +2388,6 @@ Effect* VUMeterEffect::GetTimingEvent(const std::string& timingTrack, uint32_t m
         return nullptr;
 
     EffectLayer* el = t->GetEffectLayer(0);
-    bool effectPresent = false;
     for (int j = 0; j < el->GetEffectCount(); j++) {
         Effect* e = el->GetEffect(j);
         if (e->GetStartTimeMS() <= ms && e->GetEndTimeMS() > ms)
