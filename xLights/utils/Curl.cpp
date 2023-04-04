@@ -286,6 +286,7 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
         //#ifdef _DEBUG
         //            curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
@@ -358,6 +359,7 @@ std::string Curl::HTTPSPost(const std::string& url, const std::vector<Var>& vars
         curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
         std::string buffer = "";
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
 
@@ -409,7 +411,7 @@ std::string Curl::HTTPSGet(const std::string& s, const std::string& user, const 
         curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
         curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
-        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip");
+        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
 #ifdef __WXMSW__
         // Temporarily adding this in order to try to catch ongoing curl crashes
@@ -550,7 +552,7 @@ bool Curl::HTTPSGetFile(const std::string& s, const std::string& filename, const
             curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
             curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
-            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip,deflate");
+            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
 #ifdef __WXMSW__
             // Temporarily adding this in order to try to catch ongoing curl crashes
@@ -737,6 +739,7 @@ bool Curl::HTTPUploadFile(const std::string& url, const std::string& filename, c
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 5000);
         curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
+        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
 #ifdef __WXMSW__
         // Temporarily adding this in order to try to catch ongoing curl crashes

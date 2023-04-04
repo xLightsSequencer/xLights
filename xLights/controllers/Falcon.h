@@ -33,6 +33,7 @@ class Falcon : public BaseController
     std::string _modelString;
     int _modelnum = -1;
     wxJSONValue _v4status;
+    wxJSONValue _status;
     std::string _name;
     #pragma endregion
 
@@ -158,6 +159,7 @@ class Falcon : public BaseController
     bool IsF48() const { return _modelnum == 48; }
     bool IsF16() const { return _modelnum == 16; }
     bool IsF4() const { return _modelnum == 4; }
+    bool IsV4() const { return _versionnum == 4; }
     bool IsV3() const { return _versionnum == 3; }
     bool IsV2() const { return _versionnum == 2; }
 
@@ -188,6 +190,7 @@ public:
     #pragma endregion
 
     #pragma region Getters and Setters
+    std::string GetMode();
     wxJSONValue V4_GetStatus() const { return _v4status; }
     std::string V4_DecodeBoardConfiguration(int config) const;
     std::string V4_DecodeMode(int mode) const;
@@ -203,5 +206,6 @@ public:
     #pragma endregion
     
     int NumConfiguredStrings();
+    
 };
 

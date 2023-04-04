@@ -1638,6 +1638,20 @@ int Falcon::CountStrings(const wxXmlDocument& stringsDoc) const {
     return count;
 }
 int Falcon::NumConfiguredStrings() {
+    if (IsV4()) {
+        bool success = true;
+        bool done = false;
+        int batch = 0;
+        wxJSONValue p(wxJSONTYPE_OBJECT);
+        bool finalCall;
+        int outBatch;
+        bool reboot;
+        wxJSONValue outParams;
+        if (CallFalconV4API("Q", "SP", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
+            return outParams["A"].Size();
+        }
+        return -1;
+    }
     // get the current config before I start
     std::string strings = GetURL("/strings.xml");
     if (strings == "") {
@@ -2069,6 +2083,7 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) : BaseController
                 DecodeModelVersion(p, _modelnum, _versionnum);
                 _model = wxString::Format("F%dv%d", _modelnum, _versionnum).ToStdString();
             }
+            _status[node->GetName()] = node->GetNodeContent();
             node = node->GetNext();
         }
 
@@ -2168,6 +2183,15 @@ std::string Falcon::DecodeMode(int mode)
 #pragma endregion
 
 #pragma region Getters and Setters
+std::string Falcon::GetMode() {
+    if (_versionnum == 4) {
+        return V4_DecodeMode(_v4status["O"].AsInt());
+    }
+    return DecodeMode(wxAtoi(_status["m"].AsString()));
+}
+
+
+
 #ifndef DISCOVERYONLY
 bool Falcon::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
     SetInputUniverses(controller, parent);

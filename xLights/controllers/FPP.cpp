@@ -214,6 +214,7 @@ void FPP::setupCurl(int timeout) {
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, defaultConnectTimeout);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout);
     curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 }
 
 bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError) {
@@ -235,6 +236,7 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
 
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     logger_curl.info("URL: %s", fullUrl.c_str());
 
     if (username != "") {
@@ -316,6 +318,7 @@ int FPP::TransferToURL(const std::string& url, const wxMemoryBuffer &val, const 
     }
     logger_curl.info("URL: %s", fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
     if (username != "") {
         curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());

@@ -168,6 +168,7 @@ void Discovery::CurlData::SetupCurl() {
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 30000);
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     if (username != "") {
         curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
@@ -522,7 +523,10 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
             cd->platform = "SanDevices";
             return cd;
         }
-    } else if (htmlBuffer.find("pixelcontroller.com") != std::string::npos && htmlBuffer.find("Controller Information") != std::string::npos) {
+    } else if (htmlBuffer.find("pixelcontroller.com") != std::string::npos
+               || htmlBuffer.find("f16v2.js") != std::string::npos
+               || htmlBuffer.find("css/falcon.css") != std::string::npos
+               || htmlBuffer.find("js/cntrlr_") != std::string::npos) {
         DiscoveredData *cd = FindByIp(ip);
         ControllerEthernet *ce = cd ? cd->controller : nullptr;
         Falcon falc(ip, proxy);
@@ -555,20 +559,23 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
                     cd->SetVariant(a);
                 }
             }
-            //find the mode the controller is set to
-            int idx = htmlBuffer.find("name=\"m\" ");
-            if (idx > 0) {
-                idx = htmlBuffer.find("value=\"", idx);
-                if (idx > 0) {
-                    idx += 7;
-                    if (htmlBuffer[idx] == '0') {
-                        ce->GetOutput(0)->SetChannels(510);
-                        ce->SetProtocol(OUTPUT_E131);
-                        ce->SetAutoSize(true, nullptr);
-                        ce->SetAutoLayout(true);
-                        ce->SetFullxLightsControl(true);
-                        ce->GetOutput(0)->SetChannels(512);
-                    }
+            std::string mode = falc.GetMode();
+            if (("DDP" == mode || "Player" == mode || "Remote" == mode || "Master" == mode)
+                && ce->GetProtocol() != OUTPUT_DDP){
+                ce->SetProtocol(OUTPUT_DDP);
+                ce->SetAutoSize(true, nullptr);
+                ce->SetAutoLayout(true);
+                ce->SetFullxLightsControl(true);
+            } else if (mode.find("31") != std::string::npos && ce->GetProtocol() != OUTPUT_E131) {
+                //E1.31 or E131
+                ce->GetOutput(0)->SetChannels(510);
+                ce->SetProtocol(OUTPUT_E131);
+                ce->SetAutoSize(true, nullptr);
+                ce->SetAutoLayout(true);
+                ce->SetFullxLightsControl(true);
+                if (ce->GetOutput(0)->GetUniverse() == 0) {
+                    //universe 0 is not valid
+                    ce->GetOutput(0)->SetUniverse(1);
                 }
             }
             return cd;
