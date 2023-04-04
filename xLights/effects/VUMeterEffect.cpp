@@ -127,23 +127,23 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
          type == "Volume Bars" ||
          type == "Waveform" ||
          type == "On" ||
-        type == "Intensity Wave" ||
-            type == "Level Bar" ||
-            type == "Level Random Bar" ||
-            type == "Note Level Bar" ||
-            type == "Note Level Random Bar" ||
-            type == "Level Pulse" ||
-            type == "Level Jump" ||
-            type == "Level Jump 100" ||
-            type == "Level Pulse Color" ||
-        type == "Level Shape" ||
-        type == "Color On" ||
-        type == "Note On" ||
-        type == "Note Level Pulse" ||
-        type == "Timing Event Jump" ||
-            type == "Dominant Frequency Colour" ||
-            type == "Dominant Frequency Colour Gradient"
-            ))
+         type == "Intensity Wave" ||
+         type == "Level Bar" ||
+         type == "Level Random Bar" ||
+         type == "Note Level Bar" ||
+         type == "Note Level Random Bar" ||
+         type == "Level Pulse" ||
+         type == "Level Jump" ||
+         type == "Level Jump 100" ||
+         type == "Level Pulse Color" ||
+         type == "Level Shape" ||
+         type == "Color On" ||
+         type == "Note On" ||
+         type == "Note Level Pulse" ||
+         type == "Timing Event Jump" ||
+         type == "Dominant Frequency Colour" ||
+         type == "Dominant Frequency Colour Gradient"
+       ))
     {
         res.push_back(wxString::Format("    ERR: VU Meter effect '%s' is pointless if there is no music. Model '%s', Start %s", type, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }

@@ -73,9 +73,12 @@ void LiquidEffect::SetDefaultParameters()
     SetCheckBoxValue(tp->CheckBox_HoldColor, true);
     SetCheckBoxValue(tp->CheckBox_MixColors, false);
     SetChoiceValue(tp->Choice_ParticleType, "Elastic");
+
     SetSliderValue(tp->Slider_LifeTime, 10000);
     SetSliderValue(tp->Slider_Despeckle, 0);
     SetSliderValue(tp->Slider_WarmUpFrames, 0);
+    SetSliderValue(tp->Slider_Liquid_Gravity, 100);
+    SetSliderValue(tp->Slider_Liquid_GravityAngle, 0);
 
     SetSliderValue(tp->Slider_X1, 50);
     SetSliderValue(tp->Slider_Y1, 100);
@@ -114,6 +117,8 @@ void LiquidEffect::SetDefaultParameters()
     SetCheckBoxValue(tp->CheckBox_FlowMusic4, false);
 
     tp->BitmapButton_LifeTime->SetActive(false);
+    tp->BitmapButton_Liquid_Gravity->SetActive(false);
+    tp->BitmapButton_Liquid_GravityAngle->SetActive(false);
 
     tp->BitmapButton_X1->SetActive(false);
     tp->BitmapButton_Y1->SetActive(false);

@@ -167,6 +167,8 @@ void ShapeEffect::SetDefaultParameters() {
     sp->BitmapButton_Shape_ThicknessVC->SetActive(false);
     sp->BitmapButton_Shape_CentreXVC->SetActive(false);
     sp->BitmapButton_Shape_CentreYVC->SetActive(false);
+    sp->BitmapButton_Shapes_Velocity->SetActive(false);
+    sp->BitmapButton_Shapes_Direction->SetActive(false);
     sp->BitmapButton_Shape_LifetimeVC->SetActive(false);
     sp->BitmapButton_Shape_GrowthVC->SetActive(false);
     sp->BitmapButton_Shape_CountVC->SetActive(false);
@@ -185,6 +187,8 @@ void ShapeEffect::SetDefaultParameters() {
     SetSliderValue(sp->Slider_Shape_Lifetime, 5);
     SetSliderValue(sp->Slider_Shape_Sensitivity, 50);
     SetSliderValue(sp->Slider_Shape_Rotation, 0);
+    SetSliderValue(sp->Slider_Shapes_Velocity, 0);
+    SetSliderValue(sp->Slider_Shapes_Direction, 90);
 
     SetCheckBoxValue(sp->CheckBox_Shape_RandomLocation, true);
     SetCheckBoxValue(sp->CheckBox_Shape_FadeAway, true);
