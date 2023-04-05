@@ -60,6 +60,8 @@ void RippleEffect::SetDefaultParameters()
     rp->BitmapButton_Ripple_CyclesVC->SetActive(false);
     rp->BitmapButton_Ripple_ThicknessVC->SetActive(false);
     rp->BitmapButton_Ripple_RotationVC->SetActive(false);
+    rp->BitmapButton_Ripple_XCVC->SetActive(false);
+    rp->BitmapButton_Ripple_YCVC->SetActive(false);
 
     SetChoiceValue(rp->Choice_Ripple_Object_To_Draw, "Circle");
     SetChoiceValue(rp->Choice_Ripple_Movement, "Explode");
@@ -68,6 +70,8 @@ void RippleEffect::SetDefaultParameters()
     SetSliderValue(rp->Slider_Ripple_Cycles, 10);
     SetSliderValue(rp->Slider_Ripple_Points, 5);
     SetSliderValue(rp->Slider_Ripple_Rotation, 0);
+    SetSliderValue(rp->Slider_Ripple_XC, 0);
+    SetSliderValue(rp->Slider_Ripple_YC, 0);
 
     SetCheckBoxValue(rp->CheckBox_Ripple3D, false);
 }

@@ -403,6 +403,7 @@ void PicturesEffect::SetDefaultParameters() {
 
     SetSliderValue(pp->Slider_Pictures_Speed, 10);
     SetSliderValue(pp->Slider_Pictures_FR, 10);
+    SetSliderValue(pp->Slider1, 0);
     SetSliderValue(pp->Slider_PicturesXC, 0);
     SetSliderValue(pp->Slider_PicturesYC, 0);
     SetSliderValue(pp->Slider_PicturesEndXC, 0);
@@ -418,6 +419,7 @@ void PicturesEffect::SetDefaultParameters() {
     SetCheckBoxValue(pp->CheckBox_Pictures_Shimmer, false);
     SetCheckBoxValue(pp->CheckBox_LoopGIF, false);
     SetCheckBoxValue(pp->CheckBox_SuppressGIFBackground, true);
+    SetCheckBoxValue(pp->CheckBox_TransparentBlack, false);
 
     pp->FilePickerCtrl1->SetFileName(wxFileName());
 
