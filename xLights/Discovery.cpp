@@ -28,6 +28,12 @@
 #include "controllers/Falcon.h"
 #endif
 
+
+#if __has_include(<dns_sd.h>)
+// if the dns_sd include header is available, we can do the bonjour discovery
+#include <dns_sd.h>
+#endif
+
 bool xlPasswordEntryDialog::Create(wxWindow *parent,
             const wxString& message,
             const wxString& caption,
@@ -162,6 +168,7 @@ void Discovery::CurlData::SetupCurl() {
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 30000);
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     if (username != "") {
         curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
@@ -226,6 +233,106 @@ Discovery::DatagramData::~DatagramData() {
 }
 
 
+
+class BonjourData {
+public:
+    BonjourData(const std::string &n, std::function<void(const std::string &ipAddress)>& callback);
+    ~BonjourData();
+    
+    void handleEvents();
+    
+    std::string serviceName;
+    std::list<std::function<void(const std::string &ipAddress)>> callbacks;
+    void invokeCallbacks(const std::string &ip);
+
+#ifdef _DNS_SD_H
+    std::list<DNSServiceRef> bonjourRefs;
+#endif
+};
+
+#ifdef _DNS_SD_H
+void bonjourDNSCallBack(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode,
+    const char *hostname, const struct sockaddr *address, uint32_t ttl, void *context) {
+    
+    char buf[256];
+    inet_ntop(AF_INET, &(((struct sockaddr_in *)address)->sin_addr),
+                        buf, 256);
+    std::string ip = buf;
+    if (ip != "0.0.0.0") {
+        BonjourData *bj = (BonjourData*)context;
+        bj->invokeCallbacks(ip);
+    }
+}
+
+static void bonjourReplyCallBack(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode,
+    const char *fullname, const char *hosttarget, uint16_t port, uint16_t txtLen, const unsigned char *txtRecord, void *context) {
+    DNSServiceRef ipRef;
+    DNSServiceGetAddrInfo(&ipRef, 0, interfaceIndex, 0, hosttarget, bonjourDNSCallBack, context);
+    BonjourData *bj = (BonjourData*)context;
+    bj->bonjourRefs.push_back(ipRef);
+}
+static void BonjourBrowseCallBack(DNSServiceRef service, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode,
+                                  const char * name, const char * type, const char * domain, void * context) {
+    DNSServiceRef serviceRef;
+    DNSServiceResolve(&serviceRef, 0, interfaceIndex, name, type, domain, bonjourReplyCallBack, context);
+    BonjourData *bj = (BonjourData*)context;
+    bj->bonjourRefs.push_back(serviceRef);
+}
+#endif
+
+BonjourData::BonjourData(const std::string &n, std::function<void(const std::string &ipAddress)>& callback) : serviceName(n) {
+    callbacks.push_back(callback);
+#ifdef _DNS_SD_H
+    DNSServiceRef serviceRef;
+    DNSServiceErrorType err = DNSServiceBrowse(&serviceRef, 0, 0, serviceName.c_str(), nullptr,
+                                               &BonjourBrowseCallBack, this);
+    if (kDNSServiceErr_NoError == err)  {
+        bonjourRefs.push_back(serviceRef);
+    }
+#endif
+}
+BonjourData::~BonjourData() {
+#ifdef _DNS_SD_H
+    for (auto &ref : bonjourRefs) {
+        DNSServiceRefDeallocate(ref);
+    }
+    bonjourRefs.clear();
+#endif
+}
+void BonjourData::handleEvents() {
+#ifdef _DNS_SD_H
+    fd_set fds;
+    FD_ZERO( &fds );
+    
+    for (auto &ref : bonjourRefs) {
+        dnssd_sock_t sock = DNSServiceRefSockFD(ref);
+        FD_SET(sock, &fds );
+    }
+    
+    struct timeval tv;
+         
+    tv.tv_sec = 0;
+    tv.tv_usec = 5000;
+    if (select( FD_SETSIZE, &fds, 0, 0, &tv ) > 0 ) {
+        int x = 0;
+        for (auto &ref : bonjourRefs) {
+            dnssd_sock_t sock = DNSServiceRefSockFD(ref);
+            if (FD_ISSET( sock, &fds ) != 0) {
+                DNSServiceProcessResult(ref);
+            }
+            x++;
+        }
+    }
+#endif
+}
+void BonjourData::invokeCallbacks(const std::string &ip) {
+    for (auto &cb : callbacks) {
+        cb(ip);
+    }
+}
+
+
+
 Discovery::Discovery(wxWindow* frame, OutputManager* outputManager) : _frame(frame), _outputManager(outputManager) {
     curlMulti = curl_multi_init();
 }
@@ -246,6 +353,9 @@ Discovery::~Discovery() {
     }
     for (auto &dg : datagrams) {
         delete dg;
+    }
+    for (auto &bj : bonjours) {
+        delete bj;
     }
 }
 
@@ -290,6 +400,19 @@ void Discovery::AddBroadcast(int port, std::function<void(wxDatagramSocket* sock
     DatagramData *dg = new DatagramData(port, callback);
     datagrams.push_back(dg);
 }
+void Discovery::AddBonjour(const std::string &serviceName, std::function<void(const std::string &ipAddress)>&& callback) {
+    //if port already exists, just add the callback
+    for (auto &a : bonjours) {
+        if (serviceName == a->serviceName) {
+            a->callbacks.push_back(callback);
+            return;
+        }
+    }
+    BonjourData *dg = new BonjourData(serviceName, callback);
+    bonjours.push_back(dg);
+}
+
+
 void Discovery::SendBroadcastData(int port, uint8_t *buffer, int len) {
     wxIPV4address bcAddress;
     bcAddress.BroadcastAddress();
@@ -400,7 +523,10 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
             cd->platform = "SanDevices";
             return cd;
         }
-    } else if (htmlBuffer.find("pixelcontroller.com") != std::string::npos && htmlBuffer.find("Controller Information") != std::string::npos) {
+    } else if (htmlBuffer.find("pixelcontroller.com") != std::string::npos
+               || htmlBuffer.find("f16v2.js") != std::string::npos
+               || htmlBuffer.find("css/falcon.css") != std::string::npos
+               || htmlBuffer.find("js/cntrlr_") != std::string::npos) {
         DiscoveredData *cd = FindByIp(ip);
         ControllerEthernet *ce = cd ? cd->controller : nullptr;
         Falcon falc(ip, proxy);
@@ -433,20 +559,23 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
                     cd->SetVariant(a);
                 }
             }
-            //find the mode the controller is set to
-            int idx = htmlBuffer.find("name=\"m\" ");
-            if (idx > 0) {
-                idx = htmlBuffer.find("value=\"", idx);
-                if (idx > 0) {
-                    idx += 7;
-                    if (htmlBuffer[idx] == '0') {
-                        ce->GetOutput(0)->SetChannels(510);
-                        ce->SetProtocol(OUTPUT_E131);
-                        ce->SetAutoSize(true, nullptr);
-                        ce->SetAutoLayout(true);
-                        ce->SetFullxLightsControl(true);
-                        ce->GetOutput(0)->SetChannels(512);
-                    }
+            std::string mode = falc.GetMode();
+            if (("DDP" == mode || "Player" == mode || "Remote" == mode || "Master" == mode)
+                && ce->GetProtocol() != OUTPUT_DDP){
+                ce->SetProtocol(OUTPUT_DDP);
+                ce->SetAutoSize(true, nullptr);
+                ce->SetAutoLayout(true);
+                ce->SetFullxLightsControl(true);
+            } else if (mode.find("31") != std::string::npos && ce->GetProtocol() != OUTPUT_E131) {
+                //E1.31 or E131
+                ce->GetOutput(0)->SetChannels(510);
+                ce->SetProtocol(OUTPUT_E131);
+                ce->SetAutoSize(true, nullptr);
+                ce->SetAutoLayout(true);
+                ce->SetFullxLightsControl(true);
+                if (ce->GetOutput(0)->GetUniverse() == 0) {
+                    //universe 0 is not valid
+                    ce->GetOutput(0)->SetUniverse(1);
                 }
             }
             return cd;
@@ -520,6 +649,11 @@ void Discovery::Discover() {
                 }
             }
         }
+        //check for any bonjour results
+        for (auto &bj : bonjours) {
+            bj->handleEvents();
+        }
+        
         //now check the http/curls
         int start = running;
         curl_multi_perform(curlMulti, &running);

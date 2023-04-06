@@ -116,6 +116,7 @@ std::string BaseController::GetURL(const std::string& url, const std::string& us
         curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15);
         curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
+        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
         //curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1);
 
         std::string response_string;
@@ -165,6 +166,7 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
         auto u = std::string("http://" + baseIP + _baseUrl + url);
         logger_base.debug("Curl POST: %s", (const char*)u.c_str());
         curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
+        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
 #ifdef __WXMSW__
         curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, Curl::CurlDebug);

@@ -83,6 +83,8 @@ void RippleEffect::SetDefaultParameters()
     SetSliderValue(rp->Slider_Ripple_Cycles, 10);
     SetSliderValue(rp->Slider_Ripple_Points, 5);
     SetSliderValue(rp->Slider_Ripple_Rotation, 0);
+    SetSliderValue(rp->Slider_Ripple_XC, 0);
+    SetSliderValue(rp->Slider_Ripple_YC, 0);
 
     SetSliderValue(rp->Slider_Ripple_Scale, 100);
     SetSliderValue(rp->Slider_Ripple_Direction, 0);

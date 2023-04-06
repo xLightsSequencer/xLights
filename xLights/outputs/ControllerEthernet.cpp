@@ -791,7 +791,8 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                 if (m->IsSerialProtocol() && m->GetControllerPort() == lastSerialPort) {
                     // do nothing
                 } else if (m->IsSerialProtocol()) {
-                    if (GetControllerCaps()->NeedsFullUniverseForDMX()) {
+                    // This wass a leap before you look bug... triggered with missing .xcontroller file
+                    if (GetControllerCaps() == nullptr || GetControllerCaps()->NeedsFullUniverseForDMX()) {
                         (*o)->SetChannels(GetControllerCaps() == nullptr ? 510 : GetControllerCaps()->GetMaxSerialPortChannels()); // serial universes are always their max or 510 if we dont know the max
                         ++o;
                     } else {

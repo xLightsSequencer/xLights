@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.05 March 27, 2023
+   -- enh (dkulp)  MacOS - Use Bonjour to help discover FPP instances
+   -- enh (dkulp)  FPPConnect - better support for FPP7 instances
+   -- enh (merryoncherry) Ability to press ENTER to save a submodel name
+   -- enh (scott)  Add Copy States to State Dialog
+   -- enh (Pierre.Beukes) Confirmation prompt when cancelling the Submodels creation dialog
+   -- enh (keith)  Add a text filter to the VUMeter timing track triggers to selectively react to timing track effects
+   -- bug (dkulp)  Z-Sort models before display to better handle transparency
+   -- bug (keith)  MP4 export requires at least 16x16
 2023.04 March 11, 2023
    -- enh (keith)  Add "Build a Light Show" vendor to prop downloads
    -- enh (dkulp)  Add new K64D-B and K8-Pi controllers

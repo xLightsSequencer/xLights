@@ -51,3 +51,15 @@ jobs:
       with:
         name: xLights_x64_Installer
         path: 'build_scripts\msw\output\**'
+        
+    - name: Create prerelease
+      if: github.ref == 'refs/heads/master'
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: true
+        automatic_release_tag: "nightly"
+        title: "${{ steps.version.outputs.version }}"
+        files: |        
+          ./build_scripts/msw/output/*.exe
+

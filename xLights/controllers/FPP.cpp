@@ -70,7 +70,7 @@ using namespace TraceLog;
 static const std::string LEDPANELS("LED Panels");
 
 FPP::FPP(const std::string& ad) :
-    BaseController(ad, ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr), fppType(FPP_TYPE::FPP) {
+    BaseController(ad, ""), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr), fppType(FPP_TYPE::FPP) {
     wxIPV4address address;
     if (address.Hostname(ad)) {
         hostName = ad;
@@ -83,7 +83,7 @@ FPP::FPP(const std::string& ad) :
 
 
 FPP::FPP(const std::string& ip, const std::string& proxy, const std::string& model) :
-    BaseController(ip, proxy), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), fppType(FPP_TYPE::FPP) {
+    BaseController(ip, proxy), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), fppType(FPP_TYPE::FPP) {
     ipAddress = ip;
     pixelControllerType = model;
     wxIPV4address address;
@@ -96,7 +96,7 @@ FPP::FPP(const std::string& ip, const std::string& proxy, const std::string& mod
 }
 
 FPP::FPP(const FPP &c)
-    : majorVersion(c.majorVersion), minorVersion(c.minorVersion), outputFile(nullptr), parent(nullptr), curl(nullptr),
+    : majorVersion(c.majorVersion), minorVersion(c.minorVersion), patchVersion(c.patchVersion), outputFile(nullptr), parent(nullptr), curl(nullptr),
     hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
     model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password), fppType(c.fppType) {
 
@@ -214,6 +214,7 @@ void FPP::setupCurl(int timeout) {
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, defaultConnectTimeout);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout);
     curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 }
 
 bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError) {
@@ -235,6 +236,7 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
 
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     logger_curl.info("URL: %s", fullUrl.c_str());
 
     if (username != "") {
@@ -292,8 +294,14 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
     }
     return retValue;
 }
-
 int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType) {
+    return TransferToURL(url, val, contentType, true);
+}
+int FPP::PutToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType) {
+    return TransferToURL(url, val, contentType, false);
+}
+int FPP::TransferToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType, bool isPost) {
+
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
     setupCurl();
@@ -310,6 +318,7 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
     }
     logger_curl.info("URL: %s", fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
     if (username != "") {
         curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
@@ -317,15 +326,16 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
         curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
     }
 
-    logger_curl.info("CONTENTTYPE: %s", contentType.c_str());
-    struct curl_slist *chunk = nullptr;
-    chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
-    std::string ct = "Content-Type: " + contentType;
-    chunk = curl_slist_append(chunk, ct.c_str());
-
     FPPWriteData data;
     data.data = (uint8_t*)val.GetData();
     data.dataSize = val.GetDataLen();
+
+    logger_curl.info("CONTENTTYPE: %s", contentType.c_str());
+    struct curl_slist *chunk = nullptr;
+    std::string ct = "Content-Type: " + contentType;
+    chunk = curl_slist_append(chunk, ct.c_str());
+    std::string cl = "Content-Length: " + std::to_string(data.dataSize);
+    chunk = curl_slist_append(chunk, cl.c_str());
 
     if (logger_curl.isInfoEnabled()) {
         char temp[8192];
@@ -335,10 +345,15 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
         logger_curl.info("BODY END -----------");
     }
 
-    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    if (isPost) {
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    } else {
+        curl_easy_setopt(curl, CURLOPT_PUT, 1L);
+    }
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(curl, CURLOPT_READDATA, &data);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)val.GetDataLen());
     int i = curl_easy_perform(curl);
     if (i != CURLE_OK) {
         //simple retry
@@ -397,7 +412,7 @@ bool FPP::AuthenticateAndUpdateVersions() {
         if (GetURLAsString("/config.php", conf)) {
             parseConfig(conf);
             wxJSONValue val;
-            if (GetURLAsJSON("/fppjson.php?command=getSysInfo&simple", val)) {
+            if (GetURLAsJSON("/api/system/info", val)) {
                 sysInfoLoaded = true;
                 return fppType == FPP_TYPE::FPP && parseSysInfo(val);
             }
@@ -421,6 +436,9 @@ bool FPP::parseSysInfo(wxJSONValue& val) {
         } else {
             minorVersion = wxAtoi(fullVersion.substr(2));
         }
+        if (fullVersion.size() > 3 && (fullVersion[3] == '-' || fullVersion[3] == '.')) {
+            patchVersion = wxAtoi(fullVersion.substr(4));
+        }
     }
     if (val.HasMember("channelRanges")) {
         std::string r = val["channelRanges"].AsString().ToStdString();
@@ -439,7 +457,7 @@ bool FPP::parseSysInfo(wxJSONValue& val) {
 
 
 void FPP::LoadPlaylists(std::list<std::string> &playlists) {
-    if (IsVersionAtLeast(2, 6) && !IsDrive()) {
+    if (!IsDrive()) {
         //ip address, load playlists
         wxJSONValue val;
         if (GetURLAsJSON("/api/playlists", val)) {
@@ -453,7 +471,7 @@ void FPP::LoadPlaylists(std::list<std::string> &playlists) {
 }
 
 bool FPP::IsMultiSyncEnabled(){
-    if (IsVersionAtLeast(5, 0) && !IsDrive() && mode == "player") {
+    if (!IsDrive() && mode == "player") {
         wxJSONValue val;
         if (GetURLAsJSON("/api/settings/MultiSyncEnabled", val)) {
             if (val.HasMember("value")) {
@@ -466,7 +484,7 @@ bool FPP::IsMultiSyncEnabled(){
 }
 
 bool FPP::IsDDPInputEnabled() {
-    if (IsVersionAtLeast(5, 0) && !IsDrive()) {
+    if (!IsDrive()) {
         wxJSONValue origRoot;
         if (GetURLAsJSON("/api/configfile/ci-universes.json", origRoot, false)) {
             if (origRoot.HasMember("channelInputs") && origRoot.ItemAt("channelInputs").HasMember(0)
@@ -485,7 +503,7 @@ void FPP::probePixelControllerType() {
         file = "co-bbbStrings";
     }
     wxJSONValue val;
-    if (GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=" + file, val)) {
+    if (GetURLAsJSON("/api/channel/output/" + file, val)) {
         parseControllerType(val);
     }
 }
@@ -569,7 +587,7 @@ bool FPP::IsDrive() {
     return ipAddress.find("/") != std::string::npos || ipAddress.find("\\") != std::string::npos;
 }
 
-bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min) const{
+bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch) const{
     static bool hasWarned = false;
     if (majorVersion < 6 && !hasWarned) {
         hasWarned = true;
@@ -584,7 +602,13 @@ bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min) const{
     if (majorVersion > maj) {
         return true;
     }
-    return minorVersion >= min;
+    if (minorVersion < min) {
+        return false;
+    }
+    if (minorVersion > min) {
+        return true;
+    }
+    return patchVersion >= patch;
 }
 
 static wxString URLEncode(const wxString &value)
@@ -600,7 +624,7 @@ static wxString URLEncode(const wxString &value)
             ret.Append( cChar );
         } else {
             switch( cChar ) {
-                case wxT(' '):  ret.Append('+'); break;
+                case wxT(' '):  ret.Append("%20"); break;
                 case wxT('\n'): ret.Append("%0D%0A"); break;
                 case wxT('.'):  ret.Append('.'); break;
                 case wxT('\"'):  ret.Append("%22"); break;
@@ -679,7 +703,11 @@ int FPP::PostToURL(const std::string& url, const std::string &val, const std::st
     addString(memBuffPost, val);
     return PostToURL(url, memBuffPost, contentType);
 }
-
+int FPP::PutToURL(const std::string& url, const std::string &val, const std::string &contentType) {
+    wxMemoryBuffer memBuffPost;
+    addString(memBuffPost, val);
+    return PutToURL(url, memBuffPost, contentType);
+}
 bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -721,7 +749,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
         fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
         usingJqUpload = false;
         usingMove = false;
-    } else if (IsVersionAtLeast(7, 0)) {
+    } else if (IsVersionAtLeast(6, 3, 3)) {
         fullUrl = ipAddress + "/api/file/uploads/" + URLEncode(filename);
         usingJqUpload = false;
     }
@@ -806,8 +834,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         if (response_code == 200) {
             if (usingMove) {
-                std::string val;
-                if (!GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename + ext), val)) {
+                if (!callMoveFile(filename + ext)) {
                     logger_base.warn("Error trying to rename file.");
                 } else {
                     logger_base.debug("Renaming done.");
@@ -828,6 +855,14 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     return data.cancelled | cancelled;
 }
 
+bool FPP::callMoveFile(const std::string &filename) {
+    std::string val;
+    if (IsVersionAtLeast(6, 3, 2)) {
+        return GetURLAsString("/api/file/move/" + URLEncode(filename), val);
+    }
+    //api/file/move is broken on older versions of FPP (doesn't decode filename properly), use fppxml
+    return GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename), val);
+}
 
 struct V7ProgressStruct {
     wxProgressDialog *progress;
@@ -956,8 +991,7 @@ bool FPP::uploadFileV7(const std::string &filename,
         }
     }
     if (callMove) {
-        std::string val;
-        if (!GetURLAsString("/api/file/move/" + URLEncode(filename), val)) {
+        if (!callMoveFile(filename)) {
             messages.push_back("ERROR Uploading file: " + filename + "     Could not move file to proper directory.");
         }
     }
@@ -1028,7 +1062,7 @@ bool FPP::uploadOrCopyFile(const std::string &filename,
     if (IsDrive()) {
         return copyFile(filename, file, dir);
     }
-    if (IsVersionAtLeast(7, 0)) {
+    if (IsVersionAtLeast(6, 3, 2)) {
         return uploadFileV7(filename, file, dir);
     }
     return uploadFile(filename, file);
@@ -1287,8 +1321,8 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     }
     outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype, clevel);
     outputFile->initializeFromFSEQ(file);
-    if (IsVersionAtLeast(5, 0)) {
-        outputFile->enableMinorVersionFeatures(1);
+    if (IsVersionAtLeast(7, 0)) {
+        outputFile->enableMinorVersionFeatures(2);
     }
     if (type >= 2 && !newRanges.empty()) {
         for (auto &a : newRanges) {
@@ -1347,10 +1381,10 @@ static bool PlaylistContainsEntry(wxJSONValue &pl, const std::string &media, con
 bool FPP::UploadPlaylist(const std::string &name) {
     wxJSONValue origJson;
     std::string fn;
-    if (IsDrive() && IsVersionAtLeast(2, 0)) {
+    if (IsDrive()) {
         fn = (ipAddress + wxFileName::GetPathSeparator() + "playlists" + wxFileName::GetPathSeparator() + name + ".json");
         GetPathAsJSON(fn, origJson);
-    } else if (IsVersionAtLeast(2, 6)) {
+    } else {
         GetURLAsJSON("/api/playlist/" + URLEncode(name), origJson, false);
     }
 
@@ -1390,7 +1424,7 @@ bool FPP::UploadModels(const wxJSONValue &models) {
     if (IsDrive()) {
         std::string fn = (ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "model-overlays.json");
         WriteJSONToPath(fn, models);
-    } else if (IsVersionAtLeast(3, 0)) {
+    } else {
         PostJSONToURL("/api/models", models);
     }
     return false;
@@ -1402,7 +1436,7 @@ bool FPP::UploadDisplayMap(const std::string &displayMap) {
         wxFile tf(fn.GetFullPath());
         tf.Write(displayMap);
         tf.Close();
-    } else if (IsVersionAtLeast(3, 6)) {
+    } else {
         PostToURL("/api/configfile/virtualdisplaymap", displayMap);
     }
     return false;
@@ -1412,10 +1446,11 @@ bool FPP::UploadUDPOut(const wxJSONValue &udp) {
     if (IsDrive()) {
         std::string fn = (ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-universes.json");
         WriteJSONToPath(fn, udp);
-    } else if (IsVersionAtLeast(2, 4)) {
+    } else {
         wxJSONValue orig;
         wxJSONValue newudp = udp;
-        if (GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=universeOutputs", orig)) {
+        
+        if (GetURLAsJSON("/api/channel/output/universeOutputs", orig)) {
             if (orig.HasMember("channelOutputs")) {
                 for (int x = 0; x < orig["channelOutputs"].Size(); x++) {
                     if (orig["channelOutputs"][x]["type"].AsString() == "universes" && orig["channelOutputs"][x].HasMember("interface")) {
@@ -1424,7 +1459,7 @@ bool FPP::UploadUDPOut(const wxJSONValue &udp) {
                 }
             }
         }
-        PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=universeOutputs", newudp);
+        PostJSONToURL("/api/channel/output/universeOutputs", newudp);
     }
     return false;
 }
@@ -1496,38 +1531,36 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
         models.Append(jm);
     }
 
-    if (IsVersionAtLeast(5, 0)) {//API was probably added before 5....
-        wxJSONValue ogModelJSON;
-        if (GetURLAsJSON("/api/models", ogModelJSON)) {
-            auto ogModels = ogModelJSON.AsArray();
-            for (size_t i = 0; i < ogModels->Count(); i++) {
-                if (!ogModels->Item(i).HasMember("Name") ) {
-                    continue;
-                }
-                if (!ogModels->Item(i)["Name"].IsString()) {
-                    continue;
-                }
-                auto ogName = ogModels->Item(i)["Name"].AsString();
-
-                if (ogModels->Item(i).HasMember("autoCreated") && ogModels->Item(i)["autoCreated"].IsBool()) {
-                    auto wasAutoCreated = ogModels->Item(i)["autoCreated"].AsBool();
-                    if (wasAutoCreated) {
-                        continue;
-                    }
-                }
-
-                if (ogModels->Item(i).HasMember("StartChannel") && ogModels->Item(i)["StartChannel"].IsInt32()) {
-                    auto ogStartChan = ogModels->Item(i)["StartChannel"].AsInt32();
-                    if (ogStartChan < startChan || ogStartChan > endChannel ) {
-                        continue;
-                    }
-                }
-                
-                if (std::find(names.cbegin(), names.cend(), ogName) != names.end()) { // only add if name doesn't exist
-                    continue;
-                }
-                models.Append(ogModels->Item(i));
+    wxJSONValue ogModelJSON;
+    if (GetURLAsJSON("/api/models", ogModelJSON)) {
+        auto ogModels = ogModelJSON.AsArray();
+        for (size_t i = 0; i < ogModels->Count(); i++) {
+            if (!ogModels->Item(i).HasMember("Name") ) {
+                continue;
             }
+            if (!ogModels->Item(i)["Name"].IsString()) {
+                continue;
+            }
+            auto ogName = ogModels->Item(i)["Name"].AsString();
+
+            if (ogModels->Item(i).HasMember("autoCreated") && ogModels->Item(i)["autoCreated"].IsBool()) {
+                auto wasAutoCreated = ogModels->Item(i)["autoCreated"].AsBool();
+                if (wasAutoCreated) {
+                    continue;
+                }
+            }
+
+            if (ogModels->Item(i).HasMember("StartChannel") && ogModels->Item(i)["StartChannel"].IsInt32()) {
+                auto ogStartChan = ogModels->Item(i)["StartChannel"].AsInt32();
+                if (ogStartChan < startChan || ogStartChan > endChannel ) {
+                    continue;
+                }
+            }
+            
+            if (std::find(names.cbegin(), names.cend(), ogName) != names.end()) { // only add if name doesn't exist
+                continue;
+            }
+            models.Append(ogModels->Item(i));
         }
     }
 
@@ -1963,8 +1996,7 @@ bool FPP::SetRestartFlag() {
     std::string val;
     if (!IsDrive()) {
         restartNeeded = true;
-        std::string m = majorVersion >= 4 ? "2" : "1";
-        return GetURLAsString("/fppjson.php?command=setSetting&key=restartFlag&value=" + m, val);
+        return PutToURL("/api/settings/restartFlag", "2", "text/plain");
     }
     return false;
 }
@@ -1972,27 +2004,19 @@ bool FPP::SetRestartFlag() {
 bool FPP::Restart(const std::string &mode, bool ifNeeded) {
     std::string val;
     if (mode != "" && mode != curMode) {
-        std::string m = "1"; //bridge;
-        if (mode == "standalone") {
-            m = "2";
-        } else if (mode == "master") {
-            m = "6";
-        } else if (mode == "remote") {
-            m = "8";
+        std::string m = "player"; //bridge;
+        if (mode == "remote") {
+            m = "remote";
         }
-        GetURLAsString("/fppxml.php?command=setFPPDmode&mode=" + m, val);
+        PutToURL("/api/settings/fppMode", m);
         SetRestartFlag();
         curMode = mode;
     }
     if (ifNeeded && !restartNeeded) {
         return false;
     }
-    if (majorVersion >= 5) {
-        GetURLAsString("/fppxml.php?command=restartFPPD&quick=1", val);
-    } else {
-        GetURLAsString("/fppxml.php?command=restartFPPD", val);
-    }
-    GetURLAsString("/fppjson.php?command=setSetting&key=restartFlag&value=0", val);
+    GetURLAsString("/api/system/fppd/restart?quick=1", val);
+    PutToURL("/api/settings/restartFlag", "0", "text/plain");
     restartNeeded = false;
     return false;
 }
@@ -2006,7 +2030,7 @@ void FPP::UpdateChannelRanges()
     wxJSONValue jval;
     int count = 0;
     while (count < 20) {
-        if (GetURLAsJSON("/fppjson.php?command=getSysInfo&simple", jval, false)) {
+        if (GetURLAsJSON("/api/system/info", jval, false)) {
             if (jval.HasMember("channelRanges")) {
                 std::string r = jval["channelRanges"].AsString().ToStdString();
                 if (r.size() > 0) {
@@ -2037,8 +2061,7 @@ void FPP::UpdateChannelRanges()
 
 void FPP::SetDescription(const std::string &st) {
     if (!IsDrive()) {
-        std::string val;
-        GetURLAsString("/fppjson.php?command=setSetting&key=HostDescription&value=" + URLEncode(st), val);
+        PutToURL("/api/settings/HostDescription", st, "text/plain");
     }
 }
 
@@ -2062,9 +2085,8 @@ bool FPP::SetInputUniversesBridge(Controller* controller) {
         if (IsDrive()) {
             std::string fn = (c->GetResolvedIP() + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "ci-universes.json");
             WriteJSONToPath(fn, udp);
-        }
-        else if (IsVersionAtLeast(2, 4)) {
-            PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=universeInputs", udp);
+        } else {
+            PostJSONToURL("/api/channel/output/universeInputs", udp);
         }
     }
 
@@ -2195,7 +2217,7 @@ bool FPP::UploadPanelOutputs(ModelManager* allmodels,
         if (IsDrive()) {
             GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "channeloutputs.json", origJson);
         } else {
-            GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON", origJson, false);
+            GetURLAsJSON("/api/channel/output/channelOutputsJSON", origJson, false);
         }
     }
     if (startChannel >= 0) {
@@ -2225,7 +2247,7 @@ bool FPP::UploadPanelOutputs(ModelManager* allmodels,
         if (IsDrive()) {
             WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "channeloutputs.json", origJson);
         } else {
-            PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=channelOutputsJSON", origJson);
+            PostJSONToURL("/api/channel/output/channelOutputsJSON", origJson);
             SetRestartFlag();
         }
     }
@@ -2249,7 +2271,7 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
         if (IsDrive()) {
             GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", origJson);
         } else {
-            GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=co-other", origJson, false);
+            GetURLAsJSON("/api/channel/output/co-other", origJson, false);
         }
         if (fullcontrol) {
             for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
@@ -2358,7 +2380,7 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
         if (IsDrive()) {
             WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", origJson);
         } else {
-            PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=co-other", origJson);
+            PostJSONToURL("/api/channel/output/co-other", origJson);
             SetRestartFlag();
         }
     }
@@ -2518,7 +2540,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     if (IsDrive()) {
         GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + fppFileName +".json", origJson);
     } else {
-        GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=" + fppFileName, origJson, false);
+        GetURLAsJSON("/api/channel/output/" + fppFileName, origJson, false);
     }
     logger_base.debug("Original JSON");
     DumpJSON(origJson);
@@ -2910,7 +2932,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         if (IsDrive()) {
             WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + fppFileName +".json", root);
         } else {
-            PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=" + fppFileName, root);
+            PostJSONToURL("/api/channel/output/" + fppFileName, root);
             SetRestartFlag();
         }
     } else {
@@ -3073,6 +3095,9 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         inst.ip = address;
         if (!system["version"].IsNull()) {
             inst.version = system["version"].AsString();
+            if (inst.version.size() > 3 && (inst.version[3] == '-' || inst.version[3] == '.')) {
+                inst.patchVersion = wxAtoi(inst.version.substr(4));
+            }
         }
         if (system["minorVersion"].IsInt()) {
             inst.minorVersion = system["minorVersion"].AsInt();
@@ -3104,6 +3129,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 found->version = inst.version;
                 found->majorVersion = inst.majorVersion;
                 found->minorVersion = inst.minorVersion;
+                found->patchVersion = inst.patchVersion;
                 found->description = inst.description;
                 found->ranges = inst.ranges;
                 found->mode = inst.mode;
@@ -3139,6 +3165,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
             found->version = inst.version;
             found->majorVersion = inst.majorVersion;
             found->minorVersion = inst.minorVersion;
+            found->patchVersion = inst.patchVersion;
             found->description = inst.description;
             found->ranges = inst.ranges;
             found->mode = inst.mode;
@@ -3148,14 +3175,14 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
             std::string ipAddr = inst.ip;
             CreateController(discovery, found);
             if (found->typeId > 0 && found->typeId < 0x80) {
-                discovery.AddCurl(ipAddr, "/fppjson.php?command=getFPPSystems", [&discovery, found] (int rc, const std::string &buffer, const std::string &err) {
+                discovery.AddCurl(ipAddr, "/api/fppd/multiSyncSystems", [&discovery, found] (int rc, const std::string &buffer, const std::string &err) {
                     if (rc == 200) {
                         found->extraData["httpConnected"] = true;
                         ProcessFPPSystems(discovery, buffer);
                     }
                     return true;
                 });
-                discovery.AddCurl(ipAddr, "/fppjson.php?command=getSysInfo&simple", [&discovery, ipAddr, found] (int rc, const std::string &buffer, const std::string &err) {
+                discovery.AddCurl(ipAddr, "/api/system/info", [&discovery, ipAddr, found] (int rc, const std::string &buffer, const std::string &err) {
                     if (rc == 200) {
                         ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
                     }
@@ -3199,7 +3226,7 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
                 std::string i = ip;
                 inst->extraData["httpConnected"] = true;
 
-                discovery.AddCurl(ip, "/proxy/" + proxy + "//fppjson.php?command=getSysInfo&simple", [&discovery, p, i](int rc, const std::string &buffer, const std::string &err) {
+                discovery.AddCurl(ip, "/proxy/" + proxy + "/api/system/info", [&discovery, p, i](int rc, const std::string &buffer, const std::string &err) {
                     ProcessFPPSysinfo(discovery, p, i, buffer);
                     return true;
                 });
@@ -3303,6 +3330,9 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
             } else {
                 inst->minorVersion = wxAtoi(inst->version.substr(2));
             }
+            if (inst->version.size() > 3 && (inst->version[3] == '-' || inst->version[3] == '.')) {
+                inst->patchVersion = wxAtoi(inst->version.substr(4));
+            }
         }
         if (val.HasMember("channelRanges")) {
             std::string r = val["channelRanges"].AsString().ToStdString();
@@ -3328,21 +3358,21 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
             baseIp = inst->proxy;
             baseUrl = "/proxy/" + inst->ip;
         }
-        discovery.AddCurl(baseIp, baseUrl + "/fppjson.php?command=getChannelOutputs&file=" + file,
+        discovery.AddCurl(baseIp, baseUrl + "/api/channel/output/" + file,
                           [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
             if (rc == 200) {
                 ProcessFPPChannelOutput(discovery, host, buffer);
             }
             return true;
         });
-        discovery.AddCurl(baseIp, baseUrl + "/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON",
+        discovery.AddCurl(baseIp, baseUrl + "/api/channel/output/channelOutputsJSON",
                           [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
             if (rc == 200) {
                 ProcessFPPChannelOutput(discovery, host, buffer);
             }
             return true;
         });
-        discovery.AddCurl(baseIp, baseUrl + "/fppjson.php?command=getChannelOutputs&file=co-other",
+        discovery.AddCurl(baseIp, baseUrl + "/api/channel/output/co-other",
                           [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
             if (rc == 200) {
                 ProcessFPPChannelOutput(discovery, host, buffer);
@@ -3384,13 +3414,13 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
 
                 if (buffer[9] < 0x80) {
                     std::string ipAddr = ip;
-                    discovery.AddCurl(ipAddr, "/fppjson.php?command=getFPPSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
+                    discovery.AddCurl(ipAddr, "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
                         if (rc == 200) {
                             ProcessFPPSystems(discovery, buffer);
                         }
                         return true;
                     });
-                    discovery.AddCurl(ipAddr, "/fppjson.php?command=getSysInfo&simple", [&discovery, ipAddr] (int rc, const std::string &buffer, const std::string &err) {
+                    discovery.AddCurl(ipAddr, "/api/system/info", [&discovery, ipAddr] (int rc, const std::string &buffer, const std::string &err) {
                         if (rc == 200) {
                             ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
                         }
@@ -3497,13 +3527,13 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
     strcpy((char *)&buffer[84], ver.c_str());
 
     for (const auto &a : addresses) {
-        discovery.AddCurl(a, "/fppjson.php?command=getFPPSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
+        discovery.AddCurl(a, "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
             if (rc == 200) {
                 ProcessFPPSystems(discovery, buffer);
             }
             return true;
         });
-        discovery.AddCurl(a, "/fppjson.php?command=getSysInfo&simple", [&discovery, a](int rc, const std::string &buffer, const std::string &err) {
+        discovery.AddCurl(a, "/api/system/info", [&discovery, a](int rc, const std::string &buffer, const std::string &err) {
             ProcessFPPSysinfo(discovery, a, "", buffer);
             return true;
         });
@@ -3530,6 +3560,18 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
         // go ahead and send a unicast ping as well
         discovery.SendData(FPP_CTRL_PORT, a, buffer, 207);
     }
+    discovery.AddBonjour("_fppd._udp", [&](const std::string &ip) {
+        discovery.AddCurl(ip, "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
+            if (rc == 200) {
+                ProcessFPPSystems(discovery, buffer);
+            }
+            return true;
+        });
+        discovery.AddCurl(ip, "/api/system/info", [&discovery, ip](int rc, const std::string &buffer, const std::string &err) {
+            ProcessFPPSysinfo(discovery, ip, "", buffer);
+            return true;
+        });
+    });
 }
 
 bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
@@ -3603,6 +3645,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 fpp->model = res->platformModel;
                 fpp->majorVersion = res->majorVersion;
                 fpp->minorVersion = res->minorVersion;
+                fpp->patchVersion = res->patchVersion;
                 fpp->fullVersion = res->version;
                 fpp->ranges = res->ranges;
                 fpp->mode = res->mode;
@@ -3633,6 +3676,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 setIfEmpty(fpp->controllerVariant, res->variant);
 
                 setIfEmpty(fpp->minorVersion, res->minorVersion);
+                setIfEmpty(fpp->patchVersion, res->patchVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
                 TypeIDtoControllerType(res->typeId, fpp);
             }

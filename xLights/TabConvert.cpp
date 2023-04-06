@@ -816,6 +816,19 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         width++;
     if (height % 2 > 0)
         height++;
+
+    const char* filename = filenames.c_str();
+    if (!EndsWith(filename, ".avi")) {
+        // minimin width/height is 16 otherwise the encoder failes ... so scale it if necessary
+        if (width < 16 || height < 16) {
+            float scale = std::max(16.0 / width, 16.0 / height);
+            if (scale > 1.0) {
+                width *= scale;
+                height *= scale;
+            }
+        }
+    }
+
     logger_base.debug("   Video dimensions %dx%d => %dx%d.", origwidth, origheight, width, height);
     logger_base.debug("   Video frames %ld.", endFrame - startFrame);
 
@@ -832,7 +845,6 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
 #if LIBAVFORMAT_VERSION_MAJOR < 58
     av_register_all();
 #endif
-    const char* filename = filenames.c_str();
 
     // AVCodecID vc = !EndsWith(filename, ".avi") ? (compressed ? AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_HEVC) : AVCodecID::AV_CODEC_ID_RAWVIDEO;
     AVCodecID vc = !EndsWith(filename, ".avi") ? AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_RAWVIDEO;

@@ -42,6 +42,7 @@ class FPP : public BaseController
     std::string model;
     uint32_t majorVersion = 0;
     uint32_t minorVersion = 0;
+    uint32_t patchVersion = 0;
     std::string ranges;
     std::string mode;
     std::string pixelControllerType;
@@ -75,7 +76,7 @@ class FPP : public BaseController
     bool IsMultiSyncEnabled();
     bool IsDDPInputEnabled();
 
-    bool IsVersionAtLeast(uint32_t maj, uint32_t min) const;
+    bool IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch = 0) const;
     bool IsDrive();
 
 #ifndef DISCOVERYONLY
@@ -156,6 +157,10 @@ private:
     int PostJSONToURLAsFormData(const std::string& url, const std::string &extra, const wxJSONValue& val);
     int PostToURL(const std::string& url, const std::string &val, const std::string &contentType = "application/octet-stream");
     int PostToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType = "application/octet-stream");
+    int PutToURL(const std::string& url, const std::string &val, const std::string &contentType = "application/octet-stream");
+    int PutToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType = "application/octet-stream");
+    int TransferToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType, bool isPost);
+
     bool uploadOrCopyFile(const std::string &filename,
                           const std::string &file,
                           const std::string &dir);
@@ -167,6 +172,7 @@ private:
     bool copyFile(const std::string &filename,
                   const std::string &file,
                   const std::string &dir);
+    bool callMoveFile(const std::string &filename);
 
     bool parseSysInfo(wxJSONValue& v);
     void parseControllerType(wxJSONValue& v);

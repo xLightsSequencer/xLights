@@ -175,6 +175,9 @@ void VideoEffect::SetDefaultParameters()
     vp->BitmapButton_Video_Speed->SetActive(false);
     SetCheckBoxValue(vp->CheckBox_Video_AspectRatio, false);
     SetChoiceValue(vp->Choice_Video_DurationTreatment, "Normal");
+
+    SetCheckBoxValue(vp->CheckBox_TransparentBlack, false);
+    SetSliderValue(vp->Slider1, 0);
 }
 
 std::list<std::string> VideoEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
