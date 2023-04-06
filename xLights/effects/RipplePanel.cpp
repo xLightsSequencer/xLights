@@ -124,7 +124,7 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	wxStaticText* StaticText_Outline;
 	wxStaticText* StaticText_SVG;
 
-	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(536,607), wxTAB_TRAVERSAL, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer57 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer57->AddGrowableCol(1);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT_Ripple_Draw_Style, _("Draw Style"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Draw_Style"));
@@ -372,8 +372,8 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer57);
-	SetSizer(FlexGridSizer57);
-	Layout();
+	FlexGridSizer57->Fit(this);
+	FlexGridSizer57->SetSizeHints(this);
 
 	Connect(ID_CHOICE_Ripple_Object_To_Draw,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&RipplePanel::OnChoice_Ripple_Object_To_DrawSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_Ripple_Movement,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
