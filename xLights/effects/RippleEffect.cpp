@@ -1716,13 +1716,16 @@ bool RippleEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& Settin
     return rc;
 }
 
+// This section is not doing what I want
 bool RippleEffect::needToAdjustSettings(const std::string& version)
 {
-    return IsVersionOlder("2023.06", version) || RenderableEffect::needToAdjustSettings(version);
+    //return IsVersionOlder("2023.06", version) || RenderableEffect::needToAdjustSettings(version);
+    return RenderableEffect::needToAdjustSettings(version);
 }
 
 void RippleEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
 {
+    /*
     SettingsMap& settings = effect->GetSettings();
 
     wxString rr = settings.Get("E_VALUECURVE_Ripple_Rotation", "");
@@ -1735,6 +1738,7 @@ void RippleEffect::adjustSettings(const std::string& version, Effect* effect, bo
         vc.UnconvertChangedScale(0, 360);
         settings["E_VALUECURVE_Ripple_Rotation"] = vc.Serialise();
     }
+    */
 
     // also give the base class a chance to adjust any settings
     if (RenderableEffect::needToAdjustSettings(version)) {

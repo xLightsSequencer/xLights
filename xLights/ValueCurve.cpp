@@ -834,45 +834,6 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
     }
 }
 
-void ValueCurve::UnconvertChangedScale(float oldmin, float oldmax)
-{
-    float newrange = oldmax - oldmin;
-    float oldrange = _max - _min;
-
-    float min, max;
-    GetRangeParm(1, _type, min, max);
-    if (min == MINVOID) {
-        _parameter1 = ((_parameter1 - _min) * newrange / oldrange + oldmin);
-    }
-
-    GetRangeParm(2, _type, min, max);
-    if (min == MINVOID) {
-        _parameter2 = ((_parameter2 - _min) * newrange / oldrange + oldmin);
-    }
-
-    GetRangeParm(3, _type, min, max);
-    if (min == MINVOID) {
-        _parameter3 = ((_parameter3 - _min) * newrange / oldrange + oldmin);
-    }
-
-    GetRangeParm(4, _type, min, max);
-    if (min == MINVOID) {
-        _parameter4 = ((_parameter4 - _min) * newrange / oldrange + oldmin);
-    }
-
-    // now handle custom
-    if (_type == "Custom") {
-        wxASSERT(_min != MINVOIDF);
-        wxASSERT(_max != MAXVOIDF);
-        // old max of 10, 1.0 = 10
-        // new max of 20, 0.5 = 10
-        // y = y * 0.5 or 10/20 i.e. old range/new range
-        for (auto& it : _values) {
-            it.y = (it.y - _min) * oldrange / newrange + oldmin;
-        }
-    }
-}
-
 void ValueCurve::RenderType()
 {
     // dont render if we dont know our limits
