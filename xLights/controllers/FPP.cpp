@@ -8,7 +8,9 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 
 #include <map>
 #include <string.h>

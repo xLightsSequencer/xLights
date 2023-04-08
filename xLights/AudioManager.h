@@ -130,7 +130,7 @@ protected:
     SDL_AudioDeviceID _dev = 0;
     SDLSTATE _state = SDLSTATE::SDLNOTPLAYING;
     std::string _device;
-    SDL_AudioSpec _wanted_spec;
+    SDL_AudioSpec _wanted_spec = { 0 };
     bool _input = false;
 
 public:

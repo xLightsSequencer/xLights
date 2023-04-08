@@ -903,6 +903,10 @@
 		<Unit filename="effects/GlediatorEffect.h" />
 		<Unit filename="effects/GlediatorPanel.cpp" />
 		<Unit filename="effects/GlediatorPanel.h" />
+		<Unit filename="effects/GuitarPanel.cpp" />
+		<Unit filename="effects/GuitarPanel.h" />
+		<Unit filename="effects/GuitarEffect.cpp" />
+		<Unit filename="effects/GuitarEffect.h" />
 		<Unit filename="effects/KaleidoscopeEffect.cpp" />
 		<Unit filename="effects/KaleidoscopeEffect.h" />
 		<Unit filename="effects/KaleidoscopePanel.cpp" />
@@ -1442,6 +1446,7 @@
 		<Unit filename="wxsmith/GenerateCustomModelDialog.wxs" />
 		<Unit filename="wxsmith/GenerateLyricsDialog.wxs" />
 		<Unit filename="wxsmith/GlediatorPanel.wxs" />
+		<Unit filename="wxsmith/GuitarPanel.wxs" />
 		<Unit filename="wxsmith/HinksPixExportDialog.wxs" />
 		<Unit filename="wxsmith/HousePreviewPanel.wxs" />
 		<Unit filename="wxsmith/IPEntryDialog.wxs" />
@@ -1704,6 +1709,7 @@
 					<wxPanel wxs="wxsmith/GalaxyPanel.wxs" src="effects/GalaxyPanel.cpp" hdr="effects/GalaxyPanel.h" fwddecl="1" i18n="1" name="GalaxyPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/GarlandsPanel.wxs" src="effects/GarlandsPanel.cpp" hdr="effects/GarlandsPanel.h" fwddecl="1" i18n="1" name="GarlandsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/GlediatorPanel.wxs" src="effects/GlediatorPanel.cpp" hdr="effects/GlediatorPanel.h" fwddecl="1" i18n="1" name="GlediatorPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/GuitarPanel.wxs" src="effects/GuitarPanel.cpp" hdr="effects/GuitarPanel.h" fwddecl="1" i18n="1" name="GuitarPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/KaleidoscopePanel.wxs" src="effects/KaleidoscopePanel.cpp" hdr="effects/KaleidoscopePanel.h" fwddecl="1" i18n="1" name="KaleidoscopePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/LifePanel.wxs" src="effects/LifePanel.cpp" hdr="effects/LifePanel.h" fwddecl="1" i18n="1" name="LifePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/LightningPanel.wxs" src="effects/LightningPanel.cpp" hdr="effects/LightningPanel.h" fwddecl="1" i18n="1" name="LightningPanel" language="CPP" />

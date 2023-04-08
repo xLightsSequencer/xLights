@@ -675,7 +675,7 @@ protected:
         int renderHi = 0;
         int modelChangeCount = 0;
         bool isTransparent = false;
-        float boundingBox[6];
+        float boundingBox[6] = { 0 };
     };
     std::map<std::string, PreviewGraphicsCacheInfo*> uiCaches;
     virtual void deleteUIObjects();

@@ -970,16 +970,16 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 
 void DMXPanel::OnButton_Load_StateClick(wxCommandEvent& event)
 {
-    uint32_t maxChannels{DMX_CHANNELS};
+    uint32_t maxChannels{ DMX_CHANNELS };
 
     auto models = GetActiveModels();
     if (models.size() < 1) {
-       return;
+        return;
     }
 
     auto m = models.front();
     if (nullptr == m) {
-       return;
+        return;
     }
     maxChannels = std::min(maxChannels, m->GetChanCount());
     wxArrayString choices;
@@ -988,19 +988,19 @@ void DMXPanel::OnButton_Load_StateClick(wxCommandEvent& event)
     wxSingleChoiceDialog dlg(this, "Select State", "Select State", choices);
 
     if (dlg.ShowModal() != wxID_OK) {
-       return;
+        return;
     }
     std::string stateName = dlg.GetStringSelection();
     auto states = m->stateInfo.at(stateName);
 
     if (states["CustomColors"] != "1" || states["Type"] != "SingleNode") {
         DisplayError("State does not have Force Custom Colors or Single Node Type");
-       return;
+        return;
     }
 
-    for (int i = 0; i< maxChannels; ++i) {
-       auto attr = wxString::Format("s%d-Name", i + 1);
-       if(states.count(attr) != 0) {
+    for (size_t i = 0; i < maxChannels; ++i) {
+        auto attr = wxString::Format("s%d-Name", i + 1);
+        if (states.count(attr) != 0) {
             auto colattr = wxString::Format("s%d-Color", i + 1);
             xlColor dmxValue(states[colattr]);
             wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i + 1);
@@ -1012,7 +1012,7 @@ void DMXPanel::OnButton_Load_StateClick(wxCommandEvent& event)
             wxTextCtrl* text = (wxTextCtrl*)(this->FindWindowByName(text_ctrl));
             wxASSERT(text != nullptr);
             text->SetValue(wxString::Format("%d", dmxValue.red));
-       }
+        }
     }
     FireChangeEvent();
 }

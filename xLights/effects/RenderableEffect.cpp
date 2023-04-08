@@ -856,7 +856,9 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
             //these all have state/speed requirements
         case EffectManager::eff_PIANO:
             break;
-    }
+        case EffectManager::eff_GUITAR:
+            break;
+        }
     settings.erase("T_CHECKBOX_FitToTime");
     settings.erase("T_SLIDER_Speed");
 }

@@ -1022,6 +1022,12 @@
     <ClCompile Include="models\DMX\DmxColorAbilityCMY.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
+    <ClCompile Include="effects\GuitarEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\GuitarPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2049,6 +2055,12 @@
     <ClInclude Include="DuplicateDialog.h" />
     <ClInclude Include="models\DMX\DmxColorAbilityCMY.h">
       <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\GuitarEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\GuitarPanel.h">
+      <Filter>Effects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
