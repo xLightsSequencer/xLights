@@ -212,6 +212,11 @@ public:
         return std::max(1, (int)color.size());
     }
 
+    size_t ExplicitSize() const
+    {
+        return color.size();
+    }
+
     const ColorCurve& GetColorCurve(size_t idx) const
     {
         if (idx >= cc.size()) {
@@ -491,6 +496,8 @@ public:
     void DrawLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool useAlpha = false);
     void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, int thickness, bool useAlpha = false);
     void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction);
+
+    void FillConvexPoly(const std::vector<std::pair<int, int>>& poly, const xlColor& color);
 
     //approximation of sin/cos, but much faster
     static float sin(float rad);
