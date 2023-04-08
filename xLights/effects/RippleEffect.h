@@ -79,7 +79,7 @@ public:
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
 
-    virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const
+    virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const override
     {
         return true;
         // Not sure this updates dynamically as one would want

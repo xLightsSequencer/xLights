@@ -1639,8 +1639,6 @@ int Falcon::CountStrings(const wxXmlDocument& stringsDoc) const {
 }
 int Falcon::NumConfiguredStrings() {
     if (IsV4()) {
-        bool success = true;
-        bool done = false;
         int batch = 0;
         wxJSONValue p(wxJSONTYPE_OBJECT);
         bool finalCall;
