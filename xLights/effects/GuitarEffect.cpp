@@ -29,8 +29,6 @@
 
 #include <log4cpp/Category.hh>
 
-#define STRINGS 5
-
 class GuitarTiming
 {
 public:
@@ -48,13 +46,20 @@ public:
         _fingerPos.push_back({ string, pos });
     }
 
-    int GetPositionCentre()
+    int GetPositionCentre(int middle)
     {
+        int zeroCount = 0;
         int total = 0;
         for (auto v : _fingerPos) {
             total += v.second;
+            if (v.second == 0)
+                ++zeroCount;
         }
-        return total / _fingerPos.size();
+
+        if (_fingerPos.size() - zeroCount == 0)
+            return middle;
+
+        return total / (_fingerPos.size() - zeroCount);
     }
     int GetSpread()
     {
@@ -62,10 +67,13 @@ public:
         int max = -1;
 
         for (auto v : _fingerPos) {
-            if (min == -1 || v.second < min)
-                min = v.second;
-            if (max == -1 || v.second > max)
-                max = v.second;
+            // we ignore zero as it requires no fingers
+            if (v.second != 0) {
+                if (min == -1 || v.second < min)
+                    min = v.second;
+                if (max == -1 || v.second > max)
+                    max = v.second;
+            }
         }
         return max - min;
     }
@@ -109,15 +117,12 @@ std::vector<GuitarNotes>
 
 class NoteTiming
 {
+    // zero is an open string. 1 is longest and deepest, maxFrets is shortest and highest
     int GetFretPos(uint8_t string, uint8_t note, const std::string& type, uint8_t maxFrets)
     {
-        std::vector<GuitarNotes>* base = nullptr;
-        if (type == "Guitar")
-            base = &guitar;
-        else if (type == "Bass Guitar")
-            base = &bass;
-        else
-            base = &banjo;
+        auto base = NoteTiming::GetBaseNotes(type);
+        if (base == nullptr)
+            return -1;
 
         // check we have enough strings
         if (string >= base->size())
@@ -140,6 +145,47 @@ public:
     std::list<uint8_t> _notes;
     std::list<GuitarTiming*> _possibleTimings;
 
+    NoteTiming(const NoteTiming& nt)
+    {
+        _startMS = nt._startMS;
+        _endMS = nt._endMS;
+        _notes = nt._notes;
+        for (auto it : nt._possibleTimings) {
+            _possibleTimings.push_back(new GuitarTiming(*it));
+        }
+    }
+
+    void SetGuitarTiming(GuitarTiming* gt)
+    {
+        ClearPossibleTimings();
+        _possibleTimings.push_back(new GuitarTiming(*gt));
+    }
+
+    static const std::vector<GuitarNotes>* GetBaseNotes(const std::string& type)
+    {
+        if (type == "Guitar")
+            return &guitar;
+        else if (type == "Bass Guitar")
+            return &bass;
+        else
+            return &banjo;
+    }
+
+    static size_t GetStrings(const std::string& type)
+    {
+        auto base = GetBaseNotes(type);
+        if (base == nullptr)
+            return 0;
+
+        return base->size();
+    }
+
+    NoteTiming(uint32_t start, uint32_t end)
+    {
+        _startMS = start;
+        _endMS = end;
+    }
+
     NoteTiming(uint32_t start, uint32_t end, std::list<uint8_t> notes)
     {
         _startMS = start;
@@ -161,24 +207,24 @@ public:
         }
     }
 
-    int PickTimingClosestTo(int centre)
+    int PickTimingClosestTo(int centre, int middle)
     {
         if (_possibleTimings.size() == 0)
             return -1;
 
         if (_possibleTimings.size() == 1)
-            return _possibleTimings.front()->GetPositionCentre();
+            return _possibleTimings.front()->GetPositionCentre(middle);
 
         auto closest = _possibleTimings.begin();
         auto it = closest;
-        int diff = std::abs((*closest)->GetPositionCentre() - centre);
+        int diff = std::abs((*closest)->GetPositionCentre(middle) - centre);
 
         while (it != _possibleTimings.end())
         {
-            if (std::abs((*it)->GetPositionCentre() - centre) < diff)
+            if (std::abs((*it)->GetPositionCentre(middle) - centre) < diff)
             {
                 closest = it;
-                diff = std::abs((*it)->GetPositionCentre() - centre);
+                diff = std::abs((*it)->GetPositionCentre(middle) - centre);
             }
             ++it;
         }
@@ -195,23 +241,26 @@ public:
             _possibleTimings.erase(todel);
         }
 
-        return _possibleTimings.front()->GetPositionCentre();
+        return _possibleTimings.front()->GetPositionCentre(middle);
     }
 
     void GeneratePossibleTimings(const std::string& type, uint8_t maxFrets)
     {
-        ClearPossibleTimings();
-
+        // if there are no notes it may be because the timings were set using SnnPnn
         if (_notes.size() == 0)
             return;
 
+        ClearPossibleTimings();
+
         _notes.sort();
+
+        uint8_t strings = NoteTiming::GetStrings(type);
 
         std::list<uint8_t> firstNoteString;
 
         auto it = _notes.begin();
         while (it != _notes.end() && firstNoteString.size() == 0) {
-            for (uint8_t i = 0; i < 5; ++i) {
+            for (uint8_t i = 0; i < strings; ++i) {
                 if (GetFretPos(i, *it, type, maxFrets) != -1) {
                     firstNoteString.push_back(i);
                 }
@@ -231,7 +280,7 @@ public:
 #ifdef FILTER_OUT_UPLAYABLE
                 bool found = false;
 #endif
-                for (uint8_t s = fns; s < 5; ++s)
+                for (uint8_t s = fns; s < strings; ++s)
                 {
                     int fp = GetFretPos(s, n, type, maxFrets);
                     if (fp != -1)
@@ -312,7 +361,7 @@ std::list<std::string> GuitarEffect::CheckEffectSettings(const SettingsMap& sett
     }
     else
     {
-        std::list<NoteTiming*> timings = LoadTimingTrack(settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), 50, "Guitar");
+        std::list<NoteTiming*> timings = LoadTimingTrack(settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), 50, "Guitar", 100, 6);
         if (timings.size() == 0)
         {
             res.push_back(wxString::Format("    ERR: Guitar effect timing track '%s' has no notes. Model '%s', Start %s", settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
@@ -438,7 +487,7 @@ public:
         for (auto& it : _notes) {
             if (centre == -1)
                 centre = maxFrets / 2;
-            centre = it->PickTimingClosestTo(centre);
+            centre = it->PickTimingClosestTo(centre, maxFrets / 2);
         }
     }
 
@@ -473,13 +522,16 @@ void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements
 
     std::string& _MIDITrack = cache->_MIDItrack;
 
+    uint8_t strings = NoteTiming::GetStrings(type);
+
     if (buffer.needToInit) {
         // just in case the timing tracks have changed
         SetPanelTimingTracks();
 
         buffer.needToInit = false;
         if (_MIDITrack != MIDITrack) {
-            auto notes = LoadTimingTrack(MIDITrack, buffer.frameTimeInMs, type);
+            cache->ClearTimings();
+            auto notes = LoadTimingTrack(MIDITrack, buffer.frameTimeInMs, type, maxFrets, strings);
             cache->SetTimings(notes, type, maxFrets);
             elements->AddRenderDependency(MIDITrack, buffer.cur_model);
 
@@ -499,16 +551,16 @@ void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements
 
     uint32_t time = buffer.curPeriod * buffer.frameTimeInMs;
 
-    DrawGuitar(buffer, cache->GetTimingAt(time), stringAppearance, maxFrets);
+    DrawGuitar(buffer, cache->GetTimingAt(time), stringAppearance, maxFrets, strings);
 }
 
-void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint8_t maxFrets)
+void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint8_t maxFrets, uint8_t strings)
 {
     xlColor c;
     buffer.palette.GetColor(string, c);
 
-        float perString = (float)buffer.BufferHt / STRINGS;
-    for (uint32_t x = 0; x < (fretPos * buffer.BufferWi) / maxFrets; ++x)
+        float perString = (float)buffer.BufferHt / strings;
+    for (uint32_t x = 0; x < ((maxFrets - fretPos) * buffer.BufferWi) / maxFrets; ++x)
     {
         for (uint32_t y = perString * string; y < perString * (string + 1); ++y) {
             buffer.SetPixel(x, y, c);
@@ -516,7 +568,7 @@ void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fr
     }
 }
 
-void GuitarEffect::DrawGuitarFlashFade(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint32_t of, uint8_t maxFrets)
+void GuitarEffect::DrawGuitarFlashFade(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint32_t of, uint8_t maxFrets, uint8_t strings)
 {
     xlColor c;
     buffer.palette.GetColor(string, c);
@@ -524,29 +576,29 @@ void GuitarEffect::DrawGuitarFlashFade(RenderBuffer& buffer, uint8_t string, uin
     float alpha = (float)(of - timePos) / (float)of;
     c.alpha = 255.0 * alpha;
 
-    float perString = (float)buffer.BufferHt / STRINGS;
-    for (uint32_t x = 0; x < (fretPos * buffer.BufferWi) / maxFrets; ++x) {
+    float perString = (float)buffer.BufferHt / strings;
+    for (uint32_t x = 0; x < ((maxFrets - fretPos) * buffer.BufferWi) / maxFrets; ++x) {
         for (uint32_t y = perString * string; y < perString * (string + 1); ++y) {
             buffer.SetPixel(x, y, c);
         }
     }
 }
 
-void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint8_t maxFrets)
+void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint8_t maxFrets, uint8_t strings)
 {
     xlColor c;
     buffer.palette.GetColor(string, c);
 
-    uint32_t cycles = ((fretPos * buffer.BufferWi) / maxFrets) / 10;
-    double perString = (float)buffer.BufferHt / STRINGS;
-    double maxX = (fretPos * buffer.BufferWi) / maxFrets;
+    uint32_t cycles = (((maxFrets - fretPos) * buffer.BufferWi) / maxFrets) / 10;
+    double perString = (float)buffer.BufferHt / strings;
+    double maxX = ((maxFrets - fretPos) * buffer.BufferWi) / maxFrets;
     for (uint32_t x = 0; x < maxX; ++x) {
         uint32_t y = (perString / 2.0) * sin((PI * 2.0 * cycles * (double)x) / maxX + timePos * 2) + perString / 2.0 + perString * string;
         buffer.SetPixel(x, y, c);
     }
 }
 
-void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const std::string& stringAppearance, uint8_t maxFrets)
+void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const std::string& stringAppearance, uint8_t maxFrets, uint8_t strings)
 {
     if (pdata == nullptr)
         return;
@@ -558,19 +610,19 @@ void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const s
     {
         for (const auto& it : pdata->_fingerPos)
         {
-            DrawGuitarOn(buffer, it.first, it.second, maxFrets);
+            DrawGuitarOn(buffer, it.first, it.second, maxFrets, strings);
         }
     }
     else if (stringAppearance == "Flash and fade")
     {
         for (const auto& it : pdata->_fingerPos) {
-            DrawGuitarFlashFade(buffer, it.first, it.second, pos, len, maxFrets);
+            DrawGuitarFlashFade(buffer, it.first, it.second, pos, len, maxFrets, strings);
         }
     }
     else
     {
         for (const auto& it : pdata->_fingerPos) {
-            DrawGuitarWave(buffer, it.first, it.second, pos, maxFrets);
+            DrawGuitarWave(buffer, it.first, it.second, pos, maxFrets, strings);
         }
     }
 }
@@ -619,6 +671,8 @@ std::list<std::string> GuitarEffect::ExtractNotes(const std::string& label)
         {
             if ((it >= 'A' && it <= 'G') ||
                 (it == '#') ||
+                (it == 'S') ||
+                (it == 'P') ||
                 (it >= '0' && it <= '9'))
             {
                 s += it;
@@ -634,6 +688,40 @@ std::list<std::string> GuitarEffect::ExtractNotes(const std::string& label)
     return res;
 }
 
+void GuitarEffect::ConvertStringPos(const std::string& note, uint8_t& string, uint8_t& pos)
+{
+    string = 0xFF;
+    pos = 0xFF;
+
+    std::string n = note;
+    std::transform(n.begin(), n.end(), n.begin(), ::toupper);
+
+    if (n[0] != 'S')
+        return;
+
+    string = 0;
+    uint32_t index = 1;
+
+    while (n[index] >= '0' && n[index] <= '9')
+    {
+        string *= 10;
+        string += (uint8_t)(n[index] - '0');
+        ++index;
+    }
+
+    if (n[index++] != 'P') {
+        string = 0xFF;
+        return;
+    }
+
+    pos = 0;
+    while (n[index] >= '0' && n[index] <= '9') {
+        pos *= 10;
+        pos += (uint8_t)(n[index] - '0');
+        ++index;
+    }
+}
+
 int GuitarEffect::ConvertNote(const std::string& note)
 {
     std::string n = note;
@@ -642,6 +730,9 @@ int GuitarEffect::ConvertNote(const std::string& note)
 
     switch (n[0])
     {
+    case 'S':
+    case 'P':
+        return -1;
     case 'A':
         nletter = 9;
         break;
@@ -708,16 +799,15 @@ int GuitarEffect::ConvertNote(const std::string& note)
     return number;
 }
 
-std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, int intervalMS, const std::string& type)
+std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, int intervalMS, const std::string& type, uint8_t maxFrets, uint8_t strings)
 {
-    static log4cpp::Category &logger_Guitardata = log4cpp::Category::getInstance(std::string("log_Guitardata"));
+    static log4cpp::Category& logger_Guitardata = log4cpp::Category::getInstance(std::string("log_Guitardata"));
 
     std::list<NoteTiming*> res;
 
     logger_Guitardata.debug("Loading timings from timing track " + track);
 
-    if (mSequenceElements == nullptr)
-    {
+    if (mSequenceElements == nullptr) {
         logger_Guitardata.debug("No timing tracks found.");
         return res;
     }
@@ -725,29 +815,38 @@ std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, i
     // Load the names of the timing tracks
     EffectLayer* el = GetTiming(track);
 
-    if (el == nullptr)
-    {
+    if (el == nullptr) {
         logger_Guitardata.debug("Timing track not found.");
         return res;
     }
 
-    for (int j = 0; j < el->GetEffectCount(); ++j)
-    {
+    for (int j = 0; j < el->GetEffectCount(); ++j) {
         std::list<uint8_t> notes;
         int starttime = el->GetEffect(j)->GetStartTimeMS();
         int endtime = el->GetEffect(j)->GetEndTimeMS();
+        GuitarTiming t(starttime, endtime);
         std::string label = el->GetEffect(j)->GetEffectName();
         std::list<std::string> notelabels = ExtractNotes(label);
-        for (const auto& s : notelabels)
-        {
+        for (const auto& s : notelabels) {
             uint8_t n = ConvertNote(s);
-            if (n >= 0)
-            {
+            if (n != 0xFF) {
                 notes.push_back(n);
+            } else {
+                uint8_t string;
+                uint8_t pos;
+                ConvertStringPos(s, string, pos);
+                if (string != 0xFF && string != 0 && pos != 0xFF && pos <= maxFrets) {
+                    t.AddFingerPos(strings - (string - 1) - 1, pos);
+                }
             }
         }
         if (notes.size() != 0)
             res.push_back(new NoteTiming(starttime, endtime, notes));
+        else if (t._fingerPos.size() > 0) {
+            NoteTiming* nt = new NoteTiming(starttime, endtime);
+            nt->SetGuitarTiming(&t);
+            res.push_back(nt);
+        }
     }
 
     return res;
