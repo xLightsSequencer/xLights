@@ -109,6 +109,8 @@
 																<item>Rotate 180</item>
 																<item>Flip Vertical</item>
 																<item>Flip Horizontal</item>
+																<item>Rotate CC 90 Flip Horizontal</item>
+																<item>Rotate CW 90 Flip Horizontal</item>
 															</content>
 															<selection>0</selection>
 															<handler function="OnBufferTransformSelect" entry="EVT_CHOICE" />
