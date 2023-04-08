@@ -844,6 +844,16 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         models = "[" + models + "]";
         return sendResponse(models, "models", 200, true);
+        
+    } else if (cmd == "getModel") {
+        auto model = params["model"];
+        auto m = AllModels.GetModel(model);
+        if (nullptr == m) {
+            return sendResponse("Unknown model.", "msg", 503, false);
+        }
+        auto json = m->GetAttributesAsJSON();
+        return sendResponse(json, "model", 200, true);
+        
     } else if (cmd == "getControllers") {
         std::string controllers;
         for (const auto& it : _outputManager.GetControllers()) {

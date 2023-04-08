@@ -7469,3 +7469,41 @@ void Model::ImportXlightsModel(std::string const& filename, xLightsFrame* xlight
         DisplayError("Failure loading model file: " + filename);
     }
 }
+
+std::string Model::GetAttributesAsJSON() const
+{
+    std::string json = "{";
+    bool first{true};
+    for (wxXmlAttribute* attrp = ModelXml->GetAttributes(); attrp; attrp = attrp->GetNext())
+    {
+        wxString value = attrp->GetValue();
+        if (!value.empty())
+        {
+            if(!first)
+            {
+                json += ",";
+            }
+            json += "\"" + attrp->GetName().ToStdString() + "\":\"" + JSONSafe(value.ToStdString()) + "\"";
+            first = false;
+        }
+    }
+    json += ",\"ControllerConnection\":{";
+    wxXmlNode* cc = GetControllerConnection();
+    bool first2{true};
+    for (wxXmlAttribute* attrp = cc->GetAttributes(); attrp; attrp = attrp->GetNext())
+    {
+        wxString value = attrp->GetValue();
+        if (!value.empty())
+        {
+            if(!first2)
+            {
+                json += ",";
+            }
+            json += "\"" + attrp->GetName().ToStdString() + "\":\"" + JSONSafe(value.ToStdString()) + "\"";
+            first2 = false;
+        }
+    }
+    json += "}}";
+    return json;
+}
+

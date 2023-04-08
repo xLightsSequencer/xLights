@@ -654,6 +654,8 @@ public:
         }
     }
     uint32_t GetChannelForNode(int strandIndex, int node) const;
+    
+    [[nodiscard]] std::string GetAttributesAsJSON() const;
 
 protected:
     std::vector<int> layerSizes; // inside to outside
