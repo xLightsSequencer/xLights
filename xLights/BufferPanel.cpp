@@ -174,6 +174,8 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	BufferTransform->Append(_("Rotate 180"));
 	BufferTransform->Append(_("Flip Vertical"));
 	BufferTransform->Append(_("Flip Horizontal"));
+    BufferTransform->Append(_("Rotate CC 90 Flip Horizontal"));
+    BufferTransform->Append(_("Rotate CW 90 Flip Horizontal"));
 	BufferSizer->Add(BufferTransform, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_BufferTransform = new xlLockButton(ScrolledWindow1, ID_BITMAPBUTTON_CHOICE_BufferTransform, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferTransform"));
 	BitmapButton_BufferTransform->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));

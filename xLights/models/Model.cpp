@@ -56,6 +56,8 @@
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "CachedFileDownloader.h"
 
+#include <algorithm>
+
 #define MOST_STRINGS_WE_EXPECT 480
 
 const long Model::ID_LAYERSIZE_INSERT = wxNewId();
@@ -3701,10 +3703,11 @@ void Model::DumpBuffer(std::vector<NodeBaseClassPtr> &newNodes,
     }
 }
 
-void Model::ApplyTransform(const std::string &type,
-                    std::vector<NodeBaseClassPtr> &newNodes,
-                    int &bufferWi, int &bufferHi) const {
-    //"Rotate CC 90", "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal",
+void Model::ApplyTransform(const std::string& type,
+                           std::vector<NodeBaseClassPtr>& newNodes,
+                           int& bufferWi, int& bufferHi) const
+{
+    //"Rotate CC 90", "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal", "Rotate CC 90 Flip Horizontal", "Rotate CW 90 Flip Horizontal"
     if (type == "None") {
         return;
     } else if (type == "Rotate 180") {
@@ -3731,18 +3734,40 @@ void Model::ApplyTransform(const std::string &type,
                 SetCoords(it2, bufferHi - it2.bufY - 1, it2.bufX);
             }
         }
-        int tmp = bufferHi;
-        bufferHi = bufferWi;
-        bufferWi = tmp;
+        std::swap(bufferWi, bufferHi);
     } else if (type == "Rotate CC 90") {
         for (int x = 0; x < newNodes.size(); x++) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, it2.bufY, bufferWi - it2.bufX - 1);
             }
         }
-        int tmp = bufferHi;
-        bufferHi = bufferWi;
-        bufferWi = tmp;
+        std::swap(bufferWi, bufferHi);
+    } else if (type == "Rotate CC 90 Flip Horizontal") {
+        for (int x = 0; x < newNodes.size(); x++) {
+            for (auto& it2 : newNodes[x]->Coords) {
+                SetCoords(it2, it2.bufY, bufferWi - it2.bufX - 1);
+            }
+        }
+        std::swap(bufferWi, bufferHi);
+
+        for (size_t x = 0; x < newNodes.size(); x++) {
+            for (auto& it2 : newNodes[x]->Coords) {
+                SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1);
+            }
+        }
+    } else if (type == "Rotate CW 90 Flip Horizontal") {
+        for (size_t x = 0; x < newNodes.size(); x++) {
+            for (auto& it2 : newNodes[x]->Coords) {
+                SetCoords(it2, bufferHi - it2.bufY - 1, it2.bufX);
+            }
+        }
+        std::swap(bufferWi, bufferHi);
+
+        for (size_t x = 0; x < newNodes.size(); x++) {
+            for (auto& it2 : newNodes[x]->Coords) {
+                SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1);
+            }
+        }
     }
 }
 
