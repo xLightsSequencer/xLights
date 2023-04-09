@@ -115,7 +115,8 @@ std::vector<GuitarNotes>
 
 bool centresort(const GuitarTiming* first, const GuitarTiming* second)
 {
-    return first->GetPositionCentre(21/2) < second->GetPositionCentre(21/2);
+    // we want full strings to be the lowest
+    return first->GetPositionCentre(0) < second->GetPositionCentre(0);
 }
 
 class NoteTiming
@@ -357,7 +358,7 @@ public:
 
         bool allZero = false;
 
-        // prioritise centres that higher
+        // prioritise centres that are lower (hence longer)
         _possibleTimings.sort(centresort);
 
         // remove the largest finger spreads until no more than 3 are left
@@ -651,6 +652,8 @@ void GuitarEffect::DrawGuitarFlashFade(RenderBuffer& buffer, uint8_t string, uin
     }
 }
 
+#define WAVE_RAMP 3.0
+
 void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint8_t maxFrets, uint8_t strings, bool showStrings)
 {
     xlColor c;
@@ -667,7 +670,16 @@ void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t 
     }
 
     for (uint32_t x = 0; x < maxX; ++x) {
-        uint32_t y = (perString / 2.0) * sin((PI * 2.0 * cycles * (double)x) / maxX + timePos * 2) + perString / 2.0 + perString * string;
+
+        // this foces the wave to zero near the ends
+        double maxY = perString;
+        if (x < WAVE_RAMP) {
+            maxY *= ((double)x * 1.0 / WAVE_RAMP);
+        } else if (x >= maxX - WAVE_RAMP) {
+            maxY *= (WAVE_RAMP - (double)(maxX - x - 1)) * 1.0 / WAVE_RAMP;
+        }
+
+        uint32_t y = (maxY / 2.0) * sin((PI * 2.0 * cycles * (double)x) / maxX + timePos * 2) + perString / 2.0 + perString * string;
         buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
     }
 }
@@ -692,9 +704,16 @@ void GuitarEffect::DrawGuitarWaveFade(RenderBuffer& buffer, uint8_t string, uint
         }
     }
 
-    double maxY = perString * alpha;
-
     for (uint32_t x = 0; x < maxX; ++x) {
+
+        // this foces the wave to zero near the ends
+        double maxY = perString * alpha;
+        if (x < WAVE_RAMP) {
+            maxY *= ((double)x * 1.0 / WAVE_RAMP);
+        } else if (x >= maxX - WAVE_RAMP) {
+            maxY *= (WAVE_RAMP - (double)(maxX - x - 1.0)) * 1.0 / WAVE_RAMP;
+        }
+
         uint32_t y = (maxY / 2.0) * sin((PI * 2.0 * cycles * (double)x) / maxX + timePos * 2) + perString / 2.0 + perString * string;
         buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
     }
@@ -717,9 +736,18 @@ void GuitarEffect::DrawGuitarWaveCollapse(RenderBuffer& buffer, uint8_t string, 
         }
     }
 
-    double maxY = perString * alpha;
-
     for (uint32_t x = 0; x < maxX; ++x) {
+
+        // this foces the wave to zero near the ends
+        double maxY = perString * alpha;
+        if (x < WAVE_RAMP)
+        {
+            maxY *= ((double)x * 1.0 / WAVE_RAMP);
+        } else if (x >= maxX - WAVE_RAMP)
+        {
+            maxY *= (WAVE_RAMP - (double)(maxX - x - 1.0)) * 1.0 / WAVE_RAMP;
+        }
+
         uint32_t y = (maxY / 2.0) * sin((PI * 2.0 * cycles * (double)x) / maxX + timePos * 2) + perString / 2.0 + perString * string;
         buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
     }
