@@ -46,7 +46,7 @@ public:
         _fingerPos.push_back({ string, pos });
     }
 
-    int GetPositionCentre(int middle)
+    int GetPositionCentre(int middle) const
     {
         int zeroCount = 0;
         int total = 0;
@@ -61,7 +61,7 @@ public:
 
         return total / (_fingerPos.size() - zeroCount);
     }
-    int GetSpread()
+    int GetSpread() const
     {
         int min = -1;
         int max = -1;
@@ -112,6 +112,11 @@ std::vector<GuitarNotes>
         { 3, 0, 62 }, // D4
         { 0, 0, 64 }, // D4
     };
+
+bool centresort(const GuitarTiming* first, const GuitarTiming* second)
+{
+    return first->GetPositionCentre(21/2) < second->GetPositionCentre(21/2);
+}
 
 class NoteTiming
 {
@@ -352,6 +357,9 @@ public:
 
         bool allZero = false;
 
+        // prioritise centres that higher
+        _possibleTimings.sort(centresort);
+
         // remove the largest finger spreads until no more than 3 are left
         while (_possibleTimings.size() > 3 && !allZero) {
             allZero = true;
@@ -363,7 +371,7 @@ public:
             while (it != _possibleTimings.end()) {
                 if ((*it)->GetSpread() != 0)
                     allZero = false;
-                if ((*it)->GetSpread() > maxSpread)
+                if ((*it)->GetSpread() >= maxSpread)
                     max = it;
                 ++it;
             }
