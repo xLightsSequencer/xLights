@@ -591,6 +591,11 @@ void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements
     DrawGuitar(buffer, cache->GetTimingAt(time), stringAppearance, maxFrets, strings, showStrings);
 }
 
+inline uint32_t FlipY(uint32_t y, uint32_t height)
+{
+    return height - y - 1;
+}
+
 void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint8_t maxFrets, uint8_t strings, bool showStrings)
 {
     xlColor c;
@@ -601,13 +606,13 @@ void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fr
 
     if (showStrings) {
         for (uint32_t x = maxX; x < buffer.BufferWi; ++x) {
-            buffer.SetPixel(x, perString * string + perString / 2, c);
+            buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), c);
         }
     }
 
     for (uint32_t x = 0; x < maxX; ++x) {
         for (uint32_t y = perString * string; y < perString * (string + 1); ++y) {
-            buffer.SetPixel(x, y, c);
+            buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
         }
     }
 }
@@ -627,13 +632,13 @@ void GuitarEffect::DrawGuitarFlashFade(RenderBuffer& buffer, uint8_t string, uin
     uint32_t maxX = ((maxFrets - fretPos) * buffer.BufferWi) / maxFrets;
     if (showStrings) {
         for (uint32_t x = maxX; x < buffer.BufferWi; ++x) {
-            buffer.SetPixel(x, perString * string + perString / 2, cc);
+            buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), cc);
         }
     }
 
     for (uint32_t x = 0; x < maxX; ++x) {
         for (uint32_t y = perString * string; y < perString * (string + 1); ++y) {
-            buffer.SetPixel(x, y, c);
+            buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
         }
     }
 }
@@ -649,13 +654,13 @@ void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t 
 
     if (showStrings) {
         for (uint32_t x = maxX; x < buffer.BufferWi; ++x) {
-            buffer.SetPixel(x, perString * string + perString / 2, c);
+            buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), c);
         }
     }
 
     for (uint32_t x = 0; x < maxX; ++x) {
         uint32_t y = (perString / 2.0) * sin((PI * 2.0 * cycles * (double)x) / maxX + timePos * 2) + perString / 2.0 + perString * string;
-        buffer.SetPixel(x, y, c);
+        buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
     }
 }
 
@@ -675,7 +680,7 @@ void GuitarEffect::DrawGuitarWaveFade(RenderBuffer& buffer, uint8_t string, uint
 
     if (showStrings) {
         for (uint32_t x = maxX; x < buffer.BufferWi; ++x) {
-            buffer.SetPixel(x, perString * string + perString / 2, cc);
+            buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), cc);
         }
     }
 
@@ -683,7 +688,7 @@ void GuitarEffect::DrawGuitarWaveFade(RenderBuffer& buffer, uint8_t string, uint
 
     for (uint32_t x = 0; x < maxX; ++x) {
         uint32_t y = (maxY / 2.0) * sin((PI * 2.0 * cycles * (double)x) / maxX + timePos * 2) + perString / 2.0 + perString * string;
-        buffer.SetPixel(x, y, c);
+        buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
     }
 }
 
@@ -700,7 +705,7 @@ void GuitarEffect::DrawGuitarWaveCollapse(RenderBuffer& buffer, uint8_t string, 
 
     if (showStrings) {
         for (uint32_t x = maxX; x < buffer.BufferWi; ++x) {
-            buffer.SetPixel(x, perString * string + perString / 2, c);
+            buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), c);
         }
     }
 
@@ -708,7 +713,7 @@ void GuitarEffect::DrawGuitarWaveCollapse(RenderBuffer& buffer, uint8_t string, 
 
     for (uint32_t x = 0; x < maxX; ++x) {
         uint32_t y = (maxY / 2.0) * sin((PI * 2.0 * cycles * (double)x) / maxX + timePos * 2) + perString / 2.0 + perString * string;
-        buffer.SetPixel(x, y, c);
+        buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
     }
 }
 
@@ -719,7 +724,7 @@ void GuitarEffect::DrawString(RenderBuffer& buffer, uint8_t string, uint8_t stri
 
     double perString = (float)buffer.BufferHt / strings;
     for (uint32_t x = 0; x < buffer.BufferWi; ++x) {
-        buffer.SetPixel(x, perString * string + perString / 2, c);
+        buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), c);
     }
 }
 
