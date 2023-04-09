@@ -12,6 +12,7 @@
 
 //(*Headers(GuitarPanel)
 #include <wx/panel.h>
+class wxCheckBox;
 class wxChoice;
 class wxFlexGridSizer;
 class wxSlider;
@@ -35,6 +36,7 @@ class GuitarPanel: public xlEffectPanel
 		void SetTimingTracks(wxCommandEvent& event);
 
 		//(*Declarations(GuitarPanel)
+		BulkEditCheckBox* CheckBox_ShowStrings;
 		BulkEditChoice* Choice_Guitar_MIDITrack_APPLYLAST;
 		BulkEditChoice* Choice_Guitar_Type;
 		BulkEditSlider* Slider_MaxFrets;
@@ -58,6 +60,7 @@ class GuitarPanel: public xlEffectPanel
 		static const long ID_STATICTEXT_Piano_Scale;
 		static const long ID_SLIDER_MaxFrets;
 		static const long IDD_TEXTCTRL_MaxFrets;
+		static const long ID_CHECKBOX_ShowStrings;
 		//*)
 
 	public:

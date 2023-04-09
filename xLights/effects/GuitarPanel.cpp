@@ -9,6 +9,7 @@
  **************************************************************/
 
 //(*InternalHeaders(GuitarPanel)
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/intl.h>
 #include <wx/sizer.h>
@@ -39,6 +40,7 @@ const long GuitarPanel::ID_CHOICE_StringAppearance = wxNewId();
 const long GuitarPanel::ID_STATICTEXT_Piano_Scale = wxNewId();
 const long GuitarPanel::ID_SLIDER_MaxFrets = wxNewId();
 const long GuitarPanel::IDD_TEXTCTRL_MaxFrets = wxNewId();
+const long GuitarPanel::ID_CHECKBOX_ShowStrings = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(GuitarPanel,wxPanel)
@@ -85,11 +87,19 @@ GuitarPanel::GuitarPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer27->Add(Slider_MaxFrets, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_MaxFrets = new BulkEditTextCtrl(this, IDD_TEXTCTRL_MaxFrets, _("19"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_MaxFrets"));
 	FlexGridSizer27->Add(TextCtrl_MaxFrets, 1, wxALL, 2);
+	FlexGridSizer27->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_ShowStrings = new BulkEditCheckBox(this, ID_CHECKBOX_ShowStrings, _("Show Strings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ShowStrings"));
+	CheckBox_ShowStrings->SetValue(false);
+	FlexGridSizer27->Add(CheckBox_ShowStrings, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer27->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer42->Add(FlexGridSizer27, 0, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
 	FlexGridSizer42->Fit(this);
 	FlexGridSizer42->SetSizeHints(this);
 	//*)
+
+    Choice_StringAppearance->Append(_("Wave Fade"));
+    Choice_StringAppearance->Append(_("Wave Collapse"));
 
     SetName("ID_PANEL_Guitar");
 

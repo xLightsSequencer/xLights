@@ -254,6 +254,8 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer73);
+	FlexGridSizer73->Fit(this);
+	FlexGridSizer73->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Explosions,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Fireworks_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnVCButtonClick);
