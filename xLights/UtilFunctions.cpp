@@ -831,9 +831,9 @@ bool IsVersionOlder(const std::string &compare, const std::string &version)
     {
         if (version_parts.Count() > 2)
         {
-            return true;
+            return false; // remote version has 2 components but local has three so local must be newer
         }
-        return false;
+        return true;
     }
     else
     {
