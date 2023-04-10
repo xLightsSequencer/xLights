@@ -4183,7 +4183,7 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
         }
         else if (StringType == "Superstring") {
             for (n = 0; n < NumStrings; n++) {
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassSuperString(n, NodesPerString, superStringColours, GetNextName())));
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassSuperString(n, NodesPerString, superStringColours, rgbwHandlingType, GetNextName())));
                 Nodes.back()->model = this;
             }
         } else if (StringType=="Single Color Blue") {

@@ -107,11 +107,11 @@ std::vector<GuitarNotes>
 
 std::vector<GuitarNotes>
     banjo = {
-        { 0, 0, 50 }, // D3
-        { 1, 0, 55 }, // G3
-        { 2, 0, 59 }, // B4
-        { 3, 0, 62 }, // D4
-        { 0, 0, 64 }, // D4
+        { 1, 0, 50 }, // D3
+        { 2, 0, 55 }, // G3
+        { 3, 0, 59 }, // B4
+        { 4, 0, 62 }, // D4
+        { 0, 0, 62 }, // D4
     };
 
 class Chordx
@@ -177,6 +177,51 @@ std::list<Chordx> __guitarChords = {
     { "CG7", { 43, 47, 50, 55, 59, 65 }, { { 0, 3 }, { 1, 2 }, { 2, 0 }, { 3, 0 }, { 4, 0 }, { 5, 1 } } }, // G7
     { "CG#7", { 51, 56, 60, 66 }, { { 2, 1 }, { 3, 1 }, { 4, 1 }, { 5, 2 } } },                            // G#7 / Ab7
     { "CAB7", { 51, 56, 60, 66 }, { { 2, 1 }, { 3, 1 }, { 4, 1 }, { 5, 2 } } },                            // G#7 / Ab7
+};
+
+std::list<Chordx> __bassChords = {
+    // Major Chords
+    { "CA", { 33, 37, 40, 45 }, { { 0, 5 }, { 1, 4 }, { 2, 2 }, { 3, 3 } } }, // A
+    { "CB", { 30, 35, 39, 47 }, { { 0, 2 }, { 1, 2 }, { 2, 1 }, { 3, 4 } } }, // B
+    { "CC", { 31, 36, 40, 48 }, { { 0, 3 }, { 1, 3 }, { 2, 2 }, { 3, 5 } } }, // C
+    { "CD", { 30, 38, 39, 45 }, { { 0, 2 }, { 1, 5 }, { 2, 0 }, { 3, 2 } } }, // D
+    { "CE", { 28, 35, 40, 44 }, { { 0, 0 }, { 1, 2 }, { 2, 2 }, { 3, 1 } } }, // E
+    { "CF", { 29, 36, 41, 45 }, { { 0, 1 }, { 1, 3 }, { 2, 3 }, { 3, 2 } } }, // F
+    { "CG", { 31, 35, 38, 43 }, { { 0, 3 }, { 1, 2 }, { 2, 0 }, { 3, 0 } } }, // G
+    // Minor Chords
+    { "CAM", { 33, 36, 40, 45 }, { { 0, 5 }, { 1, 3 }, { 2, 2 }, { 3, 3 } } }, // Am
+    { "CBM", { 30, 35, 38, 47 }, { { 0, 2 }, { 1, 2 }, { 2, 0 }, { 3, 4 } } }, // Bm
+    { "CCM", { 31, 36, 39, 48 }, { { 0, 3 }, { 1, 3 }, { 2, 1 }, { 3, 5 } } }, // Cm
+    { "CDM", { 29, 38, 39, 45 }, { { 0, 1 }, { 1, 5 }, { 2, 0 }, { 3, 2 } } }, // Dm
+    { "CEM", { 28, 35, 40, 43 }, { { 0, 0 }, { 1, 2 }, { 2, 2 }, { 3, 0 } } }, // Em
+    { "CFM", { 29, 36, 41, 44 }, { { 0, 1 }, { 1, 3 }, { 2, 3 }, { 3, 1 } } }, // Fm
+    { "CGM", { 31, 34, 38, 43 }, { { 0, 3 }, { 1, 1 }, { 2, 0 }, { 3, 0 } } }, // Gm
+    // Seventh Chords
+    { "CA7", { 31, 37, 40, 45 }, { { 0, 3 }, { 1, 4 }, { 2, 2 }, { 3, 3 } } }, // A7
+    { "CB7", { 30, 35, 39, 45 }, { { 0, 2 }, { 1, 2 }, { 2, 1 }, { 3, 2 } } }, // B7
+    { "CC7", { 31, 36, 40, 46 }, { { 0, 3 }, { 1, 3 }, { 2, 2 }, { 3, 3 } } }, // C7
+    { "CD7", { 30, 36, 39, 45 }, { { 0, 2 }, { 1, 3 }, { 2, 0 }, { 3, 2 } } }, // D7
+    { "CE7", { 28, 35, 38, 44 }, { { 0, 0 }, { 1, 2 }, { 2, 0 }, { 3, 1 } } }, // E7
+    { "CF7", { 29, 36, 39, 45 }, { { 0, 1 }, { 1, 3 }, { 2, 1 }, { 3, 2 } } }, // F7
+    { "CG7", { 29, 35, 38, 43 }, { { 0, 1 }, { 1, 2 }, { 2, 0 }, { 3, 0 } } }, // G7
+};
+
+std::list<Chordx> __banjoChords = {
+    // Major Chords
+    { "CA", { 52, 57, 61, 64 }, { { 1, 2 }, { 2, 2 }, { 3, 2 }, { 4, 2 } } }, // A
+    { "CA#", { 53, 58, 62, 65 }, { { 1, 3 }, { 2, 3 }, { 3, 3 }, { 4, 3 } } }, // A#
+    { "CBB", { 53, 58, 62, 65 }, { { 1, 3 }, { 2, 3 }, { 3, 3 }, { 4, 3 } } }, // Bb
+    { "CD", { 50, 57, 62, 66 }, { { 1, 0 }, { 2, 2 }, { 3, 3 }, { 4, 4 } } },  // D
+    { "CE", { 52, 56, 59, 64 }, { { 1, 2 }, { 2, 1 }, { 3, 0 }, { 4, 2 } } },  // E
+    { "CF", { 53, 57, 60, 65 }, { { 1, 3 }, { 2, 2 }, { 3, 1 }, { 4, 3 } } },  // F
+    { "CG", { 50, 55, 59, 62 }, { { 1, 0 }, { 2, 0 }, { 3, 0 }, { 4, 0 } } },  // G
+    // Minor Chords
+    { "CAM", { 52, 57, 60, 64 }, { { 1, 2 }, { 2, 2 }, { 3, 1 }, { 4, 2 } } }, // Am
+    { "CDM", { 53, 57, 62, 65 }, { { 1, 3 }, { 2, 2 }, { 3, 3 }, { 4, 3 } } },  // Dm
+    { "CEM", { 52, 55, 59, 64 }, { { 1, 2 }, { 2, 0 }, { 3, 0 }, { 4, 2 } } },  // Em
+    // Seventh Chords
+    { "CD7", { 50, 57, 60, 62 }, { { 1, 0 }, { 2, 2 }, { 3, 1 }, { 4, 0 } } }, // D7
+    { "CG7", { 50, 55, 59, 65 }, { { 1, 0 }, { 2, 0 }, { 3, 0 }, { 4, 3 } } },  // G7
 };
 
 bool centresort(const GuitarTiming* first, const GuitarTiming* second)
@@ -369,20 +414,26 @@ public:
 
     bool CheckChords(const std::string& type)
     {
-        if (type != "Guitar") {
-            for (auto& it : __guitarChords) {
-                if (it._notes.size() == _notes.size()) {
-                    if (listsMatch(it._notes, _notes)) {
-                        auto t = new GuitarTiming(_startMS, _endMS);
-                        for (auto it2 : it._guitarTiming) {
-                            t->AddFingerPos(it2.first, it2.second);
-                        }
-                        _possibleTimings.push_back(t);
-                        return true;
+        auto chords = __guitarChords;
+
+        if (type == "Bass")
+            chords = __bassChords;
+        else if (type == "Banjo")
+            chords = __banjoChords;
+
+        for (auto& it : chords) {
+            if (it._notes.size() == _notes.size()) {
+                if (listsMatch(it._notes, _notes)) {
+                    auto t = new GuitarTiming(_startMS, _endMS);
+                    for (auto it2 : it._guitarTiming) {
+                        t->AddFingerPos(it2.first, it2.second);
                     }
+                    _possibleTimings.push_back(t);
+                    return true;
                 }
             }
         }
+
         return false;
     }
 
@@ -1100,23 +1151,23 @@ std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, i
         std::string label = el->GetEffect(j)->GetEffectName();
         std::list<std::string> notelabels = ExtractNotes(label);
         for (const auto& s : notelabels) {
-
             bool chord = false;
-            if (type == "Guitar") {
+            auto chords = __guitarChords;
 
-                // If the label matches one of our chord names then use the chord notes
-                std::string n = s;
-                std::transform(n.begin(), n.end(), n.begin(), ::toupper);
-                for (const auto& c : __guitarChords)
-                {
-                    if (n == c._name)
-                    {
-                        for (auto nn : c._notes)
-                        {
-                            notes.push_back(nn);
-                        }
-                        chord = true;
+            if (type == "Bass")
+                chords = __bassChords;
+            else if (type == "Banjo")
+                chords = __banjoChords;
+
+            // If the label matches one of our chord names then use the chord notes
+            std::string n = s;
+            std::transform(n.begin(), n.end(), n.begin(), ::toupper);
+            for (const auto& c : chords) {
+                if (n == c._name) {
+                    for (auto nn : c._notes) {
+                        notes.push_back(nn);
                     }
+                    chord = true;
                 }
             }
 

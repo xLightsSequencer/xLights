@@ -470,14 +470,17 @@ private:
 class NodeClassSuperString : public NodeBaseClass
 {
 public:
-    NodeClassSuperString(int StringNumber, size_t NodesPerString, const std::vector<xlColor>& superStringColours, const std::string& n = xlEMPTY_STRING)
+    NodeClassSuperString(int StringNumber, size_t NodesPerString, const std::vector<xlColor>& superStringColours, int rgbwtype, const std::string& n = xlEMPTY_STRING)
         : NodeBaseClass(StringNumber, NodesPerString, "RGB")
     {
         chanCnt = superStringColours.size();
         SetName(n);
         _superStringColours = superStringColours;
+        rgbwHandling = rgbwtype;
     }
-    NodeClassSuperString(const NodeClassSuperString& c) : NodeBaseClass(c), _superStringColours(c._superStringColours) {}
+    NodeClassSuperString(const NodeClassSuperString& c) :
+        NodeBaseClass(c), _superStringColours(c._superStringColours), rgbwHandling(c.rgbwHandling)
+    {}
 
     virtual void SetFromChannels(const unsigned char* buf) override;
     virtual void GetForChannels(unsigned char* buf) const override;
@@ -487,6 +490,7 @@ public:
     }
 private:
     std::vector<xlColor> _superStringColours;
+    uint8_t rgbwHandling;
 };
 
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
