@@ -11,6 +11,20 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.06 April 10, 2023
+   -- enh (keith)   Add Guitar effect
+   -- enh (scott)   Add JSON endpoints getModel, getControllerPortMap, getShowFolder
+   -- enh (moc)     Add a bunch of improvements to Ripple
+   -- enh (moc)     Add a bunch of utilities to the submodels dialog
+   -- enh (kevin)   Add transformations - rotate & flip
+   -- bug (dkulp)   Upgrade wxWidgets on Linux to address GTK issues
+   -- bug (dkulp)   Update CURL calls to set Accept-Encoding to allow gzip/deflate to work for all
+   -- bug (dkulp)   Fix some discovery issues
+   -- bug (dkulp)   Fix FPP file manipulation on 6.3.3+
+   -- bug (dkulp)   Fix models not drawing in layout
+   -- bug (keith)   Fix compare between version numbers to work with subversions
+   -- bug (scratch) Fix some effects panel scroll bar
+   -- bug (moc)     Fix some value curves not resetting
 2023.05 March 27, 2023
    -- enh (dkulp)  MacOS - Use Bonjour to help discover FPP instances
    -- enh (dkulp)  FPPConnect - better support for FPP7 instances
