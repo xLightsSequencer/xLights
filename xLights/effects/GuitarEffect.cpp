@@ -46,7 +46,7 @@ public:
         _fingerPos.push_back({ string, pos });
     }
 
-    int GetPositionCentre(int middle) const
+    int GetPositionCentre() const
     {
         int zeroCount = 0;
         int total = 0;
@@ -57,10 +57,11 @@ public:
         }
 
         if (_fingerPos.size() - zeroCount == 0)
-            return middle;
+            return 0;
 
         return total / (_fingerPos.size() - zeroCount);
     }
+
     int GetSpread() const
     {
         int min = -1;
@@ -115,8 +116,7 @@ std::vector<GuitarNotes>
 
 bool centresort(const GuitarTiming* first, const GuitarTiming* second)
 {
-    // we want full strings to be the lowest
-    return first->GetPositionCentre(0) < second->GetPositionCentre(0);
+    return first->GetPositionCentre() < second->GetPositionCentre();
 }
 
 class NoteTiming
@@ -210,29 +210,65 @@ public:
         }
     }
 
-    int PickTimingClosestTo(int centre, int middle)
+    int PickTimingClosestTo(int centre, int& lastString)
     {
-        if (_possibleTimings.size() == 0)
+        int ls = lastString;
+        lastString = -1;
+
+        if (_possibleTimings.size() == 0) {
             return -1;
+        }
 
         if (_possibleTimings.size() == 1)
-            return _possibleTimings.front()->GetPositionCentre(middle);
+            return _possibleTimings.front()->GetPositionCentre();
 
         auto closest = _possibleTimings.begin();
         auto it = closest;
-        int diff = std::abs((*closest)->GetPositionCentre(middle) - centre);
+        auto closestOnDifferentString = closest;
+        int diffOnDifferentString = 9999;
+        bool different = false;
+        int diff = std::abs((*closest)->GetPositionCentre() - centre);
 
         while (it != _possibleTimings.end()) {
-            if (std::abs((*it)->GetPositionCentre(middle) - centre) < diff) {
+            if (std::abs((*it)->GetPositionCentre() - centre) < diff) {
                 closest = it;
-                diff = std::abs((*it)->GetPositionCentre(middle) - centre);
+                diff = std::abs((*it)->GetPositionCentre() - centre);
             }
+
+            // if we were playing a single note and now we are playing a single note then try to use a different string
+            if (std::abs((*it)->GetPositionCentre() - centre) < diffOnDifferentString && ls != -1 && (*it)->_fingerPos.size() == 1 && (*it)->_fingerPos.front().first != ls) {
+                closestOnDifferentString = it;
+                diffOnDifferentString = std::abs((*it)->GetPositionCentre() - centre);
+                different = true;
+            } else if (closestOnDifferentString == it && ls != -1 && (*it)->_fingerPos.size() == 1 && (*it)->_fingerPos.front().first != ls) {
+                different = true;
+            }
+
             ++it;
         }
 
-        while (_possibleTimings.begin() != closest) {
-            delete _possibleTimings.front();
-            _possibleTimings.pop_front();
+        // Use this to check the closest on different string code
+        ///if (different) {
+        //    if ((*closestOnDifferentString)->_fingerPos.size() == 1 && ls == (*closestOnDifferentString)->_fingerPos.front().first) {
+        //        int a = 0;
+        //    }
+        //} else {
+        //    if ((*closest)->_fingerPos.size() == 1 && ls == (*closest)->_fingerPos.front().first) {
+        //        int a = 0;
+        //    }
+        //}
+
+        // Remove all timings but our selected one
+        if (different) {
+            while (_possibleTimings.begin() != closestOnDifferentString) {
+                delete _possibleTimings.front();
+                _possibleTimings.pop_front();
+            }
+        } else {
+            while (_possibleTimings.begin() != closest) {
+                delete _possibleTimings.front();
+                _possibleTimings.pop_front();
+            }
         }
         while (_possibleTimings.size() != 1) {
             auto todel = _possibleTimings.begin();
@@ -241,7 +277,11 @@ public:
             _possibleTimings.erase(todel);
         }
 
-        return _possibleTimings.front()->GetPositionCentre(middle);
+        if (_possibleTimings.front()->_fingerPos.size() == 1) {
+            lastString = _possibleTimings.front()->_fingerPos.front().first;
+        }
+
+        return _possibleTimings.front()->GetPositionCentre();
     }
 
     void GeneratePossibleTimings(const std::string& type, uint8_t maxFrets)
@@ -483,7 +523,9 @@ void GuitarEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
                 std::string(SettingsMap.Get("CHOICE_Guitar_MIDITrack_APPLYLAST", "")),
 				std::string(SettingsMap.Get("CHOICE_StringAppearance", "On")),
                 SettingsMap.GetInt("SLIDER_MaxFrets", 19),
-                SettingsMap.GetBool("CHECKBOX_ShowStrings", false)
+                 SettingsMap.GetBool("CHECKBOX_ShowStrings", false),
+                 SettingsMap.GetBool("CHECKBOX_Fade", false),
+                 SettingsMap.GetBool("CHECKBOX_Collapse", false)
         );
 }
 
@@ -529,11 +571,25 @@ public:
         }
 
         // choose the one that follows the prior with the least movement
-        auto centre = -1;
+        int centre = -1;
+        int lastString = -1;
+        uint32_t lastEnd = 0;
         for (auto& it : _notes) {
+
+            // if there is a gap in the notes then using the same string again is ok
+            if (it->_startMS > lastEnd)
+            {
+                lastString = -1;
+            }
+
+            // if there is no centre favour the longest string possible
             if (centre == -1)
-                centre = maxFrets / 2;
-            centre = it->PickTimingClosestTo(centre, maxFrets / 2);
+                centre = 0;
+
+            // pick the next hand location from the available options
+            centre = it->PickTimingClosestTo(centre, lastString);
+
+            lastEnd = it->_endMS;
         }
     }
 
@@ -558,7 +614,7 @@ public:
 };
 
 //render Guitar fx during sequence:
-void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements, const std::string& type, const std::string& MIDITrack, const std::string& stringAppearance, int maxFrets, bool showStrings)
+void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements, const std::string& type, const std::string& MIDITrack, const std::string& stringAppearance, int maxFrets, bool showStrings, bool fade, bool collapse)
 {
     GuitarCache* cache = (GuitarCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -597,7 +653,7 @@ void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements
 
     uint32_t time = buffer.curPeriod * buffer.frameTimeInMs;
 
-    DrawGuitar(buffer, cache->GetTimingAt(time), stringAppearance, maxFrets, strings, showStrings);
+    DrawGuitar(buffer, cache->GetTimingAt(time), stringAppearance, maxFrets, strings, showStrings, fade, collapse);
 }
 
 inline uint32_t FlipY(uint32_t y, uint32_t height)
@@ -605,28 +661,7 @@ inline uint32_t FlipY(uint32_t y, uint32_t height)
     return height - y - 1;
 }
 
-void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint8_t maxFrets, uint8_t strings, bool showStrings)
-{
-    xlColor c;
-    buffer.palette.GetColor(string, c);
-
-    float perString = (float)buffer.BufferHt / strings;
-    uint32_t maxX = ((maxFrets - fretPos) * buffer.BufferWi) / maxFrets;
-
-    if (showStrings) {
-        for (uint32_t x = maxX; x < buffer.BufferWi; ++x) {
-            buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), c);
-        }
-    }
-
-    for (uint32_t x = 0; x < maxX; ++x) {
-        for (uint32_t y = perString * string; y < perString * (string + 1); ++y) {
-            buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
-        }
-    }
-}
-
-void GuitarEffect::DrawGuitarFlashFade(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint32_t of, uint8_t maxFrets, uint8_t strings, bool showStrings)
+void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint32_t of, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse)
 {
     xlColor c;
     buffer.palette.GetColor(string, c);
@@ -634,7 +669,8 @@ void GuitarEffect::DrawGuitarFlashFade(RenderBuffer& buffer, uint8_t string, uin
     xlColor cc = c;
 
     float alpha = (float)(of - timePos) / (float)of;
-    c.alpha = 255.0 * alpha;
+    if (fade)
+        c.alpha = 255.0 * alpha;
 
     float perString = (float)buffer.BufferHt / strings;
 
@@ -645,8 +681,19 @@ void GuitarEffect::DrawGuitarFlashFade(RenderBuffer& buffer, uint8_t string, uin
         }
     }
 
+    int centre = perString * string + perString / 2;
+    int height = perString;
+    if (collapse) {
+        height *= alpha;
+        // always draw the string so dont let the height get to zero
+        if (height < 1)
+            height = 1;
+    }
+
+    int start = centre - height / 2;
+
     for (uint32_t x = 0; x < maxX; ++x) {
-        for (uint32_t y = perString * string; y < perString * (string + 1); ++y) {
+        for (uint32_t y = start; y < start + height; ++y) {
             buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
         }
     }
@@ -654,37 +701,7 @@ void GuitarEffect::DrawGuitarFlashFade(RenderBuffer& buffer, uint8_t string, uin
 
 #define WAVE_RAMP 3.0
 
-void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint8_t maxFrets, uint8_t strings, bool showStrings)
-{
-    xlColor c;
-    buffer.palette.GetColor(string, c);
-
-    uint32_t cycles = (((maxFrets - fretPos) * buffer.BufferWi) / maxFrets) / 10;
-    double perString = (float)buffer.BufferHt / strings;
-    double maxX = ((maxFrets - fretPos) * buffer.BufferWi) / maxFrets;
-
-    if (showStrings) {
-        for (uint32_t x = maxX; x < buffer.BufferWi; ++x) {
-            buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), c);
-        }
-    }
-
-    for (uint32_t x = 0; x < maxX; ++x) {
-
-        // this foces the wave to zero near the ends
-        double maxY = perString;
-        if (x < WAVE_RAMP) {
-            maxY *= ((double)x * 1.0 / WAVE_RAMP);
-        } else if (x >= maxX - WAVE_RAMP) {
-            maxY *= (WAVE_RAMP - (double)(maxX - x - 1)) * 1.0 / WAVE_RAMP;
-        }
-
-        uint32_t y = (maxY / 2.0) * sin((PI * 2.0 * cycles * (double)x) / maxX + timePos * 2) + perString / 2.0 + perString * string;
-        buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
-    }
-}
-
-void GuitarEffect::DrawGuitarWaveFade(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint32_t of, uint8_t maxFrets, uint8_t strings, bool showStrings)
+void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint32_t of, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse)
 {
     xlColor c;
     buffer.palette.GetColor(string, c);
@@ -692,7 +709,8 @@ void GuitarEffect::DrawGuitarWaveFade(RenderBuffer& buffer, uint8_t string, uint
     xlColor cc = c;
 
     float alpha = (float)(of - timePos) / (float)of;
-    c.alpha = 255.0 * alpha;
+    if (fade)
+        c.alpha = 255.0 * alpha;
 
     uint32_t cycles = (((maxFrets - fretPos) * buffer.BufferWi) / maxFrets) / 10;
     double perString = (float)buffer.BufferHt / strings;
@@ -707,45 +725,15 @@ void GuitarEffect::DrawGuitarWaveFade(RenderBuffer& buffer, uint8_t string, uint
     for (uint32_t x = 0; x < maxX; ++x) {
 
         // this foces the wave to zero near the ends
-        double maxY = perString * alpha;
+        double maxY = perString;
+
+        if (collapse)
+            maxY *= alpha;
+
         if (x < WAVE_RAMP) {
             maxY *= ((double)x * 1.0 / WAVE_RAMP);
         } else if (x >= maxX - WAVE_RAMP) {
-            maxY *= (WAVE_RAMP - (double)(maxX - x - 1.0)) * 1.0 / WAVE_RAMP;
-        }
-
-        uint32_t y = (maxY / 2.0) * sin((PI * 2.0 * cycles * (double)x) / maxX + timePos * 2) + perString / 2.0 + perString * string;
-        buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
-    }
-}
-
-void GuitarEffect::DrawGuitarWaveCollapse(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint32_t of, uint8_t maxFrets, uint8_t strings, bool showStrings)
-{
-    xlColor c;
-    buffer.palette.GetColor(string, c);
-
-    float alpha = (float)(of - timePos) / (float)of;
-
-    uint32_t cycles = (((maxFrets - fretPos) * buffer.BufferWi) / maxFrets) / 10;
-    double perString = (float)buffer.BufferHt / strings;
-    double maxX = ((maxFrets - fretPos) * buffer.BufferWi) / maxFrets;
-
-    if (showStrings) {
-        for (uint32_t x = maxX; x < buffer.BufferWi; ++x) {
-            buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), c);
-        }
-    }
-
-    for (uint32_t x = 0; x < maxX; ++x) {
-
-        // this foces the wave to zero near the ends
-        double maxY = perString * alpha;
-        if (x < WAVE_RAMP)
-        {
-            maxY *= ((double)x * 1.0 / WAVE_RAMP);
-        } else if (x >= maxX - WAVE_RAMP)
-        {
-            maxY *= (WAVE_RAMP - (double)(maxX - x - 1.0)) * 1.0 / WAVE_RAMP;
+            maxY *= (WAVE_RAMP - (double)(maxX - x - 1)) * 1.0 / WAVE_RAMP;
         }
 
         uint32_t y = (maxY / 2.0) * sin((PI * 2.0 * cycles * (double)x) / maxX + timePos * 2) + perString / 2.0 + perString * string;
@@ -764,7 +752,7 @@ void GuitarEffect::DrawString(RenderBuffer& buffer, uint8_t string, uint8_t stri
     }
 }
 
-void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const std::string& stringAppearance, uint8_t maxFrets, uint8_t strings, bool showStrings)
+void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const std::string& stringAppearance, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse)
 {
     if (pdata != nullptr) {
         uint32_t pos = (buffer.curPeriod * buffer.frameTimeInMs - pdata->_startMS) / buffer.frameTimeInMs;
@@ -772,23 +760,11 @@ void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const s
 
         if (stringAppearance == "On") {
             for (const auto& it : pdata->_fingerPos) {
-                DrawGuitarOn(buffer, it.first, it.second, maxFrets, strings, showStrings);
-            }
-        } else if (stringAppearance == "Flash and fade") {
-            for (const auto& it : pdata->_fingerPos) {
-                DrawGuitarFlashFade(buffer, it.first, it.second, pos, len, maxFrets, strings, showStrings);
+                DrawGuitarOn(buffer, it.first, it.second, pos, len, maxFrets, strings, showStrings, fade, collapse);
             }
         } else if (stringAppearance == "Wave") {
             for (const auto& it : pdata->_fingerPos) {
-                DrawGuitarWave(buffer, it.first, it.second, pos, maxFrets, strings, showStrings);
-            }
-        } else if (stringAppearance == "Wave Fade") {
-            for (const auto& it : pdata->_fingerPos) {
-                DrawGuitarWaveFade(buffer, it.first, it.second, pos, len, maxFrets, strings, showStrings);
-            }
-        } else {
-            for (const auto& it : pdata->_fingerPos) {
-                DrawGuitarWaveCollapse(buffer, it.first, it.second, pos, len, maxFrets, strings, showStrings);
+                DrawGuitarWave(buffer, it.first, it.second, pos, len, maxFrets, strings, showStrings, fade, collapse);
             }
         }
     }

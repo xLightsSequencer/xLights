@@ -40,6 +40,8 @@ const long GuitarPanel::ID_CHOICE_StringAppearance = wxNewId();
 const long GuitarPanel::ID_STATICTEXT_Piano_Scale = wxNewId();
 const long GuitarPanel::ID_SLIDER_MaxFrets = wxNewId();
 const long GuitarPanel::IDD_TEXTCTRL_MaxFrets = wxNewId();
+const long GuitarPanel::ID_CHECKBOX_Fade = wxNewId();
+const long GuitarPanel::ID_CHECKBOX_Collapse = wxNewId();
 const long GuitarPanel::ID_CHECKBOX_ShowStrings = wxNewId();
 //*)
 
@@ -67,45 +69,51 @@ GuitarPanel::GuitarPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Guitar_Type->Append(_("Bass Guitar"));
 	Choice_Guitar_Type->Append(_("Banjo"));
 	FlexGridSizer27->Add(Choice_Guitar_Type, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer27->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer27->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT_Guitar_MIDITrack_APPLYLAST, _("Track"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Guitar_MIDITrack_APPLYLAST"));
 	FlexGridSizer27->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Guitar_MIDITrack_APPLYLAST = new BulkEditChoice(this, ID_CHOICE_Guitar_MIDITrack_APPLYLAST, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Guitar_MIDITrack_APPLYLAST"));
 	FlexGridSizer27->Add(Choice_Guitar_MIDITrack_APPLYLAST, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer27->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer27->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT1, _("String Appearance"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer27->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_StringAppearance = new wxChoice(this, ID_CHOICE_StringAppearance, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_StringAppearance"));
 	Choice_StringAppearance->SetSelection( Choice_StringAppearance->Append(_("On")) );
-	Choice_StringAppearance->Append(_("Flash and fade"));
 	Choice_StringAppearance->Append(_("Wave"));
-	FlexGridSizer27->Add(Choice_StringAppearance, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer27->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer27->Add(Choice_StringAppearance, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer27->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT_Piano_Scale, _("Fret Count"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Piano_Scale"));
 	FlexGridSizer27->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_MaxFrets = new BulkEditSlider(this, ID_SLIDER_MaxFrets, 19, 12, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MaxFrets"));
 	FlexGridSizer27->Add(Slider_MaxFrets, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_MaxFrets = new BulkEditTextCtrl(this, IDD_TEXTCTRL_MaxFrets, _("19"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_MaxFrets"));
-	FlexGridSizer27->Add(TextCtrl_MaxFrets, 1, wxALL, 2);
+	FlexGridSizer27->Add(TextCtrl_MaxFrets, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer27->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Fade = new BulkEditCheckBox(this, ID_CHECKBOX_Fade, _("Fade"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Fade"));
+	CheckBox_Fade->SetValue(false);
+	FlexGridSizer27->Add(CheckBox_Fade, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer27->Add(0,0,1, wxALL|wxEXPAND, 5);
+	FlexGridSizer27->Add(0,0,1, wxALL|wxEXPAND, 5);
+	CheckBox_Collapse = new BulkEditCheckBox(this, ID_CHECKBOX_Collapse, _("Collapse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Collapse"));
+	CheckBox_Collapse->SetValue(false);
+	FlexGridSizer27->Add(CheckBox_Collapse, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer27->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+	FlexGridSizer27->Add(0,0,1, wxALL|wxEXPAND, 5);
 	CheckBox_ShowStrings = new BulkEditCheckBox(this, ID_CHECKBOX_ShowStrings, _("Show Strings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ShowStrings"));
 	CheckBox_ShowStrings->SetValue(false);
-	FlexGridSizer27->Add(CheckBox_ShowStrings, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer27->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer27->Add(CheckBox_ShowStrings, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer27->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	FlexGridSizer42->Add(FlexGridSizer27, 0, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
 	FlexGridSizer42->Fit(this);
 	FlexGridSizer42->SetSizeHints(this);
 	//*)
 
-    Choice_StringAppearance->Append(_("Wave Fade"));
-    Choice_StringAppearance->Append(_("Wave Collapse"));
-
     SetName("ID_PANEL_Guitar");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&GuitarPanel::OnVCChanged, nullptr, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&GuitarPanel::OnValidateWindow, 0, this);
-    
+
 	ValidateWindow();
 }
 
@@ -117,12 +125,9 @@ GuitarPanel::~GuitarPanel()
 
 void GuitarPanel::ValidateWindow()
 {
-    if (Choice_Guitar_MIDITrack_APPLYLAST->GetCount() > 0)
-    {
+    if (Choice_Guitar_MIDITrack_APPLYLAST->GetCount() > 0) {
         Choice_Guitar_MIDITrack_APPLYLAST->Enable(true);
-    }
-    else
-    {
+    } else {
         Choice_Guitar_MIDITrack_APPLYLAST->Enable(false);
     }
 }
@@ -190,5 +195,10 @@ void GuitarPanel::SetTimingTracks(wxCommandEvent& event)
             Choice_Guitar_MIDITrack_APPLYLAST->SetSelection(0);
         }
     }
+    ValidateWindow();
+}
+
+void GuitarPanel::OnChoice_StringAppearanceSelect(wxCommandEvent& event)
+{
     ValidateWindow();
 }
