@@ -62,7 +62,7 @@
             <SupportsInputOnlyUpload/>
             <SupportsAutoUpload/>
             <MaxInputUniverses>12</MaxInputUniverses>
-            <MaxPixelPort>6</MaxPixelPort>
+            <MaxPixelPort>8</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
             <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>3072</MaxPixelPortChannels>
