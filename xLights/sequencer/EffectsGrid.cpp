@@ -378,7 +378,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         }
 
         wxMenuItem* menu_duplicate = mnuLayer.Append(ID_GRID_MNU_DUPLICATE_EFFECT, "Duplicate");
-        if (mSelectedEffect == nullptr || (mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS() <= mSequenceElements->GetFrameMS())) {
+        if (mSelectedEffect == nullptr ) {
             menu_duplicate->Enable(false);
         }
 
@@ -6746,23 +6746,53 @@ void EffectsGrid::DuplicateSelectedEffects()
     DuplicateDialog dialog(mParent);
 
     if (dialog.ShowModal() == wxID_OK) {
-         if (mSelectedEffect != nullptr) {
-            long start = mSelectedEffect->GetStartTimeMS();
-            long end = mSelectedEffect->GetEndTimeMS();
-            long length = end - start;
+        if (mSelectedEffect != nullptr) {
+            bool paste_by_cell = ((MainSequencer*)mParent)->PasteByCellActive();
 
-            auto el = mSelectedEffect->GetParentEffectLayer();
-            long newstart = end;
-            for (int i = 0; i < dialog.GetCount(); ++i) {
-                newstart += (dialog.GetGap() * length);
-                newstart = mTimeline->RoundToMultipleOfPeriod(newstart, mSequenceElements->GetFrequency());
-                long newEnd = mTimeline->RoundToMultipleOfPeriod(newstart + length, mSequenceElements->GetFrequency());
-                if (!el->HasEffectsInTimeRange(newstart, newEnd)) {
-                    Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newEnd, EFFECT_SELECTED, false);
-                    mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
-                }                
-                newstart = newEnd;
-            }            
+            EffectLayer* tel{nullptr};
+            if (paste_by_cell) {
+                tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+                if (tel == nullptr) {
+                    return;
+                }
+                long startCol = tel->GetEffectByTime(mSelectedEffect->GetStartTimeMS())->GetID() + 2;
+                if (mSelectedEffect->GetStartTimeMS() == 0) {//first timing mark in the zero column, and second timing mark has start column of 0 too
+                    startCol--;
+                }
+                auto el = mSelectedEffect->GetParentEffectLayer();
+                mSelectedEffect->GetEffectIndex();
+                for (int i = 0; i < dialog.GetCount(); ++i) {
+                    startCol += dialog.GetGap();
+                    Effect* eff = tel->GetEffect(startCol);
+                    if (nullptr != eff) {
+                        long newstart = mTimeline->RoundToMultipleOfPeriod(eff->GetStartTimeMS(), mSequenceElements->GetFrequency());
+                        long newEnd = mTimeline->RoundToMultipleOfPeriod(eff->GetEndTimeMS(), mSequenceElements->GetFrequency());
+                        if (!el->HasEffectsInTimeRange(newstart, newEnd)) {
+                            Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newEnd, EFFECT_SELECTED, false);
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
+                        }
+                    }
+                    startCol++;
+                }
+            }
+            else {
+                long start = mSelectedEffect->GetStartTimeMS();
+                long end = mSelectedEffect->GetEndTimeMS();
+                long length = end - start;
+
+                auto el = mSelectedEffect->GetParentEffectLayer();
+                long newstart = end;
+                for (int i = 0; i < dialog.GetCount(); ++i) {
+                    newstart += (dialog.GetGap() * length);
+                    newstart = mTimeline->RoundToMultipleOfPeriod(newstart, mSequenceElements->GetFrequency());
+                    long newEnd = mTimeline->RoundToMultipleOfPeriod(newstart + length, mSequenceElements->GetFrequency());
+                    if (!el->HasEffectsInTimeRange(newstart, newEnd)) {
+                        Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newEnd, EFFECT_SELECTED, false);
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
+                    }
+                    newstart = newEnd;
+                }
+            }
         }
     }
 }
