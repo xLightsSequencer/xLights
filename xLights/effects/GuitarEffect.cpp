@@ -658,6 +658,9 @@ void GuitarEffect::SetDefaultParameters() {
     SetChoiceValue(pp->Choice_Guitar_Type, "Guitar");
     SetChoiceValue(pp->Choice_StringAppearance, "On");
     SetSliderValue(pp->Slider_MaxFrets, 19);
+    SetCheckBoxValue(pp->CheckBox_Collapse, false);
+    SetCheckBoxValue(pp->CheckBox_Fade, false);
+    SetCheckBoxValue(pp->CheckBox_ShowStrings, false);
     SetPanelTimingTracks();
 }
 
