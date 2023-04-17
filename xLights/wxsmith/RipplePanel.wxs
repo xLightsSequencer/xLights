@@ -112,7 +112,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_SVG" subclass="BulkEditFilePickerCtrl" variable="FilePickerCtrl_SVG" member="yes">
+				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_RIPPLE_SVG" subclass="BulkEditFilePickerCtrl" variable="FilePickerCtrl_Ripple_SVG" member="yes">
 					<message>Choose a SIMPLE svg file</message>
 					<wildcard>*.svg</wildcard>
 				</object>

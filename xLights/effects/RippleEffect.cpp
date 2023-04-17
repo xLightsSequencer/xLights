@@ -93,7 +93,7 @@ void RippleEffect::SetDefaultParameters()
     SetSliderValue(rp->Slider_Ripple_Spacing, 10);
     SetSliderValue(rp->Slider_Ripple_Outline, 10);
 
-    rp->FilePickerCtrl_SVG->SetFileName(wxFileName(""));
+    rp->FilePickerCtrl_Ripple_SVG->SetFileName(wxFileName(""));
 
     SetCheckBoxValue(rp->CheckBox_Ripple3D, false);
     SetChoiceValue(rp->Choice_Ripple_Draw_Style, "Old");
