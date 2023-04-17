@@ -394,6 +394,11 @@ void TimeLine::SetSelectedPositionStart(int pos, bool reset_end)
     }
     mZoomMarkerMS = mSelectedPlayMarkerStartMS;
     Refresh(false);
+
+    mCurrentPlayMarker = mSelectedPlayMarkerStartMS;
+
+    // This draws the new start time
+    RaiseChangeTimeline();
 }
 
 void TimeLine::SetSelectedPositionStartMS(int time)
