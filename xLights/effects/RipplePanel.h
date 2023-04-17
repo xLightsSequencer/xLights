@@ -110,7 +110,7 @@ class RipplePanel: public xlEffectPanel
 		static const long ID_STATICTEXT_Ripple_Object_To_Draw;
 		static const long ID_CHOICE_Ripple_Object_To_Draw;
 		static const long ID_BITMAPBUTTON_CHOICE_Ripple_Object_To_Draw;
-		static const long ID_FILEPICKERCTRL_RIPPLE_SVG;
+		static const long ID_FILEPICKERCTRL_Ripple_SVG;
 		static const long ID_STATICTEXT_Ripple_Movement;
 		static const long ID_CHOICE_Ripple_Movement;
 		static const long ID_BITMAPBUTTON_CHOICE_Ripple_Movement;
