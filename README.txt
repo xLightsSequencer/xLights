@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- end (gil).    Fix group center (red cross) to stayed locked in place when models are added/removed/moved from the group.
+                    Any changes to the offset values causes a full recalculation so the cross may jump if the group has changed.
 2023.06 April 10, 2023
    -- enh (keith)   Add Guitar effect
    -- enh (scott)   Add JSON endpoints getModel, getControllerPortMap, getShowFolder

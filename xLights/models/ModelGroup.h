@@ -75,6 +75,13 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 
         bool CheckForChanges() const;
 
+        float GetCentreX() const { return centrex; }
+        float GetCentreY() const { return centrey; }
+        bool GetCentreDefined() const { return centreDefined; }
+        void SetCentreX( float cx );
+        void SetCentreY( float cy );
+        void SetCentreDefined( bool defined );
+
     protected:
         static std::vector<std::string> GROUP_BUFFER_STYLES;
 
@@ -85,5 +92,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         std::vector<Model *> activeModels;
         bool selected;
         std::string defaultBufferStyle;
+        bool centreDefined = false;
+        float centrex;
+        float centrey;
 };
 
