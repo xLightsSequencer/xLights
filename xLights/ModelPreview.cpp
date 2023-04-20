@@ -627,20 +627,12 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
 
     auto mg = GetSelectedModelGroup();
     if (minx != 999999 && !Is3D() && mg != nullptr && xlights->AllModels.IsModelValid(mg)) {
-        if( !mg->GetCentreDefined() ) {
-            int offx = 0;
-            int offy = 0;
-            offx = mg->GetXCentreOffset();
-            offy = mg->GetYCentreOffset();
-            float cx = (minx + maxx) / 2.0 + (offx * (maxx - minx)) / 2000.0;
-            float cy = (miny + maxy) / 2.0 + (offy * (maxy - miny)) / 2000.0;
-            DrawGroupCentre(cx, cy);
-            mg->SetCentreX( cx );
-            mg->SetCentreY( cy );
-            mg->SetCentreDefined( true );
-        } else {
-            DrawGroupCentre( mg->GetCentreX(), mg->GetCentreY());
-        }
+        int offx = 0;
+        int offy = 0;
+        offx = mg->GetXCentreOffset();
+        offy = mg->GetYCentreOffset();
+
+        DrawGroupCentre((minx + maxx) / 2.0 + (offx * (maxx - minx)) / 2000.0, (miny + maxy) / 2.0 + (offy * (maxy - miny)) / 2000.0);
     }
 }
 

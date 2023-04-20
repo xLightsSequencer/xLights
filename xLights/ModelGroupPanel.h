@@ -179,7 +179,7 @@ private:
 	int GetSelectedModelCount();
 	void OnPopup(wxCommandEvent& event);
 
-	void SaveGroupChanges(bool updateCentre = false);
+	void SaveGroupChanges();
 	void AddSelectedModels(int index);
 	void RemoveSelectedModels();
 	void MoveSelectedModelsTo(int indexTo);

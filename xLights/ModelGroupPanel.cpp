@@ -691,7 +691,7 @@ void ModelGroupPanel::OnButtonDownClick(wxCommandEvent& event)
     MoveSelectedModelsTo(unselected);
 }
 
-void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
+void ModelGroupPanel::SaveGroupChanges()
 {
     ModelGroup *g = (ModelGroup*)mModels[mGroup];
 
@@ -700,10 +700,6 @@ void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
     mModels.GetXLightsFrame()->AbortRender();
 
     wxXmlNode *e = g->GetModelXml();
-
-    if (centreUpdate) {
-        e->DeleteAttribute("centreDefined");
-    }
 
     wxString ModelsInGroup = "";
     for (int i = 0; i < ListBoxModelsInGroup->GetItemCount(); i++) {
@@ -1211,12 +1207,12 @@ void ModelGroupPanel::OnListBoxAddToModelGroupItemDeselect(wxListEvent& event)
 
 void ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange(wxSpinEvent& event)
 {
-    SaveGroupChanges(true);
+    SaveGroupChanges();
 }
 
 void ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange(wxSpinEvent& event)
 {
-    SaveGroupChanges(true);
+    SaveGroupChanges();
 }
 
 void ModelGroupPanel::OnListBoxModelsInGroupItemRClick(wxListEvent& event)
