@@ -165,3 +165,6 @@ void DumpBinary(uint8_t* buffer, size_t read);
 wxColor CyanOrBlue();
 wxColor LightOrMediumGrey();
 bool IsFloat(const std::string& number);
+bool IsDarkMode();
+void SetSuppressDarkMode(bool suppress);
+bool IsSuppressDarkMode();

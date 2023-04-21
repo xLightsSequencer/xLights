@@ -145,7 +145,7 @@ void SetColours(bool printing)
     __modelOutlineLastDroppedPen.SetColour(__magenta);
     __modelOutlineLastDroppedPen.SetWidth(3);
 
-    if (!printing && wxSystemSettings::GetAppearance().IsDark()) {
+    if (!printing && IsDarkMode()) {
         __modelOutlinePen.SetColour(__grey);
         __dropTargetBrush.SetColour(*wxBLUE);
         __dropTargetPen.SetColour(*wxBLUE);

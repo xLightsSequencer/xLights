@@ -12,6 +12,7 @@
 
 //(*Headers(ColorManagerSettingsPanel)
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 //*)
@@ -31,6 +32,7 @@ class ColorManagerSettingsPanel: public wxPanel
 		wxButton* ButtonExport;
 		wxButton* ButtonImport;
 		wxButton* Button_Reset;
+		wxCheckBox* CheckBox_SuppressDarkMode;
 		wxFlexGridSizer* Sizer_Effect_Grid;
 		wxFlexGridSizer* Sizer_Layout_Tab;
 		wxFlexGridSizer* Sizer_Timing_Tracks;
@@ -42,6 +44,7 @@ class ColorManagerSettingsPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(ColorManagerSettingsPanel)
+		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON_IMPORT;
 		static const long ID_BUTTON_EXPORT;
 		static const long ID_BUTTON_RESET;
@@ -60,7 +63,8 @@ class ColorManagerSettingsPanel: public wxPanel
 		void OnButtonImportClick(wxCommandEvent& event);
 		void OnButtonExportClick(wxCommandEvent& event);
 		void OnButton_ResetClick(wxCommandEvent& event);
-        void ColorButtonSelected(wxCommandEvent& event);
+		void ColorButtonSelected(wxCommandEvent& event);
+		void OnCheckBox_SuppressDarkModeClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -1779,7 +1779,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 #ifndef NDEBUG
     logger_base.debug("xLights Crash Menu item not removed.");
 #ifdef _MSC_VER
-    if (wxSystemSettings::GetAppearance().IsDark()) {
+    if (IsDarkMode()) {
         Notebook1->SetBackgroundColour(wxColour(0x006000));
     } else {
         Notebook1->SetBackgroundColour(*wxGREEN);

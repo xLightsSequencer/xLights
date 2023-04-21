@@ -1415,7 +1415,7 @@ void RowHeading::render( wxPaintEvent& event )
     dc.GetSize(&w,&h);
     xlColor rowHeaderCol = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER);
     xlColor outlineCol(32, 32, 32);
-    bool isDark = wxSystemSettings::GetAppearance().IsDark();
+    bool isDark = IsDarkMode();
     if (isDark) {
         outlineCol.Set(55, 55, 55);
     }

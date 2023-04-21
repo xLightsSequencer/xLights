@@ -1014,7 +1014,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
                 auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
                 p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
                 if (modelsOnUniverse != "") {
-                    if (wxSystemSettings::GetAppearance().IsDark()) {
+                    if (IsDarkMode()) {
                         p->SetBackgroundColour(wxColour(104, 128, 79));
                     } else {
                         p->SetBackgroundColour(wxColour(208, 255, 158));

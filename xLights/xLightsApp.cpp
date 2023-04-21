@@ -442,7 +442,9 @@ bool xLightsApp::OnInit()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: XLights started.");
 #ifdef __WXMSW__
-    MSWEnableDarkMode();
+    if (!IsSuppressDarkMode()) {
+        MSWEnableDarkMode();
+    }
 #endif
 #if wxUSE_GLCANVAS_EGL
     // this is only needed if using the EGL canvas as it's necessary to initialize the

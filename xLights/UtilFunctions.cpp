@@ -1430,7 +1430,7 @@ void DumpBinary(uint8_t* buffer, size_t sz)
 
 wxColor CyanOrBlue()
 {
-    if (wxSystemSettings::GetAppearance().IsDark()) {
+    if (IsDarkMode()) {
         // In Dark Mode blue is hard to read
         return *wxCYAN;
     } else {
@@ -1439,7 +1439,7 @@ wxColor CyanOrBlue()
 }
 wxColor LightOrMediumGrey()
 {
-    if (wxSystemSettings::GetAppearance().IsDark()) {
+    if (IsDarkMode()) {
         static const wxColor medGray(128, 128, 128);
         return medGray;
     } else {
@@ -1684,4 +1684,30 @@ bool IsFloat(const std::string& number)
             return false;
     }
     return true;
+}
+
+#ifdef __WXMSW__
+bool IsSuppressDarkMode()
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    return config->ReadBool("SuppressDarkMode", false);
+}
+
+void SetSuppressDarkMode(bool suppress)
+{
+    if (IsSuppressDarkMode() != suppress) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write("SuppressDarkMode", suppress);
+        wxMessageBox("Restart xLights to enable/disable dark mode properly.");
+    }
+}
+#endif
+
+bool IsDarkMode()
+{
+    return wxSystemSettings::GetAppearance().IsDark() 
+#ifdef __WXMSW__
+        && !IsSuppressDarkMode()
+#endif
+        ;
 }
