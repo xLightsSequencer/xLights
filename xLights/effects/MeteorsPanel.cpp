@@ -53,6 +53,9 @@ const long MeteorsPanel::ID_STATICTEXT_Meteors_Speed = wxNewId();
 const long MeteorsPanel::ID_SLIDER_Meteors_Speed = wxNewId();
 const long MeteorsPanel::ID_VALUECURVE_Meteors_Speed = wxNewId();
 const long MeteorsPanel::IDD_TEXTCTRL_Meteors_Speed = wxNewId();
+const long MeteorsPanel::ID_STATICTEXT1 = wxNewId();
+const long MeteorsPanel::ID_SLIDER_Meteors_WamupFrames = wxNewId();
+const long MeteorsPanel::IDD_TEXTCTRL_Meteors_WamupFrames = wxNewId();
 const long MeteorsPanel::ID_STATICTEXT_Meteors_XOffset = wxNewId();
 const long MeteorsPanel::IDD_SLIDER_Meteors_XOffset = wxNewId();
 const long MeteorsPanel::ID_VALUECURVE_Meteors_XOffset = wxNewId();
@@ -81,6 +84,7 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BulkEditTextCtrl* TextCtrl50;
 	BulkEditTextCtrl* TextCtrl51;
 	BulkEditTextCtrl* TextCtrl52;
+	BulkEditTextCtrl* TextCtrl_WarmupFrames;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -165,7 +169,7 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_MeteorsSwirlIntensity->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer41->Add(BitmapButton_MeteorsSwirlIntensity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT_Meteors_Speed, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Meteors_Speed"));
-	FlexGridSizer41->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer41->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
 	Slider_Meteors_Speed = new BulkEditSlider(this, ID_SLIDER_Meteors_Speed, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Meteors_Speed"));
@@ -177,8 +181,16 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl52->SetMaxLength(3);
 	FlexGridSizer41->Add(TextCtrl52, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText3 = new wxStaticText(this, ID_STATICTEXT1, _("Warm up frames"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer41->Add(StaticText3, 1, wxALL|wxEXPAND, 2);
+	Slider_WarmupFrames = new BulkEditSlider(this, ID_SLIDER_Meteors_WamupFrames, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Meteors_WamupFrames"));
+	FlexGridSizer41->Add(Slider_WarmupFrames, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_WarmupFrames = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Meteors_WamupFrames, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Meteors_WamupFrames"));
+	TextCtrl_WarmupFrames->SetMaxLength(3);
+	FlexGridSizer41->Add(TextCtrl_WarmupFrames, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer41->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Meteors_XOffset, _("Horizontal Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Meteors_XOffset"));
-	FlexGridSizer41->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer41->Add(StaticText1, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer5->AddGrowableCol(0);
 	Slider_Meteors_XOffset = new BulkEditSlider(this, IDD_SLIDER_Meteors_XOffset, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Meteors_XOffset"));
@@ -224,6 +236,8 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_FadeWithDistance->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer41->Add(BitmapButton_FadeWithDistance, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	SetSizer(FlexGridSizer41);
+	FlexGridSizer41->Fit(this);
+	FlexGridSizer41->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_CHOICE_Meteors_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
 	Connect(ID_CHOICE_Meteors_Effect,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&MeteorsPanel::OnChoice_Meteors_EffectSelect);
