@@ -13,6 +13,7 @@
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
+#include <wx/filepicker.h>
 #include <wx/image.h>
 #include <wx/intl.h>
 #include <wx/settings.h>
@@ -56,6 +57,8 @@ const long VUMeterPanel::ID_STATICTEXT_VUMeter_Shape = wxNewId();
 const long VUMeterPanel::ID_CHOICE_VUMeter_Shape = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT8 = wxNewId();
 const long VUMeterPanel::ID_BITMAPBUTTON_CHOICE_VUMeter_Shape = wxNewId();
+const long VUMeterPanel::ID_STATICTEXT3 = wxNewId();
+const long VUMeterPanel::ID_FILEPICKERCTRL_SVGFile = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT9 = wxNewId();
 const long VUMeterPanel::ID_CHECKBOX_VUMeter_SlowDownFalls = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT10 = wxNewId();
@@ -139,7 +142,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Regex = new wxCheckBox(this, ID_CHECKBOX_Regex, _("Regex"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Regex"));
 	CheckBox_Regex->SetValue(false);
 	FlexGridSizer31->Add(CheckBox_Regex, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer31->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT_VUMeter_Sensitivity, _("Sensitivity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_Sensitivity"));
 	FlexGridSizer31->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3 = new wxFlexGridSizer(2, 3, 0, 0);
@@ -163,7 +166,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer31->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_Gain = new BulkEditTextCtrl(this, ID_TEXTCTRL_VUMeter_Gain, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_VUMeter_Gain"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_Gain, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT_VUMeter_Shape, _("Shape"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_Shape"));
 	FlexGridSizer31->Add(StaticText7, 1, wxALL, 2);
 	Choice_VUMeter_Shape = new BulkEditChoice(this, ID_CHOICE_VUMeter_Shape, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VUMeter_Shape"));
@@ -185,12 +188,19 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_VUMeter_Shape->Append(_("Snowflake"));
 	Choice_VUMeter_Shape->Append(_("Heart"));
 	Choice_VUMeter_Shape->Append(_("Filled Heart"));
+	Choice_VUMeter_Shape->Append(_("SVG"));
 	FlexGridSizer31->Add(Choice_VUMeter_Shape, 1, wxALL|wxEXPAND, 2);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer31->Add(StaticText8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_VUMeter_Shape = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_VUMeter_Shape, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_VUMeter_Shape"));
 	BitmapButton_VUMeter_Shape->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_Shape, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText17 = new wxStaticText(this, ID_STATICTEXT3, _("SVG File"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer31->Add(StaticText17, 1, wxALL|wxEXPAND, 2);
+	FilePickerCtrl_SVGFile = new BulkEditFilePickerCtrl(this, ID_FILEPICKERCTRL_SVGFile, wxEmptyString, _("Select a file"), _T("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_SVGFile"));
+	FlexGridSizer31->Add(FilePickerCtrl_SVGFile, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31->Add(0,0,1, wxALL|wxEXPAND, 5);
+	FlexGridSizer31->Add(0,0,1, wxALL|wxEXPAND, 5);
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer31->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_VUMeter_SlowDownFalls = new BulkEditCheckBox(this, ID_CHECKBOX_VUMeter_SlowDownFalls, _("Slow Down Falls"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_VUMeter_SlowDownFalls"));
@@ -219,12 +229,12 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_VUMeter_EndNote = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote"));
 	BitmapButton_VUMeter_EndNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	CheckBox_LogarithmicXAxis = new BulkEditCheckBox(this, ID_CHECKBOX_VUMeter_LogarithmicX, _("Logarithmic X axis"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_VUMeter_LogarithmicX"));
 	CheckBox_LogarithmicXAxis->SetValue(false);
 	FlexGridSizer31->Add(CheckBox_LogarithmicXAxis, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	StaticText13 = new wxStaticText(this, ID_STATICTEXT_VUMeter_XOffset, _("Horizontal Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_XOffset"));
 	FlexGridSizer31->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -488,9 +498,19 @@ void VUMeterPanel::ValidateWindow()
             Slider_VUMeter_Bars->Disable();
             TextCtrl_VUMeter_Bars->Disable();
         }
+
+        if (shape == "SVG")
+        {
+            FilePickerCtrl_SVGFile->Enable();
+        }
+        else
+        {
+            FilePickerCtrl_SVGFile->Disable();
+        }
     }
     else
     {
+        FilePickerCtrl_SVGFile->Disable();
         Choice_VUMeter_Shape->Disable();
 
         if (type == "On" ||

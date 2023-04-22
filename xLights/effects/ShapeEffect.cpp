@@ -288,6 +288,11 @@ public:
 
     void InitialiseSVG(const std::string filename)
     {
+        if (_svgImage != nullptr) {
+            nsvgDelete(_svgImage);
+            _svgImage = nullptr;
+        }
+
         _svgFilename = filename;
         _svgImage = nsvgParseFromFile(_svgFilename.c_str(), "px", 96);
         if (_svgImage != nullptr) {
@@ -1189,37 +1194,37 @@ void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius,
     context->SetOverlayMode(false);
 }
 
-inline wxPoint2DDouble ScaleMovePoint(const wxPoint2DDouble pt, const wxPoint2DDouble imageCentre, const wxPoint2DDouble centre, float factor, float scaleTo)
+static inline wxPoint2DDouble ScaleMovePoint(const wxPoint2DDouble pt, const wxPoint2DDouble imageCentre, const wxPoint2DDouble centre, float factor, float scaleTo)
 {
     return centre + ((pt - imageCentre) * factor * scaleTo * 10);
 }
 
-inline uint8_t GetSVGRed(uint32_t colour)
+static inline uint8_t GetSVGRed(uint32_t colour)
 {
     return (colour);
 }
 
-inline uint8_t GetSVGGreen(uint32_t colour)
+static inline uint8_t GetSVGGreen(uint32_t colour)
 {
     return (colour >> 8);
 }
 
-inline uint8_t GetSVGBlue(uint32_t colour)
+static inline uint8_t GetSVGBlue(uint32_t colour)
 {
     return (colour >> 16);
 }
 
-inline uint8_t GetSVGAlpha(uint32_t colour)
+static inline uint8_t GetSVGAlpha(uint32_t colour)
 {
     return (colour >> 24);
 }
 
-inline uint32_t GetSVGExAlpha(uint32_t colour)
+static inline uint32_t GetSVGExAlpha(uint32_t colour)
 {
     return (colour & 0xFFFFFF);
 }
 
-inline uint32_t GetSVGColour(xlColor c)
+static inline uint32_t GetSVGColour(xlColor c)
 {
     return (((uint32_t)c.alpha) << 24) +
            (((uint32_t)c.blue) << 16) +
