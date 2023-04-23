@@ -108,7 +108,7 @@ void AssistPanel::RefreshEffect() {
         mModel->GetBufferSize(mEffect->GetSettings().Get("B_CHOICE_BufferStyle", "Default"),
                               mEffect->GetSettings().Get("B_CHOICE_PerPreviewCamera", "2D"),
                               mEffect->GetSettings().Get("B_CHOICE_BufferTransform", "None"),
-                              bw, bh);
+                              bw, bh, mEffect->GetSettings().GetInt("B_SPINCTRL_BufferStagger", 0));
         
         wxSize sz = GetSize();
         mGridCanvas->SetNumColumns(bw);

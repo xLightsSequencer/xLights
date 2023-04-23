@@ -292,7 +292,7 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
 }
 
 void SpinnerModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
-    int &BufferWi, int &BufferHi) const
+    int &BufferWi, int &BufferHi, int stagger) const
 {
     if (type == "Single Line") {
         BufferHi = 1;
@@ -300,7 +300,7 @@ void SpinnerModel::GetBufferSize(const std::string &type, const std::string &cam
         AdjustForTransform(transform, BufferWi, BufferHi);
     }
     else {
-        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
     }
 }
 
@@ -388,7 +388,7 @@ void SpinnerModel::InitModel() {
 }
 
 void SpinnerModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-    std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, bool deep) const {
+    std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, int stagger, bool deep) const {
     if (type == "Single Line") {
         BufferHi = 1;
         BufferWi = GetNodeCount();
@@ -426,7 +426,7 @@ void SpinnerModel::InitRenderBufferNodes(const std::string &type, const std::str
         ApplyTransform(transform, newNodes, BufferWi, BufferHi);
     }
     else {
-        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, stagger);
     }
 }
 

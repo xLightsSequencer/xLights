@@ -83,7 +83,7 @@ const std::vector<std::string> &StarModel::GetBufferStyles() const {
     return STAR_BUFFER_STYLES;
 }
 
-void StarModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi) const
+void StarModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
 {
     if (type == "Layer Star") {
         BufferHi = GetNumStrands();
@@ -102,14 +102,14 @@ void StarModel::GetBufferSize(const std::string& type, const std::string& camera
         AdjustForTransform(transform, BufferWi, BufferHi);
     }
     else {
-        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
     }
 }
 
 void StarModel::InitRenderBufferNodes(const std::string& type,
     const std::string& camera,
     const std::string& transform,
-    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, bool deep) const
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
 {
     if (type == "Layer Star") {
         BufferHi = GetNumStrands();
@@ -161,7 +161,7 @@ void StarModel::InitRenderBufferNodes(const std::string& type,
         // While the custom model may have a height and width if it is single channel then the render buffer really should be Nodes x 1
         // and all nodes should point to one cell.
         // Without this change effects like twinkle do really strange things
-        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, stagger);
         BufferHi = Nodes.size();
         BufferWi = 1;
         int x = 0;
@@ -175,7 +175,7 @@ void StarModel::InitRenderBufferNodes(const std::string& type,
         return;
     }
     else {
-        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, stagger);
     }
 }
 

@@ -19,6 +19,7 @@
  #include <wx/scrolwin.h>
  #include <wx/sizer.h>
  #include <wx/slider.h>
+ #include <wx/spinctrl.h>
  #include <wx/stattext.h>
  #include <wx/textctrl.h>
  //*)
@@ -207,12 +208,14 @@ public:
 		wxNotebook* Notebook1;
 		wxScrolledWindow* ScrolledWindow1;
 		wxScrolledWindow* ScrolledWindow2;
+		wxSpinCtrl* SpinCtrl_BufferStagger;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText12;
 		wxStaticText* StaticText13;
 		wxStaticText* StaticText14;
 		wxStaticText* StaticText15;
 		wxStaticText* StaticText16;
+		wxStaticText* StaticText17;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -234,6 +237,7 @@ public:
 
         SubBufferPanel *subBufferPanel = nullptr;
         std::string _defaultCamera = "2D";
+        bool _mg = false;
 
 	protected:
 
@@ -242,6 +246,8 @@ public:
 		static const long ID_STATICTEXT_BufferStyle;
 		static const long ID_CHOICE_BufferStyle;
 		static const long ID_BITMAPBUTTON_CHOICE_BufferStyle;
+		static const long ID_STATICTEXT3;
+		static const long ID_SPINCTRL_BufferStagger;
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE_PerPreviewCamera;
 		static const long ID_STATICTEXT_BufferTransform;

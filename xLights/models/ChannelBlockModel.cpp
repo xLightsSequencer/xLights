@@ -128,13 +128,13 @@ void ChannelBlockModel::AdjustChannelProperties(wxPropertyGridInterface *grid, i
     }
 }
 
-void ChannelBlockModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const {
+void ChannelBlockModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const {
     BufferHi = 1;
     BufferWi = GetNodeCount();
 }
 
 void ChannelBlockModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-                                        std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, bool deep) const {
+                                        std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, int stagger, bool deep) const {
     BufferHi = 1;
     BufferWi = GetNodeCount();
         

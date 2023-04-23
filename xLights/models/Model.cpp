@@ -3611,7 +3611,7 @@ const std::string &Model::NodeType(size_t nodenum) const {
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->GetNodeType(): NodeBaseClass::RGB; //avoid memory access error if no nods -DJ
 }
 
-void Model::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &bufferWi, int &bufferHi) const {
+void Model::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &bufferWi, int &bufferHi, int stagger) const {
     if (type == DEFAULT) {
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
@@ -3637,7 +3637,7 @@ void Model::GetBufferSize(const std::string &type, const std::string &camera, co
         //if (type == PER_PREVIEW) {
         //default is to go ahead and build the full node buffer
         std::vector<NodeBaseClassPtr> newNodes;
-        InitRenderBufferNodes(type, camera, "None", newNodes, bufferWi, bufferHi);
+        InitRenderBufferNodes(type, camera, "None", newNodes, bufferWi, bufferHi, stagger);
     }
     AdjustForTransform(transform, bufferWi, bufferHi);
 }
@@ -3773,7 +3773,7 @@ void Model::ApplyTransform(const std::string& type,
 
 void Model::InitRenderBufferNodes(const std::string &type, const std::string &camera,
     const std::string &transform,
-    std::vector<NodeBaseClassPtr>& newNodes, int& bufferWi, int& bufferHt, bool deep) const
+    std::vector<NodeBaseClassPtr>& newNodes, int& bufferWi, int& bufferHt, int stagger, bool deep) const
 {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -3942,7 +3942,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             }
             for (Model *c : models) {
                 int bw, bh;
-                c->InitRenderBufferNodes("Per Preview No Offset", camera, transform, newNodes, bw, bh);
+                c->InitRenderBufferNodes("Per Preview No Offset", camera, transform, newNodes, bw, bh, stagger);
             }
         }
 

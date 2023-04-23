@@ -26,9 +26,9 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, bool deep = false) const override;
+            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
-            int &BufferWi, int &BufferHi) const override;
+            int &BufferWi, int &BufferHi, int stagger) const override;
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
 

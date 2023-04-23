@@ -4535,7 +4535,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
             }
 
             int w, h;
-            model->GetBufferSize("Default", "2D", "None", w, h);
+            model->GetBufferSize("Default", "2D", "None", w, h, 0);
             write_worksheet_string(modelsheet, row, 0, model->name, format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 1, model->GetShadowModelFor(), format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 2, model->description, format, _model_col_widths);
@@ -4612,7 +4612,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
                 }
             }
             int w, h;
-            model->GetBufferSize("Default", "2D", "None", w, h);
+            model->GetBufferSize("Default", "2D", "None", w, h, 0);
 
             write_worksheet_string(groupsheet, row, 0, model->name, format, _group_col_widths);
             write_worksheet_string(groupsheet, row, 1, models, format, _group_col_widths);
@@ -5892,7 +5892,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                     std::vector<NodeBaseClassPtr> nodes;
                     int bufwi;
                     int bufhi;
-                    m->InitRenderBufferNodes("Default", "2D", "None", nodes, bufwi, bufhi);
+                    m->InitRenderBufferNodes("Default", "2D", "None", nodes, bufwi, bufhi, 0);
                     for (const auto& n : nodes) {
                         auto e = usedch.find(n->ActChan);
                         if (e != end(usedch)) {

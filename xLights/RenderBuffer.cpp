@@ -1581,7 +1581,7 @@ wxPoint RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
         }
     }
     
-    m->GetBufferSize(bufferstyle, camera, transform, w, h);
+    m->GetBufferSize(bufferstyle, camera, transform, w, h, SettingsMap.GetInt("B_SPINCTRL_BufferStagger", 0));
     float xScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
     float yScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
     return wxPoint(xScale * w, yScale * h);
