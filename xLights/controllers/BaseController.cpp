@@ -72,7 +72,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
     std::string driver = caps->GetConfigDriver();
     if (driver == "Falcon") {
         bc = new Falcon(ip, proxy);
-    } else if (driver == "Pixlite16") {
+    } else if (driver == "PixLite16") {
         bc = new Pixlite16(ip);
     } else if (driver == "ESPixelStick") {
         bc = new ESPixelStick(ip);
