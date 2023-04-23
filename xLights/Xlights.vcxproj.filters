@@ -2107,4 +2107,9 @@
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\documentation\xlDo Commands.txt">
+      <Filter>automation</Filter>
+    </Text>
+  </ItemGroup>
 </Project>

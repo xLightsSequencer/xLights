@@ -40,7 +40,13 @@ GET /saveSequence
     
 GET /batchRender
     seq_#=  # starts at 0 and increases, each sequence to render
-    
+   
+GET /cleanupFileLocations
+    cleans up file locations in layout and any open sequence. You must save both the sequence and the layout to ensure it isnt lost.
+
+GET /saveLayout
+    saves the layout and controller settings
+
 GET /uploadController
 GET /uploadFPPConfig
 GET /uploadSequence

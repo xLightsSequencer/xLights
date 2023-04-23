@@ -1743,8 +1743,8 @@ private:
     std::string CreateNotesLabel(const std::list<float>& notes) const;
     std::string CheckSequence(bool displayInEditor, bool writeToFile);
     void ValidateEffectAssets();
-    void CleanupRGBEffectsFileLocations();
-    void CleanupSequenceFileLocations();
+    bool CleanupRGBEffectsFileLocations();
+    bool CleanupSequenceFileLocations();
     void CheckElement(Element* e, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, std::list<std::string>& allfiles);
     void CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints);
     bool CheckStart(wxFile& f, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);

@@ -285,7 +285,7 @@ class LayoutPanel: public wxPanel
     public:
         bool IsNewModel(Model* m) const;
         void ClearUndo() { undoBuffer.clear(); }
-        void SaveEffects();
+        bool SaveEffects();
         void UpdatePreview();
         void SelectBaseObject(const std::string & name, bool highlight_tree = true);
         void SelectBaseObject(BaseObject *base_object, bool highlight_tree = true);

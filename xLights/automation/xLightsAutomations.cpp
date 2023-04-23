@@ -185,6 +185,17 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
 
         AskCloseSequence();
         return sendResponse("Sequence closed.", "msg", 200, false);
+    } else if (cmd == "saveLayout") {
+        if (!layoutPanel->SaveEffects()) {
+            return sendResponse("Failed to save layout.", "msg", 503, false);
+        }
+
+        if (!SaveNetworksFile()) {
+            return sendResponse("Failed to controller tab.", "msg", 503, false);
+        }
+
+        return sendResponse("Layout and controller tab saved.", "msg", 200, false);
+
     } else if (cmd == "newSequence") {
         if (CurrentSeqXmlFile != nullptr && !ReadBool(params["force"])) {
             return sendResponse("Sequence already open.", "msg", 503, false);
@@ -907,12 +918,29 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                 ids.pop_back(); // remove last comma
             }
             ids.insert(0, "[");
-            ids.append( "],");
-            layers.append( ids );
+            ids.append("],");
+            layers.append(ids);
         }
         layers.pop_back(); // remove last comma
         layers += "]";
         return sendResponse(layers, "effects", 200, true);
+    } else if (cmd == "cleanupFileLocations") {
+
+        bool res = CleanupRGBEffectsFileLocations();
+
+        if (CurrentSeqXmlFile != nullptr) {
+            res = res && CleanupSequenceFileLocations();
+        }
+
+        if (res) {
+            std::string response = "{\"msg\":\"Cleanup file locations.\",\"worked\":\"true\"}";
+            return sendResponse(response, "", 200, true);
+        }
+        else
+        {
+            return sendResponse("Cleanup file locations failed.", "msg", 503, false);
+        }
+
     } else if (cmd == "getEffectSettings") {
         if (CurrentSeqXmlFile == nullptr) {
             return sendResponse("Sequence not open.", "msg", 503, false);

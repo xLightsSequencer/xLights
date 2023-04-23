@@ -7710,11 +7710,11 @@ std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::s
     return target.ToStdString();
 }
 
-void xLightsFrame::CleanupSequenceFileLocations()
+bool xLightsFrame::CleanupSequenceFileLocations()
 {
     if (GetShowDirectory() == "") {
         wxMessageBox("Show directory invalid. Cleanup aborted.");
-        return;
+        return false;
     }
 
     wxString media = CurrentSeqXmlFile->GetMediaFile();
@@ -7747,9 +7747,11 @@ void xLightsFrame::CleanupSequenceFileLocations()
     {
         _sequenceElements.IncrementChangeCount(nullptr);
     }
+
+    return true;
 }
 
-void xLightsFrame::CleanupRGBEffectsFileLocations()
+bool xLightsFrame::CleanupRGBEffectsFileLocations()
 {
     if (FileExists(mBackgroundImage) && !IsInShowFolder(mBackgroundImage))
     {
@@ -7773,6 +7775,8 @@ void xLightsFrame::CleanupRGBEffectsFileLocations()
             GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CleanupRGBEffectsFileLocations");
         }
     }
+
+    return true;
 }
 
 void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event)

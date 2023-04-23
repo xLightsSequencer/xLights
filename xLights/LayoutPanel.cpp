@@ -2705,7 +2705,7 @@ void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
     }
 }
 
-void LayoutPanel::SaveEffects()
+bool LayoutPanel::SaveEffects()
 {
     // update xml with offsets and scale
     for (const auto& it : modelPreview->GetModels()) {
@@ -2721,6 +2721,8 @@ void LayoutPanel::SaveEffects()
     xlights->SaveEffectsFile();
     xlights->SetStatusText(_("Preview layout saved"));
     SetDirtyHiLight(false);
+
+    return true;
 }
 
 void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
