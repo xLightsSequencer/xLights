@@ -1526,7 +1526,8 @@ private:
     bool mGridIconBackgrounds;
     bool mTimingPlayOnDClick;
     bool mGridNodeValues;
-    int mEffectAssistMode;
+    int mEffectAssistMode = 0;
+    int tempEffectAssistMode = 0;
 	bool mRendering;
     bool mSaveFseqOnSave;
     int _modelHandleSize = 1;

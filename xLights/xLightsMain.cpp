@@ -1722,6 +1722,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     if (mEffectAssistMode < 0 || mEffectAssistMode > EFFECT_ASSIST_TOGGLE_MODE) {
         mEffectAssistMode = EFFECT_ASSIST_TOGGLE_MODE;
     }
+    tempEffectAssistMode = mEffectAssistMode;
     logger_base.debug("Effect Assist Mode: %d.", mEffectAssistMode);
     if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
         SetEffectAssistWindowState(true);
@@ -2356,7 +2357,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     }
 
     // Handle the effect Assist
-    if (mEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE) {
+    if (tempEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE) {
         if (sEffectAssist->GetPanel() != sEffectAssist->GetDefaultAssistPanel() && sEffectAssist->GetPanel() != nullptr) {
             SetEffectAssistWindowState(true);
         }
@@ -2364,7 +2365,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
             SetEffectAssistWindowState(false);
         }
     }
-    else if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
+    else if (tempEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
         SetEffectAssistWindowState(true);
     }
     else {
@@ -3478,6 +3479,7 @@ void xLightsFrame::SetSaveFseqOnSave(bool b)
 void xLightsFrame::SetEffectAssistMode(int i)
 {
     mEffectAssistMode = i;
+    tempEffectAssistMode = i;
     if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
         SetEffectAssistWindowState(true);
     } else if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF) {
@@ -3511,7 +3513,7 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect, RenderableEffect* re
 
     bool effect_is_supported = ren_effect->HasAssistPanel();
 
-    if( mEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE )
+    if( tempEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE )
     {
         if( effect_is_supported )
         {

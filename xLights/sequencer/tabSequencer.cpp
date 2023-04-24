@@ -2878,12 +2878,12 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         m_mgr->Update();
     }
 
-    if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF) {
+    if (tempEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF) {
         SetEffectAssistWindowState(false);
-    } else if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
+    } else if (tempEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
         bool visible = m_mgr->GetPane("EffectAssist").IsShown();
         if (!visible) {
-            mEffectAssistMode = EFFECT_ASSIST_NOT_IN_PERSPECTIVE;
+            tempEffectAssistMode = EFFECT_ASSIST_NOT_IN_PERSPECTIVE;
         }
     }
 
@@ -3131,10 +3131,14 @@ void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
     bool visible = m_mgr->GetPane("EffectAssist").IsShown();
     if (visible) {
         m_mgr->GetPane("EffectAssist").Hide();
-        mEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
+        // Dont set it permanently
+        //mEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
+        tempEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
     } else {
         m_mgr->GetPane("EffectAssist").Show();
-        mEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
+        // Dont set it permanently
+        // mEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
+        tempEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
     }
     m_mgr->Update();
     UpdateViewMenu();
