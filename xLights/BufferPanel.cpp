@@ -210,7 +210,6 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	CheckBox_OverlayBkg->SetValue(false);
 	BufferSizer->Add(CheckBox_OverlayBkg, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	BufferSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-	BufferSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	BitmapButton_OverlayBkg = new xlLockButton(ScrolledWindow1, ID_BITMAPBUTTON_OverlayBkg, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_OverlayBkg"));
 	BitmapButton_OverlayBkg->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_OverlayBkg->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
@@ -221,12 +220,8 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	SubBufferPanelSizer->AddGrowableRow(0);
 	FullBufferSizer->Add(SubBufferPanelSizer, 1, wxALL|wxEXPAND, 0);
 	ScrolledWindow1->SetSizer(FullBufferSizer);
-	FullBufferSizer->Fit(ScrolledWindow1);
-	FullBufferSizer->SetSizeHints(ScrolledWindow1);
 	FlexGridSizer11->Add(ScrolledWindow1, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 0);
 	Panel3->SetSizer(FlexGridSizer11);
-	FlexGridSizer11->Fit(Panel3);
-	FlexGridSizer11->SetSizeHints(Panel3);
 	Panel4 = new wxPanel(Notebook1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
 	FlexGridSizer15 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer15->AddGrowableCol(0);
@@ -411,18 +406,12 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	RotoZoomSizer->Add(ChoiceRotateOrder, 1, wxALL, 1);
 	RotoZoomSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ScrolledWindow2->SetSizer(RotoZoomSizer);
-	RotoZoomSizer->Fit(ScrolledWindow2);
-	RotoZoomSizer->SetSizeHints(ScrolledWindow2);
 	FlexGridSizer15->Add(ScrolledWindow2, 1, wxALL|wxEXPAND, 2);
 	Panel4->SetSizer(FlexGridSizer15);
-	FlexGridSizer15->Fit(Panel4);
-	FlexGridSizer15->SetSizeHints(Panel4);
 	Notebook1->AddPage(Panel3, _("Buffer"), false);
 	Notebook1->AddPage(Panel4, _("Roto-Zoom"), false);
 	FlexGridSizer1->Add(Notebook1, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHECKBOX_ResetBufferPanel,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&BufferPanel::OnCheckBox_ResetBufferPanelClick);
 	Connect(ID_CHOICE_BufferStyle,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BufferPanel::OnBufferStyleChoiceSelect);
