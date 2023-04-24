@@ -14,6 +14,9 @@
 #include <wx/artprov.h>
 #include "sequencer/EffectDropTarget.h"
 #include "../include/Off.xpm"
+#include "xLightsMain.h"
+#include "xLightsApp.h"
+#include "sequencer/MainSequencer.h"
 
 //(*InternalHeaders(TopEffectsPanel)
 #include <wx/bitmap.h>
@@ -106,14 +109,27 @@ void TopEffectsPanel::OnLeftDown(wxMouseEvent& event)
 
 void TopEffectsPanel::OnButtonUpdateEffectClick(wxCommandEvent& event)
 {
+    int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
+	if (alleffects > 1) {
+        if (wxMessageBox("Are you sure you want to change the settings on all selected effects?", "Update all", wxYES_NO | wxCENTRE, this) == wxNO)
+            return;
+    }
+
     wxCommandEvent eventEffectUpdated(EVT_EFFECT_UPDATED);
     wxPostEvent(GetParent(), eventEffectUpdated);
     Refresh();
+
 }
 
 void TopEffectsPanel::OnButtonRandomizeEffectClick(wxCommandEvent& event)
 {
-	wxCommandEvent eventEffectRandomize(EVT_EFFECT_RANDOMIZE);
+    int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
+    if (alleffects > 1) {
+        if (wxMessageBox("Are you sure you want to randomise the settings on all selected effects?", "Update all", wxYES_NO | wxCENTRE, this) == wxNO)
+            return;
+    }
+
+    wxCommandEvent eventEffectRandomize(EVT_EFFECT_RANDOMIZE);
 	wxPostEvent(GetParent(), eventEffectRandomize);
 	Refresh();
 }

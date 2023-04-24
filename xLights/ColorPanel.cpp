@@ -18,6 +18,7 @@
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "ExternalHooks.h"
+#include "sequencer/MainSequencer.h"
 
 //(*InternalHeaders(ColorPanel)
 #include <wx/bitmap.h>
@@ -1138,6 +1139,12 @@ void ColorPanel::OnResize(wxSizeEvent& event)
 
 void ColorPanel::OnUpdateColorClick(wxCommandEvent& event)
 {
+    int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
+    if (alleffects > 1) {
+        if (wxMessageBox("Are you sure you want to change the colours on all selected effects?", "Update all", wxYES_NO | wxCENTRE, this) == wxNO)
+            return;
+    }
+
     wxCommandEvent eventEffectUpdated(EVT_EFFECT_PALETTE_UPDATED);
     wxPostEvent(GetParent(), eventEffectUpdated);
     FireChangeEvent();
