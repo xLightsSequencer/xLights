@@ -189,7 +189,7 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
 #define RENDER_PICTURE_TILE_LEFT  20
 #define RENDER_PICTURE_TILE_RIGHT  21
 #define RENDER_PICTURE_TILE_DOWN  22
-#define RENDER_PICTURE_TILE_UP  23
+#define RENDER_PICTURE_TILE_UP 23
 
 static inline int GetPicturesDirection(const std::string &dir) {
     if (dir == "left") {
@@ -401,6 +401,9 @@ void PicturesEffect::SetDefaultParameters() {
         return;
     }
 
+    pp->BitmapButton_PicturesXC->SetActive(false);
+    pp->BitmapButton_PicturesYC->SetActive(false);
+
     SetSliderValue(pp->Slider_Pictures_Speed, 10);
     SetSliderValue(pp->Slider_Pictures_FR, 10);
     SetSliderValue(pp->Slider1, 0);
@@ -470,13 +473,15 @@ bool PicturesEffect::IsPictureFile(std::string filename)
 }
 
 void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    auto dirstr = SettingsMap["CHOICE_Pictures_Direction"];
     Render(buffer,
-           SettingsMap["CHOICE_Pictures_Direction"],
+           dirstr,
            SettingsMap["FILEPICKER_Pictures_Filename"],
            SettingsMap.GetFloat("TEXTCTRL_Pictures_Speed", 1.0),
            SettingsMap.GetFloat("TEXTCTRL_Pictures_FrameRateAdj", 1.0),
-           SettingsMap.GetInt("SLIDER_PicturesXC", 0),
-           SettingsMap.GetInt("SLIDER_PicturesYC", 0),
+           dirstr != "vector" ? GetValueCurveInt("PicturesXC", 0, SettingsMap, oset, PICTURES_XC_MIN, PICTURES_XC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) : SettingsMap.GetInt("SLIDER_PicturesXC", 0),
+           dirstr != "vector" ? GetValueCurveInt("PicturesYC", 0, SettingsMap, oset, PICTURES_YC_MIN, PICTURES_YC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) : SettingsMap.GetInt("SLIDER_PicturesYC", 0),
            SettingsMap.GetInt("SLIDER_PicturesEndXC", 0),
            SettingsMap.GetInt("SLIDER_PicturesEndYC", 0),
            SettingsMap.GetInt("SLIDER_Pictures_StartScale", 100),
@@ -744,7 +749,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 
     switch (dir) //prep
     {
-    case RENDER_PICTURE_ZOOMIN: //src <- dest scale factor -DJ
+    case RENDER_PICTURE_ZOOMIN: // src <- dest scale factor -DJ
         xscale = (imgwidth > 1) ? (float)BufferWi / imgwidth : 1;
         yscale = (imght > 1) ? (float)BufferHt / imght : 1;
         xscale *= position;

@@ -12,6 +12,12 @@
 
 #include "RenderableEffect.h"
 
+#define PICTURES_XC_MIN -100
+#define PICTURES_XC_MAX 100
+
+#define PICTURES_YC_MIN -100
+#define PICTURES_YC_MAX 100
+
 #include <string>
 class wxString;
 class wxFile;
