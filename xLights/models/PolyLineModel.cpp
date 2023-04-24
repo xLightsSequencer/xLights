@@ -55,6 +55,12 @@ static wxPGChoices POLY_CORNERS(wxArrayString(3, POLY_CORNER_VALUES));
 std::vector<std::string> PolyLineModel::POLYLINE_BUFFER_STYLES;
 
 const std::vector<std::string> &PolyLineModel::GetBufferStyles() const {
+
+    if (!hasIndivSeg)
+    {
+        return Model::DEFAULT_BUFFER_STYLES;
+    }
+
     struct Initializer {
         Initializer() {
             POLYLINE_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
