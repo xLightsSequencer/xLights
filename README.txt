@@ -11,6 +11,31 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.07 April 25, 2023
+   -- enh (keith)   Add -x option to xSchedule to silently exit if xSchedule is already running
+   -- enh (keith)   Add some Hanson Electronics boards
+   -- enh (keith)   Add ability to invert channels on DMX effect
+   -- enh (keith)   Add value curve to picture effect centre
+   -- enh (keith)   When user presses update on effect/colours panel and has > 1 effect selected warn the user about what will happen
+   -- enh (keith)   Add cleanupFileLocations and saveLayout APIs
+   -- enh (keith)   Add stagger to stacked model group buffers
+   -- enh (keith)   Add SVG support to VU Meter level shapes
+   -- enh (keith)   Add warmup frames to snowflakes and meteors effect
+   -- enh (keith)   Allow suppression of dark mode on windows
+   -- enh (keith)   Add video sampling instead of image resizing to video effect
+   -- enh (keith)   Add ability to reset an effects settings explicitly
+   -- enh (keith)   Add chord support to guitar effect ... prefix C before note so CA is the A chord
+   -- enh (keith)   For superstrings > 3 channels add support for RGBW colour handling to control behaviour
+   -- enh (dklup)   FPP Connect upload content to the appropriate directory
+   -- enh (scott)   Increase ESPixelStick outputs to 8
+   -- bug (moc)     Fix ripple effect SVG settings
+   -- bug (keith)   Fix text effect not respecting \n as new line
+   -- bug (keith)   Fix QM crash if using them after doing a notes import
+   -- bug (keith)   Fix QM import creates illegal timing tracks with zero length timing marks and overlapping timing marks
+   -- bug (keith)   Fix show/hide effect assist overwrites effect assist preference
+   -- bug (keith)   Only show line segments buffer on a polyline with indiv segments
+   -- bug (keith)   Fix Advatek upload broken
+   -- bug (keith)   Update time display when waveform is clicked
 2023.06 April 10, 2023
    -- enh (keith)   Add Guitar effect
    -- enh (scott)   Add JSON endpoints getModel, getControllerPortMap, getShowFolder
