@@ -166,6 +166,47 @@ void DMXEffect::SetDefaultParameters() {
     SetSliderValue(dp->Slider_DMX38, 0);
     SetSliderValue(dp->Slider_DMX39, 0);
     SetSliderValue(dp->Slider_DMX40, 0);
+
+    SetCheckBoxValue(dp->CheckBox_INVDMX1, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX2, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX3, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX4, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX5, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX6, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX7, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX8, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX9, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX10, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX11, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX12, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX13, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX14, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX15, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX16, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX17, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX18, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX19, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX20, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX21, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX22, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX23, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX24, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX25, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX26, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX27, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX28, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX29, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX30, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX31, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX32, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX33, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX34, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX35, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX36, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX37, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX38, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX39, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX40, false);
 }
 
 void DMXEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
@@ -244,6 +285,12 @@ bool DMXEffect::SetDMXSinglColorPixel(int chan, int num_channels, const Settings
     if( num_channels >= chan ) {
         std::string name = wxString::Format("DMX%d", chan).ToStdString();
         int value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+
+        if (SettingsMap.GetBool("CHECKBOX_INV" + name, false))
+        {
+            value = 255 - value;
+        }
+
         color.red = value;
         color.green = value;
         color.blue = value;
@@ -274,14 +321,29 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, const SettingsMap &Set
     if( num_channels >= base_chan || buffer.BufferWi < node) {
         std::string name = wxString::Format("DMX%d", base_chan).ToStdString();
         int value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+
+        if (SettingsMap.GetBool("CHECKBOX_INV" + name, false)) {
+            value = 255 - value;
+        }
+
         SetColorBasedOnStringType(value, 1, color, string_type);
         if( num_channels >= base_chan+1 ) {
             name = wxString::Format("DMX%d", base_chan+1);
             value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+
+            if (SettingsMap.GetBool("CHECKBOX_INV" + name, false)) {
+                value = 255 - value;
+            }
+
             SetColorBasedOnStringType(value, 2, color, string_type);
             if( num_channels >= base_chan+2 ) {
                 name = wxString::Format("DMX%d", base_chan+2);
                 value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+
+                if (SettingsMap.GetBool("CHECKBOX_INV" + name, false)) {
+                    value = 255 - value;
+                }
+
                 SetColorBasedOnStringType(value, 3, color, string_type);
             } else {
                 return_val = true;
@@ -314,64 +376,20 @@ void DMXEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
     xlColor color = xlBLACK;
 
     if (StartsWith(string_type, "Single Color")) {
+
         // handle channels for single color nodes
-        if( SetDMXSinglColorPixel(1, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(2, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(3, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(4, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(5, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(6, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(7, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(8, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(9, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(10, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(11, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(12, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(13, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(14, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(15, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(16, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(17, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(18, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(19, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(20, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(21, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(22, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(23, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(24, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(25, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(26, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(27, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(28, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(29, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(30, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(31, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(32, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(33, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(34, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(35, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(36, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(37, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(38, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(39, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
-        if( SetDMXSinglColorPixel(40, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        for (uint32_t i = 1; i <= 40; ++i)
+        {
+            if (SetDMXSinglColorPixel(i, num_channels, SettingsMap, eff_pos, color, buffer))
+                return;
+        }
    } else {
         // handle channels for 3 color nodes
-        if( SetDMXRGBNode(1, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
-        if( SetDMXRGBNode(2, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
-        if( SetDMXRGBNode(3, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
-        if( SetDMXRGBNode(4, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
-        if( SetDMXRGBNode(5, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
-        if( SetDMXRGBNode(6, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
-        if( SetDMXRGBNode(7, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
-        if( SetDMXRGBNode(8, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
-        if( SetDMXRGBNode(9, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
-        if( SetDMXRGBNode(10, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
-        if( SetDMXRGBNode(11, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
-        if( SetDMXRGBNode(12, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
-        if( SetDMXRGBNode(13, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
+        for (uint32_t i = 1; i <= 40 / 3; ++i) {
+            if (SetDMXRGBNode(i, num_channels, SettingsMap, eff_pos, color, buffer, string_type))
+                return;
+        }
     }
-
 }
 
 void DMXEffect::SetPanelStatus(Model *cls) {
@@ -408,16 +426,23 @@ void DMXEffect::SetPanelStatus(Model *cls) {
         wxBitmapButton* curve = (wxBitmapButton*)(p->FindWindowByName(vc_ctrl));
         wxString text_ctrl = wxString::Format("IDD_TEXTCTRL_DMX%d", i);
         wxBitmapButton* text = (wxBitmapButton*)(p->FindWindowByName(text_ctrl));
-        if( i > num_channels ) {
+        wxString inv_ctrl = wxString::Format("ID_CHECKBOX_INVDMX%d", i);
+        wxBitmapButton* inv = (wxBitmapButton*)(p->FindWindowByName(inv_ctrl));
+        if (i > num_channels) {
             if( label != nullptr ) label->Enable(false);
             if( slider != nullptr ) slider->Enable(false);
             if( curve != nullptr ) curve->Enable(false);
             if( text != nullptr ) text->Enable(false);
+            if (inv != nullptr)
+                inv->Enable(false);
         } else {
             if( label != nullptr ) label->Enable(true);
             if( slider != nullptr ) slider->Enable(true);
             if( curve != nullptr ) curve->Enable(true);
-            if( text != nullptr ) text->Enable(true);
+            if (text != nullptr)
+                text->Enable(true);
+            if (inv != nullptr)
+                inv->Enable(true);
         }
     }
     p->FlexGridSizer_Main->Layout();

@@ -10,7 +10,7 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL6" variable="ChannelPanel1" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer_Panel1" member="yes">
-								<cols>4</cols>
+								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX1" variable="Label_DMX1" member="yes">
@@ -45,6 +45,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX1" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX1" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -85,10 +93,18 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX2" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX2" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX3" variable="Label_DMX3" member="yes">
 										<label>Channel 3:</label>
 									</object>
-									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -117,6 +133,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX3" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX3" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -157,6 +181,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX4" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX4" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX5" variable="Label_DMX5" member="yes">
 										<label>Channel 5:</label>
 									</object>
@@ -189,6 +221,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX5" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX5" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -229,6 +269,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX6" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX6" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX7" variable="Label_DMX7" member="yes">
 										<label>Channel 7:</label>
 									</object>
@@ -261,6 +309,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX7" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX7" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -301,6 +357,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX8" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX8" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX9" variable="Label_DMX9" member="yes">
 										<label>Channel 9:</label>
 									</object>
@@ -331,6 +395,14 @@
 										<value>0</value>
 										<size>20,-1d</size>
 										<style>wxTE_PROCESS_ENTER</style>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX9" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX9" member="yes">
+										<label>Inv</label>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -372,6 +444,14 @@
 									<border>2</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX10" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX10" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Channels 1-10</label>
@@ -379,7 +459,7 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL28" variable="ChannelPanel2" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer_Panel2" member="yes">
-								<cols>4</cols>
+								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX11" variable="Label_DMX11" member="yes">
@@ -414,6 +494,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX11" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX11" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -454,6 +542,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX12" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX12" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX13" variable="Label_DMX13" member="yes">
 										<label>Channel 13:</label>
 									</object>
@@ -486,6 +582,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX13" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX13" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -526,6 +630,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX14" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX14" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX15" variable="Label_DMX15" member="yes">
 										<label>Channel 15:</label>
 									</object>
@@ -558,6 +670,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX15" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX15" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -598,6 +718,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX16" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX16" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX17" variable="Label_DMX17" member="yes">
 										<label>Channel 17:</label>
 									</object>
@@ -630,6 +758,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX17" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX17" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -670,6 +806,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX18" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX18" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX19" variable="Label_DMX19" member="yes">
 										<label>Channel 19:</label>
 									</object>
@@ -702,6 +846,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX19" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX19" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -741,6 +893,14 @@
 									<border>2</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX20" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX20" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Channels 11-20</label>
@@ -748,7 +908,7 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL1" variable="ChannelPanel3" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
-								<cols>4</cols>
+								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX21" variable="Label_DMX21" member="yes">
@@ -783,6 +943,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX21" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX21" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -823,6 +991,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX22" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX22" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX23" variable="Label_DMX23" member="yes">
 										<label>Channel 23:</label>
 									</object>
@@ -855,6 +1031,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX23" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX23" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -895,6 +1079,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX24" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX24" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX25" variable="Label_DMX25" member="yes">
 										<label>Channel 25:</label>
 									</object>
@@ -927,6 +1119,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX25" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX25" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -967,6 +1167,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX26" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX26" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX27" variable="Label_DMX27" member="yes">
 										<label>Channel 27:</label>
 									</object>
@@ -999,6 +1207,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX27" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX27" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -1039,6 +1255,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX28" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX28" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX29" variable="Label_DMX29" member="yes">
 										<label>Channel 29:</label>
 									</object>
@@ -1071,6 +1295,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX29" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX29" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -1110,6 +1342,14 @@
 									<border>2</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX30" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX30" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Channels 21-30</label>
@@ -1117,7 +1357,7 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL3" variable="ChannelPanel4" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="yes">
-								<cols>4</cols>
+								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX31" variable="Label_DMX31" member="yes">
@@ -1152,6 +1392,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX31" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX31" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -1192,6 +1440,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX32" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX32" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX33" variable="Label_DMX33" member="yes">
 										<label>Channel 33:</label>
 									</object>
@@ -1224,6 +1480,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX33" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX33" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -1264,6 +1528,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX34" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX34" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX35" variable="Label_DMX35" member="yes">
 										<label>Channel 35:</label>
 									</object>
@@ -1296,6 +1568,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX35" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX35" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -1336,6 +1616,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX36" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX36" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX37" variable="Label_DMX37" member="yes">
 										<label>Channel 37:</label>
 									</object>
@@ -1368,6 +1656,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX37" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX37" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -1408,6 +1704,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX38" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX38" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX39" variable="Label_DMX39" member="yes">
 										<label>Channel 39:</label>
 									</object>
@@ -1438,6 +1742,14 @@
 										<value>0</value>
 										<size>20,-1d</size>
 										<style>wxTE_PROCESS_ENTER</style>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX39" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX39" member="yes">
+										<label>Inv</label>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -1476,6 +1788,14 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_INVDMX40" subclass="BulkEditCheckBox" variable="CheckBox_INVDMX40" member="yes">
+										<label>Inv</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
