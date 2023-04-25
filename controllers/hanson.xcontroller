@@ -105,7 +105,7 @@
 		</Variant>
 	</Controller>
 	<Controller Name="rPi-28D">
-		<Variant Name="" ID="rPi-28D" Base="FPP:BaseFPPSettings">
+		<Variant Name="rPi-28D" ID="rPi-28D" Base="FPP:BaseFPPSettings">
 			<MaxPixelPort>3</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
@@ -118,6 +118,56 @@
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+                <Protocol>DMX-Pro</Protocol>
+                <Protocol>DMX-Open</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet-Lynx</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
+			</SerialProtocols>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+            <fppStringFileName>co-pixelStrings</fppStringFileName>
+		</Variant>
+		<Variant Name="rPi-28D-DPIPixels" ID="rPi-28D-DPIPixels" Base="FPP:BaseFPPSettings">
+			<MaxPixelPort>2</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>4800</MaxPixelPortChannels>
+			<SupportsVirtualStrings/>
+			<SupportsAutoLayout/>
+            <SupportsPixelPortEndNullPixels/>
+			<SupportsLEDPanelMatrix/>
+            <SupportsVirtualMatrix/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+                <Protocol>DMX-Pro</Protocol>
+                <Protocol>DMX-Open</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet-Lynx</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
+			</SerialProtocols>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+            <fppStringFileName>co-pixelStrings</fppStringFileName>
+		</Variant>
+		<Variant Name="rPi-28D-DPIPixels-4" ID="rPi-28D-DPIPixels-4" Base="FPP:BaseFPPSettings">
+			<MaxPixelPort>4</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>4800</MaxPixelPortChannels>
+			<SupportsVirtualStrings/>
+			<SupportsAutoLayout/>
+            <SupportsPixelPortEndNullPixels/>
+			<SupportsLEDPanelMatrix/>
+            <SupportsVirtualMatrix/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
                 <Protocol>DMX-Pro</Protocol>
