@@ -1436,6 +1436,8 @@ static void addRanges(Model* m, std::map<uint32_t, uint32_t>& ranges)
 
 void xLightsFrame::WriteFalconPiFile(const wxString& filename, bool allowSparse)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     ConvertParameters write_params(filename,                               // filename
                                    _seqData,                               // sequence data object
                                    &_outputManager,                        // global network info
@@ -1452,9 +1454,13 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename, bool allowSparse)
         int numElements = _sequenceElements.GetElementCount();
         for (int i = 0; i < numElements; ++i) {
             Element* element = _sequenceElements.GetElement(i);
+            if (element == nullptr)
+                logger_base.crit("Element %d returns as null.", i);
             if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 std::string modelName = element->GetModelName();
                 Model* m = this->GetModel(modelName);
+                if (m == nullptr)
+                    logger_base.crit("Model %s returns as null.", (const char*)modelName.c_str());
                 addRanges(m, ranges);
             }
         }
