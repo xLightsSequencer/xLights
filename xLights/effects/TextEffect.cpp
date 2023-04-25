@@ -451,6 +451,8 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     }
 
     wxString text = ToWXString(SettingsMap["TEXTCTRL_Text"]);
+    text.Replace("\\n", "\n");
+
     wxString filename = SettingsMap["FILEPICKERCTRL_Text_File"];
     wxString lyricTrack = SettingsMap["CHOICE_Text_LyricTrack"];
 
@@ -1471,6 +1473,8 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     int char_height = font->GetHeight();
 
     wxString text = ToWXString(settings["TEXTCTRL_Text"]);
+    text.Replace("\\n", "\n");
+
     wxString filename = settings["FILEPICKERCTRL_Text_File"];
     wxString lyricTrack = settings["CHOICE_Text_LyricTrack"];
 
@@ -1588,58 +1592,62 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         OffsetTop += buffer.BufferHt / 2 - font->GetCapsHeight() / 2;
     }
 
+    auto startOffsetLeft = OffsetLeft;
+
     if (text != "") {
         int space_offset = 0;
         for (int i = 0; i < text.length(); i++) {
-            buffer.palette.GetColor((i - space_offset) % num_colors, c);
-            if (text[i] == ' ') {
-                space_offset++;
-            }
-            char ascii = text[i];
-            int x_start_corner = (ascii % 8) * (char_width + 1) + 1;
-            int y_start_corner = (ascii / 8) * (char_height + 1) + 1;
 
-            int actual_width = font->GetCharWidth(ascii);
-            wxASSERT(actual_width > 0);
-            if (rotate_90 && up) {
-                OffsetTop -= actual_width;
-            }
-            for (int w = 0; w < actual_width; w++) {
-                int x_pos = x_start_corner + w;
-                for (int y_pos = y_start_corner; y_pos < y_start_corner + char_height; y_pos++) {
-                    if (x_pos >= 0 && x_pos < image.GetWidth() && y_pos >= 0 && y_pos < image.GetHeight()) {
-                        int red = image.GetRed(x_pos, y_pos);
-                        int green = image.GetGreen(x_pos, y_pos);
-                        int blue = image.GetBlue(x_pos, y_pos);
-                        if (red == 255 && green == 255 && blue == 255) {
-                            if (rotate_90) {
-                                if (up) {
-                                    buffer.SetPixel(y_pos - y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (actual_width - 1 - x_pos + x_start_corner + OffsetTop), c, false);
+            if (text[i] == '\n')
+            {
+                OffsetLeft = startOffsetLeft;
+                OffsetTop += font->GetHeight() + 1;
+            } else {
+                buffer.palette.GetColor((i - space_offset) % num_colors, c);
+                if (text[i] == ' ') {
+                    space_offset++;
+                }
+                char ascii = text[i];
+                int x_start_corner = (ascii % 8) * (char_width + 1) + 1;
+                int y_start_corner = (ascii / 8) * (char_height + 1) + 1;
+
+                int actual_width = font->GetCharWidth(ascii);
+                wxASSERT(actual_width > 0);
+                if (rotate_90 && up) {
+                    OffsetTop -= actual_width;
+                }
+                for (int w = 0; w < actual_width; w++) {
+                    int x_pos = x_start_corner + w;
+                    for (int y_pos = y_start_corner; y_pos < y_start_corner + char_height; y_pos++) {
+                        if (x_pos >= 0 && x_pos < image.GetWidth() && y_pos >= 0 && y_pos < image.GetHeight()) {
+                            int red = image.GetRed(x_pos, y_pos);
+                            int green = image.GetGreen(x_pos, y_pos);
+                            int blue = image.GetBlue(x_pos, y_pos);
+                            if (red == 255 && green == 255 && blue == 255) {
+                                if (rotate_90) {
+                                    if (up) {
+                                        buffer.SetPixel(y_pos - y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (actual_width - 1 - x_pos + x_start_corner + OffsetTop), c, false);
+                                    } else {
+                                        buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
+                                    }
+                                } else {
+                                    buffer.SetPixel(x_pos - x_start_corner + OffsetLeft, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
                                 }
-                                else {
-                                    buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
-                                }
-                            }
-                            else {
-                                buffer.SetPixel(x_pos - x_start_corner + OffsetLeft, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
                             }
                         }
                     }
                 }
-            }
-            if (vertical) {
-                if (up) {
-                    OffsetTop -= char_height + 1;
+                if (vertical) {
+                    if (up) {
+                        OffsetTop -= char_height + 1;
+                    } else {
+                        OffsetTop += char_height + 1;
+                    }
+                } else if (rotate_90 && !up) {
+                    OffsetTop += actual_width;
+                } else if (!rotate_90) {
+                    OffsetLeft += actual_width;
                 }
-                else {
-                    OffsetTop += char_height + 1;
-                }
-            }
-            else if (rotate_90 && !up) {
-                OffsetTop += actual_width;
-            }
-            else if (!rotate_90) {
-                OffsetLeft += actual_width;
             }
         }
     }
