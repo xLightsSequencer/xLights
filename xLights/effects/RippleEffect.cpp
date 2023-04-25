@@ -93,7 +93,7 @@ void RippleEffect::SetDefaultParameters()
     SetSliderValue(rp->Slider_Ripple_Spacing, 10);
     SetSliderValue(rp->Slider_Ripple_Outline, 10);
 
-    rp->FilePickerCtrl_SVG->SetFileName(wxFileName(""));
+    rp->FilePickerCtrl_Ripple_SVG->SetFileName(wxFileName(""));
 
     SetCheckBoxValue(rp->CheckBox_Ripple3D, false);
     SetChoiceValue(rp->Choice_Ripple_Draw_Style, "Old");
@@ -931,7 +931,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
     const std::string& Object_To_DrawStr = SettingsMap["CHOICE_Ripple_Object_To_Draw"];
-    std::string svgFilename = SettingsMap["FILEPICKERCTRL_SVG"];
+    std::string svgFilename = SettingsMap["FILEPICKERCTRL_Ripple_SVG"];
     const std::string& MovementStr = SettingsMap["CHOICE_Ripple_Movement"];
     int Ripple_Thickness = GetValueCurveInt("Ripple_Thickness", 3, SettingsMap, oset, RIPPLE_THICKNESS_MIN, RIPPLE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool CheckBox_Ripple3D = SettingsMap.GetBool("CHECKBOX_Ripple3D", false);
@@ -1676,8 +1676,8 @@ void RippleEffect::Drawcandycane(RenderBuffer& buffer, int Movement, int xc, int
 std::list<std::string> RippleEffect::GetFileReferences(Model* model, const SettingsMap& SettingsMap) const
 {
     std::list<std::string> res;
-    if (SettingsMap["E_FILEPICKERCTRL_SVG"] != "") {
-        res.push_back(SettingsMap["E_FILEPICKERCTRL_SVG"]);
+    if (SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"] != "") {
+        res.push_back(SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"]);
     }
     return res;
 }
@@ -1688,7 +1688,7 @@ std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& sett
 
     std::string object = settings["E_CHOICE_Ripple_Object_To_Draw"];
     if (object == "SVG") {
-        auto svgFilename = settings.Get("E_FILEPICKERCTRL_SVG", "");
+        auto svgFilename = settings.Get("E_FILEPICKERCTRL_Ripple_SVG", "");
 
         if (svgFilename == "" || !FileExists(svgFilename)) {
             res.push_back(wxString::Format("    ERR: Ripple effect can't find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
@@ -1705,10 +1705,10 @@ std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& sett
 bool RippleEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_FILEPICKERCTRL_SVG"];
+    wxString file = SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"];
     if (FileExists(file)) {
         if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_FILEPICKERCTRL_SVG"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+            SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
             rc = true;
         }
     }
@@ -1719,12 +1719,16 @@ bool RippleEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& Settin
 // This section is not doing what I want
 bool RippleEffect::needToAdjustSettings(const std::string& version)
 {
-    //return IsVersionOlder("2023.06", version) || RenderableEffect::needToAdjustSettings(version);
-    return RenderableEffect::needToAdjustSettings(version);
+    return IsVersionOlder("2023.07", version) || RenderableEffect::needToAdjustSettings(version);
+    //return RenderableEffect::needToAdjustSettings(version);
 }
 
 void RippleEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
 {
+    SettingsMap& settings = effect->GetSettings();
+    if (!settings.Get("E_FILEPICKERCTRL_SVG", "").empty() && settings.Get("E_FILEPICKERCTRL_Ripple_SVG", "").empty()) {
+        settings["E_FILEPICKERCTRL_Ripple_SVG"] = settings.Get("E_FILEPICKERCTRL_SVG", "");
+    }
     /*
     SettingsMap& settings = effect->GetSettings();
 

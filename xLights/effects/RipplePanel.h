@@ -38,7 +38,7 @@ class RipplePanel: public xlEffectPanel
 		BulkEditChoice* Choice_Ripple_Draw_Style;
 		BulkEditChoice* Choice_Ripple_Movement;
 		BulkEditChoice* Choice_Ripple_Object_To_Draw;
-		BulkEditFilePickerCtrl* FilePickerCtrl_SVG;
+		BulkEditFilePickerCtrl* FilePickerCtrl_Ripple_SVG;
 		BulkEditSlider* Slider_Ripple_Direction;
 		BulkEditSlider* Slider_Ripple_Points;
 		BulkEditSlider* Slider_Ripple_Rotation;
@@ -110,7 +110,7 @@ class RipplePanel: public xlEffectPanel
 		static const long ID_STATICTEXT_Ripple_Object_To_Draw;
 		static const long ID_CHOICE_Ripple_Object_To_Draw;
 		static const long ID_BITMAPBUTTON_CHOICE_Ripple_Object_To_Draw;
-		static const long ID_FILEPICKERCTRL_SVG;
+		static const long ID_FILEPICKERCTRL_Ripple_SVG;
 		static const long ID_STATICTEXT_Ripple_Movement;
 		static const long ID_CHOICE_Ripple_Movement;
 		static const long ID_BITMAPBUTTON_CHOICE_Ripple_Movement;
