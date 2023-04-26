@@ -1056,12 +1056,27 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
                 for (int c = 0; c < parm1; c++) {
                     wxString value = _data[l][r][c];
                     if (!value.IsEmpty() && value != "0") {
-                        wxString bgcolor = "#ADD8E6"; //"#90EE90"
                         if (_strings == 1) {
-                            html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%s</td>", value);
+                            html += wxString::Format("<td bgcolor='#ADD8E6'>n%s</td>", value);
                         }
                         else {
                             int string = GetCustomNodeStringNumber(wxAtoi(value));
+                            wxString bgcolor;
+                            switch (string % 4)
+                            {
+                            case 0:
+                                bgcolor = "#eed1a4"; // yellow
+                                break;
+                            case 1:
+                                bgcolor = "#8aa2bb"; // blue
+                                break;
+                            case 2:
+                                bgcolor = "#ec9396"; // red
+                                break;
+                            case 3:
+                                bgcolor = "#86d0c3"; // green
+                                break;
+                            }
                             html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ss%d</td>", value, string);
                         }
                     }
