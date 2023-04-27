@@ -151,12 +151,24 @@ void ControllerEthernet::SetIP(const std::string& ip) {
     auto const& iip = ip_utils::CleanupIP(ip);
     if (_ip != iip) {
         _ip = iip;
-        _resolvedIp = ip_utils::ResolveIP(_ip);
+        if (IsActive()) _resolvedIp = ip_utils::ResolveIP(_ip);
         _dirty = true;
         if (_outputManager != nullptr) _outputManager->UpdateUnmanaged();
 
         for (auto& it : GetOutputs()) {
-            it->SetIP(_ip);
+            it->SetIP(_ip, IsActive());
+            it->SetResolvedIP(_resolvedIp);
+        }
+    }
+}
+
+// because we dont resolve IPs on creation for inactive controllers then if the controller is set active we need to resolve it then
+void ControllerEthernet::PostSetActive()
+{
+    if (IsActive() && _ip != "" && _resolvedIp == "")
+    {
+        _resolvedIp = ip_utils::ResolveIP(_ip);
+        for (auto& it : GetOutputs()) {
             it->SetResolvedIP(_resolvedIp);
         }
     }
@@ -214,7 +226,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
         if (_outputs.size() > 0 && oldoutputs.size() != 0) {
             _outputs.front()->SetChannels(totchannels);
             _outputs.front()->SetFPPProxyIP(oldoutputs.front()->GetFPPProxyIP());
-            _outputs.front()->SetIP(oldoutputs.front()->GetIP());
+            _outputs.front()->SetIP(oldoutputs.front()->GetIP(), IsActive());
             _outputs.front()->SetSuppressDuplicateFrames(oldoutputs.front()->IsSuppressDuplicateFrames());
         }
     }
@@ -237,7 +249,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                     _outputs.push_back(new OPCOutput());
                 }
                 if (_outputs.size() > 0) {
-                    _outputs.back()->SetIP(oldoutputs.front()->GetIP());
+                    _outputs.back()->SetIP(oldoutputs.front()->GetIP(), IsActive());
                     _outputs.back()->SetUniverse(it->GetUniverse());
                     _outputs.back()->SetChannels(it->GetChannels());
                     _outputs.back()->Enable(IsActive());
@@ -278,7 +290,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                 if (_outputs.size() > 0 && oldoutputs.size() != 0) {
                     _outputs.back()->SetChannels(left > CONVERT_CHANNELS_PER_UNIVERSE ? CONVERT_CHANNELS_PER_UNIVERSE : left);
                     left -= _outputs.back()->GetChannels();
-                    _outputs.back()->SetIP(oldoutputs.front()->GetIP());
+                    _outputs.back()->SetIP(oldoutputs.front()->GetIP(), IsActive());
                     _outputs.back()->SetUniverse(u + i + 1);
                     _outputs.back()->Enable(IsActive());
                 }
@@ -615,7 +627,7 @@ Output::PINGSTATE ControllerEthernet::Ping() {
     }
     else {
         E131Output ipo;
-        ipo.SetIP(_ip);
+        ipo.SetIP(_ip, IsActive());
         _lastPingResult = ipo.Ping(GetResolvedIP(), GetFPPProxy());
     }
     return GetLastPingState();
@@ -775,7 +787,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                 _outputs.push_back(new OPCOutput());
             }
             _outputs.back()->SetChannels(channels_per_universe);
-            _outputs.back()->SetIP(oldIP);
+            _outputs.back()->SetIP(oldIP, IsActive());
             _outputs.back()->SetUniverse(lastUsedUniverse + 1);
             _outputs.back()->SetFPPProxyIP(_fppProxy);
             _outputs.back()->SetForceLocalIP(_forceLocalIP);
@@ -1393,7 +1405,7 @@ void ControllerEthernet::AddOutput()
 		wxASSERT(false);
 	}
     if (_outputs.size() > 0) {
-        _outputs.back()->SetIP(_outputs.front()->GetIP());
+        _outputs.back()->SetIP(_outputs.front()->GetIP(), IsActive());
         _outputs.back()->SetChannels(_outputs.front()->GetChannels());
         _outputs.back()->SetFPPProxyIP(_outputs.front()->GetFPPProxyIP());
         _outputs.back()->SetSuppressDuplicateFrames(_outputs.front()->IsSuppressDuplicateFrames());

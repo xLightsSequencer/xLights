@@ -145,6 +145,8 @@ public:
     Controller::ACTIVESTATE GetActive() const { return _active; }
     virtual bool IsActive() const;
     void SetActive(const std::string& active);
+    virtual void PostSetActive()
+    {}
 
     virtual bool CanVisualise() const;
 

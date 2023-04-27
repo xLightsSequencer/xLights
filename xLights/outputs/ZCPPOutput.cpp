@@ -101,7 +101,7 @@ std::string ZCPPOutput::SerialiseProtocols() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-ZCPPOutput::ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir) : IPOutput(node) {
+ZCPPOutput::ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir) : IPOutput(node, c->IsActive()) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

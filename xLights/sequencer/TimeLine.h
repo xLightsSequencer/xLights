@@ -117,7 +117,7 @@ public:
     void PlayStopped();       // signal play stop so timeline can adjust marks
     int GetNewStartTimeMS() const;  // return the time where to begin playing
     int GetNewEndTimeMS() const;    // return the time where to end playing
-    int GetCurrentPlayMarkerMS() const { return mCurrentPlayMarker; };
+    int GetCurrentPlayMarkerMS() const { return mCurrentPlayMarkerMS; };
     void GoToTag(int tag);
     void GoToPriorTag();
     void GoToNextTag();

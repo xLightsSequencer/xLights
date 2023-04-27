@@ -119,7 +119,7 @@ void KinetOutput::PopulateHeader()
 #pragma endregion
 
 #pragma region Constructors and Destructors
-KinetOutput::KinetOutput(wxXmlNode* node) : IPOutput(node) {
+KinetOutput::KinetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > 512) SetChannels(512);
     _sequenceNum = 0;

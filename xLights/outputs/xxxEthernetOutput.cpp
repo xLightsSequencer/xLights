@@ -114,7 +114,7 @@ void xxxEthernetOutput::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-xxxEthernetOutput::xxxEthernetOutput(wxXmlNode* node) : IPOutput(node) {
+xxxEthernetOutput::xxxEthernetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     SetId(wxAtoi(node->GetAttribute("Id", "0")));
     if (wxAtoi(node->GetAttribute("Port", "-1")) != -1)

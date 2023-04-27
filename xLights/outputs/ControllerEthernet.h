@@ -59,6 +59,7 @@ public:
     void SetIP(const std::string& ip);
     virtual std::string GetIP() const override { return _ip; }
     virtual std::string GetResolvedIP() const override { return _resolvedIp; }
+    virtual void PostSetActive() override;
 
     virtual std::string GetProtocol() const override { return _type; }
     void SetProtocol(const std::string& protocol);

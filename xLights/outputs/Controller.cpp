@@ -83,6 +83,16 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
 #pragma region Constructors and Destructors
 Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& showDir) : _outputManager(om)
 {
+    if (node->GetAttribute("ActiveState", "") == "") {
+        if (node->GetAttribute("Active", "1") == "0") {
+            SetActive("Inactive");
+        } else {
+            SetActive("Active");
+        }
+    } else {
+        SetActive(node->GetAttribute("ActiveState", "Active"));
+    }
+
     for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
         if (n->GetName() == "network") {
             _outputs.push_back(Output::Create(this, n, showDir));
@@ -97,17 +107,6 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     _name = node->GetAttribute("Name", om->UniqueName(node->GetName() + "_")).Trim(true).Trim(false);
     _description = node->GetAttribute("Description", "").Trim(true).Trim(false);
     _autoSize = node->GetAttribute("AutoSize", "0") == "1";
-    if (node->GetAttribute("ActiveState", "") == "") {
-        if (node->GetAttribute("Active", "1") == "0") {
-            SetActive("Inactive");
-        }
-        else {
-            SetActive("Active");
-        }
-    }
-    else {
-        SetActive(node->GetAttribute("ActiveState", "Active"));
-    }
     SetAutoLayout(node->GetAttribute("AutoLayout", "1") == "1");
     _fullxLightsControl = node->GetAttribute("FullxLightsControl", "FALSE") == "TRUE";
     _defaultBrightnessUnderFullControl = wxAtoi(node->GetAttribute("DefaultBrightnessUnderFullControl", "100"));
@@ -372,6 +371,8 @@ void Controller::SetActive(const std::string& active) {
     for (auto& it : _outputs) {
         it->Enable(IsActive());
     }
+
+    PostSetActive();
 }
 
 bool Controller::CanVisualise() const

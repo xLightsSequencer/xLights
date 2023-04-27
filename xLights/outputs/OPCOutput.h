@@ -37,7 +37,7 @@ class OPCOutput : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    OPCOutput(wxXmlNode* node);
+    OPCOutput(wxXmlNode* node, bool isActive);
     OPCOutput();
     OPCOutput(OPCOutput* output);
     virtual ~OPCOutput() override;

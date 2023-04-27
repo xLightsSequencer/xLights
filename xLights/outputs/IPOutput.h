@@ -25,7 +25,7 @@ protected:
 public:
 
     #pragma region Constructors and Destructors
-    IPOutput(wxXmlNode* node);
+    IPOutput(wxXmlNode* node, bool isActive);
     IPOutput();
     IPOutput(IPOutput* output) : Output(output) {};
     virtual ~IPOutput() override {};
@@ -37,7 +37,7 @@ public:
     #pragma endregion 
 
     #pragma region Getters and Setters
-    virtual void SetIP(const std::string& ip) override;
+    virtual void SetIP(const std::string& ip, bool isActive) override;
 
     virtual bool IsIpOutput() const override { return true; }
     virtual bool IsSerialOutput() const override { return false; }
