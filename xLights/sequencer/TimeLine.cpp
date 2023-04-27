@@ -325,7 +325,7 @@ void TimeLine::RaiseChangeTimeline()
 {
     Refresh();
     Update();
-    TimelineChangeArguments *tla = new TimelineChangeArguments(mZoomLevel,mStartPixelOffset,mCurrentPlayMarker);
+    TimelineChangeArguments* tla = new TimelineChangeArguments(mZoomLevel, mStartPixelOffset, mCurrentPlayMarkerMS);
     wxCommandEvent eventTimeLineChanged(EVT_TIME_LINE_CHANGED);
     eventTimeLineChanged.SetClientData((void*)tla);
     eventTimeLineChanged.SetInt(0);
@@ -395,7 +395,8 @@ void TimeLine::SetSelectedPositionStart(int pos, bool reset_end)
     mZoomMarkerMS = mSelectedPlayMarkerStartMS;
     Refresh(false);
 
-    mCurrentPlayMarker = mSelectedPlayMarkerStartMS;
+    mCurrentPlayMarker = mSelectedPlayMarkerStart;
+    mCurrentPlayMarkerMS = mSelectedPlayMarkerStartMS;
 
     // This draws the new start time
     RaiseChangeTimeline();
