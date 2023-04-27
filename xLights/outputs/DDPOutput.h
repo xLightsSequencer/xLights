@@ -69,7 +69,7 @@ class DDPOutput : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    DDPOutput(wxXmlNode* node);
+    DDPOutput(wxXmlNode* node, bool isActive);
     DDPOutput();
     virtual ~DDPOutput() override;
     virtual wxXmlNode* Save() override;

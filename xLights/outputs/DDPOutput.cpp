@@ -68,7 +68,7 @@ void DDPOutput::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-DDPOutput::DDPOutput(wxXmlNode* node) : IPOutput(node) {
+DDPOutput::DDPOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     _fulldata = nullptr;
     _channelsPerPacket = wxAtoi(node->GetAttribute("ChannelsPerPacket"));

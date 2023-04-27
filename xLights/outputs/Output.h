@@ -124,7 +124,7 @@ public:
     }
 
     std::string GetIP() const { return _ip; }
-    virtual void SetIP(const std::string& ip);
+    virtual void SetIP(const std::string& ip, bool isActive);
 
     std::string GetResolvedIP() const { return _resolvedIp; }
     void SetResolvedIP(const std::string& resolvedIP) { if (resolvedIP != _resolvedIp) { _resolvedIp = resolvedIP; _dirty = true; } }

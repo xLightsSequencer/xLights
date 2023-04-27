@@ -24,8 +24,8 @@
 #endif
 
 #pragma region Constructors and Destructors
-TwinklyOutput::TwinklyOutput(wxXmlNode* node) :
-    IPOutput(node)
+TwinklyOutput::TwinklyOutput(wxXmlNode* node, bool isActive) :
+    IPOutput(node, isActive)
 {
 }
 

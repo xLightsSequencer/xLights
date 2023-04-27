@@ -71,7 +71,7 @@ void ArtNetOutput::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-ArtNetOutput::ArtNetOutput(wxXmlNode* node) : IPOutput(node) {
+ArtNetOutput::ArtNetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > 512) SetChannels(512);
     if (_autoSize_CONVERT) _autoSize_CONVERT = false;

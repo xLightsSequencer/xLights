@@ -76,7 +76,7 @@ void OPCOutput::OpenSocket() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-OPCOutput::OPCOutput(wxXmlNode* node) : IPOutput(node) {
+OPCOutput::OPCOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > GetMaxChannels()) SetChannels(GetMaxChannels());
     _socket = nullptr;

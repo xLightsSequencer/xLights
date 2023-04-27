@@ -53,7 +53,7 @@ class ArtNetOutput : public IPOutput
 public:
 
 #pragma region Constructors and Destructors
-    ArtNetOutput(wxXmlNode* node);
+    ArtNetOutput(wxXmlNode* node, bool isActive);
     ArtNetOutput();
     virtual ~ArtNetOutput() override;
 #pragma endregion

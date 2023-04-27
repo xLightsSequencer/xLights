@@ -21,7 +21,7 @@ class TwinklyOutput : public IPOutput
 {
 public:
 #pragma region Constructors and Destructors
-    TwinklyOutput(wxXmlNode* node);
+    TwinklyOutput(wxXmlNode* node, bool isActive);
     TwinklyOutput();
     virtual ~TwinklyOutput() override;
     virtual wxXmlNode* Save() override;

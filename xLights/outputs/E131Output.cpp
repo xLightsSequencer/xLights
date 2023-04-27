@@ -33,7 +33,7 @@ void E131Output::CreateMultiUniverses_CONVERT(int num) {
 
     for (int i = 0; i < _numUniverses_CONVERT; i++) {
         E131Output* e = new E131Output();
-        e->SetIP(_ip);
+        e->SetIP(_ip, true);
         e->SetUniverse(_universe + i);
         e->SetChannels(_channels);
         e->_description_CONVERT = _description_CONVERT;
@@ -75,7 +75,7 @@ void E131Output::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-E131Output::E131Output(wxXmlNode* node) : IPOutput(node) {
+E131Output::E131Output(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > 512) SetChannels(512);
     if (_autoSize_CONVERT) _autoSize_CONVERT = false;
