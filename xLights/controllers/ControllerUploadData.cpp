@@ -25,6 +25,8 @@
 #define NO_VALUE_INT -9999
 #define NO_VALUE_STRING "unknown"
 
+#include <numeric>
+
 #include <log4cpp/Category.hh>
 
 #pragma region UDControllerPortModel
@@ -1787,7 +1789,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
                 }
             }
 
-            int const sum = accumulate(bankSizes.begin(), bankSizes.end(), 0);
+            int const sum = std::accumulate(bankSizes.begin(), bankSizes.end(), 0);
             if (sum > rules->GetMaxPixelPortChannels()) {
                 // always expressed in terms of 3 channel pixels
                 res += wxString::Format("ERR: Controllers 'Bank' channel count [%d (%d)] is over the maximum [%d (%d)].\n", sum, sum / 3, rules->GetMaxPixelPortChannels(), rules->GetMaxPixelPortChannels() / 3).ToStdString();
