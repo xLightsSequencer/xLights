@@ -90,7 +90,7 @@
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_MaxFrets" subclass="BulkEditSlider" variable="Slider_MaxFrets" member="yes">
 							<value>19</value>
-							<min>12</min>
+							<min>8</min>
 							<max>30</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

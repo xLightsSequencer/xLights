@@ -91,7 +91,7 @@ GuitarPanel::GuitarPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer27->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT_Piano_Scale, _("Fret Count"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Piano_Scale"));
 	FlexGridSizer27->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_MaxFrets = new BulkEditSlider(this, ID_SLIDER_MaxFrets, 19, 12, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MaxFrets"));
+	Slider_MaxFrets = new BulkEditSlider(this, ID_SLIDER_MaxFrets, 19, 8, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MaxFrets"));
 	FlexGridSizer27->Add(Slider_MaxFrets, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_MaxFrets = new BulkEditTextCtrl(this, IDD_TEXTCTRL_MaxFrets, _("19"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_MaxFrets"));
 	FlexGridSizer27->Add(TextCtrl_MaxFrets, 1, wxALL|wxEXPAND, 2);
@@ -136,6 +136,8 @@ GuitarPanel::GuitarPanel(wxWindow* parent) : xlEffectPanel(parent)
 	//*)
 
     SetName("ID_PANEL_Guitar");
+
+	Choice_Guitar_Type->Append(_("Violin"));
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&GuitarPanel::OnVCChanged, nullptr, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&GuitarPanel::OnValidateWindow, 0, this);

@@ -114,6 +114,14 @@ std::vector<GuitarNotes>
         { 0, 0, 62 }, // D4
     };
 
+std::vector<GuitarNotes>
+    violin = {
+        { 1, 0, 55 }, // G3
+        { 2, 0, 62 }, // D4
+        { 3, 0, 69 }, // A4
+        { 4, 0, 76 }, // E5
+    };
+
 class Chordx
 {
 public:
@@ -224,6 +232,8 @@ std::list<Chordx> __banjoChords = {
     { "CG7", { 50, 55, 59, 65 }, { { 1, 0 }, { 2, 0 }, { 3, 0 }, { 4, 3 } } },  // G7
 };
 
+std::list<Chordx> __violinChords = {};
+
 bool centresort(const GuitarTiming* first, const GuitarTiming* second)
 {
     return first->GetPositionCentre() < second->GetPositionCentre();
@@ -281,8 +291,10 @@ public:
             return &guitar;
         else if (type == "Bass Guitar")
             return &bass;
-        else
+        else if (type == "Banjo")
             return &banjo;
+        else
+            return &violin;
     }
 
     static size_t GetStrings(const std::string& type)
@@ -420,6 +432,8 @@ public:
             chords = __bassChords;
         else if (type == "Banjo")
             chords = __banjoChords;
+        else if (type == "Violin")
+            chords = __violinChords;
 
         for (auto& it : chords) {
             if (it._notes.size() == _notes.size()) {
@@ -1172,6 +1186,8 @@ std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, i
                 chords = __bassChords;
             else if (type == "Banjo")
                 chords = __banjoChords;
+            else if (type == "Violin")
+                chords = __violinChords;
 
             // If the label matches one of our chord names then use the chord notes
             std::string n = s;
