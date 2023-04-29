@@ -36,7 +36,7 @@ class LightningPanel: public xlEffectPanel
 		BulkEditCheckBox* CheckBox_ForkedLightning;
 		BulkEditChoice* CHOICE_Lightning_Direction;
 		BulkEditSlider* Slider_Lightning_BOTX;
-		BulkEditSlider* Slider_Lightning_BOTY;
+		BulkEditSlider* Slider_Lightning_WIDTH;
 		BulkEditSlider* Slider_Lightning_TopX;
 		BulkEditSlider* Slider_Lightning_TopY;
 		BulkEditSlider* Slider_Number_Bolts;
@@ -59,7 +59,7 @@ class LightningPanel: public xlEffectPanel
 		wxStaticText* StaticText210;
 		xlLockButton* BitmapButton_ForkedLightning;
 		xlLockButton* BitmapButton_LightningBOTX;
-		xlLockButton* BitmapButton_LightningBOTY;
+		xlLockButton* BitmapButton_LightningWIDTH;
 		xlLockButton* BitmapButton_LightningTopX;
 		xlLockButton* BitmapButton_LightningTopY;
 		xlLockButton* BitmapButton_NumberBolts;
@@ -96,10 +96,10 @@ class LightningPanel: public xlEffectPanel
 		static const long ID_SLIDER_Lightning_BOTX;
 		static const long IDD_TEXTCTRL_Lightning_BOTX;
 		static const long ID_BITMAPBUTTON_SLIDER_Lightning_BOTX;
-		static const long ID_STATICTEXT_Lightning_BOTY;
-		static const long ID_SLIDER_Lightning_BOTY;
-		static const long IDD_TEXTCTRL_Lightning_BOTY;
-		static const long ID_BITMAPBUTTON_SLIDER_Lightning_BOTY;
+		static const long ID_STATICTEXT_Lightning_WIDTH;
+		static const long ID_SLIDER_Lightning_WIDTH;
+		static const long IDD_TEXTCTRL_Lightning_WIDTH;
+		static const long ID_BITMAPBUTTON_SLIDER_Lightning_WIDTH;
 		static const long ID_STATICTEXT_Lightning_Direction;
 		static const long ID_CHOICE_Lightning_Direction;
 		//*)
