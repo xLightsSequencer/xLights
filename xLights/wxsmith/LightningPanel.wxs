@@ -295,21 +295,25 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT_Lightning_BOTY" variable="StaticText210" member="yes">
-					<label>(Not Used yet)</label>
+				<object class="wxStaticText" name="ID_STATICTEXT_Lightning_WIDTH" variable="StaticText210" member="yes">
+					<label>Width</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Lightning_BOTY" subclass="BulkEditSlider" variable="Slider_Lightning_BOTY" member="yes" />
+				<object class="wxSlider" name="ID_SLIDER_Lightning_WIDTH" subclass="BulkEditSlider" variable="Slider_Lightning_WIDTH" member="yes">
+					<value>1</value>
+					<min>1</min>
+					<max>7</max>
+				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Lightning_BOTY" subclass="BulkEditTextCtrl" variable="TextCtrl90" member="yes">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Lightning_WIDTH" subclass="BulkEditTextCtrl" variable="TextCtrl90" member="yes">
 					<value>0</value>
 					<size>20,-1d</size>
 				</object>
@@ -318,7 +322,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Lightning_BOTY" subclass="xlLockButton" variable="BitmapButton_LightningBOTY" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Lightning_WIDTH" subclass="xlLockButton" variable="BitmapButton_LightningWIDTH" member="yes">
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
