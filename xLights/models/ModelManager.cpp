@@ -697,6 +697,7 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
 
 bool ModelManager::ReworkStartChannel() const
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category& logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("        ReworkStartChannel.");
@@ -892,14 +893,27 @@ bool ModelManager::ReworkStartChannel() const
                         }
                     }
                 } else if (itm->IsLEDPanelMatrixProtocol()) {
-                    std::string osc = itm->ModelStartChannel;
-                    sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
-                    itm->SetStartChannel(sc);
-                    itm->ClearIndividualStartChannels();
-                    last = itm->GetName();
-                    ch = std::max(ch, (int32_t)(chstart + itm->GetChanCount()));
-                    if (osc != itm->ModelStartChannel) {
-                        outputsChanged = true;
+
+                    // This code only allows one model on a LED Matrix panel ... and I am not sure this is a valid limitation
+                    // so if this is a chained model ... move it off the controller
+                    if (itm->GetModelChain() != "Beginning" && itm->GetModelChain() != "") {
+                        itm->SetControllerName(NO_CONTROLLER);
+
+                        // because we have now moved a model off a controller we really need to do this all again
+                        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ReworkStartChannel");
+
+                        logger_base.warn("Attempt to place a second model %s on led panel port when only one is allowed. Only the first model has been retained. The others have been removed.", (const char*)itm->GetName().c_str());
+
+                    } else {
+                        std::string osc = itm->ModelStartChannel;
+                        sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
+                        itm->SetStartChannel(sc);
+                        itm->ClearIndividualStartChannels();
+                        last = itm->GetName();
+                        ch = std::max(ch, (int32_t)(chstart + itm->GetChanCount()));
+                        if (osc != itm->ModelStartChannel) {
+                            outputsChanged = true;
+                        }
                     }
                 } else {
 

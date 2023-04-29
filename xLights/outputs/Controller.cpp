@@ -25,6 +25,8 @@
 #include "ControllerSerial.h"
 #include "../models/Model.h"
 
+#include <numeric>
+
 #include <log4cpp/Category.hh>
 
 static wxArrayString ACTIVETYPENAMES;

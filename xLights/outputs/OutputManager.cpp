@@ -29,6 +29,8 @@
 #include "../Parallel.h"
 #include "../UtilFunctions.h"
 
+#include <numeric>
+
 #include <log4cpp/Category.hh>
 
 #pragma region Static Variables
