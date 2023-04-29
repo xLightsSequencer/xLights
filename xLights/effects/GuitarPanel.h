@@ -39,13 +39,20 @@ class GuitarPanel: public xlEffectPanel
 		BulkEditCheckBox* CheckBox_Collapse;
 		BulkEditCheckBox* CheckBox_Fade;
 		BulkEditCheckBox* CheckBox_ShowStrings;
+		BulkEditCheckBox* CheckBox_VaryWaveLengthOnFret;
 		BulkEditChoice* Choice_Guitar_MIDITrack_APPLYLAST;
 		BulkEditChoice* Choice_Guitar_Type;
 		BulkEditSlider* Slider_MaxFrets;
+		BulkEditSliderF1* Slider_BaseWaveFactor;
+		BulkEditSliderF1* Slider_StringWaveFactor;
 		BulkEditTextCtrl* TextCtrl_MaxFrets;
+		BulkEditTextCtrlF1* TextCtrl_BaseWaveFactor;
+		BulkEditTextCtrlF1* TextCtrl_StringWaveFactor;
 		wxChoice* Choice_StringAppearance;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
 		//*)
@@ -62,9 +69,16 @@ class GuitarPanel: public xlEffectPanel
 		static const long ID_STATICTEXT_Piano_Scale;
 		static const long ID_SLIDER_MaxFrets;
 		static const long IDD_TEXTCTRL_MaxFrets;
+		static const long ID_STATICTEXT2;
+		static const long ID_SLIDER_BaseWaveFactor;
+		static const long IDD_TEXTCTRL_BaseWaveFactor;
+		static const long ID_STATICTEXT3;
+		static const long ID_SLIDER_StringWaveFactor;
+		static const long IDD_TEXTCTRL_StringWaveFactor;
 		static const long ID_CHECKBOX_Fade;
 		static const long ID_CHECKBOX_Collapse;
 		static const long ID_CHECKBOX_ShowStrings;
+		static const long ID_CHECKBOX_VaryWaveLengthOnFret;
 		//*)
 
 	public:

@@ -175,6 +175,8 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer130->Add(BitmapButton_SpiralsShrink, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer45->Add(FlexGridSizer130, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer45);
+	FlexGridSizer45->Fit(this);
+	FlexGridSizer45->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_Spirals_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnLockButtonClick);

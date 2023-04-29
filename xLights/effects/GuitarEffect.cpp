@@ -661,6 +661,9 @@ void GuitarEffect::SetDefaultParameters() {
     SetCheckBoxValue(pp->CheckBox_Collapse, false);
     SetCheckBoxValue(pp->CheckBox_Fade, false);
     SetCheckBoxValue(pp->CheckBox_ShowStrings, false);
+    SetCheckBoxValue(pp->CheckBox_VaryWaveLengthOnFret, true);
+    SetSliderValue(pp->Slider_StringWaveFactor, 0);
+    SetSliderValue(pp->Slider_BaseWaveFactor, 10);
     SetPanelTimingTracks();
 }
 
@@ -678,15 +681,17 @@ void GuitarEffect::RenameTimingTrack(std::string oldname, std::string newname, E
 
 void GuitarEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     RenderGuitar(buffer,
-                effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
-		        std::string(SettingsMap.Get("CHOICE_Guitar_Type", "Guitar")),
-                std::string(SettingsMap.Get("CHOICE_Guitar_MIDITrack_APPLYLAST", "")),
-				std::string(SettingsMap.Get("CHOICE_StringAppearance", "On")),
-                SettingsMap.GetInt("SLIDER_MaxFrets", 19),
+                 effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
+                 std::string(SettingsMap.Get("CHOICE_Guitar_Type", "Guitar")),
+                 std::string(SettingsMap.Get("CHOICE_Guitar_MIDITrack_APPLYLAST", "")),
+                 std::string(SettingsMap.Get("CHOICE_StringAppearance", "On")),
+                 SettingsMap.GetInt("SLIDER_MaxFrets", 19),
                  SettingsMap.GetBool("CHECKBOX_ShowStrings", false),
                  SettingsMap.GetBool("CHECKBOX_Fade", false),
-                 SettingsMap.GetBool("CHECKBOX_Collapse", false)
-        );
+                 SettingsMap.GetBool("CHECKBOX_Collapse", false),
+                 SettingsMap.GetFloat("SLIDER_StringWaveFactor", 0.0) / 10.0,
+                 SettingsMap.GetFloat("SLIDER_BaseWaveFactor", 1.0) / 10.0,
+                 SettingsMap.GetBool("CHECKBOX_VaryWaveLengthOnFret", false));
 }
 
 bool notesort(const NoteTiming* first, const NoteTiming* second)
@@ -778,7 +783,7 @@ public:
 };
 
 //render Guitar fx during sequence:
-void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements, const std::string& type, const std::string& MIDITrack, const std::string& stringAppearance, int maxFrets, bool showStrings, bool fade, bool collapse)
+void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements, const std::string& type, const std::string& MIDITrack, const std::string& stringAppearance, int maxFrets, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret)
 {
     GuitarCache* cache = (GuitarCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -817,7 +822,7 @@ void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements
 
     uint32_t time = buffer.curPeriod * buffer.frameTimeInMs;
 
-    DrawGuitar(buffer, cache->GetTimingAt(time), stringAppearance, maxFrets, strings, showStrings, fade, collapse);
+    DrawGuitar(buffer, cache->GetTimingAt(time), stringAppearance, maxFrets, strings, showStrings, fade, collapse, stringWaveFactor, baseWaveFactor, varyWavelengthBasedOnFret);
 }
 
 inline uint32_t FlipY(uint32_t y, uint32_t height)
@@ -865,7 +870,7 @@ void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fr
 
 #define WAVE_RAMP 3.0
 
-void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint32_t of, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse)
+void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint32_t of, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret)
 {
     xlColor c;
     buffer.palette.GetColor(string % buffer.palette.Size(), c);
@@ -886,6 +891,12 @@ void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t 
         }
     }
 
+    double diffPerFret = 0.0;
+    if (varyWavelengthBasedOnFret)
+    {
+        diffPerFret = 0.3;
+    }
+
     for (uint32_t x = 0; x < maxX; ++x) {
 
         // this foces the wave to zero near the ends
@@ -901,7 +912,7 @@ void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t 
         }
 
         #define WAVE_SPEED 2
-        uint32_t y = (maxY / 2.0) * sin((PI * 2.0 * cycles * (double)x) / maxX + (timePos * WAVE_SPEED));
+        uint32_t y = (maxY / 2.0) * sin((PI * 2.0 * cycles * (double)x / (((double)(strings - string - 1) * stringWaveFactor) + baseWaveFactor + (maxFrets - fretPos) * diffPerFret)) / maxX + (timePos * WAVE_SPEED));
         y += (perString / 2.0) + (perString * string);
         buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
     }
@@ -918,7 +929,7 @@ void GuitarEffect::DrawString(RenderBuffer& buffer, uint8_t string, uint8_t stri
     }
 }
 
-void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const std::string& stringAppearance, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse)
+void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const std::string& stringAppearance, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret)
 {
     if (pdata != nullptr) {
         uint32_t pos = (buffer.curPeriod * buffer.frameTimeInMs - pdata->_startMS) / buffer.frameTimeInMs;
@@ -930,7 +941,7 @@ void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const s
             }
         } else if (stringAppearance == "Wave") {
             for (const auto& it : pdata->_fingerPos) {
-                DrawGuitarWave(buffer, it.first, it.second, pos, len, maxFrets, strings, showStrings, fade, collapse);
+                DrawGuitarWave(buffer, it.first, it.second, pos, len, maxFrets, strings, showStrings, fade, collapse, stringWaveFactor, baseWaveFactor, varyWavelengthBasedOnFret);
             }
         }
     }
