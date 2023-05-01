@@ -7243,9 +7243,15 @@ void xLightsFrame::ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds
 }
 
 // returns the lost files path if required
-std::string AddFileToZipFile(const std::string& baseDirectory, const std::string& file, wxZipOutputStream& zip, const std::string& actualfile = "")
+std::string AddFileToZipFile(const std::string& baseDirectory, const std::string& file, wxZipOutputStream& zip, std::list<std::string>& zippedFiles, const std::string& actualfile = "")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    bool dozip = std::find(begin(zippedFiles), end(zippedFiles), file) == end(zippedFiles);
+
+    if (dozip) {
+        zippedFiles.push_back(file);
+    }
 
     std::string filetoactuallyzip = actualfile;
     if (actualfile == "") filetoactuallyzip = file;
@@ -7265,29 +7271,24 @@ std::string AddFileToZipFile(const std::string& baseDirectory, const std::string
         if (f.StartsWith(baseDirectory))
 #endif
         {
-            // this is in our folder
-            std::string tgt = file.substr(baseDirectory.length());
-            if (tgt != "" && (tgt[0] == '\\' || tgt[0] == '/'))
-            {
-                tgt = tgt.substr(1);
-            }
-            tgt = showdir + "/" + tgt;
-            if (zip.PutNextEntry(tgt))
-            {
-                wxFileInputStream fis(filetoactuallyzip);
-                if (fis.IsOk())
-                {
-                    zip.Write(fis);
+            if (dozip) {
+                // this is in our folder
+                std::string tgt = file.substr(baseDirectory.length());
+                if (tgt != "" && (tgt[0] == '\\' || tgt[0] == '/')) {
+                    tgt = tgt.substr(1);
                 }
-                else
-                {
-                    logger_base.warn("Error adding %s to %s due to failure to create input stream.", (const char*)file.c_str(), (const char *)tgt.c_str());
+                tgt = showdir + "/" + tgt;
+                if (zip.PutNextEntry(tgt)) {
+                    wxFileInputStream fis(filetoactuallyzip);
+                    if (fis.IsOk()) {
+                        zip.Write(fis);
+                    } else {
+                        logger_base.warn("Error adding %s to %s due to failure to create input stream.", (const char*)file.c_str(), (const char*)tgt.c_str());
+                    }
+                    zip.CloseEntry();
+                } else {
+                    logger_base.warn("    Error zipping %s to %s.", (const char*)file.c_str(), (const char*)tgt.c_str());
                 }
-                zip.CloseEntry();
-            }
-            else
-            {
-                logger_base.warn("    Error zipping %s to %s.", (const char*)file.c_str(), (const char *)tgt.c_str());
             }
         }
         else
@@ -7296,15 +7297,14 @@ std::string AddFileToZipFile(const std::string& baseDirectory, const std::string
             std::string tgt = "_lost/" + fn.GetName().ToStdString() + "." + fn.GetExt().ToStdString();
             tgt = showdir + "/" + tgt;
             lost = tgt;
-            if (zip.PutNextEntry(tgt))
-            {
-                wxFileInputStream fis(filetoactuallyzip);
-                zip.Write(fis);
-                zip.CloseEntry();
-            }
-            else
-            {
-                logger_base.warn("    Error zipping %s to %s.", (const char*)file.c_str(), (const char *)tgt.c_str());
+            if (dozip) {
+                if (zip.PutNextEntry(tgt)) {
+                    wxFileInputStream fis(filetoactuallyzip);
+                    zip.Write(fis);
+                    zip.CloseEntry();
+                } else {
+                    logger_base.warn("    Error zipping %s to %s.", (const char*)file.c_str(), (const char*)tgt.c_str());
+                }
             }
         }
     }
@@ -7450,15 +7450,16 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     prog.Show();
 
     std::map<std::string, std::string> lostfiles;
+    std::list<std::string> zippedfiles;
 
     wxFileName fnNetworks(CurrentDir, OutputManager::GetNetworksFileName());
     prog.Update(1, fnNetworks.GetFullName());
-    AddFileToZipFile(CurrentDir.ToStdString(), fnNetworks.GetFullPath().ToStdString(), zip);
+    AddFileToZipFile(CurrentDir.ToStdString(), fnNetworks.GetFullPath().ToStdString(), zip, zippedfiles);
 
     // Add house image
     wxFileName fnHouse(mBackgroundImage);
     prog.Update(5, fnHouse.GetFullName());
-    auto lost = AddFileToZipFile(CurrentDir.ToStdString(), fnHouse.GetFullPath().ToStdString(), zip);
+    auto lost = AddFileToZipFile(CurrentDir.ToStdString(), fnHouse.GetFullPath().ToStdString(), zip, zippedfiles);
     if (lost != "") {
         lostfiles[fnHouse.GetFullPath().ToStdString()] = lost;
     }
@@ -7502,7 +7503,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         wxFileName fnf(f);
         if (FileExists(fnf)) {
             prog.Update(10 + (int)(10.0 * i / (float)modelfiles.size()), fnf.GetFullName());
-            lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
+            lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip, zippedfiles);
             if (lost != "") {
                 lostfiles[fnf.GetFullPath().ToStdString()] = lost;
             }
@@ -7525,7 +7526,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     }
 
     prog.Update(25, fnRGBEffects.GetFullName());
-    AddFileToZipFile(CurrentDir.ToStdString(), fnRGBEffects.GetFullPath().ToStdString(), zip, fixfile);
+    AddFileToZipFile(CurrentDir.ToStdString(), fnRGBEffects.GetFullPath().ToStdString(), zip, zippedfiles, fixfile);
     if (fixfile != "") {
         wxRemoveFile(fixfile);
     }
@@ -7536,7 +7537,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         // Add the media file
         wxFileName fnMedia(CurrentSeqXmlFile->GetMediaFile());
         prog.Update(30, fnMedia.GetFullName());
-        lost = AddFileToZipFile(CurrentDir.ToStdString(), fnMedia.GetFullPath().ToStdString(), zip);
+        lost = AddFileToZipFile(CurrentDir.ToStdString(), fnMedia.GetFullPath().ToStdString(), zip, zippedfiles);
         if (lost != "") {
             lostfiles[fnMedia.GetFullPath().ToStdString()] = lost;
         }
@@ -7553,7 +7554,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         if (dl->GetName() != "Nutcracker") {
             wxFileName fndl(dl->GetDataSource());
 
-            lost = AddFileToZipFile(CurrentDir.ToStdString(), fndl.GetFullPath().ToStdString(), zip);
+            lost = AddFileToZipFile(CurrentDir.ToStdString(), fndl.GetFullPath().ToStdString(), zip, zippedfiles);
             if (lost != "") {
                 lostfiles[fndl.GetFullPath().ToStdString()] = lost;
             }
@@ -7587,7 +7588,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         wxFileName fnf(f);
         if (FileExists(fnf)) {
             prog.Update(35 + (int)(59.0 * i / (float)effectfiles.size()), fnf.GetFullName());
-            lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
+            lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip, zippedfiles);
             if (lost != "") {
                 lostfiles[fnf.GetFullPath().ToStdString()] = lost;
             }
@@ -7599,7 +7600,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     fixfile =  FixFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath().ToStdString(), lostfiles);
 
     prog.Update(95, CurrentSeqXmlFile->GetFullName());
-    AddFileToZipFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath().ToStdString(), zip, fixfile);
+    AddFileToZipFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath().ToStdString(), zip, zippedfiles, fixfile);
     if (fixfile != "") {
         wxRemoveFile(fixfile);
     }
