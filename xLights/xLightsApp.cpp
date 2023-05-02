@@ -481,7 +481,6 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "cs", "checksequence", "run check sequence and exit"},
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
         { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
-        { wxCMD_LINE_OPTION, "g", "opengl", "specify OpenGL version" },
         { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
         { wxCMD_LINE_SWITCH, "o", "on", "turn on output to lights" },
         { wxCMD_LINE_SWITCH, "a", "aport", "turn on xFade A port" },
@@ -551,26 +550,6 @@ bool xLightsApp::OnInit()
         // help was given
         return false;
     case 0:
-        {
-            wxString glVersion;
-            if (parser.Found("g", &glVersion))
-            {
-                wxConfigBase* config = wxConfigBase::Get();
-                if (glVersion == "" || glVersion.Lower() == "auto")
-                {
-                    config->Write("ForceOpenGLVer", 99);
-                }
-                else
-                {
-                    int gl = wxAtoi(glVersion);
-                    if (gl != 0)
-                    {
-                        config->Write("ForceOpenGLVer", gl);
-                    }
-                }
-                info += _("Forcing open GL version\n");
-            }
-        }
         if (parser.Found("w"))
         {
             logger_base.info("-w: Wiping settings");

@@ -198,6 +198,13 @@ public:
             return Blue() | (Green() << 8) | (Red() << 16);
         }
     }
+    uint32_t GetRGBA(bool BBGGRR = true) const {
+        if (BBGGRR) {
+            return Red() | (Green() << 8) | (Blue() << 16) | (alpha << 24);
+        } else {
+            return Blue() | (Green() << 8) | (Red() << 16) | (alpha << 24);
+        }
+    }
     /** AlphaBlend this color onto the background **/
     xlColor AlphaBlend(const xlColor &bc) const {
         if (alpha == 0) return bc;

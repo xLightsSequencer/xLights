@@ -1687,21 +1687,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     config->Read("BackupPurgeDays", &BackupPurgeDays, 0);
     logger_base.debug("Backup purge age: %d days.", BackupPurgeDays);
 
-    int glVer = 99;
-    config->Read("ForceOpenGLVer", &glVer, 99);
-    if (glVer != 99) {
-        int lastGlVer;
-        config->Read("LastOpenGLVer", &lastGlVer, 0);
-        if (lastGlVer == 0) {
-            config->Write("ForceOpenGLVer", 99);
-            glVer = 99;
-        } else if (glVer != lastGlVer) {
-            CallAfter(&xLightsFrame::MaybePackageAndSendDebugFiles);
-        }
-    }
-    logger_base.debug("Force OpenGL version: %d.", glVer);
-    config->Write("LastOpenGLVer", glVer);
-
     config->Read("xLightsGridSpacing", &mGridSpacing, 16);
     SetGridSpacing(mGridSpacing);
     logger_base.debug("Grid spacing: %d.", mGridSpacing);
@@ -3773,27 +3758,6 @@ void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
     UpdateViewMenu();
 }
 
-void xLightsFrame::MaybePackageAndSendDebugFiles() {
-    wxString message = "You forced the OpenGL setting to a non-default value.  Is it OK to send the debug logs to the developers for analysis?";
-    wxMessageDialog dlg(this, message, "Send Debug Files",wxYES_NO|wxCENTRE);
-    if (dlg.ShowModal() == wxID_YES) {
-        wxTextEntryDialog ted(this, "Can you briefly describe what wasn't working?\n"
-                              "Also include who you are (email, forum username, etc..)", "Additional Information", "",
-                              wxTE_MULTILINE|wxOK|wxCENTER);
-        ted.SetSize(400, 400);
-        ted.ShowModal();
-
-        wxDebugReportCompress report;
-        report.SetCompressedFileBaseName("xlights_debug");
-        report.SetCompressedFileDirectory(wxFileName::GetTempDir());
-        report.AddText("description", ted.GetValue(), "description");
-        AddDebugFilesToReport(report);
-        report.Process();
-        xlCrashHandler::SendReport("xLights", "oglUpload", report);
-        wxRemoveFile(report.GetCompressedFileName());
-    }
-}
-
 void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4041,46 +4005,6 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
         }
     }
     //report.AddAll(wxDebugReport::Context_Current);
-}
-
-int xLightsFrame::OpenGLVersion() const {
-    int orig;
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Read("ForceOpenGLVer", &orig, 99);
-    return orig;
-}
-void xLightsFrame::SetOpenGLVersion(int i) {
-    if (i == 0) {
-        //auto detect
-        i = 99;
-    }
-    if (i == 2) {
-        //opengl 2 is now handled by opengl 1.x
-        i = 1;
-    }
-    int orig;
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Read("ForceOpenGLVer", &orig, 99);
-
-    config->Write("ForceOpenGLVer", i);
-    if (i != orig) {
-        DisplayInfo("OpenGL changes require a restart", this);
-    }
-}
-
-int xLightsFrame::OpenGLRenderOrder() const {
-    wxConfigBase* config = wxConfigBase::Get();
-    int orig;
-    config->Read("OGLRenderOrder", &orig, 0);
-    return orig;
-}
-
-void xLightsFrame::SetOpenGLRenderOrder(int order) {
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Write("OGLRenderOrder", order);
-    _housePreviewPanel->GetModelPreview()->SetRenderOrder(order);
-    _modelPreviewPanel->SetRenderOrder(order);
-    modelPreview->SetRenderOrder(order);
 }
 
 void xLightsFrame::SaveWorkingLayout()
@@ -6325,8 +6249,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
 #ifndef __WXOSX__
         if (usesShader) {
-            if (mainSequencer->PanelEffectGrid->GetCreatedVersion() < 3) {
-                wxString msg = wxString::Format("    ERR: Sequence has one or more shader effects but open GL version is lower than version 3 (%d). These effects will not render.", mainSequencer->PanelEffectGrid->GetCreatedVersion());
+            if (!mainSequencer->PanelEffectGrid->IsCoreProfile()) {
+                wxString msg = wxString::Format("    ERR: Sequence has one or more shader effects but open GL version is lower than version 3. These effects may not render.");
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }

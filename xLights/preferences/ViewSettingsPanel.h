@@ -14,9 +14,7 @@
 #include <wx/panel.h>
 class wxCheckBox;
 class wxChoice;
-class wxFlexGridSizer;
 class wxGridBagSizer;
-class wxStaticBoxSizer;
 class wxStaticText;
 //*)
 
@@ -33,8 +31,6 @@ class ViewSettingsPanel: public wxPanel
 		wxCheckBox* PlayControlsCheckBox;
 		wxChoice* EffectAssistChoice;
 		wxChoice* ModelHandleSizeChoice;
-		wxChoice* OpenGLRenderOrderChoice;
-		wxChoice* OpenGLVersionChoice;
 		wxChoice* ToolIconSizeChoice;
 		//*)
 
@@ -45,8 +41,6 @@ class ViewSettingsPanel: public wxPanel
 
 		//(*Identifiers(ViewSettingsPanel)
 		static const long ID_CHOICE3;
-		static const long ID_CHOICE1;
-		static const long ID_CHOICE2;
 		static const long ID_CHOICE4;
 		static const long ID_CHOICE5;
 		static const long ID_CHECKBOX1;

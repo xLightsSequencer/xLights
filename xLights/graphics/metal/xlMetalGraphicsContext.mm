@@ -205,15 +205,15 @@ public:
     }
     virtual void FlushRange(uint32_t start, uint32_t len) override {
         if (buffer && (!finalized || mayChange)) {
-            uint32_t s = start * sizeof(simd_float4);
-            uint32_t l = len * sizeof(simd_float4);
+            uint32_t s = start * sizeof(simd_float3);
+            uint32_t l = len * sizeof(simd_float3);
             [buffer didModifyRange:NSMakeRange(s, l)];
         }
     }
 
 
     void SetBufferBytes(id<MTLDevice> device, id<MTLRenderCommandEncoder> encoder, int index) {
-        int sz = count * sizeof(simd_float4);
+        int sz = count * sizeof(simd_float3);
         if (finalized) {
             if (!buffer) {
                 buffer = [device newBufferWithBytes:&vertices[0] length:(sizeof(simd_float3) * count) options:MTLResourceStorageModeManaged];

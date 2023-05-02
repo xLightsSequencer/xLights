@@ -136,7 +136,6 @@ public:
     void SetDisplay2DCenter0(bool bb) { _center2D0 = bb; grid2dValid=false; }
 
     bool IsNoCurrentModel() { return currentModel == "&---none---&"; }
-    void SetRenderOrder(int i) { renderOrder = i; Refresh(); }
 
     void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
 
@@ -213,7 +212,6 @@ private:
     xlVertexAccumulator *grid2d = nullptr;
     bool grid2dValid = false;
 
-    int renderOrder = 0;
     bool _wiring = false;
     bool _highlightFirst = false;
     bool m_mouse_down = false;
