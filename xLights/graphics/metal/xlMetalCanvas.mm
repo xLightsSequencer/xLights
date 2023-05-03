@@ -188,7 +188,7 @@ bool xlMetalCanvas::drawingUsingLogicalSize() const {
 }
 
 double xlMetalCanvas::translateToBacking(double x) const {
-    return xlTranslateToRetina(*this, x);
+    return GetDPIScaleFactor() * x;
 }
 double xlMetalCanvas::mapLogicalToAbsolute(double x) const {
     if (drawingUsingLogicalSize()) {

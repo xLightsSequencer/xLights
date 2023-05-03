@@ -2018,15 +2018,20 @@ xlGraphicsContext* xlOGL3GraphicsContext::SetViewport(int topleft_x, int topleft
     frameData.modelMatrix = glm::mat4(1.0);
     frameData.viewMatrix = glm::mat4(1.0);
     if (is3D) {
-        int x, y, x2, y2;
+        float x, y, x2, y2;
         x = topleft_x;
         y = bottomright_y;
         x2 = bottomright_x;
         y2 = topleft_y;
 
         int depth = canvas->GetZDepth();
-        xlSetRetinaCanvasViewport(*canvas, x,y,x2,y2);
-        LOG_GL_ERRORV(glViewport(x,y,x2-x,y2-y));
+        
+        double sf = canvas->GetDPIScaleFactor();
+        x = sf * x;
+        y = sf * y;
+        x2 = sf * x2;
+        y2 = sf * y2;
+        LOG_GL_ERRORV(glViewport(x, y, x2 - x, y2 - y));
         LOG_GL_ERRORV(glScissor(0, 0, x2 - x, y2 - y));
         
         float min = 1.0f;
@@ -2048,7 +2053,12 @@ xlGraphicsContext* xlOGL3GraphicsContext::SetViewport(int topleft_x, int topleft
         x2 = bottomright_x;
         y2 = std::max(bottomright_y,topleft_y);
 
-        xlSetRetinaCanvasViewport(*canvas, x,y,x2,y2);
+        double sf = canvas->GetDPIScaleFactor();
+        x = sf * x;
+        y = sf * y;
+        x2 = sf * x2;
+        y2 = sf * y2;
+
         int w = std::max(x, x2) - std::min(x, x2);
         int h = std::max(y, y2) - std::min(y, y2);
         LOG_GL_ERRORV(glViewport(x,y,w,h));

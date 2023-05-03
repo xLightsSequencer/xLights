@@ -456,7 +456,7 @@ END_EVENT_TABLE()
 
 void AddEffectToolbarButtons(EffectManager& manager, xlAuiToolBar* EffectsToolBar)
 {
-    int size = ScaleWithSystemDPI(16);
+    int size = EffectsToolBar->FromDIP(16);
     for (size_t x = 0; x < manager.size(); ++x) {
         DragEffectBitmapButton* bitmapButton = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(size, size),
                                                                             wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, wxString::Format("DragTBButton%02llu", x));
@@ -3327,7 +3327,7 @@ void xLightsFrame::ResetToolbarLocations(wxCommandEvent& event)
 void xLightsFrame::SetToolIconSize(int size)
 {
     mIconSize = size;
-    size = ScaleWithSystemDPI(size);
+    size = FromDIP(size);
     for (size_t x = 0; x < EffectsToolBar->GetToolCount(); x++)
     {
         EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetSizeHints(size, size, size, size);

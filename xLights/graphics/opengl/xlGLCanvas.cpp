@@ -596,7 +596,7 @@ void xlGLCanvas::Resized(wxSizeEvent& evt)
 }
 
 double xlGLCanvas::translateToBacking(double x) const {
-    return xlTranslateToRetina(*this, x);
+    return GetDPIScaleFactor() * x;
 }
 double xlGLCanvas::mapLogicalToAbsolute(double x) const {
     if (drawingUsingLogicalSize()) {

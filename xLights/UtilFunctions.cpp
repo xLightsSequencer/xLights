@@ -977,54 +977,6 @@ int NumberAwareStringCompare(const std::string &a, const std::string &b)
     }
 }
 
-double GetSystemContentScaleFactor() {
-#ifdef __WXOSX__
-    return xlOSGetMainScreenContentScaleFactor();
-#else
-    return double(wxScreenDC().GetPPI().y) / 96.0;
-#endif
-}
-
-double ScaleWithSystemDPI(double val)
-{
-#ifdef __WXOSX__
-    //OSX handles all the scaling itself
-    return val;
-#else
-    return ScaleWithSystemDPI(GetSystemContentScaleFactor(), val);
-#endif
-}
-
-double UnScaleWithSystemDPI(double val)
-{
-#ifdef __WXOSX__
-    //OSX handles all the scaling itself
-    return val;
-#else
-    return UnScaleWithSystemDPI(GetSystemContentScaleFactor(), val);
-#endif
-}
-
-double ScaleWithSystemDPI(double scalingFactor, double val)
-{
-#ifdef __WXOSX__
-    //OSX handles all the scaling itself
-    return val;
-#else
-    return val * scalingFactor;
-#endif
-}
-
-double UnScaleWithSystemDPI(double scalingFactor, double val)
-{
-#ifdef __WXOSX__
-    //OSX handles all the scaling itself
-    return val;
-#else
-    return val / scalingFactor;
-#endif
-}
-
 bool IsExcessiveMemoryUsage(double physicalMultiplier)
 {
 #if defined(__WXMSW__) && defined(__WIN64__)

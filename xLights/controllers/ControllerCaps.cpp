@@ -64,14 +64,18 @@ void ControllerCaps::LoadControllers() {
     d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/controllers";
 #endif
 
-#ifdef _DEBUG
     // in debug look in the master folder
     if (!wxDir::Exists(d)) {
+#ifdef _DEBUG
 #ifdef __WXMSW__
         d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/../../../controllers";
 #endif
-    }
 #endif
+#ifdef LINUX
+        d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/../controllers";
+#endif
+    }
+    printf("RD: %s\n", d.ToStdString().c_str());
 
     if (wxDir::Exists(d)) {
         wxDir dir(d);

@@ -75,7 +75,7 @@ void SplashDialog::OnPaint(wxPaintEvent& event)
     wxSize size = GetSize();
     
     int scl = 1;
-#ifndef __WXOSX__
+#ifdef __WXMSW__
     if (GetSystemContentScaleFactor() > 1.5) {
         scl = 2;
     }
