@@ -32,6 +32,7 @@
 #ifdef _MSC_VER
 #include "GL\glext.h"
 #else
+#include <GL/glx.h>
 #include <GL/glext.h>
 #endif
 
