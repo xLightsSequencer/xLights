@@ -28,7 +28,7 @@
 
 
 #ifndef __WXMAC__
-#include <GL/glx.h>
+#include "GL/glext.h""
 
 PFNGLUSEPROGRAMPROC glUseProgram;
 PFNGLCREATESHADERPROC glCreateShader;
