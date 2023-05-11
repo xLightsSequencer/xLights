@@ -310,6 +310,13 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
 
     int row = 0;
     for (const auto& inst : instances) {
+
+        // skip over Falcon bridge instances
+        if (inst->fppType == FPP_TYPE::FALCONV4 && inst->mode == "bridge")
+        {
+            continue;
+        }
+
         std::string rowStr = std::to_string(row);
         wxCheckBox *CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, CHECK_COL + rowStr);
         CheckBox1->SetValue(true);
