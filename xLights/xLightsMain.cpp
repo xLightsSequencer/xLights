@@ -1868,8 +1868,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(newInstId, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_NewXLightsInstance);
 
 
-    bool gpuRendering = false;
-    config->Read(_("xLightsGPURendering"), &gpuRendering, false);
+    bool gpuRendering = true;
+    config->Read(_("xLightsGPURendering"), &gpuRendering, true);
     GPURenderUtils::SetEnabled(gpuRendering);
     
     _taskBarIcon = std::make_unique<xlMacDockIcon>(this);
@@ -1877,15 +1877,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
 #endif
-
 #ifdef __WXMSW__
     //make sure Direct2DRenderer is created on the main thread before the other threads need it
     wxGraphicsRenderer::GetDirect2DRenderer();
-#endif
 
     bool bgShaders = false;
     config->Read(_("xLightsShadersOnBackgroundThreads"), &bgShaders, false);
     ShaderEffect::SetBackgroundRender(bgShaders);
+#endif
 
     DrawingContext::Initialize(this);
 
