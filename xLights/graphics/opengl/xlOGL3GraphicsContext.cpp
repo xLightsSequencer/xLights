@@ -2032,7 +2032,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::SetViewport(int topleft_x, int topleft
 
         int depth = canvas->GetZDepth();
         
-        double sf = canvas->GetDPIScaleFactor();
+        double sf = canvas->GetContentScaleFactor();
         x = sf * x;
         y = sf * y;
         x2 = sf * x2;
@@ -2059,7 +2059,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::SetViewport(int topleft_x, int topleft
         x2 = bottomright_x;
         y2 = std::max(bottomright_y,topleft_y);
 
-        double sf = canvas->GetDPIScaleFactor();
+        double sf = canvas->GetContentScaleFactor();
         x = sf * x;
         y = sf * y;
         x2 = sf * x2;
