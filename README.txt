@@ -11,6 +11,25 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.08 May 13, 2023
+   -- enh (dkulp)   Windows/Linux - redo OpenGL to be based on Metal architecture
+                     - removes OpenGL 1.x support (retains OpenGL 2.x)
+                     - Provides shading of 3D models similar to Metal
+   -- enh (keith)   Violin support for guitar effect
+   -- enh (keith)   Greater control of the wave shape on guitar strings
+   -- enh (kevin)   Allow customization of lightning width
+   -- enh (dkulp)   Don't mark GPU rendering as experimental, it works
+   -- enh (kevin)   Add simple path re-ordering to SketchAssistPanel
+   -- bug (keith)   Dont show falcon controllers in FPP connect if in bridge mode
+   -- bug (keith)   Fix Falcon V4 DDP one based does not upload correctly
+   -- bug (dkulp)   Fix some DPI scaling issues on Windows
+   -- bug (dkulp)   Fix a BUNCH of issues with DPI scaling on Linux
+   -- bug (keith)   Fix duplication of face files in zip packages
+   -- bug (keith)   Fix multiple panels attached to on port in visualizer
+   -- bug (scott)   Fix import of some AC model effects
+   -- bug (keith)   Timing marks cannot be dropped by clicking waveform and pressing t
+   -- bug (keith)   Suppress controller name IP address resolution if a controller is marked as inactive
+   -- bug (keith)   Color multistring custom model nodes differently in node layout
 2023.07 April 25, 2023
    -- enh (keith)   Add -x option to xSchedule to silently exit if xSchedule is already running
    -- enh (keith)   Add some Hanson Electronics boards
