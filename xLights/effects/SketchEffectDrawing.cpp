@@ -4,6 +4,7 @@
 
 #include <wx/graphics.h>
 
+#include <algorithm>
 #include <iterator>
 #include <regex>
 #include <sstream>
@@ -556,4 +557,12 @@ void SketchEffectSketch::deletePath(int pathIndex)
     std::advance(iter, pathIndex);
 
     m_paths.erase(iter);
+}
+
+void SketchEffectSketch::swapPaths(int pathIndex0, int pathIndex1)
+{
+    if (pathIndex0 < 0 || pathIndex1 < 0 || pathIndex0 >= m_paths.size() || pathIndex1 >= m_paths.size())
+        return;
+
+    std::swap(m_paths[pathIndex0], m_paths[pathIndex1]);
 }

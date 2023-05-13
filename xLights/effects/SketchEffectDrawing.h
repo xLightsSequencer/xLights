@@ -98,6 +98,7 @@ public:
     void updatePath(int index, std::shared_ptr<SketchEffectPath> path);
     void reversePath(int pathIndex);
     void deletePath(int pathIndex);
+    void swapPaths(int pathIndex0, int pathIndex1);
 
 protected:
     std::vector<std::shared_ptr<SketchEffectPath>> m_paths;
