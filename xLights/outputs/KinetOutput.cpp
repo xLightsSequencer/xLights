@@ -37,7 +37,7 @@ void KinetOutput::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("Error initialising Kinet datagram for %s %d. %s", (const char*)_ip.c_str(), GetUniverse(), (const char*)localaddr.IPAddress().c_str());
         _ok = false;

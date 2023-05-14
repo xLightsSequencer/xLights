@@ -189,7 +189,7 @@ void Discovery::DatagramData::Init(const std::string &mc, int port) {
     wxIPV4address localaddr;
     localaddr.AnyAddress();
     localaddr.Service(port);
-    wxDatagramSocket *mainSocket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
+    wxDatagramSocket* mainSocket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     mainSocket->SetTimeout(1);
     mainSocket->Notify(false);
     if (mainSocket->IsOk()) {
@@ -203,7 +203,7 @@ void Discovery::DatagramData::Init(const std::string &mc, int port) {
         wxIPV4address localaddr;
         localaddr.Hostname(ip);
         
-        wxDatagramSocket *socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
+        wxDatagramSocket* socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
         socket->SetTimeout(1);
         socket->Notify(false);
         if (socket->IsOk()) {

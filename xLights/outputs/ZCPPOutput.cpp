@@ -315,7 +315,7 @@ void ZCPPOutput::SendSync(const std::string& localIP) {
             delete syncdatagram;
         }
 
-        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
         if (syncdatagram == nullptr) {
             logger_base.error("Error initialising ZCPP sync datagram.");
@@ -325,7 +325,7 @@ void ZCPPOutput::SendSync(const std::string& localIP) {
             delete syncdatagram;
             syncdatagram = nullptr;
         }
-        else if (syncdatagram->Error() != wxSOCKET_NOERROR) {
+        else if (syncdatagram->Error()) {
             logger_base.error("Error creating ZCPP sync datagram => %d : %s.", syncdatagram->LastError(), (const char*)DecodeIPError(syncdatagram->LastError()).c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
@@ -784,7 +784,7 @@ bool ZCPPOutput::Open() {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("ZCPPOutput: Error opening datagram.");
     }
@@ -793,7 +793,7 @@ bool ZCPPOutput::Open() {
         delete _datagram;
         _datagram = nullptr;
     }
-    else if (_datagram->Error() != wxSOCKET_NOERROR) {
+    else if (_datagram->Error()) {
         logger_base.error("Error creating ZCPP datagram => %d : %s.", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;

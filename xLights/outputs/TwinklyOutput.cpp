@@ -351,14 +351,14 @@ void TwinklyOutput::OpenDatagram()
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("Twinkly: %s Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
     } else if (!_datagram->IsOk()) {
         logger_base.error("Twinkly: %s Error opening datagram. Network may not be connected? OK : FALSE", (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
-    } else if (_datagram->Error() != wxSOCKET_NOERROR) {
+    } else if (_datagram->Error()) {
         logger_base.error("Twinkly: %s Error creating Twinkly datagram => %d : %s.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
@@ -444,7 +444,7 @@ wxJSONValue TwinklyOutput::Query(const std::string& ip, uint8_t type, const std:
     }
 
     logger_base.debug(" Twinkly query using %s", (const char*)localaddr.IPAddress().c_str());
-    wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
     if (datagram == nullptr) {
         logger_base.error("Error initialising Twinkly query datagram.");
@@ -452,7 +452,7 @@ wxJSONValue TwinklyOutput::Query(const std::string& ip, uint8_t type, const std:
         logger_base.error("Error initialising Twinkly query datagram ... is network connected? OK : FALSE");
         delete datagram;
         datagram = nullptr;
-    } else if (datagram->Error() != wxSOCKET_NOERROR) {
+    } else if (datagram->Error()) {
         logger_base.error("Error creating Twinkly query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         delete datagram;
         datagram = nullptr;
@@ -468,7 +468,7 @@ wxJSONValue TwinklyOutput::Query(const std::string& ip, uint8_t type, const std:
     if (datagram != nullptr) {
         logger_base.info("Twinkly sending query packet.");
         datagram->SendTo(remoteaddr, &packet, sizeof(packet));
-        if (datagram->Error() != wxSOCKET_NOERROR) {
+        if (datagram->Error()) {
             logger_base.error("Error sending Twinkly query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         } else {
             logger_base.info("Twinkly sent query packet. Sleeping for 1 second.");
