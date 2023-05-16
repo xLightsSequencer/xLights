@@ -700,13 +700,21 @@ void ModelPreview::Render(uint32_t frameTime, const unsigned char *data, bool sw
     currentFrameTime = frameTime;
     if (StartDrawing(mPointSize)) {
         const std::vector<Model*> &models = GetModels();
+        std::map<int32_t, std::list<Model*>> sortedModels;
         for (auto m : models) {
             int NodeCnt = m->GetNodeCount();
             for (size_t n = 0; n < NodeCnt; ++n) {
                 int start = m->NodeStartChannel(n);
                 m->SetNodeChannelValues(n, &data[start]);
             }
-            m->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d);
+            auto p = ProjViewMatrix * glm::vec4(m->GetHcenterPos(), m->GetVcenterPos(), m->GetDcenterPos(), 1);
+            int z = std::round(p.z * 100);
+            sortedModels[z].push_back(m);
+        }
+        for (auto iter = sortedModels.rbegin(); iter != sortedModels.rend(); ++iter) {
+            for (auto m : iter->second) {
+                m->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d);
+            }
         }
         // draw all the view objects
         if (is3d) {
