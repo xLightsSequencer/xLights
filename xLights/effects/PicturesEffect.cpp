@@ -508,7 +508,6 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     int dir = GetPicturesDirection(dirstr);
     double position = buffer.GetEffectTimeIntervalPosition(movementSpeed);
 
@@ -616,13 +615,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                     // override it to 1
                     cache->imageCount = 1;
                 }
-
-                if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
-                    logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
-                    image.Create(5, 5, true);
-                }
-
-                rawimage = image;
+                
                 cache->PictureName = NewPictureName;
 
                 if (cache->imageCount > 1) {
@@ -641,10 +634,21 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                         delete gifImage;
                         gifImage = nullptr;
                         cache->imageCount = 1;
+                        if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
+                            logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
+                            image.Create(5, 5, true);
+                        }
+                        rawimage = image;
                     } else {
                         image = gifImage->GetFrame(0);
                         rawimage = image;
                     }
+                } else {
+                    if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
+                        logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
+                        image.Create(5, 5, true);
+                    }
+                    rawimage = image;
                 }
             }
         }
