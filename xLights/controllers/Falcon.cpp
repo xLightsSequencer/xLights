@@ -2166,7 +2166,11 @@ void Falcon::DecodeModelVersion(int p, int& model, int& version) {
         version = 3;
         break;
     case 128:
-        model = 0;
+        model = 128;
+        version = 4;
+        break;
+    case 129:
+        model = 129;
         version = 4;
         break;
     default:
