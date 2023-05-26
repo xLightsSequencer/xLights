@@ -360,6 +360,12 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
             settingEffectFile = "E_FILEPICKERCTRL_SVG";
             targetMediaFolder = _importOptions.GetDir(MediaTargetDir::IMAGES_DIR);
         }
+    } else if (effName == "Ripple") {
+        wxString shapePath = settings["E_FILEPICKERCTRL_Ripple_SVG"];
+        if (!shapePath.empty()) {
+            settingEffectFile = "E_FILEPICKERCTRL_Ripple_SVG";
+            targetMediaFolder = _importOptions.GetDir(MediaTargetDir::IMAGES_DIR);
+        }
     }
 
     if (!settingEffectFile.IsEmpty()) {

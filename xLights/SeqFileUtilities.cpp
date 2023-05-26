@@ -1110,7 +1110,7 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
             } else {
                 settings = ef->GetSettingsAsString();
             }
-            
+
             // remove lock if it is there
             Replace(settings, ",X_Effect_Locked=True", "");
 
@@ -1218,13 +1218,13 @@ void xLightsFrame::ImportXLights(const wxFileName &filename, std::string const& 
     wxStopWatch sw; // start a stopwatch timer
 
     SequencePackage xsqPkg(filename, this);
-    
+
     if (xsqPkg.IsPkg()) {
         xsqPkg.Extract();
     } else {
         xsqPkg.FindRGBEffectsFile();
     }
-    
+
     if (!xsqPkg.IsValid() && xsqPkg.IsPkg()) {
         wxMessageBox("The file you are attempting to import doesn't appear to be a valid xLights Sequence Package.", "Invalid Sequence Package", wxICON_ERROR | wxOK);
         return;
@@ -1293,12 +1293,13 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
         Element* e = it;
         if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             ModelElement* el = dynamic_cast<ModelElement*>(e);
-            bool hasEffects = false;
+            bool hasEffects {false};
+
             for (size_t l = 0; l < el->GetEffectLayerCount(); ++l) {
-                hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
+                hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;               
             }
             if (hasEffects) {
-                dlg.AddChannel(el->GetName());
+                dlg.AddChannel(el->GetName(), el->GetEffectCount());
             }
             elementMap[el->GetName()] = el;
             int s = 0;
@@ -1315,7 +1316,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 }
                 if (sme->HasEffects()) {
                     elementMap[el->GetName() + "/" + smName] = sme;
-                    dlg.AddChannel(el->GetName() + "/" + smName);
+                    dlg.AddChannel(el->GetName() + "/" + smName, sme->GetEffectCount());
                 }
                 if (ste != nullptr) {
                     for (size_t n = 0; n < ste->GetNodeLayerCount(); ++n) {
@@ -1325,7 +1326,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                             if (nodeName == "") {
                                 nodeName = wxString::Format("Node %d", (int)(n + 1));
                             }
-                            dlg.AddChannel(el->GetName() + "/" + smName + "/" + nodeName);
+                            dlg.AddChannel(el->GetName() + "/" + smName + "/" + nodeName, nl->GetEffectCount());
                             layerMap[el->GetName() + "/" + smName + "/" + nodeName] = nl;
                         }
                     }
@@ -1334,7 +1335,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
         }
         else if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             TimingElement* tel = dynamic_cast<TimingElement*>(e);
-            bool hasEffects = false;
+            bool hasEffects {false};
             for (size_t n = 0; n < tel->GetEffectLayerCount(); ++n) {
                 hasEffects |= tel->GetEffectLayer(n)->GetEffectCount() > 0;
             }
@@ -1345,7 +1346,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 // we want to know which timing tracks exist so we can preselect the ones which are not already present
                 // a timing track is only considered to exist if it has at least one timing mark
                 timingTrackAlreadyExists[tel->GetName()] = (_sequenceElements.GetTimingElement(tel->GetName()) != nullptr && _sequenceElements.GetTimingElement(tel->GetName())->HasEffects());
-            }            
+            }
         }
     }
 
@@ -1486,22 +1487,22 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
             it->RemoveAllEffects(nullptr);
         }
     }
-    
+
     if (xsqPkg.IsPkg()) {
         if (xsqPkg.HasMissingMedia()) {
-            
+
             wxString missingAssets;
             for (const auto& missingAsset : xsqPkg.GetMissingMedia()) {
                 missingAssets = missingAssets + wxString::Format("%s- %s\n", "    ", missingAsset);
             }
-            
+
             wxString msgP1 = "The following assets were missing from the Sequence Package and could not be imported.";
             wxString msgP2 = "Once you source them, place them in your show folder and use 'Import Effects' again making sure to select 'Erase existing effects on imported models'";
             wxString msgP3 = "or update the effects individually.";
-            
+
             wxMessageBox(wxString::Format("%s %s %s\n\n%s", msgP1, msgP2, msgP3, missingAssets), "Missing Assets", wxICON_WARNING | wxOK, this);
         }
-        
+
         if (xsqPkg.ModelsChanged()) {
             GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "xLightsFrame::ImportXLights");
         }
@@ -4294,7 +4295,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, EffectLayer* layer,
                 }
             }
         }
-    }    
+    }
 }
 
 void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, int nodes, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
@@ -4810,7 +4811,7 @@ void MapVixen3(Element* model, const Vixen3& vixen, const wxString& modelName, l
     {
         long s = Vixen3::ConvertTiming(it.start + offset, frameMS);
         long e = Vixen3::ConvertTiming(it.end + offset, frameMS);
-            
+
         // Vixen can have multiple effects in one time slot so add layers as needed
         EffectLayer* layer = nullptr;
         for (const auto& it : model->GetEffectLayers()) {
@@ -4875,17 +4876,17 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
     dlg.xlights = this;
 
     auto models = vixen.GetModelsWithEffects();
-    for (auto it: models)
+    for (auto [model, numEff]: models)
     {
-        auto effects = vixen.GetEffects(it);
+        auto effects = vixen.GetEffects(model);
 
         if (effects.front().type == "Data")
         {
-            dlg.timingTracks.push_back(it);
+            dlg.timingTracks.push_back(model);
         }
         else
         {
-            dlg.AddChannel(it);
+            dlg.AddChannel(model, numEff);
         }
     }
     dlg.SortChannels();

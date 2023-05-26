@@ -760,7 +760,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
     }
 
     if (ccr) {
-        int j = 0;
+        int j{0};
         for (auto const& name : ccrNames) {
             ListCtrl_Available->InsertItem(j, name);
             ListCtrl_Available->SetItemData(j, j);
@@ -768,7 +768,10 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
             j++;
         }
     } else {
-        int j = 0;
+        int j{0};
+
+        ListCtrl_Available->AppendColumn("# Effects");
+        bool countEnabled{false};
         for (auto const& m : importChannels) {
             ListCtrl_Available->InsertItem(j, m->name);
             ListCtrl_Available->SetItemData(j, j);
@@ -777,11 +780,19 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
             } else {
                 ListCtrl_Available->SetItemColumnImage(j, 0, -1);
             }
+            if (m->effectCount != 0) {
+                ListCtrl_Available->SetItem(j, 1, wxString::Format("%d", m->effectCount));
+                countEnabled = true;
+            }
+
             // If importing from xsqPkg flag known groups by color like is currently done in mapped list
             if (m->type == "ModelGroup") {
                 ListCtrl_Available->SetItemTextColour(j, CyanOrBlue());
             }
             j++;
+        }
+        if (!countEnabled) {
+            ListCtrl_Available->DeleteColumn(1);
         }
     }
 
@@ -2377,9 +2388,9 @@ void xLightsImportChannelMapDialog::SortChannels()
     });
 }
 
-void xLightsImportChannelMapDialog::AddChannel(std::string const& name)
+void xLightsImportChannelMapDialog::AddChannel(std::string const& name, int effectCount)
 {
-    importChannels.emplace_back(new ImportChannel(name));
+    importChannels.emplace_back(new ImportChannel(name, effectCount));
 }
 
 void xLightsImportChannelMapDialog::loadMapHintsFile(wxString const& filename) {
