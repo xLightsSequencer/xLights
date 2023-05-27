@@ -314,7 +314,7 @@ struct ImportChannel
 {
     std::string name;
     std::string type;
-    int effectCount;
+    int effectCount{0};
     //ImportChannel(std::string name_, std::string type_):
     //    name(std::move(name_)), type(std::move(type_))
     //{ }
