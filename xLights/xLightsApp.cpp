@@ -490,6 +490,7 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "xs", "xsmsdaemon", "run xsmsdaemon" },
         { wxCMD_LINE_SWITCH, "c", "xcapture", "run xcapture" },
         { wxCMD_LINE_SWITCH, "f", "xfade", "run xfade" },
+        { wxCMD_LINE_SWITCH, "n", "xscanner", "run xscanner" },
 #endif
         { wxCMD_LINE_PARAM, "", "", "sequence file", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL | wxCMD_LINE_PARAM_MULTIPLE},
         { wxCMD_LINE_NONE }
@@ -500,22 +501,26 @@ bool xLightsApp::OnInit()
        int run_xsmsdaemon = FALSE;
        int run_xschedule = FALSE;
        int run_xcapture = FALSE;
-       int run_xfade= FALSE;
+       int run_xfade = FALSE;
+       int run_xscanner = FALSE;
        wxFileName f(wxStandardPaths::Get().GetExecutablePath());
        wxString appPath(f.GetPath());
-       wxString cmdlineC(appPath+wxT("/xCapture"));
-       wxString cmdlineS(appPath+wxT("/xSchedule"));
-       wxString cmdlineF(appPath+wxT("/xFade"));
-       wxString cmdlineM(appPath+wxT("/xSMSDaemon"));
+       wxString cmdlineC(appPath + wxT("/xCapture"));
+       wxString cmdlineS(appPath + wxT("/xSchedule"));
+       wxString cmdlineF(appPath + wxT("/xFade"));
+       wxString cmdlineM(appPath + wxT("/xSMSDaemon"));
+       wxString cmdlineN(appPath + wxT("/xScanner"));
         for (int i=1; i< argc;i++) {
-            if (strncmp(argv[i].c_str(), "-xs", 3) == 0) {
+            if ((strncmp(argv[i].c_str(), "-xs", 3) == 0 && argv[i].size() == 3)|| strncmp(argv[i].c_str(), "-xsmsdaemon", 11) == 0) {
                 run_xsmsdaemon = TRUE;
-            } else if (strncmp(argv[i].c_str(), "-x", 2) == 0) {
+            } else if ((strncmp(argv[i].c_str(), "-x", 2) == 0 && argv[i].size() == 2) || strncmp(argv[i].c_str(), "-xschedule", 10) == 0) {
                 run_xschedule = TRUE;
-            } else if (strncmp(argv[i].c_str(), "-c", 2) == 0) {
+            } else if ((strncmp(argv[i].c_str(), "-c", 2) == 0 && argv[i].size() == 2) || strncmp(argv[i].c_str(), "-xcapture", 9) == 0) {
                 run_xcapture = TRUE;
-            } else if (strncmp(argv[i].c_str(), "-f", 2) == 0) {
+            } else if ((strncmp(argv[i].c_str(), "-f", 2) == 0 && argv[i].size() == 2) || strncmp(argv[i].c_str(), "-xfade", 6) == 0) {
                 run_xfade = TRUE;
+            } else if ((strncmp(argv[i].c_str(), "-n", 2) == 0 && argv[i].size() == 2) || strncmp(argv[i].c_str(), "-xscanner", 9) == 0) {
+                run_xscanner = TRUE;
             } else {
                 cmdlineS += wxT(" ");
                 cmdlineS += wxString::FromUTF8(argv[i]);
@@ -523,6 +528,10 @@ bool xLightsApp::OnInit()
                 cmdlineC += wxString::FromUTF8(argv[i]);
                 cmdlineF += wxT(" ");
                 cmdlineF += wxString::FromUTF8(argv[i]);
+                cmdlineM += wxT(" ");
+                cmdlineM += wxString::FromUTF8(argv[i]);
+                cmdlineN += wxT(" ");
+                cmdlineN += wxString::FromUTF8(argv[i]);
             }
         }
         if (run_xschedule) {
@@ -536,6 +545,9 @@ bool xLightsApp::OnInit()
             exit(0);
         } else if (run_xsmsdaemon) {
             wxExecute(cmdlineM, wxEXEC_BLOCK,NULL,NULL);
+            exit(0);
+        } else if (run_xscanner) {
+            wxExecute(cmdlineN, wxEXEC_BLOCK,NULL,NULL);
             exit(0);
         }
        // Set App Name for when running via appimage
