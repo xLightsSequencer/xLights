@@ -508,7 +508,7 @@ bool xLightsApp::OnInit()
        wxString cmdlineF(appPath+wxT("/xFade"));
        wxString cmdlineM(appPath+wxT("/xSMSDaemon"));
         for (int i=1; i< argc;i++) {
-            if (strncmp(argv[i].c_str(), "-xs", 2) == 0) {
+            if (strncmp(argv[i].c_str(), "-xs", 3) == 0) {
                 run_xsmsdaemon = TRUE;
             } else if (strncmp(argv[i].c_str(), "-x", 2) == 0) {
                 run_xschedule = TRUE;
