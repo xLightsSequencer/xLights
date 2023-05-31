@@ -111,4 +111,6 @@ protected:
     MTLFrameData frameData;
     bool frameDataChanged = true;
     std::stack<simd::float4x4> matrixStack;
+    
+    void *lastAccumulator = nullptr;
 };
