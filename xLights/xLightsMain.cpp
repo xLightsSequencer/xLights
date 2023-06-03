@@ -2233,7 +2233,7 @@ void xLightsFrame::OnOutputTimerTrigger(wxTimerEvent& event)
     AddTraceMessage("Output frame complete");
     if (!needTimer) {
         //printf("Stopping timer\n");
-        OutputTimer.Stop();
+        StopOutputTimer();
     }
 
     PopTraceContext();
@@ -2457,7 +2457,7 @@ bool xLightsFrame::ForceEnableOutputs(bool startTimer) {
         DisableSleepModes();
         outputting = _outputManager.StartOutput();
         if (startTimer) {
-            OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+            StartOutputTimer();
         }
         if (outputting) {
             for (auto &controller : _outputManager.GetControllers()) {

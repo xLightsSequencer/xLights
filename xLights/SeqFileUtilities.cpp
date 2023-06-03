@@ -178,7 +178,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
         RenderAll();
     }
 
-    OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+    StartOutputTimer();
     displayElementsPanel->Initialize();
     std::string view = setting_dlg.GetView();
     if (defView != "" && (defView == "All Models" || defView == "Empty" || displayElementsPanel->HasView(defView))) {
@@ -521,7 +521,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
             displayElementsPanel->SelectView("Master View");
         }
 
-        OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+        StartOutputTimer();
         if (loaded_fseq) {
             GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleLayoutKey::OpenSequence");
         } else if (!loaded_xml) {

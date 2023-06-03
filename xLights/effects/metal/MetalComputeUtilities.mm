@@ -16,7 +16,7 @@ MetalPixelBufferComputeData::~MetalPixelBufferComputeData() {
 }
 
 std::atomic<uint32_t> MetalRenderBufferComputeData::commandBufferCount(0);
-#define MAX_COMMANDBUFFER_COUNT 512
+#define MAX_COMMANDBUFFER_COUNT 256
 
 MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, MetalPixelBufferComputeData *pbd) : renderBuffer(rb), pixelBufferData(pbd) {
     commandBuffer = nil;
@@ -47,13 +47,21 @@ MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
 
 id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer() {
     if (commandBuffer == nil) {
-        if (commandBufferCount.fetch_add(1) > (MAX_COMMANDBUFFER_COUNT - 4)) {
+        int max = MAX_COMMANDBUFFER_COUNT - 4;
+        if (MetalComputeUtilities::INSTANCE.prioritizeGraphics()) {
+            // use a lower command buffer count if the GPU is needed for frontend
+            // 64 is the "default" in macOS, we'll try it
+            max = 64;
+        }
+        
+        if (commandBufferCount.fetch_add(1) > max) {
             --commandBufferCount;
             return nil;
         }
         commandBuffer = [[MetalComputeUtilities::INSTANCE.commandQueue commandBuffer] retain];
         NSString* mn = [NSString stringWithUTF8String:renderBuffer->GetModelName().c_str()];
         [commandBuffer setLabel:mn];
+        [commandBuffer enqueue];
     }
     return commandBuffer;
 }
@@ -367,7 +375,7 @@ bool MetalRenderBufferComputeData::callRotoZoomFunction(id<MTLComputePipelineSta
     threadsPerGrid = MTLSizeMake(data.width, data.height, 1);
     [computeEncoder dispatchThreads:threadsPerGrid
               threadsPerThreadgroup:threadsPerThreadgroup];
-    
+
     [computeEncoder endEncoding];
     return true;
 }

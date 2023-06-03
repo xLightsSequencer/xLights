@@ -31,7 +31,8 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
         std::string n2 = c->getName() + " CommandBuffer";
         NSString *n = [NSString stringWithUTF8String:n2.c_str()];
         [buffer setLabel:n];
-        
+        [buffer enqueue];
+
         MTLRenderPassDescriptor *renderPass = [[MTLRenderPassDescriptor alloc] init];
 
         renderPass.colorAttachments[0].texture = localTarget;

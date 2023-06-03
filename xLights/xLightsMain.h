@@ -1790,6 +1790,8 @@ public:
     int GetPlayStatus() const { return playType; }
     void SetPlayStatus(int status);
     void StartOutputTimer();
+    void StopOutputTimer();
+    
     MainSequencer* GetMainSequencer() const { return mainSequencer; }
     wxString GetSeqXmlFileName();
 

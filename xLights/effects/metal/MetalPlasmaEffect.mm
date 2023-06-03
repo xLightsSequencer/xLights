@@ -122,7 +122,8 @@ void MetalPlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, R
         rdata.colors[x] = buffer.palette.GetColor(x).asChar4();
     }
 
-    if (!data->Render(ColorScheme, rdata, buffer)) {
-        PlasmaEffect::Render(effect, SettingsMap, buffer);
+    if (data->Render(ColorScheme, rdata, buffer)) {
+        return;
     }
+    PlasmaEffect::Render(effect, SettingsMap, buffer);
 }
