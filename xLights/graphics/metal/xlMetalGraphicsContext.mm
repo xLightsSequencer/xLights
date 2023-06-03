@@ -1436,7 +1436,6 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshTransparents(xlMesh *mesh, in
                 }
                 if (!simd_equal(color, frameData.fragmentColor)) {
                     frameData.fragmentColor = color;
-                    [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
                 }
                 [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
             }
@@ -1526,9 +1525,9 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, 
     } else {
         setPipelineState("singleColorProgram", "singleColorVertexShader", "colorFragmentShader");
     }
-    if (vac != lastAccumulator) {
+    xlMetalVertexAccumulator *mva = (xlMetalVertexAccumulator*)vac;
+    if (vac != lastAccumulator || !mva->finalized) {
         lastAccumulator = vac;
-        xlMetalVertexAccumulator *mva = (xlMetalVertexAccumulator*)vac;
         mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions);
     }
 
@@ -1593,9 +1592,9 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, 
     } else {
         setPipelineState("multiColorProgram", "multiColorVertexShader", "colorFragmentShader");
     }
-    if (vac != lastAccumulator) {
+    xlMetalVertexColorAccumulator *mva = (xlMetalVertexColorAccumulator*)vac;
+    if (vac != lastAccumulator || !mva->finalized) {
         lastAccumulator = vac;
-        xlMetalVertexColorAccumulator *mva = (xlMetalVertexColorAccumulator*)vac;
         mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexMeshColors);
     }
 
@@ -1658,9 +1657,9 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, 
     } else {
         setPipelineState("indexedColorProgram", "indexedColorVertexShader", "colorFragmentShader");
     }
-    if (vac != lastAccumulator) {
+    xlMetalVertexIndexedColorAccumulator *mva = (xlMetalVertexIndexedColorAccumulator*)vac;
+    if (vac != lastAccumulator || !mva->finalized) {
         lastAccumulator = vac;
-        xlMetalVertexIndexedColorAccumulator *mva = (xlMetalVertexIndexedColorAccumulator*)vac;
         mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexMeshColors);
     }
 
@@ -1738,9 +1737,9 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulato
         return this;
     }
     setPipelineState("textureProgram", "textureVertexShader", "textureFragmentShader");
-    if (vac != lastAccumulator) {
+    xlMetalVertexTextureAccumulator *mva = (xlMetalVertexTextureAccumulator*)vac;
+    if (vac != lastAccumulator || !mva->finalized) {
         lastAccumulator = vac;
-        xlMetalVertexTextureAccumulator *mva = (xlMetalVertexTextureAccumulator*)vac;
         mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
     }
 
@@ -1772,7 +1771,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulato
     }
     xlMetalVertexTextureAccumulator *mva = (xlMetalVertexTextureAccumulator*)vac;
     setPipelineState("textureColorProgram", "textureVertexShader", "textureColorFragmentShader");
-    if (vac != lastAccumulator) {
+    if (vac != lastAccumulator || !mva->finalized) {
         lastAccumulator = vac;
         mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
     }

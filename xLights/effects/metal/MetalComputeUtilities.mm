@@ -15,6 +15,7 @@ MetalPixelBufferComputeData::MetalPixelBufferComputeData() {
 MetalPixelBufferComputeData::~MetalPixelBufferComputeData() {
 }
 
+static std::mutex commandBufferMutex;
 std::atomic<uint32_t> MetalRenderBufferComputeData::commandBufferCount(0);
 #define MAX_COMMANDBUFFER_COUNT 256
 
@@ -58,10 +59,10 @@ id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer() {
             --commandBufferCount;
             return nil;
         }
+        std::unique_lock<std::mutex> lock(commandBufferMutex);
         commandBuffer = [[MetalComputeUtilities::INSTANCE.commandQueue commandBuffer] retain];
         NSString* mn = [NSString stringWithUTF8String:renderBuffer->GetModelName().c_str()];
         [commandBuffer setLabel:mn];
-        [commandBuffer enqueue];
     }
     return commandBuffer;
 }
@@ -208,6 +209,7 @@ void MetalRenderBufferComputeData::commit() {
                 currentDataLocation = BUFFER;
             }
         }
+        std::unique_lock<std::mutex> lock(commandBufferMutex);
         [commandBuffer commit];
         committed = true;
     }
