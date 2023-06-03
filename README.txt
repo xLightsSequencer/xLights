@@ -11,6 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.09 June 3, 2023
+   -- enh (scott)   Add CSV Submodel import
+   -- enh (merryoncherry) Single strand chase offset and static modes
+   -- enh (scott)   Add Effect Count to xLights and Vixen3 imports
+   -- enh (dkulp)   Cache animated GIF frames during render to speed up looping renders. (uses more memory)
+   -- bug (dkulp)   Sort by Z for house preview on Sequencer tab to match layout tab
+   -- bug (dkulp)   Fix loading of older xlights_network files causing crashes
+   -- bug (dkulp)   Fix pictures effect value curve min/max
+   -- bug (keith)   Don't use NOWAIT on datagram sockets to avoid dropping packets
+   -- bug (keith)   Fix Falcon F48v4 detection
+   -- bug (scott)   Fix Linux app name parsing for launcher
+   -- bug (dkulp)   Fix display issues on OSX with "Blended Circle" pixels in a group
 2023.08 May 13, 2023
    -- enh (dkulp)   Windows/Linux - redo OpenGL to be based on Metal architecture
                      - removes OpenGL 1.x support (retains OpenGL 2.x)
