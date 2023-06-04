@@ -229,11 +229,12 @@ void xlMetalCanvas::PrepareCanvas() {
     }
 }
 xlGraphicsContext * xlMetalCanvas::PrepareContextForDrawing() {
-    xlMetalGraphicsContext *ret = new xlMetalGraphicsContext(this, captureBuffer == nullptr || !captureBuffer->captureNext ? nil : captureBuffer->target);
+    xlMetalGraphicsContext *ret = new xlMetalGraphicsContext(this, captureBuffer == nullptr || !captureBuffer->captureNext ? nil : captureBuffer->target, !firstDraw);
     if (!ret->isValid()) {
         delete ret;
         return nullptr;
     }
+    firstDraw = false;
     return ret;
 }
 void xlMetalCanvas::FinishDrawing(xlGraphicsContext *ctx, bool display) {

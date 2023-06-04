@@ -10,7 +10,7 @@
 
 class xlMetalGraphicsContext : public xlGraphicsContext {
 public:
-    xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> target);
+    xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> target, bool enqueImmediate);
     virtual ~xlMetalGraphicsContext();
     void Commit(bool displayOnScreen, id<MTLBuffer> capture);
 

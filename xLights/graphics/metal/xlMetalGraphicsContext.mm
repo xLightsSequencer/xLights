@@ -11,7 +11,7 @@
 #include "Shaders/SIMDMathUtilities.h"
 #include "../xlMesh.h"
 
-xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> t) : xlGraphicsContext(c),  canvas(c), target(t) {
+xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> t, bool enqueImmediate) : xlGraphicsContext(c),  canvas(c), target(t) {
     id<MTLTexture> localTarget = t;
     if (target == nil) {
         id<CAMetalDrawable> d2 = [c->getMTKView() currentDrawable];
@@ -31,7 +31,9 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
         std::string n2 = c->getName() + " CommandBuffer";
         NSString *n = [NSString stringWithUTF8String:n2.c_str()];
         [buffer setLabel:n];
-        [buffer enqueue];
+        if (enqueImmediate) {
+            [buffer enqueue];
+        }
 
         MTLRenderPassDescriptor *renderPass = [[MTLRenderPassDescriptor alloc] init];
 
