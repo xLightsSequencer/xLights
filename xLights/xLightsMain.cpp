@@ -107,6 +107,7 @@
 #include "ModelRemap.h"
 #include "RestoreBackupDialog.h"
 #include "utils/ip_utils.h"
+#include "CachedFileDownloader.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -6677,6 +6678,13 @@ void xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event)
 {
 #ifdef __WXOSX__
     std::string loc = "https://raw.githubusercontent.com/smeighan/xLights/" + xlights_version_string + "/README.txt";
+    std::string file = CachedFileDownloader::GetDefaultCache().GetFile(wxURI(loc), CACHETIME_SESSION);
+    if (file == "" || !FileExists(file)) {
+        //a patch version may not have release notes so strip it off
+        std::string vs = xlights_version_string;
+        vs = vs.substr(0, vs.find_last_of("."));
+        loc = "https://raw.githubusercontent.com/smeighan/xLights/" + vs + "/README.txt";
+    }
     ::wxLaunchDefaultBrowser(loc);
 #else
     wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
