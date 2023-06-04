@@ -297,5 +297,5 @@ const wxImage& GIFImage::GetFrame(int frame)
             _frameDispose[i] = dispose;
         }
     }
-    return _frameImages[frame % 10];
+    return _frameImages[frame];
 }

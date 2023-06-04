@@ -84,6 +84,8 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
         frameData.pointSmoothMin = 0.25;
         frameData.pointSmoothMax = 0.5;
         frameData.brightness = 1.0;
+        frameData.renderType = RenderTypeNormal;
+        frameData.useViewMatrix = false;
         frameDataChanged = true;
     } else {
         buffer = nil;
