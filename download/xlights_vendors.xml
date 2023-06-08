@@ -21,7 +21,7 @@
 	<vendor>
 		<name>Build A Light Show</name>
         <link>https://buildalightshow.com/downloads/vendor.xml</link>
-        <maxmodels>15</maxmodels>
+        <maxmodels>25</maxmodels>
     </vendor>
 	<vendor>
 		<name>DMX Fixture Library</name>
