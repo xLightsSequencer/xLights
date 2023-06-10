@@ -614,13 +614,19 @@ bool xLightsApp::OnInit()
         return false;
     }
 
+    bool renderOnlyMode = false;
+    if (parser.Found("r")) {
+        logger_base.info("-r: Render mode is ON");
+        renderOnlyMode = true;
+    }
+
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
     BitmapCache::SetupArtProvider();
     if (wxsOK)
     {
-    	xLightsFrame* Frame = new xLightsFrame(nullptr, ab);
+    	xLightsFrame* Frame = new xLightsFrame(nullptr, ab, -1, renderOnlyMode);
         if (Frame->CurrentDir == "") {
             logger_base.info("Show directory not set");
         }
@@ -632,9 +638,7 @@ bool xLightsApp::OnInit()
     xLightsFrame* const topFrame = (xLightsFrame*)GetTopWindow();
     __frame = topFrame;
 
-    if (parser.Found("r")) {
-        logger_base.info("-r: Render mode is ON");
-        topFrame->_renderMode = true;
+    if (renderOnlyMode) {
         topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, sequenceFiles, true);
     }
 

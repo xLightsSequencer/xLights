@@ -285,7 +285,7 @@ class xLightsFrame: public xlFrame
 {
 public:
 
-    xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1);
+    xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1, bool renderOnlyMode = false);
     virtual ~xLightsFrame();
 
     static bool IsCheckSequenceOptionDisabled(const std::string& option);
