@@ -1012,7 +1012,7 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
 
 class RenderProgressInfo {
 public:
-    RenderProgressInfo(std::function<void()>&& cb) : callback(cb)
+    RenderProgressInfo(std::function<void(bool)>&& cb) : callback(cb)
     {
         numRows = 0;
         startFrame = 0;
@@ -1021,7 +1021,7 @@ public:
         aggregators = nullptr;
         renderProgressDialog = nullptr;
     };
-    std::function<void()> callback;
+    std::function<void(bool)> callback;
     int numRows;
     int startFrame;
     int endFrame;
@@ -1194,7 +1194,7 @@ void xLightsFrame::UpdateRenderStatus() {
             RenderDone();
             delete []rpi->jobs;
             delete []rpi->aggregators;
-            rpi->callback();
+            rpi->callback(false);
             delete rpi;
             rpi = nullptr;
             it = renderProgressInfo.erase(it);
@@ -1350,7 +1350,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                           const std::list<Model *> &restrictToModels,
                           int startFrame, int endFrame,
                           bool progressDialog, bool clear,
-                          std::function<void()>&& callback) {
+                          std::function<void(bool)>&& callback) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category &logger_render = log4cpp::Category::getInstance(std::string("log_render"));
@@ -1507,7 +1507,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
         renderProgressInfo.push_back(pi);
         RenderStatusTimer.Start(100, false);
     } else {
-        callback();
+        callback(false);
         if (progressDialog) {
             delete renderProgressDialog;
         }
@@ -1611,7 +1611,7 @@ void xLightsFrame::RenderDirtyModels() {
     if (endframe < startframe) {
         return;
     }
-    Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, false, true, [] {});
+    Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, false, true, [] (bool) {});
 }
 
 bool xLightsFrame::AbortRender(int maxTimeMS)
@@ -1623,6 +1623,9 @@ bool xLightsFrame::AbortRender(int maxTimeMS)
     }
     inAbort = true;
     logger_base.info("Aborting rendering ...");
+
+    //SimpleStackWalker().ShowCallstack();
+
     int abortCount = 0;
     for (auto rpi : renderProgressInfo) {
         //abort whatever is rendering
@@ -1661,14 +1664,14 @@ bool xLightsFrame::AbortRender(int maxTimeMS)
     return renderProgressInfo.empty();
 }
 
-void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
+void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     BuildRenderTree();
     if (renderTree.data.empty()) {
         //nothing to do....
-        callback();
+        callback(false);
         return;
     }
 
@@ -1676,7 +1679,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
 
     const int numRows = _sequenceElements.GetElementCount();
     if (numRows == 0) {
-        callback();
+        callback(false);
         return;
     }
     std::list<Model *> models;
@@ -1706,7 +1709,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
             wxStopWatch sw3;
             Render(_sequenceElements, _seqData, models, restricts, 0, SeqData.NumFrames() - 1, true, false, [sw3, callback] {
                 printf("%s  Render 3:  %ld ms\n", (const char *)xlightsFilename.c_str(), sw3.Time());
-                callback();
+                callback(false);
             } );
         });
     });
@@ -1779,7 +1782,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
 
             logger_base.debug("Rendering %d models %d frames.", m.size(), endframe - startframe + 1);
 
-            Render(_sequenceElements, _seqData, it->renderOrder, m, startframe, endframe, false, true, [] {});
+            Render(_sequenceElements, _seqData, it->renderOrder, m, startframe, endframe, false, true, [] (bool) {});
         }
     }
 }
@@ -1834,7 +1837,7 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
     _appProgress->SetValue(0);
     _appProgress->Reset();
     wxStopWatch sw; // start a stopwatch timer
-    Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, true, clear, [this, sw] {
+    Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, true, clear, [this, sw] (bool aborted) {
         static log4cpp::Category &logger_base2 = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base2.info("   Effects done.");
         ProgressBar->SetValue(100);

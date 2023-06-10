@@ -1204,7 +1204,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     RenderIseqData(true, nullptr); // render ISEQ layers below the Nutcracker layer
     logger_base.info("   iseq below effects done.");
     ProgressBar->SetValue(10);
-    RenderGridToSeqData([this, sw, fileNames, exitOnDone] {
+    RenderGridToSeqData([this, sw, fileNames, exitOnDone] (bool aborted) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("   Effects done.");
         ProgressBar->SetValue(90);
@@ -1352,7 +1352,7 @@ void xLightsFrame::SaveSequence()
         RenderIseqData(true, nullptr); // render ISEQ layers below the Nutcracker layer
         logger_base.info("   iseq below effects done.");
         ProgressBar->SetValue(10);
-        RenderGridToSeqData([this, sw] {
+        RenderGridToSeqData([this, sw] (bool aborted) {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.info("   Effects done.");
             ProgressBar->SetValue(90);
@@ -1483,7 +1483,7 @@ void xLightsFrame::RenderAll()
     RenderIseqData(true, nullptr); // render ISEQ layers below the Nutcracker layer
     logger_base.info("   iseq below effects done.");
     ProgressBar->SetValue(10);
-    RenderGridToSeqData([this, sw] {
+    RenderGridToSeqData([this, sw] (bool aborted) {
         static log4cpp::Category& logger_base2 = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base2.info("   Effects done.");
         ProgressBar->SetValue(90);
