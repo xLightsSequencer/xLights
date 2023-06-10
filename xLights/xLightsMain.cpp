@@ -580,7 +580,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     _fps = -1;
     mCurrentPerpective = nullptr;
     MenuItemPreviews = nullptr;
-    _renderMode = false;
+    _renderMode = renderOnlyMode;
     _checkSequenceMode = false;
     _suspendAutoSave = false;
 	_sequenceViewManager.SetModelManager(&AllModels);
@@ -1962,6 +1962,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     // remove the forum for now until/if Sean restores the forum
     MenuItem_Help_Forum->GetMenu()->Remove(MenuItem_Help_Forum);
     MenuItem_Help_Forum = nullptr;
+
+    if (renderOnlyMode) {
+        DisablePromptBatchRenderIssues();
+    }
 
     logger_base.debug("xLightsFrame construction complete.");
 }
@@ -6456,7 +6460,7 @@ void xLightsFrame::ValidateEffectAssets()
         }
     }
 
-    if (missing != "") {
+    if (missing != "" && (_promptBatchRenderIssues || (!_renderMode && !_checkSequenceMode))) {
         wxMessageBox("Sequence references files which cannot be found:\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
     }
 }
