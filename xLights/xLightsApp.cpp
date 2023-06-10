@@ -639,7 +639,7 @@ bool xLightsApp::OnInit()
     __frame = topFrame;
 
     if (renderOnlyMode) {
-        topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, sequenceFiles, true);
+        topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequencesF, sequenceFiles, xLightsFrame::RENDER_EXIT_ON_DONE);
     }
 
     if (parser.Found("cs")) {

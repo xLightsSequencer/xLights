@@ -1194,7 +1194,7 @@ void xLightsFrame::UpdateRenderStatus() {
             RenderDone();
             delete []rpi->jobs;
             delete []rpi->aggregators;
-            rpi->callback(false);
+            rpi->callback(abortedRenderJobs > 0);
             delete rpi;
             rpi = nullptr;
             it = renderProgressInfo.erase(it);
@@ -1350,7 +1350,9 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                           const std::list<Model *> &restrictToModels,
                           int startFrame, int endFrame,
                           bool progressDialog, bool clear,
-                          std::function<void(bool)>&& callback) {
+                          std::function<void(bool)>&& callback)
+{
+    abortedRenderJobs = 0;
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category &logger_render = log4cpp::Category::getInstance(std::string("log_render"));
@@ -1507,7 +1509,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
         renderProgressInfo.push_back(pi);
         RenderStatusTimer.Start(100, false);
     } else {
-        callback(false);
+        callback(abortedRenderJobs > 0);
         if (progressDialog) {
             delete renderProgressDialog;
         }
@@ -1632,7 +1634,8 @@ bool xLightsFrame::AbortRender(int maxTimeMS)
         for (size_t row = 0; row < rpi->numRows; ++row) {
             if (rpi->jobs[row]) {
                 rpi->jobs[row]->AbortRender();
-                abortCount++;
+                ++abortCount;
+                ++abortedRenderJobs;
             }
         }
     }
@@ -1709,7 +1712,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback) {
             wxStopWatch sw3;
             Render(_sequenceElements, _seqData, models, restricts, 0, SeqData.NumFrames() - 1, true, false, [sw3, callback] {
                 printf("%s  Render 3:  %ld ms\n", (const char *)xlightsFilename.c_str(), sw3.Time());
-                callback(false);
+                callback(abortedRenderJobs > 0);
             } );
         });
     });

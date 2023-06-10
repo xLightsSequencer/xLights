@@ -124,6 +124,7 @@ public:
 
     virtual void OnFatalException() override
     {
+        wxTrap();
         HandleCrash(true, "Fatal exception occurred.");
         wxGLApp::OnFatalException();
     }

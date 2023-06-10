@@ -1464,7 +1464,10 @@ protected:
     bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
     void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, bool backupSubfolders, std::string& errors);
     void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors);
-    void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
+    static constexpr int RENDER_EXIT_ON_DONE = 1;
+    static constexpr int RENDER_ALREADY_RETRIED = 2;
+    void OpenRenderAndSaveSequencesF(const wxArrayString &filenames, int flags);
+    void OpenRenderAndSaveSequences(const wxArrayString& filenames, bool exitOnDone, bool alreadyRetried = false);
     void OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone);
     std::string OpenAndCheckSequence(const std::string& origFilenames);
     void AddAllModelsToSequence();
@@ -1528,6 +1531,7 @@ private:
     int mEffectAssistMode = 0;
     int tempEffectAssistMode = 0;
 	bool mRendering;
+    int abortedRenderJobs = 0;
     bool mSaveFseqOnSave;
     int _modelHandleSize = 1;
 
