@@ -35,10 +35,9 @@ bool OpenDMXOutput::Open() {
 
     if (!_enabled) return true;
 
-    _ok = SerialOutput::Open();
-
-    _data[0] = 0;   // dmx start code
     _serialConfig[2] = '2'; // use 2 stop bits so padding chars are not required
+    _ok = SerialOutput::Open();
+    _data[0] = 0;   // dmx start code
 
     return _ok;
 }

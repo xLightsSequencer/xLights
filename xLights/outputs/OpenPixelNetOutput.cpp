@@ -44,12 +44,11 @@ bool OpenPixelNetOutput::Open() {
 
     if (!_enabled) return true;
 
+    _serialConfig[2] = '2';
     _ok = SerialOutput::Open();
 
     _datalen = _channels;
     memset(_data, 0, sizeof(_data));
-
-    _serialConfig[2] = '2';
 
     _serialBuffer[0] = 0xAA;
     _serialBuffer[1] = 0x55;
