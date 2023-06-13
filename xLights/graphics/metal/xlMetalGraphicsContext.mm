@@ -1740,8 +1740,8 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulato
     if (vac->getCount() == 0) {
         return this;
     }
-    setPipelineState("textureProgram", "textureVertexShader", "textureFragmentShader");
     xlMetalVertexTextureAccumulator *mva = (xlMetalVertexTextureAccumulator*)vac;
+    setPipelineState("textureProgram", "textureVertexShader", "textureFragmentShader");
     if (vac != lastAccumulator || !mva->finalized) {
         lastAccumulator = vac;
         mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
@@ -1953,6 +1953,7 @@ bool xlMetalGraphicsContext::setPipelineState(const std::string &name, const cha
         [encoder setRenderPipelineState:canvas->getPipelineState(name, vShader, fShader, blending)];
         lastPipeline = name;
         lastPipelineBlend = blending;
+        lastAccumulator = nullptr;
         return true;
     }
     return false;
