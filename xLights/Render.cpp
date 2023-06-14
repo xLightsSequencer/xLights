@@ -1625,9 +1625,6 @@ bool xLightsFrame::AbortRender(int maxTimeMS)
     }
     inAbort = true;
     logger_base.info("Aborting rendering ...");
-
-    //SimpleStackWalker().ShowCallstack();
-
     int abortCount = 0;
     for (auto rpi : renderProgressInfo) {
         //abort whatever is rendering
