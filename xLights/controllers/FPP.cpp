@@ -3608,7 +3608,7 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
 
     if (res->typeId == 0x88 || res->typeId == 0x89) {
         // F16V4 / F48V4
-        return true;
+        return res->mode != "bridge";
     }
 
     return false;
