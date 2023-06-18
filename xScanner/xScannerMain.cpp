@@ -273,6 +273,16 @@ wxTreeListItem xScannerFrame::GetIPItem(const std::string& ip, bool create)
     return wxTreeListItem();
 }
 
+wxString xScannerFrame::GetItemUnderParent(wxTreeListItem& parent, const std::string& label) const
+{
+    for (auto a = _tree->GetFirstChild(parent); a.IsOk(); a = _tree->GetNextSibling(a)) {
+        if (_tree->GetItemText(a, 0) == label) {
+            return _tree->GetItemText(a, 1);
+        }
+    }
+    return wxString();
+}
+
 wxTreeListItem xScannerFrame::AddItemUnderParent(wxTreeListItem& parent, const std::string& label, const std::string& value)
 {
     // only add if there isnt something here already
@@ -792,7 +802,15 @@ void xScannerFrame::AddtoxLights(wxTreeListItem& item)
     if (name.empty()) {
         name = ip;
     }
-    std::string const cmd = "{\"cmd\":\"addEthernetController\", \"ip\":\"" + ip + "\", \"name\":\"" + name + "\"}";
+
+    auto controllertype = GetItemUnderParent(item, "Vendor/Model/Variant");
+    auto typeList = wxSplit(controllertype, ':');
+    auto vendor = typeList.size() > 0 ? typeList[0] : wxString();
+    auto model = typeList.size() > 1 ? typeList[1] : wxString();
+    auto variant = typeList.size() > 3 ? typeList[2] : wxString();
+
+    std::string const cmd = "{\"cmd\":\"addEthernetController\", \"ip\":\"" + ip + "\", \"name\":\"" + name +
+                            "\", \"vendor\":\"" + vendor + "\", \"model\":\"" + model + "\", \"variant\":\"" + variant + "\"}";
     auto const stat = Automation(false, "127.0.0.1", 0, "", cmd, {}, "");
     if (stat != 0) {
         wxMessageBox("Unable to Add Controller to xLights.\nVerify xLights is Running and xFade Port A or B is set in File->Preferences->Output Tab", "Error", 5L, this);
