@@ -19,17 +19,18 @@
 class GIFImage
 {
 	wxGIFDecoder _gifDecoder;
-	wxImage _lastImage;
+	wxImage _invalidImage;
 	std::list<long> _frameTimes;
     std::list<wxSize> _frameSizes;
     std::list<wxPoint> _frameOffsets;
+    std::vector<wxImage> _frameImages;
+    std::vector<wxAnimationDisposal> _frameDispose;
     wxColour _backgroundColour;
     wxSize _gifSize;
 	long _totalTime = 0;
     int _lastFrame = 0;
     bool _suppressBackground = false;
     std::string _filename;
-    wxAnimationDisposal _lastDispose;
     bool _ok = false;
 	
 	void ReadFrameProperties();
@@ -41,8 +42,8 @@ class GIFImage
 	public:
 		GIFImage(const std::string& filename, bool suppressBackground = true);
 		virtual ~GIFImage();
-		wxImage GetFrame(int frame);
-		wxImage GetFrameForTime(int msec, bool loop);
+		const wxImage &GetFrame(int frame);
+		const wxImage &GetFrameForTime(int msec, bool loop);
         int GetMSUntilNextFrame(int msec, bool loop);
         std::string GetFilename() const { return _filename; }
         bool IsOk() const { return _ok; }

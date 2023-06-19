@@ -65,7 +65,7 @@ public:
                 flags |= 0x40;
             }
             buffer[index++] = flags;
-            buffer[index++] = 0x00; // keep alive
+            buffer[index++] = 30; // keep alive
             buffer[index++] = 0x00;
             index += PlayListItemMQTT::EncodeString(&buffer[index], _clientId);
             if (_username != "" && _password != "")

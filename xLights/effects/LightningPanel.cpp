@@ -55,10 +55,10 @@ const long LightningPanel::ID_STATICTEXT_Lightning_BOTX = wxNewId();
 const long LightningPanel::ID_SLIDER_Lightning_BOTX = wxNewId();
 const long LightningPanel::IDD_TEXTCTRL_Lightning_BOTX = wxNewId();
 const long LightningPanel::ID_BITMAPBUTTON_SLIDER_Lightning_BOTX = wxNewId();
-const long LightningPanel::ID_STATICTEXT_Lightning_BOTY = wxNewId();
-const long LightningPanel::ID_SLIDER_Lightning_BOTY = wxNewId();
-const long LightningPanel::IDD_TEXTCTRL_Lightning_BOTY = wxNewId();
-const long LightningPanel::ID_BITMAPBUTTON_SLIDER_Lightning_BOTY = wxNewId();
+const long LightningPanel::ID_STATICTEXT_Lightning_WIDTH = wxNewId();
+const long LightningPanel::ID_SLIDER_Lightning_WIDTH = wxNewId();
+const long LightningPanel::IDD_TEXTCTRL_Lightning_WIDTH = wxNewId();
+const long LightningPanel::ID_BITMAPBUTTON_SLIDER_Lightning_WIDTH = wxNewId();
 const long LightningPanel::ID_STATICTEXT_Lightning_Direction = wxNewId();
 const long LightningPanel::ID_CHOICE_Lightning_Direction = wxNewId();
 //*)
@@ -159,15 +159,15 @@ LightningPanel::LightningPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_LightningBOTX = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Lightning_BOTX, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Lightning_BOTX"));
 	BitmapButton_LightningBOTX->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer140->Add(BitmapButton_LightningBOTX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText210 = new wxStaticText(this, ID_STATICTEXT_Lightning_BOTY, _("(Not Used yet)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Lightning_BOTY"));
+	StaticText210 = new wxStaticText(this, ID_STATICTEXT_Lightning_WIDTH, _("Width"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Lightning_BOTY"));
 	FlexGridSizer140->Add(StaticText210, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Lightning_BOTY = new BulkEditSlider(this, ID_SLIDER_Lightning_BOTY, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Lightning_BOTY"));
-	FlexGridSizer140->Add(Slider_Lightning_BOTY, 1, wxALL|wxEXPAND, 2);
-	TextCtrl90 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Lightning_BOTY, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Lightning_BOTY"));
+	Slider_Lightning_WIDTH = new BulkEditSlider(this, ID_SLIDER_Lightning_WIDTH, 1, 1, 7, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Lightning_WIDTH"));
+	FlexGridSizer140->Add(Slider_Lightning_WIDTH, 1, wxALL|wxEXPAND, 2);
+	TextCtrl90 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Lightning_WIDTH, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Lightning_WIDTH"));
 	FlexGridSizer140->Add(TextCtrl90, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_LightningBOTY = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Lightning_BOTY, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Lightning_BOTY"));
-	BitmapButton_LightningBOTY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer140->Add(BitmapButton_LightningBOTY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_LightningWIDTH = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Lightning_WIDTH, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Lightning_WIDTH"));
+	BitmapButton_LightningWIDTH->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+	FlexGridSizer140->Add(BitmapButton_LightningWIDTH, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Lightning_Direction, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Lightning_Direction"));
 	FlexGridSizer140->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	CHOICE_Lightning_Direction = new BulkEditChoice(this, ID_CHOICE_Lightning_Direction, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Lightning_Direction"));
@@ -186,7 +186,7 @@ LightningPanel::LightningPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_VALUECURVE_Lightning_TopY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LightningPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Lightning_TopY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LightningPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Lightning_BOTX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LightningPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_SLIDER_Lightning_BOTY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LightningPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Lightning_WIDTH, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&LightningPanel::OnLockButtonClick);
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&LightningPanel::OnVCChanged, 0, this);

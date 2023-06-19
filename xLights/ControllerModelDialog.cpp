@@ -137,6 +137,28 @@ wxColour __modelSRFText;
 wxPen __backgroundPen;
 wxBrush __backgroundBrush;
 
+
+
+// only in ControllerModelDialog.......
+double GetSystemContentScaleFactor() {
+#ifdef __WXOSX__
+    return xlOSGetMainScreenContentScaleFactor();
+#else
+    return double(wxScreenDC().GetPPI().y) / 96.0;
+#endif
+}
+
+double ScaleWithSystemDPI(double scalingFactor, double val)
+{
+#ifdef __WXOSX__
+    //OSX handles all the scaling itself
+    return val;
+#else
+    return val * scalingFactor;
+#endif
+}
+
+
 void SetColours(bool printing)
 {
     __invalidBrush.SetColour(__lightRed);

@@ -25,6 +25,8 @@
 #include "ControllerSerial.h"
 #include "../models/Model.h"
 
+#include <numeric>
+
 #include <log4cpp/Category.hh>
 
 static wxArrayString ACTIVETYPENAMES;
@@ -483,13 +485,80 @@ void Controller::Convert(wxXmlNode* node, std::string showDir) {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
+void Controller::AddModels(wxPGProperty* p, wxPGProperty* vp) {
+    int mIdx = -1;
+    wxPGChoices models;
+
+    if (_vendor != "") {
+        for (const auto& it : ControllerCaps::GetModels(GetType(), _vendor)) {
+            models.Add(it);
+            if (it == _model) {
+                mIdx = models.GetCount() - 1;
+            }
+        }
+    }
+    p->SetChoices(models);
+    if (models.GetCount() > 0) {
+        p->Hide(false);
+        if (mIdx >= 0) {
+            p->SetChoiceSelection(mIdx);
+            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        } else {
+            p->SetBackgroundColour(*wxRED);
+            vp->Hide(true);
+        }
+    } else {
+        p->Hide(true);
+    }
+}
+void Controller::AddVariants(wxPGProperty* p) {
+    int variantIdx = -1;
+    wxPGChoices variants;
+    
+    if (_vendor != "" && _model != "") {
+        p->Hide(false);
+        std::list<std::string> vars = ControllerCaps::GetVariants(GetType(), _vendor, _model);
+        for (const auto& it : vars) {
+            variants.Add(it);
+            if (it == _variant) {
+                variantIdx = variants.GetCount() - 1;
+            }
+        }
+        if (variants.GetCount() > 1) {
+            if (variantIdx == -1) {
+                variantIdx = 0;
+                _variant = vars.front();
+            }
+        } else {
+            _variant = "";
+        }
+        p->SetChoices(variants);
+        if (variants.GetCount() > 1) {
+            p->Hide(false);
+            if (variantIdx >= 0) {
+                p->SetChoiceSelection(variantIdx);
+                p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+            } else {
+                p->SetBackgroundColour(*wxRED);
+            }
+        } else {
+            p->Hide(true);
+        }
+    } else {
+        p->Hide(true);
+    }
+}
+
+
+
 void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
 
     wxPGProperty* p = propertyGrid->Append(new wxStringProperty("Name", "ControllerName", GetName()));
     p->SetHelpString("This must be unique.");
 
     propertyGrid->Append(new wxStringProperty("Description", "ControllerDescription", GetDescription()));
-
+    
+    
     int v = 0;
     wxPGChoices vendors;
     for (const auto& it : ControllerCaps::GetVendors(GetType())) {
@@ -500,43 +569,10 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
     }
     if (vendors.GetCount() > 0) {
         propertyGrid->Append(new wxEnumProperty("Vendor", "Vendor", vendors, v));
-
-        if (_vendor != "") {
-            int m = 0;
-            wxPGChoices models;
-            for (const auto& it : ControllerCaps::GetModels(GetType(), _vendor)) {
-                models.Add(it);
-                if (it == _model) {
-                    m = models.GetCount() - 1;
-                }
-            }
-            if (models.GetCount() > 0) {
-                p = propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
-
-                if (_model != "") {
-                    p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-                    int v = -1;
-                    wxPGChoices versions;
-                    std::list<std::string> variants = ControllerCaps::GetVariants(GetType(), _vendor, _model);
-                    for (const auto& it : variants) {
-                        versions.Add(it);
-                        if (it == _variant) {
-                            v = versions.GetCount() - 1;
-                        }
-                    }
-                    if (versions.GetCount() > 1) {
-                        if (v == -1) {
-                            v = 0;
-                            _variant = variants.front();
-                        }
-                        propertyGrid->Append(new wxEnumProperty("Variant", "Variant", versions, v));
-                    }
-                }
-                else {
-                    p->SetBackgroundColour(*wxRED);
-                }
-            }
-        }
+        wxPGProperty *mp = propertyGrid->Append(new wxEnumProperty("Model", "Model"));
+        wxPGProperty *vp = propertyGrid->Append(new wxEnumProperty("Variant", "Variant"));
+        AddVariants(vp);
+        AddModels(mp, vp);
     }
 
     if (IsNeedsId()) {
@@ -612,8 +648,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
             DisplayError("Controller name '" + cn + "' blank or already used. Controller names must be unique and non blank.");
             outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName");
             return false;
-        }
-        else {
+        } else {
             SetName(cn);
             outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::ControllerName");
             outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "Controller::HandlePropertyEvent::ControllerName");
@@ -682,9 +717,10 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         return true;
     }
     else if (name == "Vendor") {
+        int idx = event.GetValue().GetLong();
         auto const vendors = ControllerCaps::GetVendors(GetType());
         auto it = begin(vendors);
-        std::advance(it, event.GetValue().GetLong());
+        std::advance(it, idx);
         if (event.GetValue().GetLong() >= 0 && it != end(vendors)) {
             SetVendor(*it);
 
@@ -706,9 +742,14 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
             SetModel("");
             SetVariant("");
         }
-
+        
+        wxPropertyGrid *propertyGrid  = (wxPropertyGrid*)event.GetEventObject();
+        wxPGProperty *mp = propertyGrid->GetProperty("Model");
+        wxPGProperty *vp = propertyGrid->GetProperty("Variant");
+        AddVariants(vp);
+        AddModels(mp, vp);
+        
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Vendor");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Vendor");
         return true;
     }
     else if (name == "Model") {
@@ -719,9 +760,14 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
 
         std::list<std::string> variants = ControllerCaps::GetVariants(GetType(), _vendor, *it);
         SetVariant(variants.front());
+        
+        wxPropertyGrid *propertyGrid  = (wxPropertyGrid*)event.GetEventObject();
+        wxPGProperty *mp = propertyGrid->GetProperty("Model");
+        wxPGProperty *vp = propertyGrid->GetProperty("Variant");
+        AddVariants(vp);
+        AddModels(mp, vp);
 
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Model");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Model");
         return true;
     }
     else if (name == "Variant") {
@@ -729,8 +775,14 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         auto it = begin(versions);
         std::advance(it, event.GetValue().GetLong());
         SetVariant(*it);
+        
+        wxPropertyGrid *propertyGrid  = (wxPropertyGrid*)event.GetEventObject();
+        wxPGProperty *mp = propertyGrid->GetProperty("Model");
+        wxPGProperty *vp = propertyGrid->GetProperty("Variant");
+        AddVariants(vp);
+        AddModels(mp, vp);
+
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Variant");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Variant");
         return true;
     }
     return false;

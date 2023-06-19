@@ -630,7 +630,6 @@ private :
 	void ResetAllSequencerWindows();
 	void SetEffectAssistWindowState(bool show);
     void UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect);
-    void MaybePackageAndSendDebugFiles();
     void AddDebugFilesToReport(wxDebugReport &report);
 
 public:
@@ -1226,12 +1225,6 @@ public:
     int EffectAssistMode() const { return mEffectAssistMode;}
     void SetEffectAssistMode(int i);
 
-    int OpenGLVersion() const;
-    void SetOpenGLVersion(int i);
-
-    int OpenGLRenderOrder() const;
-    void SetOpenGLRenderOrder(int i);
-
     int GetModelHandleScale() const { return _modelHandleSize; }
     int ModelHandleSize() const { return _modelHandleSize;}
     void SetModelHandleSize(int i);
@@ -1797,6 +1790,8 @@ public:
     int GetPlayStatus() const { return playType; }
     void SetPlayStatus(int status);
     void StartOutputTimer();
+    void StopOutputTimer();
+    
     MainSequencer* GetMainSequencer() const { return mainSequencer; }
     wxString GetSeqXmlFileName();
 

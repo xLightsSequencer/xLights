@@ -233,8 +233,8 @@ void MetalWarpEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             }
             break;
     }
-
-    if (!data->Render(Style, wdata, buffer)) {
-        WarpEffect::Render(effect, SettingsMap, buffer);
+    if (data->Render(Style, wdata, buffer)) {
+        return;
     }
+    WarpEffect::Render(effect, SettingsMap, buffer);
 }

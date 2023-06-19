@@ -146,6 +146,17 @@
       <AdditionalManifestFiles>xLightsApp64.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
+
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -203,6 +214,16 @@
     <ManifestResourceCompile>
       <ResourceOutputFileName>$(IntDir)$(TargetName)$(TargetExt).embed.manifest.res</ResourceOutputFileName>
     </ManifestResourceCompile>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\xlBaseApp.cpp" />
@@ -303,11 +324,8 @@
     <ClCompile Include="GenerateLyricsDialog.cpp" />
     <ClCompile Include="GPURenderUtils.cpp" />
     <ClCompile Include="graphics\opengl\DrawGLUtils.cpp" />
-    <ClCompile Include="graphics\opengl\DrawGLUtils31.cpp" />
-    <ClCompile Include="graphics\opengl\Image.cpp" />
-    <ClCompile Include="graphics\opengl\Image_Loader.cpp" />
     <ClCompile Include="graphics\opengl\xlGLCanvas.cpp" />
-    <ClCompile Include="graphics\opengl\XlightsDrawable.cpp" />
+    <ClCompile Include="graphics\opengl\xlOGL3GraphicsContext.cpp" />
     <ClCompile Include="graphics\xlFontInfo.cpp" />
     <ClCompile Include="graphics\xlGraphicsAccumulators.cpp" />
     <ClCompile Include="graphics\xlMesh.cpp" />
@@ -784,10 +802,10 @@
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="graphics\opengl\DrawGLUtils.h" />
-    <ClInclude Include="graphics\opengl\Image.h" />
-    <ClInclude Include="graphics\opengl\Image_Loader.h" />
+    <ClInclude Include="graphics\opengl\GL\glext.h" />
     <ClInclude Include="graphics\opengl\xlGLCanvas.h" />
     <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
+    <ClInclude Include="graphics\opengl\xlOGL3GraphicsContext.h" />
     <ClInclude Include="graphics\tiny_obj_loader.h" />
     <ClInclude Include="graphics\xlFontInfo.h" />
     <ClInclude Include="graphics\xlGraphicsAccumulators.h" />

@@ -2258,15 +2258,18 @@ int xLightsFrame::GetCurrentPlayTime()
 void xLightsFrame::SetPlayStatus(int status) {
     playType = status;
     if (playType != PLAY_TYPE_STOPPED) {
-        OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+        StartOutputTimer();
         //printf("Timer started - SetPlayStatus %d\n", status);
     }
 }
 void xLightsFrame::StartOutputTimer() {
+    GPURenderUtils::prioritizeGraphics(true);
     OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
-    //printf("Timer started - StartOutputTimer %d\n", playType);
 }
-
+void xLightsFrame::StopOutputTimer() {
+    OutputTimer.Stop();
+    GPURenderUtils::prioritizeGraphics(false);
+}
 bool xLightsFrame::TimerRgbSeq(long msec)
 {
     //check if there are models that depend on timing tracks or similar that need to be rendered

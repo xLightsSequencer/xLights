@@ -57,7 +57,7 @@ void E131Output::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("E131Output: %s Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
     }
@@ -66,7 +66,7 @@ void E131Output::OpenDatagram() {
         delete _datagram;
         _datagram = nullptr;
     }
-    else if (_datagram->Error() != wxSOCKET_NOERROR) {
+    else if (_datagram->Error()) {
         logger_base.error("E131Output: %s Error creating E131 datagram => %d : %s.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
@@ -203,7 +203,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
                 delete syncdatagram;
             }
 
-            syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+            syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
             if (syncdatagram == nullptr) {
                 logger_base.error("Error initialising E131 sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
@@ -213,7 +213,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
-            else if (syncdatagram->Error() != wxSOCKET_NOERROR) {
+            else if (syncdatagram->Error()) {
                 logger_base.error("Error creating E131 sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;

@@ -45,7 +45,7 @@ void ArtNetOutput::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    wxSocketFlags flags = wxSOCKET_NOWAIT;
+    wxSocketFlags flags = wxSOCKET_BLOCK; // dont use NOWAIT as it can result in dropped packets
     if (_forceSourcePort) {
         flags |= wxSOCKET_REUSEADDR;
         localaddr.Service(ARTNET_PORT);
@@ -133,7 +133,7 @@ void ArtNetOutput::SendSync(const std::string& localIP) {
         }
 
         // using the forced source port for sync packets is buried in a special options as its use is very very rare. Few devices implement this restriction and few users use artnet sync
-        wxSocketFlags flags = wxSOCKET_NOWAIT;
+        wxSocketFlags flags = wxSOCKET_BLOCK; // dont use NOWAIT as it can result in dropped packets
         if (SpecialOptions::GetOption("ForceArtNetSourcePort", "false") == "true") {
             flags |= wxSOCKET_REUSEADDR;
             localaddr.Service(ARTNET_PORT);

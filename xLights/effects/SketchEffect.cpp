@@ -237,7 +237,6 @@ xlEffectPanel* SketchEffect::CreatePanel( wxWindow* parent )
     return m_panel;
 }
 
-
 void SketchEffect::renderSketch(const SketchEffectSketch& sketch, wxImage& img, double progress, double drawPercentage, int lineThickness, bool hasMotion, double motionPercentage, const xlColorVector& colors)
 {
     std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(img));

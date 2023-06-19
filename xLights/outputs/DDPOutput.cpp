@@ -47,7 +47,7 @@ void DDPOutput::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIP());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK);  // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("Error initialising DDP datagram for %s. %s", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
         _ok = false;
@@ -58,7 +58,7 @@ void DDPOutput::OpenDatagram() {
         _datagram = nullptr;
         _ok = false;
     }
-    else if (_datagram->Error() != wxSOCKET_NOERROR) {
+    else if (_datagram->Error()) {
         logger_base.error("Error creating DDP datagram => %d : %s. %s", _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
@@ -137,7 +137,7 @@ void DDPOutput::SendSync(const std::string& localIP) {
             delete syncdatagram;
         }
 
-        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
         if (syncdatagram == nullptr) {
             logger_base.error("Error initialising DDP sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
             return;
@@ -147,7 +147,7 @@ void DDPOutput::SendSync(const std::string& localIP) {
             syncdatagram = nullptr;
             return;
         }
-        else if (syncdatagram->Error() != wxSOCKET_NOERROR) {
+        else if (syncdatagram->Error()) {
             logger_base.error("Error creating DDP sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
@@ -190,7 +190,7 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::str
     }
 
     logger_base.debug(" DDP query using %s", (const char*)localaddr.IPAddress().c_str());
-    wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
     if (datagram == nullptr) {
         logger_base.error("Error initialising DDP query datagram.");
@@ -200,7 +200,7 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::str
         delete datagram;
         datagram = nullptr;
     }
-    else if (datagram->Error() != wxSOCKET_NOERROR) {
+    else if (datagram->Error()) {
         logger_base.error("Error creating DDP query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         delete datagram;
         datagram = nullptr;
@@ -217,7 +217,7 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::str
     if (datagram != nullptr) {
         logger_base.info("DDP sending query packet.");
         datagram->SendTo(remoteaddr, &packet, DDP_DISCOVERPACKET_LEN);
-        if (datagram->Error() != wxSOCKET_NOERROR) {
+        if (datagram->Error()) {
             logger_base.error("Error sending DDP query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         }
         else {

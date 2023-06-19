@@ -288,6 +288,10 @@ public:
 
     #pragma region UI
     #ifndef EXCLUDENETWORKUI
+        void AddModels(wxPGProperty* property, wxPGProperty* vp);
+        void AddVariants(wxPGProperty* property);
+
+    
         virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties);
 	    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager);
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const;

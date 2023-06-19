@@ -92,6 +92,7 @@ const long SubModelsDialog::ID_TIMER1 = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_MODEL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_FILE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CUSTOM = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CSV = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_CSV = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_XMODEL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_TOOTHERS = wxNewId();
@@ -793,6 +794,7 @@ void SubModelsDialog::OnButtonImportClick(wxCommandEvent& event)
     if (_isMatrix) {
         mnu.Append(SUBMODEL_DIALOG_IMPORT_CUSTOM, "Import Custom Model Overlay");
     }
+    mnu.Append(SUBMODEL_DIALOG_IMPORT_CSV, "Import CSV as SubModel");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& SubModelsDialog::OnImportBtnPopup, nullptr, this);
     PopupMenu(&mnu);
     event.Skip();
@@ -835,6 +837,11 @@ void SubModelsDialog::OnImportBtnPopup(wxCommandEvent& event)
         wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xModel Files (*.xmodel)|*.xmodel", wxFD_OPEN);
         if (filename.IsEmpty()) return;
         ImportCustomModel(filename);
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_CSV) {
+        wxString filename = wxFileSelector(_("Choose CSV file"), wxEmptyString, wxEmptyString, wxEmptyString, "CSV Files (*.csv)|*.csv", wxFD_OPEN);
+        if (filename.IsEmpty()) return;
+        ImportCSVSubModel(filename);
     }
 }
 
@@ -3300,6 +3307,44 @@ void SubModelsDialog::ImportSubModelXML(wxXmlNode* xmlData)
         }
         PopulateList();
         ValidateWindow();
+    }
+}
+
+void SubModelsDialog::ImportCSVSubModel(wxString const& filename)
+{
+    wxString name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+    SubModelInfo* sm = GetSubModelInfo(name);
+
+    wxTextFile f(filename);
+    if (f.Open()) {
+        std::list<std::string> reverse_lines;
+        wxString l = f.GetFirstLine();
+        while (!f.Eof()) {
+            if (!l.empty()) {
+                reverse_lines.push_front(CompressNodes(l));
+            }
+            l = f.GetNextLine();
+        }
+        f.Close();
+
+        sm->strands.resize(reverse_lines.size());
+        int i {0};
+        for (auto const& line : reverse_lines) {
+            sm->strands[i] = line;
+            i++;
+        }
+        ValidateWindow();
+        Select(name);
+
+        Panel3->SetFocus();
+        TextCtrl_Name->SetFocus();
+        TextCtrl_Name->SelectAll();
+    } else {
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.warn("Failed to Open File %s", (const char *)filename.c_str());
     }
 }
 

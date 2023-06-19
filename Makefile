@@ -25,7 +25,7 @@ SUDO		= `which sudo`
 
 SUBDIRS         = xLights xSchedule xCapture xFade xScanner xSchedule/xSMSDaemon xSchedule/RemoteFalcon
 
-WXWIDGETS_TAG=xlights_2023.06
+WXWIDGETS_TAG=xlights_2023.07
 
 .NOTPARALLEL:
 
@@ -63,8 +63,8 @@ log4cpp: FORCE
 	@printf "Checking log4cpp\n"
 	@if test "`log4cpp-config --version`" != "1.1"; \
 		then if test ! -d log4cpp; \
-			then echo Downloading log4cpp; wget --no-verbose -c https://nchc.dl.sourceforge.net/project/log4cpp/log4cpp-1.1.x%20%28new%29/log4cpp-1.1/log4cpp-1.1.3.tar.gz; \
-			tar xfz log4cpp-1.1.3.tar.gz ;\
+			then echo Downloading log4cpp; wget --no-verbose -c https://nchc.dl.sourceforge.net/project/log4cpp/log4cpp-1.1.x%20%28new%29/log4cpp-1.1/log4cpp-1.1.4.tar.gz; \
+			tar xfz log4cpp-1.1.4.tar.gz ;\
 		fi; \
 		cd log4cpp; \
 		./configure --prefix=$(PREFIX); \

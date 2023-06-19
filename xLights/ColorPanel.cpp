@@ -462,16 +462,10 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
         checkBoxes.push_back(cb);
         Connect(id2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ColorPanel::OnCheckBox_PaletteClick);
     }
-    int scl = 1;
-#ifndef __WXOSX__
-    if (GetSystemContentScaleFactor() > 1.5) {
-        scl = 2;
-    }
-#endif
     for (int x = 0; x < PALETTE_SIZE; x++) {
         wxString ids = wxString::Format("ID_BUTTON_Palette%d", (x + 1));
         long id2 = wxNewId();
-        ColorCurveButton *bb = new ColorCurveButton(ColorScrollWindow, id2, wxNullBitmap, wxDefaultPosition, wxSize(21 * scl, 21 * scl), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, ids);
+        ColorCurveButton *bb = new ColorCurveButton(ColorScrollWindow, id2, wxNullBitmap, wxDefaultPosition, FromDIP(wxSize(21, 21)), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, ids);
         bb->SetDropTarget(new ColourTextDropTarget(bb));
         FlexGridSizer_Palette->Add(bb, 0, wxALIGN_LEFT|wxALIGN_TOP, 0);
         buttons.push_back(bb);

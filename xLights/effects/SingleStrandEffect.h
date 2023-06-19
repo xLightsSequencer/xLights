@@ -14,12 +14,17 @@
 
 #define SINGLESTRAND_ROTATIONS_MIN 1
 #define SINGLESTRAND_ROTATIONS_MAX 500
+#define SINGLESTRAND_ROTATIONS_DIVISOR 10
 
 #define SINGLESTRAND_CHASES_MIN 1
 #define SINGLESTRAND_CHASES_MAX 20
 
 #define SINGLESTRAND_COLOURMIX_MIN 1
 #define SINGLESTRAND_COLOURMIX_MAX 100
+
+#define SINGLESTRAND_OFFSET_MIN -5000
+#define SINGLESTRAND_OFFSET_MAX 5000
+#define SINGLESTRAND_OFFSET_DIVISOR 10
 
 #define SINGLESTRAND_FXINTENSITY_MIN 0
 #define SINGLESTRAND_FXINTENSITY_MAX 255
@@ -53,6 +58,8 @@ public:
             return SINGLESTRAND_CHASES_MIN;
         if (name == "E_VALUECURVE_Color_Mix1")
             return SINGLESTRAND_COLOURMIX_MIN;
+        if (name == "E_VALUECURVE_Chase_Offset")
+            return SINGLESTRAND_OFFSET_MIN;
         if (name == "E_VALUECURVE_FX_Intensity")
             return SINGLESTRAND_FXINTENSITY_MIN;
         if (name == "E_VALUECURVE_FX_Speed")
@@ -68,11 +75,22 @@ public:
             return SINGLESTRAND_CHASES_MAX;
         if (name == "E_VALUECURVE_Color_Mix1")
             return SINGLESTRAND_COLOURMIX_MAX;
+        if (name == "E_VALUECURVE_Chase_Offset")
+            return SINGLESTRAND_OFFSET_MAX;
         if (name == "E_VALUECURVE_FX_Intensity")
             return SINGLESTRAND_FXINTENSITY_MAX;
         if (name == "E_VALUECURVE_FX_Speed")
             return SINGLESTRAND_FXSPEED_MAX;
         return RenderableEffect::GetSettingVCMax(name);
+    }
+
+    virtual int GetSettingVCDivisor(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_Chase_Rotations")
+            return SINGLESTRAND_ROTATIONS_DIVISOR;
+        if (name == "E_VALUECURVE_Chase_Offset")
+            return SINGLESTRAND_OFFSET_DIVISOR;
+        return RenderableEffect::GetSettingVCDivisor(name);
     }
 
 protected:
@@ -83,7 +101,7 @@ private:
                                  const std::string& ColorScheme, int Number_Chases, int chaseSize,
                                  const std::string& Chase_Type1,
                                  bool Chase_3dFade1, bool Chase_Group_All,
-                                 float chaseSpeed);
+                                 float chaseSpeed, float offset);
     void RenderSingleStrandSkips(RenderBuffer& buffer, Effect* eff, int Skips_BandSize,
                                  int Skips_SkipSize, int Skips_StartPos, const std::string& Skips_Direction, int advances);
     void RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, int intensity, int speed, const std::string& fx, const std::string& palette);

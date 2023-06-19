@@ -264,6 +264,6 @@ class Vixen3 {
     std::string GetTimingType(const std::string& timing) const;
     std::list<VixenTiming> GetRelatedTiming(const std::string& timing, const std::string& type) const;
 
-    std::list<std::string> GetModelsWithEffects() const;
+    std::list<std::pair<std::string, int>> GetModelsWithEffects() const;
     std::list<VixenEffect> GetEffects(const std::string& model) const;
 };

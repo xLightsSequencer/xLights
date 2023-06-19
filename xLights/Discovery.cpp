@@ -169,6 +169,7 @@ void Discovery::CurlData::SetupCurl() {
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
     curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+    curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
     if (username != "") {
         curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
@@ -189,7 +190,7 @@ void Discovery::DatagramData::Init(const std::string &mc, int port) {
     wxIPV4address localaddr;
     localaddr.AnyAddress();
     localaddr.Service(port);
-    wxDatagramSocket *mainSocket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
+    wxDatagramSocket* mainSocket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     mainSocket->SetTimeout(1);
     mainSocket->Notify(false);
     if (mainSocket->IsOk()) {
@@ -203,7 +204,7 @@ void Discovery::DatagramData::Init(const std::string &mc, int port) {
         wxIPV4address localaddr;
         localaddr.Hostname(ip);
         
-        wxDatagramSocket *socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
+        wxDatagramSocket* socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
         socket->SetTimeout(1);
         socket->Notify(false);
         if (socket->IsOk()) {
@@ -335,6 +336,7 @@ void BonjourData::invokeCallbacks(const std::string &ip) {
 
 Discovery::Discovery(wxWindow* frame, OutputManager* outputManager) : _frame(frame), _outputManager(outputManager) {
     curlMulti = curl_multi_init();
+    curl_multi_setopt(curlMulti, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
 }
 
 Discovery::~Discovery() {

@@ -90,7 +90,7 @@
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_MaxFrets" subclass="BulkEditSlider" variable="Slider_MaxFrets" member="yes">
 							<value>19</value>
-							<min>12</min>
+							<min>8</min>
 							<max>30</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -100,6 +100,57 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_MaxFrets" subclass="BulkEditTextCtrl" variable="TextCtrl_MaxFrets" member="yes">
 							<value>19</value>
+							<size>25,-1d</size>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText3" member="yes">
+							<label>Base Wavelength</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_BaseWaveFactor" subclass="BulkEditSliderF1" variable="Slider_BaseWaveFactor" member="yes">
+							<value>10</value>
+							<min>1</min>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_BaseWaveFactor" subclass="BulkEditTextCtrlF1" variable="TextCtrl_BaseWaveFactor" member="yes">
+							<value>1.0</value>
+							<maxlength>5</maxlength>
+							<size>25,-1d</size>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText4" member="yes">
+							<label>Vary Wavelength By String</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_StringWaveFactor" subclass="BulkEditSliderF1" variable="Slider_StringWaveFactor" member="yes" />
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_StringWaveFactor" subclass="BulkEditTextCtrlF1" variable="TextCtrl_StringWaveFactor" member="yes">
+							<value>0.0</value>
+							<maxlength>5</maxlength>
 							<size>25,-1d</size>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -150,6 +201,25 @@
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_ShowStrings" subclass="BulkEditCheckBox" variable="CheckBox_ShowStrings" member="yes">
 							<label>Show Strings</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_VaryWaveLengthOnFret" subclass="BulkEditCheckBox" variable="CheckBox_VaryWaveLengthOnFret" member="yes">
+							<label>Vary Wavelength By Fret</label>
+							<checked>1</checked>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>

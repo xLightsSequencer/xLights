@@ -229,6 +229,9 @@ void FPP::setupCurl(int timeout) {
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout);
     curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
     curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+    curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+    curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1);
+    //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 }
 
 bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError) {
@@ -3608,7 +3611,7 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
 
     if (res->typeId == 0x88 || res->typeId == 0x89) {
         // F16V4 / F48V4
-        return true;
+        return res->mode != "bridge";
     }
 
     return false;

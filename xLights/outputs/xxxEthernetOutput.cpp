@@ -56,10 +56,10 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
         __remoteAddr.Hostname("224.0.0.0");
         __remoteAddr.Service(xxx_PORT);
 
-        __datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+        __datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
         if (__datagram != nullptr) {
-            if (!__datagram->IsOk() || __datagram->Error() != wxSOCKET_NOERROR) {
+            if (!__datagram->IsOk() || __datagram->Error()) {
                 logger_base.error("xxxEthernetOutput: %s Error creating xxxEthernet heartbeat datagram => %d : %s.",
                     (const char*)localaddr.IPAddress().c_str(),
                     __datagram->LastError(),
@@ -96,7 +96,7 @@ void xxxEthernetOutput::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("xxxEthernetOutput: %s Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
     }
@@ -105,7 +105,7 @@ void xxxEthernetOutput::OpenDatagram() {
         delete _datagram;
         _datagram = nullptr;
     }
-    else if (_datagram->Error() != wxSOCKET_NOERROR) {
+    else if (_datagram->Error()) {
         logger_base.error("xxxEthernetOutput: %s Error creating xxxEthernet datagram => %d : %s.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;

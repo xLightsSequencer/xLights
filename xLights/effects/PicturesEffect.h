@@ -48,6 +48,23 @@ class PicturesEffect : public RenderableEffect
         static bool IsPictureFile(std::string filename);
         virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
 
+    
+        virtual double GetSettingVCMin(const std::string& name) const override {
+            if (name == "E_VALUECURVE_PicturesXC")
+                return PICTURES_XC_MIN;
+            if (name == "E_VALUECURVE_PicturesYC")
+                return PICTURES_YC_MIN;
+            return RenderableEffect::GetSettingVCMin(name);
+        }
+
+        virtual double GetSettingVCMax(const std::string& name) const override {
+            if (name == "E_VALUECURVE_PicturesXC")
+                return PICTURES_XC_MAX;
+            if (name == "E_VALUECURVE_PicturesYC")
+                return PICTURES_YC_MAX;
+            return RenderableEffect::GetSettingVCMax(name);
+        }
+    
     protected:
         virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:

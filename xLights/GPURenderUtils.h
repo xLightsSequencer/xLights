@@ -49,7 +49,12 @@ public:
         }
         return false;
     };
-    
+    static void prioritizeGraphics(bool p) {
+        if (INSTANCE) {
+            return INSTANCE->setPrioritizeGraphics(p);
+        }
+    }
+
     
     class RotoZoomSettings {
     public:
@@ -89,6 +94,7 @@ protected:
 
     virtual bool doBlur(RenderBuffer *buffer, int radius) = 0;
     virtual bool doRotoZoom(RenderBuffer *buffer, RotoZoomSettings &settings) = 0;
+    virtual void setPrioritizeGraphics(bool p) = 0;
 
 
     static GPURenderUtils *INSTANCE;
