@@ -222,8 +222,8 @@ void SelectPanel::populateEffectsList()
                 std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, starttime, endtime);
                 for (Effect* eff : effs) {
                     if (ContainsColor(eff)) {
-                        ListCtrl_Select_Effects->InsertItem(ListCtrl_Select_Effects->GetItemCount(), wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname));
-                        ListCtrl_Select_Effects->SetItemPtrData(ListCtrl_Select_Effects->GetItemCount() - 1, (wxUIntPtr)eff);
+                        auto id = ListCtrl_Select_Effects->InsertItem(ListCtrl_Select_Effects->GetItemCount(), wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname));
+                        ListCtrl_Select_Effects->SetItemPtrData(id, (wxUIntPtr)eff);
                     }
                 }
             }
@@ -239,8 +239,8 @@ void SelectPanel::populateEffectsList()
                                 std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, starttime, endtime);
                                 for (Effect* eff : effs) {
                                     if (ContainsColor(eff)) {
-                                        ListCtrl_Select_Effects->InsertItem(ListCtrl_Select_Effects->GetItemCount() , wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname));
-                                        ListCtrl_Select_Effects->SetItemPtrData(ListCtrl_Select_Effects->GetItemCount() - 1, (wxUIntPtr)eff);
+                                        auto id = ListCtrl_Select_Effects->InsertItem(ListCtrl_Select_Effects->GetItemCount() , wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname));
+                                        ListCtrl_Select_Effects->SetItemPtrData(id, (wxUIntPtr)eff);
                                     }
                                 }
                             }
