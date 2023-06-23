@@ -253,7 +253,7 @@
 		<Variant Name="16 Local Ports + 4 + 2 Smart Receiver Chains" Base="Falcon:BaseV4FalconSettings">
 			<MaxPixelPort>40</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
-			<MaxPixelPortChannels>2112</MaxPixelPortChannels>
+			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
             <v4BoardMode>5</v4BoardMode>
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>6</SupportsSmartRemotes>
