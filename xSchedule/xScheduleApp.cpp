@@ -24,6 +24,7 @@
 #include "ScheduleManager.h"
 #include "../xLights/outputs/OutputManager.h"
 #include "../xLights/xLightsVersion.h"
+#include "../xLights/UtilFunctions.h"
 #include <wx/cmdline.h>
 #include <wx/confbase.h>
 #include <wx/debugrpt.h>
@@ -307,8 +308,11 @@ bool xScheduleApp::OnInit()
 #ifdef __WXMSW__
     logger_base.debug("xSchedule module handle 0x%llx", ::GetModuleHandle(nullptr));
     logger_base.debug("xSchedule wxTheApp 0x%llx", wxTheApp);
-    MSWEnableDarkMode();
+    if (!IsSuppressDarkMode()) {
+        MSWEnableDarkMode();
+    }
 #endif
+
     DumpConfig();
 
     static const wxCmdLineEntryDesc cmdLineDesc[] = {
