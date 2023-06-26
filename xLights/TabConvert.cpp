@@ -1218,7 +1218,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                        { _presetModel },
                        { _presetModel },
                        0, frames - 1,
-                       false, true, []() {});
+                       false, true, [](bool) {});
 
                 // wait for all rendering to complete
                 while (!renderProgressInfo.empty()) {

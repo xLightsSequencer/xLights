@@ -367,7 +367,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
     logger_base.debug("Start channels done.");
 
-    if (mBackupOnLaunch) {
+    if (mBackupOnLaunch && !_renderMode) {
         logger_base.debug("Backing up show directory before we do anything this session in this folder : %s.", (const char *)CurrentDir.c_str());
         DoBackup(false, true);
         logger_base.debug("Backup completed.");

@@ -478,7 +478,7 @@ bool xLightsApp::OnInit()
     {
         { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters", wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
         { wxCMD_LINE_SWITCH, "r", "render", "render files and exit"},
-        { wxCMD_LINE_SWITCH, "cs", "checksequence", "run check sequence and exit"},
+        { wxCMD_LINE_SWITCH, "cs", "checksequence", "run check sequence and exit" },
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
         { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
         { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
@@ -614,13 +614,19 @@ bool xLightsApp::OnInit()
         return false;
     }
 
+    bool renderOnlyMode = false;
+    if (parser.Found("r")) {
+        logger_base.info("-r: Render mode is ON");
+        renderOnlyMode = true;
+    }
+
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
     BitmapCache::SetupArtProvider();
     if (wxsOK)
     {
-    	xLightsFrame* Frame = new xLightsFrame(nullptr, ab);
+    	xLightsFrame* Frame = new xLightsFrame(nullptr, ab, -1, renderOnlyMode);
         if (Frame->CurrentDir == "") {
             logger_base.info("Show directory not set");
         }
@@ -632,10 +638,8 @@ bool xLightsApp::OnInit()
     xLightsFrame* const topFrame = (xLightsFrame*)GetTopWindow();
     __frame = topFrame;
 
-    if (parser.Found("r")) {
-        logger_base.info("-r: Render mode is ON");
-        topFrame->_renderMode = true;
-        topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, sequenceFiles, true);
+    if (renderOnlyMode) {
+        topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequencesF, sequenceFiles, xLightsFrame::RENDER_EXIT_ON_DONE);
     }
 
     if (parser.Found("cs")) {

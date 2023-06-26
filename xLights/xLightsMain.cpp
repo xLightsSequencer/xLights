@@ -519,12 +519,50 @@ wxBEGIN_EVENT_TABLE(xlMacDockIcon, wxTaskBarIcon)
 wxEND_EVENT_TABLE()
 #endif
 
-xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
+struct SplashScreenShow
+{
+    SplashScreenShow(bool suppress)
+    {
+        if (!suppress) {
+            splash = new SplashDialog(nullptr);
+        }
+    }
+
+    ~SplashScreenShow()
+    {
+        if (splash) {
+            delete splash;
+            splash = nullptr;
+        }
+    }
+
+    void Show() {
+        if (splash)
+            splash->Show();
+    }
+
+    void Hide()
+    {
+        if (splash)
+            splash->Hide();
+    }
+
+    void Update()
+    {
+        if (splash)
+            splash->Update();
+    }
+
+    SplashDialog* splash = nullptr;
+};
+
+xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderOnlyMode) :
     _sequenceElements(this),
     jobPool("RenderPool"),
     AllModels(&_outputManager, this),
     AllObjects(this),
-    _presetSequenceElements(this), color_mgr(this)
+    _presetSequenceElements(this), color_mgr(this),
+    _renderMode(renderOnlyMode)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
@@ -534,7 +572,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     ValueCurve::SetSequenceElements(&_sequenceElements);
 
     _exiting = false;
-    SplashDialog splash(nullptr);
+    SplashScreenShow splash(renderOnlyMode);
     splash.Show();
     splash.Update();
     wxYield();
@@ -542,7 +580,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     _fps = -1;
     mCurrentPerpective = nullptr;
     MenuItemPreviews = nullptr;
-    _renderMode = false;
+    _renderMode = renderOnlyMode;
     _checkSequenceMode = false;
     _suspendAutoSave = false;
 	_sequenceViewManager.SetModelManager(&AllModels);
@@ -1924,6 +1962,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     // remove the forum for now until/if Sean restores the forum
     MenuItem_Help_Forum->GetMenu()->Remove(MenuItem_Help_Forum);
     MenuItem_Help_Forum = nullptr;
+
+    if (renderOnlyMode) {
+        DisablePromptBatchRenderIssues();
+    }
 
     logger_base.debug("xLightsFrame construction complete.");
 }
@@ -6418,7 +6460,7 @@ void xLightsFrame::ValidateEffectAssets()
         }
     }
 
-    if (missing != "") {
+    if (missing != "" && (_promptBatchRenderIssues || (!_renderMode && !_checkSequenceMode))) {
         wxMessageBox("Sequence references files which cannot be found:\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
     }
 }
