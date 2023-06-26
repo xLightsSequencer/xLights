@@ -207,8 +207,8 @@ void SearchPanel::FindSettings()
             auto effs = elay->GetEffects();
             for (auto* eff : effs) {
                 if (ContainsSetting(eff, search, regex, value)) {
-                    ListCtrl_Results->InsertItem(ListCtrl_Results->GetItemCount(), wxString::Format("%s [%s,%s] %s %s", value, FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname));
-                    ListCtrl_Results->SetItemPtrData(ListCtrl_Results->GetItemCount() - 1, (wxUIntPtr)eff);
+                    auto id = ListCtrl_Results->InsertItem(ListCtrl_Results->GetItemCount(), wxString::Format("%s [%s,%s] %s %s", value, FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname));
+                    ListCtrl_Results->SetItemPtrData(id, (wxUIntPtr)eff);
                 }
             }
         }
@@ -224,8 +224,8 @@ void SearchPanel::FindSettings()
                             auto effs = elay->GetEffects();
                             for (auto* eff : effs) {
                                 if (ContainsSetting(eff, search, regex, value)) {
-                                    ListCtrl_Results->InsertItem(ListCtrl_Results->GetItemCount() , wxString::Format("%s [%s,%s] %s %s", value, FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname));
-                                    ListCtrl_Results->SetItemPtrData(ListCtrl_Results->GetItemCount() - 1, (wxUIntPtr)eff);
+                                    auto id = ListCtrl_Results->InsertItem(ListCtrl_Results->GetItemCount() , wxString::Format("%s [%s,%s] %s %s", value, FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname));
+                                    ListCtrl_Results->SetItemPtrData(id, (wxUIntPtr)eff);
                                 }
                             }
                         }

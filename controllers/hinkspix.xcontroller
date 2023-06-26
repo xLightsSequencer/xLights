@@ -31,7 +31,7 @@
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
-            <ConfigDriver>HinksPix</ConfigDriver>
+			<ConfigDriver>HinksPix</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="PRO">
@@ -72,7 +72,48 @@
 				<Type>hinkspix_16ac</Type>
 			</SmartRemoteTypes>
 			<SupportsMultipleSimultaneousOutputProtocols/>
-            <ConfigDriver>HinksPix</ConfigDriver>
+			<ConfigDriver>HinksPix</ConfigDriver>
+		</Variant>
+	</Controller>
+	<Controller Name="PRO80">
+		<Variant Name="">
+			<SupportsPixelPortBrightness/>
+			<SupportsPixelPortGamma/>
+			<SupportsPixelPortNullPixels/>
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
+			<SupportsUniversePerString/>
+			<DMXAfterPixels/>
+			<SupportsRemotes/>
+			<SupportsSmartRemotes>16</SupportsSmartRemotes>
+			<SupportsUpload/>
+			<MaxInputUniverses>684</MaxInputUniverses>
+			<MaxPixelPort>80</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
+			<SupportsAutoLayout/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>apa102</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
+			</InputProtocols>
+			<SmartRemoteTypes>
+				<Type>hinkspix_4</Type>
+				<Type>hinkspix_16</Type>
+				<Type>hinkspix_16ac</Type>
+			</SmartRemoteTypes>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+			<ConfigDriver>HinksPix</ConfigDriver>
 		</Variant>
 	</Controller>
 </Vendor>
