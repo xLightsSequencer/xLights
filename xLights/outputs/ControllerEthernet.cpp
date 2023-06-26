@@ -905,6 +905,14 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
         p->SetHelpString("Some controllers can receive data from more than one source and will ignore one of the sources where this priority is lower.");
     }
 
+    if (_type == OUTPUT_TWINKLY) {
+        p = propertyGrid->Append(new wxUIntProperty("HTTP Port", "HTTPPort", dynamic_cast<TwinklyOutput*>(_outputs.front())->GetHttpPort()));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 65535);
+        p->SetEditor("SpinCtrl");
+        p->SetHelpString("Twinkly normally listens on port 80 but you may want to change the port if using Artnet To Twinkly.");
+    }
+
     if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {
         p = propertyGrid->Append(new wxBoolProperty("Managed", "Managed", _managed));
         p->SetEditor("CheckBox");
@@ -1117,8 +1125,11 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         SetPriority(event.GetValue().GetLong());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Priority");
         return true;
-    }
-    else if (name == "Version") {
+    } else if (name == "HTTPPort") {
+        static_cast<TwinklyOutput*>(_outputs.front())->SetHttpPort(event.GetValue().GetLong());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::HTTPPort");
+        return true;
+    } else if (name == "Version") {
         SetVersion(event.GetValue().GetLong());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Version");
         return true;

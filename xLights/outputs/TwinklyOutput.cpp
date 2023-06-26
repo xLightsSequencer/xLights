@@ -27,10 +27,17 @@
 TwinklyOutput::TwinklyOutput(wxXmlNode* node, bool isActive) :
     IPOutput(node, isActive)
 {
+    _httpPort = wxAtoi(node->GetAttribute("HTTPPort", "80"));
 }
 
 TwinklyOutput::TwinklyOutput()
 {
+}
+
+TwinklyOutput::TwinklyOutput(TwinklyOutput* output) :
+    IPOutput(output)
+{
+    _httpPort = output->_httpPort;
 }
 
 TwinklyOutput::~TwinklyOutput()
@@ -42,7 +49,13 @@ TwinklyOutput::~TwinklyOutput()
 }
 wxXmlNode* TwinklyOutput::Save()
 {
-    return IPOutput::Save();
+    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+
+    node->AddAttribute("HTTPPort", wxString::Format("%d", _httpPort));
+
+    IPOutput::Save(node);
+
+    return node;
 }
 #pragma endregion
 
@@ -259,7 +272,9 @@ void TwinklyOutput::AllOff()
 bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path, wxJSONValue& result, const char* body)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Twinkly: Invoke " + method + " http://" + _ip + path);
+    logger_base.debug("Twinkly: Invoke " + method + " http://" + _ip + (_httpPort == 80
+                          ? ""
+                          : wxString::Format(":%d", _httpPort)) + path);
     if (body != nullptr)
         logger_base.debug("         '%s'", body);
 
@@ -275,7 +290,7 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
     }
 
     int responseCode;
-    std::string httpResponse = Curl::HTTPSPost("http://" + _ip + path, bod, "", "", "JSON", HTTP_TIMEOUT, customHeaders, &responseCode);
+    std::string httpResponse = Curl::HTTPSPost("http://" + _ip + (_httpPort == 80 ? "" : wxString::Format(":%d", _httpPort)) + path, bod, "", "", "JSON", HTTP_TIMEOUT, customHeaders, &responseCode);
 
     if (responseCode != 200) {
         logger_base.error("Twinkly: Error %d : %s", responseCode, (const char*)httpResponse.c_str());
@@ -366,13 +381,13 @@ void TwinklyOutput::OpenDatagram()
 }
 #pragma endregion
 
-bool TwinklyOutput::GetLayout(const std::string& ip, std::vector<std::tuple<float, float, float>>& result)
+bool TwinklyOutput::GetLayout(const std::string& ip, std::vector<std::tuple<float, float, float>>& result, uint16_t httpPort)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::vector<std::pair<std::string, std::string>> customHeaders = {};
     int responseCode;
-    std::string httpResponse = Curl::HTTPSGet("http://" + ip + "/xled/v1/led/layout/full", "", "", HTTP_TIMEOUT, customHeaders, &responseCode);
+    std::string httpResponse = Curl::HTTPSGet("http://" + ip + (httpPort == 80 ? "" : wxString::Format(":%d", httpPort)) + "/xled/v1/led/layout/full", "", "", HTTP_TIMEOUT, customHeaders, &responseCode);
 
     if (responseCode != 200) {
         logger_base.error("Twinkly: Error %d : %s", responseCode, (const char*)httpResponse.c_str());

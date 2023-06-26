@@ -18,6 +18,7 @@
 #include <wx/display.h>
 #include <wx/protocol/http.h>
 #include <wx/sstream.h>
+#include <wx/stdpaths.h>
 
 #include <random>
 #include <time.h>
@@ -1650,7 +1651,7 @@ void SetSuppressDarkMode(bool suppress)
     if (IsSuppressDarkMode() != suppress) {
         wxConfigBase* config = wxConfigBase::Get();
         config->Write("SuppressDarkMode", suppress);
-        wxMessageBox("Restart xLights to enable/disable dark mode properly.");
+        wxMessageBox("Restart " + wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetName() + " to enable/disable dark mode properly.");
     }
 }
 #endif

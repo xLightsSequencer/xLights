@@ -47,6 +47,7 @@ const long OptionsDialog::ID_CHECKBOX14 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX15 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX16 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX17 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX18 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
 const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
@@ -156,6 +157,9 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     CheckBox_TimecodeWaitForNextSong = new wxCheckBox(this, ID_CHECKBOX17, _("Timecode remote wait for next song"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX17"));
     CheckBox_TimecodeWaitForNextSong->SetValue(false);
     FlexGridSizer7->Add(CheckBox_TimecodeWaitForNextSong, 1, wxALL|wxEXPAND, 5);
+    CheckBoxSuppressDarkMode = new wxCheckBox(this, ID_CHECKBOX18, _("Suppress Dark Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX18"));
+    CheckBoxSuppressDarkMode->SetValue(false);
+    FlexGridSizer7->Add(CheckBoxSuppressDarkMode, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer5->AddGrowableCol(1);
@@ -330,6 +334,12 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     CheckBox_SongMMSSFormat->SetValue(options->IsUseStepMMSSTimecodeFormat());
     CheckBox_TimecodeWaitForNextSong->SetValue(options->IsRemoteTimecodeStepAdvance());
 
+    #ifdef __WXMSW__
+        CheckBoxSuppressDarkMode->SetValue(IsSuppressDarkMode());
+    #else
+        CheckBoxSuppressDarkMode->Enable(false);
+    #endif
+
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
     SpinCtrl_PasswordTimeout->SetValue(options->GetPasswordTimeout());
 
@@ -417,6 +427,10 @@ OptionsDialog::~OptionsDialog()
 
 void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
 {
+    #ifdef __WXMSW__
+    SetSuppressDarkMode(CheckBoxSuppressDarkMode->GetValue());
+    #endif
+
     _options->SetSync(CheckBox_Sync->GetValue());
     _options->SetSendOffWhenNotRunning(CheckBox_SendOffWhenNotRunning->GetValue());
     _options->SetParallelTransmission(CheckBox_MultithreadedTransmission->GetValue());
