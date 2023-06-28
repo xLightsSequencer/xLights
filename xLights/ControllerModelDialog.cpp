@@ -2479,6 +2479,11 @@ void ControllerModelDialog::OnPanelControllerKeyDown(wxKeyEvent& event)
     {
         ScrollToKey(event.GetKeyCode());
     }
+    
+    if (event.GetKeyCode() == WXK_ESCAPE)
+    {
+        EndDialog(wxCLOSE);
+    }
     event.Skip();
 }
 
@@ -2487,6 +2492,10 @@ void ControllerModelDialog::OnKeyDown(wxKeyEvent& event)
     if (!MaybeSetSmartRemote(event))
     {
         ScrollToKey(event.GetKeyCode());
+    } 
+    
+    if (event.GetKeyCode() == WXK_ESCAPE) {
+        EndDialog(wxCLOSE);
     }
     event.Skip();
 }
@@ -2495,6 +2504,10 @@ void ControllerModelDialog::OnPanelModelsKeyDown(wxKeyEvent& event)
 {
     if (!MaybeSetSmartRemote(event)) {
         ScrollToKey(event.GetKeyCode());
+    } 
+    
+    if (event.GetKeyCode() == WXK_ESCAPE) {
+        EndDialog(wxCLOSE);
     }
     event.Skip();
 }
