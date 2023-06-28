@@ -217,7 +217,6 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
 void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     ClearNonExistentFiles();
 
     bool loaded_fseq = false;
@@ -228,6 +227,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
     } else {
         filename = passed_filename;
     }
+    logger_base.debug("Opening File: %s", (const char *)filename.ToStdString().c_str());
     if (!filename.empty()) {
         if (filename.Contains(XLIGHTS_RGBEFFECTS_FILE) || filename.Contains(XLIGHTS_NETWORK_FILE) || filename.Contains(XLIGHTS_KEYBINDING_FILE)) {
             wxMessageBox("the 'xlights_rgbeffects.xml', 'xlights_networks.xml' or 'xlights_keybindings.xml' files are not valid sequence files", "Error");
@@ -378,7 +378,9 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
             ObtainAccessToURL(media_file.GetFullPath().ToStdString());
         }
 
-        if (media_file != "") {
+        if (media_file.GetName() != "") {
+            logger_base.debug("Media file from sequence: '%s'", (const char*)media_file.GetFullPath().c_str());
+
             // double-check file existence
             if (!FileExists(media_file) || !wxFileName(media_file).IsFileReadable()) {
                 wxFileName detect_media(media_file);
@@ -400,6 +402,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
                         }
                     }
                 }
+                logger_base.debug("    Did not exist, attepting to map to: '%s'", (const char*)media_file.GetFullPath().c_str());
             }
 
             // search for missing media file in media directory and show directory
@@ -424,6 +427,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
                         }
                     }
                 }
+                logger_base.debug("    Still did not exist, attepting to map to: '%s'", (const char*)media_file.GetFullPath().c_str());
             }
 
             // search for missing media file in the show directory one folder deep
@@ -445,6 +449,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
                     }
                     fcont = audDirectory.GetNext(&audFile);
                 }
+                logger_base.debug("    Still did not exist, attepting to map to: '%s'", (const char*)media_file.GetFullPath().c_str());
             }
         }
 
@@ -459,6 +464,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
         }
 
         if (CurrentSeqXmlFile->WasConverted()) {
+            logger_base.debug("Loaded Sequence was Converted, need to check settings");
             // abort any in progress render ... as it may be using any already open media
             bool aborted = false;
             if (CurrentSeqXmlFile->GetMedia() != nullptr) {
@@ -481,6 +487,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
 
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = atoi(mss.c_str());
+        logger_base.debug("Sequence Timing: %d", ms);
         bool loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
 
         unsigned int numChan = GetMaxNumChannels();
@@ -491,6 +498,9 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
         if (memRequired > (GetPhysicalMemorySizeMB() - 1024) && (_promptBatchRenderIssues || (!_renderMode && !_checkSequenceMode))) {
             DisplayWarning(wxString::Format("The setup requires a large amount of memory (%lu MB) which could result in performance issues.", (unsigned long)memRequired), this);
         }
+
+        logger_base.debug("Sequence Num Channels: %d or %d", numChan, _seqData.NumChannels());
+        logger_base.debug("Sequence Num Frames: %d", (int)(CurrentSeqXmlFile->GetSequenceDurationMS() / ms));
 
         if ((numChan > _seqData.NumChannels()) ||
             (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames()) {
@@ -510,6 +520,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
             _seqData.init(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
 
+        logger_base.debug("Initializeing Display Elements");
         displayElementsPanel->Initialize();
 
         // if we loaded the fseq but not the xml then we need to populate views
@@ -521,6 +532,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
             displayElementsPanel->SelectView("Master View");
         }
 
+        logger_base.debug("Starting timers");
         StartOutputTimer();
         if (loaded_fseq) {
             GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleLayoutKey::OpenSequence");
