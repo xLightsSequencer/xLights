@@ -11,6 +11,21 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.10 June 30, 2023
+   -- enh (dkulp)   Add node number under mouse cursor to lower right corner of SubModelDialog
+   -- enh (scott)   Add zero layer size for circle model (for center pixel)
+   -- enh (keith)   Enable ESC to close visualizer
+   -- enh (merryoncherry) "Batch Render" enhancements to disable various warnings, modal dialogs, etc...
+   -- enh (keith)   Allow ovverride of Twinkly http port
+   -- enh (MartinMueller) Add full set of ESPv4 variants
+   -- enh (scott)   Add HinksPix Pro 80 support
+   -- enh (dkulp)   Enable HTTP/2 for FPP Connect and Discovery
+   -- bug (merryoncherry) Fix issues with bulk edit of effects
+   -- bug (dkulp)   Fix crashes when selecting Vendor/Model/Variant using keyboard
+   -- bug (dkulp)   Fix FPP Connect if there is a powered on Falcon v4 controller on the network
+   -- bug (dkulp)   Fix square pixel type on Windows
+   -- bug (scott)   Serial port configuration fixes
+   -- bug (dkulp)   Fix animated GIFs not working properly
 2023.09 June 3, 2023
    -- enh (scott)   Add CSV Submodel import
    -- enh (merryoncherry) Single strand chase offset and static modes
