@@ -86,6 +86,7 @@ const long SubModelsDialog::ID_NOTEBOOK1 = wxNewId();
 const long SubModelsDialog::ID_PANEL5 = wxNewId();
 const long SubModelsDialog::ID_PANEL1 = wxNewId();
 const long SubModelsDialog::ID_SPLITTERWINDOW1 = wxNewId();
+const long SubModelsDialog::ID_STATICTEXT3 = wxNewId();
 //*)
 const long SubModelsDialog::ID_TIMER1 = wxNewId();
 
@@ -180,6 +181,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
 	//(*Initialize(SubModelsDialog)
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -234,11 +236,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
 	FlexGridSizer10->Add(Button_Export, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Panel2->SetSizer(FlexGridSizer9);
-	FlexGridSizer9->Fit(Panel2);
-	FlexGridSizer9->SetSizeHints(Panel2);
 	FlexGridSizer2->Add(Panel2, 0, wxEXPAND, 0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinimumPaneSize(100);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel3 = new wxPanel(SplitterWindow1, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -304,38 +303,35 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
 	FlexGridSizer5->Add(Button_Draw_Model, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 0);
 	Panel1->SetSizer(FlexGridSizer4);
-	FlexGridSizer4->Fit(Panel1);
-	FlexGridSizer4->SetSizeHints(Panel1);
 	SubBufferPanelHolder = new wxPanel(TypeNotebook, ID_PANEL3, wxPoint(90,10), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	SubBufferSizer = new wxFlexGridSizer(1, 1, 0, 0);
 	SubBufferSizer->AddGrowableCol(0);
 	SubBufferSizer->AddGrowableRow(0);
 	SubBufferPanelHolder->SetSizer(SubBufferSizer);
-	SubBufferSizer->Fit(SubBufferPanelHolder);
-	SubBufferSizer->SetSizeHints(SubBufferPanelHolder);
 	TypeNotebook->AddPage(Panel1, _("Node Ranges"), false);
 	TypeNotebook->AddPage(SubBufferPanelHolder, _("SubBuffer"), false);
 	FlexGridSizer3->Add(TypeNotebook, 1, wxALL|wxEXPAND, 0);
 	Panel3->SetSizer(FlexGridSizer3);
-	FlexGridSizer3->Fit(Panel3);
-	FlexGridSizer3->SetSizeHints(Panel3);
 	ModelPreviewPanelLocation = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	ModelPreviewPanelLocation->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(100,100)));
 	PreviewSizer = new wxFlexGridSizer(1, 1, 0, 0);
 	PreviewSizer->AddGrowableCol(0);
 	PreviewSizer->AddGrowableRow(0);
 	ModelPreviewPanelLocation->SetSizer(PreviewSizer);
-	PreviewSizer->Fit(ModelPreviewPanelLocation);
-	PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
 	SplitterWindow1->SplitVertically(Panel3, ModelPreviewPanelLocation);
 	FlexGridSizer2->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer11->AddGrowableCol(1);
+	FlexGridSizer11->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
 	StdDialogButtonSizer1->Realize();
-	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SetSizer(FlexGridSizer1);
+	FlexGridSizer11->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	NodeNumberText = new wxStaticText(this, ID_STATICTEXT3, wxEmptyString, wxDefaultPosition, wxDLG_UNIT(this,wxSize(50,-1)), 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer11->Add(NodeNumberText, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	Layout();
 	Center();
@@ -3023,6 +3019,11 @@ void SubModelsDialog::OnPreviewMouseMove(wxMouseEvent& event)
         m_bound_end_y = ray_origin.y;
         RenderModel();
     }
+    wxString tt = modelPreview->GetToolTipText();
+    if (tt != "") {
+        tt = "Node: " + tt;
+    }
+    NodeNumberText->SetLabel(tt);
 }
 
 void SubModelsDialog::RenderModel()

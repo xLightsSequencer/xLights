@@ -171,6 +171,7 @@ public:
     wxPanel* SubBufferPanelHolder;
     wxSearchCtrl* SearchCtrl1;
     wxSplitterWindow* SplitterWindow1;
+    wxStaticText* NodeNumberText;
     wxStaticText* StaticText1;
     wxStaticText* StaticText2;
     wxStaticText* StaticTextName;
@@ -212,6 +213,7 @@ protected:
     static const long ID_PANEL5;
     static const long ID_PANEL1;
     static const long ID_SPLITTERWINDOW1;
+    static const long ID_STATICTEXT3;
     //*)
     static const long ID_TIMER1;
 
