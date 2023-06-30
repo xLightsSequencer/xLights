@@ -1214,12 +1214,8 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexAccumu
         return this;
     }
     int caps = enableCapabilities;
-    if (isBlending) {
-        if (type == GL_POINTS) {
-            caps = GL_POINT_SMOOTH;
-        } else if (type == GL_LINES || type == GL_LINE_STRIP) {
-            caps = GL_LINE_SMOOTH;
-        }
+    if (isBlending && (type == GL_LINES || type == GL_LINE_STRIP)) {
+        caps = GL_LINE_SMOOTH;
     }
     int c = count;
     if (c < 0) {
@@ -1275,7 +1271,13 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawTriangleStrip(xlVertexColorAccumul
 }
 xlGraphicsContext* xlOGL3GraphicsContext::drawPoints(xlVertexColorAccumulator *vac, float pointSize, bool smoothPoints, int start, int count) {
     LOG_GL_ERRORV(glPointSize(pointSize));
-    return drawPrimitive(GL_POINTS, vac, start, count);
+    int c1 = enableCapabilities;
+    if (smoothPoints && c1 != GL_POINT_SMOOTH) {
+        enableCapabilities = GL_POINT_SMOOTH;
+    }
+    drawPrimitive(GL_POINTS, vac, start, count);
+    enableCapabilities = c1;
+    return this;
 }
 
 xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexColorAccumulator *vac, int start, int count) {
@@ -1304,12 +1306,8 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexColorA
     v->SetBufferBytes(bid, cid);
 
     int caps = enableCapabilities;
-    if (isBlending) {
-        if (type == GL_POINTS) {
-            caps = GL_POINT_SMOOTH;
-        } else if (type == GL_LINES || type == GL_LINE_STRIP) {
-            caps = GL_LINE_SMOOTH;
-        }
+    if (isBlending && (type == GL_LINES || type == GL_LINE_STRIP)) {
+        caps = GL_LINE_SMOOTH;
     }
 
     float ps = 2.0;
