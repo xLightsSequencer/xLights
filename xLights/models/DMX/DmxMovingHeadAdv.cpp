@@ -160,9 +160,9 @@ protected:
 
 static wxPGChoices MOTION_LINKS;
 
-void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     wxPGProperty* p = grid->Append(new ServoPopupDialogProperty(this, "Servo Config", "ServoConfig", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
@@ -859,7 +859,7 @@ void DmxMovingHeadAdv::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights
             (*it)->Serialise(root, ModelXml, show_dir);
         }
 
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHeadAdv::ImportXlightsModel");
